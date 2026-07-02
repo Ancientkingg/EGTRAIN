@@ -1,0 +1,6 @@
+@REG_Cremona_Mi.P.Garibaldi_27@
+@Reverse@
+4 9.9 27.43
+12 27.620 32.69 
+16 32.720 38.176
+

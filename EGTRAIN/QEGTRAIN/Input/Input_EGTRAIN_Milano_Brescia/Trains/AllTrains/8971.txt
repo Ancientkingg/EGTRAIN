@@ -1,0 +1,7 @@
+8971
+2523
+99999999
+3
+/TrainData/ETR_675.txt
+/TrainData/T_ETR_675.txt
+/TimeTable/8971.txt

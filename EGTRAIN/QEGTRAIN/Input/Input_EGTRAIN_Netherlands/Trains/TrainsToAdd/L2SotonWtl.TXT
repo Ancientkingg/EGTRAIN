@@ -1,0 +1,7 @@
+L2_Soton-Wtl
+2037
+3600
+15
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/L2Soton-Wtl.txt

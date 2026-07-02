@@ -1,0 +1,14 @@
+trip_id,person_id, origin,destination,departure_time,TT_train,TT_waiting,TT_walking,Nb_transfers,Transfer_N1,Transfer_N2,r_service_lines_id1,r_service_lines_id2,r_service_lines_id3;;;;;;;;;
+47,23,Guingamp,Paimpol,07:08,47,26,4,1,Pontrieaux,0,Guin-Paim_EXPRESS-1-1,Guin-Paim-ALL-STOPS-1-1,Null;;;;;;;;;
+87,43,Guingamp,Lancerf,07:08,40,18,8,0,0,0,Guin-Paim-ALL-STOPS-1-1,Null,Null;;;;;;;;;
+31,15,Guingamp,Paimpol,07:10,47,26,8,1,Pontrieaux,0,Guin-Paim_EXPRESS-1-1,Guin-Paim-ALL-STOPS-1-1,Null;;;;;;;;;
+3,1,Guingamp,Brelidy Plouec,07:32,17,3,3,0,0,0,Guin-Paim-ALL-STOPS-1-1,Null,Null;;;;;;;;;
+13,6,Guingamp,Lancerf,07:32,40,2,20,0,0,0,Guin-Paim-ALL-STOPS-1-1,Null,Null;;;;;;;;;
+23,11,Guingamp,Brelidy Plouec,07:33,17,4,20,0,0,0,Guin-Paim-ALL-STOPS-1-1,Null,Null;;;;;;;;;
+183,91,Paimpol,Pontrieaux,07:33,19,1,11,0,0,0,Paim-Guin-ALL-STOPS-2-1,Null,Null;;;;;;;;;
+103,51,Guingamp,Pontrieaux,07:34,26,6,5,0,0,0,Guin-Paim_EXPRESS-1-1,Null,Null;;;;;;;;;
+161,80,Paimpol,Pontrieaux halte,07:36,22,6,4,0,0,0,Paim-Guin-EXPRESS-2-1,Null,Null;;;;;;;;;
+107,53,Guingamp,Traou Nez,07:40,37,18,7,2,Pontrieaux,Pontrieaux halte,Guin-Paim-EXPRESS-1-2,Guin-Paim-ALL-STOPS-1-1,Guin-Paim-ALL-STOPS-1-1;;;;;;;;;
+;;;;;;;;;
+;;;;;;;;;
+;;;;;;;;;

@@ -1,0 +1,7 @@
+61625
+3197
+99999999
+8
+/TrainData/MRI_E483_500_75_100_A.txt
+/TrainData/T_MRI_E483_500_75_100_A.txt
+/TimeTable/61625.txt

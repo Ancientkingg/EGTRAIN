@@ -1,0 +1,7 @@
+50343
+5220
+99999999
+5
+/TrainData/MRS_E655_1100_80_100_A.txt
+/TrainData/T_MRS_E655_1100_80_100_A.txt
+/TimeTable/50343.txt

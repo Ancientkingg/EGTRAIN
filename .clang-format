@@ -1,0 +1,50 @@
+# EGTRAIN code style.
+#
+# Derived from the existing codebase conventions (sampled across
+# Infrastructure.cpp, Signalling.cpp, RollingStock.cpp, etc.):
+#   - Tab-indentation (the dominant convention: ~95% of indented lines)
+#   - Braces on the same line as the function/control statement (K&R-ish)
+#   - C++17, Qt5 widgets/graphics-view code
+#
+# pugixml.{cpp,hpp} is a vendored third-party library and is excluded
+# via .clang-format-ignore — do not reformat it.
+
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++17
+
+UseTab: Always
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+
+ColumnLimit: 0
+
+BreakBeforeBraces: Attach
+Cpp11BracedListStyle: true
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: false
+
+IndentCaseLabels: true
+NamespaceIndentation: None
+
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpaceAfterCStyleCast: false
+
+SortIncludes: false
+IncludeBlocks: Preserve
+
+AccessModifierOffset: -4
+ConstructorInitializerIndentWidth: 4

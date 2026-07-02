@@ -1,0 +1,7 @@
+H-Osterport-Ballerup
+100
+1200
+5
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/H_Osterport_Ballerup.txt

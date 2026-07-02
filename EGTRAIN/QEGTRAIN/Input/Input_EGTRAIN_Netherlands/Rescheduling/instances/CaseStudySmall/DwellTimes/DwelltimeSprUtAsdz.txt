@@ -1,0 +1,13 @@
+Ut,{TrivialDistribution, 60.000000}
+Uto,{TrivialDistribution, 42.000000}
+Hor,{TrivialDistribution, 42.000000}
+Hvsp,{TrivialDistribution, 42.000000}
+Hvs,{TrivialDistribution, 60.000000}
+Hvsm,{TrivialDistribution, 42.000000}
+Bsmz,{TrivialDistribution, 42.000000}
+Ndb,{TrivialDistribution, 42.000000}
+Wp,{TrivialDistribution, 60.000000}
+Dmnz,{TrivialDistribution, 42.000000}
+virtualDvdLink,{TrivialDistribution, 42.000000}
+Rai,{TrivialDistribution, 42.000000}
+Asdz,{TrivialDistribution, 60.000000}

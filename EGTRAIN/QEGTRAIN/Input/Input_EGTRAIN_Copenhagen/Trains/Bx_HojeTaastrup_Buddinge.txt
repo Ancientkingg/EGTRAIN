@@ -1,0 +1,7 @@
+Bx-HojeTaastrup-Buddinge
+940
+1200
+22
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/Bx_HojeTaastrup_Buddinge.txt

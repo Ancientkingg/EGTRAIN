@@ -1,0 +1,7 @@
+@REG_Cremona_MilanoCertosa(MilanoP.Garib_10458)_38@
+@Reverse@
+1 9.9 13.06
+2 13.14 13.14
+4 13.22 27.43
+12 27.620 32.69 
+16 32.720 38.176

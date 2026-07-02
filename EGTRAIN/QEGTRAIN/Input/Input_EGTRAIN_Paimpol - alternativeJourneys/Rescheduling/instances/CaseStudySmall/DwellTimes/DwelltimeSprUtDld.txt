@@ -1,0 +1,4 @@
+Ut,{TrivialDistribution, 60.000000}
+Uto,{TrivialDistribution, 42.000000}
+Bhv,{TrivialDistribution, 42.000000}
+Dld,{TrivialDistribution, 60.000000}

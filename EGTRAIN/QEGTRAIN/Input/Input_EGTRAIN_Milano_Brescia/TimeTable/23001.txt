@@ -1,0 +1,5 @@
+Segrate	30	-840	-780
+PioltelloLim.	30	-600	-540
+Vignate	30	-300	-240
+Melzo	30	-60	0
+Treviglio	30	1200	-1

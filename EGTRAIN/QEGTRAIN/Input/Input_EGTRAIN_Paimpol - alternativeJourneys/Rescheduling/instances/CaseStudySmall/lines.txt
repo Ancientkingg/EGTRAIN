@@ -1,0 +1,15 @@
+Ut,Hvs,0,2,true,977,981,SPR
+Hvs,Brn,1,2,false,325,332,SPR
+Ut,Dld,2,2,true,722,701,SPR
+Ut,Brn,3,2,false,1591,1581,SPR
+Ut,Uto,4,2,false,176,182,SPR
+Brn,Asd,5,2,true,2301,2355,SPR
+Hvs,Asd,6,2,true,1400,1405,IC
+Asd,Alm,7,2,true,1837,1770,SPR
+Asd,Alm,8,2,true,1438,1424,IC
+Alm,Asdz,9,2,true,1545,1532,IC
+Ut,Asd,10,2,false,2362,2372,SPR
+Ut,Asd,11,2,true,1643,1652,IC
+Ut,Asdz,12,2,true,1214,1220,IC
+Hvs,Asdz,13,2,true,1452,1440,IC
+Asdz,Ut,14,2,true,2947,2918,SPR

@@ -1,0 +1,7 @@
+K_PtsmEast-Wtl
+1783
+1800
+13
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/PtsmEast-Wtl.txt

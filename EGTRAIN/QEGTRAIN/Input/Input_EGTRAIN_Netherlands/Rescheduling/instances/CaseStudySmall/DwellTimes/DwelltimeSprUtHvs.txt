@@ -1,0 +1,5 @@
+Ut,{TrivialDistribution, 60.000000}
+Uto,{TrivialDistribution, 42.000000}
+Hor,{TrivialDistribution, 42.000000}
+Hvsp,{TrivialDistribution, 42.000000}
+Hvs,{TrivialDistribution, 60.000000}

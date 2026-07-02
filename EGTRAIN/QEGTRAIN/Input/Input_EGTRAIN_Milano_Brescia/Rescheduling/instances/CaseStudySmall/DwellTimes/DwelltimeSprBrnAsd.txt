@@ -1,0 +1,10 @@
+Brn,{TrivialDistribution, 42.000000}
+Hvs,{TrivialDistribution, 60.000000}
+Hvsm,{TrivialDistribution, 42.000000}
+Bsmz,{TrivialDistribution, 42.000000}
+Ndb,{TrivialDistribution, 42.000000}
+Wp,{TrivialDistribution, 60.000000}
+Dmn,{TrivialDistribution, 42.000000}
+Assp,{TrivialDistribution, 42.000000}
+Asdm,{TrivialDistribution, 42.000000}
+Asd,{TrivialDistribution, 60.000000}

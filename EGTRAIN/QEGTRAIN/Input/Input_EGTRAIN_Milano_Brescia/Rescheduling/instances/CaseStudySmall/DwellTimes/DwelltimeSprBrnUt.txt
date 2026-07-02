@@ -1,0 +1,8 @@
+Brn,{TrivialDistribution, 60.000000}
+Sd,{TrivialDistribution, 42.000000}
+St,{TrivialDistribution, 60.000000}
+Stz,{TrivialDistribution, 42.000000}
+Dld,{TrivialDistribution, 60.000000}
+Bhv,{TrivialDistribution, 42.000000}
+Uto,{TrivialDistribution, 42.000000}
+Ut,{TrivialDistribution, 60.000000}

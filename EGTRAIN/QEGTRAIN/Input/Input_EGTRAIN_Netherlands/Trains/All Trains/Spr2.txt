@@ -1,0 +1,7 @@
+SPR_2
+100
+1800
+1
+Input_EGTRAIN/TrainData/SLT06.txt
+Input_EGTRAIN/TrainData/T455_04.txt
+Input_EGTRAIN/TimeTable/SprHvsUt.txt

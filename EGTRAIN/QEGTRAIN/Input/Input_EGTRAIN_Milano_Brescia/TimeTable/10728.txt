@@ -1,0 +1,9 @@
+OspitalettoT.	30	32100	32160
+Rovato	30	32460	32520
+Chiari	30	32760	32820
+Calcio	30	33120	33180
+Romano	30	33480	33540
+Morengo Bariano	30	33780	33840
+Vidalengo	30	34080	34140
+Treviglio	30	34380	34500
+PioltelloLim.	30	35280	35340

@@ -1,0 +1,4 @@
+Station	DwellTime		depTimeString, arrTimeString
+Paimpol	75	-1	-1
+Pontrieaux	75	-1	10
+		

@@ -1,0 +1,5 @@
+Treviglio	30	-1	7800
+Melzo	30	8880	8940
+Vignate	30	9120	9180
+PioltelloLim.	30	9420	9480
+Segrate	30	9660	9720

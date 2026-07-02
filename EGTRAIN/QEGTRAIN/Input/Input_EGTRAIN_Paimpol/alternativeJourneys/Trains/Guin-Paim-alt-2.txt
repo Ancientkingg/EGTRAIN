@@ -1,0 +1,7 @@
+Guin-Paim-alt-1
+10
+9999
+1
+/TrainData/Draisy.txt
+/TrainData/Draisy-traction.txt
+/TimeTable/Guin-Paim-ALL-STOPS-1.txt

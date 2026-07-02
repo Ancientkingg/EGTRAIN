@@ -1,0 +1,7 @@
+S_Poole-Brton
+3180
+900
+18
+Input_EGTRAIN/TrainData/Class450_8.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/Poole-Brton.txt

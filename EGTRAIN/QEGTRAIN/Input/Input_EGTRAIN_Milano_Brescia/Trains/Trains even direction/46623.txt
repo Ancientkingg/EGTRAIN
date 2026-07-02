@@ -1,0 +1,7 @@
+46623
+240
+99999999
+9
+/TrainData/MRI_E483_500_75_100_A.txt
+/TrainData/T_MRI_E483_500_75_100_A.txt
+/TimeTable/46623.txt

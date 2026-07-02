@@ -1,0 +1,7 @@
+Guin-Paim-ALL-STOPS-1
+1550
+9999
+2
+Input/Input_EGTRAIN_Paimpol/TrainData/Draisy.txt
+Input/Input_EGTRAIN_Paimpol/TrainData/Draisy-traction.txt
+Input/Input_EGTRAIN_Paimpol/TimeTable/Guin-Paim-ALL-STOPS-1.txt

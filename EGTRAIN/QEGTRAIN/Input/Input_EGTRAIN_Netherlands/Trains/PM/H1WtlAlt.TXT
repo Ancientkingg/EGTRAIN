@@ -1,0 +1,7 @@
+H1_Wtl-Alt
+1148
+1800
+30
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/Wtl-Alt.txt

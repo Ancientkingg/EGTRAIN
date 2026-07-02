@@ -1,0 +1,7 @@
+2603
+999
+3600
+19
+/TrainData/REG_E464_np_225_120_160_B.txt
+/TrainData/T_REG_E464_np_225_120_160_B.txt
+/TimeTable/2603.txt
