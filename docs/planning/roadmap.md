@@ -79,9 +79,14 @@ Missing work:
 - Add visual smoke test to CI where the runner supports it.
 - Upload failure logs and screenshots as workflow artifacts.
 - Add repository hygiene checks for generated files, backup files, and internal notes.
-- Build a short-lived macOS app artifact on `main`.
+- Add a release matrix for Windows, macOS, and Linux.
+- Build short-lived artifacts on `main`.
 - Add tagged release workflow for `v*` tags.
-- Add Windows build workflow after the CMake path is stable.
+- Package Windows releases as a portable zip first.
+- Package macOS releases as a zipped `.app` first.
+- Package Linux releases as an AppImage or portable archive first.
+- Attach all three platform packages to GitHub Releases.
+- Document a release testing checklist.
 
 ## P1: Student Workflow UI
 

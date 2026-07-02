@@ -80,53 +80,56 @@
 27. Add visual smoke test to CI
 28. Upload failure logs and screenshots
 29. Add repository hygiene workflow
-30. Add macOS app artifact build
-31. Add tagged release workflow
-32. Add Windows build workflow
+30. Add cross-platform release matrix
+31. Package Windows release artifact
+32. Package macOS release artifact
+33. Package Linux release artifact
+34. Attach release artifacts to tagged GitHub releases
+35. Document release testing checklist
 
 ### Student Workflow UI
 
-33. Add per-service performance controls
-34. Add repeated-service creation
-35. Add timetable rounding support
-36. Add overtaking workflow
-37. Keep info pane read-only outside edit mode
+36. Add per-service performance controls
+37. Add repeated-service creation
+38. Add timetable rounding support
+39. Add overtaking workflow
+40. Keep info pane read-only outside edit mode
 
 ### Diagrams And Exports
 
-38. Add train filtering in diagrams
-39. Add hover readouts
-40. Add timetable graph and table toggle
-41. Add diagram export
-42. Add table export
-43. Add blocking-time timetable overlay
-44. Add speed-time diagram
-45. Add single-train time-distance diagram
+41. Add train filtering in diagrams
+42. Add hover readouts
+43. Add timetable graph and table toggle
+44. Add diagram export
+45. Add table export
+46. Add blocking-time timetable overlay
+47. Add speed-time diagram
+48. Add single-train time-distance diagram
 
 ### Capacity And Disruptions
 
-46. Add minimum headway workflow
-47. Add timetable compression workflow
-48. Add critical-block highlighting
-49. Add buffer-time calculation
-50. Add capacity percentage output
-51. Add signal failure editor
-52. Add train breakdown editor
-53. Add delay summary output
+49. Add minimum headway workflow
+50. Add timetable compression workflow
+51. Add critical-block highlighting
+52. Add buffer-time calculation
+53. Add capacity percentage output
+54. Add signal failure editor
+55. Add train breakdown editor
+56. Add delay summary output
 
 ### Full Infrastructure Editor
 
-54. Add infrastructure edit mode
-55. Add node and arc editing
-56. Add track and switch editing
-57. Add station and platform editing
-58. Add signal and block editing
-59. Add topology validation
+57. Add infrastructure edit mode
+58. Add node and arc editing
+59. Add track and switch editing
+60. Add station and platform editing
+61. Add signal and block editing
+62. Add topology validation
 
 ### Memory And Performance
 
-60. Add memory ownership inventory
-61. Replace oversized `BlockSet` storage
-62. Replace oversized signalling section storage
-63. Add memory measurement script
-64. Profile GUI and simulation playback
+63. Add memory ownership inventory
+64. Replace oversized `BlockSet` storage
+65. Replace oversized signalling section storage
+66. Add memory measurement script
+67. Profile GUI and simulation playback
