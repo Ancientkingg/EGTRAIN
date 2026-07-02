@@ -17,17 +17,13 @@ Full infrastructure editing is not part of V1. It stays on the roadmap after the
 - Console logging moved into an in-app log pane.
 - Headless smoke tests for Copenhagen and Brescia.
 - Visual smoke test for the main UI.
+- GitHub Actions build and unit-test workflow.
 
 ## P0: Repository Setup
 
 Goal: make the repository buildable, testable, and clean from a fresh clone.
 
-Missing work:
-
-- Keep case-study inputs needed by tests.
-- Exclude runtime output, backup files, and generated snapshots.
-- Keep build, test, and planning docs current.
-- Keep GitHub labels, milestones, and issue templates in sync with the roadmap.
+Status: done.
 
 ## P0: Scene Model And Converter
 
@@ -71,6 +67,21 @@ Missing work:
 - Add base timetable and disruption scenarios.
 - Add an assignment smoke test.
 - Check the workflow from a student perspective.
+
+## P1: CI/CD Pipeline
+
+Goal: make pull requests and release candidates prove that the application builds, runs, and keeps its generated files out of git.
+
+Missing work:
+
+- Run unit tests on every pull request and push to `main`.
+- Add headless smoke tests to CI.
+- Add visual smoke test to CI where the runner supports it.
+- Upload failure logs and screenshots as workflow artifacts.
+- Add repository hygiene checks for generated files, backup files, and internal notes.
+- Build a short-lived macOS app artifact on `main`.
+- Add tagged release workflow for `v*` tags.
+- Add Windows build workflow after the CMake path is stable.
 
 ## P1: Student Workflow UI
 
