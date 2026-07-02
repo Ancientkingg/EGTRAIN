@@ -6,11 +6,12 @@
 2. Scene model and converter
 3. MVP scene editor
 4. Assignment case study
-5. Student workflow UI
-6. Diagrams and exports
-7. Capacity and disruptions
-8. Full infrastructure editor
-9. Memory and performance
+5. CI/CD pipeline
+6. Student workflow UI
+7. Diagrams and exports
+8. Capacity and disruptions
+9. Full infrastructure editor
+10. Memory and performance
 
 ## Labels
 
@@ -24,6 +25,7 @@
 - `area: converter`
 - `area: editor`
 - `area: assignment`
+- `area: ci`
 - `area: ui`
 - `area: diagrams`
 - `area: capacity`
@@ -40,7 +42,7 @@
 1. Clean repository layout
 2. Add build and test documentation
 3. Add issue templates
-4. Add workflow roadmap docs
+4. Add workflow and roadmap docs
 5. Add CI build and test workflow
 
 ### Scene Model And Converter
@@ -72,46 +74,59 @@
 24. Add assignment timetable data
 25. Add assignment smoke test
 
+### CI/CD Pipeline
+
+26. Expand CI to run headless smoke tests
+27. Add visual smoke test to CI
+28. Upload failure logs and screenshots
+29. Add repository hygiene workflow
+30. Add macOS app artifact build
+31. Add tagged release workflow
+32. Add Windows build workflow
+
 ### Student Workflow UI
 
-26. Add per-service performance controls
-27. Add repeated-service creation
-28. Add timetable rounding support
-29. Add overtaking workflow
-30. Keep info pane read-only outside edit mode
+33. Add per-service performance controls
+34. Add repeated-service creation
+35. Add timetable rounding support
+36. Add overtaking workflow
+37. Keep info pane read-only outside edit mode
 
 ### Diagrams And Exports
 
-31. Add train filtering in diagrams
-32. Add hover readouts
-33. Add timetable graph and table toggle
-34. Add diagram export
-35. Add table export
-36. Add blocking-time timetable overlay
-37. Add speed-time diagram
-38. Add single-train time-distance diagram
+38. Add train filtering in diagrams
+39. Add hover readouts
+40. Add timetable graph and table toggle
+41. Add diagram export
+42. Add table export
+43. Add blocking-time timetable overlay
+44. Add speed-time diagram
+45. Add single-train time-distance diagram
 
 ### Capacity And Disruptions
 
-39. Add minimum headway workflow
-40. Add critical-block highlighting
-41. Add signal failure editor
-42. Add train breakdown editor
-43. Add delay summary output
+46. Add minimum headway workflow
+47. Add timetable compression workflow
+48. Add critical-block highlighting
+49. Add buffer-time calculation
+50. Add capacity percentage output
+51. Add signal failure editor
+52. Add train breakdown editor
+53. Add delay summary output
 
 ### Full Infrastructure Editor
 
-44. Add infrastructure edit mode
-45. Add node and arc editing
-46. Add track and switch editing
-47. Add station and platform editing
-48. Add signal and block editing
-49. Add topology validation
+54. Add infrastructure edit mode
+55. Add node and arc editing
+56. Add track and switch editing
+57. Add station and platform editing
+58. Add signal and block editing
+59. Add topology validation
 
 ### Memory And Performance
 
-50. Add memory ownership inventory
-51. Replace oversized `BlockSet` storage
-52. Replace oversized signalling section storage
-53. Add memory measurement script
-54. Profile GUI and simulation playback
+60. Add memory ownership inventory
+61. Replace oversized `BlockSet` storage
+62. Replace oversized signalling section storage
+63. Add memory measurement script
+64. Profile GUI and simulation playback

@@ -10,11 +10,12 @@ Use two-week sprints. Each sprint should end with a working demo, test output, a
 2. Scene model and converter
 3. MVP scene editor
 4. Assignment case study
-5. Student workflow UI
-6. Diagrams and exports
-7. Capacity and disruptions
-8. Full infrastructure editor
-9. Memory and performance
+5. CI/CD pipeline
+6. Student workflow UI
+7. Diagrams and exports
+8. Capacity and disruptions
+9. Full infrastructure editor
+10. Memory and performance
 
 ## Issue Types
 
@@ -37,8 +38,8 @@ For each sprint:
 
 1. Pick one milestone focus.
 2. Pull only issues that have acceptance criteria.
-3. Keep one verification issue in the sprint when the work affects simulation, input, or UI behavior.
-4. End with a demo using a real case-study scene.
+3. Keep one verification issue in the sprint when the work affects simulation, input, UI behavior, or CI.
+4. End with a demo using a real case-study scene or a passing workflow run.
 
 ## Definition Of Ready
 
@@ -96,4 +97,11 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 tools/e2e/headless_smoke.py
 tools/e2e/visual_polish_smoke.sh
+```
+
+For CI/CD changes:
+
+```bash
+gh workflow run CMake
+gh run watch
 ```
