@@ -1,0 +1,7 @@
+N_Poole-Soton
+2418
+1800
+16
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/Poole-Soton.txt

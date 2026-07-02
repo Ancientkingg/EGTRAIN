@@ -1,0 +1,7 @@
+41015
+120
+99999999
+4
+/TrainData/MRV_E655_600_75_100_A.txt
+/TrainData/T_MRV_E655_600_75_100_A.txt
+/TimeTable/41015.txt

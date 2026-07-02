@@ -1,0 +1,7 @@
+TRAIN_Spr2
+500
+1800
+1
+/TrainData/ETR_425.txt
+/TrainData/T_ETR_425.txt
+/TimeTable/SegrateRovato.txt

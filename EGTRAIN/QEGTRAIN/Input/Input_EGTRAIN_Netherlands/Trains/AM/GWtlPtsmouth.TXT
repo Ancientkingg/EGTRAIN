@@ -1,0 +1,7 @@
+G_Wtl-Ptsmouth
+1021
+1800
+28
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/GWtl-Ptsmouth.txt

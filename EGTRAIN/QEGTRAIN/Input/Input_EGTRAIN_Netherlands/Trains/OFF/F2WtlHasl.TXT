@@ -1,0 +1,7 @@
+F2_Wtl-Hasl
+894
+1800
+26
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/Wtl-Hasl.txt

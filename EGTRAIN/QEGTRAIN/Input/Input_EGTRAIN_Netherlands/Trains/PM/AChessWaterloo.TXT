@@ -1,0 +1,7 @@
+A_Chess-Watloo
+5
+450
+0
+Input_EGTRAIN/TrainData/Class455_8.txt
+Input_EGTRAIN/TrainData/T455_04.txt
+Input_EGTRAIN/TimeTable/Chess-Waterloo.txt

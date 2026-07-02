@@ -1,0 +1,5 @@
+@REG_Brescia(Verona)_MilanoCentrale(Mi.Greco)_31@
+@Reverse@
+4 9.9 27.43	
+12 27.620 33.48	
+14 33.560 78.752

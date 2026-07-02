@@ -1,0 +1,3 @@
+Paimpol	30	-1	498
+Pontrieaux	60	1570	1630
+Guingamp	60	3097	-1

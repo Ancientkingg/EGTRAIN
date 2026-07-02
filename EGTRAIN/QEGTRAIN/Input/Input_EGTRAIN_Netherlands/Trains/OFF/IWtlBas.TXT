@@ -1,0 +1,7 @@
+I_Wtl-Bas
+1402
+1800
+31
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/Wtl-Bas.txt

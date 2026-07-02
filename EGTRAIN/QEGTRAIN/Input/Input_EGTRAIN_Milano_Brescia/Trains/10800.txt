@@ -1,0 +1,7 @@
+10800
+2923
+99999999
+34
+/TrainData/REG_E464_np_270_120_140_B.txt
+/TrainData/T_REG_E464_np_270_120_140_B.txt
+/TimeTable/10800.txt

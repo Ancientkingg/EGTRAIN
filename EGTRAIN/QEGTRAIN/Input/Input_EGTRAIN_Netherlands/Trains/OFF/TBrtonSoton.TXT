@@ -1,0 +1,7 @@
+T_Brton-Soton
+3307
+1800
+39
+Input_EGTRAIN/TrainData/Class159_6.txt
+Input_EGTRAIN/TrainData/T159_03.txt
+Input_EGTRAIN/TimeTable/Brton-Soton.txt

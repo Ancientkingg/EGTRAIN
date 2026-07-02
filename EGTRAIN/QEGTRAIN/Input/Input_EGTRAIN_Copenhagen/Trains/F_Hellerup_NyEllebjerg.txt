@@ -1,0 +1,7 @@
+F-Hellerup-NyEllebjerg
+40
+600
+20
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/F_Hellerup_NyEllebjerg.txt

@@ -1,0 +1,9 @@
+PioltelloLim.	30	4140	4200
+Treviglio	30	5040	5160
+Vidalengo	30	5340	5400
+Morengo Bariano	30	5640	5700
+Romano	30	5940	6000
+Calcio	30	6300	6360
+Chiari	30	6660	6720
+Rovato	30	7020	7080
+OspitalettoT.	30	7380	7440

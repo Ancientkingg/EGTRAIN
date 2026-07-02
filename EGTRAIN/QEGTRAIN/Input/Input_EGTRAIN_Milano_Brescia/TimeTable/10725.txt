@@ -1,0 +1,9 @@
+PioltelloLim.	30	40140	40200
+Treviglio	30	41040	41160
+Vidalengo	30	41340	41400
+Morengo Bariano	30	41640	41700
+Romano	30	41940	42000
+Calcio	30	42300	42360
+Chiari	30	42660	42720
+Rovato	30	43020	43080
+OspitalettoT.	30	43380	43440

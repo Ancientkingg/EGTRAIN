@@ -1,0 +1,7 @@
+2054
+1815
+99999999
+31
+/TrainData/REG_E464_np_225_120_160_B.txt
+/TrainData/T_REG_E464_np_225_120_160_B.txt
+/TimeTable/2054.txt

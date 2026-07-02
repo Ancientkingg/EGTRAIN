@@ -1,0 +1,7 @@
+9707
+10398
+99999999
+1
+/TrainData/ETR_1000.txt
+/TrainData/T_ETR_1000.txt
+/TimeTable/9710-9711.txt

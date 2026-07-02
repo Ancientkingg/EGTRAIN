@@ -1,0 +1,7 @@
+E_Wtl-Guild
+640
+3600
+27
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/EWtl-Guild.txt

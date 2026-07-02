@@ -1,0 +1,7 @@
+46625
+3450
+99999999
+5
+/TrainData/MRI_E483_500_75_100_A.txt
+/TrainData/T_MRI_E483_500_75_100_A.txt
+/TimeTable/46625.txt

@@ -1,0 +1,7 @@
+9703-9704
+3198
+99999999
+1
+/TrainData/ETR_1000.txt
+/TrainData/T_ETR_1000.txt
+/TimeTable/9703-9704.txt

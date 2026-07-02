@@ -1,0 +1,7 @@
+Guin-Paim-ALL-STOPS-3
+5150
+9999
+2
+/TrainData/Draisy.txt
+/TrainData/Draisy-traction.txt
+/TimeTable/Guin-Paim-ALL-STOPS-3.txt

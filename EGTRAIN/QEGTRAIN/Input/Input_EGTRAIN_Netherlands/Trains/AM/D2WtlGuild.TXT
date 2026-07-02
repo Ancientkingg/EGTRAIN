@@ -1,0 +1,7 @@
+D2_Wtl-Guild
+513
+1800
+23
+Input_EGTRAIN/TrainData/Class455_8.txt
+Input_EGTRAIN/TrainData/T455_04.txt
+Input_EGTRAIN/TimeTable/D2Wtl-Guild.txt

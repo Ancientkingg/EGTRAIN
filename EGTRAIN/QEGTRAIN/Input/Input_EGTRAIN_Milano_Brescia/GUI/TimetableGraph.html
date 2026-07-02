@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>EGTRAIN - Timetable</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<head>
+	<!-- Load plotly.js into the DOM -->
+	<script src='https://cdn.plot.ly/plotly-2.16.1.min.js'></script>
+</head>
+
+<body>
+	<div id='myDiv'></div>
+</body>
+<!-- partial -->
+  <script>
+  
+  
+  
+
+var data = [ 
+%HERE%
+						];
+
+var layout = {
+  title: 'Timetable',
+  height: 650,
+  showlegend: false,
+  hovermode: "closest",
+  yaxis:{
+    title:"Station",
+    tickmode: "array",
+
+%stationData%
+        
+},
+  xaxis:{type:"date",
+        tickformat: "%H:%M:%S",
+        title:'Time',
+        titlefont:{
+            family:'Arial, sans-serif',
+            size:18,
+            color:'lightgrey'
+            }
+        }
+    
+};
+
+Plotly.newPlot('myDiv', data, layout);
+</script>
+
+</body>
+</html>

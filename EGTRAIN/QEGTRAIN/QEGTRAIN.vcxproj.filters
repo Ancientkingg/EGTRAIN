@@ -1,0 +1,268 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>moc;h;cpp</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Header Files\qtGUIheaders">
+      <UniqueIdentifier>{af78cf8d-de78-4124-832e-215e505c3def}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\qtGUIfiles">
+      <UniqueIdentifier>{24fd4cff-7bcf-439c-8fb4-b6aaa6e2d534}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="geocoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NumberGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Infrastructure.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Signalling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EGTRAIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Optimisation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Capacity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Simulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RollingStock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rescheduling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dispDecision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="initialParameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IOClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pugixml.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="connectionQGraphicsLineItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="infoQDockWidget.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsColorizeEffect.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsEllipseItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsLineItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsPixmapItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsRectItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsScene.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="myQGraphicsView.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="signallingQGraphicsEllipseItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="trainQGraphicsItemGroup.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="timeQProgressBar.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="trainQGraphicsPolygonItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="virtualArcQGraphicsLineItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="Widget.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="mainwindow.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="Passengers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Owl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="platformQGraphicsItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+    <ClCompile Include="passengerQGraphicsPixmapItem.cpp">
+      <Filter>Source Files\qtGUIfiles</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="EGTRAIN.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="myQGraphicsColorizeEffect.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+    <QtMoc Include="myQGraphicsScene.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+    <QtMoc Include="myQGraphicsView.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+    <QtMoc Include="timeQProgressBar.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+    <QtMoc Include="infoQDockWidget.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+    <QtMoc Include="mainwindow.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+    <QtMoc Include="Widget.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="mainwindow.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="Widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="mainwindow.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="geocoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Capacity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Infrastructure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NumberGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Optimisation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RollingStock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Signalling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Simulation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rescheduling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dispDecision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IOClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="initialParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="connectionQGraphicsLineItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="myQGraphicsEllipseItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="myQGraphicsItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="myQGraphicsLineItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="myQGraphicsPixmapItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="myQGraphicsRectItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="trainQGraphicsPolygonItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="trainQGraphicsItemGroup.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="virtualArcQGraphicsLineItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="signallingQGraphicsEllipseItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Passengers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Owl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timeutil.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="platformQGraphicsRectItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+    <ClInclude Include="passengerQGraphicsPixmapItem.h">
+      <Filter>Header Files\qtGUIheaders</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

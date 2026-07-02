@@ -1,0 +1,4 @@
+Rovato	30	360	420
+Chiari	30	660	720
+Romano	30	1200	1260
+Treviglio	30	1860	1980
