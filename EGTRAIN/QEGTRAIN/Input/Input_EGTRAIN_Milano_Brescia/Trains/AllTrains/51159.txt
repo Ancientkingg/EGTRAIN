@@ -1,0 +1,7 @@
+51159
+120
+99999999
+11
+/TrainData/MRI_E483_500_75_100_A.txt
+/TrainData/T_MRI_E483_500_75_100_A.txt
+/TimeTable/51159.txt

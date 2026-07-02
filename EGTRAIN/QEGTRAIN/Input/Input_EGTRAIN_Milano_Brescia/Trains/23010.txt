@@ -1,0 +1,7 @@
+23010
+4131
+99999999
+28
+/TrainData/REG_E464_np_270_120_140_B.txt
+/TrainData/T_REG_E464_np_270_120_140_B.txt
+/TimeTable/23010.txt

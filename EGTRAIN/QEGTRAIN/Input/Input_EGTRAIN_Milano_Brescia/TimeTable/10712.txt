@@ -1,0 +1,11 @@
+OspitalettoT.	30	-4500	-4440
+Rovato	30	-4140	-4080
+Chiari	30	-3840	-3780
+Calcio	30	-3480	-3420
+Romano	30	-3120	-3060
+Morengo Bariano	30	-2880	-2820
+Vidalengo	30	-2580	-2520
+Treviglio	30	-2220	-2100
+Melzo	30	-1140	-1080
+Vignate	30	-900	-840
+PioltelloLim.	30	-600	-540

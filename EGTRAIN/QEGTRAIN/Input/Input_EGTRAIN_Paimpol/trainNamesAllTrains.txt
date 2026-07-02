@@ -1,0 +1,8 @@
+Guin-Paim-ALL-STOPS-1.txt
+Guin-Paim-ALL-STOPS-3.txt
+Guin-Paim-EXPRESS-1.txt
+Guin-Paim-EXPRESS-3.txt
+Paim-Guin-ALL-STOPS-2.txt
+Paim-Guin-ALL-STOPS-4.txt
+Paim-Guin-EXPRESS-2.txt
+Paim-Guin-EXPRESS-4.txt

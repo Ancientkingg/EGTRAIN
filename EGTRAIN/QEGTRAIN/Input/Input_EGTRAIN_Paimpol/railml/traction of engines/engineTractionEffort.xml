@@ -1,0 +1,33 @@
+<!-- for more info on the structure of the file see:
+https://wiki2.railml.org/wiki/RS:valueTable_tractiveEffort -->
+<valueTable yValueUnit="N" xValueName="speed" yValueName="tractive effort" 
+	xValueUnit="km/h" zValueName="Percentage power limitation" zValueUnit="%">
+	<columnHeader zValue="100" /><columnHeader zValue="66.7" />
+	<valueLine xValue="0.0">
+		<values yValue="64800" /><values yValue="51840" />
+	</valueLine>
+	<valueLine xValue="25.0">
+		<values yValue="64800" /><values yValue="51840" />
+	</valueLine>
+	<valueLine xValue="30.0">
+		<values yValue="64800" /><values yValue="43200" />
+	</valueLine>
+	<valueLine xValue="35.0">
+		<values yValue="55542.9" /><values yValue="37028.6" />
+	</valueLine>
+	<valueLine xValue="40.0">
+		<values yValue="48600" /><values yValue="32400" />
+	</valueLine>
+	<valueLine xValue="45.0">
+		<values yValue="43200" /><values yValue="28800" />
+	</valueLine>
+	<valueLine xValue="50.0">
+		<values yValue="38880" /><values yValue="25920" />
+	</valueLine>
+	<valueLine xValue="55.0">
+		<values yValue="35345.5" /><values yValue="23563.6" />
+	</valueLine>
+	<valueLine xValue="60.0">
+		<values yValue="32400" /><values yValue="21600" />
+	</valueLine>
+</valueTable>

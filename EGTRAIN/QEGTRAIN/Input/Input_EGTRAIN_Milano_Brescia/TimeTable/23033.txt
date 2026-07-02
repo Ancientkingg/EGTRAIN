@@ -1,0 +1,5 @@
+Segrate	30	22560	22620
+PioltelloLim.	30	22800	22860
+Vignate	30	23100	23160
+Melzo	30	23340	23400
+Treviglio	30	24600	-1

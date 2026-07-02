@@ -1,0 +1,7 @@
+Q_Oxf-Bmouth
+2799
+1800
+37
+Input_EGTRAIN/TrainData/Class220_4.txt
+Input_EGTRAIN/TrainData/T220_04.txt
+Input_EGTRAIN/TimeTable/Oxf-Bmouth.txt

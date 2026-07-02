@@ -1,0 +1,7 @@
+8951
+660
+99999999
+0
+/TrainData/ETR_675.txt
+/TrainData/T_ETR_675.txt
+/TimeTable/8951.txt

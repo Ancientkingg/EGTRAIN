@@ -1,0 +1,7 @@
+54150-54151
+3706
+99999999
+12
+/TrainData/MRI_E655_830_80_100_A.txt
+/TrainData/T_MRI_E655_830_80_100_A.txt
+/TimeTable/54150-54151.txt

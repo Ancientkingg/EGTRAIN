@@ -1,0 +1,2 @@
+OspitalettoT.	30	32700	32760
+Rovato	30	33060	33120

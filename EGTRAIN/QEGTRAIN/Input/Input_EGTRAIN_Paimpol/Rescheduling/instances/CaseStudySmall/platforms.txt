@@ -1,0 +1,9 @@
+Station	PlatformOptions
+Ut	1,2,3,4,5,7,14
+Hvs	2,3,4
+Dld	-1
+Brn	-1
+Uto	-1
+Asd	4,5,10,11,13,14
+Alm	2,3
+Asdz	2,3

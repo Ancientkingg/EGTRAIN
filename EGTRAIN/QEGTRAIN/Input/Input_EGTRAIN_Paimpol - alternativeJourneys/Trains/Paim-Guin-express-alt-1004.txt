@@ -1,0 +1,7 @@
+Paim-Guin-express-alt-1004
+10
+9999
+10
+/TrainData/Draisy.txt
+/TrainData/Draisy-traction.txt
+/TimeTable/Paim-Guin-EXPRESS-2.txt

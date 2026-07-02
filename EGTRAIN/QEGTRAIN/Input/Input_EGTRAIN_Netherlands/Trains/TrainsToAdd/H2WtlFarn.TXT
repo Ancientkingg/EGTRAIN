@@ -1,0 +1,7 @@
+H2_Wtl-Farn
+1275
+1800
+29
+Input_EGTRAIN/TrainData/Class450_12.txt
+Input_EGTRAIN/TrainData/T450_04.txt
+Input_EGTRAIN/TimeTable/Wtl-Farn.txt

@@ -1,0 +1,38 @@
+OsterportH	60	-1	220
+Norreport	20	340	340
+Vesterport	20	460	460
+KobenhavnH	40	580	640
+Dybbolsbro	20	760	760
+Carlsberg	20	880	880
+Valby	20	1060	1060
+Langgade	20	1120	1120
+PeterBangsvej	20	1240	1240
+FlintholmCH	20	1360	1360
+Vanlose	20	1420	1420
+Jyllingevej	20	1540	1540
+Islev	20	1600	1600
+Husum	20	1720	1720
+Herlev	20	1900	1900
+Skovlunde	20	2020	2020
+Malmparken	20	2140	2140
+Ballerup	60	2320	-1
+BallerupStorage	60	-1	-1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

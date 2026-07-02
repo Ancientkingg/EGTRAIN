@@ -1,0 +1,7 @@
+C-Klapmenborg-Frederikssund-Limited-Stops
+280
+1200
+8
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/C_Klampenborg_Frederikssund_Limited_Stops.txt

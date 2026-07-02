@@ -1,0 +1,2 @@
+OspitalettoT.	30	7500	7560
+Rovato	30	7860	7920

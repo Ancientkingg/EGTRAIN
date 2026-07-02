@@ -1,0 +1,7 @@
+9604-9609
+2810
+99999999
+36
+/TrainData/ETR_500_12.txt
+/TrainData/T_ETR_500_12.txt
+/TimeTable/9604-9609.txt

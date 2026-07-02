@@ -1,0 +1,7 @@
+Paim-Guin-EXPRESS-4
+4000
+9999
+11
+/TrainData/Draisy.txt
+/TrainData/Draisy-traction.txt
+/TimeTable/Paim-Guin-EXPRESS-4.txt

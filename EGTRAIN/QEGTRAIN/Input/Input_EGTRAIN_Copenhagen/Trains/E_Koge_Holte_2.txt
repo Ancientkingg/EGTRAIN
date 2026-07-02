@@ -1,0 +1,7 @@
+E-Koge-Holte_2
+940
+1200
+15
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/E_Koge_Holte_2.txt

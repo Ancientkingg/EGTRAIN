@@ -1,0 +1,7 @@
+U2_Mill-Read
+3434
+1200
+5
+Input_EGTRAIN/TrainData/Class66.txt
+Input_EGTRAIN/TrainData/T66.txt
+Input_EGTRAIN/TimeTable/FreightMill-Read.txt

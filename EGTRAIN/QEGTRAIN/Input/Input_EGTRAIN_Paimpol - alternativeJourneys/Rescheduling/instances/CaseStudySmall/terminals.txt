@@ -1,0 +1,8 @@
+Ut,Break,2,1
+Uto,NoBreak,2,1
+Dld,NoBreak,2,1
+Brn,NoBreak,2,1
+Hvs,Break,2,1
+Asd,NoBreak,2,1
+Alm,NoBreak,2,1
+Asdz,NoBreak,2,1

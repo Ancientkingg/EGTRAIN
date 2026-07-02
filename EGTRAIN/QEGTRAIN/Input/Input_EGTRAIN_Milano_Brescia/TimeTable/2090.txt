@@ -1,0 +1,4 @@
+Rovato	30	3960	4020
+Chiari	30	4260	4320
+Romano	30	4800	4860
+Treviglio	30	5460	5580

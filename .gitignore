@@ -1,0 +1,48 @@
+# Build output
+build/
+build_*/
+**/CMakeFiles/
+**/*_autogen/
+CMakeCache.txt
+CTestTestfile.cmake
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Qt and compiler output
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+*.app/
+*.exe
+*.dll
+*.o
+*.obj
+
+# Runtime output
+EGTRAIN/QEGTRAIN/Output/
+TEMP/
+TEMPold/
+DriverSaves/
+*.bak
+*.log
+*.log.txt
+rand1.seed
+**/rand1.seed
+
+# Archives and installers
+*.zip
+*.7z
+*.msi
+EGTRAIN/Setup/
+
+# IDE and OS files
+.vs/
+*.user
+*.suo
+*.qtvscr
+**/x64/
+UpgradeLog*.htm
+.DS_Store

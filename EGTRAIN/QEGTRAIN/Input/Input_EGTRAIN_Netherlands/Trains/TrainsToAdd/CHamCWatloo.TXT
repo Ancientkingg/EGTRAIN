@@ -1,0 +1,7 @@
+C_HamC-Watloo
+259
+900
+2
+Input_EGTRAIN/TrainData/Class455_8.txt
+Input_EGTRAIN/TrainData/T455_04.txt
+Input_EGTRAIN/TimeTable/HamC-Watloo.txt

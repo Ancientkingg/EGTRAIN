@@ -1,0 +1,7 @@
+J1_Exet-Wtl
+1529
+1800
+12
+Input_EGTRAIN/TrainData/Class159_9.txt
+Input_EGTRAIN/TrainData/T159_03.txt
+Input_EGTRAIN/TimeTable/Exet-Wtl.txt

@@ -1,0 +1,37 @@
+# clang-tidy configuration for EGTRAIN.
+#
+# This is a large legacy C++14/17 simulation codebase (see CLAUDE.md /
+# project memory for known issues: god files, raw arrays, global state,
+# Windows-only code). The check selection below favours checks that find
+# *real bugs* (bugprone-*, correctness-related clang-analyzer-*) over
+# checks that would demand a wholesale style rewrite (modernize-*,
+# cppcoreguidelines-* are mostly disabled — they'd produce thousands of
+# findings unrelated to correctness in code this size).
+#
+# Run with:
+#   clang-tidy -p build_mac <file> --config-file=.clang-tidy
+#
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  clang-analyzer-*,
+  performance-*,
+  -performance-no-int-to-ptr,
+  readability-misleading-indentation,
+  readability-redundant-control-flow,
+  readability-redundant-declaration,
+  readability-duplicate-include,
+  misc-redundant-expression,
+  misc-unused-parameters,
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: '(Capacity|Infrastructure|IOClass|NumberGenerator|Optimisation|Owl|Passengers|Rescheduling|RollingStock|Signalling|Simulation|Util)\.(h|hpp)$'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: bugprone-argument-comment.StrictMode
+    value: 'false'

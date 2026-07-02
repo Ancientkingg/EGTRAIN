@@ -1,0 +1,7 @@
+A-Hundige-Hillerod
+460
+1200
+11
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/A_Hundige_Hillerod.txt

@@ -1,0 +1,56 @@
+0	Ut	1	Hvs	2	23	SprUtHvs.txt
+0	Ut	2	Hvs	2	27	SprUtHvs.txt
+0	Ut	3	Hvs	2	0	SprUtHvs.txt
+0	Ut	4	Hvs	2	17	SprUtHvs.txt
+0	Hvs	2	Ut	1	18	SprHvsUt.txt
+0	Hvs	3	Ut	1	19	SprHvsUt.txt
+1	Hvs	2	Brn	2	2	SprHvsBrn.txt
+1	Hvs	3	Brn	2	11	SprHvsBrn.txt
+1	Brn	2	Hvs	3	10	SprBrnHvs.txt
+2	Ut	1	Dld		20	SprUtDld.txt
+2	Ut	2	Dld		24	SprUtDld.txt
+2	Ut	3	Dld		4	SprUtDld.txt
+2	Ut	4	Dld		14	SprUtDld.txt
+2	Dld		Ut	4	13	SprDldUt.txt
+3	Ut	1	Brn	4	57	SprUtBrn.txt
+3	Ut	2	Brn	4	58	SprUtBrn.txt
+3	Ut	3	Brn	4	59	SprUtBrn.txt
+3	Ut	4	Brn	4	60	SprUtBrn.txt
+3	Brn	4	Ut	3	61	SprBrnUt.txt
+4	Ut	1	Uto		22	SprUtUto.txt
+4	Ut	2	Uto		26	SprUtUto.txt
+4	Ut	3	Uto		8	SprUtUto.txt
+4	Ut	4	Uto		16	SprUtUto.txt
+4	Uto		Ut	2	28	SprUtoUt.txt
+5	Brn	2	Asd	14	29	SprBrnAsd.txt
+5	Asd	14	Brn	2	30	SprAsdBrn.txt
+6	Hvs	4	Asd	13	31	ICHvsAsd.txt
+6	Asd	13	Hvs	4	32	ICAsdHvs.txt
+7	Asd	10	Alm	3	33	SprAsdAlm.txt
+7	Asd	4	Alm	3	68	SprAsdAlm.txt
+7	Asd	5	Alm	3	69	SprAsdAlm.txt
+7	Alm	3	Asd	10	34	SprAlmAsd.txt
+8	Asd	11	Alm	3	53	ICAsdAlm.txt
+8	Alm	3	Asd	11	54	ICAlmAsd.txt
+8	Alm	3	Asd	4	66	ICAlmAsd.txt
+8	Alm	3	Asd	5	67	ICAlmAsd.txt
+9	Alm	2	Asdz	3	55	ICAlmAsdz.txt
+9	Asdz	3	Alm	2	56	ICAsdzAlm.txt
+10	Ut	14	Asd	4	39	SprUtAsd.txt
+10	Asd	4	Ut	14	40	SprAsdUt.txt
+11	Ut	5	Asd	5	41	ICUtAsd.txt
+11	Ut	5	Asd	10	73	ICUtAsd.txt
+11	Ut	5	Asd	11	72	ICUtAsd.txt
+11	Ut	5	Asd	13	62	ICUtAsd.txt
+11	Ut	5	Asd	14	63	ICUtAsd.txt
+11	Asd	5	Ut	5	42	ICAsdUt.txt
+11	Asd	10	Ut	5	65	ICAsdUt.txt
+11	Asd	11	Ut	5	71	ICAsdUt.txt
+11	Asd	13	Ut	5	64	ICAsdUt.txt
+11	Asd	14	Ut	5	70	ICAsdUt.txt
+12	Ut	7	Asdz	3	43	ICUtAsdz.txt
+12	Asdz	3	Ut	7	44	ICAsdzUt.txt
+13	Hvs	3	Asdz	2	45	ICHvsAsdz.txt
+13	Asdz	2	Hvs	3	46	ICAsdzHvs.txt
+14	Ut	2	Asdz	2	51	SprUtAsdz.txt
+14	Asdz	2	Ut	2	52	SprAsdzUt.txt

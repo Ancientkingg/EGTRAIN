@@ -1,0 +1,7 @@
+IntercityVIRM
+39000
+90000
+1
+Input_EGTRAIN/TrainData/VIRM06.txt
+Input_EGTRAIN/TrainData/T_VIRM06.txt
+Input_EGTRAIN/TimeTable/SprHvsUt.txt

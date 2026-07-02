@@ -1,0 +1,7 @@
+10718
+4185
+99999999
+31
+/TrainData/REG_E464_np_335_125_160_B.txt
+/TrainData/T_REG_E464_np_335_125_160_B.txt
+/TimeTable/10718.txt

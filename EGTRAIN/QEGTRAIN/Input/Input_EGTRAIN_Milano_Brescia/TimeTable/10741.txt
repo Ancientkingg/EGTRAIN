@@ -1,0 +1,9 @@
+PioltelloLim.	30	-19860	-19800
+Melzo	30	-19500	-19440
+Treviglio	30	-18660	-18540
+Vidalengo	30	-18300	-18240
+Morengo Bariano	30	-18000	-17940
+Romano	30	-17700	-17640
+Calcio	30	-17340	-17280
+Chiari	30	-16980	-16920
+Rovato	30	-16620	-16560

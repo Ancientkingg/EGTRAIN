@@ -1,0 +1,7 @@
+D1_Guild-Wtl
+386
+1800
+4
+Input_EGTRAIN/TrainData/Class455_8.txt
+Input_EGTRAIN/TrainData/T455_04.txt
+Input_EGTRAIN/TimeTable/D1Guild-Wtl.txt

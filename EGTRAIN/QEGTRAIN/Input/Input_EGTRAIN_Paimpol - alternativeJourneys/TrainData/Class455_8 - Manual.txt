@@ -1,0 +1,30 @@
+33988	33988	3 33.61111111	0.6	1.45	0.004	0.75	161.84
+
+
+regional_train[i + N_Reg_Previous].mass_of_traction_unit = Matr1[0]; 
+        regional_train[i + N_Reg_Previous].mass_of_a_wagon = Matr1[1]; 
+        regional_train[i + N_Reg_Previous].number_of_wagons = Matr1[2];
+        regional_train[i + N_Reg_Previous].max_train_speed = Matr1[3]; 
+        regional_train[i + N_Reg_Previous].max_train_decelaration = Matr1[4]; 
+        regional_train[i + N_Reg_Previous].frontal_wagon_area = Matr1[5];
+        regional_train[i + N_Reg_Previous].cb = Matr1[6];
+        regional_train[i + N_Reg_Previous].Jerk = Matr1[7];
+        regional_train[i + N_Reg_Previous].train_length = Matr1[8];
+
+
+
+
+
+        
+the mass of the locomotive MLoc (in Kg),
+ the mass of the wagons MWag (in  Kg),
+  the number of wagons composing the train NWag,
+   the length (in m) of the wagons LWag,
+    the service braking rate br (in m/s2) for the trainsets, 
+    the cross-section area of the train A (in m2),
+     the resistance coefficient of the Strahl-Sauthoff resistance equation r0,
+      the variation of acceleration over time Jerk (in m/s3), 
+      and the total length of the trainset L (in m). 
+
+
+

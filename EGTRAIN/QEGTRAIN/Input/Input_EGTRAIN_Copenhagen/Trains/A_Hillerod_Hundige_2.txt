@@ -1,0 +1,7 @@
+A-Hillerod-Hundige-2
+1000
+1200
+13
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/A_Hillerod_Hundige_2.txt

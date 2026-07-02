@@ -1,0 +1,5 @@
+Rovato	30	9420	9480
+Chiari	30	9780	9840
+Romano	30	10320	10380
+Treviglio	30	10980	11100
+PioltelloLim.	30	11880	11940

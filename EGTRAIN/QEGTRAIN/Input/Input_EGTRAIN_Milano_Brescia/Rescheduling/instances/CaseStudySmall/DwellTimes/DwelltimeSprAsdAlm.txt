@@ -1,0 +1,2 @@
+Asd,{TrivialDistribution, 60.000000}
+Alm,{TrivialDistribution, 60.000000}

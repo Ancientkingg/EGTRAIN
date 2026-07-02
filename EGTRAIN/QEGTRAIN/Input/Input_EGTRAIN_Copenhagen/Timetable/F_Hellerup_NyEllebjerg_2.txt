@@ -1,0 +1,23 @@
+HellerupStorage	1	-1	-1
+Hellerup	20	-1	520
+RyparkenF	20	640	640
+Bispebjerg	20	760	760
+Norrebro	20	820	820
+Fuglebakken	20	940	940
+Grondal	20	1000	1000
+FlintholmF	20	1120	1120
+KBHallen	20	1180	1180
+Alholm	20	1300	1300
+DanshojF	20	1360	1360
+VigerslevAlle	20	1420	1420
+NyEllebjergF	20	1600	-1
+
+
+
+
+
+
+
+
+
+

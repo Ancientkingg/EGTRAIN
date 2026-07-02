@@ -1,0 +1,7 @@
+P_Soton-Swnd
+2672
+3600
+43
+Input_EGTRAIN/TrainData/Class159.txt
+Input_EGTRAIN/TrainData/T159_03.txt
+Input_EGTRAIN/TimeTable/Soton-Swnd.txt

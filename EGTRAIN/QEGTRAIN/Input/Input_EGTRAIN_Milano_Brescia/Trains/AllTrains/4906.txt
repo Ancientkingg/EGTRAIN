@@ -1,0 +1,7 @@
+4906
+1215
+99999999
+30
+/TrainData/REG_E464_np_225_120_160_B.txt
+/TrainData/T_REG_E464_np_225_120_160_B.txt
+/TimeTable/4906.txt

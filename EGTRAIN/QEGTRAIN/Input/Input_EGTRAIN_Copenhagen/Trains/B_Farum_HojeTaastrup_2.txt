@@ -1,0 +1,7 @@
+B-Farum-HojeTaastrup_2
+600
+1200
+3
+/TrainData/LITRA_SA.txt
+/TrainData/T_LITRA_SA.txt
+/TimeTable/B_Farum_HojeTaastrup_2.txt

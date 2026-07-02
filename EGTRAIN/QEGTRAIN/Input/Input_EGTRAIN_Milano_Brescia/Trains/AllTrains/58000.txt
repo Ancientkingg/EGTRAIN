@@ -1,0 +1,7 @@
+58000
+7570
+99999999
+39
+/TrainData/TCS_E405_1300_75_120_A.txt
+/TrainData/T_TCS_E405_1300_75_120_A.txt
+/TimeTable/58000.txt

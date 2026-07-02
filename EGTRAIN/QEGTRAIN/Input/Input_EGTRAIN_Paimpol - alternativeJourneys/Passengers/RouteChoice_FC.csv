@@ -1,0 +1,377 @@
+trip_id,person_id,origin,destination,departure_time,TT_train,TT_waiting,TT_walking,Nb_transfers,Transfer_N1,Transfer_N2,r_service_lines_id1,r_service_lines_id2,r_service_lines_id3
+1,0,Guingamp,Paimpol,8:28,47,10,9,0,0,0,TER,Null,Null
+2,0,Paimpol,Guingamp,18:20,47,15,1,0,0,0,TER,Null,Null
+3,1,Guingamp,Brelidy Plouec,7:32,17,3,3,0,0,0,TER,Null,Null
+4,1,Brelidy Plouec,Guingamp,17:37,17,15,18,0,0,0,TER,Null,Null
+5,2,Guingamp,Traou Nez,7:51,37,5,7,0,0,0,TER,Null,Null
+6,2,Traou Nez,Guingamp,18:28,37,25,10,0,0,0,TER,Null,Null
+7,3,Guingamp,Pontrieux halte,8:58,23,13,17,0,0,0,TER,Null,Null
+8,3,Pontrieux halte,Guingamp,18:47,23,13,6,0,0,0,TER,Null,Null
+9,4,Guingamp,Tregonnau Squiffiec,8:16,11,7,14,0,0,0,TER,Null,Null
+10,4,Tregonnau Squiffiec,Guingamp,17:26,11,20,6,0,0,0,TER,Null,Null
+11,5,Guingamp,Frynaudour,8:57,32,17,7,0,0,0,TER,Null,Null
+12,5,Frynaudour,Guingamp,17:10,32,8,17,0,0,0,TER,Null,Null
+13,6,Guingamp,Lancerf,7:32,40,2,20,0,0,0,TER,Null,Null
+14,6,Lancerf,Guingamp,18:14,40,6,13,0,0,0,TER,Null,Null
+15,7,Guingamp,Paimpol,9:01,47,1,8,0,0,0,TER,Null,Null
+16,7,Paimpol,Guingamp,17:44,47,29,11,0,0,0,TER,Null,Null
+17,8,Guingamp,Brelidy Plouec,8:30,17,19,7,0,0,0,TER,Null,Null
+18,8,Brelidy Plouec,Guingamp,18:22,17,3,3,0,0,0,TER,Null,Null
+19,9,Guingamp,Paimpol,8:50,47,4,10,0,0,0,TER,Null,Null
+20,9,Paimpol,Guingamp,18:08,47,29,1,0,0,0,TER,Null,Null
+21,10,Guingamp,Paimpol,8:51,47,11,12,0,0,0,TER,Null,Null
+22,10,Paimpol,Guingamp,17:59,47,25,4,0,0,0,TER,Null,Null
+23,11,Guingamp,Brelidy Plouec,7:33,17,4,20,0,0,0,TER,Null,Null
+24,11,Brelidy Plouec,Guingamp,18:09,17,20,14,0,0,0,TER,Null,Null
+25,12,Guingamp,Brelidy Plouec,8:23,17,1,2,0,0,0,TER,Null,Null
+26,12,Brelidy Plouec,Guingamp,18:01,17,7,15,0,0,0,TER,Null,Null
+27,13,Guingamp,Paimpol,8:09,47,14,6,0,0,0,TER,Null,Null
+28,13,Paimpol,Guingamp,17:13,47,8,15,0,0,0,TER,Null,Null
+29,14,Guingamp,Tregonnau Squiffiec,8:54,11,5,18,0,0,0,TER,Null,Null
+30,14,Tregonnau Squiffiec,Guingamp,18:45,11,29,12,0,0,0,TER,Null,Null
+31,15,Guingamp,Paimpol,7:10,47,26,8,0,0,0,TER,Null,Null
+32,15,Paimpol,Guingamp,18:23,47,30,4,0,0,0,TER,Null,Null
+33,16,Guingamp,Paimpol,9:01,47,7,6,0,0,0,TER,Null,Null
+34,16,Paimpol,Guingamp,18:13,47,17,19,0,0,0,TER,Null,Null
+35,17,Guingamp,Traou Nez,8:50,37,14,15,0,0,0,TER,Null,Null
+36,17,Traou Nez,Guingamp,17:19,37,24,17,0,0,0,TER,Null,Null
+37,18,Guingamp,Paimpol,8:20,47,17,14,0,0,0,TER,Null,Null
+38,18,Paimpol,Guingamp,18:42,47,25,10,0,0,0,TER,Null,Null
+39,19,Guingamp,Paimpol,8:57,47,30,2,0,0,0,TER,Null,Null
+40,19,Paimpol,Guingamp,17:31,47,21,15,0,0,0,TER,Null,Null
+41,20,Guingamp,Frynaudour,8:56,32,26,3,0,0,0,TER,Null,Null
+42,20,Frynaudour,Guingamp,17:60,32,22,11,0,0,0,TER,Null,Null
+43,21,Guingamp,Paimpol,8:13,47,16,15,0,0,0,TER,Null,Null
+44,21,Paimpol,Guingamp,17:54,47,10,16,0,0,0,TER,Null,Null
+45,22,Guingamp,Pontrieux,7:54,26,10,16,0,0,0,TER,Null,Null
+46,22,Pontrieux,Guingamp,18:55,26,20,2,0,0,0,TER,Null,Null
+47,23,Guingamp,Paimpol,7:08,47,26,4,0,0,0,TER,Null,Null
+48,23,Paimpol,Guingamp,18:27,47,25,18,0,0,0,TER,Null,Null
+49,24,Guingamp,Paimpol,8:53,47,28,16,0,0,0,TER,Null,Null
+50,24,Paimpol,Guingamp,18:13,47,13,14,0,0,0,TER,Null,Null
+51,25,Guingamp,Paimpol,9:22,47,12,15,0,0,0,TER,Null,Null
+52,25,Paimpol,Guingamp,17:31,47,6,18,0,0,0,TER,Null,Null
+53,26,Guingamp,Paimpol,8:11,47,20,3,0,0,0,TER,Null,Null
+54,26,Paimpol,Guingamp,17:14,47,1,3,0,0,0,TER,Null,Null
+55,27,Guingamp,Paimpol,9:04,47,24,19,0,0,0,TER,Null,Null
+56,27,Paimpol,Guingamp,17:46,47,29,17,0,0,0,TER,Null,Null
+57,28,Guingamp,Paimpol,8:08,47,7,20,0,0,0,TER,Null,Null
+58,28,Paimpol,Guingamp,18:11,47,16,13,0,0,0,TER,Null,Null
+59,29,Guingamp,Lancerf,7:53,40,2,1,0,0,0,TER,Null,Null
+60,29,Lancerf,Guingamp,17:54,40,20,2,0,0,0,TER,Null,Null
+61,30,Guingamp,Paimpol,8:57,47,27,2,0,0,0,TER,Null,Null
+62,30,Paimpol,Guingamp,18:30,47,5,12,0,0,0,TER,Null,Null
+63,31,Guingamp,Paimpol,9:04,47,18,12,0,0,0,TER,Null,Null
+64,31,Paimpol,Guingamp,17:50,47,25,7,0,0,0,TER,Null,Null
+65,32,Guingamp,Paimpol,8:60,47,20,11,0,0,0,TER,Null,Null
+66,32,Paimpol,Guingamp,18:57,47,12,2,0,0,0,TER,Null,Null
+67,33,Guingamp,Brelidy Plouec,7:41,17,28,8,0,0,0,TER,Null,Null
+68,33,Brelidy Plouec,Guingamp,17:24,17,24,16,0,0,0,TER,Null,Null
+69,34,Guingamp,Paimpol,7:46,47,7,6,0,0,0,TER,Null,Null
+70,34,Paimpol,Guingamp,18:51,47,21,12,0,0,0,TER,Null,Null
+71,35,Guingamp,Paimpol,9:25,47,20,6,0,0,0,TER,Null,Null
+72,35,Paimpol,Guingamp,17:59,47,26,8,0,0,0,TER,Null,Null
+73,36,Guingamp,Paimpol,9:06,47,28,2,0,0,0,TER,Null,Null
+74,36,Paimpol,Guingamp,17:16,47,1,8,0,0,0,TER,Null,Null
+75,37,Guingamp,Paimpol,7:52,47,22,18,0,0,0,TER,Null,Null
+76,37,Paimpol,Guingamp,17:48,47,18,16,0,0,0,TER,Null,Null
+77,38,Guingamp,Pontrieux halte,8:24,23,1,3,0,0,0,TER,Null,Null
+78,38,Pontrieux halte,Guingamp,17:32,23,1,16,0,0,0,TER,Null,Null
+79,39,Guingamp,Paimpol,9:03,47,16,16,0,0,0,TER,Null,Null
+80,39,Paimpol,Guingamp,17:60,47,21,12,0,0,0,TER,Null,Null
+81,40,Guingamp,Brelidy Plouec,8:19,17,12,11,0,0,0,TER,Null,Null
+82,40,Brelidy Plouec,Guingamp,17:51,17,22,12,0,0,0,TER,Null,Null
+83,41,Guingamp,Paimpol,8:41,47,7,5,0,0,0,TER,Null,Null
+84,41,Paimpol,Guingamp,18:19,47,21,16,0,0,0,TER,Null,Null
+85,42,Guingamp,Paimpol,7:54,47,10,7,0,0,0,TER,Null,Null
+86,42,Paimpol,Guingamp,18:22,47,5,14,0,0,0,TER,Null,Null
+87,43,Guingamp,Lancerf,7:08,40,18,8,0,0,0,TER,Null,Null
+88,43,Lancerf,Guingamp,17:36,40,12,20,0,0,0,TER,Null,Null
+89,44,Guingamp,Pontrieux,9:03,26,19,6,0,0,0,TER,Null,Null
+90,44,Pontrieux,Guingamp,18:46,26,29,17,0,0,0,TER,Null,Null
+91,45,Guingamp,Frynaudour,8:59,32,5,3,0,0,0,TER,Null,Null
+92,45,Frynaudour,Guingamp,18:43,32,17,19,0,0,0,TER,Null,Null
+93,46,Guingamp,Paimpol,8:51,47,6,11,0,0,0,TER,Null,Null
+94,46,Paimpol,Guingamp,17:28,47,10,19,0,0,0,TER,Null,Null
+95,47,Guingamp,Paimpol,9:14,47,4,13,0,0,0,TER,Null,Null
+96,47,Paimpol,Guingamp,17:08,47,16,18,0,0,0,TER,Null,Null
+97,48,Guingamp,Pontrieux,9:01,26,29,15,0,0,0,TER,Null,Null
+98,48,Pontrieux,Guingamp,18:60,26,2,10,0,0,0,TER,Null,Null
+99,49,Guingamp,Tregonnau Squiffiec,9:02,11,19,1,0,0,0,TER,Null,Null
+100,49,Tregonnau Squiffiec,Guingamp,18:08,11,3,18,0,0,0,TER,Null,Null
+101,50,Guingamp,Paimpol,7:47,47,11,3,0,0,0,TER,Null,Null
+102,50,Paimpol,Guingamp,17:16,47,3,1,0,0,0,TER,Null,Null
+103,51,Guingamp,Pontrieux,7:34,26,6,5,0,0,0,TER,Null,Null
+104,51,Pontrieux,Guingamp,18:28,26,7,5,0,0,0,TER,Null,Null
+105,52,Guingamp,Paimpol,7:47,47,16,1,0,0,0,TER,Null,Null
+106,52,Paimpol,Guingamp,18:60,47,18,10,0,0,0,TER,Null,Null
+107,53,Guingamp,Traou Nez,7:40,37,18,7,0,0,0,TER,Null,Null
+108,53,Traou Nez,Guingamp,18:04,37,2,5,0,0,0,TER,Null,Null
+109,54,Guingamp,Frynaudour,7:56,32,27,20,0,0,0,TER,Null,Null
+110,54,Frynaudour,Guingamp,18:46,32,17,9,0,0,0,TER,Null,Null
+111,55,Guingamp,Paimpol,8:36,47,20,10,0,0,0,TER,Null,Null
+112,55,Paimpol,Guingamp,18:43,47,22,4,0,0,0,TER,Null,Null
+113,56,Guingamp,Paimpol,7:50,47,19,19,0,0,0,TER,Null,Null
+114,56,Paimpol,Guingamp,18:51,47,7,18,0,0,0,TER,Null,Null
+115,57,Guingamp,Paimpol,8:40,47,21,2,0,0,0,TER,Null,Null
+116,57,Paimpol,Guingamp,18:57,47,21,15,0,0,0,TER,Null,Null
+117,58,Guingamp,Paimpol,7:37,47,8,14,0,0,0,TER,Null,Null
+118,58,Paimpol,Guingamp,18:04,47,19,6,0,0,0,TER,Null,Null
+119,59,Pontrieux,Traou Nez,9:17,10,27,10,0,0,0,TER,Null,Null
+120,59,Traou Nez,Pontrieux,18:27,10,20,5,0,0,0,TER,Null,Null
+121,60,Pontrieux,Tregonnau Squiffiec,8:26,14,20,9,0,0,0,TER,Null,Null
+122,60,Tregonnau Squiffiec,Pontrieux,17:40,14,26,9,0,0,0,TER,Null,Null
+123,61,Pontrieux,Tregonnau Squiffiec,8:21,14,30,2,0,0,0,TER,Null,Null
+124,61,Tregonnau Squiffiec,Pontrieux,17:11,14,19,9,0,0,0,TER,Null,Null
+125,62,Pontrieux,Lancerf,9:24,13,26,4,0,0,0,TER,Null,Null
+126,62,Lancerf,Pontrieux,17:57,13,1,8,0,0,0,TER,Null,Null
+127,63,Lancerf,Pontrieux,8:53,13,13,7,0,0,0,TER,Null,Null
+128,63,Pontrieux,Lancerf,18:41,13,13,2,0,0,0,TER,Null,Null
+129,64,Lancerf,Gourland,7:53,40,7,6,0,0,0,TER,Null,Null
+130,64,Gourland,Lancerf,17:21,36,19,9,0,0,0,TER,Null,Null
+131,65,Traou Nez,Brelidy Plouec,8:42,19,5,4,0,0,0,TER,Null,Null
+132,65,Brelidy Plouec,Traou Nez,18:22,19,3,18,0,0,0,TER,Null,Null
+133,66,Lancerf,Tregonnau Squiffiec,8:42,28,20,17,0,0,0,TER,Null,Null
+134,66,Tregonnau Squiffiec,Lancerf,18:40,28,14,16,0,0,0,TER,Null,Null
+135,67,Frynaudour,Pontrieux,9:05,5,18,7,0,0,0,TER,Null,Null
+136,67,Pontrieux,Frynaudour,18:37,5,19,15,0,0,0,TER,Null,Null
+137,68,Traou Nez,Paimpol,9:14,10,30,6,0,0,0,TER,Null,Null
+138,68,Paimpol,Traou Nez,17:34,9,6,8,0,0,0,TER,Null,Null
+139,69,Frynaudour,Guingamp,9:19,32,7,19,0,0,0,TER,Null,Null
+140,69,Guingamp,Frynaudour,18:44,32,17,6,0,0,0,TER,Null,Null
+141,70,Lancerf,Guingamp,8:29,40,17,10,0,0,0,TER,Null,Null
+142,70,Guingamp,Lancerf,18:23,40,10,13,0,0,0,TER,Null,Null
+143,71,Lancerf,Pontrieux halte,7:48,15,4,12,0,0,0,TER,Null,Null
+144,71,Pontrieux halte,Lancerf,17:13,15,30,6,0,0,0,TER,Null,Null
+145,72,Frynaudour,Pontrieux,9:26,5,17,12,0,0,0,TER,Null,Null
+146,72,Pontrieux,Frynaudour,17:38,5,1,11,0,0,0,TER,Null,Null
+147,73,Lancerf,Guingamp,8:39,40,9,14,0,0,0,TER,Null,Null
+148,73,Guingamp,Lancerf,18:18,40,14,5,0,0,0,TER,Null,Null
+149,74,Traou Nez,Brelidy Plouec,8:11,19,20,11,0,0,0,TER,Null,Null
+150,74,Brelidy Plouec,Traou Nez,18:23,19,2,7,0,0,0,TER,Null,Null
+151,75,Paimpol,Lancerf,7:59,6,27,3,0,0,0,TER,Null,Null
+152,75,Lancerf,Paimpol,18:50,6,19,15,0,0,0,TER,Null,Null
+153,76,Paimpol,Guingamp,8:43,47,18,4,0,0,0,TER,Null,Null
+154,76,Guingamp,Paimpol,17:01,47,7,6,0,0,0,TER,Null,Null
+155,77,Paimpol,Guingamp,9:26,47,22,4,0,0,0,TER,Null,Null
+156,77,Guingamp,Paimpol,17:16,47,5,5,0,0,0,TER,Null,Null
+157,78,Paimpol,Traou Nez,9:09,9,23,18,0,0,0,TER,Null,Null
+158,78,Traou Nez,Paimpol,17:03,10,1,5,0,0,0,TER,Null,Null
+159,79,Paimpol,Gourland,8:36,42,13,7,0,0,0,TER,Null,Null
+160,79,Gourland,Paimpol,17:48,42,17,15,0,0,0,TER,Null,Null
+161,80,Paimpol,Pontrieux halte,7:36,22,6,4,0,0,0,TER,Null,Null
+162,80,Pontrieux halte,Paimpol,17:19,16,17,12,0,0,0,TER,Null,Null
+163,81,Paimpol,Gourland,8:51,42,22,4,0,0,0,TER,Null,Null
+164,81,Gourland,Paimpol,17:18,42,8,1,0,0,0,TER,Null,Null
+165,82,Paimpol,Guingamp,9:11,47,2,2,0,0,0,TER,Null,Null
+166,82,Guingamp,Paimpol,17:40,47,1,9,0,0,0,TER,Null,Null
+167,83,Paimpol,Frynaudour,8:43,13,27,16,0,0,0,TER,Null,Null
+168,83,Frynaudour,Paimpol,17:58,15,11,3,0,0,0,TER,Null,Null
+169,84,Paimpol,Pontrieux,8:39,19,3,17,0,0,0,TER,Null,Null
+170,84,Pontrieux,Paimpol,17:33,20,16,5,0,0,0,TER,Null,Null
+171,85,Paimpol,Guingamp,9:02,47,1,2,0,0,0,TER,Null,Null
+172,85,Guingamp,Paimpol,18:35,47,30,17,0,0,0,TER,Null,Null
+173,86,Paimpol,Guingamp,8:41,47,2,7,0,0,0,TER,Null,Null
+174,86,Guingamp,Paimpol,17:56,47,26,14,0,0,0,TER,Null,Null
+175,87,Paimpol,Guingamp,8:16,47,29,10,0,0,0,TER,Null,Null
+176,87,Guingamp,Paimpol,18:49,47,1,17,0,0,0,TER,Null,Null
+177,88,Paimpol,Lancerf,8:48,6,17,14,0,0,0,TER,Null,Null
+178,88,Lancerf,Paimpol,18:28,6,24,7,0,0,0,TER,Null,Null
+179,89,Paimpol,Guingamp,8:39,47,23,19,0,0,0,TER,Null,Null
+180,89,Guingamp,Paimpol,17:42,47,2,2,0,0,0,TER,Null,Null
+181,90,Paimpol,Guingamp,8:08,47,29,5,0,0,0,TER,Null,Null
+182,90,Guingamp,Paimpol,18:02,47,1,12,0,0,0,TER,Null,Null
+183,91,Paimpol,Pontrieux,7:33,19,1,11,0,0,0,TER,Null,Null
+184,91,Pontrieux,Paimpol,18:48,20,7,1,0,0,0,TER,Null,Null
+185,92,Paimpol,Guingamp,9:30,47,1,11,0,0,0,TER,Null,Null
+186,92,Guingamp,Paimpol,18:19,47,20,9,0,0,0,TER,Null,Null
+187,93,Paimpol,Brelidy Plouec,8:30,28,14,5,0,0,0,TER,Null,Null
+188,93,Brelidy Plouec,Paimpol,18:02,29,2,8,0,0,0,TER,Null,Null
+189,94,Guingamp,Paimpol,17:20,47,21,11,0,0,0,TER,Null,Null
+190,94,Paimpol,Guingamp,19:05,47,19,7,0,0,0,TER,Null,Null
+191,95,Guingamp,Paimpol,12:43,47,25,18,0,0,0,TER,Null,Null
+192,95,Paimpol,Guingamp,17:46,47,23,13,0,0,0,TER,Null,Null
+193,96,Guingamp,Paimpol,16:07,47,3,17,0,0,0,TER,Null,Null
+194,96,Paimpol,Guingamp,18:05,47,16,8,0,0,0,TER,Null,Null
+195,97,Guingamp,Paimpol,9:23,47,21,13,0,0,0,TER,Null,Null
+196,97,Paimpol,Guingamp,13:03,47,15,8,0,0,0,TER,Null,Null
+197,98,Guingamp,Paimpol,12:35,47,12,4,0,0,0,TER,Null,Null
+198,98,Paimpol,Guingamp,16:53,47,1,11,0,0,0,TER,Null,Null
+199,99,Guingamp,Paimpol,11:13,47,22,20,0,0,0,TER,Null,Null
+200,99,Paimpol,Guingamp,16:01,47,15,4,0,0,0,TER,Null,Null
+201,100,Guingamp,Paimpol,11:25,47,18,9,0,0,0,TER,Null,Null
+202,100,Paimpol,Guingamp,15:08,47,3,12,0,0,0,TER,Null,Null
+203,101,Guingamp,Paimpol,9:18,47,13,3,0,0,0,TER,Null,Null
+204,101,Paimpol,Guingamp,14:09,47,27,13,0,0,0,TER,Null,Null
+205,102,Guingamp,Paimpol,12:55,47,8,6,0,0,0,TER,Null,Null
+206,102,Paimpol,Guingamp,17:56,47,25,3,0,0,0,TER,Null,Null
+207,103,Guingamp,Paimpol,9:52,47,11,18,0,0,0,TER,Null,Null
+208,103,Paimpol,Guingamp,15:48,47,10,15,0,0,0,TER,Null,Null
+209,104,Guingamp,Paimpol,11:09,47,24,12,0,0,0,TER,Null,Null
+210,104,Paimpol,Guingamp,15:21,47,10,20,0,0,0,TER,Null,Null
+211,105,Guingamp,Paimpol,10:49,47,20,1,0,0,0,TER,Null,Null
+212,105,Paimpol,Guingamp,14:43,47,17,16,0,0,0,TER,Null,Null
+213,106,Guingamp,Paimpol,12:55,47,16,15,0,0,0,TER,Null,Null
+214,106,Paimpol,Guingamp,17:56,47,21,14,0,0,0,TER,Null,Null
+215,107,Guingamp,Paimpol,10:55,47,10,9,0,0,0,TER,Null,Null
+216,107,Paimpol,Guingamp,13:40,47,29,10,0,0,0,TER,Null,Null
+217,108,Guingamp,Paimpol,9:37,47,16,19,0,0,0,TER,Null,Null
+218,108,Paimpol,Guingamp,13:43,47,26,17,0,0,0,TER,Null,Null
+219,109,Guingamp,Paimpol,15:49,47,10,17,0,0,0,TER,Null,Null
+220,109,Paimpol,Guingamp,18:58,47,22,1,0,0,0,TER,Null,Null
+221,110,Guingamp,Paimpol,12:01,47,21,4,0,0,0,TER,Null,Null
+222,110,Paimpol,Guingamp,17:08,47,28,1,0,0,0,TER,Null,Null
+223,111,Guingamp,Paimpol,12:06,47,27,1,0,0,0,TER,Null,Null
+224,111,Paimpol,Guingamp,18:01,47,25,17,0,0,0,TER,Null,Null
+225,112,Guingamp,Paimpol,11:53,47,14,15,0,0,0,TER,Null,Null
+226,112,Paimpol,Guingamp,14:44,47,6,3,0,0,0,TER,Null,Null
+227,113,Guingamp,Paimpol,9:20,47,14,16,0,0,0,TER,Null,Null
+228,113,Paimpol,Guingamp,14:09,47,28,9,0,0,0,TER,Null,Null
+229,114,Gourland,Paimpol,16:24,42,21,16,0,0,0,TER,Null,Null
+230,114,Paimpol,Gourland,19:29,42,4,9,0,0,0,TER,Null,Null
+231,115,Gourland,Paimpol,15:48,42,9,2,0,0,0,TER,Null,Null
+232,115,Paimpol,Gourland,17:34,42,2,16,0,0,0,TER,Null,Null
+233,116,Gourland,Paimpol,12:15,42,8,7,0,0,0,TER,Null,Null
+234,116,Paimpol,Gourland,16:25,42,4,4,0,0,0,TER,Null,Null
+235,117,Gourland,Paimpol,10:08,42,17,5,0,0,0,TER,Null,Null
+236,117,Paimpol,Gourland,14:15,42,28,16,0,0,0,TER,Null,Null
+237,118,Gourland,Paimpol,16:45,42,6,19,0,0,0,TER,Null,Null
+238,118,Paimpol,Gourland,20:50,42,15,6,0,0,0,TER,Null,Null
+239,119,Gourland,Paimpol,14:40,42,30,14,0,0,0,TER,Null,Null
+240,119,Paimpol,Gourland,18:60,42,27,7,0,0,0,TER,Null,Null
+241,120,Gourland,Paimpol,12:25,42,1,13,0,0,0,TER,Null,Null
+242,120,Paimpol,Gourland,16:01,42,3,10,0,0,0,TER,Null,Null
+243,121,Gourland,Paimpol,10:57,42,23,19,0,0,0,TER,Null,Null
+244,121,Paimpol,Gourland,16:41,42,17,8,0,0,0,TER,Null,Null
+245,122,Tregonnau Squiffiec,Paimpol,14:60,36,28,4,0,0,0,TER,Null,Null
+246,122,Paimpol,Tregonnau Squiffiec,19:59,34,25,11,0,0,0,TER,Null,Null
+247,123,Tregonnau Squiffiec,Paimpol,10:52,36,10,12,0,0,0,TER,Null,Null
+248,123,Paimpol,Tregonnau Squiffiec,13:59,34,24,3,0,0,0,TER,Null,Null
+249,124,Brelidy Plouec,Paimpol,9:37,29,17,8,0,0,0,TER,Null,Null
+250,124,Paimpol,Brelidy Plouec,12:24,28,22,15,0,0,0,TER,Null,Null
+251,125,Brelidy Plouec,Paimpol,11:32,29,22,17,0,0,0,TER,Null,Null
+252,125,Paimpol,Brelidy Plouec,14:05,28,20,16,0,0,0,TER,Null,Null
+253,126,Brelidy Plouec,Paimpol,10:26,29,9,5,0,0,0,TER,Null,Null
+254,126,Paimpol,Brelidy Plouec,13:33,28,17,20,0,0,0,TER,Null,Null
+255,127,Brelidy Plouec,Paimpol,12:23,29,8,5,0,0,0,TER,Null,Null
+256,127,Paimpol,Brelidy Plouec,15:31,28,11,14,0,0,0,TER,Null,Null
+257,128,Brelidy Plouec,Paimpol,11:11,29,6,2,0,0,0,TER,Null,Null
+258,128,Paimpol,Brelidy Plouec,15:52,28,10,3,0,0,0,TER,Null,Null
+259,129,Pontrieux halte,Paimpol,10:33,16,27,14,0,0,0,TER,Null,Null
+260,129,Paimpol,Pontrieux halte,12:08,22,13,15,0,0,0,TER,Null,Null
+261,130,Pontrieux halte,Paimpol,14:53,16,22,2,0,0,0,TER,Null,Null
+262,130,Paimpol,Pontrieux halte,17:28,22,8,1,0,0,0,TER,Null,Null
+263,131,Pontrieux,Paimpol,11:54,20,12,18,0,0,0,TER,Null,Null
+264,131,Paimpol,Pontrieux,16:25,19,1,3,0,0,0,TER,Null,Null
+265,132,Pontrieux,Paimpol,16:57,20,4,12,0,0,0,TER,Null,Null
+266,132,Paimpol,Pontrieux,19:14,19,17,18,0,0,0,TER,Null,Null
+267,133,Frynaudour,Paimpol,16:40,15,14,18,0,0,0,TER,Null,Null
+268,133,Paimpol,Frynaudour,19:04,13,12,13,0,0,0,TER,Null,Null
+269,134,Traou Nez,Paimpol,16:56,10,7,5,0,0,0,TER,Null,Null
+270,134,Paimpol,Traou Nez,20:19,9,18,9,0,0,0,TER,Null,Null
+271,135,Lancerf,Paimpol,15:36,6,25,20,0,0,0,TER,Null,Null
+272,135,Paimpol,Lancerf,19:01,6,20,20,0,0,0,TER,Null,Null
+273,136,Frynaudour,Paimpol,11:20,15,19,6,0,0,0,TER,Null,Null
+274,136,Paimpol,Frynaudour,15:40,13,15,8,0,0,0,TER,Null,Null
+275,137,Traou Nez,Paimpol,17:01,10,5,8,0,0,0,TER,Null,Null
+276,137,Paimpol,Traou Nez,18:53,9,10,10,0,0,0,TER,Null,Null
+277,138,Lancerf,Paimpol,15:12,6,28,9,0,0,0,TER,Null,Null
+278,138,Paimpol,Lancerf,18:36,6,17,10,0,0,0,TER,Null,Null
+279,139,Traou Nez,Paimpol,16:47,10,10,20,0,0,0,TER,Null,Null
+280,139,Paimpol,Traou Nez,18:10,9,17,3,0,0,0,TER,Null,Null
+281,140,Lancerf,Paimpol,11:09,6,20,16,0,0,0,TER,Null,Null
+282,140,Paimpol,Lancerf,13:35,6,6,3,0,0,0,TER,Null,Null
+283,141,Paimpol,Guingamp,11:60,47,24,8,0,0,0,TER,Null,Null
+284,141,Guingamp,Paimpol,15:52,47,8,5,0,0,0,TER,Null,Null
+285,142,Paimpol,Guingamp,14:39,47,1,9,0,0,0,TER,Null,Null
+286,142,Guingamp,Paimpol,18:41,47,18,9,0,0,0,TER,Null,Null
+287,143,Brelidy Plouec,Guingamp,13:37,17,21,9,0,0,0,TER,Null,Null
+288,143,Guingamp,Brelidy Plouec,18:29,17,5,5,0,0,0,TER,Null,Null
+289,144,Paimpol,Guingamp,11:53,47,5,8,0,0,0,TER,Null,Null
+290,144,Guingamp,Paimpol,14:58,47,14,19,0,0,0,TER,Null,Null
+291,145,Paimpol,Guingamp,16:15,47,10,8,0,0,0,TER,Null,Null
+292,145,Guingamp,Paimpol,20:30,47,8,12,0,0,0,TER,Null,Null
+293,146,Tregonnau Squiffiec,Guingamp,12:12,11,21,14,0,0,0,TER,Null,Null
+294,146,Guingamp,Tregonnau Squiffiec,16:56,11,30,16,0,0,0,TER,Null,Null
+295,147,Paimpol,Guingamp,12:09,47,8,6,0,0,0,TER,Null,Null
+296,147,Guingamp,Paimpol,17:06,47,16,14,0,0,0,TER,Null,Null
+297,148,Frynaudour,Guingamp,17:03,32,4,18,0,0,0,TER,Null,Null
+298,148,Guingamp,Frynaudour,20:04,32,5,19,0,0,0,TER,Null,Null
+299,149,Traou Nez,Guingamp,11:47,37,14,15,0,0,0,TER,Null,Null
+300,149,Guingamp,Traou Nez,16:38,37,8,15,0,0,0,TER,Null,Null
+301,150,Lancerf,Guingamp,11:33,40,19,9,0,0,0,TER,Null,Null
+302,150,Guingamp,Lancerf,16:59,40,5,10,0,0,0,TER,Null,Null
+303,151,Paimpol,Guingamp,15:17,47,16,6,0,0,0,TER,Null,Null
+304,151,Guingamp,Paimpol,18:09,47,14,8,0,0,0,TER,Null,Null
+305,152,Tregonnau Squiffiec,Guingamp,17:32,11,17,2,0,0,0,TER,Null,Null
+306,152,Guingamp,Tregonnau Squiffiec,20:28,11,2,9,0,0,0,TER,Null,Null
+307,153,Tregonnau Squiffiec,Guingamp,16:35,11,26,16,0,0,0,TER,Null,Null
+308,153,Guingamp,Tregonnau Squiffiec,19:13,11,21,8,0,0,0,TER,Null,Null
+309,154,Brelidy Plouec,Guingamp,13:16,17,22,15,0,0,0,TER,Null,Null
+310,154,Guingamp,Brelidy Plouec,16:32,17,15,17,0,0,0,TER,Null,Null
+311,155,Brelidy Plouec,Guingamp,17:01,17,2,12,0,0,0,TER,Null,Null
+312,155,Guingamp,Brelidy Plouec,19:49,17,9,9,0,0,0,TER,Null,Null
+313,156,Paimpol,Guingamp,9:37,47,5,12,0,0,0,TER,Null,Null
+314,156,Guingamp,Paimpol,14:36,47,12,12,0,0,0,TER,Null,Null
+315,157,Brelidy Plouec,Guingamp,13:11,17,16,10,0,0,0,TER,Null,Null
+316,157,Guingamp,Brelidy Plouec,17:31,17,18,9,0,0,0,TER,Null,Null
+317,158,Pontrieux halte,Guingamp,12:18,23,25,1,0,0,0,TER,Null,Null
+318,158,Guingamp,Pontrieux halte,16:52,23,4,12,0,0,0,TER,Null,Null
+319,159,Pontrieux halte,Guingamp,11:53,23,5,5,0,0,0,TER,Null,Null
+320,159,Guingamp,Pontrieux halte,14:15,23,1,4,0,0,0,TER,Null,Null
+321,160,Pontrieux,Guingamp,14:45,26,9,2,0,0,0,TER,Null,Null
+322,160,Guingamp,Pontrieux,19:04,26,9,13,0,0,0,TER,Null,Null
+323,161,Paimpol,Gourland,9:28,42,13,17,0,0,0,TER,Null,Null
+324,161,Gourland,Paimpol,13:12,42,2,1,0,0,0,TER,Null,Null
+325,162,Paimpol,Gourland,16:23,42,15,14,0,0,0,TER,Null,Null
+326,162,Gourland,Paimpol,19:23,42,20,5,0,0,0,TER,Null,Null
+327,163,Paimpol,Gourland,13:24,42,10,16,0,0,0,TER,Null,Null
+328,163,Gourland,Paimpol,16:14,42,5,6,0,0,0,TER,Null,Null
+329,164,Frynaudour,Gourland,13:21,28,21,2,0,0,0,TER,Null,Null
+330,164,Gourland,Frynaudour,18:11,35,18,9,0,0,0,TER,Null,Null
+331,165,Traou Nez,Gourland,11:10,33,15,20,0,0,0,TER,Null,Null
+332,165,Gourland,Traou Nez,14:18,40,4,12,0,0,0,TER,Null,Null
+333,166,Lancerf,Gourland,17:22,40,15,1,0,0,0,TER,Null,Null
+334,166,Gourland,Lancerf,19:06,36,18,4,0,0,0,TER,Null,Null
+335,167,Pontrieux halte,Gourland,10:15,20,1,10,0,0,0,TER,Null,Null
+336,167,Gourland,Pontrieux halte,12:37,20,2,14,0,0,0,TER,Null,Null
+337,168,Tregonnau Squiffiec,Gourland,17:38,7,30,3,0,0,0,TER,Null,Null
+338,168,Gourland,Tregonnau Squiffiec,20:06,8,29,4,0,0,0,TER,Null,Null
+339,169,Guingamp,Tregonnau Squiffiec,14:41,11,1,7,0,0,0,TER,Null,Null
+340,169,Tregonnau Squiffiec,Guingamp,17:23,11,27,16,0,0,0,TER,Null,Null
+341,170,Frynaudour,Tregonnau Squiffiec,15:16,20,13,11,0,0,0,TER,Null,Null
+342,170,Tregonnau Squiffiec,Frynaudour,19:44,27,4,4,0,0,0,TER,Null,Null
+343,171,Guingamp,Brelidy Plouec,9:60,17,23,19,0,0,0,TER,Null,Null
+344,171,Brelidy Plouec,Guingamp,14:25,17,9,18,0,0,0,TER,Null,Null
+345,172,Guingamp,Brelidy Plouec,15:19,17,14,11,0,0,0,TER,Null,Null
+346,172,Brelidy Plouec,Guingamp,19:50,17,26,14,0,0,0,TER,Null,Null
+347,173,Gourland,Brelidy Plouec,17:42,13,13,11,0,0,0,TER,Null,Null
+348,173,Brelidy Plouec,Gourland,19:29,13,9,20,0,0,0,TER,Null,Null
+349,174,Lancerf,Brelidy Plouec,15:27,23,28,4,0,0,0,TER,Null,Null
+350,174,Brelidy Plouec,Lancerf,18:04,29,17,16,0,0,0,TER,Null,Null
+351,175,Pontrieux,Brelidy Plouec,12:15,8,21,2,0,0,0,TER,Null,Null
+352,175,Brelidy Plouec,Pontrieux,17:45,13,1,9,0,0,0,TER,Null,Null
+353,176,Traou Nez,Pontrieux halte,9:37,16,10,15,0,0,0,TER,Null,Null
+354,176,Pontrieux halte,Traou Nez,13:09,26,7,16,0,0,0,TER,Null,Null
+355,177,Guingamp,Pontrieux halte,15:16,23,11,7,0,0,0,TER,Null,Null
+356,177,Pontrieux halte,Guingamp,18:42,23,9,16,0,0,0,TER,Null,Null
+357,178,Gourland,Pontrieux,13:57,21,6,6,0,0,0,TER,Null,Null
+358,178,Pontrieux,Gourland,17:25,21,8,20,0,0,0,TER,Null,Null
+359,179,Brelidy Plouec,Pontrieux,10:16,13,27,11,0,0,0,TER,Null,Null
+360,179,Pontrieux,Brelidy Plouec,11:40,8,1,17,0,0,0,TER,Null,Null
+361,180,Guingamp,Frynaudour,11:56,32,9,16,0,0,0,TER,Null,Null
+362,180,Frynaudour,Guingamp,15:52,32,20,2,0,0,0,TER,Null,Null
+363,181,Guingamp,Traou Nez,9:08,37,4,3,0,0,0,TER,Null,Null
+364,181,Traou Nez,Guingamp,13:29,37,25,20,0,0,0,TER,Null,Null
+365,182,Brelidy Plouec,Lancerf,16:56,29,3,9,0,0,0,TER,Null,Null
+366,182,Lancerf,Brelidy Plouec,18:01,23,19,12,0,0,0,TER,Null,Null
+367,183,Pontrieux,Frynaudour,11:53,5,26,8,0,0,0,TER,Null,Null
+368,183,Frynaudour,Pontrieux,14:18,5,9,15,0,0,0,TER,Null,Null
+369,184,Pontrieux halte,Traou Nez,11:59,26,20,16,0,0,0,TER,Null,Null
+370,184,Traou Nez,Pontrieux halte,16:27,16,2,8,0,0,0,TER,Null,Null
+371,185,Guingamp,Lancerf,10:05,40,19,14,0,0,0,TER,Null,Null
+372,185,Lancerf,Guingamp,12:11,40,2,20,0,0,0,TER,Null,Null
+373,186,Tregonnau Squiffiec,Frynaudour,10:31,27,6,9,0,0,0,TER,Null,Null
+374,186,Frynaudour,Tregonnau Squiffiec,15:09,20,22,16,0,0,0,TER,Null,Null
+375,187,Gourland,Traou Nez,16:23,40,17,17,0,0,0,TER,Null,Null
+376,187,Traou Nez,Gourland,19:03,33,24,1,0,0,0,TER,Null,Null
