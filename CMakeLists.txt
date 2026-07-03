@@ -108,6 +108,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/TrajectoryUtil.cpp
     ${SRC_DIR}/BlockingTimeDiagram.cpp
     ${SRC_DIR}/VisualPolish.cpp
+    ${SRC_DIR}/SceneExporter.cpp
 )
 
 set(EGTRAIN_HEADERS
@@ -161,6 +162,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/TrajectoryUtil.h
     ${SRC_DIR}/BlockingTimeDiagram.h
     ${SRC_DIR}/VisualPolish.h
+    ${SRC_DIR}/SceneExporter.h
 )
 
 set(EGTRAIN_UI
@@ -254,6 +256,15 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000000")
 endif()
 
+add_executable(scene_tool
+    ${SRC_DIR}/SceneTool.cpp
+    ${SRC_DIR}/SceneDiagnostic.cpp
+    ${SRC_DIR}/SceneModel.cpp
+    ${SRC_DIR}/SceneValidator.cpp
+    ${SRC_DIR}/SceneImporter.cpp
+    ${SRC_DIR}/SceneExporter.cpp)
+target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json)
+
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
 if(EGTRAIN_BUILD_TESTS)
@@ -309,10 +320,23 @@ if(EGTRAIN_BUILD_TESTS)
         COMMAND test_sceneimporter
             ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
             ${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia)
+
+    add_executable(test_sceneexporter
+        ${SRC_DIR}/tests/test_sceneexporter.cpp
+        ${SRC_DIR}/SceneDiagnostic.cpp
+        ${SRC_DIR}/SceneModel.cpp
+        ${SRC_DIR}/SceneValidator.cpp
+        ${SRC_DIR}/SceneImporter.cpp
+        ${SRC_DIR}/SceneExporter.cpp)
+    target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json)
+    add_test(NAME test_sceneexporter
+        COMMAND test_sceneexporter
+            ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
+            ${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia)
 endif()
 
 # Install
-install(TARGETS QEGTRAIN
+install(TARGETS QEGTRAIN scene_tool
     RUNTIME DESTINATION bin
     BUNDLE DESTINATION .
     FRAMEWORK DESTINATION .)

@@ -54,7 +54,7 @@ Each error should name the scene item and suggest the smallest fix.
 The converter has two directions:
 
 - Legacy importer: reads existing case-study folders and writes canonical scenes. Implemented; see scene-schema.md for the mapping.
-- Legacy exporter: writes the current simulator input files from a canonical scene.
+- Legacy exporter: writes the current simulator input files from a canonical scene. Implemented. The editor->export->simulate path now exists end to end.
 
 The editor should save the canonical scene. The simulation can keep reading exported legacy files until the simulator input layer is replaced.
 

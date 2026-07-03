@@ -46,3 +46,4 @@ EGTRAIN/Setup/
 **/x64/
 UpgradeLog*.htm
 .DS_Store
+__pycache__/
