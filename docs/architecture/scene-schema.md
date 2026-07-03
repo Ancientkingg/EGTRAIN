@@ -151,6 +151,11 @@ The validator produces the following diagnostic codes. Note that semantic checks
 - `scene.import.parse`: Malformed token or row during legacy import.
 - `scene.import.ref`: Unresolved reference during legacy import (e.g. missing referenced timetable or data file, route index out of range).
 
+- `scene.export.write`: A file or directory could not be written during export.
+- `scene.export.ref`: Missing data needed for export (e.g. unit physical data, a service referencing an unknown route).
+- `scene.export.unsupported`: Scene cannot be represented in the legacy format (e.g. station id contains whitespace, or route ids mixing the `route<N>` pattern with other names).
+- `scene.export.adjusted` (Warning): The exporter changed a derived value (e.g. a sanitized service file name collided and was suffixed).
+
 **Semantic Errors**
 - `scene.trains.none`: No compositions or train units.
 - `scene.services.none`: No services.
@@ -181,8 +186,27 @@ The `SceneImporter` converts a legacy simulation folder into a canonical V1 scen
 The mapping is as follows:
 - `trainNames.txt` (or all `Trains/*.txt` files) -> `services.json`
 - `TrainData/*.txt` and `TrainData/T_*.txt` -> `rolling_stock.json`
-- `Routes/Route*.txt` -> `signalling.json` (routes)
+- All `Routes/Route<N>.txt` files (numerically sorted) -> `signalling.json` (routes). Unreferenced routes become part of the scene because the simulator loads `Route0`..`Route<N-1>` unconditionally.
 - `Tracklines/Stations.txt` -> `stations.json`
 - Unconverted files (e.g. `TMS`, `TDS`) are copied verbatim to `<sceneDir>/legacy/`
 
 Note on one-shot services: The legacy format uses a headway sentinel of `>= 99999999` to denote a service that runs only once. The importer omits the `repeat` field for such services. The exporter will write `99999999` back when exporting services without a `repeat` block.
+
+## Exporting to legacy input
+
+The `SceneExporter` converts a canonical V1 scene back into the legacy format so the simulator can run it.
+The mapping back is:
+- `services.json` -> `Trains/`, `TimeTable/`, and `trainNames.txt`
+- `rolling_stock.json` -> `TrainData/`
+- `signalling.json` (routes) -> `Routes/`
+- `<sceneDir>/legacy/` is recursively walked and copied to the export directory. During this passthrough, top-level directories named `tracklines` or `timetable` (case-insensitive) are renamed to `TrackLines` and `TimeTable` to match the simulator's hard-coded case-sensitive paths.
+
+What is not exported and why:
+- `stations.json` and `infrastructure.json`: The simulator reads infrastructure from the Tracklines passthrough, so they are not written directly.
+- `incidents.json` and `views.json`: Not exported in V1.
+
+**Known lossiness during round-trip**:
+- `legacy_source` records provenance when a scene is imported and does not round-trip.
+- A hand-made scene without `entry_time_seconds` gains one on export+re-import (the legacy format requires the token; the exporter defaults it to the first stop's departure, else 0).
+- `99999999` is the scene-layer convention for one-shot services. The legacy format does not have an explicit branch for this; it simply yields one train for any realistic horizon.
+- Station ids cannot contain whitespace (constrained to whitespace-free identifiers), because the legacy timetable format is tokenized by whitespace.

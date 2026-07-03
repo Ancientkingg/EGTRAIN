@@ -380,12 +380,38 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	}
 
 	json routesArr = json::array();
-	for (const auto& rId : referencedRoutes) {
-		std::string idxStr = rId.substr(5);
-		std::string rPath = "Routes/Route" + idxStr + ".txt";
-		fs::path resolvedRoute = resolvePath(legacyPath, rPath);
+	fs::path rDirForScan = resolvePath(legacyPath, "Routes");
+	std::vector<std::pair<int, fs::path>> routeFiles;
+	std::error_code scanEc;
+	if (fs::is_directory(rDirForScan, scanEc)) {
+		for (const auto& entry : fs::directory_iterator(rDirForScan, scanEc)) {
+			if (entry.is_regular_file()) {
+				std::string name = entry.path().filename().string();
+				std::string ext = entry.path().extension().string();
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+				if (ext == ".txt") {
+					std::string stem = entry.path().stem().string();
+					if (stem.length() > 5 && stem.substr(0, 5) == "Route") {
+						std::string numPart = stem.substr(5);
+						bool isNum = !numPart.empty() && numPart.length() <= 9 &&
+									 std::all_of(numPart.begin(), numPart.end(), ::isdigit);
+						if (isNum) {
+							routeFiles.push_back({std::stoi(numPart), entry.path()});
+						}
+					}
+				}
+			}
+		}
+	}
+	std::sort(routeFiles.begin(), routeFiles.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+	std::unordered_set<std::string> loadedRoutes;
+	for (const auto& pair : routeFiles) {
+		int routeIdx = pair.first;
+		std::string rId = "route" + std::to_string(routeIdx);
+		std::string rPath = "Routes/" + pair.second.filename().string();
 		std::string rContent;
-		if (!readFile(resolvedRoute, rContent)) {
+		if (!readFile(pair.second, rContent)) {
 			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath);
 			continue;
 		}
@@ -412,6 +438,15 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 		routesArr.push_back({{"id", rId},
 							 {"blocks", blocksArr}});
+		loadedRoutes.insert(rId);
+	}
+
+	for (const auto& rId : referencedRoutes) {
+		if (loadedRoutes.find(rId) == loadedRoutes.end()) {
+			std::string idxStr = rId.substr(5);
+			std::string rPath = "Routes/Route" + idxStr + ".txt";
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath);
+		}
 	}
 
 	json stationsArr = json::array();
