@@ -92,6 +92,21 @@ initial_parameters::initial_parameters(int case_study) {
 			InputMainFolder = "Input/Input_EGTRAIN_Milano_Brescia";
 			OutputMainFolder = "Output/Output_EGTRAIN_Milano_Brescia";
 			break;
+
+		case 5: // Assignment corridor Gvc-Gdg-Ut
+			GUI = 0;
+			startingSimulationTime = 25200; // 07:00:00
+			times = 10000;
+			numTrackLines = 2;
+			N_Routes = 2;
+			bufferTime = 0;
+			recoveryTimePercentage = 0;
+			num_OrderLists = 1;
+			TSM = 0;
+			RChoice = 0;
+			InputMainFolder = "Input/Input_EGTRAIN_Assignment";
+			OutputMainFolder = "Output/Output_EGTRAIN_Assignment";
+			break;
 		default:
 			std::cout << "No case selected";
 	};
@@ -191,6 +206,23 @@ void initial_parameters::set_case(int case_study) {
 			num_OrderLists = 1;
 			InputMainFolder = "Input/Input_EGTRAIN_Milano_Brescia";
 			OutputMainFolder = "Output/Output_EGTRAIN_Milano_Brescia";
+			TSM = 0;
+			RChoice = 0;
+			break;
+
+		case 5: // Assignment corridor Gvc-Gdg-Ut
+			std::cout << "\nSelected Case study: " << case_study << '\n';
+			name = "Assignment";
+			GUI = 0;
+			startingSimulationTime = 25200; // 07:00:00
+			times = 10000;
+			numTrackLines = 2;
+			N_Routes = 2;
+			bufferTime = 0;
+			recoveryTimePercentage = 0;
+			num_OrderLists = 1;
+			InputMainFolder = "Input/Input_EGTRAIN_Assignment";
+			OutputMainFolder = "Output/Output_EGTRAIN_Assignment";
 			TSM = 0;
 			RChoice = 0;
 			break;
