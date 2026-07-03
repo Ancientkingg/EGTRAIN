@@ -24,6 +24,10 @@
             "id": "svc.a2",
             "composition": "comp.01",
             "route": "rt.main",
+            "entry_time_seconds": 600,
+            "repeat": {
+                "headway_seconds": 3600
+            },
             "stops": [
                 {
                     "station": "st.hillerod",
@@ -35,7 +39,6 @@
                     "station": "st.copenhagen",
                     "platform": "p1",
                     "arrival_seconds": 1200,
-                    "departure_seconds": 1260,
                     "dwell_seconds": 60
                 }
             ]

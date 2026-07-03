@@ -190,8 +190,63 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (requireArraySection(rollingJson, "train_units", "rolling_stock.json")) {
 			size_t idx = 0;
 			for (const auto& tu : rollingJson["train_units"]) {
+				std::string tuPath = "train_units[" + std::to_string(idx++) + "]";
 				SceneTrainUnit t;
-				requireString(tu, "id", "rolling_stock.json", "train_units[" + std::to_string(idx++) + "]", t.id);
+				requireString(tu, "id", "rolling_stock.json", tuPath, t.id);
+				if (tu.contains("physical")) {
+					if (!tu["physical"].is_object()) {
+						addError("scene.field.missing", "rolling_stock.json", "physical must be an object", tuPath + ".physical");
+					} else {
+						t.hasPhysical = true;
+						auto& ph = tu["physical"];
+						requireNumber(ph, "mass_of_traction_unit_kg", "rolling_stock.json", tuPath + ".physical", t.physical.mass_of_traction_unit_kg);
+						requireNumber(ph, "mass_of_a_wagon_kg", "rolling_stock.json", tuPath + ".physical", t.physical.mass_of_a_wagon_kg);
+						requireNumber(ph, "number_of_wagons", "rolling_stock.json", tuPath + ".physical", t.physical.number_of_wagons);
+						requireNumber(ph, "max_speed_ms", "rolling_stock.json", tuPath + ".physical", t.physical.max_speed_ms);
+						requireNumber(ph, "max_deceleration_ms2", "rolling_stock.json", tuPath + ".physical", t.physical.max_deceleration_ms2);
+						requireNumber(ph, "frontal_area_m2", "rolling_stock.json", tuPath + ".physical", t.physical.frontal_area_m2);
+						requireNumber(ph, "resistance_coefficient", "rolling_stock.json", tuPath + ".physical", t.physical.resistance_coefficient);
+						requireNumber(ph, "jerk_ms3", "rolling_stock.json", tuPath + ".physical", t.physical.jerk_ms3);
+						requireNumber(ph, "length_m", "rolling_stock.json", tuPath + ".physical", t.physical.length_m);
+					}
+				}
+				if (tu.contains("traction_curve")) {
+					if (!tu["traction_curve"].is_array()) {
+						addError("scene.field.missing", "rolling_stock.json", "traction_curve must be an array", tuPath + ".traction_curve");
+					} else {
+						size_t tcIdx = 0;
+						for (const auto& row : tu["traction_curve"]) {
+							if (!row.is_array() || row.size() != 5) {
+								addError("scene.field.missing", "rolling_stock.json", "traction_curve row must be an array of 5 numbers", tuPath + ".traction_curve[" + std::to_string(tcIdx) + "]");
+							} else {
+								bool ok = true;
+								std::array<double, 5> arr;
+								for (int i = 0; i < 5; ++i) {
+									if (!row[i].is_number()) {
+										ok = false;
+										break;
+									}
+									arr[i] = row[i].get<double>();
+								}
+								if (!ok) {
+									addError("scene.field.missing", "rolling_stock.json", "traction_curve row must contain numbers", tuPath + ".traction_curve[" + std::to_string(tcIdx) + "]");
+								} else {
+									t.tractionCurve.push_back(arr);
+								}
+							}
+							tcIdx++;
+						}
+					}
+				}
+				if (tu.contains("source")) {
+					if (!tu["source"].is_object()) {
+						addError("scene.field.missing", "rolling_stock.json", "source must be an object", tuPath + ".source");
+					} else {
+						auto& src = tu["source"];
+						requireString(src, "data_file", "rolling_stock.json", tuPath + ".source", t.sourceDataFile);
+						requireString(src, "traction_file", "rolling_stock.json", tuPath + ".source", t.sourceTractionFile);
+					}
+				}
 				result.scene.trainUnits.push_back(t);
 			}
 		}
@@ -222,6 +277,22 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			requireString(sv, "id", "services.json", path, s.id);
 			requireString(sv, "composition", "services.json", path, s.composition);
 			requireString(sv, "route", "services.json", path, s.route);
+			if (sv.contains("entry_time_seconds")) {
+				if (sv["entry_time_seconds"].is_number()) {
+					s.hasEntryTime = true;
+					s.entryTimeSeconds = sv["entry_time_seconds"].get<double>();
+				} else {
+					addError("scene.field.missing", "services.json", "entry_time_seconds must be a number", path + ".entry_time_seconds");
+				}
+			}
+			if (sv.contains("repeat")) {
+				if (!sv["repeat"].is_object()) {
+					addError("scene.field.missing", "services.json", "repeat must be an object", path + ".repeat");
+				} else {
+					s.hasRepeat = true;
+					requireNumber(sv["repeat"], "headway_seconds", "services.json", path + ".repeat", s.headwaySeconds);
+				}
+			}
 			if (!sv.contains("stops") || !sv["stops"].is_array()) {
 				addError("scene.field.missing", "services.json", "Missing or invalid stops", path + ".stops");
 			} else {
@@ -237,7 +308,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							addError("scene.field.missing", "services.json", "platform must be a string", stopPath + ".platform");
 						}
 					}
-					// Only the first stop may omit arrival_seconds.
+					// arrival_seconds is optional on any stop: an absent arrival
+					// means the stop has no scheduled arrival time.
 					if (stp.contains("arrival_seconds")) {
 						if (stp["arrival_seconds"].is_number()) {
 							t.hasArrival = true;
@@ -245,13 +317,16 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						} else {
 							addError("scene.field.missing", "services.json", "arrival_seconds must be a number", stopPath + ".arrival_seconds");
 						}
-					} else if (sidx > 0) {
-						addError("scene.field.missing", "services.json", "Missing arrival_seconds (only the first stop may omit it)", stopPath + ".arrival_seconds");
 					}
-					double departure = 0.0;
-					if (requireNumber(stp, "departure_seconds", "services.json", stopPath, departure)) {
-						t.hasDeparture = true;
-						t.departureSeconds = departure;
+					if (stp.contains("departure_seconds")) {
+						if (stp["departure_seconds"].is_number()) {
+							t.hasDeparture = true;
+							t.departureSeconds = stp["departure_seconds"].get<double>();
+						} else {
+							addError("scene.field.missing", "services.json", "departure_seconds must be a number", stopPath + ".departure_seconds");
+						}
+					} else if (sidx < sv["stops"].size() - 1) {
+						addError("scene.field.missing", "services.json", "Missing departure_seconds (only the last stop may omit it)", stopPath + ".departure_seconds");
 					}
 					requireNumber(stp, "dwell_seconds", "services.json", stopPath, t.dwellSeconds);
 					s.stops.push_back(t);
