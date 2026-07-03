@@ -32,6 +32,8 @@ views.json              default diagram and viewport settings
 
 The schema can be split later if a single-file scene is easier for exchange.
 
+The V1 schema is defined in scene-schema.md.
+
 ## Validator
 
 The validator should catch:

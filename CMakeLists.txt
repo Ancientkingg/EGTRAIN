@@ -94,6 +94,9 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/SimulationWorker.cpp
     ${SRC_DIR}/TimeFormat.cpp
     ${SRC_DIR}/InputValidation.cpp
+    ${SRC_DIR}/SceneDiagnostic.cpp
+    ${SRC_DIR}/SceneModel.cpp
+    ${SRC_DIR}/SceneValidator.cpp
     ${SRC_DIR}/timeQProgressBar.cpp
     ${SRC_DIR}/trainQGraphicsItemGroup.cpp
     ${SRC_DIR}/trainQGraphicsPolygonItem.cpp
@@ -141,6 +144,9 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/SimulationWorker.h
     ${SRC_DIR}/TimeFormat.h
     ${SRC_DIR}/InputValidation.h
+    ${SRC_DIR}/SceneDiagnostic.h
+    ${SRC_DIR}/SceneModel.h
+    ${SRC_DIR}/SceneValidator.h
     ${SRC_DIR}/timeQProgressBar.h
     ${SRC_DIR}/timeutil.hpp
     ${SRC_DIR}/trainQGraphicsItemGroup.h
@@ -280,6 +286,15 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
+
+    add_executable(test_scenevalidator
+        ${SRC_DIR}/tests/test_scenevalidator.cpp
+        ${SRC_DIR}/SceneDiagnostic.cpp
+        ${SRC_DIR}/SceneModel.cpp
+        ${SRC_DIR}/SceneValidator.cpp)
+    target_link_libraries(test_scenevalidator PRIVATE nlohmann_json::nlohmann_json)
+    add_test(NAME test_scenevalidator
+        COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal)
 endif()
 
 # Install

@@ -1,0 +1,14 @@
+{
+    "stations": [
+        {
+            "id": "st.hillerod",
+            "name": "Hillerød",
+            "platforms": [{"id": "p1"}, {"id": "p2"}]
+        },
+        {
+            "id": "st.copenhagen",
+            "name": "Copenhagen",
+            "platforms": [{"id": "p1"}, {"id": "p2"}]
+        }
+    ]
+}
