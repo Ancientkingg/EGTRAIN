@@ -1,0 +1,572 @@
+#include "SceneImporter.h"
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <unordered_set>
+#include <unordered_map>
+#include <algorithm>
+#include <nlohmann/json.hpp>
+
+namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+bool SceneImportResult::success() const {
+	return wroteScene && !hasErrors(diagnostics);
+}
+
+// Case-insensitive path resolution helper
+static fs::path resolvePath(const fs::path& base, const std::string& relPath) {
+	fs::path current = base;
+	std::string relStr = relPath;
+	std::replace(relStr.begin(), relStr.end(), '\\', '/');
+
+	size_t pos = 0;
+	while (pos < relStr.length()) {
+		if (relStr[pos] == '/') {
+			pos++;
+			continue;
+		}
+		size_t nextPos = relStr.find('/', pos);
+		std::string component = (nextPos == std::string::npos) ? relStr.substr(pos) : relStr.substr(pos, nextPos - pos);
+		pos = nextPos;
+
+		if (component == ".")
+			continue;
+		if (component == "..") {
+			current = current.parent_path();
+			continue;
+		}
+
+		std::error_code ec;
+		fs::path next = current / component;
+		if (fs::exists(next, ec)) {
+			current = next;
+			continue;
+		}
+
+		bool found = false;
+		if (fs::is_directory(current, ec)) {
+			std::string lowerComp = component;
+			std::transform(lowerComp.begin(), lowerComp.end(), lowerComp.begin(), ::tolower);
+			for (const auto& entry : fs::directory_iterator(current, ec)) {
+				std::string name = entry.path().filename().string();
+				std::string lowerName = name;
+				std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+				if (lowerName == lowerComp) {
+					current = entry.path();
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) {
+			return base / relPath; // fallback
+		}
+	}
+	return current;
+}
+
+static std::vector<std::string> readTokens(const std::string& line) {
+	std::vector<std::string> tokens;
+	std::stringstream ss(line);
+	std::string token;
+	while (ss >> token) {
+		tokens.push_back(token);
+	}
+	return tokens;
+}
+
+static bool readFile(const fs::path& path, std::string& content) {
+	std::ifstream f(path);
+	if (!f.good())
+		return false;
+	content.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+	return true;
+}
+
+static std::string trimRight(const std::string& s) {
+	std::string res = s;
+	while (!res.empty() && std::isspace(res.back())) {
+		res.pop_back();
+	}
+	return res;
+}
+
+static std::string trim(const std::string& s) {
+	size_t start = 0;
+	while (start < s.length() && std::isspace(s[start]))
+		start++;
+	std::string res = s.substr(start);
+	return trimRight(res);
+}
+
+SceneImportResult importLegacyScene(const std::string& legacyDir,
+									const std::string& sceneDir,
+									const std::string& sceneName) {
+	SceneImportResult result;
+
+	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
+		SceneDiagnostic d;
+		d.severity = sev;
+		d.code = code;
+		d.message = msg;
+		d.file = file;
+		result.diagnostics.push_back(d);
+	};
+
+	fs::path legacyPath(legacyDir);
+	if (!fs::exists(legacyPath) || !fs::is_directory(legacyPath)) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Legacy directory missing or invalid");
+		return result;
+	}
+
+	std::vector<std::string> trainFiles;
+	fs::path manifestPath = resolvePath(legacyPath, "trainNames.txt");
+	if (fs::exists(manifestPath)) {
+		std::string content;
+		if (readFile(manifestPath, content)) {
+			std::stringstream ss(content);
+			std::string line;
+			while (std::getline(ss, line)) {
+				line = trim(line);
+				if (line.empty())
+					continue;
+				std::string lowerLine = line;
+				std::transform(lowerLine.begin(), lowerLine.end(), lowerLine.begin(), ::tolower);
+				// The legacy loader skips manifest entries without "txt" in the
+				// name; folders and other files are filtered the same way here.
+				if (lowerLine.find("txt") != std::string::npos) {
+					trainFiles.push_back("Trains/" + line);
+				}
+			}
+		}
+	} else {
+		addDiag(SceneSeverity::Info, "scene.import.info", "trainNames.txt missing, falling back to directory enumeration");
+		fs::path trainsDir = resolvePath(legacyPath, "Trains");
+		std::error_code ec;
+		if (fs::is_directory(trainsDir, ec)) {
+			for (const auto& entry : fs::directory_iterator(trainsDir, ec)) {
+				if (entry.is_regular_file()) {
+					std::string name = entry.path().filename().string();
+					std::string ext = entry.path().extension().string();
+					std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+					if (ext == ".txt" && name != "trainNames.txt") {
+						trainFiles.push_back("Trains/" + name);
+					}
+				}
+			}
+		}
+	}
+
+	json servicesArr = json::array();
+	std::unordered_set<std::string> referencedRoutes;
+	std::unordered_map<std::string, std::pair<std::string, std::string>> trainUnitsMap; // stem -> {data, traction}
+
+	for (const auto& tf : trainFiles) {
+		fs::path tfPath = resolvePath(legacyPath, tf);
+		std::string content;
+		if (!readFile(tfPath, content)) {
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Missing train file: " + tf, tf);
+			continue;
+		}
+		std::vector<std::string> tokens = readTokens(content);
+		if (tokens.size() < 7) {
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed Trains file, need 7 tokens", tf);
+			continue;
+		}
+
+		std::string sName = tokens[0];
+		double entryTime = 0.0;
+		double headway = 0.0;
+		int routeIndex = 0;
+		try {
+			entryTime = std::stod(tokens[1]);
+			headway = std::stod(tokens[2]);
+			routeIndex = std::stoi(tokens[3]);
+		} catch (...) {
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in Trains file", tf);
+			continue;
+		}
+
+		std::string origName = tokens[0];
+		sName = origName;
+		int suffix = 2;
+		while (true) {
+			bool conflict = false;
+			for (const auto& existing : servicesArr) {
+				if (existing["id"] == sName) {
+					conflict = true;
+					break;
+				}
+			}
+			if (!conflict)
+				break;
+			sName = origName + "_" + std::to_string(suffix++);
+		}
+		if (sName != origName) {
+			addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+					"Duplicate service name " + origName + " renamed to " + sName, tf);
+		}
+
+		std::string routeId = "route" + std::to_string(routeIndex);
+		std::string dataPath = tokens[4];
+		std::string tractionPath = tokens[5];
+		std::string timetablePath = tokens[6];
+
+		referencedRoutes.insert(routeId);
+
+		fs::path dp(dataPath);
+		std::string stem = dp.stem().string();
+		trainUnitsMap[stem] = {dataPath, tractionPath};
+
+		fs::path ttPath = resolvePath(legacyPath, timetablePath);
+		std::string ttContent;
+		if (!readFile(ttPath, ttContent)) {
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing timetable file: " + timetablePath, tf);
+			continue;
+		}
+
+		json stopsArr = json::array();
+		std::stringstream ttSs(ttContent);
+		std::string ttLine;
+		int row = 0;
+		while (std::getline(ttSs, ttLine)) {
+			std::vector<std::string> ttTokens = readTokens(ttLine);
+			if (ttTokens.empty())
+				continue;
+			if (ttTokens.size() < 4) {
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed timetable row " + std::to_string(row), timetablePath);
+				continue;
+			}
+
+			size_t n = ttTokens.size();
+			double dwell = 0, arrival = 0, departure = 0;
+			try {
+				dwell = std::stod(ttTokens[n - 3]);
+				arrival = std::stod(ttTokens[n - 2]);
+				departure = std::stod(ttTokens[n - 1]);
+			} catch (...) {
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in timetable row " + std::to_string(row), timetablePath);
+				continue;
+			}
+
+			// Multi-token station names are joined without a separator: the
+			// legacy data writes e.g. "Morengo Bariano" in timetables for the
+			// station "MorengoBariano" in Stations.txt.
+			std::string stationName = ttTokens[0];
+			for (size_t i = 1; i < n - 3; ++i) {
+				stationName += ttTokens[i];
+			}
+
+			json stopObj = {
+				{"station", stationName},
+				{"dwell_seconds", dwell}};
+			// -1 means "not defined" in legacy timetables: typically the first
+			// stop has no arrival and the last stop has no departure, but some
+			// mid-service stops also carry no scheduled arrival.
+			if (arrival != -1) {
+				stopObj["arrival_seconds"] = arrival;
+			}
+			// Whether this is the last stop is only known after the loop, so the
+			// departure is kept for every stop and removed from the terminus below.
+			double outDeparture = departure;
+			if (departure == -1 && arrival != -1) {
+				outDeparture = arrival;
+			} else if (departure != -1 && arrival != -1 && departure < arrival) {
+				outDeparture = arrival;
+				addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+						"Departure " + ttTokens[n - 1] + " before arrival " + ttTokens[n - 2] + " at " + stationName + " of " + sName + "; departure raised to the arrival", timetablePath);
+			}
+			stopObj["departure_seconds"] = outDeparture;
+			stopObj["_orig_departure"] = departure;
+			stopsArr.push_back(stopObj);
+			row++;
+		}
+
+		if (!stopsArr.empty()) {
+			auto& lastStop = stopsArr.back();
+			if (lastStop["_orig_departure"] == -1.0) {
+				lastStop.erase("departure_seconds");
+			}
+			// A non-terminus stop whose departure was -1 borrowed its arrival above.
+			for (size_t i = 0; i + 1 < stopsArr.size(); ++i) {
+				if (stopsArr[i]["_orig_departure"] == -1.0) {
+					addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+							"Departure -1 on non-last stop of " + sName + "; departure set to the arrival", timetablePath);
+				}
+			}
+			for (auto& s : stopsArr) {
+				s.erase("_orig_departure");
+			}
+		}
+		// A service without stops is valid (through/freight services do not
+		// stop); the validator reports it as a warning.
+
+		json serviceObj = {
+			{"id", sName},
+			{"composition", stem},
+			{"route", routeId},
+			{"entry_time_seconds", entryTime},
+			{"stops", stopsArr}};
+		if (headway < 99999999) {
+			serviceObj["repeat"] = {{"headway_seconds", headway}};
+		}
+		servicesArr.push_back(serviceObj);
+	}
+
+	json trainUnitsArr = json::array();
+	json compositionsArr = json::array();
+	for (const auto& kv : trainUnitsMap) {
+		std::string stem = kv.first;
+		std::string dataPath = kv.second.first;
+		std::string tractionPath = kv.second.second;
+
+		fs::path resolvedData = resolvePath(legacyPath, dataPath);
+		std::string dContent;
+		if (!readFile(resolvedData, dContent)) {
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing train data file: " + dataPath);
+			continue;
+		}
+		std::vector<std::string> dTokens = readTokens(dContent);
+		if (dTokens.size() < 9) {
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed train data file", dataPath);
+			continue;
+		}
+
+		std::vector<double> phys;
+		try {
+			for (int i = 0; i < 9; ++i)
+				phys.push_back(std::stod(dTokens[i]));
+		} catch (...) {
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in train data file", dataPath);
+			continue;
+		}
+
+		fs::path resolvedTraction = resolvePath(legacyPath, tractionPath);
+		std::string tContent;
+		json tracArr = json::array();
+		if (!readFile(resolvedTraction, tContent)) {
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing traction file: " + tractionPath);
+			continue;
+		}
+
+		std::stringstream tSs(tContent);
+		std::string tLine;
+		int row = 0;
+		while (std::getline(tSs, tLine)) {
+			std::vector<std::string> tTokens = readTokens(tLine);
+			if (tTokens.empty())
+				continue;
+			if (tTokens.size() < 5) {
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed traction row " + std::to_string(row), tractionPath);
+				continue;
+			}
+			try {
+				tracArr.push_back({std::stod(tTokens[0]), std::stod(tTokens[1]), std::stod(tTokens[2]), std::stod(tTokens[3]), std::stod(tTokens[4])});
+			} catch (...) {
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in traction row " + std::to_string(row), tractionPath);
+				continue;
+			}
+			row++;
+		}
+
+		trainUnitsArr.push_back({{"id", stem},
+								 {"physical", {{"mass_of_traction_unit_kg", phys[0]}, {"mass_of_a_wagon_kg", phys[1]}, {"number_of_wagons", phys[2]}, {"max_speed_ms", phys[3]}, {"max_deceleration_ms2", phys[4]}, {"frontal_area_m2", phys[5]}, {"resistance_coefficient", phys[6]}, {"jerk_ms3", phys[7]}, {"length_m", phys[8]}}},
+								 {"traction_curve", tracArr},
+								 {"source", {{"data_file", dataPath}, {"traction_file", tractionPath}}}});
+
+		compositionsArr.push_back({{"id", stem},
+								   {"units", {stem}}});
+	}
+
+	json routesArr = json::array();
+	for (const auto& rId : referencedRoutes) {
+		std::string idxStr = rId.substr(5);
+		std::string rPath = "Routes/Route" + idxStr + ".txt";
+		fs::path resolvedRoute = resolvePath(legacyPath, rPath);
+		std::string rContent;
+		if (!readFile(resolvedRoute, rContent)) {
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath);
+			continue;
+		}
+
+		json blocksArr = json::array();
+		std::stringstream rSs(rContent);
+		std::string rLine;
+		int row = 0;
+		while (std::getline(rSs, rLine)) {
+			std::vector<std::string> rTokens = readTokens(rLine);
+			if (rTokens.empty())
+				continue;
+			std::string token = rTokens[0];
+			size_t first = token.find('@');
+			size_t last = token.rfind('@');
+			if (first != std::string::npos && last != std::string::npos && first != last && first == 0 && last == token.length() - 1) {
+				blocksArr.push_back(token.substr(1, token.length() - 2));
+			} else {
+				addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed route block token at row " + std::to_string(row), rPath);
+				blocksArr.push_back(token);
+			}
+			row++;
+		}
+
+		routesArr.push_back({{"id", rId},
+							 {"blocks", blocksArr}});
+	}
+
+	json stationsArr = json::array();
+	fs::path stationsPath = resolvePath(legacyPath, "Tracklines/Stations.txt");
+	if (!fs::exists(stationsPath)) {
+		stationsPath = resolvePath(legacyPath, "TrackLines/Stations.txt");
+	}
+	if (fs::exists(stationsPath)) {
+		std::string stContent;
+		if (readFile(stationsPath, stContent)) {
+			std::stringstream stSs(stContent);
+			std::string stLine;
+			int row = 0;
+			while (std::getline(stSs, stLine)) {
+				if (trim(stLine).empty())
+					continue;
+				size_t tabPos = stLine.find('\t');
+				std::string name;
+				double pos = 0;
+				if (tabPos != std::string::npos) {
+					std::string posStr = stLine.substr(0, tabPos);
+					name = stLine.substr(tabPos + 1);
+					try {
+						pos = std::stod(trim(posStr));
+					} catch (...) {
+						addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid pos in station row " + std::to_string(row), "Stations.txt");
+						continue;
+					}
+				} else {
+					std::vector<std::string> stTokens = readTokens(stLine);
+					if (stTokens.size() < 2) {
+						addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed station row " + std::to_string(row), "Stations.txt");
+						continue;
+					}
+					try {
+						pos = std::stod(stTokens[0]);
+					} catch (...) {
+						addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid pos in station row " + std::to_string(row), "Stations.txt");
+						continue;
+					}
+					name = stLine.substr(stLine.find(stTokens[1]));
+				}
+				name = trim(name);
+				if (name.empty()) {
+					addDiag(SceneSeverity::Error, "scene.import.parse", "Empty station name in row " + std::to_string(row), "Stations.txt");
+					continue;
+				}
+
+				stationsArr.push_back({{"id", name},
+									   {"name", name},
+									   {"position_km", pos},
+									   {"platforms", json::array()}});
+				row++;
+			}
+		}
+	} else {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Missing Tracklines/Stations.txt");
+	}
+
+	json sceneJson = {
+		{"schema_version", 1},
+		{"name", sceneName},
+		{"legacy_source", legacyDir}};
+	json infraJson = {
+		{"nodes", json::array()},
+		{"arcs", json::array()}};
+	json signallingJson = {
+		{"signals", json::array()},
+		{"routes", routesArr}};
+	json rollingJson = {
+		{"train_units", trainUnitsArr},
+		{"compositions", compositionsArr}};
+	json outServicesJson = {
+		{"services", servicesArr}};
+	json outStationsJson = {
+		{"stations", stationsArr}};
+
+	std::error_code ec;
+	fs::create_directories(sceneDir, ec);
+	if (ec) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create scene directory: " + ec.message());
+		return result;
+	}
+
+	bool allWritten = true;
+	auto writeJson = [&](const std::string& filename, const json& j) {
+		std::ofstream out(fs::path(sceneDir) / filename);
+		out << j.dump(4) << "\n";
+		if (!out.good()) {
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Failed to write " + filename, filename);
+			allWritten = false;
+		}
+	};
+
+	writeJson("scene.json", sceneJson);
+	writeJson("infrastructure.json", infraJson);
+	writeJson("signalling.json", signallingJson);
+	writeJson("rolling_stock.json", rollingJson);
+	writeJson("services.json", outServicesJson);
+	writeJson("stations.json", outStationsJson);
+
+	result.wroteScene = allWritten;
+
+	// Legacy passthrough: unconverted runtime inputs travel with the scene so
+	// the future exporter can rebuild a runnable legacy folder from it alone.
+	fs::path outLegacy = fs::path(sceneDir) / "legacy";
+	fs::create_directories(outLegacy, ec);
+	auto copyInto = [&](const fs::path& from, const fs::path& to) {
+		std::error_code copyEc;
+		fs::create_directories(to.parent_path(), copyEc);
+		fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing, copyEc);
+		if (copyEc) {
+			addDiag(SceneSeverity::Warning, "scene.import.missing",
+					"Could not copy legacy data " + from.filename().string() + ": " + copyEc.message());
+		}
+	};
+	std::vector<std::string> passDirs = {"Tracklines", "TrackLines", "TMS", "TDS", "GUI", "Rescheduling", "Passengers", "RoutesToWrite"};
+	std::unordered_set<std::string> copiedDirs;
+	for (const auto& d : passDirs) {
+		fs::path p = resolvePath(legacyPath, d);
+		if (fs::is_directory(p, ec)) {
+			// Canonical keys stop the same directory being copied twice when the
+			// filesystem is case-insensitive and both name variants resolve.
+			fs::path canon = fs::weakly_canonical(p, ec);
+			std::string key = ec ? p.lexically_normal().string() : canon.string();
+			if (copiedDirs.insert(key).second) {
+				copyInto(p, outLegacy / p.filename());
+			}
+		}
+	}
+	// Scenario folders live inside the timetable directory next to the
+	// per-service files; only the folders are passed through.
+	fs::path ttDir = resolvePath(legacyPath, "Timetable");
+	if (fs::is_directory(ttDir, ec)) {
+		for (const auto& entry : fs::directory_iterator(ttDir, ec)) {
+			if (entry.is_directory()) {
+				std::string dirName = entry.path().filename().string();
+				if (dirName.find("Scenarios_") == 0) {
+					copyInto(entry.path(), outLegacy / "Timetable" / dirName);
+				}
+			}
+		}
+	}
+	// Routes/ keeps its non-Route<N> support files.
+	fs::path rDir = resolvePath(legacyPath, "Routes");
+	if (fs::is_directory(rDir, ec)) {
+		for (const auto& entry : fs::directory_iterator(rDir, ec)) {
+			if (entry.is_regular_file()) {
+				std::string name = entry.path().filename().string();
+				if (name.find("Route") != 0 && name.find("route") != 0) {
+					copyInto(entry.path(), outLegacy / "Routes" / name);
+				}
+			}
+		}
+	}
+
+	return result;
+}
