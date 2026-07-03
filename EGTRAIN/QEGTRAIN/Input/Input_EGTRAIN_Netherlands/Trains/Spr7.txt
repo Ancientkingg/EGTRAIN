@@ -1,0 +1,7 @@
+SPR_7
+400
+1800
+6
+/TrainData/SLT06.txt
+/TrainData/T_SLT06.txt
+/TimeTable/SprUtBrn.txt
