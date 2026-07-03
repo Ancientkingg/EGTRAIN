@@ -365,12 +365,21 @@ int main(int argc, char** argv) {
 		TempDir lDir, outDir;
 		fs::create_directories(fs::path(lDir.dir) / "Routes");
 		std::ofstream route(fs::path(lDir.dir) / "Routes" / "Route0.txt");
+		route << "@A@1.000/@B@2.000\n";
 		route << "not-a-route-token\n";
 		route.close();
 
 		auto res = importLegacyScene(lDir.dir, outDir.dir, "MalformedRoute");
-		ok &= expect(hasDiag(res.diagnostics, "scene.import.parse", SceneSeverity::Warning),
-					 "scene.import.parse warning for malformed route token");
+		ok &= expect(countDiag(res.diagnostics, "scene.import.parse", SceneSeverity::Warning) == 1,
+					 "scene.import.parse warning only for malformed route token");
+
+		bool malformedRowFlagged = false;
+		for (const auto& d : res.diagnostics) {
+			if (d.code == "scene.import.parse" && d.severity == SceneSeverity::Warning &&
+				d.message == "Malformed route block token at row 1")
+				malformedRowFlagged = true;
+		}
+		ok &= expect(malformedRowFlagged, "parse warning names the malformed token row");
 	}
 
 	if (!ok)

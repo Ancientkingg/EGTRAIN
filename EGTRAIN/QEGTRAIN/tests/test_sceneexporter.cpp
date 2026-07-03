@@ -66,12 +66,13 @@ static void sortArrayById(json& arr) {
 }
 
 int main(int argc, char** argv) {
-	if (argc < 3) {
-		std::cerr << "Usage: test_sceneexporter <copenhagen_dir> <brescia_dir>\n";
+	if (argc < 4) {
+		std::cerr << "Usage: test_sceneexporter <copenhagen_dir> <brescia_dir> <netherlands_dir>\n";
 		return 1;
 	}
 	std::string copDir = argv[1];
 	std::string breDir = argv[2];
+	std::string nlDir = argv[3];
 	bool ok = true;
 
 	auto testRoundTrip = [&](const std::string& legacyDir, const std::string& name, TempDir& outDir) {
@@ -126,7 +127,30 @@ int main(int argc, char** argv) {
 	TempDir breOutDirWrap;
 	testRoundTrip(breDir, "Brescia", breOutDirWrap);
 
-	// 3. Exported tree shape
+	// 3. Netherlands switch-transition route tokens export unchanged.
+	{
+		TempDir sceneDir, outDir;
+		auto importRes = importLegacyScene(nlDir, sceneDir.dir, "Netherlands");
+		printErrors(importRes.diagnostics, "Netherlands import");
+		ok &= expect(importRes.success(), "Netherlands import succeeded");
+		auto exportRes = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(exportRes.diagnostics, "Netherlands export");
+		ok &= expect(exportRes.success(), "Netherlands export succeeded");
+
+		std::ifstream sourceRoute(fs::path(nlDir) / "Routes" / "Route0.txt");
+		std::ifstream exportedRoute(fs::path(outDir.dir) / "Routes" / "Route0.txt");
+		std::string sourceLine, exportedLine;
+		std::getline(sourceRoute, sourceLine);
+		std::getline(sourceRoute, sourceLine);
+		std::getline(exportedRoute, exportedLine);
+		std::getline(exportedRoute, exportedLine);
+		ok &= expect(sourceLine.find('/') != std::string::npos && sourceLine.rfind("@", 0) == 0,
+					 "Netherlands Route0 line 2 is a switch-transition token");
+		ok &= expect(sourceLine == exportedLine, "Netherlands switch-transition token exports unchanged");
+		ok &= expect(exportedLine.rfind("@@", 0) != 0, "Netherlands switch-transition token not double-wrapped");
+	}
+
+	// 4. Exported tree shape
 	{
 		fs::path cOut(copOutDir);
 		ok &= expect(fs::exists(cOut / "trainNames.txt"), "trainNames.txt exists");
@@ -154,7 +178,7 @@ int main(int argc, char** argv) {
 		checkLegacyFile("GUI/StationsCoord.txt");
 	}
 
-	// 4. Terminus/first-stop sentinels survive
+	// 5. Terminus/first-stop sentinels survive
 	{
 		fs::path cOut(copOutDir);
 		std::ifstream ttf(cOut / "TimeTable" / "A-Hillerod-Hundige.txt");
@@ -178,7 +202,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// 5. Minimal fixture scene
+	// 6. Minimal fixture scene
 	{
 		TempDir outDir;
 		std::string fixture = fs::path(argv[0]).parent_path().parent_path().string() + "/EGTRAIN/QEGTRAIN/tests/fixtures/scenes/minimal";
@@ -191,7 +215,31 @@ int main(int argc, char** argv) {
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
 	}
 
-	// 6. Nonexistent scene dir
+	// 7. Ordinary slash-containing block ids are still wrapped.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Slash Block"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "SlashBlock export");
+		ok &= expect(res.success(), "Slash block scene export succeeds");
+		std::ifstream route(fs::path(outDir.dir) / "Routes" / "Route0.txt");
+		std::string line;
+		std::getline(route, line);
+		ok &= expect(line == "@Depot/1@", "Slash block id remains wrapped");
+	}
+
+	// 8. Nonexistent scene dir
 	{
 		TempDir outDir;
 		auto res = exportLegacyScene("/no/such/scene", outDir.dir);

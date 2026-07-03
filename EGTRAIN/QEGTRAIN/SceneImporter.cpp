@@ -81,15 +81,22 @@ static bool isPositionedRouteEndpoint(const std::string& token) {
 	size_t last = token.rfind('@');
 	if (first != 0 || last == std::string::npos || first == last || last + 1 >= token.length())
 		return false;
-	if (token[last + 1] != '-')
-		return false;
-	size_t parsed = 0;
-	try {
-		std::stod(token.substr(last + 1), &parsed);
-	} catch (...) {
-		return false;
+	std::string position = token.substr(last + 1);
+	size_t i = 0;
+	if (position[i] == '+' || position[i] == '-')
+		i++;
+	bool sawDigit = false;
+	bool sawDot = false;
+	for (; i < position.length(); ++i) {
+		if (std::isdigit(static_cast<unsigned char>(position[i]))) {
+			sawDigit = true;
+		} else if (position[i] == '.' && !sawDot) {
+			sawDot = true;
+		} else {
+			return false;
+		}
 	}
-	return parsed == token.length() - last - 1;
+	return sawDigit;
 }
 
 static bool isSwitchTransitionRouteToken(const std::string& token) {
