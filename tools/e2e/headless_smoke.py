@@ -15,10 +15,10 @@ CASES = {
 }
 
 
-def run_case(case_id: int) -> None:
+def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
     proc = subprocess.run(
         [str(APP), "-n", str(case_id)],
-        cwd=RUN_DIR,
+        cwd=cwd,
         input=PROMPTS,
         text=True,
         stdout=subprocess.PIPE,
@@ -63,8 +63,8 @@ def check_trajectory_file(path: Path) -> tuple[bool, bool]:
     return has_changing, has_valid
 
 
-def check_movement(case_id: int) -> None:
-    out_dir = RUN_DIR / CASES[case_id]
+def check_movement(case_id: int, out_base: Path = RUN_DIR) -> None:
+    out_dir = out_base / CASES[case_id]
     candidates = [
         out_dir / "TrainPathDiagram.txt",
         out_dir / "TrainServicePathDiagram.txt",
@@ -92,8 +92,8 @@ def check_movement(case_id: int) -> None:
     print(f"PASS case {case_id} has non-zero/non-sentinel trajectory samples")
 
 
-def check_station_arrivals(case_id: int = 3) -> None:
-    stats = RUN_DIR / CASES[case_id] / "Stats_Stations.txt"
+def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
+    stats = out_base / CASES[case_id] / "Stats_Stations.txt"
     rows = 0
     for line in stats.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
         parts = line.split()

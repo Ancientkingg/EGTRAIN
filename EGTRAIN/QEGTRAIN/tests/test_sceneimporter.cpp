@@ -261,6 +261,11 @@ int main(int argc, char** argv) {
 		sFile >> sJson;
 		ok &= expect(sJson["services"].size() == 62, "Brescia 62 services");
 
+		std::ifstream rFile(fs::path(outDir.dir) / "signalling.json");
+		json rJson;
+		rFile >> rJson;
+		ok &= expect(rJson["routes"].size() == 48, "Brescia 48 routes");
+
 		bool found10450 = false;
 		int repeatCount = 0;
 		for (const auto& s : sJson["services"]) {
