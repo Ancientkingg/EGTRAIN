@@ -27,6 +27,36 @@ static std::string sanitizeFilename(const std::string& name) {
 	return res;
 }
 
+static bool isPositionedRouteEndpoint(const std::string& token) {
+	size_t first = token.find('@');
+	size_t last = token.rfind('@');
+	if (first != 0 || last == std::string::npos || first == last || last + 1 >= token.length())
+		return false;
+	std::string position = token.substr(last + 1);
+	size_t i = 0;
+	if (position[i] == '+' || position[i] == '-')
+		i++;
+	bool sawDigit = false;
+	bool sawDot = false;
+	for (; i < position.length(); ++i) {
+		if (std::isdigit(static_cast<unsigned char>(position[i]))) {
+			sawDigit = true;
+		} else if (position[i] == '.' && !sawDot) {
+			sawDot = true;
+		} else {
+			return false;
+		}
+	}
+	return sawDigit;
+}
+
+static bool isSwitchTransitionRouteEntry(const std::string& entry) {
+	size_t slash = entry.find('/');
+	if (slash == std::string::npos || entry.find('/', slash + 1) != std::string::npos)
+		return false;
+	return isPositionedRouteEndpoint(entry.substr(0, slash)) && isPositionedRouteEndpoint(entry.substr(slash + 1));
+}
+
 static std::string formatNumber(double val) {
 	if (std::floor(val) == val) {
 		return std::to_string(static_cast<long long>(val));
@@ -129,7 +159,11 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			continue;
 		}
 		for (const auto& b : r.blocks) {
-			rf << "@" << b << "@\n";
+			if (isSwitchTransitionRouteEntry(b)) {
+				rf << b << "\n";
+			} else {
+				rf << "@" << b << "@\n";
+			}
 		}
 	}
 
