@@ -1,0 +1,11 @@
+{
+    "train_units": [
+        {"id": "tu.01"}
+    ],
+    "compositions": [
+        {
+            "id": "comp.01",
+            "units": ["tu.01"]
+        }
+    ]
+}

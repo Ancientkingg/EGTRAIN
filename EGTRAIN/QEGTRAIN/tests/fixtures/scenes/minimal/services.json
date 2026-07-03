@@ -1,0 +1,44 @@
+{
+    "services": [
+        {
+            "id": "svc.a1",
+            "composition": "comp.01",
+            "route": "rt.main",
+            "stops": [
+                {
+                    "station": "st.hillerod",
+                    "platform": "p1",
+                    "departure_seconds": 120,
+                    "dwell_seconds": 0
+                },
+                {
+                    "station": "st.copenhagen",
+                    "platform": "p2",
+                    "arrival_seconds": 600,
+                    "departure_seconds": 660,
+                    "dwell_seconds": 60
+                }
+            ]
+        },
+        {
+            "id": "svc.a2",
+            "composition": "comp.01",
+            "route": "rt.main",
+            "stops": [
+                {
+                    "station": "st.hillerod",
+                    "platform": "p2",
+                    "departure_seconds": 720,
+                    "dwell_seconds": 0
+                },
+                {
+                    "station": "st.copenhagen",
+                    "platform": "p1",
+                    "arrival_seconds": 1200,
+                    "departure_seconds": 1260,
+                    "dwell_seconds": 60
+                }
+            ]
+        }
+    ]
+}
