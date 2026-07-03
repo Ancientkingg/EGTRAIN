@@ -12,6 +12,7 @@ PROMPTS = "n\n0\n0\n0\n0\n"
 CASES = {
     3: "Output/Output_EGTRAIN_Banedanmark/TrainTrajectories",
     4: "Output/Output_EGTRAIN_Milano_Brescia/TrainTrajectories",
+    5: "Output/Output_EGTRAIN_Assignment/TrainTrajectories",
 }
 
 
