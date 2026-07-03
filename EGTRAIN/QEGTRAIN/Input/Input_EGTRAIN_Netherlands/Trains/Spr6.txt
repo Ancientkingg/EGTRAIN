@@ -1,0 +1,7 @@
+SPR_6
+300
+1800
+5
+/TrainData/SLT06.txt
+/TrainData/T_SLT06.txt
+/TimeTable/SprDldUt.txt
