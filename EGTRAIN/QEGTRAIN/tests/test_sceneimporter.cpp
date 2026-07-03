@@ -25,6 +25,15 @@ static bool hasDiag(const std::vector<SceneDiagnostic>& diags, const std::string
 	return false;
 }
 
+static int countDiag(const std::vector<SceneDiagnostic>& diags, const std::string& code, SceneSeverity sev) {
+	int count = 0;
+	for (const auto& d : diags) {
+		if (d.code == code && d.severity == sev)
+			count++;
+	}
+	return count;
+}
+
 struct TempDir {
 	std::string dir;
 	TempDir() {
@@ -59,12 +68,13 @@ static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* l
 }
 
 int main(int argc, char** argv) {
-	if (argc < 3) {
-		std::cerr << "Usage: test_sceneimporter <copenhagen_dir> <brescia_dir>\n";
+	if (argc < 4) {
+		std::cerr << "Usage: test_sceneimporter <copenhagen_dir> <brescia_dir> <netherlands_dir>\n";
 		return 1;
 	}
 	std::string copDir = argv[1];
 	std::string breDir = argv[2];
+	std::string nlDir = argv[3];
 	bool ok = true;
 
 	auto runPreservationSweep = [&](const std::string& legacyDir, const std::string& sceneDir) {
@@ -284,7 +294,46 @@ int main(int argc, char** argv) {
 		runPreservationSweep(breDir, outDir.dir);
 	}
 
-	// 8. Error: Nonexistent directory
+	// 8. Netherlands assignment source imports into a validated scene.
+	{
+		TempDir outDir;
+		auto res = importLegacyScene(nlDir, outDir.dir, "Netherlands");
+		printErrors(res.diagnostics, "Netherlands import");
+		ok &= expect(res.success(), "Netherlands import succeeds with zero errors");
+		ok &= expect(countDiag(res.diagnostics, "scene.import.parse", SceneSeverity::Warning) == 0,
+					 "Netherlands complex route tokens are preserved without parse warnings");
+
+		auto vDiags = validateSceneDirectory(outDir.dir);
+		printErrors(vDiags, "Netherlands validate");
+		ok &= expect(!hasErrors(vDiags), "Netherlands validate zero errors");
+
+		std::ifstream sFile(fs::path(outDir.dir) / "services.json");
+		json sJson;
+		sFile >> sJson;
+		ok &= expect(sJson["services"].size() == 8, "Netherlands 8 services");
+
+		std::ifstream rsFile(fs::path(outDir.dir) / "rolling_stock.json");
+		json rsJson;
+		rsFile >> rsJson;
+		ok &= expect(rsJson["train_units"].size() == 1, "Netherlands 1 train unit");
+		ok &= expect(rsJson["compositions"].size() == 1, "Netherlands 1 composition");
+
+		std::ifstream rFile(fs::path(outDir.dir) / "signalling.json");
+		json rJson;
+		rFile >> rJson;
+		ok &= expect(rJson["routes"].size() == 74, "Netherlands 74 routes");
+		ok &= expect(rJson["routes"][0]["blocks"].size() == 53, "Netherlands route0 preserves every token");
+		bool route0HasSwitchToken = false;
+		for (const auto& block : rJson["routes"][0]["blocks"]) {
+			if (block.get<std::string>().find('/') != std::string::npos) {
+				route0HasSwitchToken = true;
+				break;
+			}
+		}
+		ok &= expect(route0HasSwitchToken, "Netherlands route0 preserves switch transition token");
+	}
+
+	// 9. Error: Nonexistent directory
 	{
 		TempDir outDir;
 		auto res = importLegacyScene("/no/such/legacy/dir", outDir.dir, "NoDir");
@@ -293,7 +342,7 @@ int main(int argc, char** argv) {
 		ok &= expect(hasDiag(res.diagnostics, "scene.import.missing"), "scene.import.missing produced");
 	}
 
-	// 9. Error: Synthetic mini legacy folder
+	// 10. Error: Synthetic mini legacy folder
 	{
 		TempDir lDir, outDir;
 		fs::create_directories(fs::path(lDir.dir) / "Trains");
@@ -309,6 +358,19 @@ int main(int argc, char** argv) {
 		auto res = importLegacyScene(lDir.dir, outDir.dir, "Synth");
 		ok &= expect(hasDiag(res.diagnostics, "scene.import.ref"), "scene.import.ref for route out of range");
 		ok &= expect(hasDiag(res.diagnostics, "scene.import.parse"), "scene.import.parse for truncated file");
+	}
+
+	// 11. Error: malformed route tokens still report parse warnings.
+	{
+		TempDir lDir, outDir;
+		fs::create_directories(fs::path(lDir.dir) / "Routes");
+		std::ofstream route(fs::path(lDir.dir) / "Routes" / "Route0.txt");
+		route << "not-a-route-token\n";
+		route.close();
+
+		auto res = importLegacyScene(lDir.dir, outDir.dir, "MalformedRoute");
+		ok &= expect(hasDiag(res.diagnostics, "scene.import.parse", SceneSeverity::Warning),
+					 "scene.import.parse warning for malformed route token");
 	}
 
 	if (!ok)

@@ -319,7 +319,8 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_sceneimporter
         COMMAND test_sceneimporter
             ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
-            ${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia)
+			${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
+			${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
 
     add_executable(test_sceneexporter
         ${SRC_DIR}/tests/test_sceneexporter.cpp
