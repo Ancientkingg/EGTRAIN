@@ -1,0 +1,11 @@
+{
+    "incidents": [
+        {
+            "id": "inc.01",
+            "type": "signal_failure",
+            "target": "sig.01",
+            "start_seconds": 300,
+            "end_seconds": 900
+        }
+    ]
+}

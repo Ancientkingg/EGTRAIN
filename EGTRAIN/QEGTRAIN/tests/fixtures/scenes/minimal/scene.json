@@ -1,0 +1,11 @@
+{
+    "schema_version": 1,
+    "name": "Minimal Test Scene",
+    "description": "A minimal scene for validation tests",
+    "base_time": "08:00:00",
+    "units": {
+        "distance": "m",
+        "time": "s",
+        "speed": "m/s"
+    }
+}

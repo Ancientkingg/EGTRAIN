@@ -1,0 +1,11 @@
+{
+    "signals": [
+        {"id": "sig.01"}
+    ],
+    "routes": [
+        {
+            "id": "rt.main",
+            "blocks": ["blk.01", "blk.02", "blk.03"]
+        }
+    ]
+}
