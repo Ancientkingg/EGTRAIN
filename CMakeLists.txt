@@ -97,6 +97,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/SceneDiagnostic.cpp
     ${SRC_DIR}/SceneModel.cpp
     ${SRC_DIR}/SceneValidator.cpp
+    ${SRC_DIR}/SceneImporter.cpp
     ${SRC_DIR}/timeQProgressBar.cpp
     ${SRC_DIR}/trainQGraphicsItemGroup.cpp
     ${SRC_DIR}/trainQGraphicsPolygonItem.cpp
@@ -147,6 +148,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/SceneDiagnostic.h
     ${SRC_DIR}/SceneModel.h
     ${SRC_DIR}/SceneValidator.h
+    ${SRC_DIR}/SceneImporter.h
     ${SRC_DIR}/timeQProgressBar.h
     ${SRC_DIR}/timeutil.hpp
     ${SRC_DIR}/trainQGraphicsItemGroup.h
@@ -295,6 +297,18 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_scenevalidator PRIVATE nlohmann_json::nlohmann_json)
     add_test(NAME test_scenevalidator
         COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal)
+
+    add_executable(test_sceneimporter
+        ${SRC_DIR}/tests/test_sceneimporter.cpp
+        ${SRC_DIR}/SceneDiagnostic.cpp
+        ${SRC_DIR}/SceneModel.cpp
+        ${SRC_DIR}/SceneValidator.cpp
+        ${SRC_DIR}/SceneImporter.cpp)
+    target_link_libraries(test_sceneimporter PRIVATE nlohmann_json::nlohmann_json)
+    add_test(NAME test_sceneimporter
+        COMMAND test_sceneimporter
+            ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
+            ${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia)
 endif()
 
 # Install

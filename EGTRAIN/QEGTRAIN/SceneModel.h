@@ -24,8 +24,25 @@ struct SceneRoute {
 	std::vector<std::string> blocks;
 };
 
+struct SceneTrainPhysical {
+	double mass_of_traction_unit_kg = 0.0;
+	double mass_of_a_wagon_kg = 0.0;
+	double number_of_wagons = 0.0;
+	double max_speed_ms = 0.0;
+	double max_deceleration_ms2 = 0.0;
+	double frontal_area_m2 = 0.0;
+	double resistance_coefficient = 0.0;
+	double jerk_ms3 = 0.0;
+	double length_m = 0.0;
+};
+
 struct SceneTrainUnit {
 	std::string id;
+	bool hasPhysical = false;
+	SceneTrainPhysical physical;
+	std::vector<std::array<double, 5>> tractionCurve;
+	std::string sourceDataFile;
+	std::string sourceTractionFile;
 };
 
 struct SceneComposition {
@@ -47,6 +64,10 @@ struct SceneService {
 	std::string id;
 	std::string composition;
 	std::string route;
+	bool hasEntryTime = false;
+	double entryTimeSeconds = 0.0;
+	bool hasRepeat = false;
+	double headwaySeconds = 0.0;
 	std::vector<SceneStop> stops;
 };
 

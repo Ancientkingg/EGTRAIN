@@ -136,8 +136,13 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 					"services.json", "service", s.id, servicePath + ".route", s.route,
 					"Add route " + s.route + " to signalling.json or reference an existing one");
 		}
+		if (s.hasRepeat && s.headwaySeconds <= 0.0) {
+			addDiag(SceneSeverity::Error, "scene.repeat.invalid", "Non-positive headway",
+					"services.json", "service", s.id, servicePath + ".repeat.headway_seconds", "",
+					"Use a headway greater than 0 seconds");
+		}
 		if (s.stops.empty()) {
-			addDiag(SceneSeverity::Error, "scene.service.no_stops", "Service has no stops",
+			addDiag(SceneSeverity::Warning, "scene.service.no_stops", "Service has no stops",
 					"services.json", "service", s.id, servicePath + ".stops", "",
 					"Add at least one stop to the service");
 		} else {
@@ -165,24 +170,16 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 					}
 				}
 
-				if (stop.hasArrival && stop.arrivalSeconds < 0.0) {
-					addDiag(SceneSeverity::Error, "scene.time.invalid", "Negative arrival time",
-							"services.json", "service", s.id, stopPath + ".arrival_seconds", "",
-							"Use a time of 0 or more seconds from the scene base time");
-				}
+				// Negative times are allowed: schedules may reference instants
+				// before the scene base time (real case-study data does this).
 				if (stop.hasDeparture) {
-					if (stop.departureSeconds < 0.0) {
-						addDiag(SceneSeverity::Error, "scene.time.invalid", "Negative departure time",
-								"services.json", "service", s.id, stopPath + ".departure_seconds", "",
-								"Use a time of 0 or more seconds from the scene base time");
-					}
 					if (stop.hasArrival && stop.departureSeconds < stop.arrivalSeconds) {
 						addDiag(SceneSeverity::Error, "scene.time.invalid", "Departure before arrival",
 								"services.json", "service", s.id, stopPath + ".departure_seconds", "",
 								"Set departure_seconds at or after arrival_seconds");
 					}
 					if (stop.departureSeconds < lastDeparture) {
-						addDiag(SceneSeverity::Error, "scene.time.invalid", "Non-increasing departure times",
+						addDiag(SceneSeverity::Warning, "scene.time.order", "Non-increasing departure times",
 								"services.json", "service", s.id, stopPath + ".departure_seconds", "",
 								"Order stops by increasing departure time");
 					}

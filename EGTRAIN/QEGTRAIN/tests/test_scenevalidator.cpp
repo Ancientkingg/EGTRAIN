@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
 		TempScene tmp(fixtureDir);
 		modifyFile(tmp.dir, "services.json", [](json& j) { j["services"][0]["stops"] = json::array(); });
 		diags = validateSceneDirectory(tmp.dir);
-		ok &= expect(expectDiag(diags, "scene.service.no_stops"), "scene.service.no_stops");
+		ok &= expect(expectDiag(diags, "scene.service.no_stops", SceneSeverity::Warning), "scene.service.no_stops");
 	}
 
 	// 12. departure < arrival; negative dwell
@@ -243,12 +243,12 @@ int main(int argc, char** argv) {
 		ok &= expect(expectDiag(diags, "scene.section.missing"), "mistyped services section -> scene.section.missing");
 	}
 
-	// 18. missing required fields
+	// 18. missing required fields; arrival is optional on any stop
 	{
 		TempScene tmp(fixtureDir);
 		modifyFile(tmp.dir, "services.json", [](json& j) {
-			j["services"][0]["stops"][0].erase("departure_seconds");
-			j["services"][0]["stops"][1].erase("arrival_seconds"); // not the first stop
+			j["services"][0]["stops"][0].erase("departure_seconds"); // first stop -> missing
+			j["services"][0]["stops"][1].erase("arrival_seconds");	 // allowed: no scheduled arrival
 		});
 		modifyFile(tmp.dir, "scene.json", [](json& j) { j.erase("name"); });
 		diags = validateSceneDirectory(tmp.dir);
@@ -258,7 +258,17 @@ int main(int argc, char** argv) {
 			if (d.code == "scene.field.missing")
 				++fieldErrors;
 		}
-		ok &= expect(fieldErrors == 3, "missing departure, later-stop arrival, and name each reported");
+		ok &= expect(fieldErrors == 2, "missing departure and name reported; omitted arrival is valid");
+	}
+
+	// 18b. repeat headway <= 0
+	{
+		TempScene tmp(fixtureDir);
+		modifyFile(tmp.dir, "services.json", [](json& j) {
+			j["services"][1]["repeat"]["headway_seconds"] = 0;
+		});
+		diags = validateSceneDirectory(tmp.dir);
+		ok &= expect(expectDiag(diags, "scene.repeat.invalid"), "headway <= 0 -> scene.repeat.invalid");
 	}
 
 	// 19. unknown incident type
