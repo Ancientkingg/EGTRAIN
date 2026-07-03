@@ -1,0 +1,6 @@
+0	Gvc
+28	Gdg
+64	Ut
+100	Ut
+136	Gdg
+164	Gvc

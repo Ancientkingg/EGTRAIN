@@ -1,0 +1,196 @@
+{
+    "services": [
+        {
+            "id": "svc_e1",
+            "route": "route0",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 240,
+            "stops": [
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 300
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 1260,
+                    "departure_seconds": 1320
+                },
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 2520
+                }
+            ]
+        },
+        {
+            "id": "svc_e2",
+            "route": "route0",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 2040,
+            "stops": [
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 2100
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 3060,
+                    "departure_seconds": 3120
+                },
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 4320
+                }
+            ]
+        },
+        {
+            "id": "svc_e3",
+            "route": "route0",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 3840,
+            "stops": [
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 3900
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 4860,
+                    "departure_seconds": 4920
+                },
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 6120
+                }
+            ]
+        },
+        {
+            "id": "svc_e4",
+            "route": "route0",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 5640,
+            "stops": [
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 5700
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 6660,
+                    "departure_seconds": 6720
+                },
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 7920
+                }
+            ]
+        },
+        {
+            "id": "svc_w1",
+            "route": "route1",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 1140,
+            "stops": [
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 1200
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 2400,
+                    "departure_seconds": 2460
+                },
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 3420
+                }
+            ]
+        },
+        {
+            "id": "svc_w2",
+            "route": "route1",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 2940,
+            "stops": [
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 3000
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 4200,
+                    "departure_seconds": 4260
+                },
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 5220
+                }
+            ]
+        },
+        {
+            "id": "svc_w3",
+            "route": "route1",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 4740,
+            "stops": [
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 4800
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 6000,
+                    "departure_seconds": 6060
+                },
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 7020
+                }
+            ]
+        },
+        {
+            "id": "svc_w4",
+            "route": "route1",
+            "composition": "sprinter_single",
+            "entry_time_seconds": 6540,
+            "stops": [
+                {
+                    "station": "Ut",
+                    "dwell_seconds": 0,
+                    "departure_seconds": 6600
+                },
+                {
+                    "station": "Gdg",
+                    "dwell_seconds": 60,
+                    "arrival_seconds": 7800,
+                    "departure_seconds": 7860
+                },
+                {
+                    "station": "Gvc",
+                    "dwell_seconds": 0,
+                    "arrival_seconds": 8820
+                }
+            ]
+        }
+    ]
+}
