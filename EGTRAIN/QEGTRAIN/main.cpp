@@ -10,6 +10,7 @@
 
 //
 extern initial_parameters initial_variables;
+extern int numRegions;
 using namespace std;
 
 // Logging logger(initial_variables.full_path, boost::log::trivial::trace,initial_variables.enabled_log,initial_variables.log_to_file);
@@ -56,7 +57,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	} else {
 		int case_study;
-		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Brescia):";
+		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Brescia, 5: Assignment):";
 		std::cin >> case_study;
 		initial_variables.set_case(case_study);
 	}
@@ -211,6 +212,10 @@ int main(int argc, char* argv[]) {
 
 	// parse command line arguments
 	parseCmdOptions(argc, argv);
+	if (initial_variables.InputMainFolder.empty()) {
+		std::cout << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Brescia, 5 Assignment.\n";
+		return 1;
+	}
 	// initial_variables.set_case(3);
 	std::cout << "Graphical user interface (GUI): " << initial_variables.GUI << "\n";
 	if (initial_variables.GUI) {
@@ -305,6 +310,8 @@ int main(int argc, char* argv[]) {
 
 		// run simulation
 		simulation.runSimulation();
+		if (numRegions <= 0)
+			return 1;
 	}
 
 	// print last services
