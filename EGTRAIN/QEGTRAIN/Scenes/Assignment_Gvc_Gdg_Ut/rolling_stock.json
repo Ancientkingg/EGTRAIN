@@ -1,0 +1,42 @@
+{
+    "train_units": [
+        {
+            "id": "SLT_Sprinter",
+            "physical": {
+                "mass_of_traction_unit_kg": 151000,
+                "mass_of_a_wagon_kg": 0,
+                "number_of_wagons": 0,
+                "max_speed_ms": 36.111111111111,
+                "max_deceleration_ms2": 0.75,
+                "frontal_area_m2": 1.45,
+                "resistance_coefficient": 0.004,
+                "jerk_ms3": 0.75,
+                "length_m": 70
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    8.611111111111,
+                    209000.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    8.611111111111,
+                    36.111111111111,
+                    324607.2915,
+                    -17671.4923,
+                    292.9005
+                ]
+            ]
+        }
+    ],
+    "compositions": [
+        {
+            "id": "sprinter_single",
+            "units": [
+                "SLT_Sprinter"
+            ]
+        }
+    ]
+}

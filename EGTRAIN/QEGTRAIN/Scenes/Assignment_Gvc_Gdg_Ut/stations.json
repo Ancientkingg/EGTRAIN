@@ -1,0 +1,40 @@
+{
+    "stations": [
+        {
+            "id": "Gvc",
+            "name": "Den Haag Centraal",
+            "platforms": [
+                {
+                    "id": "p1"
+                },
+                {
+                    "id": "p2"
+                }
+            ]
+        },
+        {
+            "id": "Gdg",
+            "name": "Gouda",
+            "platforms": [
+                {
+                    "id": "p1"
+                },
+                {
+                    "id": "p2"
+                }
+            ]
+        },
+        {
+            "id": "Ut",
+            "name": "Utrecht Centraal",
+            "platforms": [
+                {
+                    "id": "p1"
+                },
+                {
+                    "id": "p2"
+                }
+            ]
+        }
+    ]
+}

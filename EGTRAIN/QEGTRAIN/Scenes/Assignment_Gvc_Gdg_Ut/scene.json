@@ -1,0 +1,11 @@
+{
+    "schema_version": 1,
+    "name": "Assignment Gvc-Gdg-Ut",
+    "description": "Den Haag Centraal - Gouda - Utrecht Centraal corridor",
+    "base_time": "07:00:00",
+    "units": {
+        "distance": "m",
+        "time": "s",
+        "speed": "m/s"
+    }
+}
