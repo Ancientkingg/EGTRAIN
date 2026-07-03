@@ -76,6 +76,29 @@ static std::vector<std::string> readTokens(const std::string& line) {
 	return tokens;
 }
 
+static bool isPositionedRouteEndpoint(const std::string& token) {
+	size_t first = token.find('@');
+	size_t last = token.rfind('@');
+	if (first != 0 || last == std::string::npos || first == last || last + 1 >= token.length())
+		return false;
+	if (token[last + 1] != '-')
+		return false;
+	size_t parsed = 0;
+	try {
+		std::stod(token.substr(last + 1), &parsed);
+	} catch (...) {
+		return false;
+	}
+	return parsed == token.length() - last - 1;
+}
+
+static bool isSwitchTransitionRouteToken(const std::string& token) {
+	size_t slash = token.find('/');
+	if (slash == std::string::npos || token.find('/', slash + 1) != std::string::npos)
+		return false;
+	return isPositionedRouteEndpoint(token.substr(0, slash)) && isPositionedRouteEndpoint(token.substr(slash + 1));
+}
+
 static bool readFile(const fs::path& path, std::string& content) {
 	std::ifstream f(path);
 	if (!f.good())
@@ -429,6 +452,10 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			size_t last = token.rfind('@');
 			if (first != std::string::npos && last != std::string::npos && first != last && first == 0 && last == token.length() - 1) {
 				blocksArr.push_back(token.substr(1, token.length() - 2));
+			} else if (isSwitchTransitionRouteToken(token)) {
+				// Netherlands route files use switch-transition tokens such
+				// as @a@-x/@b@-y. V1 stores route entries as opaque strings.
+				blocksArr.push_back(token);
 			} else {
 				addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed route block token at row " + std::to_string(row), rPath);
 				blocksArr.push_back(token);
