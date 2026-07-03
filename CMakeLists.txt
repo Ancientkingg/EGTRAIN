@@ -330,10 +330,11 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/SceneImporter.cpp
         ${SRC_DIR}/SceneExporter.cpp)
     target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json)
-    add_test(NAME test_sceneexporter
-        COMMAND test_sceneexporter
-            ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
-            ${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia)
+	add_test(NAME test_sceneexporter
+		COMMAND test_sceneexporter
+			${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
+			${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
+			${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
 endif()
 
 # Install

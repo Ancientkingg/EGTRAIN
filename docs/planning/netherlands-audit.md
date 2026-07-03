@@ -33,11 +33,14 @@ Netherlands route files contain switch-transition route entries such as:
 
 V1 route entries are opaque strings, so these are valid route tokens. The importer now preserves them without emitting `scene.import.parse`.
 
+The exporter also preserves those already-legacy-formatted transition tokens instead of wrapping them as `@...@`. This keeps exported Netherlands route files byte-compatible for transition rows.
+
 ## Current Result
 After repair:
 
 - Import exits 0.
 - Validate exits 0.
+- Export exits 0.
 - Imported scene counts:
   - 41 stations
   - 74 routes
@@ -47,7 +50,7 @@ After repair:
   - 1 composition
 - Import still emits 30 `scene.import.adjusted` warnings for `-1` departures at intermediate timetable stops. These are expected and documented adjustments.
 
-Locked by `test_sceneimporter`, which now imports and validates the Netherlands source and checks that complex route tokens are preserved without parse warnings.
+Locked by `test_sceneimporter`, which now imports and validates the Netherlands source and checks that complex route tokens are preserved without parse warnings. `test_sceneexporter` checks that exported Netherlands switch-transition route tokens are not double-wrapped.
 
 ## Runtime Check
 Case 1 now loads the Sprinter trains and runs to `End of Simulation` without the previous zero-train or train-file-open errors.
