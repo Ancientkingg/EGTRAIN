@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
+#include <map>
 #include <cmath>
 #include <regex>
 #include <limits>
@@ -66,6 +67,213 @@ static std::string formatNumber(double val) {
 	oss.precision(17);
 	oss << val;
 	return oss.str();
+}
+
+static void synthesizeGuiLayout(const std::string& outDir, SceneExportResult& result) {
+	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
+		SceneDiagnostic d;
+		d.severity = sev;
+		d.code = code;
+		d.message = msg;
+		d.file = file;
+		result.diagnostics.push_back(d);
+	};
+
+	// the two files describe one layout; a half-generated pair would assign
+	// regions that contradict the provided coordinates, so skip on either
+	fs::path providedSc = fs::path(outDir) / "GUI" / "StationsCoord.txt";
+	fs::path providedTd = fs::path(outDir) / "GUI" / "caseStudyTrackData.txt";
+	if (fs::exists(providedSc) || fs::exists(providedTd)) {
+		addDiag(SceneSeverity::Info, "scene.export.info", "scene-provided GUI layout is used");
+		return;
+	}
+
+	fs::path stationsFile = fs::path(outDir) / "TrackLines" / "Stations.txt";
+	std::ifstream sf(stationsFile);
+	if (!sf) {
+		addDiag(SceneSeverity::Info, "scene.export.info", "no station anchors so no GUI layout was generated");
+		return;
+	}
+
+	struct StationEntry {
+		double origX = 0;
+		std::string name;
+		std::vector<int> regions;
+		std::vector<double> regionXs;
+		double canonical = 0.0;
+	};
+
+	std::vector<StationEntry> stations;
+	std::string line;
+	while (std::getline(sf, line)) {
+		if (!line.empty() && line.back() == '\r') line.pop_back();
+		if (line.empty()) continue;
+
+		size_t tab = line.find('\t');
+		if (tab != std::string::npos) {
+			StationEntry se;
+			se.origX = std::atof(line.substr(0, tab).c_str());
+			se.name = line.substr(tab + 1);
+			stations.push_back(se);
+		}
+	}
+
+	if (stations.empty()) {
+		addDiag(SceneSeverity::Info, "scene.export.info", "no station anchors so no GUI layout was generated");
+		return;
+	}
+
+	std::map<int, std::vector<double>> tracklineNodes;
+	fs::path tracklinesDir = fs::path(outDir) / "TrackLines";
+	if (fs::exists(tracklinesDir) && fs::is_directory(tracklinesDir)) {
+		std::error_code ec;
+		for (const auto& entry : fs::directory_iterator(tracklinesDir, ec)) {
+			std::error_code dec;
+			if (entry.is_directory(dec) && !dec) {
+				std::string dirname = entry.path().filename().string();
+				if (dirname.size() > 1 && dirname[0] == 'B') {
+					int n = -1;
+					std::string num = dirname.substr(1);
+					if (num.size() <= 6 && std::all_of(num.begin(), num.end(), ::isdigit))
+						n = std::stoi(num);
+					if (n >= 0) {
+						fs::path nodiFile = entry.path() / "NodiCumPari.txt";
+						std::ifstream nf(nodiFile);
+						if (nf) {
+							std::string nline;
+							while (std::getline(nf, nline)) {
+								size_t tab1 = nline.find('\t');
+								if (tab1 != std::string::npos) {
+									size_t tab2 = nline.find('\t', tab1 + 1);
+									if (tab2 != std::string::npos) {
+										double x = std::atof(nline.substr(tab1 + 1, tab2 - tab1 - 1).c_str());
+										tracklineNodes[n].push_back(x);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (tracklineNodes.empty()) {
+		addDiag(SceneSeverity::Info, "scene.export.info", "no trackline node data so no GUI layout was generated");
+		return;
+	}
+
+	for (auto& se : stations) {
+		for (const auto& [n, nodes] : tracklineNodes) {
+			for (double nx : nodes) {
+				if (nx == se.origX) { // exact equality
+					se.regions.push_back(n);
+					se.regionXs.push_back(se.origX);
+					break;
+				}
+			}
+		}
+		if (se.regions.empty()) {
+			addDiag(SceneSeverity::Warning, "scene.export.adjusted", "Station anchor matches no trackline", se.name);
+		}
+	}
+
+	int minR = -1;
+	std::vector<int> sortedTracklines;
+	for (const auto& [n, nodes] : tracklineNodes) {
+		sortedTracklines.push_back(n);
+	}
+	std::sort(sortedTracklines.begin(), sortedTracklines.end());
+
+	for (int n : sortedTracklines) {
+		bool hasBound = false;
+		for (const auto& se : stations) {
+			if (std::find(se.regions.begin(), se.regions.end(), n) != se.regions.end()) {
+				hasBound = true;
+				break;
+			}
+		}
+		if (hasBound) {
+			minR = n;
+			break;
+		}
+	}
+
+	double minX_R = std::numeric_limits<double>::infinity();
+	if (minR != -1) {
+		for (const auto& se : stations) {
+			if (std::find(se.regions.begin(), se.regions.end(), minR) != se.regions.end()) {
+				if (se.origX < minX_R) minX_R = se.origX;
+			}
+		}
+	}
+
+	// anchor the reference-trackline entries first; the cross-reference pass
+	// below must only read canonical values that are already final
+	for (auto& se : stations) {
+		if (minR != -1 && std::find(se.regions.begin(), se.regions.end(), minR) != se.regions.end()) {
+			se.canonical = se.origX - minX_R;
+		}
+	}
+
+	for (auto& se : stations) {
+		if (minR != -1 && std::find(se.regions.begin(), se.regions.end(), minR) != se.regions.end()) {
+			continue;
+		} else if (!se.regions.empty()) {
+			bool foundMatch = false;
+			if (minR != -1) {
+				for (const auto& other : stations) {
+					if (other.name == se.name && std::find(other.regions.begin(), other.regions.end(), minR) != other.regions.end()) {
+						se.canonical = other.canonical;
+						foundMatch = true;
+						break;
+					}
+				}
+			}
+			if (!foundMatch) {
+				int ownMinR = se.regions.front();
+				for (int r : se.regions) {
+					if (r < ownMinR) ownMinR = r;
+				}
+
+				double minX_ownR = std::numeric_limits<double>::infinity();
+				for (const auto& other : stations) {
+					if (std::find(other.regions.begin(), other.regions.end(), ownMinR) != other.regions.end()) {
+						if (other.origX < minX_ownR) minX_ownR = other.origX;
+					}
+				}
+				se.canonical = se.origX - minX_ownR;
+				addDiag(SceneSeverity::Info, "scene.export.info", "Station name has no counterpart on the reference trackline", se.name);
+			}
+		} else {
+			se.canonical = 0;
+		}
+	}
+
+	std::error_code ec;
+	fs::create_directories(fs::path(outDir) / "GUI", ec);
+
+	std::ofstream sc(providedSc);
+	if (sc) {
+		for (const auto& se : stations) {
+			sc << se.name << "\t1\t" << formatNumber(se.canonical / 100.0) << "\t";
+			for (size_t i = 0; i < se.regions.size(); ++i) {
+				sc << se.regions[i] << (i + 1 == se.regions.size() ? "" : ",");
+			}
+			sc << "\t";
+			for (size_t i = 0; i < se.regionXs.size(); ++i) {
+				sc << formatNumber(se.regionXs[i]) << (i + 1 == se.regionXs.size() ? "" : ",");
+			}
+			sc << "\n";
+		}
+	}
+
+	std::ofstream td(providedTd);
+	if (td) {
+		for (const auto& [n, nodes] : tracklineNodes) {
+			td << n << "\t" << n << "\t" << n << "\n";
+		}
+	}
 }
 
 SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::string& outDir) {
@@ -498,6 +706,10 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			addDiag(SceneSeverity::Error, "scene.export.write", "Failed while walking legacy data: " + ec.message());
 			result.wroteAll = false;
 		}
+	}
+
+	if (result.success()) {
+		synthesizeGuiLayout(outDir, result);
 	}
 
 	return result;

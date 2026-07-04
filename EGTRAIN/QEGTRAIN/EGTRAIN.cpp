@@ -194,6 +194,10 @@ void EGTRAIN::resetState() {
 		signalling_block_sections[i] = Section();
 	for (int i = 0; i < Max_N_Reg; i++)
 		regional_train[i] = Regional();
+	// stale regions/regionX from the previous case corrupt the GUI layout
+	// interpolation of the next one; readStationInfo only appends
+	for (int i = 0; i < 95; i++)
+		StationArray[i] = Stations();
 }
 
 // prepares the simulation

@@ -510,6 +510,7 @@ private:
 
 	void runVisualPolishE2E();
 	void runEditorSmokeE2E();
+	void runSceneRenderE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
