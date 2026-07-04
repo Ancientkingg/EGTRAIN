@@ -420,6 +420,18 @@ private:
 	QLineEdit* m_stopDepartureSecondsEdit = nullptr; // whole seconds
 	QLineEdit* m_stopDwellSecondsEdit = nullptr;	 // whole seconds, always present
 
+	// incident editor dock: edits the scene's flat list of incidents
+	QDockWidget* m_incidentDock = nullptr;
+	QListWidget* m_incidentListWidget = nullptr;	 // one row per SceneIncident
+	QLineEdit* m_incidentIdEdit = nullptr;			 // id of the selected incident
+	QComboBox* m_incidentTypeCombo = nullptr;		 // "signal_failure" | "train_breakdown"
+	QComboBox* m_incidentTargetCombo = nullptr;		 // signal id or service id depending on type
+	QLineEdit* m_incidentStartSecondsEdit = nullptr; // whole seconds
+	QLineEdit* m_incidentEndSecondsEdit = nullptr;	 // whole seconds
+	QPushButton* m_addIncidentButton = nullptr;
+	QPushButton* m_duplicateIncidentButton = nullptr;
+	QPushButton* m_deleteIncidentButton = nullptr;
+
 	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
@@ -480,6 +492,20 @@ private:
 	void commitStopArrivalSeconds();
 	void commitStopDepartureSeconds();
 	void commitStopDwellSeconds();
+
+	// incident editor
+	void refreshIncidentPanel();
+	void updateIncidentDetailPanel();
+	void refreshIncidentTargetCombo();
+	void addIncident();
+	void duplicateIncident();
+	void deleteIncident();
+	void commitIncidentIdEdit();
+	void commitIncidentType(const QString& text);
+	void commitIncidentTarget(const QString& text);
+	void commitIncidentStartSeconds();
+	void commitIncidentEndSeconds();
+	std::string uniqueIncidentId(const std::string& baseId) const;
 
 	void runVisualPolishE2E();
 	void clearSimulationWorker(bool requestStop);
