@@ -94,11 +94,12 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/SimulationWorker.cpp
     ${SRC_DIR}/TimeFormat.cpp
     ${SRC_DIR}/InputValidation.cpp
-    ${SRC_DIR}/SceneDiagnostic.cpp
-    ${SRC_DIR}/SceneModel.cpp
-    ${SRC_DIR}/SceneValidator.cpp
-    ${SRC_DIR}/SceneImporter.cpp
-    ${SRC_DIR}/timeQProgressBar.cpp
+	${SRC_DIR}/SceneDiagnostic.cpp
+	${SRC_DIR}/SceneModel.cpp
+	${SRC_DIR}/SceneValidator.cpp
+	${SRC_DIR}/SceneImporter.cpp
+	${SRC_DIR}/SceneWriter.cpp
+	${SRC_DIR}/timeQProgressBar.cpp
     ${SRC_DIR}/trainQGraphicsItemGroup.cpp
     ${SRC_DIR}/trainQGraphicsPolygonItem.cpp
     ${SRC_DIR}/virtualArcQGraphicsLineItem.cpp
@@ -147,10 +148,11 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/TimeFormat.h
     ${SRC_DIR}/InputValidation.h
     ${SRC_DIR}/SceneDiagnostic.h
-    ${SRC_DIR}/SceneModel.h
-    ${SRC_DIR}/SceneValidator.h
-    ${SRC_DIR}/SceneImporter.h
-    ${SRC_DIR}/timeQProgressBar.h
+	${SRC_DIR}/SceneModel.h
+	${SRC_DIR}/SceneValidator.h
+	${SRC_DIR}/SceneImporter.h
+	${SRC_DIR}/SceneWriter.h
+	${SRC_DIR}/timeQProgressBar.h
     ${SRC_DIR}/timeutil.hpp
     ${SRC_DIR}/trainQGraphicsItemGroup.h
     ${SRC_DIR}/trainQGraphicsPolygonItem.h
@@ -257,12 +259,12 @@ if(WIN32)
 endif()
 
 add_executable(scene_tool
-    ${SRC_DIR}/SceneTool.cpp
-    ${SRC_DIR}/SceneDiagnostic.cpp
-    ${SRC_DIR}/SceneModel.cpp
-    ${SRC_DIR}/SceneValidator.cpp
-    ${SRC_DIR}/SceneImporter.cpp
-    ${SRC_DIR}/SceneExporter.cpp)
+	${SRC_DIR}/SceneTool.cpp
+	${SRC_DIR}/SceneDiagnostic.cpp
+	${SRC_DIR}/SceneModel.cpp
+	${SRC_DIR}/SceneValidator.cpp
+	${SRC_DIR}/SceneImporter.cpp
+	${SRC_DIR}/SceneExporter.cpp)
 target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json)
 
 # --- Unit tests (opt-in) ---
@@ -316,13 +318,22 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/SceneValidator.cpp
         ${SRC_DIR}/SceneImporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE nlohmann_json::nlohmann_json)
-    add_test(NAME test_sceneimporter
-        COMMAND test_sceneimporter
-            ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
-			${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
-			${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
+	add_test(NAME test_sceneimporter
+		COMMAND test_sceneimporter
+		${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
+		${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
+		${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
 
-    add_executable(test_sceneexporter
+	add_executable(test_scenewriter
+		${SRC_DIR}/tests/test_scenewriter.cpp
+		${SRC_DIR}/SceneDiagnostic.cpp
+		${SRC_DIR}/SceneModel.cpp
+		${SRC_DIR}/SceneWriter.cpp)
+	target_link_libraries(test_scenewriter PRIVATE nlohmann_json::nlohmann_json)
+	add_test(NAME test_scenewriter
+		COMMAND test_scenewriter ${SRC_DIR}/Scenes)
+
+	add_executable(test_sceneexporter
         ${SRC_DIR}/tests/test_sceneexporter.cpp
         ${SRC_DIR}/SceneDiagnostic.cpp
         ${SRC_DIR}/SceneModel.cpp

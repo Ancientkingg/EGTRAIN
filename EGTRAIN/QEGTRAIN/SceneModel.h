@@ -82,6 +82,7 @@ struct SceneIncident {
 struct SceneModel {
 	int schemaVersion = 0;
 	std::string name;
+	std::string description;
 	std::string baseTime;
 
 	std::vector<SceneStation> stations;

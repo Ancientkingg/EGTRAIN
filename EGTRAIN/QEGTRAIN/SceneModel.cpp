@@ -109,6 +109,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			result.scene.schemaVersion = sceneJson["schema_version"].get<int>();
 		}
 		requireString(sceneJson, "name", "scene.json", "", result.scene.name);
+		if (sceneJson.contains("description")) {
+			if (sceneJson["description"].is_string()) {
+				result.scene.description = sceneJson["description"].get<std::string>();
+			} else {
+				addError("scene.field.missing", "scene.json", "description must be a string", "description");
+			}
+		}
 		if (sceneJson.contains("base_time")) {
 			if (sceneJson["base_time"].is_string()) {
 				result.scene.baseTime = sceneJson["base_time"].get<std::string>();

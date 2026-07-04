@@ -3,6 +3,16 @@
 
 #define PI 3.14159265
 
+#ifdef signals
+#define EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#undef signals
+#endif
+#include "SceneModel.h"
+#ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#endif
+
 #include <iostream>
 #include <QMainWindow>
 #include <QPainter>
@@ -207,6 +217,7 @@ public:
 
 protected:
 	void showEvent(QShowEvent* e) override;
+	void closeEvent(QCloseEvent* event) override;
 
 public slots:
 	void handleHelpAbout();
@@ -232,12 +243,15 @@ public slots:
 	void updateTrainPosition(int t);
 	void startSimulation();
 	void onSimulationFinished();
+	void openSceneDialog();
+	void saveScene();
+	void saveSceneAs();
 	void actionLoad_Network();
 	// display train path diagrams
 	void displayTrainPathDiagrams();
-		void zoomIn();
-		void zoomOut();
-		void fitToView();
+	void zoomIn();
+	void zoomOut();
+	void fitToView();
 
 private:
 	Ui::MainWindow* ui;
@@ -340,11 +354,27 @@ private:
 
 	long long m_startOffsetSeconds = 0; // simulation start, seconds since midnight
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
-	QMenu* m_diagramsMenu = nullptr;   // Diagrams top-level menu
+	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
+	QString m_sceneDir;
+	SceneModel m_sceneModel;
+	bool m_sceneLoaded = false;
+	bool m_sceneDirty = false;
+	QAction* m_saveSceneAction = nullptr;
+	QAction* m_saveSceneAsAction = nullptr;
+	QMenu* m_recentScenesMenu = nullptr;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
 	void refreshFollowTrainChoices();
 	void updateSpeedModeDisplay(int value);
+	void updateSceneActions();
+	void addRecentScene(const QString& path);
+	void rebuildRecentScenesMenu();
+	bool maybeSaveScene();
+	bool openSceneDirectory(const QString& dir);
+	bool saveSceneToCurrentDir();
+	bool saveSceneAsToDirectory();
+	bool copyScenePassthroughFiles(const QString& targetDir);
+	void updateSceneWindowTitle();
 	void runVisualPolishE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);

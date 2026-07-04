@@ -1,3 +1,4 @@
+#include <QCoreApplication>
 #include "EGTRAIN.h"
 #include "mainwindow.h"
 #include "geocoding.h"
@@ -172,6 +173,8 @@ void parseCmdOptions(int argc, char* argv[]) {
 
 Owl owl;
 int main(int argc, char* argv[]) {
+	QCoreApplication::setOrganizationName("EGTRAIN");
+	QCoreApplication::setApplicationName("EGTRAIN");
 
 	// Passenger passeng(1, 2, 3, "type", 3, "stop type", "location", 4, "stopmode", TRUE, 2.3, 2.4, "prev stop", 33, 0.4, 3, 0.342);
 
