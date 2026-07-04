@@ -74,6 +74,8 @@
 #include <QVariantAnimation>
 #include <QPointer>
 #include <QTableWidget>
+#include <QListWidget>
+#include <QPushButton>
 
 #include "SceneDiagnostic.h"
 #include "SceneValidator.h"
@@ -373,6 +375,20 @@ private:
 	QTableWidget* m_validationTable = nullptr;
 	QLabel* m_validationStatusLabel = nullptr;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
+
+	// composition editor dock (first editable scene panel)
+	QDockWidget* m_compositionDock = nullptr;
+	QListWidget* m_compositionListWidget = nullptr;		 // one row per SceneComposition
+	QLineEdit* m_compositionIdEdit = nullptr;			 // id of the selected composition
+	QListWidget* m_compositionUnitsListWidget = nullptr; // ordered unit ids of the selected composition
+	QPushButton* m_addCompositionButton = nullptr;
+	QPushButton* m_duplicateCompositionButton = nullptr;
+	QPushButton* m_deleteCompositionButton = nullptr;
+	QPushButton* m_addUnitButton = nullptr;
+	QPushButton* m_removeUnitButton = nullptr;
+	QPushButton* m_moveUnitUpButton = nullptr;
+	QPushButton* m_moveUnitDownButton = nullptr;
+
 	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
@@ -388,6 +404,21 @@ private:
 	bool copyScenePassthroughFiles(const QString& targetDir);
 	void updateSceneWindowTitle();
 	void refreshValidationPanel();
+
+	// composition editor
+	void refreshCompositionPanel();
+	void updateCompositionDetailPanel();
+	void updateCompositionUnitButtons();
+	void addComposition();
+	void duplicateComposition();
+	void deleteComposition();
+	void commitCompositionIdEdit();
+	void addUnitToComposition();
+	void removeUnitFromComposition();
+	void moveCompositionUnitUp();
+	void moveCompositionUnitDown();
+	std::string uniqueCompositionId(const std::string& baseId) const;
+
 	void runVisualPolishE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
