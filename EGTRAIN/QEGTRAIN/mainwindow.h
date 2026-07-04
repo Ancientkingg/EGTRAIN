@@ -73,6 +73,10 @@
 #include <QComboBox>
 #include <QVariantAnimation>
 #include <QPointer>
+#include <QTableWidget>
+
+#include "SceneDiagnostic.h"
+#include "SceneValidator.h"
 
 // charts
 #include <QtCharts/QChartView>
@@ -362,6 +366,10 @@ private:
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QMenu* m_recentScenesMenu = nullptr;
+	QDockWidget* m_validationDock = nullptr;
+	QTableWidget* m_validationTable = nullptr;
+	QLabel* m_validationStatusLabel = nullptr;
+	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
 	void refreshFollowTrainChoices();
@@ -375,6 +383,7 @@ private:
 	bool saveSceneAsToDirectory();
 	bool copyScenePassthroughFiles(const QString& targetDir);
 	void updateSceneWindowTitle();
+	void refreshValidationPanel();
 	void runVisualPolishE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);

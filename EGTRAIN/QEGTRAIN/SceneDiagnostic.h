@@ -21,9 +21,16 @@ struct SceneDiagnostic {
 	std::string suggestedFix; // smallest fix, "" if unknown
 };
 
+struct SceneDiagnosticCounts {
+	int errors = 0;
+	int warnings = 0;
+	int infos = 0;
+};
+
 std::string severityLabel(SceneSeverity s);			 // "error"/"warning"/"info"
 std::string toDisplayText(const SceneDiagnostic& d); // one line for log/UI list
 nlohmann::json toJson(const SceneDiagnostic& d);	 // for tooling / round-trip test
 bool hasErrors(const std::vector<SceneDiagnostic>& ds);
+SceneDiagnosticCounts countDiagnostics(const std::vector<SceneDiagnostic>& ds);
 
 #endif // SCENEDIAGNOSTIC_H
