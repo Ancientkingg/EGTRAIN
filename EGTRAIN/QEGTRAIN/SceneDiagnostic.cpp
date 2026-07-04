@@ -49,3 +49,21 @@ bool hasErrors(const std::vector<SceneDiagnostic>& ds) {
 	}
 	return false;
 }
+
+SceneDiagnosticCounts countDiagnostics(const std::vector<SceneDiagnostic>& ds) {
+	SceneDiagnosticCounts counts;
+	for (const auto& d : ds) {
+		switch (d.severity) {
+			case SceneSeverity::Error:
+				++counts.errors;
+				break;
+			case SceneSeverity::Warning:
+				++counts.warnings;
+				break;
+			case SceneSeverity::Info:
+				++counts.infos;
+				break;
+		}
+	}
+	return counts;
+}

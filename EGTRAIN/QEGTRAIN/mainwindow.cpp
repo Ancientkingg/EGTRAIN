@@ -291,6 +291,27 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	if (ui->menuView)
 		ui->menuView->addAction(m_logPane->toggleViewAction());
 
+	// scene validation panel: dockable table of SceneDiagnostic entries, empty until a scene loads
+	m_validationDock = new QDockWidget("Scene Validation", this);
+	m_validationTable = new QTableWidget(0, 6, m_validationDock);
+	QStringList validationHeaders;
+	validationHeaders << "Severity" << "Code" << "Message" << "File" << "Path" << "Suggested Fix";
+	m_validationTable->setHorizontalHeaderLabels(validationHeaders);
+	m_validationTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_validationTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_validationTable->horizontalHeader()->setStretchLastSection(true);
+	m_validationTable->resizeColumnsToContents();
+	m_validationDock->setWidget(m_validationTable);
+	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
+	tabifyDockWidget(m_logPane, m_validationDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_validationDock->toggleViewAction());
+
+	// permanent status-bar field for the scene validation summary, so it does
+	// not clobber transient load/save messages
+	m_validationStatusLabel = new QLabel(this);
+	statusBar()->addPermanentWidget(m_validationStatusLabel);
+
 	// route Qt log messages to std::cout so they flow through ConsoleWidget's streambuf
 	qInstallMessageHandler([](QtMsgType, const QMessageLogContext&, const QString& msg) {
 		std::cout << msg.toStdString() << "\n";
@@ -367,6 +388,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 								 .arg(QString::fromStdString(m_sceneModel.name))
 								 .arg(static_cast<int>(m_sceneModel.services.size()))
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
+	refreshValidationPanel();
 	return true;
 }
 
@@ -393,6 +415,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	statusBar()->showMessage("Scene saved");
+	refreshValidationPanel();
 	return true;
 }
 
@@ -443,6 +466,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	updateSceneActions();
 	addRecentScene(targetPath);
 	statusBar()->showMessage("Scene saved");
+	refreshValidationPanel();
 	return true;
 }
 
@@ -516,6 +540,46 @@ void MainWindow::updateSceneActions() {
 		QSettings settings;
 		m_recentScenesMenu->setEnabled(!settings.value(kRecentScenesKey).toStringList().isEmpty());
 	}
+}
+
+void MainWindow::refreshValidationPanel() {
+	if (!m_sceneLoaded) {
+		m_sceneDiagnostics.clear();
+		if (m_validationTable)
+			m_validationTable->setRowCount(0);
+		if (m_validationStatusLabel)
+			m_validationStatusLabel->clear();
+		return;
+	}
+
+	m_sceneDiagnostics = validateScene(m_sceneModel);
+
+	std::vector<SceneDiagnostic> ordered = m_sceneDiagnostics;
+	std::stable_sort(ordered.begin(), ordered.end(), [](const SceneDiagnostic& a, const SceneDiagnostic& b) {
+		return static_cast<int>(a.severity) > static_cast<int>(b.severity);
+	});
+
+	if (m_validationTable) {
+		m_validationTable->clearContents();
+		m_validationTable->setRowCount(static_cast<int>(ordered.size()));
+		for (int row = 0; row < static_cast<int>(ordered.size()); ++row) {
+			const SceneDiagnostic& d = ordered[row];
+			m_validationTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(severityLabel(d.severity))));
+			m_validationTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(d.code)));
+			m_validationTable->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(d.message)));
+			m_validationTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(d.file)));
+			m_validationTable->setItem(row, 4, new QTableWidgetItem(QString::fromStdString(d.path)));
+			m_validationTable->setItem(row, 5, new QTableWidgetItem(QString::fromStdString(d.suggestedFix)));
+		}
+		m_validationTable->resizeColumnsToContents();
+	}
+
+	SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
+	QString message = QString("Validation: %1 error(s), %2 warning(s)").arg(counts.errors).arg(counts.warnings);
+	if (counts.infos > 0)
+		message += QString(", %1 info").arg(counts.infos);
+	if (m_validationStatusLabel)
+		m_validationStatusLabel->setText(message);
 }
 
 void MainWindow::addRecentScene(const QString& path) {
@@ -1128,6 +1192,16 @@ void MainWindow::showEvent(QShowEvent* e) {
 void MainWindow::startSimulation() {
 	if (m_worker)
 		return; // already running
+
+	if (m_sceneLoaded) {
+		refreshValidationPanel();
+		if (hasErrors(m_sceneDiagnostics)) {
+			int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
+			QMessageBox::warning(this, "Cannot Run Simulation",
+								 QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount));
+			return;
+		}
+	}
 
 	// show progress bar
 	progressBar->show();
