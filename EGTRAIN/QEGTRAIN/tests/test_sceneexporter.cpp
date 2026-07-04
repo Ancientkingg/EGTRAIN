@@ -246,6 +246,107 @@ int main(int argc, char** argv) {
 		ok &= expect(!res.success(), "Nonexistent scene export fails");
 	}
 
+	// 9. Multi-unit composition export
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Multi Unit"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[0,10,1,0,0],[10,20,1,0,0]]},{"id":"unit2","physical":{"mass_of_traction_unit_kg":200,"mass_of_a_wagon_kg":30,"number_of_wagons":1,"max_speed_ms":60,"max_deceleration_ms2":2,"frontal_area_m2":12,"resistance_coefficient":0.02,"jerk_ms3":0.8,"length_m":40},"traction_curve":[[5,15,0,1,0],[15,25,0,1,0]]}],"compositions":[{"id":"compMulti","units":["unit1","unit2"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svcMulti","composition":"compMulti","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "MultiUnit export");
+		ok &= expect(res.success(), "Multi unit scene export succeeds");
+
+		std::ifstream df(fs::path(outDir.dir) / "TrainData" / "compMulti.txt");
+		if (expect(df.good(), "Multi-unit TrainData file exists")) {
+			double tmass, wmass, wcount, maxspd, maxdec, farea, rescoeff, jerk, len;
+			df >> tmass >> wmass >> wcount >> maxspd >> maxdec >> farea >> rescoeff >> jerk >> len;
+			ok &= expect(tmass == 300, "Summed traction mass is 300");
+			ok &= expect(wcount == 3, "Summed wagon count is 3");
+			ok &= expect(len == 90, "Summed length is 90");
+			ok &= expect(maxspd == 60, "Minimum max speed is 60");
+		}
+
+		std::ifstream tf(fs::path(outDir.dir) / "TrainData" / "T_compMulti.txt");
+		if (expect(tf.good(), "Multi-unit traction file exists")) {
+			double a, b, c0, c1, c2;
+			tf >> a >> b >> c0 >> c1 >> c2;
+			ok &= expect(a == 0 && b == 5 && c0 == 1 && c1 == 0 && c2 == 0, "Band 0-5 correct");
+			tf >> a >> b >> c0 >> c1 >> c2;
+			ok &= expect(a == 5 && b == 10 && c0 == 1 && c1 == 1 && c2 == 0, "Band 5-10 correct");
+			tf >> a >> b >> c0 >> c1 >> c2;
+			ok &= expect(a == 10 && b == 15 && c0 == 1 && c1 == 1 && c2 == 0, "Band 10-15 correct");
+			tf >> a >> b >> c0 >> c1 >> c2;
+			ok &= expect(a == 15 && b == 20 && c0 == 1 && c1 == 1 && c2 == 0, "Band 15-20 correct");
+			tf >> a >> b >> c0 >> c1 >> c2;
+			ok &= expect(a == 20 && b == 25 && c0 == 0 && c1 == 1 && c2 == 0, "Band 20-25 correct");
+		}
+	}
+
+	// 10. Multi-unit composition with only degenerate traction bands fails
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Degenerate"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[10,10,1,0,0]]},{"id":"unit2","physical":{"mass_of_traction_unit_kg":200,"mass_of_a_wagon_kg":30,"number_of_wagons":1,"max_speed_ms":60,"max_deceleration_ms2":2,"frontal_area_m2":12,"resistance_coefficient":0.02,"jerk_ms3":0.8,"length_m":40},"traction_curve":[[20,20,1,0,0]]}],"compositions":[{"id":"compDegen","units":["unit1","unit2"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svcDegen","composition":"compDegen","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success(), "Degenerate multi-unit traction export fails");
+		bool foundEmptyCurveDiag = false;
+		for (const auto& d : res.diagnostics) {
+			if (d.severity == SceneSeverity::Error && d.message.find("Combined traction curve is empty") != std::string::npos)
+				foundEmptyCurveDiag = true;
+		}
+		ok &= expect(foundEmptyCurveDiag, "Empty combined traction curve is diagnosed");
+	}
+
+	// 11. Near-duplicate band boundaries collapse instead of forming sliver bands
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Ulp"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[0,10,1,0,0]]},{"id":"unit2","physical":{"mass_of_traction_unit_kg":200,"mass_of_a_wagon_kg":30,"number_of_wagons":1,"max_speed_ms":60,"max_deceleration_ms2":2,"frontal_area_m2":12,"resistance_coefficient":0.02,"jerk_ms3":0.8,"length_m":40},"traction_curve":[[0,10.000000000000002,2,0,0]]}],"compositions":[{"id":"compUlp","units":["unit1","unit2"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svcUlp","composition":"compUlp","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Ulp export");
+		ok &= expect(res.success(), "Near-duplicate boundary scene export succeeds");
+
+		std::ifstream tf(fs::path(outDir.dir) / "TrainData" / "T_compUlp.txt");
+		if (expect(tf.good(), "Ulp traction file exists")) {
+			std::string first, second;
+			std::getline(tf, first);
+			std::getline(tf, second);
+			double a, b, c0, c1, c2;
+			std::istringstream(first) >> a >> b >> c0 >> c1 >> c2;
+			ok &= expect(a == 0 && c0 == 3, "Single merged band sums both curves");
+			ok &= expect(second.empty(), "No sliver band is emitted");
+		}
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all SceneExporter tests passed\n";
