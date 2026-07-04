@@ -31,6 +31,7 @@
 #include <QMessageBox>
 #include <QWheelEvent>
 #include <QScrollBar>
+#include <QScrollArea>
 #include <QMouseEvent>
 #include <QObject>
 #include <qmath.h>
@@ -391,7 +392,7 @@ private:
 	QPushButton* m_moveUnitUpButton = nullptr;
 	QPushButton* m_moveUnitDownButton = nullptr;
 
-	// service editor dock (service-level fields only; per-stop timetable editing is issue #27)
+	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
 	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
 	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
@@ -401,10 +402,23 @@ private:
 	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
 	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr; // whole seconds
-	QLabel* m_serviceStopsCountLabel = nullptr;		  // read-only stop count, stops are not edited here
 	QPushButton* m_addServiceButton = nullptr;
 	QPushButton* m_duplicateServiceButton = nullptr;
 	QPushButton* m_deleteServiceButton = nullptr;
+
+	// stop (timetable) editor: edits the selected service's ordered stops
+	QListWidget* m_stopListWidget = nullptr; // one row per SceneStop of the selected service
+	QPushButton* m_addStopButton = nullptr;
+	QPushButton* m_removeStopButton = nullptr;
+	QPushButton* m_moveStopUpButton = nullptr;
+	QPushButton* m_moveStopDownButton = nullptr;
+	QComboBox* m_stopStationCombo = nullptr;  // references a SceneStation.id
+	QComboBox* m_stopPlatformCombo = nullptr; // references a ScenePlatform.id of the selected station, blank allowed
+	QCheckBox* m_stopHasArrivalCheck = nullptr;
+	QLineEdit* m_stopArrivalSecondsEdit = nullptr; // whole seconds
+	QCheckBox* m_stopHasDepartureCheck = nullptr;
+	QLineEdit* m_stopDepartureSecondsEdit = nullptr; // whole seconds
+	QLineEdit* m_stopDwellSecondsEdit = nullptr;	 // whole seconds, always present
 
 	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
 
@@ -436,7 +450,7 @@ private:
 	void moveCompositionUnitDown();
 	std::string uniqueCompositionId(const std::string& baseId) const;
 
-	// service editor (service-level fields only; stops stay read-only here)
+	// service editor (service-level fields; stops are edited by the stop editor below)
 	void refreshServicePanel();
 	void updateServiceDetailPanel();
 	void addService();
@@ -450,6 +464,22 @@ private:
 	void commitServiceHasRepeat(bool checked);
 	void commitServiceHeadwaySeconds();
 	std::string uniqueServiceId(const std::string& baseId) const;
+
+	// stop (timetable) editor: edits the selected service's stops in place
+	void refreshStopList();
+	void updateStopDetailPanel();
+	void refreshStopPlatformCombo();
+	void addStop();
+	void removeStop();
+	void moveStopUp();
+	void moveStopDown();
+	void commitStopStation(const QString& text);
+	void commitStopPlatform(const QString& text);
+	void commitStopHasArrival(bool checked);
+	void commitStopHasDeparture(bool checked);
+	void commitStopArrivalSeconds();
+	void commitStopDepartureSeconds();
+	void commitStopDwellSeconds();
 
 	void runVisualPolishE2E();
 	void clearSimulationWorker(bool requestStop);
