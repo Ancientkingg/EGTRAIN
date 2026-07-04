@@ -347,6 +347,155 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	// 12. Synthetic GUI layout generated from Stations and NodiCumPari
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"GUI Synthesis"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+		std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+		fs::create_directories(scene / "legacy" / "TrackLines" / "B0");
+		fs::create_directories(scene / "legacy" / "TrackLines" / "B1");
+
+		std::ofstream(scene / "legacy" / "TrackLines" / "Stations.txt")
+			<< "0\tA\n"
+			<< "28\tB\n"
+			<< "64\tC\n"
+			<< "100\tC\n"
+			<< "136\tB\n"
+			<< "164\tA\n";
+
+		std::ofstream(scene / "legacy" / "TrackLines" / "B0" / "NodiCumPari.txt")
+			<< "0\t0\t0\n"
+			<< "1\t28\t0\n"
+			<< "2\t64\t0\n";
+
+		std::ofstream(scene / "legacy" / "TrackLines" / "B1" / "NodiCumPari.txt")
+			<< "0\t100\t0\n"
+			<< "1\t136\t0\n"
+			<< "2\t164\t0\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "GUI Synthesis scene export succeeds");
+
+		fs::path guiDir = fs::path(outDir.dir) / "GUI";
+		ok &= expect(fs::exists(guiDir / "StationsCoord.txt"), "GUI/StationsCoord.txt exists");
+
+		std::ifstream sc(guiDir / "StationsCoord.txt");
+		if (sc) {
+			std::vector<std::string> lines;
+			std::string line;
+			while (std::getline(sc, line)) {
+				if (!line.empty()) lines.push_back(line);
+			}
+			ok &= expect(lines.size() == 6, "GUI/StationsCoord.txt has 6 lines");
+			if (lines.size() >= 4) {
+				ok &= expect(lines[0] == "A\t1\t0\t0\t0", ("Line 1 (A at 0) correct: " + lines[0]).c_str());
+				ok &= expect(lines[3] == "C\t1\t0.64000000000000001\t1\t100", ("Line 4 (C at 100) correct: " + lines[3]).c_str());
+			}
+		}
+
+		std::ifstream td(guiDir / "caseStudyTrackData.txt");
+		if (td) {
+			std::vector<std::string> lines;
+			std::string line;
+			while (std::getline(td, line)) {
+				if (!line.empty()) lines.push_back(line);
+			}
+			ok &= expect(lines.size() == 2, "GUI/caseStudyTrackData.txt has 2 lines");
+			if (lines.size() >= 2) {
+				ok &= expect(lines[0] == "0\t0\t0", ("Line 1 correct: " + lines[0]).c_str());
+				ok &= expect(lines[1] == "1\t1\t1", ("Line 2 correct: " + lines[1]).c_str());
+			}
+		}
+	}
+
+	// 13. Scene with no legacy/TrackLines/Stations.txt exports successfully and writes no GUI/StationsCoord.txt
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"No Stations"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+		std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "No Stations scene export succeeds");
+
+		fs::path guiDir = fs::path(outDir.dir) / "GUI";
+		ok &= expect(!fs::exists(guiDir / "StationsCoord.txt"), "GUI/StationsCoord.txt is not written");
+	}
+
+	// 14. Mirrored band listed before the reference trackline still maps by name
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"GUI Order"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+		std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+		fs::create_directories(scene / "legacy" / "TrackLines" / "B0");
+		fs::create_directories(scene / "legacy" / "TrackLines" / "B1");
+
+		std::ofstream(scene / "legacy" / "TrackLines" / "Stations.txt")
+			<< "100\tC\n"
+			<< "136\tB\n"
+			<< "164\tA\n"
+			<< "0\tA\n"
+			<< "28\tB\n"
+			<< "64\tC\n";
+
+		std::ofstream(scene / "legacy" / "TrackLines" / "B0" / "NodiCumPari.txt")
+			<< "0\t0\t0\n"
+			<< "1\t28\t0\n"
+			<< "2\t64\t0\n";
+
+		std::ofstream(scene / "legacy" / "TrackLines" / "B1" / "NodiCumPari.txt")
+			<< "0\t100\t0\n"
+			<< "1\t136\t0\n"
+			<< "2\t164\t0\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "GUI Order scene export succeeds");
+
+		std::ifstream sc(fs::path(outDir.dir) / "GUI" / "StationsCoord.txt");
+		if (expect(sc.good(), "GUI Order StationsCoord.txt exists")) {
+			std::string line;
+			std::getline(sc, line);
+			ok &= expect(line == "C\t1\t0.64000000000000001\t1\t100",
+						 ("Mirrored C listed first still maps to lon 0.64: " + line).c_str());
+		}
+	}
+
+	// 15. Stations without any trackline node data generate no GUI files at all
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"No Nodes"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+		std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+		fs::create_directories(scene / "legacy" / "TrackLines");
+		std::ofstream(scene / "legacy" / "TrackLines" / "Stations.txt") << "0\tA\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "No Nodes scene export succeeds");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "GUI" / "StationsCoord.txt"), "No half-written StationsCoord.txt");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "GUI" / "caseStudyTrackData.txt"), "No half-written caseStudyTrackData.txt");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all SceneExporter tests passed\n";

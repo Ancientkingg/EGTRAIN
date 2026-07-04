@@ -11,6 +11,7 @@
 #include "VisualPolish.h"
 #include "SceneWriter.h"
 #include "SceneExporter.h"
+#include "geocoding.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
@@ -42,6 +43,24 @@
 namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
+
+bool e2eDialogsSuppressed() {
+	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE");
+}
+
+// modal boxes deadlock the env-gated smoke runs, which have no user to
+// dismiss them; route the message to stderr instead
+void showBlockingError(QWidget* parent, const QString& title, const QString& message, bool warningIcon = false) {
+	if (e2eDialogsSuppressed()) {
+		std::fprintf(stderr, "E2E_DIALOG_SUPPRESSED: %s: %s\n", title.toStdString().c_str(), message.toStdString().c_str());
+		std::fflush(stderr);
+		return;
+	}
+	if (warningIcon)
+		QMessageBox::warning(parent, title, message);
+	else
+		QMessageBox::critical(parent, title, message);
+}
 
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
 	for (const auto& d : diagnostics) {
@@ -712,7 +731,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		if (message.isEmpty())
 			message = "Scene could not be opened.";
 		message += QString("\n\nError count: %1").arg(errorCount);
-		QMessageBox::critical(this, "Cannot Open Scene", message);
+		showBlockingError(this, "Cannot Open Scene", message);
 		return false;
 	}
 
@@ -2583,6 +2602,97 @@ void MainWindow::runVisualPolishE2E() {
 	QCoreApplication::exit(2);
 }
 
+// env-gated scene render smoke: open the scene from QEGTRAIN_E2E_SCENE, run it,
+// and verify the network view draws real geometry instead of a collapsed point
+void MainWindow::runSceneRenderE2E() {
+	if (m_e2eFinished)
+		return;
+
+	if (!m_sceneLoaded) {
+		QString sceneDir = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
+		if (sceneDir.isEmpty() || !openSceneDirectory(sceneDir)) {
+			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: scene did not open\n");
+			std::fflush(stderr);
+			QCoreApplication::exit(2);
+			return;
+		}
+		runScene();
+		if (!m_worker) {
+			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: scene run did not start\n");
+			std::fflush(stderr);
+			QCoreApplication::exit(2);
+			return;
+		}
+	}
+
+	if (allTrains.isEmpty() && m_e2eAttempts < 40) {
+		++m_e2eAttempts;
+		QTimer::singleShot(500, this, &MainWindow::runSceneRenderE2E);
+		return;
+	}
+	m_e2eFinished = true;
+
+	bool ok = true;
+	QStringList failures;
+
+	if (allTrains.isEmpty()) {
+		ok = false;
+		failures << "no train items rendered";
+	}
+
+	if (scene->items().size() < 10) {
+		ok = false;
+		failures << "scene has too few items";
+	}
+
+	QRectF bounds = scene->itemsBoundingRect();
+	if (bounds.width() < 100.0) {
+		ok = false;
+		failures << "network geometry did not spread horizontally";
+	}
+
+	// the items existing is not enough; they must be inside the viewport
+	QRectF visible = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
+	if (!visible.intersects(bounds)) {
+		ok = false;
+		failures << "network geometry is outside the viewport";
+	}
+
+	QString screenshotPath = qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT");
+	if (!screenshotPath.isEmpty()) {
+		QPixmap image = networkView->grab();
+		if (!image.save(screenshotPath)) {
+			ok = false;
+			failures << "screenshot save failed";
+		}
+	}
+
+	if (ok) {
+		std::fprintf(stdout, "E2E_SCENE_RENDER_OK\n");
+		std::fflush(stdout);
+		if (m_worker && m_workerThread && m_workerThread->isRunning()) {
+			connect(m_workerThread, &QThread::finished, qApp, []() {
+				QCoreApplication::exit(0);
+			});
+			m_worker->requestStop();
+			return;
+		}
+		QCoreApplication::exit(0);
+		return;
+	}
+
+	std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: %s\n", failures.join(", ").toStdString().c_str());
+	std::fflush(stderr);
+	if (m_worker && m_workerThread && m_workerThread->isRunning()) {
+		connect(m_workerThread, &QThread::finished, qApp, []() {
+			QCoreApplication::exit(2);
+		});
+		m_worker->requestStop();
+		return;
+	}
+	QCoreApplication::exit(2);
+}
+
 void MainWindow::runEditorSmokeE2E() {
 	if (m_editorE2eFinished)
 		return;
@@ -3092,6 +3202,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE"))
 		// let the startup case load and the docks settle before the smoke runs
 		QTimer::singleShot(1000, this, &MainWindow::runEditorSmokeE2E);
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN"))
+		QTimer::singleShot(1000, this, &MainWindow::runSceneRenderE2E);
 }
 
 // starts EGTRAIN simulation on a worker thread
@@ -3103,8 +3215,8 @@ void MainWindow::startSimulation() {
 		refreshValidationPanel();
 		if (hasErrors(m_sceneDiagnostics)) {
 			int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
-			QMessageBox::warning(this, "Cannot Run Simulation",
-								 QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount));
+			showBlockingError(this, "Cannot Run Simulation",
+							  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
 			return;
 		}
 	}
@@ -3157,6 +3269,10 @@ void MainWindow::teardownGUI() {
 
 	// Clearing the scene deletes all owned QGraphicsItems.
 	scene->clear();
+
+	// clear() keeps the explicitly pinned scene rect, so fitView would keep
+	// fitting the previous network's extents; unset it to track the new items
+	scene->setSceneRect(QRectF());
 
 	// Clear list pointers - the items were owned by the scene and are now deleted.
 	m_trainSpeedLabels.clear(); // items deleted by scene->clear() above
@@ -3220,8 +3336,8 @@ void MainWindow::runScene() {
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
-		QMessageBox::warning(this, "Cannot Run Scene",
-							 QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount));
+		showBlockingError(this, "Cannot Run Scene",
+						  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
 		return;
 	}
 
@@ -3231,7 +3347,7 @@ void MainWindow::runScene() {
 	auto* stagingDir = new QTemporaryDir();
 	if (!stagingDir->isValid()) {
 		delete stagingDir;
-		QMessageBox::critical(this, "Cannot Run Scene", "Could not create a temporary staging directory for the run.");
+		showBlockingError(this, "Cannot Run Scene", "Could not create a temporary staging directory for the run.");
 		return;
 	}
 
@@ -3244,7 +3360,7 @@ void MainWindow::runScene() {
 		if (message.isEmpty())
 			message = "Scene could not be staged for the run.";
 		delete stagingDir;
-		QMessageBox::critical(this, "Cannot Run Scene", message);
+		showBlockingError(this, "Cannot Run Scene", message);
 		return;
 	}
 
@@ -3254,7 +3370,7 @@ void MainWindow::runScene() {
 			QString targetLegacy = QDir(sceneStagingPath).filePath("legacy");
 			if (!copyDirectoryRecursively(sourceLegacy, targetLegacy)) {
 				delete stagingDir;
-				QMessageBox::critical(this, "Cannot Run Scene", "Cannot copy legacy passthrough data for the run.");
+				showBlockingError(this, "Cannot Run Scene", "Cannot copy legacy passthrough data for the run.");
 				return;
 			}
 		}
@@ -3266,7 +3382,7 @@ void MainWindow::runScene() {
 		if (message.isEmpty())
 			message = "Scene could not be exported for the run.";
 		delete stagingDir;
-		QMessageBox::critical(this, "Cannot Run Scene", message);
+		showBlockingError(this, "Cannot Run Scene", message);
 		return;
 	}
 
@@ -3295,8 +3411,10 @@ void MainWindow::runScene() {
 	initial_variables.times = computeHorizon(m_sceneModel);
 
 	simulation.setupEgtrain();
+	readStationInfo(); // main.cpp does this at startup; reloads skip it otherwise
 	simulation.prepareSimulation();
 	setupGUI();
+	fitView(); // the previous case's viewport rarely covers the new geometry
 
 	// scene stays loaded; only the case-study load path clears it
 	updateSceneWindowTitle();
@@ -3374,8 +3492,10 @@ void MainWindow::actionLoad_Network() {
 
 	simulation.resetState();
 	simulation.setupEgtrain();
+	readStationInfo(); // main.cpp does this at startup; reloads skip it otherwise
 	simulation.prepareSimulation();
 	setupGUI();
+	fitView(); // the previous case's viewport rarely covers the new geometry
 	m_sceneDir.clear();
 	m_sceneModel = SceneModel();
 	m_sceneLoaded = false;
@@ -4434,6 +4554,27 @@ void MainWindow::calculateStationCoordAndShift(int geo_scale) {
 
 	// calculate shifts and signal deltas per region
 	for (int r = 0; r < regionStations.size(); r++) {
+		if (regionStations[r].size() < 2) {
+			continue;
+		}
+		if (regionStations[r].size() == 2) {
+			int s1 = regionStations[r][0];
+			int s2 = regionStations[r][1];
+			x1 = StationArray[s1].graphX;
+			y1 = StationArray[s1].graphY;
+			x2 = StationArray[s2].graphX;
+			y2 = StationArray[s2].graphY;
+			beta = atan2(-(y1 - y2), (x1 - x2));
+			StationArray[s1].signalDeltaX[r] = sin(beta);
+			StationArray[s1].signalDeltaY[r] = cos(beta);
+			StationArray[s1].shiftX[r] = cos(PI / 2 - beta);
+			StationArray[s1].shiftY[r] = sin(PI / 2 - beta);
+			StationArray[s2].signalDeltaX[r] = sin(beta);
+			StationArray[s2].signalDeltaY[r] = cos(beta);
+			StationArray[s2].shiftX[r] = cos(PI / 2 - beta);
+			StationArray[s2].shiftY[r] = sin(PI / 2 - beta);
+			continue;
+		}
 		for (int i = 0; i < regionStations[r].size(); i++) {
 			if (i == regionStations[r].size() - 1) { // special case - last Arc
 				// use shifts of previous Arc
@@ -4514,8 +4655,11 @@ void MainWindow::hideNetwork() {
 
 // fit view
 void MainWindow::fitView() {
-	// expand scene rect so that items can be centered when zooming
-	QRectF initialSceneRect = scene->sceneRect();
+	// fit the items actually on the scene; the scene rect is unreliable after
+	// a reload because Qt's automatic rect only ever grows across loads
+	QRectF initialSceneRect = scene->itemsBoundingRect();
+	if (initialSceneRect.isEmpty())
+		initialSceneRect = scene->sceneRect();
 	qreal expansionFactorX = 0.05;
 	qreal expansionFactorY = 0.05;
 	scene->setSceneRect(initialSceneRect.adjusted(-0.5 * expansionFactorX * initialSceneRect.width(), -0.5 * expansionFactorY * initialSceneRect.height(), 0.5 * expansionFactorX * initialSceneRect.width(), 0.5 * expansionFactorY * initialSceneRect.height()));
@@ -4957,8 +5101,12 @@ void MainWindow::updateTrainPosition(int t) {
 					m_trainSpeedLabels[train]->setVisible(false);
 			}
 		}
-		// new train starting
-		else if (t == regional_train[train].departure_time) {
+		// new train starting; >= not == because the frame throttle may drop
+		// the exact departure frame, and the recorded trajectory (not the live
+		// train state) is what says whether the train is on the network at t
+		else if (t >= regional_train[train].departure_time &&
+				 t < (int)regional_train[train].instant_spatial_position.size() &&
+				 regional_train[train].instant_spatial_position[t] != -9999) {
 			paintTrain(train, t, node_size, line_width, &regional_train[train]);
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train && !allTrains.isEmpty())
 				networkView->centerOn(allTrains.last());
@@ -5504,6 +5652,10 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 }
 
 void MainWindow::askForTrainPathDiagram() {
+	// modal prompts deadlock the env-gated smoke runs
+	if (e2eDialogsSuppressed())
+		return;
+
 	// dialog to ask for train path diagram
 	QMessageBox::StandardButton reply;
 	reply = QMessageBox::question(this, "Simulation Finished", "Do you want to generate the train path diagrams?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
