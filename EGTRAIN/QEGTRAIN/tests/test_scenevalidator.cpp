@@ -318,6 +318,69 @@ int main(int argc, char** argv) {
 	errs = {unitDiag};
 	ok &= expect(hasErrors(errs), "error is an error");
 
+	// 22. In-memory SceneModel: countDiagnostics on a clean model vs. one with
+	// a service referencing a nonexistent composition and route.
+	{
+		auto buildCleanModel = []() {
+			SceneModel scene;
+			scene.schemaVersion = 1;
+			scene.name = "unit_test_scene";
+
+			SceneStation station;
+			station.id = "st1";
+			station.name = "Station One";
+			ScenePlatform platform;
+			platform.id = "p1";
+			station.platforms.push_back(platform);
+			scene.stations.push_back(station);
+
+			SceneTrainUnit unit;
+			unit.id = "tu1";
+			scene.trainUnits.push_back(unit);
+
+			SceneComposition comp;
+			comp.id = "comp1";
+			comp.units.push_back("tu1");
+			scene.compositions.push_back(comp);
+
+			SceneRoute route;
+			route.id = "r1";
+			route.blocks.push_back("b1");
+			scene.routes.push_back(route);
+
+			SceneService service;
+			service.id = "svc1";
+			service.composition = "comp1";
+			service.route = "r1";
+			SceneStop stop;
+			stop.stationId = "st1";
+			stop.platformId = "p1";
+			stop.hasArrival = true;
+			stop.arrivalSeconds = 100.0;
+			stop.hasDeparture = true;
+			stop.departureSeconds = 200.0;
+			stop.dwellSeconds = 50.0;
+			service.stops.push_back(stop);
+			scene.services.push_back(service);
+
+			return scene;
+		};
+
+		SceneModel clean = buildCleanModel();
+		auto cleanDiags = validateScene(clean);
+		SceneDiagnosticCounts cleanCounts = countDiagnostics(cleanDiags);
+		ok &= expect(cleanCounts.errors == 0, "clean in-memory model has zero errors");
+
+		SceneModel broken = buildCleanModel();
+		broken.services[0].composition = "unknown_comp";
+		broken.services[0].route = "unknown_route";
+		auto brokenDiags = validateScene(broken);
+		ok &= expect(hasErrors(brokenDiags), "broken in-memory model reports at least one error");
+		SceneDiagnosticCounts brokenCounts = countDiagnostics(brokenDiags);
+		ok &= expect(brokenCounts.errors >= 2, "unknown composition and route each report an error");
+		ok &= expect(expectDiag(brokenDiags, "scene.ref.unresolved"), "unknown composition/route -> scene.ref.unresolved");
+	}
+
 	if (!ok)
 		return 1;
 
