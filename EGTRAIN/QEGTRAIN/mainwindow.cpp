@@ -9,13 +9,17 @@
 #include "TrajectoryUtil.h"
 #include "BlockingTimeDiagram.h"
 #include "VisualPolish.h"
+#include "SceneWriter.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include "InputValidation.h"
 #include <cfloat>
 #include <QThread>
+#include <QCloseEvent>
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -25,12 +29,62 @@
 #include <QInputDialog>
 #include <QCoreApplication>
 #include <QSignalBlocker>
+#include <QSettings>
 #include <QStringList>
 #include <cstdio>
 #include <map>
 
 // utilization of GUI
 // bool GUI = true; // GUI used by default
+
+namespace {
+const char* kRecentScenesKey = "recentScenes";
+const int kMaxRecentScenes = 8;
+
+QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
+	for (const auto& d : diagnostics) {
+		if (d.severity == SceneSeverity::Error)
+			return QString::fromStdString(d.message);
+	}
+	if (!diagnostics.empty())
+		return QString::fromStdString(diagnostics.front().message);
+	return QString();
+}
+
+int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
+	int count = 0;
+	for (const auto& d : diagnostics) {
+		if (d.severity == SceneSeverity::Error)
+			++count;
+	}
+	return count;
+}
+
+bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPath) {
+	QDir sourceDir(sourcePath);
+	if (!sourceDir.exists())
+		return false;
+
+	QDir targetDir(targetPath);
+	if (!targetDir.exists() && !QDir().mkpath(targetPath))
+		return false;
+
+	const QFileInfoList entries = sourceDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries);
+	for (const QFileInfo& entry : entries) {
+		const QString sourceFilePath = entry.absoluteFilePath();
+		const QString targetFilePath = targetDir.filePath(entry.fileName());
+		if (entry.isDir()) {
+			if (!copyDirectoryRecursively(sourceFilePath, targetFilePath))
+				return false;
+		} else {
+			QFile::remove(targetFilePath);
+			if (!QFile::copy(sourceFilePath, targetFilePath))
+				return false;
+		}
+	}
+	return true;
+}
+} // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 										  ui(new Ui::MainWindow),
@@ -78,7 +132,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// hide progress bar
 	progressBar->hide();
-		statusBar()->showMessage("Simulation complete");
+	statusBar()->showMessage("Simulation complete");
 
 	// setup speed slider (will be added to toolbar)
 	m_speedSlider = new QSlider(Qt::Horizontal);
@@ -121,6 +175,28 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->displayTrainPathDiagrams, &QAction::triggered, this, &MainWindow::displayTrainPathDiagrams);
 
 	connect(ui->actionLoad_Network, &QAction::triggered, this, &MainWindow::actionLoad_Network);
+
+	ui->actionLoad_Network->setText("Load Legacy Case...");
+	ui->actionLoad_Network->setShortcut(QKeySequence());
+	QAction* openSceneAction = new QAction("Open Scene...", this);
+	openSceneAction->setShortcut(QKeySequence::Open);
+	m_saveSceneAction = new QAction("Save Scene", this);
+	m_saveSceneAction->setShortcut(QKeySequence::Save);
+	m_saveSceneAsAction = new QAction("Save Scene As...", this);
+	m_recentScenesMenu = new QMenu("Recent Scenes", this);
+	connect(openSceneAction, &QAction::triggered, this, &MainWindow::openSceneDialog);
+	connect(m_saveSceneAction, &QAction::triggered, this, &MainWindow::saveScene);
+	connect(m_saveSceneAsAction, &QAction::triggered, this, &MainWindow::saveSceneAs);
+	if (ui->menuFile) {
+		QAction* beforeAction = ui->actionLoad_Network;
+		ui->menuFile->insertAction(beforeAction, openSceneAction);
+		ui->menuFile->insertAction(beforeAction, m_saveSceneAction);
+		ui->menuFile->insertAction(beforeAction, m_saveSceneAsAction);
+		ui->menuFile->insertMenu(beforeAction, m_recentScenesMenu);
+		ui->menuFile->insertSeparator(beforeAction);
+	}
+	rebuildRecentScenesMenu();
+	updateSceneActions();
 
 	// connect scene signals
 	connect(scene, &myQGraphicsScene::MousePressedOnNode, this, &MainWindow::displayNodeInfo);
@@ -239,13 +315,265 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// --- Status bar ---
 	statusBar()->showMessage(QString("Ready - %1 (%2 tracks, %3 routes)")
-		.arg(QString::fromStdString(initial_variables.name))
-		.arg(initial_variables.numTrackLines)
-		.arg(initial_variables.N_Routes));
+								 .arg(QString::fromStdString(initial_variables.name))
+								 .arg(initial_variables.numTrackLines)
+								 .arg(initial_variables.N_Routes));
 }
 
 MainWindow::~MainWindow() {
 	delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+	if (maybeSaveScene()) {
+		QMainWindow::closeEvent(event);
+	} else {
+		event->ignore();
+	}
+}
+
+void MainWindow::openSceneDialog() {
+	if (!maybeSaveScene())
+		return;
+
+	QString dir = QFileDialog::getExistingDirectory(this, "Open Scene", m_sceneDir);
+	if (dir.isEmpty())
+		return;
+
+	openSceneDirectory(dir);
+}
+
+bool MainWindow::openSceneDirectory(const QString& dir) {
+	QString scenePath = QDir(dir).absolutePath();
+	auto result = loadScene(scenePath.toStdString());
+	int errorCount = errorDiagnosticCount(result.diagnostics);
+	if (errorCount > 0) {
+		QString message = firstDiagnosticMessage(result.diagnostics);
+		if (message.isEmpty())
+			message = "Scene could not be opened.";
+		message += QString("\n\nError count: %1").arg(errorCount);
+		QMessageBox::critical(this, "Cannot Open Scene", message);
+		return false;
+	}
+
+	m_sceneDir = scenePath;
+	m_sceneModel = result.scene;
+	m_sceneLoaded = true;
+	m_sceneDirty = false;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	addRecentScene(scenePath);
+	statusBar()->showMessage(QString("Scene loaded: %1 (%2 services, %3 routes)")
+								 .arg(QString::fromStdString(m_sceneModel.name))
+								 .arg(static_cast<int>(m_sceneModel.services.size()))
+								 .arg(static_cast<int>(m_sceneModel.routes.size())));
+	return true;
+}
+
+void MainWindow::saveScene() {
+	saveSceneToCurrentDir();
+}
+
+bool MainWindow::saveSceneToCurrentDir() {
+	if (!m_sceneLoaded)
+		return false;
+	if (m_sceneDir.isEmpty())
+		return saveSceneAsToDirectory();
+
+	auto result = ::saveScene(m_sceneModel, m_sceneDir.toStdString());
+	if (!result.success()) {
+		QString message = firstDiagnosticMessage(result.diagnostics);
+		if (message.isEmpty())
+			message = "Scene could not be saved.";
+		QMessageBox::critical(this, "Cannot Save Scene", message);
+		return false;
+	}
+
+	m_sceneDirty = false;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	statusBar()->showMessage("Scene saved");
+	return true;
+}
+
+void MainWindow::saveSceneAs() {
+	saveSceneAsToDirectory();
+}
+
+bool MainWindow::saveSceneAsToDirectory() {
+	if (!m_sceneLoaded)
+		return false;
+
+	QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : m_sceneDir;
+	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As", startDir);
+	if (dir.isEmpty())
+		return false;
+
+	QString targetPath = QDir(dir).absolutePath();
+	QDir targetDir(targetPath);
+	if (targetDir.exists()) {
+		bool isNonEmpty = !targetDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
+		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
+		if (isNonEmpty && !hasSceneJson) {
+			auto response = QMessageBox::question(this,
+												  "Save Scene As",
+												  "The selected folder is not empty and does not contain scene.json. Save scene files there?",
+												  QMessageBox::Yes | QMessageBox::No,
+												  QMessageBox::No);
+			if (response != QMessageBox::Yes)
+				return false;
+		}
+	}
+
+	if (!copyScenePassthroughFiles(targetPath))
+		return false;
+
+	auto result = ::saveScene(m_sceneModel, targetPath.toStdString());
+	if (!result.success()) {
+		QString message = firstDiagnosticMessage(result.diagnostics);
+		if (message.isEmpty())
+			message = "Scene could not be saved.";
+		QMessageBox::critical(this, "Cannot Save Scene", message);
+		return false;
+	}
+
+	m_sceneDir = targetPath;
+	m_sceneDirty = false;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	addRecentScene(targetPath);
+	statusBar()->showMessage("Scene saved");
+	return true;
+}
+
+bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
+	if (m_sceneDir.isEmpty())
+		return true;
+
+	QString sourcePath = QDir(m_sceneDir).absolutePath();
+	QString targetPath = QDir(targetDir).absolutePath();
+
+	QDir target(targetPath);
+	if (!target.exists() && !QDir().mkpath(targetPath)) {
+		QMessageBox::critical(this, "Cannot Save Scene", "Cannot create target scene directory.");
+		return false;
+	}
+
+	QString sourceCanonical = QDir(sourcePath).canonicalPath();
+	QString targetCanonical = QDir(targetPath).canonicalPath();
+	if (!sourceCanonical.isEmpty() && sourceCanonical == targetCanonical)
+		return true;
+	if (!sourceCanonical.isEmpty() && targetCanonical.startsWith(sourceCanonical + "/")) {
+		QMessageBox::critical(this, "Cannot Save Scene", "Cannot save a scene inside the current scene folder.");
+		return false;
+	}
+
+	QDir sourceDir(sourcePath);
+
+	QString sourceLegacy = sourceDir.filePath("legacy");
+	if (QDir(sourceLegacy).exists()) {
+		if (!copyDirectoryRecursively(sourceLegacy, target.filePath("legacy"))) {
+			QMessageBox::critical(this, "Cannot Save Scene", "Cannot copy legacy passthrough data.");
+			return false;
+		}
+	}
+
+	QString sourceViews = sourceDir.filePath("views.json");
+	if (QFileInfo(sourceViews).exists()) {
+		QString targetViews = target.filePath("views.json");
+		QFile::remove(targetViews);
+		if (!QFile::copy(sourceViews, targetViews)) {
+			QMessageBox::critical(this, "Cannot Save Scene", "Cannot copy views.json.");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool MainWindow::maybeSaveScene() {
+	if (!m_sceneDirty)
+		return true;
+
+	auto response = QMessageBox::warning(this,
+										 "Unsaved Scene",
+										 "The current scene has unsaved changes.",
+										 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+										 QMessageBox::Save);
+	if (response == QMessageBox::Save)
+		return saveSceneToCurrentDir();
+	if (response == QMessageBox::Cancel)
+		return false;
+	return true;
+}
+
+void MainWindow::updateSceneActions() {
+	if (m_saveSceneAction)
+		m_saveSceneAction->setEnabled(m_sceneLoaded && m_sceneDirty);
+	if (m_saveSceneAsAction)
+		m_saveSceneAsAction->setEnabled(m_sceneLoaded);
+	if (m_recentScenesMenu) {
+		QSettings settings;
+		m_recentScenesMenu->setEnabled(!settings.value(kRecentScenesKey).toStringList().isEmpty());
+	}
+}
+
+void MainWindow::addRecentScene(const QString& path) {
+	QString cleanPath = QDir(path).absolutePath();
+	QSettings settings;
+	QStringList recent = settings.value(kRecentScenesKey).toStringList();
+	recent.removeAll(cleanPath);
+	recent.prepend(cleanPath);
+	while (recent.size() > kMaxRecentScenes)
+		recent.removeLast();
+	settings.setValue(kRecentScenesKey, recent);
+	rebuildRecentScenesMenu();
+	updateSceneActions();
+}
+
+void MainWindow::rebuildRecentScenesMenu() {
+	if (!m_recentScenesMenu)
+		return;
+
+	m_recentScenesMenu->clear();
+	QSettings settings;
+	QStringList recent = settings.value(kRecentScenesKey).toStringList();
+	QStringList cleanedRecent;
+	bool pruned = false;
+	for (const QString& path : recent) {
+		if (!QFileInfo(QDir(path).filePath("scene.json")).exists()) {
+			pruned = true;
+		} else {
+			cleanedRecent.append(path);
+		}
+	}
+	if (pruned) {
+		settings.setValue(kRecentScenesKey, cleanedRecent);
+		recent = cleanedRecent;
+	}
+	for (const QString& path : recent) {
+		QAction* action = m_recentScenesMenu->addAction(path);
+		action->setData(path);
+		connect(action, &QAction::triggered, this, [this, action]() {
+			if (!maybeSaveScene())
+				return;
+			openSceneDirectory(action->data().toString());
+		});
+	}
+	if (recent.isEmpty()) {
+		QAction* emptyAction = m_recentScenesMenu->addAction("No Recent Scenes");
+		emptyAction->setEnabled(false);
+	}
+	updateSceneActions();
+}
+
+void MainWindow::updateSceneWindowTitle() {
+	if (m_sceneLoaded) {
+		setWindowTitle(QString("EGTRAIN - %1[*]").arg(QString::fromStdString(m_sceneModel.name)));
+	} else {
+		setWindowTitle("EGTRAIN[*]");
+	}
+	setWindowModified(m_sceneDirty);
 }
 
 void MainWindow::updateSpeedModeDisplay(int value) {
@@ -803,7 +1131,7 @@ void MainWindow::startSimulation() {
 
 	// show progress bar
 	progressBar->show();
-		statusBar()->showMessage("Simulation running...");
+	statusBar()->showMessage("Simulation running...");
 
 	// create worker and thread; sync slider before run() starts
 	m_worker = new SimulationWorker();
@@ -829,7 +1157,7 @@ void MainWindow::onSimulationFinished() {
 
 	// hide progress bar
 	progressBar->hide();
-		statusBar()->showMessage("Simulation complete");
+	statusBar()->showMessage("Simulation complete");
 	ui->actionSimulationPause->setText("Pause");
 	ui->actionSimulationPause->setChecked(false);
 
@@ -880,7 +1208,7 @@ void MainWindow::teardownGUI() {
 void MainWindow::chooseOutputFolder() {
 	extern initial_parameters initial_variables;
 	QString dir = QFileDialog::getExistingDirectory(this, "Choose Output Folder",
-		QString::fromStdString(initial_variables.OutputMainFolder));
+													QString::fromStdString(initial_variables.OutputMainFolder));
 	if (dir.isEmpty())
 		return;
 	QDir().mkpath(dir);
@@ -892,7 +1220,7 @@ void MainWindow::setStartTime() {
 	bool ok = false;
 	QString current = QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)).left(5);
 	QString text = QInputDialog::getText(this, "Start Time",
-		"Simulation start time (HH:MM):", QLineEdit::Normal, current, &ok);
+										 "Simulation start time (HH:MM):", QLineEdit::Normal, current, &ok);
 	if (!ok)
 		return;
 	long long secs = parseClockToSeconds(text.toStdString());
@@ -906,6 +1234,8 @@ void MainWindow::setStartTime() {
 
 void MainWindow::actionLoad_Network() {
 	extern initial_parameters initial_variables;
+	if (!maybeSaveScene())
+		return;
 
 	QDialog dlg(this);
 	dlg.setWindowTitle("Select Case Study");
@@ -915,11 +1245,15 @@ void MainWindow::actionLoad_Network() {
 	layout->addWidget(new QLabel("Choose a case study to load:", &dlg));
 	layout->addSpacing(8);
 
-	struct CaseStudy { int id; const char* name; const char* description; };
+	struct CaseStudy {
+		int id;
+		const char* name;
+		const char* description;
+	};
 	const CaseStudy cases[] = {
-		{1, "Netherlands",    "268 track sections, 74 routes"},
-		{2, "Paimpol",        "6 track sections, 15 routes (French branch line)"},
-		{3, "Copenhagen",     "168 track sections, 24 routes (S-Bane metro)"},
+		{1, "Netherlands", "268 track sections, 74 routes"},
+		{2, "Paimpol", "6 track sections, 15 routes (French branch line)"},
+		{3, "Copenhagen", "168 track sections, 24 routes (S-Bane metro)"},
 		{4, "Milano-Brescia", "38 track sections, 48 routes"},
 	};
 
@@ -928,7 +1262,8 @@ void MainWindow::actionLoad_Network() {
 		auto* rb = new QRadioButton(
 			QString("%1 - %2").arg(cs.name).arg(cs.description), &dlg);
 		rb->setProperty("caseId", cs.id);
-		if (cs.id == 1) rb->setChecked(true);
+		if (cs.id == 1)
+			rb->setChecked(true);
 		group->addButton(rb);
 		layout->addWidget(rb);
 	}
@@ -967,11 +1302,17 @@ void MainWindow::actionLoad_Network() {
 	simulation.setupEgtrain();
 	simulation.prepareSimulation();
 	setupGUI();
+	m_sceneDir.clear();
+	m_sceneModel = SceneModel();
+	m_sceneLoaded = false;
+	m_sceneDirty = false;
+	updateSceneWindowTitle();
+	updateSceneActions();
 
 	statusBar()->showMessage(QString("Loaded: %1 (%2 tracks, %3 routes)")
-		.arg(QString::fromStdString(initial_variables.name))
-		.arg(initial_variables.numTrackLines)
-		.arg(initial_variables.N_Routes));
+								 .arg(QString::fromStdString(initial_variables.name))
+								 .arg(initial_variables.numTrackLines)
+								 .arg(initial_variables.N_Routes));
 }
 
 // draws a Node
@@ -2240,7 +2581,7 @@ void MainWindow::waitForUpdates(int timestep) {
 			updatePaxIconInfo();
 			updateTrainPaxInfo();
 		}
-		
+
 		m_lastRenderMs = now;
 	}
 }
@@ -2441,7 +2782,8 @@ void MainWindow::releaseBlockOccupationStatus() {
 }
 
 void MainWindow::updateSignalAspect(const std::string& ID, double code, bool reversed) {
-	if (m_signalsByAheadId.find(ID) == m_signalsByAheadId.end()) return;
+	if (m_signalsByAheadId.find(ID) == m_signalsByAheadId.end())
+		return;
 	for (auto* signal : m_signalsByAheadId.at(ID)) {
 		if (signal->reversedDirection == reversed) {
 			if (code == 270 || code == 180) {
@@ -3459,9 +3801,15 @@ void MainWindow::fitToView() {
 }
 
 // --- Per-train diagram slots ---
-void MainWindow::showSpeedDistanceDiagram() { buildPerTrainDiagram(0); }
-void MainWindow::showSpeedTimeDiagram()     { buildPerTrainDiagram(1); }
-void MainWindow::showTimeDistanceDiagram()  { buildPerTrainDiagram(2); }
+void MainWindow::showSpeedDistanceDiagram() {
+	buildPerTrainDiagram(0);
+}
+void MainWindow::showSpeedTimeDiagram() {
+	buildPerTrainDiagram(1);
+}
+void MainWindow::showTimeDistanceDiagram() {
+	buildPerTrainDiagram(2);
+}
 
 // mode 0: speed vs distance, 1: speed vs time, 2: time vs distance
 void MainWindow::buildPerTrainDiagram(int mode) {
@@ -3471,7 +3819,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		return;
 	}
 
-	const char* titles[] = { "Speed vs Distance", "Speed vs Time", "Time vs Distance" };
+	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance"};
 	QChart* chart = new QChart();
 	chart->setTitle(titles[mode]);
 
@@ -3486,13 +3834,13 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		for (int i = 0; i < n; i++) {
 			double tSec = trajectoryTimeSeconds(i, timestep);
 			double dist = train.positionKmAt(i);
-			double spd  = train.speedKmhAt(i);
+			double spd = train.speedKmhAt(i);
 			if (mode == 0)
-				series->append(dist, spd);   // x: distance (km), y: speed (km/h)
+				series->append(dist, spd); // x: distance (km), y: speed (km/h)
 			else if (mode == 1)
-				series->append(tSec, spd);   // x: time (s),      y: speed (km/h)
+				series->append(tSec, spd); // x: time (s),      y: speed (km/h)
 			else
-				series->append(tSec, dist);  // x: time (s),      y: distance (km)
+				series->append(tSec, dist); // x: time (s),      y: distance (km)
 		}
 		chart->addSeries(series);
 	}
@@ -3520,28 +3868,30 @@ void MainWindow::showTimetableTable() {
 	QTableWidget* table = new QTableWidget();
 	table->setColumnCount(5);
 	table->setHorizontalHeaderLabels({"Train", "Station", "Planned", "Simulated", "Delay"});
-	
+
 	int row = 0;
 	for (int i = 0; i < numRegions; i++) {
 		Train& t = regional_train[i];
-		if (t.numStations <= 0) continue;
+		if (t.numStations <= 0)
+			continue;
 		for (int s = 0; s < t.numStations; s++) {
-			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0) continue;
-			
+			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0)
+				continue;
+
 			table->insertRow(row);
 			QTableWidgetItem* itemTrain = new QTableWidgetItem(QString::fromStdString(t.trainDescription));
 			QTableWidgetItem* itemStation = new QTableWidgetItem(QString::fromStdString(t.stationNameForArrivalStats(s)));
-			
+
 			QString plannedStr = QString::fromStdString(formatSimTime((long long)t.ScheduledArrivals[s], m_startOffsetSeconds));
 			QString simStr = QString::fromStdString(formatSimTime((long long)t.StationArrivals[s], m_startOffsetSeconds));
-			
+
 			int delaySeconds = (int)t.StationDelay[s];
 			QString delayStr = QString("%1%2 s").arg(delaySeconds >= 0 ? "+" : "").arg(delaySeconds);
-			
+
 			QTableWidgetItem* itemPlanned = new QTableWidgetItem(plannedStr);
 			QTableWidgetItem* itemSim = new QTableWidgetItem(simStr);
 			QTableWidgetItem* itemDelay = new QTableWidgetItem(delayStr);
-			
+
 			if (delaySeconds > 60) {
 				itemDelay->setForeground(QBrush(Qt::red));
 			} else if (delaySeconds > 0) {
@@ -3549,7 +3899,7 @@ void MainWindow::showTimetableTable() {
 			} else {
 				itemDelay->setForeground(QBrush(Qt::darkGreen));
 			}
-			
+
 			table->setItem(row, 0, itemTrain);
 			table->setItem(row, 1, itemStation);
 			table->setItem(row, 2, itemPlanned);
@@ -3574,13 +3924,15 @@ void MainWindow::showDelayDiagram() {
 
 	for (int i = 0; i < numRegions; i++) {
 		Train& t = regional_train[i];
-		if (t.numStations <= 0) continue;
-		
+		if (t.numStations <= 0)
+			continue;
+
 		QLineSeries* series = new QLineSeries();
 		series->setName(QString::fromStdString(t.trainDescription));
 		bool hasData = false;
 		for (int s = 0; s < t.numStations; s++) {
-			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0) continue;
+			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0)
+				continue;
 			series->append(s, t.StationDelay[s] / 60.0);
 			hasData = true;
 		}
@@ -3616,8 +3968,9 @@ void MainWindow::showTimetableGraph() {
 
 	for (int i = 0; i < numRegions; i++) {
 		Train& t = regional_train[i];
-		if (t.numStations <= 0) continue;
-		
+		if (t.numStations <= 0)
+			continue;
+
 		QLineSeries* simSeries = new QLineSeries();
 		simSeries->setName(QString::fromStdString(t.trainDescription));
 		QLineSeries* planSeries = new QLineSeries();
@@ -3625,8 +3978,9 @@ void MainWindow::showTimetableGraph() {
 
 		bool hasData = false;
 		for (int s = 0; s < t.numStations; s++) {
-			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0) continue;
-			
+			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0)
+				continue;
+
 			simSeries->append(t.StationArrivals[s], s);
 			planSeries->append(t.ScheduledArrivals[s], s);
 			hasData = true;
@@ -3634,7 +3988,7 @@ void MainWindow::showTimetableGraph() {
 		if (hasData) {
 			chart->addSeries(simSeries);
 			chart->addSeries(planSeries);
-			
+
 			QPen planPen = planSeries->pen();
 			planPen.setStyle(Qt::DashLine);
 			planPen.setColor(simSeries->pen().color());
@@ -3702,24 +4056,36 @@ void MainWindow::showBlockingTimeDiagram() {
 
 	auto colorForStyle = [&](BlockingTimeSegmentStyle style) {
 		switch (style) {
-		case BlockingTimeSegmentStyle::Station: return stationColor;
-		case BlockingTimeSegmentStyle::Switch: return switchColor;
-		case BlockingTimeSegmentStyle::SwitchStation: return switchStationColor;
-		case BlockingTimeSegmentStyle::Critical: return criticalColor;
-		case BlockingTimeSegmentStyle::CriticalStation: return criticalStationColor;
-		case BlockingTimeSegmentStyle::Default:
-		default: return defaultColor;
+			case BlockingTimeSegmentStyle::Station:
+				return stationColor;
+			case BlockingTimeSegmentStyle::Switch:
+				return switchColor;
+			case BlockingTimeSegmentStyle::SwitchStation:
+				return switchStationColor;
+			case BlockingTimeSegmentStyle::Critical:
+				return criticalColor;
+			case BlockingTimeSegmentStyle::CriticalStation:
+				return criticalStationColor;
+			case BlockingTimeSegmentStyle::Default:
+			default:
+				return defaultColor;
 		}
 	};
 	auto suffixForStyle = [](BlockingTimeSegmentStyle style) {
 		switch (style) {
-		case BlockingTimeSegmentStyle::Station: return " (station)";
-		case BlockingTimeSegmentStyle::Switch: return " (switch)";
-		case BlockingTimeSegmentStyle::SwitchStation: return " (switch/station)";
-		case BlockingTimeSegmentStyle::Critical: return " (critical)";
-		case BlockingTimeSegmentStyle::CriticalStation: return " (critical/station)";
-		case BlockingTimeSegmentStyle::Default:
-		default: return "";
+			case BlockingTimeSegmentStyle::Station:
+				return " (station)";
+			case BlockingTimeSegmentStyle::Switch:
+				return " (switch)";
+			case BlockingTimeSegmentStyle::SwitchStation:
+				return " (switch/station)";
+			case BlockingTimeSegmentStyle::Critical:
+				return " (critical)";
+			case BlockingTimeSegmentStyle::CriticalStation:
+				return " (critical/station)";
+			case BlockingTimeSegmentStyle::Default:
+			default:
+				return "";
 		}
 	};
 
