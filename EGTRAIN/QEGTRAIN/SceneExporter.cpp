@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <cmath>
 #include <regex>
+#include <limits>
 
 namespace fs = std::filesystem;
 
@@ -214,38 +215,160 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			comp = compMap[svc.composition];
 		}
 
-		const SceneTrainUnit* unit = nullptr;
-		if (comp && !comp->units.empty() && unitMap.find(comp->units[0]) != unitMap.end()) {
-			unit = unitMap[comp->units[0]];
-		}
-
-		if (!unit) {
+		if (!comp || comp->units.empty()) {
 			addDiag(SceneSeverity::Error, "scene.export.ref", "Missing unit for service", svc.id);
 			result.wroteAll = false;
 			trainFiles.pop_back();
 			continue;
 		}
 
-		if (!unit->hasPhysical || unit->tractionCurve.empty()) {
-			addDiag(SceneSeverity::Error, "scene.export.ref", "Unit missing physical or traction data: " + unit->id, svc.id);
+		std::vector<const SceneTrainUnit*> resolvedUnits;
+		std::string missingUnitId;
+		bool missingUnit = false;
+		for (const auto& uId : comp->units) {
+			auto it = unitMap.find(uId);
+			if (it == unitMap.end()) {
+				missingUnit = true;
+				missingUnitId = uId;
+				break;
+			}
+			resolvedUnits.push_back(it->second);
+		}
+
+		if (missingUnit) {
+			addDiag(SceneSeverity::Error, "scene.export.ref", "Missing unit " + missingUnitId + " for service", svc.id);
 			result.wroteAll = false;
 			trainFiles.pop_back();
 			continue;
 		}
 
-		std::string dataPathRel = unit->sourceDataFile;
-		if (dataPathRel.empty()) {
-			dataPathRel = "TrainData/" + unit->id + ".txt";
-		} else {
-			// Keep the basename and put in TrainData/
-			dataPathRel = "TrainData/" + fs::path(dataPathRel).filename().string();
+		bool missingData = false;
+		std::string badUnitId;
+		for (const auto* u : resolvedUnits) {
+			if (!u->hasPhysical || u->tractionCurve.empty()) {
+				missingData = true;
+				badUnitId = u->id;
+				break;
+			}
 		}
 
-		std::string tracPathRel = unit->sourceTractionFile;
-		if (tracPathRel.empty()) {
-			tracPathRel = "TrainData/T_" + unit->id + ".txt";
+		if (missingData) {
+			addDiag(SceneSeverity::Error, "scene.export.ref", "Unit missing physical or traction data: " + badUnitId, svc.id);
+			result.wroteAll = false;
+			trainFiles.pop_back();
+			continue;
+		}
+
+		std::string dataPathRel;
+		std::string tracPathRel;
+		SceneTrainPhysical combinedPhysical;
+		std::vector<std::array<double, 5>> combinedTraction;
+
+		if (resolvedUnits.size() == 1) {
+			const SceneTrainUnit* u = resolvedUnits[0];
+			combinedPhysical = u->physical;
+			combinedTraction = u->tractionCurve;
+			dataPathRel = u->sourceDataFile;
+			if (dataPathRel.empty()) {
+				dataPathRel = "TrainData/" + u->id + ".txt";
+			} else {
+				// Keep the basename and put in TrainData/
+				dataPathRel = "TrainData/" + fs::path(dataPathRel).filename().string();
+			}
+			tracPathRel = u->sourceTractionFile;
+			if (tracPathRel.empty()) {
+				tracPathRel = "TrainData/T_" + u->id + ".txt";
+			} else {
+				tracPathRel = "TrainData/" + fs::path(tracPathRel).filename().string();
+			}
 		} else {
-			tracPathRel = "TrainData/" + fs::path(tracPathRel).filename().string();
+			dataPathRel = "TrainData/" + sanitizeFilename(comp->id) + ".txt";
+			tracPathRel = "TrainData/T_" + sanitizeFilename(comp->id) + ".txt";
+
+			double sum_mass_traction = 0.0;
+			double sum_number_wagons = 0.0;
+			double sum_wagon_mass = 0.0;
+			double min_max_speed = std::numeric_limits<double>::infinity();
+			double min_max_decel = std::numeric_limits<double>::infinity();
+			double first_frontal_area = resolvedUnits[0]->physical.frontal_area_m2;
+			double sum_total_mass = 0.0;
+			double sum_weighted_res = 0.0;
+			double sum_unweighted_res = 0.0;
+			double min_jerk = std::numeric_limits<double>::infinity();
+			double sum_length = 0.0;
+
+			for (const auto* u : resolvedUnits) {
+				const auto& p = u->physical;
+				sum_mass_traction += p.mass_of_traction_unit_kg;
+				sum_number_wagons += p.number_of_wagons;
+				sum_wagon_mass += p.number_of_wagons * p.mass_of_a_wagon_kg;
+				// the most restrictive limit governs the combined train, so
+				// speed, deceleration, and jerk all combine as the minimum
+				if (p.max_speed_ms < min_max_speed) min_max_speed = p.max_speed_ms;
+				if (p.max_deceleration_ms2 < min_max_decel) min_max_decel = p.max_deceleration_ms2;
+				double unit_total_mass = p.mass_of_traction_unit_kg + p.number_of_wagons * p.mass_of_a_wagon_kg;
+				sum_total_mass += unit_total_mass;
+				sum_weighted_res += unit_total_mass * p.resistance_coefficient;
+				sum_unweighted_res += p.resistance_coefficient;
+				if (p.jerk_ms3 < min_jerk) min_jerk = p.jerk_ms3;
+				sum_length += p.length_m;
+			}
+
+			combinedPhysical.mass_of_traction_unit_kg = sum_mass_traction;
+			combinedPhysical.number_of_wagons = sum_number_wagons;
+			combinedPhysical.mass_of_a_wagon_kg = (sum_number_wagons > 0.0) ? (sum_wagon_mass / sum_number_wagons) : 0.0;
+			combinedPhysical.max_speed_ms = min_max_speed;
+			combinedPhysical.max_deceleration_ms2 = min_max_decel;
+			combinedPhysical.frontal_area_m2 = first_frontal_area;
+			combinedPhysical.resistance_coefficient = (sum_total_mass > 0.0) ? (sum_weighted_res / sum_total_mass) : (sum_unweighted_res / resolvedUnits.size());
+			combinedPhysical.jerk_ms3 = min_jerk;
+			combinedPhysical.length_m = sum_length;
+
+			std::vector<double> boundaries;
+			for (const auto* u : resolvedUnits) {
+				for (const auto& row : u->tractionCurve) {
+					boundaries.push_back(row[0]);
+					boundaries.push_back(row[1]);
+				}
+			}
+			std::sort(boundaries.begin(), boundaries.end());
+			// tolerant dedup: boundaries an ULP apart would otherwise form
+			// sliver bands whose midpoint matches only one source row
+			auto nearlyEqual = [](double a, double b) {
+				return std::abs(a - b) <= 1e-9 * std::max(1.0, std::max(std::abs(a), std::abs(b)));
+			};
+			boundaries.erase(std::unique(boundaries.begin(), boundaries.end(), nearlyEqual), boundaries.end());
+
+			for (size_t i = 0; i + 1 < boundaries.size(); ++i) {
+				double a = boundaries[i];
+				double b = boundaries[i+1];
+				if (a >= b) continue;
+				double mid = (a + b) / 2.0;
+				double sumC0 = 0.0, sumC1 = 0.0, sumC2 = 0.0;
+				bool covered = false;
+
+				for (const auto* u : resolvedUnits) {
+					for (const auto& row : u->tractionCurve) {
+						if (mid >= row[0] && mid < row[1]) {
+							sumC0 += row[2];
+							sumC1 += row[3];
+							sumC2 += row[4];
+							covered = true;
+						}
+					}
+				}
+
+				if (covered) {
+					combinedTraction.push_back({a, b, sumC0, sumC1, sumC2});
+				}
+			}
+
+			if (combinedTraction.empty()) {
+				addDiag(SceneSeverity::Error, "scene.export.ref", "Combined traction curve is empty for composition " + comp->id, svc.id);
+				result.wroteAll = false;
+				trainFiles.pop_back();
+				continue;
+			}
 		}
 
 		std::string ttPathRel = "TimeTable/" + fname;
@@ -253,15 +376,15 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		// Write unit files if not written
 		std::ofstream df(fs::path(outDir) / dataPathRel);
 		if (df) {
-			df << formatNumber(unit->physical.mass_of_traction_unit_kg) << "\t"
-			   << formatNumber(unit->physical.mass_of_a_wagon_kg) << "\t"
-			   << formatNumber(unit->physical.number_of_wagons) << "\t"
-			   << formatNumber(unit->physical.max_speed_ms) << "\t"
-			   << formatNumber(unit->physical.max_deceleration_ms2) << "\t"
-			   << formatNumber(unit->physical.frontal_area_m2) << "\t"
-			   << formatNumber(unit->physical.resistance_coefficient) << "\t"
-			   << formatNumber(unit->physical.jerk_ms3) << "\t"
-			   << formatNumber(unit->physical.length_m) << "\n";
+			df << formatNumber(combinedPhysical.mass_of_traction_unit_kg) << "\t"
+			   << formatNumber(combinedPhysical.mass_of_a_wagon_kg) << "\t"
+			   << formatNumber(combinedPhysical.number_of_wagons) << "\t"
+			   << formatNumber(combinedPhysical.max_speed_ms) << "\t"
+			   << formatNumber(combinedPhysical.max_deceleration_ms2) << "\t"
+			   << formatNumber(combinedPhysical.frontal_area_m2) << "\t"
+			   << formatNumber(combinedPhysical.resistance_coefficient) << "\t"
+			   << formatNumber(combinedPhysical.jerk_ms3) << "\t"
+			   << formatNumber(combinedPhysical.length_m) << "\n";
 		} else {
 			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write train data file", dataPathRel);
 			result.wroteAll = false;
@@ -269,7 +392,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 
 		std::ofstream tf(fs::path(outDir) / tracPathRel);
 		if (tf) {
-			for (const auto& row : unit->tractionCurve) {
+			for (const auto& row : combinedTraction) {
 				tf << formatNumber(row[0]) << "\t"
 				   << formatNumber(row[1]) << "\t"
 				   << formatNumber(row[2]) << "\t"
