@@ -85,6 +85,7 @@
 QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
+class QTemporaryDir; // forward declaration for m_runStagingDir
 
 // custom GUI files
 #include "myQGraphicsView.h"
@@ -250,6 +251,7 @@ public slots:
 	void openSceneDialog();
 	void saveScene();
 	void saveSceneAs();
+	void runScene();
 	void actionLoad_Network();
 	// display train path diagrams
 	void displayTrainPathDiagrams();
@@ -365,11 +367,13 @@ private:
 	bool m_sceneDirty = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
+	QAction* m_runSceneAction = nullptr;
 	QMenu* m_recentScenesMenu = nullptr;
 	QDockWidget* m_validationDock = nullptr;
 	QTableWidget* m_validationTable = nullptr;
 	QLabel* m_validationStatusLabel = nullptr;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
+	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
 	void refreshFollowTrainChoices();

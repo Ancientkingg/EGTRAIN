@@ -10,6 +10,7 @@
 #include "BlockingTimeDiagram.h"
 #include "VisualPolish.h"
 #include "SceneWriter.h"
+#include "SceneExporter.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
@@ -31,6 +32,7 @@
 #include <QSignalBlocker>
 #include <QSettings>
 #include <QStringList>
+#include <QTemporaryDir>
 #include <cstdio>
 #include <map>
 
@@ -58,6 +60,42 @@ int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 			++count;
 	}
 	return count;
+}
+
+int baseTimeToSeconds(const std::string& hhmmss) {
+	if (hhmmss.empty())
+		return 0;
+	int h = 0, m = 0, s = 0;
+	char extra = 0;
+	if (std::sscanf(hhmmss.c_str(), "%d:%d:%d%c", &h, &m, &s, &extra) != 3)
+		return 0;
+	if (h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59)
+		return 0;
+	return h * 3600 + m * 60 + s;
+}
+
+double computeHorizon(const SceneModel& scene) {
+	double maxSeconds = 0.0;
+	for (const auto& service : scene.services) {
+		if (service.entryTimeSeconds > maxSeconds)
+			maxSeconds = service.entryTimeSeconds;
+		for (const auto& stop : service.stops) {
+			if (stop.hasArrival && stop.arrivalSeconds > maxSeconds)
+				maxSeconds = stop.arrivalSeconds;
+			if (stop.hasDeparture && stop.departureSeconds > maxSeconds)
+				maxSeconds = stop.departureSeconds;
+		}
+	}
+	double horizon = maxSeconds + 600.0;
+	return horizon < 600.0 ? 600.0 : horizon;
+}
+
+int countTrackLineDirs(const QString& inputDir) {
+	QDir trackLinesDir(inputDir + "/TrackLines");
+	if (!trackLinesDir.exists())
+		return 0;
+	QFileInfoList entries = trackLinesDir.entryInfoList(QStringList("B*"), QDir::Dirs | QDir::NoDotAndDotDot | QDir::CaseSensitive);
+	return entries.size();
 }
 
 bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPath) {
@@ -183,15 +221,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_saveSceneAction = new QAction("Save Scene", this);
 	m_saveSceneAction->setShortcut(QKeySequence::Save);
 	m_saveSceneAsAction = new QAction("Save Scene As...", this);
+	m_runSceneAction = new QAction("Run Scene", this);
 	m_recentScenesMenu = new QMenu("Recent Scenes", this);
 	connect(openSceneAction, &QAction::triggered, this, &MainWindow::openSceneDialog);
 	connect(m_saveSceneAction, &QAction::triggered, this, &MainWindow::saveScene);
 	connect(m_saveSceneAsAction, &QAction::triggered, this, &MainWindow::saveSceneAs);
+	connect(m_runSceneAction, &QAction::triggered, this, &MainWindow::runScene);
 	if (ui->menuFile) {
 		QAction* beforeAction = ui->actionLoad_Network;
 		ui->menuFile->insertAction(beforeAction, openSceneAction);
 		ui->menuFile->insertAction(beforeAction, m_saveSceneAction);
 		ui->menuFile->insertAction(beforeAction, m_saveSceneAsAction);
+		ui->menuFile->insertAction(beforeAction, m_runSceneAction);
 		ui->menuFile->insertMenu(beforeAction, m_recentScenesMenu);
 		ui->menuFile->insertSeparator(beforeAction);
 	}
@@ -342,6 +383,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 }
 
 MainWindow::~MainWindow() {
+	delete m_runStagingDir;
 	delete ui;
 }
 
@@ -536,6 +578,8 @@ void MainWindow::updateSceneActions() {
 		m_saveSceneAction->setEnabled(m_sceneLoaded && m_sceneDirty);
 	if (m_saveSceneAsAction)
 		m_saveSceneAsAction->setEnabled(m_sceneLoaded);
+	if (m_runSceneAction)
+		m_runSceneAction->setEnabled(m_sceneLoaded);
 	if (m_recentScenesMenu) {
 		QSettings settings;
 		m_recentScenesMenu->setEnabled(!settings.value(kRecentScenesKey).toStringList().isEmpty());
@@ -1304,6 +1348,100 @@ void MainWindow::setStartTime() {
 	}
 	m_startOffsetSeconds = secs;
 	statusBar()->showMessage(QString("Start time set to %1").arg(text), 3000);
+}
+
+void MainWindow::runScene() {
+	extern initial_parameters initial_variables;
+	if (!m_sceneLoaded)
+		return;
+
+	refreshValidationPanel();
+	if (hasErrors(m_sceneDiagnostics)) {
+		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
+		QMessageBox::warning(this, "Cannot Run Scene",
+							 QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount));
+		return;
+	}
+
+	// Stage into a local dir first; only swap it into m_runStagingDir after the
+	// running simulation is torn down, so a live worker's input/output files are
+	// never deleted out from under it and a failed run leaves nothing locked.
+	auto* stagingDir = new QTemporaryDir();
+	if (!stagingDir->isValid()) {
+		delete stagingDir;
+		QMessageBox::critical(this, "Cannot Run Scene", "Could not create a temporary staging directory for the run.");
+		return;
+	}
+
+	QString sceneStagingPath = QDir(stagingDir->path()).absoluteFilePath("scene");
+	QString inputStagingPath = QDir(stagingDir->path()).absoluteFilePath("input");
+
+	SceneSaveResult saveResult = ::saveScene(m_sceneModel, sceneStagingPath.toStdString());
+	if (!saveResult.success()) {
+		QString message = firstDiagnosticMessage(saveResult.diagnostics);
+		if (message.isEmpty())
+			message = "Scene could not be staged for the run.";
+		delete stagingDir;
+		QMessageBox::critical(this, "Cannot Run Scene", message);
+		return;
+	}
+
+	if (!m_sceneDir.isEmpty()) {
+		QString sourceLegacy = QDir(m_sceneDir).filePath("legacy");
+		if (QDir(sourceLegacy).exists()) {
+			QString targetLegacy = QDir(sceneStagingPath).filePath("legacy");
+			if (!copyDirectoryRecursively(sourceLegacy, targetLegacy)) {
+				delete stagingDir;
+				QMessageBox::critical(this, "Cannot Run Scene", "Cannot copy legacy passthrough data for the run.");
+				return;
+			}
+		}
+	}
+
+	SceneExportResult exportResult = exportLegacyScene(sceneStagingPath.toStdString(), inputStagingPath.toStdString());
+	if (!exportResult.success()) {
+		QString message = firstDiagnosticMessage(exportResult.diagnostics);
+		if (message.isEmpty())
+			message = "Scene could not be exported for the run.";
+		delete stagingDir;
+		QMessageBox::critical(this, "Cannot Run Scene", message);
+		return;
+	}
+
+	statusBar()->showMessage("Preparing scene simulation...");
+	QApplication::processEvents();
+
+	teardownGUI();
+	simulation.resetState();
+	delete m_runStagingDir;
+	m_runStagingDir = stagingDir;
+
+	// set globals for the scene run (resetState just zeroed them):
+	QString absInput = QDir(inputStagingPath).absolutePath();
+	InputMainFolder = absInput.toStdString();					// GLOBAL (Infrastructure.h)
+	initial_variables.InputMainFolder = absInput.toStdString(); // member, used by setupEgtrain for Connections/trainNames
+	QString absOutput = QDir(m_runStagingDir->path()).absoluteFilePath("output");
+	QDir().mkpath(absOutput);
+	initial_variables.OutputMainFolder = absOutput.toStdString();
+	initial_variables.GUI = 1;
+	numTrackLines = countTrackLineDirs(absInput);			 // GLOBAL
+	N_Routes = static_cast<int>(m_sceneModel.routes.size()); // GLOBAL
+	bufferTime = 0;
+	recoveryTimePercentage = 0;					// GLOBALS
+	train_route = std::vector<Route>(N_Routes); // GLOBAL, size like main.cpp
+	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
+	initial_variables.times = computeHorizon(m_sceneModel);
+
+	simulation.setupEgtrain();
+	simulation.prepareSimulation();
+	setupGUI();
+
+	// scene stays loaded; only the case-study load path clears it
+	updateSceneWindowTitle();
+	updateSceneActions();
+
+	startSimulation();
+	statusBar()->showMessage(QString("Running scene: %1").arg(QString::fromStdString(m_sceneModel.name)));
 }
 
 void MainWindow::actionLoad_Network() {
