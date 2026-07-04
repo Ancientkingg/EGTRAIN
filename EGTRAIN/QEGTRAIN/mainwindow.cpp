@@ -2583,6 +2583,83 @@ void MainWindow::runVisualPolishE2E() {
 	QCoreApplication::exit(2);
 }
 
+void MainWindow::runEditorSmokeE2E() {
+	if (m_editorE2eFinished)
+		return;
+	m_editorE2eFinished = true;
+
+	bool ok = true;
+	QStringList failures;
+
+	// step a: load scene from env
+	QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
+	if (scenePath.isEmpty()) {
+		ok = false;
+		failures << "no scene path";
+	} else {
+		bool opened = openSceneDirectory(scenePath);
+		if (!opened || !m_sceneLoaded) {
+			ok = false;
+			failures << "scene did not open";
+		}
+	}
+
+	// step b: validation assertions
+	if (m_sceneLoaded) {
+		if (hasErrors(m_sceneDiagnostics)) {
+			ok = false;
+			failures << "validation errors on open";
+		}
+		if (!m_compositionListWidget || m_compositionListWidget->count() <= 0) {
+			ok = false;
+			failures << "compositions pane empty";
+		}
+		if (!m_serviceListWidget || m_serviceListWidget->count() <= 0) {
+			ok = false;
+			failures << "services pane empty";
+		}
+	}
+
+	// step c: minimal scene operation
+	if (m_sceneLoaded && m_compositionListWidget) {
+		int before = m_compositionListWidget->count();
+		addComposition();
+		QApplication::processEvents();
+		if (!m_sceneDirty) {
+			ok = false;
+			failures << "edit did not mark dirty";
+		}
+		if (m_compositionListWidget->count() != before + 1) {
+			ok = false;
+			failures << "add composition did not apply";
+		}
+	}
+
+	// step d: save
+	if (m_sceneLoaded) {
+		QString outBase = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
+		QTemporaryDir tmpDir;
+		if (outBase.isEmpty())
+			outBase = tmpDir.path();
+		QString outScenePath = QDir(outBase).filePath("editor_smoke_scene");
+		auto result = ::saveScene(m_sceneModel, outScenePath.toStdString());
+		if (!result.success()) {
+			ok = false;
+			failures << "save failed";
+		}
+	}
+
+	if (ok) {
+		std::fprintf(stdout, "E2E_EDITOR_SMOKE_OK\n");
+		std::fflush(stdout);
+		QCoreApplication::exit(0);
+		return;
+	}
+	std::fprintf(stderr, "E2E_EDITOR_SMOKE_FAIL: %s\n", failures.join(", ").toStdString().c_str());
+	std::fflush(stderr);
+	QCoreApplication::exit(1);
+}
+
 void MainWindow::clearSimulationWorker(bool requestStop) {
 	if (m_worker && requestStop)
 		m_worker->requestStop();
@@ -3012,6 +3089,9 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(1500, this, &MainWindow::startSimulation);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
 		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE"))
+		// let the startup case load and the docks settle before the smoke runs
+		QTimer::singleShot(1000, this, &MainWindow::runEditorSmokeE2E);
 }
 
 // starts EGTRAIN simulation on a worker thread
