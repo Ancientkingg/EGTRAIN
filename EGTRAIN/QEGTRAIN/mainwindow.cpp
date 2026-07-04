@@ -565,6 +565,82 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_stopDepartureSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDepartureSeconds);
 	connect(m_stopDwellSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDwellSeconds);
 
+	// incident editor: dockable panel for the flat list of scene incidents. each
+	// incident has a type (signal_failure or train_breakdown) and a target whose
+	// valid choices depend on that type, analogous to a stop's platform choices
+	// depending on the selected station.
+	m_incidentDock = new QDockWidget("Incidents", this);
+	QWidget* incidentWidget = new QWidget(m_incidentDock);
+	QHBoxLayout* incidentLayout = new QHBoxLayout(incidentWidget);
+
+	// left: the list of incidents and the buttons that manage it
+	QWidget* incidentListPane = new QWidget(incidentWidget);
+	QVBoxLayout* incidentListLayout = new QVBoxLayout(incidentListPane);
+	incidentListLayout->addWidget(new QLabel("Incidents", incidentListPane));
+	m_incidentListWidget = new QListWidget(incidentListPane);
+	incidentListLayout->addWidget(m_incidentListWidget);
+	QHBoxLayout* incidentButtonLayout = new QHBoxLayout();
+	m_addIncidentButton = new QPushButton("Add Incident", incidentListPane);
+	m_duplicateIncidentButton = new QPushButton("Duplicate", incidentListPane);
+	m_deleteIncidentButton = new QPushButton("Delete", incidentListPane);
+	incidentButtonLayout->addWidget(m_addIncidentButton);
+	incidentButtonLayout->addWidget(m_duplicateIncidentButton);
+	incidentButtonLayout->addWidget(m_deleteIncidentButton);
+	incidentListLayout->addLayout(incidentButtonLayout);
+	incidentLayout->addWidget(incidentListPane);
+
+	// right: the selected incident's fields
+	QWidget* incidentDetailPane = new QWidget(incidentWidget);
+	QVBoxLayout* incidentDetailLayout = new QVBoxLayout(incidentDetailPane);
+	incidentDetailLayout->addWidget(new QLabel("Incident Id", incidentDetailPane));
+	m_incidentIdEdit = new QLineEdit(incidentDetailPane);
+	incidentDetailLayout->addWidget(m_incidentIdEdit);
+	incidentDetailLayout->addWidget(new QLabel("Type", incidentDetailPane));
+	m_incidentTypeCombo = new QComboBox(incidentDetailPane);
+	m_incidentTypeCombo->addItem("signal_failure");
+	m_incidentTypeCombo->addItem("train_breakdown");
+	incidentDetailLayout->addWidget(m_incidentTypeCombo);
+	incidentDetailLayout->addWidget(new QLabel("Target", incidentDetailPane));
+	m_incidentTargetCombo = new QComboBox(incidentDetailPane);
+	incidentDetailLayout->addWidget(m_incidentTargetCombo);
+	incidentDetailLayout->addWidget(new QLabel("Start (s)", incidentDetailPane));
+	m_incidentStartSecondsEdit = new QLineEdit(incidentDetailPane);
+	m_incidentStartSecondsEdit->setValidator(
+		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentStartSecondsEdit));
+	incidentDetailLayout->addWidget(m_incidentStartSecondsEdit);
+	incidentDetailLayout->addWidget(new QLabel("End (s)", incidentDetailPane));
+	m_incidentEndSecondsEdit = new QLineEdit(incidentDetailPane);
+	m_incidentEndSecondsEdit->setValidator(
+		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentEndSecondsEdit));
+	incidentDetailLayout->addWidget(m_incidentEndSecondsEdit);
+	incidentDetailLayout->addStretch();
+
+	// the detail pane may become taller than the dock, so let it scroll rather
+	// than overflowing and overlapping the tab bar
+	QScrollArea* incidentDetailScroll = new QScrollArea(incidentWidget);
+	incidentDetailScroll->setWidgetResizable(true);
+	incidentDetailScroll->setFrameShape(QFrame::NoFrame);
+	incidentDetailScroll->setWidget(incidentDetailPane);
+	incidentLayout->addWidget(incidentDetailScroll);
+
+	m_incidentDock->setWidget(incidentWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
+	tabifyDockWidget(m_serviceDock, m_incidentDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_incidentDock->toggleViewAction());
+
+	connect(m_incidentListWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		updateIncidentDetailPanel();
+	});
+	connect(m_incidentIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentIdEdit);
+	connect(m_incidentTypeCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentType);
+	connect(m_incidentTargetCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentTarget);
+	connect(m_incidentStartSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentStartSeconds);
+	connect(m_incidentEndSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentEndSeconds);
+	connect(m_addIncidentButton, &QPushButton::clicked, this, &MainWindow::addIncident);
+	connect(m_duplicateIncidentButton, &QPushButton::clicked, this, &MainWindow::duplicateIncident);
+	connect(m_deleteIncidentButton, &QPushButton::clicked, this, &MainWindow::deleteIncident);
+
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
 	m_validationStatusLabel = new QLabel(this);
@@ -600,6 +676,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	refreshCompositionPanel();
 	refreshServicePanel();
+	refreshIncidentPanel();
 }
 
 MainWindow::~MainWindow() {
@@ -653,6 +730,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshValidationPanel();
 	refreshCompositionPanel();
 	refreshServicePanel();
+	refreshIncidentPanel();
 	return true;
 }
 
@@ -682,6 +760,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	refreshValidationPanel();
 	refreshCompositionPanel();
 	refreshServicePanel();
+	refreshIncidentPanel();
 	return true;
 }
 
@@ -735,6 +814,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	refreshValidationPanel();
 	refreshCompositionPanel();
 	refreshServicePanel();
+	refreshIncidentPanel();
 	return true;
 }
 
@@ -1949,6 +2029,378 @@ void MainWindow::commitStopDwellSeconds() {
 		return;
 
 	stops[stopRow].dwellSeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::refreshIncidentPanel() {
+	bool hasScene = m_sceneLoaded;
+
+	if (m_incidentListWidget) {
+		int previousRow = m_incidentListWidget->currentRow();
+		const QSignalBlocker blocker(m_incidentListWidget);
+		m_incidentListWidget->clear();
+		if (hasScene) {
+			for (const auto& incident : m_sceneModel.incidents) {
+				QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
+				m_incidentListWidget->addItem(label);
+			}
+		}
+		int rowCount = m_incidentListWidget->count();
+		int rowToSelect = -1;
+		if (rowCount > 0) {
+			if (previousRow < 0)
+				rowToSelect = 0;
+			else if (previousRow >= rowCount)
+				rowToSelect = rowCount - 1; // keep selection near a deleted last row
+			else
+				rowToSelect = previousRow;
+		}
+		m_incidentListWidget->setCurrentRow(rowToSelect);
+		m_incidentListWidget->setEnabled(hasScene);
+	}
+
+	if (m_addIncidentButton)
+		m_addIncidentButton->setEnabled(hasScene);
+
+	updateIncidentDetailPanel();
+}
+
+void MainWindow::updateIncidentDetailPanel() {
+	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
+	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.incidents.size());
+
+	if (m_incidentIdEdit) {
+		const QSignalBlocker blocker(m_incidentIdEdit);
+		m_incidentIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.incidents[row].id) : QString());
+		m_incidentIdEdit->setEnabled(hasSelection);
+	}
+
+	if (m_incidentTypeCombo) {
+		const QSignalBlocker blocker(m_incidentTypeCombo);
+		if (hasSelection) {
+			QString currentType = QString::fromStdString(m_sceneModel.incidents[row].type);
+			int typeIndex = m_incidentTypeCombo->findText(currentType);
+			// unknown type: default to signal_failure
+			m_incidentTypeCombo->setCurrentIndex(typeIndex >= 0 ? typeIndex : 0);
+		} else {
+			m_incidentTypeCombo->setCurrentIndex(0);
+		}
+		m_incidentTypeCombo->setEnabled(hasSelection);
+	}
+
+	// the target choices depend on the type; refresh the target combo after the
+	// type combo is already showing the correct value
+	refreshIncidentTargetCombo();
+
+	if (m_incidentStartSecondsEdit) {
+		const QSignalBlocker blocker(m_incidentStartSecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(m_sceneModel.incidents[row].startSeconds) : 0;
+		m_incidentStartSecondsEdit->setText(QString::number(seconds));
+		m_incidentStartSecondsEdit->setEnabled(hasSelection);
+	}
+
+	if (m_incidentEndSecondsEdit) {
+		const QSignalBlocker blocker(m_incidentEndSecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(m_sceneModel.incidents[row].endSeconds) : 0;
+		m_incidentEndSecondsEdit->setText(QString::number(seconds));
+		m_incidentEndSecondsEdit->setEnabled(hasSelection);
+	}
+
+	if (m_duplicateIncidentButton)
+		m_duplicateIncidentButton->setEnabled(hasSelection);
+	if (m_deleteIncidentButton)
+		m_deleteIncidentButton->setEnabled(hasSelection);
+}
+
+void MainWindow::refreshIncidentTargetCombo() {
+	if (!m_incidentTargetCombo)
+		return;
+
+	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
+	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.incidents.size());
+
+	const QSignalBlocker blocker(m_incidentTargetCombo);
+	m_incidentTargetCombo->clear();
+	m_incidentTargetCombo->addItem(QString()); // blank choice: no target
+
+	if (hasSelection) {
+		const SceneIncident& incident = m_sceneModel.incidents[row];
+		// which pool of ids to offer depends on the current type
+		QString typeText = m_incidentTypeCombo ? m_incidentTypeCombo->currentText() : QString();
+		if (typeText == "signal_failure") {
+#ifdef signals
+#define EGTRAIN_INCIDENT_RESTORE_SIGNALS
+#undef signals
+#endif
+			const auto& signalList = m_sceneModel.signals;
+#ifdef EGTRAIN_INCIDENT_RESTORE_SIGNALS
+#define signals Q_SIGNALS
+#undef EGTRAIN_INCIDENT_RESTORE_SIGNALS
+#endif
+			for (int i = 0; i < static_cast<int>(signalList.size()); ++i)
+				m_incidentTargetCombo->addItem(QString::fromStdString(signalList[i].id));
+		} else {
+			// train_breakdown or any unrecognised type: offer service ids
+			for (const auto& service : m_sceneModel.services)
+				m_incidentTargetCombo->addItem(QString::fromStdString(service.id));
+		}
+		QString currentTarget = QString::fromStdString(incident.target);
+		if (!currentTarget.isEmpty() && m_incidentTargetCombo->findText(currentTarget) < 0)
+			m_incidentTargetCombo->addItem(currentTarget); // dangling reference, still shown/selectable
+		m_incidentTargetCombo->setCurrentText(currentTarget);
+	}
+	m_incidentTargetCombo->setEnabled(hasSelection);
+}
+
+std::string MainWindow::uniqueIncidentId(const std::string& baseId) const {
+	auto idExists = [this](const std::string& id) {
+		for (const auto& incident : m_sceneModel.incidents) {
+			if (incident.id == id)
+				return true;
+		}
+		return false;
+	};
+
+	std::string candidate = baseId;
+	int suffix = 2;
+	while (idExists(candidate)) {
+		candidate = baseId + "_" + std::to_string(suffix);
+		++suffix;
+	}
+	return candidate;
+}
+
+void MainWindow::addIncident() {
+	if (!m_sceneLoaded)
+		return;
+
+	SceneIncident incident;
+	incident.id = uniqueIncidentId("new_incident");
+	incident.type = "signal_failure";
+	m_sceneModel.incidents.push_back(incident);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+
+	if (m_incidentListWidget)
+		m_incidentListWidget->setCurrentRow(static_cast<int>(m_sceneModel.incidents.size()) - 1);
+}
+
+void MainWindow::duplicateIncident() {
+	if (!m_sceneLoaded || !m_incidentListWidget)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	SceneIncident duplicate = m_sceneModel.incidents[row];
+	duplicate.id = uniqueIncidentId(duplicate.id + "_copy");
+	m_sceneModel.incidents.insert(m_sceneModel.incidents.begin() + row + 1, duplicate);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+
+	if (m_incidentListWidget)
+		m_incidentListWidget->setCurrentRow(row + 1);
+}
+
+void MainWindow::deleteIncident() {
+	if (!m_sceneLoaded || !m_incidentListWidget)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	QString id = QString::fromStdString(m_sceneModel.incidents[row].id);
+	auto response = QMessageBox::question(this,
+										  "Delete Incident",
+										  QString("Delete incident '%1'?").arg(id),
+										  QMessageBox::Yes | QMessageBox::No,
+										  QMessageBox::No);
+	if (response != QMessageBox::Yes)
+		return;
+
+	m_sceneModel.incidents.erase(m_sceneModel.incidents.begin() + row);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+}
+
+void MainWindow::commitIncidentIdEdit() {
+	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentIdEdit)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	std::string newId = m_incidentIdEdit->text().trimmed().toStdString();
+	if (newId == m_sceneModel.incidents[row].id)
+		return;
+
+	m_sceneModel.incidents[row].id = newId;
+
+	// update the list row label in place instead of rebuilding the panel, so a
+	// focus-out that lands on another control keeps that pending click intact
+	if (QListWidgetItem* item = m_incidentListWidget->item(row)) {
+		const QSignalBlocker blocker(m_incidentListWidget);
+		QString label = QString::fromStdString(newId) + " (" + QString::fromStdString(m_sceneModel.incidents[row].type) + ")";
+		item->setText(label);
+	}
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitIncidentType(const QString& text) {
+	if (!m_sceneLoaded || !m_incidentListWidget)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	std::string newType = text.toStdString();
+	if (newType == m_sceneModel.incidents[row].type)
+		return;
+
+	m_sceneModel.incidents[row].type = newType;
+
+	// when the type changes the valid target pool also changes; drop a target
+	// that is no longer valid for the new type
+	bool targetValid = m_sceneModel.incidents[row].target.empty();
+	if (!targetValid) {
+		if (newType == "signal_failure") {
+#ifdef signals
+#define EGTRAIN_INCIDENT_RESTORE_SIGNALS
+#undef signals
+#endif
+			const auto& signalList = m_sceneModel.signals;
+#ifdef EGTRAIN_INCIDENT_RESTORE_SIGNALS
+#define signals Q_SIGNALS
+#undef EGTRAIN_INCIDENT_RESTORE_SIGNALS
+#endif
+			for (int i = 0; i < static_cast<int>(signalList.size()); ++i) {
+				if (signalList[i].id == m_sceneModel.incidents[row].target) {
+					targetValid = true;
+					break;
+				}
+			}
+		} else {
+			for (const auto& service : m_sceneModel.services) {
+				if (service.id == m_sceneModel.incidents[row].target) {
+					targetValid = true;
+					break;
+				}
+			}
+		}
+	}
+	if (!targetValid)
+		m_sceneModel.incidents[row].target.clear();
+
+	// update the list row label in place to reflect the new type
+	if (QListWidgetItem* item = m_incidentListWidget->item(row)) {
+		const QSignalBlocker blocker(m_incidentListWidget);
+		QString label = QString::fromStdString(m_sceneModel.incidents[row].id) + " (" + text + ")";
+		item->setText(label);
+	}
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+
+	// rebuild only the target combo; the type combo already shows the new value
+	// so rebuilding it from inside its own signal is unnecessary and harmful
+	refreshIncidentTargetCombo();
+}
+
+void MainWindow::commitIncidentTarget(const QString& text) {
+	if (!m_sceneLoaded || !m_incidentListWidget)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	std::string newTarget = text.toStdString();
+	if (newTarget == m_sceneModel.incidents[row].target)
+		return;
+
+	m_sceneModel.incidents[row].target = newTarget;
+
+	// the combo already shows the chosen value; no panel rebuild needed
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitIncidentStartSeconds() {
+	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentStartSecondsEdit)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_incidentStartSecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_incidentStartSecondsEdit);
+		m_incidentStartSecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == m_sceneModel.incidents[row].startSeconds)
+		return;
+
+	m_sceneModel.incidents[row].startSeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitIncidentEndSeconds() {
+	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentEndSecondsEdit)
+		return;
+	int row = m_incidentListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_incidentEndSecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_incidentEndSecondsEdit);
+		m_incidentEndSecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == m_sceneModel.incidents[row].endSeconds)
+		return;
+
+	m_sceneModel.incidents[row].endSeconds = newValue;
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
