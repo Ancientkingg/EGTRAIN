@@ -98,6 +98,13 @@ int countTrackLineDirs(const QString& inputDir) {
 	return entries.size();
 }
 
+QString stopRowLabel(const SceneStop& stop) {
+	QString label = QString::fromStdString(stop.stationId);
+	if (!stop.platformId.empty())
+		label += QString(" @ %1").arg(QString::fromStdString(stop.platformId));
+	return label;
+}
+
 bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPath) {
 	QDir sourceDir(sourcePath);
 	if (!sourceDir.exists())
@@ -413,10 +420,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_moveUnitUpButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitUp);
 	connect(m_moveUnitDownButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitDown);
 
-	// service editor: dockable panel for service-level fields only. per-stop
-	// timetable editing (arrival/departure/dwell/platform) is a separate pane,
-	// tracked as a follow-up issue, so this pane only shows a read-only stop
-	// count for context. tabbed alongside Compositions, same list + details shape.
+	// service editor: dockable panel for service-level fields plus the selected
+	// service's timetable (stops). tabbed alongside Compositions, same list +
+	// details shape; the stop list is a second, nested list + details editor
+	// inside the service detail pane, since a stop only makes sense in the
+	// context of the currently selected service.
 	m_serviceDock = new QDockWidget("Services", this);
 	QWidget* serviceWidget = new QWidget(m_serviceDock);
 	QHBoxLayout* serviceLayout = new QHBoxLayout(serviceWidget);
@@ -468,10 +476,59 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	repeatLayout->addWidget(m_serviceHeadwaySecondsEdit);
 	serviceDetailLayout->addLayout(repeatLayout);
 
-	m_serviceStopsCountLabel = new QLabel(serviceDetailPane);
-	serviceDetailLayout->addWidget(m_serviceStopsCountLabel);
+	serviceDetailLayout->addWidget(new QLabel("Timetable (stops)", serviceDetailPane));
+	m_stopListWidget = new QListWidget(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_stopListWidget);
+	QHBoxLayout* stopButtonLayout = new QHBoxLayout();
+	m_addStopButton = new QPushButton("Add Stop", serviceDetailPane);
+	m_removeStopButton = new QPushButton("Remove Stop", serviceDetailPane);
+	m_moveStopUpButton = new QPushButton("Move Up", serviceDetailPane);
+	m_moveStopDownButton = new QPushButton("Move Down", serviceDetailPane);
+	stopButtonLayout->addWidget(m_addStopButton);
+	stopButtonLayout->addWidget(m_removeStopButton);
+	stopButtonLayout->addWidget(m_moveStopUpButton);
+	stopButtonLayout->addWidget(m_moveStopDownButton);
+	serviceDetailLayout->addLayout(stopButtonLayout);
+
+	serviceDetailLayout->addWidget(new QLabel("Stop Station", serviceDetailPane));
+	m_stopStationCombo = new QComboBox(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_stopStationCombo);
+	serviceDetailLayout->addWidget(new QLabel("Stop Platform", serviceDetailPane));
+	m_stopPlatformCombo = new QComboBox(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_stopPlatformCombo);
+
+	QHBoxLayout* stopArrivalLayout = new QHBoxLayout();
+	m_stopHasArrivalCheck = new QCheckBox("Arrival (s)", serviceDetailPane);
+	m_stopArrivalSecondsEdit = new QLineEdit(serviceDetailPane);
+	m_stopArrivalSecondsEdit->setValidator(
+		new QIntValidator(0, std::numeric_limits<int>::max(), m_stopArrivalSecondsEdit));
+	stopArrivalLayout->addWidget(m_stopHasArrivalCheck);
+	stopArrivalLayout->addWidget(m_stopArrivalSecondsEdit);
+	serviceDetailLayout->addLayout(stopArrivalLayout);
+
+	QHBoxLayout* stopDepartureLayout = new QHBoxLayout();
+	m_stopHasDepartureCheck = new QCheckBox("Departure (s)", serviceDetailPane);
+	m_stopDepartureSecondsEdit = new QLineEdit(serviceDetailPane);
+	m_stopDepartureSecondsEdit->setValidator(
+		new QIntValidator(0, std::numeric_limits<int>::max(), m_stopDepartureSecondsEdit));
+	stopDepartureLayout->addWidget(m_stopHasDepartureCheck);
+	stopDepartureLayout->addWidget(m_stopDepartureSecondsEdit);
+	serviceDetailLayout->addLayout(stopDepartureLayout);
+
+	serviceDetailLayout->addWidget(new QLabel("Dwell (s)", serviceDetailPane));
+	m_stopDwellSecondsEdit = new QLineEdit(serviceDetailPane);
+	m_stopDwellSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_stopDwellSecondsEdit));
+	serviceDetailLayout->addWidget(m_stopDwellSecondsEdit);
+
 	serviceDetailLayout->addStretch();
-	serviceLayout->addWidget(serviceDetailPane);
+
+	// the service detail pane plus the timetable editor is tall, so let it scroll
+	// instead of overflowing the dock and overlapping the tab bar
+	QScrollArea* serviceDetailScroll = new QScrollArea(serviceWidget);
+	serviceDetailScroll->setWidgetResizable(true);
+	serviceDetailScroll->setFrameShape(QFrame::NoFrame);
+	serviceDetailScroll->setWidget(serviceDetailPane);
+	serviceLayout->addWidget(serviceDetailScroll);
 
 	m_serviceDock->setWidget(serviceWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
@@ -492,6 +549,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_addServiceButton, &QPushButton::clicked, this, &MainWindow::addService);
 	connect(m_duplicateServiceButton, &QPushButton::clicked, this, &MainWindow::duplicateService);
 	connect(m_deleteServiceButton, &QPushButton::clicked, this, &MainWindow::deleteService);
+
+	connect(m_stopListWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		updateStopDetailPanel();
+	});
+	connect(m_addStopButton, &QPushButton::clicked, this, &MainWindow::addStop);
+	connect(m_removeStopButton, &QPushButton::clicked, this, &MainWindow::removeStop);
+	connect(m_moveStopUpButton, &QPushButton::clicked, this, &MainWindow::moveStopUp);
+	connect(m_moveStopDownButton, &QPushButton::clicked, this, &MainWindow::moveStopDown);
+	connect(m_stopStationCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitStopStation);
+	connect(m_stopPlatformCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitStopPlatform);
+	connect(m_stopHasArrivalCheck, &QCheckBox::toggled, this, &MainWindow::commitStopHasArrival);
+	connect(m_stopArrivalSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopArrivalSeconds);
+	connect(m_stopHasDepartureCheck, &QCheckBox::toggled, this, &MainWindow::commitStopHasDeparture);
+	connect(m_stopDepartureSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDepartureSeconds);
+	connect(m_stopDwellSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDwellSeconds);
 
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
@@ -1168,10 +1240,9 @@ void MainWindow::updateServiceDetailPanel() {
 		m_serviceHeadwaySecondsEdit->setEnabled(hasRepeat);
 	}
 
-	if (m_serviceStopsCountLabel) {
-		int stopCount = hasSelection ? static_cast<int>(m_sceneModel.services[row].stops.size()) : 0;
-		m_serviceStopsCountLabel->setText(QString("Stops: %1").arg(stopCount));
-	}
+	// the stop list is part of the service detail, so it refreshes whenever the
+	// selected service changes
+	refreshStopList();
 
 	if (m_duplicateServiceButton)
 		m_duplicateServiceButton->setEnabled(hasSelection);
@@ -1420,6 +1491,464 @@ void MainWindow::commitServiceHeadwaySeconds() {
 		return;
 
 	m_sceneModel.services[row].headwaySeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::refreshStopList() {
+	int serviceRow = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
+	bool hasService = m_sceneLoaded && serviceRow >= 0 && serviceRow < static_cast<int>(m_sceneModel.services.size());
+
+	if (m_stopListWidget) {
+		const QSignalBlocker blocker(m_stopListWidget);
+		m_stopListWidget->clear();
+		if (hasService) {
+			for (const auto& stop : m_sceneModel.services[serviceRow].stops)
+				m_stopListWidget->addItem(stopRowLabel(stop));
+		}
+		// stops belong to the selected service, so a rebuild starts at the first
+		// stop; callers that mutate the same service set their own row afterward
+		int rowCount = m_stopListWidget->count();
+		m_stopListWidget->setCurrentRow(rowCount > 0 ? 0 : -1);
+		m_stopListWidget->setEnabled(hasService);
+	}
+
+	if (m_addStopButton)
+		m_addStopButton->setEnabled(hasService);
+
+	updateStopDetailPanel();
+}
+
+void MainWindow::updateStopDetailPanel() {
+	int serviceRow = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
+	bool hasService = m_sceneLoaded && serviceRow >= 0 && serviceRow < static_cast<int>(m_sceneModel.services.size());
+	int stopRow = m_stopListWidget ? m_stopListWidget->currentRow() : -1;
+	bool hasSelection = hasService && stopRow >= 0 &&
+						stopRow < static_cast<int>(m_sceneModel.services[serviceRow].stops.size());
+
+	static const SceneStop emptyStop;
+	const SceneStop& stop = hasSelection ? m_sceneModel.services[serviceRow].stops[stopRow] : emptyStop;
+
+	if (m_stopStationCombo) {
+		const QSignalBlocker blocker(m_stopStationCombo);
+		m_stopStationCombo->clear();
+		for (const auto& station : m_sceneModel.stations)
+			m_stopStationCombo->addItem(QString::fromStdString(station.id));
+		if (hasSelection) {
+			QString currentStation = QString::fromStdString(stop.stationId);
+			if (m_stopStationCombo->findText(currentStation) < 0)
+				m_stopStationCombo->addItem(currentStation); // dangling reference, still shown/selectable
+			m_stopStationCombo->setCurrentText(currentStation);
+		}
+		m_stopStationCombo->setEnabled(hasSelection);
+	}
+
+	// the platform choices are scoped to the stop's own station; this also lets
+	// a station change refresh only the platform combo without rebuilding the
+	// station combo from inside its own signal
+	refreshStopPlatformCombo();
+
+	bool hasArrival = hasSelection && stop.hasArrival;
+	if (m_stopHasArrivalCheck) {
+		const QSignalBlocker blocker(m_stopHasArrivalCheck);
+		m_stopHasArrivalCheck->setChecked(hasArrival);
+		m_stopHasArrivalCheck->setEnabled(hasSelection);
+	}
+	if (m_stopArrivalSecondsEdit) {
+		const QSignalBlocker blocker(m_stopArrivalSecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(stop.arrivalSeconds) : 0;
+		m_stopArrivalSecondsEdit->setText(QString::number(seconds));
+		m_stopArrivalSecondsEdit->setEnabled(hasArrival);
+	}
+
+	bool hasDeparture = hasSelection && stop.hasDeparture;
+	if (m_stopHasDepartureCheck) {
+		const QSignalBlocker blocker(m_stopHasDepartureCheck);
+		m_stopHasDepartureCheck->setChecked(hasDeparture);
+		m_stopHasDepartureCheck->setEnabled(hasSelection);
+	}
+	if (m_stopDepartureSecondsEdit) {
+		const QSignalBlocker blocker(m_stopDepartureSecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(stop.departureSeconds) : 0;
+		m_stopDepartureSecondsEdit->setText(QString::number(seconds));
+		m_stopDepartureSecondsEdit->setEnabled(hasDeparture);
+	}
+
+	if (m_stopDwellSecondsEdit) {
+		const QSignalBlocker blocker(m_stopDwellSecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(stop.dwellSeconds) : 0;
+		m_stopDwellSecondsEdit->setText(QString::number(seconds));
+		m_stopDwellSecondsEdit->setEnabled(hasSelection);
+	}
+
+	int stopCount = m_stopListWidget ? m_stopListWidget->count() : 0;
+	if (m_removeStopButton)
+		m_removeStopButton->setEnabled(hasSelection);
+	if (m_moveStopUpButton)
+		m_moveStopUpButton->setEnabled(hasSelection && stopRow > 0);
+	if (m_moveStopDownButton)
+		m_moveStopDownButton->setEnabled(hasSelection && stopRow < stopCount - 1);
+}
+
+void MainWindow::refreshStopPlatformCombo() {
+	if (!m_stopPlatformCombo)
+		return;
+
+	int serviceRow = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
+	bool hasService = m_sceneLoaded && serviceRow >= 0 && serviceRow < static_cast<int>(m_sceneModel.services.size());
+	int stopRow = m_stopListWidget ? m_stopListWidget->currentRow() : -1;
+	bool hasSelection = hasService && stopRow >= 0 &&
+						stopRow < static_cast<int>(m_sceneModel.services[serviceRow].stops.size());
+
+	const QSignalBlocker blocker(m_stopPlatformCombo);
+	m_stopPlatformCombo->clear();
+	m_stopPlatformCombo->addItem(QString()); // blank choice: no platform
+	if (hasSelection) {
+		const SceneStop& stop = m_sceneModel.services[serviceRow].stops[stopRow];
+		// look the station up by id rather than trusting the station combo text
+		const SceneStation* selectedStation = nullptr;
+		for (const auto& station : m_sceneModel.stations) {
+			if (station.id == stop.stationId) {
+				selectedStation = &station;
+				break;
+			}
+		}
+		if (selectedStation) {
+			for (const auto& platform : selectedStation->platforms)
+				m_stopPlatformCombo->addItem(QString::fromStdString(platform.id));
+		}
+		QString currentPlatform = QString::fromStdString(stop.platformId);
+		if (!currentPlatform.isEmpty() && m_stopPlatformCombo->findText(currentPlatform) < 0)
+			m_stopPlatformCombo->addItem(currentPlatform); // dangling reference, still shown/selectable
+		m_stopPlatformCombo->setCurrentText(currentPlatform);
+	}
+	m_stopPlatformCombo->setEnabled(hasSelection);
+}
+
+void MainWindow::addStop() {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	SceneStop stop;
+	if (!m_sceneModel.stations.empty())
+		stop.stationId = m_sceneModel.stations.front().id;
+	m_sceneModel.services[serviceRow].stops.push_back(stop);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshStopList();
+
+	if (m_stopListWidget)
+		m_stopListWidget->setCurrentRow(static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) - 1);
+}
+
+void MainWindow::removeStop() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	stops.erase(stops.begin() + stopRow);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshStopList();
+
+	if (m_stopListWidget) {
+		int remaining = m_stopListWidget->count();
+		if (remaining > 0)
+			m_stopListWidget->setCurrentRow(stopRow < remaining ? stopRow : remaining - 1);
+	}
+}
+
+void MainWindow::moveStopUp() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow <= 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	SceneStop moved = stops[stopRow];
+	stops[stopRow] = stops[stopRow - 1];
+	stops[stopRow - 1] = moved;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshStopList();
+
+	if (m_stopListWidget)
+		m_stopListWidget->setCurrentRow(stopRow - 1);
+}
+
+void MainWindow::moveStopDown() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow + 1 >= static_cast<int>(stops.size()))
+		return;
+
+	SceneStop moved = stops[stopRow];
+	stops[stopRow] = stops[stopRow + 1];
+	stops[stopRow + 1] = moved;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshStopList();
+
+	if (m_stopListWidget)
+		m_stopListWidget->setCurrentRow(stopRow + 1);
+}
+
+void MainWindow::commitStopStation(const QString& text) {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	std::string newStation = text.toStdString();
+	if (newStation == stops[stopRow].stationId)
+		return;
+
+	stops[stopRow].stationId = newStation;
+
+	// the platform choices are scoped to the station, so drop a platform that
+	// is no longer valid for the newly selected station
+	bool platformValid = stops[stopRow].platformId.empty();
+	for (const auto& station : m_sceneModel.stations) {
+		if (station.id != newStation)
+			continue;
+		for (const auto& platform : station.platforms) {
+			if (platform.id == stops[stopRow].platformId) {
+				platformValid = true;
+				break;
+			}
+		}
+		break;
+	}
+	if (!platformValid)
+		stops[stopRow].platformId.clear();
+
+	// update the list row label in place instead of rebuilding the whole list
+	if (QListWidgetItem* item = m_stopListWidget->item(stopRow)) {
+		const QSignalBlocker blocker(m_stopListWidget);
+		item->setText(stopRowLabel(stops[stopRow]));
+	}
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+
+	// the station changed, so rebuild only its platform combo; rebuilding the
+	// station combo here would mean clearing it from inside its own signal
+	refreshStopPlatformCombo();
+}
+
+void MainWindow::commitStopPlatform(const QString& text) {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	std::string newPlatform = text.toStdString();
+	if (newPlatform == stops[stopRow].platformId)
+		return;
+
+	stops[stopRow].platformId = newPlatform;
+
+	// update the list row label in place instead of rebuilding the whole list
+	if (QListWidgetItem* item = m_stopListWidget->item(stopRow)) {
+		const QSignalBlocker blocker(m_stopListWidget);
+		item->setText(stopRowLabel(stops[stopRow]));
+	}
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitStopHasArrival(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+	if (checked == stops[stopRow].hasArrival)
+		return;
+
+	stops[stopRow].hasArrival = checked;
+	if (m_stopArrivalSecondsEdit)
+		m_stopArrivalSecondsEdit->setEnabled(checked);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitStopHasDeparture(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+	if (checked == stops[stopRow].hasDeparture)
+		return;
+
+	stops[stopRow].hasDeparture = checked;
+	if (m_stopDepartureSecondsEdit)
+		m_stopDepartureSecondsEdit->setEnabled(checked);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitStopArrivalSeconds() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget || !m_stopArrivalSecondsEdit)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_stopArrivalSecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_stopArrivalSecondsEdit);
+		m_stopArrivalSecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == stops[stopRow].arrivalSeconds)
+		return;
+
+	stops[stopRow].arrivalSeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitStopDepartureSeconds() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget || !m_stopDepartureSecondsEdit)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_stopDepartureSecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_stopDepartureSecondsEdit);
+		m_stopDepartureSecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == stops[stopRow].departureSeconds)
+		return;
+
+	stops[stopRow].departureSeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitStopDwellSeconds() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget || !m_stopDwellSecondsEdit)
+		return;
+	int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	std::vector<SceneStop>& stops = m_sceneModel.services[serviceRow].stops;
+	int stopRow = m_stopListWidget->currentRow();
+	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_stopDwellSecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_stopDwellSecondsEdit);
+		m_stopDwellSecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == stops[stopRow].dwellSeconds)
+		return;
+
+	stops[stopRow].dwellSeconds = newValue;
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
