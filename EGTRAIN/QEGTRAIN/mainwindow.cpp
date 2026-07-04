@@ -348,6 +348,71 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	if (ui->menuView)
 		ui->menuView->addAction(m_validationDock->toggleViewAction());
 
+	// composition editor: dockable panel to view and edit train compositions.
+	// this is the first editable scene panel, so it sets the pattern later
+	// panes follow: a read-only list picks the record, a details area with
+	// explicit fields/buttons edits it, no inline table editing.
+	m_compositionDock = new QDockWidget("Compositions", this);
+	QWidget* compositionWidget = new QWidget(m_compositionDock);
+	QHBoxLayout* compositionLayout = new QHBoxLayout(compositionWidget);
+
+	// left: the list of compositions and the buttons that manage it
+	QWidget* compositionListPane = new QWidget(compositionWidget);
+	QVBoxLayout* compositionListLayout = new QVBoxLayout(compositionListPane);
+	compositionListLayout->addWidget(new QLabel("Compositions", compositionListPane));
+	m_compositionListWidget = new QListWidget(compositionListPane);
+	compositionListLayout->addWidget(m_compositionListWidget);
+	QHBoxLayout* compositionButtonLayout = new QHBoxLayout();
+	m_addCompositionButton = new QPushButton("Add Composition", compositionListPane);
+	m_duplicateCompositionButton = new QPushButton("Duplicate", compositionListPane);
+	m_deleteCompositionButton = new QPushButton("Delete", compositionListPane);
+	compositionButtonLayout->addWidget(m_addCompositionButton);
+	compositionButtonLayout->addWidget(m_duplicateCompositionButton);
+	compositionButtonLayout->addWidget(m_deleteCompositionButton);
+	compositionListLayout->addLayout(compositionButtonLayout);
+	compositionLayout->addWidget(compositionListPane);
+
+	// right: the selected composition's id and its ordered unit membership
+	QWidget* compositionDetailPane = new QWidget(compositionWidget);
+	QVBoxLayout* compositionDetailLayout = new QVBoxLayout(compositionDetailPane);
+	compositionDetailLayout->addWidget(new QLabel("Composition Id", compositionDetailPane));
+	m_compositionIdEdit = new QLineEdit(compositionDetailPane);
+	compositionDetailLayout->addWidget(m_compositionIdEdit);
+	compositionDetailLayout->addWidget(new QLabel("Units (in order)", compositionDetailPane));
+	m_compositionUnitsListWidget = new QListWidget(compositionDetailPane);
+	compositionDetailLayout->addWidget(m_compositionUnitsListWidget);
+	QHBoxLayout* unitButtonLayout = new QHBoxLayout();
+	m_addUnitButton = new QPushButton("Add Unit", compositionDetailPane);
+	m_removeUnitButton = new QPushButton("Remove Unit", compositionDetailPane);
+	m_moveUnitUpButton = new QPushButton("Move Up", compositionDetailPane);
+	m_moveUnitDownButton = new QPushButton("Move Down", compositionDetailPane);
+	unitButtonLayout->addWidget(m_addUnitButton);
+	unitButtonLayout->addWidget(m_removeUnitButton);
+	unitButtonLayout->addWidget(m_moveUnitUpButton);
+	unitButtonLayout->addWidget(m_moveUnitDownButton);
+	compositionDetailLayout->addLayout(unitButtonLayout);
+	compositionLayout->addWidget(compositionDetailPane);
+
+	m_compositionDock->setWidget(compositionWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_compositionDock->toggleViewAction());
+
+	connect(m_compositionListWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		updateCompositionDetailPanel();
+	});
+	connect(m_compositionUnitsListWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		updateCompositionUnitButtons();
+	});
+	connect(m_compositionIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCompositionIdEdit);
+	connect(m_addCompositionButton, &QPushButton::clicked, this, &MainWindow::addComposition);
+	connect(m_duplicateCompositionButton, &QPushButton::clicked, this, &MainWindow::duplicateComposition);
+	connect(m_deleteCompositionButton, &QPushButton::clicked, this, &MainWindow::deleteComposition);
+	connect(m_addUnitButton, &QPushButton::clicked, this, &MainWindow::addUnitToComposition);
+	connect(m_removeUnitButton, &QPushButton::clicked, this, &MainWindow::removeUnitFromComposition);
+	connect(m_moveUnitUpButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitUp);
+	connect(m_moveUnitDownButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitDown);
+
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
 	m_validationStatusLabel = new QLabel(this);
@@ -380,6 +445,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 								 .arg(QString::fromStdString(initial_variables.name))
 								 .arg(initial_variables.numTrackLines)
 								 .arg(initial_variables.N_Routes));
+
+	refreshCompositionPanel();
 }
 
 MainWindow::~MainWindow() {
@@ -431,6 +498,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 								 .arg(static_cast<int>(m_sceneModel.services.size()))
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
 	refreshValidationPanel();
+	refreshCompositionPanel();
 	return true;
 }
 
@@ -458,6 +526,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	updateSceneActions();
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
+	refreshCompositionPanel();
 	return true;
 }
 
@@ -509,6 +578,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	addRecentScene(targetPath);
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
+	refreshCompositionPanel();
 	return true;
 }
 
@@ -624,6 +694,299 @@ void MainWindow::refreshValidationPanel() {
 		message += QString(", %1 info").arg(counts.infos);
 	if (m_validationStatusLabel)
 		m_validationStatusLabel->setText(message);
+}
+
+void MainWindow::refreshCompositionPanel() {
+	bool hasScene = m_sceneLoaded;
+
+	if (m_compositionListWidget) {
+		int previousRow = m_compositionListWidget->currentRow();
+		const QSignalBlocker blocker(m_compositionListWidget);
+		m_compositionListWidget->clear();
+		if (hasScene) {
+			for (const auto& composition : m_sceneModel.compositions)
+				m_compositionListWidget->addItem(QString::fromStdString(composition.id));
+		}
+		int rowCount = m_compositionListWidget->count();
+		int rowToSelect = -1;
+		if (rowCount > 0) {
+			if (previousRow < 0)
+				rowToSelect = 0;
+			else if (previousRow >= rowCount)
+				rowToSelect = rowCount - 1; // keep selection near a deleted last row
+			else
+				rowToSelect = previousRow;
+		}
+		m_compositionListWidget->setCurrentRow(rowToSelect);
+		m_compositionListWidget->setEnabled(hasScene);
+	}
+
+	if (m_addCompositionButton)
+		m_addCompositionButton->setEnabled(hasScene);
+
+	updateCompositionDetailPanel();
+}
+
+void MainWindow::updateCompositionDetailPanel() {
+	int row = m_compositionListWidget ? m_compositionListWidget->currentRow() : -1;
+	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.compositions.size());
+
+	if (m_compositionIdEdit) {
+		const QSignalBlocker blocker(m_compositionIdEdit);
+		m_compositionIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.compositions[row].id) : QString());
+		m_compositionIdEdit->setEnabled(hasSelection);
+	}
+
+	if (m_compositionUnitsListWidget) {
+		const QSignalBlocker blocker(m_compositionUnitsListWidget);
+		m_compositionUnitsListWidget->clear();
+		if (hasSelection) {
+			for (const auto& unitId : m_sceneModel.compositions[row].units)
+				m_compositionUnitsListWidget->addItem(QString::fromStdString(unitId));
+		}
+		m_compositionUnitsListWidget->setEnabled(hasSelection);
+	}
+
+	if (m_duplicateCompositionButton)
+		m_duplicateCompositionButton->setEnabled(hasSelection);
+	if (m_deleteCompositionButton)
+		m_deleteCompositionButton->setEnabled(hasSelection);
+	if (m_addUnitButton)
+		m_addUnitButton->setEnabled(hasSelection && !m_sceneModel.trainUnits.empty());
+
+	updateCompositionUnitButtons();
+}
+
+void MainWindow::updateCompositionUnitButtons() {
+	int unitRow = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->currentRow() : -1;
+	int unitCount = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->count() : 0;
+	bool hasUnitSelection = unitRow >= 0;
+
+	if (m_removeUnitButton)
+		m_removeUnitButton->setEnabled(hasUnitSelection);
+	if (m_moveUnitUpButton)
+		m_moveUnitUpButton->setEnabled(hasUnitSelection && unitRow > 0);
+	if (m_moveUnitDownButton)
+		m_moveUnitDownButton->setEnabled(hasUnitSelection && unitRow < unitCount - 1);
+}
+
+std::string MainWindow::uniqueCompositionId(const std::string& baseId) const {
+	auto idExists = [this](const std::string& id) {
+		for (const auto& composition : m_sceneModel.compositions) {
+			if (composition.id == id)
+				return true;
+		}
+		return false;
+	};
+
+	std::string candidate = baseId;
+	int suffix = 2;
+	while (idExists(candidate)) {
+		candidate = baseId + "_" + std::to_string(suffix);
+		++suffix;
+	}
+	return candidate;
+}
+
+void MainWindow::addComposition() {
+	if (!m_sceneLoaded)
+		return;
+
+	SceneComposition composition;
+	composition.id = uniqueCompositionId("new_composition");
+	m_sceneModel.compositions.push_back(composition);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+
+	if (m_compositionListWidget)
+		m_compositionListWidget->setCurrentRow(static_cast<int>(m_sceneModel.compositions.size()) - 1);
+}
+
+void MainWindow::duplicateComposition() {
+	if (!m_sceneLoaded || !m_compositionListWidget)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+
+	SceneComposition duplicate = m_sceneModel.compositions[row];
+	duplicate.id = uniqueCompositionId(duplicate.id + "_copy");
+	m_sceneModel.compositions.insert(m_sceneModel.compositions.begin() + row + 1, duplicate);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+
+	if (m_compositionListWidget)
+		m_compositionListWidget->setCurrentRow(row + 1);
+}
+
+void MainWindow::deleteComposition() {
+	if (!m_sceneLoaded || !m_compositionListWidget)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+
+	QString id = QString::fromStdString(m_sceneModel.compositions[row].id);
+	auto response = QMessageBox::question(this,
+										  "Delete Composition",
+										  QString("Delete composition '%1'?").arg(id),
+										  QMessageBox::Yes | QMessageBox::No,
+										  QMessageBox::No);
+	if (response != QMessageBox::Yes)
+		return;
+
+	m_sceneModel.compositions.erase(m_sceneModel.compositions.begin() + row);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+}
+
+void MainWindow::commitCompositionIdEdit() {
+	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionIdEdit)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+
+	std::string newId = m_compositionIdEdit->text().trimmed().toStdString();
+	if (newId == m_sceneModel.compositions[row].id)
+		return;
+
+	m_sceneModel.compositions[row].id = newId;
+
+	// update the list row label in place instead of rebuilding the panel, so a
+	// focus-out that lands on another control keeps that pending click intact
+	if (QListWidgetItem* item = m_compositionListWidget->item(row)) {
+		const QSignalBlocker blocker(m_compositionListWidget);
+		item->setText(QString::fromStdString(newId));
+	}
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::addUnitToComposition() {
+	if (!m_sceneLoaded || !m_compositionListWidget)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+	if (m_sceneModel.trainUnits.empty()) {
+		QMessageBox::information(this, "Add Unit", "This scene has no train units defined.");
+		return;
+	}
+
+	QStringList unitIds;
+	for (const auto& unit : m_sceneModel.trainUnits)
+		unitIds << QString::fromStdString(unit.id);
+
+	bool ok = false;
+	QString chosen = QInputDialog::getItem(this, "Add Unit", "Train unit:", unitIds, 0, false, &ok);
+	if (!ok || chosen.isEmpty())
+		return;
+
+	m_sceneModel.compositions[row].units.push_back(chosen.toStdString());
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+
+	if (m_compositionUnitsListWidget)
+		m_compositionUnitsListWidget->setCurrentRow(m_compositionUnitsListWidget->count() - 1);
+}
+
+void MainWindow::removeUnitFromComposition() {
+	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionUnitsListWidget)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+
+	std::vector<std::string>& units = m_sceneModel.compositions[row].units;
+	int unitRow = m_compositionUnitsListWidget->currentRow();
+	if (unitRow < 0 || unitRow >= static_cast<int>(units.size()))
+		return;
+
+	units.erase(units.begin() + unitRow);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+
+	if (m_compositionUnitsListWidget) {
+		int remaining = m_compositionUnitsListWidget->count();
+		if (remaining > 0)
+			m_compositionUnitsListWidget->setCurrentRow(unitRow < remaining ? unitRow : remaining - 1);
+	}
+}
+
+void MainWindow::moveCompositionUnitUp() {
+	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionUnitsListWidget)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+
+	std::vector<std::string>& units = m_sceneModel.compositions[row].units;
+	int unitRow = m_compositionUnitsListWidget->currentRow();
+	if (unitRow <= 0 || unitRow >= static_cast<int>(units.size()))
+		return;
+
+	std::string moved = units[unitRow];
+	units[unitRow] = units[unitRow - 1];
+	units[unitRow - 1] = moved;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+
+	if (m_compositionUnitsListWidget)
+		m_compositionUnitsListWidget->setCurrentRow(unitRow - 1);
+}
+
+void MainWindow::moveCompositionUnitDown() {
+	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionUnitsListWidget)
+		return;
+	int row = m_compositionListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
+		return;
+
+	std::vector<std::string>& units = m_sceneModel.compositions[row].units;
+	int unitRow = m_compositionUnitsListWidget->currentRow();
+	if (unitRow < 0 || unitRow + 1 >= static_cast<int>(units.size()))
+		return;
+
+	std::string moved = units[unitRow];
+	units[unitRow] = units[unitRow + 1];
+	units[unitRow + 1] = moved;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+
+	if (m_compositionUnitsListWidget)
+		m_compositionUnitsListWidget->setCurrentRow(unitRow + 1);
 }
 
 void MainWindow::addRecentScene(const QString& path) {
