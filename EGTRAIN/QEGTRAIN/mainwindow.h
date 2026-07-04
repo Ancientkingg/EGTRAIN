@@ -353,6 +353,7 @@ private:
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
+	bool m_editorE2eFinished = false;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, QGraphicsSimpleTextItem*> m_trainSpeedLabels; // per-train speed overlay
 	QMap<int, QVariantAnimation*> m_trainAnimations;
@@ -508,6 +509,7 @@ private:
 	std::string uniqueIncidentId(const std::string& baseId) const;
 
 	void runVisualPolishE2E();
+	void runEditorSmokeE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
