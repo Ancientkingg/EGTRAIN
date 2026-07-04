@@ -413,6 +413,86 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_moveUnitUpButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitUp);
 	connect(m_moveUnitDownButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitDown);
 
+	// service editor: dockable panel for service-level fields only. per-stop
+	// timetable editing (arrival/departure/dwell/platform) is a separate pane,
+	// tracked as a follow-up issue, so this pane only shows a read-only stop
+	// count for context. tabbed alongside Compositions, same list + details shape.
+	m_serviceDock = new QDockWidget("Services", this);
+	QWidget* serviceWidget = new QWidget(m_serviceDock);
+	QHBoxLayout* serviceLayout = new QHBoxLayout(serviceWidget);
+
+	// left: the list of services and the buttons that manage it
+	QWidget* serviceListPane = new QWidget(serviceWidget);
+	QVBoxLayout* serviceListLayout = new QVBoxLayout(serviceListPane);
+	serviceListLayout->addWidget(new QLabel("Services", serviceListPane));
+	m_serviceListWidget = new QListWidget(serviceListPane);
+	serviceListLayout->addWidget(m_serviceListWidget);
+	QHBoxLayout* serviceButtonLayout = new QHBoxLayout();
+	m_addServiceButton = new QPushButton("Add Service", serviceListPane);
+	m_duplicateServiceButton = new QPushButton("Duplicate", serviceListPane);
+	m_deleteServiceButton = new QPushButton("Delete", serviceListPane);
+	serviceButtonLayout->addWidget(m_addServiceButton);
+	serviceButtonLayout->addWidget(m_duplicateServiceButton);
+	serviceButtonLayout->addWidget(m_deleteServiceButton);
+	serviceListLayout->addLayout(serviceButtonLayout);
+	serviceLayout->addWidget(serviceListPane);
+
+	// right: the selected service's service-level fields
+	QWidget* serviceDetailPane = new QWidget(serviceWidget);
+	QVBoxLayout* serviceDetailLayout = new QVBoxLayout(serviceDetailPane);
+	serviceDetailLayout->addWidget(new QLabel("Service Id", serviceDetailPane));
+	m_serviceIdEdit = new QLineEdit(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_serviceIdEdit);
+	serviceDetailLayout->addWidget(new QLabel("Composition", serviceDetailPane));
+	m_serviceCompositionCombo = new QComboBox(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_serviceCompositionCombo);
+	serviceDetailLayout->addWidget(new QLabel("Route", serviceDetailPane));
+	m_serviceRouteCombo = new QComboBox(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_serviceRouteCombo);
+
+	QHBoxLayout* entryTimeLayout = new QHBoxLayout();
+	m_serviceHasEntryTimeCheck = new QCheckBox("Entry Time (s)", serviceDetailPane);
+	m_serviceEntryTimeSecondsEdit = new QLineEdit(serviceDetailPane);
+	m_serviceEntryTimeSecondsEdit->setValidator(
+		new QIntValidator(0, std::numeric_limits<int>::max(), m_serviceEntryTimeSecondsEdit));
+	entryTimeLayout->addWidget(m_serviceHasEntryTimeCheck);
+	entryTimeLayout->addWidget(m_serviceEntryTimeSecondsEdit);
+	serviceDetailLayout->addLayout(entryTimeLayout);
+
+	QHBoxLayout* repeatLayout = new QHBoxLayout();
+	m_serviceHasRepeatCheck = new QCheckBox("Repeat Headway (s)", serviceDetailPane);
+	m_serviceHeadwaySecondsEdit = new QLineEdit(serviceDetailPane);
+	m_serviceHeadwaySecondsEdit->setValidator(
+		new QIntValidator(0, std::numeric_limits<int>::max(), m_serviceHeadwaySecondsEdit));
+	repeatLayout->addWidget(m_serviceHasRepeatCheck);
+	repeatLayout->addWidget(m_serviceHeadwaySecondsEdit);
+	serviceDetailLayout->addLayout(repeatLayout);
+
+	m_serviceStopsCountLabel = new QLabel(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_serviceStopsCountLabel);
+	serviceDetailLayout->addStretch();
+	serviceLayout->addWidget(serviceDetailPane);
+
+	m_serviceDock->setWidget(serviceWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
+	tabifyDockWidget(m_compositionDock, m_serviceDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_serviceDock->toggleViewAction());
+
+	connect(m_serviceListWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		updateServiceDetailPanel();
+	});
+	connect(m_serviceIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceIdEdit);
+	connect(m_serviceCompositionCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceComposition);
+	connect(m_serviceRouteCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceRoute);
+	connect(m_serviceHasEntryTimeCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasEntryTime);
+	connect(m_serviceEntryTimeSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceEntryTimeSeconds);
+	connect(m_serviceHasRepeatCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasRepeat);
+	connect(m_serviceHeadwaySecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceHeadwaySeconds);
+	connect(m_addServiceButton, &QPushButton::clicked, this, &MainWindow::addService);
+	connect(m_duplicateServiceButton, &QPushButton::clicked, this, &MainWindow::duplicateService);
+	connect(m_deleteServiceButton, &QPushButton::clicked, this, &MainWindow::deleteService);
+
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
 	m_validationStatusLabel = new QLabel(this);
@@ -447,6 +527,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 								 .arg(initial_variables.N_Routes));
 
 	refreshCompositionPanel();
+	refreshServicePanel();
 }
 
 MainWindow::~MainWindow() {
@@ -499,6 +580,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
 	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshServicePanel();
 	return true;
 }
 
@@ -527,6 +609,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshServicePanel();
 	return true;
 }
 
@@ -579,6 +662,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshServicePanel();
 	return true;
 }
 
@@ -987,6 +1071,360 @@ void MainWindow::moveCompositionUnitDown() {
 
 	if (m_compositionUnitsListWidget)
 		m_compositionUnitsListWidget->setCurrentRow(unitRow + 1);
+}
+
+void MainWindow::refreshServicePanel() {
+	bool hasScene = m_sceneLoaded;
+
+	if (m_serviceListWidget) {
+		int previousRow = m_serviceListWidget->currentRow();
+		const QSignalBlocker blocker(m_serviceListWidget);
+		m_serviceListWidget->clear();
+		if (hasScene) {
+			for (const auto& service : m_sceneModel.services)
+				m_serviceListWidget->addItem(QString::fromStdString(service.id));
+		}
+		int rowCount = m_serviceListWidget->count();
+		int rowToSelect = -1;
+		if (rowCount > 0) {
+			if (previousRow < 0)
+				rowToSelect = 0;
+			else if (previousRow >= rowCount)
+				rowToSelect = rowCount - 1; // keep selection near a deleted last row
+			else
+				rowToSelect = previousRow;
+		}
+		m_serviceListWidget->setCurrentRow(rowToSelect);
+		m_serviceListWidget->setEnabled(hasScene);
+	}
+
+	if (m_addServiceButton)
+		m_addServiceButton->setEnabled(hasScene);
+
+	updateServiceDetailPanel();
+}
+
+void MainWindow::updateServiceDetailPanel() {
+	int row = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
+	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.services.size());
+
+	if (m_serviceIdEdit) {
+		const QSignalBlocker blocker(m_serviceIdEdit);
+		m_serviceIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.services[row].id) : QString());
+		m_serviceIdEdit->setEnabled(hasSelection);
+	}
+
+	if (m_serviceCompositionCombo) {
+		const QSignalBlocker blocker(m_serviceCompositionCombo);
+		m_serviceCompositionCombo->clear();
+		for (const auto& composition : m_sceneModel.compositions)
+			m_serviceCompositionCombo->addItem(QString::fromStdString(composition.id));
+		if (hasSelection) {
+			QString currentComposition = QString::fromStdString(m_sceneModel.services[row].composition);
+			if (m_serviceCompositionCombo->findText(currentComposition) < 0)
+				m_serviceCompositionCombo->addItem(currentComposition); // dangling reference, still shown/selectable
+			m_serviceCompositionCombo->setCurrentText(currentComposition);
+		}
+		m_serviceCompositionCombo->setEnabled(hasSelection);
+	}
+
+	if (m_serviceRouteCombo) {
+		const QSignalBlocker blocker(m_serviceRouteCombo);
+		m_serviceRouteCombo->clear();
+		for (const auto& route : m_sceneModel.routes)
+			m_serviceRouteCombo->addItem(QString::fromStdString(route.id));
+		if (hasSelection) {
+			QString currentRoute = QString::fromStdString(m_sceneModel.services[row].route);
+			if (m_serviceRouteCombo->findText(currentRoute) < 0)
+				m_serviceRouteCombo->addItem(currentRoute); // dangling reference, still shown/selectable
+			m_serviceRouteCombo->setCurrentText(currentRoute);
+		}
+		m_serviceRouteCombo->setEnabled(hasSelection);
+	}
+
+	bool hasEntryTime = hasSelection && m_sceneModel.services[row].hasEntryTime;
+	if (m_serviceHasEntryTimeCheck) {
+		const QSignalBlocker blocker(m_serviceHasEntryTimeCheck);
+		m_serviceHasEntryTimeCheck->setChecked(hasEntryTime);
+		m_serviceHasEntryTimeCheck->setEnabled(hasSelection);
+	}
+	if (m_serviceEntryTimeSecondsEdit) {
+		const QSignalBlocker blocker(m_serviceEntryTimeSecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(m_sceneModel.services[row].entryTimeSeconds) : 0;
+		m_serviceEntryTimeSecondsEdit->setText(QString::number(seconds));
+		m_serviceEntryTimeSecondsEdit->setEnabled(hasEntryTime);
+	}
+
+	bool hasRepeat = hasSelection && m_sceneModel.services[row].hasRepeat;
+	if (m_serviceHasRepeatCheck) {
+		const QSignalBlocker blocker(m_serviceHasRepeatCheck);
+		m_serviceHasRepeatCheck->setChecked(hasRepeat);
+		m_serviceHasRepeatCheck->setEnabled(hasSelection);
+	}
+	if (m_serviceHeadwaySecondsEdit) {
+		const QSignalBlocker blocker(m_serviceHeadwaySecondsEdit);
+		int seconds = hasSelection ? static_cast<int>(m_sceneModel.services[row].headwaySeconds) : 0;
+		m_serviceHeadwaySecondsEdit->setText(QString::number(seconds));
+		m_serviceHeadwaySecondsEdit->setEnabled(hasRepeat);
+	}
+
+	if (m_serviceStopsCountLabel) {
+		int stopCount = hasSelection ? static_cast<int>(m_sceneModel.services[row].stops.size()) : 0;
+		m_serviceStopsCountLabel->setText(QString("Stops: %1").arg(stopCount));
+	}
+
+	if (m_duplicateServiceButton)
+		m_duplicateServiceButton->setEnabled(hasSelection);
+	if (m_deleteServiceButton)
+		m_deleteServiceButton->setEnabled(hasSelection);
+}
+
+std::string MainWindow::uniqueServiceId(const std::string& baseId) const {
+	auto idExists = [this](const std::string& id) {
+		for (const auto& service : m_sceneModel.services) {
+			if (service.id == id)
+				return true;
+		}
+		return false;
+	};
+
+	std::string candidate = baseId;
+	int suffix = 2;
+	while (idExists(candidate)) {
+		candidate = baseId + "_" + std::to_string(suffix);
+		++suffix;
+	}
+	return candidate;
+}
+
+void MainWindow::addService() {
+	if (!m_sceneLoaded)
+		return;
+
+	SceneService service;
+	service.id = uniqueServiceId("new_service");
+	m_sceneModel.services.push_back(service);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshServicePanel();
+
+	if (m_serviceListWidget)
+		m_serviceListWidget->setCurrentRow(static_cast<int>(m_sceneModel.services.size()) - 1);
+}
+
+void MainWindow::duplicateService() {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	SceneService duplicate = m_sceneModel.services[row];
+	duplicate.id = uniqueServiceId(duplicate.id + "_copy");
+	m_sceneModel.services.insert(m_sceneModel.services.begin() + row + 1, duplicate);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshServicePanel();
+
+	if (m_serviceListWidget)
+		m_serviceListWidget->setCurrentRow(row + 1);
+}
+
+void MainWindow::deleteService() {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	QString id = QString::fromStdString(m_sceneModel.services[row].id);
+	auto response = QMessageBox::question(this,
+										  "Delete Service",
+										  QString("Delete service '%1'?").arg(id),
+										  QMessageBox::Yes | QMessageBox::No,
+										  QMessageBox::No);
+	if (response != QMessageBox::Yes)
+		return;
+
+	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshServicePanel();
+}
+
+void MainWindow::commitServiceIdEdit() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceIdEdit)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	std::string newId = m_serviceIdEdit->text().trimmed().toStdString();
+	if (newId == m_sceneModel.services[row].id)
+		return;
+
+	m_sceneModel.services[row].id = newId;
+
+	// update the list row label in place instead of rebuilding the panel, so a
+	// focus-out that lands on another control keeps that pending click intact
+	if (QListWidgetItem* item = m_serviceListWidget->item(row)) {
+		const QSignalBlocker blocker(m_serviceListWidget);
+		item->setText(QString::fromStdString(newId));
+	}
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitServiceComposition(const QString& text) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	std::string newComposition = text.toStdString();
+	if (newComposition == m_sceneModel.services[row].composition)
+		return;
+
+	m_sceneModel.services[row].composition = newComposition;
+
+	// the combo already shows the chosen value and the service list labels are
+	// unchanged, so do not rebuild the panel here (that would close the popup)
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitServiceRoute(const QString& text) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	std::string newRoute = text.toStdString();
+	if (newRoute == m_sceneModel.services[row].route)
+		return;
+
+	m_sceneModel.services[row].route = newRoute;
+
+	// the combo already shows the chosen value and the service list labels are
+	// unchanged, so do not rebuild the panel here (that would close the popup)
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitServiceHasEntryTime(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	if (checked == m_sceneModel.services[row].hasEntryTime)
+		return;
+
+	m_sceneModel.services[row].hasEntryTime = checked;
+	if (m_serviceEntryTimeSecondsEdit)
+		m_serviceEntryTimeSecondsEdit->setEnabled(checked);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitServiceEntryTimeSeconds() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceEntryTimeSecondsEdit)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_serviceEntryTimeSecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_serviceEntryTimeSecondsEdit);
+		m_serviceEntryTimeSecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == m_sceneModel.services[row].entryTimeSeconds)
+		return;
+
+	m_sceneModel.services[row].entryTimeSeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitServiceHasRepeat(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	if (checked == m_sceneModel.services[row].hasRepeat)
+		return;
+
+	m_sceneModel.services[row].hasRepeat = checked;
+	if (m_serviceHeadwaySecondsEdit)
+		m_serviceHeadwaySecondsEdit->setEnabled(checked);
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitServiceHeadwaySeconds() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceHeadwaySecondsEdit)
+		return;
+	int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+
+	bool ok = false;
+	int seconds = m_serviceHeadwaySecondsEdit->text().toInt(&ok);
+	if (!ok)
+		seconds = 0;
+
+	// normalize a blank or partial entry back to a plain integer display
+	{
+		const QSignalBlocker blocker(m_serviceHeadwaySecondsEdit);
+		m_serviceHeadwaySecondsEdit->setText(QString::number(seconds));
+	}
+
+	double newValue = static_cast<double>(seconds);
+	if (newValue == m_sceneModel.services[row].headwaySeconds)
+		return;
+
+	m_sceneModel.services[row].headwaySeconds = newValue;
+
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
 }
 
 void MainWindow::addRecentScene(const QString& path) {

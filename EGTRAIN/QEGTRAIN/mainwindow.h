@@ -76,6 +76,8 @@
 #include <QTableWidget>
 #include <QListWidget>
 #include <QPushButton>
+#include <QCheckBox>
+#include <QIntValidator>
 
 #include "SceneDiagnostic.h"
 #include "SceneValidator.h"
@@ -389,6 +391,21 @@ private:
 	QPushButton* m_moveUnitUpButton = nullptr;
 	QPushButton* m_moveUnitDownButton = nullptr;
 
+	// service editor dock (service-level fields only; per-stop timetable editing is issue #27)
+	QDockWidget* m_serviceDock = nullptr;
+	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
+	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
+	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
+	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
+	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
+	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
+	QCheckBox* m_serviceHasRepeatCheck = nullptr;
+	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr; // whole seconds
+	QLabel* m_serviceStopsCountLabel = nullptr;		  // read-only stop count, stops are not edited here
+	QPushButton* m_addServiceButton = nullptr;
+	QPushButton* m_duplicateServiceButton = nullptr;
+	QPushButton* m_deleteServiceButton = nullptr;
+
 	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
@@ -418,6 +435,21 @@ private:
 	void moveCompositionUnitUp();
 	void moveCompositionUnitDown();
 	std::string uniqueCompositionId(const std::string& baseId) const;
+
+	// service editor (service-level fields only; stops stay read-only here)
+	void refreshServicePanel();
+	void updateServiceDetailPanel();
+	void addService();
+	void duplicateService();
+	void deleteService();
+	void commitServiceIdEdit();
+	void commitServiceComposition(const QString& text);
+	void commitServiceRoute(const QString& text);
+	void commitServiceHasEntryTime(bool checked);
+	void commitServiceEntryTimeSeconds();
+	void commitServiceHasRepeat(bool checked);
+	void commitServiceHeadwaySeconds();
+	std::string uniqueServiceId(const std::string& baseId) const;
 
 	void runVisualPolishE2E();
 	void clearSimulationWorker(bool requestStop);
