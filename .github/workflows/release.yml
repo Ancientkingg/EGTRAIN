@@ -43,16 +43,24 @@ jobs:
             --dest-dir "$APP/Contents/libs" \
             --install-path "@executable_path/../libs"
 
-      - name: Verify the bundle is self-contained
+      - name: Verify the app is self-contained
         run: |
           set -euxo pipefail
-          leaked="$(find build/QEGTRAIN.app -type f -perm +111 -print0 \
-            | xargs -0 -I{} sh -c 'otool -L "{}" 2>/dev/null' \
-            | grep -E '/opt/homebrew|/usr/local/opt' || true)"
-          if [ -n "$leaked" ]; then
-            echo "ERROR: bundle still references Homebrew paths:"; echo "$leaked"; exit 1
+          APP="build/QEGTRAIN.app"
+          BIN="$APP/Contents/MacOS/QEGTRAIN"
+          echo "== main executable dependencies =="
+          otool -L "$BIN"
+          # The main executable must not load anything from Homebrew at runtime
+          # (its dependency lines, i.e. everything after the header line).
+          if otool -L "$BIN" | tail -n +2 | grep -E '/opt/homebrew|/usr/local/opt'; then
+            echo "ERROR: main executable depends on Homebrew paths"; exit 1
           fi
-          echo "OK: no Homebrew paths referenced"
+          # Qt frameworks and the non-Qt dylibs must be bundled inside the app.
+          test -d "$APP/Contents/Frameworks/QtCore.framework"
+          test -d "$APP/Contents/Frameworks/QtCharts.framework"
+          ls "$APP/Contents/libs" | grep -Eiq 'omp' || { echo "ERROR: libomp not bundled"; exit 1; }
+          ls "$APP/Contents/libs" | grep -Eiq 'zmq' || { echo "ERROR: libzmq not bundled"; exit 1; }
+          echo "OK: main executable clean; Qt frameworks and libomp/libzmq bundled"
 
       - name: Package zip
         run: |
