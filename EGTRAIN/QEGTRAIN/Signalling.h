@@ -7,6 +7,8 @@
 
 #include "Infrastructure.h"
 
+struct SceneModel;
+
 // --- Incidents: Disruption events ---
 struct SimulationIncident {
 	std::string type;
@@ -332,6 +334,9 @@ public:
 	// Load route from file and create it
 	void createRoute(char* FileName);
 
+	// Build route from canonical scene block ids.
+	void createRouteFromBlockIds(const std::vector<std::string>& blockIds);
+
 	// Adjust route across different regions (different km references)
 	void adjustRouteAcrossDiffRegions();
 };
@@ -351,6 +356,9 @@ void loadAllJoinedRoutes(string FolderName, vector<Route>& AllRoutes, int& numAl
 
 // Set up all routes
 void setUpAllRoutes();
+
+// Set up all routes from canonical scene model.
+void setUpRoutesFromScene(const SceneModel& scene);
 
 // Print block sections of a route with start/end nodes (for verification)
 void printRoutesBlocks(const Route& R, string FolderName, int IndexOfRoute);

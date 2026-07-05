@@ -346,6 +346,31 @@ if(EGTRAIN_BUILD_TESTS)
 			${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
 			${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
 			${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
+
+	add_executable(test_scenebuilder
+		${SRC_DIR}/tests/test_scenebuilder.cpp
+		${SRC_DIR}/Infrastructure.cpp
+		${SRC_DIR}/initialParameters.cpp
+		${SRC_DIR}/NumberGenerator.cpp
+		${SRC_DIR}/Owl.cpp
+		${SRC_DIR}/Signalling.cpp)
+	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
+	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
+	if(EGTRAIN_OPENMP_INCLUDE)
+		target_include_directories(test_scenebuilder PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+	endif()
+	if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+		target_compile_options(test_scenebuilder PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+	endif()
+	if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+		target_link_libraries(test_scenebuilder PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+	elseif(OpenMP_CXX_FOUND)
+		target_link_libraries(test_scenebuilder PRIVATE OpenMP::OpenMP_CXX)
+	endif()
+	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
+
+	add_test(NAME test_headless_smoke_decode
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
 endif()
 
 # Install
