@@ -172,7 +172,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake patchelf wget file desktop-file-utils \
+            build-essential cmake patchelf wget file desktop-file-utils imagemagick \
             qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev \
             libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
 
@@ -200,7 +200,8 @@ jobs:
           cp -R EGTRAIN/QEGTRAIN/Input "$APPDIR/usr/bin/Input"
           cp EGTRAIN/QEGTRAIN/*.png "$APPDIR/usr/bin/"
           cp EGTRAIN/QEGTRAIN/*.jpg "$APPDIR/usr/bin/" || true
-          cp EGTRAIN/QEGTRAIN/train_station.png \
+          convert EGTRAIN/QEGTRAIN/train_station.png \
+            -background transparent -gravity center -resize 256x256 -extent 256x256 \
             "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"
 
           cat > "$APPDIR/usr/share/applications/qegtrain.desktop" <<'EOF'
