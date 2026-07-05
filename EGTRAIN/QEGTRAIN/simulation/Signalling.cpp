@@ -1,6 +1,6 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
-extern Owl owl;
+extern Logger owl;
 
 
 TrainEvent::TrainEvent() {
@@ -3150,7 +3150,7 @@ double S_delay = 0; // Variable representing the delay of Signalling Systems (in
 list<string> BlocksOccupied;	 // This is the list of the All Blocks Occupied by trains: i.e. Blocks where train are on and blocks which are connected to occupied blocks
 list<string> BlocksConnected;	 // This is the list of all the Blocks Connected with the Blocks occupied by trains. This list is needed in order to release the blocks contained in there when the train on the connected block has left it.
 list<MovementAuthority> ETCS_MA; // This is the list of all the movement authorities provided by the RBC where ETCS is active
-extern Owl owl;
+extern Logger owl;
 // Function to Occupy a Block Section and all the Block sections connected with it
 void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1) {
 	owl << ">>>>>>>>>>>>>BLS.ID " << BLS.ID << " BLS.IDPrev " << BLSPrev.ID << std::endl;

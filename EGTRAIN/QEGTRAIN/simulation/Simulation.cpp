@@ -10,7 +10,7 @@ char Init_Time[20], Pred_Hor[20];
 string InstanceName = "E1";	 // This is the name of the instance that must be run in both ROMA and EGTRAIN
 int InstanceIndex = 1;		 // This is the index of the instance
 int DelayDispatcherImpl = 0; // This is the delay in [s] with which the dispatcher implements the solution obtained from the ROMA tool*/
-extern initial_parameters initial_variables;
+extern InitialParameters initial_variables;
 
 string Name_Of_Integ_Folder = ""; // Name of the batch file of ROMA
 

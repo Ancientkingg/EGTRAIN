@@ -776,7 +776,7 @@ void nameTrainDescriptionAsRomaTool(char* FileNamesROMA, double Node_X) {
 	}
 	delete[] Matr; // Deleting Matr
 }
-extern Owl owl;
+extern Logger owl;
 // Function to Determine for each Route the Block Sections that are occupied by trains
 //(This Function Fill in the list BlocksOccupied)
 void Occupy_Block_Sections_Of_Route(int i) {
@@ -1529,7 +1529,7 @@ void Train::executeDispDecisions(int t) {
 }
 
 // implement init message
-void Train::implementInitMsg(dispDecision decision) {
+void Train::implementInitMsg(DispatchDecision decision) {
 	std::string stationDep = decision.stationDep;
 	int routeID = decision.routeID;
 	int startTime = decision.startTime; // time to enter the simulation and go to the platform waiting
@@ -1584,7 +1584,7 @@ void Train::implementInitMsg(dispDecision decision) {
 }
 
 // implement disp message from dispatching tool
-void Train::implementDisp(dispDecision decision) {
+void Train::implementDisp(DispatchDecision decision) {
 	std::string stationArr = decision.stationArr;
 	int routeID = decision.routeID;
 	std::string timetableFile = decision.timetableFile;
@@ -1754,7 +1754,7 @@ void Train::implementDisp(dispDecision decision) {
 }
 
 // implement dwell message from dispatching tool
-void Train::implementDwell(dispDecision decision) {
+void Train::implementDwell(DispatchDecision decision) {
 	// update intermediate station dwell times
 	for (int i = 1; i < (numStations - 1); i++) {
 		Stations[i].dwellTime = decision.dwellTimes[i - 1];

@@ -114,7 +114,7 @@ class QTemporaryDir; // forward declaration for m_runStagingDir
 #include "simulation/Infrastructure.h"
 #include "simulation/Signalling.h"
 
-#include "app/EGTRAIN.h"
+#include "app/DispatchController.h"
 
 #include "simulation/Rescheduling.h"
 

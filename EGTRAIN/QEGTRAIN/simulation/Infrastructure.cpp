@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cfloat>
 
-extern Owl owl;
+extern Logger owl;
 int t[40000];
 double timestep = 1;
 // double times = 0;
@@ -15,11 +15,11 @@ int HeadwayD = 0; // This Headway is calculated on the basis of Block Section Le
 list<StationPlatform> AllStationPlatforms; // This is a global list containing all Station platforms existing in the modelled network
 int numAllStationPlatforms = 0;			   // This variable provides the total number of station platforms in the modelled network (it is the size of the list AllStationPlatforms)
 
-initial_parameters initial_variables(0);
+InitialParameters initial_variables(0);
 string InputMainFolder = initial_variables.InputMainFolder; // "Input_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
 // string OutputMainFolder = initial_variables.OutputMainFolder;// "Output_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
 
-// extern initial_parameters initial_variables;
+// extern InitialParameters initial_variables;
 
 
 // Class constructor function

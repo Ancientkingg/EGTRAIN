@@ -1,9 +1,9 @@
 #include "simulation/SimulationWorker.h"
-#include "app/EGTRAIN.h"
+#include "app/DispatchController.h"
 #include <thread>
 #include <chrono>
 
-extern EGTRAIN simulation;
+extern DispatchController simulation;
 
 SimulationWorker* SimulationWorker::s_active = nullptr;
 
