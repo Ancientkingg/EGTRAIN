@@ -1,6 +1,6 @@
-#include "../SceneImporter.h"
-#include "../SceneExporter.h"
-#include "../SceneModel.h"
+#include "scene/SceneImporter.h"
+#include "scene/SceneExporter.h"
+#include "scene/SceneModel.h"
 #include <iostream>
 #include <filesystem>
 #include <fstream>
