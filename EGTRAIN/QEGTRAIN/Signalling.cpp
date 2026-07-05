@@ -1,4 +1,5 @@
 #include "Signalling.h"
+#include "SceneModel.h"
 extern Owl owl;
 
 
@@ -2476,6 +2477,105 @@ void Route::createRoute(char* FileName) {
 	delete[] Matr;
 }
 
+void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds) {
+	*this = Route();
+
+	list<Section> BlockList;
+	for (const std::string& blockId : blockIds) {
+		for (int i = 0; i < Blocks; i++) {
+			if (signalling_block_sections[i].ID == blockId) {
+				BlockList.push_back(signalling_block_sections[i]);
+				break;
+			}
+		}
+	}
+
+	N_Block_Sections = (int)BlockList.size();
+	if (N_Block_Sections > 600)
+		N_Block_Sections = 600;
+	if (N_Block_Sections == 0)
+		return;
+
+	// Checking if Blocks must be ordered progressively or in reverse order.
+	list<Section>::iterator start, final;
+	start = BlockList.begin();
+	final = BlockList.end();
+	final--;
+
+	if (start->start_node.X < final->start_node.X) {
+		BlockList.sort(orderBlocks);
+
+		list<Section>::iterator it = BlockList.begin();
+
+		if (BlockList.empty() != 1) {
+			for (int i = 0; i < N_Block_Sections; i++) {
+				if (i < N_Block_Sections - 1) {
+					list<Section>::iterator p = it;
+					p++;
+					bool AreBlocksOverlapped = areBlocksConnected(*it, *p);
+					if ((AreBlocksOverlapped == 1) && (it->withSwitchDiv == 1) && (p->withSwitchDiv == 1)) {
+						double CuttingPosition = 0;
+						CuttingPosition = (p->XStartSwitch - it->XEndSwitch) / 2 + it->XEndSwitch;
+						it->CutBlockSection("CutEnd", CuttingPosition);
+						p->CutBlockSection("CutBegin", CuttingPosition);
+					}
+				}
+				sequence_of_block_sections[i] = *it;
+				this->setListInfrastructureElementsForRoute(sequence_of_block_sections[i]);
+
+				it++;
+			}
+		}
+	} else {
+		reversed_direction = true;
+		BlockList.sort(reverseOrderBlocks);
+		list<Section> TEMPBlockList;
+		list<Section>::iterator q = BlockList.begin();
+		OriginalRefReversedRoute = q->end_node.X * 1000;
+		list<Section>::iterator LastElement = BlockList.end();
+		LastElement--;
+		double TotalRouteLength = q->end_node.X;
+
+		while (q != BlockList.end()) {
+			if (q != LastElement) {
+				list<Section>::iterator p = q;
+				p++;
+				bool AreBlocksOverlapped = areBlocksConnected(*q, *p);
+				if ((AreBlocksOverlapped == 1) && (q->withSwitchDiv == 1) && (p->withSwitchDiv == 1)) {
+					double CuttingPosition = 0;
+					CuttingPosition = (q->XStartSwitch - p->XEndSwitch) / 2 + p->XEndSwitch;
+					q->CutBlockSection("CutBegin", CuttingPosition);
+					p->CutBlockSection("CutEnd", CuttingPosition);
+				}
+			}
+
+			Section ReversedBlock;
+			ReversedBlock.reverseBlockSection(*q, TotalRouteLength);
+			TEMPBlockList.push_back(ReversedBlock);
+			q++;
+		}
+		BlockList.clear();
+		BlockList = TEMPBlockList;
+		N_Block_Sections = (int)BlockList.size();
+		if (N_Block_Sections > 600)
+			N_Block_Sections = 600;
+
+		list<Section>::iterator it = BlockList.begin();
+		if (BlockList.empty() != 1) {
+			for (int i = 0; i < N_Block_Sections; i++) {
+				sequence_of_block_sections[i] = *it;
+				this->setListInfrastructureElementsForRoute(sequence_of_block_sections[i]);
+				it++;
+			}
+		}
+	}
+
+	identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(this->InfrastructureElements);
+	ID = sequence_of_block_sections[0].ID + "->" + sequence_of_block_sections[N_Block_Sections - 1].ID;
+	x_of_start_node = sequence_of_block_sections[0].start_node.X;
+	x_of_end_node = sequence_of_block_sections[N_Block_Sections - 1].end_node.X;
+}
+
 // function to adjust route across different regions (different km references)
 void Route::adjustRouteAcrossDiffRegions() {
 	list<Section> tempSections;
@@ -2858,6 +2958,19 @@ void setUpAllRoutes() {
 }
 
 // Function to Print out all the block sections of a certain route with the respective initial and ending nodes. It can be used to verify the congruency of the block sections built up
+void setUpRoutesFromScene(const SceneModel& scene) {
+	N_Routes = (int)scene.routes.size();
+	train_route.clear();
+	train_route.resize(N_Routes);
+
+	for (int i = 0; i < N_Routes; i++) {
+		std::cout << "\rCreating Scene Route : " << i << " " << scene.routes[i].id;
+		train_route[i].createRouteFromBlockIds(scene.routes[i].blocks);
+		train_route[i].adjustRouteAcrossDiffRegions();
+	}
+	std::cout << "\n";
+}
+
 void printRoutesBlocks(const Route& R, string FolderName, int IndexOfRoute) {
 	ofstream OUTFile;
 	string OutFileName;
