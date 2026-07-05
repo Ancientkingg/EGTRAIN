@@ -16,6 +16,15 @@ set(CMAKE_AUTOUIC ON)
 # before the header is included. Harmless on other toolchains.
 add_compile_definitions(_USE_MATH_DEFINES)
 
+# On Windows, <zmq.hpp> drags in <windows.h>. Tame it so the SDK does not
+# collide with the project: WIN32_LEAN_AND_MEAN trims the include (and drops the
+# legacy winsock.h that fights ZeroMQ's winsock2.h), NOMINMAX drops the min/max
+# macros, NOGDI drops the GDI Arc() that clashes with our class Arc, and
+# _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused).
+if(MSVC)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX NOGDI _HAS_STD_BYTE=0)
+endif()
+
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
 
 if(EGTRAIN_ENABLE_SANITIZERS)
