@@ -13,6 +13,7 @@ extern QList<QGraphicsItemGroup*> VCmsgItems;
 
 // -------------
 
+
 // dispatching decisions
 #include <cmath> // std::fabs
 #include "dispDecision.h"
@@ -2866,6 +2867,17 @@ public:
 	// Function to Simulate the Train Trajectory
 	virtual void Trajectory_Block_Section(int i, double signalCode1, double signalCode2, double signalCode3) {
 		if (OutOfSimulation == 0) {
+			// A broken-down train holds its last state for the whole incident
+			// window; entrance processing is also suspended, so a train whose
+			// window covers its entry time simply enters after the window.
+			if (i > 0 && Incident_Holds_Train(trainDescription, i)) {
+				instant_train_speed[i] = 0;
+				instant_spatial_position[i] = instant_spatial_position[i - 1];
+				instant_train_power_consumption[i] = 0;
+				train_energy_consumption(i);
+				Eq[i] = 5;
+				return;
+			}
 			// Determine the index of the Route that his train has to follow
 			/*for (int k=0;k<N_Routes;k++){
 			if (train_route[k].ID==TrainRouteID) {indexOfRoute=k; break;}
@@ -3187,6 +3199,15 @@ public:
 	// Function to Simulate the Train Trajectory
 	virtual void Trajectory_Block_Section_Free_Flow(int i, double signalCode1, double signalCode2, double signalCode3) {
 		if (OutOfSimulation == 0) {
+			// same breakdown hold as Trajectory_Block_Section
+			if (i > 0 && Incident_Holds_Train(trainDescription, i)) {
+				instant_train_speed[i] = 0;
+				instant_spatial_position[i] = instant_spatial_position[i - 1];
+				instant_train_power_consumption[i] = 0;
+				train_energy_consumption(i);
+				Eq[i] = 5;
+				return;
+			}
 
 			// Determine if the Train can enter the route
 
@@ -3581,6 +3602,17 @@ public:
 	// Function to Simulate the Train Trajectory
 	virtual void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {
 		if (OutOfSimulation == 0) {
+			// A broken-down train holds its last state for the whole incident
+			// window; entrance processing is also suspended, so a train whose
+			// window covers its entry time simply enters after the window.
+			if (time_seconds > 0 && Incident_Holds_Train(trainDescription, time_seconds)) {
+				instant_train_speed[time_seconds] = 0;
+				instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
+				instant_train_power_consumption[time_seconds] = 0;
+				train_energy_consumption(time_seconds);
+				Eq[time_seconds] = 5;
+				return;
+			}
 
 			// Determine if the Train can enter the route
 			checkEntrance(time_seconds, train_route[indexOfRoute].sequence_of_block_sections);

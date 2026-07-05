@@ -496,6 +496,57 @@ int main(int argc, char** argv) {
 		ok &= expect(!fs::exists(fs::path(outDir.dir) / "GUI" / "caseStudyTrackData.txt"), "No half-written caseStudyTrackData.txt");
 	}
 
+	// 16. Incidents export to the legacy Incidents.txt
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Incidents"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[{"id":"12-B0"}],"routes":[{"id":"route0","blocks":["12-B0"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"u1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[0,90,1,0,0]]}],"compositions":[{"id":"c1","units":["u1"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc1","composition":"c1","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+		std::ofstream(scene / "incidents.json")
+			<< R"({"incidents":[{"id":"inc1","type":"signal_failure","target":"12-B0","start_seconds":100,"end_seconds":300},{"id":"inc2","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150},{"id":"inc3","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Incidents export");
+		ok &= expect(res.success(), "Incidents scene export succeeds");
+
+		std::ifstream inf(fs::path(outDir.dir) / "Incidents.txt");
+		if (expect(inf.good(), "Incidents.txt exists")) {
+			std::string l1, l2, l3;
+			std::getline(inf, l1);
+			std::getline(inf, l2);
+			std::getline(inf, l3);
+			ok &= expect(l1 == "signal_failure\t12-B0\t100\t300", ("Signal failure line correct: " + l1).c_str());
+			ok &= expect(l2 == "train_breakdown\tsvc1\t50\t150", ("Breakdown line correct: " + l2).c_str());
+			ok &= expect(l3 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l3).c_str());
+		}
+		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
+	}
+
+	// 17. Scene without incidents writes no Incidents.txt
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"No Incidents"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+		std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "No Incidents scene export succeeds");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "Incidents.txt"), "No Incidents.txt written");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all SceneExporter tests passed\n";

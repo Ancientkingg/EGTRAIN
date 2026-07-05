@@ -24,7 +24,9 @@ def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> Non
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        timeout=120,
+        # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
+        # five minutes, so keep this well above the real worst case.
+        timeout=600,
     )
     log = ROOT / f"tools/e2e/headless_case_{case_id}.log"
     log.write_text(proc.stdout, encoding="utf-8", errors="replace")

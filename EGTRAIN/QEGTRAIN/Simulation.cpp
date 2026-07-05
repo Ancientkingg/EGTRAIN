@@ -1119,6 +1119,20 @@ void Train_Simulation_Integration_With_ROMA(double v1, double v2, double v3) {
 		}
 
 		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+
+		for (const auto& inc : simulationIncidents) {
+			if (inc.type == "signal_failure" && t >= inc.startSeconds && t <= inc.endSeconds) {
+				for (const auto& secID : inc.resolvedSectionIDs) {
+					bool found = false;
+					for (const auto& occ : BlocksOccupied) {
+						if (occ == secID) { found = true; break; }
+					}
+					if (!found) {
+						BlocksOccupied.push_back(secID);
+					}
+				}
+			}
+		}
 		releaseBlockConnections();	   // Release Blocks connected with the one really occupied by a train
 		activateSignallingSystem();	   // Apply the rules of the signalling system for all the Blocks contained
 		BlocksOccupied.clear();			   // Clear the list BlocksOccupied
@@ -1201,6 +1215,20 @@ void trainSimulation(double v1, double v2, double v3) {
 
 
 		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+
+		for (const auto& inc : simulationIncidents) {
+			if (inc.type == "signal_failure" && t >= inc.startSeconds && t <= inc.endSeconds) {
+				for (const auto& secID : inc.resolvedSectionIDs) {
+					bool found = false;
+					for (const auto& occ : BlocksOccupied) {
+						if (occ == secID) { found = true; break; }
+					}
+					if (!found) {
+						BlocksOccupied.push_back(secID);
+					}
+				}
+			}
+		}
 		releaseBlockConnections();	   // Release Blocks connected with the one really occupied by a train
 		activateSignallingSystem();	   // Apply the rules of the signalling system for all the Blocks contained
 		/*showElement(t,BlocksOccupied);*/
