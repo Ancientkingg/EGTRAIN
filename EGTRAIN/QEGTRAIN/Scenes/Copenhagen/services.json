@@ -1,0 +1,3555 @@
+{
+    "services": [
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 400.0,
+            "id": "A-Hillerod-Hundige",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route12",
+            "stops": [
+                {
+                    "departure_seconds": 460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hillerod"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Allerod"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Birkerod"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "departure_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 2080.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2500.0,
+                    "departure_seconds": 2500.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2620.0,
+                    "departure_seconds": 2620.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 3100.0,
+                    "departure_seconds": 3100.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Amarken"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Friheden"
+                },
+                {
+                    "arrival_seconds": 3640.0,
+                    "departure_seconds": 3640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Avedore"
+                },
+                {
+                    "arrival_seconds": 3820.0,
+                    "departure_seconds": 3820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "BrondbyStrand"
+                },
+                {
+                    "arrival_seconds": 3940.0,
+                    "departure_seconds": 3940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vallensbaek"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 4300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 1000.0,
+            "id": "A-Hillerod-Hundige-2",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route13",
+            "stops": [
+                {
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hillerod"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Allerod"
+                },
+                {
+                    "arrival_seconds": 1660.0,
+                    "departure_seconds": 1660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Birkerod"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 2560.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 2680.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2980.0,
+                    "departure_seconds": 2980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 3100.0,
+                    "departure_seconds": 3100.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 3220.0,
+                    "departure_seconds": 3220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Amarken"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Friheden"
+                },
+                {
+                    "arrival_seconds": 4240.0,
+                    "departure_seconds": 4240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Avedore"
+                },
+                {
+                    "arrival_seconds": 4420.0,
+                    "departure_seconds": 4420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "BrondbyStrand"
+                },
+                {
+                    "arrival_seconds": 4540.0,
+                    "departure_seconds": 4540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vallensbaek"
+                },
+                {
+                    "arrival_seconds": 4720.0,
+                    "departure_seconds": 4720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 4900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 460.0,
+            "id": "A-Hundige-Hillerod",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route11",
+            "stops": [
+                {
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vallensbaek"
+                },
+                {
+                    "arrival_seconds": 940.0,
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "BrondbyStrand"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Avedore"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Friheden"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Amarken"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "departure_seconds": 2260.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2560.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2680.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 3460.0,
+                    "departure_seconds": 3460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Birkerod"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Allerod"
+                },
+                {
+                    "arrival_seconds": 4360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hillerod"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 1060.0,
+            "id": "A-Hundige-Hillerod-2",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route10",
+            "stops": [
+                {
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "departure_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vallensbaek"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "BrondbyStrand"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Avedore"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Friheden"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Amarken"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2620.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2740.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2860.0,
+                    "departure_seconds": 2860.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 4060.0,
+                    "departure_seconds": 4060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                },
+                {
+                    "arrival_seconds": 4300.0,
+                    "departure_seconds": 4300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Birkerod"
+                },
+                {
+                    "arrival_seconds": 4600.0,
+                    "departure_seconds": 4600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Allerod"
+                },
+                {
+                    "arrival_seconds": 4960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hillerod"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 3220.0,
+            "id": "Bx-Buddinge-HojeTaastrup",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route23",
+            "stops": [
+                {
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Buddinge"
+                },
+                {
+                    "arrival_seconds": 3460.0,
+                    "departure_seconds": 3460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildebakke"
+                },
+                {
+                    "arrival_seconds": 3580.0,
+                    "departure_seconds": 3580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vangede"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dyssegard"
+                },
+                {
+                    "arrival_seconds": 3820.0,
+                    "departure_seconds": 3820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Emdrup"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenBBx"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 4240.0,
+                    "departure_seconds": 4240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 4420.0,
+                    "departure_seconds": 4420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 4540.0,
+                    "departure_seconds": 4540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 4660.0,
+                    "departure_seconds": 4660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 4780.0,
+                    "departure_seconds": 4840.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 4960.0,
+                    "departure_seconds": 4960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 5080.0,
+                    "departure_seconds": 5080.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 5260.0,
+                    "departure_seconds": 5260.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 5380.0,
+                    "departure_seconds": 5380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojBBx"
+                },
+                {
+                    "arrival_seconds": 5620.0,
+                    "departure_seconds": 5620.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Glostrup"
+                },
+                {
+                    "arrival_seconds": 5800.0,
+                    "departure_seconds": 5800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Albertslund"
+                },
+                {
+                    "arrival_seconds": 5980.0,
+                    "departure_seconds": 5980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Taastrup"
+                },
+                {
+                    "arrival_seconds": 6220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "HojeTaastrup"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 940.0,
+            "id": "Bx-HojeTaastrup-Buddinge",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route22",
+            "stops": [
+                {
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "HojeTaastrup"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Taastrup"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Albertslund"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Glostrup"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojBBx"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 2080.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2500.0,
+                    "departure_seconds": 2500.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2620.0,
+                    "departure_seconds": 2620.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenBBx"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Emdrup"
+                },
+                {
+                    "arrival_seconds": 3460.0,
+                    "departure_seconds": 3460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dyssegard"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vangede"
+                },
+                {
+                    "arrival_seconds": 3640.0,
+                    "departure_seconds": 3640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildebakke"
+                },
+                {
+                    "arrival_seconds": 3820.0,
+                    "departure_seconds": 3820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Buddinge"
+                },
+                {
+                    "dwell_seconds": 1.0,
+                    "station": "BuddingeReverse"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 100.0,
+            "id": "B-Farum-HojeTaastrup_1",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route1",
+            "stops": [
+                {
+                    "departure_seconds": 160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Farum"
+                },
+                {
+                    "arrival_seconds": 400.0,
+                    "departure_seconds": 400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vaerlose"
+                },
+                {
+                    "arrival_seconds": 580.0,
+                    "departure_seconds": 580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hareskov"
+                },
+                {
+                    "arrival_seconds": 760.0,
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovbrynet"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bagsvaerd"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stengarden"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Buddinge"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildebakke"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "departure_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vangede"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dyssegard"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Emdrup"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenBBx"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "departure_seconds": 2260.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2500.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 40.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2680.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 2980.0,
+                    "departure_seconds": 2980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 3100.0,
+                    "departure_seconds": 3100.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojBBx"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hvidovre"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Rodovre"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Brondbyoster"
+                },
+                {
+                    "arrival_seconds": 3580.0,
+                    "departure_seconds": 3580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Glostrup"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Albertslund"
+                },
+                {
+                    "arrival_seconds": 3940.0,
+                    "departure_seconds": 3940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Taastrup"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "HojeTaastrup"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 600.0,
+            "id": "B-Farum-HojeTaastrup_2",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route3",
+            "stops": [
+                {
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Farum"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vaerlose"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hareskov"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovbrynet"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bagsvaerd"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stengarden"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Buddinge"
+                },
+                {
+                    "arrival_seconds": 1780.0,
+                    "departure_seconds": 1780.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildebakke"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vangede"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dyssegard"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Emdrup"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenBBx"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 2560.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2740.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2860.0,
+                    "departure_seconds": 2860.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2980.0,
+                    "departure_seconds": 2980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 3100.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 40.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 3580.0,
+                    "departure_seconds": 3580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojBBx"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hvidovre"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Rodovre"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Brondbyoster"
+                },
+                {
+                    "arrival_seconds": 4180.0,
+                    "departure_seconds": 4180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Glostrup"
+                },
+                {
+                    "arrival_seconds": 4360.0,
+                    "departure_seconds": 4360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Albertslund"
+                },
+                {
+                    "arrival_seconds": 4540.0,
+                    "departure_seconds": 4540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Taastrup"
+                },
+                {
+                    "arrival_seconds": 4720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "HojeTaastrup"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 40.0,
+            "id": "B-HojeTaastrup-Farum_1",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route2",
+            "stops": [
+                {
+                    "departure_seconds": 100.0,
+                    "dwell_seconds": 20.0,
+                    "station": "HojeTaastrup"
+                },
+                {
+                    "arrival_seconds": 220.0,
+                    "departure_seconds": 220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Taastrup"
+                },
+                {
+                    "arrival_seconds": 460.0,
+                    "departure_seconds": 460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Albertslund"
+                },
+                {
+                    "arrival_seconds": 580.0,
+                    "departure_seconds": 580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Glostrup"
+                },
+                {
+                    "arrival_seconds": 760.0,
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Brondbyoster"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Rodovre"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hvidovre"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojBBx"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 1660.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 40.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 1780.0,
+                    "departure_seconds": 1780.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2080.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenBBx"
+                },
+                {
+                    "arrival_seconds": 2620.0,
+                    "departure_seconds": 2620.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Emdrup"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2740.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dyssegard"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vangede"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildebakke"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Buddinge"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stengarden"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bagsvaerd"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovbrynet"
+                },
+                {
+                    "arrival_seconds": 3580.0,
+                    "departure_seconds": 3580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hareskov"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vaerlose"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Farum"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 640.0,
+            "id": "B-HojeTaastrup-Farum_2",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route0",
+            "stops": [
+                {
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "HojeTaastrup"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Taastrup"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Albertslund"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Glostrup"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Brondbyoster"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Rodovre"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hvidovre"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojBBx"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 2080.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 40.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2500.0,
+                    "departure_seconds": 2500.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2680.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenBBx"
+                },
+                {
+                    "arrival_seconds": 3220.0,
+                    "departure_seconds": 3220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Emdrup"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dyssegard"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vangede"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildebakke"
+                },
+                {
+                    "arrival_seconds": 3640.0,
+                    "departure_seconds": 3640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Buddinge"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stengarden"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bagsvaerd"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovbrynet"
+                },
+                {
+                    "arrival_seconds": 4180.0,
+                    "departure_seconds": 4180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hareskov"
+                },
+                {
+                    "arrival_seconds": 4300.0,
+                    "departure_seconds": 4300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vaerlose"
+                },
+                {
+                    "arrival_seconds": 4600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Farum"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 820.0,
+            "id": "C-Frederikssund-Klapmenborg-All-Stops",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route7",
+            "stops": [
+                {
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Frederikssund"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vinge"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olstykke"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Egedal"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stenlose"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vekso"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildedal"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malov"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ballerup"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malmparken"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovlunde"
+                },
+                {
+                    "arrival_seconds": 2620.0,
+                    "departure_seconds": 2620.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Herlev"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2740.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Husum"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vanlose"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmCH"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 3820.0,
+                    "departure_seconds": 3820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 3940.0,
+                    "departure_seconds": 3940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 4240.0,
+                    "departure_seconds": 4240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 4360.0,
+                    "departure_seconds": 4360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 4480.0,
+                    "departure_seconds": 4480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 4660.0,
+                    "departure_seconds": 4660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Charlottenlund"
+                },
+                {
+                    "arrival_seconds": 4780.0,
+                    "departure_seconds": 4780.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ordrup"
+                },
+                {
+                    "arrival_seconds": 4960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Klampenborg"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 280.0,
+            "id": "C-Frederikssund-Klapmenborg-Limited-Stops",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route6",
+            "stops": [
+                {
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Frederikssund"
+                },
+                {
+                    "arrival_seconds": 520.0,
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vinge"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olstykke"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Egedal"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stenlose"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vekso"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malov"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ballerup"
+                },
+                {
+                    "arrival_seconds": 1780.0,
+                    "departure_seconds": 1780.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malmparken"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovlunde"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Herlev"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Husum"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vanlose"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmCH"
+                },
+                {
+                    "arrival_seconds": 2680.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 3100.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 3220.0,
+                    "departure_seconds": 3220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 3640.0,
+                    "departure_seconds": 3640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 4060.0,
+                    "departure_seconds": 4060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Charlottenlund"
+                },
+                {
+                    "arrival_seconds": 4180.0,
+                    "departure_seconds": 4180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ordrup"
+                },
+                {
+                    "arrival_seconds": 4360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Klampenborg"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 880.0,
+            "id": "C-Klapmenborg-Frederikssund-All-Stops",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route9",
+            "stops": [
+                {
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Klampenborg"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ordrup"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Charlottenlund"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2560.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2740.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmCH"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vanlose"
+                },
+                {
+                    "arrival_seconds": 3220.0,
+                    "departure_seconds": 3220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Husum"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Herlev"
+                },
+                {
+                    "arrival_seconds": 3460.0,
+                    "departure_seconds": 3460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovlunde"
+                },
+                {
+                    "arrival_seconds": 3580.0,
+                    "departure_seconds": 3580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malmparken"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ballerup"
+                },
+                {
+                    "arrival_seconds": 3940.0,
+                    "departure_seconds": 3940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malov"
+                },
+                {
+                    "arrival_seconds": 4060.0,
+                    "departure_seconds": 4060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Kildedal"
+                },
+                {
+                    "arrival_seconds": 4240.0,
+                    "departure_seconds": 4240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vekso"
+                },
+                {
+                    "arrival_seconds": 4420.0,
+                    "departure_seconds": 4420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stenlose"
+                },
+                {
+                    "arrival_seconds": 4540.0,
+                    "departure_seconds": 4540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Egedal"
+                },
+                {
+                    "arrival_seconds": 4660.0,
+                    "departure_seconds": 4660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olstykke"
+                },
+                {
+                    "arrival_seconds": 4840.0,
+                    "departure_seconds": 4840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vinge"
+                },
+                {
+                    "arrival_seconds": 5140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Frederikssund"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 280.0,
+            "id": "C-Klapmenborg-Frederikssund-Limited-Stops",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route8",
+            "stops": [
+                {
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Klampenborg"
+                },
+                {
+                    "arrival_seconds": 520.0,
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ordrup"
+                },
+                {
+                    "arrival_seconds": 640.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Charlottenlund"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "departure_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 1660.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmCH"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vanlose"
+                },
+                {
+                    "arrival_seconds": 2620.0,
+                    "departure_seconds": 2620.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Husum"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2740.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Herlev"
+                },
+                {
+                    "arrival_seconds": 2860.0,
+                    "departure_seconds": 2860.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovlunde"
+                },
+                {
+                    "arrival_seconds": 2980.0,
+                    "departure_seconds": 2980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malmparken"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ballerup"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malov"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vekso"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Stenlose"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Egedal"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olstykke"
+                },
+                {
+                    "arrival_seconds": 4180.0,
+                    "departure_seconds": 4180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vinge"
+                },
+                {
+                    "arrival_seconds": 4480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Frederikssund"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 160.0,
+            "id": "E-Holte-Koge",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route16",
+            "stops": [
+                {
+                    "departure_seconds": 220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                },
+                {
+                    "arrival_seconds": 340.0,
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Virum"
+                },
+                {
+                    "arrival_seconds": 520.0,
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sorgenfri"
+                },
+                {
+                    "arrival_seconds": 640.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 760.0,
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jaegersborg"
+                },
+                {
+                    "arrival_seconds": 940.0,
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Gentofte"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bernstorffsvej"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 1660.0,
+                    "departure_seconds": 1660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 1780.0,
+                    "departure_seconds": 1780.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 2560.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Greve"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Karlslunde"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "SolrodStrand"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jersie"
+                },
+                {
+                    "arrival_seconds": 4060.0,
+                    "departure_seconds": 4060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KogeNord"
+                },
+                {
+                    "arrival_seconds": 4180.0,
+                    "departure_seconds": 4180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olby"
+                },
+                {
+                    "arrival_seconds": 4420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Koge"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 760.0,
+            "id": "E-Holte-Koge_2",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route17",
+            "stops": [
+                {
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                },
+                {
+                    "arrival_seconds": 940.0,
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Virum"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sorgenfri"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jaegersborg"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Gentofte"
+                },
+                {
+                    "arrival_seconds": 1660.0,
+                    "departure_seconds": 1660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bernstorffsvej"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 1960.0,
+                    "departure_seconds": 1960.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 2080.0,
+                    "departure_seconds": 2080.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "departure_seconds": 2260.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 2380.0,
+                    "departure_seconds": 2380.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2500.0,
+                    "departure_seconds": 2500.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2680.0,
+                    "departure_seconds": 2680.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2800.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2980.0,
+                    "departure_seconds": 2980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 3640.0,
+                    "departure_seconds": 3640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                },
+                {
+                    "arrival_seconds": 3940.0,
+                    "departure_seconds": 3940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Greve"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Karlslunde"
+                },
+                {
+                    "arrival_seconds": 4360.0,
+                    "departure_seconds": 4360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "SolrodStrand"
+                },
+                {
+                    "arrival_seconds": 4480.0,
+                    "departure_seconds": 4480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jersie"
+                },
+                {
+                    "arrival_seconds": 4660.0,
+                    "departure_seconds": 4660.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KogeNord"
+                },
+                {
+                    "arrival_seconds": 4780.0,
+                    "departure_seconds": 4780.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olby"
+                },
+                {
+                    "arrival_seconds": 5020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Koge"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 340.0,
+            "id": "E-Koge-Holte",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route14",
+            "stops": [
+                {
+                    "departure_seconds": 400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Koge"
+                },
+                {
+                    "arrival_seconds": 580.0,
+                    "departure_seconds": 580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olby"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KogeNord"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jersie"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "SolrodStrand"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Karlslunde"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Greve"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "departure_seconds": 2260.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 2440.0,
+                    "departure_seconds": 2440.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 2560.0,
+                    "departure_seconds": 2560.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 2740.0,
+                    "departure_seconds": 2800.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 2860.0,
+                    "departure_seconds": 2860.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2980.0,
+                    "departure_seconds": 2980.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 3280.0,
+                    "departure_seconds": 3280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 3400.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 3520.0,
+                    "departure_seconds": 3520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 3700.0,
+                    "departure_seconds": 3700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bernstorffsvej"
+                },
+                {
+                    "arrival_seconds": 3820.0,
+                    "departure_seconds": 3820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Gentofte"
+                },
+                {
+                    "arrival_seconds": 3940.0,
+                    "departure_seconds": 3940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jaegersborg"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 4240.0,
+                    "departure_seconds": 4240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sorgenfri"
+                },
+                {
+                    "arrival_seconds": 4420.0,
+                    "departure_seconds": 4420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Virum"
+                },
+                {
+                    "arrival_seconds": 4600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 940.0,
+            "id": "E-Koge-Holte_2",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route15",
+            "stops": [
+                {
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Koge"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Olby"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "departure_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KogeNord"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jersie"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "SolrodStrand"
+                },
+                {
+                    "arrival_seconds": 1840.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Karlslunde"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Greve"
+                },
+                {
+                    "arrival_seconds": 2200.0,
+                    "departure_seconds": 2200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hundige"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ishoj"
+                },
+                {
+                    "arrival_seconds": 2860.0,
+                    "departure_seconds": 2860.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergAE"
+                },
+                {
+                    "arrival_seconds": 2920.0,
+                    "departure_seconds": 2920.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sjaelor"
+                },
+                {
+                    "arrival_seconds": 3040.0,
+                    "departure_seconds": 3040.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sydhavn"
+                },
+                {
+                    "arrival_seconds": 3160.0,
+                    "departure_seconds": 3160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 3340.0,
+                    "departure_seconds": 3400.0,
+                    "dwell_seconds": 60.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 3460.0,
+                    "departure_seconds": 3460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 3580.0,
+                    "departure_seconds": 3580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 3760.0,
+                    "departure_seconds": 3760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Osterport"
+                },
+                {
+                    "arrival_seconds": 3880.0,
+                    "departure_seconds": 3880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Nordhavn"
+                },
+                {
+                    "arrival_seconds": 4000.0,
+                    "departure_seconds": 4000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Svanemollen"
+                },
+                {
+                    "arrival_seconds": 4120.0,
+                    "departure_seconds": 4120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 4300.0,
+                    "departure_seconds": 4300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bernstorffsvej"
+                },
+                {
+                    "arrival_seconds": 4420.0,
+                    "departure_seconds": 4420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Gentofte"
+                },
+                {
+                    "arrival_seconds": 4540.0,
+                    "departure_seconds": 4540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jaegersborg"
+                },
+                {
+                    "arrival_seconds": 4720.0,
+                    "departure_seconds": 4720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Lyngby"
+                },
+                {
+                    "arrival_seconds": 4840.0,
+                    "departure_seconds": 4840.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Sorgenfri"
+                },
+                {
+                    "arrival_seconds": 5020.0,
+                    "departure_seconds": 5020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Virum"
+                },
+                {
+                    "arrival_seconds": 5200.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Holte"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 40.0,
+            "id": "F-Hellerup-NyEllebjerg",
+            "repeat": {
+                "headway_seconds": 600.0
+            },
+            "route": "route20",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 1.0,
+                    "station": "HellerupStorage"
+                },
+                {
+                    "departure_seconds": 220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 340.0,
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenF"
+                },
+                {
+                    "arrival_seconds": 460.0,
+                    "departure_seconds": 460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bispebjerg"
+                },
+                {
+                    "arrival_seconds": 520.0,
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norrebro"
+                },
+                {
+                    "arrival_seconds": 640.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Fuglebakken"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Grondal"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmF"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KBHallen"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Alholm"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojF"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "VigerslevAlle"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergF"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 340.0,
+            "id": "F-Hellerup-NyEllebjerg-2",
+            "repeat": {
+                "headway_seconds": 600.0
+            },
+            "route": "route21",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 1.0,
+                    "station": "HellerupStorage"
+                },
+                {
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "arrival_seconds": 640.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenF"
+                },
+                {
+                    "arrival_seconds": 760.0,
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bispebjerg"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norrebro"
+                },
+                {
+                    "arrival_seconds": 940.0,
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Fuglebakken"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Grondal"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmF"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KBHallen"
+                },
+                {
+                    "arrival_seconds": 1300.0,
+                    "departure_seconds": 1300.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Alholm"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojF"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "VigerslevAlle"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergF"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 400.0,
+            "id": "F-NyEllebjerg-Hellerup",
+            "repeat": {
+                "headway_seconds": 600.0
+            },
+            "route": "route18",
+            "stops": [
+                {
+                    "departure_seconds": 460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergF"
+                },
+                {
+                    "arrival_seconds": 580.0,
+                    "departure_seconds": 580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "VigerslevAlle"
+                },
+                {
+                    "arrival_seconds": 640.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojF"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Alholm"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KBHallen"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmF"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Grondal"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Fuglebakken"
+                },
+                {
+                    "arrival_seconds": 1180.0,
+                    "departure_seconds": 1180.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norrebro"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bispebjerg"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenF"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "dwell_seconds": 20.0,
+                    "station": "HellerupStorage"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 100.0,
+            "id": "F-NyEllebjerg-Hellerup-2",
+            "repeat": {
+                "headway_seconds": 600.0
+            },
+            "route": "route19",
+            "stops": [
+                {
+                    "departure_seconds": 160.0,
+                    "dwell_seconds": 20.0,
+                    "station": "NyEllebjergF"
+                },
+                {
+                    "arrival_seconds": 280.0,
+                    "departure_seconds": 280.0,
+                    "dwell_seconds": 20.0,
+                    "station": "VigerslevAlle"
+                },
+                {
+                    "arrival_seconds": 340.0,
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "DanshojF"
+                },
+                {
+                    "arrival_seconds": 400.0,
+                    "departure_seconds": 400.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Alholm"
+                },
+                {
+                    "arrival_seconds": 520.0,
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "KBHallen"
+                },
+                {
+                    "arrival_seconds": 580.0,
+                    "departure_seconds": 580.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmF"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Grondal"
+                },
+                {
+                    "arrival_seconds": 760.0,
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Fuglebakken"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norrebro"
+                },
+                {
+                    "arrival_seconds": 940.0,
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Bispebjerg"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "RyparkenF"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Hellerup"
+                },
+                {
+                    "dwell_seconds": 20.0,
+                    "station": "HellerupStorage"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 1.0,
+            "id": "H-Ballerup-Osterport",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route4",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 1.0,
+                    "station": "BallerupStorage"
+                },
+                {
+                    "departure_seconds": 100.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Ballerup"
+                },
+                {
+                    "arrival_seconds": 220.0,
+                    "departure_seconds": 220.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malmparken"
+                },
+                {
+                    "arrival_seconds": 340.0,
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovlunde"
+                },
+                {
+                    "arrival_seconds": 520.0,
+                    "departure_seconds": 520.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Herlev"
+                },
+                {
+                    "arrival_seconds": 640.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Husum"
+                },
+                {
+                    "arrival_seconds": 700.0,
+                    "departure_seconds": 700.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Islev"
+                },
+                {
+                    "arrival_seconds": 820.0,
+                    "departure_seconds": 820.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jyllingevej"
+                },
+                {
+                    "arrival_seconds": 940.0,
+                    "departure_seconds": 940.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vanlose"
+                },
+                {
+                    "arrival_seconds": 1000.0,
+                    "departure_seconds": 1000.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmCH"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "PeterBangsvej"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Langgade"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 1480.0,
+                    "departure_seconds": 1480.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 1780.0,
+                    "departure_seconds": 1840.0,
+                    "dwell_seconds": 40.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 2260.0,
+                    "dwell_seconds": 20.0,
+                    "station": "OsterportH"
+                }
+            ]
+        },
+        {
+            "composition": "LITRA_SA",
+            "entry_time_seconds": 100.0,
+            "id": "H-Osterport-Ballerup",
+            "repeat": {
+                "headway_seconds": 1200.0
+            },
+            "route": "route5",
+            "stops": [
+                {
+                    "departure_seconds": 220.0,
+                    "dwell_seconds": 60.0,
+                    "station": "OsterportH"
+                },
+                {
+                    "arrival_seconds": 340.0,
+                    "departure_seconds": 340.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Norreport"
+                },
+                {
+                    "arrival_seconds": 460.0,
+                    "departure_seconds": 460.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vesterport"
+                },
+                {
+                    "arrival_seconds": 580.0,
+                    "departure_seconds": 640.0,
+                    "dwell_seconds": 40.0,
+                    "station": "KobenhavnH"
+                },
+                {
+                    "arrival_seconds": 760.0,
+                    "departure_seconds": 760.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Dybbolsbro"
+                },
+                {
+                    "arrival_seconds": 880.0,
+                    "departure_seconds": 880.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Carlsberg"
+                },
+                {
+                    "arrival_seconds": 1060.0,
+                    "departure_seconds": 1060.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Valby"
+                },
+                {
+                    "arrival_seconds": 1120.0,
+                    "departure_seconds": 1120.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Langgade"
+                },
+                {
+                    "arrival_seconds": 1240.0,
+                    "departure_seconds": 1240.0,
+                    "dwell_seconds": 20.0,
+                    "station": "PeterBangsvej"
+                },
+                {
+                    "arrival_seconds": 1360.0,
+                    "departure_seconds": 1360.0,
+                    "dwell_seconds": 20.0,
+                    "station": "FlintholmCH"
+                },
+                {
+                    "arrival_seconds": 1420.0,
+                    "departure_seconds": 1420.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Vanlose"
+                },
+                {
+                    "arrival_seconds": 1540.0,
+                    "departure_seconds": 1540.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Jyllingevej"
+                },
+                {
+                    "arrival_seconds": 1600.0,
+                    "departure_seconds": 1600.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Islev"
+                },
+                {
+                    "arrival_seconds": 1720.0,
+                    "departure_seconds": 1720.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Husum"
+                },
+                {
+                    "arrival_seconds": 1900.0,
+                    "departure_seconds": 1900.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Herlev"
+                },
+                {
+                    "arrival_seconds": 2020.0,
+                    "departure_seconds": 2020.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Skovlunde"
+                },
+                {
+                    "arrival_seconds": 2140.0,
+                    "departure_seconds": 2140.0,
+                    "dwell_seconds": 20.0,
+                    "station": "Malmparken"
+                },
+                {
+                    "arrival_seconds": 2320.0,
+                    "departure_seconds": 2320.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ballerup"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "station": "BallerupStorage"
+                }
+            ]
+        }
+    ]
+}

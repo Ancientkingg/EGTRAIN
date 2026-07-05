@@ -1,0 +1,723 @@
+{
+    "compositions": [
+        {
+            "id": "MRI_E655_830_80_100_A",
+            "units": [
+                "MRI_E655_830_80_100_A"
+            ]
+        },
+        {
+            "id": "MRI_E655_900_75_100_A",
+            "units": [
+                "MRI_E655_900_75_100_A"
+            ]
+        },
+        {
+            "id": "MRS_E655_1100_80_100_A",
+            "units": [
+                "MRS_E655_1100_80_100_A"
+            ]
+        },
+        {
+            "id": "ETR_500_8",
+            "units": [
+                "ETR_500_8"
+            ]
+        },
+        {
+            "id": "TEC_E405_1550_75_100_A",
+            "units": [
+                "TEC_E405_1550_75_100_A"
+            ]
+        },
+        {
+            "id": "E402B_EN_415",
+            "units": [
+                "E402B_EN_415"
+            ]
+        },
+        {
+            "id": "MRI_E483_500_75_100_A",
+            "units": [
+                "MRI_E483_500_75_100_A"
+            ]
+        },
+        {
+            "id": "ETR_1000",
+            "units": [
+                "ETR_1000"
+            ]
+        },
+        {
+            "id": "ETR_500_12",
+            "units": [
+                "ETR_500_12"
+            ]
+        },
+        {
+            "id": "TCS_E405_1300_75_120_A",
+            "units": [
+                "TCS_E405_1300_75_120_A"
+            ]
+        },
+        {
+            "id": "ETR_675",
+            "units": [
+                "ETR_675"
+            ]
+        },
+        {
+            "id": "REG_E464_np_360_120_160_B",
+            "units": [
+                "REG_E464_np_360_120_160_B"
+            ]
+        },
+        {
+            "id": "MRV_E655_600_75_100_A",
+            "units": [
+                "MRV_E655_600_75_100_A"
+            ]
+        },
+        {
+            "id": "REG_E464_np_225_120_160_B",
+            "units": [
+                "REG_E464_np_225_120_160_B"
+            ]
+        },
+        {
+            "id": "REG_E464_np_270_120_140_B",
+            "units": [
+                "REG_E464_np_270_120_140_B"
+            ]
+        },
+        {
+            "id": "REG_E464_np_335_125_160_B",
+            "units": [
+                "REG_E464_np_335_125_160_B"
+            ]
+        }
+    ],
+    "train_units": [
+        {
+            "id": "MRI_E655_830_80_100_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 419.0,
+                "mass_of_a_wagon_kg": 51875.0,
+                "mass_of_traction_unit_kg": 120000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 27.77777777777778,
+                "number_of_wagons": 16.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/MRI_E655_830_80_100_A.txt",
+                "traction_file": "/TrainData/T_MRI_E655_830_80_100_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.9444444444444444,
+                    281000.0,
+                    -0.0,
+                    -0.0
+                ],
+                [
+                    1.9444444444444444,
+                    17.77777777777778,
+                    288865.514165308,
+                    -3869.5099818511,
+                    -1.8936294565
+                ],
+                [
+                    17.77777777777778,
+                    33.333333333333336,
+                    477448.8403411153,
+                    -19178.7775053701,
+                    252.8480704444
+                ]
+            ]
+        },
+        {
+            "id": "MRI_E655_900_75_100_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 369.0,
+                "mass_of_a_wagon_kg": 64285.71428571428,
+                "mass_of_traction_unit_kg": 120000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 27.77777777777778,
+                "number_of_wagons": 14.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/MRI_E655_900_75_100_A.txt",
+                "traction_file": "/TrainData/T_MRI_E655_900_75_100_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.9444444444444444,
+                    281000.0,
+                    -0.0,
+                    -0.0
+                ],
+                [
+                    1.9444444444444444,
+                    17.77777777777778,
+                    288865.514165308,
+                    -3869.5099818511,
+                    -1.8936294565
+                ],
+                [
+                    17.77777777777778,
+                    33.333333333333336,
+                    477448.8403411153,
+                    -19178.7775053701,
+                    252.8480704444
+                ]
+            ]
+        },
+        {
+            "id": "MRS_E655_1100_80_100_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 369.0,
+                "mass_of_a_wagon_kg": 78571.42857142857,
+                "mass_of_traction_unit_kg": 120000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 27.77777777777778,
+                "number_of_wagons": 14.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/MRS_E655_1100_80_100_A.txt",
+                "traction_file": "/TrainData/T_MRS_E655_1100_80_100_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.9444444444444444,
+                    281000.0,
+                    -0.0,
+                    -0.0
+                ],
+                [
+                    1.9444444444444444,
+                    17.77777777777778,
+                    288865.514165308,
+                    -3869.5099818511,
+                    -1.8936294565
+                ],
+                [
+                    17.77777777777778,
+                    33.333333333333336,
+                    477448.8403411153,
+                    -19178.7775053701,
+                    252.8480704444
+                ]
+            ]
+        },
+        {
+            "id": "ETR_500_8",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 52.0,
+                "mass_of_a_wagon_kg": 63428.57142857143,
+                "mass_of_traction_unit_kg": 136000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 83.33333333333333,
+                "number_of_wagons": 7.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/ETR_500_8.txt",
+                "traction_file": "/TrainData/T_ETR_500_8.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.3888888888888888,
+                    388000.0000000001,
+                    -2e-10,
+                    2e-10
+                ],
+                [
+                    1.3888888888888888,
+                    26.38888888888889,
+                    393311.6473957358,
+                    -3655.7559873979,
+                    -0.1290481899
+                ],
+                [
+                    26.38888888888889,
+                    83.33333333333333,
+                    491864.4734191176,
+                    -9514.2609283106,
+                    59.3291214292
+                ]
+            ]
+        },
+        {
+            "id": "TEC_E405_1550_75_100_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 419.0,
+                "mass_of_a_wagon_kg": 96875.0,
+                "mass_of_traction_unit_kg": 87000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 27.77777777777778,
+                "number_of_wagons": 16.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/TEC_E405_1550_75_100_A.txt",
+                "traction_file": "/TrainData/T_TEC_E405_1550_75_100_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.3888888888888888,
+                    226999.9999999999,
+                    2e-10,
+                    -0.0
+                ],
+                [
+                    1.3888888888888888,
+                    26.38888888888889,
+                    227067.6842055256,
+                    -556.5829521661,
+                    -4.36182882
+                ],
+                [
+                    26.38888888888889,
+                    55.55555555555556,
+                    442402.764724842,
+                    -11685.0037301792,
+                    96.1299148744
+                ]
+            ]
+        },
+        {
+            "id": "E402B_EN_415",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 269.0,
+                "mass_of_a_wagon_kg": 48000.0,
+                "mass_of_traction_unit_kg": 87000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 55.55555555555556,
+                "number_of_wagons": 10.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/E402B_EN_415.txt",
+                "traction_file": "/TrainData/T_E402B_EN_415.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    27.77777777777778,
+                    283438.4990754928,
+                    -2905.46550486,
+                    -0.3664101419
+                ],
+                [
+                    27.77777777777778,
+                    62.5,
+                    421469.2052063957,
+                    -10231.1874319558,
+                    77.8313045071
+                ]
+            ]
+        },
+        {
+            "id": "MRI_E483_500_75_100_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 419.0,
+                "mass_of_a_wagon_kg": 50000.0,
+                "mass_of_traction_unit_kg": 87000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 27.77777777777778,
+                "number_of_wagons": 16.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/MRI_E483_500_75_100_A.txt",
+                "traction_file": "/TrainData/T_MRI_E483_500_75_100_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    20.833333333333332,
+                    288952.8234922972,
+                    -2194.6361291625,
+                    -1.2643174748
+                ],
+                [
+                    20.833333333333332,
+                    38.888888888888886,
+                    588103.7017197026,
+                    -21486.9783793906,
+                    239.3169385487
+                ]
+            ]
+        },
+        {
+            "id": "ETR_1000",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 202.0,
+                "mass_of_a_wagon_kg": 36714.28571428572,
+                "mass_of_traction_unit_kg": 250000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 102.77777777777777,
+                "number_of_wagons": 7.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/ETR_1000.txt",
+                "traction_file": "/TrainData/T_ETR_1000.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    20.833333333333332,
+                    370839.029391661,
+                    -1909.3906264433,
+                    -1.4604570394
+                ],
+                [
+                    20.833333333333332,
+                    83.33333333333333,
+                    492764.3978616381,
+                    -10711.7742024743,
+                    71.0181256033
+                ]
+            ]
+        },
+        {
+            "id": "ETR_500_12",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 352.0,
+                "mass_of_a_wagon_kg": 51818.181818181816,
+                "mass_of_traction_unit_kg": 136000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 83.33333333333333,
+                "number_of_wagons": 11.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/ETR_500_12.txt",
+                "traction_file": "/TrainData/T_ETR_500_12.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    0.2777777777777778,
+                    315999.9999999999,
+                    52200.0000000001,
+                    187920.0
+                ],
+                [
+                    0.2777777777777778,
+                    1.1111111111111112,
+                    344999.9999999998,
+                    7e-10,
+                    -3e-10
+                ],
+                [
+                    1.1111111111111112,
+                    26.38888888888889,
+                    345715.4929336526,
+                    -952.2545819792,
+                    -0.7242496395
+                ],
+                [
+                    26.38888888888889,
+                    29.166666666666664,
+                    441818.1818181952,
+                    -4647.2727272737,
+                    0.0
+                ],
+                [
+                    29.166666666666664,
+                    83.33333333333333,
+                    547634.2493582162,
+                    -10449.7256337705,
+                    63.2034021614
+                ]
+            ]
+        },
+        {
+            "id": "TCS_E405_1300_75_120_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 369.0,
+                "mass_of_a_wagon_kg": 92857.14285714286,
+                "mass_of_traction_unit_kg": 87000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 33.333333333333336,
+                "number_of_wagons": 14.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/TCS_E405_1300_75_120_A.txt",
+                "traction_file": "/TrainData/T_TCS_E405_1300_75_120_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.3888888888888888,
+                    226999.9999999999,
+                    2e-10,
+                    -0.0
+                ],
+                [
+                    1.3888888888888888,
+                    26.38888888888889,
+                    227067.6842055256,
+                    -556.5829521661,
+                    -4.36182882
+                ],
+                [
+                    26.38888888888889,
+                    55.55555555555556,
+                    442402.764724842,
+                    -11685.0037301792,
+                    96.1299148744
+                ]
+            ]
+        },
+        {
+            "id": "ETR_675",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 188.0,
+                "mass_of_a_wagon_kg": 36333.333333333336,
+                "mass_of_traction_unit_kg": 226000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 69.44444444444444,
+                "number_of_wagons": 6.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/ETR_675.txt",
+                "traction_file": "/TrainData/T_ETR_675.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    11.11111111111111,
+                    226000.0,
+                    -0.0,
+                    0.0
+                ],
+                [
+                    11.11111111111111,
+                    37.5,
+                    260200.8957285538,
+                    -3034.1244823509,
+                    -0.07471323
+                ],
+                [
+                    37.5,
+                    69.44444444444444,
+                    325857.9966175565,
+                    -6341.4359079981,
+                    39.8258840798
+                ]
+            ]
+        },
+        {
+            "id": "REG_E464_np_360_120_160_B",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 175.0,
+                "mass_of_a_wagon_kg": 60000.0,
+                "mass_of_traction_unit_kg": 72000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 44.44444444444444,
+                "number_of_wagons": 6.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/REG_E464_np_360_120_160_B.txt",
+                "traction_file": "/TrainData/T_REG_E464_np_360_120_160_B.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    17.5,
+                    200297.8365384615,
+                    -1190.6296526054,
+                    -0.5024813896
+                ],
+                [
+                    17.5,
+                    44.44444444444444,
+                    331865.5337298949,
+                    -11214.5346957902,
+                    123.2194212268
+                ]
+            ]
+        },
+        {
+            "id": "MRV_E655_600_75_100_A",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 369.0,
+                "mass_of_a_wagon_kg": 35714.28571428572,
+                "mass_of_traction_unit_kg": 120000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 27.77777777777778,
+                "number_of_wagons": 14.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/MRV_E655_600_75_100_A.txt",
+                "traction_file": "/TrainData/T_MRV_E655_600_75_100_A.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    1.9444444444444444,
+                    281000.0,
+                    -0.0,
+                    -0.0
+                ],
+                [
+                    1.9444444444444444,
+                    17.77777777777778,
+                    288865.514165308,
+                    -3869.5099818511,
+                    -1.8936294565
+                ],
+                [
+                    17.77777777777778,
+                    33.333333333333336,
+                    477448.8403411153,
+                    -19178.7775053701,
+                    252.8480704444
+                ]
+            ]
+        },
+        {
+            "id": "REG_E464_np_225_120_160_B",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 195.0,
+                "mass_of_a_wagon_kg": 32142.85714285714,
+                "mass_of_traction_unit_kg": 72000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 44.44444444444444,
+                "number_of_wagons": 7.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/REG_E464_np_225_120_160_B.txt",
+                "traction_file": "/TrainData/T_REG_E464_np_225_120_160_B.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    17.5,
+                    200297.8365384615,
+                    -1190.6296526054,
+                    -0.5024813896
+                ],
+                [
+                    17.5,
+                    44.44444444444444,
+                    331865.5337298949,
+                    -11214.5346957902,
+                    123.2194212268
+                ]
+            ]
+        },
+        {
+            "id": "REG_E464_np_270_120_140_B",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 165.0,
+                "mass_of_a_wagon_kg": 45000.0,
+                "mass_of_traction_unit_kg": 72000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 38.888888888888886,
+                "number_of_wagons": 6.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/REG_E464_np_270_120_140_B.txt",
+                "traction_file": "/TrainData/T_REG_E464_np_270_120_140_B.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    17.5,
+                    200297.8365384615,
+                    -1190.6296526054,
+                    -0.5024813896
+                ],
+                [
+                    17.5,
+                    44.44444444444444,
+                    331865.5337298949,
+                    -11214.5346957902,
+                    123.2194212268
+                ]
+            ]
+        },
+        {
+            "id": "REG_E464_np_335_125_160_B",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 175.0,
+                "mass_of_a_wagon_kg": 55833.333333333336,
+                "mass_of_traction_unit_kg": 72000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 44.44444444444444,
+                "number_of_wagons": 6.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/REG_E464_np_335_125_160_B.txt",
+                "traction_file": "/TrainData/T_REG_E464_np_335_125_160_B.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    17.5,
+                    200297.8365384615,
+                    -1190.6296526054,
+                    -0.5024813896
+                ],
+                [
+                    17.5,
+                    44.44444444444444,
+                    331865.5337298949,
+                    -11214.5346957902,
+                    123.2194212268
+                ]
+            ]
+        }
+    ]
+}

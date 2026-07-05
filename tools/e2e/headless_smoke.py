@@ -10,10 +10,14 @@ RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
 PROMPTS = "n\n0\n0\n0\n0\n"
 
 CASES = {
+    1: "Output/Output_EGTRAIN_Netherlands/TrainTrajectories",
+    2: "Output/Output_EGTRAIN_Paimpol/TrainTrajectories",
     3: "Output/Output_EGTRAIN_Banedanmark/TrainTrajectories",
     4: "Output/Output_EGTRAIN_Milano_Brescia/TrainTrajectories",
     5: "Output/Output_EGTRAIN_Assignment/TrainTrajectories",
 }
+ASSERT_MOVEMENT = {2, 3, 4}
+ASSERT_STATION_ARRIVALS = {2, 3, 4}
 
 
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
@@ -135,12 +139,14 @@ def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
 
 
 def main() -> None:
-    selected = [int(arg) for arg in sys.argv[1:]] or [3, 4]
+    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4]
     for case_id in selected:
         run_case(case_id)
-        check_movement(case_id)
+        if case_id in ASSERT_MOVEMENT:
+            check_movement(case_id)
     for case_id in selected:
-        check_station_arrivals(case_id)
+        if case_id in ASSERT_STATION_ARRIVALS:
+            check_station_arrivals(case_id)
 
 
 if __name__ == "__main__":

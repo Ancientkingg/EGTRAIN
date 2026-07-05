@@ -1,0 +1,100 @@
+{
+    "services": [
+        {
+            "composition": "Draisy",
+            "entry_time_seconds": 1550.0,
+            "id": "Guin-Paim-ALL-STOPS-1",
+            "repeat": {
+                "headway_seconds": 9999.0
+            },
+            "route": "route2",
+            "stops": [
+                {
+                    "departure_seconds": 1645.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Guingamp"
+                },
+                {
+                    "arrival_seconds": 1823.0,
+                    "departure_seconds": 1853.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Gourland"
+                },
+                {
+                    "arrival_seconds": 2350.0,
+                    "departure_seconds": 2500.0,
+                    "dwell_seconds": 120.0,
+                    "station": "Tregonneau_Squiffiec"
+                },
+                {
+                    "arrival_seconds": 2851.0,
+                    "departure_seconds": 2881.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Brelidy-Plouec"
+                },
+                {
+                    "arrival_seconds": 3262.0,
+                    "departure_seconds": 3292.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Pontrieaux_Halte"
+                },
+                {
+                    "arrival_seconds": 3391.0,
+                    "departure_seconds": 3511.0,
+                    "dwell_seconds": 120.0,
+                    "station": "Pontrieaux"
+                },
+                {
+                    "arrival_seconds": 3855.0,
+                    "departure_seconds": 3885.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Frynaudour"
+                },
+                {
+                    "arrival_seconds": 4161.0,
+                    "departure_seconds": 4191.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Traou_Nez"
+                },
+                {
+                    "arrival_seconds": 4353.0,
+                    "departure_seconds": 4473.0,
+                    "dwell_seconds": 120.0,
+                    "station": "Lancerf"
+                },
+                {
+                    "arrival_seconds": 4870.0,
+                    "dwell_seconds": 30.0,
+                    "station": "Paimpol"
+                }
+            ]
+        },
+        {
+            "composition": "Draisy",
+            "entry_time_seconds": 10.0,
+            "id": "Guin-Paim-EXPRESS-1",
+            "repeat": {
+                "headway_seconds": 9999.0
+            },
+            "route": "route6",
+            "stops": [
+                {
+                    "departure_seconds": 100.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Guingamp"
+                },
+                {
+                    "arrival_seconds": 1567.0,
+                    "departure_seconds": 1627.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Pontrieaux"
+                },
+                {
+                    "arrival_seconds": 2699.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Paimpol"
+                }
+            ]
+        }
+    ]
+}

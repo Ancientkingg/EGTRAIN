@@ -1,0 +1,282 @@
+{
+    "services": [
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 100.0,
+            "id": "SPR_1",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route0",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ut"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Uto"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Hor"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Hvsp"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Hvs"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 100.0,
+            "id": "SPR_2",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route1",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Hvs"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Hvsp"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Hor"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Uto"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ut"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 200.0,
+            "id": "SPR_3",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route2",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Hvs"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Brn"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 200.0,
+            "id": "SPR_4",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route3",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Brn"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Hvs"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 300.0,
+            "id": "SPR_5",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route4",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ut"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Uto"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Bhv"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Dld"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 300.0,
+            "id": "SPR_6",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route5",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Dld"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Bhv"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Uto"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ut"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 400.0,
+            "id": "SPR_7",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route6",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ut"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Uto"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Bhv"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Dld"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Stz"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "St"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Sd"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Brn"
+                }
+            ]
+        },
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 400.0,
+            "id": "SPR_8",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route7",
+            "stops": [
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Brn"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Sd"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "St"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Stz"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Dld"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Bhv"
+                },
+                {
+                    "departure_seconds": -1.0,
+                    "dwell_seconds": 42.0,
+                    "station": "Uto"
+                },
+                {
+                    "departure_seconds": 90000.0,
+                    "dwell_seconds": 60.0,
+                    "station": "Ut"
+                }
+            ]
+        }
+    ]
+}
