@@ -37,7 +37,7 @@ public:
 	int track;
 
 	// Arc pointer
-	Arc* Arc;
+	Arc* arc;
 
 	// to allow cast
 	enum { Type = UserType + 1 };

@@ -3,7 +3,7 @@
 #include "app/MainWindow.h"
 #include "io/geocoding.h"
 #include <algorithm>
-#include <unistd.h>
+#include "util/portability.h"
 #include <QDir>
 #include <QStandardPaths>
 
@@ -226,6 +226,21 @@ int main(int argc, char* argv[]) {
 	}
 
 	InputMainFolder = initial_variables.InputMainFolder;
+	auto resolvePackagedInputFolder = []() {
+		QString inputPath = QString::fromStdString(InputMainFolder);
+#ifdef __APPLE__
+		QString bundledPath = QDir(QCoreApplication::applicationDirPath() + "/../Resources")
+		                          .filePath(inputPath);
+		if (QDir(bundledPath).exists())
+			InputMainFolder = bundledPath.toStdString();
+#else
+		if (!QDir(inputPath).exists() && QDir(inputPath).isRelative()) {
+			QString candidate = QDir(QCoreApplication::applicationDirPath()).filePath(inputPath);
+			if (QDir(candidate).exists())
+				InputMainFolder = candidate.toStdString();
+		}
+#endif
+	};
 
 	char test;
 	char* filepath;
@@ -252,13 +267,7 @@ int main(int argc, char* argv[]) {
 
 		// start application
 		QApplication a(argc, argv);
-
-		// On macOS, resolve input paths relative to the app bundle
-		// Resources directory so the app works when double-clicked
-#ifdef __APPLE__
-		QString resourcePath = QCoreApplication::applicationDirPath() + "/../Resources/";
-		InputMainFolder = resourcePath.toStdString() + InputMainFolder;
-#endif
+		resolvePackagedInputFolder();
 
 		// resolve output folder to a writable absolute path and ensure it exists
 		{
@@ -292,6 +301,9 @@ int main(int argc, char* argv[]) {
 
 		return a.exec();
 	} else {
+		QCoreApplication a(argc, argv);
+		resolvePackagedInputFolder();
+
 		numTrackLines = initial_variables.numTrackLines;
 		N_Routes = initial_variables.N_Routes;
 		bufferTime = initial_variables.bufferTime;

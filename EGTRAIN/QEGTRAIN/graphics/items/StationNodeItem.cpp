@@ -1,7 +1,7 @@
 #include "graphics/items/StationNodeItem.h"
 
 StationNodeItem::StationNodeItem(const QRectF& rect, QGraphicsItem* parent)
-	: QGraphicsRectItem(rect, parent), track(-1), Node(nullptr) {
+	: QGraphicsRectItem(rect, parent), track(-1), node(nullptr) {
 	setZValue(1); // draw over arcs and connections (which have z = 0)
 }
 
