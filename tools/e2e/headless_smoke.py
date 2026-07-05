@@ -40,12 +40,30 @@ def _is_valid_sample(value: float) -> bool:
     return math.isfinite(value) and value != -1.0 and value > -9990
 
 
+def _position_cells(line: str) -> list[str]:
+    """Return only the position columns of a trajectory row.
+
+    TrainServicePathDiagram.txt is tab separated and starts each row with four
+    metadata cells: trainDescription, dispLineID, reversed_direction, corridor.
+    Splitting on whitespace lets reversed_direction (often 1) leak in as a fake
+    non-zero, changing position, so parse tab rows explicitly and drop the four
+    leading cells. Space separated diagrams (TrainPathDiagram.txt) carry a
+    header row and a single train-name label per row instead.
+    """
+    if "\t" in line:
+        return line.split("\t")[4:]
+    parts = line.split()
+    if not parts or parts[0].startswith("Train/Time"):
+        return []
+    return parts[1:]
+
+
 def check_trajectory_file(path: Path) -> tuple[bool, bool]:
     has_changing = False
     has_valid = False
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         values = []
-        for token in line.split()[1:]:
+        for token in _position_cells(line):
             try:
                 value = float(token)
             except ValueError:

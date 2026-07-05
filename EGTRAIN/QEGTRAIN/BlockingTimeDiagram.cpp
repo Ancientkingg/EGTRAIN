@@ -18,7 +18,7 @@ std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
 	while (std::getline(line, token, '@')) {
 		if (token.empty())
 			continue;
-		size_t suffix = token.find("-blockSets");
+		size_t suffix = token.find("-B");
 		if (suffix != std::string::npos)
 			token = token.substr(0, suffix);
 		if (validTokenIndex == 0 || validTokenIndex == 2)
