@@ -178,10 +178,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	centralWidget = new QWidget();
 
 	// set network view
-	networkView = new myQGraphicsView(centralWidget);
+	networkView = new NetworkView(centralWidget);
 
 	// set progress bar
-	progressBar = new timeQProgressBar(centralWidget);
+	progressBar = new TimeProgressBar(centralWidget);
 
 	// set main layout
 	mainLayout = new QVBoxLayout();
@@ -217,7 +217,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	pax_pixmap_scaled = pax_pixmap.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 	// create container of items to show on display area
-	scene = new myQGraphicsScene(networkView);
+	scene = new NetworkScene(networkView);
 	networkView->setScene(scene);
 
 	// zoom
@@ -234,7 +234,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		if (m_worker)
 			m_worker->requestStop();
 	});
-	connect(infoDockWidget, &infoQDockWidget::closed, this, &MainWindow::handleCloseInfoDockWidget);
+	connect(infoDockWidget, &InfoDockWidget::closed, this, &MainWindow::handleCloseInfoDockWidget);
 
 	connect(ui->displayTrainPathDiagrams, &QAction::triggered, this, &MainWindow::displayTrainPathDiagrams);
 
@@ -266,14 +266,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	updateSceneActions();
 
 	// connect scene signals
-	connect(scene, &myQGraphicsScene::MousePressedOnNode, this, &MainWindow::displayNodeInfo);
-	connect(scene, &myQGraphicsScene::MousePressedOnStationNode, this, &MainWindow::displayStationNodeInfo);
-	connect(scene, &myQGraphicsScene::MousePressedOnArc, this, &MainWindow::displayArcInfo);
-	connect(scene, &myQGraphicsScene::MousePressedOnConnection, this, &MainWindow::displayConnectionInfo);
-	connect(scene, &myQGraphicsScene::MousePressedOnSignal, this, &MainWindow::displaySignallingInfo);
-	connect(scene, &myQGraphicsScene::MousePressedOnTrain, this, &MainWindow::displayTrainInfo);
-	connect(scene, &myQGraphicsScene::MousePressedOnPassenger, this, &MainWindow::displayPassengerInfo);
-	connect(scene, &myQGraphicsScene::DisableHighlight, this, &MainWindow::handleDisableHighlight);
+	connect(scene, &NetworkScene::MousePressedOnNode, this, &MainWindow::displayNodeInfo);
+	connect(scene, &NetworkScene::MousePressedOnStationNode, this, &MainWindow::displayStationNodeInfo);
+	connect(scene, &NetworkScene::MousePressedOnArc, this, &MainWindow::displayArcInfo);
+	connect(scene, &NetworkScene::MousePressedOnConnection, this, &MainWindow::displayConnectionInfo);
+	connect(scene, &NetworkScene::MousePressedOnSignal, this, &MainWindow::displaySignallingInfo);
+	connect(scene, &NetworkScene::MousePressedOnTrain, this, &MainWindow::displayTrainInfo);
+	connect(scene, &NetworkScene::MousePressedOnPassenger, this, &MainWindow::displayPassengerInfo);
+	connect(scene, &NetworkScene::DisableHighlight, this, &MainWindow::handleDisableHighlight);
 
 	// connect signals from EGTRAIN simulation
 	connect(&simulation, &EGTRAIN::iterationFinished, this, &MainWindow::waitForUpdates);
@@ -3519,7 +3519,7 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(coord);
 
-	myQGraphicsEllipseItem* el = new myQGraphicsEllipseItem(rect);
+	NodeItem* el = new NodeItem(rect);
 	el->setPen(pen);
 	el->setBrush(Qt::lightGray);
 
@@ -3543,7 +3543,7 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(coord);
 
-	myQGraphicsRectItem* el = new myQGraphicsRectItem(rect);
+	StationNodeItem* el = new StationNodeItem(rect);
 	el->setPen(pen);
 	el->setBrush(visual.fill);
 
@@ -3557,7 +3557,7 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 
 // draws a station icon above the track
 void MainWindow::paintStationIcon(QPointF coord, int size) {
-	myQGraphicsPixmapItem* item = new myQGraphicsPixmapItem(station_pixmap.scaled(QSize(size, size), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	IconItem* item = new IconItem(station_pixmap.scaled(QSize(size, size), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	scene->addItem(item);
 
 	item->setPos(coord.x() - (size / 2), coord.y() - (size / 2));
@@ -3615,7 +3615,7 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 
 	rect.moveCenter(coord);
 
-	auto* platformItem = new platformQGraphicsRectItem(rect);
+	auto* platformItem = new PlatformItem(rect);
 	platformItem->setPen(pen);
 	platformItem->setBrush(Qt::white);
 
@@ -3664,9 +3664,9 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 }
 
 // paint train passenger info on top of train
-void MainWindow::paintTrainPassengerInfo(trainQGraphicsItemGroup* trainItem) {
+void MainWindow::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	// train head graphical coordinates
-	trainQGraphicsPolygonItem* headPolygon = trainItem->trainPolygonItemList->at(0);
+	TrainBodyItem* headPolygon = trainItem->trainPolygonItemList->at(0);
 	QPointF frontUp = headPolygon->polygon().first();
 	QPointF frontDown = headPolygon->polygon().last();
 
@@ -3731,7 +3731,7 @@ void MainWindow::paintTrainPassengerInfo(trainQGraphicsItemGroup* trainItem) {
 }
 
 // paint passenger info on top of passenger icon
-void MainWindow::paintPassengerInfoIcon(passengerQGraphicsPixmapItem* paxItem) {
+void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	// create line from icon to message
 	QPointF start = QPointF(paxItem->sceneBoundingRect().center().x(), paxItem->sceneBoundingRect().top());
 	qreal dx = 0;
@@ -3859,7 +3859,7 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 	pen.setCosmetic(true);
 
 	// draws a line from start to end with a given line width
-	myQGraphicsLineItem* line = new myQGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
+	TrackLineItem* line = new TrackLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(pen);
 
 	// add track and Arc pointer to line item
@@ -3884,7 +3884,7 @@ void MainWindow::virtualArcDrawing(QPointF start, QPointF middle, QPointF end, i
 	pen.setCosmetic(true);
 
 	// draws a line from start to end with a given line width
-	virtualArcQGraphicsLineItem* line = new virtualArcQGraphicsLineItem(QLineF(start.x(), start.y(), middle.x(), middle.y()), QLineF(middle.x(), middle.y(), end.x(), end.y()));
+	VirtualArcItem* line = new VirtualArcItem(QLineF(start.x(), start.y(), middle.x(), middle.y()), QLineF(middle.x(), middle.y(), end.x(), end.y()));
 	line->setPen(pen);
 
 	// add track and Arc pointer to line item
@@ -3905,7 +3905,7 @@ void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Conn
 	pen.setCosmetic(true);
 
 	// draws a line from start to end with a given line width
-	connectionQGraphicsLineItem* line = new connectionQGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
+	ConnectionItem* line = new ConnectionItem(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(pen);
 
 	// add connection pointer to line item
@@ -3971,7 +3971,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	plateCenterY = postEndY;
 	rect.moveCenter(QPoint(plateCenterX, plateCenterY));
 
-	signallingQGraphicsEllipseItem* plate1 = new signallingQGraphicsEllipseItem(rect);
+	SignalItem* plate1 = new SignalItem(rect);
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
 
@@ -4016,7 +4016,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	plateCenterY = postEndY;
 	rect.moveCenter(QPoint(plateCenterX, plateCenterY));
 
-	signallingQGraphicsEllipseItem* plate2 = new signallingQGraphicsEllipseItem(rect);
+	SignalItem* plate2 = new SignalItem(rect);
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
 
@@ -4066,10 +4066,10 @@ void MainWindow::paintTrain(int trainIndex, int t, int size, int pen_width, Trai
 	pen.setWidthF(3);
 
 	// create train polygon item list
-	QList<trainQGraphicsPolygonItem*>* trainPolygonItemList = new QList<trainQGraphicsPolygonItem*>();
+	QList<TrainBodyItem*>* trainPolygonItemList = new QList<TrainBodyItem*>();
 
 	// create group of polygons
-	trainQGraphicsItemGroup* trainPolygonGroup = new trainQGraphicsItemGroup();
+	TrainItemGroup* trainPolygonGroup = new TrainItemGroup();
 
 	// get polygon for each wagon
 	for (int wagon = 0; wagon <= train->number_of_wagons; wagon++) { // using <= because train.number_of_wagons excludes loco/first wagon
@@ -4077,7 +4077,7 @@ void MainWindow::paintTrain(int trainIndex, int t, int size, int pen_width, Trai
 		getTrainPolygon(trainPolygon, wagon, t, trainIndex);
 
 		// train graphical item
-		trainQGraphicsPolygonItem* trainItem = new trainQGraphicsPolygonItem(*trainPolygon);
+		TrainBodyItem* trainItem = new TrainBodyItem(*trainPolygon);
 		trainItem->setPen(pen);
 		trainItem->setBrush(visual.fill);
 		trainItem->setOpacity(1);
@@ -4250,7 +4250,7 @@ void MainWindow::setupInfoDockWidget() {
 	infoWidget->setLayout(infoWidgetMainLayout);
 
 	// dock widget
-	infoDockWidget = new infoQDockWidget("Simulation Info");
+	infoDockWidget = new InfoDockWidget("Simulation Info");
 	infoDockWidget->setWidget(infoWidget);
 	infoDockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, infoDockWidget);
@@ -4294,7 +4294,7 @@ void MainWindow::handleCloseInfoDockWidget() {
 }
 
 // shows Node info on dock widget
-void MainWindow::displayNodeInfo(myQGraphicsEllipseItem* el) {
+void MainWindow::displayNodeInfo(NodeItem* el) {
 	// update Node info displayed on widget
 	nodeIDText->setText(QString::fromStdString(to_string_precision(el->Node->ID, 0)));
 	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * el->Node->X, 2))); // km to m
@@ -4316,13 +4316,13 @@ void MainWindow::displayNodeInfo(myQGraphicsEllipseItem* el) {
 
 	// effect on clicked item
 	if (!effect) {
-		effect = new myQGraphicsColorizeEffect(Qt::blue, 1);
+		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	el->setGraphicsEffect(effect);
 }
 
 // shows station Node info on dock widget
-void MainWindow::displayStationNodeInfo(myQGraphicsRectItem* re) {
+void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 	// update Node info displayed on widget
 	nodeIDText->setText(QString::fromStdString(to_string_precision(re->Node->ID, 0)));
 	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * re->Node->X, 2))); // km to m
@@ -4344,13 +4344,13 @@ void MainWindow::displayStationNodeInfo(myQGraphicsRectItem* re) {
 
 	// effect on clicked item
 	if (!effect) {
-		effect = new myQGraphicsColorizeEffect(Qt::blue, 1);
+		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	re->setGraphicsEffect(effect);
 }
 
 // shows Arc info on dock widget
-void MainWindow::displayArcInfo(myQGraphicsLineItem* line) {
+void MainWindow::displayArcInfo(TrackLineItem* line) {
 	// update Arc info displayed on widget
 	arcIDText->setText(QString::fromStdString(to_string_precision(line->Arc->ID, 0)));
 	arcFirstNodeIDText->setText(QString::fromStdString(to_string_precision(line->Arc->startNode.ID, 0)));
@@ -4376,13 +4376,13 @@ void MainWindow::displayArcInfo(myQGraphicsLineItem* line) {
 
 	// effect on clicked item
 	if (!effect) {
-		effect = new myQGraphicsColorizeEffect(Qt::blue, 1);
+		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	line->setGraphicsEffect(effect);
 }
 
 // shows connection info on dock widget
-void MainWindow::displayConnectionInfo(connectionQGraphicsLineItem* line) {
+void MainWindow::displayConnectionInfo(ConnectionItem* line) {
 	// update connection info displayed on widget
 	connectionFirstTrackIDText->setText(QString::fromStdString(to_string_precision(line->connection->idFirstTrackLine, 0)));
 	connectionSecondTrackIDText->setText(QString::fromStdString(to_string_precision(line->connection->idSecondTrackLine, 0)));
@@ -4404,13 +4404,13 @@ void MainWindow::displayConnectionInfo(connectionQGraphicsLineItem* line) {
 
 	// effect on clicked item
 	if (!effect) {
-		effect = new myQGraphicsColorizeEffect(Qt::blue, 1);
+		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	line->setGraphicsEffect(effect);
 }
 
 // shows signalling info on dock widget
-void MainWindow::displaySignallingInfo(signallingQGraphicsEllipseItem* signal) {
+void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	// update signalling info displayed on widget
 	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
 	signallingXText->setText(QString::fromStdString(to_string_precision(1000 * signal->X, 2))); // km to m
@@ -4439,13 +4439,13 @@ void MainWindow::displaySignallingInfo(signallingQGraphicsEllipseItem* signal) {
 
 	// effect on clicked item
 	if (!effect) {
-		effect = new myQGraphicsColorizeEffect(Qt::blue, 1);
+		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	signal->setGraphicsEffect(effect);
 }
 
 // shows train info on dock widget
-void MainWindow::displayTrainInfo(trainQGraphicsPolygonItem* trainItem) {
+void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
 	// update train info displayed on widget
 	trainIDText->setText(QString::fromStdString(to_string_precision(trainItem->train->ID, 0)));
 	trainTypeText->setText(QString::fromStdString(trainItem->train->type));
@@ -4462,7 +4462,7 @@ void MainWindow::displayTrainInfo(trainQGraphicsPolygonItem* trainItem) {
 
 	// show pax info
 	if (initial_variables.PAX_GUI) {
-		trainQGraphicsItemGroup* groupItem = qgraphicsitem_cast<trainQGraphicsItemGroup*>(trainItem->parentItem());
+		TrainItemGroup* groupItem = qgraphicsitem_cast<TrainItemGroup*>(trainItem->parentItem());
 		if (groupItem) {
 			paintTrainPassengerInfo(groupItem);
 		}
@@ -4475,7 +4475,7 @@ void MainWindow::displayTrainInfo(trainQGraphicsPolygonItem* trainItem) {
 
 	// effect on clicked item
 	if (!effect) {
-		effect = new myQGraphicsColorizeEffect(Qt::blue, 1);
+		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	if (trainItem->parentItem()) {
 		trainItem->parentItem()->setGraphicsEffect(effect);
@@ -4483,7 +4483,7 @@ void MainWindow::displayTrainInfo(trainQGraphicsPolygonItem* trainItem) {
 }
 
 // show text icon on top of passenger icon
-void MainWindow::displayPassengerInfo(passengerQGraphicsPixmapItem* paxItem) {
+void MainWindow::displayPassengerInfo(PassengerItem* paxItem) {
 	// hide other widgets
 	infoDockWidget->hide();
 	arcInfoWidget->hide();
@@ -4897,7 +4897,7 @@ void MainWindow::updatePlatforms(int t) {
 			for (auto const& paxOnPlatform : Extended_Current_List_Pax_On_Platform) {
 				std::string paxID = paxOnPlatform.first;
 				int iconSize = station_size / 10;
-				auto* item = new passengerQGraphicsPixmapItem(pax_pixmap_scaled);
+				auto* item = new PassengerItem(pax_pixmap_scaled);
 				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
 				item->setTransformationMode(Qt::SmoothTransformation);
 
@@ -4966,7 +4966,7 @@ void MainWindow::removePaxInfoIcon() {
 }
 
 void MainWindow::updateBlockOccupationStatus(Regional regional_train) {
-	myQGraphicsLineItem* track;
+	TrackLineItem* track;
 	// std::cout << regional_train.Bs.arcs_in_signalling_block_section[0].endNode.X << " " << regional_train.trainDescription << "\n";
 
 	// for (int i = 0; i < allArcs.size(); i++) {
@@ -4979,7 +4979,7 @@ void MainWindow::updateBlockOccupationStatus(Regional regional_train) {
 			if ((track->Arc->startNode.X == regional_train.Bs.arcs_in_signalling_block_section[j].startNode.X) && (track->track == regional_train.Bs.trackLineId)) {
 				// std::cout << regional_train.Bs.arcs_in_signalling_block_section[j].endNode.X << " " << regional_train.trainDescription << "\n";
 				//  effect on clicked item
-				effect = new myQGraphicsColorizeEffect(Qt::red, 1);
+				effect = new HighlightEffect(Qt::red, 1);
 				track->setGraphicsEffect(effect);
 			}
 		}
@@ -4987,14 +4987,14 @@ void MainWindow::updateBlockOccupationStatus(Regional regional_train) {
 }
 
 void MainWindow::releaseBlockOccupationStatus() {
-	myQGraphicsLineItem* track;
+	TrackLineItem* track;
 	// std::cout << regional_train.Bs.arcs_in_signalling_block_section[0].endNode.X << " " << regional_train.trainDescription << "\n";
 
 	// for (int i = 0; i < allArcs.size(); i++) {
 	//	track = allArcs.at(i);
 	for (int i = 0; i < allArcs.size(); i++) {
 		track = allArcs.at(i);
-		effect = new myQGraphicsColorizeEffect(Qt::white, 1);
+		effect = new HighlightEffect(Qt::white, 1);
 		track->setGraphicsEffect(effect);
 	}
 }
@@ -5022,7 +5022,7 @@ void MainWindow::updateTrainPosition(int t) {
 	releaseBlockOccupationStatus(); //
 	for (int train = 0; train < numRegions; train++) {
 		// check if train item exists
-		trainQGraphicsItemGroup* trainItem = nullptr;
+		TrainItemGroup* trainItem = nullptr;
 		for (auto it = allTrains.begin(); it != allTrains.end(); ++it) {
 			if ((*it)->index == train) {
 				trainItem = *it;
@@ -5118,7 +5118,7 @@ void MainWindow::updateTrainPosition(int t) {
 }
 
 // returns the full train shape (list of polygons)
-void MainWindow::getTrainPolygonItemList(QList<trainQGraphicsPolygonItem*>* trainPolygonItemList, int t, int train) {
+void MainWindow::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, int t, int train) {
 	// get the polygon of each wagon
 	for (int wagon = 0; wagon <= regional_train[train].number_of_wagons; wagon++) { // using <= because train.number_of_wagons excludes loco/first wagon
 		QPolygonF trainPolygon;
@@ -5670,7 +5670,7 @@ void MainWindow::askForTrainPathDiagram() {
 }
 
 // manage VCoupling notifications
-void MainWindow::checkVCouplingMsg(trainQGraphicsItemGroup* trainItem, int train, int t) {
+void MainWindow::checkVCouplingMsg(TrainItemGroup* trainItem, int train, int t) {
 	//// hide signals
 	// if (t == 101) {
 	//	for (int i = 0; i < allSignals.size(); i++) {
@@ -5757,9 +5757,9 @@ void MainWindow::checkVCouplingMsg(trainQGraphicsItemGroup* trainItem, int train
 }
 
 // paint VCoupling notification
-void MainWindow::paintVCouplingMsg(trainQGraphicsItemGroup* trainItem, string message, int t, int msgIndex) {
+void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, string message, int t, int msgIndex) {
 	// train head graphical coordinates
-	trainQGraphicsPolygonItem* headPolygon = trainItem->trainPolygonItemList->at(0);
+	TrainBodyItem* headPolygon = trainItem->trainPolygonItemList->at(0);
 	QPointF frontUp = headPolygon->polygon().first();
 	QPointF frontDown = headPolygon->polygon().last();
 
@@ -5841,7 +5841,7 @@ void MainWindow::hideUnusedTracks() {
 	// hide items from unused tracks
 	for (auto& item : scene->items()) {
 		// filter nodes
-		myQGraphicsEllipseItem* Node = qgraphicsitem_cast<myQGraphicsEllipseItem*>(item);
+		NodeItem* Node = qgraphicsitem_cast<NodeItem*>(item);
 
 		if (Node) {
 			auto it = std::find(unusedTracks.begin(), unusedTracks.end(), Node->track);
@@ -5851,7 +5851,7 @@ void MainWindow::hideUnusedTracks() {
 		}
 
 		// filter station nodes
-		myQGraphicsRectItem* stationNode = qgraphicsitem_cast<myQGraphicsRectItem*>(item);
+		StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item);
 
 		if (stationNode) {
 			auto it = std::find(unusedTracks.begin(), unusedTracks.end(), stationNode->track);
@@ -5861,7 +5861,7 @@ void MainWindow::hideUnusedTracks() {
 		}
 
 		// filter arcs (Arc line items)
-		myQGraphicsLineItem* Arc = qgraphicsitem_cast<myQGraphicsLineItem*>(item);
+		TrackLineItem* Arc = qgraphicsitem_cast<TrackLineItem*>(item);
 
 		if (Arc) {
 			auto it = std::find(unusedTracks.begin(), unusedTracks.end(), Arc->track);
@@ -5871,7 +5871,7 @@ void MainWindow::hideUnusedTracks() {
 		}
 
 		// filter connections (connection line items)
-		connectionQGraphicsLineItem* connection = qgraphicsitem_cast<connectionQGraphicsLineItem*>(item);
+		ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item);
 
 		if (connection) {
 			auto itFirst = std::find(unusedTracks.begin(), unusedTracks.end(), connection->connection->idFirstTrackLine);
@@ -5882,7 +5882,7 @@ void MainWindow::hideUnusedTracks() {
 		}
 
 		// filter signals (signalling group items)
-		signallingQGraphicsEllipseItem* signal = qgraphicsitem_cast<signallingQGraphicsEllipseItem*>(item);
+		SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item);
 
 		if (signal) {
 			if (signal->sectionAhead) {

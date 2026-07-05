@@ -63,36 +63,36 @@ find_package(nlohmann_json REQUIRED)
 # --- Sources (mirrors QEGTRAIN.vcxproj ClCompile items) ---
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Capacity.cpp
-    ${SRC_DIR}/graphics/items/connectionQGraphicsLineItem.cpp
+    ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
     ${SRC_DIR}/simulation/dispDecision.cpp
     ${SRC_DIR}/app/EGTRAIN.cpp
     ${SRC_DIR}/io/geocoding.cpp
-    ${SRC_DIR}/widgets/infoQDockWidget.cpp
+    ${SRC_DIR}/widgets/InfoDockWidget.cpp
     ${SRC_DIR}/simulation/Infrastructure.cpp
     ${SRC_DIR}/simulation/initialParameters.cpp
     ${SRC_DIR}/io/IOClass.cpp
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/mainwindow.cpp
-    ${SRC_DIR}/graphics/items/myQGraphicsColorizeEffect.cpp
-    ${SRC_DIR}/graphics/items/myQGraphicsEllipseItem.cpp
-    ${SRC_DIR}/graphics/items/myQGraphicsItem.cpp
-    ${SRC_DIR}/graphics/items/myQGraphicsLineItem.cpp
-    ${SRC_DIR}/graphics/items/myQGraphicsPixmapItem.cpp
-    ${SRC_DIR}/graphics/items/myQGraphicsRectItem.cpp
-    ${SRC_DIR}/graphics/myQGraphicsScene.cpp
-    ${SRC_DIR}/graphics/myQGraphicsView.cpp
+    ${SRC_DIR}/graphics/items/HighlightEffect.cpp
+    ${SRC_DIR}/graphics/items/NodeItem.cpp
+    ${SRC_DIR}/graphics/items/BaseNetworkItem.cpp
+    ${SRC_DIR}/graphics/items/TrackLineItem.cpp
+    ${SRC_DIR}/graphics/items/IconItem.cpp
+    ${SRC_DIR}/graphics/items/StationNodeItem.cpp
+    ${SRC_DIR}/graphics/NetworkScene.cpp
+    ${SRC_DIR}/graphics/NetworkView.cpp
     ${SRC_DIR}/simulation/NumberGenerator.cpp
     ${SRC_DIR}/simulation/Optimisation.cpp
     ${SRC_DIR}/util/Owl.cpp
-    ${SRC_DIR}/graphics/items/passengerQGraphicsPixmapItem.cpp
+    ${SRC_DIR}/graphics/items/PassengerItem.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
-    ${SRC_DIR}/graphics/items/platformQGraphicsItem.cpp
+    ${SRC_DIR}/graphics/items/PlatformItem.cpp
     ${SRC_DIR}/io/third_party/pugixml.cpp
     ${SRC_DIR}/simulation/Rescheduling.cpp
     ${SRC_DIR}/simulation/RollingStock.cpp
     ${SRC_DIR}/simulation/Signalling.cpp
-    ${SRC_DIR}/graphics/items/signallingQGraphicsEllipseItem.cpp
+    ${SRC_DIR}/graphics/items/SignalItem.cpp
     ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp
     ${SRC_DIR}/util/TimeFormat.cpp
@@ -102,10 +102,10 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
 	${SRC_DIR}/scene/SceneWriter.cpp
-	${SRC_DIR}/widgets/timeQProgressBar.cpp
-    ${SRC_DIR}/graphics/items/trainQGraphicsItemGroup.cpp
-    ${SRC_DIR}/graphics/items/trainQGraphicsPolygonItem.cpp
-    ${SRC_DIR}/graphics/items/virtualArcQGraphicsLineItem.cpp
+	${SRC_DIR}/widgets/TimeProgressBar.cpp
+    ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
+    ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
+    ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
     ${SRC_DIR}/widgets/Widget.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
@@ -117,35 +117,35 @@ set(EGTRAIN_SOURCES
 
 set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Capacity.h
-    ${SRC_DIR}/graphics/items/connectionQGraphicsLineItem.h
+    ${SRC_DIR}/graphics/items/ConnectionItem.h
     ${SRC_DIR}/widgets/ConsoleWidget.h
     ${SRC_DIR}/simulation/dispDecision.h
     ${SRC_DIR}/app/EGTRAIN.h
     ${SRC_DIR}/io/geocoding.h
-    ${SRC_DIR}/widgets/infoQDockWidget.h
+    ${SRC_DIR}/widgets/InfoDockWidget.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/initialParameters.h
     ${SRC_DIR}/io/IOClass.h
     ${SRC_DIR}/app/mainwindow.h
-    ${SRC_DIR}/graphics/items/myQGraphicsColorizeEffect.h
-    ${SRC_DIR}/graphics/items/myQGraphicsEllipseItem.h
-    ${SRC_DIR}/graphics/items/myQGraphicsItem.h
-    ${SRC_DIR}/graphics/items/myQGraphicsLineItem.h
-    ${SRC_DIR}/graphics/items/myQGraphicsPixmapItem.h
-    ${SRC_DIR}/graphics/items/myQGraphicsRectItem.h
-    ${SRC_DIR}/graphics/myQGraphicsScene.h
-    ${SRC_DIR}/graphics/myQGraphicsView.h
+    ${SRC_DIR}/graphics/items/HighlightEffect.h
+    ${SRC_DIR}/graphics/items/NodeItem.h
+    ${SRC_DIR}/graphics/items/BaseNetworkItem.h
+    ${SRC_DIR}/graphics/items/TrackLineItem.h
+    ${SRC_DIR}/graphics/items/IconItem.h
+    ${SRC_DIR}/graphics/items/StationNodeItem.h
+    ${SRC_DIR}/graphics/NetworkScene.h
+    ${SRC_DIR}/graphics/NetworkView.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Owl.hpp
-    ${SRC_DIR}/graphics/items/passengerQGraphicsPixmapItem.h
+    ${SRC_DIR}/graphics/items/PassengerItem.h
     ${SRC_DIR}/simulation/Passengers.h
-    ${SRC_DIR}/graphics/items/platformQGraphicsRectItem.h
+    ${SRC_DIR}/graphics/items/PlatformItem.h
     ${SRC_DIR}/util/portability.h
     ${SRC_DIR}/simulation/Rescheduling.h
     ${SRC_DIR}/simulation/RollingStock.h
     ${SRC_DIR}/simulation/Signalling.h
-    ${SRC_DIR}/graphics/items/signallingQGraphicsEllipseItem.h
+    ${SRC_DIR}/graphics/items/SignalItem.h
     ${SRC_DIR}/simulation/Simulation.h
     ${SRC_DIR}/simulation/SimulationWorker.h
     ${SRC_DIR}/util/TimeFormat.h
@@ -155,12 +155,12 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/scene/SceneValidator.h
 	${SRC_DIR}/scene/SceneImporter.h
 	${SRC_DIR}/scene/SceneWriter.h
-	${SRC_DIR}/widgets/timeQProgressBar.h
+	${SRC_DIR}/widgets/TimeProgressBar.h
     ${SRC_DIR}/util/timeutil.hpp
-    ${SRC_DIR}/graphics/items/trainQGraphicsItemGroup.h
-    ${SRC_DIR}/graphics/items/trainQGraphicsPolygonItem.h
+    ${SRC_DIR}/graphics/items/TrainItemGroup.h
+    ${SRC_DIR}/graphics/items/TrainBodyItem.h
     ${SRC_DIR}/util/Util.hpp
-    ${SRC_DIR}/graphics/items/virtualArcQGraphicsLineItem.h
+    ${SRC_DIR}/graphics/items/VirtualArcItem.h
     ${SRC_DIR}/widgets/Widget.h
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
