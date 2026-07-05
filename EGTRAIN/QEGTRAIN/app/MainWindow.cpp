@@ -3525,7 +3525,7 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 
 	// add track and Node pointer to ellipse item
 	el->track = track;
-	el->Node = Node;
+	el->node = Node;
 
 	// add Node to scene
 	scene->addItem(el);
@@ -3549,7 +3549,7 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 
 	// add track and Node pointer to rect item
 	el->track = track;
-	el->Node = Node;
+	el->node = Node;
 
 	// add station Node to scene
 	scene->addItem(el);
@@ -3864,7 +3864,7 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 
 	// add track and Arc pointer to line item
 	line->track = track;
-	line->Arc = Arc;
+	line->arc = Arc;
 
 	// RIGOS
 	allArcs.push_back(line);
@@ -3889,7 +3889,7 @@ void MainWindow::virtualArcDrawing(QPointF start, QPointF middle, QPointF end, i
 
 	// add track and Arc pointer to line item
 	line->track = track;
-	line->Arc = Arc;
+	line->arc = Arc;
 
 	// add item to scene
 	scene->addItem(line);
@@ -4296,9 +4296,9 @@ void MainWindow::handleCloseInfoDockWidget() {
 // shows Node info on dock widget
 void MainWindow::displayNodeInfo(NodeItem* el) {
 	// update Node info displayed on widget
-	nodeIDText->setText(QString::fromStdString(to_string_precision(el->Node->ID, 0)));
-	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * el->Node->X, 2))); // km to m
-	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * el->Node->Y, 2))); // km to m
+	nodeIDText->setText(QString::fromStdString(to_string_precision(el->node->ID, 0)));
+	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * el->node->X, 2))); // km to m
+	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * el->node->Y, 2))); // km to m
 	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(el->track, 0)));
 
 	// hide other widgets
@@ -4324,9 +4324,9 @@ void MainWindow::displayNodeInfo(NodeItem* el) {
 // shows station Node info on dock widget
 void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 	// update Node info displayed on widget
-	nodeIDText->setText(QString::fromStdString(to_string_precision(re->Node->ID, 0)));
-	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * re->Node->X, 2))); // km to m
-	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * re->Node->Y, 2))); // km to m
+	nodeIDText->setText(QString::fromStdString(to_string_precision(re->node->ID, 0)));
+	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * re->node->X, 2))); // km to m
+	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * re->node->Y, 2))); // km to m
 	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(re->track, 0)));
 
 	// hide other widgets
@@ -4352,14 +4352,14 @@ void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 // shows Arc info on dock widget
 void MainWindow::displayArcInfo(TrackLineItem* line) {
 	// update Arc info displayed on widget
-	arcIDText->setText(QString::fromStdString(to_string_precision(line->Arc->ID, 0)));
-	arcFirstNodeIDText->setText(QString::fromStdString(to_string_precision(line->Arc->startNode.ID, 0)));
-	arcSecondNodeIDText->setText(QString::fromStdString(to_string_precision(line->Arc->endNode.ID, 0)));
+	arcIDText->setText(QString::fromStdString(to_string_precision(line->arc->ID, 0)));
+	arcFirstNodeIDText->setText(QString::fromStdString(to_string_precision(line->arc->startNode.ID, 0)));
+	arcSecondNodeIDText->setText(QString::fromStdString(to_string_precision(line->arc->endNode.ID, 0)));
 	arcTrackIDText->setText(QString::fromStdString(to_string_precision(line->track, 0)));
-	arcLengthText->setText(QString::fromStdString(to_string_precision(line->Arc->length, 2)));
-	arcCurvatureText->setText(QString::fromStdString(to_string_precision(line->Arc->curvature, 2)));
-	arcGradientText->setText(QString::fromStdString(to_string_precision(line->Arc->gradient, 3)));
-	arcSpeedLimitText->setText(QString::fromStdString(to_string_precision(line->Arc->speedLimit, 2)));
+	arcLengthText->setText(QString::fromStdString(to_string_precision(line->arc->length, 2)));
+	arcCurvatureText->setText(QString::fromStdString(to_string_precision(line->arc->curvature, 2)));
+	arcGradientText->setText(QString::fromStdString(to_string_precision(line->arc->gradient, 3)));
+	arcSpeedLimitText->setText(QString::fromStdString(to_string_precision(line->arc->speedLimit, 2)));
 
 	// hide other widgets
 	nodeInfoWidget->hide();
@@ -4976,7 +4976,7 @@ void MainWindow::updateBlockOccupationStatus(Regional regional_train) {
 
 			track = allArcs.at(i);
 
-			if ((track->Arc->startNode.X == regional_train.Bs.arcs_in_signalling_block_section[j].startNode.X) && (track->track == regional_train.Bs.trackLineId)) {
+			if ((track->arc->startNode.X == regional_train.Bs.arcs_in_signalling_block_section[j].startNode.X) && (track->track == regional_train.Bs.trackLineId)) {
 				// std::cout << regional_train.Bs.arcs_in_signalling_block_section[j].endNode.X << " " << regional_train.trainDescription << "\n";
 				//  effect on clicked item
 				effect = new HighlightEffect(Qt::red, 1);
