@@ -5800,17 +5800,65 @@ void saveSignalAspectChanges(int t, std::string FolderName) {
 	}
 }
 
-/*TDS::TDS(std::string ID, std::string blocksection_ID, double length)
-{
-	// <summary>
-	// Constructor of a TDS
-	// </summary>
-	// <param name="ID">unique Id of the TDS</param>
-	// <param name="blocksection_ID">the blosckection where this TDS belongs to</param>
-	// <param name="length">length of TDS in m</param>
-	this->ID = ID;
-	this->blocksection_ID = blocksection_ID;
-	this->length = length;
-	std::cout << "Created TDS with ID: " << ID << "of Blocksection" << blocksection_ID << "and lenght" << length<<'\n';
+std::vector<SimulationIncident> simulationIncidents;
+
+void Load_Incidents(const std::string& MainFolder) {
+	std::string filePath = MainFolder + "/Incidents.txt";
+	std::ifstream file(filePath);
+	if (!file.is_open()) {
+		return; // Silent if no incidents file
+	}
+
+	std::string line;
+	int lineNo = 0;
+	while (std::getline(file, line)) {
+		++lineNo;
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+		if (line.empty())
+			continue;
+
+		// The file is tab separated and a target (a station or signal name) may
+		// contain spaces, so split on tabs rather than on any whitespace.
+		std::istringstream iss(line);
+		SimulationIncident inc;
+		std::string startField, endField;
+		if (!std::getline(iss, inc.type, '\t') || !std::getline(iss, inc.target, '\t') ||
+			!std::getline(iss, startField, '\t') || !std::getline(iss, endField)) {
+			std::cout << "Warning: malformed incident line " << lineNo << " skipped.\n";
+			continue;
+		}
+		try {
+			inc.startSeconds = std::stod(startField);
+			inc.endSeconds = std::stod(endField);
+		} catch (const std::exception&) {
+			std::cout << "Warning: malformed incident line " << lineNo << " skipped.\n";
+			continue;
+		}
+
+		if (inc.type == "signal_failure") {
+			std::string targetToken = "@" + inc.target + "@";
+			bool resolved = false;
+			for (int b = 0; b < Blocks; ++b) {
+				if (::signalling_block_sections[b].ID.find(targetToken) != std::string::npos) {
+					inc.resolvedSectionIDs.push_back(::signalling_block_sections[b].ID);
+					resolved = true;
+				}
+			}
+			if (!resolved) {
+				std::cout << "Warning: signal_failure incident target " << inc.target << " matches no section.\n";
+			}
+		}
+		simulationIncidents.push_back(inc);
+	}
 }
-*/
+
+bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
+	for (const auto& inc : simulationIncidents) {
+		// trainDescription is "<service>-<n>", so a service target holds every repeat
+		if (inc.type == "train_breakdown" && timestepIndex >= inc.startSeconds && timestepIndex < inc.endSeconds && trainDesc.rfind(inc.target + "-", 0) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
