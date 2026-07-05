@@ -39,6 +39,14 @@ jobs:
           # @executable_path so the app runs without Homebrew.
           "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
 
+      - name: Ad-hoc code sign
+        # macdeployqt rewrites install names with install_name_tool, which
+        # invalidates the code signature. Apple Silicon kills a binary with a
+        # broken signature at load (SIGKILL), so re-sign the whole bundle
+        # ad-hoc. Students still see a Gatekeeper prompt on first open, but the
+        # app launches instead of being killed.
+        run: codesign --force --deep --sign - build/QEGTRAIN.app
+
       - name: Verify the app is self-contained
         run: |
           set -euo pipefail
@@ -60,7 +68,9 @@ jobs:
             fi
           done < <(find "$APP" -type f -name '*.dylib')
           [ "$leak" = 0 ] || exit 1
-          echo "OK: app is self-contained"
+          # The signature must be valid, or Apple Silicon kills the app at launch.
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          echo "OK: app is self-contained and signed"
 
       - name: Package zip
         run: |
