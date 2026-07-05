@@ -33,7 +33,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Current tests cover time formatting, input validation, speed formatting, trajectory accessors, blocking-time diagram data, and visual classification.
+Current tests cover time formatting, input validation, speed formatting, trajectory accessors, blocking-time diagram data, visual classification, scene validation, scene import/export, scene writing, native scene route building, and smoke output decoding.
 
 ## Simulation Smoke Test
 
@@ -41,7 +41,15 @@ Current tests cover time formatting, input validation, speed formatting, traject
 tools/e2e/headless_smoke.py
 ```
 
-The smoke test runs Copenhagen (`-n 3`) and Brescia (`-n 4`). It checks clean exit, changing train positions, valid trajectory samples, and non-empty served-station rows.
+The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen (`-n 3`), and Brescia (`-n 4`). It checks clean exit for all four cases, plus changing train positions, valid trajectory samples, and non-empty served-station rows where those assertions are enabled.
+
+## Scene Roundtrip Smoke Test
+
+```bash
+tools/e2e/roundtrip_smoke.py
+```
+
+The roundtrip smoke validates and exports all four committed scene directories, then runs the exported legacy inputs for cases 1 through 4.
 
 ## GUI Smoke Test
 
@@ -67,5 +75,7 @@ For simulation, scene model, data conversion, or memory changes:
 cmake --build build
 ctest --test-dir build --output-on-failure
 tools/e2e/headless_smoke.py
-tools/e2e/visual_polish_smoke.sh
+tools/e2e/roundtrip_smoke.py
 ```
+
+For scene-format changes, also validate and export all four scene directories with `build/scene_tool`. For UI or rendering changes, also run `tools/e2e/visual_polish_smoke.sh`.

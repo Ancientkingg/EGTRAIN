@@ -20,14 +20,29 @@ ASSERT_MOVEMENT = {2, 3, 4}
 ASSERT_STATION_ARRIVALS = {2, 3, 4}
 
 
-def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
+def run_command(args, cwd=None, input=None, timeout=None):
+    input_bytes = input.encode("utf-8") if isinstance(input, str) else input
     proc = subprocess.run(
+        args,
+        cwd=cwd,
+        input=input_bytes,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=timeout,
+    )
+    return subprocess.CompletedProcess(
+        proc.args,
+        proc.returncode,
+        proc.stdout.decode("utf-8", errors="replace"),
+        proc.stderr,
+    )
+
+
+def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
+    proc = run_command(
         [str(APP), "-n", str(case_id)],
         cwd=cwd,
         input=PROMPTS,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
         # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
         # five minutes, so keep this well above the real worst case.
         timeout=600,
