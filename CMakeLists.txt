@@ -31,6 +31,9 @@ check_ipo_supported(RESULT EGTRAIN_IPO_SUPPORTED OUTPUT EGTRAIN_IPO_ERROR)
 # Sources are in the QEGTRAIN subdirectory
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN)
 
+# Path-qualified includes (e.g. graphics/items/NodeItem.h) resolve against SRC_DIR
+include_directories(${SRC_DIR})
+
 # --- Dependencies ---
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts)
 
@@ -59,121 +62,121 @@ find_package(nlohmann_json REQUIRED)
 
 # --- Sources (mirrors QEGTRAIN.vcxproj ClCompile items) ---
 set(EGTRAIN_SOURCES
-    ${SRC_DIR}/Capacity.cpp
-    ${SRC_DIR}/connectionQGraphicsLineItem.cpp
-    ${SRC_DIR}/ConsoleWidget.cpp
-    ${SRC_DIR}/dispDecision.cpp
-    ${SRC_DIR}/EGTRAIN.cpp
-    ${SRC_DIR}/geocoding.cpp
-    ${SRC_DIR}/infoQDockWidget.cpp
-    ${SRC_DIR}/Infrastructure.cpp
-    ${SRC_DIR}/initialParameters.cpp
-    ${SRC_DIR}/IOClass.cpp
-    ${SRC_DIR}/main.cpp
-    ${SRC_DIR}/mainwindow.cpp
-    ${SRC_DIR}/myQGraphicsColorizeEffect.cpp
-    ${SRC_DIR}/myQGraphicsEllipseItem.cpp
-    ${SRC_DIR}/myQGraphicsItem.cpp
-    ${SRC_DIR}/myQGraphicsLineItem.cpp
-    ${SRC_DIR}/myQGraphicsPixmapItem.cpp
-    ${SRC_DIR}/myQGraphicsRectItem.cpp
-    ${SRC_DIR}/myQGraphicsScene.cpp
-    ${SRC_DIR}/myQGraphicsView.cpp
-    ${SRC_DIR}/NumberGenerator.cpp
-    ${SRC_DIR}/Optimisation.cpp
-    ${SRC_DIR}/Owl.cpp
-    ${SRC_DIR}/passengerQGraphicsPixmapItem.cpp
-    ${SRC_DIR}/Passengers.cpp
-    ${SRC_DIR}/platformQGraphicsItem.cpp
-    ${SRC_DIR}/pugixml.cpp
-    ${SRC_DIR}/Rescheduling.cpp
-    ${SRC_DIR}/RollingStock.cpp
-    ${SRC_DIR}/Signalling.cpp
-    ${SRC_DIR}/signallingQGraphicsEllipseItem.cpp
-    ${SRC_DIR}/Simulation.cpp
-    ${SRC_DIR}/SimulationWorker.cpp
-    ${SRC_DIR}/TimeFormat.cpp
-    ${SRC_DIR}/InputValidation.cpp
-	${SRC_DIR}/SceneDiagnostic.cpp
-	${SRC_DIR}/SceneModel.cpp
-	${SRC_DIR}/SceneValidator.cpp
-	${SRC_DIR}/SceneImporter.cpp
-	${SRC_DIR}/SceneWriter.cpp
-	${SRC_DIR}/timeQProgressBar.cpp
-    ${SRC_DIR}/trainQGraphicsItemGroup.cpp
-    ${SRC_DIR}/trainQGraphicsPolygonItem.cpp
-    ${SRC_DIR}/virtualArcQGraphicsLineItem.cpp
-    ${SRC_DIR}/Widget.cpp
-    ${SRC_DIR}/SpeedFormat.cpp
-    ${SRC_DIR}/DiagramWindow.cpp
-    ${SRC_DIR}/TrajectoryUtil.cpp
-    ${SRC_DIR}/BlockingTimeDiagram.cpp
-    ${SRC_DIR}/VisualPolish.cpp
-    ${SRC_DIR}/SceneExporter.cpp
+    ${SRC_DIR}/simulation/Capacity.cpp
+    ${SRC_DIR}/graphics/items/connectionQGraphicsLineItem.cpp
+    ${SRC_DIR}/widgets/ConsoleWidget.cpp
+    ${SRC_DIR}/simulation/dispDecision.cpp
+    ${SRC_DIR}/app/EGTRAIN.cpp
+    ${SRC_DIR}/io/geocoding.cpp
+    ${SRC_DIR}/widgets/infoQDockWidget.cpp
+    ${SRC_DIR}/simulation/Infrastructure.cpp
+    ${SRC_DIR}/simulation/initialParameters.cpp
+    ${SRC_DIR}/io/IOClass.cpp
+    ${SRC_DIR}/app/main.cpp
+    ${SRC_DIR}/app/mainwindow.cpp
+    ${SRC_DIR}/graphics/items/myQGraphicsColorizeEffect.cpp
+    ${SRC_DIR}/graphics/items/myQGraphicsEllipseItem.cpp
+    ${SRC_DIR}/graphics/items/myQGraphicsItem.cpp
+    ${SRC_DIR}/graphics/items/myQGraphicsLineItem.cpp
+    ${SRC_DIR}/graphics/items/myQGraphicsPixmapItem.cpp
+    ${SRC_DIR}/graphics/items/myQGraphicsRectItem.cpp
+    ${SRC_DIR}/graphics/myQGraphicsScene.cpp
+    ${SRC_DIR}/graphics/myQGraphicsView.cpp
+    ${SRC_DIR}/simulation/NumberGenerator.cpp
+    ${SRC_DIR}/simulation/Optimisation.cpp
+    ${SRC_DIR}/util/Owl.cpp
+    ${SRC_DIR}/graphics/items/passengerQGraphicsPixmapItem.cpp
+    ${SRC_DIR}/simulation/Passengers.cpp
+    ${SRC_DIR}/graphics/items/platformQGraphicsItem.cpp
+    ${SRC_DIR}/io/third_party/pugixml.cpp
+    ${SRC_DIR}/simulation/Rescheduling.cpp
+    ${SRC_DIR}/simulation/RollingStock.cpp
+    ${SRC_DIR}/simulation/Signalling.cpp
+    ${SRC_DIR}/graphics/items/signallingQGraphicsEllipseItem.cpp
+    ${SRC_DIR}/simulation/Simulation.cpp
+    ${SRC_DIR}/simulation/SimulationWorker.cpp
+    ${SRC_DIR}/util/TimeFormat.cpp
+    ${SRC_DIR}/io/InputValidation.cpp
+	${SRC_DIR}/scene/SceneDiagnostic.cpp
+	${SRC_DIR}/scene/SceneModel.cpp
+	${SRC_DIR}/scene/SceneValidator.cpp
+	${SRC_DIR}/scene/SceneImporter.cpp
+	${SRC_DIR}/scene/SceneWriter.cpp
+	${SRC_DIR}/widgets/timeQProgressBar.cpp
+    ${SRC_DIR}/graphics/items/trainQGraphicsItemGroup.cpp
+    ${SRC_DIR}/graphics/items/trainQGraphicsPolygonItem.cpp
+    ${SRC_DIR}/graphics/items/virtualArcQGraphicsLineItem.cpp
+    ${SRC_DIR}/widgets/Widget.cpp
+    ${SRC_DIR}/util/SpeedFormat.cpp
+    ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/util/TrajectoryUtil.cpp
+    ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
+    ${SRC_DIR}/graphics/VisualPolish.cpp
+    ${SRC_DIR}/scene/SceneExporter.cpp
 )
 
 set(EGTRAIN_HEADERS
-    ${SRC_DIR}/Capacity.h
-    ${SRC_DIR}/connectionQGraphicsLineItem.h
-    ${SRC_DIR}/ConsoleWidget.h
-    ${SRC_DIR}/dispDecision.h
-    ${SRC_DIR}/EGTRAIN.h
-    ${SRC_DIR}/geocoding.h
-    ${SRC_DIR}/infoQDockWidget.h
-    ${SRC_DIR}/Infrastructure.h
-    ${SRC_DIR}/initialParameters.h
-    ${SRC_DIR}/IOClass.h
-    ${SRC_DIR}/mainwindow.h
-    ${SRC_DIR}/myQGraphicsColorizeEffect.h
-    ${SRC_DIR}/myQGraphicsEllipseItem.h
-    ${SRC_DIR}/myQGraphicsItem.h
-    ${SRC_DIR}/myQGraphicsLineItem.h
-    ${SRC_DIR}/myQGraphicsPixmapItem.h
-    ${SRC_DIR}/myQGraphicsRectItem.h
-    ${SRC_DIR}/myQGraphicsScene.h
-    ${SRC_DIR}/myQGraphicsView.h
-    ${SRC_DIR}/NumberGenerator.h
-    ${SRC_DIR}/Optimisation.h
-    ${SRC_DIR}/Owl.hpp
-    ${SRC_DIR}/passengerQGraphicsPixmapItem.h
-    ${SRC_DIR}/Passengers.h
-    ${SRC_DIR}/platformQGraphicsRectItem.h
-    ${SRC_DIR}/portability.h
-    ${SRC_DIR}/Rescheduling.h
-    ${SRC_DIR}/RollingStock.h
-    ${SRC_DIR}/Signalling.h
-    ${SRC_DIR}/signallingQGraphicsEllipseItem.h
-    ${SRC_DIR}/Simulation.h
-    ${SRC_DIR}/SimulationWorker.h
-    ${SRC_DIR}/TimeFormat.h
-    ${SRC_DIR}/InputValidation.h
-    ${SRC_DIR}/SceneDiagnostic.h
-	${SRC_DIR}/SceneModel.h
-	${SRC_DIR}/SceneValidator.h
-	${SRC_DIR}/SceneImporter.h
-	${SRC_DIR}/SceneWriter.h
-	${SRC_DIR}/timeQProgressBar.h
-    ${SRC_DIR}/timeutil.hpp
-    ${SRC_DIR}/trainQGraphicsItemGroup.h
-    ${SRC_DIR}/trainQGraphicsPolygonItem.h
-    ${SRC_DIR}/Util.hpp
-    ${SRC_DIR}/virtualArcQGraphicsLineItem.h
-    ${SRC_DIR}/Widget.h
-    ${SRC_DIR}/SpeedFormat.h
-    ${SRC_DIR}/DiagramWindow.h
-    ${SRC_DIR}/TrajectoryUtil.h
-    ${SRC_DIR}/BlockingTimeDiagram.h
-    ${SRC_DIR}/VisualPolish.h
-    ${SRC_DIR}/SceneExporter.h
+    ${SRC_DIR}/simulation/Capacity.h
+    ${SRC_DIR}/graphics/items/connectionQGraphicsLineItem.h
+    ${SRC_DIR}/widgets/ConsoleWidget.h
+    ${SRC_DIR}/simulation/dispDecision.h
+    ${SRC_DIR}/app/EGTRAIN.h
+    ${SRC_DIR}/io/geocoding.h
+    ${SRC_DIR}/widgets/infoQDockWidget.h
+    ${SRC_DIR}/simulation/Infrastructure.h
+    ${SRC_DIR}/simulation/initialParameters.h
+    ${SRC_DIR}/io/IOClass.h
+    ${SRC_DIR}/app/mainwindow.h
+    ${SRC_DIR}/graphics/items/myQGraphicsColorizeEffect.h
+    ${SRC_DIR}/graphics/items/myQGraphicsEllipseItem.h
+    ${SRC_DIR}/graphics/items/myQGraphicsItem.h
+    ${SRC_DIR}/graphics/items/myQGraphicsLineItem.h
+    ${SRC_DIR}/graphics/items/myQGraphicsPixmapItem.h
+    ${SRC_DIR}/graphics/items/myQGraphicsRectItem.h
+    ${SRC_DIR}/graphics/myQGraphicsScene.h
+    ${SRC_DIR}/graphics/myQGraphicsView.h
+    ${SRC_DIR}/simulation/NumberGenerator.h
+    ${SRC_DIR}/simulation/Optimisation.h
+    ${SRC_DIR}/util/Owl.hpp
+    ${SRC_DIR}/graphics/items/passengerQGraphicsPixmapItem.h
+    ${SRC_DIR}/simulation/Passengers.h
+    ${SRC_DIR}/graphics/items/platformQGraphicsRectItem.h
+    ${SRC_DIR}/util/portability.h
+    ${SRC_DIR}/simulation/Rescheduling.h
+    ${SRC_DIR}/simulation/RollingStock.h
+    ${SRC_DIR}/simulation/Signalling.h
+    ${SRC_DIR}/graphics/items/signallingQGraphicsEllipseItem.h
+    ${SRC_DIR}/simulation/Simulation.h
+    ${SRC_DIR}/simulation/SimulationWorker.h
+    ${SRC_DIR}/util/TimeFormat.h
+    ${SRC_DIR}/io/InputValidation.h
+    ${SRC_DIR}/scene/SceneDiagnostic.h
+	${SRC_DIR}/scene/SceneModel.h
+	${SRC_DIR}/scene/SceneValidator.h
+	${SRC_DIR}/scene/SceneImporter.h
+	${SRC_DIR}/scene/SceneWriter.h
+	${SRC_DIR}/widgets/timeQProgressBar.h
+    ${SRC_DIR}/util/timeutil.hpp
+    ${SRC_DIR}/graphics/items/trainQGraphicsItemGroup.h
+    ${SRC_DIR}/graphics/items/trainQGraphicsPolygonItem.h
+    ${SRC_DIR}/util/Util.hpp
+    ${SRC_DIR}/graphics/items/virtualArcQGraphicsLineItem.h
+    ${SRC_DIR}/widgets/Widget.h
+    ${SRC_DIR}/util/SpeedFormat.h
+    ${SRC_DIR}/diagrams/DiagramWindow.h
+    ${SRC_DIR}/util/TrajectoryUtil.h
+    ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
+    ${SRC_DIR}/graphics/VisualPolish.h
+    ${SRC_DIR}/scene/SceneExporter.h
 )
 
 set(EGTRAIN_UI
-    ${SRC_DIR}/mainwindow.ui
-    ${SRC_DIR}/Widget.ui
+    ${SRC_DIR}/app/mainwindow.ui
+    ${SRC_DIR}/widgets/Widget.ui
 )
 
 set(EGTRAIN_RESOURCES
-    ${SRC_DIR}/mainwindow.qrc
+    ${SRC_DIR}/app/mainwindow.qrc
 )
 
 # --- Executable ---
@@ -259,12 +262,12 @@ if(WIN32)
 endif()
 
 add_executable(scene_tool
-	${SRC_DIR}/SceneTool.cpp
-	${SRC_DIR}/SceneDiagnostic.cpp
-	${SRC_DIR}/SceneModel.cpp
-	${SRC_DIR}/SceneValidator.cpp
-	${SRC_DIR}/SceneImporter.cpp
-	${SRC_DIR}/SceneExporter.cpp)
+	${SRC_DIR}/scene/SceneTool.cpp
+	${SRC_DIR}/scene/SceneDiagnostic.cpp
+	${SRC_DIR}/scene/SceneModel.cpp
+	${SRC_DIR}/scene/SceneValidator.cpp
+	${SRC_DIR}/scene/SceneImporter.cpp
+	${SRC_DIR}/scene/SceneExporter.cpp)
 target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json)
 
 # --- Unit tests (opt-in) ---
@@ -273,50 +276,50 @@ if(EGTRAIN_BUILD_TESTS)
     enable_testing()
     add_executable(test_timeformat
         ${SRC_DIR}/tests/test_timeformat.cpp
-        ${SRC_DIR}/TimeFormat.cpp)
+        ${SRC_DIR}/util/TimeFormat.cpp)
     add_test(NAME test_timeformat COMMAND test_timeformat)
 
     add_executable(test_inputvalidation
         ${SRC_DIR}/tests/test_inputvalidation.cpp
-        ${SRC_DIR}/InputValidation.cpp)
+        ${SRC_DIR}/io/InputValidation.cpp)
     add_test(NAME test_inputvalidation COMMAND test_inputvalidation)
 
     add_executable(test_speedformat
         ${SRC_DIR}/tests/test_speedformat.cpp
-        ${SRC_DIR}/SpeedFormat.cpp)
+        ${SRC_DIR}/util/SpeedFormat.cpp)
     add_test(NAME test_speedformat COMMAND test_speedformat)
 
     add_executable(test_trajectory
         ${SRC_DIR}/tests/test_trajectory.cpp
-        ${SRC_DIR}/TrajectoryUtil.cpp)
+        ${SRC_DIR}/util/TrajectoryUtil.cpp)
     add_test(NAME test_trajectory COMMAND test_trajectory)
 
     add_executable(test_blockingtimediagram
         ${SRC_DIR}/tests/test_blockingtimediagram.cpp
-        ${SRC_DIR}/BlockingTimeDiagram.cpp)
+        ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
     add_test(NAME test_blockingtimediagram COMMAND test_blockingtimediagram)
 
     add_executable(test_visualpolish
         ${SRC_DIR}/tests/test_visualpolish.cpp
-        ${SRC_DIR}/VisualPolish.cpp)
+        ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
     add_executable(test_scenevalidator
         ${SRC_DIR}/tests/test_scenevalidator.cpp
-        ${SRC_DIR}/SceneDiagnostic.cpp
-        ${SRC_DIR}/SceneModel.cpp
-        ${SRC_DIR}/SceneValidator.cpp)
+        ${SRC_DIR}/scene/SceneDiagnostic.cpp
+        ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SceneValidator.cpp)
     target_link_libraries(test_scenevalidator PRIVATE nlohmann_json::nlohmann_json)
     add_test(NAME test_scenevalidator
         COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
     add_executable(test_sceneimporter
         ${SRC_DIR}/tests/test_sceneimporter.cpp
-        ${SRC_DIR}/SceneDiagnostic.cpp
-        ${SRC_DIR}/SceneModel.cpp
-        ${SRC_DIR}/SceneValidator.cpp
-        ${SRC_DIR}/SceneImporter.cpp)
+        ${SRC_DIR}/scene/SceneDiagnostic.cpp
+        ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SceneValidator.cpp
+        ${SRC_DIR}/scene/SceneImporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE nlohmann_json::nlohmann_json)
 	add_test(NAME test_sceneimporter
 		COMMAND test_sceneimporter
@@ -326,20 +329,20 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_scenewriter
 		${SRC_DIR}/tests/test_scenewriter.cpp
-		${SRC_DIR}/SceneDiagnostic.cpp
-		${SRC_DIR}/SceneModel.cpp
-		${SRC_DIR}/SceneWriter.cpp)
+		${SRC_DIR}/scene/SceneDiagnostic.cpp
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SceneWriter.cpp)
 	target_link_libraries(test_scenewriter PRIVATE nlohmann_json::nlohmann_json)
 	add_test(NAME test_scenewriter
 		COMMAND test_scenewriter ${SRC_DIR}/Scenes)
 
 	add_executable(test_sceneexporter
         ${SRC_DIR}/tests/test_sceneexporter.cpp
-        ${SRC_DIR}/SceneDiagnostic.cpp
-        ${SRC_DIR}/SceneModel.cpp
-        ${SRC_DIR}/SceneValidator.cpp
-        ${SRC_DIR}/SceneImporter.cpp
-        ${SRC_DIR}/SceneExporter.cpp)
+        ${SRC_DIR}/scene/SceneDiagnostic.cpp
+        ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SceneValidator.cpp
+        ${SRC_DIR}/scene/SceneImporter.cpp
+        ${SRC_DIR}/scene/SceneExporter.cpp)
     target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json)
 	add_test(NAME test_sceneexporter
 		COMMAND test_sceneexporter
@@ -349,11 +352,11 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_scenebuilder
 		${SRC_DIR}/tests/test_scenebuilder.cpp
-		${SRC_DIR}/Infrastructure.cpp
-		${SRC_DIR}/initialParameters.cpp
-		${SRC_DIR}/NumberGenerator.cpp
-		${SRC_DIR}/Owl.cpp
-		${SRC_DIR}/Signalling.cpp)
+		${SRC_DIR}/simulation/Infrastructure.cpp
+		${SRC_DIR}/simulation/initialParameters.cpp
+		${SRC_DIR}/simulation/NumberGenerator.cpp
+		${SRC_DIR}/util/Owl.cpp
+		${SRC_DIR}/simulation/Signalling.cpp)
 	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
 	if(EGTRAIN_OPENMP_INCLUDE)
