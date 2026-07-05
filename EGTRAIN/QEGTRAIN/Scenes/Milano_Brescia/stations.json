@@ -1,0 +1,178 @@
+{
+    "stations": [
+        {
+            "id": "Segrate",
+            "name": "Segrate",
+            "platforms": [],
+            "position_km": 9.9
+        },
+        {
+            "id": "PioltelloLim.1Tr",
+            "name": "PioltelloLim.1Tr",
+            "platforms": [],
+            "position_km": 12.152
+        },
+        {
+            "id": "PioltelloLim.",
+            "name": "PioltelloLim.",
+            "platforms": [],
+            "position_km": 12.31
+        },
+        {
+            "id": "Vignate",
+            "name": "Vignate",
+            "platforms": [],
+            "position_km": 16.09
+        },
+        {
+            "id": "MelzoScalo3-5",
+            "name": "MelzoScalo3-5",
+            "platforms": [],
+            "position_km": 18.642
+        },
+        {
+            "id": "MelzoScalo",
+            "name": "MelzoScalo",
+            "platforms": [],
+            "position_km": 18.75
+        },
+        {
+            "id": "Melzo",
+            "name": "Melzo",
+            "platforms": [],
+            "position_km": 19.6
+        },
+        {
+            "id": "PozzuoloMartesana",
+            "name": "PozzuoloMartesana",
+            "platforms": [],
+            "position_km": 22.61
+        },
+        {
+            "id": "Trecella",
+            "name": "Trecella",
+            "platforms": [],
+            "position_km": 24.585
+        },
+        {
+            "id": "CassanoD'Adda",
+            "name": "CassanoD'Adda",
+            "platforms": [],
+            "position_km": 27.152
+        },
+        {
+            "id": "BivioCasirate",
+            "name": "BivioCasirate",
+            "platforms": [],
+            "position_km": 27.425
+        },
+        {
+            "id": "PMBivioAdda",
+            "name": "PMBivioAdda",
+            "platforms": [],
+            "position_km": 29.25
+        },
+        {
+            "id": "TreviglioOvest",
+            "name": "TreviglioOvest",
+            "platforms": [],
+            "position_km": 32.932
+        },
+        {
+            "id": "TreviglioTr",
+            "name": "TreviglioTr",
+            "platforms": [],
+            "position_km": 32.97
+        },
+        {
+            "id": "Treviglio",
+            "name": "Treviglio",
+            "platforms": [],
+            "position_km": 33.143
+        },
+        {
+            "id": "Vidalengo",
+            "name": "Vidalengo",
+            "platforms": [],
+            "position_km": 37.146
+        },
+        {
+            "id": "Caravaggio",
+            "name": "Caravaggio",
+            "platforms": [],
+            "position_km": 38.176
+        },
+        {
+            "id": "MorengoBariano",
+            "name": "MorengoBariano",
+            "platforms": [],
+            "position_km": 42.117
+        },
+        {
+            "id": "Romano1p",
+            "name": "Romano1p",
+            "platforms": [],
+            "position_km": 45.27
+        },
+        {
+            "id": "Romano",
+            "name": "Romano",
+            "platforms": [],
+            "position_km": 46.052
+        },
+        {
+            "id": "Calcio",
+            "name": "Calcio",
+            "platforms": [],
+            "position_km": 53.018
+        },
+        {
+            "id": "Chiari",
+            "name": "Chiari",
+            "platforms": [],
+            "position_km": 59.778
+        },
+        {
+            "id": "Coccaglio",
+            "name": "Coccaglio",
+            "platforms": [],
+            "position_km": 63.693
+        },
+        {
+            "id": "Rovato",
+            "name": "Rovato",
+            "platforms": [],
+            "position_km": 65.827
+        },
+        {
+            "id": "PMBresciaOvest",
+            "name": "PMBresciaOvest",
+            "platforms": [],
+            "position_km": 66.997
+        },
+        {
+            "id": "OspitalettoT.W",
+            "name": "OspitalettoT.W",
+            "platforms": [],
+            "position_km": 71.36
+        },
+        {
+            "id": "OspitalettoT.",
+            "name": "OspitalettoT.",
+            "platforms": [],
+            "position_km": 71.653
+        },
+        {
+            "id": "OspitalettoT.1E",
+            "name": "OspitalettoT.1E",
+            "platforms": [],
+            "position_km": 71.86
+        },
+        {
+            "id": "BivioRoncadelle",
+            "name": "BivioRoncadelle",
+            "platforms": [],
+            "position_km": 78.508
+        }
+    ]
+}

@@ -1,0 +1,46 @@
+{
+    "compositions": [
+        {
+            "id": "LITRA_SA",
+            "units": [
+                "LITRA_SA"
+            ]
+        }
+    ],
+    "train_units": [
+        {
+            "id": "LITRA_SA",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 84.0,
+                "mass_of_a_wagon_kg": 0.0,
+                "mass_of_traction_unit_kg": 148900.0,
+                "max_deceleration_ms2": 0.75,
+                "max_speed_ms": 33.33333333,
+                "number_of_wagons": 7.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/LITRA_SA.txt",
+                "traction_file": "/TrainData/T_LITRA_SA.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    8.611111111111,
+                    209000.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    8.611111111111,
+                    33.333333333333,
+                    324607.2915,
+                    -17671.4923,
+                    292.9005
+                ]
+            ]
+        }
+    ]
+}

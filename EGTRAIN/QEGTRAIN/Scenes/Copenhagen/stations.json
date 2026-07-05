@@ -1,0 +1,568 @@
+{
+    "stations": [
+        {
+            "id": "Frederikssund",
+            "name": "Frederikssund",
+            "platforms": [],
+            "position_km": 0.17
+        },
+        {
+            "id": "Koge",
+            "name": "Koge",
+            "platforms": [],
+            "position_km": 2.92
+        },
+        {
+            "id": "Vinge",
+            "name": "Vinge",
+            "platforms": [],
+            "position_km": 4.53
+        },
+        {
+            "id": "Olby",
+            "name": "Olby",
+            "platforms": [],
+            "position_km": 5.472
+        },
+        {
+            "id": "KogeNord",
+            "name": "KogeNord",
+            "platforms": [],
+            "position_km": 7.196
+        },
+        {
+            "id": "Olstykke",
+            "name": "Olstykke",
+            "platforms": [],
+            "position_km": 7.81
+        },
+        {
+            "id": "Egedal",
+            "name": "Egedal",
+            "platforms": [],
+            "position_km": 10.279
+        },
+        {
+            "id": "Jersie",
+            "name": "Jersie",
+            "platforms": [],
+            "position_km": 11.042
+        },
+        {
+            "id": "Stenlose",
+            "name": "Stenlose",
+            "platforms": [],
+            "position_km": 11.75
+        },
+        {
+            "id": "SolrodStrand",
+            "name": "SolrodStrand",
+            "platforms": [],
+            "position_km": 12.51
+        },
+        {
+            "id": "Vekso",
+            "name": "Vekso",
+            "platforms": [],
+            "position_km": 15.75
+        },
+        {
+            "id": "Karlslunde",
+            "name": "Karlslunde",
+            "platforms": [],
+            "position_km": 17.579
+        },
+        {
+            "id": "Kildedal",
+            "name": "Kildedal",
+            "platforms": [],
+            "position_km": 18.665
+        },
+        {
+            "id": "Greve",
+            "name": "Greve",
+            "platforms": [],
+            "position_km": 20.0
+        },
+        {
+            "id": "Malov",
+            "name": "Malov",
+            "platforms": [],
+            "position_km": 20.762
+        },
+        {
+            "id": "HojeTaastrup",
+            "name": "HojeTaastrup",
+            "platforms": [],
+            "position_km": 22.225
+        },
+        {
+            "id": "Hundige",
+            "name": "Hundige",
+            "platforms": [],
+            "position_km": 23.116
+        },
+        {
+            "id": "BallerupStorage",
+            "name": "BallerupStorage",
+            "platforms": [],
+            "position_km": 23.63
+        },
+        {
+            "id": "Ballerup",
+            "name": "Ballerup",
+            "platforms": [],
+            "position_km": 23.95
+        },
+        {
+            "id": "Taastrup",
+            "name": "Taastrup",
+            "platforms": [],
+            "position_km": 24.466
+        },
+        {
+            "id": "Ishoj",
+            "name": "Ishoj",
+            "platforms": [],
+            "position_km": 25.407
+        },
+        {
+            "id": "Malmparken",
+            "name": "Malmparken",
+            "platforms": [],
+            "position_km": 25.857
+        },
+        {
+            "id": "Skovlunde",
+            "name": "Skovlunde",
+            "platforms": [],
+            "position_km": 26.84
+        },
+        {
+            "id": "Vallensbaek",
+            "name": "Vallensbaek",
+            "platforms": [],
+            "position_km": 27.678
+        },
+        {
+            "id": "Albertslund",
+            "name": "Albertslund",
+            "platforms": [],
+            "position_km": 27.802
+        },
+        {
+            "id": "Herlev",
+            "name": "Herlev",
+            "platforms": [],
+            "position_km": 29.6
+        },
+        {
+            "id": "BrondbyStrand",
+            "name": "BrondbyStrand",
+            "platforms": [],
+            "position_km": 29.85
+        },
+        {
+            "id": "Glostrup",
+            "name": "Glostrup",
+            "platforms": [],
+            "position_km": 30.62
+        },
+        {
+            "id": "Husum",
+            "name": "Husum",
+            "platforms": [],
+            "position_km": 31.107
+        },
+        {
+            "id": "Avedore",
+            "name": "Avedore",
+            "platforms": [],
+            "position_km": 32.179
+        },
+        {
+            "id": "Islev",
+            "name": "Islev",
+            "platforms": [],
+            "position_km": 32.54
+        },
+        {
+            "id": "Brondbyoster",
+            "name": "Brondbyoster",
+            "platforms": [],
+            "position_km": 33.38
+        },
+        {
+            "id": "Jyllingevej",
+            "name": "Jyllingevej",
+            "platforms": [],
+            "position_km": 33.64
+        },
+        {
+            "id": "Friheden",
+            "name": "Friheden",
+            "platforms": [],
+            "position_km": 34.012
+        },
+        {
+            "id": "Rodovre",
+            "name": "Rodovre",
+            "platforms": [],
+            "position_km": 34.483
+        },
+        {
+            "id": "Vanlose",
+            "name": "Vanlose",
+            "platforms": [],
+            "position_km": 34.55
+        },
+        {
+            "id": "FlintholmCH",
+            "name": "FlintholmCH",
+            "platforms": [],
+            "position_km": 35.06
+        },
+        {
+            "id": "Amarken",
+            "name": "Amarken",
+            "platforms": [],
+            "position_km": 35.55
+        },
+        {
+            "id": "Hvidovre",
+            "name": "Hvidovre",
+            "platforms": [],
+            "position_km": 35.921
+        },
+        {
+            "id": "PeterBangsvej",
+            "name": "PeterBangsvej",
+            "platforms": [],
+            "position_km": 35.94
+        },
+        {
+            "id": "DanshojBBx",
+            "name": "DanshojBBx",
+            "platforms": [],
+            "position_km": 36.632
+        },
+        {
+            "id": "Langgade",
+            "name": "Langgade",
+            "platforms": [],
+            "position_km": 37.0
+        },
+        {
+            "id": "NyEllebjergAE",
+            "name": "NyEllebjergAE",
+            "platforms": [],
+            "position_km": 37.38
+        },
+        {
+            "id": "Valby",
+            "name": "Valby",
+            "platforms": [],
+            "position_km": 37.896
+        },
+        {
+            "id": "Sjaelor",
+            "name": "Sjaelor",
+            "platforms": [],
+            "position_km": 37.952
+        },
+        {
+            "id": "NyEllebjergF",
+            "name": "NyEllebjergF",
+            "platforms": [],
+            "position_km": 38.013
+        },
+        {
+            "id": "Sydhavn",
+            "name": "Sydhavn",
+            "platforms": [],
+            "position_km": 38.92
+        },
+        {
+            "id": "VigerslevAlle",
+            "name": "VigerslevAlle",
+            "platforms": [],
+            "position_km": 39.109
+        },
+        {
+            "id": "Carlsberg",
+            "name": "Carlsberg",
+            "platforms": [],
+            "position_km": 39.3
+        },
+        {
+            "id": "DanshojF",
+            "name": "DanshojF",
+            "platforms": [],
+            "position_km": 39.831
+        },
+        {
+            "id": "Alholm",
+            "name": "Alholm",
+            "platforms": [],
+            "position_km": 40.653
+        },
+        {
+            "id": "Dybbolsbro",
+            "name": "Dybbolsbro",
+            "platforms": [],
+            "position_km": 40.875
+        },
+        {
+            "id": "KBHallen",
+            "name": "KBHallen",
+            "platforms": [],
+            "position_km": 41.301
+        },
+        {
+            "id": "KobenhavnH",
+            "name": "KobenhavnH",
+            "platforms": [],
+            "position_km": 41.755
+        },
+        {
+            "id": "FlintholmF",
+            "name": "FlintholmF",
+            "platforms": [],
+            "position_km": 42.305
+        },
+        {
+            "id": "Vesterport",
+            "name": "Vesterport",
+            "platforms": [],
+            "position_km": 42.335
+        },
+        {
+            "id": "Norreport",
+            "name": "Norreport",
+            "platforms": [],
+            "position_km": 43.38
+        },
+        {
+            "id": "Grondal",
+            "name": "Grondal",
+            "platforms": [],
+            "position_km": 43.454
+        },
+        {
+            "id": "Fuglebakken",
+            "name": "Fuglebakken",
+            "platforms": [],
+            "position_km": 44.342
+        },
+        {
+            "id": "OsterportH",
+            "name": "OsterportH",
+            "platforms": [],
+            "position_km": 44.53
+        },
+        {
+            "id": "Osterport",
+            "name": "Osterport",
+            "platforms": [],
+            "position_km": 44.84
+        },
+        {
+            "id": "Norrebro",
+            "name": "Norrebro",
+            "platforms": [],
+            "position_km": 45.349
+        },
+        {
+            "id": "Bispebjerg",
+            "name": "Bispebjerg",
+            "platforms": [],
+            "position_km": 46.075
+        },
+        {
+            "id": "Nordhavn",
+            "name": "Nordhavn",
+            "platforms": [],
+            "position_km": 46.27
+        },
+        {
+            "id": "Svanemollen",
+            "name": "Svanemollen",
+            "platforms": [],
+            "position_km": 47.6
+        },
+        {
+            "id": "RyparkenF",
+            "name": "RyparkenF",
+            "platforms": [],
+            "position_km": 47.646
+        },
+        {
+            "id": "RyparkenBBx",
+            "name": "RyparkenBBx",
+            "platforms": [],
+            "position_km": 48.95
+        },
+        {
+            "id": "Hellerup",
+            "name": "Hellerup",
+            "platforms": [],
+            "position_km": 49.569
+        },
+        {
+            "id": "HellerupStorage",
+            "name": "HellerupStorage",
+            "platforms": [],
+            "position_km": 49.9
+        },
+        {
+            "id": "Emdrup",
+            "name": "Emdrup",
+            "platforms": [],
+            "position_km": 50.986
+        },
+        {
+            "id": "Charlottenlund",
+            "name": "Charlottenlund",
+            "platforms": [],
+            "position_km": 51.066
+        },
+        {
+            "id": "Bernstorffsvej",
+            "name": "Bernstorffsvej",
+            "platforms": [],
+            "position_km": 51.645
+        },
+        {
+            "id": "Dyssegard",
+            "name": "Dyssegard",
+            "platforms": [],
+            "position_km": 52.367
+        },
+        {
+            "id": "Gentofte",
+            "name": "Gentofte",
+            "platforms": [],
+            "position_km": 52.785
+        },
+        {
+            "id": "Vangede",
+            "name": "Vangede",
+            "platforms": [],
+            "position_km": 53.345
+        },
+        {
+            "id": "Ordrup",
+            "name": "Ordrup",
+            "platforms": [],
+            "position_km": 53.461
+        },
+        {
+            "id": "Jaegersborg",
+            "name": "Jaegersborg",
+            "platforms": [],
+            "position_km": 54.341
+        },
+        {
+            "id": "Kildebakke",
+            "name": "Kildebakke",
+            "platforms": [],
+            "position_km": 54.575
+        },
+        {
+            "id": "Klampenborg",
+            "name": "Klampenborg",
+            "platforms": [],
+            "position_km": 55.199
+        },
+        {
+            "id": "Buddinge",
+            "name": "Buddinge",
+            "platforms": [],
+            "position_km": 55.6
+        },
+        {
+            "id": "Lyngby",
+            "name": "Lyngby",
+            "platforms": [],
+            "position_km": 55.642
+        },
+        {
+            "id": "BuddingeReverse",
+            "name": "BuddingeReverse",
+            "platforms": [],
+            "position_km": 56.05
+        },
+        {
+            "id": "Stengarden",
+            "name": "Stengarden",
+            "platforms": [],
+            "position_km": 57.375
+        },
+        {
+            "id": "Sorgenfri",
+            "name": "Sorgenfri",
+            "platforms": [],
+            "position_km": 57.554
+        },
+        {
+            "id": "Bagsvaerd",
+            "name": "Bagsvaerd",
+            "platforms": [],
+            "position_km": 58.575
+        },
+        {
+            "id": "Virum",
+            "name": "Virum",
+            "platforms": [],
+            "position_km": 59.517
+        },
+        {
+            "id": "Skovbrynet",
+            "name": "Skovbrynet",
+            "platforms": [],
+            "position_km": 60.0
+        },
+        {
+            "id": "Holte",
+            "name": "Holte",
+            "platforms": [],
+            "position_km": 60.659
+        },
+        {
+            "id": "Hareskov",
+            "name": "Hareskov",
+            "platforms": [],
+            "position_km": 61.981
+        },
+        {
+            "id": "Vaerlose",
+            "name": "Vaerlose",
+            "platforms": [],
+            "position_km": 64.968
+        },
+        {
+            "id": "Birkerod",
+            "name": "Birkerod",
+            "platforms": [],
+            "position_km": 65.634
+        },
+        {
+            "id": "Farum",
+            "name": "Farum",
+            "platforms": [],
+            "position_km": 69.15
+        },
+        {
+            "id": "Allerod",
+            "name": "Allerod",
+            "platforms": [],
+            "position_km": 71.191
+        },
+        {
+            "id": "Hillerod",
+            "name": "Hillerod",
+            "platforms": [],
+            "position_km": 78.14
+        }
+    ]
+}

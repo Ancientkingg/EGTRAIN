@@ -1,0 +1,8 @@
+0
+@1-B0@ 
+Guingamp->Paimpol-1
+Guingamp->Paimpol-2
+Guingamp->Paimpol-3
+Guingamp->Paimpol-4
+Guingamp->Paimpol-5
+Guingamp->Paimpol-6

@@ -1,0 +1,6 @@
+@Freight_BariLamasina_BustoArsizio_39@
+@Reverse@
+4 9.9 27.43	
+12 27.620 33.48	
+14 33.560 78.752
+
