@@ -2,7 +2,7 @@
 #include "simulation/Signalling.h"
 #include <iostream>
 
-Owl owl;
+Logger owl;
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)

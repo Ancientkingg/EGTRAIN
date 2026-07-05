@@ -1,5 +1,5 @@
-#ifndef IOClass_hpp
-#define IOClass_hpp
+#ifndef RAILMLPARSER_H
+#define RAILMLPARSER_H
 
 #include <iostream>
 #include <zmq.hpp>

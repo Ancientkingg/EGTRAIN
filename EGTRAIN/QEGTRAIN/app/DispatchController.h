@@ -1,5 +1,5 @@
-#ifndef EGTRAIN_H
-#define EGTRAIN_H
+#ifndef DISPATCHCONTROLLER_H
+#define DISPATCHCONTROLLER_H
 
 #include "simulation/Optimisation.h"
 
@@ -8,11 +8,11 @@
 // dispatching tool
 #include "simulation/Rescheduling.h"
 
-class EGTRAIN : public QObject {
+class DispatchController : public QObject {
 	Q_OBJECT
 
 public:
-	EGTRAIN(QObject* parent = 0) : QObject() {}
+	DispatchController(QObject* parent = 0) : QObject() {}
 
 	void setupEgtrain();
 
@@ -40,6 +40,6 @@ signals:
 };
 
 // simulation object (global variable)
-extern EGTRAIN simulation;
+extern DispatchController simulation;
 
-#endif // EGTRAIN_H
+#endif // DISPATCHCONTROLLER_H

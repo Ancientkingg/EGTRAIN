@@ -1,4 +1,4 @@
-#include "app/EGTRAIN.h"
+#include "app/DispatchController.h"
 #include "simulation/SimulationWorker.h"
 #include <filesystem>
 #include <regex>
@@ -25,11 +25,11 @@ string Folder_RI_PH;
 
 //-------
 
-extern Owl owl;
+extern Logger owl;
 // simulation object (global variable)
-EGTRAIN simulation;
+DispatchController simulation;
 
-void EGTRAIN::setupEgtrain() {
+void DispatchController::setupEgtrain() {
 
 	/*if (argc <=1) cout<<"ERROR:Only FILENAME SPECIFIED, you need to specify also parameters Informing Interval (s), PH (s), InstanceName, InstanceIndex, DelayDispatchImpl (s)/n/n";
 
@@ -84,7 +84,7 @@ void EGTRAIN::setupEgtrain() {
 
 	loadAllOrderLists((char*)Folder_Orders_At_t0.c_str());       //Load ROMA Solution given at time t0*/
 
-	extern initial_parameters initial_variables;
+	extern InitialParameters initial_variables;
 	ConnectName = initial_variables.InputMainFolder + "/TrackLines/Connections.txt";
 	stationName = InputMainFolder + "/TrackLines/Stations.txt";
 
@@ -147,7 +147,7 @@ void EGTRAIN::setupEgtrain() {
 }
 
 // Resets all simulation state so setupEgtrain() can be called again for a different case study.
-void EGTRAIN::resetState() {
+void DispatchController::resetState() {
 	// Counters
 	numTrackLines = 0;
 	Blocks = 0;
@@ -204,7 +204,7 @@ void EGTRAIN::resetState() {
 }
 
 // prepares the simulation
-void EGTRAIN::prepareSimulation() {
+void DispatchController::prepareSimulation() {
 
 	/*******************************************************************************************************************************
 
@@ -480,7 +480,7 @@ void EGTRAIN::prepareSimulation() {
 }
 
 // launches and runs the simulation
-void EGTRAIN::runSimulation() {
+void DispatchController::runSimulation() {
 
 	if (numRegions <= 0) {
 		const std::string message = "ERROR: Cannot run simulation because zero trains were loaded.";
@@ -631,7 +631,7 @@ void EGTRAIN::runSimulation() {
 extern ZMQ_channel channel;
 // Function to simulate traffic in networks with a mixed signalling system (e.g. conventional, mixed to ETCS L1, L2 and or L3)
 /**Function to Simulate traffic within the observation periodand without interactions wth the traffic management system*/
-void EGTRAIN::Train_Simulation_Mixed_Signalling(double v1, double v2, double v3) {
+void DispatchController::Train_Simulation_Mixed_Signalling(double v1, double v2, double v3) {
 	// logger.Log("Starting Train_Simulation_Mixed_Signalling");
 	nlohmann::json jsmsg, route_choice_json;
 
@@ -857,7 +857,7 @@ else regional_train[0].max_train_speed = 33.61;*/
 }
 
 
-void EGTRAIN::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
+void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
 	// logger.Log("Starting Train_Simulation_Mixed_Signalling");
 	nlohmann::json jsmsg, route_choice_json;
 
@@ -1094,7 +1094,7 @@ void EGTRAIN::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, doubl
 	}
 }
 
-void EGTRAIN::printLastTrainServicePathDiagram() {
+void DispatchController::printLastTrainServicePathDiagram() {
 	// print last services
 	for (int i = 0; i < numRegions; i++) {
 		// print only trains running during simulation (departure_time >= initial_variables.times indicate that trains were not used, e.g. if only sprinters were used, IC are not printed)
@@ -1105,7 +1105,7 @@ void EGTRAIN::printLastTrainServicePathDiagram() {
 	}
 }
 
-void EGTRAIN::printTimetableGraph() {
+void DispatchController::printTimetableGraph() {
 
 	string strReplace = "%HERE%";
 
@@ -1402,7 +1402,7 @@ void EGTRAIN::printTimetableGraph() {
 	}
 }
 
-void EGTRAIN::printCommonTimetableGraph() {
+void DispatchController::printCommonTimetableGraph() {
 
 	string strReplace = "%HERE%";
 
@@ -1573,7 +1573,7 @@ void EGTRAIN::printCommonTimetableGraph() {
 }
 
 // set vector sizes with length of simulation from user input
-void EGTRAIN::setVectorSizesFromInput(int vec_size) {
+void DispatchController::setVectorSizesFromInput(int vec_size) {
 	for (int i = 0; i < numRegions; i++) {
 		// define vector sizes with length of simulation from user input
 		regional_train[i].setTrainVectorSizesFromInput(vec_size);

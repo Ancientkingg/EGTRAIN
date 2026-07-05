@@ -1,5 +1,5 @@
-#include "app/mainwindow.h"
-#include "ui_mainwindow.h"
+#include "app/MainWindow.h"
+#include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
 #include "util/TimeFormat.h"
@@ -276,7 +276,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(scene, &NetworkScene::DisableHighlight, this, &MainWindow::handleDisableHighlight);
 
 	// connect signals from EGTRAIN simulation
-	connect(&simulation, &EGTRAIN::iterationFinished, this, &MainWindow::waitForUpdates);
+	connect(&simulation, &DispatchController::iterationFinished, this, &MainWindow::waitForUpdates);
 
 	// simulation control connections
 	connect(ui->actionSimulationPause, &QAction::triggered, this, [this]() {
@@ -3189,7 +3189,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	if (m_promptedLoad)
 		return;
 	m_promptedLoad = true;
-	extern initial_parameters initial_variables;
+	extern InitialParameters initial_variables;
 	// skip dialog when -n was given so scripted runs load directly
 	if (!initial_variables.nArgProvided)
 		QTimer::singleShot(0, this, &MainWindow::actionLoad_Network);
@@ -3302,7 +3302,7 @@ void MainWindow::teardownGUI() {
 }
 
 void MainWindow::chooseOutputFolder() {
-	extern initial_parameters initial_variables;
+	extern InitialParameters initial_variables;
 	QString dir = QFileDialog::getExistingDirectory(this, "Choose Output Folder",
 													QString::fromStdString(initial_variables.OutputMainFolder));
 	if (dir.isEmpty())
@@ -3329,7 +3329,7 @@ void MainWindow::setStartTime() {
 }
 
 void MainWindow::runScene() {
-	extern initial_parameters initial_variables;
+	extern InitialParameters initial_variables;
 	if (!m_sceneLoaded)
 		return;
 
@@ -3425,7 +3425,7 @@ void MainWindow::runScene() {
 }
 
 void MainWindow::actionLoad_Network() {
-	extern initial_parameters initial_variables;
+	extern InitialParameters initial_variables;
 	if (!maybeSaveScene())
 		return;
 

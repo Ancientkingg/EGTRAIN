@@ -1,8 +1,8 @@
-#include "io/IOClass.h"
-#include "simulation/initialParameters.h"
+#include "io/RailMLParser.h"
+#include "simulation/InitialParameters.h"
 static zmq::context_t ctx;
 
-extern initial_parameters initial_variables;
+extern InitialParameters initial_variables;
 
 void read_rttp_train_view(std::string rttp) {
 	pugi::xml_document rttp_doc;
