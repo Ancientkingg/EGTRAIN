@@ -84,9 +84,87 @@ jobs:
           path: build/QEGTRAIN-macos-arm64.zip
           if-no-files-found: error
 
+  package-windows:
+    name: Package Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          modules: qtcharts
+          cache: true
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
+        shell: pwsh
+        run: vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
+
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Assemble package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = "dist/QEGTRAIN"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          $exe = Get-ChildItem -Path build -Recurse -Filter QEGTRAIN.exe | Select-Object -First 1
+          if (-not $exe) { throw "QEGTRAIN.exe not found under build/" }
+          Copy-Item $exe.FullName "$dist/QEGTRAIN.exe"
+          # ZeroMQ + libsodium runtime DLLs from vcpkg
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/ -ErrorAction SilentlyContinue
+          # Qt runtime: DLLs + platform/imageformat plugins next to the exe
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
+          # Case data + image assets. The app resolves Input/ from the working
+          # directory; double-clicking the exe sets the working directory to its
+          # own folder, so the data must sit beside it.
+          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Input "$dist/Input"
+          Copy-Item EGTRAIN/QEGTRAIN/*.png $dist/
+          Copy-Item EGTRAIN/QEGTRAIN/*.jpg $dist/
+
+      - name: Verify the package is complete
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = "dist/QEGTRAIN"
+          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll")) {
+            if (-not (Test-Path "$dist/$dll")) { throw "missing $dll" }
+          }
+          if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
+          if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
+          if (-not (Test-Path "$dist/Input/Input_EGTRAIN_Paimpol")) { throw "missing Input case data" }
+          Write-Host "OK: exe, Qt runtime, libzmq, and Input data are present"
+
+      - name: Zip
+        shell: pwsh
+        run: Compress-Archive -Path dist/QEGTRAIN/* -DestinationPath QEGTRAIN-windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64
+          path: QEGTRAIN-windows-x64.zip
+          if-no-files-found: error
+
   release:
     name: Publish GitHub Release
-    needs: [package-macos]
+    needs: [package-macos, package-windows]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
