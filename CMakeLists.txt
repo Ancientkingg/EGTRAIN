@@ -65,15 +65,15 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Capacity.cpp
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
-    ${SRC_DIR}/simulation/dispDecision.cpp
-    ${SRC_DIR}/app/EGTRAIN.cpp
+    ${SRC_DIR}/simulation/DispatchDecision.cpp
+    ${SRC_DIR}/app/DispatchController.cpp
     ${SRC_DIR}/io/geocoding.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
     ${SRC_DIR}/simulation/Infrastructure.cpp
-    ${SRC_DIR}/simulation/initialParameters.cpp
-    ${SRC_DIR}/io/IOClass.cpp
+    ${SRC_DIR}/simulation/InitialParameters.cpp
+    ${SRC_DIR}/io/RailMLParser.cpp
     ${SRC_DIR}/app/main.cpp
-    ${SRC_DIR}/app/mainwindow.cpp
+    ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/graphics/items/HighlightEffect.cpp
     ${SRC_DIR}/graphics/items/NodeItem.cpp
     ${SRC_DIR}/graphics/items/BaseNetworkItem.cpp
@@ -84,7 +84,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/NetworkView.cpp
     ${SRC_DIR}/simulation/NumberGenerator.cpp
     ${SRC_DIR}/simulation/Optimisation.cpp
-    ${SRC_DIR}/util/Owl.cpp
+    ${SRC_DIR}/util/Logger.cpp
     ${SRC_DIR}/graphics/items/PassengerItem.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
@@ -119,14 +119,14 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Capacity.h
     ${SRC_DIR}/graphics/items/ConnectionItem.h
     ${SRC_DIR}/widgets/ConsoleWidget.h
-    ${SRC_DIR}/simulation/dispDecision.h
-    ${SRC_DIR}/app/EGTRAIN.h
+    ${SRC_DIR}/simulation/DispatchDecision.h
+    ${SRC_DIR}/app/DispatchController.h
     ${SRC_DIR}/io/geocoding.h
     ${SRC_DIR}/widgets/InfoDockWidget.h
     ${SRC_DIR}/simulation/Infrastructure.h
-    ${SRC_DIR}/simulation/initialParameters.h
-    ${SRC_DIR}/io/IOClass.h
-    ${SRC_DIR}/app/mainwindow.h
+    ${SRC_DIR}/simulation/InitialParameters.h
+    ${SRC_DIR}/io/RailMLParser.h
+    ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/graphics/items/HighlightEffect.h
     ${SRC_DIR}/graphics/items/NodeItem.h
     ${SRC_DIR}/graphics/items/BaseNetworkItem.h
@@ -137,7 +137,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/NetworkView.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
-    ${SRC_DIR}/util/Owl.hpp
+    ${SRC_DIR}/util/Logger.hpp
     ${SRC_DIR}/graphics/items/PassengerItem.h
     ${SRC_DIR}/simulation/Passengers.h
     ${SRC_DIR}/graphics/items/PlatformItem.h
@@ -171,12 +171,12 @@ set(EGTRAIN_HEADERS
 )
 
 set(EGTRAIN_UI
-    ${SRC_DIR}/app/mainwindow.ui
+    ${SRC_DIR}/app/MainWindow.ui
     ${SRC_DIR}/widgets/Widget.ui
 )
 
 set(EGTRAIN_RESOURCES
-    ${SRC_DIR}/app/mainwindow.qrc
+    ${SRC_DIR}/app/resources.qrc
 )
 
 # --- Executable ---
@@ -353,9 +353,9 @@ if(EGTRAIN_BUILD_TESTS)
 	add_executable(test_scenebuilder
 		${SRC_DIR}/tests/test_scenebuilder.cpp
 		${SRC_DIR}/simulation/Infrastructure.cpp
-		${SRC_DIR}/simulation/initialParameters.cpp
+		${SRC_DIR}/simulation/InitialParameters.cpp
 		${SRC_DIR}/simulation/NumberGenerator.cpp
-		${SRC_DIR}/util/Owl.cpp
+		${SRC_DIR}/util/Logger.cpp
 		${SRC_DIR}/simulation/Signalling.cpp)
 	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)

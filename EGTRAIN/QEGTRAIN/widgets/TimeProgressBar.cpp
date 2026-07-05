@@ -1,6 +1,6 @@
 #include "widgets/TimeProgressBar.h"
 
-extern initial_parameters initial_variables;
+extern InitialParameters initial_variables;
 TimeProgressBar::TimeProgressBar(QWidget* parent)
 	: QProgressBar(parent) {
 	setTextVisible(true);

@@ -17,8 +17,8 @@
 #include <omp.h>
 #include <vector>
 #include "util/portability.h"
-#include "simulation/initialParameters.h"
-#include "util/Owl.hpp"
+#include "simulation/InitialParameters.h"
+#include "util/Logger.hpp"
 
 using namespace std;
 

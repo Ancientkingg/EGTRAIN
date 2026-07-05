@@ -21,7 +21,7 @@ public:
 
 public slots:
 	// Called from the worker thread to run the full simulation.
-	// The existing EGTRAIN::iterationFinished signal crosses threads automatically.
+	// The existing DispatchController::iterationFinished signal crosses threads automatically.
 	void run();
 	void requestStop();
 	void requestPause();

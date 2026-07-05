@@ -1,13 +1,13 @@
-#ifndef initialParameters_hpp
-#define initialParameters_hpp
-#include "io/IOClass.h"
+#ifndef INITIALPARAMETERS_H
+#define INITIALPARAMETERS_H
+#include "io/RailMLParser.h"
 // #include <boost/filesystem.hpp>
 
 // namespace fs = boost::filesystem;
 
 // Here you define all initial parameters needed to run simulation
 //
-// class initial_parameters
+// class InitialParameters
 //{
 // public:
 //	bool GUI = 1; //if we want to have GUI
@@ -72,14 +72,14 @@
 //
 //
 //	//Constructor
-//	 initial_parameters(){
+//	 InitialParameters(){
 //
 //
 //	}
 //};
 //
 
-class initial_parameters {
+class InitialParameters {
 public:
 	std::string name;
 	int startingSimulationTime; // this is the number for the humantime conversion e.g. 23300=>06:28:20 (seconds from midnight)
@@ -151,7 +151,7 @@ public:
 
 	// Constructor
 
-	initial_parameters(int case_study);
+	InitialParameters(int case_study);
 	void set_case(int case_study);
 };
 

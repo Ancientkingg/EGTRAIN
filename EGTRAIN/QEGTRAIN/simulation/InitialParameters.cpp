@@ -1,6 +1,6 @@
-#include "simulation/initialParameters.h"
+#include "simulation/InitialParameters.h"
 
-initial_parameters::initial_parameters(int case_study) {
+InitialParameters::InitialParameters(int case_study) {
 
 	switch (case_study) {
 		case 0:
@@ -112,7 +112,7 @@ initial_parameters::initial_parameters(int case_study) {
 	};
 }
 
-void initial_parameters::set_case(int case_study) {
+void InitialParameters::set_case(int case_study) {
 
 	switch (case_study) {
 		case 1: // Netherlands case

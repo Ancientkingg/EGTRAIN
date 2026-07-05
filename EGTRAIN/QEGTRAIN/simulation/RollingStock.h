@@ -16,10 +16,10 @@ extern QList<QGraphicsItemGroup*> VCmsgItems;
 
 // dispatching decisions
 #include <cmath> // std::fabs
-#include "simulation/dispDecision.h"
+#include "simulation/DispatchDecision.h"
 
 extern int N_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
-extern initial_parameters initial_variables;
+extern InitialParameters initial_variables;
 
 class OrderList {
 public:
@@ -687,7 +687,7 @@ public:
 	double ETCS3StoppingPoint;			// This is the point in km where the train is stopped because of ETCS 3 Movement Authority
 	bool IsTrainStoppedForEoA;			// This boolean is true when the train is stopped because it reached the ETCS 3 End of Authority
 	list<TrainEvent> TimetablePoints;	// This lists contains the arrival and departure of the train at each interlocking area of the network either those where the train stops and those where they train does not stop at
-	vector<dispDecision> dispDecisions; //  vector containing dispatching decisions to be implemented
+	vector<DispatchDecision> dispDecisions; //  vector containing dispatching decisions to be implemented
 	int prevIntendedDepTime;			//  stores the previous intended dep time from dispatching tool
 	int dispLineID = -1;				//  lineID from dispatching tool
 	int arrivalPlatform = -1;			//  arrival platform from dispatching tool
@@ -7821,13 +7821,13 @@ public:
 	void executeDispDecisions(int t);
 
 	// implement init message from dispatching tool
-	void implementInitMsg(dispDecision decision);
+	void implementInitMsg(DispatchDecision decision);
 
 	// implement disp message from dispatching tool
-	void implementDisp(dispDecision decision);
+	void implementDisp(DispatchDecision decision);
 
 	// implement dwell message from dispatching tool
-	void implementDwell(dispDecision decision);
+	void implementDwell(DispatchDecision decision);
 
 	// print train service path diagram to file
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);

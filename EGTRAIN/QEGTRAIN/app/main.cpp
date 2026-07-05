@@ -1,6 +1,6 @@
 #include <QCoreApplication>
-#include "app/EGTRAIN.h"
-#include "app/mainwindow.h"
+#include "app/DispatchController.h"
+#include "app/MainWindow.h"
 #include "io/geocoding.h"
 #include <algorithm>
 #include <unistd.h>
@@ -10,7 +10,7 @@
 #define PORT_NUMBER 9002
 
 //
-extern initial_parameters initial_variables;
+extern InitialParameters initial_variables;
 extern int numRegions;
 using namespace std;
 
@@ -171,16 +171,16 @@ void parseCmdOptions(int argc, char* argv[]) {
 	}
 }
 
-Owl owl;
+Logger owl;
 int main(int argc, char* argv[]) {
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
 
 	// Passenger passeng(1, 2, 3, "type", 3, "stop type", "location", 4, "stopmode", TRUE, 2.3, 2.4, "prev stop", 33, 0.4, 3, 0.342);
 
-	OwlSettings settings;
-	OwlSettings settings2;
-	OwlSettings settings3;
+	LoggerSettings settings;
+	LoggerSettings settings2;
+	LoggerSettings settings3;
 	settings.filename = "filename.log";
 	settings.b_overwriteFile = true;
 	settings.b_stdout = false;
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
 	owl << owl.prefix(__FILE__, __LINE__);
 
 	// owl.prefix(__FILE__, __LINE__);
-	Owl owl2;
+	Logger owl2;
 	owl2.init(settings2);
 	owl2 << owl2.prefix(__FILE__, __LINE__);
 	// OwlInit(settings);

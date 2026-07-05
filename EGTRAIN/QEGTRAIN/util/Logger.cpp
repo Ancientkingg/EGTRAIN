@@ -1,18 +1,18 @@
-#include "util/Owl.hpp"
+#include "util/Logger.hpp"
 
-// Owl owlInstance;
-Owl logger;
+// Logger owlInstance;
+Logger logger;
 
-Owl::Owl() {
+Logger::Logger() {
 	this->b_init = false;
 }
 
-Owl::~Owl() {
+Logger::~Logger() {
 	if (this->b_init)
 		this->shutdown();
 }
 
-bool Owl::init(const OwlSettings& settings) {
+bool Logger::init(const LoggerSettings& settings) {
 	this->settings = settings;
 	if (!this->b_init) {
 		if (this->settings.b_overwriteFile) {
@@ -31,14 +31,14 @@ bool Owl::init(const OwlSettings& settings) {
 	return true;
 }
 
-void Owl::shutdown() {
+void Logger::shutdown() {
 	if (this->b_init) {
 		this->ofs.close();
 		this->b_init = false;
 	}
 }
 
-std::string Owl::prefix(const std::string& file, const int line) {
+std::string Logger::prefix(const std::string& file, const int line) {
 	std::string result = "";
 	if (this->settings.b_datetime) {
 		result += getDateTimeStr();

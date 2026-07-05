@@ -156,7 +156,7 @@ void Rescheduling::handleDispMessage(std::string message) {
 				if (routeID != -1) {
 					// send train to station platform
 					// create disp decision object (lineID, stationDep, route, startTime)
-					dispDecision decision = dispDecision("init", std::get<0>(it->first), stationDep, platform, std::get<1>(it->second), entryTime);
+					DispatchDecision decision = DispatchDecision("init", std::get<0>(it->first), stationDep, platform, std::get<1>(it->second), entryTime);
 
 					// set time for the next train to enter the simulation
 					entryTime++;
@@ -260,7 +260,7 @@ void Rescheduling::handleDispMessage(std::string message) {
 			// found route
 			else {
 				// create disp decision object (lineID, stationArr, route, timetableFile, intendedDepTime, dwellTimes)
-				dispDecision decision = dispDecision("disp", lineID, std::get<0>(findRes->second), platform, std::get<1>(findRes->second), std::get<2>(findRes->second), intendedDepTime, dwellTimes);
+				DispatchDecision decision = DispatchDecision("disp", lineID, std::get<0>(findRes->second), platform, std::get<1>(findRes->second), std::get<2>(findRes->second), intendedDepTime, dwellTimes);
 
 				// add disp decision to train object
 				regional_train[trainIdx].dispDecisions.push_back(decision);
@@ -286,7 +286,7 @@ void Rescheduling::handleDispMessage(std::string message) {
 					routeID = std::get<1>(it->second);
 
 					// create disp decision object (lineID, stationArr, arrivalPlatform, route, timetableFile, intendedDepTime, dwellTimes)
-					dispDecision decision = dispDecision("disp", lineID, std::get<0>(it->second), platform, std::get<1>(it->second), std::get<2>(it->second), intendedDepTime, dwellTimes);
+					DispatchDecision decision = DispatchDecision("disp", lineID, std::get<0>(it->second), platform, std::get<1>(it->second), std::get<2>(it->second), intendedDepTime, dwellTimes);
 
 					// add disp decision to train object
 					regional_train[trainIdx].dispDecisions.push_back(decision);
@@ -355,7 +355,7 @@ void Rescheduling::handleDispMessage(std::string message) {
 						// created a suitable route
 						if (newRouteID != -1) {
 							// create disp decision object (lineID, stationArr, arrivalPlatform, route, timetableFile, intendedDepTime, dwellTimes)
-							dispDecision decision = dispDecision("disp", lineID, destination, platform, newRouteID, timetableFile, intendedDepTime, dwellTimes);
+							DispatchDecision decision = DispatchDecision("disp", lineID, destination, platform, newRouteID, timetableFile, intendedDepTime, dwellTimes);
 							builtNewRoute = true;
 
 							// add disp decision to train object
@@ -399,7 +399,7 @@ void Rescheduling::handleDispMessage(std::string message) {
 		}
 
 		// create disp decision object (lineID, stationArr, arrivalPlatform, route, timetableFile, intendedDepTime, dwellTimes)
-		dispDecision decision = dispDecision("dwell", -1, "", -1, -1, "", -1, dwellTimes);
+		DispatchDecision decision = DispatchDecision("dwell", -1, "", -1, -1, "", -1, dwellTimes);
 
 		// add disp decision to train object
 		regional_train[trainIdx].dispDecisions.push_back(decision);

@@ -16,7 +16,7 @@
 #include "simulation/Infrastructure.h"
 #include "simulation/Signalling.h"
 
-#include "simulation/dispDecision.h"
+#include "simulation/DispatchDecision.h"
 
 class Rescheduling {
 public:

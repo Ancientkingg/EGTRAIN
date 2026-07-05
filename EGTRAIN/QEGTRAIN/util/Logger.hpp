@@ -6,20 +6,20 @@
 #include "util/timeutil.hpp"
 #include "util/Util.hpp"
 
-class Owl;
-// extern Owl owlInstance;
+class Logger;
+// extern Logger owlInstance;
 
 // logger for EGTRAIN
-extern Owl logger;
+extern Logger logger;
 // #define OwlInit( settings ) logger.init( settings );
-#define OwlShutdown() logger.shutdown();
+#define LoggerShutdown() logger.shutdown();
 #define eglogger (logger << logger.prefix(__FILE__, __LINE__))
 
 // #define OwlInit( settings ) owlInstance.init( settings );
-// #define OwlShutdown() owlInstance.shutdown();
+// #define LoggerShutdown() owlInstance.shutdown();
 // #define owl (owlInstance << owlInstance.prefix( __FILE__ , __LINE__ ))
 
-class OwlSettings {
+class LoggerSettings {
 public:
 	// path to the location of the log file, working directory by default
 	std::string path;
@@ -38,7 +38,7 @@ public:
 	// print the file and line
 	bool b_fileline;
 
-	OwlSettings() {
+	LoggerSettings() {
 		this->path = "";
 		this->filename = "owl.log";
 		this->b_overwriteFile = true;
@@ -49,31 +49,31 @@ public:
 	}
 };
 
-class Owl {
+class Logger {
 public:
-	Owl();
-	~Owl();
+	Logger();
+	~Logger();
 
-	bool init(const OwlSettings& settings);
+	bool init(const LoggerSettings& settings);
 	void shutdown();
 
 	// overload the << operator to log all standard data types
 	template <typename T>
-	Owl& operator<<(T t);
+	Logger& operator<<(T t);
 	// this is needed so << std::endl works
-	Owl& operator<<(std::ostream& (*fun)(std::ostream&));
+	Logger& operator<<(std::ostream& (*fun)(std::ostream&));
 
 	// creates the prefix for every line depending on the settings
 	std::string prefix(const std::string& file, const int line);
 
 private:
 	bool b_init;
-	OwlSettings settings;
+	LoggerSettings settings;
 	std::ofstream ofs;
 };
 
 template <typename T>
-inline Owl& Owl::operator<<(T t) {
+inline Logger& Logger::operator<<(T t) {
 	if (this->b_init) {
 		if (this->settings.b_file)
 			this->ofs << t;
@@ -83,7 +83,7 @@ inline Owl& Owl::operator<<(T t) {
 	return *this;
 }
 
-inline Owl& Owl::operator<<(std::ostream& (*fun)(std::ostream&)) {
+inline Logger& Logger::operator<<(std::ostream& (*fun)(std::ostream&)) {
 	if (this->b_init) {
 		if (this->settings.b_file)
 			this->ofs << std::endl;
