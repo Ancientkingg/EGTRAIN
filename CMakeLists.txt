@@ -106,7 +106,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
     ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
-    ${SRC_DIR}/widgets/Widget.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
@@ -161,7 +160,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/TrainBodyItem.h
     ${SRC_DIR}/util/Util.hpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.h
-    ${SRC_DIR}/widgets/Widget.h
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
     ${SRC_DIR}/util/TrajectoryUtil.h
@@ -172,7 +170,6 @@ set(EGTRAIN_HEADERS
 
 set(EGTRAIN_UI
     ${SRC_DIR}/app/MainWindow.ui
-    ${SRC_DIR}/widgets/Widget.ui
 )
 
 set(EGTRAIN_RESOURCES
