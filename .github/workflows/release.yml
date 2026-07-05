@@ -1,11 +1,12 @@
 name: Release
 
 # Builds downloadable applications for macOS, Windows, and Linux.
-# Runs on every v* tag (which also publishes a GitHub Release) and can be
-# started by hand from the Actions tab to test the packaging jobs.
+# Main pushes publish a GitHub Release with the three platform packages.
+# v* tags publish releases using the tag name. Manual runs test packaging jobs.
 on:
   push:
     branches:
+      - main
       - ci/release-pipeline
     tags:
       - 'v*'
@@ -259,7 +260,7 @@ jobs:
   release:
     name: Publish GitHub Release
     needs: [package-macos, package-windows, package-linux]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -272,14 +273,72 @@ jobs:
       - name: List downloaded files
         run: find artifacts -type f
 
+      - name: Set release metadata
+        id: release-meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            tag="$GITHUB_REF_NAME"
+            name="EGTRAIN $GITHUB_REF_NAME"
+            if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+              prerelease=true
+              make_latest=false
+            else
+              prerelease=false
+              make_latest=true
+            fi
+          else
+            short_sha="${GITHUB_SHA::7}"
+            tag="main-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
+            name="EGTRAIN main build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT} (${short_sha})"
+            prerelease=true
+            make_latest=false
+          fi
+
+          {
+            echo "tag=$tag"
+            echo "name=$name"
+            echo "prerelease=$prerelease"
+            echo "make_latest=$make_latest"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verify release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=(
+            artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
+            artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip
+            artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
+          )
+
+          for file in "${expected[@]}"; do
+            test -s "$file"
+          done
+
+          count="$(find artifacts -type f | wc -l | tr -d ' ')"
+          if [[ "$count" != "3" ]]; then
+            echo "Expected exactly 3 release assets, found $count"
+            find artifacts -type f -print
+            exit 1
+          fi
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          tag_name: ${{ steps.release-meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.release-meta.outputs.name }}
+          files: |
+            artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
+            artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip
+            artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
+          prerelease: ${{ steps.release-meta.outputs.prerelease }}
+          make_latest: ${{ steps.release-meta.outputs.make_latest }}
           fail_on_unmatched_files: true
           body: |
-            Automated EGTRAIN build for `${{ github.ref_name }}`.
+            Automated EGTRAIN build for `${{ steps.release-meta.outputs.name }}`.
 
             - Commit: ${{ github.sha }}
             - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
