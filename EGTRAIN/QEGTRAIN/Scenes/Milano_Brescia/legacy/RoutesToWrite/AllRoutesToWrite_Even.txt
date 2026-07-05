@@ -1,0 +1,26 @@
+ES_Bergamo_RomaTermini_8951.txt 
+ES_Milano_VeneziaS.Lucia(OR Udine).txt
+ES_Milano_VeneziaS.Lucia.txt
+ES_Milano_VeneziaS.Lucia_8971.txt
+Freight_Chiari_Brescia_41015.txt
+Freight_Chiasso(OR To)_MantovaFrassine(OR_Vicenza).txt
+Freight_Chiasso_BS_EST_46501.txt
+Freight_DomoII_MantovaFrassine.txt
+Freight_DomoII_Vicenza.txt
+Freight_Melzo_MantovaFrassine_46623.txt
+Freight_Modane_VeneziaS.Lucia.txt
+Freight_Rovato_PDInterporto_51159.txt
+Freight_Vent(OR Ge)_Cittadella(OR Vicenza)_48363_54150.txt
+Freight_Vidalengo_Domegliara_47379.txt
+INVIO_Milano_Pioltello.txt
+INVIO_Milano_Treviglio.txt 
+REG_Bergamo_Brescia_OR_Pisa.txt
+REG_Melzo_Treviglio.txt
+REG_Mi.Greco_Brescia.txt
+REG_Mi.Greco_Brescia_10713.txt
+REG_Milan(AndP.Garibaldi)_Bergamo.txt
+REG_Milan_Bergamo.txt
+REG_Milano_VeronaP.Nuova.txt
+REG_MilanoCertosa(ORVarese)_Treviglio.txt
+REG_Novara_Treviglio.txt
+REG_PMBivioAdda_Bergamo_2601.txt

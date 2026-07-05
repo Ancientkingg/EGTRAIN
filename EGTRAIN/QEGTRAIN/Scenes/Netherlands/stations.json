@@ -1,0 +1,250 @@
+{
+    "stations": [
+        {
+            "id": "Ut",
+            "name": "Ut",
+            "platforms": [],
+            "position_km": 1.335
+        },
+        {
+            "id": "Utzl",
+            "name": "Utzl",
+            "platforms": [],
+            "position_km": 3.287
+        },
+        {
+            "id": "Uto",
+            "name": "Uto",
+            "platforms": [],
+            "position_km": 4.282
+        },
+        {
+            "id": "Mas",
+            "name": "Mas",
+            "platforms": [],
+            "position_km": 8.482
+        },
+        {
+            "id": "Bhv",
+            "name": "Bhv",
+            "platforms": [],
+            "position_km": 10.213
+        },
+        {
+            "id": "Dld",
+            "name": "Dld",
+            "platforms": [],
+            "position_km": 13.112
+        },
+        {
+            "id": "Hor",
+            "name": "Hor",
+            "platforms": [],
+            "position_km": 13.205
+        },
+        {
+            "id": "Bkl",
+            "name": "Bkl",
+            "platforms": [],
+            "position_km": 13.667
+        },
+        {
+            "id": "Hvsp",
+            "name": "Hvsp",
+            "platforms": [],
+            "position_km": 17.53
+        },
+        {
+            "id": "Stz",
+            "name": "Stz",
+            "platforms": [],
+            "position_km": 18.089
+        },
+        {
+            "id": "St",
+            "name": "St",
+            "platforms": [],
+            "position_km": 19.147
+        },
+        {
+            "id": "Sd",
+            "name": "Sd",
+            "platforms": [],
+            "position_km": 20.452
+        },
+        {
+            "id": "Brn",
+            "name": "Brn",
+            "platforms": [],
+            "position_km": 23.697
+        },
+        {
+            "id": "Ac",
+            "name": "Ac",
+            "platforms": [],
+            "position_km": 26.167
+        },
+        {
+            "id": "Ashd",
+            "name": "Ashd",
+            "platforms": [],
+            "position_km": 28.267
+        },
+        {
+            "id": "Asb",
+            "name": "Asb",
+            "platforms": [],
+            "position_km": 30.367
+        },
+        {
+            "id": "Alm",
+            "name": "Alm",
+            "platforms": [],
+            "position_km": 30.654
+        },
+        {
+            "id": "Hvs",
+            "name": "Hvs",
+            "platforms": [],
+            "position_km": 31.003
+        },
+        {
+            "id": "Dvd",
+            "name": "Dvd",
+            "platforms": [],
+            "position_km": 31.867
+        },
+        {
+            "id": "Hvsm",
+            "name": "Hvsm",
+            "platforms": [],
+            "position_km": 32.346
+        },
+        {
+            "id": "Almm",
+            "name": "Almm",
+            "platforms": [],
+            "position_km": 32.726
+        },
+        {
+            "id": "Asa",
+            "name": "Asa",
+            "platforms": [],
+            "position_km": 34.797
+        },
+        {
+            "id": "Bsmz",
+            "name": "Bsmz",
+            "platforms": [],
+            "position_km": 35.552
+        },
+        {
+            "id": "Ampo",
+            "name": "Ampo",
+            "platforms": [],
+            "position_km": 36.643
+        },
+        {
+            "id": "Ndb",
+            "name": "Ndb",
+            "platforms": [],
+            "position_km": 37.23
+        },
+        {
+            "id": "Wp",
+            "name": "Wp",
+            "platforms": [],
+            "position_km": 46.181
+        },
+        {
+            "id": "Dmn",
+            "name": "Dmn",
+            "platforms": [],
+            "position_km": 52.657
+        },
+        {
+            "id": "Dmnz",
+            "name": "Dmnz",
+            "platforms": [],
+            "position_km": 53.593
+        },
+        {
+            "id": "Assp",
+            "name": "Assp",
+            "platforms": [],
+            "position_km": 54.202
+        },
+        {
+            "id": "Asdm",
+            "name": "Asdm",
+            "platforms": [],
+            "position_km": 55.522
+        },
+        {
+            "id": "Rai",
+            "name": "Rai",
+            "platforms": [],
+            "position_km": 58.883
+        },
+        {
+            "id": "Asd",
+            "name": "Asd",
+            "platforms": [],
+            "position_km": 59.396
+        },
+        {
+            "id": "Asdz",
+            "name": "Asdz",
+            "platforms": [],
+            "position_km": 60.183
+        },
+        {
+            "id": "virtualUtLink",
+            "name": "virtualUtLink",
+            "platforms": [],
+            "position_km": 0.95
+        },
+        {
+            "id": "virtualUtoLink",
+            "name": "virtualUtoLink",
+            "platforms": [],
+            "position_km": 4.8
+        },
+        {
+            "id": "virtualHvsLink",
+            "name": "virtualHvsLink",
+            "platforms": [],
+            "position_km": 18.4
+        },
+        {
+            "id": "virtualAsdmLink",
+            "name": "virtualAsdmLink",
+            "platforms": [],
+            "position_km": 36.899
+        },
+        {
+            "id": "virtualAsdLink",
+            "name": "virtualAsdLink",
+            "platforms": [],
+            "position_km": 37.501
+        },
+        {
+            "id": "virtualAlmLink",
+            "name": "virtualAlmLink",
+            "platforms": [],
+            "position_km": 45.725
+        },
+        {
+            "id": "virtualDmnzLink",
+            "name": "virtualDmnzLink",
+            "platforms": [],
+            "position_km": 49.215
+        },
+        {
+            "id": "virtualDvdLink",
+            "name": "virtualDvdLink",
+            "platforms": [],
+            "position_km": 55.216
+        }
+    ]
+}
