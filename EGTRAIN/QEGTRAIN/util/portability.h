@@ -2,15 +2,34 @@
 #define EGTRAIN_PORTABILITY_H
 
 // Cross-platform portability shims for EGTRAIN.
-// MSVC-specific functions are replaced with C99/C++17 standard equivalents.
+// The codebase mixes MSVC names (_s functions, _mkdir) and POSIX names
+// (localtime_r, unistd.h). This header maps whichever set is missing on the
+// current compiler onto the one that is available.
 
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
 
-#if !defined(_MSC_VER)
-// MSVC _s functions are not standard C/C++. Map them to safe equivalents.
+#if defined(_MSC_VER)
 
+#include <io.h>      // _isatty
+#include <direct.h>  // _mkdir
+#include <ctime>     // localtime_s
+
+// POSIX terminal check -> MSVC equivalents.
+#define isatty _isatty
+#define STDIN_FILENO _fileno(stdin)
+
+// POSIX localtime_r -> MSVC localtime_s (arguments swapped, errno_t return).
+static inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
+	return localtime_s(result, timep) == 0 ? result : nullptr;
+}
+
+#else
+
+#include <unistd.h>  // isatty, STDIN_FILENO
+
+// MSVC _s functions are not standard C/C++. Map them to safe equivalents.
 // sprintf_s(buf, ...) -> snprintf(buf, sizeof(buf), ...)
 // Note: sizeof(buf) is correct for stack-allocated arrays, less so for pointers.
 #define sprintf_s(buf, ...) snprintf(buf, sizeof(buf), __VA_ARGS__)
@@ -18,10 +37,7 @@
 // strcpy_s(dst, src) -> strcpy(dst, src)
 #define strcpy_s(dst, src) strcpy(dst, src)
 
-// strcpy_s(dst, len, src) -> strncpy(dst, src, len) (3-arg variant, rare)
-// Not needed for this codebase; all calls are 2-arg.
-
-// _mkdir(path) -> mkdir(path, 0777) (POSIX needs mode argument)
+// _mkdir(path) -> mkdir(path, 0777) (POSIX needs a mode argument)
 #define _mkdir(path) mkdir(path, 0777)
 
 #endif

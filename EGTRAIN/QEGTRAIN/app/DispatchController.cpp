@@ -1,5 +1,6 @@
 #include "app/DispatchController.h"
 #include "simulation/SimulationWorker.h"
+#include "util/portability.h"  // localtime_r shim on MSVC
 #include <filesystem>
 #include <regex>
 #include <thread>

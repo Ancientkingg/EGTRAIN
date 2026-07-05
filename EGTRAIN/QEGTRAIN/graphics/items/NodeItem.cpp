@@ -1,7 +1,7 @@
 #include "graphics/items/NodeItem.h"
 
 NodeItem::NodeItem(const QRectF& rect, QGraphicsItem* parent)
-	: QGraphicsEllipseItem(rect, parent), track(-1), Node(nullptr) {
+	: QGraphicsEllipseItem(rect, parent), track(-1), node(nullptr) {
 	setZValue(1); // draw over arcs and connections (which have z = 0)
 }
 

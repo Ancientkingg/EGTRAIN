@@ -1,5 +1,6 @@
 #include "io/RailMLParser.h"
 #include "simulation/InitialParameters.h"
+#include "util/portability.h"  // localtime_r shim on MSVC
 static zmq::context_t ctx;
 
 extern InitialParameters initial_variables;
