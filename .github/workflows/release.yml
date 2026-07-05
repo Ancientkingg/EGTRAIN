@@ -162,9 +162,102 @@ jobs:
           path: QEGTRAIN-windows-x64.zip
           if-no-files-found: error
 
+  package-linux:
+    name: Package Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake patchelf wget file desktop-file-utils \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release -j"$(nproc)"
+
+      - name: Assemble AppDir
+        run: |
+          set -euxo pipefail
+          APPDIR="$PWD/AppDir"
+          mkdir -p \
+            "$APPDIR/usr/bin" \
+            "$APPDIR/usr/share/applications" \
+            "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          EXE="$(find build -type f -perm -111 -name QEGTRAIN | head -n 1)"
+          test -n "$EXE"
+          cp "$EXE" "$APPDIR/usr/bin/QEGTRAIN"
+
+          # Case data and image assets live beside the executable. The app
+          # falls back to this location when launched outside the package tree.
+          cp -R EGTRAIN/QEGTRAIN/Input "$APPDIR/usr/bin/Input"
+          cp EGTRAIN/QEGTRAIN/*.png "$APPDIR/usr/bin/"
+          cp EGTRAIN/QEGTRAIN/*.jpg "$APPDIR/usr/bin/" || true
+          cp EGTRAIN/QEGTRAIN/train_station.png \
+            "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"
+
+          cat > "$APPDIR/usr/share/applications/qegtrain.desktop" <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=EGTRAIN
+          Exec=QEGTRAIN
+          Icon=qegtrain
+          Categories=Education;Science;
+          Terminal=false
+          EOF
+          chmod +x "$APPDIR/usr/bin/QEGTRAIN"
+
+      - name: Build AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          VERSION: "1.0"
+        run: |
+          set -euxo pipefail
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage appimagetool-x86_64.AppImage
+
+          export QMAKE
+          QMAKE="$(command -v qmake || command -v qmake-qt5 || echo /usr/lib/qt5/bin/qmake)"
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable AppDir/usr/bin/QEGTRAIN \
+            --desktop-file AppDir/usr/share/applications/qegtrain.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/qegtrain.png \
+            --plugin qt
+
+          ./appimagetool-x86_64.AppImage AppDir QEGTRAIN-linux-x86_64.AppImage
+
+      - name: Verify AppImage contents
+        run: |
+          set -euxo pipefail
+          test -s QEGTRAIN-linux-x86_64.AppImage
+          chmod +x QEGTRAIN-linux-x86_64.AppImage
+          ./QEGTRAIN-linux-x86_64.AppImage --appimage-extract >/dev/null
+          test -x squashfs-root/usr/bin/QEGTRAIN
+          test -d squashfs-root/usr/bin/Input/Input_EGTRAIN_Paimpol
+          test -f squashfs-root/AppRun
+          find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
+          echo "OK: AppImage contains executable, Qt runtime, and Input data"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-linux-x86_64
+          path: QEGTRAIN-linux-x86_64.AppImage
+          if-no-files-found: error
+
   release:
     name: Publish GitHub Release
-    needs: [package-macos, package-windows]
+    needs: [package-macos, package-windows, package-linux]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
