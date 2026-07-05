@@ -1,4 +1,4 @@
-#include "../BlockingTimeDiagram.h"
+#include "diagrams/BlockingTimeDiagram.h"
 
 #include <iostream>
 #include <vector>
