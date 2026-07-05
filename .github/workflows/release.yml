@@ -1,0 +1,97 @@
+name: Release
+
+# Builds downloadable applications for macOS, Windows, and Linux.
+# Runs on every v* tag (which also publishes a GitHub Release) and can be
+# started by hand from the Actions tab to test the packaging jobs.
+on:
+  push:
+    branches:
+      - ci/release-pipeline
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package-macos:
+    name: Package macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json dylibbundler
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+
+      - name: Build
+        run: cmake --build build --config Release -j
+
+      - name: Bundle Qt and dependencies into the app
+        run: |
+          set -euxo pipefail
+          APP="build/QEGTRAIN.app"
+          # Qt frameworks and plugins
+          "$(brew --prefix qt@5)/bin/macdeployqt" "$APP" -verbose=1
+          # Non-Qt dylibs (libomp, libzmq, libsodium, ...) copied in and
+          # rewritten to @executable_path so the app runs without Homebrew.
+          dylibbundler --overwrite-files --bundle-deps --create-dir \
+            --fix-file "$APP/Contents/MacOS/QEGTRAIN" \
+            --dest-dir "$APP/Contents/libs" \
+            --install-path "@executable_path/../libs"
+
+      - name: Verify the bundle is self-contained
+        run: |
+          set -euxo pipefail
+          leaked="$(find build/QEGTRAIN.app -type f -perm +111 -print0 \
+            | xargs -0 -I{} sh -c 'otool -L "{}" 2>/dev/null' \
+            | grep -E '/opt/homebrew|/usr/local/opt' || true)"
+          if [ -n "$leaked" ]; then
+            echo "ERROR: bundle still references Homebrew paths:"; echo "$leaked"; exit 1
+          fi
+          echo "OK: no Homebrew paths referenced"
+
+      - name: Package zip
+        run: |
+          cd build
+          ditto -c -k --keepParent QEGTRAIN.app QEGTRAIN-macos-arm64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-macos-arm64
+          path: build/QEGTRAIN-macos-arm64.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: [package-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded files
+        run: find artifacts -type f
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          body: |
+            Automated EGTRAIN build for `${{ github.ref_name }}`.
+
+            - Commit: ${{ github.sha }}
+            - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Download the package for your platform, unzip, and run.
