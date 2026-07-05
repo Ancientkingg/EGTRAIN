@@ -24,7 +24,7 @@ public:
 	int track;
 
 	// Node pointer
-	Node* Node;
+	Node* node;
 
 	// to allow cast
 	enum { Type = UserType + 5 };

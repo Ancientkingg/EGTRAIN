@@ -8,6 +8,7 @@ Start here:
 - [Agile workflow](planning/agile-workflow.md)
 - [GitHub issue plan](planning/github-issues.md)
 - [Build and test guide](development/build-and-test.md)
+- [Release testing checklist](development/release-testing-checklist.md)
 - [Writing style](development/writing-style.md)
 
 Keep new documentation short, concrete, and current.
