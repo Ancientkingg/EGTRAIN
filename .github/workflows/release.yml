@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json dylibbundler
+        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
 
       - name: Configure
         run: >
@@ -33,34 +33,34 @@ jobs:
       - name: Bundle Qt and dependencies into the app
         run: |
           set -euxo pipefail
-          APP="build/QEGTRAIN.app"
-          # Qt frameworks and plugins
-          "$(brew --prefix qt@5)/bin/macdeployqt" "$APP" -verbose=1
-          # Non-Qt dylibs (libomp, libzmq, libsodium, ...) copied in and
-          # rewritten to @executable_path so the app runs without Homebrew.
-          dylibbundler --overwrite-files --bundle-deps --create-dir \
-            --fix-file "$APP/Contents/MacOS/QEGTRAIN" \
-            --dest-dir "$APP/Contents/libs" \
-            --install-path "@executable_path/../libs"
+          # macdeployqt copies the Qt frameworks and plugins into the bundle and
+          # also relocates the non-Qt dependencies (libomp, libzmq, libsodium)
+          # into Contents/Frameworks, rewriting every reference to
+          # @executable_path so the app runs without Homebrew.
+          "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
 
       - name: Verify the app is self-contained
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           APP="build/QEGTRAIN.app"
-          BIN="$APP/Contents/MacOS/QEGTRAIN"
-          echo "== main executable dependencies =="
-          otool -L "$BIN"
-          # The main executable must not load anything from Homebrew at runtime
-          # (its dependency lines, i.e. everything after the header line).
-          if otool -L "$BIN" | tail -n +2 | grep -E '/opt/homebrew|/usr/local/opt'; then
-            echo "ERROR: main executable depends on Homebrew paths"; exit 1
-          fi
-          # Qt frameworks and the non-Qt dylibs must be bundled inside the app.
           test -d "$APP/Contents/Frameworks/QtCore.framework"
           test -d "$APP/Contents/Frameworks/QtCharts.framework"
-          ls "$APP/Contents/libs" | grep -Eiq 'omp' || { echo "ERROR: libomp not bundled"; exit 1; }
-          ls "$APP/Contents/libs" | grep -Eiq 'zmq' || { echo "ERROR: libzmq not bundled"; exit 1; }
-          echo "OK: main executable clean; Qt frameworks and libomp/libzmq bundled"
+          find "$APP" -iname 'libomp*.dylib' | grep -q . || { echo "ERROR: libomp not bundled"; exit 1; }
+          find "$APP" -iname 'libzmq*.dylib' | grep -q . || { echo "ERROR: libzmq not bundled"; exit 1; }
+          # The main executable (no install-id line) and every bundled dylib
+          # (skip the header and their own install-id line) must not reference
+          # a Homebrew path as a dependency.
+          if otool -L "$APP/Contents/MacOS/QEGTRAIN" | tail -n +2 | grep -E '/opt/homebrew|/usr/local/opt'; then
+            echo "ERROR: main executable depends on Homebrew"; exit 1
+          fi
+          leak=0
+          while IFS= read -r f; do
+            if otool -L "$f" | tail -n +3 | grep -E '/opt/homebrew|/usr/local/opt'; then
+              echo "ERROR: Homebrew dependency in $f"; leak=1
+            fi
+          done < <(find "$APP" -type f -name '*.dylib')
+          [ "$leak" = 0 ] || exit 1
+          echo "OK: app is self-contained"
 
       - name: Package zip
         run: |
