@@ -120,6 +120,8 @@ void EGTRAIN::setupEgtrain() {
 
 	setGeoCoordinates(signalling_block_sections, Blocks);
 
+	Load_Incidents(InputMainFolder);
+
 	createTds(signalling_block_sections, Blocks, 3, list_of_TDS);
 
 	for (int i = 0; i < Blocks; i++) {
@@ -184,6 +186,7 @@ void EGTRAIN::resetState() {
 	VCmsgTimestep.clear();
 	VCmsgTrain.clear();
 	VCmsgText.clear();
+	simulationIncidents.clear();
 
 	// Fixed-size C arrays. Reset to default-constructed state.
 	for (int i = 0; i < 268; i++)

@@ -7,6 +7,19 @@
 
 #include "Infrastructure.h"
 
+// --- Incidents: Disruption events ---
+struct SimulationIncident {
+	std::string type;
+	std::string target;
+	double startSeconds;
+	double endSeconds;
+	std::vector<std::string> resolvedSectionIDs; // Resolved section IDs for signal_failure
+};
+
+extern std::vector<SimulationIncident> simulationIncidents;
+void Load_Incidents(const std::string& MainFolder);
+bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
+
 // --- TrainEvent: ordered train events (departures, arrivals, etc.) ---
 class TrainEvent {
 public:
