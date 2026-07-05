@@ -93,22 +93,22 @@ class ConsoleWidget; // forward declaration for m_logPane
 class QTemporaryDir; // forward declaration for m_runStagingDir
 
 // custom GUI files
-#include "graphics/myQGraphicsView.h"
-#include "graphics/myQGraphicsScene.h"
-#include "graphics/items/myQGraphicsLineItem.h"
-#include "graphics/items/virtualArcQGraphicsLineItem.h"
-#include "graphics/items/myQGraphicsEllipseItem.h"
-#include "graphics/items/myQGraphicsRectItem.h"
-#include "graphics/items/platformQGraphicsRectItem.h"
-#include "graphics/items/myQGraphicsPixmapItem.h"
-#include "graphics/items/passengerQGraphicsPixmapItem.h"
-#include "graphics/items/connectionQGraphicsLineItem.h"
-#include "graphics/items/signallingQGraphicsEllipseItem.h"
-#include "graphics/items/trainQGraphicsPolygonItem.h"
-#include "graphics/items/trainQGraphicsItemGroup.h"
-#include "widgets/infoQDockWidget.h"
-#include "graphics/items/myQGraphicsColorizeEffect.h"
-#include "widgets/timeQProgressBar.h"
+#include "graphics/NetworkView.h"
+#include "graphics/NetworkScene.h"
+#include "graphics/items/TrackLineItem.h"
+#include "graphics/items/VirtualArcItem.h"
+#include "graphics/items/NodeItem.h"
+#include "graphics/items/StationNodeItem.h"
+#include "graphics/items/PlatformItem.h"
+#include "graphics/items/IconItem.h"
+#include "graphics/items/PassengerItem.h"
+#include "graphics/items/ConnectionItem.h"
+#include "graphics/items/SignalItem.h"
+#include "graphics/items/TrainBodyItem.h"
+#include "graphics/items/TrainItemGroup.h"
+#include "widgets/InfoDockWidget.h"
+#include "graphics/items/HighlightEffect.h"
+#include "widgets/TimeProgressBar.h"
 
 // EGTRAIN files
 #include "simulation/Infrastructure.h"
@@ -158,8 +158,8 @@ public:
 	void paintStationIcon(QPointF coord, int size);
 	void paintStationName(QPointF coord, string sname, int size);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
-	void paintTrainPassengerInfo(trainQGraphicsItemGroup* trainItem);
-	void paintPassengerInfoIcon(passengerQGraphicsPixmapItem* paxItem);
+	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
+	void paintPassengerInfoIcon(PassengerItem* paxItem);
 	void paintText(QPointF coord, string sname, int size);
 	void paintLine(QPointF start, QPointF end, int pen_width);
 	void paintArc(QPointF start, QPointF end, int pen_width, int track, Arc* Arc, int track_separation);
@@ -205,7 +205,7 @@ public:
 	void updateSignalAspect(const std::string& ID, double code, bool reversed);
 
 	// get train polygon (list)
-	void getTrainPolygonItemList(QList<trainQGraphicsPolygonItem*>* trainPolygonItemList, int t, int train);
+	void getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, int t, int train);
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int train);
 
 	// train path diagram
@@ -213,8 +213,8 @@ public:
 	void askForTrainPathDiagram();
 
 	// VCoupling notifications
-	void checkVCouplingMsg(trainQGraphicsItemGroup* trainItem, int train, int t);
-	void paintVCouplingMsg(trainQGraphicsItemGroup* trainItem, string message, int t, int msgIndex);
+	void checkVCouplingMsg(TrainItemGroup* trainItem, int train, int t);
+	void paintVCouplingMsg(TrainItemGroup* trainItem, string message, int t, int msgIndex);
 
 	// hide objects of unused tracks
 	void hideUnusedTracks();
@@ -232,13 +232,13 @@ protected:
 public slots:
 	void handleHelpAbout();
 	void handleCloseInfoDockWidget();
-	void displayNodeInfo(myQGraphicsEllipseItem* el);
-	void displayStationNodeInfo(myQGraphicsRectItem* re);
-	void displayArcInfo(myQGraphicsLineItem* line);
-	void displayConnectionInfo(connectionQGraphicsLineItem* line);
-	void displaySignallingInfo(signallingQGraphicsEllipseItem* signal);
-	void displayTrainInfo(trainQGraphicsPolygonItem* trainItem);
-	void displayPassengerInfo(passengerQGraphicsPixmapItem* paxItem);
+	void displayNodeInfo(NodeItem* el);
+	void displayStationNodeInfo(StationNodeItem* re);
+	void displayArcInfo(TrackLineItem* line);
+	void displayConnectionInfo(ConnectionItem* line);
+	void displaySignallingInfo(SignalItem* signal);
+	void displayTrainInfo(TrainBodyItem* trainItem);
+	void displayPassengerInfo(PassengerItem* paxItem);
 	void handleDisableHighlight();
 	// updates according to simulation
 	void waitForUpdates(int timestep);
@@ -274,13 +274,13 @@ private:
 	QVBoxLayout* mainLayout;
 
 	// scene
-	QPointer<myQGraphicsScene> scene;
+	QPointer<NetworkScene> scene;
 
 	// QGraphicsView
-	myQGraphicsView* networkView;
+	NetworkView* networkView;
 
 	// progess bar
-	timeQProgressBar* progressBar;
+	TimeProgressBar* progressBar;
 
 	// zoom
 	Qt::KeyboardModifiers _modifiers;
@@ -302,7 +302,7 @@ private:
 	// dock widget
 	QWidget* infoWidget;
 	QVBoxLayout* infoWidgetMainLayout;
-	infoQDockWidget* infoDockWidget;
+	InfoDockWidget* infoDockWidget;
 	QWidget* arcInfoWidget;
 	QLineEdit* arcIDText;
 	QLineEdit* arcFirstNodeIDText;
@@ -339,7 +339,7 @@ private:
 	QFormLayout* trainFormLayout;
 
 	// effect on clicked item
-	myQGraphicsColorizeEffect* effect;
+	HighlightEffect* effect;
 
 	// MainWindow creates the worker and thread. Qt owns deletion through deleteLater connections.
 	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.
@@ -516,26 +516,26 @@ private:
 	void stopTrainAnimations();
 
 	// list of signals
-	QList<signallingQGraphicsEllipseItem*> allSignals;
-	std::unordered_map<std::string, QList<signallingQGraphicsEllipseItem*>> m_signalsByAheadId;
+	QList<SignalItem*> allSignals;
+	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 
 	// list of train items (whose simulation is running)
-	QList<trainQGraphicsItemGroup*> allTrains;
+	QList<TrainItemGroup*> allTrains;
 
 	// list of arcs
-	QList<myQGraphicsLineItem*> allArcs;
+	QList<TrackLineItem*> allArcs;
 
 	// list of platform items
-	QList<platformQGraphicsRectItem*> allPlatforms;
+	QList<PlatformItem*> allPlatforms;
 
 	// Non-owning scene item observers. scene->clear() deletes these items.
 	QGraphicsItemGroup* trainPaxInfoItem;
-	trainQGraphicsItemGroup* trainPaxItem;
+	TrainItemGroup* trainPaxItem;
 
 	// Non-owning scene item observers. scene->clear() deletes these items.
 	QGraphicsItemGroup* paxIconInfoItem;
-	passengerQGraphicsPixmapItem* paxIconItem;
+	PassengerItem* paxIconItem;
 
 	// associates regions and station indexes
 	std::vector<std::vector<int>> regionStations;
