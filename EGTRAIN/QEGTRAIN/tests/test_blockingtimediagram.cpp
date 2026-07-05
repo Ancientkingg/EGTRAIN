@@ -25,14 +25,14 @@ static BlockingTimeDiagramInput block(const char* id, double start, double end, 
 int main() {
 	std::vector<std::vector<BlockingTimeDiagramInput>> trains = {
 		{
-			block("@12-blockSets0@", 10.0, 20.0, 1000.0, 1400.0, "None", "None", true),
-			block("@99-blockSets0@", -1.0, 30.0, 1400.0, 1600.0, "None", "None", true),
-			block("@13-blockSets0@", 25.0, 40.0, 1600.0, 2200.0, "SW13", "None", true),
+			block("@12-B0@", 10.0, 20.0, 1000.0, 1400.0, "None", "None", true),
+			block("@99-B0@", -1.0, 30.0, 1400.0, 1600.0, "None", "None", true),
+			block("@13-B0@", 25.0, 40.0, 1600.0, 2200.0, "SW13", "None", true),
 		},
 		{
-			block("@12-blockSets9@", 15.0, 25.0, 1000.0, 1500.0, "None", "StationA", true),
-			block("@40-blockSets0@", 50.0, 45.0, 1800.0, 2100.0, "None", "None", true),
-			block("@41-blockSets0@", 60.0, 70.0, 2100.0, 2300.0, "None", "None", false),
+			block("@12-B9@", 15.0, 25.0, 1000.0, 1500.0, "None", "StationA", true),
+			block("@40-B0@", 50.0, 45.0, 1800.0, 2100.0, "None", "None", true),
+			block("@41-B0@", 60.0, 70.0, 2100.0, 2300.0, "None", "None", false),
 		},
 	};
 	std::vector<std::string> names = {"A", "B"};
