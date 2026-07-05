@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <time.h>
+#include "util/portability.h"  // localtime_r shim on MSVC
 
 // 01:01:20 CEST - to use it for the timetables
 inline std::string simulationTime(int t, int startingSimulationTime) {

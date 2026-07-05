@@ -3,7 +3,7 @@
 #include "app/MainWindow.h"
 #include "io/geocoding.h"
 #include <algorithm>
-#include <unistd.h>
+#include "util/portability.h"
 #include <QDir>
 #include <QStandardPaths>
 

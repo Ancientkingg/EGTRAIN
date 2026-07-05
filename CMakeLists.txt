@@ -12,6 +12,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# MSVC's <cmath> only defines M_PI and friends when _USE_MATH_DEFINES is set
+# before the header is included. Harmless on other toolchains.
+add_compile_definitions(_USE_MATH_DEFINES)
+
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
 
 if(EGTRAIN_ENABLE_SANITIZERS)
