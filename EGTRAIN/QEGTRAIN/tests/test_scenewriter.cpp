@@ -1,5 +1,5 @@
-#include "../SceneModel.h"
-#include "../SceneWriter.h"
+#include "scene/SceneModel.h"
+#include "scene/SceneWriter.h"
 
 #include <chrono>
 #include <filesystem>
