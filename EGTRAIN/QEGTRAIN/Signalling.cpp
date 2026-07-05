@@ -704,14 +704,14 @@ void defSection(Section* BS, int N_Block_Previous, BlockSet blockSets) {
 	sprintf_s(BID, "%d", blockSets.ID);
 	sprintf_s(BSID, "%d", N_Block_Previous - N_Block_Previous);
 	BS[N_Block_Previous].trackLineId = blockSets.ID; // setting the ID of the TrackLine
-	BS[N_Block_Previous].ID = BS[N_Block_Previous].ID + "@" + BSID + "-blockSets" + BID + "@";
+	BS[N_Block_Previous].ID = BS[N_Block_Previous].ID + "@" + BSID + "-B" + BID + "@";
 	// Setting the Track Detection Section Border for the first block section
-	BS[N_Block_Previous].start_node.tdsbId = BS[N_Block_Previous].start_node.tdsbId + "@Beg-" + BSID + "-blockSets" + BID + "@"; // ID of the first TDSB
+	BS[N_Block_Previous].start_node.tdsbId = BS[N_Block_Previous].start_node.tdsbId + "@Beg-" + BSID + "-B" + BID + "@"; // ID of the first TDSB
 
 	BS[N_Block_Previous].start_node.tdsbGeoCoordX = BS[N_Block_Previous].start_node.X * 1000; // Setting GeoCoord X
 	BS[N_Block_Previous].start_node.tdsbGeoCoordY = BS[N_Block_Previous].start_node.Y * 1000; // Setting GeoCoord Y
 																							  // Setting the TDSB at the end of the first Block Section
-	BS[N_Block_Previous].end_node.tdsbId = BS[N_Block_Previous].end_node.tdsbId + "@End-" + BSID + "-blockSets" + BID + "@"; // ID of the first TDSB
+	BS[N_Block_Previous].end_node.tdsbId = BS[N_Block_Previous].end_node.tdsbId + "@End-" + BSID + "-B" + BID + "@"; // ID of the first TDSB
 	// std::cout << BS[N_Block_Previous].start_node.tdsbId << '\n';
 	// std::cout << BS[N_Block_Previous].end_node.tdsbId << '\n';
 	BS[N_Block_Previous].end_node.tdsbGeoCoordX = BS[N_Block_Previous].end_node.X * 1000; // Setting GeoCoord X
@@ -729,13 +729,13 @@ void defSection(Section* BS, int N_Block_Previous, BlockSet blockSets) {
 				BS[h].end_node = blockSets.member[i].endNode;
 		}
 		sprintf_s(BSID, "%d", h - N_Block_Previous);
-		BS[h].ID = BS[h].ID + "@" + BSID + "-blockSets" + BID + "@";
+		BS[h].ID = BS[h].ID + "@" + BSID + "-B" + BID + "@";
 		BS[h].trackLineId = blockSets.ID;
 		/*for (int i=0;i<blockSets.len-1;i++){
 		if (fabs(signalling_block_sections[h].end_node.X-blockSets.member[i].end_node.X)<=0.001) signalling_block_sections[h].end_node.X=blockSets.member[i].end_node.X+0.002;}*/
 		// This if move nodes of the block sections in order that they do not overlap with nodes of the TrackList blockSets: you have to activate it when optimizing block section lengths
 		// Setting the characteristics of the the TDSB at the end of the block
-		BS[h].end_node.tdsbId = BS[h].end_node.tdsbId + "@End-" + BSID + "-blockSets" + BID + "@"; // ID of the first TDSB
+		BS[h].end_node.tdsbId = BS[h].end_node.tdsbId + "@End-" + BSID + "-B" + BID + "@"; // ID of the first TDSB
 		// std::cout << BS[h].end_node.tdsbId << '\n';
 		BS[h].end_node.tdsbGeoCoordX = BS[h].end_node.X * 1000; // Setting GeoCoord X
 		BS[h].end_node.tdsbGeoCoordY = BS[h].end_node.Y * 1000; // Setting GeoCoord Y
@@ -803,7 +803,7 @@ void defSection(Section* BS, int N_Block_Previous, BlockSet blockSets) {
 		sprintf_s(BSID, "%d", h - N_Block_Previous);
 		for (int k = 0; k < BS[h].total_arcs; k++) {
 			if (BS[h].arcs_in_signalling_block_section[k].endNode.stationName.empty() != 1) {
-				BS[h].arcs_in_signalling_block_section[k].endNode.tdsbId = BS[h].arcs_in_signalling_block_section[k].endNode.tdsbId + "@" + BS[h].arcs_in_signalling_block_section[k].endNode.stationName + "-" + BSID + "-blockSets" + BID + "@"; // ID of the TDSB at station platform
+				BS[h].arcs_in_signalling_block_section[k].endNode.tdsbId = BS[h].arcs_in_signalling_block_section[k].endNode.tdsbId + "@" + BS[h].arcs_in_signalling_block_section[k].endNode.stationName + "-" + BSID + "-B" + BID + "@"; // ID of the TDSB at station platform
 				BS[h].arcs_in_signalling_block_section[k].endNode.tdsbGeoCoordX = BS[h].arcs_in_signalling_block_section[k].endNode.X * 1000;																							  // Geocoordinate X in m
 				BS[h].arcs_in_signalling_block_section[k].endNode.tdsbGeoCoordY = BS[h].arcs_in_signalling_block_section[k].endNode.Y * 1000;																							  // GeoCoordinate Y in m
 			}
@@ -1846,12 +1846,12 @@ void printAllBlocksForRecife() {
 		} else {
 			std::string left = signalling_block_sections[i].ID.substr(0, signalling_block_sections[i].ID.find("/"));
 			left = left.substr(0, left.find("@-"));
-			left = left.substr(left.find("-blockSets") + 2); // we got track 1
+			left = left.substr(left.find("-B") + 2); // we got track 1
 			std::string right = signalling_block_sections[i].ID.substr(signalling_block_sections[i].ID.find("/"));
 			// std::cout << right;
 			right = right.substr(0, right.find("@-"));
 
-			right = right.substr(right.find("-blockSets") + 2); // we got track 2
+			right = right.substr(right.find("-B") + 2); // we got track 2
 
 			line1 += "Sign_" + X_signal1.substr(0, X_signal1.size() - 3) + "_tr_" + left + "\t" +
 					 "Sign_" + X_signal2.substr(0, X_signal2.size() - 3) + "_tr_" + right;
@@ -2370,6 +2370,13 @@ void Route::createRoute(char* FileName) {
 			} // push back Block Section element in the list
 		}
 	}
+
+	// Some route tokens may not resolve to a generated block section (e.g. a
+	// switch-transition entry with no matching merged block). Keep the route
+	// length in step with the blocks actually collected so the copy loops below
+	// never advance the iterator past the end of the list.
+	if ((int)BlockList.size() < N_Block_Sections)
+		N_Block_Sections = (int)BlockList.size();
 
 	// Checking if the Blocks must be ordered progressively or in the reverse order. This will depend of course on which direction has been defined the route with respect to the definition of the TrackLine
 	list<Section>::iterator start, final; // Two pointers pointing at the beginning and the end of the BlockList
@@ -3400,8 +3407,14 @@ void activateBlocksWithSwitchesDiv(const Section& BS, int TrackLineIDPrevBS, dou
 	BlockID2 = tok1[3] + "-" + tok1[4];
 	// Identify the TrackLine ID of BlockID1 and BlockID2;
 	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	TrackLineIDBlock1 = atoi(strtok((char*)tok1[1].c_str(), "B@"));
-	TrackLineIDBlock2 = atoi(strtok((char*)tok1[4].c_str(), "B@"));
+	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
+	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
+	{
+		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
+		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
+		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
+		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
+	}
 
 	// if TrackLineIDPrevBS is -1 or is equal to the trackLineId of the previous block section leave everything as it is otherwise
 	if (TrackLineIDBlock2 == TrackLineIDPrevBS) { // if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
@@ -3477,8 +3490,14 @@ void activateBlocksWithSwitchesDivFixedBlock(const Section& BS, int TrackLineIDP
 	BlockID2 = tok1[3] + "-" + tok1[4];
 	// Identify the TrackLine ID of BlockID1 and BlockID2;
 	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	TrackLineIDBlock1 = atoi(strtok((char*)tok1[1].c_str(), "B@"));
-	TrackLineIDBlock2 = atoi(strtok((char*)tok1[4].c_str(), "B@"));
+	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
+	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
+	{
+		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
+		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
+		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
+		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
+	}
 
 	// if TrackLineIDPrevBS is -1 or is equal to the trackLineId of the previous block section leave everything as it is otherwise
 	if (TrackLineIDBlock2 == TrackLineIDPrevBS) { // if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
@@ -3796,8 +3815,14 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 	BlockID2 = tok1[3] + "-" + tok1[4];
 	// Identify the TrackLine ID of BlockID1 and BlockID2;
 	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	TrackLineIDBlock1 = atoi(strtok((char*)tok1[1].c_str(), "B@"));
-	TrackLineIDBlock2 = atoi(strtok((char*)tok1[4].c_str(), "B@"));
+	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
+	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
+	{
+		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
+		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
+		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
+		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
+	}
 
 	// Identifying the next section ID
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
@@ -3872,8 +3897,14 @@ void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, doub
 	BlockID2 = tok1[3] + "-" + tok1[4];
 	// Identify the TrackLine ID of BlockID1 and BlockID2;
 	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	TrackLineIDBlock1 = atoi(strtok((char*)tok1[1].c_str(), "B@"));
-	TrackLineIDBlock2 = atoi(strtok((char*)tok1[4].c_str(), "B@"));
+	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
+	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
+	{
+		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
+		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
+		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
+		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
+	}
 
 	// Identifying the next section ID
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
