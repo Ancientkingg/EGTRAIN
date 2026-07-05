@@ -1,5 +1,5 @@
-#include "../SceneModel.h"
-#include "../Signalling.h"
+#include "scene/SceneModel.h"
+#include "simulation/Signalling.h"
 #include <iostream>
 
 Owl owl;

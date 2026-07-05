@@ -1,5 +1,5 @@
 // Minimal tests for time formatting utility.
-#include "../TimeFormat.h"
+#include "util/TimeFormat.h"
 
 #include <iostream>
 #include <string>

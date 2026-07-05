@@ -1,4 +1,4 @@
-#include "../VisualPolish.h"
+#include "graphics/VisualPolish.h"
 
 #include <iostream>
 
