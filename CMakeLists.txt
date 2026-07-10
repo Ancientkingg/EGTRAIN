@@ -386,13 +386,13 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
-add_test(NAME test_headless_smoke_decode
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
-add_test(NAME test_startup_launch_contract
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
-set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
-add_test(NAME test_windows_subsystem_config
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
+	add_test(NAME test_headless_smoke_decode
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
+	add_test(NAME test_startup_launch_contract
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
+	add_test(NAME test_windows_subsystem_config
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
 endif()
 
 # Install
