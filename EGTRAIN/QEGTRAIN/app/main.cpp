@@ -30,23 +30,18 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 	return 0;
 }
 
-void parseCmdOptions(int argc, char* argv[]) {
-	// When launched as a macOS .app bundle, stdin is not a terminal.
-	// Skip interactive prompts and use sensible defaults so the GUI can open.
-	bool interactive = isatty(STDIN_FILENO);
+bool interactivePromptModeEnabled(int argc, char* argv[]) {
+	return cmdOptionEntered(argv, argv + argc, "--interactive") ||
+		cmdOptionEntered(argv, argv + argc, "-interactive");
+}
 
-	if (argc < 2 && !interactive) {
-		initial_variables.set_case(1);  // Netherlands
-		initial_variables.GUI = 1;
-		initial_variables.PAX_GUI = 0;
-		initial_variables.TSM = 0;
-		initial_variables.RChoice = 0;
-		return;
-	}
+void parseCmdOptions(int argc, char* argv[]) {
+	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
+	const bool promptForMissingOptions = interactivePromptModeEnabled(argc, argv);
 
 	// no options entered
 	if (argc < 2) {
-		std::cout << "No arguments inserted. \n";
+		std::cout << "No arguments. Using defaults (GUI mode, case study 1).\n";
 	}
 
 	// select case study
@@ -56,11 +51,13 @@ void parseCmdOptions(int argc, char* argv[]) {
 			initial_variables.set_case(std::atoi(argument));
 			initial_variables.nArgProvided = true;
 		}
-	} else {
+	} else if (promptForMissingOptions) {
 		int case_study;
 		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Brescia, 5: Assignment):";
 		std::cin >> case_study;
 		initial_variables.set_case(case_study);
+	} else {
+		initial_variables.set_case(1); // Netherlands
 	}
 
 	// simulation horizon
@@ -70,7 +67,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 			initial_variables.times = std::atoi(argument);
 		}
 
-	} else {
+	} else if (promptForMissingOptions) {
 		char answer;
 		do {
 			std::cout << "The duration of the simulation of the " << initial_variables.name << " is " << initial_variables.times << " seconds.\n";
@@ -131,9 +128,11 @@ void parseCmdOptions(int argc, char* argv[]) {
 		if (argument) {
 			initial_variables.GUI = std::atoi(argument);
 		}
-	} else {
+	} else if (promptForMissingOptions) {
 		std::cout << "It seems you have not selected if you need a GUI. Please insert your choice [1: GUI , 0: no GUI] :";
 		std::cin >> initial_variables.GUI;
+	} else {
+		initial_variables.GUI = 1;
 	}
 
 	// utilization of passenger GUI
@@ -143,9 +142,11 @@ void parseCmdOptions(int argc, char* argv[]) {
 			if (argument) {
 				initial_variables.PAX_GUI = std::atoi(argument);
 			}
-		} else {
+		} else if (promptForMissingOptions) {
 			std::cout << "You have not selected if you want to use the Passenger GUI. Please insert your choice [1: Pax GUI on, 0: Pax GUI off]: ";
 			std::cin >> initial_variables.PAX_GUI;
+		} else {
+			initial_variables.PAX_GUI = 0;
 		}
 	}
 
@@ -155,9 +156,11 @@ void parseCmdOptions(int argc, char* argv[]) {
 		if (argument) {
 			initial_variables.TSM = std::atoi(argument);
 		}
-	} else {
+	} else if (promptForMissingOptions) {
 		std::cout << "Do you want EGTRAIN to share the traffic state at port 5555 (1:share , 0 :do not share)?  :";
 		std::cin >> initial_variables.TSM;
+	} else {
+		initial_variables.TSM = 0;
 	}
 	// RTTP (receive on port 5556 if enabled)
 	if (cmdOptionEntered(argv, argv + argc, "-RC")) {
@@ -165,9 +168,11 @@ void parseCmdOptions(int argc, char* argv[]) {
 		if (argument) {
 			initial_variables.RChoice = std::atoi(argument);
 		}
-	} else {
+	} else if (promptForMissingOptions) {
 		std::cout << "Do you want EGTRAIN to share passengers' state with the Route Choice at port 5556 (1:share , 0 :do not share)?  :";
 		std::cin >> initial_variables.RChoice;
+	} else {
+		initial_variables.RChoice = 0;
 	}
 }
 
@@ -230,7 +235,7 @@ int main(int argc, char* argv[]) {
 		QString inputPath = QString::fromStdString(InputMainFolder);
 #ifdef __APPLE__
 		QString bundledPath = QDir(QCoreApplication::applicationDirPath() + "/../Resources")
-		                          .filePath(inputPath);
+								  .filePath(inputPath);
 		if (QDir(bundledPath).exists())
 			InputMainFolder = bundledPath.toStdString();
 #else
@@ -240,6 +245,7 @@ int main(int argc, char* argv[]) {
 				InputMainFolder = candidate.toStdString();
 		}
 #endif
+		initial_variables.InputMainFolder = InputMainFolder;
 	};
 
 	char test;
