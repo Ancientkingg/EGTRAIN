@@ -58,8 +58,12 @@ Run from `EGTRAIN/QEGTRAIN` so the legacy relative input paths resolve.
 
 ```bash
 cd EGTRAIN/QEGTRAIN
-../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN -n 3
+../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
 ```
+
+No-argument launch opens the GUI with case study 1. Use flags for a specific
+case or automated run, for example `-n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0`.
+Add `--interactive` only when you want the legacy terminal questionnaire.
 
 Case selector:
 

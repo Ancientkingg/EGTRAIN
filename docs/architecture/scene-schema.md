@@ -19,6 +19,12 @@ The schema is versioned using an integer `schema_version` inside `scene.json`. T
 | incidents.json | no | `incidents: [{id, type: "signal_failure"\|"train_breakdown", target, start_seconds, end_seconds}]` |
 | views.json | no | free-form display defaults; parse-checked only |
 
+## Loaded Data Metadata
+
+`loaded_data` is derived provenance metadata maintained by the app at runtime as UI state. The loader recomputes it from the canonical files, so it is not the source of truth and it is not written to `scene.json`. Each row has `category`, `source_file`, `parsed_count`, `status`, and optional recursive `children`.
+
+Current categories are `scene`, `infrastructure`, `stations`, `timetable`, `rolling_stock`, `signalling`, `incidents`, and `passenger_data`. File-backed categories include drill-down rows for `raw_file`, `parsed_objects`, and `derived_simulation`; the GUI adds validation status rows from current diagnostics. `rolling_stock` also exposes `train_units`, `compositions`, and `source_files`; `source_files` lists linked `data_file` / `traction_file` entries such as `LITRA` and `T_LITRA` files when present. `signalling` exposes `signals` and `routes`.
+
 ## Examples
 
 **scene.json**
@@ -199,11 +205,12 @@ The mapping back is:
 - `services.json` -> `Trains/`, `TimeTable/`, and `trainNames.txt`
 - `rolling_stock.json` -> `TrainData/`
 - `signalling.json` (routes) -> `Routes/`
+- `incidents.json` -> `Incidents.txt` when incidents are present
 - `<sceneDir>/legacy/` is recursively walked and copied to the export directory. During this passthrough, top-level directories named `tracklines` or `timetable` (case-insensitive) are renamed to `TrackLines` and `TimeTable` to match the simulator's hard-coded case-sensitive paths.
 
 What is not exported and why:
 - `stations.json` and `infrastructure.json`: The simulator reads infrastructure from the Tracklines passthrough, so they are not written directly.
-- `incidents.json` and `views.json`: Not exported in V1.
+- `views.json`: UI-only preferences, not simulation input.
 
 **Known lossiness during round-trip**:
 - `legacy_source` records provenance when a scene is imported and does not round-trip.

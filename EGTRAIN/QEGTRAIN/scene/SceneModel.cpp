@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include <algorithm>
 #include <fstream>
 #include <filesystem>
 #include <nlohmann/json.hpp>
@@ -16,6 +17,154 @@ static bool readFile(const std::string& path, std::string& content) {
 
 static std::string joinPath(const std::string& parent, const std::string& key) {
 	return parent.empty() ? key : parent + "." + key;
+}
+
+static SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile, int parsedCount, const std::string& status) {
+	SceneLoadedData data;
+	data.category = category;
+	data.sourceFile = sourceFile;
+	data.parsedCount = parsedCount;
+	data.status = status;
+	return data;
+}
+
+static std::string loadedDataDiagnosticStatus(const SceneDiagnosticCounts& counts) {
+	std::vector<std::string> parts;
+	if (counts.errors > 0)
+		parts.push_back(std::to_string(counts.errors) + (counts.errors == 1 ? " error" : " errors"));
+	if (counts.warnings > 0)
+		parts.push_back(std::to_string(counts.warnings) + (counts.warnings == 1 ? " warning" : " warnings"));
+	if (counts.infos > 0)
+		parts.push_back(std::to_string(counts.infos) + (counts.infos == 1 ? " info" : " infos"));
+	if (parts.empty())
+		return "ok";
+	std::string status = parts[0];
+	for (std::size_t i = 1; i < parts.size(); ++i)
+		status += ", " + parts[i];
+	return status;
+}
+
+static std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDiagnostic& diagnostic) {
+	if (!diagnostic.file.empty()) {
+		for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
+			if (scene.loadedData[i].sourceFile == diagnostic.file)
+				return i;
+		}
+	}
+	for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
+		if (scene.loadedData[i].category == "scene")
+			return i;
+	}
+	return 0;
+}
+
+void refreshLoadedDataSummary(SceneModel& scene) {
+	scene.loadedData.clear();
+
+	auto add = [&](const std::string& category, const std::string& sourceFile, int parsedCount, const std::string& status) {
+		SceneLoadedData data = makeLoadedData(category, sourceFile, parsedCount, status);
+		if (!sourceFile.empty()) {
+			data.children.push_back(makeLoadedData("raw_file", sourceFile, status == "loaded" ? 1 : 0, status));
+			data.children.push_back(makeLoadedData("parsed_objects", sourceFile, parsedCount, status));
+			data.children.push_back(makeLoadedData("derived_simulation", "", 0, status == "loaded" ? "not_built" : status));
+		}
+		scene.loadedData.push_back(data);
+	};
+	auto statusForFile = [&](const std::string& sourceFile) {
+		return scene.sourceFiles.count(sourceFile) > 0 ? "loaded" : "missing";
+	};
+
+	add("scene", "scene.json", scene.schemaVersion > 0 ? 1 : 0, statusForFile("scene.json"));
+	add("infrastructure", "infrastructure.json", 0, statusForFile("infrastructure.json"));
+	add("stations", "stations.json", static_cast<int>(scene.stations.size()), statusForFile("stations.json"));
+	add("timetable", "services.json", static_cast<int>(scene.services.size()), statusForFile("services.json"));
+	add("rolling_stock", "rolling_stock.json",
+			static_cast<int>(scene.trainUnits.size() + scene.compositions.size()),
+			statusForFile("rolling_stock.json"));
+	{
+		SceneLoadedData& rollingStock = scene.loadedData.back();
+		const std::string status = rollingStock.status;
+		rollingStock.children.push_back(makeLoadedData("train_units", "rolling_stock.json",
+				static_cast<int>(scene.trainUnits.size()), status));
+		rollingStock.children.push_back(makeLoadedData("compositions", "rolling_stock.json",
+				static_cast<int>(scene.compositions.size()), status));
+
+		SceneLoadedData sourceFiles = makeLoadedData("source_files", "",
+				0, "missing");
+		for (const auto& unit : scene.trainUnits) {
+			if (!unit.sourceDataFile.empty()) {
+				sourceFiles.children.push_back(makeLoadedData("data_file", unit.sourceDataFile, 1, "loaded"));
+				++sourceFiles.parsedCount;
+			}
+			if (!unit.sourceTractionFile.empty()) {
+				sourceFiles.children.push_back(makeLoadedData("traction_file", unit.sourceTractionFile, 1, "loaded"));
+				++sourceFiles.parsedCount;
+			}
+		}
+		if (sourceFiles.parsedCount > 0)
+			sourceFiles.status = "loaded";
+		rollingStock.children.push_back(sourceFiles);
+	}
+	add("signalling", "signalling.json",
+			static_cast<int>(scene.signals.size() + scene.routes.size()),
+			statusForFile("signalling.json"));
+	{
+		SceneLoadedData& signalling = scene.loadedData.back();
+		const std::string status = signalling.status;
+		signalling.children.push_back(makeLoadedData("signals", "signalling.json",
+				static_cast<int>(scene.signals.size()), status));
+		signalling.children.push_back(makeLoadedData("routes", "signalling.json",
+				static_cast<int>(scene.routes.size()), status));
+	}
+	add("incidents", "incidents.json", static_cast<int>(scene.incidents.size()), statusForFile("incidents.json"));
+	add("passenger_data", "", 0, "unimplemented");
+}
+
+void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiagnostic>& diagnostics) {
+	if (scene.loadedData.empty())
+		refreshLoadedDataSummary(scene);
+	if (scene.loadedData.empty())
+		return;
+
+	std::vector<SceneDiagnosticCounts> counts(scene.loadedData.size());
+	for (auto& item : scene.loadedData) {
+		item.children.erase(std::remove_if(item.children.begin(), item.children.end(), [](const SceneLoadedData& child) {
+			return child.category == "validation";
+		}), item.children.end());
+	}
+	for (const auto& diagnostic : diagnostics) {
+		SceneDiagnosticCounts& count = counts[loadedDataIndexForDiagnostic(scene, diagnostic)];
+		switch (diagnostic.severity) {
+		case SceneSeverity::Error:
+			++count.errors;
+			break;
+		case SceneSeverity::Warning:
+			++count.warnings;
+			break;
+		case SceneSeverity::Info:
+			++count.infos;
+			break;
+		}
+	}
+	for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
+		const SceneDiagnosticCounts& count = counts[i];
+		int total = count.errors + count.warnings + count.infos;
+		scene.loadedData[i].children.push_back(makeLoadedData("validation", scene.loadedData[i].sourceFile, total, loadedDataDiagnosticStatus(count)));
+	}
+}
+
+void refreshSavedSceneMetadata(SceneModel& scene) {
+	scene.sourceFiles.insert("scene.json");
+	scene.sourceFiles.insert("infrastructure.json");
+	scene.sourceFiles.insert("stations.json");
+	scene.sourceFiles.insert("signalling.json");
+	scene.sourceFiles.insert("rolling_stock.json");
+	scene.sourceFiles.insert("services.json");
+	if (!scene.incidents.empty())
+		scene.sourceFiles.insert("incidents.json");
+	else
+		scene.sourceFiles.erase("incidents.json");
+	refreshLoadedDataSummary(scene);
 }
 
 SceneLoadResult loadScene(const std::string& sceneDir) {
@@ -52,6 +201,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			addError("scene.section.missing", filename, "Root element must be an object");
 			return false;
 		}
+		result.scene.sourceFiles.insert(filename);
 		return true;
 	};
 
@@ -358,5 +508,6 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		}
 	}
 
+	refreshLoadedDataSummary(result.scene);
 	return result;
 }
