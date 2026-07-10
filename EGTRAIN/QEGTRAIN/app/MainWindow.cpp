@@ -2741,6 +2741,15 @@ void MainWindow::runEditorSmokeE2E() {
 					ok = false;
 					failures << "legacy scene state not cleared on alternate";
 				}
+				bool restored = openSceneDirectory(scenePath);
+				if (!restored || !m_sceneLoaded) {
+					ok = false;
+					failures << "scene did not reopen after alternate";
+				}
+			}
+			if (QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+				ok = false;
+				failures << "primary scene not restored";
 			}
 		}
 	}
