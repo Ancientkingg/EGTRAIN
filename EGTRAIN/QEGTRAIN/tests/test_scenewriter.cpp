@@ -22,6 +22,44 @@ static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* l
 	}
 }
 
+static const SceneLoadedData* findLoadedData(const SceneModel& scene, const std::string& category) {
+	for (const auto& item : scene.loadedData) {
+		if (item.category == category)
+			return &item;
+	}
+	return nullptr;
+}
+
+static const SceneLoadedData* findLoadedDataChild(const SceneLoadedData* parent, const std::string& category) {
+	if (!parent)
+		return nullptr;
+	for (const auto& item : parent->children) {
+		if (item.category == category)
+			return &item;
+	}
+	return nullptr;
+}
+
+static const SceneLoadedData* findLoadedDataChildSource(const SceneLoadedData* parent, const std::string& sourceFile) {
+	if (!parent)
+		return nullptr;
+	for (const auto& item : parent->children) {
+		if (item.sourceFile == sourceFile)
+			return &item;
+	}
+	return nullptr;
+}
+
+static bool jsonChildrenContain(const nlohmann::json& item, const std::string& category) {
+	if (!item.contains("children") || !item["children"].is_array())
+		return false;
+	for (const auto& child : item["children"]) {
+		if (child.value("category", "") == category)
+			return true;
+	}
+	return false;
+}
+
 struct TempDir {
 	std::string dir;
 
@@ -55,6 +93,48 @@ int main(int argc, char** argv) {
 	ok &= expect(scene.schemaVersion == 1, "schema version loaded");
 	ok &= expect(scene.name == "Assignment Gvc-Gdg-Ut", "scene name loaded");
 	ok &= expect(scene.description == "Den Haag Centraal - Gouda - Utrecht Centraal corridor", "description loaded");
+	ok &= expect(!scene.loadedData.empty(), "loaded data summary present");
+	const SceneLoadedData* sceneData = findLoadedData(scene, "scene");
+	ok &= expect(sceneData && sceneData->sourceFile == "scene.json" && sceneData->parsedCount == 1 && sceneData->status == "loaded", "scene loaded data summary");
+	const SceneLoadedData* stationData = findLoadedData(scene, "stations");
+	ok &= expect(stationData && stationData->sourceFile == "stations.json" && stationData->parsedCount == 3 && stationData->status == "loaded", "stations loaded data summary");
+	const SceneLoadedData* stationRawData = findLoadedDataChild(stationData, "raw_file");
+	ok &= expect(stationRawData && stationRawData->sourceFile == "stations.json" && stationRawData->parsedCount == 1 && stationRawData->status == "loaded", "stations raw file drilldown");
+	const SceneLoadedData* stationParsedData = findLoadedDataChild(stationData, "parsed_objects");
+	ok &= expect(stationParsedData && stationParsedData->sourceFile == "stations.json" && stationParsedData->parsedCount == 3 && stationParsedData->status == "loaded", "stations parsed object drilldown");
+	const SceneLoadedData* timetableData = findLoadedData(scene, "timetable");
+	ok &= expect(timetableData && timetableData->sourceFile == "services.json" && timetableData->parsedCount == 8 && timetableData->status == "loaded", "timetable loaded data summary");
+	const SceneLoadedData* timetableRawData = findLoadedDataChild(timetableData, "raw_file");
+	ok &= expect(timetableRawData && timetableRawData->sourceFile == "services.json" && timetableRawData->parsedCount == 1 && timetableRawData->status == "loaded", "timetable raw file drilldown");
+	const SceneLoadedData* timetableParsedData = findLoadedDataChild(timetableData, "parsed_objects");
+	ok &= expect(timetableParsedData && timetableParsedData->sourceFile == "services.json" && timetableParsedData->parsedCount == 8 && timetableParsedData->status == "loaded", "timetable parsed object drilldown");
+	const SceneLoadedData* passengerData = findLoadedData(scene, "passenger_data");
+	ok &= expect(passengerData && passengerData->status == "unimplemented", "passenger data visible as unimplemented");
+	const SceneLoadedData* signallingData = findLoadedData(scene, "signalling");
+	ok &= expect(signallingData && signallingData->sourceFile == "signalling.json" && signallingData->parsedCount == 2 && signallingData->status == "loaded", "signalling loaded data summary");
+	const SceneLoadedData* signalsData = findLoadedDataChild(signallingData, "signals");
+	ok &= expect(signalsData && signalsData->sourceFile == "signalling.json" && signalsData->parsedCount == 0 && signalsData->status == "loaded", "signalling signals drilldown");
+	const SceneLoadedData* routesData = findLoadedDataChild(signallingData, "routes");
+	ok &= expect(routesData && routesData->sourceFile == "signalling.json" && routesData->parsedCount == 2 && routesData->status == "loaded", "signalling routes drilldown");
+	{
+		SceneModel sceneWithDiagnostics = scene;
+		std::vector<SceneDiagnostic> diagnostics;
+		SceneDiagnostic serviceError;
+		serviceError.severity = SceneSeverity::Error;
+		serviceError.file = "services.json";
+		diagnostics.push_back(serviceError);
+		SceneDiagnostic stationWarning;
+		stationWarning.severity = SceneSeverity::Warning;
+		stationWarning.file = "stations.json";
+		diagnostics.push_back(stationWarning);
+		refreshLoadedDataDiagnostics(sceneWithDiagnostics, diagnostics);
+		const SceneLoadedData* stationValidation = findLoadedDataChild(findLoadedData(sceneWithDiagnostics, "stations"), "validation");
+		ok &= expect(stationValidation && stationValidation->parsedCount == 1 && stationValidation->status == "1 warning", "stations validation warning summary");
+		const SceneLoadedData* timetableValidation = findLoadedDataChild(findLoadedData(sceneWithDiagnostics, "timetable"), "validation");
+		ok &= expect(timetableValidation && timetableValidation->parsedCount == 1 && timetableValidation->status == "1 error", "timetable validation error summary");
+		const SceneLoadedData* rollingValidation = findLoadedDataChild(findLoadedData(sceneWithDiagnostics, "rolling_stock"), "validation");
+		ok &= expect(rollingValidation && rollingValidation->parsedCount == 0 && rollingValidation->status == "ok", "clean category validation summary");
+	}
 	ok &= expect(scene.baseTime == "07:00:00", "base_time loaded");
 	ok &= expect(scene.stations.size() == 3, "station count loaded");
 	ok &= expect(scene.routes.size() == 2, "route count loaded");
@@ -62,11 +142,45 @@ int main(int argc, char** argv) {
 	ok &= expect(scene.trainUnits.size() == 1, "train unit count loaded");
 	ok &= expect(scene.compositions.size() == 1, "composition count loaded");
 
+	{
+		SceneModel sourceScene = scene;
+		sourceScene.trainUnits[0].sourceDataFile = "/TrainData/LITRA_SA.txt";
+		sourceScene.trainUnits[0].sourceTractionFile = "/TrainData/T_LITRA_SA.txt";
+		refreshLoadedDataSummary(sourceScene);
+		const SceneLoadedData* rollingStockData = findLoadedData(sourceScene, "rolling_stock");
+		const SceneLoadedData* trainUnitsData = findLoadedDataChild(rollingStockData, "train_units");
+		ok &= expect(trainUnitsData && trainUnitsData->parsedCount == 1 && trainUnitsData->status == "loaded", "rolling stock train unit drilldown");
+		const SceneLoadedData* compositionsData = findLoadedDataChild(rollingStockData, "compositions");
+		ok &= expect(compositionsData && compositionsData->parsedCount == 1 && compositionsData->status == "loaded", "rolling stock composition drilldown");
+		const SceneLoadedData* sourceFilesData = findLoadedDataChild(rollingStockData, "source_files");
+		ok &= expect(sourceFilesData && sourceFilesData->parsedCount == 2 && sourceFilesData->status == "loaded", "rolling stock source file drilldown");
+		ok &= expect(findLoadedDataChildSource(sourceFilesData, "/TrainData/LITRA_SA.txt") != nullptr, "rolling stock LITRA source file visible");
+		ok &= expect(findLoadedDataChildSource(sourceFilesData, "/TrainData/T_LITRA_SA.txt") != nullptr, "rolling stock T_LITRA source file visible");
+	}
+
 	TempDir outDir;
 	auto saveRes = saveScene(scene, outDir.dir);
 	printErrors(saveRes.diagnostics, "save");
 	ok &= expect(saveRes.success(), "first save succeeds");
 	ok &= expect(!fs::exists(fs::path(outDir.dir) / "legacy"), "saveScene does not create legacy folder");
+	{
+		std::ifstream sceneFile(fs::path(outDir.dir) / "scene.json");
+		nlohmann::json sceneJson;
+		sceneFile >> sceneJson;
+		ok &= expect(sceneJson["loaded_data"].is_array(), "loaded data metadata written");
+		if (sceneJson["loaded_data"].is_array()) {
+			bool foundStationsChildren = false;
+			for (const auto& item : sceneJson["loaded_data"]) {
+				if (item.value("category", "") == "stations") {
+					foundStationsChildren = jsonChildrenContain(item, "raw_file")
+							&& jsonChildrenContain(item, "parsed_objects")
+							&& jsonChildrenContain(item, "derived_simulation");
+					break;
+				}
+			}
+			ok &= expect(foundStationsChildren, "loaded data children written");
+		}
+	}
 
 	auto reloadRes = loadScene(outDir.dir);
 	printErrors(reloadRes.diagnostics, "reload");
@@ -82,6 +196,13 @@ int main(int argc, char** argv) {
 	ok &= expect(reloaded.services.size() == scene.services.size(), "service count round-trips");
 	ok &= expect(reloaded.trainUnits.size() == scene.trainUnits.size(), "train unit count round-trips");
 	ok &= expect(reloaded.compositions.size() == scene.compositions.size(), "composition count round-trips");
+	ok &= expect(reloaded.loadedData.size() == scene.loadedData.size(), "loaded data summary count round-trips");
+	const SceneLoadedData* reloadedSceneData = findLoadedData(reloaded, "scene");
+	ok &= expect(reloadedSceneData && reloadedSceneData->sourceFile == "scene.json" && reloadedSceneData->parsedCount == 1 && reloadedSceneData->status == "loaded", "loaded data scene round-trips");
+	const SceneLoadedData* reloadedStationData = findLoadedData(reloaded, "stations");
+	ok &= expect(reloadedStationData && reloadedStationData->sourceFile == "stations.json" && reloadedStationData->parsedCount == 3 && reloadedStationData->status == "loaded", "loaded data stations round-trips");
+	const SceneLoadedData* reloadedStationRawData = findLoadedDataChild(reloadedStationData, "raw_file");
+	ok &= expect(reloadedStationRawData && reloadedStationRawData->sourceFile == "stations.json" && reloadedStationRawData->parsedCount == 1 && reloadedStationRawData->status == "loaded", "loaded data station raw file round-trips");
 
 	if (!reloaded.stations.empty()) {
 		ok &= expect(reloaded.stations[0].id == "Gvc", "first station id round-trips");
@@ -148,6 +269,31 @@ int main(int argc, char** argv) {
 			ok &= expect(!obj.contains("physical"), "physical block absent");
 			ok &= expect(!obj.contains("traction_curve"), "traction_curve absent");
 		}
+
+		auto bareReloadRes = loadScene(bareOut.dir);
+		ok &= expect(!hasErrors(bareReloadRes.diagnostics), "bare scene reloads");
+		const SceneLoadedData* bareStationData = findLoadedData(bareReloadRes.scene, "stations");
+		ok &= expect(bareStationData && bareStationData->sourceFile == "stations.json" && bareStationData->parsedCount == 0 && bareStationData->status == "loaded", "empty stations file reported loaded");
+		const SceneLoadedData* bareTimetableData = findLoadedData(bareReloadRes.scene, "timetable");
+		ok &= expect(bareTimetableData && bareTimetableData->sourceFile == "services.json" && bareTimetableData->parsedCount == 0 && bareTimetableData->status == "loaded", "empty services file reported loaded");
+	}
+
+	{
+		SceneModel incidentScene = scene;
+		incidentScene.sourceFiles.erase("incidents.json");
+		SceneIncident incident;
+		incident.id = "signal_down";
+		incident.type = "signal_failure";
+		incident.target = "sigA";
+		incidentScene.incidents.push_back(incident);
+		refreshSavedSceneMetadata(incidentScene);
+		const SceneLoadedData* incidentData = findLoadedData(incidentScene, "incidents");
+		ok &= expect(incidentData && incidentData->sourceFile == "incidents.json" && incidentData->parsedCount == 1 && incidentData->status == "loaded", "saved incident metadata reports loaded");
+
+		incidentScene.incidents.clear();
+		refreshSavedSceneMetadata(incidentScene);
+		incidentData = findLoadedData(incidentScene, "incidents");
+		ok &= expect(incidentData && incidentData->sourceFile == "incidents.json" && incidentData->parsedCount == 0 && incidentData->status == "missing", "saved empty incident metadata reports missing");
 	}
 
 	if (!ok)

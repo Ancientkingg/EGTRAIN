@@ -44,6 +44,16 @@ namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 
+void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const SceneLoadedData& item) {
+	auto* row = parent ? new QTreeWidgetItem(parent) : new QTreeWidgetItem(tree);
+	row->setText(0, QString::fromStdString(item.category));
+	row->setText(1, QString::fromStdString(item.sourceFile));
+	row->setText(2, QString::number(item.parsedCount));
+	row->setText(3, QString::fromStdString(item.status));
+	for (const auto& child : item.children)
+		addLoadedDataTreeItem(tree, row, child);
+}
+
 bool e2eDialogsSuppressed() {
 	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE");
 }
@@ -373,6 +383,19 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	tabifyDockWidget(m_logPane, m_validationDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_validationDock->toggleViewAction());
+
+	m_loadedDataDock = new QDockWidget("Loaded Data", this);
+	m_loadedDataTree = new QTreeWidget(m_loadedDataDock);
+	m_loadedDataTree->setColumnCount(4);
+	m_loadedDataTree->setHeaderLabels(QStringList() << "Category" << "Source" << "Count" << "Status");
+	m_loadedDataTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_loadedDataTree->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_loadedDataTree->header()->setStretchLastSection(true);
+	m_loadedDataDock->setWidget(m_loadedDataTree);
+	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
+	tabifyDockWidget(m_validationDock, m_loadedDataDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 
 	// composition editor: dockable panel to view and edit train compositions.
 	// this is the first editable scene panel, so it sets the pattern later
@@ -779,6 +802,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 		return false;
 	}
 
+	refreshSavedSceneMetadata(m_sceneModel);
 	m_sceneDirty = false;
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -832,6 +856,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	}
 
 	m_sceneDir = targetPath;
+	refreshSavedSceneMetadata(m_sceneModel);
 	m_sceneDirty = false;
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -925,6 +950,7 @@ void MainWindow::refreshValidationPanel() {
 			m_validationTable->setRowCount(0);
 		if (m_validationStatusLabel)
 			m_validationStatusLabel->clear();
+		refreshLoadedDataTree();
 		return;
 	}
 
@@ -956,6 +982,24 @@ void MainWindow::refreshValidationPanel() {
 		message += QString(", %1 info").arg(counts.infos);
 	if (m_validationStatusLabel)
 		m_validationStatusLabel->setText(message);
+	refreshLoadedDataTree();
+}
+
+void MainWindow::refreshLoadedDataTree() {
+	if (!m_loadedDataTree)
+		return;
+
+	m_loadedDataTree->clear();
+	if (!m_sceneLoaded)
+		return;
+
+	refreshLoadedDataSummary(m_sceneModel);
+	refreshLoadedDataDiagnostics(m_sceneModel, m_sceneDiagnostics);
+	for (const auto& item : m_sceneModel.loadedData) {
+		addLoadedDataTreeItem(m_loadedDataTree, nullptr, item);
+	}
+	m_loadedDataTree->resizeColumnToContents(0);
+	m_loadedDataTree->resizeColumnToContents(1);
 }
 
 void MainWindow::refreshCompositionPanel() {
@@ -2756,6 +2800,13 @@ void MainWindow::runEditorSmokeE2E() {
 
 	// step b: validation assertions
 	if (m_sceneLoaded) {
+		if (!m_loadedDataTree || m_loadedDataTree->topLevelItemCount() <= 0) {
+			ok = false;
+			failures << "loaded data tree empty";
+		} else if (m_loadedDataTree->topLevelItem(0)->childCount() <= 0) {
+			ok = false;
+			failures << "loaded data tree lacks drilldown rows";
+		}
 		if (hasErrors(m_sceneDiagnostics)) {
 			ok = false;
 			failures << "validation errors on open";
