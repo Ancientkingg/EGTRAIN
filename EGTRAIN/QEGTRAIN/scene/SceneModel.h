@@ -2,6 +2,7 @@
 #define SCENEMODEL_H
 
 #include "scene/SceneDiagnostic.h"
+#include <set>
 #include <string>
 #include <vector>
 
@@ -79,12 +80,22 @@ struct SceneIncident {
 	double endSeconds = 0.0;
 };
 
+struct SceneLoadedData {
+	std::string category;
+	std::string sourceFile;
+	int parsedCount = 0;
+	std::string status;
+	std::vector<SceneLoadedData> children;
+};
+
 struct SceneModel {
 	int schemaVersion = 0;
 	std::string name;
 	std::string description;
 	std::string baseTime;
 
+	std::vector<SceneLoadedData> loadedData;
+	std::set<std::string> sourceFiles;
 	std::vector<SceneStation> stations;
 	std::vector<SceneSignal> signals;
 	std::vector<SceneRoute> routes;
@@ -100,5 +111,8 @@ struct SceneLoadResult {
 };
 
 SceneLoadResult loadScene(const std::string& sceneDir);
+void refreshLoadedDataSummary(SceneModel& scene);
+void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiagnostic>& diagnostics);
+void refreshSavedSceneMetadata(SceneModel& scene);
 
 #endif // SCENEMODEL_H

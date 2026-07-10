@@ -48,6 +48,7 @@
 #include <QDockWidget>
 #include <Qt>
 #include <QLineEdit>
+#include <QTreeWidget>
 #include <sstream>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsItemGroup>
@@ -378,6 +379,8 @@ private:
 	QDockWidget* m_validationDock = nullptr;
 	QTableWidget* m_validationTable = nullptr;
 	QLabel* m_validationStatusLabel = nullptr;
+	QDockWidget* m_loadedDataDock = nullptr;
+	QTreeWidget* m_loadedDataTree = nullptr;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 
 	// composition editor dock (first editable scene panel)
@@ -448,6 +451,7 @@ private:
 	bool copyScenePassthroughFiles(const QString& targetDir);
 	void updateSceneWindowTitle();
 	void refreshValidationPanel();
+	void refreshLoadedDataTree();
 
 	// composition editor
 	void refreshCompositionPanel();
