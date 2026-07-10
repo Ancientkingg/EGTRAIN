@@ -2763,10 +2763,22 @@ void MainWindow::runEditorSmokeE2E() {
 			ok = false;
 			failures << "scene did not open";
 		} else {
+			// simulate a clicked-item highlight; the scene owns the effect, so a
+			// reopen must also reset the cached pointer or the next click reuses
+			// a deleted effect
+			if (scene && !effect) {
+				QGraphicsItem* highlightCarrier = scene->addRect(QRectF(0, 0, 1, 1));
+				effect = new HighlightEffect(Qt::blue, 1);
+				highlightCarrier->setGraphicsEffect(effect);
+			}
 			bool reopened = openSceneDirectory(scenePath);
 			if (!reopened || !m_sceneLoaded || QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
 				failures << "scene did not reopen";
+			}
+			if (effect != nullptr) {
+				ok = false;
+				failures << "highlight effect not reset on reopen";
 			}
 			if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
 				ok = false;
@@ -3377,6 +3389,8 @@ void MainWindow::teardownGUI() {
 	trainPaxItem = nullptr;
 	paxIconInfoItem = nullptr;
 	paxIconItem = nullptr;
+	effect = nullptr; // owned and deleted by the cleared item
+
 	regionStations.clear();
 	virtualInterRegionConnections.clear();
 	m_followTrainIndex = -1;
