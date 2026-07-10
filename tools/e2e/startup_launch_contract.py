@@ -70,6 +70,7 @@ def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> No
             proc.wait(timeout=2)
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid, signal.SIGKILL)
+        os.close(master)
 
 
 def main() -> None:
