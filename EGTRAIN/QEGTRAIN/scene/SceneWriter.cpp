@@ -135,28 +135,7 @@ static json writeServices(const SceneModel& scene) {
 	return services;
 }
 
-static json writeLoadedDataItem(const SceneLoadedData& item) {
-	json data = {
-			{"category", item.category},
-			{"source_file", item.sourceFile},
-			{"parsed_count", item.parsedCount},
-			{"status", item.status},
-	};
-	if (!item.children.empty()) {
-		json children = json::array();
-		for (const auto& child : item.children)
-			children.push_back(writeLoadedDataItem(child));
-		data["children"] = children;
-	}
-	return data;
-}
 
-static json writeLoadedData(const SceneModel& scene) {
-	json loadedData = json::array();
-	for (const auto& item : scene.loadedData)
-		loadedData.push_back(writeLoadedDataItem(item));
-	return loadedData;
-}
 
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
 	SceneSaveResult result;
@@ -168,19 +147,15 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		return result;
 	}
 
-	SceneModel sceneForWrite = scene;
-	refreshSavedSceneMetadata(sceneForWrite);
-
 	json sceneJson = {
-		{"schema_version", sceneForWrite.schemaVersion},
-		{"name", sceneForWrite.name},
+		{"schema_version", scene.schemaVersion},
+		{"name", scene.name},
 	};
-	if (!sceneForWrite.description.empty())
-		sceneJson["description"] = sceneForWrite.description;
-	if (!sceneForWrite.baseTime.empty())
-		sceneJson["base_time"] = sceneForWrite.baseTime;
+	if (!scene.description.empty())
+		sceneJson["description"] = scene.description;
+	if (!scene.baseTime.empty())
+		sceneJson["base_time"] = scene.baseTime;
 	sceneJson["units"] = {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}};
-	sceneJson["loaded_data"] = writeLoadedData(sceneForWrite);
 
 	json stations = json::array();
 	for (const auto& station : scene.stations) {
