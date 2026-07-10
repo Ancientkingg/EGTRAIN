@@ -44,6 +44,16 @@ namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 
+void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const SceneLoadedData& item) {
+	auto* row = parent ? new QTreeWidgetItem(parent) : new QTreeWidgetItem(tree);
+	row->setText(0, QString::fromStdString(item.category));
+	row->setText(1, QString::fromStdString(item.sourceFile));
+	row->setText(2, QString::number(item.parsedCount));
+	row->setText(3, QString::fromStdString(item.status));
+	for (const auto& child : item.children)
+		addLoadedDataTreeItem(tree, row, child);
+}
+
 bool e2eDialogsSuppressed() {
 	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE");
 }
@@ -373,6 +383,19 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	tabifyDockWidget(m_logPane, m_validationDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_validationDock->toggleViewAction());
+
+	m_loadedDataDock = new QDockWidget("Loaded Data", this);
+	m_loadedDataTree = new QTreeWidget(m_loadedDataDock);
+	m_loadedDataTree->setColumnCount(4);
+	m_loadedDataTree->setHeaderLabels(QStringList() << "Category" << "Source" << "Count" << "Status");
+	m_loadedDataTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_loadedDataTree->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_loadedDataTree->header()->setStretchLastSection(true);
+	m_loadedDataDock->setWidget(m_loadedDataTree);
+	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
+	tabifyDockWidget(m_validationDock, m_loadedDataDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 
 	// composition editor: dockable panel to view and edit train compositions.
 	// this is the first editable scene panel, so it sets the pattern later
@@ -724,6 +747,7 @@ void MainWindow::openSceneDialog() {
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
 	QString scenePath = QDir(dir).absolutePath();
+	const bool reloadingSameScene = m_sceneLoaded && QDir(m_sceneDir).absolutePath() == scenePath;
 	auto result = loadScene(scenePath.toStdString());
 	int errorCount = errorDiagnosticCount(result.diagnostics);
 	if (errorCount > 0) {
@@ -735,6 +759,11 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		return false;
 	}
 
+	teardownGUI();
+	simulation.resetState();
+	delete m_runStagingDir;
+	m_runStagingDir = nullptr;
+
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
 	m_sceneLoaded = true;
@@ -742,7 +771,8 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	addRecentScene(scenePath);
-	statusBar()->showMessage(QString("Scene loaded: %1 (%2 services, %3 routes)")
+	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
+								 .arg(reloadingSameScene ? "Scene reloaded" : "Scene loaded")
 								 .arg(QString::fromStdString(m_sceneModel.name))
 								 .arg(static_cast<int>(m_sceneModel.services.size()))
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
@@ -772,6 +802,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 		return false;
 	}
 
+	refreshSavedSceneMetadata(m_sceneModel);
 	m_sceneDirty = false;
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -825,6 +856,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	}
 
 	m_sceneDir = targetPath;
+	refreshSavedSceneMetadata(m_sceneModel);
 	m_sceneDirty = false;
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -918,6 +950,7 @@ void MainWindow::refreshValidationPanel() {
 			m_validationTable->setRowCount(0);
 		if (m_validationStatusLabel)
 			m_validationStatusLabel->clear();
+		refreshLoadedDataTree();
 		return;
 	}
 
@@ -949,6 +982,24 @@ void MainWindow::refreshValidationPanel() {
 		message += QString(", %1 info").arg(counts.infos);
 	if (m_validationStatusLabel)
 		m_validationStatusLabel->setText(message);
+	refreshLoadedDataTree();
+}
+
+void MainWindow::refreshLoadedDataTree() {
+	if (!m_loadedDataTree)
+		return;
+
+	m_loadedDataTree->clear();
+	if (!m_sceneLoaded)
+		return;
+
+	refreshLoadedDataSummary(m_sceneModel);
+	refreshLoadedDataDiagnostics(m_sceneModel, m_sceneDiagnostics);
+	for (const auto& item : m_sceneModel.loadedData) {
+		addLoadedDataTreeItem(m_loadedDataTree, nullptr, item);
+	}
+	m_loadedDataTree->resizeColumnToContents(0);
+	m_loadedDataTree->resizeColumnToContents(1);
 }
 
 void MainWindow::refreshCompositionPanel() {
@@ -2711,11 +2762,63 @@ void MainWindow::runEditorSmokeE2E() {
 		if (!opened || !m_sceneLoaded) {
 			ok = false;
 			failures << "scene did not open";
+		} else {
+			// simulate a clicked-item highlight; the scene owns the effect, so a
+			// reopen must also reset the cached pointer or the next click reuses
+			// a deleted effect
+			if (scene && !effect) {
+				QGraphicsItem* highlightCarrier = scene->addRect(QRectF(0, 0, 1, 1));
+				effect = new HighlightEffect(Qt::blue, 1);
+				highlightCarrier->setGraphicsEffect(effect);
+			}
+			bool reopened = openSceneDirectory(scenePath);
+			if (!reopened || !m_sceneLoaded || QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+				ok = false;
+				failures << "scene did not reopen";
+			}
+			if (effect != nullptr) {
+				ok = false;
+				failures << "highlight effect not reset on reopen";
+			}
+			if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
+				ok = false;
+				failures << "legacy scene state not cleared";
+			}
+			QString alternateScenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE_ALT");
+			if (!alternateScenePath.isEmpty()
+					&& QDir(alternateScenePath).absolutePath() != QDir(scenePath).absolutePath()) {
+				bool switched = openSceneDirectory(alternateScenePath);
+				if (!switched || !m_sceneLoaded
+						|| QDir(m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
+					ok = false;
+					failures << "alternate scene did not open";
+				}
+				if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
+					ok = false;
+					failures << "legacy scene state not cleared on alternate";
+				}
+				bool restored = openSceneDirectory(scenePath);
+				if (!restored || !m_sceneLoaded) {
+					ok = false;
+					failures << "scene did not reopen after alternate";
+				}
+			}
+			if (QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+				ok = false;
+				failures << "primary scene not restored";
+			}
 		}
 	}
 
 	// step b: validation assertions
 	if (m_sceneLoaded) {
+		if (!m_loadedDataTree || m_loadedDataTree->topLevelItemCount() <= 0) {
+			ok = false;
+			failures << "loaded data tree empty";
+		} else if (m_loadedDataTree->topLevelItem(0)->childCount() <= 0) {
+			ok = false;
+			failures << "loaded data tree lacks drilldown rows";
+		}
 		if (hasErrors(m_sceneDiagnostics)) {
 			ok = false;
 			failures << "validation errors on open";
@@ -3286,6 +3389,8 @@ void MainWindow::teardownGUI() {
 	trainPaxItem = nullptr;
 	paxIconInfoItem = nullptr;
 	paxIconItem = nullptr;
+	effect = nullptr; // owned and deleted by the cleared item
+
 	regionStations.clear();
 	virtualInterRegionConnections.clear();
 	m_followTrainIndex = -1;

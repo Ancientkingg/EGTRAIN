@@ -73,7 +73,7 @@ Tables are read-only first. Editing happens through explicit row, cell, add, dup
 | Services and timetable | Services, composition choice, route choice, stopping patterns, station stops, platform choices, arrival times, departure times, dwell times, entry time, repeated-service headway, per-service performance values | Station definitions, route block definitions, signal definitions |
 | Incidents | Signal failure incidents and train breakdown incidents: id, type, target, start time, end time | Target lists derived from signals and services |
 
-Two edit fields depend on scene-layer work that is tracked separately from the editor issues: per-service performance values need a new field in `services.json` and `SceneModel`, and incidents take simulation effect only once `SceneExporter` exports `incidents.json` to the legacy input. Until then the incidents pane edits and saves scene data without changing run behavior.
+Per-service performance values still need new fields in `services.json` and `SceneModel`. Incident edits are already part of the run handoff: when incidents are present, `SceneExporter` writes `incidents.json` to legacy `Incidents.txt`, which the simulator loads for signal failures and train breakdowns.
 
 ## Explicit out-of-scope list
 
