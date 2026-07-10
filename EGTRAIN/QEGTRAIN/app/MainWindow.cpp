@@ -724,6 +724,7 @@ void MainWindow::openSceneDialog() {
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
 	QString scenePath = QDir(dir).absolutePath();
+	const bool reloadingSameScene = m_sceneLoaded && QDir(m_sceneDir).absolutePath() == scenePath;
 	auto result = loadScene(scenePath.toStdString());
 	int errorCount = errorDiagnosticCount(result.diagnostics);
 	if (errorCount > 0) {
@@ -735,6 +736,11 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		return false;
 	}
 
+	teardownGUI();
+	simulation.resetState();
+	delete m_runStagingDir;
+	m_runStagingDir = nullptr;
+
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
 	m_sceneLoaded = true;
@@ -742,7 +748,8 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	addRecentScene(scenePath);
-	statusBar()->showMessage(QString("Scene loaded: %1 (%2 services, %3 routes)")
+	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
+								 .arg(reloadingSameScene ? "Scene reloaded" : "Scene loaded")
 								 .arg(QString::fromStdString(m_sceneModel.name))
 								 .arg(static_cast<int>(m_sceneModel.services.size()))
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
@@ -2711,6 +2718,30 @@ void MainWindow::runEditorSmokeE2E() {
 		if (!opened || !m_sceneLoaded) {
 			ok = false;
 			failures << "scene did not open";
+		} else {
+			bool reopened = openSceneDirectory(scenePath);
+			if (!reopened || !m_sceneLoaded || QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+				ok = false;
+				failures << "scene did not reopen";
+			}
+			if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
+				ok = false;
+				failures << "legacy scene state not cleared";
+			}
+			QString alternateScenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE_ALT");
+			if (!alternateScenePath.isEmpty()
+					&& QDir(alternateScenePath).absolutePath() != QDir(scenePath).absolutePath()) {
+				bool switched = openSceneDirectory(alternateScenePath);
+				if (!switched || !m_sceneLoaded
+						|| QDir(m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
+					ok = false;
+					failures << "alternate scene did not open";
+				}
+				if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
+					ok = false;
+					failures << "legacy scene state not cleared on alternate";
+				}
+			}
 		}
 	}
 
