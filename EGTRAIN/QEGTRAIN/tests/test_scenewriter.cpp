@@ -50,16 +50,6 @@ static const SceneLoadedData* findLoadedDataChildSource(const SceneLoadedData* p
 	return nullptr;
 }
 
-static bool jsonChildrenContain(const nlohmann::json& item, const std::string& category) {
-	if (!item.contains("children") || !item["children"].is_array())
-		return false;
-	for (const auto& child : item["children"]) {
-		if (child.value("category", "") == category)
-			return true;
-	}
-	return false;
-}
-
 struct TempDir {
 	std::string dir;
 
@@ -167,19 +157,7 @@ int main(int argc, char** argv) {
 		std::ifstream sceneFile(fs::path(outDir.dir) / "scene.json");
 		nlohmann::json sceneJson;
 		sceneFile >> sceneJson;
-		ok &= expect(sceneJson["loaded_data"].is_array(), "loaded data metadata written");
-		if (sceneJson["loaded_data"].is_array()) {
-			bool foundStationsChildren = false;
-			for (const auto& item : sceneJson["loaded_data"]) {
-				if (item.value("category", "") == "stations") {
-					foundStationsChildren = jsonChildrenContain(item, "raw_file")
-							&& jsonChildrenContain(item, "parsed_objects")
-							&& jsonChildrenContain(item, "derived_simulation");
-					break;
-				}
-			}
-			ok &= expect(foundStationsChildren, "loaded data children written");
-		}
+		ok &= expect(!sceneJson.contains("loaded_data"), "loaded data metadata is not written to scene.json");
 	}
 
 	auto reloadRes = loadScene(outDir.dir);

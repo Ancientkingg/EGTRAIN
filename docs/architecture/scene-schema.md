@@ -21,7 +21,7 @@ The schema is versioned using an integer `schema_version` inside `scene.json`. T
 
 ## Loaded Data Metadata
 
-`scene.json.loaded_data` is derived provenance metadata written by the app. The loader recomputes it from the canonical files, so it is not the source of truth. Each row has `category`, `source_file`, `parsed_count`, `status`, and optional recursive `children`.
+`loaded_data` is derived provenance metadata maintained by the app at runtime as UI state. The loader recomputes it from the canonical files, so it is not the source of truth and it is not written to `scene.json`. Each row has `category`, `source_file`, `parsed_count`, `status`, and optional recursive `children`.
 
 Current categories are `scene`, `infrastructure`, `stations`, `timetable`, `rolling_stock`, `signalling`, `incidents`, and `passenger_data`. File-backed categories include drill-down rows for `raw_file`, `parsed_objects`, and `derived_simulation`; the GUI adds validation status rows from current diagnostics. `rolling_stock` also exposes `train_units`, `compositions`, and `source_files`; `source_files` lists linked `data_file` / `traction_file` entries such as `LITRA` and `T_LITRA` files when present. `signalling` exposes `signals` and `routes`.
 
