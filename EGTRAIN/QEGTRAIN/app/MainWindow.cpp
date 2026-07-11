@@ -220,10 +220,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	setupInfoDockWidget();
 
 	// load image for station icon
-	station_pixmap = QPixmap("train_station.png");
+	station_pixmap = QPixmap(":/icons/station.png");
 
 	// load image for passenger icon
-	pax_pixmap = QPixmap("pax_icon.png");
+	pax_pixmap = QPixmap(":/icons/passenger.png");
 	pax_pixmap_scaled = pax_pixmap.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 	// create container of items to show on display area
@@ -309,7 +309,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 
 	// set application item
-	QIcon window_icon = QIcon(QPixmap("window_icon.jpg"));
+	QIcon window_icon = QIcon(QPixmap(":/app/window.jpg"));
 	setWindowIcon(window_icon);
 
 	// effect on (last) clicked item
