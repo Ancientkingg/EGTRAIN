@@ -1,56 +1,67 @@
 #!/usr/bin/env python3
-import subprocess
-import sys
+import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
-import os
 
 ROOT = Path(__file__).resolve().parents[2]
+SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
+ASSETS = {
+    "icons/station.png": "resources/icons/station.png",
+    "icons/passenger.png": "resources/icons/passenger.png",
+    "app/window.jpg": "resources/app/window.jpg",
+}
 
-def find_executable():
-    # Attempt macOS app bundle path first
-    app_mac = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-    if app_mac.exists():
-        return app_mac
 
-    # Attempt standard build dir
-    app_std = ROOT / "build/QEGTRAIN"
-    if app_std.exists():
-        return app_std
+def main() -> None:
+    qrc_path = SOURCE_ROOT / "app/resources.qrc"
+    qrc_entries = {
+        element.get("alias"): element.text
+        for element in ET.parse(qrc_path).iterfind(".//file")
+    }
+    main_window = (SOURCE_ROOT / "app/MainWindow.cpp").read_text()
+    cmake = (ROOT / "CMakeLists.txt").read_text()
 
-    # Attempt to search in build/
-    build_dir = ROOT / "build"
-    if build_dir.exists():
-        for root, dirs, files in os.walk(build_dir):
-            if "QEGTRAIN" in files:
-                return Path(root) / "QEGTRAIN"
-    return None
+    for alias, relative_path in ASSETS.items():
+        if not (SOURCE_ROOT / relative_path).is_file():
+            raise SystemExit(f"missing resource asset: {relative_path}")
+        if qrc_entries.get(alias) != f"../{relative_path}":
+            raise SystemExit(f"missing Qt resource entry: {alias}")
+        if f'QPixmap(":/{alias}")' not in main_window:
+            raise SystemExit(f"MainWindow does not load :/{alias}")
 
-def main():
-    app = find_executable()
-    if not app:
-        print("FAIL: QEGTRAIN executable not found.")
-        sys.exit(1)
+    old_names = ("train_station.png", "pax_icon.png", "window_icon.jpg")
+    for name in old_names:
+        if (SOURCE_ROOT / name).exists():
+            raise SystemExit(f"loose image asset still exists: {name}")
+        if name in cmake:
+            raise SystemExit(f"CMake still copies image asset: {name}")
 
-    # 1. The loose files must not exist next to the executable
-    loose_files = ["train_station.png", "pax_icon.png", "window_icon.jpg"]
-    app_dir = app.parent
-    for lf in loose_files:
-        p = app_dir / lf
-        if p.exists():
-            print(f"FAIL: Loose image asset found: {p}")
-            sys.exit(1)
+    if '"${SRC_DIR}/Input"' not in cmake:
+        raise SystemExit("CMake no longer copies Input data")
+    cmake_requirements = (
+        "set(CMAKE_AUTORCC ON)",
+        "set(EGTRAIN_RESOURCES",
+        "${SRC_DIR}/app/resources.qrc",
+        "${EGTRAIN_RESOURCES}",
+    )
+    for requirement in cmake_requirements:
+        if requirement not in cmake:
+            raise SystemExit(f"CMake does not wire Qt resources: {requirement}")
 
-    # 2. The resource strings must be present in the binary
-    proc = subprocess.run(["strings", str(app)], stdout=subprocess.PIPE, text=True, errors="replace")
-    strings_out = proc.stdout
+    bare_load_patterns = (
+        re.compile(r'Q(?:Pixmap|Icon|Image)(?:\s+\w+)?\s*[\(\{]\s*"(?!:/)[^"]+\.(?:png|jpe?g|svg|ico)"'),
+        re.compile(r'\.(?:load|addFile)\s*\(\s*"(?!:/)[^"]+\.(?:png|jpe?g|svg|ico)"'),
+        re.compile(r'url\s*\(\s*["\']?(?!:/)[^)"\']+\.(?:png|jpe?g|svg|ico)', re.IGNORECASE),
+        re.compile(r'<(?:pixmap|\w+(?:off|on))>(?!:/)[^<]+\.(?:png|jpe?g|svg|ico)<', re.IGNORECASE),
+    )
+    for path in SOURCE_ROOT.rglob("*"):
+        if path.suffix in {".cpp", ".h", ".ui", ".qss"}:
+            source = path.read_text(errors="replace")
+            for pattern in bare_load_patterns:
+                match = pattern.search(source)
+                if match:
+                    raise SystemExit(f"bare GUI image load in {path.relative_to(ROOT)}: {match.group(0)}")
 
-    expected_resources = [":/icons/station.png", ":/icons/passenger.png", ":/app/window.jpg"]
-    for res in expected_resources:
-        if res not in strings_out:
-            print(f"FAIL: Resource path '{res}' not found in binary.")
-            sys.exit(1)
-
-    print("PASS: Qt resources are embedded and loose files are gone.")
 
 if __name__ == "__main__":
     main()

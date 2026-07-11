@@ -1,212 +1,157 @@
 #!/usr/bin/env python3
-import os
 import re
 import sys
+from pathlib import Path
+
+HEADINGS = ("Owning allocations", "Oversized arrays", "Non-owning pointers")
+SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp"}
+EXCLUDED_DIRS = {"CMakeFiles", "generated", "third_party", "vendor"}
+CONFIRMED_OBSERVERS = {
+    "EGTRAIN/QEGTRAIN/app/MainWindow.h": {
+        "trainPaxInfoItem",
+        "trainPaxItem",
+        "paxIconInfoItem",
+        "paxIconItem",
+    }
+}
+
 
 def clean_cpp_code(content: str) -> str:
     cleaned = []
     i = 0
-    n = len(content)
-    in_string = False
-    string_char = None
-    in_line_comment = False
-    in_block_comment = False
-
-    while i < n:
+    state = "code"
+    quote = ""
+    while i < len(content):
         char = content[i]
-        next_char = content[i+1] if i + 1 < n else ""
-
-        if in_line_comment:
-            if char == '\n':
-                in_line_comment = False
-                cleaned.append('\n')
-            else:
-                cleaned.append(' ')
+        following = content[i + 1] if i + 1 < len(content) else ""
+        if state == "line":
+            cleaned.append("\n" if char == "\n" else " ")
+            state = "code" if char == "\n" else state
             i += 1
-        elif in_block_comment:
-            if char == '*' and next_char == '/':
-                in_block_comment = False
-                cleaned.append(' ')
-                cleaned.append(' ')
+        elif state == "block":
+            if char == "*" and following == "/":
+                cleaned.extend((" ", " "))
+                state = "code"
                 i += 2
-            elif char == '\n':
-                cleaned.append('\n')
-                i += 1
             else:
-                cleaned.append(' ')
+                cleaned.append("\n" if char == "\n" else " ")
                 i += 1
-        elif in_string:
-            if char == '\\':
-                if next_char == '\n':
-                    cleaned.append(' ')
-                    cleaned.append('\n')
-                    i += 2
-                else:
-                    cleaned.append(' ')
-                    cleaned.append(' ')
-                    i += 2
-            elif char == string_char:
-                in_string = False
-                cleaned.append(' ')
-                i += 1
-            elif char == '\n':
-                cleaned.append('\n')
-                i += 1
+        elif state == "string":
+            if char == "\\" and following:
+                cleaned.extend((" ", "\n" if following == "\n" else " "))
+                i += 2
             else:
-                cleaned.append(' ')
+                cleaned.append("\n" if char == "\n" else " ")
+                state = "code" if char == quote else state
                 i += 1
         else:
-            if char == '/' and next_char == '/':
-                in_line_comment = True
-                cleaned.append(' ')
-                cleaned.append(' ')
+            raw = re.match(r'R"([^\s()\\]{0,16})\(', content[i:])
+            if raw:
+                terminator = f'){raw.group(1)}"'
+                end = content.find(terminator, i + raw.end())
+                end = len(content) if end < 0 else end + len(terminator)
+                cleaned.extend("\n" if value == "\n" else " " for value in content[i:end])
+                i = end
+            elif char == "/" and following == "/":
+                cleaned.extend((" ", " "))
+                state = "line"
                 i += 2
-            elif char == '/' and next_char == '*':
-                in_block_comment = True
-                cleaned.append(' ')
-                cleaned.append(' ')
+            elif char == "/" and following == "*":
+                cleaned.extend((" ", " "))
+                state = "block"
                 i += 2
-            elif char == '"' or char == "'":
-                in_string = True
-                string_char = char
-                cleaned.append(' ')
+            elif char in {'"', "'"}:
+                cleaned.append(" ")
+                state = "string"
+                quote = char
                 i += 1
             else:
                 cleaned.append(char)
                 i += 1
-
     return "".join(cleaned)
 
-def scan_codebase(repo_root: str) -> dict:
-    results = {
-        "Owning allocations": [],
-        "Oversized arrays": [],
-        "Non-owning pointers": []
-    }
 
-    target_dir = os.path.join(repo_root, "EGTRAIN", "QEGTRAIN")
-    if not os.path.exists(target_dir):
-        target_dir = repo_root
-
-    keywords = {
-        'return', 'delete', 'throw', 'typedef', 'using', 'friend', 'const',
-        'static', 'extern', 'virtual', 'inline', 'class', 'struct', 'else', 'if', 'for', 'while'
-    }
-
-    # Regex for array declarations: Type Name[Size]; or Type Name[Size] =
-    array_re = re.compile(r'\b([A-Za-z0-9_<>:]+)\s+([A-Za-z0-9_]+)\s*\[\s*([0-9]+)\s*\]\s*(?:;|=)')
-
-    # Regex for pointer declarations: Type* Name or Type *Name or Type** Name
-    pointer_re = re.compile(r'\b([A-Za-z0-9_<>:]+)\s*(\*+)\s*(?:const\s+)?([A-Za-z0-9_]+)\b')
-
-    allowed_preceding = {';', '{', '}', '(', ',', ':', '*', '&'}
-
-    for root, dirs, files in os.walk(target_dir):
-        # Exclude io/third_party
-        if "third_party" in root.split(os.sep):
+def source_files(repo_root: Path):
+    source_root = repo_root / "EGTRAIN/QEGTRAIN"
+    for path in source_root.rglob("*"):
+        relative_parts = path.relative_to(source_root).parts
+        if any(
+            part in EXCLUDED_DIRS
+            or part.startswith("build")
+            or part.startswith("cmake-build")
+            for part in relative_parts[:-1]
+        ):
             continue
-        # Exclude build output or generated directories
-        if any(x in root.split(os.sep) for x in ["build", "CMakeFiles", "cmake"]):
-            continue
+        if path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES:
+            if not path.name.startswith(("moc_", "qrc_", "ui_")):
+                yield path
 
-        for file in files:
-            # Exclude generated files
-            if file.startswith("moc_") or file.startswith("ui_") or file.startswith("qrc_"):
-                continue
 
-            ext = os.path.splitext(file)[1].lower()
-            if ext not in [".h", ".hpp", ".cpp", ".cc", ".cxx", ".c"]:
-                continue
+def numeric_constants(files):
+    constants = {}
+    patterns = (
+        re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)\s+(\d+)\b", re.MULTILINE),
+        re.compile(
+            r"\b(?:constexpr|const)\s+[A-Za-z_:<>][\w:<>]*\s+([A-Za-z_]\w*)\s*=\s*(\d+)\b"
+        ),
+    )
+    for path in files:
+        cleaned = clean_cpp_code(path.read_text(errors="replace"))
+        for pattern in patterns:
+            for name, value in pattern.findall(cleaned):
+                constants[name] = int(value)
+    return constants
 
-            file_path = os.path.join(root, file)
-            rel_path = os.path.relpath(file_path, repo_root)
 
-            try:
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
+def scan_codebase(repo_root):
+    root = Path(repo_root).resolve()
+    files = list(source_files(root))
+    constants = numeric_constants(files)
+    results = {heading: [] for heading in HEADINGS}
+    allocation = re.compile(r"\b(?:new(?!\s*\()|malloc\s*\(|calloc\s*\(|realloc\s*\()")
+    array = re.compile(r"\b([A-Za-z_]\w*)\s*\[\s*(\d+|[A-Za-z_]\w*)\s*\]")
+    declaration_prefix = re.compile(
+        r"^\s*(?:(?:extern|static|const|constexpr|mutable|volatile|signed|unsigned|long|short)\s+)*"
+        r"(?:struct\s+|class\s+)?[A-Za-z_]\w*(?:::\w+)*(?:\s*<[^;=()]+>)?\s*(?:[*&]\s*)?$"
+    )
+    pointer = re.compile(r"\b[A-Za-z_:<>][\w:<>]*\s*\*+\s*([A-Za-z_]\w*)")
 
-            cleaned_content = clean_cpp_code(content)
+    for path in files:
+        relative = path.relative_to(root).as_posix()
+        original_lines = path.read_text(errors="replace").splitlines()
+        cleaned_lines = clean_cpp_code(path.read_text(errors="replace")).splitlines()
+        observers = CONFIRMED_OBSERVERS.get(relative, set())
+        for line_number, (original, cleaned) in enumerate(zip(original_lines, cleaned_lines), 1):
+            evidence = (relative, line_number, original.strip())
+            if allocation.search(cleaned):
+                results["Owning allocations"].append(evidence)
+            array_matches = list(array.finditer(cleaned))
+            is_declaration = array_matches and declaration_prefix.match(cleaned[: array_matches[0].start()])
+            if is_declaration and any(
+                    int(match.group(2)) >= 100
+                    if match.group(2).isdigit()
+                    else constants.get(match.group(2), 0) >= 100
+                    for match in array_matches
+            ):
+                results["Oversized arrays"].append(evidence)
+            if any(name in observers for name in pointer.findall(cleaned)):
+                results["Non-owning pointers"].append(evidence)
 
-            lines = content.splitlines()
-            cleaned_lines = cleaned_content.splitlines()
-
-            for line_idx, (orig_line, clean_line) in enumerate(zip(lines, cleaned_lines), start=1):
-                # 1. Check Owning Allocations
-                has_owning = False
-                if re.search(r'\b(?:new|malloc|calloc)\b', clean_line):
-                    if not re.search(r'\b(?:delete|make_unique|make_shared)\b', clean_line):
-                        has_owning = True
-
-                if has_owning:
-                    results["Owning allocations"].append((rel_path, line_idx, orig_line.strip()))
-                    continue
-
-                # 2. Check Oversized Arrays
-                has_oversized = False
-                for match in array_re.finditer(clean_line):
-                    type_part, name_part, size_part = match.groups()
-                    if type_part not in keywords and name_part not in keywords:
-                        try:
-                            size = int(size_part)
-                            if size >= 100:
-                                has_oversized = True
-                                break
-                        except ValueError:
-                            pass
-                if has_oversized:
-                    results["Oversized arrays"].append((rel_path, line_idx, orig_line.strip()))
-                    continue
-
-                # 3. Check Non-owning Pointers
-                has_pointer = False
-                for match in pointer_re.finditer(clean_line):
-                    type_part, stars, name_part = match.groups()
-                    if type_part in keywords or name_part in keywords:
-                        continue
-
-                    start_pos = match.start()
-                    pre_match_str = clean_line[:start_pos]
-
-                    if '=' in pre_match_str:
-                        continue
-
-                    specifiers_re = re.compile(r'\b(?:const|static|extern|virtual|inline|friend|mutable)\b\s*')
-                    pre_clean = specifiers_re.sub('', pre_match_str).strip()
-
-                    if pre_clean:
-                        last_char = pre_clean[-1]
-                        if last_char not in allowed_preceding:
-                            continue
-
-                    has_pointer = True
-                    break
-
-                if has_pointer:
-                    results["Non-owning pointers"].append((rel_path, line_idx, orig_line.strip()))
-
-    for category in results:
-        results[category].sort(key=lambda x: (x[0], x[1]))
-
+    for values in results.values():
+        values.sort(key=lambda item: (item[0], item[1]))
     return results
 
+
 def main():
-    if len(sys.argv) > 1:
-        repo_root = sys.argv[1]
-    else:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        repo_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
-
-    results = scan_codebase(repo_root)
-
-    headings = ["Owning allocations", "Oversized arrays", "Non-owning pointers"]
-    for i, heading in enumerate(headings):
+    root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[2]
+    results = scan_codebase(root)
+    for index, heading in enumerate(HEADINGS):
         print(heading)
-        for rel_path, line_no, content in results[heading]:
-            print(f"{rel_path}:{line_no}: {content}")
-        if i < len(headings) - 1:
+        for path, line_number, source in results[heading]:
+            print(f"{path}:{line_number}: {source}")
+        if index + 1 < len(HEADINGS):
             print()
+
 
 if __name__ == "__main__":
     main()

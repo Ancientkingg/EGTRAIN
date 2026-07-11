@@ -313,7 +313,8 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
-    add_test(NAME test_qt_resources COMMAND ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
+    add_test(NAME test_qt_resources
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
 
     add_executable(test_scenevalidator
         ${SRC_DIR}/tests/test_scenevalidator.cpp
