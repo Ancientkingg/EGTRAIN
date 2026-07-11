@@ -4,7 +4,7 @@
 #include <chrono>
 #include <cstdio>
 
-Rescheduling* dispatchingTool = new Rescheduling();
+std::unique_ptr<Rescheduling> dispatchingTool = std::make_unique<Rescheduling>();
 
 // class constructor
 Rescheduling::Rescheduling() {
