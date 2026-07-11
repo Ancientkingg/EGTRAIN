@@ -37,6 +37,7 @@ class TestOwnershipInventory(unittest.TestCase):
                 'auto* buffer = new double[20];\n'
                 'auto* unknown_owner = new Widget;\n'
                 'auto* child = new QWidget(parent);\n'
+                'auto* text = new QString(parent);\n'
                 'auto* parentless = new QWidget();\n'
                 'Widget* unknown;\n'
                 'int newId = 1;\n'
@@ -72,6 +73,7 @@ class TestOwnershipInventory(unittest.TestCase):
             self.assertEqual(owning, "auto* buffer = new double[20];")
             self.assertEqual(qt_managed, "auto* child = new QWidget(parent);")
             self.assertIn("unknown_owner = new Widget", unclassified_allocations)
+            self.assertIn("text = new QString(parent)", unclassified_allocations)
             self.assertIn("parentless = new QWidget()", unclassified_allocations)
             self.assertNotIn("newId", "\n".join(
                 item[2] for entries in results.values() for item in entries
