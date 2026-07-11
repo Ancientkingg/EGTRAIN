@@ -13,6 +13,16 @@ HEADINGS = (
 )
 SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp"}
 EXCLUDED_DIRS = {"CMakeFiles", "generated", "third_party", "vendor"}
+QT_PARENT_TYPES = {
+    "QAction", "QButtonGroup", "QCategoryAxis", "QChart", "QChartView",
+    "QCheckBox", "QComboBox", "QDialog", "QDialogButtonBox", "QDockWidget",
+    "QFormLayout", "QGraphicsItemGroup", "QGraphicsLineItem",
+    "QGraphicsRectItem", "QGraphicsTextItem", "QHBoxLayout", "QIntValidator",
+    "QLabel", "QLineEdit", "QLineSeries", "QListWidget", "QMenu",
+    "QPlainTextEdit", "QPushButton", "QRadioButton", "QScrollArea", "QSlider",
+    "QTableWidget", "QTableWidgetItem", "QThread", "QTreeWidget",
+    "QTreeWidgetItem", "QVBoxLayout", "QValueAxis", "QVariantAnimation", "QWidget",
+}
 CONFIRMED_OBSERVERS = {
     "EGTRAIN/QEGTRAIN/app/MainWindow.h": {
         "trainPaxInfoItem",
@@ -149,7 +159,7 @@ def scan_codebase(repo_root):
                 types = allocated_type.findall(cleaned)
                 if owning_allocation.search(cleaned) or "Ui::MainWindow" in types:
                     category = "Owning allocations"
-                elif qt_parent.search(cleaned):
+                elif types and all(name in QT_PARENT_TYPES for name in types) and qt_parent.search(cleaned):
                     category = "Qt-managed allocations"
                 else:
                     category = "Unclassified allocations"
