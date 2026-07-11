@@ -243,18 +243,12 @@ if(APPLE)
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
-    # Copy runtime resources (Input data + GUI image assets loaded via
-    # relative paths) into the bundle's Resources in a single POST_BUILD step.
+    # Copy runtime resources (Input data) into the bundle's Resources in a single POST_BUILD step.
     add_custom_command(TARGET QEGTRAIN POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${SRC_DIR}/Input"
             "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources/Input"
-        COMMAND ${CMAKE_COMMAND} -E copy
-            "${SRC_DIR}/train_station.png"
-            "${SRC_DIR}/pax_icon.png"
-            "${SRC_DIR}/window_icon.jpg"
-            "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources/"
-        COMMENT "Copying Input data and GUI image assets into .app bundle"
+        COMMENT "Copying Input data into .app bundle"
     )
 endif()
 
@@ -318,6 +312,8 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
+
+    add_test(NAME test_qt_resources COMMAND ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
 
     add_executable(test_scenevalidator
         ${SRC_DIR}/tests/test_scenevalidator.cpp
