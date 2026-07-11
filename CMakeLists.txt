@@ -391,6 +391,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
 	add_test(NAME test_raii_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
+	add_test(NAME test_ownership_inventory
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
 endif()
 
 # Install
