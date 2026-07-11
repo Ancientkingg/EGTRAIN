@@ -6,6 +6,7 @@ from pathlib import Path
 HEADINGS = (
     "Owning allocations",
     "Qt-managed allocations",
+    "Unclassified allocations",
     "Oversized arrays",
     "Non-owning pointers",
     "Unclassified raw pointers",
@@ -117,8 +118,18 @@ def scan_codebase(repo_root):
     files = list(source_files(root))
     constants = numeric_constants(files)
     results = {heading: [] for heading in HEADINGS}
-    allocation = re.compile(r"\b(?:new(?!\s*\()|malloc\s*\(|calloc\s*\(|realloc\s*\()")
-    allocated_type = re.compile(r"\bnew(?!\s*\()\s+([A-Za-z_]\w*(?:::\w+)*)")
+    allocation = re.compile(r"\b(?:new\b(?!\s*\()|malloc\s*\(|calloc\s*\(|realloc\s*\()")
+    allocated_type = re.compile(r"\bnew\b(?!\s*\()\s+([A-Za-z_]\w*(?:::\w+)*)")
+    owning_allocation = re.compile(
+        r"\b(?:malloc\s*\(|calloc\s*\(|realloc\s*\(|new\b\s+[A-Za-z_]\w*(?:::\w+)*\s*\[)"
+    )
+    parent_expression = (
+        r"(?:this|parent|[A-Za-z_]\w*(?:Widget|Dock|Pane|View|Scene|Scroll|Edit|Combo|List))"
+    )
+    qt_parent = re.compile(
+        rf"\bnew\b\s+Q[A-Za-z_:]*\s*\(\s*{parent_expression}\s*\)"
+        rf"|\bnew\b\s+Q[A-Za-z_:]*\s*\([^;]*,\s*{parent_expression}\s*\)"
+    )
     array = re.compile(r"\b([A-Za-z_]\w*)\s*\[\s*(\d+|[A-Za-z_]\w*)\s*\]")
     declaration_prefix = re.compile(
         r"^\s*(?:(?:extern|static|const|constexpr|mutable|volatile|signed|unsigned|long|short)\s+)*"
@@ -136,11 +147,12 @@ def scan_codebase(repo_root):
             has_allocation = allocation.search(cleaned)
             if has_allocation:
                 types = allocated_type.findall(cleaned)
-                category = (
-                    "Qt-managed allocations"
-                    if types and all(name.startswith("Q") and not name.startswith("Ui::") for name in types)
-                    else "Owning allocations"
-                )
+                if owning_allocation.search(cleaned) or "Ui::MainWindow" in types:
+                    category = "Owning allocations"
+                elif qt_parent.search(cleaned):
+                    category = "Qt-managed allocations"
+                else:
+                    category = "Unclassified allocations"
                 results[category].append(evidence)
             array_matches = list(array.finditer(cleaned))
             is_declaration = array_matches and declaration_prefix.match(cleaned[: array_matches[0].start()])
