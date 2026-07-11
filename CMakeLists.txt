@@ -316,6 +316,15 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_qt_resources
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
 
+    add_executable(test_qt_resource_images
+        ${SRC_DIR}/tests/test_qt_resource_images.cpp
+        ${EGTRAIN_RESOURCES})
+    target_link_libraries(test_qt_resource_images PRIVATE Qt5::Core Qt5::Gui)
+    add_test(NAME test_qt_resource_images COMMAND test_qt_resource_images)
+    set_tests_properties(test_qt_resource_images PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
     add_executable(test_scenevalidator
         ${SRC_DIR}/tests/test_scenevalidator.cpp
         ${SRC_DIR}/scene/SceneDiagnostic.cpp

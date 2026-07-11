@@ -13,10 +13,13 @@ class TestOwnershipInventory(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         results = ownership_inventory.scan_codebase(root)
         self.assertTrue(results["Owning allocations"])
+        self.assertTrue(results["Qt-managed allocations"])
         self.assertTrue(results["Oversized arrays"])
         observer_lines = "\n".join(item[2] for item in results["Non-owning pointers"])
         self.assertIn("trainPaxItem", observer_lines)
         self.assertIn("paxIconItem", observer_lines)
+        self.assertIn("TDS_arc", observer_lines)
+        self.assertTrue(results["Unclassified raw pointers"])
         for entries in results.values():
             self.assertEqual(entries, sorted(entries, key=lambda item: (item[0], item[1])))
             self.assertFalse(any("third_party" in item[0] for item in entries))
@@ -31,6 +34,8 @@ class TestOwnershipInventory(unittest.TestCase):
             fixture.write_text(
                 '#define LIMIT 300\n'
                 'auto* owner = new Widget;\n'
+                'auto* child = new QWidget(parent);\n'
+                'Widget* unknown;\n'
                 'double a[200], b[LIMIT];\n'
                 'char storage[500];\n'
                 'signalling_block_sections[562].total_nodes = 0;\n'
@@ -53,10 +58,12 @@ class TestOwnershipInventory(unittest.TestCase):
 
             results = ownership_inventory.scan_codebase(root)
             owning = "\n".join(item[2] for item in results["Owning allocations"])
+            qt_managed = "\n".join(item[2] for item in results["Qt-managed allocations"])
             arrays = "\n".join(item[2] for item in results["Oversized arrays"])
             paths = "\n".join(item[0] for entries in results.values() for item in entries)
 
             self.assertEqual(owning, "auto* owner = new Widget;")
+            self.assertEqual(qt_managed, "auto* child = new QWidget(parent);")
             self.assertIn("double a[200], b[LIMIT];", arrays)
             self.assertIn("char storage[500];", arrays)
             self.assertNotIn("HiddenWidget", owning)
@@ -64,6 +71,10 @@ class TestOwnershipInventory(unittest.TestCase):
             self.assertNotIn("signalling_block_sections[562]", arrays)
             self.assertNotIn("Noise.cpp", paths)
             self.assertEqual(len(results["Non-owning pointers"]), 4)
+            self.assertEqual(
+                [item[2] for item in results["Unclassified raw pointers"]],
+                ["Widget* unknown;"],
+            )
 
 
 if __name__ == "__main__":

@@ -3,7 +3,13 @@ import re
 import sys
 from pathlib import Path
 
-HEADINGS = ("Owning allocations", "Oversized arrays", "Non-owning pointers")
+HEADINGS = (
+    "Owning allocations",
+    "Qt-managed allocations",
+    "Oversized arrays",
+    "Non-owning pointers",
+    "Unclassified raw pointers",
+)
 SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp"}
 EXCLUDED_DIRS = {"CMakeFiles", "generated", "third_party", "vendor"}
 CONFIRMED_OBSERVERS = {
@@ -12,7 +18,10 @@ CONFIRMED_OBSERVERS = {
         "trainPaxItem",
         "paxIconInfoItem",
         "paxIconItem",
-    }
+    },
+    "EGTRAIN/QEGTRAIN/simulation/Rescheduling.h": {"TDS_arc"},
+    "EGTRAIN/QEGTRAIN/simulation/SimulationWorker.h": {"s_active"},
+    "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr"},
 }
 
 
@@ -109,6 +118,7 @@ def scan_codebase(repo_root):
     constants = numeric_constants(files)
     results = {heading: [] for heading in HEADINGS}
     allocation = re.compile(r"\b(?:new(?!\s*\()|malloc\s*\(|calloc\s*\(|realloc\s*\()")
+    allocated_type = re.compile(r"\bnew(?!\s*\()\s+([A-Za-z_]\w*(?:::\w+)*)")
     array = re.compile(r"\b([A-Za-z_]\w*)\s*\[\s*(\d+|[A-Za-z_]\w*)\s*\]")
     declaration_prefix = re.compile(
         r"^\s*(?:(?:extern|static|const|constexpr|mutable|volatile|signed|unsigned|long|short)\s+)*"
@@ -123,8 +133,15 @@ def scan_codebase(repo_root):
         observers = CONFIRMED_OBSERVERS.get(relative, set())
         for line_number, (original, cleaned) in enumerate(zip(original_lines, cleaned_lines), 1):
             evidence = (relative, line_number, original.strip())
-            if allocation.search(cleaned):
-                results["Owning allocations"].append(evidence)
+            has_allocation = allocation.search(cleaned)
+            if has_allocation:
+                types = allocated_type.findall(cleaned)
+                category = (
+                    "Qt-managed allocations"
+                    if types and all(name.startswith("Q") and not name.startswith("Ui::") for name in types)
+                    else "Owning allocations"
+                )
+                results[category].append(evidence)
             array_matches = list(array.finditer(cleaned))
             is_declaration = array_matches and declaration_prefix.match(cleaned[: array_matches[0].start()])
             if is_declaration and any(
@@ -134,8 +151,12 @@ def scan_codebase(repo_root):
                     for match in array_matches
             ):
                 results["Oversized arrays"].append(evidence)
-            if any(name in observers for name in pointer.findall(cleaned)):
+            pointer_names = pointer.findall(cleaned)
+            confirmed = [name for name in pointer_names if name in observers]
+            if confirmed:
                 results["Non-owning pointers"].append(evidence)
+            if pointer_names and not has_allocation and any(name not in observers for name in pointer_names):
+                results["Unclassified raw pointers"].append(evidence)
 
     for values in results.values():
         values.sort(key=lambda item: (item[0], item[1]))
