@@ -1,5 +1,6 @@
 #include "simulation/Simulation.h"
 #include <cstdio>
+#include <vector>
 
 double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
 
@@ -37,8 +38,8 @@ void calculateArrivalDelayAllTrains() {
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
 void calculateDelayStatsAtStation(Stations& S) {
-	double* TrainDelay = new double[numRegions];		// Variable to collect all the Delays of the delayed trains at a given station
-	double* TrainConsDelay = new double[numRegions]; // Variable to collect all the consecutive delays of trains at stations
+	std::vector<double> TrainDelay(numRegions);
+	std::vector<double> TrainConsDelay(numRegions);
 	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
 	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
 	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
@@ -111,14 +112,12 @@ void calculateDelayStatsAtStation(Stations& S) {
 			S.Max_Cons_Delay = TrainConsDelay[r];
 	}
 
-	delete[] TrainDelay;
-	delete[] TrainConsDelay;
 }
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
 void calculatePosAndNegDelayStatsAtStation(Stations& S) {
-	double* TrainDelay = new double[numRegions];		// Variable to collect all the Delays of the delayed trains at a given station
-	double* TrainConsDelay = new double[numRegions]; // Variable to collect all the consecutive delays of trains at stations
+	std::vector<double> TrainDelay(numRegions);
+	std::vector<double> TrainConsDelay(numRegions);
 	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
 	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
 	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
@@ -189,15 +188,13 @@ void calculatePosAndNegDelayStatsAtStation(Stations& S) {
 			S.Max_Cons_Delay = TrainConsDelay[r];
 	}
 
-	delete[] TrainDelay;
-	delete[] TrainConsDelay;
 }
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
 void Compute_Input_Delays() {
-	double* TrainDelay = new double[numRegions];	   // Variable to collect Total Input Delays: Entrance+Dist to dwell times
-	double* TrainEntDelay = new double[numRegions]; // Variable to collect all the Entrance delays in input
-	double* Disturb = new double[numRegions];	   // Variable to collect all the Disturbances to dwell times set in input in the network
+	std::vector<double> TrainDelay(numRegions);
+	std::vector<double> TrainEntDelay(numRegions);
+	std::vector<double> Disturb(numRegions);
 										 // Initializing parameters for Total input delays
 	TotalInputDelays.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
 	TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Std_Arrival_Delay = 0;
@@ -305,9 +302,6 @@ void Compute_Input_Delays() {
 			DisturbanceInput.Max_TotalDelay = Disturb[r]; // Max Disturbance in input
 	}
 
-	delete[] TrainDelay;
-	delete[] TrainEntDelay;
-	delete[] Disturb;
 }
 
 // Function to calculate the train delay statistics for all the station considered in the network

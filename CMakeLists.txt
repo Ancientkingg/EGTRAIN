@@ -393,6 +393,8 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
 	add_test(NAME test_windows_subsystem_config
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
+	add_test(NAME test_raii_contract
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
 endif()
 
 # Install
