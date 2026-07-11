@@ -14,6 +14,7 @@ class TestOwnershipInventory(unittest.TestCase):
         results = ownership_inventory.scan_codebase(root)
         self.assertTrue(results["Owning allocations"])
         self.assertTrue(results["Qt-managed allocations"])
+        self.assertTrue(results["Unclassified allocations"])
         self.assertTrue(results["Oversized arrays"])
         observer_lines = "\n".join(item[2] for item in results["Non-owning pointers"])
         self.assertIn("trainPaxItem", observer_lines)
@@ -33,9 +34,12 @@ class TestOwnershipInventory(unittest.TestCase):
             fixture = source / "simulation/Fixture.cpp"
             fixture.write_text(
                 '#define LIMIT 300\n'
-                'auto* owner = new Widget;\n'
+                'auto* buffer = new double[20];\n'
+                'auto* unknown_owner = new Widget;\n'
                 'auto* child = new QWidget(parent);\n'
+                'auto* parentless = new QWidget();\n'
                 'Widget* unknown;\n'
+                'int newId = 1;\n'
                 'double a[200], b[LIMIT];\n'
                 'char storage[500];\n'
                 'signalling_block_sections[562].total_nodes = 0;\n'
@@ -59,11 +63,19 @@ class TestOwnershipInventory(unittest.TestCase):
             results = ownership_inventory.scan_codebase(root)
             owning = "\n".join(item[2] for item in results["Owning allocations"])
             qt_managed = "\n".join(item[2] for item in results["Qt-managed allocations"])
+            unclassified_allocations = "\n".join(
+                item[2] for item in results["Unclassified allocations"]
+            )
             arrays = "\n".join(item[2] for item in results["Oversized arrays"])
             paths = "\n".join(item[0] for entries in results.values() for item in entries)
 
-            self.assertEqual(owning, "auto* owner = new Widget;")
+            self.assertEqual(owning, "auto* buffer = new double[20];")
             self.assertEqual(qt_managed, "auto* child = new QWidget(parent);")
+            self.assertIn("unknown_owner = new Widget", unclassified_allocations)
+            self.assertIn("parentless = new QWidget()", unclassified_allocations)
+            self.assertNotIn("newId", "\n".join(
+                item[2] for entries in results.values() for item in entries
+            ))
             self.assertIn("double a[200], b[LIMIT];", arrays)
             self.assertIn("char storage[500];", arrays)
             self.assertNotIn("HiddenWidget", owning)
