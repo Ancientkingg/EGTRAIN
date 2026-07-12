@@ -329,7 +329,8 @@ void DispatchController::prepareSimulation() {
 	string FileNetworkAreas;
 	FileNetworkAreas = InputMainFolder + "/TrackLines/AreasCaseStudy.txt";
 
-	InitializeAllNetworkAreas(FileNetworkAreas, signalling_block_sections, Blocks);
+	if (std::filesystem::exists(FileNetworkAreas))
+		InitializeAllNetworkAreas(FileNetworkAreas, signalling_block_sections, Blocks);
 
 	setUpAllRoutes(); // Set Up routes of trains
 
@@ -428,8 +429,11 @@ void DispatchController::prepareSimulation() {
 	changeTrainDepartureTimesForHourlyTimetabling(regional_train, numRegions);
 
 	/*Load_Dwell_Time_Disturbed_Scenario(DWDisturbance, InstanceIndex);*/
-	Load_Entrance_Delay_Disturbed_Scenario(EntDelays, "Guingamp", InstanceIndex);
-	Load_Entrance_Delay_Disturbed_Scenario(EntDelays, "Paimpol", InstanceIndex);
+	const string entranceDelayFile = EntDelays + "Rollout_" + std::to_string(InstanceIndex) + ".txt";
+	if (std::filesystem::exists(entranceDelayFile)) {
+		Load_Entrance_Delay_Disturbed_Scenario(EntDelays, "Guingamp", InstanceIndex);
+		Load_Entrance_Delay_Disturbed_Scenario(EntDelays, "Paimpol", InstanceIndex);
+	}
 
 	// for (int i = 0; i < numRegions; i++) {
 	//	cout << regional_train[i].trainDescription << " " << regional_train[i].indexOfRoute << "\n";
@@ -441,13 +445,14 @@ void DispatchController::prepareSimulation() {
 
 	Initialise_All_Station_Platforms(AllStationPlatforms, numAllStationPlatforms, signalling_block_sections, Blocks, regional_train, numRegions, train_route, 100, 2.5);
 
-	initialiseAllDailyPassengersFromDailyActivitySchedule(initial_variables.InputMainFolder + "/Passengers/DAS_FrenchCaseStudy.csv", AllDailyPassengers, numAllDailyPassengers);
-
-	updatePassengerRouteChoice(initial_variables.InputMainFolder + "/Passengers/RouteChoiceFC_EQ1.csv", AllDailyPassengers, numAllDailyPassengers);
-
-	assignPlatformsToTripsInJourney(AllDailyPassengers, AllStationPlatforms);
-
-	double dwelltime = regional_train[2].computePaxDependentDwellTimeAtStations(70, 42, 0.8, 5.631, 0.000, 0.815, 0.564, 0.016, 2.012, 0.086, 0.562);
+	const string passengerSchedule = initial_variables.InputMainFolder + "/Passengers/DAS_FrenchCaseStudy.csv";
+	const string passengerRoutes = initial_variables.InputMainFolder + "/Passengers/RouteChoiceFC_EQ1.csv";
+	if (std::filesystem::exists(passengerSchedule) && std::filesystem::exists(passengerRoutes)) {
+		initialiseAllDailyPassengersFromDailyActivitySchedule(passengerSchedule, AllDailyPassengers, numAllDailyPassengers);
+		updatePassengerRouteChoice(passengerRoutes, AllDailyPassengers, numAllDailyPassengers);
+		assignPlatformsToTripsInJourney(AllDailyPassengers, AllStationPlatforms);
+		regional_train[2].computePaxDependentDwellTimeAtStations(70, 42, 0.8, 5.631, 0.000, 0.815, 0.564, 0.016, 2.012, 0.086, 0.562);
+	}
 
 
 	string Folder_Instance;
