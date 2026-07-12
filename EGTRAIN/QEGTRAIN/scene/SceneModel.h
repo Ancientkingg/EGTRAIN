@@ -65,6 +65,7 @@ struct SceneService {
 	std::string id;
 	std::string composition;
 	std::string route;
+	bool through = false;
 	bool hasEntryTime = false;
 	double entryTimeSeconds = 0.0;
 	bool hasRepeat = false;

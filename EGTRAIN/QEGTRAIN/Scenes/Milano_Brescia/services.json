@@ -5,14 +5,16 @@
             "entry_time_seconds": 1738.0,
             "id": "201",
             "route": "route10",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "E402B_EN_415",
             "entry_time_seconds": 2283.0,
             "id": "233-232",
             "route": "route35",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "REG_E464_np_225_120_160_B",
@@ -300,63 +302,72 @@
             "entry_time_seconds": 660.0,
             "id": "8951",
             "route": "route0",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_675",
             "entry_time_seconds": 2523.0,
             "id": "8971",
             "route": "route3",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_500_12",
             "entry_time_seconds": 2810.0,
             "id": "9604-9609",
             "route": "route36",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_1000",
             "entry_time_seconds": 3198.0,
             "id": "9703-9704",
             "route": "route1",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_500_8",
             "entry_time_seconds": 4998.0,
             "id": "9705",
             "route": "route1",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_1000",
             "entry_time_seconds": 6798.0,
             "id": "9707",
             "route": "route1",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_500_8",
             "entry_time_seconds": 8598.0,
             "id": "9709",
             "route": "route1",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_1000",
             "entry_time_seconds": 10398.0,
             "id": "9707_2",
             "route": "route1",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "ETR_500_8",
             "entry_time_seconds": 12198.0,
             "id": "9709_2",
             "route": "route1",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "REG_E464_np_360_120_160_B",
@@ -873,7 +884,8 @@
             "entry_time_seconds": 5803.0,
             "id": "10802",
             "route": "route34",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "REG_E464_np_270_120_140_B",
@@ -1168,42 +1180,48 @@
             "entry_time_seconds": 120.0,
             "id": "41015",
             "route": "route4",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E483_500_75_100_A",
             "entry_time_seconds": 1950.0,
             "id": "41501",
             "route": "route7",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E483_500_75_100_A",
             "entry_time_seconds": 150.0,
             "id": "46501",
             "route": "route6",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E483_500_75_100_A",
             "entry_time_seconds": 240.0,
             "id": "46623",
             "route": "route9",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E483_500_75_100_A",
             "entry_time_seconds": 3450.0,
             "id": "46625",
             "route": "route5",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E655_900_75_100_A",
             "entry_time_seconds": 147.0,
             "id": "47379-47378-47379-47378",
             "route": "route13",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E655_830_80_100_A",
@@ -1224,7 +1242,8 @@
             "entry_time_seconds": 5220.0,
             "id": "50343",
             "route": "route5",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E483_500_75_100_A",
@@ -1244,21 +1263,24 @@
             "entry_time_seconds": 209.0,
             "id": "53214-53215-53214",
             "route": "route32",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E655_830_80_100_A",
             "entry_time_seconds": 3706.0,
             "id": "54150-54151",
             "route": "route12",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "TCS_E405_1300_75_120_A",
             "entry_time_seconds": 7570.0,
             "id": "58000",
             "route": "route39",
-            "stops": []
+            "stops": [],
+            "through": true
         },
         {
             "composition": "MRI_E483_500_75_100_A",

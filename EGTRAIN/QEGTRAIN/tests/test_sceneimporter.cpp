@@ -261,15 +261,27 @@ int main(int argc, char** argv) {
 		auto vDiags = validateSceneDirectory(outDir.dir);
 		printErrors(vDiags, "Brescia validate");
 		ok &= expect(!hasErrors(vDiags), "Brescia validate zero errors");
-		// 23092 has an out-of-order departure sequence in the legacy data; the
-		// validator surfaces it as an ordering warning.
-		ok &= expect(hasDiag(vDiags, "scene.time.order", SceneSeverity::Warning),
-					 "Brescia out-of-order departures reported as warning");
+		// Several services depart their first stop before the scene base time;
+		// a negative first departure is legal and is not an ordering warning.
+		ok &= expect(!hasDiag(vDiags, "scene.time.order", SceneSeverity::Warning),
+					 "Brescia has no departure ordering warnings");
+		// Stop-less services import as through services, so a fresh import
+		// carries no missing-stops warnings.
+		ok &= expect(!hasDiag(vDiags, "scene.service.no_stops", SceneSeverity::Warning),
+					 "Brescia import has no missing-stops warnings");
 
 		std::ifstream sFile(fs::path(outDir.dir) / "services.json");
 		json sJson;
 		sFile >> sJson;
 		ok &= expect(sJson["services"].size() == 62, "Brescia 62 services");
+		int throughCount = 0;
+		for (const auto& s : sJson["services"]) {
+			if (s.value("through", false)) {
+				throughCount++;
+				ok &= expect(s["stops"].empty(), "through services import without stops");
+			}
+		}
+		ok &= expect(throughCount == 22, "Brescia imports 22 through services");
 
 		std::ifstream rFile(fs::path(outDir.dir) / "signalling.json");
 		json rJson;

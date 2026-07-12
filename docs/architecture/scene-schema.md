@@ -15,7 +15,7 @@ The schema is versioned using an integer `schema_version` inside `scene.json`. T
 | stations.json | yes | `stations: [{id, name, platforms: [{id}]}]` |
 | signalling.json | yes | `signals: [{id}]`, `routes: [{id, blocks: [string]}]` (block ids are opaque strings in V1; they are resolved against real block data once the legacy importer exists) |
 | rolling_stock.json | yes | `train_units: [{id, physical?: {mass_of_traction_unit_kg, mass_of_a_wagon_kg, number_of_wagons, max_speed_ms, max_deceleration_ms2, frontal_area_m2, resistance_coefficient, jerk_ms3, length_m}, traction_curve?: [[v_lower, v_upper, c0, c1, c2]], source?: {data_file, traction_file}}]`, `compositions: [{id, units: [unit-id]}]` |
-| services.json | yes | `services: [{id, composition, route, entry_time_seconds?, repeat?: {headway_seconds}, stops: [{station, platform?, arrival_seconds?, departure_seconds?, dwell_seconds}]}]`. `arrival_seconds` may be omitted on any stop (no scheduled arrival; typical for the first stop). `departure_seconds` may be omitted only on the last stop (terminus). Times are seconds from the scene base time and may be negative (an instant before the base time). A service with an empty `stops` array is a through service that stops nowhere. |
+| services.json | yes | `services: [{id, composition, route, through?, entry_time_seconds?, repeat?: {headway_seconds}, stops: [{station, platform?, arrival_seconds?, departure_seconds?, dwell_seconds}]}]`. `arrival_seconds` may be omitted on any stop (no scheduled arrival; typical for the first stop). `departure_seconds` may be omitted only on the last stop (terminus). Times are seconds from the scene base time and may be negative (an instant before the base time). A service with an empty `stops` array is a through service that stops nowhere. The optional boolean `through` marks a service that runs the corridor without scheduled stops; the validator skips the no-stops warning for it. |
 | incidents.json | no | `incidents: [{id, type: "signal_failure"\|"train_breakdown", target, start_seconds, end_seconds}]` |
 | views.json | no | free-form display defaults; parse-checked only |
 
@@ -180,6 +180,7 @@ The validator produces the following diagnostic codes. Note that semantic checks
 **Semantic Warnings**
 - `scene.dwell.exceeds_window`: Dwell time is larger than the (departure - arrival) window.
 - `scene.service.no_stops`: Service with an empty stops array (a through service; legitimate but worth flagging).
+- `scene.service.through_stops`: Through service has stops.
 - `scene.time.order`: Departure times do not increase along a service's stops.
 
 **Import Warnings and Infos**
