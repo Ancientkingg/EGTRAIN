@@ -35,6 +35,7 @@ class TestOwnershipInventory(unittest.TestCase):
             fixture.write_text(
                 '#define LIMIT 300\n'
                 'auto* buffer = new double[20];\n'
+                'double** grid = new double*[30];\n'
                 'auto* unknown_owner = new Widget;\n'
                 'auto* child = new QWidget(parent);\n'
                 'auto* text = new QString(parent);\n'
@@ -70,7 +71,10 @@ class TestOwnershipInventory(unittest.TestCase):
             arrays = "\n".join(item[2] for item in results["Oversized arrays"])
             paths = "\n".join(item[0] for entries in results.values() for item in entries)
 
-            self.assertEqual(owning, "auto* buffer = new double[20];")
+            self.assertEqual(
+                owning,
+                "auto* buffer = new double[20];\ndouble** grid = new double*[30];",
+            )
             self.assertEqual(qt_managed, "auto* child = new QWidget(parent);")
             self.assertIn("unknown_owner = new Widget", unclassified_allocations)
             self.assertIn("text = new QString(parent)", unclassified_allocations)

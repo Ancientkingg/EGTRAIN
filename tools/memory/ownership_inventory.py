@@ -131,7 +131,7 @@ def scan_codebase(repo_root):
     allocation = re.compile(r"\b(?:new\b(?!\s*\()|malloc\s*\(|calloc\s*\(|realloc\s*\()")
     allocated_type = re.compile(r"\bnew\b(?!\s*\()\s+([A-Za-z_]\w*(?:::\w+)*)")
     owning_allocation = re.compile(
-        r"\b(?:malloc\s*\(|calloc\s*\(|realloc\s*\(|new\b\s+[A-Za-z_]\w*(?:::\w+)*\s*\[)"
+        r"\b(?:malloc\s*\(|calloc\s*\(|realloc\s*\(|new\b\s+[A-Za-z_]\w*(?:::\w+)*\s*\**\s*\[)"
     )
     parent_expression = (
         r"(?:this|parent|[A-Za-z_]\w*(?:Widget|Dock|Pane|View|Scene|Scroll|Edit|Combo|List))"
