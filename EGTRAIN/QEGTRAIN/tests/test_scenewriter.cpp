@@ -148,8 +148,13 @@ int main(int argc, char** argv) {
 		ok &= expect(findLoadedDataChildSource(sourceFilesData, "/TrainData/T_LITRA_SA.txt") != nullptr, "rolling stock T_LITRA source file visible");
 	}
 
+	SceneModel sceneToWrite = scene;
+	if (!sceneToWrite.services.empty()) {
+		sceneToWrite.services[0].through = true;
+	}
+
 	TempDir outDir;
-	auto saveRes = saveScene(scene, outDir.dir);
+	auto saveRes = saveScene(sceneToWrite, outDir.dir);
 	printErrors(saveRes.diagnostics, "save");
 	ok &= expect(saveRes.success(), "first save succeeds");
 	ok &= expect(!fs::exists(fs::path(outDir.dir) / "legacy"), "saveScene does not create legacy folder");
@@ -196,6 +201,7 @@ int main(int argc, char** argv) {
 	if (!reloaded.services.empty()) {
 		const SceneService& service = reloaded.services[0];
 		ok &= expect(service.id == "svc_e1", "first service id round-trips");
+		ok &= expect(service.through, "first service through flag round-trips");
 		ok &= expect(service.composition == "sprinter_single", "first service composition round-trips");
 		ok &= expect(service.route == "route0", "first service route round-trips");
 		ok &= expect(service.hasEntryTime && service.entryTimeSeconds == 240, "entry time round-trips");
@@ -209,6 +215,16 @@ int main(int argc, char** argv) {
 			ok &= expect(service.stops[1].hasDeparture && service.stops[1].departureSeconds == 1320, "middle stop departure round-trips");
 			ok &= expect(service.stops[2].hasArrival && service.stops[2].arrivalSeconds == 2520, "last stop arrival round-trips");
 			ok &= expect(!service.stops[2].hasDeparture, "last stop missing departure round-trips");
+		}
+	}
+
+	{
+		std::ifstream sceneFile(fs::path(outDir.dir) / "services.json");
+		nlohmann::json svcsJson;
+		sceneFile >> svcsJson;
+		ok &= expect(svcsJson["services"][0]["through"] == true, "through written when true");
+		if (svcsJson["services"].size() > 1) {
+			ok &= expect(!svcsJson["services"][1].contains("through"), "through not written when false");
 		}
 	}
 
