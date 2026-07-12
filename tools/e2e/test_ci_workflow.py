@@ -30,6 +30,19 @@ def main() -> None:
         for block in test_steps
     ):
         missing.append("ctest output logs")
+    sanitizer_test = next(
+        block
+        for block in workflow.split("\n  sanitizer:\n", 1)[1].split("\n      - ")
+        if block.startswith("name: Test\n")
+    )
+    if any(
+        option not in sanitizer_test
+        for option in (
+            "UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1",
+            "ASAN_OPTIONS: abort_on_error=1:halt_on_error=1",
+        )
+    ):
+        missing.append("sanitizer failure options")
     uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
     if len(uploads) != 2 or any(
         "if: failure()" not in block
