@@ -12,6 +12,8 @@ InputCheckResult validateCaseStudyInput(const std::string& inputMainFolder) {
     const std::vector<std::string> required = {
         "/TrackLines/Connections.txt",
         "/TrackLines/Stations.txt",
+        "/trainNames.txt",
+        "/Routes/List_of_Blocks_IDs.txt",
     };
     for (const auto& rel : required) {
         std::string full = inputMainFolder + rel;
