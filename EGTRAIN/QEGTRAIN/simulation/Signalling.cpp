@@ -3196,7 +3196,7 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 			}
 
 			// Load BSConnected to free to the BlocksConnected list
-			for (int i = 0; i <= N_BLSPrev_Conn; i++) {
+			for (int i = 0; i < N_BLSPrev_Conn; i++) {
 				for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
 					if (*it == IDToFree[i]) {
 						IsInBlocksConnected[i] = true;
