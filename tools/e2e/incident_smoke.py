@@ -12,6 +12,8 @@ the service's normal travel. Then it runs both and asserts that
 This exercises the whole path: scene incidents.json -> SceneExporter Incidents.txt
 -> Load_Incidents -> Incident_Holds_Train.
 """
+from __future__ import annotations
+
 import json
 import math
 import os
@@ -21,6 +23,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from headless_smoke import case_command
+
 ROOT = Path(__file__).resolve().parents[2]
 SCENE_TOOL = ROOT / "build/scene_tool"
 APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
@@ -28,7 +32,6 @@ SCENE_DIR = ROOT / "EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 CASE_ID = 5
 STAGED_NAME = "Input_EGTRAIN_Assignment"
 TRAJ_REL = "Output/Output_EGTRAIN_Assignment/TrainTrajectories/TrainServicePathDiagram.txt"
-PROMPTS = "n\n0\n0\n0\n0\n"
 
 # svc_e1-1 travels during timesteps [239, 2091] in the base scene, so this
 # window is comfortably inside its normal run.
@@ -41,16 +44,21 @@ _TOL = 1.0  # metres; positions within this are treated as unchanged
 
 def export_and_run(scene_dir: Path, tmp: Path, tag: str) -> list[float | None]:
     exported = tmp / f"exported_{tag}"
-    subprocess.run([str(SCENE_TOOL), "export", str(scene_dir), str(exported)], check=True,
-                   stdout=subprocess.DEVNULL)
+    log = Path(tempfile.gettempdir()) / f"qegtrain-incident-{tag}.log"
+    with log.open("wb") as output:
+        export = subprocess.run([str(SCENE_TOOL), "export", str(scene_dir), str(exported)],
+                                stdout=output, stderr=subprocess.STDOUT)
+    if export.returncode != 0:
+        sys.exit(f"[{tag}] scene export failed with {export.returncode}; see {log}")
     staging = tmp / f"staging_{tag}"
     (staging / "Output").mkdir(parents=True)
     (staging / "Input").mkdir()
     os.symlink(exported, staging / "Input" / STAGED_NAME, target_is_directory=True)
-    proc = subprocess.run([str(APP), "-n", str(CASE_ID)], cwd=staging, input=PROMPTS, text=True,
-                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
+    with log.open("ab") as output:
+        proc = subprocess.run(case_command(CASE_ID), cwd=staging, stdout=output,
+                              stderr=subprocess.STDOUT, timeout=300)
     if proc.returncode != 0:
-        sys.exit(f"[{tag}] case {CASE_ID} exited with {proc.returncode}")
+        sys.exit(f"[{tag}] case {CASE_ID} exited with {proc.returncode}; see {log}")
     traj = staging / TRAJ_REL
     if not traj.exists():
         sys.exit(f"[{tag}] no trajectory file written")

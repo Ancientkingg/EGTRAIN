@@ -872,7 +872,7 @@ public:
 		string PreviousTrain = "None"; // the previous Train according to the list
 		int IndexOL = BS[0].arcs_in_signalling_block_section[0].startNode.indexOrderList;
 
-		if ((OL[IndexOL].numTeList > 0) && (IndexOL >= 0)) {
+		if ((IndexOL >= 0) && (IndexOL < N_OrderLists) && (IndexOL < 20) && (OL[IndexOL].numTeList > 0)) {
 			cout << "this is the indexOL TRUE \n"
 				 << IndexOL;
 			for (int j = 1; j < OL[IndexOL].numTeList; j++) { // Determining which is the previous train in the list
