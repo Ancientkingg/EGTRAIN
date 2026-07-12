@@ -392,8 +392,22 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
+	add_executable(test_railmlparser
+		${SRC_DIR}/tests/test_railmlparser.cpp
+		${SRC_DIR}/io/RailMLParser.cpp
+		${SRC_DIR}/io/third_party/pugixml.cpp
+		${SRC_DIR}/simulation/InitialParameters.cpp)
+	target_include_directories(test_railmlparser PRIVATE ${SRC_DIR})
+	target_link_libraries(test_railmlparser PRIVATE cppzmq nlohmann_json::nlohmann_json)
+	add_test(NAME test_railmlparser COMMAND test_railmlparser)
+
 	add_test(NAME test_headless_smoke_decode
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
+	add_test(NAME test_case3_startup_errors
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_case3_startup_errors PROPERTIES TIMEOUT 60)
+	add_test(NAME test_scene_tool_diagnostics
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_scene_tool_diagnostics.py $<TARGET_FILE:scene_tool>)
 	add_test(NAME test_startup_launch_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
@@ -403,6 +417,13 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
 	add_test(NAME test_ownership_inventory
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
+
+	# Canonical V1 is the product path. Legacy tests cover only converter and
+	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
+	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_scene_tool_diagnostics
+		PROPERTIES LABELS "scene-v1")
+	set_tests_properties(test_inputvalidation test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors
+		PROPERTIES LABELS "legacy-compat")
 endif()
 
 # Install
