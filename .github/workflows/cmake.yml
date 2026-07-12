@@ -23,4 +23,79 @@ jobs:
         run: cmake --build build
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
+
+      - name: Run headless Copenhagen and Brescia smokes
+        run: python3 tools/e2e/headless_smoke.py 3 4
+
+      - name: Run editor smoke
+        run: tools/e2e/editor_smoke.sh
+
+      - name: Run scene roundtrip smoke
+        run: python3 tools/e2e/roundtrip_smoke.py
+
+      - name: Run assignment smoke
+        run: python3 tools/e2e/assignment_smoke.py
+
+      - name: Run incident smoke
+        run: python3 tools/e2e/incident_smoke.py
+
+      - name: Run scene render smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: tools/e2e/scene_render_smoke.sh
+
+      - name: Run visual smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: tools/e2e/visual_polish_smoke.sh
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-diagnostics
+          path: |
+            tools/e2e/headless_case_*.log
+            ${{ runner.temp }}/ctest.log
+            ${{ runner.temp }}/qegtrain-editor-smoke-e2e.log
+            ${{ runner.temp }}/qegtrain-incident-*.log
+            ${{ runner.temp }}/qegtrain-scene-render-e2e.log
+            ${{ runner.temp }}/qegtrain-scene-render-e2e.png
+            ${{ runner.temp }}/qegtrain-visual-polish-e2e.log
+            ${{ runner.temp }}/qegtrain-visual-polish-e2e.png
+            ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+          if-no-files-found: ignore
+
+  sanitizer:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DEGTRAIN_BUILD_TESTS=ON
+          -DEGTRAIN_ENABLE_SANITIZERS=ON
+          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-diagnostics
+          path: |
+            ${{ runner.temp }}/ctest-sanitizer.log
+            ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+          if-no-files-found: ignore
