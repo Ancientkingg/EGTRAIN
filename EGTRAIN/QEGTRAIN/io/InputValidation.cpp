@@ -12,11 +12,21 @@ InputCheckResult validateCaseStudyInput(const std::string& inputMainFolder) {
     const std::vector<std::string> required = {
         "/TrackLines/Connections.txt",
         "/TrackLines/Stations.txt",
+        "/trainNames.txt",
+        "/Routes/List_of_Blocks_IDs.txt",
     };
     for (const auto& rel : required) {
         std::string full = inputMainFolder + rel;
         if (!fileReadable(full)) {
             return InputCheckResult{false, std::string("Cannot read required input file: ") + full};
+        }
+    }
+    std::ifstream trainNames(inputMainFolder + "/trainNames.txt");
+    std::string trainName;
+    while (trainNames >> trainName) {
+        const std::string full = inputMainFolder + "/Trains/" + trainName;
+        if (!fileReadable(full)) {
+            return InputCheckResult{false, std::string("Cannot read referenced train file: ") + full};
         }
     }
     return InputCheckResult{true, "ok"};
