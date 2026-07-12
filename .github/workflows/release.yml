@@ -132,12 +132,11 @@ jobs:
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/ -ErrorAction SilentlyContinue
           # Qt runtime: DLLs + platform/imageformat plugins next to the exe
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
-          # Case data + image assets. The app resolves Input/ from the working
-          # directory; double-clicking the exe sets the working directory to its
-          # own folder, so the data must sit beside it.
+          # Case data. The app resolves Input/ from the working directory;
+          # double-clicking the exe sets the working directory to its own
+          # folder, so the data must sit beside it. Images ship inside the
+          # binary as Qt resources.
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Input "$dist/Input"
-          Copy-Item EGTRAIN/QEGTRAIN/*.png $dist/
-          Copy-Item EGTRAIN/QEGTRAIN/*.jpg $dist/
 
       - name: Verify the package is complete
         shell: pwsh
@@ -196,12 +195,11 @@ jobs:
           test -n "$EXE"
           cp "$EXE" "$APPDIR/usr/bin/QEGTRAIN"
 
-          # Case data and image assets live beside the executable. The app
-          # falls back to this location when launched outside the package tree.
+          # Case data lives beside the executable. The app falls back to this
+          # location when launched outside the package tree. Images ship inside
+          # the binary as Qt resources.
           cp -R EGTRAIN/QEGTRAIN/Input "$APPDIR/usr/bin/Input"
-          cp EGTRAIN/QEGTRAIN/*.png "$APPDIR/usr/bin/"
-          cp EGTRAIN/QEGTRAIN/*.jpg "$APPDIR/usr/bin/" || true
-          convert EGTRAIN/QEGTRAIN/train_station.png \
+          convert EGTRAIN/QEGTRAIN/resources/icons/station.png \
             -background transparent -gravity center -resize 256x256 -extent 256x256 \
             "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"
 
