@@ -1,6 +1,7 @@
 #include "scene/SceneModel.h"
 #include "simulation/Signalling.h"
 #include <iostream>
+#include <sstream>
 
 Logger owl;
 
@@ -64,6 +65,32 @@ int main() {
 		ok &= expect(built.x_of_start_node == 0.0, "native route start node set");
 		ok &= expect(built.x_of_end_node == 3.0, "native route end node set");
 	}
+
+	resetRouteState();
+	signalling_block_sections[0] = makeSection("@5-B6@", 0.0, 1.0);
+	signalling_block_sections[1] = makeSection("@5-B6@-branch", 1.0, 2.0);
+	Blocks = 2;
+	setDependenciesBetweenBlocks();
+	ok &= expect(signalling_block_sections[0].N_ConnectedBS == 2,
+		"Copenhagen dependency is added once");
+	int copenhagenDependencies = 0;
+	for (int i = 0; i < signalling_block_sections[0].N_ConnectedBS; i++) {
+		if (signalling_block_sections[0].IDConnectedBS[i] == "@1-B30@-4.592000/@5-B7@-4.620000")
+			copenhagenDependencies++;
+	}
+	ok &= expect(copenhagenDependencies == 1, "Copenhagen dependency has the expected ID");
+
+	resetRouteState();
+	signalling_block_sections[0] = makeSection("@5-B6@", 0.0, 1.0);
+	for (int i = 1; i <= 10; i++)
+		signalling_block_sections[i] = makeSection("@5-B6@-branch" + std::to_string(i), i, i + 1);
+	Blocks = 11;
+	std::ostringstream errors;
+	auto* oldErrorBuffer = std::cerr.rdbuf(errors.rdbuf());
+	setDependenciesBetweenBlocks();
+	std::cerr.rdbuf(oldErrorBuffer);
+	ok &= expect(errors.str().find("has more than") != std::string::npos,
+		"Copenhagen dependency overflow is reported");
 
 	resetRouteState();
 	seedThreeSections();
