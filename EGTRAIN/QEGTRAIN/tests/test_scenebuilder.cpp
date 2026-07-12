@@ -1,6 +1,7 @@
 #include "scene/SceneModel.h"
 #include "simulation/Signalling.h"
 #include <iostream>
+#include <sstream>
 
 Logger owl;
 
@@ -78,6 +79,18 @@ int main() {
 			copenhagenDependencies++;
 	}
 	ok &= expect(copenhagenDependencies == 1, "Copenhagen dependency has the expected ID");
+
+	resetRouteState();
+	signalling_block_sections[0] = makeSection("@5-B6@", 0.0, 1.0);
+	for (int i = 1; i <= 10; i++)
+		signalling_block_sections[i] = makeSection("@5-B6@-branch" + std::to_string(i), i, i + 1);
+	Blocks = 11;
+	std::ostringstream errors;
+	auto* oldErrorBuffer = std::cerr.rdbuf(errors.rdbuf());
+	setDependenciesBetweenBlocks();
+	std::cerr.rdbuf(oldErrorBuffer);
+	ok &= expect(errors.str().find("has more than") != std::string::npos,
+		"Copenhagen dependency overflow is reported");
 
 	resetRouteState();
 	seedThreeSections();
