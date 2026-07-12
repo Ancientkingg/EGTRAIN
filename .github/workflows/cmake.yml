@@ -10,6 +10,12 @@ jobs:
   build:
     runs-on: macos-latest
 
+    # Smokes write logs to the platform temp dir; point it at runner.temp so
+    # the failure diagnostics upload finds them (macOS runners keep TMPDIR at
+    # /var/folders/... otherwise).
+    env:
+      TMPDIR: ${{ runner.temp }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -69,6 +75,9 @@ jobs:
 
   sanitizer:
     runs-on: macos-latest
+
+    env:
+      TMPDIR: ${{ runner.temp }}
 
     steps:
       - uses: actions/checkout@v4
