@@ -134,7 +134,9 @@ static void synthesizeGuiLayout(const std::string& outDir, SceneExportResult& re
 				if (dirname.size() > 1 && dirname[0] == 'B') {
 					int n = -1;
 					std::string num = dirname.substr(1);
-					if (num.size() <= 6 && std::all_of(num.begin(), num.end(), ::isdigit))
+					if (num.size() <= 6 && std::all_of(num.begin(), num.end(), [](char value) {
+							return std::isdigit(static_cast<unsigned char>(value));
+						}))
 						n = std::stoi(num);
 					if (n >= 0) {
 						fs::path nodiFile = entry.path() / "NodiCumPari.txt";
@@ -338,7 +340,9 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	for (const auto& r : scene.routes) {
 		if (r.id.length() > 5 && r.id.substr(0, 5) == "route") {
 			std::string numStr = r.id.substr(5);
-			if (!numStr.empty() && numStr.length() <= 9 && std::all_of(numStr.begin(), numStr.end(), ::isdigit)) {
+			if (!numStr.empty() && numStr.length() <= 9 && std::all_of(numStr.begin(), numStr.end(), [](char value) {
+					return std::isdigit(static_cast<unsigned char>(value));
+				})) {
 				routeIndices[r.id] = std::stoi(numStr);
 				++conforming;
 			}
