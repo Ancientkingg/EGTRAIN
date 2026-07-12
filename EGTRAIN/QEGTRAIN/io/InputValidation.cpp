@@ -8,12 +8,13 @@ static bool fileReadable(const std::string& path) {
 }
 
 InputCheckResult validateCaseStudyInput(const std::string& inputMainFolder) {
-    // required files relative to the case study input folder (confirmed in EGTRAIN.cpp lines 79-80)
+    // files the startup path reads from the case study input folder.
+    // Routes/List_of_Blocks_IDs.txt is not required: printAllBlocksId writes it
+    // as a route-authoring aid and nothing reads it back.
     const std::vector<std::string> required = {
         "/TrackLines/Connections.txt",
         "/TrackLines/Stations.txt",
         "/trainNames.txt",
-        "/Routes/List_of_Blocks_IDs.txt",
     };
     for (const auto& rel : required) {
         std::string full = inputMainFolder + rel;

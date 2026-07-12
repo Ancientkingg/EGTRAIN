@@ -20,7 +20,6 @@ int main() {
 	const auto root = std::filesystem::temp_directory_path() / "egtrain-input-validation";
 	std::filesystem::remove_all(root);
 	std::filesystem::create_directories(root / "TrackLines");
-	std::filesystem::create_directories(root / "Routes");
 	std::ofstream(root / "TrackLines/Connections.txt");
 	std::ofstream(root / "TrackLines/Stations.txt");
 
@@ -29,11 +28,13 @@ int main() {
 
 	std::ofstream(root / "trainNames.txt");
 	r = validateCaseStudyInput(root.string());
-	ok &= expect(!r.ok && r.message.find("List_of_Blocks_IDs.txt") != std::string::npos, "missing route list names its path");
-
-	std::ofstream(root / "Routes/List_of_Blocks_IDs.txt");
-	r = validateCaseStudyInput(root.string());
 	ok &= expect(r.ok, "complete startup file set is valid");
+
+	// exported scenes carry no List_of_Blocks_IDs.txt; the validator must not demand one
+	std::filesystem::create_directories(root / "Routes");
+	std::ofstream(root / "Routes/Route0.txt");
+	r = validateCaseStudyInput(root.string());
+	ok &= expect(r.ok, "scene export layout without route list is valid");
 	std::filesystem::remove_all(root);
 
 	if (!ok)
