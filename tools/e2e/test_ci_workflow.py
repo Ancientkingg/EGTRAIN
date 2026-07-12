@@ -43,8 +43,8 @@ def main() -> None:
         )
     ):
         missing.append("sanitizer failure options")
-    if workflow.count("TMPDIR: ${{ runner.temp }}") != 2:
-        missing.append("job TMPDIR overrides for smoke logs")
+    if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 2:
+        missing.append("TMPDIR routing steps for smoke logs")
     uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
     if len(uploads) != 2 or any(
         "if: failure()" not in block

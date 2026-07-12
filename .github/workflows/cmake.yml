@@ -10,14 +10,14 @@ jobs:
   build:
     runs-on: macos-latest
 
-    # Smokes write logs to the platform temp dir; point it at runner.temp so
-    # the failure diagnostics upload finds them (macOS runners keep TMPDIR at
-    # /var/folders/... otherwise).
-    env:
-      TMPDIR: ${{ runner.temp }}
-
     steps:
       - uses: actions/checkout@v4
+
+      # Smokes write logs to the platform temp dir; point it at runner.temp
+      # so the failure diagnostics upload finds them (macOS runners keep
+      # TMPDIR at /var/folders otherwise).
+      - name: Route temp files to runner.temp
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       - name: Install Qt
         run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
@@ -76,11 +76,11 @@ jobs:
   sanitizer:
     runs-on: macos-latest
 
-    env:
-      TMPDIR: ${{ runner.temp }}
-
     steps:
       - uses: actions/checkout@v4
+
+      - name: Route temp files to runner.temp
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       - name: Install Qt
         run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
