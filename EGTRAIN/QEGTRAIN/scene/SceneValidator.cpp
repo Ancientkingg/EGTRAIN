@@ -142,11 +142,19 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 					"Use a headway greater than 0 seconds");
 		}
 		if (s.stops.empty()) {
-			addDiag(SceneSeverity::Warning, "scene.service.no_stops", "Service has no stops",
-					"services.json", "service", s.id, servicePath + ".stops", "",
-					"Add at least one stop to the service");
+			if (!s.through) {
+				addDiag(SceneSeverity::Warning, "scene.service.no_stops", "Service has no stops",
+						"services.json", "service", s.id, servicePath + ".stops", "",
+						"Add at least one stop to the service");
+			}
 		} else {
-			double lastDeparture = -1.0;
+			if (s.through) {
+				addDiag(SceneSeverity::Warning, "scene.service.through_stops", "Through service has stops",
+						"services.json", "service", s.id, servicePath + ".through", "",
+						"Remove the through flag or the stops");
+			}
+			bool hasLastDeparture = false;
+			double lastDeparture = 0.0;
 			for (size_t i = 0; i < s.stops.size(); ++i) {
 				const auto& stop = s.stops[i];
 				std::string stopPath = servicePath + ".stops[" + std::to_string(i) + "]";
@@ -178,11 +186,12 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 								"services.json", "service", s.id, stopPath + ".departure_seconds", "",
 								"Set departure_seconds at or after arrival_seconds");
 					}
-					if (stop.departureSeconds < lastDeparture) {
+					if (hasLastDeparture && stop.departureSeconds < lastDeparture) {
 						addDiag(SceneSeverity::Warning, "scene.time.order", "Non-increasing departure times",
 								"services.json", "service", s.id, stopPath + ".departure_seconds", "",
 								"Order stops by increasing departure time");
 					}
+					hasLastDeparture = true;
 					lastDeparture = stop.departureSeconds;
 				}
 

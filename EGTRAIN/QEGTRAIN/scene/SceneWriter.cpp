@@ -125,6 +125,8 @@ static json writeServices(const SceneModel& scene) {
 			{"composition", service.composition},
 			{"route", service.route},
 		};
+		if (service.through)
+			serviceJson["through"] = true;
 		if (service.hasEntryTime)
 			serviceJson["entry_time_seconds"] = service.entryTimeSeconds;
 		if (service.hasRepeat)

@@ -434,6 +434,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			requireString(sv, "id", "services.json", path, s.id);
 			requireString(sv, "composition", "services.json", path, s.composition);
 			requireString(sv, "route", "services.json", path, s.route);
+			if (sv.contains("through")) {
+				if (sv["through"].is_boolean()) {
+					s.through = sv["through"].get<bool>();
+				} else {
+					addError("scene.field.missing", "services.json", "through must be a boolean", path + ".through");
+				}
+			}
 			if (sv.contains("entry_time_seconds")) {
 				if (sv["entry_time_seconds"].is_number()) {
 					s.hasEntryTime = true;
