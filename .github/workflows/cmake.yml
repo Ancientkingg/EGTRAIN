@@ -88,6 +88,9 @@ jobs:
         run: cmake --build build
 
       - name: Test
+        env:
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+          ASAN_OPTIONS: abort_on_error=1:halt_on_error=1
         run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
 
       - name: Upload failure diagnostics
