@@ -89,9 +89,9 @@ Use the [V1 scene property reference](v1-scene-properties.md) while editing JSON
 
 The canonical JSON files are the source of truth for an opened V1 scene. Do not edit an exported legacy directory and expect those changes to return to the scene.
 
-The simulator still reads part of the old input structure. Imported scenes keep that data under `legacy/`. During a run, EGTRAIN writes canonical services, rolling stock, routes, and incidents to a temporary input directory, then copies the passthrough data.
+The simulator still reads part of the old input structure. Imported scenes keep that data under `legacy/`. During a run, EGTRAIN writes canonical services, rolling stock, routes, and incidents to a temporary input directory, then copies passthrough files that do not replace generated files.
 
-Do not delete files from `legacy/` until the scene exports and runs without them. Track infrastructure under `legacy/Tracklines/` is required by the current simulator.
+Do not delete files from `legacy/` until the scene exports and runs without them. Track infrastructure under `legacy/Tracklines/` or `legacy/TrackLines/` is required by the current simulator.
 
 ## Convert a legacy case
 

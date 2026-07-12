@@ -195,4 +195,3 @@ Use this 60 minute agenda for the first meeting:
 | 50 to 60 minutes | Evidence, first milestone, and next review date |
 
 End the meeting with one assigned route test per student and a shared date for integrating the first working service.
-
