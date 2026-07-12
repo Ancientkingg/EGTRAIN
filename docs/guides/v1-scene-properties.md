@@ -27,7 +27,7 @@ All times in the other files are measured in seconds relative to `base_time`. Ne
 | `nodes` | array | yes | Reserved canonical infrastructure nodes | The loader checks that this is an array but does not read its entries in V1. Use `[]`. |
 | `arcs` | array | yes | Reserved canonical infrastructure links | The loader checks that this is an array but does not read its entries in V1. Use `[]`. |
 
-The current simulator reads track geometry, blocks, switches, gradients, and speed limits from `legacy/TrackLines/`. Editing `nodes` or `arcs` has no effect on a run.
+The current simulator reads track geometry, blocks, switches, gradients, and speed limits from the exported `TrackLines/` directory. The exporter accepts `legacy/Tracklines/` or `legacy/TrackLines/` and normalizes the name. Editing `nodes` or `arcs` has no effect on a run.
 
 ## `stations.json`
 
@@ -147,12 +147,12 @@ Common contents include:
 
 | Path | Purpose |
 | --- | --- |
-| `TrackLines/` | Track geometry, block layout, stations, switches, gradients, and speed limits used by the simulator |
+| `Tracklines/` or `TrackLines/` | Track geometry, block layout, stations, switches, gradients, and speed limits used by the simulator |
 | `TMS/` and `TDS/` | Legacy signalling and train-detection data |
 | `GUI/` | Legacy display coordinates and related settings |
 | Other files | Case-specific input copied through without conversion |
 
-The exporter copies `legacy/` first, then writes routes, trains, timetables, and incidents from the canonical JSON. Do not edit generated files in an export and expect the changes to return to the V1 scene.
+The exporter writes routes, trains, timetables, and incidents from the canonical JSON first. It then copies files from `legacy/` only when the generated output does not already contain the destination. Do not edit generated files in an export and expect the changes to return to the V1 scene.
 
 ## Validation command
 
