@@ -3,12 +3,25 @@
 #include "scene/SceneValidator.h"
 #include "scene/SceneModel.h"
 #include <iostream>
+#include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 static void printDiags(const std::vector<SceneDiagnostic>& diags) {
+	using Key = std::tuple<SceneSeverity, std::string, std::string, std::string, std::string>;
+	std::map<Key, std::pair<SceneDiagnostic, std::size_t>> groups;
 	for (const auto& d : diags) {
-		std::cerr << toDisplayText(d) << "\n";
+		auto& group = groups[{d.severity, d.code, d.file, d.message, d.suggestedFix}];
+		if (group.second == 0)
+			group.first = d;
+		++group.second;
+	}
+	for (const auto& entry : groups) {
+		const auto& group = entry.second;
+		if (group.second > 1)
+			std::cerr << group.second << "x ";
+		std::cerr << toDisplayText(group.first) << "\n";
 	}
 }
 

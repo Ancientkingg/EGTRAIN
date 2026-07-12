@@ -248,18 +248,6 @@ int main(int argc, char* argv[]) {
 		initial_variables.InputMainFolder = InputMainFolder;
 	};
 
-	char test;
-	char* filepath;
-	filepath = (char*)"Input_EGTRAIN/railml_input/Ostsachsen_V220.railml";
-
-	RailML a(filepath);
-
-	// std::cout << a.filename;
-	// a.read_ocps();
-	a.read_ocps();
-	a.read_attibutes_of_nodes((char*)"timetable");
-	a.read_attibutes_of_nodes((char*)"ocp");
-
 	// times = 8000;
 
 	if (initial_variables.GUI) {
