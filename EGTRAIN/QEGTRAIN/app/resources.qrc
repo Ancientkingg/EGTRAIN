@@ -1,4 +1,7 @@
 <RCC>
-    <qresource prefix="MainWindow">
+    <qresource prefix="/">
+        <file alias="icons/station.png">../resources/icons/station.png</file>
+        <file alias="icons/passenger.png">../resources/icons/passenger.png</file>
+        <file alias="app/window.jpg">../resources/app/window.jpg</file>
     </qresource>
 </RCC>

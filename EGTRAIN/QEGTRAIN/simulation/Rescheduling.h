@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <tuple>
 #include <fstream>
 #include <sstream>
@@ -67,7 +68,7 @@ private:
 	int entryTime;
 };
 
-extern Rescheduling* dispatchingTool;
+extern std::unique_ptr<Rescheduling> dispatchingTool;
 
 /*************************************************************************************************************************************************/
 
