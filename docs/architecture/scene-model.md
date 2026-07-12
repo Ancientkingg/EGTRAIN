@@ -65,4 +65,4 @@ The editor should save the canonical scene. The simulation can keep reading expo
 3. Validate converted scenes.
 4. Export scenes back to current input files.
 5. Add the MVP editor on top of the scene model.
-6. Build the Den Haag Centraal to Utrecht assignment case through the scene model.
+6. Build the Amsterdam to Hilversum assignment case through the scene model.
