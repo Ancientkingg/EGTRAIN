@@ -5,9 +5,21 @@ static zmq::context_t ctx;
 
 extern InitialParameters initial_variables;
 
+namespace {
+bool loadRttpDocument(const std::string& payload, pugi::xml_document& document) {
+	const pugi::xml_parse_result result = document.load_buffer(payload.data(), payload.size());
+	if (result)
+		return true;
+	std::cerr << "RTTP XML parse error at byte " << result.offset << ": " << result.description()
+			  << "; payload starts with " << payload.substr(0, 120) << "\n";
+	return false;
+}
+}
+
 void read_rttp_train_view(std::string rttp) {
 	pugi::xml_document rttp_doc;
-	rttp_doc.load_file(rttp.c_str());
+	if (!loadRttpDocument(rttp, rttp_doc))
+		return;
 	pugi::xml_node trainView = rttp_doc.child("rTTP").child("rTTPTrainView");
 	int train_counter = 0;
 
@@ -23,7 +35,8 @@ void read_rttp_train_view(std::string rttp) {
 }
 void read_rttp_infra_view(std::string rttp) {
 	pugi::xml_document rttp_doc;
-	rttp_doc.load_file(rttp.c_str());
+	if (!loadRttpDocument(rttp, rttp_doc))
+		return;
 	pugi::xml_node trainView = rttp_doc.child("rTTP").child("rTTPInfrastructureView");
 	int train_counter = 0;
 
