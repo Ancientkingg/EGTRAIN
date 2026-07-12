@@ -10,18 +10,27 @@
 
 static void printDiags(const std::vector<SceneDiagnostic>& diags) {
 	using Key = std::tuple<SceneSeverity, std::string, std::string, std::string, std::string>;
-	std::map<Key, std::pair<SceneDiagnostic, std::size_t>> groups;
+	std::map<Key, std::vector<SceneDiagnostic>> groups;
 	for (const auto& d : diags) {
-		auto& group = groups[{d.severity, d.code, d.file, d.message, d.suggestedFix}];
-		if (group.second == 0)
-			group.first = d;
-		++group.second;
+		groups[{d.severity, d.code, d.file, d.message, d.suggestedFix}].push_back(d);
 	}
 	for (const auto& entry : groups) {
 		const auto& group = entry.second;
-		if (group.second > 1)
-			std::cerr << group.second << "x ";
-		std::cerr << toDisplayText(group.first) << "\n";
+		if (group.size() == 1) {
+			std::cerr << toDisplayText(group.front()) << "\n";
+			continue;
+		}
+		SceneDiagnostic summary = group.front();
+		summary.itemType.clear();
+		summary.itemId.clear();
+		summary.path.clear();
+		std::cerr << group.size() << "x " << toDisplayText(summary) << "\n";
+		for (const auto& d : group) {
+			std::cerr << "  (" << (d.itemType.empty() ? "item" : d.itemType) << " " << d.itemId << ")";
+			if (!d.path.empty())
+				std::cerr << " at " << d.path;
+			std::cerr << "\n";
+		}
 	}
 }
 
