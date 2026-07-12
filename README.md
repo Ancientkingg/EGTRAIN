@@ -72,10 +72,12 @@ Case selector:
 - `-n 3`: Copenhagen
 - `-n 4`: Brescia
 
-Copenhagen and Brescia are the current regression cases. The Netherlands data needs repair before it can serve as the assignment scenario.
+Copenhagen and Brescia are the main regression cases. The Netherlands case imports, validates, exports, and runs with eight Sprinter services. Amsterdam to Hilversum services still need route checks and timetable work before the case can be used for the assignment.
 
 ## Planning
 
+- [Application and V1 scene guide](docs/guides/scenes-and-application.md)
+- [V1 scene property reference](docs/guides/v1-scene-properties.md)
 - [Assignment workflow](docs/product/assignment-workflow.md)
 - [Scene model design](docs/architecture/scene-model.md)
 - [Build and test guide](docs/development/build-and-test.md)
