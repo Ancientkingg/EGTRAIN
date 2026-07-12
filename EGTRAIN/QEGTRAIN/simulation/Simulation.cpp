@@ -38,8 +38,8 @@ void calculateArrivalDelayAllTrains() {
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
 void calculateDelayStatsAtStation(Stations& S) {
-	std::vector<double> TrainDelay(numRegions);
-	std::vector<double> TrainConsDelay(numRegions);
+	std::vector<double> TrainDelay;
+	std::vector<double> TrainConsDelay;
 	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
 	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
 	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
@@ -51,8 +51,8 @@ void calculateDelayStatsAtStation(Stations& S) {
 			for (int s = 0; s < regional_train[j].numStations; s++) {									  // looping over their stations
 				if (regional_train[j].stationNameForArrivalStats(s) == S.stationName) {					  // if the train has a stop at station instant_spatial_position
 					if (regional_train[j].StationDelay[s] != -1) {									  // and the train has actually crossed that station within the simulation time
-						TrainDelay[S.N_Stopped_Trains] = regional_train[j].StationDelay[s];			  // register its arrival delay
-						TrainConsDelay[S.N_Stopped_Trains] = regional_train[j].StationConsecDelay[s]; // register its consecutive delay
+						TrainDelay.push_back(regional_train[j].StationDelay[s]);			  // register its arrival delay
+						TrainConsDelay.push_back(regional_train[j].StationConsecDelay[s]); // register its consecutive delay
 						if (TrainDelay[S.N_Stopped_Trains] > 0)
 							S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
 						if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
@@ -68,8 +68,8 @@ void calculateDelayStatsAtStation(Stations& S) {
 	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
 		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
 			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
-				TrainDelay[S.N_Stopped_Trains] = regional_train[j].StationDelay[regional_train[j].numStations - 1];			// register its arrival delay
-				TrainConsDelay[S.N_Stopped_Trains] = regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]; // register its consecutive delay
+				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
+				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
 				if (TrainDelay[S.N_Stopped_Trains] > 0)
 					S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
 				if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
@@ -116,8 +116,8 @@ void calculateDelayStatsAtStation(Stations& S) {
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
 void calculatePosAndNegDelayStatsAtStation(Stations& S) {
-	std::vector<double> TrainDelay(numRegions);
-	std::vector<double> TrainConsDelay(numRegions);
+	std::vector<double> TrainDelay;
+	std::vector<double> TrainConsDelay;
 	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
 	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
 	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
@@ -129,8 +129,8 @@ void calculatePosAndNegDelayStatsAtStation(Stations& S) {
 			for (int s = 0; s < regional_train[j].numStations; s++) {									  // looping over their stations
 				if (regional_train[j].stationNameForArrivalStats(s) == S.stationName) {					  // if the train has a stop at station instant_spatial_position
 					if (regional_train[j].StationDelay[s] != -1) {									  // and the train has actually crossed that station within the simulation time
-						TrainDelay[S.N_Stopped_Trains] = regional_train[j].StationDelay[s];			  // register its arrival delay
-						TrainConsDelay[S.N_Stopped_Trains] = regional_train[j].StationConsecDelay[s]; // register its consecutive delay
+						TrainDelay.push_back(regional_train[j].StationDelay[s]);			  // register its arrival delay
+						TrainConsDelay.push_back(regional_train[j].StationConsecDelay[s]); // register its consecutive delay
 						if (TrainDelay[S.N_Stopped_Trains] > 0)
 							S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
 						if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
@@ -146,8 +146,8 @@ void calculatePosAndNegDelayStatsAtStation(Stations& S) {
 	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
 		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
 			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
-				TrainDelay[S.N_Stopped_Trains] = regional_train[j].StationDelay[regional_train[j].numStations - 1];			// register its arrival delay
-				TrainConsDelay[S.N_Stopped_Trains] = regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]; // register its consecutive delay
+				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
+				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
 				if (TrainDelay[S.N_Stopped_Trains] > 0)
 					S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
 				if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
