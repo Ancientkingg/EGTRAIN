@@ -7,7 +7,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
-PROMPTS = "n\n0\n0\n0\n0\n"
 
 CASES = {
     1: "Output/Output_EGTRAIN_Netherlands/TrainTrajectories",
@@ -38,19 +37,35 @@ def run_command(args, cwd=None, input=None, timeout=None):
     )
 
 
+def case_command(case_id: int) -> list[str]:
+    return [str(APP), "-n", str(case_id), "-g", "0", "-TSM", "0", "-RC", "0"]
+
+
+def route_errors(output: str) -> list[str]:
+    return [line for line in output.splitlines() if line.startswith(("ERROR4 in Route", "ERROR5 in Route"))]
+
+
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
-    proc = run_command(
-        [str(APP), "-n", str(case_id)],
-        cwd=cwd,
-        input=PROMPTS,
-        # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
-        # five minutes, so keep this well above the real worst case.
-        timeout=600,
-    )
     log = ROOT / f"tools/e2e/headless_case_{case_id}.log"
+    try:
+        proc = run_command(
+            case_command(case_id),
+            cwd=cwd,
+            # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
+            # five minutes, so keep this well above the real worst case.
+            timeout=600,
+        )
+    except subprocess.TimeoutExpired as err:
+        partial = err.stdout or b""
+        if isinstance(partial, bytes):
+            partial = partial.decode("utf-8", errors="replace")
+        log.write_text(partial, encoding="utf-8", errors="replace")
+        raise SystemExit(f"case {case_id} timed out after 600s; see {log}")
     log.write_text(proc.stdout, encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise SystemExit(f"case {case_id} failed with {proc.returncode}; see {log}")
+    if case_id == 3 and (errors := route_errors(proc.stdout)):
+        raise SystemExit(f"case 3 reported {len(errors)} broken route transitions; see {log}")
     print(f"PASS case {case_id} exited cleanly")
 
 
