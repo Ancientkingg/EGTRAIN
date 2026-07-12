@@ -1,10 +1,12 @@
 #include <QCoreApplication>
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
+#include "io/InputValidation.h"
 #include "io/geocoding.h"
 #include <algorithm>
 #include "util/portability.h"
 #include <QDir>
+#include <QMessageBox>
 #include <QStandardPaths>
 
 #define PORT_NUMBER 9002
@@ -248,18 +250,6 @@ int main(int argc, char* argv[]) {
 		initial_variables.InputMainFolder = InputMainFolder;
 	};
 
-	char test;
-	char* filepath;
-	filepath = (char*)"Input_EGTRAIN/railml_input/Ostsachsen_V220.railml";
-
-	RailML a(filepath);
-
-	// std::cout << a.filename;
-	// a.read_ocps();
-	a.read_ocps();
-	a.read_attibutes_of_nodes((char*)"timetable");
-	a.read_attibutes_of_nodes((char*)"ocp");
-
 	// times = 8000;
 
 	if (initial_variables.GUI) {
@@ -274,6 +264,11 @@ int main(int argc, char* argv[]) {
 		// start application
 		QApplication a(argc, argv);
 		resolvePackagedInputFolder();
+		const InputCheckResult inputCheck = validateCaseStudyInput(initial_variables.InputMainFolder);
+		if (!inputCheck.ok) {
+			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN", QString::fromStdString(inputCheck.message));
+			return 1;
+		}
 
 		// resolve output folder to a writable absolute path and ensure it exists
 		{
@@ -309,6 +304,11 @@ int main(int argc, char* argv[]) {
 	} else {
 		QCoreApplication a(argc, argv);
 		resolvePackagedInputFolder();
+		const InputCheckResult inputCheck = validateCaseStudyInput(initial_variables.InputMainFolder);
+		if (!inputCheck.ok) {
+			std::cerr << inputCheck.message << "\n";
+			return 1;
+		}
 
 		numTrackLines = initial_variables.numTrackLines;
 		N_Routes = initial_variables.N_Routes;

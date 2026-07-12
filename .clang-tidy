@@ -1,6 +1,6 @@
 # clang-tidy configuration for EGTRAIN.
 #
-# This is a large legacy C++14/17 simulation codebase (see CLAUDE.md /
+# This is a large legacy C++14/17 simulation codebase (see project documentation /
 # project memory for known issues: god files, raw arrays, global state,
 # Windows-only code). The check selection below favours checks that find
 # *real bugs* (bugprone-*, correctness-related clang-analyzer-*) over
