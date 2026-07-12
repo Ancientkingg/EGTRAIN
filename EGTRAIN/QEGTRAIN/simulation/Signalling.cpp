@@ -1241,7 +1241,7 @@ void setDependenciesBetweenBlocks() {
 				break;
 		}
 		// test for Copenhagen
-		if (section.ID == "@5-B6@" && section.N_ConnectedBS < maxConnectedBlocks)
+		if (section.ID == "@5-B6@")
 			addConnection("@1-B30@-4.592000/@5-B7@-4.620000");
 
 		//
