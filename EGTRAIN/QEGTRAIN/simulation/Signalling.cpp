@@ -1,5 +1,6 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
+#include <iterator>
 extern Logger owl;
 
 
@@ -1221,20 +1222,27 @@ void setList(string input, list<Section>& BSConnected) {
 // This Function is used to set the dependencies between two block section connected by means of switches
 void setDependenciesBetweenBlocks() {
 	for (int i = 0; i < Blocks; i++) {
+		auto& section = signalling_block_sections[i];
+		const auto maxConnectedBlocks = std::size(section.IDConnectedBS);
+		auto addConnection = [&](const string& id) {
+			if (section.N_ConnectedBS >= maxConnectedBlocks) {
+				cerr << "ERROR: Block section " << section.ID << " has more than "
+					 << maxConnectedBlocks << " connected block sections\n";
+				return false;
+			}
+			section.IDConnectedBS[section.N_ConnectedBS++] = id;
+			return true;
+		};
 		list<Section> BSConn_i;
-		setList(signalling_block_sections[i].ID, BSConn_i);
+		setList(section.ID, BSConn_i);
 		list<Section>::iterator it;
 		for (it = BSConn_i.begin(); it != BSConn_i.end(); it++) {
-			if (it->ID != signalling_block_sections[i].ID) {
-				signalling_block_sections[i].N_ConnectedBS++;
-				signalling_block_sections[i].IDConnectedBS[signalling_block_sections[i].N_ConnectedBS - 1] = it->ID;
-			}
-			// test for Copenhagen
-			if (signalling_block_sections[i].ID == "@5-B6@") {
-				signalling_block_sections[i].N_ConnectedBS++;
-				signalling_block_sections[i].IDConnectedBS[signalling_block_sections[i].N_ConnectedBS - 1] = "@1-B30@-4.592000/@5-B7@-4.620000";
-			}
+			if (it->ID != section.ID && !addConnection(it->ID))
+				break;
 		}
+		// test for Copenhagen
+		if (section.ID == "@5-B6@")
+			addConnection("@1-B30@-4.592000/@5-B7@-4.620000");
 
 		//
 		// Now transferring the right Block Connections to the nodes with numConnections >0
