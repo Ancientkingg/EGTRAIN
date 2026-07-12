@@ -11,13 +11,19 @@ def main() -> None:
     rescheduling_cpp = (ROOT / "EGTRAIN/QEGTRAIN/simulation/Rescheduling.cpp").read_text()
 
     delay_functions = simulation[: simulation.index("void calculateDelayStatsForAllStations")]
+    station_delay_functions = simulation[
+        simulation.index("void calculateDelayStatsAtStation") : simulation.index("void Compute_Input_Delays")
+    ]
+    for name in ("TrainDelay", "TrainConsDelay"):
+        if station_delay_functions.count(f"{name}.push_back(") != 4:
+            raise SystemExit(f"{name} must grow at every matching stop")
     if re.search(r"new\s+double\s*\[\s*numRegions\s*\]", delay_functions):
         raise SystemExit("delay statistics still use owning raw arrays")
     if re.search(r"delete\s*\[\s*\]\s*(?:TrainDelay|TrainConsDelay|TrainEntDelay|Disturb)", delay_functions):
         raise SystemExit("delay statistics still delete raw arrays")
     expected_vectors = {
-        "TrainDelay": 3,
-        "TrainConsDelay": 2,
+        "TrainDelay": 1,
+        "TrainConsDelay": 0,
         "TrainEntDelay": 1,
         "Disturb": 1,
     }
