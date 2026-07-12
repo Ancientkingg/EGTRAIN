@@ -329,8 +329,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				s.erase("_orig_departure");
 			}
 		}
-		// A service without stops is valid (through/freight services do not
-		// stop); the validator reports it as a warning.
+		// A service without stops is a through service (freight and long
+		// distance trains cross the corridor without scheduled stops). Mark
+		// it so the validator does not ask for stops.
 
 		json serviceObj = {
 			{"id", sName},
@@ -338,6 +339,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			{"route", routeId},
 			{"entry_time_seconds", entryTime},
 			{"stops", stopsArr}};
+		if (stopsArr.empty()) {
+			serviceObj["through"] = true;
+		}
 		if (headway < 99999999) {
 			serviceObj["repeat"] = {{"headway_seconds", headway}};
 		}

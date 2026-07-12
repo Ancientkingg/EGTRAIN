@@ -153,12 +153,55 @@ int main(int argc, char** argv) {
 		ok &= expect(expectDiag(diags, "scene.services.none"), "scene.services.none");
 	}
 
-	// 11. service with stops: []
+	// 11. empty stops and the through flag
+	{
+		TempScene tmp(fixtureDir);
+		modifyFile(tmp.dir, "services.json", [](json& j) {
+			j["services"][0]["stops"] = json::array();
+			j["services"][0]["through"] = true;
+		});
+		diags = validateSceneDirectory(tmp.dir);
+		ok &= expect(!hasDiag(diags, "scene.service.no_stops", SceneSeverity::Warning), "empty stops with through=true -> no scene.service.no_stops");
+	}
 	{
 		TempScene tmp(fixtureDir);
 		modifyFile(tmp.dir, "services.json", [](json& j) { j["services"][0]["stops"] = json::array(); });
 		diags = validateSceneDirectory(tmp.dir);
-		ok &= expect(expectDiag(diags, "scene.service.no_stops", SceneSeverity::Warning), "scene.service.no_stops");
+		ok &= expect(expectDiag(diags, "scene.service.no_stops", SceneSeverity::Warning), "empty stops without through -> scene.service.no_stops");
+	}
+	{
+		TempScene tmp(fixtureDir);
+		modifyFile(tmp.dir, "services.json", [](json& j) { j["services"][0]["through"] = true; });
+		diags = validateSceneDirectory(tmp.dir);
+		ok &= expect(expectDiag(diags, "scene.service.through_stops", SceneSeverity::Warning), "through=true with stops -> scene.service.through_stops");
+	}
+
+	// 11b. departure order: a negative first departure is legal, a decreasing departure is not
+	{
+		TempScene tmp(fixtureDir);
+		std::string id0, id1;
+		modifyFile(tmp.dir, "services.json", [&](json& j) {
+			id0 = j["services"][0]["id"].get<std::string>();
+			id1 = j["services"][1]["id"].get<std::string>();
+			j["services"][0]["stops"][0]["departure_seconds"] = -600;
+			j["services"][0]["stops"][1]["arrival_seconds"] = 240;
+			j["services"][0]["stops"][1]["departure_seconds"] = 300;
+			j["services"][1]["stops"][1]["arrival_seconds"] = 240;
+			j["services"][1]["stops"][1]["departure_seconds"] = 300;
+		});
+		diags = validateSceneDirectory(tmp.dir);
+		bool orderDiagFirst = false;
+		bool orderDiagSecond = false;
+		for (const auto& d : diags) {
+			if (d.code != "scene.time.order")
+				continue;
+			if (d.itemId == id0)
+				orderDiagFirst = true;
+			if (d.itemId == id1)
+				orderDiagSecond = true;
+		}
+		ok &= expect(!orderDiagFirst, "negative first departure -> no scene.time.order");
+		ok &= expect(orderDiagSecond, "departure before previous stop -> scene.time.order");
 	}
 
 	// 12. departure < arrival; negative dwell
