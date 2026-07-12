@@ -50,6 +50,8 @@ After repair:
   - 1 composition
 - Import still emits 30 `scene.import.adjusted` warnings for `-1` departures at intermediate timetable stops. These are expected and documented adjustments.
 
+The professor's `Trains.zip` contains the same train directory now stored in the case. Its active root files are `Spr1.txt` through `Spr8.txt`. The supplied `trainNames.txt` lists those eight files. The committed versions use `T_SLT06.txt` in place of the attachment's `T455_04.txt`, which keeps the active SLT services tied to the SLT traction curve.
+
 Locked by `test_sceneimporter`, which now imports and validates the Netherlands source and checks that complex route tokens are preserved without parse warnings. `test_sceneexporter` checks that exported Netherlands switch-transition route tokens are not double-wrapped.
 
 ## Runtime Check
@@ -63,6 +65,9 @@ Remaining runtime limitations:
 
 End-to-end Netherlands movement remains outside this slice.
 
-## Wontfix For V1
+## Current limits
 - Unused Waterloo and other bucketed train sets under `Trains/` were left untouched.
-- The repaired legacy Netherlands station set contains `Ut`, `Asd`, `Hvs`, `Brn`, `Dld`, and `Alm`, but not `Gvc` or `Gdg`. The assignment corridor should be built as a dedicated scene rather than treated as already present in this legacy folder.
+- The active services cover Utrecht, Hilversum, Baarn, and Den Dolder. They do not cover Amsterdam.
+- The case contains Amsterdam to Hilversum timetables and SLT and VIRM train data, but the services and planned times still need work.
+- Candidate route IDs are 29 through 36, 39 through 42, 53, and 54. Their direction and train type are not yet verified.
+- Keep the full Netherlands case as the reference. Derive the smaller assignment scene after the selected services run in both directions.
