@@ -405,6 +405,13 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_startup_launch_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
+	add_test(NAME test_gui_autostart_smoke
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 240)
+	add_test(NAME test_ci_workflow
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
+	add_test(NAME test_signalling_bounds
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py)
 	add_test(NAME test_windows_subsystem_config
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
 
