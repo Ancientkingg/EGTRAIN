@@ -198,6 +198,7 @@ public:
 
 	// geographical functions
 	void neighbourStations(double X, int tracklineID, int* stationIdx);
+	bool hasTrackGeometry(int track) const;
 
 	// setup info dock widget
 	void setupInfoDockWidget();

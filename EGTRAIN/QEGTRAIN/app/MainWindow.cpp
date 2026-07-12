@@ -220,10 +220,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	setupInfoDockWidget();
 
 	// load image for station icon
-	station_pixmap = QPixmap("train_station.png");
+	station_pixmap = QPixmap(":/icons/station.png");
 
 	// load image for passenger icon
-	pax_pixmap = QPixmap("pax_icon.png");
+	pax_pixmap = QPixmap(":/icons/passenger.png");
 	pax_pixmap_scaled = pax_pixmap.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 	// create container of items to show on display area
@@ -309,7 +309,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 
 	// set application item
-	QIcon window_icon = QIcon(QPixmap("window_icon.jpg"));
+	QIcon window_icon = QIcon(QPixmap(":/app/window.jpg"));
 	setWindowIcon(window_icon);
 
 	// effect on (last) clicked item
@@ -4025,6 +4025,8 @@ void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Conn
 
 // draws trackside signals (X is the beginning of the block section - except for the last signal of each trackline)
 void MainWindow::paintSignal(double X, int size, int pen_width, int track, int track_separation, int sectionIndex) {
+	if (!hasTrackGeometry(track))
+		return;
 	int graphID = blockSets[track].graphID;
 
 	// positions
@@ -4773,6 +4775,13 @@ void MainWindow::fitView() {
 	networkView->fitInView(initialSceneRect, Qt::KeepAspectRatio);
 }
 
+bool MainWindow::hasTrackGeometry(int track) const {
+	if (track < 0 || track >= numTrackLines)
+		return false;
+	const int region = blockSets[track].region;
+	return region >= 0 && region < static_cast<int>(regionStations.size()) && regionStations[region].size() >= 2;
+}
+
 // check if all tracks are assigned to a graphical level
 int MainWindow::allTracksAssigned() {
 
@@ -4787,7 +4796,12 @@ int MainWindow::allTracksAssigned() {
 
 // finds the indexes of the two closest stations given a point
 void MainWindow::neighbourStations(double X, int tracklineID, int* stationIdx) {
-	std::vector<int> trackStIdx = regionStations[blockSets[tracklineID].region];
+	stationIdx[0] = 0;
+	stationIdx[1] = 0;
+	if (!hasTrackGeometry(tracklineID))
+		return;
+	const int region = blockSets[tracklineID].region;
+	std::vector<int> trackStIdx = regionStations[region];
 
 	// find neighbour stations
 	// check if value is inside/outside X range of stations
@@ -4811,6 +4825,11 @@ void MainWindow::neighbourStations(double X, int tracklineID, int* stationIdx) {
 
 // get shifted screen coordinates of a point (given 1D X coordinate)
 void MainWindow::egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) {
+	if (!hasTrackGeometry(track)) {
+		graphX = 0;
+		graphY = 0;
+		return;
+	}
 	double graphID = (double)blockSets[track].graphID;
 
 	// find index of closest stations
@@ -4832,6 +4851,8 @@ void MainWindow::egtrainPoint2Screen(double X, int track, double separation, dou
 
 // get shifted screen coordinates of a Node
 void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
+	if (!hasTrackGeometry(track))
+		return;
 	int stationIdx[2];
 	neighbourStations(Node->X, track, stationIdx);
 	int graphID = blockSets[track].graphID;
@@ -4851,6 +4872,8 @@ void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
 
 // get shifted screen coordinates of a Node
 void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int track2, double separation) {
+	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2))
+		return;
 	int graphID1 = blockSets[track1].graphID;
 	int graphID2 = blockSets[track2].graphID;
 
@@ -4885,6 +4908,14 @@ void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int t
 
 // slot to update GUI at each timestep (no longer blocks; simulation runs on worker thread)
 void MainWindow::waitForUpdates(int timestep) {
+	static bool autostartProgressReported = false;
+	if (!autostartProgressReported && qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
+		// fprintf so the marker reaches the real stdout; std::cout is captured
+		// by the console pane once the window exists
+		std::fprintf(stdout, "E2E_GUI_AUTOSTART_RUNNING timestep=%d\n", timestep);
+		std::fflush(stdout);
+		autostartProgressReported = true;
+	}
 	QString clock = QString::fromStdString(formatSimTime(timestep, m_startOffsetSeconds));
 	QString endClock = QString::fromStdString(formatSimTime(static_cast<long long>(initial_variables.times), m_startOffsetSeconds));
 	statusBar()->showMessage(QString("Simulation running  %1 / %2").arg(clock, endClock));
@@ -5317,6 +5348,9 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 
 				// get station index to extract shifts
 				int stationIdx[2];
+				if (!hasTrackGeometry(currBS.trackLineId)) {
+					continue;
+				}
 				neighbourStations(posX[j], currBS.trackLineId, stationIdx);
 				prevIndex = stationIdx[0];
 				index = stationIdx[1];
@@ -5353,6 +5387,8 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 							BS2 = signalling_block_sections[b];
 						}
 					}
+					if (!hasTrackGeometry(BS1.trackLineId) || !hasTrackGeometry(BS2.trackLineId))
+						continue;
 
 					// get beginning and end of connection to interpolate
 					egtrainPoint2Screen(connectionX1, BS1.trackLineId, track_separation, ptConnection1.rx(), ptConnection1.ry());
