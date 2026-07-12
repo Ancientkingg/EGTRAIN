@@ -243,18 +243,12 @@ if(APPLE)
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
-    # Copy runtime resources (Input data + GUI image assets loaded via
-    # relative paths) into the bundle's Resources in a single POST_BUILD step.
+    # Copy runtime resources (Input data) into the bundle's Resources in a single POST_BUILD step.
     add_custom_command(TARGET QEGTRAIN POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${SRC_DIR}/Input"
             "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources/Input"
-        COMMAND ${CMAKE_COMMAND} -E copy
-            "${SRC_DIR}/train_station.png"
-            "${SRC_DIR}/pax_icon.png"
-            "${SRC_DIR}/window_icon.jpg"
-            "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources/"
-        COMMENT "Copying Input data and GUI image assets into .app bundle"
+        COMMENT "Copying Input data into .app bundle"
     )
 endif()
 
@@ -318,6 +312,18 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
+
+    add_test(NAME test_qt_resources
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
+
+    add_executable(test_qt_resource_images
+        ${SRC_DIR}/tests/test_qt_resource_images.cpp
+        ${EGTRAIN_RESOURCES})
+    target_link_libraries(test_qt_resource_images PRIVATE Qt5::Core Qt5::Gui)
+    add_test(NAME test_qt_resource_images COMMAND test_qt_resource_images)
+    set_tests_properties(test_qt_resource_images PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
     add_executable(test_scenevalidator
         ${SRC_DIR}/tests/test_scenevalidator.cpp
@@ -405,8 +411,19 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_startup_launch_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
+	add_test(NAME test_gui_autostart_smoke
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 240)
+	add_test(NAME test_ci_workflow
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
+	add_test(NAME test_signalling_bounds
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py)
 	add_test(NAME test_windows_subsystem_config
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
+	add_test(NAME test_raii_contract
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
+	add_test(NAME test_ownership_inventory
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
