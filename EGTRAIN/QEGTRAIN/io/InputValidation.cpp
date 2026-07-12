@@ -22,5 +22,13 @@ InputCheckResult validateCaseStudyInput(const std::string& inputMainFolder) {
             return InputCheckResult{false, std::string("Cannot read required input file: ") + full};
         }
     }
+    std::ifstream trainNames(inputMainFolder + "/trainNames.txt");
+    std::string trainName;
+    while (trainNames >> trainName) {
+        const std::string full = inputMainFolder + "/Trains/" + trainName;
+        if (!fileReadable(full)) {
+            return InputCheckResult{false, std::string("Cannot read referenced train file: ") + full};
+        }
+    }
     return InputCheckResult{true, "ok"};
 }

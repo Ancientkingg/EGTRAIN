@@ -28,6 +28,18 @@ int main() {
 
 	std::ofstream(root / "trainNames.txt");
 	r = validateCaseStudyInput(root.string());
+	ok &= expect(r.ok, "empty train list is valid");
+
+	{
+		std::ofstream trainNames(root / "trainNames.txt");
+		trainNames << "missing-train.txt\n";
+	}
+	std::filesystem::create_directories(root / "Trains");
+	r = validateCaseStudyInput(root.string());
+	ok &= expect(!r.ok && r.message.find((root / "Trains/missing-train.txt").string()) != std::string::npos,
+			"missing referenced train names its path");
+	std::ofstream(root / "Trains/missing-train.txt");
+	r = validateCaseStudyInput(root.string());
 	ok &= expect(r.ok, "complete startup file set is valid");
 
 	// exported scenes carry no List_of_Blocks_IDs.txt; the validator must not demand one
