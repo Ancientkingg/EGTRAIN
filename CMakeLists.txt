@@ -386,6 +386,15 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
+	add_executable(test_railmlparser
+		${SRC_DIR}/tests/test_railmlparser.cpp
+		${SRC_DIR}/io/RailMLParser.cpp
+		${SRC_DIR}/io/third_party/pugixml.cpp
+		${SRC_DIR}/simulation/InitialParameters.cpp)
+	target_include_directories(test_railmlparser PRIVATE ${SRC_DIR})
+	target_link_libraries(test_railmlparser PRIVATE cppzmq nlohmann_json::nlohmann_json)
+	add_test(NAME test_railmlparser COMMAND test_railmlparser)
+
 	add_test(NAME test_headless_smoke_decode
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
 	add_test(NAME test_case3_startup_errors
