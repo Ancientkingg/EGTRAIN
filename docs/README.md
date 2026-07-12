@@ -2,6 +2,9 @@
 
 Start here:
 
+- [Using EGTRAIN and authoring V1 scenes](guides/scenes-and-application.md)
+- [V1 scene property reference](guides/v1-scene-properties.md)
+- [Netherlands scene assignment](guides/netherlands-assignment.md)
 - [Assignment workflow](product/assignment-workflow.md)
 - [Scene model design](architecture/scene-model.md)
 - [Roadmap](planning/roadmap.md)

@@ -1,20 +1,25 @@
 # Assignment Corridor
 
 ## Decision
-Use Den Haag Centraal (`Gvc`) - Gouda (`Gdg`) - Utrecht Centraal (`Ut`) as the V1 assignment corridor.
+Use Amsterdam (`Asd`) to Hilversum (`Hvs`) as the V1 assignment corridor.
 
 ## Reason
-This is the corridor named by the assignment workflow. The Netherlands audit found that the repaired legacy Netherlands data imports and validates, but its station set does not contain `Gvc` or `Gdg`. It covers a different network centered on Utrecht, Amsterdam, Hilversum, Breukelen, Duivendrecht, and Almere.
+The Netherlands input contains Amsterdam and Hilversum infrastructure, Sprinter and Intercity timetables, and SLT and VIRM train data. This gives the assignment two train types and different stopping patterns.
 
-The consequence is that #32 should build a dedicated Gvc-Gdg-Ut scene. It should not assume that the current `Input_EGTRAIN_Netherlands` folder already contains the assignment infrastructure.
+The active train set currently contains eight Sprinter services around Utrecht, Hilversum, Baarn, and Den Dolder. Amsterdam services still need to be created and tested.
 
-## Rejected Alternatives
-- `Ut` - `Hvs` - `Brn`: present in the repaired legacy data, but not the assignment corridor.
-- `Asd` - `Ut`: present in timetables, but broader than the assignment target and missing Gouda.
-- Full repaired Netherlands case: useful as an import regression source, but too large and still not a running assignment scene.
+Candidate route IDs are 29 through 36, 39 through 42, 53, and 54. These IDs came from the original case author. Each route must be checked for direction, station sequence, and train type.
 
-## Consequences For #32
-- Build the assignment scene around `Gvc`, `Gdg`, and `Ut`.
-- Keep the first version narrow enough for one train and a small repeated timetable.
-- Add only the infrastructure, routes, services, rolling stock, and timetable data needed for the assignment workflow.
-- Use the repaired Netherlands import as regression coverage, not as the source of the final assignment scene.
+## Other options
+
+- Utrecht to Hilversum, Baarn, and Den Dolder already runs with Sprinter services. It remains the baseline but lacks Intercity traffic.
+- The full Netherlands case remains the import and compatibility reference. It is too large for the final teaching scene.
+
+## Assignment scene
+
+- Keep the full Netherlands legacy and V1 cases intact.
+- Verify one Amsterdam to Hilversum service before building a timetable.
+- Add one Sprinter and one Intercity in each direction.
+- Set planned times from measured runs.
+- Derive a smaller scene after the train set works.
+- Remove only infrastructure that is outside the verified route dependency set.
