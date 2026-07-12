@@ -313,6 +313,12 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
+    add_executable(test_consolestream
+        ${SRC_DIR}/tests/test_consolestream.cpp
+        ${SRC_DIR}/widgets/ConsoleWidget.cpp)
+    target_link_libraries(test_consolestream PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_consolestream COMMAND test_consolestream)
+
     add_test(NAME test_qt_resources
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
 

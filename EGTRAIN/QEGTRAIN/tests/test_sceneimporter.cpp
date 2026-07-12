@@ -394,6 +394,30 @@ int main(int argc, char** argv) {
 		ok &= expect(malformedRowFlagged, "parse warning names the malformed token row");
 	}
 
+	// 12. Non-ASCII route filenames are not treated as decimal route numbers.
+	{
+		TempDir lDir, outDir;
+		fs::create_directories(fs::path(lDir.dir) / "Routes");
+		fs::create_directories(fs::path(lDir.dir) / "TrackLines");
+		std::ofstream(lDir.dir + "/TrackLines/Stations.txt") << "0\tASCII\n";
+		std::ofstream(lDir.dir + "/Routes/Route12.txt") << "@ASCII@\n";
+		const std::string nonAsciiRoute = std::string("Route") + "\xC3\xA9.txt";
+		std::ofstream(fs::path(lDir.dir) / "Routes" / nonAsciiRoute) << "@NonAscii@\n";
+
+		auto res = importLegacyScene(lDir.dir, outDir.dir, "NonAsciiRouteFilename");
+		printErrors(res.diagnostics, "Non-ASCII route filename import");
+		ok &= expect(res.success(), "Non-ASCII route filename import succeeds");
+
+		std::ifstream signalling(fs::path(outDir.dir) / "signalling.json");
+		json signallingJson;
+		signalling >> signallingJson;
+		ok &= expect(signallingJson["routes"].size() == 1, "Non-ASCII route filename is skipped");
+		if (!signallingJson["routes"].empty()) {
+			ok &= expect(signallingJson["routes"][0]["id"] == "route12", "ASCII route filename remains accepted");
+			ok &= expect(signallingJson["routes"][0]["blocks"][0] == "ASCII", "ASCII route contents remain unchanged");
+		}
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all SceneImporter tests passed\n";
