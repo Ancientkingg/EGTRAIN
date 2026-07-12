@@ -1,6 +1,6 @@
 # Assignment Workflow
 
-EGTRAIN should replace the current OpenTrack workflow used in the railway traffic management assignment. The target V1 scenario is Den Haag Centraal (`Gvc`) to Gouda (`Gdg`) to Utrecht Centraal (`Ut`).
+EGTRAIN should replace the current OpenTrack workflow used in the railway traffic management assignment. The target V1 scenario is Amsterdam (`Asd`) to Hilversum (`Hvs`), with Sprinter and Intercity services.
 
 ## Users
 

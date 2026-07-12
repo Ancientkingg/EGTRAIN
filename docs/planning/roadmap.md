@@ -61,7 +61,7 @@ Goal: build the first EGTRAIN version of the OpenTrack assignment.
 Missing work:
 
 - Audit and repair Netherlands input data.
-- Choose the final corridor, likely Den Haag Centraal to Gouda to Utrecht Centraal.
+- Verify the Amsterdam to Hilversum route candidates.
 - Build a curated assignment scene.
 - Add train material variants.
 - Add base timetable and disruption scenarios.

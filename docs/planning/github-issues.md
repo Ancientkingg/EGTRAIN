@@ -70,7 +70,7 @@
 
 21. Audit Netherlands input data
 22. Decide final assignment corridor
-23. Build `Gvc-Gdg-Ut` scene
+23. Build the Amsterdam to Hilversum scene
 24. Add assignment timetable data
 25. Add assignment smoke test
 
