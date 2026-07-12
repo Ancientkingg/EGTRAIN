@@ -35,6 +35,16 @@ ctest --test-dir build --output-on-failure
 
 Current tests cover time formatting, input validation, speed formatting, trajectory accessors, blocking-time diagram data, visual classification, scene validation, scene import/export, scene writing, native scene route building, and smoke output decoding.
 
+Scene tests use CTest labels:
+
+```bash
+ctest --test-dir build -L scene-v1 --output-on-failure
+ctest --test-dir build -L legacy-compat --output-on-failure
+ctest --test-dir build -LE legacy-compat --output-on-failure
+```
+
+`scene-v1` covers the canonical scene model. `legacy-compat` covers direct legacy input and the converter boundary; it is separate from the main scene-model bracket but remains useful while the simulator runs converter-produced legacy files. Add a `scene-v2` label when V2 tests exist.
+
 ## Simulation Smoke Test
 
 ```bash
