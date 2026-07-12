@@ -66,6 +66,20 @@ int main() {
 	}
 
 	resetRouteState();
+	signalling_block_sections[0] = makeSection("@5-B6@", 0.0, 1.0);
+	signalling_block_sections[1] = makeSection("@5-B6@-branch", 1.0, 2.0);
+	Blocks = 2;
+	setDependenciesBetweenBlocks();
+	ok &= expect(signalling_block_sections[0].N_ConnectedBS == 2,
+		"Copenhagen dependency is added once");
+	int copenhagenDependencies = 0;
+	for (int i = 0; i < signalling_block_sections[0].N_ConnectedBS; i++) {
+		if (signalling_block_sections[0].IDConnectedBS[i] == "@1-B30@-4.592000/@5-B7@-4.620000")
+			copenhagenDependencies++;
+	}
+	ok &= expect(copenhagenDependencies == 1, "Copenhagen dependency has the expected ID");
+
+	resetRouteState();
 	seedThreeSections();
 
 	SceneModel reversedScene;
