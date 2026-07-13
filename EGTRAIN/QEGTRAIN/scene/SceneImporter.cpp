@@ -664,7 +664,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	fs::create_directories(outLegacy, ec);
 	if (ec) {
 		addDiag(SceneSeverity::Error, "scene.import.missing",
-				"Cannot create legacy passthrough directory: " + ec.message(), scenePath / "legacy");
+				"Cannot create legacy passthrough directory: " + ec.message(), (scenePath / "legacy").string());
 		removeStaging();
 		return result;
 	}
