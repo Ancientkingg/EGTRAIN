@@ -115,6 +115,7 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
 	${SRC_DIR}/scene/SceneWriter.cpp
+	${SRC_DIR}/scene/TrackPreview.cpp
 	${SRC_DIR}/widgets/TimeProgressBar.cpp
     ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
     ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
@@ -167,6 +168,7 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/scene/SceneValidator.h
 	${SRC_DIR}/scene/SceneImporter.h
 	${SRC_DIR}/scene/SceneWriter.h
+	${SRC_DIR}/scene/TrackPreview.h
 	${SRC_DIR}/widgets/TimeProgressBar.h
     ${SRC_DIR}/util/timeutil.hpp
     ${SRC_DIR}/graphics/items/TrainItemGroup.h
@@ -291,6 +293,11 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_inputvalidation.cpp
         ${SRC_DIR}/io/InputValidation.cpp)
     add_test(NAME test_inputvalidation COMMAND test_inputvalidation)
+
+	add_executable(test_trackpreview
+		${SRC_DIR}/tests/test_trackpreview.cpp
+		${SRC_DIR}/scene/TrackPreview.cpp)
+	add_test(NAME test_trackpreview COMMAND test_trackpreview)
 
     add_executable(test_speedformat
         ${SRC_DIR}/tests/test_speedformat.cpp
@@ -435,7 +442,7 @@ if(EGTRAIN_BUILD_TESTS)
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
 	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_scene_tool_diagnostics
 		PROPERTIES LABELS "scene-v1")
-	set_tests_properties(test_inputvalidation test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors
+	set_tests_properties(test_inputvalidation test_trackpreview test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors
 		PROPERTIES LABELS "legacy-compat")
 endif()
 

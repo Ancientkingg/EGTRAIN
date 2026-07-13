@@ -11,6 +11,7 @@
 #include "graphics/VisualPolish.h"
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
+#include "scene/TrackPreview.h"
 #include "io/geocoding.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
@@ -55,7 +56,10 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 }
 
 bool e2eDialogsSuppressed() {
-	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN") || qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE");
+	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW");
 }
 
 // modal boxes deadlock the env-gated smoke runs, which have no user to
@@ -156,6 +160,29 @@ bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPa
 				return false;
 		}
 	}
+	return true;
+}
+
+bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point) {
+	if (line.points.empty())
+		return false;
+
+	for (std::size_t index = 1; index < line.points.size(); ++index) {
+		const auto& first = line.points[index - 1];
+		const auto& second = line.points[index];
+		if (x < std::min(first.x, second.x) || x > std::max(first.x, second.x))
+			continue;
+
+		const double span = second.x - first.x;
+		const double ratio = span == 0.0 ? 0.0 : (x - first.x) / span;
+		point = QPointF(x, first.y + ratio * (second.y - first.y) + offset);
+		return true;
+	}
+
+	const auto closest = std::min_element(line.points.begin(), line.points.end(), [x](const auto& left, const auto& right) {
+		return std::abs(left.x - x) < std::abs(right.x - x);
+	});
+	point = QPointF(closest->x, closest->y + offset);
 	return true;
 }
 } // namespace
@@ -780,7 +807,55 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshCompositionPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
+	renderTrackPreview(scenePath);
 	return true;
+}
+
+void MainWindow::renderTrackPreview(const QString& sceneDir) {
+	const TrackPreviewResult preview = loadTrackPreview(sceneDir.toStdString());
+	if (preview.lines.empty()) {
+		statusBar()->showMessage("Scene loaded - no track preview available; simulation not running");
+		return;
+	}
+
+	QPen pen(QColor(185, 190, 198));
+	pen.setWidthF(2.0);
+	pen.setCosmetic(true);
+
+	std::map<int, std::pair<const TrackPreviewLine*, qreal>> tracks;
+	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
+		const auto& line = preview.lines[index];
+		const qreal offset = static_cast<qreal>(index) * 3.0;
+		tracks[line.id] = {&line, offset};
+
+		QPainterPath path(QPointF(line.points.front().x, line.points.front().y + offset));
+		for (std::size_t point = 1; point < line.points.size(); ++point)
+			path.lineTo(line.points[point].x, line.points[point].y + offset);
+		auto* item = scene->addPath(path, pen);
+		item->setAcceptedMouseButtons(Qt::NoButton);
+	}
+
+	for (const auto& connection : preview.connections) {
+		const auto first = tracks.find(connection.firstTrackId);
+		const auto second = tracks.find(connection.secondTrackId);
+		if (first == tracks.end() || second == tracks.end())
+			continue;
+
+		QPointF start;
+		QPointF end;
+		if (!previewPointAtX(*first->second.first, connection.firstX, first->second.second, start)
+			|| !previewPointAtX(*second->second.first, connection.secondX, second->second.second, end))
+			continue;
+
+		QPainterPath path(start);
+		path.lineTo(end);
+		auto* item = scene->addPath(path, pen);
+		item->setAcceptedMouseButtons(Qt::NoButton);
+	}
+
+	fitView();
+	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running")
+								 .arg(static_cast<int>(preview.lines.size())));
 }
 
 void MainWindow::saveScene() {
@@ -2873,6 +2948,62 @@ void MainWindow::runEditorSmokeE2E() {
 	QCoreApplication::exit(1);
 }
 
+void MainWindow::runTrackPreviewE2E() {
+	if (m_e2eFinished)
+		return;
+	m_e2eFinished = true;
+
+	bool ok = true;
+	QStringList failures;
+	const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
+	if (scenePath.isEmpty() || !openSceneDirectory(scenePath)) {
+		ok = false;
+		failures << "scene did not open";
+	}
+
+	const int itemCount = scene->items().size();
+	const QRectF bounds = scene->itemsBoundingRect();
+	if (!hasErrors(m_sceneDiagnostics)) {
+		ok = false;
+		failures << "scene unexpectedly passed validation";
+	}
+	if (itemCount < 2) {
+		ok = false;
+		failures << "too few preview items";
+	}
+	if (bounds.width() < 10.0) {
+		ok = false;
+		failures << "preview geometry did not spread horizontally";
+	}
+	const QRectF visible = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
+	if (!visible.intersects(bounds)) {
+		ok = false;
+		failures << "preview is outside the viewport";
+	}
+
+	runScene();
+	QApplication::processEvents();
+	if (m_worker) {
+		ok = false;
+		failures << "invalid scene started simulation";
+	}
+	if (scene->items().size() != itemCount || scene->itemsBoundingRect() != bounds) {
+		ok = false;
+		failures << "blocked run removed the preview";
+	}
+
+	if (ok) {
+		std::fprintf(stdout, "E2E_TRACK_PREVIEW_OK\n");
+		std::fflush(stdout);
+		QCoreApplication::exit(0);
+		return;
+	}
+
+	std::fprintf(stderr, "E2E_TRACK_PREVIEW_FAIL: %s\n", failures.join(", ").toStdString().c_str());
+	std::fflush(stderr);
+	QCoreApplication::exit(2);
+}
+
 void MainWindow::clearSimulationWorker(bool requestStop) {
 	if (m_worker && requestStop)
 		m_worker->requestStop();
@@ -3307,6 +3438,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(1000, this, &MainWindow::runEditorSmokeE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN"))
 		QTimer::singleShot(1000, this, &MainWindow::runSceneRenderE2E);
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW"))
+		QTimer::singleShot(1000, this, &MainWindow::runTrackPreviewE2E);
 }
 
 // starts EGTRAIN simulation on a worker thread
