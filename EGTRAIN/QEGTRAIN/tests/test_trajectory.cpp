@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 static bool expect(bool condition, const char* message) {
@@ -54,7 +55,32 @@ int main() {
 					 std::vector<double>({-9999, -9999, -9999}),
 				 "inactive export cells are all missing");
 	ok &= expect(trajectoryExportCells({0}, 0, 0) == std::vector<double>({0}),
-				 "zero is valid inside active bounds");
+					 "zero is valid inside active bounds");
+	ok &= expect(trajectoryExportCells({0, 0, 10, -9999, 30, 40}, 2, 4) ==
+					 std::vector<double>({-9999, -9999, 10, -9999, 30, -9999}),
+					 "service-leg export keeps leading blanks, bounds, and later spans");
+	ok &= expect(trajectoryExportCells({0, 10, 20}, -1, 2) ==
+					 std::vector<double>({-9999, -9999, -9999}),
+					 "service-leg export keeps inactive trains blank");
+
+	ok &= expect(shiftedTrajectoryExportCells({0, 10, 20, 30, 40}, 1, 4, 3, 1, 6) ==
+					 std::vector<double>({-9999, -9999, 10, 20, 30, 40}),
+					 "compressed export maps active source start to departure time");
+	ok &= expect(shiftedTrajectoryExportCells({0, 10, -9999, 30, 40}, 0, 4, 2, 0, 6) ==
+					 std::vector<double>({-9999, -9999, 0, 10, -9999, 30, 40}),
+					 "compressed export preserves zero, gaps, and later valid spans");
+	ok &= expect(shiftedTrajectoryExportCells({10, 20, 30}, 0, 1, 0, 0, 3) ==
+					 std::vector<double>({10, 20, -9999, -9999}),
+					 "compressed export blanks samples after End_Time");
+	ok &= expect(shiftedTrajectoryExportCells({0, 10, 20}, -1, 2, 0, 0, 2) ==
+					 std::vector<double>({-9999, -9999, -9999}),
+					 "compressed export keeps inactive source blank");
+	ok &= expect(shiftedTrajectoryExportCells({0, std::numeric_limits<double>::quiet_NaN(), 20}, 0, 2, 0, 0, 2) ==
+					 std::vector<double>({0, -9999, 20}),
+					 "compressed export blanks nonfinite source samples");
+	ok &= expect(shiftedTrajectoryExportCells({0}, 0, 0, 0, 0, 1) ==
+					 std::vector<double>({0, -9999}),
+					 "compressed export blanks short source vectors");
 
 	int earliest = -1;
 	earliest = recordEarliestTrajectoryIndex(earliest, 4, false);

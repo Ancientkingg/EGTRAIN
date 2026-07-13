@@ -24,6 +24,24 @@ std::vector<double> trajectoryExportCells(
 	return cells;
 }
 
+std::vector<double> shiftedTrajectoryExportCells(const std::vector<double>& values,
+		int activeFirst, int activeLast, int departureTime, int outputFirst, int outputLast) {
+	if (outputFirst > outputLast)
+		return {};
+
+	std::vector<double> cells(static_cast<std::size_t>(outputLast - outputFirst + 1), -9999);
+	if (activeFirst < 0)
+		return cells;
+
+	const auto sourceCells = trajectoryExportCells(values, activeFirst, activeLast);
+	for (int outputTime = outputFirst; outputTime <= outputLast; ++outputTime) {
+		const long long sourceIndex = static_cast<long long>(activeFirst) + outputTime - departureTime;
+		if (sourceIndex >= 0 && sourceIndex < static_cast<long long>(sourceCells.size()))
+			cells[static_cast<std::size_t>(outputTime - outputFirst)] = sourceCells[static_cast<std::size_t>(sourceIndex)];
+	}
+	return cells;
+}
+
 int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter) {
 	return currentIndex < 0 && canEnter ? candidateIndex : currentIndex;
 }

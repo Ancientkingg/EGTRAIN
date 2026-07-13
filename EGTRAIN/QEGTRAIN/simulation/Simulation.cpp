@@ -805,84 +805,32 @@ void PrintCompressedTrainPathDiagramTrial(Train* S, int N_S, string FolderName) 
 	FileOutput << "\n";
 	FileSpeedsOutput << "\n";
 
-	// Determining the actual EndTime of the train run
 	for (int i = 0; i < N_S; i++) {
-		int ActualEndTime = 0;
-
-		for (int t = 0; t < initial_variables.times; t++) {
-			if (S[i].instant_spatial_position[t] == -9999) {
-				ActualEndTime = t - 1;
-				break;
-			}
-
-			if (t > initial_variables.times) {
-				ActualEndTime = initial_variables.times;
-				break;
-			}
-		}
-
-		// Printing out the names of trains
-		// cout << instant_spatial_position[i].trainDescription << " ";
 		FileOutput << S[i].trainDescription << " ";
-		// writing on the file of the speeds
 		FileSpeedsOutput << S[i].trainDescription << " ";
 
-		int TrainShift = (int)S[i].departure_time - (int)S[i].RunStartTime;
-		list<double> TrainSpeeds;
-		list<double> TrainPositions;
-		for (int l = S[i].RunStartTime; l <= ActualEndTime; l++) {
-			double speed = S[i].instant_train_speed[l];
-			double position = S[i].instant_spatial_position[l];
-			TrainSpeeds.push_back(speed);
-			TrainPositions.push_back(position);
-			list<double>::iterator h = TrainSpeeds.end();
-			h--;
-			list<double>::iterator r = TrainPositions.end();
-			r--;
-
-			//	cout << *h<< " " << *r << "\n";
-		}
-
-		int ShiftedEndTime = ActualEndTime + TrainShift;
-		bool StopPrinting = false;
-		list<double>::iterator sp = TrainSpeeds.begin();
-		list<double>::iterator pos = TrainPositions.begin();
-		if (TrainPositions.size() > 0) {
-			for (int k = StartPrintingTime; k <= StartPrintingTime + initial_variables.times; k++) {
-				if ((k >= S[i].departure_time) && (k <= ShiftedEndTime)) {
-					// cout << *pos << " ";
-					if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-						FileOutput << *pos << " ";
-						// printing speed on the file of the speeds
-						FileSpeedsOutput << *sp << " ";
-					} else {
-						FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - *pos << " ";
-						// printing speed on the file of the speeds
-						FileSpeedsOutput << *sp << " ";
-					}
-					// advancing iterators on positions and speeds
-					pos++;
-					sp++;
-				} else if (k < S[i].departure_time) {
-					// cout << " ";
-					if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-						FileOutput << 0 << " ";
-						// writing on the file of the speeds
-						FileSpeedsOutput << 0 << " ";
-					} else {
-						FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute << " ";
-						// writing on the file of the speeds
-						FileSpeedsOutput << 0 << " ";
-					}
-				} else if (k > ShiftedEndTime) {
-					StopPrinting = true; // break the for loop when the cicle reaches the end of the list
-					break;
-				}
+		const int departureTime = static_cast<int>(S[i].departure_time);
+		const int outputLast = StartPrintingTime + initial_variables.times;
+		const auto positions = shiftedTrajectoryExportCells(
+				S[i].instant_spatial_position, S[i].earliestActiveTrajectoryIndex,
+				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
+		const auto speeds = shiftedTrajectoryExportCells(
+				S[i].instant_train_speed, S[i].earliestActiveTrajectoryIndex,
+				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
+		for (std::size_t column = 0; column < positions.size(); ++column) {
+			const double position = positions[column];
+			if (position == -9999) {
+				FileOutput << -9999 << " ";
+			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
+				FileOutput << position << " ";
+			} else {
+				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
 			}
+
+			const double speed = column < speeds.size() ? speeds[column] : -9999;
+			FileSpeedsOutput << (position == -9999 || speed == -9999 ? -9999 : speed) << " ";
 		}
-		// cout << "\n";
 		FileOutput << "\n";
-		// writing on the file of the speeds
 		FileSpeedsOutput << "\n";
 	}
 	// Close the output file	of positions

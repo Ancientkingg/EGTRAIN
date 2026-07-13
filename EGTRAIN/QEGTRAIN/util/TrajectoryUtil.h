@@ -36,6 +36,10 @@ bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
 std::vector<double> trajectoryExportCells(const std::vector<double>& positionsMeters,
 										 int activeFirst, int activeLast);
 
+std::vector<double> shiftedTrajectoryExportCells(const std::vector<double>& values,
+										 int activeFirst, int activeLast,
+										 int departureTime, int outputFirst, int outputLast);
+
 int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter);
 
 int replicatedEarliestTrajectoryIndex(int sourceIndex, int offset);
