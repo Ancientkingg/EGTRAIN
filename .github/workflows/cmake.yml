@@ -51,6 +51,11 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: tools/e2e/scene_render_smoke.sh
 
+      - name: Run track preview smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: tools/e2e/track_preview_smoke.sh
+
       - name: Run visual smoke
         env:
           QT_QPA_PLATFORM: offscreen
