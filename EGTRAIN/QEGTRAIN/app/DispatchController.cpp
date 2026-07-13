@@ -521,6 +521,9 @@ void DispatchController::runSimulation() {
 
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
 
+	ComputeEnergyConsumptionForAllTrains(regional_train, numRegions);
+	ComputeTimetableEnergyConsumption(regional_train, numRegions, initial_variables.OutputMainFolder);
+
 	// Train_Simulation_Integration_With_ROMA(signalCode1,signalCode2,signalCode3);     //Launch EGTRAIN in a closed-loop control with ROMA*/
 
 	clock_t StartRun = clock();

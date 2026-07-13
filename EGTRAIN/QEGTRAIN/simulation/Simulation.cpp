@@ -1,5 +1,7 @@
 #include "simulation/Simulation.h"
+#include "diagrams/RunResults.h"
 #include <cstdio>
+#include <cmath>
 #include <vector>
 
 double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
@@ -16,6 +18,37 @@ extern InitialParameters initial_variables;
 string Name_Of_Integ_Folder = ""; // Name of the batch file of ROMA
 
 OrderList TrainEntranceOrder;
+
+namespace {
+bool energySeriesCovers(const std::vector<double>& values, int first, int last) {
+	if (first < 0 || last < first || last >= static_cast<int>(values.size()))
+		return false;
+	for (int index = first; index <= last; ++index) {
+		if (!std::isfinite(values[static_cast<std::size_t>(index)]))
+			return false;
+	}
+	return true;
+}
+
+bool canComputeTrainEnergy(Train& train) {
+	if (train.earliestActiveTrajectoryIndex < 0 || train.End_Time < train.earliestActiveTrajectoryIndex ||
+		train.End_Time >= static_cast<int>(train.instant_spatial_position.size()) ||
+		!std::isfinite(train.departure_time))
+		return false;
+	// Completed runs can leave a non-finite terminal power sample; the shared
+	// energy calculation treats that boundary sample as zero.
+	if (train.End_Time < static_cast<int>(train.instant_train_power_consumption.size()) &&
+		!std::isfinite(train.instant_train_power_consumption[static_cast<std::size_t>(train.End_Time)]))
+		train.instant_train_power_consumption[static_cast<std::size_t>(train.End_Time)] = 0.0;
+	const int energyStart = static_cast<int>(train.departure_time);
+	return energyStart >= 0 && energyStart <= train.End_Time &&
+		energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time) &&
+		energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time) &&
+		!validTrajectorySegments(train.instant_spatial_position,
+									 train.earliestActiveTrajectoryIndex, train.End_Time)
+			.empty();
+}
+} // namespace
 
 // Function to Calculate the arrival delay at each station for each train
 void calculateArrivalDelayAllTrainsOldVersion() {
@@ -363,6 +396,8 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 		Trains[i].TotalEnergyConsWithRegBrak = 0;
 		Trains[i].TotalEnergySubstationRequest = 0;
 		Trains[i].TotalEnergySubstRequestWithRegBrak = 0;
+		if (!canComputeTrainEnergy(Trains[i]))
+			continue;
 		// Compute the Energy Consumption for all the trains in the network
 		Trains[i].TotalEnergyConsumptionWithAndWithoutRegBraking(0.8, 0.7); // we are using as default an efficiency of 0.8 for the substation and 0.7 for regenerative braking (but these values are actually a feature of the substation and the train respectively)
 	}
@@ -493,7 +528,7 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 
 	for (int i = 0; i < numTrains; i++) {
 		// Printing out the Energy consumed Measure of Performance by Train
-		OutputPerTrain << Trains[i].trainDescription << " " << Trains[i].TotalEnergyConsumed * 0.27778 << " " << Trains[i].TotalEnergyConsWithRegBrak * 0.27778 << " " << Trains[i].TotalEnergySubstationRequest * 0.27778 << " " << Trains[i].TotalEnergySubstRequestWithRegBrak * 0.27778 << "\n";
+		OutputPerTrain << Trains[i].trainDescription << " " << energyMJKWh(Trains[i].TotalEnergyConsumed) << " " << energyMJKWh(Trains[i].TotalEnergyConsWithRegBrak) << " " << energyMJKWh(Trains[i].TotalEnergySubstationRequest) << " " << energyMJKWh(Trains[i].TotalEnergySubstRequestWithRegBrak) << "\n";
 
 		TotalEnergyConsumed = TotalEnergyConsumed + Trains[i].TotalEnergyConsumed;
 		TotalEnergyConsWithRegBraking = TotalEnergyConsWithRegBraking + Trains[i].TotalEnergyConsWithRegBrak;
@@ -509,7 +544,7 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 	Output.open((char*)OutputFileName.c_str(), ios::binary);
 
 	Output << "TotalEnergyConsumed[KWh] TotalEnergyConsumedWithRegenerativeBraking[KWh] TotalEnergyRequestAtSubst[KWh] TotalEnergyRequestAtSubstWithRegBraking\n";
-	Output << TotalEnergyConsumed * 0.27778 << " " << TotalEnergyConsWithRegBraking * 0.27778 << " " << TotalEnergySubstationRequest * 0.27778 << " " << TotalEnergySubstRequestWithRegBraking * 0.27778 << "\n";
+	Output << energyMJKWh(TotalEnergyConsumed) << " " << energyMJKWh(TotalEnergyConsWithRegBraking) << " " << energyMJKWh(TotalEnergySubstationRequest) << " " << energyMJKWh(TotalEnergySubstRequestWithRegBraking) << "\n";
 	Output.close();
 }
 

@@ -122,6 +122,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
@@ -177,6 +178,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/VirtualArcItem.h
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
+    ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
     ${SRC_DIR}/graphics/VisualPolish.h
@@ -308,6 +310,31 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_trajectory.cpp
         ${SRC_DIR}/util/TrajectoryUtil.cpp)
     add_test(NAME test_trajectory COMMAND test_trajectory)
+
+    add_executable(test_runresults
+        ${SRC_DIR}/tests/test_runresults.cpp
+        ${SRC_DIR}/diagrams/RunResults.cpp
+        ${SRC_DIR}/simulation/Infrastructure.cpp
+        ${SRC_DIR}/simulation/InitialParameters.cpp
+        ${SRC_DIR}/simulation/NumberGenerator.cpp
+        ${SRC_DIR}/simulation/RollingStock.cpp
+        ${SRC_DIR}/simulation/Signalling.cpp
+        ${SRC_DIR}/util/Logger.cpp
+        ${SRC_DIR}/util/TrajectoryUtil.cpp)
+    target_include_directories(test_runresults PRIVATE ${SRC_DIR})
+    target_link_libraries(test_runresults PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_runresults PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+        target_compile_options(test_runresults PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+    endif()
+    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+        target_link_libraries(test_runresults PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+    elseif(OpenMP_CXX_FOUND)
+        target_link_libraries(test_runresults PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    add_test(NAME test_runresults COMMAND test_runresults)
 
     add_executable(test_blockingtimediagram
         ${SRC_DIR}/tests/test_blockingtimediagram.cpp

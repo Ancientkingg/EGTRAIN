@@ -6,6 +6,7 @@
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/RunResults.h"
 #include "util/TrajectoryUtil.h"
 #include "diagrams/BlockingTimeDiagram.h"
 #include "graphics/VisualPolish.h"
@@ -248,6 +249,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// setup info dock widget
 	setupInfoDockWidget();
+	setupRunResultsDock();
 
 	// load image for station icon
 	station_pixmap = QPixmap(":/icons/station.png");
@@ -4756,6 +4758,8 @@ void MainWindow::startSimulation() {
 
 // handle simulation completion on the main thread
 void MainWindow::onSimulationFinished() {
+	refreshRunResults();
+
 	// print last services
 	simulation.printLastTrainServicePathDiagram();
 
@@ -5671,6 +5675,68 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event) {
 }
 
 // setup qdockwidget showing info when clicking items
+void MainWindow::setupRunResultsDock() {
+	m_runResultsDock = new QDockWidget("Run Results", this);
+	m_runResultsDock->setObjectName("runResultsDock");
+	m_runResultsDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+	m_runResultsTable = new QTableWidget(m_runResultsDock);
+	m_runResultsTable->setObjectName("runResultsTable");
+	m_runResultsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_runResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_runResultsTable->setColumnCount(8);
+	m_runResultsTable->setHorizontalHeaderLabels({
+		"Train", "Start time (s)", "End time (s)", "Travel time (s)",
+		"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
+		"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
+	m_runResultsTable->horizontalHeader()->setStretchLastSection(true);
+	m_runResultsDock->setWidget(m_runResultsTable);
+	addDockWidget(Qt::BottomDockWidgetArea, m_runResultsDock);
+	m_runResultsDock->hide();
+}
+
+void MainWindow::refreshRunResults() {
+	if (!m_runResultsDock || !m_runResultsTable || numRegions <= 0)
+		return;
+
+	const RunResults results = buildRunResults(regional_train, numRegions, timestep);
+	const int totalColumns = 8;
+	m_runResultsTable->clear();
+	m_runResultsTable->setColumnCount(totalColumns);
+	m_runResultsTable->setHorizontalHeaderLabels({
+		"Train", "Start time (s)", "End time (s)", "Travel time (s)",
+		"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
+		"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
+	m_runResultsTable->setRowCount(static_cast<int>(results.trains.size()) + 1);
+
+	const auto valueText = [](const RunResultValue& value) {
+		return value.available ? QString::number(value.value, 'f', 6) : QStringLiteral("Unavailable");
+	};
+	for (int row = 0; row < static_cast<int>(results.trains.size()); ++row) {
+		const TrainRunResult& result = results.trains[static_cast<std::size_t>(row)];
+		m_runResultsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
+		m_runResultsTable->setItem(row, 1, new QTableWidgetItem(valueText(result.startSeconds)));
+		m_runResultsTable->setItem(row, 2, new QTableWidgetItem(valueText(result.endSeconds)));
+		m_runResultsTable->setItem(row, 3, new QTableWidgetItem(valueText(result.travelSeconds)));
+		m_runResultsTable->setItem(row, 4, new QTableWidgetItem(valueText(result.energyConsumedKWh)));
+		m_runResultsTable->setItem(row, 5, new QTableWidgetItem(valueText(result.energyWithRegenKWh)));
+		m_runResultsTable->setItem(row, 6, new QTableWidgetItem(valueText(result.substationKWh)));
+		m_runResultsTable->setItem(row, 7, new QTableWidgetItem(valueText(result.substationWithRegenKWh)));
+	}
+
+	const int totalRow = static_cast<int>(results.trains.size());
+	m_runResultsTable->setItem(totalRow, 0, new QTableWidgetItem(QStringLiteral("Network total")));
+	m_runResultsTable->setItem(totalRow, 1, new QTableWidgetItem(valueText(results.networkStartSeconds)));
+	m_runResultsTable->setItem(totalRow, 2, new QTableWidgetItem(valueText(results.networkEndSeconds)));
+	m_runResultsTable->setItem(totalRow, 3, new QTableWidgetItem(valueText(results.networkTravelSeconds)));
+	m_runResultsTable->setItem(totalRow, 4, new QTableWidgetItem(valueText(results.energyConsumedKWh)));
+	m_runResultsTable->setItem(totalRow, 5, new QTableWidgetItem(valueText(results.energyWithRegenKWh)));
+	m_runResultsTable->setItem(totalRow, 6, new QTableWidgetItem(valueText(results.substationKWh)));
+	m_runResultsTable->setItem(totalRow, 7, new QTableWidgetItem(valueText(results.substationWithRegenKWh)));
+	m_runResultsTable->resizeColumnsToContents();
+	m_runResultsDock->show();
+	m_runResultsDock->raise();
+}
+
 void MainWindow::setupInfoDockWidget() {
 	// main widget
 	infoWidget = new QWidget();

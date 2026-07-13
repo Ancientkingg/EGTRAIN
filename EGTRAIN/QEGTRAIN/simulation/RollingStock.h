@@ -813,6 +813,11 @@ public:
 
 	// Function to calculate Total Energy Consumed with and without regenrative braking (the inputs are the Eta of the Substation and the Eta of the regenerative braking)
 	void TotalEnergyConsumptionWithAndWithoutRegBraking(double EtaSubst, double EtaRegBrak) {
+		// A completed trajectory can leave a non-finite power sample at End_Time;
+		// treat that boundary sample as zero, matching train_energy_consumption().
+		if (End_Time >= 0 && End_Time < static_cast<int>(instant_train_power_consumption.size()) &&
+			!std::isfinite(instant_train_power_consumption[static_cast<std::size_t>(End_Time)]))
+			instant_train_power_consumption[static_cast<std::size_t>(End_Time)] = 0.0;
 		// This is the total Energy consumed by the train to move
 		this->TotalEnergyConsumed = instant_train_energy_consumption[End_Time];
 		this->EnergyForAuxiliaries = 0.10 * TotalEnergyConsumed;

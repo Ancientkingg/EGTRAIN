@@ -203,6 +203,8 @@ public:
 
 	// setup info dock widget
 	void setupInfoDockWidget();
+	void setupRunResultsDock();
+	void refreshRunResults();
 
 	// update signal aspects
 	void updateSignalAspect(const std::string& ID, double code, bool reversed);
@@ -306,6 +308,8 @@ private:
 	QWidget* infoWidget;
 	QVBoxLayout* infoWidgetMainLayout;
 	InfoDockWidget* infoDockWidget;
+	QDockWidget* m_runResultsDock = nullptr;
+	QTableWidget* m_runResultsTable = nullptr;
 	QWidget* arcInfoWidget;
 	QLineEdit* arcIDText;
 	QLineEdit* arcFirstNodeIDText;
