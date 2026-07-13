@@ -10,6 +10,11 @@ on:
       - ci/release-pipeline
     tags:
       - 'v*'
+    paths:
+      - '.github/workflows/release.yml'
+      - 'CMakeLists.txt'
+      - 'Info.plist.in'
+      - 'EGTRAIN/QEGTRAIN/**'
   workflow_dispatch:
 
 jobs:
