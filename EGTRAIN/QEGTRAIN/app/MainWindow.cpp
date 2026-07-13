@@ -8,6 +8,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
 #include "util/TrajectoryUtil.h"
+#include "util/CsvWriter.h"
 #include "diagrams/BlockingTimeDiagram.h"
 #include "graphics/VisualPolish.h"
 #include "scene/SceneWriter.h"
@@ -21,6 +22,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QSaveFile>
 #include "io/InputValidation.h"
 #include <cfloat>
 #include <QThread>
@@ -56,6 +58,227 @@ std::vector<const Train*> runResultTrainPointers() {
 	return trains;
 }
 
+// A train exports when it is in the visible set. An empty set means the user has
+// hidden every train, so nothing is exported.
+bool trainInVisibleSet(const QStringList& visibleTrainIds, const std::string& trainId) {
+	return visibleTrainIds.contains(QString::fromStdString(trainId));
+}
+
+std::string csvValue(const RunResultValue& value) {
+	return value.available ? csv::formatDouble(value.value) : std::string(csv::kMissingValue);
+}
+
+// Per-train trajectory: time, position, speed, power, cumulative energy, block.
+// Reads raw simulation samples over the valid trajectory ranges so gaps never
+// produce a false row.
+std::string buildTrajectoryCsv(const QStringList& visibleTrainIds) {
+	std::vector<std::vector<std::string>> rows;
+	for (int tr = 0; tr < numRegions; ++tr) {
+		const Train& train = regional_train[tr];
+		if (!trainInVisibleSet(visibleTrainIds, train.trainDescription))
+			continue;
+		if (train.earliestActiveTrajectoryIndex < 0)
+			continue;
+		const auto sampleAt = [](const std::vector<double>& series, int i) {
+			return i >= 0 && i < static_cast<int>(series.size())
+				? csv::formatDouble(series[static_cast<std::size_t>(i)])
+				: std::string(csv::kMissingValue);
+		};
+		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position,
+														   train.earliestActiveTrajectoryIndex,
+														   train.End_Time)) {
+			for (int i = segment.first; i <= segment.last; ++i) {
+				std::string block = i >= 0 && i < static_cast<int>(train.instant_block_section_occupied.size())
+					? train.instant_block_section_occupied[static_cast<std::size_t>(i)]
+					: std::string(csv::kMissingValue);
+				std::vector<std::string> row;
+				row.push_back(train.trainDescription);
+				row.push_back(csv::formatDouble(i * timestep));
+				row.push_back(sampleAt(train.instant_spatial_position, i));
+				row.push_back(sampleAt(train.instant_train_speed, i));
+				std::string power = i >= 0 && i < static_cast<int>(train.instant_train_power_consumption.size())
+					? csv::formatDouble(train.instant_train_power_consumption[static_cast<std::size_t>(i)] / 1000.0)
+					: std::string(csv::kMissingValue);
+				std::string energy = i >= 0 && i < static_cast<int>(train.instant_train_energy_consumption.size())
+					? csv::formatDouble(train.instant_train_energy_consumption[static_cast<std::size_t>(i)] * kEnergyMJToKWh)
+					: std::string(csv::kMissingValue);
+				row.push_back(power);
+				row.push_back(energy);
+				row.push_back(block);
+				rows.push_back(std::move(row));
+			}
+		}
+	}
+	if (rows.empty())
+		return std::string();
+	return csv::makeDocument(
+		{"Train", "Time[s]", "Position[m]", "Speed[m/s]", "Power[kW]", "Energy[kWh]", "Block"}, rows);
+}
+
+// Timetable: train, station, planned and simulated arrival and departure, delay.
+std::string buildTimetableCsv(const QStringList& visibleTrainIds) {
+	const auto results = buildTimetableResults(runResultTrainPointers());
+	std::vector<std::vector<std::string>> rows;
+	for (const TimetableResultRow& r : results) {
+		if (!trainInVisibleSet(visibleTrainIds, r.trainId))
+			continue;
+		rows.push_back({
+			r.trainId,
+			r.stationId,
+			std::to_string(r.journeyIndex),
+			csvValue(r.plannedArrivalSeconds),
+			csvValue(r.plannedDepartureSeconds),
+			csvValue(r.simulatedArrivalSeconds),
+			csvValue(r.simulatedDepartureSeconds),
+			csvValue(r.arrivalDelaySeconds),
+			csvValue(r.departureDelaySeconds)});
+	}
+	if (rows.empty())
+		return std::string();
+	return csv::makeDocument(
+		{"Train", "Station", "Journey order", "Planned arrival[s]", "Planned departure[s]",
+		 "Simulated arrival[s]", "Simulated departure[s]", "Arrival delay[s]", "Departure delay[s]"},
+		rows);
+}
+
+const char* blockingSegmentTypeName(BlockingTimeSegmentStyle style) {
+	switch (style) {
+		case BlockingTimeSegmentStyle::Station:
+			return "station";
+		case BlockingTimeSegmentStyle::Switch:
+			return "switch";
+		case BlockingTimeSegmentStyle::SwitchStation:
+			return "switch/station";
+		case BlockingTimeSegmentStyle::Critical:
+			return "critical";
+		case BlockingTimeSegmentStyle::CriticalStation:
+			return "critical/station";
+		case BlockingTimeSegmentStyle::Default:
+		default:
+			return "block";
+	}
+}
+
+// Blocking-time: train, block, occupation start, occupation end, position, type.
+std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
+	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
+	std::vector<std::string> trainNames;
+	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	trainNames.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& t = regional_train[i];
+		std::vector<BlockingTimeDiagramInput> blocks;
+		blocks.reserve(static_cast<std::size_t>(std::max(0, t.N_BlockTimeComplete)));
+		for (int j = 0; j < t.N_BlockTimeComplete; ++j) {
+			BlockingTimeDiagramInput block;
+			block.blockId = t.BlockTime[j].BlockID;
+			block.startOccTime = t.BlockTime[j].StartOccTime;
+			block.endOccTime = t.BlockTime[j].EndOccTime;
+			block.posStart = t.BlockTime[j].PosStart;
+			block.posEnd = t.BlockTime[j].PosEnd;
+			block.switchName = t.BlockTime[j].SwitchName;
+			block.stationName = t.BlockTime[j].stationName;
+			block.isComplete = t.BlockTime[j].IsComplete;
+			blocks.push_back(block);
+		}
+		trains.push_back(blocks);
+		trainNames.push_back(t.trainDescription);
+	}
+	const auto segments = buildBlockingTimeDiagramSegments(trains, trainNames);
+	std::vector<std::vector<std::string>> rows;
+	for (const BlockingTimeDiagramSegment& s : segments) {
+		if (!trainInVisibleSet(visibleTrainIds, s.trainName))
+			continue;
+		rows.push_back({
+			s.trainName,
+			s.blockId,
+			csv::formatDouble(s.startTime),
+			csv::formatDouble(s.endTime),
+			csv::formatDouble(s.midPositionKm),
+			blockingSegmentTypeName(s.style)});
+	}
+	if (rows.empty())
+		return std::string();
+	return csv::makeDocument(
+		{"Train", "Block", "Occupation start[s]", "Occupation end[s]", "Position[km]", "Segment type"},
+		rows);
+}
+
+// Run summary: per-train start, end, travel time, and energy totals, plus a
+// network totals row.
+std::string buildRunSummaryCsv() {
+	const RunResults results = buildRunResults(runResultTrainPointers(), timestep);
+	std::vector<std::vector<std::string>> rows;
+	for (const TrainRunResult& t : results.trains) {
+		rows.push_back({
+			t.trainId,
+			csvValue(t.startSeconds),
+			csvValue(t.endSeconds),
+			csvValue(t.travelSeconds),
+			csvValue(t.energyConsumedKWh),
+			csvValue(t.energyWithRegenKWh),
+			csvValue(t.substationKWh),
+			csvValue(t.substationWithRegenKWh)});
+	}
+	rows.push_back({
+		"Network total",
+		csvValue(results.networkStartSeconds),
+		csvValue(results.networkEndSeconds),
+		csvValue(results.networkTravelSeconds),
+		csvValue(results.energyConsumedKWh),
+		csvValue(results.energyWithRegenKWh),
+		csvValue(results.substationKWh),
+		csvValue(results.substationWithRegenKWh)});
+	if (results.trains.empty())
+		return std::string();
+	return csv::makeDocument(
+		{"Train", "Start[s]", "End[s]", "Travel time[s]", "Energy consumed[kWh]",
+		 "Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]"},
+		rows);
+}
+
+// Ids of every loaded train, used when a whole result table is exported.
+QStringList allTrainIds() {
+	QStringList ids;
+	for (int i = 0; i < numRegions; ++i)
+		ids.append(QString::fromStdString(regional_train[i].trainDescription));
+	return ids;
+}
+
+// Write CSV text atomically to a fixed path. Used by the headless export check.
+bool writeCsvFile(const QString& path, const std::string& content) {
+	QSaveFile file(path);
+	if (!file.open(QIODevice::WriteOnly))
+		return false;
+	const QByteArray bytes = QByteArray::fromStdString(content);
+	return file.write(bytes) == bytes.size() && file.commit();
+}
+
+// Prompt for a path and write CSV text atomically. A cancelled dialog or a write
+// failure never leaves a partial file behind.
+void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content) {
+	if (content.empty()) {
+		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
+		return;
+	}
+	QString path = QFileDialog::getSaveFileName(parent, "Export Data", suggestedName, "CSV File (*.csv)");
+	if (path.isEmpty())
+		return;
+	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
+		path += ".csv";
+	QSaveFile file(path);
+	if (!file.open(QIODevice::WriteOnly)) {
+		QMessageBox::warning(parent, "Export failed",
+							 QString("Could not open the file for writing:\n%1").arg(path));
+		return;
+	}
+	const QByteArray bytes = QByteArray::fromStdString(content);
+	if (file.write(bytes) != bytes.size() || !file.commit()) {
+		QMessageBox::warning(parent, "Export failed",
+							 QString("Could not write the data to:\n%1").arg(path));
+	}
+}
+
 void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const SceneLoadedData& item) {
 	auto* row = parent ? new QTreeWidgetItem(parent) : new QTreeWidgetItem(tree);
 	row->setText(0, QString::fromStdString(item.category));
@@ -71,7 +294,8 @@ bool e2eDialogsSuppressed() {
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT");
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR");
 }
 
 // modal boxes deadlock the env-gated smoke runs, which have no user to
@@ -4768,6 +4992,27 @@ void MainWindow::startSimulation() {
 void MainWindow::onSimulationFinished() {
 	refreshRunResults();
 
+	// verification hook: write every CSV export from the completed run, then exit
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")) {
+		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_EXPORT_DIR");
+		const QStringList ids = allTrainIds();
+		// Skip an export with no rows, matching the interactive "nothing to export".
+		const auto dump = [&dir](const QString& file, const std::string& content) {
+			return content.empty() ? true : writeCsvFile(dir + "/" + file, content);
+		};
+		bool ok = true;
+		ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
+		ok &= dump("timetable.csv", buildTimetableCsv(ids));
+		ok &= dump("blocking_time.csv", buildBlockingTimeCsv(ids));
+		ok &= dump("run_summary.csv", buildRunSummaryCsv());
+		std::fprintf(ok ? stdout : stderr, ok ? "E2E_CSV_EXPORT_OK\n" : "E2E_CSV_EXPORT_FAIL\n");
+		std::fflush(stdout);
+		std::fflush(stderr);
+		clearSimulationWorker(false);
+		QCoreApplication::exit(ok ? 0 : 2);
+		return;
+	}
+
 	// print last services
 	simulation.printLastTrainServicePathDiagram();
 
@@ -5697,7 +5942,20 @@ void MainWindow::setupRunResultsDock() {
 		"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
 		"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
 	m_runResultsTable->horizontalHeader()->setStretchLastSection(true);
-	m_runResultsDock->setWidget(m_runResultsTable);
+
+	QWidget* container = new QWidget(m_runResultsDock);
+	QVBoxLayout* containerLayout = new QVBoxLayout(container);
+	containerLayout->setContentsMargins(0, 0, 0, 0);
+	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
+	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
+		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv());
+	});
+	QHBoxLayout* toolRow = new QHBoxLayout();
+	toolRow->addWidget(exportCsvBtn);
+	toolRow->addStretch();
+	containerLayout->addLayout(toolRow);
+	containerLayout->addWidget(m_runResultsTable);
+	m_runResultsDock->setWidget(container);
 	addDockWidget(Qt::BottomDockWidgetArea, m_runResultsDock);
 	m_runResultsDock->hide();
 }
@@ -7151,6 +7409,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 					maxRangeX = std::max(maxRangeX, position);
 				}
 				trainSeries->setName(QString::fromStdString(regional_train[i].trainDescription));
+				trainSeries->setProperty("trainId", QString::fromStdString(regional_train[i].trainDescription));
 				seriesToAdd.append(trainSeries);
 			}
 		}
@@ -7217,29 +7476,15 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 		seriesToAdd.at(i)->attachAxis(axisY);
 	}
 
-	// create chartView
-	QChartView* chartView = new QChartView(chart);
-	chartView->setRenderHint(QPainter::Antialiasing);
-
-	// create layout for dialog
-	QVBoxLayout* chartWindowLayout = new QVBoxLayout();
-
-	// add chartView to layout
-	chartWindowLayout->addWidget(chartView);
-
-	// create dialog (second window)
-	QDialog* chartWindow = new QDialog(this);
-	chartWindow->setModal(false);
-	chartWindow->setWindowTitle(title);
-
-	// set layout of dialog
-	chartWindow->setLayout(chartWindowLayout);
-
-	// adjust window size
-	chartWindow->resize(1000, 600);
-
-	// open dialog
-	chartWindow->show();
+	// show the chart in the shared diagram window, which adds the train filter
+	// panel, hover and click identification, and PNG and CSV export
+	DiagramWindow* win = new DiagramWindow(title, this);
+	win->setChart(chart);
+	win->setCsvProvider(&buildTrajectoryCsv, "train_path.csv");
+	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
+	win->setTimeAxisX(true, m_startOffsetSeconds);
+	win->setAttribute(Qt::WA_DeleteOnClose);
+	win->show();
 }
 
 void MainWindow::askForTrainPathDiagram() {
@@ -7650,6 +7895,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 														 train.earliestActiveTrajectoryIndex, train.End_Time)) {
 			QLineSeries* series = new QLineSeries();
 			series->setName(QString::fromStdString(train.trainDescription));
+			series->setProperty("trainId", QString::fromStdString(train.trainDescription));
 			for (int i = segment.first; i <= segment.last; i++) {
 				double tSec = trajectoryTimeSeconds(i, timestep);
 				double dist = train.positionKmAt(i);
@@ -7668,9 +7914,25 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 
 	DiagramWindow* win = new DiagramWindow(titles[mode], this);
 	win->setChart(chart);
+	win->setCsvProvider(&buildTrajectoryCsv, "trajectory.csv");
+	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(mode == 1 || mode == 2, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
+}
+
+// Centre the network view on the train selected in a diagram, when it is present.
+void MainWindow::focusTrainInScene(const QString& trainId) {
+	const std::string id = trainId.toStdString();
+	for (TrainItemGroup* item : allTrains) {
+		if (item && item->train && item->train->trainDescription == id) {
+			networkView->centerOn(item->sceneBoundingRect().center());
+			statusBar()->showMessage(QString("Selected train %1 in the network view").arg(trainId), 5000);
+			return;
+		}
+	}
+	statusBar()->showMessage(
+		QString("Train %1 is not shown in the current network view").arg(trainId), 5000);
 }
 
 void MainWindow::showTimetableTable() {
@@ -7734,6 +7996,12 @@ void MainWindow::showTimetableTable() {
 	}
 	table->resizeColumnsToContents();
 	layout->addWidget(table);
+
+	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", dlg);
+	connect(exportCsvBtn, &QPushButton::clicked, dlg, [dlg]() {
+		saveCsvInteractive(dlg, "timetable.csv", buildTimetableCsv(allTrainIds()));
+	});
+	layout->addWidget(exportCsvBtn);
 	dlg->show();
 }
 
@@ -7751,6 +8019,7 @@ void MainWindow::showDelayDiagram() {
 		QLineSeries* series = new QLineSeries();
 		const QString trainName = QString::fromStdString(regional_train[i].trainDescription);
 		series->setName(trainName + " (arrival delay)");
+		series->setProperty("trainId", trainName);
 		bool hasData = false;
 		for (const TimetableResultRow& row : rows) {
 			if (row.trainId != regional_train[i].trainDescription || !row.arrivalDelaySeconds.available)
@@ -7774,6 +8043,8 @@ void MainWindow::showDelayDiagram() {
 
 	DiagramWindow* win = new DiagramWindow("Arrival delay along journey (minutes)", this);
 	win->setChart(chart);
+	win->setCsvProvider(&buildTimetableCsv, "timetable.csv");
+	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(false, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
@@ -7794,12 +8065,16 @@ void MainWindow::showTimetableGraph() {
 		const QString trainName = QString::fromStdString(trainId);
 		QLineSeries* simulatedArrival = new QLineSeries();
 		simulatedArrival->setName(trainName + " (simulated arrival)");
+		simulatedArrival->setProperty("trainId", trainName);
 		QLineSeries* plannedArrival = new QLineSeries();
 		plannedArrival->setName(trainName + " (planned arrival)");
+		plannedArrival->setProperty("trainId", trainName);
 		QLineSeries* simulatedDeparture = new QLineSeries();
 		simulatedDeparture->setName(trainName + " (simulated departure)");
+		simulatedDeparture->setProperty("trainId", trainName);
 		QLineSeries* plannedDeparture = new QLineSeries();
 		plannedDeparture->setName(trainName + " (planned departure)");
+		plannedDeparture->setProperty("trainId", trainName);
 
 		for (const TimetableResultRow& row : rows) {
 			if (row.trainId != trainId)
@@ -7848,6 +8123,8 @@ void MainWindow::showTimetableGraph() {
 
 	DiagramWindow* win = new DiagramWindow("Train graph: planned vs simulated arrival/departure", this);
 	win->setChart(chart);
+	win->setCsvProvider(&buildTimetableCsv, "timetable.csv");
+	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
@@ -7940,6 +8217,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		QLineSeries* series = new QLineSeries();
 		std::string legendKey = segment.trainName + suffixForStyle(segment.style);
 		series->setName(QString::fromStdString(legendKey));
+		series->setProperty("trainId", QString::fromStdString(segment.trainName));
 		bool firstLegendEntry = legendEntries.find(legendKey) == legendEntries.end();
 
 		QPen pen(colorForStyle(segment.style));
@@ -7980,6 +8258,8 @@ void MainWindow::showBlockingTimeDiagram() {
 
 	DiagramWindow* win = new DiagramWindow("Blocking-time overlay", this);
 	win->setChart(chart);
+	win->setCsvProvider(&buildBlockingTimeCsv, "blocking_time.csv");
+	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();

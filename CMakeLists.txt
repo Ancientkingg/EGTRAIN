@@ -121,6 +121,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
+    ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
@@ -177,6 +178,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/Util.hpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.h
     ${SRC_DIR}/util/SpeedFormat.h
+    ${SRC_DIR}/util/CsvWriter.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
     ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
@@ -347,6 +349,12 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
+    add_executable(test_csvwriter
+        ${SRC_DIR}/tests/test_csvwriter.cpp
+        ${SRC_DIR}/util/CsvWriter.cpp)
+    target_include_directories(test_csvwriter PRIVATE ${SRC_DIR})
+    add_test(NAME test_csvwriter COMMAND test_csvwriter)
+
     add_executable(test_consolestream
         ${SRC_DIR}/tests/test_consolestream.cpp
         ${SRC_DIR}/widgets/ConsoleWidget.cpp)
@@ -457,6 +465,9 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 240)
+	add_test(NAME test_csv_export_smoke
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
+	set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
 	add_test(NAME test_ci_workflow
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds

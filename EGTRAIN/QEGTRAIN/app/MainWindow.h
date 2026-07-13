@@ -604,6 +604,7 @@ private slots:
 	void showTimetableTable();
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
+	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
 signals:
 	void zoomed(); // zoom
