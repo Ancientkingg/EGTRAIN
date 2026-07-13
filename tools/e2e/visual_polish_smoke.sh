@@ -25,4 +25,8 @@ for label in "Planned arrival" "Planned departure" "Simulated arrival" "Simulate
 		exit 1
 	fi
 done
+if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"; then
+	echo "dead Show Graph action still present in MainWindow.ui" >&2
+	exit 1
+fi
 echo "visual polish e2e passed: $SHOT"
