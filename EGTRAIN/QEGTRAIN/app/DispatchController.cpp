@@ -688,6 +688,7 @@ else regional_train[0].max_train_speed = 33.61;*/
 			// regional_train[j].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
 			// The one that run Rafael is the following
 			regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
+			regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			regional_train[j].recordStationPassagesAtTime(t);
 
 			// Function to debug the OL list
@@ -924,6 +925,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			// regional_train[j].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
 			// The one that run Rafael is the following
 			regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
+			regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			regional_train[j].recordStationPassagesAtTime(t);
 
 			// only one thread writing to file at a time
@@ -1160,48 +1162,27 @@ void DispatchController::printTimetableGraph() {
 										x : time_points,\
 										y : %position% ,\
 										mode : 'lines+markers',\
-										connectgaps : true},";
+										connectgaps : false},";
 
 			for (int i = 0; i < numRegions; i++) {
 				std::string train_part = train_part_template;
 				std::string train_name = regional_train[i].trainDescription;
 				std::vector<std::string> position_y;
+				const bool serviceLineMatch = !regional_train[i].trainDescription.rfind(it + '-', 0);
 
-				if (!regional_train[i].trainDescription.rfind(it + '-', 0)) {
-
-					for (int t = 0; t < initial_variables.times; t++) {
-
-						// end of leg
-						if ((regional_train[i].instant_spatial_position[t] == -9999) || (t == regional_train[i].End_Time + 1)) {
-							;
-						} else if (t >= regional_train[i].prevIntendedDepTime) {
-							if (regional_train[i].instant_spatial_position[t] == 0) {
-								position_y.push_back(",");
-							}
-
-							// non-reversed route (same with/without jump)
-							else if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-								position_y.push_back(to_string(regional_train[i].instant_spatial_position[t]) + ",");
-								// fileout << regional_train[i].instant_spatial_position[t] << "\t";
-							}
-							// reversed route without jump
-							else if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first == 0) {
-								position_y.push_back(to_string(train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) + ",");
-								// fileout << (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) << "\t";
-							}
-							// reversed route with jump
-							else {
-								position_y.push_back(to_string((train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) - (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000)) + ",");
-
-								// fileout << ((train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) - (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
-							}
-						}
-
-						else {
-							position_y.push_back(",");
-							// fileout << "\t"; // empty cells before start of service
-						}
+				for (int t = 0; t < initial_variables.times; t++) {
+					if (!serviceLineMatch || !regional_train[i].isTrajectorySampleValid(t)) {
+						position_y.push_back("null,");
+						continue;
 					}
+
+					double position = regional_train[i].instant_spatial_position[t];
+					if (train_route[regional_train[i].indexOfRoute].reversed_direction) {
+						position = train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - position;
+						if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first != 0)
+							position -= train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000;
+					}
+					position_y.push_back(to_string(position) + ",");
 				}
 				// replace train name
 				size_t pos = train_part.find("%trainName%");
@@ -1295,7 +1276,7 @@ void DispatchController::printTimetableGraph() {
 					x : %time%,\
 					y : %position% ,\
 					mode : 'lines+markers',\
-					connectgaps : true\
+					connectgaps : false\
 				},";
 			std::string train_name = regional_train[i].trainDescription;
 			std::vector<std::string> timetable;
@@ -1314,34 +1295,18 @@ void DispatchController::printTimetableGraph() {
 				timepoint = "'" + timepoint + simTime + "',";
 
 				timetable.push_back(timepoint);
-				// end of leg
-				if ((regional_train[i].instant_spatial_position[t] == -9999) || (t == regional_train[i].End_Time + 1)) {
-					;
-				} else if (t >= regional_train[i].prevIntendedDepTime) {
-					if (regional_train[i].instant_spatial_position[t] == 0) {
-						position_y.push_back(",");
-					}
-
-					// non-reversed route (same with/without jump)
-					else if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-						position_y.push_back(to_string(regional_train[i].instant_spatial_position[t]) + ",");
-						// fileout << regional_train[i].instant_spatial_position[t] << "\t";
-					}
-					// reversed route without jump
-					else if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first == 0) {
-						position_y.push_back(to_string(train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) + ",");
-						// fileout << (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) << "\t";
-					}
-					// reversed route with jump
-					else {
-						position_y.push_back(to_string((train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) - (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000)) + ",");
-
-						// fileout << ((train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) - (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
-					}
-				} else {
-					position_y.push_back(",");
-					// fileout << "\t"; // empty cells before start of service
+				if (!regional_train[i].isTrajectorySampleValid(t)) {
+					position_y.push_back("null,");
+					continue;
 				}
+
+				double position = regional_train[i].instant_spatial_position[t];
+				if (train_route[regional_train[i].indexOfRoute].reversed_direction) {
+					position = train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - position;
+					if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first != 0)
+						position -= train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000;
+				}
+				position_y.push_back(to_string(position) + ",");
 			}
 
 			// replace train name
@@ -1444,7 +1409,7 @@ void DispatchController::printCommonTimetableGraph() {
 									x : time_points,\
 									y : %position% ,\
 									mode : 'lines+markers',\
-									connectgaps : true},";
+									connectgaps : false},";
 
 	for (int i = 0; i < numRegions; i++) {
 		std::string train_part = train_part_template;
@@ -1454,50 +1419,21 @@ void DispatchController::printCommonTimetableGraph() {
 		if (regional_train[i].trainDescription.rfind("F-", 0)) {
 
 			for (int t = 0; t < initial_variables.times; t++) {
-
-				// end of leg
-
-				if ((regional_train[i].instant_spatial_position[t] == -9999) || (t == regional_train[i].End_Time + 1)) {
-					;
-				} else if (t >= regional_train[i].prevIntendedDepTime) {
-					if (regional_train[i].instant_spatial_position[t] == 0) {
-						position_y.push_back(",");
-					}
-					// non-reversed route (same with/without jump)
-					else if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-						if ((regional_train[i].instant_spatial_position[t] >= limit_l) && (regional_train[i].instant_spatial_position[t] <= limit_r)) {
-
-							position_y.push_back(to_string(regional_train[i].instant_spatial_position[t]) + ",");
-						} else
-							position_y.push_back(",");
-					}
-					// reversed route without jump
-					else if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first == 0) {
-						int abs_position = train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t];
-						if ((abs_position >= limit_l) && (abs_position <= limit_r)) {
-							position_y.push_back(to_string(abs_position) + ",");
-							// fileout << (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) << "\t";
-						} else
-							position_y.push_back(",");
-					}
-					// reversed route with jump
-					else {
-						int abs_position = (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) - (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000);
-						if ((abs_position >= limit_l) && (abs_position <= limit_r)) {
-
-							position_y.push_back(to_string(abs_position) + ",");
-
-							// fileout << ((train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) - (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
-						} else
-							position_y.push_back(",");
-					}
-
+				if (!regional_train[i].isTrajectorySampleValid(t)) {
+					position_y.push_back("null,");
+					continue;
 				}
 
-				else {
-					position_y.push_back(",");
-					// fileout << "\t"; // empty cells before start of service
+				double position = regional_train[i].instant_spatial_position[t];
+				if (train_route[regional_train[i].indexOfRoute].reversed_direction) {
+					position = train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - position;
+					if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first != 0)
+						position -= train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first * 1000;
 				}
+				if (position >= limit_l && position <= limit_r)
+					position_y.push_back(to_string(position) + ",");
+				else
+					position_y.push_back("null,");
 			}
 
 			// replace train name

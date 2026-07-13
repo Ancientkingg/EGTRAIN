@@ -1,5 +1,42 @@
 #include "util/TrajectoryUtil.h"
 
+#include <algorithm>
+#include <cmath>
+
 double trajectoryTimeSeconds(int index, double timestep) {
-    return index * timestep;
+	return index * timestep;
+}
+
+bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
+							 int sampleCount, double positionMeters) {
+	return index >= 0 && index < sampleCount && index >= activeFirst && index <= activeLast &&
+		   std::isfinite(positionMeters) && positionMeters != -9999;
+}
+
+std::vector<TrajectorySegment> validTrajectorySegments(
+		const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
+	std::vector<TrajectorySegment> segments;
+	if (positionsMeters.empty() || activeFirst > activeLast)
+		return segments;
+
+	const int first = std::max(0, activeFirst);
+	const int last = std::min(activeLast, static_cast<int>(positionsMeters.size()) - 1);
+	if (first > last)
+		return segments;
+
+	int segmentFirst = -1;
+	for (int index = first; index <= last; ++index) {
+		if (isValidTrajectorySample(index, first, last,
+								static_cast<int>(positionsMeters.size()), positionsMeters[index])) {
+			if (segmentFirst < 0)
+				segmentFirst = index;
+		} else if (segmentFirst >= 0) {
+			segments.push_back({segmentFirst, index - 1});
+			segmentFirst = -1;
+		}
+	}
+	if (segmentFirst >= 0)
+		segments.push_back({segmentFirst, last});
+
+	return segments;
 }

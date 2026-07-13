@@ -7043,67 +7043,33 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 	chart->setTitleBrush(QBrush(Qt::black));
 	chart->setTitle(title);
 
-	// create series for each train
-	bool NoPrint[300];
-	for (int k = 0; k < 300; k++) {
-		NoPrint[k] = false;
-	}
-
 	for (int i = 0; i < numRegions; i++) {
 		// check route corridor
-		if (train_route[regional_train[i].indexOfRoute].corridor == corridor) {
-			QLineSeries* trainSeries = new QLineSeries();
-
-			for (int t = 0; t < initial_variables.times; t++) {
-				if ((regional_train[i].instant_spatial_position[t] == -9999) || (t == regional_train[i].End_Time + 1))
-					NoPrint[i] = true;
-
-				if ((regional_train[i].instant_spatial_position[t] != -9999) && (NoPrint[i] == 0))
-					// non-reversed route (same with/without jump)
+		if (train_route[regional_train[i].indexOfRoute].corridor == corridor &&
+			regional_train[i].earliestActiveTrajectoryIndex >= 0) {
+			const auto segments = validTrajectorySegments(regional_train[i].instant_spatial_position,
+														 regional_train[i].earliestActiveTrajectoryIndex,
+														 regional_train[i].End_Time);
+			for (const auto& segment : segments) {
+				QLineSeries* trainSeries = new QLineSeries();
+				for (int t = segment.first; t <= segment.last; ++t) {
+					double position = regional_train[i].instant_spatial_position[t];
 					if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-						*trainSeries << QPointF(t * timestep, (regional_train[i].instant_spatial_position[t]) / 1000);
+						position /= 1000;
+					} else {
+						position = (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - position) / 1000;
+						if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first != 0) {
+							position -= train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
+							corridorJumpX.first = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
+							corridorJumpX.second = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.second;
+						}
 					}
-					// reversed route without jump
-					else if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first == 0) {
-						*trainSeries << QPointF(t * timestep, (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) / 1000);
-					}
-					// reversed route with jump
-					else {
-						*trainSeries << QPointF(t * timestep, ((train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - regional_train[i].instant_spatial_position[t]) / 1000) - train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first);
-						corridorJumpX.first = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
-						corridorJumpX.second = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.second;
-					}
-
-				else
-					break;
-			}
-
-			// check if series has points (simulated train)
-			if (trainSeries->count() != 0) {
-				// update X range
-				if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-					if (trainSeries->pointsVector().at(0).y() < minRangeX) {
-						minRangeX = trainSeries->pointsVector().at(0).y();
-					}
-					if (trainSeries->pointsVector().at(trainSeries->count() - 1).y() > maxRangeX) {
-						maxRangeX = trainSeries->pointsVector().at(trainSeries->count() - 1).y();
-					}
-				} else {
-					if (trainSeries->pointsVector().at(trainSeries->count() - 1).y() < minRangeX) {
-						minRangeX = trainSeries->pointsVector().at(trainSeries->count() - 1).y();
-					}
-					if (trainSeries->pointsVector().at(0).y() > maxRangeX) {
-						maxRangeX = trainSeries->pointsVector().at(0).y();
-					}
+					*trainSeries << QPointF(t * timestep, position);
+					minRangeX = std::min(minRangeX, position);
+					maxRangeX = std::max(maxRangeX, position);
 				}
-
 				trainSeries->setName(QString::fromStdString(regional_train[i].trainDescription));
-
-				// add to list of series
 				seriesToAdd.append(trainSeries);
-			} else {
-				// delete series
-				delete trainSeries;
 			}
 		}
 	}
@@ -7592,26 +7558,29 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	QChart* chart = new QChart();
 	chart->setTitle(titles[mode]);
 
-	// one series per train; legend distinguishes them
+	// one series per contiguous segment; legend distinguishes trains
 	for (int tr = 0; tr < numRegions; tr++) {
 		Train& train = regional_train[tr];
-		int n = train.trajectorySize();
-		if (n == 0)
+		if (train.trajectorySize() == 0 || train.earliestActiveTrajectoryIndex < 0)
 			continue;
-		QLineSeries* series = new QLineSeries();
-		series->setName(QString::fromStdString(train.trainDescription));
-		for (int i = 0; i < n; i++) {
-			double tSec = trajectoryTimeSeconds(i, timestep);
-			double dist = train.positionKmAt(i);
-			double spd = train.speedKmhAt(i);
-			if (mode == 0)
-				series->append(dist, spd); // x: distance (km), y: speed (km/h)
-			else if (mode == 1)
-				series->append(tSec, spd); // x: time (s),      y: speed (km/h)
-			else
-				series->append(tSec, dist); // x: time (s),      y: distance (km)
+
+		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position,
+														 train.earliestActiveTrajectoryIndex, train.End_Time)) {
+			QLineSeries* series = new QLineSeries();
+			series->setName(QString::fromStdString(train.trainDescription));
+			for (int i = segment.first; i <= segment.last; i++) {
+				double tSec = trajectoryTimeSeconds(i, timestep);
+				double dist = train.positionKmAt(i);
+				double spd = train.speedKmhAt(i);
+				if (mode == 0)
+					series->append(dist, spd); // x: distance (km), y: speed (km/h)
+				else if (mode == 1)
+					series->append(tSec, spd); // x: time (s),      y: speed (km/h)
+				else
+					series->append(tSec, dist); // x: time (s),      y: distance (km)
+			}
+			chart->addSeries(series);
 		}
-		chart->addSeries(series);
 	}
 	chart->createDefaultAxes();
 

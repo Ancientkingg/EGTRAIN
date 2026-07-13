@@ -1,6 +1,7 @@
 #ifndef Rolling_Stock_hpp
 #define Rolling_Stock_hpp
 #include "simulation/Signalling.h"
+#include "util/TrajectoryUtil.h"
 
 // GUI - Virtual Coupling notifications
 #include <vector>
@@ -680,6 +681,7 @@ public:
 	int numOverlaps; // This is the number of train overlaps
 	double Final_Delay;
 	int End_Time;						// Time instant in which the train exits simulation
+	int earliestActiveTrajectoryIndex = -1;		// First simulation sample in the active run
 	double HwMatrix[100][1000];			// This matrix contains on the columns the locations crossed by the train route, while on the columns the trains that have block sections in common
 	list<Location> LocationNames;		// This LocationNames contain the name of block sections, or stations crossed by the train along its route
 	list<string> ConflictingTrains;		// These are the trains which have common block sections.
@@ -7856,6 +7858,18 @@ public:
 	// number of trajectory samples available
 	int trajectorySize() const {
 		return static_cast<int>(instant_train_speed.size());
+	}
+
+	bool isTrajectorySampleValid(int index) const {
+		if (earliestActiveTrajectoryIndex < 0 || index < 0 || index >= static_cast<int>(instant_spatial_position.size()))
+			return false;
+		return ::isValidTrajectorySample(index, earliestActiveTrajectoryIndex, End_Time,
+									static_cast<int>(instant_spatial_position.size()), instant_spatial_position[index]);
+	}
+
+	void recordEarliestActiveTrajectoryIndex(int index) {
+		if (earliestActiveTrajectoryIndex < 0 && CanEnter)
+			earliestActiveTrajectoryIndex = index;
 	}
 
 	// signalling functions that need train info to occupy specific signalling_block_sections
