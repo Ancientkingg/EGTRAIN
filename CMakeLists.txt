@@ -358,7 +358,10 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND test_sceneimporter
 		${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
 		${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
-		${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
+		${SRC_DIR}/Input/Input_EGTRAIN_Netherlands
+		${SRC_DIR}/Input/Input_EGTRAIN_Banedanmark
+		${SRC_DIR}/Input/Input_EGTRAIN_Paimpol
+		"${SRC_DIR}/Input/Input_EGTRAIN_Paimpol - alternativeJourneys")
 
 	add_executable(test_scenewriter
 		${SRC_DIR}/tests/test_scenewriter.cpp

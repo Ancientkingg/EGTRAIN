@@ -11,6 +11,7 @@
 #include "graphics/VisualPolish.h"
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
+#include "scene/SceneImporter.h"
 #include "scene/TrackPreview.h"
 #include "io/geocoding.h"
 #include <QtCharts/QLineSeries>
@@ -36,6 +37,7 @@
 #include <QStringList>
 #include <QTemporaryDir>
 #include <cstdio>
+#include <limits>
 #include <map>
 
 // utilization of GUI
@@ -59,7 +61,8 @@ bool e2eDialogsSuppressed() {
 	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW");
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT");
 }
 
 // modal boxes deadlock the env-gated smoke runs, which have no user to
@@ -424,6 +427,101 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 
+	// train-unit editor: one list/detail dock for physical values and traction
+	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
+	m_trainUnitDock = new QDockWidget("Train Units", this);
+	QWidget* trainUnitWidget = new QWidget(m_trainUnitDock);
+	QHBoxLayout* trainUnitLayout = new QHBoxLayout(trainUnitWidget);
+	QWidget* trainUnitListPane = new QWidget(trainUnitWidget);
+	QVBoxLayout* trainUnitListLayout = new QVBoxLayout(trainUnitListPane);
+	trainUnitListLayout->addWidget(new QLabel("Train Units", trainUnitListPane));
+	m_trainUnitListWidget = new QListWidget(trainUnitListPane);
+	trainUnitListLayout->addWidget(m_trainUnitListWidget);
+	QHBoxLayout* trainUnitButtonLayout = new QHBoxLayout();
+	m_addTrainUnitButton = new QPushButton("Add Unit", trainUnitListPane);
+	m_duplicateTrainUnitButton = new QPushButton("Duplicate", trainUnitListPane);
+	m_deleteTrainUnitButton = new QPushButton("Delete", trainUnitListPane);
+	trainUnitButtonLayout->addWidget(m_addTrainUnitButton);
+	trainUnitButtonLayout->addWidget(m_duplicateTrainUnitButton);
+	trainUnitButtonLayout->addWidget(m_deleteTrainUnitButton);
+	trainUnitListLayout->addLayout(trainUnitButtonLayout);
+	trainUnitLayout->addWidget(trainUnitListPane);
+
+	QWidget* trainUnitDetailPane = new QWidget(trainUnitWidget);
+	QVBoxLayout* trainUnitDetailLayout = new QVBoxLayout(trainUnitDetailPane);
+	trainUnitDetailLayout->addWidget(new QLabel("Train Unit Id", trainUnitDetailPane));
+	m_trainUnitIdEdit = new QLineEdit(trainUnitDetailPane);
+	trainUnitDetailLayout->addWidget(m_trainUnitIdEdit);
+
+	QFormLayout* trainPhysicalLayout = new QFormLayout();
+	const char* physicalLabels[] = {
+		"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
+		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
+		"Resistance coefficient", "Jerk (m/s³)", "Length (m)"};
+	for (int i = 0; i < 9; ++i) {
+		auto* edit = new QDoubleSpinBox(trainUnitDetailPane);
+		edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
+		edit->setDecimals(std::numeric_limits<double>::max_digits10);
+		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
+		edit->setKeyboardTracking(false);
+		m_trainUnitPhysicalEdits[static_cast<size_t>(i)] = edit;
+		trainPhysicalLayout->addRow(new QLabel(physicalLabels[i], trainUnitDetailPane), edit);
+	}
+	trainUnitDetailLayout->addLayout(trainPhysicalLayout);
+
+	trainUnitDetailLayout->addWidget(new QLabel("Source data file", trainUnitDetailPane));
+	m_trainUnitSourceDataLabel = new QLabel(trainUnitDetailPane);
+	m_trainUnitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataLabel);
+	trainUnitDetailLayout->addWidget(new QLabel("Source traction file", trainUnitDetailPane));
+	m_trainUnitSourceTractionLabel = new QLabel(trainUnitDetailPane);
+	m_trainUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionLabel);
+
+	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
+	m_trainUnitTractionTable = new QTableWidget(0, 5, trainUnitDetailPane);
+	m_trainUnitTractionTable->setHorizontalHeaderLabels(QStringList()
+		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
+	m_trainUnitTractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_trainUnitTractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_trainUnitTractionTable->horizontalHeader()->setStretchLastSection(true);
+	trainUnitDetailLayout->addWidget(m_trainUnitTractionTable);
+	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
+	m_addTrainUnitTractionButton = new QPushButton("Add Traction Row", trainUnitDetailPane);
+	m_removeTrainUnitTractionButton = new QPushButton("Delete Traction Row", trainUnitDetailPane);
+	tractionButtonLayout->addWidget(m_addTrainUnitTractionButton);
+	tractionButtonLayout->addWidget(m_removeTrainUnitTractionButton);
+	trainUnitDetailLayout->addLayout(tractionButtonLayout);
+	trainUnitDetailLayout->addStretch();
+
+	QScrollArea* trainUnitDetailScroll = new QScrollArea(trainUnitWidget);
+	trainUnitDetailScroll->setWidgetResizable(true);
+	trainUnitDetailScroll->setFrameShape(QFrame::NoFrame);
+	trainUnitDetailScroll->setWidget(trainUnitDetailPane);
+	trainUnitLayout->addWidget(trainUnitDetailScroll);
+
+	m_trainUnitDock->setWidget(trainUnitWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_trainUnitDock->toggleViewAction());
+	connect(m_trainUnitListWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		updateTrainUnitDetailPanel();
+	});
+	connect(m_trainUnitIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitIdEdit);
+	for (int i = 0; i < 9; ++i) {
+		connect(m_trainUnitPhysicalEdits[static_cast<size_t>(i)], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+				this, [this, i](double) { commitTrainUnitPhysical(i); });
+	}
+	connect(m_addTrainUnitButton, &QPushButton::clicked, this, &MainWindow::addTrainUnit);
+	connect(m_duplicateTrainUnitButton, &QPushButton::clicked, this, &MainWindow::duplicateTrainUnit);
+	connect(m_deleteTrainUnitButton, &QPushButton::clicked, this, &MainWindow::deleteTrainUnit);
+	connect(m_addTrainUnitTractionButton, &QPushButton::clicked, this, &MainWindow::addTrainUnitTractionRow);
+	connect(m_removeTrainUnitTractionButton, &QPushButton::clicked, this, &MainWindow::removeTrainUnitTractionRow);
+	connect(m_trainUnitTractionTable, &QTableWidget::currentCellChanged, this, [this](int, int, int, int) {
+		if (m_removeTrainUnitTractionButton)
+			m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
+	});
+
 	// composition editor: dockable panel to view and edit train compositions.
 	// this is the first editable scene panel, so it sets the pattern later
 	// panes follow: a read-only list picks the record, a details area with
@@ -471,6 +569,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_compositionDock->setWidget(compositionWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
+	tabifyDockWidget(m_trainUnitDock, m_compositionDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_compositionDock->toggleViewAction());
 
@@ -744,6 +843,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 								 .arg(initial_variables.N_Routes));
 
 	refreshCompositionPanel();
+	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 }
@@ -805,6 +905,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
 	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	renderTrackPreview(scenePath);
@@ -884,6 +985,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	return true;
@@ -939,6 +1041,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	return true;
@@ -1011,7 +1114,9 @@ void MainWindow::updateSceneActions() {
 	if (m_saveSceneAsAction)
 		m_saveSceneAsAction->setEnabled(m_sceneLoaded);
 	if (m_runSceneAction)
-		m_runSceneAction->setEnabled(m_sceneLoaded);
+		m_runSceneAction->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
+	if (ui->actionSimulationStart)
+		ui->actionSimulationStart->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
 	if (m_recentScenesMenu) {
 		QSettings settings;
 		m_recentScenesMenu->setEnabled(!settings.value(kRecentScenesKey).toStringList().isEmpty());
@@ -1026,6 +1131,7 @@ void MainWindow::refreshValidationPanel() {
 		if (m_validationStatusLabel)
 			m_validationStatusLabel->clear();
 		refreshLoadedDataTree();
+		updateSceneActions();
 		return;
 	}
 
@@ -1058,6 +1164,7 @@ void MainWindow::refreshValidationPanel() {
 	if (m_validationStatusLabel)
 		m_validationStatusLabel->setText(message);
 	refreshLoadedDataTree();
+	updateSceneActions();
 }
 
 void MainWindow::refreshLoadedDataTree() {
@@ -1075,6 +1182,315 @@ void MainWindow::refreshLoadedDataTree() {
 	}
 	m_loadedDataTree->resizeColumnToContents(0);
 	m_loadedDataTree->resizeColumnToContents(1);
+}
+
+void MainWindow::refreshTrainUnitPanel() {
+	const bool hasScene = m_sceneLoaded;
+	if (m_trainUnitListWidget) {
+		const int previousRow = m_trainUnitListWidget->currentRow();
+		const QSignalBlocker blocker(m_trainUnitListWidget);
+		m_trainUnitListWidget->clear();
+		if (hasScene) {
+			for (const auto& unit : m_sceneModel.trainUnits)
+				m_trainUnitListWidget->addItem(QString::fromStdString(unit.id));
+		}
+		const int rowCount = m_trainUnitListWidget->count();
+		int rowToSelect = -1;
+		if (rowCount > 0)
+			rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1);
+		m_trainUnitListWidget->setCurrentRow(rowToSelect);
+		m_trainUnitListWidget->setEnabled(hasScene);
+	}
+	if (m_addTrainUnitButton)
+		m_addTrainUnitButton->setEnabled(hasScene);
+	updateTrainUnitDetailPanel();
+}
+
+void MainWindow::updateTrainUnitDetailPanel() {
+	const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
+	const bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.trainUnits.size());
+	const SceneTrainUnit* unit = hasSelection ? &m_sceneModel.trainUnits[row] : nullptr;
+
+	if (m_trainUnitIdEdit) {
+		const QSignalBlocker blocker(m_trainUnitIdEdit);
+		m_trainUnitIdEdit->setText(unit ? QString::fromStdString(unit->id) : QString());
+		m_trainUnitIdEdit->setEnabled(hasSelection);
+	}
+	const double values[] = {
+		unit ? unit->physical.mass_of_traction_unit_kg : 0.0,
+		unit ? unit->physical.mass_of_a_wagon_kg : 0.0,
+		unit ? unit->physical.number_of_wagons : 0.0,
+		unit ? unit->physical.max_speed_ms : 0.0,
+		unit ? unit->physical.max_deceleration_ms2 : 0.0,
+		unit ? unit->physical.frontal_area_m2 : 0.0,
+		unit ? unit->physical.resistance_coefficient : 0.0,
+		unit ? unit->physical.jerk_ms3 : 0.0,
+		unit ? unit->physical.length_m : 0.0};
+	for (size_t index = 0; index < m_trainUnitPhysicalEdits.size(); ++index) {
+		if (!m_trainUnitPhysicalEdits[index])
+			continue;
+		const QSignalBlocker blocker(m_trainUnitPhysicalEdits[index]);
+		m_trainUnitPhysicalEdits[index]->setValue(values[index]);
+		m_trainUnitPhysicalEdits[index]->setEnabled(hasSelection);
+	}
+	if (m_trainUnitSourceDataLabel) {
+		m_trainUnitSourceDataLabel->setText(unit && !unit->sourceDataFile.empty()
+			? QString::fromStdString(unit->sourceDataFile) : QString("(none)"));
+	}
+	if (m_trainUnitSourceTractionLabel) {
+		m_trainUnitSourceTractionLabel->setText(unit && !unit->sourceTractionFile.empty()
+			? QString::fromStdString(unit->sourceTractionFile) : QString("(none)"));
+	}
+	if (m_duplicateTrainUnitButton)
+		m_duplicateTrainUnitButton->setEnabled(hasSelection);
+	if (m_deleteTrainUnitButton)
+		m_deleteTrainUnitButton->setEnabled(hasSelection);
+	if (m_addTrainUnitTractionButton)
+		m_addTrainUnitTractionButton->setEnabled(hasSelection);
+	if (m_removeTrainUnitTractionButton)
+		m_removeTrainUnitTractionButton->setEnabled(hasSelection
+			&& m_trainUnitTractionTable && m_trainUnitTractionTable->currentRow() >= 0);
+	refreshTrainUnitTractionTable();
+}
+
+void MainWindow::refreshTrainUnitTractionTable() {
+	if (!m_trainUnitTractionTable)
+		return;
+	const int unitRow = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
+	const bool hasSelection = m_sceneLoaded && unitRow >= 0 && unitRow < static_cast<int>(m_sceneModel.trainUnits.size());
+	const int previousRow = m_trainUnitTractionTable->currentRow();
+	const QSignalBlocker tableBlocker(m_trainUnitTractionTable);
+	m_trainUnitTractionTable->setRowCount(0);
+	if (!hasSelection) {
+		m_trainUnitTractionTable->setEnabled(false);
+		return;
+	}
+	const auto& curve = m_sceneModel.trainUnits[unitRow].tractionCurve;
+	for (int row = 0; row < static_cast<int>(curve.size()); ++row) {
+		m_trainUnitTractionTable->insertRow(row);
+		for (int column = 0; column < 5; ++column) {
+			auto* edit = new QDoubleSpinBox(m_trainUnitTractionTable);
+			edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
+			edit->setDecimals(std::numeric_limits<double>::max_digits10);
+			edit->setSingleStep(0.1);
+			edit->setKeyboardTracking(false);
+			edit->setValue(curve[row][column]);
+			connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+					[this, row, column](double value) { commitTrainUnitTractionCell(row, column, value); });
+			connect(edit, &QDoubleSpinBox::editingFinished, this, [this, row, column, edit]() {
+				if (m_trainUnitTractionTable
+						&& (m_trainUnitTractionTable->currentRow() != row
+							|| m_trainUnitTractionTable->currentColumn() != column)) {
+					const QSignalBlocker blocker(edit);
+					m_trainUnitTractionTable->setCurrentCell(row, column);
+				}
+			});
+			m_trainUnitTractionTable->setCellWidget(row, column, edit);
+		}
+	}
+	m_trainUnitTractionTable->setEnabled(true);
+	if (!curve.empty())
+		m_trainUnitTractionTable->setCurrentCell(std::min(previousRow < 0 ? 0 : previousRow,
+				static_cast<int>(curve.size()) - 1), 0);
+	if (m_removeTrainUnitTractionButton)
+		m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
+}
+
+std::string MainWindow::uniqueTrainUnitId(const std::string& baseId) const {
+	auto idExists = [this](const std::string& id) {
+		for (const auto& unit : m_sceneModel.trainUnits) {
+			if (unit.id == id)
+				return true;
+		}
+		return false;
+	};
+	std::string candidate = baseId;
+	int suffix = 2;
+	while (idExists(candidate))
+		candidate = baseId + "_" + std::to_string(suffix++);
+	return candidate;
+}
+
+void MainWindow::addTrainUnit() {
+	if (!m_sceneLoaded)
+		return;
+	SceneTrainUnit unit;
+	unit.id = uniqueTrainUnitId("new_train_unit");
+	m_sceneModel.trainUnits.push_back(unit);
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshTrainUnitPanel();
+	refreshCompositionPanel();
+	if (m_trainUnitListWidget)
+		m_trainUnitListWidget->setCurrentRow(static_cast<int>(m_sceneModel.trainUnits.size()) - 1);
+}
+
+void MainWindow::duplicateTrainUnit() {
+	if (!m_sceneLoaded || !m_trainUnitListWidget)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	SceneTrainUnit duplicate = m_sceneModel.trainUnits[row];
+	duplicate.id = uniqueTrainUnitId(duplicate.id + "_copy");
+	m_sceneModel.trainUnits.insert(m_sceneModel.trainUnits.begin() + row + 1, duplicate);
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshTrainUnitPanel();
+	refreshCompositionPanel();
+	if (m_trainUnitListWidget)
+		m_trainUnitListWidget->setCurrentRow(row + 1);
+}
+
+void MainWindow::deleteTrainUnit() {
+	if (!m_sceneLoaded || !m_trainUnitListWidget)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	const std::string id = m_sceneModel.trainUnits[row].id;
+	bool referenced = false;
+	for (const auto& composition : m_sceneModel.compositions) {
+		if (std::find(composition.units.begin(), composition.units.end(), id) != composition.units.end()) {
+			referenced = true;
+			break;
+		}
+	}
+	const QString message = referenced
+		? QString("Train unit '%1' is referenced by a composition. Delete it and leave the reference for validation to diagnose?").arg(QString::fromStdString(id))
+		: QString("Delete train unit '%1'?").arg(QString::fromStdString(id));
+	if (QMessageBox::question(this, "Delete Train Unit", message,
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+		return;
+	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshTrainUnitPanel();
+	refreshCompositionPanel();
+}
+
+void MainWindow::commitTrainUnitIdEdit() {
+	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitIdEdit)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	const std::string oldId = m_sceneModel.trainUnits[row].id;
+	const std::string newId = m_trainUnitIdEdit->text().trimmed().toStdString();
+	if (newId.empty()) {
+		const QSignalBlocker blocker(m_trainUnitIdEdit);
+		m_trainUnitIdEdit->setText(QString::fromStdString(oldId));
+		return;
+	}
+	if (newId == oldId)
+		return;
+	for (int index = 0; index < static_cast<int>(m_sceneModel.trainUnits.size()); ++index) {
+		if (index != row && m_sceneModel.trainUnits[index].id == newId) {
+			const QSignalBlocker blocker(m_trainUnitIdEdit);
+			m_trainUnitIdEdit->setText(QString::fromStdString(oldId));
+			return;
+		}
+	}
+	m_sceneModel.trainUnits[row].id = newId;
+	for (auto& composition : m_sceneModel.compositions) {
+		for (auto& unitId : composition.units) {
+			if (unitId == oldId)
+				unitId = newId;
+		}
+	}
+	if (QListWidgetItem* item = m_trainUnitListWidget->item(row)) {
+		const QSignalBlocker blocker(m_trainUnitListWidget);
+		item->setText(QString::fromStdString(newId));
+	}
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+}
+
+void MainWindow::commitTrainUnitPhysical(int fieldIndex) {
+	if (!m_sceneLoaded || !m_trainUnitListWidget || fieldIndex < 0 || fieldIndex >= 9)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size())
+		|| !m_trainUnitPhysicalEdits[static_cast<size_t>(fieldIndex)])
+		return;
+	SceneTrainPhysical& physical = m_sceneModel.trainUnits[row].physical;
+	double* values[] = {
+		&physical.mass_of_traction_unit_kg, &physical.mass_of_a_wagon_kg, &physical.number_of_wagons,
+		&physical.max_speed_ms, &physical.max_deceleration_ms2, &physical.frontal_area_m2,
+		&physical.resistance_coefficient, &physical.jerk_ms3, &physical.length_m};
+	const double value = m_trainUnitPhysicalEdits[static_cast<size_t>(fieldIndex)]->value();
+	if (*values[fieldIndex] == value && m_sceneModel.trainUnits[row].hasPhysical)
+		return;
+	*values[fieldIndex] = value;
+	m_sceneModel.trainUnits[row].hasPhysical = true;
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+}
+
+void MainWindow::addTrainUnitTractionRow() {
+	if (!m_sceneLoaded || !m_trainUnitListWidget)
+		return;
+	const int unitRow = m_trainUnitListWidget->currentRow();
+	if (unitRow < 0 || unitRow >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	std::array<double, 5> row = {{0.0, 1.0, 0.0, 0.0, 0.0}};
+	const auto& curve = m_sceneModel.trainUnits[unitRow].tractionCurve;
+	if (!curve.empty()) {
+		row[0] = curve.back()[1];
+		row[1] = row[0] + 1.0;
+	}
+	m_sceneModel.trainUnits[unitRow].tractionCurve.push_back(row);
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	refreshTrainUnitTractionTable();
+	if (m_trainUnitTractionTable)
+		m_trainUnitTractionTable->setCurrentCell(m_trainUnitTractionTable->rowCount() - 1, 0);
+}
+
+void MainWindow::removeTrainUnitTractionRow() {
+	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitTractionTable)
+		return;
+	const int unitRow = m_trainUnitListWidget->currentRow();
+	const int curveRow = m_trainUnitTractionTable->currentRow();
+	if (unitRow < 0 || unitRow >= static_cast<int>(m_sceneModel.trainUnits.size())
+		|| curveRow < 0 || curveRow >= static_cast<int>(m_sceneModel.trainUnits[unitRow].tractionCurve.size()))
+		return;
+	m_sceneModel.trainUnits[unitRow].tractionCurve.erase(
+			m_sceneModel.trainUnits[unitRow].tractionCurve.begin() + curveRow);
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	updateTrainUnitDetailPanel();
+}
+
+void MainWindow::commitTrainUnitTractionCell(int row, int column, double value) {
+	if (!m_sceneLoaded || !m_trainUnitListWidget || row < 0)
+		return;
+	const int unitRow = m_trainUnitListWidget->currentRow();
+	if (unitRow < 0 || unitRow >= static_cast<int>(m_sceneModel.trainUnits.size()) || column < 0 || column >= 5)
+		return;
+	std::vector<std::array<double, 5>>& curve = m_sceneModel.trainUnits[unitRow].tractionCurve;
+	if (row >= static_cast<int>(curve.size()) || curve[row][column] == value)
+		return;
+	curve[row][column] = value;
+	m_sceneDirty = true;
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
 }
 
 void MainWindow::refreshCompositionPanel() {
@@ -2826,17 +3242,105 @@ void MainWindow::runEditorSmokeE2E() {
 
 	bool ok = true;
 	QStringList failures;
+	std::vector<SceneTrainUnit> expectedTrainUnits;
+	std::vector<SceneComposition> expectedCompositions;
+	std::vector<SceneService> expectedServices;
+	std::vector<SceneIncident> expectedIncidents;
+
+	auto facetFailure = [&](bool& facetOk, const char* facet, const QString& message) {
+		facetOk = false;
+		ok = false;
+		failures << QString("%1: %2").arg(facet).arg(message);
+	};
+	auto acceptConfirmation = [this]() {
+		QTimer::singleShot(25, this, []() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QMessageBox*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				if (auto* button = dialog->button(QMessageBox::Yes))
+					button->click();
+				else
+					dialog->done(QMessageBox::Yes);
+				break;
+			}
+		});
+	};
+	auto acceptUnitChoice = [this](const QString& unitId) {
+		QTimer::singleShot(25, this, [unitId]() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QInputDialog*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				dialog->setTextValue(unitId);
+				dialog->accept();
+				break;
+			}
+		});
+	};
+	auto sameStop = [](const SceneStop& left, const SceneStop& right) {
+		return left.stationId == right.stationId && left.platformId == right.platformId
+			&& left.hasArrival == right.hasArrival && left.hasDeparture == right.hasDeparture
+			&& left.arrivalSeconds == right.arrivalSeconds
+			&& left.departureSeconds == right.departureSeconds
+			&& left.dwellSeconds == right.dwellSeconds;
+	};
+	auto sameCompositions = [](const std::vector<SceneComposition>& left, const std::vector<SceneComposition>& right) {
+		if (left.size() != right.size())
+			return false;
+		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneComposition& a, const SceneComposition& b) {
+			return a.id == b.id && a.units == b.units;
+		});
+	};
+	auto sameTrainUnits = [](const std::vector<SceneTrainUnit>& left, const std::vector<SceneTrainUnit>& right) {
+		if (left.size() != right.size())
+			return false;
+		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneTrainUnit& a, const SceneTrainUnit& b) {
+			return a.id == b.id && a.hasPhysical == b.hasPhysical
+				&& a.physical.mass_of_traction_unit_kg == b.physical.mass_of_traction_unit_kg
+				&& a.physical.mass_of_a_wagon_kg == b.physical.mass_of_a_wagon_kg
+				&& a.physical.number_of_wagons == b.physical.number_of_wagons
+				&& a.physical.max_speed_ms == b.physical.max_speed_ms
+				&& a.physical.max_deceleration_ms2 == b.physical.max_deceleration_ms2
+				&& a.physical.frontal_area_m2 == b.physical.frontal_area_m2
+				&& a.physical.resistance_coefficient == b.physical.resistance_coefficient
+				&& a.physical.jerk_ms3 == b.physical.jerk_ms3
+				&& a.physical.length_m == b.physical.length_m
+				&& a.tractionCurve == b.tractionCurve
+				&& a.sourceDataFile == b.sourceDataFile && a.sourceTractionFile == b.sourceTractionFile;
+		});
+	};
+	auto sameServices = [&](const std::vector<SceneService>& left, const std::vector<SceneService>& right) {
+		if (left.size() != right.size())
+			return false;
+		return std::equal(left.begin(), left.end(), right.begin(), [&](const SceneService& a, const SceneService& b) {
+			if (a.id != b.id || a.composition != b.composition || a.route != b.route || a.through != b.through
+				|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
+				|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds
+				|| a.stops.size() != b.stops.size())
+				return false;
+			return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), sameStop);
+		});
+	};
+	auto sameIncidents = [](const std::vector<SceneIncident>& left, const std::vector<SceneIncident>& right) {
+		if (left.size() != right.size())
+			return false;
+		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneIncident& a, const SceneIncident& b) {
+			return a.id == b.id && a.type == b.type && a.target == b.target
+				&& a.startSeconds == b.startSeconds && a.endSeconds == b.endSeconds;
+		});
+	};
 
 	// step a: load scene from env
 	QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
 	if (scenePath.isEmpty()) {
 		ok = false;
-		failures << "no scene path";
+		failures << "scene: no scene path";
 	} else {
 		bool opened = openSceneDirectory(scenePath);
 		if (!opened || !m_sceneLoaded) {
 			ok = false;
-			failures << "scene did not open";
+			failures << "scene: scene did not open";
 		} else {
 			// simulate a clicked-item highlight; the scene owns the effect, so a
 			// reopen must also reset the cached pointer or the next click reuses
@@ -2849,15 +3353,15 @@ void MainWindow::runEditorSmokeE2E() {
 			bool reopened = openSceneDirectory(scenePath);
 			if (!reopened || !m_sceneLoaded || QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
-				failures << "scene did not reopen";
+				failures << "scene: scene did not reopen";
 			}
 			if (effect != nullptr) {
 				ok = false;
-				failures << "highlight effect not reset on reopen";
+				failures << "scene: highlight effect not reset on reopen";
 			}
 			if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
 				ok = false;
-				failures << "legacy scene state not cleared";
+				failures << "scene: legacy scene state not cleared";
 			}
 			QString alternateScenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE_ALT");
 			if (!alternateScenePath.isEmpty()
@@ -2866,21 +3370,21 @@ void MainWindow::runEditorSmokeE2E() {
 				if (!switched || !m_sceneLoaded
 						|| QDir(m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
 					ok = false;
-					failures << "alternate scene did not open";
+					failures << "scene: alternate scene did not open";
 				}
 				if (!allTrains.isEmpty() || !allArcs.isEmpty()) {
 					ok = false;
-					failures << "legacy scene state not cleared on alternate";
+					failures << "scene: legacy scene state not cleared on alternate";
 				}
 				bool restored = openSceneDirectory(scenePath);
 				if (!restored || !m_sceneLoaded) {
 					ok = false;
-					failures << "scene did not reopen after alternate";
+					failures << "scene: scene did not reopen after alternate";
 				}
 			}
 			if (QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
-				failures << "primary scene not restored";
+				failures << "scene: primary scene not restored";
 			}
 		}
 	}
@@ -2889,52 +3393,519 @@ void MainWindow::runEditorSmokeE2E() {
 	if (m_sceneLoaded) {
 		if (!m_loadedDataTree || m_loadedDataTree->topLevelItemCount() <= 0) {
 			ok = false;
-			failures << "loaded data tree empty";
+			failures << "validation: loaded data tree empty";
 		} else if (m_loadedDataTree->topLevelItem(0)->childCount() <= 0) {
 			ok = false;
-			failures << "loaded data tree lacks drilldown rows";
+			failures << "validation: loaded data tree lacks drilldown rows";
 		}
 		if (hasErrors(m_sceneDiagnostics)) {
 			ok = false;
-			failures << "validation errors on open";
+			failures << "validation: errors on open";
 		}
 		if (!m_compositionListWidget || m_compositionListWidget->count() <= 0) {
 			ok = false;
-			failures << "compositions pane empty";
+			failures << "composition: pane empty";
 		}
 		if (!m_serviceListWidget || m_serviceListWidget->count() <= 0) {
 			ok = false;
-			failures << "services pane empty";
+			failures << "service: pane empty";
 		}
+		expectedCompositions = m_sceneModel.compositions;
+		expectedTrainUnits = m_sceneModel.trainUnits;
+		expectedServices = m_sceneModel.services;
+		expectedIncidents = m_sceneModel.incidents;
 	}
 
-	// step c: minimal scene operation
-	if (m_sceneLoaded && m_compositionListWidget) {
-		int before = m_compositionListWidget->count();
+	std::string editedTrainUnitId;
+	if (!m_sceneLoaded || !m_trainUnitListWidget) {
+		bool facetOk = false;
+		facetFailure(facetOk, "train unit", "scene or train-unit list unavailable");
+	} else {
+		bool facetOk = true;
+		const int originalCount = m_trainUnitListWidget->count();
+		m_trainUnitListWidget->setCurrentRow(0);
+		addTrainUnit();
+		if (m_trainUnitListWidget->count() != originalCount + 1) {
+			facetFailure(facetOk, "train unit", "add did not apply");
+		} else {
+			m_trainUnitListWidget->setCurrentRow(originalCount);
+			const std::string initialTrainUnitId = m_sceneModel.trainUnits[originalCount].id;
+			m_compositionListWidget->setCurrentRow(0);
+			acceptUnitChoice(QString::fromStdString(initialTrainUnitId));
+			addUnitToComposition();
+			QApplication::processEvents();
+			bool assignedInitialId = false;
+			if (m_compositionListWidget->currentRow() >= 0
+					&& m_compositionListWidget->currentRow() < static_cast<int>(m_sceneModel.compositions.size())) {
+				const auto& units = m_sceneModel.compositions[m_compositionListWidget->currentRow()].units;
+				assignedInitialId = std::find(units.begin(), units.end(), initialTrainUnitId) != units.end();
+			}
+			if (!assignedInitialId)
+				facetFailure(facetOk, "train unit", "composition assignment did not apply under the initial id");
+
+			const std::string initialIdBeforeDuplicateRename = m_sceneModel.trainUnits[originalCount].id;
+			const std::vector<SceneComposition> compositionsBeforeDuplicateRename = m_sceneModel.compositions;
+			if (originalCount <= 0) {
+				facetFailure(facetOk, "train unit", "scene lacks another train unit id for duplicate rename coverage");
+			} else if (m_trainUnitIdEdit) {
+				const std::string conflictingId = m_sceneModel.trainUnits.front().id;
+				m_trainUnitIdEdit->setText(QString::fromStdString(conflictingId));
+				commitTrainUnitIdEdit();
+				const bool selectedIdUnchanged = m_sceneModel.trainUnits[originalCount].id == initialIdBeforeDuplicateRename;
+				const bool editorIdRestored = m_trainUnitIdEdit->text().trimmed().toStdString() == initialIdBeforeDuplicateRename;
+				const bool referencesUnchanged = sameCompositions(compositionsBeforeDuplicateRename, m_sceneModel.compositions);
+				if (!selectedIdUnchanged || !editorIdRestored || !referencesUnchanged)
+					facetFailure(facetOk, "train unit", "duplicate-id rename changed the selected unit or composition references");
+			}
+
+			editedTrainUnitId = uniqueTrainUnitId("e2e_train_unit");
+			if (!m_trainUnitIdEdit) {
+				facetFailure(facetOk, "train unit", "id editor unavailable");
+			} else {
+				m_trainUnitIdEdit->setText(QString::fromStdString(editedTrainUnitId));
+				commitTrainUnitIdEdit();
+			}
+			bool oldReferencePresent = false;
+			bool newReferencePresent = false;
+			for (const auto& composition : m_sceneModel.compositions) {
+				for (const auto& unitId : composition.units) {
+					oldReferencePresent = oldReferencePresent || unitId == initialTrainUnitId;
+					newReferencePresent = newReferencePresent || unitId == editedTrainUnitId;
+				}
+			}
+			if (oldReferencePresent || !newReferencePresent)
+				facetFailure(facetOk, "train unit", "rename did not update composition references");
+
+			const double physicalValues[] = {
+				101.1234567890123, 51.0000000012345, 2.0, 40.1234567890123,
+				1.2000000012345, 9.5000000012345, 0.0300000012345, 0.4000000012345,
+				84.1234567890123};
+			for (int field = 0; field < 9; ++field) {
+				if (m_trainUnitPhysicalEdits[static_cast<size_t>(field)])
+					m_trainUnitPhysicalEdits[static_cast<size_t>(field)]->setValue(physicalValues[field]);
+				commitTrainUnitPhysical(field);
+			}
+			const SceneTrainPhysical& committedPhysical = m_sceneModel.trainUnits[originalCount].physical;
+			if (committedPhysical.mass_of_traction_unit_kg != physicalValues[0])
+				facetFailure(facetOk, "train unit", "traction-unit mass did not commit the requested value");
+			if (committedPhysical.mass_of_a_wagon_kg != physicalValues[1])
+				facetFailure(facetOk, "train unit", "wagon mass did not commit the requested value");
+			if (committedPhysical.number_of_wagons != physicalValues[2])
+				facetFailure(facetOk, "train unit", "wagon count did not commit the requested value");
+			if (committedPhysical.max_speed_ms != physicalValues[3])
+				facetFailure(facetOk, "train unit", "maximum speed did not commit the requested value");
+			if (committedPhysical.max_deceleration_ms2 != physicalValues[4])
+				facetFailure(facetOk, "train unit", "maximum deceleration did not commit the requested value");
+			if (committedPhysical.frontal_area_m2 != physicalValues[5])
+				facetFailure(facetOk, "train unit", "frontal area did not commit the requested value");
+			if (committedPhysical.resistance_coefficient != physicalValues[6])
+				facetFailure(facetOk, "train unit", "resistance coefficient did not commit the requested value");
+			if (committedPhysical.jerk_ms3 != physicalValues[7])
+				facetFailure(facetOk, "train unit", "jerk did not commit the requested value");
+			if (committedPhysical.length_m != physicalValues[8])
+				facetFailure(facetOk, "train unit", "length did not commit the requested value");
+			const int initialCurveRows = static_cast<int>(m_sceneModel.trainUnits[originalCount].tractionCurve.size());
+			addTrainUnitTractionRow();
+			if (static_cast<int>(m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1) {
+				facetFailure(facetOk, "train unit", "traction row add did not apply");
+			} else if (m_trainUnitTractionTable) {
+				const int row = m_trainUnitTractionTable->rowCount() - 1;
+				m_trainUnitTractionTable->setCurrentCell(row, 0);
+				const std::array<double, 5> tractionValues = {{
+					0.123456789012345, 10.1234567890123, 100.1234567890123,
+					2.1234567890123, 0.5000000012345}};
+				for (int column = 0; column < 5; ++column) {
+					auto* edit = qobject_cast<QDoubleSpinBox*>(m_trainUnitTractionTable->cellWidget(row, column));
+					if (!edit) {
+						facetFailure(facetOk, "train unit", "traction numeric editor unavailable");
+						continue;
+					}
+					edit->setValue(tractionValues[column]);
+				}
+				addTrainUnitTractionRow();
+				if (static_cast<int>(m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
+					facetFailure(facetOk, "train unit", "second traction row add did not apply");
+				else {
+					const int secondRow = m_trainUnitTractionTable->rowCount() - 1;
+					auto* secondRowEdit = qobject_cast<QDoubleSpinBox*>(m_trainUnitTractionTable->cellWidget(secondRow, 0));
+					if (!secondRowEdit) {
+						facetFailure(facetOk, "train unit", "second traction numeric editor unavailable");
+					} else {
+						secondRowEdit->setValue(10.9876543210987);
+						m_trainUnitTractionTable->setCurrentCell(row, 0);
+						secondRowEdit->setFocus();
+						QMetaObject::invokeMethod(secondRowEdit, "editingFinished", Qt::DirectConnection);
+					}
+					removeTrainUnitTractionRow();
+					if (static_cast<int>(m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
+						facetFailure(facetOk, "train unit", "traction row delete did not apply");
+					else if (m_sceneModel.trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
+						facetFailure(facetOk, "train unit", "editing a non-current traction row deleted the wrong row");
+				}
+			}
+
+			m_trainUnitListWidget->setCurrentRow(originalCount);
+			duplicateTrainUnit();
+			if (m_trainUnitListWidget->count() != originalCount + 2) {
+				facetFailure(facetOk, "train unit", "duplicate did not apply");
+			} else {
+				const int duplicateRow = originalCount + 1;
+				m_trainUnitListWidget->setCurrentRow(duplicateRow);
+				const std::string duplicateId = m_sceneModel.trainUnits[duplicateRow].id;
+				m_compositionListWidget->setCurrentRow(0);
+				acceptUnitChoice(QString::fromStdString(duplicateId));
+				addUnitToComposition();
+				QApplication::processEvents();
+				acceptConfirmation();
+				deleteTrainUnit();
+				if (m_trainUnitListWidget->count() != originalCount + 1)
+					facetFailure(facetOk, "train unit", "delete did not apply");
+				refreshValidationPanel();
+				bool danglingReference = false;
+				for (const auto& diagnostic : m_sceneDiagnostics) {
+					if (diagnostic.code == "scene.ref.unresolved" && diagnostic.relatedId == duplicateId)
+						danglingReference = true;
+				}
+				if (!danglingReference)
+					facetFailure(facetOk, "train unit", "referenced-unit delete did not leave a validator reference diagnostic");
+				m_compositionListWidget->setCurrentRow(0);
+				for (int unitRow = 0; unitRow < m_compositionUnitsListWidget->count(); ++unitRow) {
+					if (m_compositionUnitsListWidget->item(unitRow)->text().toStdString() == duplicateId) {
+						m_compositionUnitsListWidget->setCurrentRow(unitRow);
+						removeUnitFromComposition();
+						break;
+					}
+				}
+			}
+		}
+		if (!m_sceneModel.trainUnits.empty() && !m_sceneModel.trainUnits.front().sourceDataFile.empty()) {
+			m_trainUnitListWidget->setCurrentRow(0);
+			if (!m_trainUnitSourceDataLabel || m_trainUnitSourceDataLabel->text().toStdString() != m_sceneModel.trainUnits.front().sourceDataFile)
+				facetFailure(facetOk, "train unit", "source data filename is not visible and unchanged");
+		}
+		if (!m_sceneModel.trainUnits.empty() && !m_sceneModel.trainUnits.front().sourceTractionFile.empty()) {
+			m_trainUnitListWidget->setCurrentRow(0);
+			if (!m_trainUnitSourceTractionLabel || m_trainUnitSourceTractionLabel->text().toStdString() != m_sceneModel.trainUnits.front().sourceTractionFile)
+				facetFailure(facetOk, "train unit", "source traction filename is not visible and unchanged");
+		}
+		expectedCompositions = m_sceneModel.compositions;
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_TRAIN_UNIT_OK\n");
+	}
+
+	std::string editedCompositionId;
+	if (!m_sceneLoaded || !m_compositionListWidget || expectedCompositions.empty()) {
+		bool facetOk = false;
+		facetFailure(facetOk, "composition", "scene or composition list unavailable");
+	} else {
+		bool facetOk = true;
+		const int originalCount = m_compositionListWidget->count();
+		m_compositionListWidget->setCurrentRow(0);
+		duplicateComposition();
+		if (m_compositionListWidget->count() != originalCount + 1) {
+			facetFailure(facetOk, "composition", "duplicate did not apply");
+		} else {
+			m_compositionListWidget->setCurrentRow(1);
+			editedCompositionId = uniqueCompositionId("e2e_composition");
+			if (!m_compositionIdEdit) {
+				facetFailure(facetOk, "composition", "id editor unavailable");
+			} else {
+				m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
+				commitCompositionIdEdit();
+				if (m_sceneModel.compositions.size() <= 1 || m_sceneModel.compositions[1].id != editedCompositionId)
+					facetFailure(facetOk, "composition", "id edit did not apply");
+			}
+		}
 		addComposition();
-		QApplication::processEvents();
-		if (!m_sceneDirty) {
-			ok = false;
-			failures << "edit did not mark dirty";
+		if (m_compositionListWidget->count() != originalCount + 2) {
+			facetFailure(facetOk, "composition", "add did not apply");
+		} else {
+			acceptConfirmation();
+			deleteComposition();
+			if (m_compositionListWidget->count() != originalCount + 1)
+				facetFailure(facetOk, "composition", "delete did not apply");
 		}
-		if (m_compositionListWidget->count() != before + 1) {
-			ok = false;
-			failures << "add composition did not apply";
+		int editedRow = -1;
+		for (int row = 0; row < static_cast<int>(m_sceneModel.compositions.size()); ++row) {
+			if (m_sceneModel.compositions[row].id == editedCompositionId) {
+				editedRow = row;
+				break;
+			}
 		}
+		if (editedRow < 0 || m_sceneModel.compositions[editedRow].units != expectedCompositions[0].units)
+			facetFailure(facetOk, "composition", "edited composition was not retained");
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_COMPOSITION_OK\n");
 	}
 
-	// step d: save
+	std::string editedServiceId;
+	if (!m_sceneLoaded || !m_serviceListWidget || expectedServices.empty() || editedCompositionId.empty()) {
+		bool facetOk = false;
+		facetFailure(facetOk, "service", "scene or service setup unavailable");
+	} else {
+		bool facetOk = true;
+		const int originalCount = m_serviceListWidget->count();
+		m_serviceListWidget->setCurrentRow(0);
+		duplicateService();
+		if (m_serviceListWidget->count() != originalCount + 1) {
+			facetFailure(facetOk, "service", "duplicate did not apply");
+		} else {
+			m_serviceListWidget->setCurrentRow(1);
+			editedServiceId = uniqueServiceId("e2e_service");
+			if (!m_serviceIdEdit) {
+				facetFailure(facetOk, "service", "id editor unavailable");
+			} else {
+				m_serviceIdEdit->setText(QString::fromStdString(editedServiceId));
+				commitServiceIdEdit();
+				if (m_sceneModel.services.size() <= 1 || m_sceneModel.services[1].id != editedServiceId)
+					facetFailure(facetOk, "service", "id edit did not apply");
+			}
+			commitServiceComposition(QString::fromStdString(editedCompositionId));
+			commitServiceRoute(QString::fromStdString(expectedServices[0].route));
+			commitServiceHasEntryTime(false);
+			commitServiceHasEntryTime(true);
+			if (m_serviceEntryTimeSecondsEdit)
+				m_serviceEntryTimeSecondsEdit->setText("600");
+			commitServiceEntryTimeSeconds();
+			commitServiceHasRepeat(true);
+			if (m_serviceHeadwaySecondsEdit)
+				m_serviceHeadwaySecondsEdit->setText("600");
+			commitServiceHeadwaySeconds();
+		}
+		addService();
+		if (m_serviceListWidget->count() != originalCount + 2) {
+			facetFailure(facetOk, "service", "add did not apply");
+		} else {
+			acceptConfirmation();
+			deleteService();
+			if (m_serviceListWidget->count() != originalCount + 1)
+				facetFailure(facetOk, "service", "delete did not apply");
+		}
+		int editedRow = -1;
+		for (int row = 0; row < static_cast<int>(m_sceneModel.services.size()); ++row) {
+			if (m_sceneModel.services[row].id == editedServiceId) {
+				editedRow = row;
+				break;
+			}
+		}
+		if (editedRow < 0) {
+			facetFailure(facetOk, "service", "edited service was not retained");
+		} else {
+			const SceneService& edited = m_sceneModel.services[editedRow];
+			if (edited.composition != editedCompositionId || edited.route != expectedServices[0].route
+					|| !edited.hasEntryTime || edited.entryTimeSeconds != 600.0
+					|| !edited.hasRepeat || edited.headwaySeconds != 600.0
+					|| edited.stops.size() != expectedServices[0].stops.size())
+				facetFailure(facetOk, "service", "edited fields did not persist in memory");
+		}
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_SERVICE_OK\n");
+	}
+
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget || editedServiceId.empty()) {
+		bool facetOk = false;
+		facetFailure(facetOk, "timetable", "scene or edited service unavailable");
+	} else {
+		bool facetOk = true;
+		int serviceRow = -1;
+		for (int row = 0; row < static_cast<int>(m_sceneModel.services.size()); ++row) {
+			if (m_sceneModel.services[row].id == editedServiceId) {
+				serviceRow = row;
+				break;
+			}
+		}
+		if (serviceRow < 0) {
+			facetFailure(facetOk, "timetable", "edited service row missing");
+		} else {
+			m_serviceListWidget->setCurrentRow(serviceRow);
+			QApplication::processEvents();
+			const int originalStopCount = static_cast<int>(m_sceneModel.services[serviceRow].stops.size());
+			if (originalStopCount <= 0)
+				facetFailure(facetOk, "timetable", "no baseline stop available for move coverage");
+			addStop();
+			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1) {
+				facetFailure(facetOk, "timetable", "add stop did not apply");
+			} else {
+				std::string stationId;
+				if (!m_sceneModel.stations.empty())
+					stationId = m_sceneModel.stations.size() > 1 ? m_sceneModel.stations[1].id : m_sceneModel.stations.front().id;
+				if (stationId.empty()) {
+					facetFailure(facetOk, "timetable", "no station available for edited stop");
+				} else {
+					commitStopStation(QString::fromStdString(stationId));
+					std::string platformId;
+					for (const auto& station : m_sceneModel.stations) {
+						if (station.id == stationId && !station.platforms.empty()) {
+							platformId = station.platforms.front().id;
+							break;
+						}
+					}
+					if (!platformId.empty())
+						commitStopPlatform(QString::fromStdString(platformId));
+					double lastTime = 0.0;
+					for (const auto& stop : m_sceneModel.services[serviceRow].stops) {
+						if (stop.hasArrival)
+							lastTime = std::max(lastTime, stop.arrivalSeconds);
+						if (stop.hasDeparture)
+							lastTime = std::max(lastTime, stop.departureSeconds);
+					}
+					const int arrivalSeconds = static_cast<int>(lastTime) + 600;
+					const int departureSeconds = arrivalSeconds + 60;
+					commitStopHasArrival(true);
+					if (m_stopArrivalSecondsEdit)
+						m_stopArrivalSecondsEdit->setText(QString::number(arrivalSeconds));
+					commitStopArrivalSeconds();
+					commitStopHasDeparture(true);
+					if (m_stopDepartureSecondsEdit)
+						m_stopDepartureSecondsEdit->setText(QString::number(departureSeconds));
+					commitStopDepartureSeconds();
+					if (m_stopDwellSecondsEdit)
+						m_stopDwellSecondsEdit->setText("60");
+					commitStopDwellSeconds();
+					const SceneStop& committedStop = m_sceneModel.services[serviceRow].stops.back();
+					if (committedStop.stationId != stationId)
+						facetFailure(facetOk, "timetable", "station edit did not apply the chosen station");
+					if (!platformId.empty() && committedStop.platformId != platformId)
+						facetFailure(facetOk, "timetable", "platform edit did not apply the chosen platform");
+					if (!committedStop.hasArrival)
+						facetFailure(facetOk, "timetable", "arrival flag did not apply");
+					if (committedStop.arrivalSeconds != static_cast<double>(arrivalSeconds))
+						facetFailure(facetOk, "timetable", "arrival seconds did not apply the requested value");
+					if (!committedStop.hasDeparture)
+						facetFailure(facetOk, "timetable", "departure flag did not apply");
+					if (committedStop.departureSeconds != static_cast<double>(departureSeconds))
+						facetFailure(facetOk, "timetable", "departure seconds did not apply the requested value");
+					if (committedStop.dwellSeconds != 60.0)
+						facetFailure(facetOk, "timetable", "dwell did not apply the requested 60 seconds");
+				}
+			}
+			SceneStop editedStop;
+			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) > originalStopCount)
+				editedStop = m_sceneModel.services[serviceRow].stops.back();
+			if (facetOk) {
+				m_stopListWidget->setCurrentRow(originalStopCount);
+				moveStopUp();
+				if (m_sceneModel.services[serviceRow].stops[originalStopCount - 1].stationId != editedStop.stationId)
+					facetFailure(facetOk, "timetable", "move up did not apply");
+				moveStopDown();
+				if (!sameStop(m_sceneModel.services[serviceRow].stops.back(), editedStop))
+					facetFailure(facetOk, "timetable", "move down did not restore edited stop");
+				// The source scene's final stop intentionally omits departure_seconds;
+				// leave the edited stop before it so the model remains valid for save/reload.
+				m_stopListWidget->setCurrentRow(originalStopCount);
+				moveStopUp();
+			}
+			addStop();
+			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 2) {
+				facetFailure(facetOk, "timetable", "temporary stop add did not apply");
+			} else {
+				removeStop();
+				if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1)
+					facetFailure(facetOk, "timetable", "stop delete did not apply");
+			}
+			if (facetOk && !sameStop(m_sceneModel.services[serviceRow].stops[originalStopCount - 1], editedStop))
+				facetFailure(facetOk, "timetable", "edited stop was not retained");
+		}
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_TIMETABLE_OK\n");
+	}
+
+	std::string editedIncidentId;
+	if (!m_sceneLoaded || !m_incidentListWidget || editedServiceId.empty()) {
+		bool facetOk = false;
+		facetFailure(facetOk, "incident", "scene or edited service unavailable");
+	} else {
+		bool facetOk = true;
+		const int originalCount = m_incidentListWidget->count();
+		editedIncidentId = uniqueIncidentId("e2e_incident");
+		addIncident();
+		if (m_incidentListWidget->count() != originalCount + 1) {
+			facetFailure(facetOk, "incident", "add did not apply");
+		} else {
+			if (m_incidentIdEdit)
+				m_incidentIdEdit->setText(QString::fromStdString(editedIncidentId));
+			commitIncidentIdEdit();
+			commitIncidentType("train_breakdown");
+			commitIncidentTarget(QString::fromStdString(editedServiceId));
+			if (m_incidentStartSecondsEdit)
+				m_incidentStartSecondsEdit->setText("100");
+			commitIncidentStartSeconds();
+			if (m_incidentEndSecondsEdit)
+				m_incidentEndSecondsEdit->setText("200");
+			commitIncidentEndSeconds();
+		}
+		duplicateIncident();
+		if (m_incidentListWidget->count() != originalCount + 2) {
+			facetFailure(facetOk, "incident", "duplicate did not apply");
+		} else {
+			acceptConfirmation();
+			deleteIncident();
+			if (m_incidentListWidget->count() != originalCount + 1)
+				facetFailure(facetOk, "incident", "delete did not apply");
+		}
+		int editedRow = -1;
+		for (int row = 0; row < static_cast<int>(m_sceneModel.incidents.size()); ++row) {
+			if (m_sceneModel.incidents[row].id == editedIncidentId) {
+				editedRow = row;
+				break;
+			}
+		}
+		if (editedRow < 0 || m_sceneModel.incidents[editedRow].type != "train_breakdown"
+				|| m_sceneModel.incidents[editedRow].target != editedServiceId
+				|| m_sceneModel.incidents[editedRow].startSeconds != 100.0
+				|| m_sceneModel.incidents[editedRow].endSeconds != 200.0)
+			facetFailure(facetOk, "incident", "edited incident was not retained");
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
+	}
+
 	if (m_sceneLoaded) {
+		bool facetOk = true;
+		refreshValidationPanel();
+		QApplication::processEvents();
+		SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
+		if (!m_validationTable || !m_validationStatusLabel || counts.errors != 0
+				|| m_validationTable->rowCount() != static_cast<int>(m_sceneDiagnostics.size())
+				|| !m_validationStatusLabel->text().startsWith("Validation:"))
+			facetFailure(facetOk, "validation", "refresh did not report a clean, complete result");
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_VALIDATION_OK\n");
+	}
+
+	if (m_sceneLoaded) {
+		bool facetOk = true;
 		QString outBase = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
 		QTemporaryDir tmpDir;
 		if (outBase.isEmpty())
 			outBase = tmpDir.path();
 		QString outScenePath = QDir(outBase).filePath("editor_smoke_scene");
-		auto result = ::saveScene(m_sceneModel, outScenePath.toStdString());
-		if (!result.success()) {
-			ok = false;
-			failures << "save failed";
+		QDir outputDir(outScenePath);
+		if (outputDir.exists() && !outputDir.removeRecursively()) {
+			facetFailure(facetOk, "save/reload", "output path could not be cleaned");
+		} else {
+			expectedTrainUnits = m_sceneModel.trainUnits;
+			expectedCompositions = m_sceneModel.compositions;
+			expectedServices = m_sceneModel.services;
+			expectedIncidents = m_sceneModel.incidents;
+			auto result = ::saveScene(m_sceneModel, outScenePath.toStdString());
+			if (!result.success()) {
+				facetFailure(facetOk, "save/reload", "save failed");
+			} else if (!openSceneDirectory(outScenePath)) {
+				facetFailure(facetOk, "save/reload", "saved scene did not reload");
+			} else if (!sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)) {
+				facetFailure(facetOk, "save/reload", "train-unit facet changed after reload");
+			} else if (!sameCompositions(expectedCompositions, m_sceneModel.compositions)) {
+				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
+			} else if (!sameServices(expectedServices, m_sceneModel.services)) {
+				facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
+			} else if (!sameIncidents(expectedIncidents, m_sceneModel.incidents)) {
+				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
+			} else if (m_sceneDirty || hasErrors(m_sceneDiagnostics)) {
+				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
+			}
 		}
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
 	}
 
 	if (ok) {
@@ -2955,42 +3926,287 @@ void MainWindow::runTrackPreviewE2E() {
 
 	bool ok = true;
 	QStringList failures;
+	auto fail = [&](const QString& facet, const QString& message) {
+		ok = false;
+		failures << QString("%1: %2").arg(facet, message);
+	};
+	auto marker = [](const char* name) {
+		std::fprintf(stdout, "%s\n", name);
+		std::fflush(stdout);
+	};
+	auto hasDiagnosticCode = [](const std::vector<SceneDiagnostic>& diagnostics, const char* code) {
+		for (const auto& diagnostic : diagnostics) {
+			if (diagnostic.code == code)
+				return true;
+		}
+		return false;
+	};
+#ifdef signals
+#define EGTRAIN_TRACK_PREVIEW_RESTORE_SIGNALS
+#undef signals
+#endif
+	auto sameSceneModel = [](const SceneModel& left, const SceneModel& right) {
+		if (left.schemaVersion != right.schemaVersion || left.name != right.name
+			|| left.description != right.description || left.baseTime != right.baseTime
+			|| left.stations.size() != right.stations.size() || left.signals.size() != right.signals.size()
+			|| left.routes.size() != right.routes.size() || left.trainUnits.size() != right.trainUnits.size()
+			|| left.compositions.size() != right.compositions.size() || left.services.size() != right.services.size()
+			|| left.incidents.size() != right.incidents.size())
+			return false;
+		if (!std::equal(left.stations.begin(), left.stations.end(), right.stations.begin(), [](const auto& a, const auto& b) {
+			return a.id == b.id && a.name == b.name && a.platforms.size() == b.platforms.size()
+				&& std::equal(a.platforms.begin(), a.platforms.end(), b.platforms.begin(),
+				[](const auto& x, const auto& y) { return x.id == y.id; });
+		}))
+			return false;
+		if (!std::equal(left.signals.begin(), left.signals.end(), right.signals.begin(),
+			[](const auto& a, const auto& b) { return a.id == b.id; }))
+			return false;
+		if (!std::equal(left.routes.begin(), left.routes.end(), right.routes.begin(), [](const auto& a, const auto& b) {
+			return a.id == b.id && a.blocks == b.blocks;
+		}))
+			return false;
+		if (!std::equal(left.trainUnits.begin(), left.trainUnits.end(), right.trainUnits.begin(), [](const auto& a, const auto& b) {
+			return a.id == b.id && a.hasPhysical == b.hasPhysical && a.physical.mass_of_traction_unit_kg == b.physical.mass_of_traction_unit_kg
+				&& a.physical.mass_of_a_wagon_kg == b.physical.mass_of_a_wagon_kg && a.physical.number_of_wagons == b.physical.number_of_wagons
+				&& a.physical.max_speed_ms == b.physical.max_speed_ms && a.physical.max_deceleration_ms2 == b.physical.max_deceleration_ms2
+				&& a.physical.frontal_area_m2 == b.physical.frontal_area_m2 && a.physical.resistance_coefficient == b.physical.resistance_coefficient
+				&& a.physical.jerk_ms3 == b.physical.jerk_ms3 && a.physical.length_m == b.physical.length_m
+				&& a.tractionCurve == b.tractionCurve && a.sourceDataFile == b.sourceDataFile
+				&& a.sourceTractionFile == b.sourceTractionFile;
+		}))
+			return false;
+		if (!std::equal(left.compositions.begin(), left.compositions.end(), right.compositions.begin(),
+			[](const auto& a, const auto& b) { return a.id == b.id && a.units == b.units; }))
+			return false;
+		if (!std::equal(left.services.begin(), left.services.end(), right.services.begin(), [](const auto& a, const auto& b) {
+			if (a.id != b.id || a.composition != b.composition || a.route != b.route || a.through != b.through
+				|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
+				|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds || a.stops.size() != b.stops.size())
+				return false;
+			return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), [](const auto& x, const auto& y) {
+				return x.stationId == y.stationId && x.platformId == y.platformId && x.hasArrival == y.hasArrival
+					&& x.hasDeparture == y.hasDeparture && x.arrivalSeconds == y.arrivalSeconds
+					&& x.departureSeconds == y.departureSeconds && x.dwellSeconds == y.dwellSeconds;
+			});
+		}))
+			return false;
+		return std::equal(left.incidents.begin(), left.incidents.end(), right.incidents.begin(),
+			[](const auto& a, const auto& b) {
+				return a.id == b.id && a.type == b.type && a.target == b.target
+					&& a.startSeconds == b.startSeconds && a.endSeconds == b.endSeconds;
+			});
+	};
+#ifdef EGTRAIN_TRACK_PREVIEW_RESTORE_SIGNALS
+#define signals Q_SIGNALS
+#undef EGTRAIN_TRACK_PREVIEW_RESTORE_SIGNALS
+#endif
+	auto validationTableHasCode = [&](const char* code) {
+		if (!m_validationTable)
+			return false;
+		for (int row = 0; row < m_validationTable->rowCount(); ++row) {
+			QTableWidgetItem* item = m_validationTable->item(row, 1);
+			if (item && item->text() == code)
+				return true;
+		}
+		return false;
+	};
+
 	const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
-	if (scenePath.isEmpty() || !openSceneDirectory(scenePath)) {
-		ok = false;
-		failures << "scene did not open";
+	const bool opened = !scenePath.isEmpty() && openSceneDirectory(scenePath);
+	if (!opened || !m_sceneLoaded) {
+		fail("open", "incomplete scene did not open");
+	} else {
+		const int itemCount = scene->items().size();
+		const QRectF bounds = scene->itemsBoundingRect();
+		const QRectF visible = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
+		const bool diagnosticsOk = hasDiagnosticCode(m_sceneDiagnostics, "scene.trains.none")
+			&& hasDiagnosticCode(m_sceneDiagnostics, "scene.services.none")
+			&& validationTableHasCode("scene.trains.none") && validationTableHasCode("scene.services.none");
+		if (!diagnosticsOk)
+			fail("open", "semantic diagnostics are missing from the validation panel");
+		if (itemCount < 2)
+			fail("open", "too few preview items");
+		if (bounds.width() < 10.0)
+			fail("open", "preview geometry did not spread horizontally");
+		if (!visible.intersects(bounds))
+			fail("open", "preview is outside the viewport");
+		if (diagnosticsOk && itemCount >= 2 && bounds.width() >= 10.0 && visible.intersects(bounds))
+			marker("E2E_TRACK_PREVIEW_OPEN_OK");
 	}
 
-	const int itemCount = scene->items().size();
-	const QRectF bounds = scene->itemsBoundingRect();
-	if (!hasErrors(m_sceneDiagnostics)) {
-		ok = false;
-		failures << "scene unexpectedly passed validation";
+	bool runFacetOk = m_runSceneAction && !m_runSceneAction->isEnabled()
+		&& ui->actionSimulationStart && !ui->actionSimulationStart->isEnabled();
+	if (!runFacetOk)
+		fail("run gating", "Run action is enabled while semantic errors are present");
+	if (m_sceneLoaded) {
+		const SceneModel incomplete = m_sceneModel;
+		SceneModel fixed = incomplete;
+		fixed.trainUnits.clear();
+		SceneTrainUnit unit;
+		unit.id = "e2e_unit";
+		unit.tractionCurve.push_back({{0.0, 1.0, 1.0, 0.0, 0.0}});
+		fixed.trainUnits.push_back(unit);
+		fixed.compositions.clear();
+		SceneComposition composition;
+		composition.id = "e2e_composition";
+		composition.units.push_back(unit.id);
+		fixed.compositions.push_back(composition);
+		fixed.routes.clear();
+		SceneRoute route;
+		route.id = "e2e_route";
+		route.blocks.push_back("e2e_block");
+		fixed.routes.push_back(route);
+		fixed.services.clear();
+		SceneService service;
+		service.id = "e2e_service";
+		service.composition = composition.id;
+		service.route = route.id;
+		service.through = true;
+		fixed.services.push_back(service);
+		fixed.incidents.clear();
+		m_sceneModel = fixed;
+		refreshValidationPanel();
+		if (hasErrors(m_sceneDiagnostics) || !m_runSceneAction || !m_runSceneAction->isEnabled()
+			|| !ui->actionSimulationStart || !ui->actionSimulationStart->isEnabled())
+			runFacetOk = false;
+		m_sceneModel = incomplete;
+		refreshValidationPanel();
+		if (!hasErrors(m_sceneDiagnostics) || !m_runSceneAction || m_runSceneAction->isEnabled()
+			|| !ui->actionSimulationStart || ui->actionSimulationStart->isEnabled())
+			runFacetOk = false;
 	}
-	if (itemCount < 2) {
-		ok = false;
-		failures << "too few preview items";
-	}
-	if (bounds.width() < 10.0) {
-		ok = false;
-		failures << "preview geometry did not spread horizontally";
-	}
-	const QRectF visible = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
-	if (!visible.intersects(bounds)) {
-		ok = false;
-		failures << "preview is outside the viewport";
-	}
-
+	const int previewItemCount = scene->items().size();
+	const QRectF previewBounds = scene->itemsBoundingRect();
 	runScene();
 	QApplication::processEvents();
 	if (m_worker) {
-		ok = false;
-		failures << "invalid scene started simulation";
+		runFacetOk = false;
+		fail("run gating", "invalid scene started simulation");
 	}
-	if (scene->items().size() != itemCount || scene->itemsBoundingRect() != bounds) {
-		ok = false;
-		failures << "blocked run removed the preview";
+	if (scene->items().size() != previewItemCount || scene->itemsBoundingRect() != previewBounds) {
+		runFacetOk = false;
+		fail("run gating", "blocked run removed the preview");
 	}
+	if (runFacetOk)
+		marker("E2E_TRACK_PREVIEW_RUN_GATED_OK");
+
+	QTemporaryDir e2eRoot;
+	QString persistedScenePath;
+	SceneModel expectedPartial;
+	bool saveReloadOk = true;
+	if (!e2eRoot.isValid() || !m_sceneLoaded) {
+		saveReloadOk = false;
+		fail("save/reload", "temporary scene directory unavailable");
+	} else {
+		expectedPartial = m_sceneModel;
+		persistedScenePath = QDir(e2eRoot.path()).filePath("partial");
+		const SceneSaveResult saveResult = ::saveScene(expectedPartial, persistedScenePath.toStdString());
+		if (!saveResult.success()) {
+			saveReloadOk = false;
+			fail("save/reload", "partial scene save failed");
+		} else if (!openSceneDirectory(persistedScenePath)) {
+			saveReloadOk = false;
+			fail("save/reload", "saved partial scene did not reload");
+		} else if (!sameSceneModel(expectedPartial, m_sceneModel)) {
+			saveReloadOk = false;
+			fail("save/reload", "partial model changed after reload");
+		} else if (!hasDiagnosticCode(m_sceneDiagnostics, "scene.trains.none")
+			|| !hasDiagnosticCode(m_sceneDiagnostics, "scene.services.none")
+			|| !m_runSceneAction || m_runSceneAction->isEnabled()
+			|| !ui->actionSimulationStart || ui->actionSimulationStart->isEnabled()) {
+			saveReloadOk = false;
+			fail("save/reload", "reloaded diagnostics or Run gating changed");
+		}
+	}
+	if (saveReloadOk)
+		marker("E2E_TRACK_PREVIEW_SAVE_RELOAD_OK");
+
+	bool structuralOk = saveReloadOk;
+	if (structuralOk) {
+		const SceneModel expectedCurrent = m_sceneModel;
+		const QString expectedDir = QDir(m_sceneDir).absolutePath();
+		const int expectedItems = scene->items().size();
+		const QRectF expectedBounds = scene->itemsBoundingRect();
+		auto rejectedWithoutReplacement = [&](const QString& candidate, const char* label) {
+			if (openSceneDirectory(candidate)) {
+				fail("structural rejection", QString("%1 scene unexpectedly opened").arg(label));
+				return false;
+			}
+			const bool preserved = QDir(m_sceneDir).absolutePath() == expectedDir
+				&& sameSceneModel(m_sceneModel, expectedCurrent) && scene->items().size() == expectedItems
+				&& scene->itemsBoundingRect() == expectedBounds;
+			if (!preserved)
+				fail("structural rejection", QString("%1 failure replaced current state").arg(label));
+			return preserved;
+		};
+		auto copyCandidate = [&](const QString& name) {
+			const QString candidate = QDir(e2eRoot.path()).filePath(name);
+			if (!copyDirectoryRecursively(persistedScenePath, candidate)) {
+				fail("structural rejection", QString("could not create %1 candidate").arg(name));
+				return QString();
+			}
+			return candidate;
+		};
+
+		QString malformed = copyCandidate("malformed");
+		if (malformed.isEmpty()) {
+			structuralOk = false;
+		} else {
+			QFile file(QDir(malformed).filePath("scene.json"));
+			const bool wroteMalformed = file.open(QIODevice::WriteOnly | QIODevice::Truncate) && file.write("{") == 1;
+			file.close();
+			if (!wroteMalformed) {
+				structuralOk = false;
+				fail("structural rejection", "could not write malformed candidate");
+			} else if (!rejectedWithoutReplacement(malformed, "malformed")) {
+				structuralOk = false;
+			}
+		}
+
+		QString missing = copyCandidate("missing");
+		if (missing.isEmpty()) {
+			structuralOk = false;
+		} else {
+			if (!QFile::remove(QDir(missing).filePath("services.json"))) {
+				structuralOk = false;
+				fail("structural rejection", "could not remove required file from candidate");
+			} else if (!rejectedWithoutReplacement(missing, "missing-file")) {
+				structuralOk = false;
+			}
+		}
+
+		QString unsupported = copyCandidate("unsupported");
+		if (unsupported.isEmpty()) {
+			structuralOk = false;
+		} else {
+			QFile file(QDir(unsupported).filePath("scene.json"));
+			if (!file.open(QIODevice::ReadOnly)) {
+				structuralOk = false;
+				fail("structural rejection", "could not read schema candidate");
+			} else {
+				QByteArray contents = file.readAll();
+				file.close();
+				if (!contents.contains("\"schema_version\": 1")) {
+					structuralOk = false;
+					fail("structural rejection", "saved scene schema marker not found");
+				} else {
+					contents.replace("\"schema_version\": 1", "\"schema_version\": 2");
+					const bool wroteUnsupported = file.open(QIODevice::WriteOnly | QIODevice::Truncate)
+						&& file.write(contents) == contents.size();
+					file.close();
+					if (!wroteUnsupported) {
+						structuralOk = false;
+						fail("structural rejection", "could not write unsupported-schema candidate");
+					} else if (!rejectedWithoutReplacement(unsupported, "unsupported-schema")) {
+						structuralOk = false;
+					}
+				}
+			}
+		}
+	}
+	if (structuralOk)
+		marker("E2E_TRACK_PREVIEW_STRUCTURAL_REJECTION_OK");
 
 	if (ok) {
 		std::fprintf(stdout, "E2E_TRACK_PREVIEW_OK\n");
@@ -3000,6 +4216,64 @@ void MainWindow::runTrackPreviewE2E() {
 	}
 
 	std::fprintf(stderr, "E2E_TRACK_PREVIEW_FAIL: %s\n", failures.join(", ").toStdString().c_str());
+	std::fflush(stderr);
+	QCoreApplication::exit(2);
+}
+
+void MainWindow::runLegacyImportE2E() {
+	if (m_e2eFinished)
+		return;
+	m_e2eFinished = true;
+
+	bool ok = true;
+	QStringList failures;
+	auto marker = [](const char* name) {
+		std::fprintf(stdout, "%s\n", name);
+		std::fflush(stdout);
+	};
+	auto fail = [&](const QString& message) {
+		ok = false;
+		failures << message;
+	};
+
+	const QString destinationInput = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_DEST");
+	const QString destinationCanonical = QFileInfo(destinationInput).canonicalFilePath();
+	const QString destination = destinationCanonical.isEmpty() ? QDir(destinationInput).absolutePath() : destinationCanonical;
+	actionLoad_Network();
+	if (m_sceneLoaded && QDir(m_sceneDir).absolutePath() == destination && !m_sceneModel.stations.empty()
+		&& scene && !scene->items().isEmpty())
+		marker("E2E_LEGACY_IMPORT_SUCCESS");
+	else
+		fail("successful import did not open the destination scene");
+
+	const QString previousDir = m_sceneDir;
+	const std::string previousName = m_sceneModel.name;
+	const int previousItemCount = scene ? scene->items().size() : -1;
+	const QString badSource = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_BAD_SOURCE");
+	const QString badDestination = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_BAD_DEST");
+	qputenv("QEGTRAIN_E2E_LEGACY_SOURCE", badSource.toUtf8());
+	qputenv("QEGTRAIN_E2E_LEGACY_DEST", badDestination.toUtf8());
+	actionLoad_Network();
+
+	const bool failedImport = !QFileInfo(QDir(badDestination).filePath("scene.json")).exists();
+	if (failedImport)
+		marker("E2E_LEGACY_IMPORT_FAILURE");
+	else
+		fail("malformed import unexpectedly wrote a scene");
+	const bool preserved = m_sceneDir == previousDir && m_sceneModel.name == previousName
+		&& (!scene || scene->items().size() == previousItemCount);
+	if (preserved)
+		marker("E2E_LEGACY_IMPORT_STATE_PRESERVED");
+	else
+		fail("failed import replaced the current scene or preview");
+
+	if (ok) {
+		marker("E2E_LEGACY_IMPORT_OK");
+		QCoreApplication::exit(0);
+		return;
+	}
+
+	std::fprintf(stderr, "E2E_LEGACY_IMPORT_FAIL: %s\n", failures.join(", ").toStdString().c_str());
 	std::fflush(stderr);
 	QCoreApplication::exit(2);
 }
@@ -3440,6 +4714,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(1000, this, &MainWindow::runSceneRenderE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW"))
 		QTimer::singleShot(1000, this, &MainWindow::runTrackPreviewE2E);
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT"))
+		QTimer::singleShot(1000, this, &MainWindow::runLegacyImportE2E);
 }
 
 // starts EGTRAIN simulation on a worker thread
@@ -3663,88 +4939,81 @@ void MainWindow::runScene() {
 }
 
 void MainWindow::actionLoad_Network() {
-	extern InitialParameters initial_variables;
 	if (!maybeSaveScene())
 		return;
-
-	QDialog dlg(this);
-	dlg.setWindowTitle("Select Case Study");
-	dlg.setMinimumWidth(320);
-
-	auto* layout = new QVBoxLayout(&dlg);
-	layout->addWidget(new QLabel("Choose a case study to load:", &dlg));
-	layout->addSpacing(8);
-
-	struct CaseStudy {
-		int id;
-		const char* name;
-		const char* description;
-	};
-	const CaseStudy cases[] = {
-		{1, "Netherlands", "268 track sections, 74 routes"},
-		{2, "Paimpol", "6 track sections, 15 routes (French branch line)"},
-		{3, "Copenhagen", "168 track sections, 24 routes (S-Bane metro)"},
-		{4, "Milano-Brescia", "38 track sections, 48 routes"},
-	};
-
-	QButtonGroup* group = new QButtonGroup(&dlg);
-	for (const auto& cs : cases) {
-		auto* rb = new QRadioButton(
-			QString("%1 - %2").arg(cs.name).arg(cs.description), &dlg);
-		rb->setProperty("caseId", cs.id);
-		if (cs.id == 1)
-			rb->setChecked(true);
-		group->addButton(rb);
-		layout->addWidget(rb);
+	const bool e2e = qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT");
+	QString sourceDir;
+	QString destinationDir;
+	if (e2e) {
+		sourceDir = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_SOURCE");
+		destinationDir = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_DEST");
+	} else {
+		sourceDir = QFileDialog::getExistingDirectory(this, "Select Legacy Case Folder", QDir::homePath());
+		if (sourceDir.isEmpty())
+			return;
+		destinationDir = QFileDialog::getExistingDirectory(this, "Select Scene Destination", QDir::homePath());
 	}
-
-	layout->addSpacing(8);
-	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
-	layout->addWidget(buttons);
-	connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
-	connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
-
-	if (dlg.exec() != QDialog::Accepted)
+	if (sourceDir.isEmpty() || destinationDir.isEmpty())
 		return;
 
-	int chosen = 1;
-	for (QAbstractButton* btn : group->buttons()) {
-		if (btn->isChecked()) {
-			chosen = btn->property("caseId").toInt();
-			break;
-		}
+	const QString sourceCanonical = QFileInfo(sourceDir).canonicalFilePath();
+	const QString destinationCanonical = QFileInfo(destinationDir).canonicalFilePath();
+	const QString sourcePath = sourceCanonical.isEmpty() ? QDir(sourceDir).absolutePath() : sourceCanonical;
+	const QString destinationPath = destinationCanonical.isEmpty() ? QDir(destinationDir).absolutePath() : destinationCanonical;
+	auto containsPath = [](const QString& parent, const QString& child) {
+		return child == parent || child.startsWith(parent + QDir::separator());
+	};
+	if (containsPath(sourcePath, destinationPath) || containsPath(destinationPath, sourcePath)) {
+		showBlockingError(this, "Cannot Import Legacy Case",
+						 "Choose a scene destination that is separate from and outside the legacy source folder.");
+		return;
 	}
 
-	statusBar()->showMessage("Loading...");
+	statusBar()->showMessage("Importing legacy case...");
 	QApplication::processEvents();
 
-	teardownGUI();
-	initial_variables.set_case(chosen);
-	initial_variables.GUI = 1; // ensure GUI stays enabled regardless of case defaults
+	auto diagnosticSummary = [](const std::vector<SceneDiagnostic>& diagnostics) {
+		int errors = 0;
+		int warnings = 0;
+		QStringList details;
+		for (const auto& d : diagnostics) {
+			if (d.severity == SceneSeverity::Error)
+				++errors;
+			else if (d.severity == SceneSeverity::Warning)
+				++warnings;
+			if (details.size() < 4) {
+				QString detail = QString::fromStdString(d.message);
+				if (!d.file.empty())
+					detail += QString(" [%1]").arg(QString::fromStdString(d.file));
+				details << detail;
+			}
+		}
+		QString summary = QString("Import: %1 error(s), %2 warning(s)").arg(errors).arg(warnings);
+		if (!details.isEmpty())
+			summary += "\n" + details.join("\n");
+		return summary;
+	};
 
-	InputCheckResult check = validateCaseStudyInput(initial_variables.InputMainFolder);
-	if (!check.ok) {
-		QMessageBox::critical(this, "Cannot Load Network", QString::fromStdString(check.message));
+	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
+		? QString("Imported Legacy Scene") : QFileInfo(sourcePath).fileName();
+	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), destinationPath.toStdString(),
+												 sceneName.toStdString());
+	if (!importResult.success()) {
+		showBlockingError(this, "Cannot Import Legacy Case", diagnosticSummary(importResult.diagnostics));
 		return;
 	}
 
-	simulation.resetState();
-	simulation.setupEgtrain();
-	readStationInfo(); // main.cpp does this at startup; reloads skip it otherwise
-	simulation.prepareSimulation();
-	setupGUI();
-	fitView(); // the previous case's viewport rarely covers the new geometry
-	m_sceneDir.clear();
-	m_sceneModel = SceneModel();
-	m_sceneLoaded = false;
-	m_sceneDirty = false;
-	updateSceneWindowTitle();
-	updateSceneActions();
-
-	statusBar()->showMessage(QString("Loaded: %1 (%2 tracks, %3 routes)")
-								 .arg(QString::fromStdString(initial_variables.name))
-								 .arg(initial_variables.numTrackLines)
-								 .arg(initial_variables.N_Routes));
+	SceneLoadResult loadResult = loadScene(destinationPath.toStdString());
+	std::vector<SceneDiagnostic> diagnostics = importResult.diagnostics;
+	diagnostics.insert(diagnostics.end(), loadResult.diagnostics.begin(), loadResult.diagnostics.end());
+	if (errorDiagnosticCount(loadResult.diagnostics) > 0) {
+		showBlockingError(this, "Cannot Open Imported Scene", diagnosticSummary(diagnostics));
+		return;
+	}
+	const auto semanticDiagnostics = validateScene(loadResult.scene);
+	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
+	showBlockingError(this, "Legacy Import Diagnostics", diagnosticSummary(diagnostics), true);
+	openSceneDirectory(destinationPath);
 }
 
 // draws a Node

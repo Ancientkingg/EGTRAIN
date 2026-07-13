@@ -68,13 +68,16 @@ static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* l
 }
 
 int main(int argc, char** argv) {
-	if (argc < 4) {
-		std::cerr << "Usage: test_sceneimporter <copenhagen_dir> <brescia_dir> <netherlands_dir>\n";
+	if (argc < 7) {
+		std::cerr << "Usage: test_sceneimporter <copenhagen_dir> <brescia_dir> <netherlands_dir> <banedanmark_dir> <paimpol_dir> <paimpol_alt_dir>\n";
 		return 1;
 	}
 	std::string copDir = argv[1];
 	std::string breDir = argv[2];
 	std::string nlDir = argv[3];
+	std::string banDir = argv[4];
+	std::string paimpolDir = argv[5];
+	std::string paimpolAltDir = argv[6];
 	bool ok = true;
 
 	auto runPreservationSweep = [&](const std::string& legacyDir, const std::string& sceneDir) {
@@ -417,6 +420,244 @@ int main(int argc, char** argv) {
 			ok &= expect(signallingJson["routes"][0]["blocks"][0] == "ASCII", "ASCII route contents remain unchanged");
 		}
 	}
+
+	// 13. Flat Tracklines payloads import without inventing semantic data and
+	// preserve the canonical runtime infrastructure layout.
+	{
+		TempDir lDir, outDir;
+		fs::create_directories(fs::path(outDir.dir) / "legacy/Tracklines/B7");
+		std::ofstream(fs::path(outDir.dir) / "legacy/Tracklines/B7/stale.txt") << "stale\n";
+		std::ofstream(lDir.dir + "/Stations.txt") << "0\tFlatStart\n1.5\tFlatEnd\n";
+		std::ofstream(lDir.dir + "/Connections.txt") << "0\t0.5\t1\t0.5\n";
+		std::ofstream(lDir.dir + "/TrackandStations.txt") << "0\nFlatStart FlatEnd\n";
+		fs::create_directories(fs::path(lDir.dir) / "B0");
+		std::ofstream(lDir.dir + "/B0/NodiCumPari.txt") << "1\t0\t0\n2\t1\t0\n";
+		std::ofstream(lDir.dir + "/unrelated.txt") << "must not be copied\n";
+
+		auto res = importLegacyScene(lDir.dir, outDir.dir, "FlatFixture");
+		printErrors(res.diagnostics, "Flat fixture import");
+		ok &= expect(res.success(), "Flat fixture import succeeds");
+
+		std::ifstream stations(fs::path(outDir.dir) / "stations.json");
+		json stationsJson;
+		stations >> stationsJson;
+		ok &= expect(stationsJson["stations"].size() == 2, "Flat fixture stations parsed");
+		ok &= expect(stationsJson["stations"][0]["id"] == "FlatStart", "Flat fixture first station parsed");
+
+		std::ifstream services(fs::path(outDir.dir) / "services.json");
+		json servicesJson;
+		services >> servicesJson;
+		ok &= expect(servicesJson["services"].empty(), "Flat fixture has no invented services");
+		std::ifstream rolling(fs::path(outDir.dir) / "rolling_stock.json");
+		json rollingJson;
+		rolling >> rollingJson;
+		ok &= expect(rollingJson["train_units"].empty(), "Flat fixture has no invented train units");
+		ok &= expect(rollingJson["compositions"].empty(), "Flat fixture has no invented compositions");
+		std::ifstream signalling(fs::path(outDir.dir) / "signalling.json");
+		json signallingJson;
+		signalling >> signallingJson;
+		ok &= expect(signallingJson["routes"].empty(), "Flat fixture has no invented routes");
+
+		auto validation = validateSceneDirectory(outDir.dir);
+		ok &= expect(hasDiag(validation, "scene.trains.none"), "Flat fixture reports no trains semantic diagnostic");
+		ok &= expect(hasDiag(validation, "scene.services.none"), "Flat fixture reports no services semantic diagnostic");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "legacy/Tracklines/Stations.txt"), "Flat fixture canonical stations passthrough");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "legacy/Tracklines/Connections.txt"), "Flat fixture canonical connections passthrough");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "legacy/Tracklines/TrackandStations.txt"), "Flat fixture canonical track passthrough");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "legacy/Tracklines/B0/NodiCumPari.txt"), "Flat fixture block passthrough");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "legacy/Tracklines/B7"), "Flat fixture removes stale block passthrough");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "legacy/unrelated.txt"), "Flat fixture excludes unrelated root files");
+	}
+
+	// 14. Reject overlapping source and destination paths before touching either.
+	{
+		TempDir root;
+		const fs::path legacyPath = fs::path(root.dir) / "legacy";
+		const fs::path scenePath = legacyPath / "nested-scene";
+		fs::create_directories(fs::path(legacyPath) / "TrackLines");
+		const fs::path markerPath = fs::path(legacyPath) / "source-marker.txt";
+		std::ofstream(markerPath) << "source stays unchanged\n";
+		std::ofstream(fs::path(legacyPath) / "TrackLines/Stations.txt") << "0\tNestedSource\n";
+
+		auto res = importLegacyScene(legacyPath.string(), scenePath.string(), "NestedDestination");
+		ok &= expect(!res.wroteScene, "Destination inside source is rejected");
+		ok &= expect(hasDiag(res.diagnostics, "scene.import.path", SceneSeverity::Error),
+					 "Destination inside source reports a path error");
+		std::ifstream marker(markerPath);
+		std::string markerContent((std::istreambuf_iterator<char>(marker)), std::istreambuf_iterator<char>());
+		ok &= expect(markerContent == "source stays unchanged\n", "Destination inside source preserves source marker");
+		ok &= expect(!fs::exists(scenePath), "Destination inside source does not create destination");
+	}
+
+	{
+		TempDir root;
+		const fs::path legacyPath = fs::path(root.dir) / "legacy";
+		fs::create_directories(fs::path(legacyPath) / "TrackLines");
+		const fs::path markerPath = fs::path(legacyPath) / "source-marker.txt";
+		std::ofstream(markerPath) << "identical source stays unchanged\n";
+		std::ofstream(fs::path(legacyPath) / "TrackLines/Stations.txt") << "0\tIdenticalSource\n";
+
+		auto res = importLegacyScene(legacyPath.string(), legacyPath.string(), "IdenticalPaths");
+		ok &= expect(!res.wroteScene, "Identical source and destination are rejected");
+		ok &= expect(hasDiag(res.diagnostics, "scene.import.path", SceneSeverity::Error),
+					 "Identical source and destination report a path error");
+		std::ifstream marker(markerPath);
+		std::string markerContent((std::istreambuf_iterator<char>(marker)), std::istreambuf_iterator<char>());
+		ok &= expect(markerContent == "identical source stays unchanged\n", "Identical paths preserve source marker");
+		ok &= expect(!fs::exists(legacyPath / "scene.json"), "Identical paths do not write scene");
+	}
+
+	{
+		TempDir root;
+		const fs::path scenePath = fs::path(root.dir) / "scene";
+		const fs::path legacyPath = scenePath / "legacy";
+		fs::create_directories(fs::path(legacyPath) / "TrackLines");
+		const fs::path markerPath = fs::path(legacyPath) / "source-marker.txt";
+		std::ofstream(markerPath) << "nested source stays unchanged\n";
+		std::ofstream(fs::path(legacyPath) / "TrackLines/Stations.txt") << "0\tNestedSource\n";
+
+		auto res = importLegacyScene(legacyPath.string(), scenePath.string(), "LegacySubdirectory");
+		ok &= expect(!res.wroteScene, "Source at destination legacy is rejected");
+		ok &= expect(hasDiag(res.diagnostics, "scene.import.path", SceneSeverity::Error),
+					 "Source at destination legacy reports a path error");
+		std::ifstream marker(markerPath);
+		std::string markerContent((std::istreambuf_iterator<char>(marker)), std::istreambuf_iterator<char>());
+		ok &= expect(markerContent == "nested source stays unchanged\n", "Source at destination legacy preserves marker");
+		ok &= expect(!fs::exists(scenePath / "scene.json"), "Source at destination legacy does not write scene");
+	}
+
+	// A shared path prefix is not containment: sibling destinations remain valid.
+	{
+		TempDir root;
+		const fs::path legacyPath = fs::path(root.dir) / "legacy";
+		const fs::path scenePath = fs::path(root.dir) / "legacy-copy";
+		fs::create_directories(fs::path(legacyPath) / "TrackLines");
+		std::ofstream(fs::path(legacyPath) / "TrackLines/Stations.txt") << "0\tSiblingSource\n";
+
+		auto res = importLegacyScene(legacyPath.string(), scenePath.string(), "SiblingDestination");
+		ok &= expect(res.success(), "Sibling destination with shared prefix remains valid");
+		ok &= expect(fs::exists(scenePath / "scene.json"), "Sibling destination receives scene");
+	}
+
+	// 16. Import errors preserve an existing destination and clean temporary
+	// siblings instead of publishing a partial scene.
+	{
+		TempDir lDir, outDir;
+		fs::create_directories(fs::path(lDir.dir) / "TrackLines");
+		fs::create_directories(fs::path(lDir.dir) / "Trains");
+		std::ofstream(lDir.dir + "/TrackLines/Stations.txt") << "0\tPreservedSource\n";
+		std::ofstream(lDir.dir + "/Trains/broken.txt") << "malformed train input\n";
+
+		fs::create_directories(fs::path(outDir.dir) / "legacy");
+		std::ofstream(fs::path(outDir.dir) / "scene.json") << "existing scene bytes\n";
+		std::ofstream(fs::path(outDir.dir) / "services.json") << "existing services bytes\n";
+		std::ofstream(fs::path(outDir.dir) / "legacy/stale.txt") << "existing passthrough bytes\n";
+
+		std::vector<std::string> siblingsBefore;
+		for (const auto& entry : fs::directory_iterator(fs::path(outDir.dir).parent_path()))
+			siblingsBefore.push_back(entry.path().filename().string());
+		std::sort(siblingsBefore.begin(), siblingsBefore.end());
+
+		auto res = importLegacyScene(lDir.dir, outDir.dir, "PreservedDestination");
+		ok &= expect(!res.success(), "Malformed source import fails");
+		ok &= expect(!res.wroteScene, "Failed import does not publish a scene");
+
+		std::ifstream sceneFile(fs::path(outDir.dir) / "scene.json");
+		std::string sceneBytes((std::istreambuf_iterator<char>(sceneFile)), std::istreambuf_iterator<char>());
+		ok &= expect(sceneBytes == "existing scene bytes\n", "Failed import preserves existing scene bytes");
+		std::ifstream servicesFile(fs::path(outDir.dir) / "services.json");
+		std::string servicesBytes((std::istreambuf_iterator<char>(servicesFile)), std::istreambuf_iterator<char>());
+		ok &= expect(servicesBytes == "existing services bytes\n", "Failed import preserves existing JSON bytes");
+		std::ifstream staleFile(fs::path(outDir.dir) / "legacy/stale.txt");
+		std::string staleBytes((std::istreambuf_iterator<char>(staleFile)), std::istreambuf_iterator<char>());
+		ok &= expect(staleBytes == "existing passthrough bytes\n", "Failed import preserves existing passthrough");
+
+		std::vector<std::string> siblingsAfter;
+		for (const auto& entry : fs::directory_iterator(fs::path(outDir.dir).parent_path()))
+			siblingsAfter.push_back(entry.path().filename().string());
+		std::sort(siblingsAfter.begin(), siblingsAfter.end());
+		ok &= expect(siblingsAfter == siblingsBefore, "Failed import cleans staging and backup siblings");
+	}
+
+	// 17. Import errors identify the concrete source path that failed.
+	{
+		TempDir lDir, outDir;
+		fs::create_directories(fs::path(lDir.dir) / "TrackLines");
+		fs::create_directories(fs::path(lDir.dir) / "Trains");
+		std::ofstream(lDir.dir + "/TrackLines/Stations.txt") << "0\tDiagnosticSource\n";
+		std::ofstream(lDir.dir + "/Trains/reference.txt")
+			<< "Svc 0 99999999 0 /Data.txt /Trac.txt /MissingTimetable.txt\n";
+		std::ofstream(lDir.dir + "/Trains/traction-reference.txt")
+			<< "SvcTraction 0 99999999 0 /ValidData.txt /MissingTraction.txt /MissingTimetable2.txt\n";
+		std::ofstream(lDir.dir + "/ValidData.txt") << "1 2 3 4 5 6 7 8 9\n";
+
+		auto res = importLegacyScene(lDir.dir, outDir.dir, "DiagnosticPaths");
+		bool allErrorsNamePaths = true;
+		for (const auto& d : res.diagnostics) {
+			if (d.severity == SceneSeverity::Error && d.file.empty())
+				allErrorsNamePaths = false;
+		}
+		ok &= expect(allErrorsNamePaths, "Every import error names a failing path");
+
+		const fs::path missingTimetable = fs::path(lDir.dir) / "MissingTimetable.txt";
+		const fs::path missingData = fs::path(lDir.dir) / "Data.txt";
+		const fs::path missingTraction = fs::path(lDir.dir) / "MissingTraction.txt";
+		const fs::path missingRoute = fs::path(lDir.dir) / "Routes/Route0.txt";
+		bool foundTimetable = false;
+		bool foundData = false;
+		bool foundTraction = false;
+		bool foundRoute = false;
+		for (const auto& d : res.diagnostics) {
+			if (d.code == "scene.import.ref" && d.message.find("Missing timetable file") != std::string::npos)
+				foundTimetable = foundTimetable || d.file == missingTimetable.string();
+			if (d.code == "scene.import.ref" && d.message.find("Missing train data file") != std::string::npos)
+				foundData = foundData || d.file == missingData.string();
+			if (d.code == "scene.import.ref" && d.message.find("Missing traction file") != std::string::npos)
+				foundTraction = foundTraction || d.file == missingTraction.string();
+			if (d.code == "scene.import.ref" && d.message.find("Missing route file") != std::string::npos)
+				foundRoute = foundRoute || d.file == missingRoute.string();
+		}
+		ok &= expect(foundTimetable, "Missing timetable diagnostic names referenced timetable path");
+		ok &= expect(foundData, "Missing train data diagnostic names referenced data path");
+		ok &= expect(foundTraction, "Missing traction diagnostic names referenced traction path");
+		ok &= expect(foundRoute, "Missing route diagnostic names referenced route path");
+	}
+
+	// 18. Every committed legacy input, including the Banedanmark alias and
+	// both Paimpol variants, keeps the importer output shape.
+	auto checkCommittedImport = [&](const std::string& legacyDir, const std::string& sceneName,
+								   size_t stationCount, size_t unitCount, size_t serviceCount, size_t routeCount) {
+		TempDir outDir;
+		auto res = importLegacyScene(legacyDir, outDir.dir, sceneName);
+		printErrors(res.diagnostics, (sceneName + " import").c_str());
+		ok &= expect(res.success(), (sceneName + " import succeeds").c_str());
+
+		std::ifstream sceneFile(fs::path(outDir.dir) / "scene.json");
+		json sceneJson;
+		sceneFile >> sceneJson;
+		ok &= expect(sceneJson["name"] == sceneName, (sceneName + " scene name preserved").c_str());
+		std::ifstream stationsFile(fs::path(outDir.dir) / "stations.json");
+		json stationsJson;
+		stationsFile >> stationsJson;
+		std::ifstream rollingFile(fs::path(outDir.dir) / "rolling_stock.json");
+		json rollingJson;
+		rollingFile >> rollingJson;
+		std::ifstream servicesFile(fs::path(outDir.dir) / "services.json");
+		json servicesJson;
+		servicesFile >> servicesJson;
+		std::ifstream signallingFile(fs::path(outDir.dir) / "signalling.json");
+		json signallingJson;
+		signallingFile >> signallingJson;
+		ok &= expect(stationsJson["stations"].size() == stationCount, (sceneName + " station output shape").c_str());
+		ok &= expect(rollingJson["train_units"].size() == unitCount, (sceneName + " train-unit output shape").c_str());
+		ok &= expect(rollingJson["compositions"].size() == unitCount, (sceneName + " composition output shape").c_str());
+		ok &= expect(servicesJson["services"].size() == serviceCount, (sceneName + " service output shape").c_str());
+		ok &= expect(signallingJson["routes"].size() == routeCount, (sceneName + " route output shape").c_str());
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "legacy"), (sceneName + " legacy passthrough exists").c_str());
+	};
+	checkCommittedImport(banDir, "Banedanmark", 94, 1, 24, 24);
+	checkCommittedImport(paimpolDir, "Paimpol", 10, 1, 2, 15);
+	checkCommittedImport(paimpolAltDir, "Paimpol alternative journeys", 10, 1, 1, 14);
 
 	if (!ok)
 		return 1;
