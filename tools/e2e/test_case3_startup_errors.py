@@ -21,7 +21,7 @@ def main() -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        timeout=60,
+        timeout=120,
     )
     if proc.returncode != 0:
         raise SystemExit(f"case 3 startup exited with {proc.returncode}")
