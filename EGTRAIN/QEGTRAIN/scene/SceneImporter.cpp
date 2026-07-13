@@ -428,7 +428,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					if (stem.length() > 5 && stem.substr(0, 5) == "Route") {
 						std::string numPart = stem.substr(5);
 						bool isNum = !numPart.empty() && numPart.length() <= 9 &&
-									 std::all_of(numPart.begin(), numPart.end(), ::isdigit);
+									 std::all_of(numPart.begin(), numPart.end(), [](char value) {
+										 return std::isdigit(static_cast<unsigned char>(value));
+									 });
 						if (isNum) {
 							routeFiles.push_back({std::stoi(numPart), entry.path()});
 						}
