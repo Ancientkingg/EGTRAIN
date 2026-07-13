@@ -175,6 +175,14 @@ These issues cover the main simulation path, but the tracking is incomplete. No 
 
 Issue #85 also needs a schema and importer step. Its current text says to build infrastructure from `SceneModel`, but the current model has no node or arc fields, the loader only checks that the two arrays exist, and the importer writes both arrays empty.
 
+The compatibility track preview should be removed through three ordered follow-up issues:
+
+1. **Define and persist canonical infrastructure.** Specify V1 fields and validation for tracks, nodes, arcs, switches, connections, gradients, speed limits, blocks, stations, and signalling references. Update scene loading and writing so those values round-trip instead of leaving `nodes` and `arcs` empty.
+2. **Import legacy infrastructure into the canonical model.** Convert `TrackLines`, `Connections.txt`, station anchors, block data, and signalling topology into those fields. Cover all committed case studies with import, validation, and round-trip tests.
+3. **Render and simulate canonical infrastructure.** Build the network view and simulator topology from `SceneModel`, then delete `TrackPreview`, the compatibility rendering hook, and the runtime dependency on `legacy/TrackLines` once canonical coverage is complete.
+
+These issues form a dependency chain: schema and persistence first, import second, native rendering and simulation third.
+
 The bundle work in [#99](https://github.com/Ancientkingg/EGTRAIN/issues/99), [#100](https://github.com/Ancientkingg/EGTRAIN/issues/100), and [#102](https://github.com/Ancientkingg/EGTRAIN/issues/102) says that `.egscene` files exclude `legacy/`. That is not sufficient for the current run path. A portable bundle either needs the native-input work above and coverage for the remaining passthrough data, or it must carry `legacy/` until that migration is complete.
 
 ## Validation command
