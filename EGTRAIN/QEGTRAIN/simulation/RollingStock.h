@@ -3178,6 +3178,7 @@ public:
 	void ReplicateTrainTrajectory(Train T_2_Replicate) {
 		// Offset (i.e. time headway) between the two trains
 		int Offset = (int)(departure_time - T_2_Replicate.departure_time);
+		earliestActiveTrajectoryIndex = replicatedEarliestTrajectoryIndex(T_2_Replicate.earliestActiveTrajectoryIndex, Offset);
 		// Setting the End_Time
 		End_Time = T_2_Replicate.End_Time + Offset;
 		if (End_Time > initial_variables.times)
@@ -7870,8 +7871,7 @@ public:
 	}
 
 	void recordEarliestActiveTrajectoryIndex(int index) {
-		if (earliestActiveTrajectoryIndex < 0 && CanEnter)
-			earliestActiveTrajectoryIndex = index;
+		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
 	// signalling functions that need train info to occupy specific signalling_block_sections

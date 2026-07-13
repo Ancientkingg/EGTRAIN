@@ -13,6 +13,14 @@ bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
 		   std::isfinite(positionMeters) && positionMeters != -9999;
 }
 
+int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter) {
+	return currentIndex < 0 && canEnter ? candidateIndex : currentIndex;
+}
+
+int replicatedEarliestTrajectoryIndex(int sourceIndex, int offset) {
+	return sourceIndex < 0 ? -1 : sourceIndex + offset;
+}
+
 std::vector<TrajectorySegment> validTrajectorySegments(
 		const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
 	std::vector<TrajectorySegment> segments;

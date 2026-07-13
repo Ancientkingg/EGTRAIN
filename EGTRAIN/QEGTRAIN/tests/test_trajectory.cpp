@@ -44,6 +44,18 @@ int main() {
 	ok &= expect(validTrajectorySegments({1, 2, 3}, 2, 1).empty(), "reversed bounds are empty");
 	ok &= expect(validTrajectorySegments({0, 0}, -1, 1).empty(), "inactive trains have no trajectory segments");
 
+	int earliest = -1;
+	earliest = recordEarliestTrajectoryIndex(earliest, 4, false);
+	ok &= expect(earliest == -1, "inactive train does not record an active sample");
+	earliest = recordEarliestTrajectoryIndex(earliest, 7, true);
+	ok &= expect(earliest == 7, "first active sample is recorded");
+	earliest = recordEarliestTrajectoryIndex(earliest, 2, true);
+	ok &= expect(earliest == 7, "active sample recording is first-write-wins");
+	ok &= expect(replicatedEarliestTrajectoryIndex(7, 12) == 19,
+				 "replicated active sample applies the time offset");
+	ok &= expect(replicatedEarliestTrajectoryIndex(-1, 12) == -1,
+				 "inactive source remains inactive when replicated");
+
 	int authoritativeEndTime = 1;
 	{
 		TrajectoryEndTimeOverride temporaryEnd(authoritativeEndTime, 4);

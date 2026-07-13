@@ -33,6 +33,10 @@ double trajectoryTimeSeconds(int index, double timestep);
 bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
 							 int sampleCount, double positionMeters);
 
+int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter);
+
+int replicatedEarliestTrajectoryIndex(int sourceIndex, int offset);
+
 std::vector<TrajectorySegment> validTrajectorySegments(
 		const std::vector<double>& positionsMeters, int activeFirst, int activeLast);
 

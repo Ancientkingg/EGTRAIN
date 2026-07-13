@@ -674,6 +674,7 @@ void ImprovedTrainSimulationForComputingHW(double v1, double v2, double v3) {
 			activateSignallingSystem(); // Activate the signalling system
 			for (int t = 0; t < initial_variables.times; t++) {
 				regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
+				regional_train[i].recordEarliestActiveTrajectoryIndex(t);
 			}
 		} else {
 			for (int j = 0; j < numRegions; j++) {
@@ -1093,6 +1094,7 @@ void TrainSimulationForComputingHW(double v1, double v2, double v3) {
 			// if (t==2200)
 			// cout<<"Pites";
 			regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
+			regional_train[i].recordEarliestActiveTrajectoryIndex(t);
 		}
 	}
 	//}
@@ -1109,6 +1111,7 @@ void Train_Simulation_Integration_With_ROMA(double v1, double v2, double v3) {
 			// Upload for each simulation step: train characteristics
 			for (int j = 0; j < numRegions; j++) {
 				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
+				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			}
 		}
 
@@ -1204,6 +1207,7 @@ void trainSimulation(double v1, double v2, double v3) {
 			// Upload for each simulation step: train characteristics
 			for (int j = 0; j < numRegions; j++) {
 				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
+				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			}
 		}
 
