@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main() -> None:
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
+    release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
     required = {
         "Test": "ctest --test-dir build",
@@ -63,8 +64,25 @@ def main() -> None:
         for path in ("ctest-sanitizer.log", "qegtrain-gui-autostart-smoke.log")
     ):
         missing.append("sanitizer job failure logs")
+    application_paths = "\n".join(
+        (
+            "    paths:",
+            "      - '.github/workflows/cmake.yml'",
+            "      - 'CMakeLists.txt'",
+            "      - 'Info.plist.in'",
+            "      - 'EGTRAIN/QEGTRAIN/**'",
+            "      - 'tools/**'",
+        )
+    )
+    if workflow.count(application_paths) != 2:
+        missing.append("application path filters for pushes and pull requests")
+    release_paths = application_paths.replace("cmake.yml", "release.yml").replace(
+        "\n      - 'tools/**'", ""
+    )
+    if release_paths not in release_workflow:
+        missing.append("release application path filter")
     if missing:
-        raise SystemExit("CMake workflow is missing: " + ", ".join(missing))
+        raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 
 
 if __name__ == "__main__":
