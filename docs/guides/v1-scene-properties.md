@@ -4,6 +4,8 @@ Use this reference while editing a V1 scene by hand. The application guide expla
 
 Each scene is a directory. JSON object and property names are case sensitive. A property marked "required" must exist and have the stated type. An optional property uses the default listed below when it is absent.
 
+This reference describes the implementation as it works now. V1 is not yet a self-contained simulation format. Some JSON sections are canonical and used by the loader, validator, and exporter; other sections are placeholders or parse-only files. A runnable imported scene still needs files under `legacy/`.
+
 ## `scene.json`
 
 | Property | Type | Required | Meaning | Accepted value and checks |
@@ -27,7 +29,7 @@ All times in the other files are measured in seconds relative to `base_time`. Ne
 | `nodes` | array | yes | Reserved canonical infrastructure nodes | The loader checks that this is an array but does not read its entries in V1. Use `[]`. |
 | `arcs` | array | yes | Reserved canonical infrastructure links | The loader checks that this is an array but does not read its entries in V1. Use `[]`. |
 
-The current simulator reads track geometry, blocks, switches, gradients, and speed limits from the exported `TrackLines/` directory. The exporter accepts `legacy/Tracklines/` or `legacy/TrackLines/` and normalizes the name. Editing `nodes` or `arcs` has no effect on a run.
+The current simulator reads track geometry, blocks, switches, gradients, and speed limits from the exported `TrackLines/` directory. The exporter accepts `legacy/Tracklines/` or `legacy/TrackLines/` and normalizes the name. Editing `nodes` or `arcs` has no effect on a run. `Save Scene` rewrites both arrays as `[]`, so it does not preserve entries placed in them.
 
 ## `stations.json`
 
@@ -37,6 +39,7 @@ The root property is `stations`, a required array.
 | --- | --- | --- | --- | --- |
 | `stations[].id` | string | yes | Identifier used by service stops | Must not be empty and must be unique among stations. Keep it free of whitespace so the scene can export to the legacy timetable format. |
 | `stations[].name` | string | yes | Name shown to the user | Must not be empty. It does not act as a reference. |
+| `stations[].position_km` | number | no | Track position emitted by the legacy importer | The V1 loader ignores it and `Save Scene` does not write it back. The simulator obtains the station position from `legacy/TrackLines/`. |
 | `stations[].platforms` | array | no | Platforms that a stop may name | Defaults to an empty array. A value of another type is currently treated as an empty array. |
 | `stations[].platforms[].id` | string | yes, when the platform exists | Platform identifier within the station | Must not be empty. A service platform must match one of the IDs on its station. The validator does not check duplicate platform IDs. |
 
@@ -150,9 +153,29 @@ Common contents include:
 | `Tracklines/` or `TrackLines/` | Track geometry, block layout, stations, switches, gradients, and speed limits used by the simulator |
 | `TMS/` and `TDS/` | Legacy signalling and train-detection data |
 | `GUI/` | Legacy display coordinates and related settings |
-| Other files | Case-specific input copied through without conversion |
+| `Rescheduling/`, `Passengers/`, and `RoutesToWrite/` | Optional case-specific runtime data not represented by the V1 model |
+| `Timetable/Scenarios_*` | Scenario directories copied through without conversion |
+| Non-route files under `Routes/` | Route support files copied through without conversion |
 
 The exporter writes routes, trains, timetables, and incidents from the canonical JSON first. It then copies files from `legacy/` only when the generated output does not already contain the destination. Do not edit generated files in an export and expect the changes to return to the V1 scene.
+
+### Work that removes the legacy dependency
+
+Issue status checked on 13 July 2026:
+
+- [#83](https://github.com/Ancientkingg/EGTRAIN/issues/83) is the open epic for making the scene model the simulator's native input.
+- [#84](https://github.com/Ancientkingg/EGTRAIN/issues/84) converted the four case studies, but it is complete and did not remove their `legacy/` passthrough.
+- [#85](https://github.com/Ancientkingg/EGTRAIN/issues/85) covers the main format gap: building track, block, switch, station, connection, route, and signalling structures from canonical scene data.
+- [#86](https://github.com/Ancientkingg/EGTRAIN/issues/86) replaces the legacy rolling stock, service, and timetable loaders.
+- [#87](https://github.com/Ancientkingg/EGTRAIN/issues/87) loads incidents directly from the scene model.
+- [#88](https://github.com/Ancientkingg/EGTRAIN/issues/88) changes the GUI and CLI run path so it no longer stages a legacy export before simulation.
+- [#89](https://github.com/Ancientkingg/EGTRAIN/issues/89) removes the old text loaders and input trees after the native path works.
+
+These issues cover the main simulation path, but the tracking is incomplete. No dedicated issue currently converts `GUI/`, `TMS/`, `TDS/`, `Rescheduling/`, `Passengers/`, or `RoutesToWrite/` into canonical scene properties. [#125](https://github.com/Ancientkingg/EGTRAIN/issues/125) makes missing or unimplemented data visible in the UI, but it does not define or load those properties.
+
+Issue #85 also needs a schema and importer step. Its current text says to build infrastructure from `SceneModel`, but the current model has no node or arc fields, the loader only checks that the two arrays exist, and the importer writes both arrays empty.
+
+The bundle work in [#99](https://github.com/Ancientkingg/EGTRAIN/issues/99), [#100](https://github.com/Ancientkingg/EGTRAIN/issues/100), and [#102](https://github.com/Ancientkingg/EGTRAIN/issues/102) says that `.egscene` files exclude `legacy/`. That is not sufficient for the current run path. A portable bundle either needs the native-input work above and coverage for the remaining passthrough data, or it must carry `legacy/` until that migration is complete.
 
 ## Validation command
 
