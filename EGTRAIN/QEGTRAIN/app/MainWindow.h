@@ -447,6 +447,7 @@ private:
 	void rebuildRecentScenesMenu();
 	bool maybeSaveScene();
 	bool openSceneDirectory(const QString& dir);
+	void renderTrackPreview(const QString& sceneDir);
 	bool saveSceneToCurrentDir();
 	bool saveSceneAsToDirectory();
 	bool copyScenePassthroughFiles(const QString& targetDir);
@@ -516,6 +517,7 @@ private:
 	void runVisualPolishE2E();
 	void runEditorSmokeE2E();
 	void runSceneRenderE2E();
+	void runTrackPreviewE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
