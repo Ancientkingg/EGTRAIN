@@ -5735,6 +5735,13 @@ void MainWindow::refreshRunResults() {
 	m_runResultsTable->resizeColumnsToContents();
 	m_runResultsDock->show();
 	m_runResultsDock->raise();
+	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
+		extern InitialParameters initial_variables;
+		std::fprintf(stdout, "\nE2E_GUI_RUN_RESULTS rows=%d trains=%d dock_visible=%d output_dir=%s\n",
+			m_runResultsTable->rowCount(), static_cast<int>(results.trains.size()),
+			m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
+		std::fflush(stdout);
+	}
 }
 
 void MainWindow::setupInfoDockWidget() {
