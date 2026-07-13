@@ -100,6 +100,8 @@ Add `--interactive` to use the legacy terminal questionnaire.
 
 ## Test
 
+Run these commands from the repository root:
+
 ```bash
 ctest --test-dir build --output-on-failure
 tools/e2e/headless_smoke.py
