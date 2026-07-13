@@ -239,14 +239,44 @@ int main(int argc, char** argv) {
 		ok &= expect(line == "@Depot/1@", "Slash block id remains wrapped");
 	}
 
-	// 8. Nonexistent scene dir
+	// 8. Non-ASCII route ids are not treated as decimal route numbers.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		const std::string nonAsciiRouteId = std::string("route") + "\xC3\xA9";
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Non-ASCII Route Id"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream signalling(scene / "signalling.json");
+		signalling << R"({"signals":[],"routes":[{"id":")" << nonAsciiRouteId << R"(","blocks":["ASCII"]}]})" << "\n";
+		signalling.close();
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream services(scene / "services.json");
+		services << R"({"services":[{"id":"svc","composition":"comp","route":")" << nonAsciiRouteId
+			 << R"(","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})" << "\n";
+		services.close();
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Non-ASCII route id export");
+		ok &= expect(res.success(), "Non-ASCII route id export succeeds");
+
+		std::ifstream route(fs::path(outDir.dir) / "Routes" / "Route0.txt");
+		std::string line;
+		ok &= expect(route.good(), "Non-ASCII route id uses sequential ASCII filename");
+		std::getline(route, line);
+		ok &= expect(line == "@ASCII@", "Non-ASCII route id contents remain unchanged");
+	}
+
+	// 9. Nonexistent scene dir
 	{
 		TempDir outDir;
 		auto res = exportLegacyScene("/no/such/scene", outDir.dir);
 		ok &= expect(!res.success(), "Nonexistent scene export fails");
 	}
 
-	// 9. Multi-unit composition export
+	// 10. Multi-unit composition export
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -291,7 +321,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// 10. Multi-unit composition with only degenerate traction bands fails
+	// 11. Multi-unit composition with only degenerate traction bands fails
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -316,7 +346,7 @@ int main(int argc, char** argv) {
 		ok &= expect(foundEmptyCurveDiag, "Empty combined traction curve is diagnosed");
 	}
 
-	// 11. Near-duplicate band boundaries collapse instead of forming sliver bands
+	// 12. Near-duplicate band boundaries collapse instead of forming sliver bands
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -347,7 +377,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// 12. Synthetic GUI layout generated from Stations and NodiCumPari
+	// 13. Synthetic GUI layout generated from Stations and NodiCumPari
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -414,7 +444,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// 13. Scene with no legacy/TrackLines/Stations.txt exports successfully and writes no GUI/StationsCoord.txt
+	// 14. Scene with no legacy/TrackLines/Stations.txt exports successfully and writes no GUI/StationsCoord.txt
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -432,7 +462,7 @@ int main(int argc, char** argv) {
 		ok &= expect(!fs::exists(guiDir / "StationsCoord.txt"), "GUI/StationsCoord.txt is not written");
 	}
 
-	// 14. Mirrored band listed before the reference trackline still maps by name
+	// 15. Mirrored band listed before the reference trackline still maps by name
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -476,7 +506,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// 15. Stations without any trackline node data generate no GUI files at all
+	// 16. Stations without any trackline node data generate no GUI files at all
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -496,7 +526,7 @@ int main(int argc, char** argv) {
 		ok &= expect(!fs::exists(fs::path(outDir.dir) / "GUI" / "caseStudyTrackData.txt"), "No half-written caseStudyTrackData.txt");
 	}
 
-	// 16. Incidents export to the legacy Incidents.txt
+	// 17. Incidents export to the legacy Incidents.txt
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -531,7 +561,7 @@ int main(int argc, char** argv) {
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
 	}
 
-	// 17. Scene without incidents writes no Incidents.txt
+	// 18. Scene without incidents writes no Incidents.txt
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);

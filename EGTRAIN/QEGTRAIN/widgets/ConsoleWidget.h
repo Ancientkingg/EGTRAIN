@@ -27,14 +27,35 @@ protected:
     int sync() override;
 
 private:
-    std::function<void(QString)> m_callback;
-    std::streambuf* m_oldCout = nullptr;
-    std::streambuf* m_oldCerr = nullptr;
-    std::string m_buffer;
-    QMutex m_mutex;
-    bool m_installed = false;
+	enum class Stream { Cout, Cerr };
 
-    void flushBuffer();
+	class ProxyStreambuf : public std::streambuf {
+	public:
+		ProxyStreambuf(ConsoleStreambuf* owner, Stream stream);
+
+	protected:
+		int_type overflow(int_type c) override;
+		std::streamsize xsputn(const char* s, std::streamsize n) override;
+		int sync() override;
+
+	private:
+		ConsoleStreambuf* m_owner;
+		Stream m_stream;
+	};
+
+	std::function<void(QString)> m_callback;
+	std::streambuf* m_oldCout = nullptr;
+	std::streambuf* m_oldCerr = nullptr;
+	std::string m_buffer;
+	QMutex m_mutex{QMutex::Recursive};
+	bool m_installed = false;
+	ProxyStreambuf m_coutProxy;
+	ProxyStreambuf m_cerrProxy;
+
+	int_type overflow(Stream stream, int_type c);
+	std::streamsize xsputn(Stream stream, const char* s, std::streamsize n);
+	int sync(Stream stream);
+	void flushBuffer();
 };
 
 // Dock widget that displays captured console output

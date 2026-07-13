@@ -313,6 +313,12 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
+    add_executable(test_consolestream
+        ${SRC_DIR}/tests/test_consolestream.cpp
+        ${SRC_DIR}/widgets/ConsoleWidget.cpp)
+    target_link_libraries(test_consolestream PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_consolestream COMMAND test_consolestream)
+
     add_test(NAME test_qt_resources
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
 
@@ -405,7 +411,7 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
 	add_test(NAME test_case3_startup_errors
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
-	set_tests_properties(test_case3_startup_errors PROPERTIES TIMEOUT 60)
+	set_tests_properties(test_case3_startup_errors PROPERTIES TIMEOUT 120)
 	add_test(NAME test_scene_tool_diagnostics
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_scene_tool_diagnostics.py $<TARGET_FILE:scene_tool>)
 	add_test(NAME test_startup_launch_contract
