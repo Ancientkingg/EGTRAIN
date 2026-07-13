@@ -13,6 +13,17 @@ bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
 		   std::isfinite(positionMeters) && positionMeters != -9999;
 }
 
+std::vector<double> trajectoryExportCells(
+		const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
+	std::vector<double> cells(positionsMeters.size(), -9999);
+	for (const auto& segment : validTrajectorySegments(positionsMeters, activeFirst, activeLast)) {
+		std::copy(positionsMeters.begin() + segment.first,
+				  positionsMeters.begin() + segment.last + 1,
+				  cells.begin() + segment.first);
+	}
+	return cells;
+}
+
 int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter) {
 	return currentIndex < 0 && canEnter ? candidateIndex : currentIndex;
 }

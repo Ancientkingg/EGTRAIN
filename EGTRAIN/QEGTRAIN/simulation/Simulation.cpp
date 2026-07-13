@@ -909,10 +909,6 @@ void PrintLocationHeadways(string MainFolder) {
 
 // Function to Print all the trajectories
 void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
-	bool NoPrint[300]; // This array has for each train the boolean variable that becomes 1 only if the train has finished its run (i.e. the value -9999 to the instant_spatial_position[i] has been reached)
-	for (int k = 0; k < 300; k++) {
-		NoPrint[k] = false;
-	} // Initializing the NoPrint
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput;
@@ -924,19 +920,17 @@ void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
 	FileOutput << "\n";
 	for (int i = 0; i < N_S; i++) {
 		FileOutput << S[i].trainDescription << " ";
+		const auto exportCells = trajectoryExportCells(S[i].instant_spatial_position,
+													 S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
 		for (int t = 0; t < initial_variables.times; t++) {
-			if ((S[i].instant_spatial_position[t] == -9999) || (t == S[i].End_Time + 1))
-				NoPrint[i] = true;
-
-			if ((S[i].instant_spatial_position[t] != -9999) && (NoPrint[i] == 0))
-				if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-					FileOutput << S[i].instant_spatial_position[t] << " ";
-				} else {
-					FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - S[i].instant_spatial_position[t] << " ";
-				}
-
-			else
-				break;
+			const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
+			if (position == -9999) {
+				FileOutput << -9999 << " ";
+			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
+				FileOutput << position << " ";
+			} else {
+				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
+			}
 		}
 		FileOutput << "\n";
 	}

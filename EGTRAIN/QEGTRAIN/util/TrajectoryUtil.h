@@ -33,6 +33,9 @@ double trajectoryTimeSeconds(int index, double timestep);
 bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
 							 int sampleCount, double positionMeters);
 
+std::vector<double> trajectoryExportCells(const std::vector<double>& positionsMeters,
+										 int activeFirst, int activeLast);
+
 int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter);
 
 int replicatedEarliestTrajectoryIndex(int sourceIndex, int offset);

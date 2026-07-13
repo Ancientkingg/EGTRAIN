@@ -44,6 +44,18 @@ int main() {
 	ok &= expect(validTrajectorySegments({1, 2, 3}, 2, 1).empty(), "reversed bounds are empty");
 	ok &= expect(validTrajectorySegments({0, 0}, -1, 1).empty(), "inactive trains have no trajectory segments");
 
+	ok &= expect(trajectoryExportCells({0, 0, 10, 20, 0, 0}, 2, 3) ==
+					 std::vector<double>({-9999, -9999, 10, 20, -9999, -9999}),
+				 "export cells preserve active bounds and alignment");
+	ok &= expect(trajectoryExportCells({0, 10, -9999, 30, 40, 0}, 0, 5) ==
+					 std::vector<double>({0, 10, -9999, 30, 40, 0}),
+				 "export cells preserve internal gaps and later samples");
+	ok &= expect(trajectoryExportCells({0, 10, 20}, -1, 2) ==
+					 std::vector<double>({-9999, -9999, -9999}),
+				 "inactive export cells are all missing");
+	ok &= expect(trajectoryExportCells({0}, 0, 0) == std::vector<double>({0}),
+				 "zero is valid inside active bounds");
+
 	int earliest = -1;
 	earliest = recordEarliestTrajectoryIndex(earliest, 4, false);
 	ok &= expect(earliest == -1, "inactive train does not record an active sample");
