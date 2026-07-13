@@ -23,8 +23,21 @@ static bool closeTo(double actual, double expected) {
 }
 
 static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
-																const std::vector<std::string>& stations) {
+																					const std::vector<std::string>& stations) {
 	auto train = std::make_unique<Train>();
+	train->trainDescription = id;
+	train->numStations = static_cast<int>(stations.size());
+	train->Stations = new Node[stations.size()];
+	for (std::size_t index = 0; index < stations.size(); ++index) {
+		train->Stations[index].stationName = stations[index];
+		train->StationArrivalNames[index] = stations[index];
+	}
+	return train;
+}
+
+static std::unique_ptr<Regional> makeRegionalTimetableTrain(const std::string& id,
+																							const std::vector<std::string>& stations) {
+	auto train = std::make_unique<Regional>();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
 	train->Stations = new Node[stations.size()];
@@ -68,7 +81,8 @@ int main() {
 		train->ScheduledArrivals[0] = 100.0;
 		train->ScheduledDepartures[0] = 130.0;
 		train->TimetablePoints.push_back(makeTimetableEvent("Central", 112.0, 145.0));
-		const auto rows = buildTimetableResults(train.get(), 1);
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 1, "one timetable station row");
 		ok &= expect(rows[0].callIndex == 1 && rows[0].stationId == "Central",
 					 "timetable row keeps station occurrence identity");
@@ -100,7 +114,8 @@ int main() {
 		train->ScheduledDepartures[1] = 25.0;
 		train->TimetablePoints.push_back(makeTimetableEvent("Central", 11.0, 16.0));
 		train->TimetablePoints.push_back(makeTimetableEvent("Central", 22.0, 27.0));
-		const auto rows = buildTimetableResults(train.get(), 1);
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 2 && rows[0].callIndex == 1 && rows[1].callIndex == 2,
 					 "repeated station calls remain ordered rows");
 		ok &= expect(rows[0].simulatedArrivalSeconds.available &&
@@ -116,6 +131,19 @@ int main() {
 	}
 
 	{
+		auto train = makeTimetableTrain("journey-order", {"A", "B", "A"});
+		train->TimetablePoints.push_back(makeTimetableEvent("A", 11.0, 16.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("B", 22.0, 27.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("A", 33.0, 38.0));
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
+		ok &= expect(rows.size() == 3 && rows[0].journeyIndex == 1 && rows[1].journeyIndex == 2 &&
+					 rows[2].journeyIndex == 3 && rows[0].callIndex == 1 && rows[1].callIndex == 1 &&
+					 rows[2].callIndex == 2,
+					"journey order stays distinct from station occurrence");
+	}
+
+	{
 		auto train = makeTimetableTrain("missing", {"ArrivalOnly", "DepartureOnly"});
 		train->ScheduledArrivals[0] = 0.0;
 		train->ScheduledDepartures[0] = -1.0;
@@ -125,7 +153,8 @@ int main() {
 		TrainEvent second = makeTimetableEvent("DepartureOnly", 0.0, -1.0);
 		train->TimetablePoints.push_back(first);
 		train->TimetablePoints.push_back(second);
-		const auto rows = buildTimetableResults(train.get(), 1);
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 2, "missing events remain station rows");
 		ok &= expect(rows[0].plannedArrivalSeconds.available &&
 					 closeTo(rows[0].plannedArrivalSeconds.value, 0.0),
@@ -151,7 +180,8 @@ int main() {
 		train->ScheduledArrivals[0] = 100.0;
 		train->ScheduledDepartures[0] = 200.0;
 		train->TimetablePoints.push_back(makeTimetableEvent("Central", 90.0, 180.0));
-		const auto rows = buildTimetableResults(train.get(), 1);
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 1 && rows[0].arrivalDelaySeconds.available &&
 					 closeTo(rows[0].arrivalDelaySeconds.value, -10.0) &&
 					 rows[0].departureDelaySeconds.available &&
@@ -160,7 +190,8 @@ int main() {
 	}
 
 	auto delayed = makeTrain("delayed", 3, 7, 10.0, 20.0, 30.0, 40.0);
-	const auto delayedResults = buildRunResults(delayed.get(), 1, 0.5);
+	const std::vector<const Train*> delayedTrains{delayed.get()};
+	const auto delayedResults = buildRunResults(delayedTrains, 0.5);
 	ok &= expect(delayedResults.trains.size() == 1, "one train result");
 	ok &= expect(delayedResults.trains[0].startSeconds.available &&
 					 closeTo(delayedResults.trains[0].startSeconds.value, 1.5),
@@ -174,7 +205,8 @@ int main() {
 
 	auto gap = makeTrain("gap", 1, 5, 11.0, 21.0, 31.0, 41.0);
 	gap->instant_spatial_position[3] = -9999.0;
-	const auto gapResults = buildRunResults(gap.get(), 1, 2.0);
+	const std::vector<const Train*> gapTrains{gap.get()};
+	const auto gapResults = buildRunResults(gapTrains, 2.0);
 	ok &= expect(gapResults.trains[0].startSeconds.available &&
 					 closeTo(gapResults.trains[0].startSeconds.value, 2.0),
 					 "internal gap keeps first valid start");
@@ -187,7 +219,8 @@ int main() {
 
 	auto missingTrajectory = makeTrain("missing", 0, 2, 1.0, 2.0, 3.0, 4.0);
 	missingTrajectory->earliestActiveTrajectoryIndex = -1;
-	const auto missingResults = buildRunResults(missingTrajectory.get(), 1, 1.0);
+	const std::vector<const Train*> missingTrains{missingTrajectory.get()};
+	const auto missingResults = buildRunResults(missingTrains, 1.0);
 	ok &= expect(!missingResults.trains[0].startSeconds.available &&
 					 !missingResults.trains[0].endSeconds.available &&
 					 !missingResults.trains[0].travelSeconds.available &&
@@ -196,7 +229,8 @@ int main() {
 
 	auto shortPower = makeTrain("short-power", 1, 4, 1.0, 2.0, 3.0, 4.0);
 	shortPower->instant_train_power_consumption.resize(2);
-	const auto shortPowerResults = buildRunResults(shortPower.get(), 1, 1.0);
+	const std::vector<const Train*> shortPowerTrains{shortPower.get()};
+	const auto shortPowerResults = buildRunResults(shortPowerTrains, 1.0);
 	ok &= expect(!shortPowerResults.trains[0].energyConsumedKWh.available &&
 					 !shortPowerResults.trains[0].energyWithRegenKWh.available &&
 					 !shortPowerResults.trains[0].substationKWh.available &&
@@ -205,7 +239,8 @@ int main() {
 
 	auto shortEnergy = makeTrain("short-energy", 1, 4, 1.0, 2.0, 3.0, 4.0);
 	shortEnergy->instant_train_energy_consumption.resize(2);
-	const auto shortEnergyResults = buildRunResults(shortEnergy.get(), 1, 1.0);
+	const std::vector<const Train*> shortEnergyTrains{shortEnergy.get()};
+	const auto shortEnergyResults = buildRunResults(shortEnergyTrains, 1.0);
 	ok &= expect(!shortEnergyResults.trains[0].energyConsumedKWh.available &&
 					 !shortEnergyResults.trains[0].energyWithRegenKWh.available &&
 					 !shortEnergyResults.trains[0].substationKWh.available &&
@@ -213,7 +248,8 @@ int main() {
 					 "short energy series is unavailable");
 
 	auto allFields = makeTrain("fields", 0, 1, 1.0, 2.0, 3.0, 4.0);
-	const auto allResults = buildRunResults(allFields.get(), 1, 1.0);
+	const std::vector<const Train*> allTrains{allFields.get()};
+	const auto allResults = buildRunResults(allTrains, 1.0);
 	const auto& row = allResults.trains[0];
 	ok &= expect(row.energyConsumedKWh.available && closeTo(row.energyConsumedKWh.value, 0.27778),
 					 "energy consumed converts MJ to kWh");
@@ -228,7 +264,8 @@ int main() {
 	auto trains = std::make_unique<Train[]>(2);
 	trains[0] = *allFields;
 	trains[1] = *second;
-	const auto totalResults = buildRunResults(trains.get(), 2, 1.0);
+	const std::vector<const Train*> totalTrains{&trains[0], &trains[1]};
+	const auto totalResults = buildRunResults(totalTrains, 1.0);
 	ok &= expect(totalResults.trains.size() + 1 == 3, "results table has one row per train plus totals");
 	ok &= expect(totalResults.energyConsumedKWh.available &&
 					 closeTo(totalResults.energyConsumedKWh.value, 1.66668),
@@ -237,7 +274,8 @@ int main() {
 	incomplete->instant_train_power_consumption.resize(1);
 	trains[0] = *allFields;
 	trains[1] = *incomplete;
-	const auto incompleteTotals = buildRunResults(trains.get(), 2, 1.0);
+	const std::vector<const Train*> incompleteTrainPointers{&trains[0], &trains[1]};
+	const auto incompleteTotals = buildRunResults(incompleteTrainPointers, 1.0);
 	ok &= expect(!incompleteTotals.energyConsumedKWh.available &&
 					 !incompleteTotals.energyWithRegenKWh.available &&
 					 !incompleteTotals.substationKWh.available &&
@@ -250,7 +288,33 @@ int main() {
 	terminalPower->TotalEnergyConsumptionWithAndWithoutRegBraking(0.8, 0.7);
 	ok &= expect(std::isfinite(terminalPower->TotalEnergyConsWithRegBrak) &&
 					 std::isfinite(terminalPower->TotalEnergySubstRequestWithRegBrak),
-					 "terminal nonfinite power does not poison regenerative totals");
+					"terminal nonfinite power does not poison regenerative totals");
+
+	{
+		auto regionalFirst = makeRegionalTimetableTrain("regional-first", {"A"});
+		regionalFirst->ScheduledArrivals[0] = 10.0;
+		regionalFirst->TimetablePoints.push_back(makeTimetableEvent("A", 11.0, 12.0));
+		regionalFirst->earliestActiveTrajectoryIndex = 0;
+		regionalFirst->End_Time = 0;
+		regionalFirst->instant_spatial_position = {1.0};
+		auto regionalSecond = makeRegionalTimetableTrain("regional-second", {"B"});
+		regionalSecond->ScheduledArrivals[0] = 20.0;
+		regionalSecond->TimetablePoints.push_back(makeTimetableEvent("B", 21.0, 22.0));
+		regionalSecond->earliestActiveTrajectoryIndex = 0;
+		regionalSecond->End_Time = 1;
+		regionalSecond->instant_spatial_position = {2.0, 3.0};
+		const std::vector<const Train*> regionalTrains{regionalFirst.get(), regionalSecond.get()};
+		const auto timetableRows = buildTimetableResults(regionalTrains);
+		ok &= expect(timetableRows.size() == 2 && timetableRows[0].trainId == "regional-first" &&
+					 timetableRows[1].trainId == "regional-second" &&
+					 closeTo(timetableRows[1].simulatedArrivalSeconds.value, 21.0),
+					"safe Regional collection keeps both timetable rows");
+		const auto regionalRunResults = buildRunResults(regionalTrains, 1.0);
+		ok &= expect(regionalRunResults.trains.size() == 2 &&
+					 regionalRunResults.trains[0].trainId == "regional-first" &&
+					 regionalRunResults.trains[1].trainId == "regional-second",
+					"safe Regional collection keeps both run result rows");
+	}
 
 	if (!ok)
 		return 1;

@@ -48,6 +48,14 @@ namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 
+std::vector<const Train*> runResultTrainPointers() {
+	std::vector<const Train*> trains;
+	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	for (int i = 0; i < numRegions; ++i)
+		trains.push_back(&regional_train[i]);
+	return trains;
+}
+
 void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const SceneLoadedData& item) {
 	auto* row = parent ? new QTreeWidgetItem(parent) : new QTreeWidgetItem(tree);
 	row->setText(0, QString::fromStdString(item.category));
@@ -5698,7 +5706,8 @@ void MainWindow::refreshRunResults() {
 	if (!m_runResultsDock || !m_runResultsTable || numRegions <= 0)
 		return;
 
-	const RunResults results = buildRunResults(regional_train, numRegions, timestep);
+	const auto trains = runResultTrainPointers();
+	const RunResults results = buildRunResults(trains, timestep);
 	const int totalColumns = 8;
 	m_runResultsTable->clear();
 	m_runResultsTable->setColumnCount(totalColumns);
@@ -7705,7 +7714,7 @@ void MainWindow::showTimetableTable() {
 			item->setForeground(QBrush(Qt::darkGreen));
 	};
 
-	const auto rows = buildTimetableResults(regional_train, numRegions);
+	const auto rows = buildTimetableResults(runResultTrainPointers());
 	for (int row = 0; row < static_cast<int>(rows.size()); ++row) {
 		const TimetableResultRow& result = rows[static_cast<std::size_t>(row)];
 		table->insertRow(row);
@@ -7736,7 +7745,7 @@ void MainWindow::showDelayDiagram() {
 
 	QChart* chart = new QChart();
 	chart->setTitle("Arrival delay along journey (minutes)");
-	const auto rows = buildTimetableResults(regional_train, numRegions);
+	const auto rows = buildTimetableResults(runResultTrainPointers());
 
 	for (int i = 0; i < numRegions; i++) {
 		QLineSeries* series = new QLineSeries();
@@ -7746,7 +7755,7 @@ void MainWindow::showDelayDiagram() {
 		for (const TimetableResultRow& row : rows) {
 			if (row.trainId != regional_train[i].trainDescription || !row.arrivalDelaySeconds.available)
 				continue;
-			series->append(row.callIndex, row.arrivalDelaySeconds.value / 60.0);
+			series->append(row.journeyIndex, row.arrivalDelaySeconds.value / 60.0);
 			hasData = true;
 		}
 		if (hasData) {
@@ -7757,7 +7766,7 @@ void MainWindow::showDelayDiagram() {
 	}
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty()) {
-		chart->axes(Qt::Horizontal).first()->setTitleText("Station call");
+		chart->axes(Qt::Horizontal).first()->setTitleText("Journey order (1-based)");
 	}
 	if (!chart->axes(Qt::Vertical).isEmpty()) {
 		chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
@@ -7778,7 +7787,7 @@ void MainWindow::showTimetableGraph() {
 
 	QChart* chart = new QChart();
 	chart->setTitle("Train graph: planned vs simulated arrival/departure");
-	const auto rows = buildTimetableResults(regional_train, numRegions);
+	const auto rows = buildTimetableResults(runResultTrainPointers());
 
 	for (int i = 0; i < numRegions; i++) {
 		const std::string trainId = regional_train[i].trainDescription;
@@ -7796,13 +7805,13 @@ void MainWindow::showTimetableGraph() {
 			if (row.trainId != trainId)
 				continue;
 			if (row.simulatedArrivalSeconds.available)
-				simulatedArrival->append(row.simulatedArrivalSeconds.value, row.callIndex);
+				simulatedArrival->append(row.simulatedArrivalSeconds.value, row.journeyIndex);
 			if (row.plannedArrivalSeconds.available)
-				plannedArrival->append(row.plannedArrivalSeconds.value, row.callIndex);
+				plannedArrival->append(row.plannedArrivalSeconds.value, row.journeyIndex);
 			if (row.simulatedDepartureSeconds.available)
-				simulatedDeparture->append(row.simulatedDepartureSeconds.value, row.callIndex);
+				simulatedDeparture->append(row.simulatedDepartureSeconds.value, row.journeyIndex);
 			if (row.plannedDepartureSeconds.available)
-				plannedDeparture->append(row.plannedDepartureSeconds.value, row.callIndex);
+				plannedDeparture->append(row.plannedDepartureSeconds.value, row.journeyIndex);
 		}
 
 		auto addSeriesPair = [chart](QLineSeries* simulated, QLineSeries* planned) {
@@ -7835,7 +7844,7 @@ void MainWindow::showTimetableGraph() {
 	if (!chart->axes(Qt::Horizontal).isEmpty())
 		chart->axes(Qt::Horizontal).first()->setTitleText("Time (simulation seconds)");
 	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Station call (1-based)");
+		chart->axes(Qt::Vertical).first()->setTitleText("Journey order (1-based)");
 
 	DiagramWindow* win = new DiagramWindow("Train graph: planned vs simulated arrival/departure", this);
 	win->setChart(chart);

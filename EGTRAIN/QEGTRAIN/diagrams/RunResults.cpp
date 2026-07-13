@@ -55,13 +55,15 @@ void addTotal(const RunResultValue& value, double& sum, bool& complete) {
 
 } // namespace
 
-std::vector<TimetableResultRow> buildTimetableResults(const Train* trains, int trainCount) {
+std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains) {
 	std::vector<TimetableResultRow> results;
-	if (!trains || trainCount <= 0)
+	if (trains.empty())
 		return results;
 
-	for (int trainIndex = 0; trainIndex < trainCount; ++trainIndex) {
-		const Train& train = trains[trainIndex];
+	for (const Train* trainPtr : trains) {
+		if (!trainPtr)
+			continue;
+		const Train& train = *trainPtr;
 		if (!train.Stations || train.numStations <= 0)
 			continue;
 		const int stationCount = std::min(train.numStations, 40);
@@ -69,6 +71,7 @@ std::vector<TimetableResultRow> buildTimetableResults(const Train* trains, int t
 			TimetableResultRow row;
 			row.trainId = train.trainDescription;
 			row.stationId = train.stationNameForArrivalStats(stationIndex);
+			row.journeyIndex = stationIndex + 1;
 			for (int previous = 0; previous <= stationIndex; ++previous) {
 				if (train.stationNameForArrivalStats(previous) == row.stationId)
 					++row.callIndex;
@@ -88,14 +91,16 @@ std::vector<TimetableResultRow> buildTimetableResults(const Train* trains, int t
 	return results;
 }
 
-RunResults buildRunResults(const Train* trains, int trainCount, double timestep) {
+RunResults buildRunResults(const std::vector<const Train*>& trains, double timestep) {
 	RunResults results;
-	if (!trains || trainCount <= 0 || !std::isfinite(timestep))
+	if (trains.empty() || !std::isfinite(timestep))
 		return results;
 
-	results.trains.reserve(static_cast<std::size_t>(trainCount));
-	for (int trainIndex = 0; trainIndex < trainCount; ++trainIndex) {
-		const Train& train = trains[trainIndex];
+	results.trains.reserve(trains.size());
+	for (const Train* trainPtr : trains) {
+		if (!trainPtr)
+			continue;
+		const Train& train = *trainPtr;
 		TrainRunResult row;
 		row.trainId = train.trainDescription;
 
