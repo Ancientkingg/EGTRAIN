@@ -16,7 +16,8 @@ bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
 std::vector<TrajectorySegment> validTrajectorySegments(
 		const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
 	std::vector<TrajectorySegment> segments;
-	if (positionsMeters.empty() || activeFirst > activeLast)
+	// -1 is Train's "not active" marker; other out-of-range bounds still clamp.
+	if (positionsMeters.empty() || activeFirst == -1 || activeFirst > activeLast)
 		return segments;
 
 	const int first = std::max(0, activeFirst);

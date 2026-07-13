@@ -20,6 +20,10 @@ int main() {
 	ok &= expect(activeRun.size() == 1 && activeRun[0].first == 2 && activeRun[0].last == 3,
 				 "active bounds preserve both endpoints");
 
+	const auto completedRun = validTrajectorySegments({10, 20, -9999, 0, 0}, 0, 1);
+	ok &= expect(completedRun.size() == 1 && completedRun[0].first == 0 && completedRun[0].last == 1,
+				 "completed run excludes trailing allocation after End_Time");
+
 	const auto internalGap = validTrajectorySegments({0, 10, -9999, 30, 40, 0}, 0, 4);
 	ok &= expect(internalGap.size() == 2 && internalGap[0].first == 0 && internalGap[0].last == 1 &&
 					 internalGap[1].first == 3 && internalGap[1].last == 4,
@@ -38,6 +42,14 @@ int main() {
 	ok &= expect(clampedBounds.size() == 1 && clampedBounds[0].first == 0 && clampedBounds[0].last == 2,
 				 "out-of-range bounds clamp safely");
 	ok &= expect(validTrajectorySegments({1, 2, 3}, 2, 1).empty(), "reversed bounds are empty");
+	ok &= expect(validTrajectorySegments({0, 0}, -1, 1).empty(), "inactive trains have no trajectory segments");
+
+	int authoritativeEndTime = 1;
+	{
+		TrajectoryEndTimeOverride temporaryEnd(authoritativeEndTime, 4);
+		ok &= expect(authoritativeEndTime == 4, "legacy service output sees the temporary end bound");
+	}
+	ok &= expect(authoritativeEndTime == 1, "temporary service output bound restores End_Time");
 
 	if (!ok)
 		return 1;

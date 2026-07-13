@@ -1107,7 +1107,7 @@ void DispatchController::printLastTrainServicePathDiagram() {
 	for (int i = 0; i < numRegions; i++) {
 		// print only trains running during simulation (departure_time >= initial_variables.times indicate that trains were not used, e.g. if only sprinters were used, IC are not printed)
 		if (regional_train[i].departure_time < initial_variables.times) {
-			regional_train[i].End_Time = initial_variables.times - 1;													   // set End_Time to print last leg correctly
+			TrajectoryEndTimeOverride temporaryEnd(regional_train[i].End_Time, initial_variables.times - 1);
 			regional_train[i].printTrainServicePathDiagram(initial_variables.OutputMainFolder + "/TrainTrajectories", -1); // -1 indicates no next service
 		}
 	}

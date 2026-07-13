@@ -2744,24 +2744,30 @@ public:
 		ofstream trainout;
 		trainout.open((char*)path.c_str(), ios::binary);
 		trainout << "Time[s]\tSpeed[m/s]\tPosition[m]\tTail_Position[m]\tPower_Cons[kW]\tBX[m]\tinstant_train_energy_consumption[KWh]\tBlock" << "\n";
+		const auto segments = validTrajectorySegments(instant_spatial_position, earliestActiveTrajectoryIndex, End_Time);
+		bool firstSegment = true;
 		if (train_route[indexOfRoute].reversed_direction == 0) {
-			for (int i = 0; i < initial_variables.times; i++) {
-				if (instant_spatial_position[i] != -9999) {
+			for (const auto& segment : segments) {
+				if (!firstSegment)
+					trainout << "\n";
+				firstSegment = false;
+				for (int i = segment.first; i <= segment.last; i++) {
 					trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << instant_spatial_position[i] << "\t" << instant_spatial_position[i] - train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" <<
 
 						BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] <<
 
 						// Bs.
 						"\n";
-				} else
-					break;
+				}
 			}
 		} else { // If instead the train runs on a reversed route then subtract the instant_spatial_position[i] from the Total Length of the route
-			for (int i = 0; i < initial_variables.times; i++) {
-				if (instant_spatial_position[i] != -9999) {
+			for (const auto& segment : segments) {
+				if (!firstSegment)
+					trainout << "\n";
+				firstSegment = false;
+				for (int i = segment.first; i <= segment.last; i++) {
 					trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] - train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
-				} else
-					break;
+				}
 			}
 		}
 		trainout.close();
@@ -2774,19 +2780,15 @@ public:
 		ofstream OutputFile;
 		OutputFile.open((char*)FileName.c_str());
 		OutputFile << "Time[s] Speed[m/s] Position[m] Tail_Position[m] Power_Cons[kW] V_Obj[m/s] instant_train_energy_consumption[KWh]" << "\n";
-		if (OutOfSimulation == 1) {
-			for (int i = 0; i <= End_Time; i++) {
-				if (instant_spatial_position[i] != -9999) {
-					OutputFile << i * timestep << " " << instant_train_speed[i] << " " << instant_spatial_position[i] << " " << instant_spatial_position[i] - train_length << " " << instant_train_power_consumption[i] / 1000 << " " << Vob[i] << " " << instant_train_energy_consumption[i] * 0.27778 << "\n";
-				} else
-					break;
-			}
-		} else {
-			for (int i = 0; i <= t; i++) {
-				if (instant_spatial_position[i] != -9999) {
-					OutputFile << i * timestep << " " << instant_train_speed[i] << " " << instant_spatial_position[i] << " " << instant_spatial_position[i] - train_length << " " << instant_train_power_consumption[i] / 1000 << " " << Vob[i] << " " << instant_train_energy_consumption[i] * 0.27778 << "\n";
-				} else
-					break;
+		const int activeLast = OutOfSimulation == 1 || End_Time < t ? End_Time : t;
+		const auto segments = validTrajectorySegments(instant_spatial_position, earliestActiveTrajectoryIndex, activeLast);
+		bool firstSegment = true;
+		for (const auto& segment : segments) {
+			if (!firstSegment)
+				OutputFile << "\n";
+			firstSegment = false;
+			for (int i = segment.first; i <= segment.last; i++) {
+				OutputFile << i * timestep << " " << instant_train_speed[i] << " " << instant_spatial_position[i] << " " << instant_spatial_position[i] - train_length << " " << instant_train_power_consumption[i] / 1000 << " " << Vob[i] << " " << instant_train_energy_consumption[i] * 0.27778 << "\n";
 			}
 		}
 		OutputFile.close();

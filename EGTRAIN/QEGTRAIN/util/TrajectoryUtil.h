@@ -8,6 +8,25 @@ struct TrajectorySegment {
 	int last;
 };
 
+class TrajectoryEndTimeOverride {
+public:
+	TrajectoryEndTimeOverride(int& endTime, int temporaryEndTime)
+		: endTime_(endTime), originalEndTime_(endTime) {
+		endTime_ = temporaryEndTime;
+	}
+
+	~TrajectoryEndTimeOverride() {
+		endTime_ = originalEndTime_;
+	}
+
+	TrajectoryEndTimeOverride(const TrajectoryEndTimeOverride&) = delete;
+	TrajectoryEndTimeOverride& operator=(const TrajectoryEndTimeOverride&) = delete;
+
+private:
+	int& endTime_;
+	int originalEndTime_;
+};
+
 // Simulation time in seconds for a trajectory sample index.
 double trajectoryTimeSeconds(int index, double timestep);
 
