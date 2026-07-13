@@ -13,6 +13,28 @@ RunResultValue availableValue(double value) {
 	return std::isfinite(value) ? RunResultValue{true, value} : RunResultValue{};
 }
 
+RunResultValue availableTimetableValue(double value) {
+	return std::isfinite(value) && value >= 0.0 ? RunResultValue{true, value} : RunResultValue{};
+}
+
+const TrainEvent* timetableEventForOccurrence(const Train& train, const std::string& stationId,
+																int occurrence) {
+	int seen = 0;
+	for (const TrainEvent& event : train.TimetablePoints) {
+		if (event.SuccessorID != stationId)
+			continue;
+		if (++seen == occurrence)
+			return &event;
+	}
+	return nullptr;
+}
+
+RunResultValue delayValue(const RunResultValue& planned, const RunResultValue& simulated) {
+	if (!planned.available || !simulated.available)
+		return {};
+	return availableValue(simulated.value - planned.value);
+}
+
 bool coveredAndFinite(const std::vector<double>& values, int first, int last) {
 	if (first < 0 || last < first || last >= static_cast<int>(values.size()))
 		return false;
@@ -32,6 +54,39 @@ void addTotal(const RunResultValue& value, double& sum, bool& complete) {
 }
 
 } // namespace
+
+std::vector<TimetableResultRow> buildTimetableResults(const Train* trains, int trainCount) {
+	std::vector<TimetableResultRow> results;
+	if (!trains || trainCount <= 0)
+		return results;
+
+	for (int trainIndex = 0; trainIndex < trainCount; ++trainIndex) {
+		const Train& train = trains[trainIndex];
+		if (!train.Stations || train.numStations <= 0)
+			continue;
+		const int stationCount = std::min(train.numStations, 40);
+		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
+			TimetableResultRow row;
+			row.trainId = train.trainDescription;
+			row.stationId = train.stationNameForArrivalStats(stationIndex);
+			for (int previous = 0; previous <= stationIndex; ++previous) {
+				if (train.stationNameForArrivalStats(previous) == row.stationId)
+					++row.callIndex;
+			}
+			row.plannedArrivalSeconds = availableTimetableValue(train.ScheduledArrivals[stationIndex]);
+			row.plannedDepartureSeconds = availableTimetableValue(train.ScheduledDepartures[stationIndex]);
+
+			if (const TrainEvent* event = timetableEventForOccurrence(train, row.stationId, row.callIndex)) {
+				row.simulatedArrivalSeconds = availableTimetableValue(event->Time);
+				row.simulatedDepartureSeconds = availableTimetableValue(event->Time2);
+			}
+			row.arrivalDelaySeconds = delayValue(row.plannedArrivalSeconds, row.simulatedArrivalSeconds);
+			row.departureDelaySeconds = delayValue(row.plannedDepartureSeconds, row.simulatedDepartureSeconds);
+			results.push_back(std::move(row));
+		}
+	}
+	return results;
+}
 
 RunResults buildRunResults(const Train* trains, int trainCount, double timestep) {
 	RunResults results;

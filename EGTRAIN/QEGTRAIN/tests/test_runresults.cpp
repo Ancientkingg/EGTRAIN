@@ -22,6 +22,27 @@ static bool closeTo(double actual, double expected) {
 	return std::fabs(actual - expected) < 1e-9;
 }
 
+static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
+																const std::vector<std::string>& stations) {
+	auto train = std::make_unique<Train>();
+	train->trainDescription = id;
+	train->numStations = static_cast<int>(stations.size());
+	train->Stations = new Node[stations.size()];
+	for (std::size_t index = 0; index < stations.size(); ++index) {
+		train->Stations[index].stationName = stations[index];
+		train->StationArrivalNames[index] = stations[index];
+	}
+	return train;
+}
+
+static TrainEvent makeTimetableEvent(const std::string& station, double arrival, double departure) {
+	TrainEvent event;
+	event.SuccessorID = station;
+	event.Time = arrival;
+	event.Time2 = departure;
+	return event;
+}
+
 static std::unique_ptr<Train> makeTrain(const std::string& id, int first, int last, double energy,
 										 double regen, double substation, double substationRegen) {
 	auto train = std::make_unique<Train>();
@@ -42,6 +63,102 @@ static std::unique_ptr<Train> makeTrain(const std::string& id, int first, int la
 
 int main() {
 	bool ok = true;
+	{
+		auto train = makeTimetableTrain("timetable", {"Central"});
+		train->ScheduledArrivals[0] = 100.0;
+		train->ScheduledDepartures[0] = 130.0;
+		train->TimetablePoints.push_back(makeTimetableEvent("Central", 112.0, 145.0));
+		const auto rows = buildTimetableResults(train.get(), 1);
+		ok &= expect(rows.size() == 1, "one timetable station row");
+		ok &= expect(rows[0].callIndex == 1 && rows[0].stationId == "Central",
+					 "timetable row keeps station occurrence identity");
+		ok &= expect(rows[0].plannedArrivalSeconds.available &&
+					 closeTo(rows[0].plannedArrivalSeconds.value, 100.0),
+					 "planned arrival is preserved");
+		ok &= expect(rows[0].plannedDepartureSeconds.available &&
+					 closeTo(rows[0].plannedDepartureSeconds.value, 130.0),
+					 "planned departure is preserved");
+		ok &= expect(rows[0].simulatedArrivalSeconds.available &&
+					 closeTo(rows[0].simulatedArrivalSeconds.value, 112.0),
+					 "simulated arrival uses TrainEvent::Time");
+		ok &= expect(rows[0].simulatedDepartureSeconds.available &&
+					 closeTo(rows[0].simulatedDepartureSeconds.value, 145.0),
+					 "simulated departure uses TrainEvent::Time2");
+		ok &= expect(rows[0].arrivalDelaySeconds.available &&
+					 closeTo(rows[0].arrivalDelaySeconds.value, 12.0),
+					 "arrival delay is simulated minus planned");
+		ok &= expect(rows[0].departureDelaySeconds.available &&
+					 closeTo(rows[0].departureDelaySeconds.value, 15.0),
+					 "departure delay is simulated minus planned");
+	}
+
+	{
+		auto train = makeTimetableTrain("repeated", {"Central", "Central"});
+		train->ScheduledArrivals[0] = 10.0;
+		train->ScheduledArrivals[1] = 20.0;
+		train->ScheduledDepartures[0] = 15.0;
+		train->ScheduledDepartures[1] = 25.0;
+		train->TimetablePoints.push_back(makeTimetableEvent("Central", 11.0, 16.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("Central", 22.0, 27.0));
+		const auto rows = buildTimetableResults(train.get(), 1);
+		ok &= expect(rows.size() == 2 && rows[0].callIndex == 1 && rows[1].callIndex == 2,
+					 "repeated station calls remain ordered rows");
+		ok &= expect(rows[0].simulatedArrivalSeconds.available &&
+					 closeTo(rows[0].simulatedArrivalSeconds.value, 11.0) &&
+					 rows[1].simulatedArrivalSeconds.available &&
+					 closeTo(rows[1].simulatedArrivalSeconds.value, 22.0),
+					 "repeated station arrivals match ordered events");
+		ok &= expect(rows[0].simulatedDepartureSeconds.available &&
+					 closeTo(rows[0].simulatedDepartureSeconds.value, 16.0) &&
+					 rows[1].simulatedDepartureSeconds.available &&
+					 closeTo(rows[1].simulatedDepartureSeconds.value, 27.0),
+					 "repeated station departures match ordered events");
+	}
+
+	{
+		auto train = makeTimetableTrain("missing", {"ArrivalOnly", "DepartureOnly"});
+		train->ScheduledArrivals[0] = 0.0;
+		train->ScheduledDepartures[0] = -1.0;
+		train->ScheduledArrivals[1] = -1.0;
+		train->ScheduledDepartures[1] = 30.0;
+		TrainEvent first = makeTimetableEvent("ArrivalOnly", -1.0, 5.0);
+		TrainEvent second = makeTimetableEvent("DepartureOnly", 0.0, -1.0);
+		train->TimetablePoints.push_back(first);
+		train->TimetablePoints.push_back(second);
+		const auto rows = buildTimetableResults(train.get(), 1);
+		ok &= expect(rows.size() == 2, "missing events remain station rows");
+		ok &= expect(rows[0].plannedArrivalSeconds.available &&
+					 closeTo(rows[0].plannedArrivalSeconds.value, 0.0),
+					 "valid planned timestamp zero remains available");
+		ok &= expect(!rows[0].simulatedArrivalSeconds.available &&
+					 rows[0].simulatedDepartureSeconds.available &&
+					 closeTo(rows[0].simulatedDepartureSeconds.value, 5.0) &&
+					 !rows[0].arrivalDelaySeconds.available &&
+					 !rows[0].departureDelaySeconds.available,
+					 "missing arrival stays independent from departure");
+		ok &= expect(!rows[1].plannedArrivalSeconds.available &&
+					 rows[1].plannedDepartureSeconds.available &&
+					 rows[1].simulatedArrivalSeconds.available &&
+					 closeTo(rows[1].simulatedArrivalSeconds.value, 0.0) &&
+					 !rows[1].simulatedDepartureSeconds.available &&
+					 !rows[1].arrivalDelaySeconds.available &&
+					 !rows[1].departureDelaySeconds.available,
+					 "missing departure stays independently unavailable");
+	}
+
+	{
+		auto train = makeTimetableTrain("early", {"Central"});
+		train->ScheduledArrivals[0] = 100.0;
+		train->ScheduledDepartures[0] = 200.0;
+		train->TimetablePoints.push_back(makeTimetableEvent("Central", 90.0, 180.0));
+		const auto rows = buildTimetableResults(train.get(), 1);
+		ok &= expect(rows.size() == 1 && rows[0].arrivalDelaySeconds.available &&
+					 closeTo(rows[0].arrivalDelaySeconds.value, -10.0) &&
+					 rows[0].departureDelaySeconds.available &&
+					 closeTo(rows[0].departureDelaySeconds.value, -20.0),
+					 "early arrival and departure preserve negative delays");
+	}
+
 	auto delayed = makeTrain("delayed", 3, 7, 10.0, 20.0, 30.0, 40.0);
 	const auto delayedResults = buildRunResults(delayed.get(), 1, 0.5);
 	ok &= expect(delayedResults.trains.size() == 1, "one train result");

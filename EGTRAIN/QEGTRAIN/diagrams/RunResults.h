@@ -22,6 +22,18 @@ struct TrainRunResult {
 	RunResultValue substationWithRegenKWh;
 };
 
+struct TimetableResultRow {
+	std::string trainId;
+	std::string stationId;
+	int callIndex = 0;
+	RunResultValue plannedArrivalSeconds;
+	RunResultValue plannedDepartureSeconds;
+	RunResultValue simulatedArrivalSeconds;
+	RunResultValue simulatedDepartureSeconds;
+	RunResultValue arrivalDelaySeconds;
+	RunResultValue departureDelaySeconds;
+};
+
 struct RunResults {
 	std::vector<TrainRunResult> trains;
 	RunResultValue networkStartSeconds;
@@ -40,5 +52,6 @@ constexpr double energyMJKWh(double energyMJ) {
 }
 
 RunResults buildRunResults(const Train* trains, int trainCount, double timestep);
+std::vector<TimetableResultRow> buildTimetableResults(const Train* trains, int trainCount);
 
 #endif // RUNRESULTS_H

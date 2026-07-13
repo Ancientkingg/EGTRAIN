@@ -7677,47 +7677,51 @@ void MainWindow::showTimetableTable() {
 
 	QVBoxLayout* layout = new QVBoxLayout(dlg);
 	QTableWidget* table = new QTableWidget();
-	table->setColumnCount(5);
-	table->setHorizontalHeaderLabels({"Train", "Station", "Planned", "Simulated", "Delay"});
+	table->setColumnCount(8);
+	table->setHorizontalHeaderLabels({
+		"Train", "Station call", "Planned arrival", "Planned departure",
+		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 
-	int row = 0;
-	for (int i = 0; i < numRegions; i++) {
-		Train& t = regional_train[i];
-		if (t.numStations <= 0)
-			continue;
-		for (int s = 0; s < t.numStations; s++) {
-			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0)
-				continue;
+	const auto timeText = [this](const RunResultValue& value) {
+		return value.available
+			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), m_startOffsetSeconds))
+			: QStringLiteral("Unavailable");
+	};
+	const auto delayText = [](const RunResultValue& value) {
+		if (!value.available)
+			return QStringLiteral("Unavailable");
+		return QString("%1%2 s")
+			.arg(value.value >= 0.0 ? "+" : "")
+			.arg(value.value, 0, 'f', 0);
+	};
+	const auto setDelayColor = [](QTableWidgetItem* item, const RunResultValue& value) {
+		if (!value.available)
+			return;
+		if (value.value > 60.0)
+			item->setForeground(QBrush(Qt::red));
+		else if (value.value > 0.0)
+			item->setForeground(QBrush(Qt::darkYellow));
+		else
+			item->setForeground(QBrush(Qt::darkGreen));
+	};
 
-			table->insertRow(row);
-			QTableWidgetItem* itemTrain = new QTableWidgetItem(QString::fromStdString(t.trainDescription));
-			QTableWidgetItem* itemStation = new QTableWidgetItem(QString::fromStdString(t.stationNameForArrivalStats(s)));
-
-			QString plannedStr = QString::fromStdString(formatSimTime((long long)t.ScheduledArrivals[s], m_startOffsetSeconds));
-			QString simStr = QString::fromStdString(formatSimTime((long long)t.StationArrivals[s], m_startOffsetSeconds));
-
-			int delaySeconds = (int)t.StationDelay[s];
-			QString delayStr = QString("%1%2 s").arg(delaySeconds >= 0 ? "+" : "").arg(delaySeconds);
-
-			QTableWidgetItem* itemPlanned = new QTableWidgetItem(plannedStr);
-			QTableWidgetItem* itemSim = new QTableWidgetItem(simStr);
-			QTableWidgetItem* itemDelay = new QTableWidgetItem(delayStr);
-
-			if (delaySeconds > 60) {
-				itemDelay->setForeground(QBrush(Qt::red));
-			} else if (delaySeconds > 0) {
-				itemDelay->setForeground(QBrush(Qt::darkYellow));
-			} else {
-				itemDelay->setForeground(QBrush(Qt::darkGreen));
-			}
-
-			table->setItem(row, 0, itemTrain);
-			table->setItem(row, 1, itemStation);
-			table->setItem(row, 2, itemPlanned);
-			table->setItem(row, 3, itemSim);
-			table->setItem(row, 4, itemDelay);
-			row++;
-		}
+	const auto rows = buildTimetableResults(regional_train, numRegions);
+	for (int row = 0; row < static_cast<int>(rows.size()); ++row) {
+		const TimetableResultRow& result = rows[static_cast<std::size_t>(row)];
+		table->insertRow(row);
+		table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
+		table->setItem(row, 1, new QTableWidgetItem(
+			QString("%1 (#%2)").arg(QString::fromStdString(result.stationId)).arg(result.callIndex)));
+		table->setItem(row, 2, new QTableWidgetItem(timeText(result.plannedArrivalSeconds)));
+		table->setItem(row, 3, new QTableWidgetItem(timeText(result.plannedDepartureSeconds)));
+		table->setItem(row, 4, new QTableWidgetItem(timeText(result.simulatedArrivalSeconds)));
+		table->setItem(row, 5, new QTableWidgetItem(timeText(result.simulatedDepartureSeconds)));
+		auto* arrivalDelayItem = new QTableWidgetItem(delayText(result.arrivalDelaySeconds));
+		auto* departureDelayItem = new QTableWidgetItem(delayText(result.departureDelaySeconds));
+		setDelayColor(arrivalDelayItem, result.arrivalDelaySeconds);
+		setDelayColor(departureDelayItem, result.departureDelaySeconds);
+		table->setItem(row, 6, arrivalDelayItem);
+		table->setItem(row, 7, departureDelayItem);
 	}
 	table->resizeColumnsToContents();
 	layout->addWidget(table);
@@ -7731,20 +7735,18 @@ void MainWindow::showDelayDiagram() {
 	}
 
 	QChart* chart = new QChart();
-	chart->setTitle("Delay along journey (minutes)");
+	chart->setTitle("Arrival delay along journey (minutes)");
+	const auto rows = buildTimetableResults(regional_train, numRegions);
 
 	for (int i = 0; i < numRegions; i++) {
-		Train& t = regional_train[i];
-		if (t.numStations <= 0)
-			continue;
-
 		QLineSeries* series = new QLineSeries();
-		series->setName(QString::fromStdString(t.trainDescription));
+		const QString trainName = QString::fromStdString(regional_train[i].trainDescription);
+		series->setName(trainName + " (arrival delay)");
 		bool hasData = false;
-		for (int s = 0; s < t.numStations; s++) {
-			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0)
+		for (const TimetableResultRow& row : rows) {
+			if (row.trainId != regional_train[i].trainDescription || !row.arrivalDelaySeconds.available)
 				continue;
-			series->append(s, t.StationDelay[s] / 60.0);
+			series->append(row.callIndex, row.arrivalDelaySeconds.value / 60.0);
 			hasData = true;
 		}
 		if (hasData) {
@@ -7755,13 +7757,13 @@ void MainWindow::showDelayDiagram() {
 	}
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty()) {
-		chart->axes(Qt::Horizontal).first()->setTitleText("Station index");
+		chart->axes(Qt::Horizontal).first()->setTitleText("Station call");
 	}
 	if (!chart->axes(Qt::Vertical).isEmpty()) {
-		chart->axes(Qt::Vertical).first()->setTitleText("Delay (min)");
+		chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
 	}
 
-	DiagramWindow* win = new DiagramWindow("Delay along journey (minutes)", this);
+	DiagramWindow* win = new DiagramWindow("Arrival delay along journey (minutes)", this);
 	win->setChart(chart);
 	win->setTimeAxisX(false, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -7775,43 +7777,67 @@ void MainWindow::showTimetableGraph() {
 	}
 
 	QChart* chart = new QChart();
-	chart->setTitle("Train graph: planned (dashed) vs simulated (solid)");
+	chart->setTitle("Train graph: planned vs simulated arrival/departure");
+	const auto rows = buildTimetableResults(regional_train, numRegions);
 
 	for (int i = 0; i < numRegions; i++) {
-		Train& t = regional_train[i];
-		if (t.numStations <= 0)
-			continue;
+		const std::string trainId = regional_train[i].trainDescription;
+		const QString trainName = QString::fromStdString(trainId);
+		QLineSeries* simulatedArrival = new QLineSeries();
+		simulatedArrival->setName(trainName + " (simulated arrival)");
+		QLineSeries* plannedArrival = new QLineSeries();
+		plannedArrival->setName(trainName + " (planned arrival)");
+		QLineSeries* simulatedDeparture = new QLineSeries();
+		simulatedDeparture->setName(trainName + " (simulated departure)");
+		QLineSeries* plannedDeparture = new QLineSeries();
+		plannedDeparture->setName(trainName + " (planned departure)");
 
-		QLineSeries* simSeries = new QLineSeries();
-		simSeries->setName(QString::fromStdString(t.trainDescription));
-		QLineSeries* planSeries = new QLineSeries();
-		planSeries->setName(QString::fromStdString(t.trainDescription) + " (planned)");
-
-		bool hasData = false;
-		for (int s = 0; s < t.numStations; s++) {
-			if (t.ScheduledArrivals[s] <= 0 && t.StationArrivals[s] <= 0)
+		for (const TimetableResultRow& row : rows) {
+			if (row.trainId != trainId)
 				continue;
-
-			simSeries->append(t.StationArrivals[s], s);
-			planSeries->append(t.ScheduledArrivals[s], s);
-			hasData = true;
+			if (row.simulatedArrivalSeconds.available)
+				simulatedArrival->append(row.simulatedArrivalSeconds.value, row.callIndex);
+			if (row.plannedArrivalSeconds.available)
+				plannedArrival->append(row.plannedArrivalSeconds.value, row.callIndex);
+			if (row.simulatedDepartureSeconds.available)
+				simulatedDeparture->append(row.simulatedDepartureSeconds.value, row.callIndex);
+			if (row.plannedDepartureSeconds.available)
+				plannedDeparture->append(row.plannedDepartureSeconds.value, row.callIndex);
 		}
-		if (hasData) {
-			chart->addSeries(simSeries);
-			chart->addSeries(planSeries);
 
-			QPen planPen = planSeries->pen();
-			planPen.setStyle(Qt::DashLine);
-			planPen.setColor(simSeries->pen().color());
-			planSeries->setPen(planPen);
-		} else {
-			delete simSeries;
-			delete planSeries;
-		}
+		auto addSeriesPair = [chart](QLineSeries* simulated, QLineSeries* planned) {
+			if (simulated->count() > 0) {
+				chart->addSeries(simulated);
+				if (planned->count() > 0) {
+					QPen plannedPen = planned->pen();
+					plannedPen.setStyle(Qt::DashLine);
+					plannedPen.setColor(simulated->pen().color());
+					planned->setPen(plannedPen);
+					chart->addSeries(planned);
+				} else {
+					delete planned;
+				}
+			} else if (planned->count() > 0) {
+				QPen plannedPen = planned->pen();
+				plannedPen.setStyle(Qt::DashLine);
+				planned->setPen(plannedPen);
+				chart->addSeries(planned);
+				delete simulated;
+			} else {
+				delete simulated;
+				delete planned;
+			}
+		};
+		addSeriesPair(simulatedArrival, plannedArrival);
+		addSeriesPair(simulatedDeparture, plannedDeparture);
 	}
 	chart->createDefaultAxes();
+	if (!chart->axes(Qt::Horizontal).isEmpty())
+		chart->axes(Qt::Horizontal).first()->setTitleText("Time (simulation seconds)");
+	if (!chart->axes(Qt::Vertical).isEmpty())
+		chart->axes(Qt::Vertical).first()->setTitleText("Station call (1-based)");
 
-	DiagramWindow* win = new DiagramWindow("Train graph: planned (dashed) vs simulated (solid)", this);
+	DiagramWindow* win = new DiagramWindow("Train graph: planned vs simulated arrival/departure", this);
 	win->setChart(chart);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
