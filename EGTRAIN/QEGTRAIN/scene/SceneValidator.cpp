@@ -93,6 +93,33 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 					"rolling_stock.json", "train_unit", tu.id, "", "rolling_stock.json",
 					"Give each train unit a unique id");
 		}
+		const std::string tractionPath = "train_units[" + tu.id + "].traction_curve";
+		if (tu.tractionCurve.empty()) {
+			addDiag(SceneSeverity::Error, "scene.train.traction.empty", "Train unit has no traction data",
+					"rolling_stock.json", "train_unit", tu.id, tractionPath, "",
+					"Add at least one traction curve row");
+		}
+		for (size_t rowIndex = 0; rowIndex < tu.tractionCurve.size(); ++rowIndex) {
+			const auto& row = tu.tractionCurve[rowIndex];
+			if (row[0] >= row[1]) {
+				addDiag(SceneSeverity::Error, "scene.train.traction.interval", "Traction curve lower speed must be below upper speed",
+						"rolling_stock.json", "train_unit", tu.id,
+						tractionPath + "[" + std::to_string(rowIndex) + "]", "",
+						"Set the lower speed below the upper speed");
+			}
+			if (rowIndex == 0)
+				continue;
+			const auto& previous = tu.tractionCurve[rowIndex - 1];
+			if (row[0] < previous[0]) {
+				addDiag(SceneSeverity::Error, "scene.train.traction.order", "Traction curve rows are not in ascending speed order",
+						"rolling_stock.json", "train_unit", tu.id, tractionPath, "",
+						"Order rows by increasing lower speed");
+			} else if (row[0] < previous[1]) {
+				addDiag(SceneSeverity::Error, "scene.train.traction.overlap", "Traction curve intervals overlap",
+						"rolling_stock.json", "train_unit", tu.id, tractionPath, "",
+						"Adjust adjacent bounds so intervals do not overlap");
+			}
+		}
 	}
 
 	std::unordered_set<std::string> compositionIds;

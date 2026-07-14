@@ -1,0 +1,208 @@
+{
+    "stations": [
+        {
+            "id": "LebaneseUniversity",
+            "name": "LebaneseUniversity",
+            "platforms": [],
+            "position_km": 0.579
+        },
+        {
+            "id": "HaretHreik",
+            "name": "HaretHreik",
+            "platforms": [],
+            "position_km": 3.254
+        },
+        {
+            "id": "MichelZakhourSt",
+            "name": "MichelZakhourSt",
+            "platforms": [],
+            "position_km": 3.931
+        },
+        {
+            "id": "Chiyah",
+            "name": "Chiyah",
+            "platforms": [],
+            "position_km": 5.247
+        },
+        {
+            "id": "NBTCentralStation",
+            "name": "NBTCentralStation",
+            "platforms": [],
+            "position_km": 6.485
+        },
+        {
+            "id": "BourjHammoud",
+            "name": "BourjHammoud",
+            "platforms": [],
+            "position_km": 8.441
+        },
+        {
+            "id": "Dora",
+            "name": "Dora",
+            "platforms": [],
+            "position_km": 9.539
+        },
+        {
+            "id": "NahrElMot",
+            "name": "NahrElMot",
+            "platforms": [],
+            "position_km": 11.016
+        },
+        {
+            "id": "JalElDib",
+            "name": "JalElDib",
+            "platforms": [],
+            "position_km": 13.092
+        },
+        {
+            "id": "Antelias",
+            "name": "Antelias",
+            "platforms": [],
+            "position_km": 14.963
+        },
+        {
+            "id": "Dbayeh",
+            "name": "Dbayeh",
+            "platforms": [],
+            "position_km": 15.978
+        },
+        {
+            "id": "ZoukMosbeh",
+            "name": "ZoukMosbeh",
+            "platforms": [],
+            "position_km": 19.173
+        },
+        {
+            "id": "JouniehPort",
+            "name": "JouniehPort",
+            "platforms": [],
+            "position_km": 20.172
+        },
+        {
+            "id": "Jounieh",
+            "name": "Jounieh",
+            "platforms": [],
+            "position_km": 22.46
+        },
+        {
+            "id": "Tabarja",
+            "name": "Tabarja",
+            "platforms": [],
+            "position_km": 30.217
+        },
+        {
+            "id": "NahrIbrahim",
+            "name": "NahrIbrahim",
+            "platforms": [],
+            "position_km": 34.746
+        },
+        {
+            "id": "Fidar",
+            "name": "Fidar",
+            "platforms": [],
+            "position_km": 39.154
+        },
+        {
+            "id": "Jbeil",
+            "name": "Jbeil",
+            "platforms": [],
+            "position_km": 42.094
+        },
+        {
+            "id": "Amchit",
+            "name": "Amchit",
+            "platforms": [],
+            "position_km": 45.071
+        },
+        {
+            "id": "KfarAabida",
+            "name": "KfarAabida",
+            "platforms": [],
+            "position_km": 54.464
+        },
+        {
+            "id": "Batroun",
+            "name": "Batroun",
+            "platforms": [],
+            "position_km": 57.249
+        },
+        {
+            "id": "Herri",
+            "name": "Herri",
+            "platforms": [],
+            "position_km": 65.282
+        },
+        {
+            "id": "Chekka",
+            "name": "Chekka",
+            "platforms": [],
+            "position_km": 68.534
+        },
+        {
+            "id": "Enfeh",
+            "name": "Enfeh",
+            "platforms": [],
+            "position_km": 71.077
+        },
+        {
+            "id": "Balamand",
+            "name": "Balamand",
+            "platforms": [],
+            "position_km": 76.477
+        },
+        {
+            "id": "Kalmoun",
+            "name": "Kalmoun",
+            "platforms": [],
+            "position_km": 79.082
+        },
+        {
+            "id": "Bahsas",
+            "name": "Bahsas",
+            "platforms": [],
+            "position_km": 82.878
+        },
+        {
+            "id": "Tripoli",
+            "name": "Tripoli",
+            "platforms": [],
+            "position_km": 86.412
+        },
+        {
+            "id": "Beddaoui",
+            "name": "Beddaoui",
+            "platforms": [],
+            "position_km": 89.609
+        },
+        {
+            "id": "DeirAmar",
+            "name": "DeirAmar",
+            "platforms": [],
+            "position_km": 93.845
+        },
+        {
+            "id": "Minieh",
+            "name": "Minieh",
+            "platforms": [],
+            "position_km": 97.609
+        },
+        {
+            "id": "AlAabde",
+            "name": "AlAabde",
+            "platforms": [],
+            "position_km": 102.405
+        },
+        {
+            "id": "TripoliIntlAirport",
+            "name": "TripoliIntlAirport",
+            "platforms": [],
+            "position_km": 113.623
+        },
+        {
+            "id": "TellAbbas",
+            "name": "TellAbbas",
+            "platforms": [],
+            "position_km": 118.379
+        }
+    ]
+}
