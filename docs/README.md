@@ -3,6 +3,7 @@
 Start here:
 
 - [Using EGTRAIN and authoring V1 scenes](guides/scenes-and-application.md)
+- [Lebanon case study guide](guides/lebanon-case-study.md)
 - [V1 scene property reference](guides/v1-scene-properties.md)
 - [Netherlands scene assignment](guides/netherlands-assignment.md)
 - [Assignment workflow](product/assignment-workflow.md)

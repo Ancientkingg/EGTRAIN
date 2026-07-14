@@ -78,10 +78,35 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$APP"
           echo "OK: app is self-contained and signed"
 
+      - name: Assemble presentation package
+        run: |
+          set -euxo pipefail
+          PKG="build/dist/QEGTRAIN-Lebanon"
+          rm -rf "$PKG"
+          mkdir -p "$PKG/Scenes"
+          # ditto preserves the signed bundle; plain cp can break the signature.
+          ditto build/QEGTRAIN.app "$PKG/QEGTRAIN.app"
+          cp build/scene_tool "$PKG/scene_tool"
+          ditto EGTRAIN/QEGTRAIN/Scenes/Lebanon "$PKG/Scenes/Lebanon"
+          cp docs/guides/lebanon-case-study.md "$PKG/lebanon-case-study.md"
+
+      - name: Verify the presentation package
+        run: |
+          set -euo pipefail
+          PKG="build/dist/QEGTRAIN-Lebanon"
+          test -x "$PKG/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+          test -x "$PKG/scene_tool"
+          test -f "$PKG/Scenes/Lebanon/stations.json"
+          test -f "$PKG/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt"
+          test -f "$PKG/lebanon-case-study.md"
+          # scene_tool links only header-only JSON, so it runs without Qt.
+          "$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1 | grep -q scene.trains.none
+          echo "OK: presentation package holds the app, scene_tool, Lebanon scene, and guide"
+
       - name: Package zip
         run: |
-          cd build
-          ditto -c -k --keepParent QEGTRAIN.app QEGTRAIN-macos-arm64.zip
+          cd build/dist
+          ditto -c -k --keepParent QEGTRAIN-Lebanon ../QEGTRAIN-macos-arm64.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -142,6 +167,14 @@ jobs:
           # folder, so the data must sit beside it. Images ship inside the
           # binary as Qt resources.
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Input "$dist/Input"
+          # Presentation package: the command-line tool, the Lebanon scene, and
+          # the guide. scene_tool links only header-only JSON, so it needs no Qt.
+          $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
+          if (-not $tool) { throw "scene_tool.exe not found under build/" }
+          Copy-Item $tool.FullName "$dist/scene_tool.exe"
+          New-Item -ItemType Directory -Force -Path "$dist/Scenes" | Out-Null
+          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes/Lebanon "$dist/Scenes/Lebanon"
+          Copy-Item docs/guides/lebanon-case-study.md "$dist/lebanon-case-study.md"
 
       - name: Verify the package is complete
         shell: pwsh
@@ -154,7 +187,11 @@ jobs:
           if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
           if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
           if (-not (Test-Path "$dist/Input/Input_EGTRAIN_Paimpol")) { throw "missing Input case data" }
-          Write-Host "OK: exe, Qt runtime, libzmq, and Input data are present"
+          if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
+          if (-not (Test-Path "$dist/Scenes/Lebanon/stations.json")) { throw "missing Lebanon scene" }
+          if (-not (Test-Path "$dist/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt")) { throw "missing Lebanon track passthrough" }
+          if (-not (Test-Path "$dist/lebanon-case-study.md")) { throw "missing Lebanon guide" }
+          Write-Host "OK: exe, Qt runtime, libzmq, Input data, scene_tool, Lebanon scene, and guide are present"
 
       - name: Zip
         shell: pwsh
@@ -204,6 +241,20 @@ jobs:
           # location when launched outside the package tree. Images ship inside
           # the binary as Qt resources.
           cp -R EGTRAIN/QEGTRAIN/Input "$APPDIR/usr/bin/Input"
+
+          # Presentation package: the command-line tool, the Lebanon scene, and
+          # the guide, bundled beside the executable. scene_tool links only
+          # header-only JSON, so it carries no Qt dependency.
+          TOOL="$(find build -type f -perm -111 -name scene_tool | head -n 1)"
+          test -n "$TOOL"
+          cp "$TOOL" "$APPDIR/usr/bin/scene_tool"
+          mkdir -p "$APPDIR/usr/bin/Scenes"
+          cp -R EGTRAIN/QEGTRAIN/Scenes/Lebanon "$APPDIR/usr/bin/Scenes/Lebanon"
+          cp docs/guides/lebanon-case-study.md "$APPDIR/usr/bin/lebanon-case-study.md"
+          test -x "$APPDIR/usr/bin/scene_tool"
+          test -f "$APPDIR/usr/bin/Scenes/Lebanon/stations.json"
+          test -f "$APPDIR/usr/bin/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt"
+          test -f "$APPDIR/usr/bin/lebanon-case-study.md"
           convert EGTRAIN/QEGTRAIN/resources/icons/station.png \
             -background transparent -gravity center -resize 256x256 -extent 256x256 \
             "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"

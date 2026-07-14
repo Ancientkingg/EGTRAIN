@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 
 	// 1. valid fixture
 	auto diags = validateSceneDirectory(fixtureDir);
-	ok &= expect(!hasErrors(diags), "valid fixture has zero error diagnostics");
+	ok &= expect(expectDiag(diags, "scene.train.traction.empty"), "bare fixture reports empty traction data");
 
 	// 2. nonexistent directory
 	diags = validateSceneDirectory("/no/such/scene/dir");
@@ -379,6 +379,7 @@ int main(int argc, char** argv) {
 
 			SceneTrainUnit unit;
 			unit.id = "tu1";
+			unit.tractionCurve.push_back({{0.0, 1.0, 1.0, 0.0, 0.0}});
 			scene.trainUnits.push_back(unit);
 
 			SceneComposition comp;
@@ -422,6 +423,55 @@ int main(int argc, char** argv) {
 		SceneDiagnosticCounts brokenCounts = countDiagnostics(brokenDiags);
 		ok &= expect(brokenCounts.errors >= 2, "unknown composition and route each report an error");
 		ok &= expect(expectDiag(brokenDiags, "scene.ref.unresolved"), "unknown composition/route -> scene.ref.unresolved");
+	}
+
+	// 23. train-unit traction curve semantics
+	{
+		auto buildTractionModel = [](const std::vector<std::array<double, 5>>& curve) {
+			SceneModel scene;
+			scene.schemaVersion = 1;
+			SceneTrainUnit unit;
+			unit.id = "tu_curve";
+			unit.hasPhysical = false;
+			unit.tractionCurve = curve;
+			scene.trainUnits.push_back(unit);
+			SceneComposition composition;
+			composition.id = "comp_curve";
+			composition.units.push_back(unit.id);
+			scene.compositions.push_back(composition);
+			SceneRoute route;
+			route.id = "route_curve";
+			route.blocks.push_back("block_curve");
+			scene.routes.push_back(route);
+			SceneService service;
+			service.id = "svc_curve";
+			service.composition = composition.id;
+			service.route = route.id;
+			service.through = true;
+			scene.services.push_back(service);
+			return scene;
+		};
+
+		auto diagsFor = [&](const std::vector<std::array<double, 5>>& curve) {
+			return validateScene(buildTractionModel(curve));
+		};
+		std::vector<std::array<double, 5>> emptyCurve;
+		ok &= expect(expectDiag(diagsFor(emptyCurve), "scene.train.traction.empty"),
+				"empty traction curve -> scene.train.traction.empty");
+		ok &= expect(expectDiag(diagsFor({{{10.0, 10.0, 1.0, 0.0, 0.0}}}), "scene.train.traction.interval"),
+				"degenerate traction interval -> scene.train.traction.interval");
+		ok &= expect(expectDiag(diagsFor({{{10.0, 20.0, 1.0, 0.0, 0.0}}, {{0.0, 5.0, 1.0, 0.0, 0.0}}}),
+					"scene.train.traction.order"),
+				"descending traction rows -> scene.train.traction.order");
+		ok &= expect(expectDiag(diagsFor({{{0.0, 10.0, 1.0, 0.0, 0.0}}, {{5.0, 20.0, 1.0, 0.0, 0.0}}}),
+					"scene.train.traction.overlap"),
+				"overlapping traction rows -> scene.train.traction.overlap");
+		const auto adjacentDiags = diagsFor({{{0.0, 10.0, 1.0, 0.0, 0.0}}, {{10.0, 20.0, 1.0, 0.0, 0.0}}});
+		ok &= expect(!hasDiag(adjacentDiags, "scene.train.traction.empty")
+				&& !hasDiag(adjacentDiags, "scene.train.traction.interval")
+				&& !hasDiag(adjacentDiags, "scene.train.traction.order")
+				&& !hasDiag(adjacentDiags, "scene.train.traction.overlap"),
+				"adjacent traction rows are valid");
 	}
 
 	if (!ok)

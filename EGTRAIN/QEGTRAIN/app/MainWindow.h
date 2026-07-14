@@ -80,6 +80,7 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QIntValidator>
+#include <QDoubleSpinBox>
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
@@ -202,6 +203,8 @@ public:
 
 	// setup info dock widget
 	void setupInfoDockWidget();
+	void setupRunResultsDock();
+	void refreshRunResults();
 
 	// update signal aspects
 	void updateSignalAspect(const std::string& ID, double code, bool reversed);
@@ -305,6 +308,8 @@ private:
 	QWidget* infoWidget;
 	QVBoxLayout* infoWidgetMainLayout;
 	InfoDockWidget* infoDockWidget;
+	QDockWidget* m_runResultsDock = nullptr;
+	QTableWidget* m_runResultsTable = nullptr;
 	QWidget* arcInfoWidget;
 	QLineEdit* arcIDText;
 	QLineEdit* arcFirstNodeIDText;
@@ -384,6 +389,20 @@ private:
 	QTreeWidget* m_loadedDataTree = nullptr;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 
+	// train-unit editor dock: physical values and piecewise traction rows
+	QDockWidget* m_trainUnitDock = nullptr;
+	QListWidget* m_trainUnitListWidget = nullptr;
+	QLineEdit* m_trainUnitIdEdit = nullptr;
+	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
+	QLabel* m_trainUnitSourceDataLabel = nullptr;
+	QLabel* m_trainUnitSourceTractionLabel = nullptr;
+	QTableWidget* m_trainUnitTractionTable = nullptr;
+	QPushButton* m_addTrainUnitButton = nullptr;
+	QPushButton* m_duplicateTrainUnitButton = nullptr;
+	QPushButton* m_deleteTrainUnitButton = nullptr;
+	QPushButton* m_addTrainUnitTractionButton = nullptr;
+	QPushButton* m_removeTrainUnitTractionButton = nullptr;
+
 	// composition editor dock (first editable scene panel)
 	QDockWidget* m_compositionDock = nullptr;
 	QListWidget* m_compositionListWidget = nullptr;		 // one row per SceneComposition
@@ -396,6 +415,10 @@ private:
 	QPushButton* m_removeUnitButton = nullptr;
 	QPushButton* m_moveUnitUpButton = nullptr;
 	QPushButton* m_moveUnitDownButton = nullptr;
+	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// LITRA source of the selected unit
+	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // T_LITRA source of the selected unit
+	QLabel* m_compositionUnitWarningLabel = nullptr;		// missing or mismatched association
+	QPushButton* m_plotTractionButton = nullptr;			// open the tractive-effort plot
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
@@ -467,7 +490,23 @@ private:
 	void removeUnitFromComposition();
 	void moveCompositionUnitUp();
 	void moveCompositionUnitDown();
+	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
+	const SceneTrainUnit* trainUnitById(const std::string& id) const;
 	std::string uniqueCompositionId(const std::string& baseId) const;
+
+	// train-unit editor
+	void refreshTrainUnitPanel();
+	void updateTrainUnitDetailPanel();
+	void refreshTrainUnitTractionTable();
+	void addTrainUnit();
+	void duplicateTrainUnit();
+	void deleteTrainUnit();
+	void commitTrainUnitIdEdit();
+	void commitTrainUnitPhysical(int fieldIndex);
+	void addTrainUnitTractionRow();
+	void removeTrainUnitTractionRow();
+	void commitTrainUnitTractionCell(int row, int column, double value);
+	std::string uniqueTrainUnitId(const std::string& baseId) const;
 
 	// service editor (service-level fields; stops are edited by the stop editor below)
 	void refreshServicePanel();
@@ -518,6 +557,7 @@ private:
 	void runEditorSmokeE2E();
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
+	void runLegacyImportE2E();
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
@@ -570,6 +610,7 @@ private slots:
 	void showTimetableTable();
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
+	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
 signals:
 	void zoomed(); // zoom

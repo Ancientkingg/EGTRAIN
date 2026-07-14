@@ -19,4 +19,14 @@ QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
 
 grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
 test -s "$SHOT"
+for label in "Planned arrival" "Planned departure" "Simulated arrival" "Simulated departure" "Arrival delay" "Departure delay"; do
+	if ! grep -Fqi "$label" "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.cpp"; then
+		echo "missing timetable label in MainWindow.cpp: $label" >&2
+		exit 1
+	fi
+done
+if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"; then
+	echo "dead Show Graph action still present in MainWindow.ui" >&2
+	exit 1
+fi
 echo "visual polish e2e passed: $SHOT"
