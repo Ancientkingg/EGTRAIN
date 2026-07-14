@@ -479,6 +479,11 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_lebanon_scene_smoke
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
 	set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 180)
+	if(APPLE)
+		add_test(NAME test_package_contents_smoke
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh)
+		set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 240)
+	endif()
 	add_test(NAME test_ci_workflow
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds
