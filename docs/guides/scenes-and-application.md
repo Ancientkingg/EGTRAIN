@@ -200,6 +200,16 @@ Keep the full Netherlands scene as the reference case. Build the smaller assignm
 
 See [Netherlands assignment brief](netherlands-assignment.md) for the work plan and checklists.
 
+## Lebanon case
+
+The Lebanon scene is at `EGTRAIN/QEGTRAIN/Scenes/Lebanon`. It is an infrastructure shell built from the supplied Lebanon network with `scene_tool import`. The source provides 34 stations and the track folders `B0` through `B7`.
+
+The shell contains the 34 stations and the legacy track files under `legacy/Tracklines`. The network renders and simulates from that legacy passthrough, so the canonical `infrastructure.json` holds no separate arc or node geometry.
+
+Rolling stock, compositions, services, and timetable data were not supplied. The end user adds them in the editor. Until then, validation reports only the missing services and train data, and the run stays gated. After the train data is added, the scene validates, exports, reloads, and runs.
+
+`tools/e2e/lebanon_scene_smoke.sh` checks the station count, the expected missing data, a clean export with the `B0` through `B7` passthrough, and a GUI load that renders the network and gates the run.
+
 ## Before committing a scene
 
 - Validate the scene.

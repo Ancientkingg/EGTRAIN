@@ -468,6 +468,9 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_csv_export_smoke
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
 	set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
+	add_test(NAME test_lebanon_scene_smoke
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
+	set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 180)
 	add_test(NAME test_ci_workflow
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds
