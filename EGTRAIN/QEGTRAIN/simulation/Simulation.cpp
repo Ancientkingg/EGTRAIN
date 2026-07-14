@@ -1,5 +1,7 @@
 #include "simulation/Simulation.h"
+#include "diagrams/RunResults.h"
 #include <cstdio>
+#include <cmath>
 #include <vector>
 
 double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
@@ -16,6 +18,37 @@ extern InitialParameters initial_variables;
 string Name_Of_Integ_Folder = ""; // Name of the batch file of ROMA
 
 OrderList TrainEntranceOrder;
+
+namespace {
+bool energySeriesCovers(const std::vector<double>& values, int first, int last) {
+	if (first < 0 || last < first || last >= static_cast<int>(values.size()))
+		return false;
+	for (int index = first; index <= last; ++index) {
+		if (!std::isfinite(values[static_cast<std::size_t>(index)]))
+			return false;
+	}
+	return true;
+}
+
+bool canComputeTrainEnergy(Train& train) {
+	if (train.earliestActiveTrajectoryIndex < 0 || train.End_Time < train.earliestActiveTrajectoryIndex ||
+		train.End_Time >= static_cast<int>(train.instant_spatial_position.size()) ||
+		!std::isfinite(train.departure_time))
+		return false;
+	// Completed runs can leave a non-finite terminal power sample; the shared
+	// energy calculation treats that boundary sample as zero.
+	if (train.End_Time < static_cast<int>(train.instant_train_power_consumption.size()) &&
+		!std::isfinite(train.instant_train_power_consumption[static_cast<std::size_t>(train.End_Time)]))
+		train.instant_train_power_consumption[static_cast<std::size_t>(train.End_Time)] = 0.0;
+	const int energyStart = static_cast<int>(train.departure_time);
+	return energyStart >= 0 && energyStart <= train.End_Time &&
+		energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time) &&
+		energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time) &&
+		!validTrajectorySegments(train.instant_spatial_position,
+									 train.earliestActiveTrajectoryIndex, train.End_Time)
+			.empty();
+}
+} // namespace
 
 // Function to Calculate the arrival delay at each station for each train
 void calculateArrivalDelayAllTrainsOldVersion() {
@@ -363,6 +396,8 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 		Trains[i].TotalEnergyConsWithRegBrak = 0;
 		Trains[i].TotalEnergySubstationRequest = 0;
 		Trains[i].TotalEnergySubstRequestWithRegBrak = 0;
+		if (!canComputeTrainEnergy(Trains[i]))
+			continue;
 		// Compute the Energy Consumption for all the trains in the network
 		Trains[i].TotalEnergyConsumptionWithAndWithoutRegBraking(0.8, 0.7); // we are using as default an efficiency of 0.8 for the substation and 0.7 for regenerative braking (but these values are actually a feature of the substation and the train respectively)
 	}
@@ -493,7 +528,7 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 
 	for (int i = 0; i < numTrains; i++) {
 		// Printing out the Energy consumed Measure of Performance by Train
-		OutputPerTrain << Trains[i].trainDescription << " " << Trains[i].TotalEnergyConsumed * 0.27778 << " " << Trains[i].TotalEnergyConsWithRegBrak * 0.27778 << " " << Trains[i].TotalEnergySubstationRequest * 0.27778 << " " << Trains[i].TotalEnergySubstRequestWithRegBrak * 0.27778 << "\n";
+		OutputPerTrain << Trains[i].trainDescription << " " << energyMJKWh(Trains[i].TotalEnergyConsumed) << " " << energyMJKWh(Trains[i].TotalEnergyConsWithRegBrak) << " " << energyMJKWh(Trains[i].TotalEnergySubstationRequest) << " " << energyMJKWh(Trains[i].TotalEnergySubstRequestWithRegBrak) << "\n";
 
 		TotalEnergyConsumed = TotalEnergyConsumed + Trains[i].TotalEnergyConsumed;
 		TotalEnergyConsWithRegBraking = TotalEnergyConsWithRegBraking + Trains[i].TotalEnergyConsWithRegBrak;
@@ -509,7 +544,7 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 	Output.open((char*)OutputFileName.c_str(), ios::binary);
 
 	Output << "TotalEnergyConsumed[KWh] TotalEnergyConsumedWithRegenerativeBraking[KWh] TotalEnergyRequestAtSubst[KWh] TotalEnergyRequestAtSubstWithRegBraking\n";
-	Output << TotalEnergyConsumed * 0.27778 << " " << TotalEnergyConsWithRegBraking * 0.27778 << " " << TotalEnergySubstationRequest * 0.27778 << " " << TotalEnergySubstRequestWithRegBraking * 0.27778 << "\n";
+	Output << energyMJKWh(TotalEnergyConsumed) << " " << energyMJKWh(TotalEnergyConsWithRegBraking) << " " << energyMJKWh(TotalEnergySubstationRequest) << " " << energyMJKWh(TotalEnergySubstRequestWithRegBraking) << "\n";
 	Output.close();
 }
 
@@ -674,6 +709,7 @@ void ImprovedTrainSimulationForComputingHW(double v1, double v2, double v3) {
 			activateSignallingSystem(); // Activate the signalling system
 			for (int t = 0; t < initial_variables.times; t++) {
 				regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
+				regional_train[i].recordEarliestActiveTrajectoryIndex(t);
 			}
 		} else {
 			for (int j = 0; j < numRegions; j++) {
@@ -804,84 +840,32 @@ void PrintCompressedTrainPathDiagramTrial(Train* S, int N_S, string FolderName) 
 	FileOutput << "\n";
 	FileSpeedsOutput << "\n";
 
-	// Determining the actual EndTime of the train run
 	for (int i = 0; i < N_S; i++) {
-		int ActualEndTime = 0;
-
-		for (int t = 0; t < initial_variables.times; t++) {
-			if (S[i].instant_spatial_position[t] == -9999) {
-				ActualEndTime = t - 1;
-				break;
-			}
-
-			if (t > initial_variables.times) {
-				ActualEndTime = initial_variables.times;
-				break;
-			}
-		}
-
-		// Printing out the names of trains
-		// cout << instant_spatial_position[i].trainDescription << " ";
 		FileOutput << S[i].trainDescription << " ";
-		// writing on the file of the speeds
 		FileSpeedsOutput << S[i].trainDescription << " ";
 
-		int TrainShift = (int)S[i].departure_time - (int)S[i].RunStartTime;
-		list<double> TrainSpeeds;
-		list<double> TrainPositions;
-		for (int l = S[i].RunStartTime; l <= ActualEndTime; l++) {
-			double speed = S[i].instant_train_speed[l];
-			double position = S[i].instant_spatial_position[l];
-			TrainSpeeds.push_back(speed);
-			TrainPositions.push_back(position);
-			list<double>::iterator h = TrainSpeeds.end();
-			h--;
-			list<double>::iterator r = TrainPositions.end();
-			r--;
-
-			//	cout << *h<< " " << *r << "\n";
-		}
-
-		int ShiftedEndTime = ActualEndTime + TrainShift;
-		bool StopPrinting = false;
-		list<double>::iterator sp = TrainSpeeds.begin();
-		list<double>::iterator pos = TrainPositions.begin();
-		if (TrainPositions.size() > 0) {
-			for (int k = StartPrintingTime; k <= StartPrintingTime + initial_variables.times; k++) {
-				if ((k >= S[i].departure_time) && (k <= ShiftedEndTime)) {
-					// cout << *pos << " ";
-					if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-						FileOutput << *pos << " ";
-						// printing speed on the file of the speeds
-						FileSpeedsOutput << *sp << " ";
-					} else {
-						FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - *pos << " ";
-						// printing speed on the file of the speeds
-						FileSpeedsOutput << *sp << " ";
-					}
-					// advancing iterators on positions and speeds
-					pos++;
-					sp++;
-				} else if (k < S[i].departure_time) {
-					// cout << " ";
-					if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-						FileOutput << 0 << " ";
-						// writing on the file of the speeds
-						FileSpeedsOutput << 0 << " ";
-					} else {
-						FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute << " ";
-						// writing on the file of the speeds
-						FileSpeedsOutput << 0 << " ";
-					}
-				} else if (k > ShiftedEndTime) {
-					StopPrinting = true; // break the for loop when the cicle reaches the end of the list
-					break;
-				}
+		const int departureTime = static_cast<int>(S[i].departure_time);
+		const int outputLast = StartPrintingTime + initial_variables.times;
+		const auto positions = shiftedTrajectoryExportCells(
+				S[i].instant_spatial_position, S[i].earliestActiveTrajectoryIndex,
+				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
+		const auto speeds = shiftedTrajectoryExportCells(
+				S[i].instant_train_speed, S[i].earliestActiveTrajectoryIndex,
+				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
+		for (std::size_t column = 0; column < positions.size(); ++column) {
+			const double position = positions[column];
+			if (position == -9999) {
+				FileOutput << -9999 << " ";
+			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
+				FileOutput << position << " ";
+			} else {
+				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
 			}
+
+			const double speed = column < speeds.size() ? speeds[column] : -9999;
+			FileSpeedsOutput << (position == -9999 || speed == -9999 ? -9999 : speed) << " ";
 		}
-		// cout << "\n";
 		FileOutput << "\n";
-		// writing on the file of the speeds
 		FileSpeedsOutput << "\n";
 	}
 	// Close the output file	of positions
@@ -908,10 +892,6 @@ void PrintLocationHeadways(string MainFolder) {
 
 // Function to Print all the trajectories
 void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
-	bool NoPrint[300]; // This array has for each train the boolean variable that becomes 1 only if the train has finished its run (i.e. the value -9999 to the instant_spatial_position[i] has been reached)
-	for (int k = 0; k < 300; k++) {
-		NoPrint[k] = false;
-	} // Initializing the NoPrint
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput;
@@ -923,19 +903,17 @@ void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
 	FileOutput << "\n";
 	for (int i = 0; i < N_S; i++) {
 		FileOutput << S[i].trainDescription << " ";
+		const auto exportCells = trajectoryExportCells(S[i].instant_spatial_position,
+													 S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
 		for (int t = 0; t < initial_variables.times; t++) {
-			if ((S[i].instant_spatial_position[t] == -9999) || (t == S[i].End_Time + 1))
-				NoPrint[i] = true;
-
-			if ((S[i].instant_spatial_position[t] != -9999) && (NoPrint[i] == 0))
-				if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-					FileOutput << S[i].instant_spatial_position[t] << " ";
-				} else {
-					FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - S[i].instant_spatial_position[t] << " ";
-				}
-
-			else
-				break;
+			const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
+			if (position == -9999) {
+				FileOutput << -9999 << " ";
+			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
+				FileOutput << position << " ";
+			} else {
+				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
+			}
 		}
 		FileOutput << "\n";
 	}
@@ -1093,6 +1071,7 @@ void TrainSimulationForComputingHW(double v1, double v2, double v3) {
 			// if (t==2200)
 			// cout<<"Pites";
 			regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
+			regional_train[i].recordEarliestActiveTrajectoryIndex(t);
 		}
 	}
 	//}
@@ -1109,6 +1088,7 @@ void Train_Simulation_Integration_With_ROMA(double v1, double v2, double v3) {
 			// Upload for each simulation step: train characteristics
 			for (int j = 0; j < numRegions; j++) {
 				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
+				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			}
 		}
 
@@ -1204,6 +1184,7 @@ void trainSimulation(double v1, double v2, double v3) {
 			// Upload for each simulation step: train characteristics
 			for (int j = 0; j < numRegions; j++) {
 				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
+				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			}
 		}
 

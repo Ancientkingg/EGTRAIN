@@ -44,7 +44,7 @@ EGTRAIN validates the scene before each run. Errors block the run. Warnings rema
 
 After setup, use the existing diagram windows to inspect speed, time, distance, delay, train path, and blocking time data.
 
-Use `Load Legacy Case...` only for the old case selector. A legacy case opened this way is not an editable V1 scene.
+Use `File > Load Legacy Case...` to convert a legacy folder into an editable V1 scene. Select the legacy source folder first, then a separate destination folder for the generated scene. The source is never modified. EGTRAIN shows importer, structural, and semantic diagnostics before opening the result; structural/import errors leave the current scene unchanged, while semantic errors remain visible in the validation panel so the result can be repaired.
 
 ## V1 scene directory
 
@@ -95,7 +95,7 @@ Do not delete files from `legacy/` until the scene exports and runs without them
 
 ## Convert a legacy case
 
-Use `scene_tool` when a case already exists in the legacy format. Import into a temporary directory first.
+Use `scene_tool` when a case already exists in the legacy format, or use `File > Load Legacy Case...` for the same import path inside EGTRAIN. Import into a temporary directory first when checking a case from outside the repository.
 
 ```bash
 ./build/scene_tool import \
@@ -115,6 +115,8 @@ The importer maps:
 | `Routes/Route<N>.txt` | `signalling.json` |
 | `Tracklines/Stations.txt` | `stations.json` |
 | Remaining simulator data | `legacy/` |
+
+Flat legacy payloads with root `Stations.txt`, `Connections.txt`, `TrackandStations.txt`, and numeric `B*` folders are accepted too; the importer places that infrastructure under `legacy/Tracklines/` without changing the source.
 
 Inspect every import warning. `scene.import.adjusted` means the importer changed a value. The message names the affected file and service.
 
@@ -197,6 +199,16 @@ The Amsterdam to Hilversum assignment is a separate piece of work. The legacy ca
 Keep the full Netherlands scene as the reference case. Build the smaller assignment scene only after the selected Amsterdam to Hilversum services work in the full network.
 
 See [Netherlands assignment brief](netherlands-assignment.md) for the work plan and checklists.
+
+## Lebanon case
+
+The Lebanon scene is at `EGTRAIN/QEGTRAIN/Scenes/Lebanon`. It is an infrastructure shell built from the supplied Lebanon network with `scene_tool import`. The source provides 34 stations and the track folders `B0` through `B7`.
+
+The shell contains the 34 stations and the legacy track files under `legacy/Tracklines`. The network renders and simulates from that legacy passthrough, so the canonical `infrastructure.json` holds no separate arc or node geometry.
+
+Rolling stock, compositions, services, and timetable data were not supplied. The end user adds them in the editor. Until then, validation reports only the missing services and train data, and the run stays gated. After the train data is added, the scene validates, exports, reloads, and runs.
+
+`tools/e2e/lebanon_scene_smoke.sh` checks the station count, the expected missing data, a clean export with the `B0` through `B7` passthrough, and a GUI load that renders the network and gates the run.
 
 ## Before committing a scene
 

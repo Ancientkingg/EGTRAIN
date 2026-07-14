@@ -121,9 +121,12 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
+    ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
+    ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
     ${SRC_DIR}/scene/SceneExporter.cpp
 )
@@ -176,9 +179,12 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/Util.hpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.h
     ${SRC_DIR}/util/SpeedFormat.h
+    ${SRC_DIR}/util/CsvWriter.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
+    ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
+    ${SRC_DIR}/diagrams/TractionCurve.h
     ${SRC_DIR}/graphics/VisualPolish.h
     ${SRC_DIR}/scene/SceneExporter.h
 )
@@ -309,6 +315,31 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/TrajectoryUtil.cpp)
     add_test(NAME test_trajectory COMMAND test_trajectory)
 
+    add_executable(test_runresults
+        ${SRC_DIR}/tests/test_runresults.cpp
+        ${SRC_DIR}/diagrams/RunResults.cpp
+        ${SRC_DIR}/simulation/Infrastructure.cpp
+        ${SRC_DIR}/simulation/InitialParameters.cpp
+        ${SRC_DIR}/simulation/NumberGenerator.cpp
+        ${SRC_DIR}/simulation/RollingStock.cpp
+        ${SRC_DIR}/simulation/Signalling.cpp
+        ${SRC_DIR}/util/Logger.cpp
+        ${SRC_DIR}/util/TrajectoryUtil.cpp)
+    target_include_directories(test_runresults PRIVATE ${SRC_DIR})
+    target_link_libraries(test_runresults PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_runresults PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+        target_compile_options(test_runresults PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+    endif()
+    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+        target_link_libraries(test_runresults PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+    elseif(OpenMP_CXX_FOUND)
+        target_link_libraries(test_runresults PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    add_test(NAME test_runresults COMMAND test_runresults)
+
     add_executable(test_blockingtimediagram
         ${SRC_DIR}/tests/test_blockingtimediagram.cpp
         ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
@@ -319,6 +350,18 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
+
+    add_executable(test_csvwriter
+        ${SRC_DIR}/tests/test_csvwriter.cpp
+        ${SRC_DIR}/util/CsvWriter.cpp)
+    target_include_directories(test_csvwriter PRIVATE ${SRC_DIR})
+    add_test(NAME test_csvwriter COMMAND test_csvwriter)
+
+    add_executable(test_tractioncurve
+        ${SRC_DIR}/tests/test_tractioncurve.cpp
+        ${SRC_DIR}/diagrams/TractionCurve.cpp)
+    target_include_directories(test_tractioncurve PRIVATE ${SRC_DIR})
+    add_test(NAME test_tractioncurve COMMAND test_tractioncurve)
 
     add_executable(test_consolestream
         ${SRC_DIR}/tests/test_consolestream.cpp
@@ -358,7 +401,10 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND test_sceneimporter
 		${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
 		${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
-		${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
+		${SRC_DIR}/Input/Input_EGTRAIN_Netherlands
+		${SRC_DIR}/Input/Input_EGTRAIN_Banedanmark
+		${SRC_DIR}/Input/Input_EGTRAIN_Paimpol
+		"${SRC_DIR}/Input/Input_EGTRAIN_Paimpol - alternativeJourneys")
 
 	add_executable(test_scenewriter
 		${SRC_DIR}/tests/test_scenewriter.cpp
@@ -426,7 +472,20 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
-	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 240)
+	# Release completes in seconds; the ceiling exists for the instrumented
+	# sanitizer job, which needs room for the full run plus a short liveness hold.
+	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)
+	add_test(NAME test_csv_export_smoke
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
+	set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
+	add_test(NAME test_lebanon_scene_smoke
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
+	set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 180)
+	if(APPLE)
+		add_test(NAME test_package_contents_smoke
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh)
+		set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 240)
+	endif()
 	add_test(NAME test_ci_workflow
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds

@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <cstdio>
+#include <algorithm>
 
 // GUI - Virtual Coupling notifications
 vector<int> VCmsgTimestep;
@@ -1776,25 +1777,27 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 
 	FileOutput << trainDescription << "\t" << dispLineID << "\t" << train_route[indexOfRoute].reversed_direction << "\t" << train_route[indexOfRoute].corridor << "\t";
 
+	const int activeFirst = earliestActiveTrajectoryIndex < 0
+			? -1
+			: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
+	const auto exportCells = trajectoryExportCells(instant_spatial_position, activeFirst, End_Time);
 	for (int t = 0; t < initial_variables.times; t++) {
-		// end of leg
-		if ((instant_spatial_position[t] == -9999) || (t == End_Time + 1)) {
-			break;
-		} else if (t >= prevIntendedDepTime) {
+		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
+		if (position != -9999) {
 			// non-reversed route (same with/without jump)
 			if (!train_route[indexOfRoute].reversed_direction) {
-				FileOutput << instant_spatial_position[t] << "\t";
+				FileOutput << position << "\t";
 			}
 			// reversed route without jump
 			else if (train_route[indexOfRoute].diffRegionsJumpX.first == 0) {
-				FileOutput << (train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[t]) << "\t";
+				FileOutput << (train_route[indexOfRoute].OriginalRefReversedRoute - position) << "\t";
 			}
 			// reversed route with jump
 			else {
-				FileOutput << ((train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[t]) - (train_route[indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
+				FileOutput << ((train_route[indexOfRoute].OriginalRefReversedRoute - position) - (train_route[indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
 			}
 		} else {
-			FileOutput << "\t"; // empty cells before start of service
+			FileOutput << "\t";
 		}
 	}
 	FileOutput << std::endl;

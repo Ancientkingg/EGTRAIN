@@ -1,6 +1,7 @@
 #ifndef Rolling_Stock_hpp
 #define Rolling_Stock_hpp
 #include "simulation/Signalling.h"
+#include "util/TrajectoryUtil.h"
 
 // GUI - Virtual Coupling notifications
 #include <vector>
@@ -680,6 +681,7 @@ public:
 	int numOverlaps; // This is the number of train overlaps
 	double Final_Delay;
 	int End_Time;						// Time instant in which the train exits simulation
+	int earliestActiveTrajectoryIndex = -1;		// First simulation sample in the active run
 	double HwMatrix[100][1000];			// This matrix contains on the columns the locations crossed by the train route, while on the columns the trains that have block sections in common
 	list<Location> LocationNames;		// This LocationNames contain the name of block sections, or stations crossed by the train along its route
 	list<string> ConflictingTrains;		// These are the trains which have common block sections.
@@ -811,6 +813,11 @@ public:
 
 	// Function to calculate Total Energy Consumed with and without regenrative braking (the inputs are the Eta of the Substation and the Eta of the regenerative braking)
 	void TotalEnergyConsumptionWithAndWithoutRegBraking(double EtaSubst, double EtaRegBrak) {
+		// A completed trajectory can leave a non-finite power sample at End_Time;
+		// treat that boundary sample as zero, matching train_energy_consumption().
+		if (End_Time >= 0 && End_Time < static_cast<int>(instant_train_power_consumption.size()) &&
+			!std::isfinite(instant_train_power_consumption[static_cast<std::size_t>(End_Time)]))
+			instant_train_power_consumption[static_cast<std::size_t>(End_Time)] = 0.0;
 		// This is the total Energy consumed by the train to move
 		this->TotalEnergyConsumed = instant_train_energy_consumption[End_Time];
 		this->EnergyForAuxiliaries = 0.10 * TotalEnergyConsumed;
@@ -2742,24 +2749,30 @@ public:
 		ofstream trainout;
 		trainout.open((char*)path.c_str(), ios::binary);
 		trainout << "Time[s]\tSpeed[m/s]\tPosition[m]\tTail_Position[m]\tPower_Cons[kW]\tBX[m]\tinstant_train_energy_consumption[KWh]\tBlock" << "\n";
+		const auto segments = validTrajectorySegments(instant_spatial_position, earliestActiveTrajectoryIndex, End_Time);
+		bool firstSegment = true;
 		if (train_route[indexOfRoute].reversed_direction == 0) {
-			for (int i = 0; i < initial_variables.times; i++) {
-				if (instant_spatial_position[i] != -9999) {
+			for (const auto& segment : segments) {
+				if (!firstSegment)
+					trainout << "\n";
+				firstSegment = false;
+				for (int i = segment.first; i <= segment.last; i++) {
 					trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << instant_spatial_position[i] << "\t" << instant_spatial_position[i] - train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" <<
 
 						BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] <<
 
 						// Bs.
 						"\n";
-				} else
-					break;
+				}
 			}
 		} else { // If instead the train runs on a reversed route then subtract the instant_spatial_position[i] from the Total Length of the route
-			for (int i = 0; i < initial_variables.times; i++) {
-				if (instant_spatial_position[i] != -9999) {
+			for (const auto& segment : segments) {
+				if (!firstSegment)
+					trainout << "\n";
+				firstSegment = false;
+				for (int i = segment.first; i <= segment.last; i++) {
 					trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] - train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
-				} else
-					break;
+				}
 			}
 		}
 		trainout.close();
@@ -2772,19 +2785,15 @@ public:
 		ofstream OutputFile;
 		OutputFile.open((char*)FileName.c_str());
 		OutputFile << "Time[s] Speed[m/s] Position[m] Tail_Position[m] Power_Cons[kW] V_Obj[m/s] instant_train_energy_consumption[KWh]" << "\n";
-		if (OutOfSimulation == 1) {
-			for (int i = 0; i <= End_Time; i++) {
-				if (instant_spatial_position[i] != -9999) {
-					OutputFile << i * timestep << " " << instant_train_speed[i] << " " << instant_spatial_position[i] << " " << instant_spatial_position[i] - train_length << " " << instant_train_power_consumption[i] / 1000 << " " << Vob[i] << " " << instant_train_energy_consumption[i] * 0.27778 << "\n";
-				} else
-					break;
-			}
-		} else {
-			for (int i = 0; i <= t; i++) {
-				if (instant_spatial_position[i] != -9999) {
-					OutputFile << i * timestep << " " << instant_train_speed[i] << " " << instant_spatial_position[i] << " " << instant_spatial_position[i] - train_length << " " << instant_train_power_consumption[i] / 1000 << " " << Vob[i] << " " << instant_train_energy_consumption[i] * 0.27778 << "\n";
-				} else
-					break;
+		const int activeLast = OutOfSimulation == 1 || End_Time < t ? End_Time : t;
+		const auto segments = validTrajectorySegments(instant_spatial_position, earliestActiveTrajectoryIndex, activeLast);
+		bool firstSegment = true;
+		for (const auto& segment : segments) {
+			if (!firstSegment)
+				OutputFile << "\n";
+			firstSegment = false;
+			for (int i = segment.first; i <= segment.last; i++) {
+				OutputFile << i * timestep << " " << instant_train_speed[i] << " " << instant_spatial_position[i] << " " << instant_spatial_position[i] - train_length << " " << instant_train_power_consumption[i] / 1000 << " " << Vob[i] << " " << instant_train_energy_consumption[i] * 0.27778 << "\n";
 			}
 		}
 		OutputFile.close();
@@ -3174,6 +3183,7 @@ public:
 	void ReplicateTrainTrajectory(Train T_2_Replicate) {
 		// Offset (i.e. time headway) between the two trains
 		int Offset = (int)(departure_time - T_2_Replicate.departure_time);
+		earliestActiveTrajectoryIndex = replicatedEarliestTrajectoryIndex(T_2_Replicate.earliestActiveTrajectoryIndex, Offset);
 		// Setting the End_Time
 		End_Time = T_2_Replicate.End_Time + Offset;
 		if (End_Time > initial_variables.times)
@@ -7856,6 +7866,17 @@ public:
 	// number of trajectory samples available
 	int trajectorySize() const {
 		return static_cast<int>(instant_train_speed.size());
+	}
+
+	bool isTrajectorySampleValid(int index) const {
+		if (earliestActiveTrajectoryIndex < 0 || index < 0 || index >= static_cast<int>(instant_spatial_position.size()))
+			return false;
+		return ::isValidTrajectorySample(index, earliestActiveTrajectoryIndex, End_Time,
+									static_cast<int>(instant_spatial_position.size()), instant_spatial_position[index]);
+	}
+
+	void recordEarliestActiveTrajectoryIndex(int index) {
+		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
 	// signalling functions that need train info to occupy specific signalling_block_sections

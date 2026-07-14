@@ -74,9 +74,9 @@ The root properties `train_units` and `compositions` are required arrays. At lea
 | `physical.resistance_coefficient` | number | with `physical` | Coefficient used by the train resistance calculation | The loader does not impose a range. Copy it from verified train data. |
 | `physical.jerk_ms3` | number | with `physical` | Maximum change in acceleration per second | Measured in metres per second cubed. The loader does not impose a range. |
 | `physical.length_m` | number | with `physical` | Total unit length in metres | The loader does not impose a range. |
-| `train_units[].traction_curve` | array | no for loading | Piecewise traction-force curve | Each row must contain exactly five numbers. Export fails when a used unit has no rows. |
-| `traction_curve[][0]` | number | in each row | Lower speed bound, in metres per second | The loader does not check ordering or overlap. |
-| `traction_curve[][1]` | number | in each row | Upper speed bound, in metres per second | The simulator applies a row when speed is within its interval. |
+| `train_units[].traction_curve` | array | no for loading | Piecewise traction-force curve | Each row must contain exactly five numbers. The shared validator reports an empty curve, non-increasing intervals, rows out of ascending lower-speed order, and overlaps. Export fails when a used unit has no rows. |
+| `traction_curve[][0]` | number | in each row | Lower speed bound, in metres per second | Must be below the upper bound. Rows must be ordered by increasing lower speed; an adjacent lower bound equal to the previous upper bound is allowed. |
+| `traction_curve[][1]` | number | in each row | Upper speed bound, in metres per second | Must be above the lower bound and must not overlap the next interval. |
 | `traction_curve[][2]` | number | in each row | Constant coefficient `C0` | Traction force is `C0 + C1 * v + C2 * v^2` within the row's speed interval. |
 | `traction_curve[][3]` | number | in each row | Linear coefficient `C1` | Used in the traction-force formula above. |
 | `traction_curve[][4]` | number | in each row | Quadratic coefficient `C2` | Used in the traction-force formula above. |
@@ -92,6 +92,8 @@ The root properties `train_units` and `compositions` are required arrays. At lea
 | `compositions[].units` | array of strings | yes | Ordered train units in the consist | Must contain at least one known train-unit ID. Non-string entries are ignored. Repeating an ID represents coupled copies of that unit. |
 
 When a composition contains several units, the exporter combines their masses, limits, lengths, resistance values, and traction curves into one legacy train definition.
+
+The Train Units dock edits these nine physical values and the five traction columns with numeric controls. Source data and traction filenames are read-only provenance fields. Renaming a unit updates composition references; deleting a referenced unit confirms the action and leaves the dangling reference for the validator to report.
 
 ## `services.json`
 

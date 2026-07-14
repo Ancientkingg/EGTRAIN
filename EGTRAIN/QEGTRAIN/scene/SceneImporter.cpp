@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
+#include <chrono>
 #include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
@@ -60,7 +61,21 @@ static fs::path resolvePath(const fs::path& base, const std::string& relPath) {
 			}
 		}
 		if (!found) {
-			return base / relPath; // fallback
+			fs::path unresolved = current / component;
+			if (nextPos != std::string::npos) {
+				size_t restPos = nextPos;
+				while (restPos < relStr.length()) {
+					while (restPos < relStr.length() && relStr[restPos] == '/')
+						++restPos;
+					if (restPos >= relStr.length())
+						break;
+					size_t restEnd = relStr.find('/', restPos);
+					unresolved /= relStr.substr(restPos,
+							restEnd == std::string::npos ? std::string::npos : restEnd - restPos);
+					restPos = restEnd;
+				}
+			}
+			return unresolved; // preserve the source-relative path for missing references
 		}
 	}
 	return current;
@@ -130,6 +145,43 @@ static std::string trim(const std::string& s) {
 	return trimRight(res);
 }
 
+static fs::path comparablePath(const fs::path& path) {
+	std::error_code ec;
+	fs::path resolved = fs::weakly_canonical(path, ec);
+	if (!ec)
+		return resolved;
+	resolved = fs::absolute(path, ec);
+	return ec ? path.lexically_normal() : resolved.lexically_normal();
+}
+
+static bool containsPath(const fs::path& parent, const fs::path& child) {
+	if (parent == child)
+		return true;
+	auto parentIt = parent.begin();
+	auto childIt = child.begin();
+	for (; parentIt != parent.end() && childIt != child.end(); ++parentIt, ++childIt) {
+		if (*parentIt != *childIt)
+			return false;
+	}
+	return parentIt == parent.end();
+}
+
+static fs::path uniqueSiblingPath(const fs::path& target, const std::string& tag) {
+	fs::path parent = target.parent_path();
+	if (parent.empty())
+		parent = ".";
+	std::string base = target.filename().string();
+	if (base.empty())
+		base = "scene";
+	const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+	for (unsigned int suffix = 0;; ++suffix) {
+		fs::path candidate = parent / (base + "." + tag + "." + std::to_string(stamp) + "." + std::to_string(suffix));
+		std::error_code ec;
+		if (!fs::exists(candidate, ec) && !ec)
+			return candidate;
+	}
+}
+
 SceneImportResult importLegacyScene(const std::string& legacyDir,
 									const std::string& sceneDir,
 									const std::string& sceneName) {
@@ -145,8 +197,17 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	};
 
 	fs::path legacyPath(legacyDir);
+	fs::path scenePath(sceneDir);
+	const fs::path comparableLegacyPath = comparablePath(legacyPath);
+	const fs::path comparableScenePath = comparablePath(scenePath);
+	if (containsPath(comparableLegacyPath, comparableScenePath)
+		|| containsPath(comparableScenePath, comparableLegacyPath)) {
+		addDiag(SceneSeverity::Error, "scene.import.path",
+				"Legacy directory and scene destination must be separate, non-overlapping directories", scenePath.string());
+		return result;
+	}
 	if (!fs::exists(legacyPath) || !fs::is_directory(legacyPath)) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Legacy directory missing or invalid");
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Legacy directory missing or invalid", legacyPath.string());
 		return result;
 	}
 
@@ -196,12 +257,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		fs::path tfPath = resolvePath(legacyPath, tf);
 		std::string content;
 		if (!readFile(tfPath, content)) {
-			addDiag(SceneSeverity::Error, "scene.import.missing", "Missing train file: " + tf, tf);
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Missing train file: " + tf, tfPath.string());
 			continue;
 		}
 		std::vector<std::string> tokens = readTokens(content);
 		if (tokens.size() < 7) {
-			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed Trains file, need 7 tokens", tf);
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed Trains file, need 7 tokens", tfPath.string());
 			continue;
 		}
 
@@ -214,7 +275,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			headway = std::stod(tokens[2]);
 			routeIndex = std::stoi(tokens[3]);
 		} catch (...) {
-			addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in Trains file", tf);
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in Trains file", tfPath.string());
 			continue;
 		}
 
@@ -252,7 +313,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		fs::path ttPath = resolvePath(legacyPath, timetablePath);
 		std::string ttContent;
 		if (!readFile(ttPath, ttContent)) {
-			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing timetable file: " + timetablePath, tf);
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing timetable file: " + timetablePath, ttPath.string());
 			continue;
 		}
 
@@ -265,7 +326,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			if (ttTokens.empty())
 				continue;
 			if (ttTokens.size() < 4) {
-				addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed timetable row " + std::to_string(row), timetablePath);
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed timetable row " + std::to_string(row), ttPath.string());
 				continue;
 			}
 
@@ -276,7 +337,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				arrival = std::stod(ttTokens[n - 2]);
 				departure = std::stod(ttTokens[n - 1]);
 			} catch (...) {
-				addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in timetable row " + std::to_string(row), timetablePath);
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in timetable row " + std::to_string(row), ttPath.string());
 				continue;
 			}
 
@@ -358,12 +419,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		fs::path resolvedData = resolvePath(legacyPath, dataPath);
 		std::string dContent;
 		if (!readFile(resolvedData, dContent)) {
-			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing train data file: " + dataPath);
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing train data file: " + dataPath, resolvedData.string());
 			continue;
 		}
 		std::vector<std::string> dTokens = readTokens(dContent);
 		if (dTokens.size() < 9) {
-			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed train data file", dataPath);
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed train data file", resolvedData.string());
 			continue;
 		}
 
@@ -372,7 +433,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			for (int i = 0; i < 9; ++i)
 				phys.push_back(std::stod(dTokens[i]));
 		} catch (...) {
-			addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in train data file", dataPath);
+			addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in train data file", resolvedData.string());
 			continue;
 		}
 
@@ -380,7 +441,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		std::string tContent;
 		json tracArr = json::array();
 		if (!readFile(resolvedTraction, tContent)) {
-			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing traction file: " + tractionPath);
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing traction file: " + tractionPath, resolvedTraction.string());
 			continue;
 		}
 
@@ -392,13 +453,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			if (tTokens.empty())
 				continue;
 			if (tTokens.size() < 5) {
-				addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed traction row " + std::to_string(row), tractionPath);
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed traction row " + std::to_string(row), resolvedTraction.string());
 				continue;
 			}
 			try {
 				tracArr.push_back({std::stod(tTokens[0]), std::stod(tTokens[1]), std::stod(tTokens[2]), std::stod(tTokens[3]), std::stod(tTokens[4])});
 			} catch (...) {
-				addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in traction row " + std::to_string(row), tractionPath);
+				addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in traction row " + std::to_string(row), resolvedTraction.string());
 				continue;
 			}
 			row++;
@@ -448,7 +509,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		std::string rPath = "Routes/" + pair.second.filename().string();
 		std::string rContent;
 		if (!readFile(pair.second, rContent)) {
-			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath);
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath, pair.second.string());
 			continue;
 		}
 
@@ -485,7 +546,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		if (loadedRoutes.find(rId) == loadedRoutes.end()) {
 			std::string idxStr = rId.substr(5);
 			std::string rPath = "Routes/Route" + idxStr + ".txt";
-			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath);
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + rPath,
+					resolvePath(legacyPath, rPath).string());
 		}
 	}
 
@@ -494,6 +556,10 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (!fs::exists(stationsPath)) {
 		stationsPath = resolvePath(legacyPath, "TrackLines/Stations.txt");
 	}
+	const bool flatInfrastructure = !fs::exists(stationsPath)
+		&& fs::is_regular_file(resolvePath(legacyPath, "Stations.txt"));
+	if (flatInfrastructure)
+		stationsPath = resolvePath(legacyPath, "Stations.txt");
 	if (fs::exists(stationsPath)) {
 		std::string stContent;
 		if (readFile(stationsPath, stContent)) {
@@ -512,26 +578,26 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					try {
 						pos = std::stod(trim(posStr));
 					} catch (...) {
-						addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid pos in station row " + std::to_string(row), "Stations.txt");
+						addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid pos in station row " + std::to_string(row), stationsPath.string());
 						continue;
 					}
 				} else {
 					std::vector<std::string> stTokens = readTokens(stLine);
 					if (stTokens.size() < 2) {
-						addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed station row " + std::to_string(row), "Stations.txt");
+						addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed station row " + std::to_string(row), stationsPath.string());
 						continue;
 					}
 					try {
 						pos = std::stod(stTokens[0]);
 					} catch (...) {
-						addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid pos in station row " + std::to_string(row), "Stations.txt");
+						addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid pos in station row " + std::to_string(row), stationsPath.string());
 						continue;
 					}
 					name = stLine.substr(stLine.find(stTokens[1]));
 				}
 				name = trim(name);
 				if (name.empty()) {
-					addDiag(SceneSeverity::Error, "scene.import.parse", "Empty station name in row " + std::to_string(row), "Stations.txt");
+					addDiag(SceneSeverity::Error, "scene.import.parse", "Empty station name in row " + std::to_string(row), stationsPath.string());
 					continue;
 				}
 
@@ -543,7 +609,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 		}
 	} else {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Missing Tracklines/Stations.txt");
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Missing Tracklines/Stations.txt", stationsPath.string());
 	}
 
 	json sceneJson = {
@@ -564,19 +630,53 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	json outStationsJson = {
 		{"stations", stationsArr}};
 
+	// Do not touch the selected destination after any parser/reference error.
+	if (hasErrors(result.diagnostics))
+		return result;
+
 	std::error_code ec;
-	fs::create_directories(sceneDir, ec);
+	fs::path sceneParent = scenePath.parent_path();
+	if (sceneParent.empty())
+		sceneParent = ".";
+	fs::create_directories(sceneParent, ec);
 	if (ec) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create scene directory: " + ec.message());
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create scene parent directory: " + ec.message(), scenePath.string());
+		return result;
+	}
+
+	const fs::path stagingPath = uniqueSiblingPath(scenePath, "importing");
+	fs::path backupPath;
+	auto removeStaging = [&]() {
+		std::error_code cleanupEc;
+		fs::remove_all(stagingPath, cleanupEc);
+	};
+
+	fs::create_directories(stagingPath, ec);
+	if (ec) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create staging directory: " + ec.message(), scenePath.string());
+		removeStaging();
+		return result;
+	}
+
+	// Reimports replace the passthrough subtree exactly inside staging; the
+	// existing destination remains untouched until the final publish rename.
+	fs::path outLegacy = stagingPath / "legacy";
+	fs::create_directories(outLegacy, ec);
+	if (ec) {
+		addDiag(SceneSeverity::Error, "scene.import.missing",
+				"Cannot create legacy passthrough directory: " + ec.message(), (scenePath / "legacy").string());
+		removeStaging();
 		return result;
 	}
 
 	bool allWritten = true;
 	auto writeJson = [&](const std::string& filename, const json& j) {
-		std::ofstream out(fs::path(sceneDir) / filename);
+		const fs::path outputPath = stagingPath / filename;
+		std::ofstream out(outputPath);
 		out << j.dump(4) << "\n";
 		if (!out.good()) {
-			addDiag(SceneSeverity::Error, "scene.import.missing", "Failed to write " + filename, filename);
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Failed to write " + filename,
+					(scenePath / filename).string());
 			allWritten = false;
 		}
 	};
@@ -587,20 +687,42 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	writeJson("rolling_stock.json", rollingJson);
 	writeJson("services.json", outServicesJson);
 	writeJson("stations.json", outStationsJson);
-
-	result.wroteScene = allWritten;
+	if (!allWritten) {
+		removeStaging();
+		return result;
+	}
 
 	// Legacy passthrough: unconverted runtime inputs travel with the scene so
 	// the future exporter can rebuild a runnable legacy folder from it alone.
-	fs::path outLegacy = fs::path(sceneDir) / "legacy";
-	fs::create_directories(outLegacy, ec);
 	auto copyInto = [&](const fs::path& from, const fs::path& to) {
 		std::error_code copyEc;
-		fs::create_directories(to.parent_path(), copyEc);
-		fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing, copyEc);
+		fs::path failedPath = from;
+		if (fs::is_directory(from, copyEc)) {
+			fs::create_directories(to, copyEc);
+			if (!copyEc) {
+				for (fs::recursive_directory_iterator it(from, copyEc), end; it != end && !copyEc; it.increment(copyEc)) {
+					failedPath = it->path();
+					const fs::path relative = fs::relative(it->path(), from, copyEc);
+					if (copyEc)
+						break;
+					const fs::path target = to / relative;
+					if (it->is_directory(copyEc)) {
+						fs::create_directories(target, copyEc);
+					} else if (it->is_regular_file(copyEc)) {
+						fs::create_directories(target.parent_path(), copyEc);
+						if (!copyEc)
+							fs::copy_file(it->path(), target, fs::copy_options::overwrite_existing, copyEc);
+					}
+				}
+			}
+		} else {
+			fs::create_directories(to.parent_path(), copyEc);
+			if (!copyEc)
+				fs::copy_file(from, to, fs::copy_options::overwrite_existing, copyEc);
+		}
 		if (copyEc) {
-			addDiag(SceneSeverity::Warning, "scene.import.missing",
-					"Could not copy legacy data " + from.filename().string() + ": " + copyEc.message());
+			addDiag(SceneSeverity::Error, "scene.import.missing",
+					"Could not copy legacy data " + from.filename().string() + ": " + copyEc.message(), failedPath.string());
 		}
 	};
 	std::vector<std::string> passDirs = {"Tracklines", "TrackLines", "TMS", "TDS", "GUI", "Rescheduling", "Passengers", "RoutesToWrite"};
@@ -615,6 +737,26 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			if (copiedDirs.insert(key).second) {
 				copyInto(p, outLegacy / p.filename());
 			}
+		}
+	}
+	if (flatInfrastructure) {
+		const fs::path flatTracklines = outLegacy / "Tracklines";
+		const std::vector<std::string> flatFiles = {"Stations.txt", "Connections.txt", "TrackandStations.txt"};
+		for (const auto& name : flatFiles) {
+			fs::path source = resolvePath(legacyPath, name);
+			if (fs::is_regular_file(source, ec))
+				copyInto(source, flatTracklines / source.filename());
+		}
+		for (const auto& entry : fs::directory_iterator(legacyPath, ec)) {
+			if (!entry.is_directory())
+				continue;
+			const std::string name = entry.path().filename().string();
+			const bool isBlock = name.size() > 1 && name[0] == 'B'
+				&& std::all_of(name.begin() + 1, name.end(), [](char c) {
+					return std::isdigit(static_cast<unsigned char>(c));
+				});
+			if (isBlock)
+				copyInto(entry.path(), flatTracklines / name);
 		}
 	}
 	// Scenario folders live inside the timetable directory next to the
@@ -643,5 +785,53 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		}
 	}
 
+	if (hasErrors(result.diagnostics)) {
+		removeStaging();
+		return result;
+	}
+
+	std::error_code destinationEc;
+	const bool destinationExists = fs::exists(scenePath, destinationEc);
+	if (destinationEc) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + destinationEc.message(), scenePath.string());
+		removeStaging();
+		return result;
+	}
+	if (destinationExists) {
+		backupPath = uniqueSiblingPath(scenePath, "backup");
+		fs::rename(scenePath, backupPath, destinationEc);
+		if (destinationEc) {
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing scene to backup: " + destinationEc.message(), scenePath.string());
+			removeStaging();
+			return result;
+		}
+	}
+
+	fs::rename(stagingPath, scenePath, destinationEc);
+	if (destinationEc) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot publish scene destination: " + destinationEc.message(), scenePath.string());
+		removeStaging();
+		if (!backupPath.empty()) {
+			std::error_code restoreEc;
+			fs::rename(backupPath, scenePath, restoreEc);
+			if (restoreEc)
+				addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot restore existing scene: " + restoreEc.message(), backupPath.string());
+			else
+				backupPath.clear();
+		}
+		return result;
+	}
+
+	if (!backupPath.empty()) {
+		std::error_code cleanupEc;
+		fs::remove_all(backupPath, cleanupEc);
+		if (cleanupEc) {
+			// Publishing already succeeded; leave the valid destination in place
+			// and report cleanup as a warning so callers can retry removal.
+			addDiag(SceneSeverity::Warning, "scene.import.cleanup",
+					"Could not remove import backup: " + cleanupEc.message(), backupPath.string());
+		}
+	}
+	result.wroteScene = true;
 	return result;
 }

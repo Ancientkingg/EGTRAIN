@@ -64,7 +64,6 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionShow_Graph"/>
     <addaction name="displayTrainPathDiagrams"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -145,11 +144,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionShow_Graph">
-   <property name="text">
-    <string>Show Graph</string>
    </property>
   </action>
   <action name="displayTrainPathDiagrams">
