@@ -472,7 +472,9 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
-	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 240)
+	# Release completes in seconds; the ceiling exists for the instrumented
+	# sanitizer job, which needs room for the full run plus a short liveness hold.
+	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)
 	add_test(NAME test_csv_export_smoke
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
 	set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
