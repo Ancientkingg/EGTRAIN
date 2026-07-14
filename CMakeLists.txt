@@ -126,6 +126,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
+    ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
     ${SRC_DIR}/scene/SceneExporter.cpp
 )
@@ -183,6 +184,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
+    ${SRC_DIR}/diagrams/TractionCurve.h
     ${SRC_DIR}/graphics/VisualPolish.h
     ${SRC_DIR}/scene/SceneExporter.h
 )
@@ -354,6 +356,12 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/CsvWriter.cpp)
     target_include_directories(test_csvwriter PRIVATE ${SRC_DIR})
     add_test(NAME test_csvwriter COMMAND test_csvwriter)
+
+    add_executable(test_tractioncurve
+        ${SRC_DIR}/tests/test_tractioncurve.cpp
+        ${SRC_DIR}/diagrams/TractionCurve.cpp)
+    target_include_directories(test_tractioncurve PRIVATE ${SRC_DIR})
+    add_test(NAME test_tractioncurve COMMAND test_tractioncurve)
 
     add_executable(test_consolestream
         ${SRC_DIR}/tests/test_consolestream.cpp

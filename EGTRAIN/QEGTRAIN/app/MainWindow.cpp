@@ -10,6 +10,7 @@
 #include "util/TrajectoryUtil.h"
 #include "util/CsvWriter.h"
 #include "diagrams/BlockingTimeDiagram.h"
+#include "diagrams/TractionCurve.h"
 #include "graphics/VisualPolish.h"
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
@@ -799,6 +800,26 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	unitButtonLayout->addWidget(m_moveUnitUpButton);
 	unitButtonLayout->addWidget(m_moveUnitDownButton);
 	compositionDetailLayout->addLayout(unitButtonLayout);
+
+	// selected unit: its LITRA and T_LITRA source files and the tractive-effort plot
+	compositionDetailLayout->addWidget(new QLabel("Rolling-stock data file (LITRA)", compositionDetailPane));
+	m_compositionUnitSourceDataLabel = new QLabel(compositionDetailPane);
+	m_compositionUnitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	m_compositionUnitSourceDataLabel->setWordWrap(true);
+	compositionDetailLayout->addWidget(m_compositionUnitSourceDataLabel);
+	compositionDetailLayout->addWidget(new QLabel("Traction data file (T_LITRA)", compositionDetailPane));
+	m_compositionUnitSourceTractionLabel = new QLabel(compositionDetailPane);
+	m_compositionUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	m_compositionUnitSourceTractionLabel->setWordWrap(true);
+	compositionDetailLayout->addWidget(m_compositionUnitSourceTractionLabel);
+	m_plotTractionButton = new QPushButton("Plot Traction Curve", compositionDetailPane);
+	compositionDetailLayout->addWidget(m_plotTractionButton);
+	m_compositionUnitWarningLabel = new QLabel(compositionDetailPane);
+	m_compositionUnitWarningLabel->setWordWrap(true);
+	m_compositionUnitWarningLabel->setStyleSheet("color: #b00020;");
+	compositionDetailLayout->addWidget(m_compositionUnitWarningLabel);
+	connect(m_plotTractionButton, &QPushButton::clicked, this, &MainWindow::plotSelectedCompositionUnitTraction);
+
 	compositionLayout->addWidget(compositionDetailPane);
 
 	m_compositionDock->setWidget(compositionWidget);
@@ -1788,6 +1809,14 @@ void MainWindow::updateCompositionDetailPanel() {
 	updateCompositionUnitButtons();
 }
 
+const SceneTrainUnit* MainWindow::trainUnitById(const std::string& id) const {
+	for (const SceneTrainUnit& unit : m_sceneModel.trainUnits) {
+		if (unit.id == id)
+			return &unit;
+	}
+	return nullptr;
+}
+
 void MainWindow::updateCompositionUnitButtons() {
 	int unitRow = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->currentRow() : -1;
 	int unitCount = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->count() : 0;
@@ -1799,6 +1828,70 @@ void MainWindow::updateCompositionUnitButtons() {
 		m_moveUnitUpButton->setEnabled(hasUnitSelection && unitRow > 0);
 	if (m_moveUnitDownButton)
 		m_moveUnitDownButton->setEnabled(hasUnitSelection && unitRow < unitCount - 1);
+
+	// resolve the selected unit and surface its source files, association state,
+	// and whether a traction curve can be plotted
+	const SceneTrainUnit* unit = nullptr;
+	if (hasUnitSelection && m_compositionUnitsListWidget->item(unitRow))
+		unit = trainUnitById(m_compositionUnitsListWidget->item(unitRow)->text().toStdString());
+
+	const auto sourceText = [](const std::string& value) {
+		return value.empty() ? QStringLiteral("(none)") : QString::fromStdString(value);
+	};
+	if (m_compositionUnitSourceDataLabel)
+		m_compositionUnitSourceDataLabel->setText(unit ? sourceText(unit->sourceDataFile) : QStringLiteral("(none)"));
+	if (m_compositionUnitSourceTractionLabel)
+		m_compositionUnitSourceTractionLabel->setText(unit ? sourceText(unit->sourceTractionFile) : QStringLiteral("(none)"));
+
+	const bool canPlot = unit && !unit->tractionCurve.empty();
+	if (m_plotTractionButton)
+		m_plotTractionButton->setEnabled(canPlot);
+	if (m_compositionUnitWarningLabel) {
+		QString warning;
+		if (hasUnitSelection) {
+			warning = QString::fromStdString(tractionAssociationWarning(
+				unit != nullptr,
+				unit && !unit->tractionCurve.empty(),
+				unit && !unit->sourceTractionFile.empty()));
+		}
+		m_compositionUnitWarningLabel->setText(warning);
+	}
+}
+
+void MainWindow::plotSelectedCompositionUnitTraction() {
+	int unitRow = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->currentRow() : -1;
+	if (unitRow < 0 || !m_compositionUnitsListWidget->item(unitRow))
+		return;
+	const std::string unitId = m_compositionUnitsListWidget->item(unitRow)->text().toStdString();
+	const SceneTrainUnit* unit = trainUnitById(unitId);
+	if (!unit || unit->tractionCurve.empty()) {
+		QMessageBox::information(this, "No Traction Data",
+								 "The selected unit has no traction curve to plot.");
+		return;
+	}
+
+	const auto samples = sampleTractionCurve(unit->tractionCurve);
+	QChart* chart = new QChart();
+	chart->setTitle(QString("Tractive effort: %1").arg(QString::fromStdString(unit->id)));
+	QLineSeries* series = new QLineSeries();
+	series->setName(QString::fromStdString(unit->id));
+	series->setProperty("trainId", QString::fromStdString(unit->id));
+	for (const auto& point : samples)
+		series->append(point.first, point.second);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	if (!chart->axes(Qt::Horizontal).isEmpty())
+		chart->axes(Qt::Horizontal).first()->setTitleText("Speed (m/s)");
+	if (!chart->axes(Qt::Vertical).isEmpty())
+		chart->axes(Qt::Vertical).first()->setTitleText("Tractive effort (N)");
+
+	QString title = QString("Traction curve: %1").arg(QString::fromStdString(unit->id));
+	if (!unit->sourceTractionFile.empty())
+		title += QString("  (%1)").arg(QString::fromStdString(unit->sourceTractionFile));
+	DiagramWindow* win = new DiagramWindow(title, this);
+	win->setChart(chart);
+	win->setAttribute(Qt::WA_DeleteOnClose);
+	win->show();
 }
 
 std::string MainWindow::uniqueCompositionId(const std::string& baseId) const {
@@ -3835,6 +3928,21 @@ void MainWindow::runEditorSmokeE2E() {
 		bool facetOk = true;
 		const int originalCount = m_compositionListWidget->count();
 		m_compositionListWidget->setCurrentRow(0);
+		// the selected unit surfaces its source files and a plottable traction curve
+		if (m_compositionUnitsListWidget && m_compositionUnitsListWidget->count() > 0 &&
+			m_compositionUnitsListWidget->item(0)) {
+			m_compositionUnitsListWidget->setCurrentRow(0);
+			const SceneTrainUnit* tractionUnit =
+				trainUnitById(m_compositionUnitsListWidget->item(0)->text().toStdString());
+			if (tractionUnit && !tractionUnit->tractionCurve.empty()) {
+				if (!m_plotTractionButton || !m_plotTractionButton->isEnabled())
+					facetFailure(facetOk, "composition", "traction plot disabled for a unit with a curve");
+				if (sampleTractionCurve(tractionUnit->tractionCurve).empty())
+					facetFailure(facetOk, "composition", "traction curve produced no plot samples");
+				if (m_compositionUnitSourceDataLabel && m_compositionUnitSourceDataLabel->text().isEmpty())
+					facetFailure(facetOk, "composition", "unit source data label empty");
+			}
+		}
 		duplicateComposition();
 		if (m_compositionListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "composition", "duplicate did not apply");

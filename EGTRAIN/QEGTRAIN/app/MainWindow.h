@@ -415,6 +415,10 @@ private:
 	QPushButton* m_removeUnitButton = nullptr;
 	QPushButton* m_moveUnitUpButton = nullptr;
 	QPushButton* m_moveUnitDownButton = nullptr;
+	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// LITRA source of the selected unit
+	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // T_LITRA source of the selected unit
+	QLabel* m_compositionUnitWarningLabel = nullptr;		// missing or mismatched association
+	QPushButton* m_plotTractionButton = nullptr;			// open the tractive-effort plot
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
@@ -486,6 +490,8 @@ private:
 	void removeUnitFromComposition();
 	void moveCompositionUnitUp();
 	void moveCompositionUnitDown();
+	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
+	const SceneTrainUnit* trainUnitById(const std::string& id) const;
 	std::string uniqueCompositionId(const std::string& baseId) const;
 
 	// train-unit editor
