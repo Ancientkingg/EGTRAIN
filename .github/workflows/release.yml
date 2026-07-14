@@ -100,7 +100,14 @@ jobs:
           test -f "$PKG/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt"
           test -f "$PKG/lebanon-case-study.md"
           # scene_tool links only header-only JSON, so it runs without Qt.
-          "$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1 | grep -q scene.trains.none
+          set +e
+          validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"
+          validation_status=$?
+          set -e
+          printf '%s\n' "$validation_output"
+          [ "$validation_status" -eq 1 ]
+          grep -q scene.services.none <<<"$validation_output"
+          grep -q scene.trains.none <<<"$validation_output"
           echo "OK: presentation package holds the app, scene_tool, Lebanon scene, and guide"
 
       - name: Package zip
