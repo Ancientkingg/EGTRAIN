@@ -81,6 +81,23 @@ def main() -> None:
     )
     if release_paths not in release_workflow:
         missing.append("release application path filter")
+    macos_package_verification = release_workflow.split(
+        "      - name: Verify the presentation package\n", 1
+    )[1].split("\n      - ", 1)[0]
+    required_macos_validation = (
+        "set +e",
+        'validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"',
+        "validation_status=$?",
+        "set -e",
+        '[ "$validation_status" -eq 1 ]',
+        'grep -q scene.services.none <<<"$validation_output"',
+        'grep -q scene.trains.none <<<"$validation_output"',
+    )
+    if (
+        any(check not in macos_package_verification for check in required_macos_validation)
+        or '"$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1 | grep' in macos_package_verification
+    ):
+        missing.append("macOS scene validation status handling")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 
