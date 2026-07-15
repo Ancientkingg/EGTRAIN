@@ -7,7 +7,8 @@ SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	// initialize parameters
 	trackID = -1;
 	X = -1;
-	sectionAhead = sectionBehind = nullptr;
+	sectionAheadLength = sectionBehindLength = 0.0;
+	sectionAheadTrackId = sectionBehindTrackId = -1;
 	reversedDirection = false;
 }
 

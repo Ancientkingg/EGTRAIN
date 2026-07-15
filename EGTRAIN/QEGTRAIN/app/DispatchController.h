@@ -2,6 +2,7 @@
 #define DISPATCHCONTROLLER_H
 
 #include "simulation/Optimisation.h"
+#include "app/GuiSimulationSnapshot.h"
 
 #include <QObject>
 
@@ -34,9 +35,17 @@ public:
 
 	void setVectorSizesFromInput(int vec_size);
 
+	std::shared_ptr<const GuiSimulationSnapshot> takeSimulationSnapshot();
+
 signals:
 	void iterationFinished(int timestep);
+	void snapshotAvailable();
 	void simulationFinished();
+
+private:
+	void publishSimulationSnapshot(int timestep);
+
+	GuiSimulationSnapshotMailbox snapshotMailbox_;
 };
 
 // simulation object (global variable)
