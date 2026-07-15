@@ -30,7 +30,7 @@ int main() {
 	require(mailbox.publish(firstSnapshot), "first publish did not request a notification");
 	require(!mailbox.publish(secondSnapshot), "second publish requested a duplicate notification");
 
-	first.trains.front().description = "mutated source";
+	second.trains.front().description = "mutated source";
 	const auto latest = mailbox.take();
 	require(latest != nullptr, "take returned no snapshot");
 	require(latest->timestep == 2, "take did not return the latest snapshot");

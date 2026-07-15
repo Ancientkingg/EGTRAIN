@@ -1234,12 +1234,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 }
 
 MainWindow::~MainWindow() {
+	clearSimulationWorker(true);
 	delete m_runStagingDir;
 	delete ui;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
 	if (maybeSaveScene()) {
+		clearSimulationWorker(true);
 		QMainWindow::closeEvent(event);
 	} else {
 		event->ignore();
@@ -4883,7 +4885,7 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 		m_worker->requestStop();
 	if (m_workerThread && m_workerThread->isRunning()) {
 		m_workerThread->quit();
-		m_workerThread->wait(3000);
+		m_workerThread->wait();
 	}
 	m_worker = nullptr;
 	m_workerThread = nullptr;
