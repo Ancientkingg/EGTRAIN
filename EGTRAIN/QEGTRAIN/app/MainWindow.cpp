@@ -559,7 +559,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(scene, &NetworkScene::DisableHighlight, this, &MainWindow::handleDisableHighlight);
 
 	// connect signals from EGTRAIN simulation
-	connect(&simulation, &DispatchController::iterationFinished, this, &MainWindow::waitForUpdates);
+	connect(&simulation, &DispatchController::snapshotAvailable, this, &MainWindow::waitForUpdates,
+			Qt::QueuedConnection);
 
 	// simulation control connections
 	connect(ui->actionSimulationPause, &QAction::triggered, this, [this]() {
@@ -664,11 +665,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_trainLayerVisible = checked;
 		for (auto* train : allTrains)
 			if (train)
-				train->setVisible(checked && train->train && !train->train->OutOfSimulation);
+				train->setVisible(checked && !train->outOfSimulation);
 		for (auto it = m_trainSpeedLabels.cbegin(); it != m_trainSpeedLabels.cend(); ++it)
-			if (it.value())
-				it.value()->setVisible(checked && it.key() >= 0 && it.key() < numRegions
-					&& !regional_train[it.key()].OutOfSimulation);
+			if (it.value()) {
+				auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
+					[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
+				it.value()->setVisible(checked && trainIt != allTrains.cend()
+					&& !(*trainIt)->outOfSimulation);
+			}
 	});
 	connect(m_signalLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_signalLayerVisible = checked;
@@ -1230,12 +1234,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 }
 
 MainWindow::~MainWindow() {
+	clearSimulationWorker(true);
 	delete m_runStagingDir;
 	delete ui;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
 	if (maybeSaveScene()) {
+		clearSimulationWorker(true);
 		QMainWindow::closeEvent(event);
 	} else {
 		event->ignore();
@@ -4879,7 +4885,7 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 		m_worker->requestStop();
 	if (m_workerThread && m_workerThread->isRunning()) {
 		m_workerThread->quit();
-		m_workerThread->wait(3000);
+		m_workerThread->wait();
 	}
 	m_worker = nullptr;
 	m_workerThread = nullptr;
@@ -5411,6 +5417,7 @@ void MainWindow::teardownGUI() {
 	allTrains.clear();
 	allSignals.clear();
 	m_signalGroups.clear();
+	m_vcMessageItems.clear();
 	m_stationDecorations.clear();
 	m_signalsByAheadId.clear();
 	allArcs.clear();
@@ -5431,9 +5438,7 @@ void MainWindow::teardownGUI() {
 	if (m_followTrainCombo)
 		m_followTrainCombo->clear();
 
-	// scene->clear() deleted the QGraphicsItemGroup* objects; clear the dangling pointer list.
-	extern QList<QGraphicsItemGroup*> VCmsgItems;
-	VCmsgItems.clear();
+	m_snapshot.reset();
 }
 
 void MainWindow::chooseOutputFolder() {
@@ -5760,13 +5765,15 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 
 	// platform found
 	if (platformIt != AllStationPlatforms.end()) {
-		// add StationPlatform pointer to rect item
-		platformItem->platform = &(*platformIt);
+		platformItem->stationId = platformIt->StationID;
+		platformItem->platformId = platformIt->ID;
+		platformItem->maxVolume = platformIt->Max_Passenger_Volume;
 	}
 
 	// string with pax counter
 	std::stringstream ss;
-	ss << "Pax on platform: " << platformIt->Current_N_Passengers << "\n Max pax volume: " << platformIt->Max_Passenger_Volume;
+	ss << "Pax on platform: " << (platformIt == AllStationPlatforms.end() ? 0 : platformIt->Current_N_Passengers)
+		<< "\n Max pax volume: " << platformItem->maxVolume;
 
 	// convert string
 	QString text = QString::fromStdString(ss.str());
@@ -5832,7 +5839,8 @@ void MainWindow::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 
 	// string to display
 	std::stringstream ss;
-	ss << "Current onboard pax: " << trainItem->train->Current_OnBoard_Passengers << "\nMax onboard pax: " << trainItem->train->MAX_OnBoard_Passengers;
+	ss << "Current onboard pax: " << trainItem->currentOnboardPassengers
+		<< "\nMax onboard pax: " << trainItem->maxOnboardPassengers;
 
 	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
@@ -5891,34 +5899,23 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	QFont font = QFont();
 	font.setPixelSize((int)station_size / 15);
 
-	std::string nextDestination;
-
-	// find current journey
-	std::string currentJourneyId = paxItem->passenger->current_JourneyID;
-	auto currentJourneyIt = std::find_if(paxItem->passenger->Journeys.begin(), paxItem->passenger->Journeys.end(),
-										 [&currentJourneyId](auto const& journey) { return currentJourneyId == journey.ID; });
-
-	// journey found
-	if (currentJourneyIt != paxItem->passenger->Journeys.end()) {
-		// find trip
-		std::string currentTripId = paxItem->passenger->current_TripID;
-		auto currentTripIt = std::find_if(currentJourneyIt->Trips.begin(), currentJourneyIt->Trips.end(),
-										  [&currentTripId](auto const& trip) { return currentTripId == trip.TripID; });
-
-		// trip found
-		if (currentTripIt != currentJourneyIt->Trips.end()) {
-			nextDestination = currentTripIt->Arr_Station_ID;
-		}
+	GuiPassengerState passenger;
+	passenger.id = paxItem->passengerId;
+	if (m_snapshot) {
+		auto passengerIt = std::find_if(m_snapshot->passengers.begin(), m_snapshot->passengers.end(),
+			[&paxItem](const GuiPassengerState& value) { return value.id == paxItem->passengerId; });
+		if (passengerIt != m_snapshot->passengers.end())
+			passenger = *passengerIt;
 	}
 
 	// string to display
 	std::stringstream ss;
-	ss << "Pax ID: " << paxItem->passenger->ID << "\nStatus: " << paxItem->passenger->CurrentStatus
-	   << " (" << paxItem->passenger->Current_WaitingStationPlatformID << ")"
-	   << "\nNext train: " << paxItem->passenger->Current_Train_To_Wait;
+	ss << "Pax ID: " << passenger.id << "\nStatus: " << passenger.status
+	   << " (" << passenger.waitingPlatform << ")"
+	   << "\nNext train: " << passenger.nextTrain;
 
-	if (!nextDestination.empty()) {
-		ss << "\nNext destination: " << nextDestination;
+	if (!passenger.nextDestination.empty()) {
+		ss << "\nNext destination: " << passenger.nextDestination;
 	}
 
 	// paint text
@@ -6114,20 +6111,26 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
 
-	// add trackID, direction and signalling_block_sections pointers to signal item
+	// add trackID, direction and immutable section display fields to signal item
 	plate1->trackID = signalling_block_sections[sectionIndex].trackLineId;
 	plate1->X = X;
 	plate1->reversedDirection = 1;
 	// last signal of trackline
 	if (X == signalling_block_sections[sectionIndex].end_node.X) {
-		plate1->sectionAhead = &signalling_block_sections[sectionIndex];
+		plate1->sectionAheadId = signalling_block_sections[sectionIndex].ID;
+		plate1->sectionAheadLength = signalling_block_sections[sectionIndex].length;
+		plate1->sectionAheadTrackId = signalling_block_sections[sectionIndex].trackLineId;
 	}
 	// remaining signals
 	else {
 		if (sectionIndex > 0 && signalling_block_sections[sectionIndex - 1].trackLineId == signalling_block_sections[sectionIndex].trackLineId) {
-			plate1->sectionAhead = &signalling_block_sections[sectionIndex - 1];
+			plate1->sectionAheadId = signalling_block_sections[sectionIndex - 1].ID;
+			plate1->sectionAheadLength = signalling_block_sections[sectionIndex - 1].length;
+			plate1->sectionAheadTrackId = signalling_block_sections[sectionIndex - 1].trackLineId;
 		}
-		plate1->sectionBehind = &signalling_block_sections[sectionIndex];
+		plate1->sectionBehindId = signalling_block_sections[sectionIndex].ID;
+		plate1->sectionBehindLength = signalling_block_sections[sectionIndex].length;
+		plate1->sectionBehindTrackId = signalling_block_sections[sectionIndex].trackLineId;
 	}
 
 	// basis #1
@@ -6159,19 +6162,25 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
 
-	// add trackID, direction and signalling_block_sections pointers to signal item
+	// add trackID, direction and immutable section display fields to signal item
 	plate2->trackID = signalling_block_sections[sectionIndex].trackLineId;
 	plate2->X = X;
 	plate2->reversedDirection = 0;
 	// last signal of trackline
 	if (X == signalling_block_sections[sectionIndex].end_node.X) {
-		plate2->sectionBehind = &signalling_block_sections[sectionIndex];
+		plate2->sectionBehindId = signalling_block_sections[sectionIndex].ID;
+		plate2->sectionBehindLength = signalling_block_sections[sectionIndex].length;
+		plate2->sectionBehindTrackId = signalling_block_sections[sectionIndex].trackLineId;
 	}
 	// remaining signals
 	else {
-		plate2->sectionAhead = &signalling_block_sections[sectionIndex];
+		plate2->sectionAheadId = signalling_block_sections[sectionIndex].ID;
+		plate2->sectionAheadLength = signalling_block_sections[sectionIndex].length;
+		plate2->sectionAheadTrackId = signalling_block_sections[sectionIndex].trackLineId;
 		if (sectionIndex > 0 && signalling_block_sections[sectionIndex - 1].trackLineId == signalling_block_sections[sectionIndex].trackLineId) {
-			plate2->sectionBehind = &signalling_block_sections[sectionIndex - 1];
+			plate2->sectionBehindId = signalling_block_sections[sectionIndex - 1].ID;
+			plate2->sectionBehindLength = signalling_block_sections[sectionIndex - 1].length;
+			plate2->sectionBehindTrackId = signalling_block_sections[sectionIndex - 1].trackLineId;
 		}
 	}
 
@@ -6201,8 +6210,8 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 }
 
 // draws a train
-void MainWindow::paintTrain(int trainIndex, int t, int size, int pen_width, Train* train) {
-	TrainVisual visual = classifyTrainType(train ? train->type : "", train ? train->trainDescription : "");
+void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width) {
+	TrainVisual visual = classifyTrainType(train.type, train.description);
 	QPen pen = QPen(visual.outline);
 	pen.setWidthF(3);
 
@@ -6213,19 +6222,17 @@ void MainWindow::paintTrain(int trainIndex, int t, int size, int pen_width, Trai
 	TrainItemGroup* trainPolygonGroup = new TrainItemGroup();
 
 	// get polygon for each wagon
-	for (int wagon = 0; wagon <= train->number_of_wagons; wagon++) { // using <= because train.number_of_wagons excludes loco/first wagon
-		QPolygonF* trainPolygon = new QPolygonF();
-		getTrainPolygon(trainPolygon, wagon, t, trainIndex);
+	for (int wagon = 0; wagon <= train.wagonCount; wagon++) {
+		QPolygonF trainPolygon;
+		getTrainPolygon(&trainPolygon, wagon, train);
 
 		// train graphical item
-		TrainBodyItem* trainItem = new TrainBodyItem(*trainPolygon);
+		TrainBodyItem* trainItem = new TrainBodyItem(trainPolygon);
 		trainItem->setPen(pen);
 		trainItem->setBrush(visual.fill);
 		trainItem->setOpacity(1);
 
-		// add train pointer and index to the item
-		trainItem->train = train;
-		trainItem->index = trainIndex;
+		trainItem->index = train.index;
 
 		// add to polygon group
 		trainPolygonGroup->addToGroup(trainItem);
@@ -6235,13 +6242,20 @@ void MainWindow::paintTrain(int trainIndex, int t, int size, int pen_width, Trai
 	}
 
 	// add train pointer and index to the item
-	trainPolygonGroup->train = train;
-	trainPolygonGroup->index = trainIndex;
+	trainPolygonGroup->index = train.index;
+	trainPolygonGroup->trainId = train.id;
+	trainPolygonGroup->trainDescription = train.description;
+	trainPolygonGroup->trainType = train.type;
+	trainPolygonGroup->trainLength = train.length;
+	trainPolygonGroup->wagonCount = train.wagonCount;
+	trainPolygonGroup->currentOnboardPassengers = train.currentOnboardPassengers;
+	trainPolygonGroup->maxOnboardPassengers = train.maxOnboardPassengers;
+	trainPolygonGroup->outOfSimulation = train.outOfSimulation;
 	trainPolygonGroup->trainPolygonItemList = trainPolygonItemList;
 
 	// add train to scene
 	scene->addItem(trainPolygonGroup);
-	trainPolygonGroup->setVisible(m_trainLayerVisible);
+	trainPolygonGroup->setVisible(m_trainLayerVisible && !train.outOfSimulation);
 
 	// add train to allTrains list
 	allTrains.push_back(trainPolygonGroup);
@@ -6643,9 +6657,9 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	signallingXText->setText(QString::fromStdString(to_string_precision(1000 * signal->X, 2))); // km to m
 
 	// check if section ahead exists
-	if (signal->sectionAhead) {
-		signallingIDSectionAheadText->setText(QString::fromStdString(signal->sectionAhead->ID));
-		signallingLengthSectionAheadText->setText(QString::fromStdString(to_string_precision(1000 * signal->sectionAhead->length, 2))); // km to m
+	if (!signal->sectionAheadId.empty()) {
+		signallingIDSectionAheadText->setText(QString::fromStdString(signal->sectionAheadId));
+		signallingLengthSectionAheadText->setText(QString::fromStdString(to_string_precision(1000 * signal->sectionAheadLength, 2))); // km to m
 	} else {
 		signallingIDSectionAheadText->setText("");
 		signallingLengthSectionAheadText->setText("");
@@ -6674,10 +6688,13 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 // shows train info on dock widget
 void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
 	// update train info displayed on widget
-	trainIDText->setText(QString::fromStdString(to_string_precision(trainItem->train->ID, 0)));
-	trainTypeText->setText(QString::fromStdString(trainItem->train->type));
-	trainLengthText->setText(QString::fromStdString(to_string_precision(trainItem->train->train_length, 0)));
-	trainWagonsText->setText(QString::fromStdString(to_string_precision(trainItem->train->number_of_wagons, 0)));
+	TrainItemGroup* groupItem = qgraphicsitem_cast<TrainItemGroup*>(trainItem->parentItem());
+	if (!groupItem)
+		return;
+	trainIDText->setText(QString::fromStdString(to_string_precision(groupItem->trainId, 0)));
+	trainTypeText->setText(QString::fromStdString(groupItem->trainType));
+	trainLengthText->setText(QString::fromStdString(to_string_precision(groupItem->trainLength, 0)));
+	trainWagonsText->setText(QString::fromStdString(to_string_precision(groupItem->wagonCount, 0)));
 
 	// hide other widgets
 	arcInfoWidget->hide();
@@ -6689,10 +6706,7 @@ void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
 
 	// show pax info
 	if (initial_variables.PAX_GUI) {
-		TrainItemGroup* groupItem = qgraphicsitem_cast<TrainItemGroup*>(trainItem->parentItem());
-		if (groupItem) {
-			paintTrainPassengerInfo(groupItem);
-		}
+		paintTrainPassengerInfo(groupItem);
 	}
 
 	// show widget
@@ -7027,7 +7041,13 @@ void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int t
 }
 
 // slot to update GUI at each timestep (no longer blocks; simulation runs on worker thread)
-void MainWindow::waitForUpdates(int timestep) {
+
+void MainWindow::waitForUpdates() {
+	const auto snapshot = simulation.takeSimulationSnapshot();
+	if (!snapshot)
+		return;
+	m_snapshot = snapshot;
+	const int timestep = snapshot->timestep;
 	static bool autostartProgressReported = false;
 	if (!autostartProgressReported && qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		// fprintf so the marker reaches the real stdout; std::cout is captured
@@ -7037,7 +7057,7 @@ void MainWindow::waitForUpdates(int timestep) {
 		autostartProgressReported = true;
 	}
 	QString clock = QString::fromStdString(formatSimTime(timestep, m_startOffsetSeconds));
-	QString endClock = QString::fromStdString(formatSimTime(static_cast<long long>(initial_variables.times), m_startOffsetSeconds));
+	QString endClock = QString::fromStdString(formatSimTime(static_cast<long long>(snapshot->totalTimesteps), m_startOffsetSeconds));
 	if (m_simulationClockLabel)
 		m_simulationClockLabel->setText(clock);
 	statusBar()->showMessage(QString("Simulation running  %1 / %2").arg(clock, endClock));
@@ -7047,7 +7067,7 @@ void MainWindow::waitForUpdates(int timestep) {
 	}
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
-	if (now - m_lastRenderMs >= 33 || timestep >= initial_variables.times - 1) {
+	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
 		updateSignalling();
 		updateTrainPosition(timestep);
 
@@ -7066,53 +7086,38 @@ void MainWindow::waitForUpdates(int timestep) {
 
 // slot to update signal aspects
 void MainWindow::updateSignalling() {
-	int index1, index2, index3;
-	int r;
-	string ID1, ID2;
-
-	// update for each route
-	for (int r = 0; r < N_Routes; r++) {
-		for (int i = 0; i < train_route[r].N_Block_Sections; i++) {
-			// regular case -> change signalling_block_sections entry signal
-			if (train_route[r].sequence_of_block_sections[i].ID.find('/') == std::string::npos) {
-				// reversed -> update signalling_block_sections entry signal
-				updateSignalAspect(train_route[r].sequence_of_block_sections[i].ID, train_route[r].sequence_of_block_sections[i].code, train_route[r].reversed_direction);
-				// updateBlockOccupationStatus(allArcs);
-			}
-			// transition of block section
-			else {
-				// update both block sections
-				index1 = train_route[r].sequence_of_block_sections[i].ID.find("@-");
-				index2 = train_route[r].sequence_of_block_sections[i].ID.find("/@", index1 + 1);
-				index3 = train_route[r].sequence_of_block_sections[i].ID.find("@-", index2 + 1);
-				if (index1 != std::string::npos && index2 != std::string::npos && index3 != std::string::npos) {
-					ID1 = train_route[r].sequence_of_block_sections[i].ID.substr(0, index1 + 1);
-					ID2 = train_route[r].sequence_of_block_sections[i].ID.substr(index2 + 1, index3 - index2);
-					// reversed -> update both entry signals
-					updateSignalAspect(ID1, train_route[r].sequence_of_block_sections[i].code, train_route[r].reversed_direction);
-					updateSignalAspect(ID2, train_route[r].sequence_of_block_sections[i].code, train_route[r].reversed_direction);
-				}
-			}
-		}
-	}
+	if (!m_snapshot)
+		return;
+	for (const GuiSignalState& signal : m_snapshot->signalStates)
+		updateSignalAspect(signal.sectionId, signal.code, signal.reversedDirection);
 }
 
 // slot to update passenger counter at platforms
 void MainWindow::updatePlatforms(int t) {
+	Q_UNUSED(t);
+	if (!m_snapshot)
+		return;
 	// show text items from the beginning of the simulation
-	if (t == 0) {
+	if (m_snapshot->timestep == 0) {
 		for (auto* platformIcon : allPlatforms) {
 			platformIcon->textIcon->setVisible(m_passengerLayerVisible);
 		}
 	}
 
 	for (auto* platformIcon : allPlatforms) {
+		auto platformState = std::find_if(m_snapshot->platforms.begin(), m_snapshot->platforms.end(),
+			[platformIcon](const GuiPlatformState& value) {
+				return value.stationId == platformIcon->stationId && value.platformId == platformIcon->platformId;
+			});
+		if (platformState == m_snapshot->platforms.end())
+			continue;
+
 		// remove existing pax icons
 		std::string currentlyHighlightedPaxID;
 		for (auto* icon : platformIcon->passengerIcons) {
 			// if icon had a message, store its pax ID
 			if (icon == paxIconItem) {
-				currentlyHighlightedPaxID = icon->passenger->ID;
+				currentlyHighlightedPaxID = icon->passengerId;
 				paxIconItem = nullptr;
 			}
 
@@ -7121,23 +7126,12 @@ void MainWindow::updatePlatforms(int t) {
 		qDeleteAll(platformIcon->passengerIcons.begin(), platformIcon->passengerIcons.end());
 		platformIcon->passengerIcons.clear();
 
-		// list of current passengers
-		list<pair<string, double>> Extended_Current_List_Pax_On_Platform; // current list + passengers leaving network
-		std::copy(platformIcon->platform->Current_List_Pax_On_Platform.begin(), platformIcon->platform->Current_List_Pax_On_Platform.end(), std::back_inserter(Extended_Current_List_Pax_On_Platform));
-
-		// check if any passengers just left the network (these are still shown)
-		for (auto const& pax : AllDailyPassengers) {
-			if (pax.IsIntheNetwork == false && pax.TimeExitedTheNetwork > 0 && (t >= pax.TimeExitedTheNetwork) && (t <= pax.TimeExitedTheNetwork + 5) // show passengers leaving the network for 5 seconds
-				&& platformIcon->platform->StationID == pax.StationExitedTheNetworkID && platformIcon->platform->ID == pax.PlatformExitedTheNetworkID) {
-				Extended_Current_List_Pax_On_Platform.push_back({pax.ID, -9999}); // 2nd element of the pair is irrelevant for the GUI
-			}
-		}
-
-		int nPaxIcons = Extended_Current_List_Pax_On_Platform.size();
+		const auto& passengerIds = platformState->passengerIds;
+		int nPaxIcons = static_cast<int>(passengerIds.size());
 
 		// string with pax counter
 		std::stringstream ss;
-		ss << "Pax on platform: " << nPaxIcons << "\nMax pax volume: " << platformIcon->platform->Max_Passenger_Volume;
+		ss << "Pax on platform: " << nPaxIcons << "\nMax pax volume: " << platformState->maxVolume;
 
 		// convert string
 		QString text = QString::fromStdString(ss.str());
@@ -7155,25 +7149,16 @@ void MainWindow::updatePlatforms(int t) {
 			qreal iconSpacing = platformIcon->sceneBoundingRect().width() / nPaxIcons;
 			qreal iconX = platformIcon->sceneBoundingRect().left() + iconSpacing / 2;
 
-			for (auto const& paxOnPlatform : Extended_Current_List_Pax_On_Platform) {
-				std::string paxID = paxOnPlatform.first;
+			for (const std::string& paxID : passengerIds) {
 				int iconSize = station_size / 10;
 				auto* item = new PassengerItem(pax_pixmap_scaled);
 				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
 				item->setTransformationMode(Qt::SmoothTransformation);
 
-				// find corresponding passenger object
-				auto passengerIt = std::find_if(AllDailyPassengers.begin(), AllDailyPassengers.end(),
-												[&paxID](auto const& pax) { return paxID == pax.ID; });
-
-				// passenger found
-				if (passengerIt != AllDailyPassengers.end()) {
-					// add Passenger pointer to pax item
-					item->passenger = &(*passengerIt);
-				}
+				item->passengerId = paxID;
 
 				// update current highlighted pax icon
-				if (!currentlyHighlightedPaxID.empty() && item->passenger->ID == currentlyHighlightedPaxID) {
+				if (!currentlyHighlightedPaxID.empty() && item->passengerId == currentlyHighlightedPaxID) {
 					paxIconItem = item;
 				}
 
@@ -7233,19 +7218,14 @@ void MainWindow::removePaxInfoIcon() {
 	}
 }
 
-void MainWindow::updateBlockOccupationStatus(Regional regional_train) {
+void MainWindow::updateBlockOccupationStatus(const GuiTrainState& train) {
 	TrackLineItem* track;
-	// std::cout << regional_train.Bs.arcs_in_signalling_block_section[0].endNode.X << " " << regional_train.trainDescription << "\n";
-
-	// for (int i = 0; i < allArcs.size(); i++) {
-	//	track = allArcs.at(i);
 	for (int i = 0; i < allArcs.size(); i++) {
-		for (int j = 0; j < regional_train.Bs.total_arcs; j++) {
+		for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
 
 			track = allArcs.at(i);
 
-			if ((track->arc->startNode.X == regional_train.Bs.arcs_in_signalling_block_section[j].startNode.X) && (track->track == regional_train.Bs.trackLineId)) {
-				// std::cout << regional_train.Bs.arcs_in_signalling_block_section[j].endNode.X << " " << regional_train.trainDescription << "\n";
+			if ((track->arc->startNode.X == occupiedArc.startX) && (track->track == occupiedArc.trackId)) {
 				//  effect on clicked item
 				effect = new HighlightEffect(Qt::red, 1);
 				track->setGraphicsEffect(effect);
@@ -7286,9 +7266,19 @@ void MainWindow::updateSignalAspect(const std::string& ID, double code, bool rev
 
 // updates train positions given a specific timestep
 void MainWindow::updateTrainPosition(int t) {
+	if (!m_snapshot)
+		return;
+	for (auto* group : m_vcMessageItems) {
+		if (group) {
+			qDeleteAll(group->childItems());
+			scene->destroyItemGroup(group);
+		}
+	}
+	m_vcMessageItems.clear();
 	// update every train
 	releaseBlockOccupationStatus(); //
-	for (int train = 0; train < numRegions; train++) {
+	for (const GuiTrainState& state : m_snapshot->trains) {
+		const int train = state.index;
 		// check if train item exists
 		TrainItemGroup* trainItem = nullptr;
 		for (auto it = allTrains.begin(); it != allTrains.end(); ++it) {
@@ -7300,9 +7290,12 @@ void MainWindow::updateTrainPosition(int t) {
 
 		// trainItem found
 		if (trainItem) {
-			trainItem->setVisible(m_trainLayerVisible && !regional_train[train].OutOfSimulation);
+			trainItem->outOfSimulation = state.outOfSimulation;
+			trainItem->currentOnboardPassengers = state.currentOnboardPassengers;
+			trainItem->maxOnboardPassengers = state.maxOnboardPassengers;
+			trainItem->setVisible(m_trainLayerVisible && !state.outOfSimulation);
 			// update train position
-			if (!regional_train[train].OutOfSimulation) {
+			if (!state.outOfSimulation) {
 				// capture previous scene center for interpolation
 				QPointF oldCenter;
 				auto prevIt = m_prevTrainPositions.find(train);
@@ -7311,17 +7304,17 @@ void MainWindow::updateTrainPosition(int t) {
 				else
 					oldCenter = trainItem->sceneBoundingRect().center();
 
-				getTrainPolygonItemList(trainItem->trainPolygonItemList, t, train);
-				checkVCouplingMsg(trainItem, train, t);
+				getTrainPolygonItemList(trainItem->trainPolygonItemList, state);
+				checkVCouplingMsg(trainItem, state, t);
 
-				updateBlockOccupationStatus(regional_train[train]);
+				updateBlockOccupationStatus(state);
 
 				// animate smooth transition from old position to new position
 				QPointF newCenter = trainItem->sceneBoundingRect().center();
 
 				// update or create the speed label for this train
 				QString speedText = QString::fromStdString(
-					formatSpeedLabel(regional_train[train].speedKmhAt(t)));
+					formatSpeedLabel(state.speedKmh));
 				QGraphicsSimpleTextItem* speedLabel = m_trainSpeedLabels.value(train, nullptr);
 				if (!speedLabel) {
 					speedLabel = scene->addSimpleText(speedText);
@@ -7373,10 +7366,8 @@ void MainWindow::updateTrainPosition(int t) {
 		// new train starting; >= not == because the frame throttle may drop
 		// the exact departure frame, and the recorded trajectory (not the live
 		// train state) is what says whether the train is on the network at t
-		else if (t >= regional_train[train].departure_time &&
-				 t < (int)regional_train[train].instant_spatial_position.size() &&
-				 regional_train[train].instant_spatial_position[t] != -9999) {
-			paintTrain(train, t, node_size, line_width, &regional_train[train]);
+		else if (t >= state.departureTime && state.routeAxisPosition != -9999) {
+			paintTrain(state, node_size, line_width);
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train && !allTrains.isEmpty())
 				networkView->centerOn(allTrains.last());
 		}
@@ -7385,57 +7376,60 @@ void MainWindow::updateTrainPosition(int t) {
 }
 
 // returns the full train shape (list of polygons)
-void MainWindow::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, int t, int train) {
+void MainWindow::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train) {
+	if (!trainPolygonItemList)
+		return;
 	// get the polygon of each wagon
-	for (int wagon = 0; wagon <= regional_train[train].number_of_wagons; wagon++) { // using <= because train.number_of_wagons excludes loco/first wagon
+	for (int wagon = 0; wagon <= train.wagonCount; wagon++) {
+		if (wagon >= trainPolygonItemList->size())
+			return;
 		QPolygonF trainPolygon;
-		getTrainPolygon(&trainPolygon, wagon, t, train);
+		getTrainPolygon(&trainPolygon, wagon, train);
 		trainPolygonItemList->at(wagon)->setPolygon(trainPolygon);
 	}
 }
 
 // returns the shape of an one-wagon train (polygon)
 // used to get each wagon of a multi-wagon train
-void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int train) {
+void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train) {
+	if (!trainPolygon || train.routeIndex < 0 || train.routeIndex >= static_cast<int>(train_route.size()))
+		return;
 	double headX, tailX, connectionX1, connectionX2, x0, x1, x2, x3, y0, y1, y2, y3;
 	double dot, det, beta, alpha, gamma;
 	std::vector<double> posX, routeX;
 	int prevIndex, index, revPrevIndex;
 	QPointF ptTrainEdge, ptConnection1, ptConnection2, ptBegin1, ptEnd2;
 	std::string ID1, ID2, connection1, connection2;
-	Section currBS, BS1, BS2;
+	const Section* currBS = nullptr;
+	const Section* BS1 = nullptr;
+	const Section* BS2 = nullptr;
 	QVector<QPointF> trainPointsUp, trainPointsDown, trainPointsComplete;
 	QVector<int> trainPointsStIndex, trainPointsStRegion, trainPointsGraphID;
 	int revStIndex;												  // used to add station points to the polygon (needed for reversed routes)
-	double total_nW = regional_train[train].number_of_wagons + 1; // train.number_of_wagons does not include loco/first wagon
+	double total_nW = train.wagonCount + 1;
 
 	// train position on X axis
 	// reversed route
-	if (train_route[regional_train[train].indexOfRoute].reversed_direction) {
-		headX = regional_train[train].trainXPosition(t, wagon);
-		tailX = regional_train[train].trainXPosition(t, wagon + 1);
-		revStIndex = 1;
-	}
-	// non-reversed route
-	else {
-		headX = regional_train[train].trainXPosition(t, wagon);
-		tailX = regional_train[train].trainXPosition(t, wagon + 1);
-		revStIndex = 0;
-	}
+	if (wagon >= static_cast<int>(train.wagonHeadPositions.size()) ||
+		wagon >= static_cast<int>(train.wagonTailPositions.size()))
+		return;
+	headX = train.wagonHeadPositions[static_cast<std::size_t>(wagon)];
+	tailX = train.wagonTailPositions[static_cast<std::size_t>(wagon)];
+	revStIndex = train.reversedDirection ? 1 : 0;
+	const Route& route = train_route[train.routeIndex];
+	const double routePosition = train.routeAxisPosition;
 
 	// get occupied signalling_block_sections (list of index on SeqBS)
 	std::vector<int> occupiedBS; // we already know head signalling_block_sections but not the index on SeqBS
 
 	// find block sections where the train is (full length)
 	int headIndex = -1, tailIndex = -1;
-	for (int h = train_route[regional_train[train].indexOfRoute].N_Block_Sections - 1; h >= 0; h--) {
-		// using route axis with head at (regional_train[train].instant_spatial_position[t] - wagon * (regional_train[train].train_length / total_nW))
-		if (((regional_train[train].instant_spatial_position[t] - wagon * (regional_train[train].train_length / total_nW)) < train_route[regional_train[train].indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000) && ((regional_train[train].instant_spatial_position[t] - wagon * (regional_train[train].train_length / total_nW)) >= train_route[regional_train[train].indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
+	for (int h = route.N_Block_Sections - 1; h >= 0; h--) {
+		if (((routePosition - wagon * (train.length / total_nW)) < route.sequence_of_block_sections[h].end_node.X * 1000) && ((routePosition - wagon * (train.length / total_nW)) >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
 			occupiedBS.push_back(h);
 			headIndex = h;
 		}
-		// using route axis with tail at (regional_train[train].instant_spatial_position[t] - (wagon + 1) * (regional_train[train].train_length / total_nW))
-		if (((regional_train[train].instant_spatial_position[t] - (wagon + 1) * (regional_train[train].train_length / total_nW)) < train_route[regional_train[train].indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000) && ((regional_train[train].instant_spatial_position[t] - (wagon + 1) * (regional_train[train].train_length / total_nW)) >= train_route[regional_train[train].indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
+		if (((routePosition - (wagon + 1) * (train.length / total_nW)) < route.sequence_of_block_sections[h].end_node.X * 1000) && ((routePosition - (wagon + 1) * (train.length / total_nW)) >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
 			if (h != headIndex) {
 				occupiedBS.push_back(h);
 			} // avoid adding the same signalling_block_sections twice (entire train in the same signalling_block_sections)
@@ -7450,19 +7444,19 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 
 	// get all relevant points from occupied signalling_block_sections (head, tail and also connection points)
 	for (int i = 0; i < occupiedBS.size(); i++) { // run from head signalling_block_sections to tail signalling_block_sections (can be the same)
-		currBS = train_route[regional_train[train].indexOfRoute].sequence_of_block_sections[occupiedBS[i]];
+		currBS = &route.sequence_of_block_sections[occupiedBS[i]];
 
 		if (headIndex == tailIndex && tailIndex == occupiedBS[i]) {
 			posX = {headX, tailX};
-			routeX = {(regional_train[train].instant_spatial_position[t] / 1000) - wagon * ((regional_train[train].train_length / 1000) / total_nW), (regional_train[train].instant_spatial_position[t] / 1000) - (wagon + 1) * ((regional_train[train].train_length / 1000) / total_nW)};
+			routeX = {(routePosition / 1000) - wagon * ((train.length / 1000) / total_nW), (routePosition / 1000) - (wagon + 1) * ((train.length / 1000) / total_nW)};
 		} // head and tail in this section
 		else if (occupiedBS[i] == headIndex) {
 			posX = {headX};
-			routeX = {(regional_train[train].instant_spatial_position[t] / 1000) - wagon * ((regional_train[train].train_length / 1000) / total_nW)};
+			routeX = {(routePosition / 1000) - wagon * ((train.length / 1000) / total_nW)};
 		} // only head
 		else if (occupiedBS[i] == tailIndex) {
 			posX = {tailX};
-			routeX = {(regional_train[train].instant_spatial_position[t] / 1000) - (wagon + 1) * ((regional_train[train].train_length / 1000) / total_nW)};
+			routeX = {(routePosition / 1000) - (wagon + 1) * ((train.length / 1000) / total_nW)};
 		} // only tail
 		else {
 			posX = {-DBL_MAX};
@@ -7472,70 +7466,74 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 		// in case head and tail in the same signalling_block_sections (need to get both)
 		for (int j = 0; j < posX.size(); j++) {
 			// single signalling_block_sections -> get head or tail
-			if (currBS.ID.find('/') == std::string::npos) {
+			if (currBS->ID.find('/') == std::string::npos) {
 				if (occupiedBS[i] != headIndex && occupiedBS[i] != tailIndex) {
 					continue;
 				} // single section in between (no relevant points)
 
 				// get station index to extract shifts
 				int stationIdx[2];
-				if (!hasTrackGeometry(currBS.trackLineId)) {
+				if (!hasTrackGeometry(currBS->trackLineId)) {
 					continue;
 				}
-				neighbourStations(posX[j], currBS.trackLineId, stationIdx);
+				neighbourStations(posX[j], currBS->trackLineId, stationIdx);
 				prevIndex = stationIdx[0];
 				index = stationIdx[1];
 				revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex; // if reversed route, gives previous station
 
 				// get point
-				egtrainPoint2Screen(posX[j], currBS.trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
+				egtrainPoint2Screen(posX[j], currBS->trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
 
 				// add points to vectors
-				trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[currBS.trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[currBS.trackLineId].region] * 0.10 * track_separation));
-				trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[currBS.trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[currBS.trackLineId].region] * 0.10 * track_separation));
+				trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[currBS->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[currBS->trackLineId].region] * 0.10 * track_separation));
+				trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[currBS->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[currBS->trackLineId].region] * 0.10 * track_separation));
 				trainPointsStIndex.push_back(revPrevIndex);
-				trainPointsStRegion.push_back(blockSets[currBS.trackLineId].region);
-				trainPointsGraphID.push_back(blockSets[currBS.trackLineId].graphID);
+				trainPointsStRegion.push_back(blockSets[currBS->trackLineId].region);
+				trainPointsGraphID.push_back(blockSets[currBS->trackLineId].graphID);
 			}
 			// compound signalling_block_sections -> get connection points and/or tail or head
 			else {
-				int index1 = currBS.ID.find("@-");
-				int index2 = currBS.ID.find("/@", index1 + 1);
-				int index3 = currBS.ID.find("@-", index2 + 1);
+				int index1 = currBS->ID.find("@-");
+				int index2 = currBS->ID.find("/@", index1 + 1);
+				int index3 = currBS->ID.find("@-", index2 + 1);
 				if (index1 != std::string::npos && index2 != std::string::npos && index3 != std::string::npos) {
-					ID1 = currBS.ID.substr(0, index1 + 1);
-					ID2 = currBS.ID.substr(index2 + 1, index3 - index2);
-					connection1 = currBS.ID.substr(index1 + 2, index2 - index1 - 2);
-					connection2 = currBS.ID.substr(index3 + 2, string::npos);
+					ID1 = currBS->ID.substr(0, index1 + 1);
+					ID2 = currBS->ID.substr(index2 + 1, index3 - index2);
+					connection1 = currBS->ID.substr(index1 + 2, index2 - index1 - 2);
+					connection2 = currBS->ID.substr(index3 + 2, string::npos);
 					connectionX1 = atof(connection1.c_str());
 					connectionX2 = atof(connection2.c_str());
 
 					// find single block sections (needed for the graphID's)
+					BS1 = nullptr;
+					BS2 = nullptr;
 					for (int b = 0; b < Blocks; b++) {
 						if (ID1.compare(signalling_block_sections[b].ID) == 0) {
-							BS1 = signalling_block_sections[b];
+							BS1 = &signalling_block_sections[b];
 						} else if (ID2.compare(signalling_block_sections[b].ID) == 0) {
-							BS2 = signalling_block_sections[b];
+							BS2 = &signalling_block_sections[b];
 						}
 					}
-					if (!hasTrackGeometry(BS1.trackLineId) || !hasTrackGeometry(BS2.trackLineId))
+					if (!BS1 || !BS2)
+						continue;
+					if (!hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))
 						continue;
 
 					// get beginning and end of connection to interpolate
-					egtrainPoint2Screen(connectionX1, BS1.trackLineId, track_separation, ptConnection1.rx(), ptConnection1.ry());
-					egtrainPoint2Screen(connectionX2, BS2.trackLineId, track_separation, ptConnection2.rx(), ptConnection2.ry());
+					egtrainPoint2Screen(connectionX1, BS1->trackLineId, track_separation, ptConnection1.rx(), ptConnection1.ry());
+					egtrainPoint2Screen(connectionX2, BS2->trackLineId, track_separation, ptConnection2.rx(), ptConnection2.ry());
 
 					// get beginning of BS1 and end of BS2 to calculate shifts
-					egtrainPoint2Screen(BS1.start_node.X, BS1.trackLineId, track_separation, ptBegin1.rx(), ptBegin1.ry());
-					egtrainPoint2Screen(BS2.end_node.X, BS2.trackLineId, track_separation, ptEnd2.rx(), ptEnd2.ry());
+					egtrainPoint2Screen(BS1->start_node.X, BS1->trackLineId, track_separation, ptBegin1.rx(), ptBegin1.ry());
+					egtrainPoint2Screen(BS2->end_node.X, BS2->trackLineId, track_separation, ptEnd2.rx(), ptEnd2.ry());
 
 					// get station indexes (used to add station points)
 					int stationIdx[2];
-					neighbourStations(connectionX1, BS1.trackLineId, stationIdx);
+					neighbourStations(connectionX1, BS1->trackLineId, stationIdx);
 					int prevIndexConnection1 = stationIdx[0];
 					int indexConnection1 = stationIdx[1];
 					int revPrevIndexConnection1 = indexConnection1 * (1 - revStIndex) + prevIndexConnection1 * revStIndex; // if reversed route, gives previous sation
-					neighbourStations(connectionX2, BS2.trackLineId, stationIdx);
+					neighbourStations(connectionX2, BS2->trackLineId, stationIdx);
 					int prevIndexConnection2 = stationIdx[0];
 					int indexConnection2 = stationIdx[1];
 					int revPrevIndexConnection2 = indexConnection2 * (1 - revStIndex) + prevIndexConnection2 * revStIndex; // if reversed route, gives previous sation
@@ -7583,20 +7581,20 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 					// add connection points if it is the tail signalling_block_sections and head already added
 					if ((posX[j] == -DBL_MAX) || (posX.size() == 1 && occupiedBS[i] == tailIndex)) { // adding connection points before adding tail of the train
 						// non-reversed route (add first connection 2)
-						if (!train_route[regional_train[train].indexOfRoute].reversed_direction) {
+						if (!train.reversedDirection) {
 							if (headX > connectionX2 && tailX < connectionX2) {
 								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
-								trainPointsStRegion.push_back(blockSets[BS2.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS2.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 							}
 							if (headX > connectionX1 && tailX < connectionX1) {
 								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
-								trainPointsStRegion.push_back(blockSets[BS1.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS1.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 							}
 						}
 						// reversed route (add first connection 1)
@@ -7605,34 +7603,34 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
-								trainPointsStRegion.push_back(blockSets[BS1.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS1.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 							}
 							if (tailX > connectionX2 && headX < connectionX2) {
 								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
-								trainPointsStRegion.push_back(blockSets[BS2.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS2.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 							}
 						}
 					}
 
 					// head/tail in the 1st track and before connection
-					if (routeX[j] >= currBS.start_node.X && posX[j] <= connectionX1) {
+					if (routeX[j] >= currBS->start_node.X && posX[j] <= connectionX1) {
 						// get station index to extract shifts
 						int stationIdx[2];
-						neighbourStations(posX[j], BS1.trackLineId, stationIdx);
+						neighbourStations(posX[j], BS1->trackLineId, stationIdx);
 						prevIndex = stationIdx[0];
 						index = stationIdx[1];
 						revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex; // if reversed route, gives previous station
 
-						egtrainPoint2Screen(posX[j], BS1.trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[BS1.trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[BS1.trackLineId].region] * 0.10 * track_separation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[BS1.trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[BS1.trackLineId].region] * 0.10 * track_separation));
+						egtrainPoint2Screen(posX[j], BS1->trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
+						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[BS1->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[BS1->trackLineId].region] * 0.10 * track_separation));
+						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[BS1->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[BS1->trackLineId].region] * 0.10 * track_separation));
 						trainPointsStIndex.push_back(revPrevIndex);
-						trainPointsStRegion.push_back(blockSets[BS1.trackLineId].region);
-						trainPointsGraphID.push_back(blockSets[BS1.trackLineId].graphID);
+						trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
+						trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 					}
 					// head/tail inside the connection
 					else if (posX[j] > connectionX1 && posX[j] < connectionX2) {
@@ -7647,40 +7645,40 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 						trainPointsGraphID.push_back(INT_MIN);
 					}
 					// head/tail in the 2nd track and after connection
-					else if (posX[j] >= connectionX2 && routeX[j] < currBS.end_node.X) {
+					else if (posX[j] >= connectionX2 && routeX[j] < currBS->end_node.X) {
 						// get station index to extract shifts
 						int stationIdx[2];
-						neighbourStations(posX[j], BS2.trackLineId, stationIdx);
+						neighbourStations(posX[j], BS2->trackLineId, stationIdx);
 						prevIndex = stationIdx[0];
 						index = stationIdx[1];
 						revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex; // if reversed route, gives previous station
 
-						egtrainPoint2Screen(posX[j], BS2.trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[BS2.trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[BS2.trackLineId].region] * 0.10 * track_separation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[BS2.trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[BS2.trackLineId].region] * 0.10 * track_separation));
+						egtrainPoint2Screen(posX[j], BS2->trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
+						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[BS2->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[BS2->trackLineId].region] * 0.10 * track_separation));
+						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[BS2->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[BS2->trackLineId].region] * 0.10 * track_separation));
 						trainPointsStIndex.push_back(revPrevIndex);
-						trainPointsStRegion.push_back(blockSets[BS2.trackLineId].region);
-						trainPointsGraphID.push_back(blockSets[BS2.trackLineId].graphID);
+						trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
+						trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 					}
 
 					// add connection points if it is head section and tail is in another signalling_block_sections
 					// add connection points if head and tail in the same section
 					if ((occupiedBS[i] == headIndex && headIndex != tailIndex) || (posX.size() == 2 && j == 0)) { // adding connection points after adding head of the train
 						// non-reversed route (add first connection 2)
-						if (!train_route[regional_train[train].indexOfRoute].reversed_direction) {
+						if (!train.reversedDirection) {
 							if (headX > connectionX2 && tailX < connectionX2) {
 								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
-								trainPointsStRegion.push_back(blockSets[BS2.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS2.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 							}
 							if (headX > connectionX1 && tailX < connectionX1) {
 								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
-								trainPointsStRegion.push_back(blockSets[BS1.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS1.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 							}
 						}
 						// reversed route (add first connection 1)
@@ -7689,15 +7687,15 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int 
 								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
-								trainPointsStRegion.push_back(blockSets[BS1.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS1.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 							}
 							if (tailX > connectionX2 && headX < connectionX2) {
 								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
 								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
-								trainPointsStRegion.push_back(blockSets[BS2.trackLineId].region);
-								trainPointsGraphID.push_back(blockSets[BS2.trackLineId].graphID);
+								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
+								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 							}
 						}
 					}
@@ -7895,154 +7893,61 @@ void MainWindow::askForTrainPathDiagram() {
 }
 
 // manage VCoupling notifications
-void MainWindow::checkVCouplingMsg(TrainItemGroup* trainItem, int train, int t) {
-	//// hide signals
-	// if (t == 101) {
-	//	for (int i = 0; i < allSignals.size(); i++) {
-	//		allSignals.at(i)->group()->hide();
-	//	}
-	// }
-
-	// TEST CAMERA VIEW
-	/*if (trainItem->trainPolygonItemList->size() > 2 && trainItem->trainPolygonItemList->at(2)->polygon().size() > 3 && trainItem->train->trainDescription.compare(regional_train[0].trainDescription) == 0) {
-		QPointF centerPoint;
-		centerPoint.setX(0.5 * (trainItem->trainPolygonItemList->at(0)->polygon().last().x() + trainItem->trainPolygonItemList->at(2)->polygon().first().x()));
-		centerPoint.setY(0.5 * (trainItem->trainPolygonItemList->at(0)->polygon().last().y() + trainItem->trainPolygonItemList->at(2)->polygon().first().y()));
-		networkView->centerOn(centerPoint);
-	}*/
-	// if (/*t >= 342 &&*/ allTrains.size() > 1 && allTrains.at(1)->trainPolygonItemList->size() > 2 && allTrains.at(1)->trainPolygonItemList->at(2)->polygon().size() > 3 && trainItem->train->trainDescription.compare(regional_train[1].trainDescription) == 0) {
-	//	QPointF centerPoint;
-	//	centerPoint.setX(0.5 * (allTrains.at(0)->trainPolygonItemList->at(0)->polygon().last().x() + allTrains.at(1)->trainPolygonItemList->at(2)->polygon().first().x()));
-	//	centerPoint.setY(0.5 * (allTrains.at(0)->trainPolygonItemList->at(0)->polygon().last().y() + allTrains.at(1)->trainPolygonItemList->at(2)->polygon().first().y()));
-	//	networkView->centerOn(centerPoint);
-
-	//	// always showing window around trains
-	//	/*QPointF rectTopLeft = QPointF(allTrains.at(0)->trainPolygonItemList->at(0)->polygon().last().x(), allTrains.at(1)->trainPolygonItemList->at(2)->polygon().first().y());
-	//	qreal rectW = allTrains.at(1)->trainPolygonItemList->at(2)->polygon().first().x() - allTrains.at(0)->trainPolygonItemList->at(0)->polygon().last().x();
-	//	qreal rectH = allTrains.at(0)->trainPolygonItemList->at(0)->polygon().last().y() - allTrains.at(1)->trainPolygonItemList->at(2)->polygon().first().y();
-	//	QRectF rectToShow = QRectF(rectTopLeft.x(), rectTopLeft.y(), rectW, rectH);
-	//	// expand scene rect so that items can be centered when zooming
-	//	QRectF initialSceneRect = rectToShow;
-	//	qreal expansionFactorX = 0.5;
-	//	qreal expansionFactorY = 0.5;
-	//	rectToShow.adjust(-0.5 * expansionFactorX * initialSceneRect.width(), -0.5 * expansionFactorY * initialSceneRect.height(), 0.5 * expansionFactorX * initialSceneRect.width(), 0.5 * expansionFactorY * initialSceneRect.height());
-	//	networkView->fitInView(rectToShow, Qt::KeepAspectRatio);*/
-	//}
-
-	// delete 'old' messages
-	for (int i = 0; i < VCmsgTimestep.size();) {
-		if (t > (VCmsgTimestep[i] + 40)) { // remove message after 40 timesteps
-			VCmsgTimestep.erase(VCmsgTimestep.begin() + i);
-			VCmsgTrain.erase(VCmsgTrain.begin() + i);
-			VCmsgText.erase(VCmsgText.begin() + i);
-
-			// remove group and child items from scene (if not removed yet)
-			if (VCmsgItems[i]) {
-				qDeleteAll(VCmsgItems[i]->childItems());
-				scene->destroyItemGroup(VCmsgItems[i]);
-			}
-			VCmsgItems.erase(VCmsgItems.begin() + i);
-		} else {
-			++i;
-		}
-	}
-
-	// check messages (reversed loop to print most recent message in case of two close messages)
-	int updatedTrain = false;
-	for (int i = VCmsgText.size() - 1; i >= 0; i--) {
-
-		// ignore messages of other trains
-		if (VCmsgTrain[i].compare(regional_train[train].trainDescription) != 0) {
-			continue;
-		}
-
-		// new message
-		if (t == VCmsgTimestep[i]) {
-			// paint notification
-			paintVCouplingMsg(trainItem, VCmsgText[i], t, i);
-			updatedTrain = true;
-		}
-
-		// message to update (position)
-		else if (t > VCmsgTimestep[i] && t <= (VCmsgTimestep[i] + 40)) { // keep message during 40 timesteps (or until new message)
-			// remove current group and child items from scene (if not removed yet)
-			if (VCmsgItems[i]) {
-				qDeleteAll(VCmsgItems[i]->childItems());
-				scene->destroyItemGroup(VCmsgItems[i]);
-				VCmsgItems[i] = nullptr;
-			}
-
-			// paint updated message
-			if (!updatedTrain) {
-				paintVCouplingMsg(trainItem, VCmsgText[i], t, i);
-				updatedTrain = true;
-			}
+void MainWindow::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t) {
+	if (not m_snapshot)
+		return;
+	for (auto it = m_snapshot->virtualCouplingMessages.rbegin(); it != m_snapshot->virtualCouplingMessages.rend(); ++it) {
+		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + 40) {
+			paintVCouplingMsg(trainItem, it->message);
+			break;
 		}
 	}
 }
 
 // paint VCoupling notification
-void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, string message, int t, int msgIndex) {
-	// train head graphical coordinates
+void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message) {
+	if (not trainItem || not trainItem->trainPolygonItemList || trainItem->trainPolygonItemList->isEmpty())
+		return;
 	TrainBodyItem* headPolygon = trainItem->trainPolygonItemList->at(0);
+	if (!headPolygon || headPolygon->polygon().isEmpty())
+		return;
 	QPointF frontUp = headPolygon->polygon().first();
 	QPointF frontDown = headPolygon->polygon().last();
 
-	// create line from train to message
 	QPointF start = frontUp + frontDown;
 	start /= 2;
-	qreal dx = 0;
-	qreal dy = -2 * track_separation;
-	QPointF end = start + QPointF(dx, dy);
+	QPointF end = start + QPointF(0, -2 * track_separation);
 
-	// paint line
 	QPen pen = QPen(QColor(242, 161, 106));
 	pen.setWidth(line_width);
 	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
 	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(pen);
 
-	// text box position
-	QPointF coord = end; // coord is the center of box and text in x-axis and bottom of box in y-axis
-
-	// set text size
 	QFont font = QFont();
 	font.setPixelSize((int)station_size / 6);
-
-	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
-	text->setPlainText(QString::fromStdString(message)); // text without background
+	text->setPlainText(QString::fromStdString(message));
 	text->setDefaultTextColor(Qt::white);
 	text->setFont(font);
 
-	// draw box around text
 	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	textBox->setRect(QRectF(0, 0, 1.25 * text->boundingRect().width(), 1.25 * text->boundingRect().height())); // box 25% bigger than text rect on both directions
+	textBox->setRect(QRectF(0, 0, 1.25 * text->boundingRect().width(), 1.25 * text->boundingRect().height()));
 	textBox->setBrush(QColor(242, 161, 106));
-	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
+	textBox->setPos(end.x() - (textBox->boundingRect().width() / 2), end.y() - textBox->boundingRect().height());
 
-	// set text position (center of text box)
 	QPointF textPos = textBox->pos();
 	textPos.rx() += 0.5 * (textBox->boundingRect().width() - text->boundingRect().width());
 	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
 	text->setPos(textPos);
 
-	// create group
 	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
 	msgGroup->addToGroup(line);
 	msgGroup->addToGroup(textBox);
 	msgGroup->addToGroup(text);
 	msgGroup->setZValue(5);
-
-	// add group to scene
 	scene->addItem(msgGroup);
-
-	// add/update group on items vector
-	if (msgIndex < VCmsgItems.size()) {
-		VCmsgItems[msgIndex] = msgGroup;
-	}
+	m_vcMessageItems.push_back(msgGroup);
 }
 
 // hides all objects of unused tracks (including connections)
@@ -8110,13 +8015,13 @@ void MainWindow::hideUnusedTracks() {
 		SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item);
 
 		if (signal) {
-			if (signal->sectionAhead) {
-				auto itAhead = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionAhead->trackLineId);
+			if (!signal->sectionAheadId.empty()) {
+				auto itAhead = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionAheadTrackId);
 				if (itAhead != unusedTracks.end()) {
 					signal->parentItem()->hide(); // hide group
 				}
-			} else if (signal->sectionBehind) {
-				auto itBehind = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionBehind->trackLineId);
+			} else if (!signal->sectionBehindId.empty()) {
+				auto itBehind = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionBehindTrackId);
 				if (itBehind != unusedTracks.end()) {
 					signal->parentItem()->hide(); // hide group
 				}
@@ -8314,7 +8219,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 void MainWindow::focusTrainInScene(const QString& trainId) {
 	const std::string id = trainId.toStdString();
 	for (TrainItemGroup* item : allTrains) {
-		if (item && item->train && item->train->trainDescription == id) {
+		if (item && item->trainDescription == id) {
 			networkView->centerOn(item->sceneBoundingRect().center());
 			statusBar()->showMessage(QString("Selected train %1 in the network view").arg(trainId), 5000);
 			return;
@@ -8657,8 +8562,8 @@ void MainWindow::showBlockingTimeDiagram() {
 void MainWindow::buildSignalIndex() {
 	m_signalsByAheadId.clear();
 	for (auto* signal : allSignals) {
-		if (signal->sectionAhead) {
-			m_signalsByAheadId[signal->sectionAhead->ID].push_back(signal);
+		if (!signal->sectionAheadId.empty()) {
+			m_signalsByAheadId[signal->sectionAheadId].push_back(signal);
 		}
 	}
 }

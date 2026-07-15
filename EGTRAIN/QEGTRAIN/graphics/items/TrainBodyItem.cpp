@@ -4,7 +4,6 @@ TrainBodyItem::TrainBodyItem(const QPolygonF& polygon, QGraphicsItem* parent)
 	: QGraphicsPolygonItem(polygon, parent) {
 	setZValue(3); // draw on top of everything (except TrainItemGroup)
 
-	train = nullptr;
 	index = -1;
 }
 

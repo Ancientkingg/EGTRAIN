@@ -117,6 +117,7 @@ class QTemporaryDir; // forward declaration for m_runStagingDir
 #include "simulation/Signalling.h"
 
 #include "app/DispatchController.h"
+#include "app/GuiSimulationSnapshot.h"
 
 #include "simulation/Rescheduling.h"
 
@@ -169,7 +170,7 @@ public:
 	void virtualArcDrawing(QPointF start, QPointF middle, QPointF end, int pen_width, int track, Arc* Arc);
 	void paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection);
 	void paintSignal(double X, int size, int pen_width, int track, int track_separation, int sectionIndex);
-	void paintTrain(int trainIndex, int t, int size, int pen_width, Train* train);
+	void paintTrain(const GuiTrainState& train, int size, int pen_width);
 	QPointF Coord2ScreenPoint(double x, double y, double factor);
 	QPointF interpolateCartesian(QPointF start, QPointF end, qreal x1, qreal x2, qreal x);
 	void calculateStationCoordAndShift(int geo_scale);
@@ -210,16 +211,16 @@ public:
 	void updateSignalAspect(const std::string& ID, double code, bool reversed);
 
 	// get train polygon (list)
-	void getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, int t, int train);
-	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, int t, int train);
+	void getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
+	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
 	void buildCorridorTrainPathDiagram(std::string corridor);
 	void askForTrainPathDiagram();
 
 	// VCoupling notifications
-	void checkVCouplingMsg(TrainItemGroup* trainItem, int train, int t);
-	void paintVCouplingMsg(TrainItemGroup* trainItem, string message, int t, int msgIndex);
+	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
+	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
 
 	// hide objects of unused tracks
 	void hideUnusedTracks();
@@ -246,14 +247,14 @@ public slots:
 	void displayPassengerInfo(PassengerItem* paxItem);
 	void handleDisableHighlight();
 	// updates according to simulation
-	void waitForUpdates(int timestep);
+	void waitForUpdates();
 	void updateSignalling();
 	void updatePlatforms(int t);
 	void updateTrainPaxInfo();
 	void updatePaxIconInfo();
 	void removeTrainPaxInfoIcon();
 	void removePaxInfoIcon();
-	void updateBlockOccupationStatus(Regional train);
+	void updateBlockOccupationStatus(const GuiTrainState& train);
 	void releaseBlockOccupationStatus();
 	void updateTrainPosition(int t);
 	void startSimulation();
@@ -478,6 +479,8 @@ private:
 	bool m_passengerLayerVisible = true;
 	QList<QGraphicsItem*> m_stationDecorations;
 	QList<QGraphicsItemGroup*> m_signalGroups;
+	QList<QGraphicsItemGroup*> m_vcMessageItems;
+	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
 	void refreshFollowTrainChoices();

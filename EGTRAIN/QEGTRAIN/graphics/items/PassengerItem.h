@@ -2,8 +2,7 @@
 #define PASSENGERITEM_H
 
 #include <QGraphicsPixmapItem>
-
-#include "simulation/Passengers.h"
+#include <string>
 
 class PassengerItem : public QGraphicsPixmapItem {
 	// Q_OBJECT
@@ -12,8 +11,7 @@ public:
 	PassengerItem(const QPixmap& pixmap, QGraphicsItem* parent = 0);
 	~PassengerItem();
 
-	// pointer to passenger object
-	Passenger* passenger;
+	std::string passengerId;
 
 	// to allow cast
 	enum { Type = UserType + 10 };
