@@ -1,5 +1,6 @@
 #include "widgets/ConsoleWidget.h"
 #include <QApplication>
+#include <QFontDatabase>
 #include <QThread>
 
 // ---- ConsoleStreambuf ----
@@ -131,10 +132,7 @@ ConsoleWidget::ConsoleWidget(QWidget* parent)
     m_textEdit->setReadOnly(true);
     m_textEdit->setMaximumBlockCount(10000);
     m_textEdit->setLineWrapMode(QPlainTextEdit::NoWrap);
-    m_textEdit->setFont(QFont("Menlo", 10));
-    m_textEdit->setStyleSheet(
-        "QPlainTextEdit { background-color: #1e1e1e; color: #d4d4d4; }"
-    );
+	m_textEdit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     setWidget(m_textEdit);
 
     m_streambuf = std::make_unique<ConsoleStreambuf>([this](const QString& text) {

@@ -27,8 +27,6 @@ protected:
 	virtual void wheelEvent(QWheelEvent* event);
 
 private:
-	void customizeScrollBars();
-
 signals:
 	void MousePressedOnView();
 };
