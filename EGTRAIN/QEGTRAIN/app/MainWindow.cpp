@@ -687,10 +687,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				if (icon)
 					icon->setVisible(checked);
 		}
-		if (!checked) {
-			removeTrainPaxInfoIcon();
-			removePaxInfoIcon();
-		} else {
+		if (trainPaxInfoItem)
+			trainPaxInfoItem->setVisible(checked);
+		if (paxIconInfoItem)
+			paxIconInfoItem->setVisible(checked);
+		if (checked) {
 			updateTrainPaxInfo();
 			updatePaxIconInfo();
 		}
@@ -3669,10 +3670,24 @@ void MainWindow::runVisualPolishE2E() {
 		};
 		checkItemLayer(stationLayer, m_stationDecorations, "station decorations");
 		checkItemLayer(signalLayer, m_signalGroups, "signal groups");
-		const bool passengerVisible = passengerLayer->isChecked();
-		passengerLayer->setChecked(!passengerVisible);
-		QApplication::processEvents();
-		passengerLayer->setChecked(passengerVisible);
+		QList<QGraphicsItem*> passengerItems;
+		for (auto* platform : allPlatforms) {
+			if (!platform)
+				continue;
+			if (platform->textIcon)
+				passengerItems.append(platform->textIcon);
+			for (auto* icon : platform->passengerIcons)
+				if (icon)
+					passengerItems.append(icon);
+		}
+		if (initial_variables.PAX_GUI && (passengerItems.isEmpty()
+			|| std::none_of(passengerItems.cbegin(), passengerItems.cend(), [](auto* item) {
+				return item && item->isVisible();
+			}))) {
+			ok = false;
+			failures << "PAX enabled but no visible passenger-owned graphics rendered";
+		}
+		checkItemLayer(passengerLayer, passengerItems, "passenger load");
 	}
 
 	QString screenshotPath = qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT");
@@ -5445,6 +5460,7 @@ void MainWindow::setStartTime() {
 		return;
 	}
 	m_startOffsetSeconds = secs;
+	updateCaseLayersPanel();
 	statusBar()->showMessage(QString("Start time set to %1").arg(text), 3000);
 }
 
@@ -7041,6 +7057,8 @@ void MainWindow::waitForUpdates(int timestep) {
 			updatePaxIconInfo();
 			updateTrainPaxInfo();
 		}
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
+			runVisualPolishE2E();
 
 		m_lastRenderMs = now;
 	}
@@ -7171,22 +7189,32 @@ void MainWindow::updatePlatforms(int t) {
 
 // slot to update passenger counter from clicked train
 void MainWindow::updateTrainPaxInfo() {
+	if (!m_passengerLayerVisible) {
+		if (trainPaxInfoItem)
+			trainPaxInfoItem->setVisible(false);
+		return;
+	}
 	if (trainPaxInfoItem) {
 		// remove existing item
 		removeTrainPaxInfoIcon();
+		if (trainPaxItem)
+			paintTrainPassengerInfo(trainPaxItem);
 	}
-	if (m_passengerLayerVisible && trainPaxItem)
-		paintTrainPassengerInfo(trainPaxItem);
 }
 
 // slot to update passenger info from clicked passenger icon
 void MainWindow::updatePaxIconInfo() {
+	if (!m_passengerLayerVisible) {
+		if (paxIconInfoItem)
+			paxIconInfoItem->setVisible(false);
+		return;
+	}
 	if (paxIconInfoItem) {
 		// remove existing item
 		removePaxInfoIcon();
+		if (paxIconItem)
+			paintPassengerInfoIcon(paxIconItem);
 	}
-	if (m_passengerLayerVisible && paxIconItem)
-		paintPassengerInfoIcon(paxIconItem);
 }
 
 void MainWindow::removeTrainPaxInfoIcon() {
@@ -7354,8 +7382,6 @@ void MainWindow::updateTrainPosition(int t) {
 		}
 	}
 
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
-		runVisualPolishE2E();
 }
 
 // returns the full train shape (list of polygons)
