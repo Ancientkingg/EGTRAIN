@@ -295,6 +295,11 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/TimeFormat.cpp)
     add_test(NAME test_timeformat COMMAND test_timeformat)
 
+    add_executable(test_guisimulationsnapshot
+        ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
+    target_include_directories(test_guisimulationsnapshot PRIVATE ${SRC_DIR})
+    add_test(NAME test_guisimulationsnapshot COMMAND test_guisimulationsnapshot)
+
     add_executable(test_inputvalidation
         ${SRC_DIR}/tests/test_inputvalidation.cpp
         ${SRC_DIR}/io/InputValidation.cpp)

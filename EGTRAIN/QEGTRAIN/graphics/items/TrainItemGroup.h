@@ -2,8 +2,7 @@
 #define TRAINITEMGROUP_H
 
 #include <QGraphicsItemGroup>
-
-#include "simulation/RollingStock.h"
+#include <string>
 
 #include "graphics/items/TrainBodyItem.h"
 
@@ -14,11 +13,16 @@ public:
 	TrainItemGroup(QGraphicsItem* parent = 0);
 	~TrainItemGroup();
 
-	// train pointer
-	Train* train;
-
 	// train index on list of trains (train ID is not unique, index is)
 	int index;
+	std::string trainDescription;
+	std::string trainType;
+	double trainId;
+	double trainLength;
+	int wagonCount;
+	int currentOnboardPassengers;
+	int maxOnboardPassengers;
+	bool outOfSimulation;
 
 	// pax info group icon pointer
 	QGraphicsItemGroup* paxInfoItem;

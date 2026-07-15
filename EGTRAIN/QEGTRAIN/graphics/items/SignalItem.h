@@ -2,13 +2,12 @@
 #define SIGNALITEM_H
 
 #include <QGraphicsEllipseItem>
+#include <string>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include <QWidget>
 #include <QPolygonF>
 #include <QtMath>
-
-#include "simulation/Signalling.h"
 
 class SignalItem : public QGraphicsEllipseItem {
 	// Q_OBJECT
@@ -26,9 +25,12 @@ public:
 	// location of the signal on X axis
 	double X;
 
-	// pointers to block sections (ahead/behind signalling_block_sections depends on reversedDirection variable)
-	Section* sectionAhead;
-	Section* sectionBehind;
+	std::string sectionAheadId;
+	std::string sectionBehindId;
+	double sectionAheadLength;
+	double sectionBehindLength;
+	int sectionAheadTrackId;
+	int sectionBehindTrackId;
 
 	// distinguishes signals at same location (indicates for which direction this signal is used)
 	bool reversedDirection;
