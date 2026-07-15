@@ -166,7 +166,8 @@ static bool containsPath(const fs::path& parent, const fs::path& child) {
 	return parentIt == parent.end();
 }
 
-static fs::path uniqueSiblingPath(const fs::path& target, const std::string& tag) {
+static fs::path uniqueSiblingPath(const fs::path& target, const std::string& tag, std::error_code& error) {
+	error.clear();
 	fs::path parent = target.parent_path();
 	if (parent.empty())
 		parent = ".";
@@ -176,8 +177,10 @@ static fs::path uniqueSiblingPath(const fs::path& target, const std::string& tag
 	const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
 	for (unsigned int suffix = 0;; ++suffix) {
 		fs::path candidate = parent / (base + "." + tag + "." + std::to_string(stamp) + "." + std::to_string(suffix));
-		std::error_code ec;
-		if (!fs::exists(candidate, ec) && !ec)
+		const bool exists = fs::exists(candidate, error);
+		if (error)
+			return {};
+		if (!exists)
 			return candidate;
 	}
 }
@@ -644,12 +647,20 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		return result;
 	}
 
-	const fs::path stagingPath = uniqueSiblingPath(scenePath, "importing");
+	std::error_code stagingPathEc;
+	const fs::path stagingPath = uniqueSiblingPath(scenePath, "importing", stagingPathEc);
 	fs::path backupPath;
 	auto removeStaging = [&]() {
+		if (stagingPath.empty())
+			return;
 		std::error_code cleanupEc;
 		fs::remove_all(stagingPath, cleanupEc);
 	};
+	if (stagingPathEc) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + stagingPathEc.message(), scenePath.string());
+		removeStaging();
+		return result;
+	}
 
 	fs::create_directories(stagingPath, ec);
 	if (ec) {
@@ -798,7 +809,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		return result;
 	}
 	if (destinationExists) {
-		backupPath = uniqueSiblingPath(scenePath, "backup");
+		std::error_code backupPathEc;
+		backupPath = uniqueSiblingPath(scenePath, "backup", backupPathEc);
+		if (backupPathEc) {
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + backupPathEc.message(), scenePath.string());
+			removeStaging();
+			return result;
+		}
 		fs::rename(scenePath, backupPath, destinationEc);
 		if (destinationEc) {
 			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing scene to backup: " + destinationEc.message(), scenePath.string());
