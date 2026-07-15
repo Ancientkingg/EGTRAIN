@@ -579,7 +579,68 @@ int main(int argc, char** argv) {
 		ok &= expect(siblingsAfter == siblingsBefore, "Failed import cleans staging and backup siblings");
 	}
 
-	// 17. Import errors identify the concrete source path that failed.
+	// 17. Permission errors while selecting a staging sibling return without
+	// publishing or changing an existing destination.
+	{
+		TempDir lDir, outDir;
+		fs::create_directories(fs::path(lDir.dir) / "TrackLines");
+		std::ofstream(lDir.dir + "/TrackLines/Stations.txt") << "0\tPermissionSource\n";
+
+		const fs::path destinationParent = fs::path(outDir.dir) / "restricted";
+		const fs::path scenePath = destinationParent / "scene";
+		fs::create_directories(scenePath);
+		const fs::path markerPath = scenePath / "marker.txt";
+		std::ofstream(markerPath) << "destination stays unchanged\n";
+
+		std::error_code statusEc;
+		const fs::perms originalPermissions = fs::status(destinationParent, statusEc).permissions();
+		if (statusEc) {
+			std::cerr << "skipped: unable to inspect destination parent permissions: " << statusEc.message() << "\n";
+		} else {
+			std::error_code restrictEc;
+			fs::permissions(destinationParent, fs::perms::none, fs::perm_options::replace, restrictEc);
+			if (restrictEc) {
+				std::error_code restoreEc;
+				fs::permissions(destinationParent, originalPermissions, fs::perm_options::replace, restoreEc);
+				ok &= expect(!restoreEc, "Permission test restores destination parent after setup failure");
+				std::cerr << "skipped: unable to remove destination parent access: " << restrictEc.message() << "\n";
+			} else {
+				std::error_code probeEc;
+				fs::exists(destinationParent / "probe", probeEc);
+				if (!probeEc) {
+					std::error_code restoreEc;
+					fs::permissions(destinationParent, originalPermissions, fs::perm_options::replace, restoreEc);
+					ok &= expect(!restoreEc, "Permission test restores destination parent when probe succeeds");
+					std::cerr << "skipped: destination parent permissions did not produce an fs::exists error\n";
+				} else {
+					auto res = importLegacyScene(lDir.dir, scenePath.string(), "PermissionError");
+					std::error_code restoreEc;
+					fs::permissions(destinationParent, originalPermissions, fs::perm_options::replace, restoreEc);
+					ok &= expect(!restoreEc, "Permission test restores destination parent after import");
+					if (!restoreEc) {
+						ok &= expect(!res.wroteScene, "Permission-error import wroteScene false");
+						ok &= expect(!res.success(), "Permission-error import success false");
+						bool foundDestinationDiagnostic = false;
+						for (const auto& d : res.diagnostics) {
+							if (d.severity == SceneSeverity::Error && d.code == "scene.import.missing"
+								&& d.file == scenePath.string()) {
+								foundDestinationDiagnostic = true;
+								break;
+							}
+						}
+						ok &= expect(foundDestinationDiagnostic,
+								"Permission-error import names the scene destination");
+						std::ifstream marker(markerPath);
+						std::string markerContent((std::istreambuf_iterator<char>(marker)), std::istreambuf_iterator<char>());
+						ok &= expect(markerContent == "destination stays unchanged\n",
+								"Permission-error import preserves destination marker");
+					}
+				}
+			}
+		}
+	}
+
+	// 18. Import errors identify the concrete source path that failed.
 	{
 		TempDir lDir, outDir;
 		fs::create_directories(fs::path(lDir.dir) / "TrackLines");
@@ -623,7 +684,7 @@ int main(int argc, char** argv) {
 		ok &= expect(foundRoute, "Missing route diagnostic names referenced route path");
 	}
 
-	// 18. Every committed legacy input, including the Banedanmark alias and
+	// 19. Every committed legacy input, including the Banedanmark alias and
 	// both Paimpol variants, keeps the importer output shape.
 	auto checkCommittedImport = [&](const std::string& legacyDir, const std::string& sceneName,
 								   size_t stationCount, size_t unitCount, size_t serviceCount, size_t routeCount) {
