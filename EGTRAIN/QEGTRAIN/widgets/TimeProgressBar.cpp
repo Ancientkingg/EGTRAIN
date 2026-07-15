@@ -5,14 +5,6 @@ TimeProgressBar::TimeProgressBar(QWidget* parent)
 	: QProgressBar(parent) {
 	setTextVisible(true);
 
-	QString style = "QProgressBar{\
-						border-radius: 5px;\
-						text-align: right;\
-						margin-right: 30ex;\
-					}";
-
-	setStyleSheet(style);
-
 	setFixedHeight(10);
 }
 

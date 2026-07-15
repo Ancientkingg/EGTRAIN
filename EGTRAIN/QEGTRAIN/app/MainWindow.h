@@ -462,6 +462,23 @@ private:
 
 	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
 
+	// Compact shell state. These pointers observe scene-owned items without
+	// taking ownership; teardownGUI clears them after scene->clear().
+	QDockWidget* m_caseLayersDock = nullptr;
+	QLabel* m_caseNameLabel = nullptr;
+	QLabel* m_toolbarCaseLabel = nullptr;
+	QLabel* m_simulationClockLabel = nullptr;
+	QCheckBox* m_stationLayerCheck = nullptr;
+	QCheckBox* m_trainLayerCheck = nullptr;
+	QCheckBox* m_signalLayerCheck = nullptr;
+	QCheckBox* m_passengerLayerCheck = nullptr;
+	bool m_stationLayerVisible = true;
+	bool m_trainLayerVisible = true;
+	bool m_signalLayerVisible = true;
+	bool m_passengerLayerVisible = true;
+	QList<QGraphicsItem*> m_stationDecorations;
+	QList<QGraphicsItemGroup*> m_signalGroups;
+
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
 	void refreshFollowTrainChoices();
 	void updateSpeedModeDisplay(int value);
@@ -475,6 +492,7 @@ private:
 	bool saveSceneAsToDirectory();
 	bool copyScenePassthroughFiles(const QString& targetDir);
 	void updateSceneWindowTitle();
+	void updateCaseLayersPanel();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 

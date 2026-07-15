@@ -40,12 +40,14 @@
 #include <QSettings>
 #include <QStringList>
 #include <QTemporaryDir>
+#include <QRegularExpression>
 #include <cstdio>
 #include <limits>
 #include <map>
 
 // utilization of GUI
 // bool GUI = true; // GUI used by default
+extern InitialParameters initial_variables;
 
 namespace {
 const char* kRecentScenesKey = "recentScenes";
@@ -428,7 +430,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 										  ui(new Ui::MainWindow),
 										  m_worker(nullptr),
 										  m_workerThread(nullptr) {
+	QFile themeFile(":/styles/egtrain.qss");
+	if (themeFile.open(QIODevice::ReadOnly | QIODevice::Text))
+		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
+
 	ui->setupUi(this);
+	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
 	cout << "\n...PREPARING GUI...\n\n";
 
@@ -453,6 +460,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// set network view
 	networkView = new NetworkView(centralWidget);
+	networkView->setObjectName("networkView");
 
 	// set progress bar
 	progressBar = new TimeProgressBar(centralWidget);
@@ -585,6 +593,111 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// --- Build toolbar ---
 	m_toolBar = ui->mainToolBar;
+	m_toolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	ui->actionSimulationStart->setText("Run");
+	ui->actionSimulationStart->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+	ui->actionSimulationPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+	ui->actionSimulationStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+	ui->actionSimulationStart->setToolTip("Run simulation (Ctrl+R)");
+	ui->actionSimulationPause->setToolTip("Pause or resume simulation (Ctrl+.)");
+	ui->actionSimulationStop->setToolTip("Stop simulation (Ctrl+Esc)");
+
+	m_toolbarCaseLabel = new QLabel(this);
+	m_toolbarCaseLabel->setObjectName("toolbarCaseLabel");
+	m_toolbarCaseLabel->setToolTip("Current case study");
+	m_simulationClockLabel = new QLabel(this);
+	m_simulationClockLabel->setObjectName("simulationClockLabel");
+	m_simulationClockLabel->setToolTip("Simulation clock");
+	m_toolBar->insertWidget(ui->actionSimulationStart, m_toolbarCaseLabel);
+	m_toolBar->insertWidget(ui->actionSimulationStop, m_simulationClockLabel);
+
+	// Keep the scenario state and the four useful display layers in the primary
+	// left rail. All scene pointers below are non-owning; QGraphicsScene owns the
+	// actual items and teardownGUI clears these observer lists after scene->clear().
+	m_caseLayersDock = new QDockWidget("Case and Layers", this);
+	m_caseLayersDock->setObjectName("caseLayersDock");
+	m_caseLayersDock->setAllowedAreas(Qt::LeftDockWidgetArea);
+	QWidget* caseLayersWidget = new QWidget(m_caseLayersDock);
+	QVBoxLayout* caseLayersLayout = new QVBoxLayout(caseLayersWidget);
+	QLabel* caseTitle = new QLabel("Current case study", caseLayersWidget);
+	caseTitle->setObjectName("caseStudyTitleLabel");
+	caseLayersLayout->addWidget(caseTitle);
+	m_caseNameLabel = new QLabel(caseLayersWidget);
+	m_caseNameLabel->setObjectName("caseNameLabel");
+	m_caseNameLabel->setWordWrap(true);
+	caseLayersLayout->addWidget(m_caseNameLabel);
+	QLabel* layersTitle = new QLabel("Layers", caseLayersWidget);
+	layersTitle->setObjectName("layersTitleLabel");
+	caseLayersLayout->addWidget(layersTitle);
+	m_stationLayerCheck = new QCheckBox("Station decorations", caseLayersWidget);
+	m_stationLayerCheck->setObjectName("layerStationDecorations");
+	m_stationLayerCheck->setChecked(true);
+	m_stationLayerCheck->setToolTip("Show station names, icons, and platforms");
+	m_trainLayerCheck = new QCheckBox("Trains with speed labels", caseLayersWidget);
+	m_trainLayerCheck->setObjectName("layerTrains");
+	m_trainLayerCheck->setChecked(true);
+	m_trainLayerCheck->setToolTip("Show trains and their current speeds");
+	m_signalLayerCheck = new QCheckBox("Signal groups / aspects", caseLayersWidget);
+	m_signalLayerCheck->setObjectName("layerSignalGroups");
+	m_signalLayerCheck->setChecked(true);
+	m_signalLayerCheck->setToolTip("Show signal groups and live aspects");
+	m_passengerLayerCheck = new QCheckBox("Passenger load", caseLayersWidget);
+	m_passengerLayerCheck->setObjectName("layerPassengerLoad");
+	m_passengerLayerCheck->setChecked(true);
+	m_passengerLayerCheck->setToolTip("Show platform counters and passenger icons");
+	caseLayersLayout->addWidget(m_stationLayerCheck);
+	caseLayersLayout->addWidget(m_trainLayerCheck);
+	caseLayersLayout->addWidget(m_signalLayerCheck);
+	caseLayersLayout->addWidget(m_passengerLayerCheck);
+	caseLayersLayout->addStretch();
+	m_caseLayersDock->setWidget(caseLayersWidget);
+	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
+	if (ui->menuView)
+		ui->menuView->addAction(m_caseLayersDock->toggleViewAction());
+	connect(m_stationLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_stationLayerVisible = checked;
+		for (auto* item : m_stationDecorations)
+			if (item)
+				item->setVisible(checked);
+	});
+	connect(m_trainLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_trainLayerVisible = checked;
+		for (auto* train : allTrains)
+			if (train)
+				train->setVisible(checked && train->train && !train->train->OutOfSimulation);
+		for (auto it = m_trainSpeedLabels.cbegin(); it != m_trainSpeedLabels.cend(); ++it)
+			if (it.value())
+				it.value()->setVisible(checked && it.key() >= 0 && it.key() < numRegions
+					&& !regional_train[it.key()].OutOfSimulation);
+	});
+	connect(m_signalLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_signalLayerVisible = checked;
+		for (auto* group : m_signalGroups)
+			if (group)
+				group->setVisible(checked);
+	});
+	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_passengerLayerVisible = checked;
+		for (auto* platform : allPlatforms) {
+			if (!platform)
+				continue;
+			if (platform->textIcon)
+				platform->textIcon->setVisible(checked);
+			for (auto* icon : platform->passengerIcons)
+				if (icon)
+					icon->setVisible(checked);
+		}
+		if (trainPaxInfoItem)
+			trainPaxInfoItem->setVisible(checked);
+		if (paxIconInfoItem)
+			paxIconInfoItem->setVisible(checked);
+		if (checked) {
+			updateTrainPaxInfo();
+			updatePaxIconInfo();
+		}
+	});
+	updateCaseLayersPanel();
+
 	// Speed slider in toolbar (between sim controls and zoom)
 	m_toolBar->insertSeparator(ui->actionSimulationStop);
 	m_toolBar->insertWidget(ui->actionSimulationStop, m_speedLabel);
@@ -630,11 +743,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// in-app logging pane (ConsoleWidget installs its own streambuf on construction)
 	m_logPane = new ConsoleWidget(this);
 	addDockWidget(Qt::BottomDockWidgetArea, m_logPane);
+	m_logPane->hide();
 	if (ui->menuView)
 		ui->menuView->addAction(m_logPane->toggleViewAction());
 
 	// scene validation panel: dockable table of SceneDiagnostic entries, empty until a scene loads
 	m_validationDock = new QDockWidget("Scene Validation", this);
+	m_validationDock->setObjectName("sceneValidationDock");
 	m_validationTable = new QTableWidget(0, 6, m_validationDock);
 	QStringList validationHeaders;
 	validationHeaders << "Severity" << "Code" << "Message" << "File" << "Path" << "Suggested Fix";
@@ -645,11 +760,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_validationTable->resizeColumnsToContents();
 	m_validationDock->setWidget(m_validationTable);
 	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
+	m_validationDock->hide();
 	tabifyDockWidget(m_logPane, m_validationDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_validationDock->toggleViewAction());
 
 	m_loadedDataDock = new QDockWidget("Loaded Data", this);
+	m_loadedDataDock->setObjectName("loadedDataDock");
 	m_loadedDataTree = new QTreeWidget(m_loadedDataDock);
 	m_loadedDataTree->setColumnCount(4);
 	m_loadedDataTree->setHeaderLabels(QStringList() << "Category" << "Source" << "Count" << "Status");
@@ -658,6 +775,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_loadedDataTree->header()->setStretchLastSection(true);
 	m_loadedDataDock->setWidget(m_loadedDataTree);
 	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
+	m_loadedDataDock->hide();
 	tabifyDockWidget(m_validationDock, m_loadedDataDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
@@ -665,6 +783,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// train-unit editor: one list/detail dock for physical values and traction
 	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
 	m_trainUnitDock = new QDockWidget("Train Units", this);
+	m_trainUnitDock->setObjectName("trainUnitDock");
 	QWidget* trainUnitWidget = new QWidget(m_trainUnitDock);
 	QHBoxLayout* trainUnitLayout = new QHBoxLayout(trainUnitWidget);
 	QWidget* trainUnitListPane = new QWidget(trainUnitWidget);
@@ -762,6 +881,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// panes follow: a read-only list picks the record, a details area with
 	// explicit fields/buttons edits it, no inline table editing.
 	m_compositionDock = new QDockWidget("Compositions", this);
+	m_compositionDock->setObjectName("compositionDock");
 	QWidget* compositionWidget = new QWidget(m_compositionDock);
 	QHBoxLayout* compositionLayout = new QHBoxLayout(compositionWidget);
 
@@ -824,6 +944,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_compositionDock->setWidget(compositionWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
+	m_compositionDock->hide();
 	tabifyDockWidget(m_trainUnitDock, m_compositionDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_compositionDock->toggleViewAction());
@@ -849,6 +970,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// inside the service detail pane, since a stop only makes sense in the
 	// context of the currently selected service.
 	m_serviceDock = new QDockWidget("Services", this);
+	m_serviceDock->setObjectName("serviceDock");
 	QWidget* serviceWidget = new QWidget(m_serviceDock);
 	QHBoxLayout* serviceLayout = new QHBoxLayout(serviceWidget);
 
@@ -955,6 +1077,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_serviceDock->setWidget(serviceWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
+	m_serviceDock->hide();
 	tabifyDockWidget(m_compositionDock, m_serviceDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_serviceDock->toggleViewAction());
@@ -993,6 +1116,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// valid choices depend on that type, analogous to a stop's platform choices
 	// depending on the selected station.
 	m_incidentDock = new QDockWidget("Incidents", this);
+	m_incidentDock->setObjectName("incidentDock");
 	QWidget* incidentWidget = new QWidget(m_incidentDock);
 	QHBoxLayout* incidentLayout = new QHBoxLayout(incidentWidget);
 
@@ -1048,6 +1172,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_incidentDock->setWidget(incidentWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
+	m_incidentDock->hide();
+	m_trainUnitDock->hide();
 	tabifyDockWidget(m_serviceDock, m_incidentDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_incidentDock->toggleViewAction());
@@ -1150,7 +1276,9 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_sceneModel = result.scene;
 	m_sceneLoaded = true;
 	m_sceneDirty = false;
+	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	updateSceneWindowTitle();
+	updateCaseLayersPanel();
 	updateSceneActions();
 	addRecentScene(scenePath);
 	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
@@ -3354,6 +3482,24 @@ void MainWindow::updateSceneWindowTitle() {
 	setWindowModified(m_sceneDirty);
 }
 
+void MainWindow::updateCaseLayersPanel() {
+	if (!m_caseNameLabel && !m_toolbarCaseLabel && !m_simulationClockLabel)
+		return;
+
+	QString caseName = m_sceneLoaded ? QString::fromStdString(m_sceneModel.name)
+										 : QString::fromStdString(initial_variables.name);
+	if (caseName.trimmed().isEmpty())
+		caseName = QFileInfo(QString::fromStdString(InputMainFolder)).fileName();
+	if (caseName.trimmed().isEmpty())
+		caseName = QStringLiteral("Default case study");
+	if (m_caseNameLabel)
+		m_caseNameLabel->setText(caseName);
+	if (m_toolbarCaseLabel)
+		m_toolbarCaseLabel->setText(QString("Case: %1").arg(caseName));
+	if (m_simulationClockLabel)
+		m_simulationClockLabel->setText(QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)));
+}
+
 void MainWindow::updateSpeedModeDisplay(int value) {
 	if (m_speedLabel)
 		m_speedLabel->setText(simulationSpeedLabel(value));
@@ -3436,9 +3582,117 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "no train items rendered";
 	}
 
+	// Shell contract: the visual smoke must cover the controls users see before
+	// opening any secondary panel, not only the network scene.
+	if (!m_toolBar || m_toolBar->toolButtonStyle() != Qt::ToolButtonTextBesideIcon) {
+		ok = false;
+		failures << "toolbar is not compact text-beside-icon style";
+	}
+	const auto standardIconPresent = [](QAction* action) {
+		return action && !action->icon().isNull();
+	};
+	if (!standardIconPresent(ui->actionSimulationStart)
+		|| !standardIconPresent(ui->actionSimulationPause)
+		|| !standardIconPresent(ui->actionSimulationStop)) {
+		ok = false;
+		failures << "simulation toolbar icons are missing or not standard media icons";
+	}
+
+	const auto caseDock = findChild<QDockWidget*>("caseLayersDock");
+	if (!caseDock || !caseDock->isVisible()) {
+		ok = false;
+		failures << "case and layers dock is not visible by default";
+	}
+	const auto caseLabel = findChild<QLabel*>("caseNameLabel");
+	if (!caseLabel || caseLabel->text().trimmed().isEmpty()) {
+		ok = false;
+		failures << "case state is empty";
+	}
+	const auto clockLabel = findChild<QLabel*>("simulationClockLabel");
+	if (!clockLabel || !QRegularExpression("^\\d{2}:\\d{2}:\\d{2}").match(clockLabel->text()).hasMatch()) {
+		ok = false;
+		failures << "simulation clock is not formatted";
+	}
+
+	const auto secondaryDockHidden = [this](QDockWidget* dock) {
+		return dock && !dock->isVisible();
+	};
+	if (!secondaryDockHidden(m_logPane) || !secondaryDockHidden(m_validationDock)
+		|| !secondaryDockHidden(m_loadedDataDock) || !secondaryDockHidden(m_compositionDock)
+		|| !secondaryDockHidden(m_serviceDock) || !secondaryDockHidden(m_incidentDock)) {
+		ok = false;
+		failures << "secondary diagnostics docks are visible by default";
+	}
+
+	const auto layerToggle = [this](const char* objectName) {
+		return findChild<QCheckBox*>(objectName);
+	};
+	QCheckBox* stationLayer = layerToggle("layerStationDecorations");
+	QCheckBox* trainLayer = layerToggle("layerTrains");
+	QCheckBox* signalLayer = layerToggle("layerSignalGroups");
+	QCheckBox* passengerLayer = layerToggle("layerPassengerLoad");
+	if (!stationLayer || !trainLayer || !signalLayer || !passengerLayer) {
+		ok = false;
+		failures << "required layer controls are missing";
+	} else {
+		const int initialItems = scene ? scene->items().size() : 0;
+		const bool initialTrainVisible = !allTrains.isEmpty() && allTrains.first()->isVisible();
+		trainLayer->setChecked(!trainLayer->isChecked());
+		QApplication::processEvents();
+		if (allTrains.isEmpty() || allTrains.first()->isVisible() == initialTrainVisible) {
+			ok = false;
+			failures << "train layer toggle is not functional";
+		}
+		trainLayer->setChecked(!trainLayer->isChecked());
+		QApplication::processEvents();
+		if (scene && scene->items().size() != initialItems) {
+			ok = false;
+			failures << "train layer toggle changed scene ownership";
+		}
+		const auto checkItemLayer = [&](QCheckBox* layer, const auto& items, const char* name) {
+			if (items.isEmpty())
+				return;
+			const bool initiallyChecked = layer->isChecked();
+			layer->setChecked(false);
+			QApplication::processEvents();
+			if (std::any_of(items.cbegin(), items.cend(), [](auto* item) { return item && item->isVisible(); })) {
+				ok = false;
+				failures << QString("%1 layer did not hide its items").arg(name);
+			}
+			layer->setChecked(true);
+			QApplication::processEvents();
+			if (initiallyChecked && std::any_of(items.cbegin(), items.cend(), [](auto* item) {
+				return item && !item->isVisible();
+			})) {
+				ok = false;
+				failures << QString("%1 layer did not restore its items").arg(name);
+			}
+		};
+		checkItemLayer(stationLayer, m_stationDecorations, "station decorations");
+		checkItemLayer(signalLayer, m_signalGroups, "signal groups");
+		QList<QGraphicsItem*> passengerItems;
+		for (auto* platform : allPlatforms) {
+			if (!platform)
+				continue;
+			if (platform->textIcon)
+				passengerItems.append(platform->textIcon);
+			for (auto* icon : platform->passengerIcons)
+				if (icon)
+					passengerItems.append(icon);
+		}
+		if (initial_variables.PAX_GUI && (passengerItems.isEmpty()
+			|| std::none_of(passengerItems.cbegin(), passengerItems.cend(), [](auto* item) {
+				return item && item->isVisible();
+			}))) {
+			ok = false;
+			failures << "PAX enabled but no visible passenger-owned graphics rendered";
+		}
+		checkItemLayer(passengerLayer, passengerItems, "passenger load");
+	}
+
 	QString screenshotPath = qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT");
 	if (!screenshotPath.isEmpty()) {
-		QPixmap image = networkView->grab();
+		QPixmap image = grab();
 		if (!image.save(screenshotPath)) {
 			ok = false;
 			failures << "screenshot save failed";
@@ -5156,6 +5410,8 @@ void MainWindow::teardownGUI() {
 	m_prevTrainPositions.clear();
 	allTrains.clear();
 	allSignals.clear();
+	m_signalGroups.clear();
+	m_stationDecorations.clear();
 	m_signalsByAheadId.clear();
 	allArcs.clear();
 	allPlatforms.clear();
@@ -5204,6 +5460,7 @@ void MainWindow::setStartTime() {
 		return;
 	}
 	m_startOffsetSeconds = secs;
+	updateCaseLayersPanel();
 	statusBar()->showMessage(QString("Start time set to %1").arg(text), 3000);
 }
 
@@ -5288,6 +5545,7 @@ void MainWindow::runScene() {
 	train_route = std::vector<Route>(N_Routes); // GLOBAL, size like main.cpp
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
 	initial_variables.times = computeHorizon(m_sceneModel);
+	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
 	simulation.setupEgtrain();
 	readStationInfo(); // main.cpp does this at startup; reloads skip it otherwise
@@ -5297,6 +5555,7 @@ void MainWindow::runScene() {
 
 	// scene stays loaded; only the case-study load path clears it
 	updateSceneWindowTitle();
+	updateCaseLayersPanel();
 	updateSceneActions();
 
 	startSimulation();
@@ -5431,6 +5690,8 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 void MainWindow::paintStationIcon(QPointF coord, int size) {
 	IconItem* item = new IconItem(station_pixmap.scaled(QSize(size, size), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	scene->addItem(item);
+	m_stationDecorations.push_back(item);
+	item->setVisible(m_stationLayerVisible);
 
 	item->setPos(coord.x() - (size / 2), coord.y() - (size / 2));
 	item->setTransformationMode(Qt::SmoothTransformation);
@@ -5468,6 +5729,8 @@ void MainWindow::paintStationName(QPointF coord, string sname, int size) {
 	station_name->setDefaultTextColor(Qt::white);
 	station_name->setZValue(3); // draw on top of every item
 	scene->addItem(station_name);
+	m_stationDecorations.push_back(station_name);
+	station_name->setVisible(m_stationLayerVisible);
 
 	// fit to window
 	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
@@ -5524,9 +5787,11 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 	// add to scene
 	scene->addItem(platformItem);
 	scene->addItem(textItem);
+	m_stationDecorations.push_back(platformItem);
+	platformItem->setVisible(m_stationLayerVisible);
 
 	// hide textItem at first
-	textItem->hide();
+	textItem->setVisible(false);
 
 	// add item to allPlatforms list
 	allPlatforms.push_back(platformItem);
@@ -5924,6 +6189,8 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 
 	// add signal to scene
 	scene->addItem(signalGroup);
+	m_signalGroups.push_back(signalGroup);
+	signalGroup->setVisible(m_signalLayerVisible);
 
 	// fit to window
 	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
@@ -5974,6 +6241,7 @@ void MainWindow::paintTrain(int trainIndex, int t, int size, int pen_width, Trai
 
 	// add train to scene
 	scene->addItem(trainPolygonGroup);
+	trainPolygonGroup->setVisible(m_trainLayerVisible);
 
 	// add train to allTrains list
 	allTrains.push_back(trainPolygonGroup);
@@ -6205,6 +6473,8 @@ void MainWindow::setupInfoDockWidget() {
 	infoWidgetMainLayout->addWidget(trainInfoWidget);
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
+	for (auto* edit : infoWidget->findChildren<QLineEdit*>())
+		edit->setReadOnly(true);
 
 	// dock widget
 	infoDockWidget = new InfoDockWidget("Simulation Info");
@@ -6768,6 +7038,8 @@ void MainWindow::waitForUpdates(int timestep) {
 	}
 	QString clock = QString::fromStdString(formatSimTime(timestep, m_startOffsetSeconds));
 	QString endClock = QString::fromStdString(formatSimTime(static_cast<long long>(initial_variables.times), m_startOffsetSeconds));
+	if (m_simulationClockLabel)
+		m_simulationClockLabel->setText(clock);
 	statusBar()->showMessage(QString("Simulation running  %1 / %2").arg(clock, endClock));
 
 	if (progressBar) {
@@ -6785,6 +7057,8 @@ void MainWindow::waitForUpdates(int timestep) {
 			updatePaxIconInfo();
 			updateTrainPaxInfo();
 		}
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
+			runVisualPolishE2E();
 
 		m_lastRenderMs = now;
 	}
@@ -6828,7 +7102,7 @@ void MainWindow::updatePlatforms(int t) {
 	// show text items from the beginning of the simulation
 	if (t == 0) {
 		for (auto* platformIcon : allPlatforms) {
-			platformIcon->textIcon->show();
+			platformIcon->textIcon->setVisible(m_passengerLayerVisible);
 		}
 	}
 
@@ -6871,6 +7145,7 @@ void MainWindow::updatePlatforms(int t) {
 		// update text item
 		auto originalCenter = platformIcon->textIcon->boundingRect().center();
 		platformIcon->textIcon->setPlainText(text);
+		platformIcon->textIcon->setVisible(m_passengerLayerVisible);
 		auto newCenter = platformIcon->textIcon->boundingRect().center();
 		auto delta = originalCenter - newCenter;
 		platformIcon->textIcon->moveBy(delta.x(), delta.y());
@@ -6903,6 +7178,7 @@ void MainWindow::updatePlatforms(int t) {
 				}
 
 				scene->addItem(item);
+				item->setVisible(m_passengerLayerVisible);
 				platformIcon->passengerIcons.push_back(item);
 
 				iconX += iconSpacing;
@@ -6913,25 +7189,31 @@ void MainWindow::updatePlatforms(int t) {
 
 // slot to update passenger counter from clicked train
 void MainWindow::updateTrainPaxInfo() {
+	if (!m_passengerLayerVisible) {
+		if (trainPaxInfoItem)
+			trainPaxInfoItem->setVisible(false);
+		return;
+	}
 	if (trainPaxInfoItem) {
 		// remove existing item
 		removeTrainPaxInfoIcon();
-
-		if (trainPaxItem) {
+		if (trainPaxItem)
 			paintTrainPassengerInfo(trainPaxItem);
-		}
 	}
 }
 
 // slot to update passenger info from clicked passenger icon
 void MainWindow::updatePaxIconInfo() {
+	if (!m_passengerLayerVisible) {
+		if (paxIconInfoItem)
+			paxIconInfoItem->setVisible(false);
+		return;
+	}
 	if (paxIconInfoItem) {
 		// remove existing item
 		removePaxInfoIcon();
-
-		if (paxIconItem) {
+		if (paxIconItem)
 			paintPassengerInfoIcon(paxIconItem);
-		}
 	}
 }
 
@@ -7018,6 +7300,7 @@ void MainWindow::updateTrainPosition(int t) {
 
 		// trainItem found
 		if (trainItem) {
+			trainItem->setVisible(m_trainLayerVisible && !regional_train[train].OutOfSimulation);
 			// update train position
 			if (!regional_train[train].OutOfSimulation) {
 				// capture previous scene center for interpolation
@@ -7047,7 +7330,7 @@ void MainWindow::updateTrainPosition(int t) {
 					m_trainSpeedLabels[train] = speedLabel;
 				}
 				speedLabel->setText(speedText);
-				speedLabel->setVisible(true);
+				speedLabel->setVisible(m_trainLayerVisible);
 				m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
 				if (delta.manhattanLength() > 0.5) {
@@ -7099,8 +7382,6 @@ void MainWindow::updateTrainPosition(int t) {
 		}
 	}
 
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
-		runVisualPolishE2E();
 }
 
 // returns the full train shape (list of polygons)
