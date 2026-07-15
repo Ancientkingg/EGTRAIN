@@ -9,7 +9,6 @@
 vector<int> VCmsgTimestep;
 vector<string> VCmsgTrain;
 vector<string> VCmsgText;
-QList<QGraphicsItemGroup*> VCmsgItems;
 // --------------
 
 int N_OrderLists = initial_variables.num_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes

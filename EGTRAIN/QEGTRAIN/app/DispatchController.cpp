@@ -1,16 +1,128 @@
 #include "app/DispatchController.h"
 #include "simulation/SimulationWorker.h"
 #include "util/portability.h"  // localtime_r shim on MSVC
+#include <algorithm>
 #include <filesystem>
 #include <regex>
 #include <thread>
 #include <chrono>
+#include <memory>
 
 namespace {
 void ensureDirectory(const string& path) {
 	if (!path.empty()) {
 		std::filesystem::create_directories(path);
 	}
+}
+
+GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = timestep;
+	snapshot.totalTimesteps = initial_variables.times;
+
+	snapshot.trains.reserve(static_cast<std::size_t>(numRegions));
+	for (int i = 0; i < numRegions; ++i) {
+		Train& train = regional_train[i];
+		GuiTrainState state;
+		state.index = i;
+		state.id = train.ID;
+		state.type = train.type;
+		state.description = train.trainDescription;
+		state.routeIndex = train.indexOfRoute;
+		const bool validRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(train_route.size());
+		state.reversedDirection = validRoute ? train_route[train.indexOfRoute].reversed_direction : false;
+		state.wagonCount = static_cast<int>(train.number_of_wagons);
+		state.length = train.train_length;
+		state.departureTime = static_cast<int>(train.departure_time);
+		state.outOfSimulation = train.OutOfSimulation;
+		state.speedKmh = train.speedKmhAt(timestep);
+		state.currentOnboardPassengers = train.Current_OnBoard_Passengers;
+		state.maxOnboardPassengers = train.MAX_OnBoard_Passengers;
+
+		if (validRoute && timestep >= 0 && timestep < static_cast<int>(train.instant_spatial_position.size())) {
+			state.routeAxisPosition = train.instant_spatial_position[static_cast<std::size_t>(timestep)];
+			state.wagonHeadPositions.reserve(static_cast<std::size_t>(state.wagonCount + 1));
+			state.wagonTailPositions.reserve(static_cast<std::size_t>(state.wagonCount + 1));
+			for (int wagon = 0; wagon <= state.wagonCount; ++wagon) {
+				state.wagonHeadPositions.push_back(train.trainXPosition(timestep, wagon));
+				state.wagonTailPositions.push_back(train.trainXPosition(timestep, wagon + 1));
+			}
+		}
+
+		const int arcCount = std::min(train.Bs.total_arcs,
+			static_cast<int>(sizeof(train.Bs.arcs_in_signalling_block_section)
+				/ sizeof(train.Bs.arcs_in_signalling_block_section[0])));
+		for (int arc = 0; arc < arcCount; ++arc) {
+			state.occupiedArcs.push_back({train.Bs.trackLineId,
+				train.Bs.arcs_in_signalling_block_section[arc].startNode.X});
+		}
+		snapshot.trains.push_back(std::move(state));
+	}
+
+	auto appendSignal = [&snapshot](const std::string& id, int code, bool reversed) {
+		if (!id.empty())
+			snapshot.signalStates.push_back({id, code, reversed});
+	};
+	const int routeCount = std::min(N_Routes, static_cast<int>(train_route.size()));
+	for (int routeIndex = 0; routeIndex < routeCount; ++routeIndex) {
+		const Route& route = train_route[routeIndex];
+		for (int sectionIndex = 0; sectionIndex < route.N_Block_Sections; ++sectionIndex) {
+			const Section& section = route.sequence_of_block_sections[sectionIndex];
+			const std::string& id = section.ID;
+			if (id.find('/') == std::string::npos) {
+				appendSignal(id, static_cast<int>(section.code), route.reversed_direction);
+				continue;
+			}
+			const std::size_t first = id.find("@-");
+			const std::size_t middle = id.find("/@", first == std::string::npos ? 0 : first + 1);
+			const std::size_t last = id.find("@-", middle == std::string::npos ? 0 : middle + 1);
+			if (first != std::string::npos && middle != std::string::npos && last != std::string::npos) {
+				appendSignal(id.substr(0, first + 1), static_cast<int>(section.code), route.reversed_direction);
+				appendSignal(id.substr(middle + 1, last - middle), static_cast<int>(section.code), route.reversed_direction);
+			}
+		}
+	}
+
+	for (const StationPlatform& platform : AllStationPlatforms) {
+		GuiPlatformState state;
+		state.stationId = platform.StationID;
+		state.platformId = platform.ID;
+		state.maxVolume = platform.Max_Passenger_Volume;
+		for (const auto& passenger : platform.Current_List_Pax_On_Platform)
+			state.passengerIds.push_back(passenger.first);
+		for (const Passenger& passenger : AllDailyPassengers) {
+			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0 &&
+				timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + 5 &&
+				platform.StationID == passenger.StationExitedTheNetworkID &&
+				platform.ID == passenger.PlatformExitedTheNetworkID)
+				state.passengerIds.push_back(passenger.ID);
+		}
+		snapshot.platforms.push_back(std::move(state));
+	}
+
+	for (const Passenger& passenger : AllDailyPassengers) {
+		GuiPassengerState state;
+		state.id = passenger.ID;
+		state.status = passenger.CurrentStatus;
+		state.waitingPlatform = passenger.Current_WaitingStationPlatformID;
+		state.nextTrain = passenger.Current_Train_To_Wait;
+		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
+			[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
+		if (journey != passenger.Journeys.end()) {
+			const auto trip = std::find_if(journey->Trips.begin(), journey->Trips.end(),
+				[&passenger](const Trip& value) { return value.TripID == passenger.current_TripID; });
+			if (trip != journey->Trips.end())
+				state.nextDestination = trip->Arr_Station_ID;
+		}
+		snapshot.passengers.push_back(std::move(state));
+	}
+
+	const std::size_t messageCount = std::min({VCmsgTimestep.size(), VCmsgTrain.size(), VCmsgText.size()});
+	for (std::size_t i = 0; i < messageCount; ++i) {
+		if (timestep >= VCmsgTimestep[i] && timestep <= VCmsgTimestep[i] + 40)
+			snapshot.virtualCouplingMessages.push_back({VCmsgTimestep[i], VCmsgTrain[i], VCmsgText[i]});
+	}
+	return snapshot;
 }
 }
 
@@ -149,6 +261,7 @@ void DispatchController::setupEgtrain() {
 
 // Resets all simulation state so setupEgtrain() can be called again for a different case study.
 void DispatchController::resetState() {
+	snapshotMailbox_.take();
 	// Counters
 	numTrackLines = 0;
 	Blocks = 0;
@@ -202,6 +315,16 @@ void DispatchController::resetState() {
 	// interpolation of the next one; readStationInfo only appends
 	for (int i = 0; i < 95; i++)
 		StationArray[i] = Stations();
+}
+
+std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationSnapshot() {
+	return snapshotMailbox_.take();
+}
+
+void DispatchController::publishSimulationSnapshot(int timestep) {
+	auto snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
+	if (snapshotMailbox_.publish(std::move(snapshot)))
+		emit snapshotAvailable();
 }
 
 // prepares the simulation
@@ -861,8 +984,7 @@ else regional_train[0].max_train_speed = 33.61;*/
 		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
 		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
 
-		// send signal to update GUI
-		emit(iterationFinished(t));
+		publishSimulationSnapshot(t);
 	}
 }
 
@@ -1100,8 +1222,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
 		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
 
-		// send signal to update GUI
-		emit(iterationFinished(t));
+		publishSimulationSnapshot(t);
 	}
 }
 

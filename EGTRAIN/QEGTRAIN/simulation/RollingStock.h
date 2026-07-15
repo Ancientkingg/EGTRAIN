@@ -5,12 +5,9 @@
 
 // GUI - Virtual Coupling notifications
 #include <vector>
-#include <QList>
-#include <QGraphicsItemGroup>
 extern vector<int> VCmsgTimestep;
 extern vector<string> VCmsgTrain;
 extern vector<string> VCmsgText;
-extern QList<QGraphicsItemGroup*> VCmsgItems;
 
 // -------------
 
@@ -3909,7 +3906,6 @@ public:
 					VCmsgTimestep.push_back(time_seconds);
 					VCmsgTrain.push_back(trainDescription);
 					VCmsgText.push_back("Train is now virtually\ncoupled to the leader");
-					VCmsgItems.push_back(nullptr);
 					//-------------------------------
 				}
 
@@ -3927,7 +3923,6 @@ public:
 						VCmsgTimestep.push_back(time_seconds);
 						VCmsgTrain.push_back(trainDescription);
 						VCmsgText.push_back("Train is now decoupled");
-						VCmsgItems.push_back(nullptr);
 						//-------------------------------
 
 						MovementAuthority ResetPredictedMAToDecoupleAt;
@@ -3958,7 +3953,6 @@ public:
 						VCmsgTimestep.push_back(time_seconds);
 						VCmsgTrain.push_back(trainDescription);
 						VCmsgText.push_back("Train is now unintentionally\ndecoupling from the leader");
-						VCmsgItems.push_back(nullptr);
 						//-------------------------------
 					}
 

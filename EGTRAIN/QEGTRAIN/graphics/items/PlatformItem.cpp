@@ -1,7 +1,7 @@
 #include "graphics/items/PlatformItem.h"
 
 PlatformItem::PlatformItem(const QRectF& rect, QGraphicsItem* parent)
-	: QGraphicsRectItem(rect, parent), platform(nullptr), textIcon(nullptr) {
+	: QGraphicsRectItem(rect, parent), textIcon(nullptr), maxVolume(0) {
 	setZValue(2); // draw over arcs and connections (which have z = 0) and nodes (z = 1)
 }
 

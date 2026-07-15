@@ -2,13 +2,13 @@
 #define PLATFORMITEM_H
 
 #include <QGraphicsRectItem>
+#include <string>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include <QWidget>
 #include <QPolygonF>
 #include <QtMath>
 
-#include "simulation/Infrastructure.h"
 #include "graphics/items/PassengerItem.h"
 
 class PlatformItem : public QGraphicsRectItem {
@@ -21,8 +21,9 @@ public:
 	// reimplemented functions
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-	// StationPlatform pointer
-	StationPlatform* platform;
+	std::string stationId;
+	std::string platformId;
+	int maxVolume;
 
 	// text item pointer
 	QGraphicsTextItem* textIcon;

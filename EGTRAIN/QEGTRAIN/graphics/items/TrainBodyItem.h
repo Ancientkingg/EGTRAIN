@@ -8,8 +8,6 @@
 #include <QPolygonF>
 #include <QtMath>
 
-#include "simulation/RollingStock.h"
-
 class TrainBodyItem : public QGraphicsPolygonItem {
 	// Q_OBJECT
 
@@ -19,9 +17,6 @@ public:
 
 	// reimplemented functions
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-
-	// train pointer
-	Train* train;
 
 	// train index on list of trains (train ID is not unique, index is)
 	int index;
