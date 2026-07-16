@@ -65,6 +65,8 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <set>
+#include <utility>
 #include <unordered_map>
 #include <tuple>
 #include <QStatusBar>
@@ -108,6 +110,8 @@ class QTemporaryDir; // forward declaration for m_runStagingDir
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
+#include "graphics/items/TrainBadgeItem.h"
+#include "graphics/items/NetworkLegendItem.h"
 #include "widgets/InfoDockWidget.h"
 #include "graphics/items/HighlightEffect.h"
 #include "widgets/TimeProgressBar.h"
@@ -364,8 +368,12 @@ private:
 	bool m_editorE2eFinished = false;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, QGraphicsSimpleTextItem*> m_trainSpeedLabels; // per-train speed overlay
+	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
+	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
+	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
+	std::set<TrackLineItem*> m_activeTrackItems;
 
 	// toolbar
 	QToolBar* m_toolBar;
@@ -478,8 +486,10 @@ private:
 	bool m_signalLayerVisible = true;
 	bool m_passengerLayerVisible = true;
 	QList<QGraphicsItem*> m_stationDecorations;
-	QList<QGraphicsItemGroup*> m_signalGroups;
+	QList<QGraphicsTextItem*> m_stationNames;
+	QList<QGraphicsItem*> m_signalDecorations;
 	QList<QGraphicsItemGroup*> m_vcMessageItems;
+	NetworkLegendItem* m_networkLegend = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
@@ -587,6 +597,9 @@ private:
 	QList<SignalItem*> allSignals;
 	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
+	void buildTrackIndexes();
+	void updateViewportOverlays();
+	void ensureNetworkLegend();
 
 	// list of train items (whose simulation is running)
 	QList<TrainItemGroup*> allTrains;

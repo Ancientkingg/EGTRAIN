@@ -37,6 +37,12 @@ struct GuiSignalState {
 	bool reversedDirection = false;
 };
 
+struct GuiSectionState {
+	std::string sectionId;
+	bool prepared = false;
+	bool blocked = false;
+};
+
 struct GuiPlatformState {
 	std::string stationId;
 	std::string platformId;
@@ -63,6 +69,7 @@ struct GuiSimulationSnapshot {
 	int totalTimesteps = 0;
 	std::vector<GuiTrainState> trains;
 	std::vector<GuiSignalState> signalStates;
+	std::vector<GuiSectionState> sectionStates;
 	std::vector<GuiPlatformState> platforms;
 	std::vector<GuiPassengerState> passengers;
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages;
