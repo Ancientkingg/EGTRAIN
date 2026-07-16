@@ -31,10 +31,20 @@ struct GuiTrainState {
 	std::vector<GuiOccupiedArc> occupiedArcs;
 };
 
+inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
+	return !train.outOfSimulation;
+}
+
 struct GuiSignalState {
 	std::string sectionId;
 	int code = 0;
 	bool reversedDirection = false;
+};
+
+struct GuiSectionState {
+	std::string sectionId;
+	bool prepared = false;
+	bool blocked = false;
 };
 
 struct GuiPlatformState {
@@ -63,6 +73,7 @@ struct GuiSimulationSnapshot {
 	int totalTimesteps = 0;
 	std::vector<GuiTrainState> trains;
 	std::vector<GuiSignalState> signalStates;
+	std::vector<GuiSectionState> sectionStates;
 	std::vector<GuiPlatformState> platforms;
 	std::vector<GuiPassengerState> passengers;
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages;
