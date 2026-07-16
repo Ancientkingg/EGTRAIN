@@ -1122,9 +1122,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentDock = new QDockWidget("Incidents", this);
 	m_incidentDock->setObjectName("incidentDock");
 	QWidget* incidentWidget = new QWidget(m_incidentDock);
-	QHBoxLayout* incidentLayout = new QHBoxLayout(incidentWidget);
+	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
 
-	// left: the list of incidents and the buttons that manage it
+	// incident list and the buttons that manage it
 	QWidget* incidentListPane = new QWidget(incidentWidget);
 	QVBoxLayout* incidentListLayout = new QVBoxLayout(incidentListPane);
 	incidentListLayout->addWidget(new QLabel("Incidents", incidentListPane));
@@ -1138,9 +1138,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	incidentButtonLayout->addWidget(m_duplicateIncidentButton);
 	incidentButtonLayout->addWidget(m_deleteIncidentButton);
 	incidentListLayout->addLayout(incidentButtonLayout);
-	incidentLayout->addWidget(incidentListPane);
+	incidentLayout->addWidget(incidentListPane, 1);
 
-	// right: the selected incident's fields
+	// selected incident's fields
 	QWidget* incidentDetailPane = new QWidget(incidentWidget);
 	QVBoxLayout* incidentDetailLayout = new QVBoxLayout(incidentDetailPane);
 	incidentDetailLayout->addWidget(new QLabel("Incident Id", incidentDetailPane));
@@ -1172,7 +1172,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	incidentDetailScroll->setWidgetResizable(true);
 	incidentDetailScroll->setFrameShape(QFrame::NoFrame);
 	incidentDetailScroll->setWidget(incidentDetailPane);
-	incidentLayout->addWidget(incidentDetailScroll);
+	incidentLayout->addWidget(incidentDetailScroll, 2);
 
 	m_incidentDock->setWidget(incidentWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
@@ -3628,6 +3628,43 @@ void MainWindow::runVisualPolishE2E() {
 		|| !secondaryDockHidden(m_serviceDock) || !secondaryDockHidden(m_incidentDock)) {
 		ok = false;
 		failures << "secondary diagnostics docks are visible by default";
+	}
+
+	showNormal();
+	resize(1200, 800);
+	QApplication::processEvents();
+	const int defaultNetworkWidth = networkView ? networkView->width() : 0;
+	const int caseDockWidth = caseDock ? caseDock->width() : 0;
+	if (!networkView || !caseDock || defaultNetworkWidth <= caseDockWidth) {
+		ok = false;
+		failures << QString("network viewport (%1px) is not wider than case/layers dock (%2px)")
+					.arg(defaultNetworkWidth)
+					.arg(caseDockWidth);
+	}
+	if (!networkView || !m_incidentDock) {
+		ok = false;
+		failures << "incident geometry controls are missing";
+	} else {
+		m_incidentDock->show();
+		m_incidentDock->raise();
+		QApplication::processEvents();
+		const int incidentNetworkWidth = networkView->width();
+		const int incidentDockWidth = m_incidentDock->width();
+		if (incidentNetworkWidth < 560 || incidentNetworkWidth <= incidentDockWidth || incidentDockWidth > 360) {
+			ok = false;
+			failures << QString("incident geometry network=%1px, dock=%2px violates 560px/wider/360px limits")
+						.arg(incidentNetworkWidth)
+						.arg(incidentDockWidth);
+		}
+		m_incidentDock->hide();
+		QApplication::processEvents();
+		const int restoredNetworkWidth = networkView->width();
+		if (qAbs(restoredNetworkWidth - defaultNetworkWidth) > 8) {
+			ok = false;
+			failures << QString("network viewport did not restore: before=%1px, after=%2px")
+						.arg(defaultNetworkWidth)
+						.arg(restoredNetworkWidth);
+		}
 	}
 
 	const auto layerToggle = [this](const char* objectName) {
