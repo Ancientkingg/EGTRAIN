@@ -488,7 +488,7 @@ private:
 	QList<QGraphicsItem*> m_stationDecorations;
 	QList<QGraphicsTextItem*> m_stationNames;
 	QList<QGraphicsItem*> m_signalDecorations;
-	QList<QGraphicsItemGroup*> m_vcMessageItems;
+	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendItem* m_networkLegend = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 

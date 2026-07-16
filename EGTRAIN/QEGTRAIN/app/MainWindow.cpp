@@ -3605,6 +3605,27 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "no train items rendered";
 	}
 
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && scene && !allTrains.isEmpty()) {
+		TrainItemGroup* testTrain = allTrains.first();
+		if (!testTrain || !testTrain->trainPolygonItemList || testTrain->trainPolygonItemList->isEmpty()
+			|| !testTrain->trainPolygonItemList->first()
+			|| testTrain->trainPolygonItemList->first()->polygon().isEmpty()) {
+			ok = false;
+			failures << "cannot inject virtual coupling overlay";
+		} else {
+			paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
+			const int afterFirst = scene->items().size();
+			paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
+			const int afterSecond = scene->items().size();
+			if (afterSecond != afterFirst) {
+				ok = false;
+				failures << "virtual coupling overlay recreated between updates";
+			}
+			if (auto* overlay = m_vcMessageItems.value(testTrain->index, nullptr))
+				overlay->setVisible(false);
+		}
+	}
+
 	// Shell contract: the visual smoke must cover the controls users see before
 	// opening any secondary panel, not only the network scene.
 	if (!m_toolBar || m_toolBar->toolButtonStyle() != Qt::ToolButtonTextBesideIcon) {
@@ -7433,13 +7454,9 @@ void MainWindow::updateSignalAspect(const std::string& ID, double code, bool rev
 void MainWindow::updateTrainPosition(int t) {
 	if (!m_snapshot)
 		return;
-	for (auto* group : m_vcMessageItems) {
-		if (group) {
-			qDeleteAll(group->childItems());
-			scene->destroyItemGroup(group);
-		}
-	}
-	m_vcMessageItems.clear();
+	for (auto* group : m_vcMessageItems)
+		if (group)
+			group->setVisible(false);
 	// update every train
 	releaseBlockOccupationStatus();
 	const auto applySectionState = [this](const GuiSectionState& state, TrackOperationalState visualState) {
@@ -8109,17 +8126,43 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	QPen pen = QPen(QColor(242, 161, 106));
 	pen.setWidth(line_width);
 	pen.setCosmetic(true);
-	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
+	QGraphicsItemGroup* msgGroup = m_vcMessageItems.value(trainItem->index, nullptr);
+	QGraphicsLineItem* line = nullptr;
+	QGraphicsTextItem* text = nullptr;
+	QGraphicsRectItem* textBox = nullptr;
+	if (!msgGroup) {
+		msgGroup = new QGraphicsItemGroup;
+		line = new QGraphicsLineItem;
+		textBox = new QGraphicsRectItem;
+		text = new QGraphicsTextItem;
+		msgGroup->addToGroup(line);
+		msgGroup->addToGroup(textBox);
+		msgGroup->addToGroup(text);
+		msgGroup->setZValue(5);
+		scene->addItem(msgGroup);
+		m_vcMessageItems.insert(trainItem->index, msgGroup);
+	} else {
+		for (QGraphicsItem* child : msgGroup->childItems()) {
+			if (auto* item = qgraphicsitem_cast<QGraphicsLineItem*>(child))
+				line = item;
+			else if (auto* item = qgraphicsitem_cast<QGraphicsRectItem*>(child))
+				textBox = item;
+			else if (auto* item = qgraphicsitem_cast<QGraphicsTextItem*>(child))
+				text = item;
+		}
+	}
+	if (!line || !text || !textBox)
+		return;
+
+	line->setLine(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(pen);
 
 	QFont font = QFont();
 	font.setPixelSize((int)station_size / 6);
-	QGraphicsTextItem* text = new QGraphicsTextItem;
 	text->setPlainText(QString::fromStdString(message));
 	text->setDefaultTextColor(Qt::white);
 	text->setFont(font);
 
-	QGraphicsRectItem* textBox = new QGraphicsRectItem;
 	textBox->setRect(QRectF(0, 0, 1.25 * text->boundingRect().width(), 1.25 * text->boundingRect().height()));
 	textBox->setBrush(QColor(242, 161, 106));
 	textBox->setPos(end.x() - (textBox->boundingRect().width() / 2), end.y() - textBox->boundingRect().height());
@@ -8128,14 +8171,7 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	textPos.rx() += 0.5 * (textBox->boundingRect().width() - text->boundingRect().width());
 	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
 	text->setPos(textPos);
-
-	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
-	msgGroup->addToGroup(line);
-	msgGroup->addToGroup(textBox);
-	msgGroup->addToGroup(text);
-	msgGroup->setZValue(5);
-	scene->addItem(msgGroup);
-	m_vcMessageItems.push_back(msgGroup);
+	msgGroup->setVisible(true);
 }
 
 // hides all objects of unused tracks (including connections)
