@@ -2,6 +2,7 @@
 #define NETWORKSCENE_H
 
 #include <QGraphicsScene>
+#include <QGraphicsSceneContextMenuEvent>
 #include <QMouseEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QEvent>
@@ -34,6 +35,7 @@ public:
 	~NetworkScene();
 
 	void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent);
+	void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 signals:
 	void MousePressedOnScene();
@@ -45,6 +47,11 @@ signals:
 	void MousePressedOnTrain(TrainBodyItem* train);
 	void MousePressedOnPassenger(PassengerItem* passenger);
 	void DisableHighlight();
+	void ContextMenuRequested(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
+
+private:
+	QTransform viewTransformFor(QWidget* widget) const;
+	QGraphicsItem* semanticItemAt(const QPointF& scenePos, QWidget* widget) const;
 };
 
 #endif // NETWORKSCENE_H
