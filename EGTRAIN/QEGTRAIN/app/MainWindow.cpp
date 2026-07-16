@@ -7940,7 +7940,7 @@ void MainWindow::askForTrainPathDiagram() {
 
 // manage VCoupling notifications
 void MainWindow::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t) {
-	if (not m_snapshot)
+	if (!m_snapshot)
 		return;
 	for (auto it = m_snapshot->virtualCouplingMessages.rbegin(); it != m_snapshot->virtualCouplingMessages.rend(); ++it) {
 		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + 40) {
@@ -7952,7 +7952,7 @@ void MainWindow::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainStat
 
 // paint VCoupling notification
 void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message) {
-	if (not trainItem || not trainItem->trainPolygonItemList || trainItem->trainPolygonItemList->isEmpty())
+	if (!trainItem || !trainItem->trainPolygonItemList || trainItem->trainPolygonItemList->isEmpty())
 		return;
 	TrainBodyItem* headPolygon = trainItem->trainPolygonItemList->at(0);
 	if (!headPolygon || headPolygon->polygon().isEmpty())
