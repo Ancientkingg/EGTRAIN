@@ -64,6 +64,15 @@ def main() -> None:
             raise SystemExit(f"Windows release job does not verify {requirement}")
     if "libqt5svg5-dev" not in release:
         raise SystemExit("Linux release job does not install libqt5svg5-dev")
+    packaged_svg_requirements = (
+        "Contents/Frameworks/QtSvg.framework",
+        "Contents/PlugIns/imageformats/libqsvg.dylib",
+        "libQt5Svg.so*",
+        "*/imageformats/libqsvg.so",
+    )
+    for requirement in packaged_svg_requirements:
+        if requirement not in release:
+            raise SystemExit(f"release jobs do not verify {requirement}")
 
     for relative_path in ("resources/icons/station.png", "resources/icons/passenger.png"):
         if (SOURCE_ROOT / relative_path).exists():

@@ -59,6 +59,8 @@ jobs:
           APP="build/QEGTRAIN.app"
           test -d "$APP/Contents/Frameworks/QtCore.framework"
           test -d "$APP/Contents/Frameworks/QtCharts.framework"
+          test -d "$APP/Contents/Frameworks/QtSvg.framework"
+          test -f "$APP/Contents/PlugIns/imageformats/libqsvg.dylib"
           test -f "$APP/Contents/Resources/egtrain.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
           find "$APP" -iname 'libomp*.dylib' | grep -q . || { echo "ERROR: libomp not bundled"; exit 1; }
@@ -313,6 +315,8 @@ jobs:
           test -f squashfs-root/usr/share/icons/hicolor/256x256/apps/qegtrain.png
           test -f squashfs-root/AppRun
           find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt5Svg.so*' -print -quit | grep -q .
+          find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, and Input data"
 
       - name: Upload artifact
