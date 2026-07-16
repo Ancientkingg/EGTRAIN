@@ -633,22 +633,23 @@ public:
 	std::vector<double> BX;
 	Node* Stations = nullptr;
 	int numStations;					   // Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
-	int stationBlockSection[40];		// Cached block section index for each station (avoids full-route scan every timestep)
-	int stationArc[40];				   // Cached Arc index within block section for each station
+	static constexpr int kMaxTimetableStations = 40; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
+	int stationBlockSection[kMaxTimetableStations];		// Cached block section index for each station (avoids full-route scan every timestep)
+	int stationArc[kMaxTimetableStations];				   // Cached Arc index within block section for each station
 	bool ServiceStopBehindATrain = false; // This variable is true only if the train is stopping at a station behind another train. We admit that in moving block operations maximum two trains can perform a service stop queueing one after each other at the same platform
 	bool StoppedForServiceStop = false;   // This variable is true when the train is stopping at a station to perform a service stop
 	string CurrentServiceStop;		   // This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
 	string CurrentServiceStopPlatform; // Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
 
 	double XCurrentServiceStop;	   // This is the relative abscissa on the route of the train of a service Stop when the train is stopping behind another train at the same platform
-	double StationArrivals[40];	   // This variable is the time instant in which the train actually enters a station
-	string StationArrivalNames[40]; // Preserves served station names for post-run arrival analysis.
-	double StationDelay[40];	   // This variable represent the arrival delay of a train at a certain station
-	double StationConsecDelay[40]; // This is the Consecutive delay at stations i.e. ArrivalDelay-Entrance Delay-Sum of disturbances at previous stations
-	double StationDisturbance[40]; //  This variable represents the disturbance to dwell times at stations
+	double StationArrivals[kMaxTimetableStations];	   // This variable is the time instant in which the train actually enters a station
+	string StationArrivalNames[kMaxTimetableStations]; // Preserves served station names for post-run arrival analysis.
+	double StationDelay[kMaxTimetableStations];	   // This variable represent the arrival delay of a train at a certain station
+	double StationConsecDelay[kMaxTimetableStations]; // This is the Consecutive delay at stations i.e. ArrivalDelay-Entrance Delay-Sum of disturbances at previous stations
+	double StationDisturbance[kMaxTimetableStations]; //  This variable represents the disturbance to dwell times at stations
 	int N_Station_Stopped;		   // This variable counts the number of stations at which the train has stopped
-	double ScheduledArrivals[40] = {};  // This Array contains scheduled train arrival time at stations (it is necessary to calculate train deviations from timetable and therefore train delays)
-	double ScheduledDepartures[40] = {};
+	double ScheduledArrivals[kMaxTimetableStations] = {};  // This Array contains scheduled train arrival time at stations (it is necessary to calculate train deviations from timetable and therefore train delays)
+	double ScheduledDepartures[kMaxTimetableStations] = {};
 	int delayed;						// This is a boolean parameter: if delayed =1 the train will experience a delay at a determined station, else if delayed=0 the train won't experience any delay
 	double TotalInputDelays = 0.0;		// Sum of the Entrance Delays +stochastic disturbances to dwell times
 	double EntranceDelay;				// This is the entrance delay of the train on the network
@@ -703,7 +704,7 @@ public:
 	// Called after Stations or route changes; eliminates the O(N_BS*total_arcs*numStations)
 	// triple scan from the per-timestep hot path.
 	void cacheStationPositions() {
-		for (int s = 0; s < 40; s++) {
+		for (int s = 0; s < kMaxTimetableStations; s++) {
 			stationBlockSection[s] = -1;
 			stationArc[s] = -1;
 		}
