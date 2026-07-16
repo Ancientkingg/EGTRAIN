@@ -13,10 +13,7 @@ NetworkScene::~NetworkScene() {
 void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	// emit signal according to clicked item (mouse left button pressed)
 	if (mouseEvent->button() == Qt::LeftButton) {
-		// used to disable highlight if no item is clicked
 		bool itemClicked = false;
-
-		// clicked item
 		QTransform viewTransform;
 		for (QGraphicsView* view : views()) {
 			if (view->viewport() == mouseEvent->widget()) {
@@ -24,70 +21,43 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 				break;
 			}
 		}
-		QGraphicsItem* item = itemAt(mouseEvent->scenePos(), viewTransform);
 
-		// filter nodes
-		NodeItem* Node = qgraphicsitem_cast<NodeItem*>(item);
+		const QList<QGraphicsItem*> hitItems = items(
+			mouseEvent->scenePos(), Qt::IntersectsItemShape, Qt::DescendingOrder, viewTransform);
+		for (QGraphicsItem* item : hitItems) {
+			for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
+				if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(candidate)) {
+					emit MousePressedOnNode(node);
+					itemClicked = true;
+				} else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(candidate)) {
+					emit MousePressedOnStationNode(stationNode);
+					itemClicked = true;
+				} else if (TrackLineItem* arc = qgraphicsitem_cast<TrackLineItem*>(candidate)) {
+					emit MousePressedOnArc(arc);
+					itemClicked = true;
+				} else if (ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(candidate)) {
+					emit MousePressedOnConnection(connection);
+					itemClicked = true;
+				} else if (SignalItem* signal = qgraphicsitem_cast<SignalItem*>(candidate)) {
+					emit MousePressedOnSignal(signal);
+					itemClicked = true;
+				} else if (TrainBodyItem* train = qgraphicsitem_cast<TrainBodyItem*>(candidate)) {
+					emit MousePressedOnTrain(train);
+					itemClicked = true;
+				} else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(candidate)) {
+					emit MousePressedOnPassenger(passenger);
+					itemClicked = true;
+				}
 
-		if (Node) {
-			// display info of clicked Node (sends Node info on pointer)
-			emit MousePressedOnNode(Node);
-			itemClicked = true;
+				if (itemClicked)
+					break;
+			}
+			if (itemClicked)
+				break;
 		}
 
-		// filter station nodes
-		StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item);
-
-		if (stationNode) {
-			// display info of clicked Node (sends Node info on pointer)
-			emit MousePressedOnStationNode(stationNode);
-			itemClicked = true;
-		}
-
-		// filter arcs (Arc line items)
-		TrackLineItem* Arc = qgraphicsitem_cast<TrackLineItem*>(item);
-
-		if (Arc) {
-			// display info of clicked Arc (sends Arc info on pointer)
-			emit MousePressedOnArc(Arc);
-			itemClicked = true;
-		}
-
-		// filter connections (connection line items)
-		ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item);
-
-		if (connection) {
-			// display info of clicked connection (sends connection info on pointer)
-			emit MousePressedOnConnection(connection);
-			itemClicked = true;
-		}
-
-		// filter signals (signalling group items)
-		SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item);
-
-		if (signal) {
-			// display info of clicked signal plate (sends signal info on pointer)
-			emit MousePressedOnSignal(signal);
-			itemClicked = true;
-		}
-
-		// filter trains (train polygon items (wagons))
-		TrainBodyItem* train = qgraphicsitem_cast<TrainBodyItem*>(item);
-
-		if (train) {
-			// display info of clicked train (sends train info on pointer)
-			emit MousePressedOnTrain(train);
-			itemClicked = true;
-		}
-
-		// filter passengers (individual pax items)
-		PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item);
-
-		if (passenger) {
-			// display info of clicked passenger (sends pax info on pointer)
-			emit MousePressedOnPassenger(passenger);
-			itemClicked = true;
-		}
+		if (!itemClicked)
+			emit DisableHighlight();
 	}
 
 	// send signal
