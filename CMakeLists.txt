@@ -402,6 +402,14 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_networkscene_selection PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+	    add_executable(test_highlighteffect
+	        ${SRC_DIR}/tests/test_highlighteffect.cpp
+	        ${SRC_DIR}/graphics/items/HighlightEffect.cpp)
+	    target_link_libraries(test_highlighteffect PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+	    add_test(NAME test_highlighteffect COMMAND test_highlighteffect)
+	    set_tests_properties(test_highlighteffect PROPERTIES
+	        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_csvwriter
         ${SRC_DIR}/tests/test_csvwriter.cpp
         ${SRC_DIR}/util/CsvWriter.cpp)

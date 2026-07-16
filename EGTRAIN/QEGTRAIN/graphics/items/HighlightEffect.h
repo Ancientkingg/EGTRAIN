@@ -1,9 +1,9 @@
 #ifndef HIGHLIGHTEFFECT_H
 #define HIGHLIGHTEFFECT_H
 
-#include <QGraphicsColorizeEffect>
+#include <QGraphicsDropShadowEffect>
 
-class HighlightEffect : public QGraphicsColorizeEffect {
+class HighlightEffect : public QGraphicsDropShadowEffect {
 	Q_OBJECT
 
 public:
