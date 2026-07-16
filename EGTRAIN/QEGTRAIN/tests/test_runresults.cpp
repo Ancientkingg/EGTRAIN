@@ -190,6 +190,18 @@ int main() {
 					 "early arrival and departure preserve negative delays");
 	}
 
+	{
+		std::vector<std::string> stations;
+		for (int index = 0; index < Train::kMaxTimetableStations; ++index)
+			stations.push_back("S" + std::to_string(index));
+		auto train = makeTimetableTrain("overflow", stations);
+		train->numStations = Train::kMaxTimetableStations + 5;
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
+		ok &= expect(static_cast<int>(rows.size()) == Train::kMaxTimetableStations,
+					 "over-cap train yields exactly kMaxTimetableStations rows");
+	}
+
 	auto delayed = makeTrain("delayed", 3, 7, 10.0, 20.0, 30.0, 40.0);
 	const std::vector<const Train*> delayedTrains{delayed.get()};
 	const auto delayedResults = buildRunResults(delayedTrains, 0.5);
