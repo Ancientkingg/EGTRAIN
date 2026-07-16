@@ -56,7 +56,6 @@
 #include <QFont>
 #include <QFormLayout>
 #include <QGraphicsEffect>
-#include <QGraphicsColorizeEffect>
 #include <QTimer>
 #include <QTime>
 #include <algorithm>
@@ -321,12 +320,18 @@ private:
 	QLineEdit* arcCurvatureText;
 	QLineEdit* arcGradientText;
 	QLineEdit* arcSpeedLimitText;
+	QLineEdit* arcOperationalStateText;
+	QLineEdit* arcConnectedSignalsText;
 	QFormLayout* arcFormLayout;
 	QWidget* nodeInfoWidget;
 	QLineEdit* nodeIDText;
 	QLineEdit* nodeTrackIDText;
 	QLineEdit* nodeXText;
 	QLineEdit* nodeYText;
+	QLineEdit* nodeStationNameText;
+	QLineEdit* nodeRegionText;
+	QLineEdit* nodeConnectedTracksText;
+	QLineEdit* nodeSignalledText;
 	QFormLayout* nodeFormLayout;
 	QWidget* connectionInfoWidget;
 	QLineEdit* connectionFirstTrackIDText;
@@ -339,6 +344,9 @@ private:
 	QLineEdit* signallingXText;
 	QLineEdit* signallingIDSectionAheadText;
 	QLineEdit* signallingLengthSectionAheadText;
+	QLineEdit* signallingAspectText;
+	QLineEdit* signallingProtectedSectionText;
+	QLineEdit* signallingNextTrackText;
 	QFormLayout* signallingFormLayout;
 	QWidget* trainInfoWidget;
 	QLineEdit* trainIDText;

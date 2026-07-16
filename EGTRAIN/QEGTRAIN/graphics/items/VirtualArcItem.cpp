@@ -60,16 +60,7 @@ void VirtualArcItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	QPen effectPen = pen();
-	effectPen.setColor(Qt::blue);
-
-	// change line color when selected
-	if (graphicsEffect()) {
-		painter->setPen(effectPen);
-	} else {
-		painter->setPen(pen());
-	}
-
+	painter->setPen(pen());
 	painter->drawLine(line());
 	painter->drawLine(secondLine);
 }

@@ -46,8 +46,6 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 
 	QPen housingPen(QColor("#0d131a"));
 	housingPen.setWidthF(1.0);
-	if (graphicsEffect())
-		housingPen.setColor(Qt::blue);
 	painter->setPen(housingPen);
 	painter->setBrush(QColor("#26313b"));
 	painter->drawRoundedRect(rect(), 3.0, 3.0);
