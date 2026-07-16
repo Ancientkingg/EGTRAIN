@@ -37,9 +37,7 @@ bool canComputeTrainEnergy(Train& train) {
 		return false;
 	// Completed runs can leave a non-finite terminal power sample; the shared
 	// energy calculation treats that boundary sample as zero.
-	if (train.End_Time < static_cast<int>(train.instant_train_power_consumption.size()) &&
-		!std::isfinite(train.instant_train_power_consumption[static_cast<std::size_t>(train.End_Time)]))
-		train.instant_train_power_consumption[static_cast<std::size_t>(train.End_Time)] = 0.0;
+	train.sanitizeTerminalPowerSample();
 	const int energyStart = static_cast<int>(train.departure_time);
 	return energyStart >= 0 && energyStart <= train.End_Time &&
 		energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time) &&
