@@ -4815,7 +4815,16 @@ void MainWindow::runTrackPreviewE2E() {
 		return snapshot;
 	};
 	auto samePreviewContent = [](const PreviewContentSnapshot& left, const PreviewContentSnapshot& right) {
-		return left.items == right.items && left.itemBounds == right.itemBounds && left.bounds == right.bounds;
+		if (left.items.size() != right.items.size() || left.itemBounds.size() != right.itemBounds.size())
+			return false;
+		for (int index = 0; index < left.items.size(); ++index) {
+			if (left.items.at(index) != right.items.at(index)
+				|| left.itemBounds.at(index) != right.itemBounds.at(index))
+				return false;
+		}
+		if (left.bounds != right.bounds)
+			return false;
+		return true;
 	};
 
 	const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
