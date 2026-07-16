@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <utility>
 
@@ -66,7 +67,12 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 		const Train& train = *trainPtr;
 		if (!train.Stations || train.numStations <= 0)
 			continue;
-		const int stationCount = std::min(train.numStations, 40);
+		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
+		if (train.numStations > Train::kMaxTimetableStations) {
+			std::cerr << "Timetable results for train " << train.trainDescription << " truncated to "
+					  << Train::kMaxTimetableStations << " stations ("
+					  << train.numStations - Train::kMaxTimetableStations << " later stops dropped)\n";
+		}
 		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
 			TimetableResultRow row;
 			row.trainId = train.trainDescription;
