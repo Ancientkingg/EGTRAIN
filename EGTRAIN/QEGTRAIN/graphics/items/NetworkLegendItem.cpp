@@ -21,7 +21,8 @@ void drawTrackEntry(QPainter* painter, qreal y, const QString& label, TrackOpera
 void drawTrainEntry(QPainter* painter, qreal y, const QString& label, const TrainVisual& visual) {
 	painter->setPen(QPen(visual.outline, 1.0));
 	painter->setBrush(visual.fill);
-	painter->drawRoundedRect(QRectF(12.0, y - 6.0, 28.0, 12.0), 3.0, 3.0);
+	const qreal radius = trainBadgeCornerRadius(visual.shape);
+	painter->drawRoundedRect(QRectF(12.0, y - 6.0, 28.0, 12.0), radius, radius);
 	painter->setPen(QColor("#d9e1e8"));
 	painter->drawText(QRectF(50.0, y - 9.0, 126.0, 18.0), Qt::AlignVCenter | Qt::AlignLeft, label);
 }

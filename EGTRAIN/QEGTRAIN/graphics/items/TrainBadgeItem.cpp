@@ -57,7 +57,8 @@ void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	outline.setWidthF(1.2);
 	painter->setPen(outline);
 	painter->setBrush(m_visual.fill);
-	painter->drawRoundedRect(body, 4.0, 4.0);
+	const qreal radius = trainBadgeCornerRadius(m_visual.shape);
+	painter->drawRoundedRect(body, radius, radius);
 
 	QPolygonF direction;
 	const qreal centerY = body.center().y();

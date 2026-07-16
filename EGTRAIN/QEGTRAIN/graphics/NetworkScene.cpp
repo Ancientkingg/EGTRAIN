@@ -20,7 +20,7 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		QTransform viewTransform;
 		for (QGraphicsView* view : views()) {
 			if (view->viewport() == mouseEvent->widget()) {
-				viewTransform = view->transform();
+				viewTransform = view->viewportTransform();
 				break;
 			}
 		}

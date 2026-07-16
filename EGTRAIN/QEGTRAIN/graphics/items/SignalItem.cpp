@@ -2,6 +2,7 @@
 
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1) {
+	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
 	QRectF fixedHousing = rect;
 	fixedHousing.setSize(QSizeF(12.0, 16.0));
@@ -57,6 +58,30 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	painter->setPen(Qt::NoPen);
 	painter->setBrush(lamp);
 	painter->drawEllipse(lampRect);
+
+	const QColor cueColor = lamp.lightness() > 150 ? QColor("#101A22") : QColor("#f2f5f7");
+	painter->setPen(QPen(cueColor, 1.2));
+	painter->setBrush(cueColor);
+	switch (visual.cue) {
+	case SignalCueKind::Stop:
+		painter->drawLine(QLineF(lampRect.left() + 1.5, lampRect.center().y(), lampRect.right() - 1.5, lampRect.center().y()));
+		break;
+	case SignalCueKind::Caution: {
+			QPolygonF cue;
+			cue << QPointF(lampRect.center().x(), lampRect.top() + 1.0)
+				<< QPointF(lampRect.right() - 1.0, lampRect.bottom() - 1.0)
+				<< QPointF(lampRect.left() + 1.0, lampRect.bottom() - 1.0);
+			painter->drawPolygon(cue);
+			break;
+		}
+	case SignalCueKind::Proceed:
+		painter->drawLine(QLineF(lampRect.left() + 1.5, lampRect.center().y(), lampRect.center().x(), lampRect.bottom() - 1.5));
+		painter->drawLine(QLineF(lampRect.center().x(), lampRect.bottom() - 1.5, lampRect.right() - 1.5, lampRect.top() + 1.5));
+		break;
+	case SignalCueKind::Neutral:
+	default:
+		break;
+	}
 
 	const qreal y = rect().bottom() - 3.0;
 	QPolygonF cue;
