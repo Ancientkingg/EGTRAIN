@@ -382,6 +382,26 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
+    add_executable(test_networkscene_selection
+        ${SRC_DIR}/tests/test_networkscene_selection.cpp
+        ${SRC_DIR}/graphics/NetworkScene.cpp
+        ${SRC_DIR}/graphics/items/NodeItem.cpp
+        ${SRC_DIR}/graphics/items/StationNodeItem.cpp
+        ${SRC_DIR}/graphics/items/TrackLineItem.cpp
+        ${SRC_DIR}/graphics/items/ConnectionItem.cpp
+        ${SRC_DIR}/graphics/items/SignalItem.cpp
+        ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
+        ${SRC_DIR}/graphics/items/PassengerItem.cpp
+        ${SRC_DIR}/graphics/VisualPolish.cpp)
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_networkscene_selection PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    target_link_libraries(test_networkscene_selection PRIVATE
+        Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    add_test(NAME test_networkscene_selection COMMAND test_networkscene_selection)
+    set_tests_properties(test_networkscene_selection PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_csvwriter
         ${SRC_DIR}/tests/test_csvwriter.cpp
         ${SRC_DIR}/util/CsvWriter.cpp)
