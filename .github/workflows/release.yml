@@ -137,7 +137,7 @@ jobs:
           host: windows
           target: desktop
           arch: win64_msvc2019_64
-          modules: qtcharts qtsvg
+          modules: qtcharts
           cache: true
 
       - name: Set up MSVC environment
