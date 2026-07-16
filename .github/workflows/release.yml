@@ -59,6 +59,8 @@ jobs:
           APP="build/QEGTRAIN.app"
           test -d "$APP/Contents/Frameworks/QtCore.framework"
           test -d "$APP/Contents/Frameworks/QtCharts.framework"
+          test -d "$APP/Contents/Frameworks/QtSvg.framework"
+          test -f "$APP/Contents/PlugIns/imageformats/libqsvg.dylib"
           test -f "$APP/Contents/Resources/egtrain.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
           find "$APP" -iname 'libomp*.dylib' | grep -q . || { echo "ERROR: libomp not bundled"; exit 1; }
@@ -191,10 +193,11 @@ jobs:
           $ErrorActionPreference = "Stop"
           $dist = "dist/QEGTRAIN"
           if (-not (Test-Path "$dist/QEGTRAIN.exe")) { throw "missing QEGTRAIN.exe" }
-          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll")) {
+          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll","Qt5Svg.dll")) {
             if (-not (Test-Path "$dist/$dll")) { throw "missing $dll" }
           }
           if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
+          if (-not (Test-Path "$dist/imageformats/qsvg.dll")) { throw "missing imageformats/qsvg.dll" }
           if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
           if (-not (Test-Path "$dist/Input/Input_EGTRAIN_Paimpol")) { throw "missing Input case data" }
           if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
@@ -225,7 +228,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential cmake patchelf wget file desktop-file-utils \
-            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev \
             libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
 
       - name: Configure
@@ -312,6 +315,8 @@ jobs:
           test -f squashfs-root/usr/share/icons/hicolor/256x256/apps/qegtrain.png
           test -f squashfs-root/AppRun
           find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt5Svg.so*' -print -quit | grep -q .
+          find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, and Input data"
 
       - name: Upload artifact

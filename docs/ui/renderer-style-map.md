@@ -33,6 +33,14 @@ This map is the visual contract for the network playback primitives. State color
 
 Train badges reuse the existing `TrainVisual` palette and a shape classification. Intercity is a capsule, Sprinter is rounded, and Freight is square, so the categories remain distinct without relying on color alone. The badge keeps its identifier and optional speed text in one `QGraphicsItem` with `ItemIgnoresTransformations`, so labels stay readable while the map zooms.
 
+## Entity icons
+
+Entity icons use 24 by 24 SVGs on a transparent canvas. Geometry stays inside the 2 to 22 coordinate range. Primary strokes use 1.5 px with round joins and caps, and rounded housings use a 3 px corner radius. The palette is `#101A22` for the surface, `#26313B` for housings, `#0D131A` for outlines, `#F2F5F7` for ink, `#5078D2` for stations, `#2AAA7A` for passengers, `#2ECC71` for Proceed, `#F2A516` for Caution, `#EF5350` for Stop, and `#7F8C95` for Neutral.
+
+Stations render at 24 by 24 screen pixels. Stop stations use a white roundel, platform stations use two rail strokes and a platform stroke, and interchange stations use crossing rails with a transfer dot. Passenger icons render at 14 by 14 pixels and keep their passenger IDs in `PassengerItem` objects. Train category icons render at 14 by 14 pixels inside the badge: Passenger, Sprinter, Intercity, High speed, and Freight each have a distinct cab or locomotive shape. Signal icons occupy the 12 by 12 square at the top of the fixed 12 by 16 signal item. Neutral uses a gray lamp and center dot, Stop uses a red lamp and bar, Caution uses a yellow lamp and triangle, and Proceed uses a green lamp and chevron. The direction triangle remains in the lower signal area.
+
+The application loads these assets through the Qt resource aliases under `:/icons/`. `MainWindow`, `TrainBadgeItem`, and `SignalItem` cache the pixmaps and draw them with smooth transformation. Station, passenger, train badge, and signal overlays ignore view transformations so their screen sizes remain stable while the network zooms.
+
 ## Surface, grid, and low zoom
 
 `NetworkView` paints a dark neutral surface (`#101A22`) and a grid (`#1B2A35`) in `drawBackground()`. The grid uses no scene items. Its scene spacing doubles or halves around an 80-unit base so grid lines stay between 24 and 96 device pixels apart. At low zoom the grid therefore thins instead of filling the viewport, while badges and the legend remain screen-sized.

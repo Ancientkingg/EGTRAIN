@@ -87,14 +87,14 @@ int trackStatePriority(TrackOperationalState state) {
 TrainVisual classifyTrainType(const std::string& type, const std::string& description) {
 	std::string text = lower(type + " " + description);
 	if (containsAny(text, {"freight", "cargo", "goederen"}))
-		return {TrainVisualKind::Freight, QColor(120, 95, 70), QColor(70, 55, 40), classifyTrainBadgeShape(TrainVisualKind::Freight)};
+		return {TrainVisualKind::Freight, QColor(120, 95, 70), QColor(70, 55, 40), classifyTrainBadgeShape(TrainVisualKind::Freight), ":/icons/train-freight.svg"};
 	if (containsAny(text, {"ice", "hst", "highspeed", "high speed"}))
-		return {TrainVisualKind::HighSpeed, QColor(40, 130, 210), QColor(15, 70, 120), classifyTrainBadgeShape(TrainVisualKind::HighSpeed)};
+		return {TrainVisualKind::HighSpeed, QColor(40, 130, 210), QColor(15, 70, 120), classifyTrainBadgeShape(TrainVisualKind::HighSpeed), ":/icons/train-high-speed.svg"};
 	if (containsAny(text, {"sprinter", "spr"}))
-		return {TrainVisualKind::Sprinter, QColor(40, 170, 110), QColor(20, 90, 60), classifyTrainBadgeShape(TrainVisualKind::Sprinter)};
+		return {TrainVisualKind::Sprinter, QColor(40, 170, 110), QColor(20, 90, 60), classifyTrainBadgeShape(TrainVisualKind::Sprinter), ":/icons/train-sprinter.svg"};
 	if (containsAny(text, {"intercity", " ic", "ic "}))
-		return {TrainVisualKind::Intercity, QColor(235, 190, 45), QColor(120, 90, 20), classifyTrainBadgeShape(TrainVisualKind::Intercity)};
-	return {TrainVisualKind::Passenger, QColor(235, 210, 55), QColor(110, 90, 20), classifyTrainBadgeShape(TrainVisualKind::Passenger)};
+		return {TrainVisualKind::Intercity, QColor(235, 190, 45), QColor(120, 90, 20), classifyTrainBadgeShape(TrainVisualKind::Intercity), ":/icons/train-intercity.svg"};
+	return {TrainVisualKind::Passenger, QColor(235, 210, 55), QColor(110, 90, 20), classifyTrainBadgeShape(TrainVisualKind::Passenger), ":/icons/train-passenger.svg"};
 }
 
 SignalCueKind classifySignalCue(int code) {
@@ -109,20 +109,20 @@ SignalCueKind classifySignalCue(int code) {
 
 SignalVisual classifySignalAspect(int code) {
 	if (code == 0)
-		return {QColor(Qt::red), classifySignalCue(code)};
+		return {QColor(Qt::red), classifySignalCue(code), ":/icons/signal-stop.svg"};
 	if (code == 75)
-		return {QColor(Qt::yellow), classifySignalCue(code)};
+		return {QColor(Qt::yellow), classifySignalCue(code), ":/icons/signal-caution.svg"};
 	if (code == 180 || code == 270)
-		return {QColor(Qt::green), classifySignalCue(code)};
-	return {QColor(128, 128, 128), classifySignalCue(code)};
+		return {QColor(Qt::green), classifySignalCue(code), ":/icons/signal-proceed.svg"};
+	return {QColor(128, 128, 128), classifySignalCue(code), ":/icons/signal-neutral.svg"};
 }
 
 StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 	if (connectionCount >= 3)
-		return {StationVisualKind::Interchange, QColor(80, 120, 210), QColor(30, 60, 130)};
+		return {StationVisualKind::Interchange, QColor(80, 120, 210), QColor(30, 60, 130), ":/icons/station-interchange.svg"};
 	if (hasPlatformId)
-		return {StationVisualKind::Platform, QColor(70, 70, 70), QColor(30, 30, 30)};
-	return {StationVisualKind::StopMarker, QColor(120, 120, 120), QColor(70, 70, 70)};
+		return {StationVisualKind::Platform, QColor(70, 70, 70), QColor(30, 30, 30), ":/icons/station-platform.svg"};
+	return {StationVisualKind::StopMarker, QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station-stop.svg"};
 }
 
 QString simulationSpeedLabel(int delayMs) {
