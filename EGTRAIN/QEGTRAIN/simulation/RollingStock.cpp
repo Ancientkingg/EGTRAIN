@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <cstdio>
+#include <climits>
 #include <algorithm>
 
 // GUI - Virtual Coupling notifications
