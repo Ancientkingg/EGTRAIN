@@ -59,15 +59,6 @@ void TrackLineItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 		painter->drawLine(line());
 	}
 
-	QPen effectPen = pen();
-	effectPen.setColor(Qt::blue);
-
-	// change line color when selected
-	if (graphicsEffect()) {
-		painter->setPen(effectPen);
-	} else {
-		painter->setPen(pen());
-	}
-
+	painter->setPen(pen());
 	painter->drawLine(line());
 }
