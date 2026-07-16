@@ -9,12 +9,18 @@
 #include <QPolygonF>
 #include <QtMath>
 
+#include "graphics/VisualPolish.h"
+
 class SignalItem : public QGraphicsEllipseItem {
 	// Q_OBJECT
 
 public:
 	SignalItem(const QRectF& rect, QGraphicsItem* parent = 0);
 	~SignalItem();
+
+	void setAspectCode(int code);
+	int aspectCode() const;
+	void setReversedDirection(bool reversed);
 
 	// reimplemented functions
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
@@ -41,6 +47,9 @@ public:
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
+
+private:
+	int m_aspectCode;
 };
 
 #endif // SIGNALITEM_H

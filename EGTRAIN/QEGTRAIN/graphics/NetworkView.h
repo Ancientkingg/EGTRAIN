@@ -10,6 +10,9 @@
 #include <QGraphicsEllipseItem>
 #include <QBrush>
 #include <QTransform>
+#include <QPainter>
+#include <QResizeEvent>
+#include <QWheelEvent>
 #include <QDebug>
 #include <QScrollBar>
 #include <iostream>
@@ -21,14 +24,19 @@ public:
 	NetworkView(QWidget* parent = 0);
 	~NetworkView();
 
-	void mousePressEvent(QMouseEvent* mouseEvent);
+	void mousePressEvent(QMouseEvent* mouseEvent) override;
+	void scale(qreal sx, qreal sy);
 
 protected:
-	virtual void wheelEvent(QWheelEvent* event);
+	void wheelEvent(QWheelEvent* event) override;
+	void drawBackground(QPainter* painter, const QRectF& rect) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void scrollContentsBy(int dx, int dy) override;
 
 private:
 signals:
 	void MousePressedOnView();
+	void viewportChanged();
 };
 
 #endif // NETWORKVIEW_H

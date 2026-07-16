@@ -53,6 +53,8 @@ extern InitialParameters initial_variables;
 namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
+constexpr qreal kDenseDetailScale = 0.16;
+constexpr int kOverlayMargin = 12;
 
 std::vector<const Train*> runResultTrainPointers() {
 	std::vector<const Train*> trains;
@@ -503,6 +505,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
 	networkView->setScene(scene);
+	connect(networkView, &NetworkView::viewportChanged, this, &MainWindow::updateViewportOverlays);
 
 	// zoom
 	networkView->viewport()->installEventFilter(this);
@@ -669,12 +672,23 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		for (auto* item : m_stationDecorations)
 			if (item)
 				item->setVisible(checked);
+		for (auto* item : m_stationNames)
+			if (item)
+				item->setVisible(checked);
+		updateViewportOverlays();
 	});
 	connect(m_trainLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_trainLayerVisible = checked;
 		for (auto* train : allTrains)
 			if (train)
 				train->setVisible(checked && !train->outOfSimulation);
+		for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+			if (!it.value())
+				continue;
+			auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
+				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
+			it.value()->setVisible(checked && trainIt != allTrains.cend() && !(*trainIt)->outOfSimulation);
+		}
 		for (auto it = m_trainSpeedLabels.cbegin(); it != m_trainSpeedLabels.cend(); ++it)
 			if (it.value()) {
 				auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
@@ -685,9 +699,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_signalLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_signalLayerVisible = checked;
-		for (auto* group : m_signalGroups)
-			if (group)
-				group->setVisible(checked);
+		for (auto* item : m_signalDecorations)
+			if (item)
+				item->setVisible(checked);
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_passengerLayerVisible = checked;
@@ -3584,17 +3598,32 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "missing follow controls";
 	} else {
 		m_followTrainCombo->setCurrentIndex(0);
-		m_followAction->setChecked(true);
-		QApplication::processEvents();
-		if (!m_followAction->isChecked() || m_followTrainIndex < 0) {
-			ok = false;
-			failures << "follow mode did not activate";
-		}
 	}
 
 	if (allTrains.isEmpty()) {
 		ok = false;
 		failures << "no train items rendered";
+	}
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && scene && !allTrains.isEmpty()) {
+		TrainItemGroup* testTrain = allTrains.first();
+		if (!testTrain || !testTrain->trainPolygonItemList || testTrain->trainPolygonItemList->isEmpty()
+			|| !testTrain->trainPolygonItemList->first()
+			|| testTrain->trainPolygonItemList->first()->polygon().isEmpty()) {
+			ok = false;
+			failures << "cannot inject virtual coupling overlay";
+		} else {
+			paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
+			const int afterFirst = scene->items().size();
+			paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
+			const int afterSecond = scene->items().size();
+			if (afterSecond != afterFirst) {
+				ok = false;
+				failures << "virtual coupling overlay recreated between updates";
+			}
+			if (auto* overlay = m_vcMessageItems.value(testTrain->index, nullptr))
+				overlay->setVisible(false);
+		}
 	}
 
 	// Shell contract: the visual smoke must cover the controls users see before
@@ -3721,7 +3750,7 @@ void MainWindow::runVisualPolishE2E() {
 			}
 		};
 		checkItemLayer(stationLayer, m_stationDecorations, "station decorations");
-		checkItemLayer(signalLayer, m_signalGroups, "signal groups");
+		checkItemLayer(signalLayer, m_signalDecorations, "signal groups");
 		QList<QGraphicsItem*> passengerItems;
 		for (auto* platform : allPlatforms) {
 			if (!platform)
@@ -3742,14 +3771,117 @@ void MainWindow::runVisualPolishE2E() {
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
 	}
 
-	QString screenshotPath = qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT");
-	if (!screenshotPath.isEmpty()) {
-		QPixmap image = grab();
-		if (!image.save(screenshotPath)) {
+	const auto captureScreenshot = [this, &ok, &failures](const char* variable, const char* label) {
+		const QString path = qEnvironmentVariable(variable);
+		if (path.isEmpty())
+			return;
+		QApplication::processEvents();
+		if (!grab().save(path)) {
 			ok = false;
-			failures << "screenshot save failed";
+			failures << QString("%1 screenshot save failed").arg(label);
+		}
+	};
+
+	if (!m_networkLegend || !m_networkLegend->isVisible()) {
+		ok = false;
+		failures << "network legend is missing";
+	}
+	if (!networkView) {
+		ok = false;
+		failures << "network viewport is missing before default capture";
+	} else {
+		const QRectF visibleViewport = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
+		const bool visibleBadge = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[](const auto& entry) { return entry && entry->isVisible(); });
+		const bool badgeInViewport = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[&visibleViewport](const auto& entry) {
+				return entry && entry->isVisible()
+					&& visibleViewport.contains(entry->sceneBoundingRect().center());
+			});
+		if (!visibleBadge) {
+			ok = false;
+			failures << "no visible train badge rendered";
+		} else if (!badgeInViewport) {
+			ok = false;
+			failures << "visible train badge center is outside default viewport";
+		}
+
+		const bool operationalTrack = std::any_of(allArcs.cbegin(), allArcs.cend(),
+			[](const TrackLineItem* item) {
+				return item && item->operationalState() != TrackOperationalState::Free;
+			});
+		const bool operationalTrackInViewport = std::any_of(allArcs.cbegin(), allArcs.cend(),
+			[&visibleViewport](const TrackLineItem* item) {
+				return item && item->operationalState() != TrackOperationalState::Free
+					&& visibleViewport.intersects(item->sceneBoundingRect());
+			});
+		if (!operationalTrack) {
+			ok = false;
+			failures << "playback did not render an operational track state";
+		} else if (!operationalTrackInViewport) {
+			ok = false;
+			failures << "no non-free track intersects default viewport";
 		}
 	}
+
+	// Capture the readable default view before changing follow or zoom state.
+	captureScreenshot("QEGTRAIN_E2E_SCREENSHOT", "default");
+	if (networkView && !allTrains.isEmpty()) {
+		networkView->centerOn(allTrains.first()->sceneBoundingRect().center());
+		networkView->scale(3.0, 3.0);
+		QApplication::processEvents();
+	} else {
+		ok = false;
+		failures << "cannot create dense view without a train";
+	}
+	captureScreenshot("QEGTRAIN_E2E_DENSE_SCREENSHOT", "dense");
+
+	SignalItem* visibleSignal = nullptr;
+	QGraphicsItem* signalHit = nullptr;
+	bool anyVisibleSignal = false;
+	for (auto* signal : allSignals) {
+		if (!signal || !signal->isVisible())
+			continue;
+		anyVisibleSignal = true;
+		QGraphicsItem* hit = scene->itemAt(signal->sceneBoundingRect().center(), networkView->viewportTransform());
+		if (qgraphicsitem_cast<SignalItem*>(hit) == signal) {
+			visibleSignal = signal;
+			signalHit = hit;
+			break;
+		}
+	}
+	if (!anyVisibleSignal) {
+		ok = false;
+		failures << "no visible signal rendered";
+	} else if (!visibleSignal) {
+		ok = false;
+		failures << "signal scene hit-test did not resolve any visible glyph";
+	} else {
+		if (qgraphicsitem_cast<SignalItem*>(signalHit) != visibleSignal) {
+			ok = false;
+			failures << "signal scene hit-test did not resolve the glyph";
+		}
+	}
+
+	if (m_followAction && m_followTrainCombo && m_followTrainCombo->count() > 0) {
+		m_followAction->setChecked(true);
+		QApplication::processEvents();
+		if (!m_followAction->isChecked() || m_followTrainIndex < 0) {
+			ok = false;
+			failures << "follow mode did not activate";
+		} else {
+			for (auto* train : allTrains) {
+				if (train && train->index == m_followTrainIndex) {
+					networkView->centerOn(train->sceneBoundingRect().center());
+					break;
+				}
+			}
+		}
+	} else {
+		ok = false;
+		failures << "follow mode controls disappeared";
+	}
+	captureScreenshot("QEGTRAIN_E2E_FOLLOW_SCREENSHOT", "follow");
 
 	if (ok) {
 		std::fprintf(stdout, "E2E_VISUAL_POLISH_OK\n");
@@ -4659,14 +4791,41 @@ void MainWindow::runTrackPreviewE2E() {
 		}
 		return false;
 	};
+	struct PreviewContentSnapshot {
+		QList<QGraphicsItem*> items;
+		QList<QRectF> itemBounds;
+		QRectF bounds;
+	};
+	auto snapshotPreviewContent = [&]() {
+		PreviewContentSnapshot snapshot;
+		if (!scene)
+			return snapshot;
+		bool hasBounds = false;
+		for (auto* item : scene->items()) {
+			if (!item || item == m_networkLegend)
+				continue;
+			snapshot.items.push_back(item);
+			const QRectF itemBounds = item->sceneBoundingRect();
+			snapshot.itemBounds.push_back(itemBounds);
+			if (itemBounds.isEmpty())
+				continue;
+			snapshot.bounds = hasBounds ? snapshot.bounds.united(itemBounds) : itemBounds;
+			hasBounds = true;
+		}
+		return snapshot;
+	};
+	auto samePreviewContent = [](const PreviewContentSnapshot& left, const PreviewContentSnapshot& right) {
+		return left.items == right.items && left.itemBounds == right.itemBounds && left.bounds == right.bounds;
+	};
 
 	const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
 	const bool opened = !scenePath.isEmpty() && openSceneDirectory(scenePath);
 	if (!opened || !m_sceneLoaded) {
 		fail("open", "incomplete scene did not open");
 	} else {
-		const int itemCount = scene->items().size();
-		const QRectF bounds = scene->itemsBoundingRect();
+		const PreviewContentSnapshot preview = snapshotPreviewContent();
+		const int itemCount = preview.items.size();
+		const QRectF bounds = preview.bounds;
 		const QRectF visible = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
 		const bool diagnosticsOk = hasDiagnosticCode(m_sceneDiagnostics, "scene.trains.none")
 			&& hasDiagnosticCode(m_sceneDiagnostics, "scene.services.none")
@@ -4724,15 +4883,19 @@ void MainWindow::runTrackPreviewE2E() {
 			|| !ui->actionSimulationStart || ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
 	}
-	const int previewItemCount = scene->items().size();
-	const QRectF previewBounds = scene->itemsBoundingRect();
+	const PreviewContentSnapshot previewBeforeRun = snapshotPreviewContent();
+	const QRectF previewBounds = previewBeforeRun.bounds;
+	if (m_networkLegend)
+		// Simulate viewport repositioning changing the whole-scene bounds.
+		m_networkLegend->setPos(previewBounds.bottomRight() + QPointF(100000.0, 100000.0));
 	runScene();
+	const bool workerStarted = m_worker != nullptr;
 	QApplication::processEvents();
-	if (m_worker) {
+	if (workerStarted || m_worker) {
 		runFacetOk = false;
 		fail("run gating", "invalid scene started simulation");
 	}
-	if (scene->items().size() != previewItemCount || scene->itemsBoundingRect() != previewBounds) {
+	if (!samePreviewContent(previewBeforeRun, snapshotPreviewContent())) {
 		runFacetOk = false;
 		fail("run gating", "blocked run removed the preview");
 	}
@@ -4774,16 +4937,15 @@ void MainWindow::runTrackPreviewE2E() {
 	if (structuralOk) {
 		const SceneModel expectedCurrent = m_sceneModel;
 		const QString expectedDir = QDir(m_sceneDir).absolutePath();
-		const int expectedItems = scene->items().size();
-		const QRectF expectedBounds = scene->itemsBoundingRect();
+		const PreviewContentSnapshot expectedContent = snapshotPreviewContent();
 		auto rejectedWithoutReplacement = [&](const QString& candidate, const char* label) {
 			if (openSceneDirectory(candidate)) {
 				fail("structural rejection", QString("%1 scene unexpectedly opened").arg(label));
 				return false;
 			}
 			const bool preserved = QDir(m_sceneDir).absolutePath() == expectedDir
-				&& sameSceneModel(m_sceneModel, expectedCurrent) && scene->items().size() == expectedItems
-				&& scene->itemsBoundingRect() == expectedBounds;
+				&& sameSceneModel(m_sceneModel, expectedCurrent)
+				&& samePreviewContent(expectedContent, snapshotPreviewContent());
 			if (!preserved)
 				fail("structural rejection", QString("%1 failure replaced current state").arg(label));
 			return preserved;
@@ -5315,6 +5477,8 @@ void MainWindow::setupGUI() {
 	}
 
 	buildSignalIndex();
+	buildTrackIndexes();
+	updateViewportOverlays();
 
 	// hide objects from unused tracklines
 	hideUnusedTracks();
@@ -5453,21 +5617,23 @@ void MainWindow::teardownGUI() {
 	// Clearing the scene deletes all owned QGraphicsItems.
 	scene->clear();
 
-	// clear() keeps the explicitly pinned scene rect, so fitView would keep
-	// fitting the previous network's extents; unset it to track the new items
-	scene->setSceneRect(QRectF());
-
 	// Clear list pointers - the items were owned by the scene and are now deleted.
 	m_trainSpeedLabels.clear(); // items deleted by scene->clear() above
+	m_trainBadges.clear(); // items deleted by scene->clear() above
 	m_prevTrainPositions.clear();
 	allTrains.clear();
 	allSignals.clear();
-	m_signalGroups.clear();
+	m_signalDecorations.clear();
+	m_stationNames.clear();
 	m_vcMessageItems.clear();
 	m_stationDecorations.clear();
 	m_signalsByAheadId.clear();
 	allArcs.clear();
 	allPlatforms.clear();
+	m_networkLegend = nullptr;
+	m_tracksBySectionId.clear();
+	m_tracksByOccupiedArc.clear();
+	m_activeTrackItems.clear();
 	trainPaxInfoItem = nullptr;
 	trainPaxItem = nullptr;
 	paxIconInfoItem = nullptr;
@@ -5485,6 +5651,11 @@ void MainWindow::teardownGUI() {
 		m_followTrainCombo->clear();
 
 	m_snapshot.reset();
+
+	// clear() keeps the explicitly pinned scene rect, so fitView would keep
+	// fitting the previous network's extents; unset it after invalidating the
+	// overlay caches because this emits viewportChanged().
+	scene->setSceneRect(QRectF());
 }
 
 void MainWindow::chooseOutputFolder() {
@@ -5739,12 +5910,14 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 
 // draws a station icon above the track
 void MainWindow::paintStationIcon(QPointF coord, int size) {
-	IconItem* item = new IconItem(station_pixmap.scaled(QSize(size, size), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	const int pinSize = std::clamp(size / 12, 16, 32);
+	IconItem* item = new IconItem(station_pixmap.scaled(QSize(pinSize, pinSize), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	item->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	scene->addItem(item);
 	m_stationDecorations.push_back(item);
 	item->setVisible(m_stationLayerVisible);
 
-	item->setPos(coord.x() - (size / 2), coord.y() - (size / 2));
+	item->setPos(coord.x() - (pinSize / 2), coord.y() - (pinSize / 2));
 	item->setTransformationMode(Qt::SmoothTransformation);
 
 	// fit to window
@@ -5780,7 +5953,7 @@ void MainWindow::paintStationName(QPointF coord, string sname, int size) {
 	station_name->setDefaultTextColor(Qt::white);
 	station_name->setZValue(3); // draw on top of every item
 	scene->addItem(station_name);
-	m_stationDecorations.push_back(station_name);
+	m_stationNames.push_back(station_name);
 	station_name->setVisible(m_stationLayerVisible);
 
 	// fit to window
@@ -6143,6 +6316,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	penPlate.setWidth(0);
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
 	QRectF rect = QRectF(0, 0, size, size);
+	rect.moveCenter(QPointF(0.0, 0.0));
 
 	// post #1
 	QGraphicsLineItem* post1 = new QGraphicsLineItem(QLineF(postStartX, postStartY, postEndX, postEndY));
@@ -6151,9 +6325,10 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	// plate #1
 	plateCenterX = postEndX;
 	plateCenterY = postEndY;
-	rect.moveCenter(QPoint(plateCenterX, plateCenterY));
 
 	SignalItem* plate1 = new SignalItem(rect);
+	plate1->setZValue(3);
+	plate1->setPos(QPointF(plateCenterX, plateCenterY));
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
 
@@ -6202,9 +6377,10 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	// plate #2
 	plateCenterX = postEndX;
 	plateCenterY = postEndY;
-	rect.moveCenter(QPoint(plateCenterX, plateCenterY));
 
 	SignalItem* plate2 = new SignalItem(rect);
+	plate2->setZValue(3);
+	plate2->setPos(QPointF(plateCenterX, plateCenterY));
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
 
@@ -6233,19 +6409,19 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	QGraphicsLineItem* basis2 = new QGraphicsLineItem(QLineF(basisStartX, basisStartY, basisEndX, basisEndY));
 	basis2->setPen(penPost);
 
-	// create group
-	QGraphicsItemGroup* signalGroup = new QGraphicsItemGroup();
-	signalGroup->addToGroup(post1);
-	signalGroup->addToGroup(plate1);
-	signalGroup->addToGroup(basis1);
-	signalGroup->addToGroup(post2);
-	signalGroup->addToGroup(plate2);
-	signalGroup->addToGroup(basis2);
-
-	// add signal to scene
-	scene->addItem(signalGroup);
-	m_signalGroups.push_back(signalGroup);
-	signalGroup->setVisible(m_signalLayerVisible);
+	const auto addSignalDecoration = [this, track](QGraphicsItem* item) {
+		item->setData(0, true);
+		item->setData(1, track);
+		scene->addItem(item);
+		m_signalDecorations.push_back(item);
+		item->setVisible(m_signalLayerVisible);
+	};
+	addSignalDecoration(post1);
+	addSignalDecoration(plate1);
+	addSignalDecoration(basis1);
+	addSignalDecoration(post2);
+	addSignalDecoration(plate2);
+	addSignalDecoration(basis2);
 
 	// fit to window
 	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
@@ -6305,6 +6481,18 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 
 	// add train to allTrains list
 	allTrains.push_back(trainPolygonGroup);
+
+	TrainBadgeItem* badge = new TrainBadgeItem();
+	badge->setIdentifier(QString::fromStdString(train.description));
+	badge->setSpeedText(QString::fromStdString(formatSpeedLabel(train.speedKmh)));
+	badge->setTrainVisual(visual);
+	badge->setReversed(train.reversedDirection);
+	badge->setCompact(!networkView || qAbs(networkView->transform().m11()) < kDenseDetailScale);
+	badge->setAcceptedMouseButtons(Qt::NoButton);
+	scene->addItem(badge);
+	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation);
+	badge->setPos(trainPolygonGroup->sceneBoundingRect().center() + QPointF(8.0, -24.0));
+	m_trainBadges[train.index] = badge;
 }
 
 // converts geodetic to cartesian coordinates
@@ -6942,9 +7130,20 @@ void MainWindow::hideNetwork() {
 
 // fit view
 void MainWindow::fitView() {
+	ensureNetworkLegend();
 	// fit the items actually on the scene; the scene rect is unreliable after
 	// a reload because Qt's automatic rect only ever grows across loads
-	QRectF initialSceneRect = scene->itemsBoundingRect();
+	QRectF initialSceneRect;
+	bool hasSceneBounds = false;
+	for (auto* item : scene->items()) {
+		if (!item || item == m_networkLegend)
+			continue;
+		const QRectF itemBounds = item->sceneBoundingRect();
+		if (itemBounds.isEmpty())
+			continue;
+		initialSceneRect = hasSceneBounds ? initialSceneRect.united(itemBounds) : itemBounds;
+		hasSceneBounds = true;
+	}
 	if (initialSceneRect.isEmpty())
 		initialSceneRect = scene->sceneRect();
 	qreal expansionFactorX = 0.05;
@@ -6953,6 +7152,11 @@ void MainWindow::fitView() {
 
 	// fit to window
 	networkView->fitInView(initialSceneRect, Qt::KeepAspectRatio);
+	const qreal currentScale = qAbs(networkView->transform().m22());
+	const qreal minimumScale = track_separation > 0 ? 8.0 / track_separation : 0.0;
+	if (currentScale > 0.0 && currentScale < minimumScale)
+		networkView->scale(minimumScale / currentScale, minimumScale / currentScale);
+	updateViewportOverlays();
 }
 
 bool MainWindow::hasTrackGeometry(int track) const {
@@ -7265,32 +7469,23 @@ void MainWindow::removePaxInfoIcon() {
 }
 
 void MainWindow::updateBlockOccupationStatus(const GuiTrainState& train) {
-	TrackLineItem* track;
-	for (int i = 0; i < allArcs.size(); i++) {
-		for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
-
-			track = allArcs.at(i);
-
-			if ((track->arc->startNode.X == occupiedArc.startX) && (track->track == occupiedArc.trackId)) {
-				//  effect on clicked item
-				effect = new HighlightEffect(Qt::red, 1);
-				track->setGraphicsEffect(effect);
-			}
+	for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
+		auto it = m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
+		if (it == m_tracksByOccupiedArc.end() || !it->second)
+			continue;
+		TrackLineItem* track = it->second;
+		if (trackStatePriority(TrackOperationalState::Occupied) >= trackStatePriority(track->operationalState())) {
+			track->setOperationalState(TrackOperationalState::Occupied);
+			m_activeTrackItems.insert(track);
 		}
 	}
 }
 
 void MainWindow::releaseBlockOccupationStatus() {
-	TrackLineItem* track;
-	// std::cout << regional_train.Bs.arcs_in_signalling_block_section[0].endNode.X << " " << regional_train.trainDescription << "\n";
-
-	// for (int i = 0; i < allArcs.size(); i++) {
-	//	track = allArcs.at(i);
-	for (int i = 0; i < allArcs.size(); i++) {
-		track = allArcs.at(i);
-		effect = new HighlightEffect(Qt::white, 1);
-		track->setGraphicsEffect(effect);
-	}
+	for (auto* track : m_activeTrackItems)
+		if (track)
+			track->setOperationalState(TrackOperationalState::Free);
+	m_activeTrackItems.clear();
 }
 
 void MainWindow::updateSignalAspect(const std::string& ID, double code, bool reversed) {
@@ -7298,6 +7493,7 @@ void MainWindow::updateSignalAspect(const std::string& ID, double code, bool rev
 		return;
 	for (auto* signal : m_signalsByAheadId.at(ID)) {
 		if (signal->reversedDirection == reversed) {
+			signal->setAspectCode(static_cast<int>(code));
 			if (code == 270 || code == 180) {
 				signal->setBrush(Qt::green);
 			} else if (code == 75) {
@@ -7314,15 +7510,31 @@ void MainWindow::updateSignalAspect(const std::string& ID, double code, bool rev
 void MainWindow::updateTrainPosition(int t) {
 	if (!m_snapshot)
 		return;
-	for (auto* group : m_vcMessageItems) {
-		if (group) {
-			qDeleteAll(group->childItems());
-			scene->destroyItemGroup(group);
-		}
-	}
-	m_vcMessageItems.clear();
+	for (auto* group : m_vcMessageItems)
+		if (group)
+			group->setVisible(false);
 	// update every train
-	releaseBlockOccupationStatus(); //
+	releaseBlockOccupationStatus();
+	const auto applySectionState = [this](const GuiSectionState& state, TrackOperationalState visualState) {
+		if (!state.prepared && visualState == TrackOperationalState::Prepared)
+			return;
+		if (!state.blocked && visualState == TrackOperationalState::Blocked)
+			return;
+		auto tracks = m_tracksBySectionId.find(state.sectionId);
+		if (tracks == m_tracksBySectionId.end())
+			return;
+		for (auto* track : tracks->second) {
+			if (!track || trackStatePriority(visualState) < trackStatePriority(track->operationalState()))
+				continue;
+			track->setOperationalState(visualState);
+			m_activeTrackItems.insert(track);
+		}
+	};
+	for (const GuiSectionState& state : m_snapshot->sectionStates)
+		if (state.prepared)
+			applySectionState(state, TrackOperationalState::Prepared);
+	for (const GuiTrainState& state : m_snapshot->trains)
+		updateBlockOccupationStatus(state);
 	for (const GuiTrainState& state : m_snapshot->trains) {
 		const int train = state.index;
 		// check if train item exists
@@ -7353,39 +7565,36 @@ void MainWindow::updateTrainPosition(int t) {
 				getTrainPolygonItemList(trainItem->trainPolygonItemList, state);
 				checkVCouplingMsg(trainItem, state, t);
 
-				updateBlockOccupationStatus(state);
-
 				// animate smooth transition from old position to new position
 				QPointF newCenter = trainItem->sceneBoundingRect().center();
 
-				// update or create the speed label for this train
-				QString speedText = QString::fromStdString(
-					formatSpeedLabel(state.speedKmh));
-				QGraphicsSimpleTextItem* speedLabel = m_trainSpeedLabels.value(train, nullptr);
-				if (!speedLabel) {
-					speedLabel = scene->addSimpleText(speedText);
-					speedLabel->setZValue(1000);
-					speedLabel->setBrush(Qt::black);
-					m_trainSpeedLabels[train] = speedLabel;
+				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
+				if (badge) {
+					badge->setIdentifier(QString::fromStdString(state.description));
+					badge->setSpeedText(QString::fromStdString(formatSpeedLabel(state.speedKmh)));
+					badge->setTrainVisual(classifyTrainType(state.type, state.description));
+					badge->setReversed(state.reversedDirection);
+					badge->setVisible(m_trainLayerVisible);
 				}
-				speedLabel->setText(speedText);
-				speedLabel->setVisible(m_trainLayerVisible);
 				m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
+				const QPointF badgeBase = newCenter + QPointF(8.0, -24.0);
 				if (delta.manhattanLength() > 0.5) {
 					stopTrainAnimation(train);
 					trainItem->setPos(delta);
-					speedLabel->setPos(newCenter.x() + delta.x() + 6, newCenter.y() + delta.y() - 18);
+					if (badge)
+						badge->setPos(badgeBase + delta);
 					QVariantAnimation* interp = new QVariantAnimation(this);
 					m_trainAnimations[train] = interp;
 					interp->setDuration(120);
 					interp->setStartValue(QVariant::fromValue(delta));
 					interp->setEndValue(QVariant::fromValue(QPointF(0, 0)));
 					interp->setEasingCurve(QEasingCurve::Linear);
-					connect(interp, &QVariantAnimation::valueChanged, this, [trainItem, speedLabel, newCenter](const QVariant& val) {
+					connect(interp, &QVariantAnimation::valueChanged, this, [trainItem, badge, badgeBase](const QVariant& val) {
 						QPointF offset = val.toPointF();
 						trainItem->setPos(offset);
-						speedLabel->setPos(newCenter.x() + offset.x() + 6, newCenter.y() + offset.y() - 18);
+						if (badge)
+							badge->setPos(badgeBase + offset);
 					});
 					connect(interp, &QVariantAnimation::finished, this, [this, train, interp]() {
 						if (m_trainAnimations.value(train, nullptr) == interp)
@@ -7396,7 +7605,8 @@ void MainWindow::updateTrainPosition(int t) {
 				} else {
 					stopTrainAnimation(train);
 					trainItem->setPos(QPointF(0, 0));
-					speedLabel->setPos(newCenter.x() + 6, newCenter.y() - 18);
+					if (badge)
+						badge->setPos(badgeBase);
 				}
 				if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train)
 					networkView->centerOn(newCenter);
@@ -7405,6 +7615,8 @@ void MainWindow::updateTrainPosition(int t) {
 			else {
 				stopTrainAnimation(train);
 				trainItem->hide();
+				if (m_trainBadges.contains(train))
+					m_trainBadges[train]->setVisible(false);
 				if (m_trainSpeedLabels.contains(train))
 					m_trainSpeedLabels[train]->setVisible(false);
 			}
@@ -7413,11 +7625,17 @@ void MainWindow::updateTrainPosition(int t) {
 		// the exact departure frame, and the recorded trajectory (not the live
 		// train state) is what says whether the train is on the network at t
 		else if (t >= state.departureTime && state.routeAxisPosition != -9999) {
+			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
+			if (firstTrain && !allTrains.isEmpty())
+				networkView->centerOn(allTrains.last()->sceneBoundingRect().center());
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train && !allTrains.isEmpty())
 				networkView->centerOn(allTrains.last());
 		}
 	}
+	for (const GuiSectionState& state : m_snapshot->sectionStates)
+		if (state.blocked)
+			applySectionState(state, TrackOperationalState::Blocked);
 
 }
 
@@ -7967,17 +8185,43 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	QPen pen = QPen(QColor(242, 161, 106));
 	pen.setWidth(line_width);
 	pen.setCosmetic(true);
-	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
+	QGraphicsItemGroup* msgGroup = m_vcMessageItems.value(trainItem->index, nullptr);
+	QGraphicsLineItem* line = nullptr;
+	QGraphicsTextItem* text = nullptr;
+	QGraphicsRectItem* textBox = nullptr;
+	if (!msgGroup) {
+		msgGroup = new QGraphicsItemGroup;
+		line = new QGraphicsLineItem;
+		textBox = new QGraphicsRectItem;
+		text = new QGraphicsTextItem;
+		msgGroup->addToGroup(line);
+		msgGroup->addToGroup(textBox);
+		msgGroup->addToGroup(text);
+		msgGroup->setZValue(5);
+		scene->addItem(msgGroup);
+		m_vcMessageItems.insert(trainItem->index, msgGroup);
+	} else {
+		for (QGraphicsItem* child : msgGroup->childItems()) {
+			if (auto* item = qgraphicsitem_cast<QGraphicsLineItem*>(child))
+				line = item;
+			else if (auto* item = qgraphicsitem_cast<QGraphicsRectItem*>(child))
+				textBox = item;
+			else if (auto* item = qgraphicsitem_cast<QGraphicsTextItem*>(child))
+				text = item;
+		}
+	}
+	if (!line || !text || !textBox)
+		return;
+
+	line->setLine(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(pen);
 
 	QFont font = QFont();
 	font.setPixelSize((int)station_size / 6);
-	QGraphicsTextItem* text = new QGraphicsTextItem;
 	text->setPlainText(QString::fromStdString(message));
 	text->setDefaultTextColor(Qt::white);
 	text->setFont(font);
 
-	QGraphicsRectItem* textBox = new QGraphicsRectItem;
 	textBox->setRect(QRectF(0, 0, 1.25 * text->boundingRect().width(), 1.25 * text->boundingRect().height()));
 	textBox->setBrush(QColor(242, 161, 106));
 	textBox->setPos(end.x() - (textBox->boundingRect().width() / 2), end.y() - textBox->boundingRect().height());
@@ -7986,14 +8230,7 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	textPos.rx() += 0.5 * (textBox->boundingRect().width() - text->boundingRect().width());
 	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
 	text->setPos(textPos);
-
-	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
-	msgGroup->addToGroup(line);
-	msgGroup->addToGroup(textBox);
-	msgGroup->addToGroup(text);
-	msgGroup->setZValue(5);
-	scene->addItem(msgGroup);
-	m_vcMessageItems.push_back(msgGroup);
+	msgGroup->setVisible(true);
 }
 
 // hides all objects of unused tracks (including connections)
@@ -8057,19 +8294,25 @@ void MainWindow::hideUnusedTracks() {
 			}
 		}
 
-		// filter signals (signalling group items)
+		if (item->data(0).toBool()) {
+			if (std::find(unusedTracks.begin(), unusedTracks.end(), item->data(1).toInt()) != unusedTracks.end())
+				item->hide();
+			continue;
+		}
+
+		// filter signals
 		SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item);
 
 		if (signal) {
 			if (!signal->sectionAheadId.empty()) {
 				auto itAhead = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionAheadTrackId);
 				if (itAhead != unusedTracks.end()) {
-					signal->parentItem()->hide(); // hide group
+					signal->hide();
 				}
 			} else if (!signal->sectionBehindId.empty()) {
 				auto itBehind = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionBehindTrackId);
 				if (itBehind != unusedTracks.end()) {
-					signal->parentItem()->hide(); // hide group
+					signal->hide();
 				}
 			}
 		}
@@ -8611,5 +8854,77 @@ void MainWindow::buildSignalIndex() {
 		if (!signal->sectionAheadId.empty()) {
 			m_signalsByAheadId[signal->sectionAheadId].push_back(signal);
 		}
+	}
+}
+
+void MainWindow::buildTrackIndexes() {
+	m_tracksBySectionId.clear();
+	m_tracksByOccupiedArc.clear();
+
+	for (auto* item : allArcs) {
+		if (!item || !item->arc)
+			continue;
+		m_tracksByOccupiedArc[{item->track, item->arc->startNode.X}] = item;
+	}
+
+	const auto sameArc = [](const Arc& left, const Arc& right) {
+		return (left.ID == right.ID && left.startNode.X == right.startNode.X && left.endNode.X == right.endNode.X)
+			|| (left.startNode.X == right.startNode.X && left.endNode.X == right.endNode.X
+				&& left.length == right.length);
+	};
+	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
+		const Section& section = signalling_block_sections[sectionIndex];
+		if (section.ID.empty())
+			continue;
+		const int arcCount = std::min(section.total_arcs,
+			static_cast<int>(sizeof(section.arcs_in_signalling_block_section)
+				/ sizeof(section.arcs_in_signalling_block_section[0])));
+		auto& tracks = m_tracksBySectionId[section.ID];
+		for (int arcIndex = 0; arcIndex < arcCount; ++arcIndex) {
+			const Arc& sectionArc = section.arcs_in_signalling_block_section[arcIndex];
+			for (auto* item : allArcs) {
+				if (!item || !item->arc || !sameArc(*item->arc, sectionArc))
+					continue;
+				const bool trackMatches = section.trackLineId < 0
+					|| item->track == section.trackLineId
+					|| item->track == section.FirstConnectedTrackLineID
+					|| item->track == section.SecondConnectedTrackLineID;
+				if (!trackMatches || std::find(tracks.begin(), tracks.end(), item) != tracks.end())
+					continue;
+				tracks.push_back(item);
+			}
+		}
+		if (tracks.empty())
+			m_tracksBySectionId.erase(section.ID);
+	}
+}
+
+void MainWindow::ensureNetworkLegend() {
+	if (m_networkLegend || !scene)
+		return;
+	m_networkLegend = new NetworkLegendItem();
+	scene->addItem(m_networkLegend);
+	m_networkLegend->setVisible(true);
+}
+
+void MainWindow::updateViewportOverlays() {
+	if (!networkView)
+		return;
+	const qreal scale = qAbs(networkView->transform().m11());
+	const bool dense = scale >= kDenseDetailScale;
+	for (auto* name : m_stationNames) {
+		if (name)
+			name->setVisible(m_stationLayerVisible && dense);
+	}
+	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+		if (it.value())
+			it.value()->setCompact(!dense);
+	}
+	if (m_networkLegend) {
+		const QRect viewportRect = networkView->viewport()->rect();
+		const QSize legendSize = m_networkLegend->boundingRect().size().toSize();
+		const QPoint bottomRight = viewportRect.bottomRight() - QPoint(kOverlayMargin, kOverlayMargin);
+		const QPoint topLeft = bottomRight - QPoint(legendSize.width(), legendSize.height());
+		m_networkLegend->setPos(networkView->mapToScene(topLeft));
 	}
 }

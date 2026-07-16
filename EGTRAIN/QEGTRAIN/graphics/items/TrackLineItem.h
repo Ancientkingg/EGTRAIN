@@ -18,6 +18,7 @@
 #include <QtMath>
 
 #include "simulation/Infrastructure.h"
+#include "graphics/VisualPolish.h"
 
 using namespace std;
 
@@ -27,6 +28,9 @@ class TrackLineItem : public QGraphicsLineItem {
 public:
 	TrackLineItem(const QLineF& line, QGraphicsItem* parent = 0);
 	~TrackLineItem();
+
+	void setOperationalState(TrackOperationalState state);
+	TrackOperationalState operationalState() const;
 
 	// reimplemented functions
 	QPainterPath shape() const;
@@ -51,6 +55,9 @@ protected:
 	const qreal selectionOffset;
 	QPolygonF selectionPolygon;
 	void createSelectionPolygon();
+
+private:
+	TrackOperationalState m_operationalState;
 };
 
 #endif // TRACKLINEITEM_H

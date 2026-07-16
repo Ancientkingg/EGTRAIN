@@ -95,6 +95,8 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/NodeItem.cpp
     ${SRC_DIR}/graphics/items/BaseNetworkItem.cpp
     ${SRC_DIR}/graphics/items/TrackLineItem.cpp
+    ${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
+    ${SRC_DIR}/graphics/items/NetworkLegendItem.cpp
     ${SRC_DIR}/graphics/items/IconItem.cpp
     ${SRC_DIR}/graphics/items/StationNodeItem.cpp
     ${SRC_DIR}/graphics/NetworkScene.cpp
@@ -151,6 +153,8 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/NodeItem.h
     ${SRC_DIR}/graphics/items/BaseNetworkItem.h
     ${SRC_DIR}/graphics/items/TrackLineItem.h
+    ${SRC_DIR}/graphics/items/TrainBadgeItem.h
+    ${SRC_DIR}/graphics/items/NetworkLegendItem.h
     ${SRC_DIR}/graphics/items/IconItem.h
     ${SRC_DIR}/graphics/items/StationNodeItem.h
     ${SRC_DIR}/graphics/NetworkScene.h

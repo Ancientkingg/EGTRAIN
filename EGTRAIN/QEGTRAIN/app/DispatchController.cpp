@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <memory>
+#include <map>
 
 namespace {
 void ensureDirectory(const string& path) {
@@ -49,12 +50,14 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			}
 		}
 
-		const int arcCount = std::min(train.Bs.total_arcs,
-			static_cast<int>(sizeof(train.Bs.arcs_in_signalling_block_section)
-				/ sizeof(train.Bs.arcs_in_signalling_block_section[0])));
-		for (int arc = 0; arc < arcCount; ++arc) {
-			state.occupiedArcs.push_back({train.Bs.trackLineId,
-				train.Bs.arcs_in_signalling_block_section[arc].startNode.X});
+		if (guiTrainPublishesOccupiedArcs(state)) {
+			const int arcCount = std::min(train.Bs.total_arcs,
+				static_cast<int>(sizeof(train.Bs.arcs_in_signalling_block_section)
+					/ sizeof(train.Bs.arcs_in_signalling_block_section[0])));
+			for (int arc = 0; arc < arcCount; ++arc) {
+				state.occupiedArcs.push_back({train.Bs.trackLineId,
+					train.Bs.arcs_in_signalling_block_section[arc].startNode.X});
+			}
 		}
 		snapshot.trains.push_back(std::move(state));
 	}
@@ -63,12 +66,18 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		if (!id.empty())
 			snapshot.signalStates.push_back({id, code, reversed});
 	};
+	std::map<std::string, GuiSectionState> sectionStates;
 	const int routeCount = std::min(N_Routes, static_cast<int>(train_route.size()));
 	for (int routeIndex = 0; routeIndex < routeCount; ++routeIndex) {
 		const Route& route = train_route[routeIndex];
 		for (int sectionIndex = 0; sectionIndex < route.N_Block_Sections; ++sectionIndex) {
 			const Section& section = route.sequence_of_block_sections[sectionIndex];
 			const std::string& id = section.ID;
+			if (!id.empty()) {
+				auto& state = sectionStates[id];
+				state.sectionId = id;
+				state.prepared = state.prepared || section.code != 0.0;
+			}
 			if (id.find('/') == std::string::npos) {
 				appendSignal(id, static_cast<int>(section.code), route.reversed_direction);
 				continue;
@@ -82,6 +91,21 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			}
 		}
 	}
+	for (const SimulationIncident& incident : simulationIncidents) {
+		if (incident.type != "signal_failure"
+			|| timestep < incident.startSeconds || timestep > incident.endSeconds)
+			continue;
+		for (const std::string& id : incident.resolvedSectionIDs) {
+			if (id.empty())
+				continue;
+			auto& state = sectionStates[id];
+			state.sectionId = id;
+			state.blocked = true;
+		}
+	}
+	snapshot.sectionStates.reserve(sectionStates.size());
+	for (auto& entry : sectionStates)
+		snapshot.sectionStates.push_back(std::move(entry.second));
 
 	for (const StationPlatform& platform : AllStationPlatforms) {
 		GuiPlatformState state;
