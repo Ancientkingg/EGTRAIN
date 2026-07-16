@@ -81,8 +81,11 @@ void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	font.setPointSize(m_compact ? 8 : 9);
 	font.setBold(true);
 	painter->setFont(font);
-	const qreal textLeft = m_reversed ? 16.0 : 8.0;
-	painter->drawText(QRectF(textLeft, 1.0, body.width() - 24.0, body.height() - 2.0), Qt::AlignVCenter | Qt::AlignLeft, m_identifier);
+	const QFontMetricsF metrics(font);
+	const QRectF identifierRect = identifierTextRect(body, m_compact, m_reversed, metrics, m_speedText);
+	painter->drawText(identifierRect, Qt::AlignVCenter | Qt::AlignLeft,
+		elidedIdentifier(m_identifier, metrics, identifierRect));
 	if (!m_compact)
-		painter->drawText(QRectF(body.left() + 8.0, body.top() + 1.0, body.width() - 16.0, body.height() - 2.0), Qt::AlignVCenter | Qt::AlignRight, m_speedText);
+		painter->drawText(speedTextRect(body, m_compact, m_reversed, metrics, m_speedText),
+			Qt::AlignVCenter | Qt::AlignRight, m_speedText);
 }

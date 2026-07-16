@@ -1,5 +1,10 @@
 #include "graphics/VisualPolish.h"
 
+#include <QGuiApplication>
+#include <QFontMetricsF>
+
+#include "graphics/items/TrainBadgeItem.h"
+
 #include <iostream>
 
 static bool expect(bool condition, const char* message) {
@@ -8,7 +13,9 @@ static bool expect(bool condition, const char* message) {
 	return condition;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+	qputenv("QT_QPA_PLATFORM", "offscreen");
+	QGuiApplication app(argc, argv);
 	bool ok = true;
 	ok &= expect(classifyTrackSpeed(83.4).kind == TrackVisualKind::HighSpeed, "high-speed track classification");
 	ok &= expect(classifyTrackSpeed(44.5).kind == TrackVisualKind::Mainline, "mainline track classification");
@@ -61,6 +68,26 @@ int main() {
 	ok &= expect(simulationSpeedLabel(250) == "Speed: +250 ms", "delayed speed label");
 	ok &= expect(simulationSpeedMode(0) == "Compressed", "compressed speed mode");
 	ok &= expect(simulationSpeedMode(500) == "Slowed", "slowed speed mode");
+
+	QFont badgeFont;
+	badgeFont.setPointSize(9);
+	badgeFont.setBold(true);
+	const QFontMetricsF badgeMetrics(badgeFont);
+	const QRectF denseBody(1.0, 1.0, 130.0, 26.0);
+	const QString longIdentifier = "Intercity 2201 Northbound";
+	const QString speedText = "0 km/h";
+	const QRectF identifierRegion = TrainBadgeItem::identifierTextRect(
+		denseBody, false, false, badgeMetrics, speedText);
+	const QRectF speedRegion = TrainBadgeItem::speedTextRect(
+		denseBody, false, false, badgeMetrics, speedText);
+	const QString displayedIdentifier = TrainBadgeItem::elidedIdentifier(
+		longIdentifier, badgeMetrics, identifierRegion);
+	ok &= expect(badgeMetrics.horizontalAdvance(longIdentifier) > identifierRegion.width(),
+		"long identifier needs elision");
+	ok &= expect(badgeMetrics.horizontalAdvance(displayedIdentifier) <= identifierRegion.width(),
+		"elided identifier fits its region");
+	ok &= expect(identifierRegion.right() <= speedRegion.left(),
+		"identifier and speed regions do not overlap");
 
 	if (!ok)
 		return 1;
