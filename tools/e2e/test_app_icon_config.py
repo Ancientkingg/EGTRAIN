@@ -66,6 +66,7 @@ def main() -> None:
     require(cmake, 'MACOSX_BUNDLE_ICON_FILE "egtrain.icns"', "CMake does not set the macOS icon name")
     require(cmake, "EGTRAIN_WINDOWS_ICON", "CMake does not configure the Windows icon")
     require(cmake, "egtrain.rc.in", "CMake does not configure the Windows resource template")
+    require(cmake, "enable_language(RC)", "CMake does not enable the Windows RC language")
     require(cmake, "${EGTRAIN_PLATFORM_RESOURCES}", "CMake does not add platform resources to QEGTRAIN")
 
     plist = (ROOT / "Info.plist.in").read_text(encoding="utf-8")
