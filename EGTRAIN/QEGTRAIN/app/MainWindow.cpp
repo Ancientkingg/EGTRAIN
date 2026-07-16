@@ -4791,14 +4791,41 @@ void MainWindow::runTrackPreviewE2E() {
 		}
 		return false;
 	};
+	struct PreviewContentSnapshot {
+		QList<QGraphicsItem*> items;
+		QList<QRectF> itemBounds;
+		QRectF bounds;
+	};
+	auto snapshotPreviewContent = [&]() {
+		PreviewContentSnapshot snapshot;
+		if (!scene)
+			return snapshot;
+		bool hasBounds = false;
+		for (auto* item : scene->items()) {
+			if (!item || item == m_networkLegend)
+				continue;
+			snapshot.items.push_back(item);
+			const QRectF itemBounds = item->sceneBoundingRect();
+			snapshot.itemBounds.push_back(itemBounds);
+			if (itemBounds.isEmpty())
+				continue;
+			snapshot.bounds = hasBounds ? snapshot.bounds.united(itemBounds) : itemBounds;
+			hasBounds = true;
+		}
+		return snapshot;
+	};
+	auto samePreviewContent = [](const PreviewContentSnapshot& left, const PreviewContentSnapshot& right) {
+		return left.items == right.items && left.itemBounds == right.itemBounds && left.bounds == right.bounds;
+	};
 
 	const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
 	const bool opened = !scenePath.isEmpty() && openSceneDirectory(scenePath);
 	if (!opened || !m_sceneLoaded) {
 		fail("open", "incomplete scene did not open");
 	} else {
-		const int itemCount = scene->items().size();
-		const QRectF bounds = scene->itemsBoundingRect();
+		const PreviewContentSnapshot preview = snapshotPreviewContent();
+		const int itemCount = preview.items.size();
+		const QRectF bounds = preview.bounds;
 		const QRectF visible = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
 		const bool diagnosticsOk = hasDiagnosticCode(m_sceneDiagnostics, "scene.trains.none")
 			&& hasDiagnosticCode(m_sceneDiagnostics, "scene.services.none")
@@ -4856,15 +4883,19 @@ void MainWindow::runTrackPreviewE2E() {
 			|| !ui->actionSimulationStart || ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
 	}
-	const int previewItemCount = scene->items().size();
-	const QRectF previewBounds = scene->itemsBoundingRect();
+	const PreviewContentSnapshot previewBeforeRun = snapshotPreviewContent();
+	const QRectF previewBounds = previewBeforeRun.bounds;
+	if (m_networkLegend)
+		// Simulate viewport repositioning changing the whole-scene bounds.
+		m_networkLegend->setPos(previewBounds.bottomRight() + QPointF(100000.0, 100000.0));
 	runScene();
+	const bool workerStarted = m_worker != nullptr;
 	QApplication::processEvents();
-	if (m_worker) {
+	if (workerStarted || m_worker) {
 		runFacetOk = false;
 		fail("run gating", "invalid scene started simulation");
 	}
-	if (scene->items().size() != previewItemCount || scene->itemsBoundingRect() != previewBounds) {
+	if (!samePreviewContent(previewBeforeRun, snapshotPreviewContent())) {
 		runFacetOk = false;
 		fail("run gating", "blocked run removed the preview");
 	}
@@ -4906,16 +4937,15 @@ void MainWindow::runTrackPreviewE2E() {
 	if (structuralOk) {
 		const SceneModel expectedCurrent = m_sceneModel;
 		const QString expectedDir = QDir(m_sceneDir).absolutePath();
-		const int expectedItems = scene->items().size();
-		const QRectF expectedBounds = scene->itemsBoundingRect();
+		const PreviewContentSnapshot expectedContent = snapshotPreviewContent();
 		auto rejectedWithoutReplacement = [&](const QString& candidate, const char* label) {
 			if (openSceneDirectory(candidate)) {
 				fail("structural rejection", QString("%1 scene unexpectedly opened").arg(label));
 				return false;
 			}
 			const bool preserved = QDir(m_sceneDir).absolutePath() == expectedDir
-				&& sameSceneModel(m_sceneModel, expectedCurrent) && scene->items().size() == expectedItems
-				&& scene->itemsBoundingRect() == expectedBounds;
+				&& sameSceneModel(m_sceneModel, expectedCurrent)
+				&& samePreviewContent(expectedContent, snapshotPreviewContent());
 			if (!preserved)
 				fail("structural rejection", QString("%1 failure replaced current state").arg(label));
 			return preserved;
