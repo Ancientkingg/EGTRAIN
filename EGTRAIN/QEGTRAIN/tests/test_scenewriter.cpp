@@ -50,6 +50,76 @@ static const SceneLoadedData* findLoadedDataChildSource(const SceneLoadedData* p
 	return nullptr;
 }
 
+struct ExpectedStop {
+	const char* station;
+	double dwell;
+	bool hasArrival;
+	double arrival;
+	bool hasDeparture;
+	double departure;
+};
+
+struct ExpectedService {
+	const char* id;
+	const char* route;
+	double entry;
+	const ExpectedStop* stops;
+	size_t stopCount;
+};
+
+static bool expectAssignmentTimetable(const SceneModel& scene) {
+	static const ExpectedStop ic1723Stops[] = {
+		{"Gvc", 0, false, 0, true, 480},
+		{"Gdg", 60, true, 1440, true, 1500},
+		{"Ut", 0, true, 2580, false, 0},
+	};
+	static const ExpectedStop s19825Stops[] = {
+		{"Gvc", 0, false, 0, true, 660},
+		{"Gdg", 20, true, 2280, false, 0},
+	};
+	static const ExpectedStop ic2025Stops[] = {
+		{"Gvc", 0, false, 0, true, 1380},
+		{"Gdg", 60, true, 2340, true, 2400},
+		{"Ut", 0, true, 3480, false, 0},
+	};
+	static const ExpectedStop s9827Stops[] = {
+		{"Gvc", 0, false, 0, true, 1560},
+		{"Gdg", 20, true, 3180, true, 3540},
+		{"Ut", 0, true, 4920, false, 0},
+	};
+	static const ExpectedService expected[] = {
+		{"IC1723", "route0", 420, ic1723Stops, 3},
+		{"S19825", "route0", 600, s19825Stops, 2},
+		{"IC2025", "route0", 1320, ic2025Stops, 3},
+		{"S9827", "route0", 1500, s9827Stops, 3},
+	};
+
+	bool ok = expect(scene.services.size() == 4, "assignment timetable service count is 4");
+	const size_t count = scene.services.size() < 4 ? scene.services.size() : 4;
+	for (size_t i = 0; i < count; ++i) {
+		const SceneService& service = scene.services[i];
+		const ExpectedService& want = expected[i];
+		ok &= expect(service.id == want.id, "service id and order match assignment timetable");
+		ok &= expect(service.route == want.route, "service route matches assignment timetable");
+		ok &= expect(service.composition == "sprinter_single", "service composition matches assignment timetable");
+		ok &= expect(service.hasEntryTime && service.entryTimeSeconds == want.entry, "service entry time matches assignment timetable");
+		ok &= expect(service.hasRepeat && service.headwaySeconds == 1800, "service repeat headway matches assignment timetable");
+		ok &= expect(service.stops.size() == want.stopCount, "service stop shape matches assignment timetable");
+		const size_t stopCount = service.stops.size() < want.stopCount ? service.stops.size() : want.stopCount;
+		for (size_t j = 0; j < stopCount; ++j) {
+			const SceneStop& stop = service.stops[j];
+			const ExpectedStop& expectedStop = want.stops[j];
+			ok &= expect(stop.stationId == expectedStop.station, "stop station matches assignment timetable");
+			ok &= expect(stop.dwellSeconds == expectedStop.dwell, "stop dwell matches assignment timetable");
+			ok &= expect(stop.hasArrival == expectedStop.hasArrival, "stop arrival shape matches assignment timetable");
+			ok &= expect(!stop.hasArrival || stop.arrivalSeconds == expectedStop.arrival, "stop arrival matches assignment timetable");
+			ok &= expect(stop.hasDeparture == expectedStop.hasDeparture, "stop departure shape matches assignment timetable");
+			ok &= expect(!stop.hasDeparture || stop.departureSeconds == expectedStop.departure, "stop departure matches assignment timetable");
+		}
+	}
+	return ok;
+}
+
 struct TempDir {
 	std::string dir;
 
@@ -93,11 +163,11 @@ int main(int argc, char** argv) {
 	const SceneLoadedData* stationParsedData = findLoadedDataChild(stationData, "parsed_objects");
 	ok &= expect(stationParsedData && stationParsedData->sourceFile == "stations.json" && stationParsedData->parsedCount == 3 && stationParsedData->status == "loaded", "stations parsed object drilldown");
 	const SceneLoadedData* timetableData = findLoadedData(scene, "timetable");
-	ok &= expect(timetableData && timetableData->sourceFile == "services.json" && timetableData->parsedCount == 8 && timetableData->status == "loaded", "timetable loaded data summary");
+	ok &= expect(timetableData && timetableData->sourceFile == "services.json" && timetableData->parsedCount == 4 && timetableData->status == "loaded", "timetable loaded data summary");
 	const SceneLoadedData* timetableRawData = findLoadedDataChild(timetableData, "raw_file");
 	ok &= expect(timetableRawData && timetableRawData->sourceFile == "services.json" && timetableRawData->parsedCount == 1 && timetableRawData->status == "loaded", "timetable raw file drilldown");
 	const SceneLoadedData* timetableParsedData = findLoadedDataChild(timetableData, "parsed_objects");
-	ok &= expect(timetableParsedData && timetableParsedData->sourceFile == "services.json" && timetableParsedData->parsedCount == 8 && timetableParsedData->status == "loaded", "timetable parsed object drilldown");
+	ok &= expect(timetableParsedData && timetableParsedData->sourceFile == "services.json" && timetableParsedData->parsedCount == 4 && timetableParsedData->status == "loaded", "timetable parsed object drilldown");
 	const SceneLoadedData* passengerData = findLoadedData(scene, "passenger_data");
 	ok &= expect(passengerData && passengerData->status == "unimplemented", "passenger data visible as unimplemented");
 	const SceneLoadedData* signallingData = findLoadedData(scene, "signalling");
@@ -128,7 +198,7 @@ int main(int argc, char** argv) {
 	ok &= expect(scene.baseTime == "07:00:00", "base_time loaded");
 	ok &= expect(scene.stations.size() == 3, "station count loaded");
 	ok &= expect(scene.routes.size() == 2, "route count loaded");
-	ok &= expect(scene.services.size() == 8, "service count loaded");
+	ok &= expectAssignmentTimetable(scene);
 	ok &= expect(scene.trainUnits.size() == 1, "train unit count loaded");
 	ok &= expect(scene.compositions.size() == 1, "composition count loaded");
 
@@ -200,20 +270,20 @@ int main(int argc, char** argv) {
 	}
 	if (!reloaded.services.empty()) {
 		const SceneService& service = reloaded.services[0];
-		ok &= expect(service.id == "svc_e1", "first service id round-trips");
+		ok &= expect(service.id == "IC1723", "first service id round-trips");
 		ok &= expect(service.through, "first service through flag round-trips");
 		ok &= expect(service.composition == "sprinter_single", "first service composition round-trips");
 		ok &= expect(service.route == "route0", "first service route round-trips");
-		ok &= expect(service.hasEntryTime && service.entryTimeSeconds == 240, "entry time round-trips");
-		ok &= expect(!service.hasRepeat, "missing repeat flag round-trips");
+		ok &= expect(service.hasEntryTime && service.entryTimeSeconds == 420, "entry time round-trips");
+		ok &= expect(service.hasRepeat && service.headwaySeconds == 1800, "repeat headway round-trips");
 		ok &= expect(service.stops.size() == 3, "first service stop count round-trips");
 		if (service.stops.size() >= 3) {
 			ok &= expect(service.stops[0].stationId == "Gvc", "first stop station round-trips");
 			ok &= expect(!service.stops[0].hasArrival, "first stop missing arrival round-trips");
-			ok &= expect(service.stops[0].hasDeparture && service.stops[0].departureSeconds == 300, "first stop departure round-trips");
-			ok &= expect(service.stops[1].hasArrival && service.stops[1].arrivalSeconds == 1260, "middle stop arrival round-trips");
-			ok &= expect(service.stops[1].hasDeparture && service.stops[1].departureSeconds == 1320, "middle stop departure round-trips");
-			ok &= expect(service.stops[2].hasArrival && service.stops[2].arrivalSeconds == 2520, "last stop arrival round-trips");
+			ok &= expect(service.stops[0].hasDeparture && service.stops[0].departureSeconds == 480, "first stop departure round-trips");
+			ok &= expect(service.stops[1].hasArrival && service.stops[1].arrivalSeconds == 1440, "middle stop arrival round-trips");
+			ok &= expect(service.stops[1].hasDeparture && service.stops[1].departureSeconds == 1500, "middle stop departure round-trips");
+			ok &= expect(service.stops[2].hasArrival && service.stops[2].arrivalSeconds == 2580, "last stop arrival round-trips");
 			ok &= expect(!service.stops[2].hasDeparture, "last stop missing departure round-trips");
 		}
 	}
