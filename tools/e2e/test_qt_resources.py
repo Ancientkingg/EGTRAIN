@@ -57,8 +57,11 @@ def main() -> None:
         raise SystemExit("CMake does not link Qt5::Svg")
 
     release = (ROOT / ".github/workflows/release.yml").read_text()
-    if "qtsvg" not in release:
-        raise SystemExit("Windows release job does not install qtsvg")
+    if re.search(r"^\s*modules:.*\bqtsvg\b", release, re.MULTILINE):
+        raise SystemExit("Windows release job lists qtsvg as an optional module")
+    for requirement in ("Qt5Svg.dll", '$dist/imageformats/qsvg.dll'):
+        if requirement not in release:
+            raise SystemExit(f"Windows release job does not verify {requirement}")
     if "libqt5svg5-dev" not in release:
         raise SystemExit("Linux release job does not install libqt5svg5-dev")
 
