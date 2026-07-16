@@ -33,10 +33,9 @@ CASE_ID = 5
 STAGED_NAME = "Input_EGTRAIN_Assignment"
 TRAJ_REL = "Output/Output_EGTRAIN_Assignment/TrainTrajectories/TrainServicePathDiagram.txt"
 
-# svc_e1-1 travels during timesteps [239, 2091] in the base scene, so this
-# window is comfortably inside its normal run.
-TARGET_SERVICE = "svc_e1"
-TARGET_TRAIN = "svc_e1-1"
+# [800, 1400] lies inside the scheduled trip for IC1723-1.
+TARGET_SERVICE = "IC1723"
+TARGET_TRAIN = "IC1723-1"
 WINDOW_START = 800
 WINDOW_END = 1400
 _TOL = 1.0  # metres; positions within this are treated as unchanged

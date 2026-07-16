@@ -3,7 +3,7 @@ Assignment scene Gvc-Gdg-Ut
 
 Den Haag Centraal - Gouda - Utrecht Centraal corridor.
 Contains 2 tracklines (B0 eastbound, B1 westbound), 32 blocks each, 2km per block. B1 uses its own ascending westbound chainage.
-8 services: 4 eastbound (Gvc->Gdg->Ut), 4 westbound (Ut->Gdg->Gvc).
+Contains four eastbound services.
 """
 
 import os
@@ -178,33 +178,38 @@ def main():
     })
 
     # services.json
-    services = []
-    
-    for k in range(4):
-        services.append({
-            "id": f"svc_e{k+1}",
+    service_specs = [
+        ("IC1723", 420, [
+            {"station": "Gvc", "dwell_seconds": 0, "departure_seconds": 480},
+            {"station": "Gdg", "dwell_seconds": 60, "arrival_seconds": 1440, "departure_seconds": 1500},
+            {"station": "Ut", "dwell_seconds": 0, "arrival_seconds": 2580},
+        ]),
+        ("S19825", 600, [
+            {"station": "Gvc", "dwell_seconds": 0, "departure_seconds": 660},
+            {"station": "Gdg", "dwell_seconds": 20, "arrival_seconds": 2280},
+        ]),
+        ("IC2025", 1320, [
+            {"station": "Gvc", "dwell_seconds": 0, "departure_seconds": 1380},
+            {"station": "Gdg", "dwell_seconds": 60, "arrival_seconds": 2340, "departure_seconds": 2400},
+            {"station": "Ut", "dwell_seconds": 0, "arrival_seconds": 3480},
+        ]),
+        ("S9827", 1500, [
+            {"station": "Gvc", "dwell_seconds": 0, "departure_seconds": 1560},
+            {"station": "Gdg", "dwell_seconds": 20, "arrival_seconds": 3180, "departure_seconds": 3540},
+            {"station": "Ut", "dwell_seconds": 0, "arrival_seconds": 4920},
+        ]),
+    ]
+    services = [
+        {
+            "id": service_id,
             "route": "route0",
             "composition": "sprinter_single",
-            "entry_time_seconds": 240 + 1800 * k,
-            "stops": [
-                {"station": "Gvc", "dwell_seconds": 0, "departure_seconds": 300 + 1800 * k},
-                {"station": "Gdg", "dwell_seconds": 60, "arrival_seconds": 1260 + 1800 * k, "departure_seconds": 1320 + 1800 * k},
-                {"station": "Ut", "dwell_seconds": 0, "arrival_seconds": 2520 + 1800 * k}
-            ]
-        })
-        
-    for k in range(4):
-        services.append({
-            "id": f"svc_w{k+1}",
-            "route": "route1",
-            "composition": "sprinter_single",
-            "entry_time_seconds": 1140 + 1800 * k,
-            "stops": [
-                {"station": "Ut", "dwell_seconds": 0, "departure_seconds": 1200 + 1800 * k},
-                {"station": "Gdg", "dwell_seconds": 60, "arrival_seconds": 2400 + 1800 * k, "departure_seconds": 2460 + 1800 * k},
-                {"station": "Gvc", "dwell_seconds": 0, "arrival_seconds": 3420 + 1800 * k}
-            ]
-        })
+            "entry_time_seconds": entry_time,
+            "repeat": {"headway_seconds": 1800},
+            "stops": stops,
+        }
+        for service_id, entry_time, stops in service_specs
+    ]
         
     write_json('services.json', {"services": services})
 
