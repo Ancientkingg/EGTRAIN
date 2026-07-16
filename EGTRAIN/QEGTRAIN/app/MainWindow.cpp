@@ -557,6 +557,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(scene, &NetworkScene::MousePressedOnSignal, this, &MainWindow::displaySignallingInfo);
 	connect(scene, &NetworkScene::MousePressedOnTrain, this, &MainWindow::displayTrainInfo);
 	connect(scene, &NetworkScene::MousePressedOnPassenger, this, &MainWindow::displayPassengerInfo);
+	connect(scene, &NetworkScene::ContextMenuRequested, this, &MainWindow::showSceneContextMenu);
 	connect(scene, &NetworkScene::DisableHighlight, this, &MainWindow::handleDisableHighlight);
 
 	// connect signals from EGTRAIN simulation
@@ -3564,6 +3565,310 @@ void MainWindow::refreshFollowTrainChoices() {
 	m_updatingFollowCombo = false;
 }
 
+TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* train = qgraphicsitem_cast<TrainItemGroup*>(item);
+		if (train && train->scene() == scene && train->index == trainIndex)
+			return train;
+	}
+	return nullptr;
+}
+
+TrainBodyItem* MainWindow::resolveTrainBodyItem(int trainIndex) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* body = qgraphicsitem_cast<TrainBodyItem*>(item);
+		if (!body || body->scene() != scene)
+			continue;
+		auto* group = qgraphicsitem_cast<TrainItemGroup*>(body->parentItem());
+		if (group && group->scene() == scene && group->index == trainIndex)
+			return body;
+	}
+	return nullptr;
+}
+
+StationNodeItem* MainWindow::resolveStationNodeItem(double nodeId, int track) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
+		if (station && station->scene() == scene && station->track == track && station->node
+			&& station->node->ID == nodeId)
+			return station;
+	}
+	return nullptr;
+}
+
+TrackLineItem* MainWindow::resolveArcItem(double arcId, int track) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* arc = qgraphicsitem_cast<TrackLineItem*>(item);
+		if (arc && arc->scene() == scene && arc->track == track && arc->arc && arc->arc->ID == arcId)
+			return arc;
+	}
+	return nullptr;
+}
+
+SignalItem* MainWindow::resolveSignalItem(int track, double position, bool reversed) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
+		if (signal && signal->scene() == scene && signal->trackID == track && signal->X == position
+			&& signal->reversedDirection == reversed)
+			return signal;
+	}
+	return nullptr;
+}
+
+PassengerItem* MainWindow::resolvePassengerItem(const std::string& passengerId) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* passenger = qgraphicsitem_cast<PassengerItem*>(item);
+		if (passenger && passenger->scene() == scene && passenger->passengerId == passengerId)
+			return passenger;
+	}
+	return nullptr;
+}
+
+void MainWindow::centerSceneItem(QGraphicsItem* item) {
+	if (networkView && item && item->scene() == scene)
+		networkView->centerOn(item->sceneBoundingRect().center());
+}
+
+void MainWindow::setFollowTrain(int trainIndex) {
+	if (trainIndex < 0) {
+		if (m_followAction) {
+			const QSignalBlocker blocker(m_followAction);
+			m_followAction->setChecked(false);
+		}
+		m_followTrainIndex = -1;
+		return;
+	}
+	if (!resolveTrainItem(trainIndex))
+		return;
+	if (m_followTrainCombo) {
+		const int comboIndex = m_followTrainCombo->findData(trainIndex);
+		if (comboIndex >= 0) {
+			const QSignalBlocker blocker(m_followTrainCombo);
+			m_followTrainCombo->setCurrentIndex(comboIndex);
+		}
+	}
+	if (m_followAction) {
+		const QSignalBlocker blocker(m_followAction);
+		m_followAction->setChecked(true);
+	}
+	m_followTrainIndex = trainIndex;
+}
+
+void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard) {
+	Q_UNUSED(scenePos);
+	Q_UNUSED(keyboard);
+	if (m_sceneContextMenu) {
+		m_sceneContextMenu->close();
+		m_sceneContextMenu.clear();
+	}
+	if (qgraphicsitem_cast<NodeItem*>(item) || qgraphicsitem_cast<ConnectionItem*>(item))
+		return;
+
+	QMenu* menu = new QMenu(this);
+	menu->setAttribute(Qt::WA_DeleteOnClose);
+	menu->setToolTipsVisible(true);
+	auto addDeferred = [menu](const QString& text, const QString& explanation) {
+		QAction* action = menu->addAction(text);
+		action->setEnabled(false);
+		action->setToolTip(explanation);
+		action->setStatusTip(explanation);
+		return action;
+	};
+	auto openMenu = [this, menu, screenPos]() {
+		m_sceneContextMenu = menu;
+		menu->popup(screenPos);
+	};
+
+	if (auto* trainBody = qgraphicsitem_cast<TrainBodyItem*>(item)) {
+		auto* group = qgraphicsitem_cast<TrainItemGroup*>(trainBody->parentItem());
+		if (!group || group->scene() != scene) {
+			delete menu;
+			return;
+		}
+		const int trainIndex = group->index;
+		menu->setTitle("Train");
+		QAction* details = menu->addAction("Show details");
+		details->setIcon(QIcon(classifyTrainType(group->trainType, group->trainDescription).iconResource));
+		connect(details, &QAction::triggered, this, [this, trainIndex]() {
+			if (auto* body = resolveTrainBodyItem(trainIndex))
+				displayTrainDetails(body, false);
+		});
+		QAction* center = menu->addAction("Center in view");
+		connect(center, &QAction::triggered, this, [this, trainIndex]() {
+			if (auto* current = resolveTrainItem(trainIndex))
+				centerSceneItem(current);
+		});
+		QAction* follow = menu->addAction("Follow train");
+		connect(follow, &QAction::triggered, this, [this, trainIndex]() {
+			if (resolveTrainItem(trainIndex))
+				setFollowTrain(trainIndex);
+		});
+		QAction* copy = menu->addAction("Copy train index");
+		connect(copy, &QAction::triggered, this, [this, trainIndex]() {
+			if (resolveTrainItem(trainIndex) && QApplication::clipboard())
+				QApplication::clipboard()->setText(QString::number(trainIndex));
+		});
+		menu->addSeparator();
+		addDeferred("Planned route and related infrastructure",
+			"Requires the train-to-route association and an infrastructure query.");
+		openMenu();
+		return;
+	}
+
+	if (auto* station = qgraphicsitem_cast<StationNodeItem*>(item)) {
+		if (!station->node || station->scene() != scene) {
+			delete menu;
+			return;
+		}
+		const double nodeId = station->node->ID;
+		const int track = station->track;
+		menu->setTitle("Station");
+		QAction* details = menu->addAction("Show details");
+		details->setIcon(QIcon(classifyStation(!station->node->stationPlatformId.empty() && station->node->stationPlatformId != "None", station->node->numConnections).iconResource));
+		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
+			if (auto* current = resolveStationNodeItem(nodeId, track))
+				displayStationNodeInfo(current);
+		});
+		QAction* center = menu->addAction("Center in view");
+		connect(center, &QAction::triggered, this, [this, nodeId, track]() {
+			if (auto* current = resolveStationNodeItem(nodeId, track))
+				centerSceneItem(current);
+		});
+		QAction* copy = menu->addAction("Copy node ID");
+		connect(copy, &QAction::triggered, this, [this, nodeId, track]() {
+			if (resolveStationNodeItem(nodeId, track) && QApplication::clipboard())
+				QApplication::clipboard()->setText(QString::number(nodeId, 'g',
+					std::numeric_limits<double>::max_digits10));
+		});
+		menu->addSeparator();
+		addDeferred("Filtered station arrivals and departures",
+			"Requires the station timetable association and an arrivals/departures query.");
+		openMenu();
+		return;
+	}
+
+	if (auto* arc = qgraphicsitem_cast<TrackLineItem*>(item)) {
+		if (!arc->arc || arc->scene() != scene) {
+			delete menu;
+			return;
+		}
+		const double arcId = arc->arc->ID;
+		const int track = arc->track;
+		menu->setTitle("Track");
+		QAction* details = menu->addAction("Show details");
+		connect(details, &QAction::triggered, this, [this, arcId, track]() {
+			if (auto* current = resolveArcItem(arcId, track))
+				displayArcInfo(current);
+		});
+		QAction* center = menu->addAction("Center in view");
+		connect(center, &QAction::triggered, this, [this, arcId, track]() {
+			if (auto* current = resolveArcItem(arcId, track))
+				centerSceneItem(current);
+		});
+		QAction* copy = menu->addAction("Copy arc ID");
+		connect(copy, &QAction::triggered, this, [this, arcId, track]() {
+			if (resolveArcItem(arcId, track) && QApplication::clipboard())
+				QApplication::clipboard()->setText(QString::number(arcId, 'g',
+					std::numeric_limits<double>::max_digits10));
+		});
+		menu->addSeparator();
+		addDeferred("Trains currently using this track",
+			"Requires the track-occupancy association and an active-train query.");
+		addDeferred("Incidents affecting this track",
+			"Requires the track-incident association and an incident query.");
+		openMenu();
+		return;
+	}
+
+	if (auto* signal = qgraphicsitem_cast<SignalItem*>(item)) {
+		if (signal->scene() != scene) {
+			delete menu;
+			return;
+		}
+		const int track = signal->trackID;
+		const double position = signal->X;
+		const bool reversed = signal->reversedDirection;
+		menu->setTitle("Signal");
+		QAction* details = menu->addAction("Show details");
+		details->setIcon(QIcon(classifySignalAspect(signal->aspectCode()).iconResource));
+		connect(details, &QAction::triggered, this, [this, track, position, reversed]() {
+			if (auto* current = resolveSignalItem(track, position, reversed))
+				displaySignallingInfo(current);
+		});
+		QAction* center = menu->addAction("Center in view");
+		connect(center, &QAction::triggered, this, [this, track, position, reversed]() {
+			if (auto* current = resolveSignalItem(track, position, reversed))
+				centerSceneItem(current);
+		});
+		QAction* copy = menu->addAction("Copy signal location");
+		connect(copy, &QAction::triggered, this, [this, track, position, reversed]() {
+			if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
+				QApplication::clipboard()->setText(QString("track %1 @ %2 (%3)")
+					.arg(track).arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
+					.arg(reversed ? "reverse" : "forward"));
+		});
+		menu->addSeparator();
+		addDeferred("Next train approaching this signal",
+			"Requires the signal route association and an approaching-train query.");
+		openMenu();
+		return;
+	}
+
+	if (auto* passenger = qgraphicsitem_cast<PassengerItem*>(item)) {
+		if (passenger->scene() != scene) {
+			delete menu;
+			return;
+		}
+		const std::string passengerId = passenger->passengerId;
+		menu->setTitle("Passenger");
+		QAction* details = menu->addAction("Show details");
+		details->setIcon(QIcon(":/icons/passenger.svg"));
+		connect(details, &QAction::triggered, this, [this, passengerId]() {
+			if (auto* current = resolvePassengerItem(passengerId))
+				displayPassengerInfo(current);
+		});
+		QAction* center = menu->addAction("Center in view");
+		connect(center, &QAction::triggered, this, [this, passengerId]() {
+			if (auto* current = resolvePassengerItem(passengerId))
+				centerSceneItem(current);
+		});
+		QAction* copy = menu->addAction("Copy passenger ID");
+		connect(copy, &QAction::triggered, this, [this, passengerId]() {
+			if (resolvePassengerItem(passengerId) && QApplication::clipboard())
+				QApplication::clipboard()->setText(QString::fromStdString(passengerId));
+		});
+		openMenu();
+		return;
+	}
+
+	if (item)
+		return;
+	menu->setTitle("Network");
+	QAction* fit = menu->addAction("Fit whole network");
+	connect(fit, &QAction::triggered, this, &MainWindow::fitView);
+	QAction* clear = menu->addAction("Clear selection");
+	connect(clear, &QAction::triggered, this, [this]() {
+		if (scene)
+			scene->clearSelection();
+		handleDisableHighlight();
+	});
+	QAction* stop = menu->addAction("Stop following train");
+	connect(stop, &QAction::triggered, this, [this]() { setFollowTrain(-1); });
+	openMenu();
+}
+
 void MainWindow::runVisualPolishE2E() {
 	if (m_e2eFinished)
 		return;
@@ -3769,13 +4074,13 @@ void MainWindow::runVisualPolishE2E() {
 	if (scene) {
 		for (auto* item : scene->items()) {
 			StationNodeItem* candidate = qgraphicsitem_cast<StationNodeItem*>(item);
-			if (candidate && candidate->node && !candidate->node->stationName.empty()) {
+			if (candidate && candidate->node) {
 				stationItem = candidate;
 				break;
 			}
 		}
 	}
-	if (stationItem) {
+	if (stationItem && stationItem->node && !stationItem->node->stationName.empty()) {
 		displayStationNodeInfo(stationItem);
 		if (!nodeStationNameText || nodeStationNameText->text().trimmed().isEmpty()
 			|| !nodeRegionText || nodeRegionText->text().trimmed().isEmpty()
@@ -3986,6 +4291,424 @@ void MainWindow::runVisualPolishE2E() {
 			ok = false;
 			failures << "signal scene hit-test did not resolve the glyph";
 		}
+	}
+
+	const auto requestContextMenu = [this](const QPointF& scenePos, bool keyboard) -> QMenu* {
+		if (!scene || !networkView)
+			return nullptr;
+		QGraphicsSceneContextMenuEvent event(QEvent::GraphicsSceneContextMenu);
+		event.setReason(keyboard ? QGraphicsSceneContextMenuEvent::Keyboard : QGraphicsSceneContextMenuEvent::Mouse);
+		event.setScenePos(scenePos);
+		event.setScreenPos(networkView->viewport()->mapToGlobal(networkView->mapFromScene(scenePos)));
+		event.setWidget(networkView->viewport());
+		scene->contextMenuEvent(&event);
+		QApplication::processEvents();
+		return m_sceneContextMenu.data();
+	};
+	const auto closeContextMenu = [this]() {
+		if (m_sceneContextMenu) {
+			m_sceneContextMenu->close();
+			QApplication::processEvents();
+		}
+	};
+	const auto findMenuAction = [&ok, &failures](QMenu* menu, const QString& text) -> QAction* {
+		if (!menu) {
+			ok = false;
+			failures << QString("context menu missing while looking for %1").arg(text);
+			return nullptr;
+		}
+		for (auto* action : menu->actions()) {
+			if (action && action->text() == text)
+				return action;
+		}
+		ok = false;
+		failures << QString("context menu missing action %1").arg(text);
+		return nullptr;
+	};
+	const auto checkDeferredAction = [&findMenuAction, &ok, &failures](QMenu* menu, const QString& text,
+		const QString& explanation) {
+		QAction* action = findMenuAction(menu, text);
+		if (!action)
+			return;
+		if (action->isEnabled() || action->toolTip() != explanation || action->statusTip() != explanation) {
+			ok = false;
+			failures << QString("deferred context action explanation mismatch: %1").arg(text);
+		}
+	};
+	const QString trainRouteExplanation = QStringLiteral(
+		"Requires the train-to-route association and an infrastructure query.");
+	const QString stationTimetableExplanation = QStringLiteral(
+		"Requires the station timetable association and an arrivals/departures query.");
+	const QString trackOccupancyExplanation = QStringLiteral(
+		"Requires the track-occupancy association and an active-train query.");
+	const QString trackIncidentExplanation = QStringLiteral(
+		"Requires the track-incident association and an incident query.");
+	const QString signalApproachExplanation = QStringLiteral(
+		"Requires the signal route association and an approaching-train query.");
+
+	if (selectedTrainBody) {
+		setFollowTrain(-1);
+		QMenu* menu = requestContextMenu(selectedTrainBody->sceneBoundingRect().center(), true);
+		QAction* details = findMenuAction(menu, "Show details");
+		if (!details || details->icon().isNull()) {
+			ok = false;
+			failures << "train details action is missing refreshed icon";
+		} else {
+			details->trigger();
+			QApplication::processEvents();
+			if (!trainInfoWidget || !trainInfoWidget->isVisible() || (m_followAction && m_followAction->isChecked()) || m_followTrainIndex != -1) {
+				ok = false;
+				failures << "train context details unexpectedly changed follow mode";
+			}
+		}
+		QAction* center = findMenuAction(menu, "Center in view");
+		if (center)
+			center->trigger();
+		QAction* copy = findMenuAction(menu, "Copy train index");
+		if (copy) {
+			copy->trigger();
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != QString::number(selectedTrain->index)) {
+				ok = false;
+				failures << "train context copy action did not copy the index";
+			}
+		}
+		QAction* follow = findMenuAction(menu, "Follow train");
+		if (follow) {
+			follow->trigger();
+			QApplication::processEvents();
+			if (!m_followAction || !m_followAction->isChecked() || m_followTrainIndex != selectedTrain->index) {
+				ok = false;
+				failures << "train context follow action did not activate follow mode";
+			}
+		}
+		checkDeferredAction(menu, "Planned route and related infrastructure", trainRouteExplanation);
+		const QString contextPath = qEnvironmentVariable("QEGTRAIN_E2E_CONTEXT_SCREENSHOT");
+		if (contextPath.isEmpty() || !menu || !menu->grab().save(contextPath)) {
+			ok = false;
+			failures << "context menu screenshot save failed";
+		}
+		closeContextMenu();
+	} else {
+		ok = false;
+		failures << "cannot open train context menu without a train body";
+	}
+
+	if (scene && networkView) {
+		const int staleTrainIndex = 2147483001;
+		auto* staleGroup = new TrainItemGroup();
+		staleGroup->index = staleTrainIndex;
+		staleGroup->trainDescription = "__e2e_stale_train__";
+		staleGroup->trainType = "E2E";
+		staleGroup->trainId = 1.0;
+		auto* staleBody = new TrainBodyItem(QPolygonF({QPointF(0.0, 0.0), QPointF(20.0, 0.0),
+			QPointF(20.0, 10.0), QPointF(0.0, 10.0)}));
+		staleBody->index = staleTrainIndex;
+		staleGroup->addToGroup(staleBody);
+		staleGroup->trainPolygonItemList = new QList<TrainBodyItem*>();
+		staleGroup->trainPolygonItemList->append(staleBody);
+		staleGroup->setPos(scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
+		scene->addItem(staleGroup);
+		QMenu* menu = requestContextMenu(staleBody->sceneBoundingRect().center(), false);
+		QAction* details = findMenuAction(menu, "Show details");
+		const bool infoVisibleBefore = infoDockWidget && infoDockWidget->isVisible();
+		const bool trainInfoVisibleBefore = trainInfoWidget && trainInfoWidget->isVisible();
+		const QString infoTitleBefore = infoDockWidget ? infoDockWidget->windowTitle() : QString();
+		const bool effectPresentBefore = effect != nullptr;
+		staleGroup->removeFromGroup(staleBody);
+		delete staleBody;
+		if (details)
+			details->trigger();
+		QApplication::processEvents();
+		if ((infoDockWidget && infoDockWidget->isVisible()) != infoVisibleBefore
+			|| (trainInfoWidget && trainInfoWidget->isVisible()) != trainInfoVisibleBefore
+			|| (infoDockWidget && infoDockWidget->windowTitle() != infoTitleBefore)
+			|| (effect != nullptr) != effectPresentBefore) {
+			ok = false;
+			failures << "stale train context action changed application state";
+		}
+		closeContextMenu();
+		if (staleGroup->trainPolygonItemList) {
+			staleGroup->trainPolygonItemList->clear();
+			delete staleGroup->trainPolygonItemList;
+			staleGroup->trainPolygonItemList = nullptr;
+		}
+		scene->removeItem(staleGroup);
+		delete staleGroup;
+	}
+
+	if (stationItem) {
+		QMenu* menu = requestContextMenu(stationItem->sceneBoundingRect().center(), false);
+		QAction* details = findMenuAction(menu, "Show details");
+		if (!details || details->icon().isNull()) {
+			ok = false;
+			failures << "station details action is missing refreshed icon";
+		} else {
+			details->trigger();
+			QApplication::processEvents();
+			if (!nodeInfoWidget || !nodeInfoWidget->isVisible()) {
+				ok = false;
+				failures << "station context details did not open station info";
+			}
+		}
+		QAction* copy = findMenuAction(menu, "Copy node ID");
+		if (copy) {
+			copy->trigger();
+			const QString expectedNodeId = QString::number(stationItem->node->ID, 'g',
+				std::numeric_limits<double>::max_digits10);
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedNodeId) {
+				ok = false;
+				failures << "station context copy action did not preserve node precision";
+			}
+		}
+		checkDeferredAction(menu, "Filtered station arrivals and departures", stationTimetableExplanation);
+		closeContextMenu();
+	} else {
+		ok = false;
+		failures << "cannot open station context menu without a station";
+	}
+
+	TrackLineItem* contextArc = nullptr;
+	QMenu* trackMenu = nullptr;
+	for (auto* candidate : allArcs) {
+		if (!candidate || candidate->scene() != scene)
+			continue;
+		trackMenu = requestContextMenu(candidate->sceneBoundingRect().center(), false);
+		if (trackMenu && trackMenu->title() == "Track") {
+			contextArc = candidate;
+			break;
+		}
+		closeContextMenu();
+	}
+	if (!contextArc) {
+		ok = false;
+		failures << "cannot open track context menu";
+	} else {
+		QAction* details = findMenuAction(trackMenu, "Show details");
+		if (details) {
+			details->trigger();
+			QApplication::processEvents();
+			if (!arcInfoWidget || !arcInfoWidget->isVisible()) {
+				ok = false;
+				failures << "track context details did not open arc info";
+			}
+		}
+		QAction* copy = findMenuAction(trackMenu, "Copy arc ID");
+		if (copy) {
+			copy->trigger();
+			const QString expectedArcId = QString::number(contextArc->arc->ID, 'g',
+				std::numeric_limits<double>::max_digits10);
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedArcId) {
+				ok = false;
+				failures << "track context copy action did not preserve arc precision";
+			}
+		}
+		checkDeferredAction(trackMenu, "Trains currently using this track", trackOccupancyExplanation);
+		checkDeferredAction(trackMenu, "Incidents affecting this track", trackIncidentExplanation);
+		closeContextMenu();
+	}
+
+	if (visibleSignal) {
+		QMenu* menu = requestContextMenu(visibleSignal->sceneBoundingRect().center(), false);
+		QAction* details = findMenuAction(menu, "Show details");
+		if (!details || details->icon().isNull()) {
+			ok = false;
+			failures << "signal details action is missing refreshed icon";
+		} else {
+			details->trigger();
+			QApplication::processEvents();
+			if (!signallingInfoWidget || !signallingInfoWidget->isVisible()) {
+				ok = false;
+				failures << "signal context details did not open signal info";
+			}
+		}
+		QAction* copy = findMenuAction(menu, "Copy signal location");
+		if (copy) {
+			copy->trigger();
+			const QString expectedSignalLocation = QString("track %1 @ %2 (%3)")
+				.arg(visibleSignal->trackID)
+				.arg(visibleSignal->X, 0, 'g', std::numeric_limits<double>::max_digits10)
+				.arg(visibleSignal->reversedDirection ? "reverse" : "forward");
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
+				ok = false;
+				failures << "signal context copy action did not preserve position precision";
+			}
+		}
+		checkDeferredAction(menu, "Next train approaching this signal", signalApproachExplanation);
+		closeContextMenu();
+	} else {
+		ok = false;
+		failures << "cannot open signal context menu without a signal";
+	}
+
+	if (scene && networkView) {
+		const int temporarySignalTrack = 2147483000;
+		const double temporarySignalPosition = 0.12345678901234566;
+		const bool temporarySignalReversed = true;
+		auto* temporarySignal = new SignalItem(QRectF(-6.0, -8.0, 12.0, 16.0));
+		temporarySignal->trackID = temporarySignalTrack;
+		temporarySignal->X = temporarySignalPosition;
+		temporarySignal->setReversedDirection(temporarySignalReversed);
+		temporarySignal->setPos(scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
+		scene->addItem(temporarySignal);
+		allSignals.push_back(temporarySignal);
+		QMenu* menu = requestContextMenu(temporarySignal->sceneBoundingRect().center(), false);
+		QAction* copy = findMenuAction(menu, "Copy signal location");
+		const QString expectedSignalLocation = QStringLiteral(
+			"track 2147483000 @ 0.12345678901234566 (reverse)");
+		if (copy) {
+			copy->trigger();
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
+				ok = false;
+				failures << "temporary signal context copy action did not preserve exact precision";
+			}
+		}
+		const QString clipboardBeforeStaleTrigger = QApplication::clipboard()
+			? QApplication::clipboard()->text() : QString();
+		SignalItem* staleSignal = temporarySignal;
+		scene->removeItem(temporarySignal);
+		delete temporarySignal;
+		if (copy)
+			copy->trigger();
+		QApplication::processEvents();
+		if (QApplication::clipboard() && QApplication::clipboard()->text() != clipboardBeforeStaleTrigger) {
+			ok = false;
+			failures << "stale signal context action changed the clipboard";
+		}
+		allSignals.removeOne(staleSignal);
+		closeContextMenu();
+	}
+
+	PassengerItem* contextPassenger = nullptr;
+	bool temporaryContextPassenger = false;
+	if (scene) {
+		for (auto* candidate : scene->items()) {
+			auto* passenger = qgraphicsitem_cast<PassengerItem*>(candidate);
+			if (passenger && passenger->isVisible()) {
+				contextPassenger = passenger;
+				break;
+			}
+		}
+	}
+	if (!contextPassenger) {
+		contextPassenger = new PassengerItem(pax_pixmap_scaled);
+		contextPassenger->passengerId = "__e2e_context_passenger__";
+		contextPassenger->setPos(scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
+		scene->addItem(contextPassenger);
+		temporaryContextPassenger = true;
+	}
+	if (contextPassenger) {
+		const QString passengerId = QString::fromStdString(contextPassenger->passengerId);
+		QMenu* menu = requestContextMenu(contextPassenger->sceneBoundingRect().center(), false);
+		QAction* details = findMenuAction(menu, "Show details");
+		if (!details || details->icon().isNull()) {
+			ok = false;
+			failures << "passenger details action is missing refreshed icon";
+		} else {
+			details->trigger();
+			QApplication::processEvents();
+		}
+		QAction* copy = findMenuAction(menu, "Copy passenger ID");
+		if (copy) {
+			copy->trigger();
+			QApplication::processEvents();
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != passengerId) {
+				ok = false;
+				failures << "passenger context copy action did not copy passenger ID";
+			}
+		}
+		closeContextMenu();
+		if (temporaryContextPassenger) {
+			scene->removeItem(contextPassenger);
+			delete contextPassenger;
+		}
+		removePaxInfoIcon();
+		paxIconItem = nullptr;
+	}
+
+	if (scene && networkView) {
+		const QPointF emptyPos = scene->itemsBoundingRect().bottomRight() + QPointF(1000.0, 1000.0);
+		auto* temporarySelectionItem = new QGraphicsRectItem(QRectF(0.0, 0.0, 10.0, 10.0));
+		temporarySelectionItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+		temporarySelectionItem->setPos(emptyPos);
+		scene->addItem(temporarySelectionItem);
+		if (!selectedTrainBody) {
+			ok = false;
+			failures << "cannot establish selection for empty-space context menu";
+		} else {
+			QGraphicsSceneMouseEvent selectionEvent(QEvent::GraphicsSceneMousePress);
+			selectionEvent.setButton(Qt::LeftButton);
+			selectionEvent.setButtons(Qt::LeftButton);
+			selectionEvent.setScenePos(selectedTrainBody->sceneBoundingRect().center());
+			selectionEvent.setWidget(networkView->viewport());
+			scene->mousePressEvent(&selectionEvent);
+			QApplication::processEvents();
+			if (!effect || !infoDockWidget || !infoDockWidget->isVisible()
+				|| !m_followAction || !m_followAction->isChecked() || m_followTrainIndex != selectedTrain->index) {
+				ok = false;
+				failures << "empty-space context menu could not establish selection and follow mode";
+			}
+		}
+		temporarySelectionItem->setSelected(true);
+		QMenu* menu = requestContextMenu(emptyPos, false);
+		QAction* fit = findMenuAction(menu, "Fit whole network");
+		QAction* clear = findMenuAction(menu, "Clear selection");
+		QAction* stop = findMenuAction(menu, "Stop following train");
+		if (!menu || !fit || !clear || !stop) {
+			ok = false;
+			failures << "empty-space context menu is incomplete";
+		} else {
+			fit->trigger();
+			QApplication::processEvents();
+			clear->trigger();
+			QApplication::processEvents();
+			stop->trigger();
+			QApplication::processEvents();
+			if ((infoDockWidget && infoDockWidget->isVisible()) || effect
+				|| (m_followAction && m_followAction->isChecked()) || m_followTrainIndex != -1) {
+				ok = false;
+				failures << "empty-space context actions did not clear selection and follow mode";
+			}
+			if (temporarySelectionItem->isSelected()) {
+				ok = false;
+				failures << "empty-space context action left a temporary scene item selected";
+			}
+		}
+		closeContextMenu();
+		scene->removeItem(temporarySelectionItem);
+		delete temporarySelectionItem;
+	} else {
+		ok = false;
+		failures << "cannot open empty-space context menu without a scene and viewport";
+	}
+
+	if (scene && networkView) {
+		const std::string stalePassengerId = "__e2e_stale_passenger__";
+		auto* temporaryPassenger = new PassengerItem(pax_pixmap_scaled);
+		temporaryPassenger->passengerId = stalePassengerId;
+		temporaryPassenger->setPos(scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
+		scene->addItem(temporaryPassenger);
+		QMenu* menu = requestContextMenu(temporaryPassenger->sceneBoundingRect().center(), false);
+		QAction* copy = findMenuAction(menu, "Copy passenger ID");
+		const QString clipboardBefore = QStringLiteral("e2e-stale-sentinel");
+		if (QApplication::clipboard())
+			QApplication::clipboard()->setText(clipboardBefore);
+		const bool infoVisibleBefore = infoDockWidget && infoDockWidget->isVisible();
+		const QString infoTitleBefore = infoDockWidget ? infoDockWidget->windowTitle() : QString();
+		scene->removeItem(temporaryPassenger);
+		delete temporaryPassenger;
+		if (copy)
+			copy->trigger();
+		QApplication::processEvents();
+		if (QApplication::clipboard() && QApplication::clipboard()->text() != clipboardBefore) {
+			ok = false;
+			failures << "stale passenger context action changed the clipboard";
+		}
+		if ((infoDockWidget && infoDockWidget->isVisible()) != infoVisibleBefore
+			|| (infoDockWidget && infoDockWidget->windowTitle() != infoTitleBefore)) {
+			ok = false;
+			failures << "stale passenger context action changed application state";
+		}
+		closeContextMenu();
 	}
 
 	if (m_followAction && m_followTrainCombo && m_followTrainCombo->count() > 0) {
@@ -7234,8 +7957,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	signal->setGraphicsEffect(effect);
 }
 
-// shows train info on dock widget
-void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
+void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode) {
 	if (!trainItem)
 		return;
 	// update train info displayed on widget
@@ -7265,18 +7987,10 @@ void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
 	infoDockWidget->setWindowTitle("Train Info");
 	infoDockWidget->show();
 	trainInfoWidget->show();
-	if (m_followTrainCombo) {
-		const int comboIndex = m_followTrainCombo->findData(trainItem->index);
-		if (comboIndex >= 0) {
-			const QSignalBlocker blocker(m_followTrainCombo);
-			m_followTrainCombo->setCurrentIndex(comboIndex);
-		}
+	if (changeFollowMode) {
+		setFollowTrain(trainItem->index);
+		centerSceneItem(groupItem);
 	}
-	if (m_followAction)
-		m_followAction->setChecked(true);
-	m_followTrainIndex = trainItem->index;
-	if (networkView)
-		networkView->centerOn(groupItem->sceneBoundingRect().center());
 
 	// effect on clicked item
 	if (!effect) {
@@ -7285,6 +7999,11 @@ void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
 	if (trainItem->parentItem()) {
 		trainItem->parentItem()->setGraphicsEffect(effect);
 	} // effect on entire train
+}
+
+// shows train info on dock widget
+void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
+	displayTrainDetails(trainItem, true);
 }
 
 // show text icon on top of passenger icon
