@@ -8,8 +8,10 @@ SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ASSETS = {
     "icons/station.png": "resources/icons/station.png",
     "icons/passenger.png": "resources/icons/passenger.png",
-    "app/window.jpg": "resources/app/window.jpg",
 }
+APP_ICON_SIZES = (16, 32, 48, 64, 128, 256, 512, 1024)
+for _size in APP_ICON_SIZES:
+    ASSETS[f"app/egtrain-{_size}.png"] = f"resources/app/egtrain-{_size}.png"
 
 
 def main() -> None:
@@ -26,10 +28,13 @@ def main() -> None:
             raise SystemExit(f"missing resource asset: {relative_path}")
         if qrc_entries.get(alias) != f"../{relative_path}":
             raise SystemExit(f"missing Qt resource entry: {alias}")
-        if f'QPixmap(":/{alias}")' not in main_window:
+        if alias.startswith("app/"):
+            if f'":/{alias}"' not in main_window:
+                raise SystemExit(f"MainWindow does not load :/{alias}")
+        elif f'QPixmap(":/{alias}")' not in main_window:
             raise SystemExit(f"MainWindow does not load :/{alias}")
 
-    old_names = ("train_station.png", "pax_icon.png", "window_icon.jpg")
+    old_names = ("train_station.png", "pax_icon.png", "window_icon.jpg", "app/window.jpg")
     for name in old_names:
         if (SOURCE_ROOT / name).exists():
             raise SystemExit(f"loose image asset still exists: {name}")

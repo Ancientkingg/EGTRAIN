@@ -38,6 +38,7 @@
 #include <QCoreApplication>
 #include <QSignalBlocker>
 #include <QSettings>
+#include <QIcon>
 #include <QStringList>
 #include <QTemporaryDir>
 #include <QRegularExpression>
@@ -583,7 +584,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 
 	// set application item
-	QIcon window_icon = QIcon(QPixmap(":/app/window.jpg"));
+	QIcon window_icon;
+	window_icon.addFile(":/app/egtrain-16.png", QSize(16, 16));
+	window_icon.addFile(":/app/egtrain-32.png", QSize(32, 32));
+	window_icon.addFile(":/app/egtrain-48.png", QSize(48, 48));
+	window_icon.addFile(":/app/egtrain-64.png", QSize(64, 64));
+	window_icon.addFile(":/app/egtrain-128.png", QSize(128, 128));
+	window_icon.addFile(":/app/egtrain-256.png", QSize(256, 256));
+	window_icon.addFile(":/app/egtrain-512.png", QSize(512, 512));
+	window_icon.addFile(":/app/egtrain-1024.png", QSize(1024, 1024));
 	setWindowIcon(window_icon);
 
 	// effect on (last) clicked item
