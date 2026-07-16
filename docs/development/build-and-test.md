@@ -4,7 +4,7 @@
 
 - CMake 3.16 or newer
 - C++17 compiler
-- Qt 5 Core, Gui, Widgets, and Charts
+- Qt 5 Core, Gui, Widgets, Charts, and Svg
 - OpenMP runtime
 - ZeroMQ, cppzmq, and nlohmann-json
 

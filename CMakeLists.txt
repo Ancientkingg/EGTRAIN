@@ -52,7 +52,7 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN)
 include_directories(${SRC_DIR})
 
 # --- Dependencies ---
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg)
 
 # OpenMP is required because project headers include omp.h.
 if(APPLE)
@@ -243,6 +243,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     Qt5::Gui
     Qt5::Widgets
     Qt5::Charts
+    Qt5::Svg
 )
 
 if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
@@ -407,7 +408,7 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_qt_resource_images
         ${SRC_DIR}/tests/test_qt_resource_images.cpp
         ${EGTRAIN_RESOURCES})
-    target_link_libraries(test_qt_resource_images PRIVATE Qt5::Core Qt5::Gui)
+    target_link_libraries(test_qt_resource_images PRIVATE Qt5::Core Qt5::Gui Qt5::Svg)
     add_test(NAME test_qt_resource_images COMMAND test_qt_resource_images)
     set_tests_properties(test_qt_resource_images PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"

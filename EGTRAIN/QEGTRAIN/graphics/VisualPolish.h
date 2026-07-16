@@ -24,12 +24,14 @@ struct TrainVisual {
 	QColor fill;
 	QColor outline;
 	TrainBadgeShape shape;
+	QString iconResource;
 };
 
 struct StationVisual {
 	StationVisualKind kind;
 	QColor fill;
 	QColor outline;
+	QString iconResource;
 };
 
 struct TrackStateVisual {
@@ -41,6 +43,7 @@ struct TrackStateVisual {
 struct SignalVisual {
 	QColor lamp;
 	SignalCueKind cue;
+	QString iconResource;
 };
 
 TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond);

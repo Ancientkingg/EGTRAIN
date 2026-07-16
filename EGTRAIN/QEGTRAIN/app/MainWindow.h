@@ -162,7 +162,7 @@ public:
 	// painting
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
-	void paintStationIcon(QPointF coord, int size);
+	void paintStationIcon(QPointF coord, const StationVisual& visual);
 	void paintStationName(QPointF coord, string sname, int size);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
@@ -301,9 +301,6 @@ private:
 	// loading
 	QLabel* loadingLabel;
 	QMovie* loadingMovie;
-
-	// station icon
-	QPixmap station_pixmap;
 
 	// passenger icon
 	QPixmap pax_pixmap;

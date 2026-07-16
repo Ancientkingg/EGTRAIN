@@ -2,6 +2,7 @@
 #define SIGNALITEM_H
 
 #include <QGraphicsEllipseItem>
+#include <QPixmap>
 #include <string>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
@@ -50,6 +51,7 @@ public:
 
 private:
 	int m_aspectCode;
+	QPixmap m_aspectIcon;
 };
 
 #endif // SIGNALITEM_H

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Transparent canvas. All geometry stays between coordinates 2 and 22. -->
+  <path d="M3 9l9-5h5c2.8 0 5 2.2 5 5v7H3z" fill="#26313B" stroke="#0D131A" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M13 6h3c1.4 0 2.6 1.2 2.8 2.7L19 11h-6z" fill="#F2F5F7"/>
+  <circle cx="7" cy="19" r="2" fill="#0D131A"/>
+  <circle cx="17" cy="19" r="2" fill="#0D131A"/>
+</svg>
