@@ -46,6 +46,8 @@ require() {
 	fi
 }
 require "$PKG/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+require "$PKG/QEGTRAIN.app/Contents/Resources/egtrain.icns"
+test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$PKG/QEGTRAIN.app/Contents/Info.plist")" = "egtrain.icns"
 require "$PKG/scene_tool"
 require "$PKG/Scenes/Lebanon/stations.json"
 require "$PKG/Scenes/Lebanon/legacy/Tracklines/B0/BlockCumPari.txt"
