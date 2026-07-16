@@ -507,6 +507,7 @@ private:
 	void setFollowTrain(int trainIndex);
 	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
 	TrainItemGroup* resolveTrainItem(int trainIndex) const;
+	TrainBodyItem* resolveTrainBodyItem(int trainIndex) const;
 	StationNodeItem* resolveStationNodeItem(double nodeId, int track) const;
 	TrackLineItem* resolveArcItem(double arcId, int track) const;
 	SignalItem* resolveSignalItem(int track, double position, bool reversed) const;

@@ -3576,6 +3576,20 @@ TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
 	return nullptr;
 }
 
+TrainBodyItem* MainWindow::resolveTrainBodyItem(int trainIndex) const {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* body = qgraphicsitem_cast<TrainBodyItem*>(item);
+		if (!body || body->scene() != scene)
+			continue;
+		auto* group = qgraphicsitem_cast<TrainItemGroup*>(body->parentItem());
+		if (group && group->scene() == scene && group->index == trainIndex)
+			return body;
+	}
+	return nullptr;
+}
+
 StationNodeItem* MainWindow::resolveStationNodeItem(double nodeId, int track) const {
 	if (!scene)
 		return nullptr;
@@ -3688,13 +3702,8 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		QAction* details = menu->addAction("Show details");
 		details->setIcon(QIcon(classifyTrainType(group->trainType, group->trainDescription).iconResource));
 		connect(details, &QAction::triggered, this, [this, trainIndex]() {
-			auto* current = resolveTrainItem(trainIndex);
-			if (!current || !current->trainPolygonItemList || current->trainPolygonItemList->isEmpty())
-				return;
-			auto* body = current->trainPolygonItemList->first();
-			if (!body || body->scene() != scene)
-				return;
-			displayTrainDetails(body, false);
+			if (auto* body = resolveTrainBodyItem(trainIndex))
+				displayTrainDetails(body, false);
 		});
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, trainIndex]() {
@@ -3850,7 +3859,11 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 	QAction* fit = menu->addAction("Fit whole network");
 	connect(fit, &QAction::triggered, this, &MainWindow::fitView);
 	QAction* clear = menu->addAction("Clear selection");
-	connect(clear, &QAction::triggered, this, &MainWindow::handleDisableHighlight);
+	connect(clear, &QAction::triggered, this, [this]() {
+		if (scene)
+			scene->clearSelection();
+		handleDisableHighlight();
+	});
 	QAction* stop = menu->addAction("Stop following train");
 	connect(stop, &QAction::triggered, this, [this]() { setFollowTrain(-1); });
 	openMenu();
@@ -4380,6 +4393,49 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "cannot open train context menu without a train body";
 	}
 
+	if (scene && networkView) {
+		const int staleTrainIndex = 2147483001;
+		auto* staleGroup = new TrainItemGroup();
+		staleGroup->index = staleTrainIndex;
+		staleGroup->trainDescription = "__e2e_stale_train__";
+		staleGroup->trainType = "E2E";
+		staleGroup->trainId = 1.0;
+		auto* staleBody = new TrainBodyItem(QPolygonF({QPointF(0.0, 0.0), QPointF(20.0, 0.0),
+			QPointF(20.0, 10.0), QPointF(0.0, 10.0)}));
+		staleBody->index = staleTrainIndex;
+		staleGroup->addToGroup(staleBody);
+		staleGroup->trainPolygonItemList = new QList<TrainBodyItem*>();
+		staleGroup->trainPolygonItemList->append(staleBody);
+		staleGroup->setPos(scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
+		scene->addItem(staleGroup);
+		QMenu* menu = requestContextMenu(staleBody->sceneBoundingRect().center(), false);
+		QAction* details = findMenuAction(menu, "Show details");
+		const bool infoVisibleBefore = infoDockWidget && infoDockWidget->isVisible();
+		const bool trainInfoVisibleBefore = trainInfoWidget && trainInfoWidget->isVisible();
+		const QString infoTitleBefore = infoDockWidget ? infoDockWidget->windowTitle() : QString();
+		const bool effectPresentBefore = effect != nullptr;
+		staleGroup->removeFromGroup(staleBody);
+		delete staleBody;
+		if (details)
+			details->trigger();
+		QApplication::processEvents();
+		if ((infoDockWidget && infoDockWidget->isVisible()) != infoVisibleBefore
+			|| (trainInfoWidget && trainInfoWidget->isVisible()) != trainInfoVisibleBefore
+			|| (infoDockWidget && infoDockWidget->windowTitle() != infoTitleBefore)
+			|| (effect != nullptr) != effectPresentBefore) {
+			ok = false;
+			failures << "stale train context action changed application state";
+		}
+		closeContextMenu();
+		if (staleGroup->trainPolygonItemList) {
+			staleGroup->trainPolygonItemList->clear();
+			delete staleGroup->trainPolygonItemList;
+			staleGroup->trainPolygonItemList = nullptr;
+		}
+		scene->removeItem(staleGroup);
+		delete staleGroup;
+	}
+
 	if (stationItem) {
 		QMenu* menu = requestContextMenu(stationItem->sceneBoundingRect().center(), false);
 		QAction* details = findMenuAction(menu, "Show details");
@@ -4571,6 +4627,10 @@ void MainWindow::runVisualPolishE2E() {
 
 	if (scene && networkView) {
 		const QPointF emptyPos = scene->itemsBoundingRect().bottomRight() + QPointF(1000.0, 1000.0);
+		auto* temporarySelectionItem = new QGraphicsRectItem(QRectF(0.0, 0.0, 10.0, 10.0));
+		temporarySelectionItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+		temporarySelectionItem->setPos(emptyPos);
+		scene->addItem(temporarySelectionItem);
 		if (!selectedTrainBody) {
 			ok = false;
 			failures << "cannot establish selection for empty-space context menu";
@@ -4588,6 +4648,7 @@ void MainWindow::runVisualPolishE2E() {
 				failures << "empty-space context menu could not establish selection and follow mode";
 			}
 		}
+		temporarySelectionItem->setSelected(true);
 		QMenu* menu = requestContextMenu(emptyPos, false);
 		QAction* fit = findMenuAction(menu, "Fit whole network");
 		QAction* clear = findMenuAction(menu, "Clear selection");
@@ -4607,8 +4668,14 @@ void MainWindow::runVisualPolishE2E() {
 				ok = false;
 				failures << "empty-space context actions did not clear selection and follow mode";
 			}
+			if (temporarySelectionItem->isSelected()) {
+				ok = false;
+				failures << "empty-space context action left a temporary scene item selected";
+			}
 		}
 		closeContextMenu();
+		scene->removeItem(temporarySelectionItem);
+		delete temporarySelectionItem;
 	} else {
 		ok = false;
 		failures << "cannot open empty-space context menu without a scene and viewport";
