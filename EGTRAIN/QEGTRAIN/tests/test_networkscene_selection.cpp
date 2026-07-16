@@ -1,6 +1,7 @@
 #include "graphics/NetworkScene.h"
 
 #include <QApplication>
+#include <QContextMenuEvent>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsTextItem>
@@ -37,6 +38,14 @@ static bool sendContextMenu(NetworkScene& scene, QGraphicsView& view,
 	event.setScreenPos(screenPos);
 	event.setWidget(view.viewport());
 	scene.contextMenuEvent(&event);
+	return event.isAccepted();
+}
+
+static bool sendViewportContextMenu(QGraphicsView& view, QContextMenuEvent::Reason reason,
+	const QPointF& scenePos) {
+	const QPoint viewportPos = view.mapFromScene(scenePos);
+	QContextMenuEvent event(reason, viewportPos, view.viewport()->mapToGlobal(viewportPos));
+	QApplication::sendEvent(view.viewport(), &event);
 	return event.isAccepted();
 }
 
@@ -213,6 +222,28 @@ int main(int argc, char* argv[]) {
 			QGraphicsSceneContextMenuEvent::Mouse, "context request resolves passenger");
 		expectContext(nullptr, QPointF(220.0, 140.0), QPoint(81, 82),
 			QGraphicsSceneContextMenuEvent::Mouse, "context request resolves empty space");
+
+		const int viewportMouseBefore = contextRequests;
+		const bool viewportMouseAccepted = sendViewportContextMenu(view, QContextMenuEvent::Mouse,
+			QPointF(80.0, -80.0));
+		ok &= expect(viewportMouseAccepted, "viewport mouse context event is accepted");
+		ok &= expect(contextRequests == viewportMouseBefore + 1,
+			"viewport mouse context request emits exactly once");
+		ok &= expect(requestedItem == &train,
+			"viewport mouse context request resolves the semantic train target");
+		ok &= expect(!requestedKeyboard,
+			"viewport mouse context request preserves mouse reason");
+
+		const int viewportKeyboardBefore = contextRequests;
+		const bool viewportKeyboardAccepted = sendViewportContextMenu(view, QContextMenuEvent::Keyboard,
+			QPointF(80.0, -80.0));
+		ok &= expect(viewportKeyboardAccepted, "viewport keyboard context event is accepted");
+		ok &= expect(contextRequests == viewportKeyboardBefore + 1,
+			"viewport keyboard context request emits exactly once");
+		ok &= expect(requestedItem == &train,
+			"viewport keyboard context request resolves the semantic train target");
+		ok &= expect(requestedKeyboard,
+			"viewport keyboard context request preserves keyboard reason");
 
 		sendLeftClick(scene, view, QPointF(80.0, -80.0));
 		ok &= expect(sceneMousePresses == 1, "left click emits scene signal once");

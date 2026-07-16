@@ -3566,7 +3566,10 @@ void MainWindow::refreshFollowTrainChoices() {
 }
 
 TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
-	for (auto* train : allTrains) {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* train = qgraphicsitem_cast<TrainItemGroup*>(item);
 		if (train && train->scene() == scene && train->index == trainIndex)
 			return train;
 	}
@@ -3586,7 +3589,10 @@ StationNodeItem* MainWindow::resolveStationNodeItem(double nodeId, int track) co
 }
 
 TrackLineItem* MainWindow::resolveArcItem(double arcId, int track) const {
-	for (auto* arc : allArcs) {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* arc = qgraphicsitem_cast<TrackLineItem*>(item);
 		if (arc && arc->scene() == scene && arc->track == track && arc->arc && arc->arc->ID == arcId)
 			return arc;
 	}
@@ -3594,7 +3600,10 @@ TrackLineItem* MainWindow::resolveArcItem(double arcId, int track) const {
 }
 
 SignalItem* MainWindow::resolveSignalItem(int track, double position, bool reversed) const {
-	for (auto* signal : allSignals) {
+	if (!scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
 		if (signal && signal->scene() == scene && signal->trackID == track && signal->X == position
 			&& signal->reversedDirection == reversed)
 			return signal;
@@ -3703,7 +3712,8 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 				QApplication::clipboard()->setText(QString::number(trainIndex));
 		});
 		menu->addSeparator();
-		addDeferred("Planned route and related infrastructure", "Planned route and related infrastructure highlighting is not available yet.");
+		addDeferred("Planned route and related infrastructure",
+			"Requires the train-to-route association and an infrastructure query.");
 		openMenu();
 		return;
 	}
@@ -3730,10 +3740,12 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		QAction* copy = menu->addAction("Copy node ID");
 		connect(copy, &QAction::triggered, this, [this, nodeId, track]() {
 			if (resolveStationNodeItem(nodeId, track) && QApplication::clipboard())
-				QApplication::clipboard()->setText(QString::number(nodeId, 'g', 15));
+				QApplication::clipboard()->setText(QString::number(nodeId, 'g',
+					std::numeric_limits<double>::max_digits10));
 		});
 		menu->addSeparator();
-		addDeferred("Filtered station arrivals and departures", "Filtered station arrivals and departures are not available yet.");
+		addDeferred("Filtered station arrivals and departures",
+			"Requires the station timetable association and an arrivals/departures query.");
 		openMenu();
 		return;
 	}
@@ -3759,11 +3771,14 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		QAction* copy = menu->addAction("Copy arc ID");
 		connect(copy, &QAction::triggered, this, [this, arcId, track]() {
 			if (resolveArcItem(arcId, track) && QApplication::clipboard())
-				QApplication::clipboard()->setText(QString::number(arcId, 'g', 15));
+				QApplication::clipboard()->setText(QString::number(arcId, 'g',
+					std::numeric_limits<double>::max_digits10));
 		});
 		menu->addSeparator();
-		addDeferred("Trains currently using this track", "Trains currently using this track cannot be determined yet.");
-		addDeferred("Incidents affecting this track", "Incidents affecting this track cannot be determined yet.");
+		addDeferred("Trains currently using this track",
+			"Requires the track-occupancy association and an active-train query.");
+		addDeferred("Incidents affecting this track",
+			"Requires the track-incident association and an incident query.");
 		openMenu();
 		return;
 	}
@@ -3792,10 +3807,12 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		connect(copy, &QAction::triggered, this, [this, track, position, reversed]() {
 			if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
 				QApplication::clipboard()->setText(QString("track %1 @ %2 (%3)")
-					.arg(track).arg(position, 0, 'g', 15).arg(reversed ? "reverse" : "forward"));
+					.arg(track).arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
+					.arg(reversed ? "reverse" : "forward"));
 		});
 		menu->addSeparator();
-		addDeferred("Next train approaching this signal", "The next train approaching this signal is not available yet.");
+		addDeferred("Next train approaching this signal",
+			"Requires the signal route association and an approaching-train query.");
 		openMenu();
 		return;
 	}
@@ -4295,15 +4312,26 @@ void MainWindow::runVisualPolishE2E() {
 		failures << QString("context menu missing action %1").arg(text);
 		return nullptr;
 	};
-	const auto checkDeferredAction = [&findMenuAction, &ok, &failures](QMenu* menu, const QString& text) {
+	const auto checkDeferredAction = [&findMenuAction, &ok, &failures](QMenu* menu, const QString& text,
+		const QString& explanation) {
 		QAction* action = findMenuAction(menu, text);
 		if (!action)
 			return;
-		if (action->isEnabled() || action->toolTip().trimmed().isEmpty() || action->statusTip().trimmed().isEmpty()) {
+		if (action->isEnabled() || action->toolTip() != explanation || action->statusTip() != explanation) {
 			ok = false;
-			failures << QString("deferred context action is not safely disabled: %1").arg(text);
+			failures << QString("deferred context action explanation mismatch: %1").arg(text);
 		}
 	};
+	const QString trainRouteExplanation = QStringLiteral(
+		"Requires the train-to-route association and an infrastructure query.");
+	const QString stationTimetableExplanation = QStringLiteral(
+		"Requires the station timetable association and an arrivals/departures query.");
+	const QString trackOccupancyExplanation = QStringLiteral(
+		"Requires the track-occupancy association and an active-train query.");
+	const QString trackIncidentExplanation = QStringLiteral(
+		"Requires the track-incident association and an incident query.");
+	const QString signalApproachExplanation = QStringLiteral(
+		"Requires the signal route association and an approaching-train query.");
 
 	if (selectedTrainBody) {
 		setFollowTrain(-1);
@@ -4340,7 +4368,7 @@ void MainWindow::runVisualPolishE2E() {
 				failures << "train context follow action did not activate follow mode";
 			}
 		}
-		checkDeferredAction(menu, "Planned route and related infrastructure");
+		checkDeferredAction(menu, "Planned route and related infrastructure", trainRouteExplanation);
 		const QString contextPath = qEnvironmentVariable("QEGTRAIN_E2E_CONTEXT_SCREENSHOT");
 		if (contextPath.isEmpty() || !menu || !menu->grab().save(contextPath)) {
 			ok = false;
@@ -4367,9 +4395,16 @@ void MainWindow::runVisualPolishE2E() {
 			}
 		}
 		QAction* copy = findMenuAction(menu, "Copy node ID");
-		if (copy)
+		if (copy) {
 			copy->trigger();
-		checkDeferredAction(menu, "Filtered station arrivals and departures");
+			const QString expectedNodeId = QString::number(stationItem->node->ID, 'g',
+				std::numeric_limits<double>::max_digits10);
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedNodeId) {
+				ok = false;
+				failures << "station context copy action did not preserve node precision";
+			}
+		}
+		checkDeferredAction(menu, "Filtered station arrivals and departures", stationTimetableExplanation);
 		closeContextMenu();
 	} else {
 		ok = false;
@@ -4402,10 +4437,17 @@ void MainWindow::runVisualPolishE2E() {
 			}
 		}
 		QAction* copy = findMenuAction(trackMenu, "Copy arc ID");
-		if (copy)
+		if (copy) {
 			copy->trigger();
-		checkDeferredAction(trackMenu, "Trains currently using this track");
-		checkDeferredAction(trackMenu, "Incidents affecting this track");
+			const QString expectedArcId = QString::number(contextArc->arc->ID, 'g',
+				std::numeric_limits<double>::max_digits10);
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedArcId) {
+				ok = false;
+				failures << "track context copy action did not preserve arc precision";
+			}
+		}
+		checkDeferredAction(trackMenu, "Trains currently using this track", trackOccupancyExplanation);
+		checkDeferredAction(trackMenu, "Incidents affecting this track", trackIncidentExplanation);
 		closeContextMenu();
 	}
 
@@ -4424,13 +4466,60 @@ void MainWindow::runVisualPolishE2E() {
 			}
 		}
 		QAction* copy = findMenuAction(menu, "Copy signal location");
-		if (copy)
+		if (copy) {
 			copy->trigger();
-		checkDeferredAction(menu, "Next train approaching this signal");
+			const QString expectedSignalLocation = QString("track %1 @ %2 (%3)")
+				.arg(visibleSignal->trackID)
+				.arg(visibleSignal->X, 0, 'g', std::numeric_limits<double>::max_digits10)
+				.arg(visibleSignal->reversedDirection ? "reverse" : "forward");
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
+				ok = false;
+				failures << "signal context copy action did not preserve position precision";
+			}
+		}
+		checkDeferredAction(menu, "Next train approaching this signal", signalApproachExplanation);
 		closeContextMenu();
 	} else {
 		ok = false;
 		failures << "cannot open signal context menu without a signal";
+	}
+
+	if (scene && networkView) {
+		const int temporarySignalTrack = 2147483000;
+		const double temporarySignalPosition = 0.12345678901234566;
+		const bool temporarySignalReversed = true;
+		auto* temporarySignal = new SignalItem(QRectF(-6.0, -8.0, 12.0, 16.0));
+		temporarySignal->trackID = temporarySignalTrack;
+		temporarySignal->X = temporarySignalPosition;
+		temporarySignal->setReversedDirection(temporarySignalReversed);
+		temporarySignal->setPos(scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
+		scene->addItem(temporarySignal);
+		allSignals.push_back(temporarySignal);
+		QMenu* menu = requestContextMenu(temporarySignal->sceneBoundingRect().center(), false);
+		QAction* copy = findMenuAction(menu, "Copy signal location");
+		const QString expectedSignalLocation = QStringLiteral(
+			"track 2147483000 @ 0.12345678901234566 (reverse)");
+		if (copy) {
+			copy->trigger();
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
+				ok = false;
+				failures << "temporary signal context copy action did not preserve exact precision";
+			}
+		}
+		const QString clipboardBeforeStaleTrigger = QApplication::clipboard()
+			? QApplication::clipboard()->text() : QString();
+		SignalItem* staleSignal = temporarySignal;
+		scene->removeItem(temporarySignal);
+		delete temporarySignal;
+		if (copy)
+			copy->trigger();
+		QApplication::processEvents();
+		if (QApplication::clipboard() && QApplication::clipboard()->text() != clipboardBeforeStaleTrigger) {
+			ok = false;
+			failures << "stale signal context action changed the clipboard";
+		}
+		allSignals.removeOne(staleSignal);
+		closeContextMenu();
 	}
 
 	PassengerItem* contextPassenger = nullptr;

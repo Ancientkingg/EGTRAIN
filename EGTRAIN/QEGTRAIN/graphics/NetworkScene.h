@@ -34,7 +34,7 @@ public:
 	NetworkScene(QObject* parent);
 	~NetworkScene();
 
-	void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent);
+	void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
 	void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 signals:
