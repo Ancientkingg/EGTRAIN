@@ -1,5 +1,7 @@
 #include "graphics/NetworkScene.h"
 
+#include <QGraphicsView>
+
 NetworkScene::NetworkScene(QObject* parent)
 	: QGraphicsScene(parent) {
 }
@@ -15,7 +17,14 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		bool itemClicked = false;
 
 		// clicked item
-		QGraphicsItem* item = itemAt(mouseEvent->scenePos(), QTransform());
+		QTransform viewTransform;
+		for (QGraphicsView* view : views()) {
+			if (view->viewport() == mouseEvent->widget()) {
+				viewTransform = view->transform();
+				break;
+			}
+		}
+		QGraphicsItem* item = itemAt(mouseEvent->scenePos(), viewTransform);
 
 		// filter nodes
 		NodeItem* Node = qgraphicsitem_cast<NodeItem*>(item);

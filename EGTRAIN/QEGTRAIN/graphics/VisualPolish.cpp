@@ -30,6 +30,34 @@ TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond) {
 	return {TrackVisualKind::Local, QColor(120, 120, 120), 2};
 }
 
+TrackStateVisual classifyTrackState(TrackOperationalState state) {
+	switch (state) {
+	case TrackOperationalState::Prepared:
+		return {QColor("#3aa675"), 8, Qt::SolidLine};
+	case TrackOperationalState::Occupied:
+		return {QColor("#d95550"), 8, Qt::SolidLine};
+	case TrackOperationalState::Blocked:
+		return {QColor("#e4a23a"), 8, Qt::DashLine};
+	case TrackOperationalState::Free:
+	default:
+		return {Qt::transparent, 0, Qt::NoPen};
+	}
+}
+
+int trackStatePriority(TrackOperationalState state) {
+	switch (state) {
+	case TrackOperationalState::Prepared:
+		return 1;
+	case TrackOperationalState::Occupied:
+		return 2;
+	case TrackOperationalState::Blocked:
+		return 3;
+	case TrackOperationalState::Free:
+	default:
+		return 0;
+	}
+}
+
 TrainVisual classifyTrainType(const std::string& type, const std::string& description) {
 	std::string text = lower(type + " " + description);
 	if (containsAny(text, {"freight", "cargo", "goederen"}))
@@ -41,6 +69,16 @@ TrainVisual classifyTrainType(const std::string& type, const std::string& descri
 	if (containsAny(text, {"intercity", " ic", "ic "}))
 		return {TrainVisualKind::Intercity, QColor(235, 190, 45), QColor(120, 90, 20)};
 	return {TrainVisualKind::Passenger, QColor(235, 210, 55), QColor(110, 90, 20)};
+}
+
+SignalVisual classifySignalAspect(int code) {
+	if (code == 0)
+		return {QColor(Qt::red)};
+	if (code == 75)
+		return {QColor(Qt::yellow)};
+	if (code == 180 || code == 270)
+		return {QColor(Qt::green)};
+	return {QColor(128, 128, 128)};
 }
 
 StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
