@@ -44,11 +44,20 @@ int main(int argc, char* argv[]) {
 	ok &= expect(cautionSignal.lamp == QColor(Qt::yellow) && cautionSignal.cue == SignalCueKind::Caution, "yellow caution signal cue");
 	ok &= expect(proceed180Signal.lamp == QColor(Qt::green) && proceed180Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 180");
 	ok &= expect(proceed270Signal.lamp == QColor(Qt::green) && proceed270Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 270");
+	ok &= expect(classifySignalAspect(-1).iconResource == ":/icons/signal-neutral.svg", "neutral signal icon");
+	ok &= expect(classifySignalAspect(0).iconResource == ":/icons/signal-stop.svg", "stop signal icon");
+	ok &= expect(classifySignalAspect(75).iconResource == ":/icons/signal-caution.svg", "caution signal icon");
+	ok &= expect(classifySignalAspect(180).iconResource == ":/icons/signal-proceed.svg", "proceed signal icon");
 
 	ok &= expect(classifyTrainType("freight", "F01").kind == TrainVisualKind::Freight, "freight train classification");
 	ok &= expect(classifyTrainType("IC", "IC 2201").kind == TrainVisualKind::Intercity, "intercity train classification");
 	ok &= expect(classifyTrainType("", "sprinter 301").kind == TrainVisualKind::Sprinter, "sprinter train classification");
 	ok &= expect(classifyTrainType("", "ICE 10").kind == TrainVisualKind::HighSpeed, "high-speed train classification");
+	ok &= expect(classifyTrainType("", "regional").iconResource == ":/icons/train-passenger.svg", "passenger train icon");
+	ok &= expect(classifyTrainType("", "sprinter 301").iconResource == ":/icons/train-sprinter.svg", "sprinter train icon");
+	ok &= expect(classifyTrainType("IC", "IC 2201").iconResource == ":/icons/train-intercity.svg", "intercity train icon");
+	ok &= expect(classifyTrainType("", "ICE 10").iconResource == ":/icons/train-high-speed.svg", "high-speed train icon");
+	ok &= expect(classifyTrainType("freight", "F01").iconResource == ":/icons/train-freight.svg", "freight train icon");
 	const TrainVisual intercity = classifyTrainType("IC", "IC 2201");
 	const TrainVisual sprinter = classifyTrainType("", "sprinter 301");
 	const TrainVisual freight = classifyTrainType("freight", "F01");
@@ -63,6 +72,9 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifyStation(true, 4).kind == StationVisualKind::Interchange, "interchange station classification");
 	ok &= expect(classifyStation(true, 1).kind == StationVisualKind::Platform, "platform station classification");
 	ok &= expect(classifyStation(false, 0).kind == StationVisualKind::StopMarker, "stop marker classification");
+	ok &= expect(classifyStation(false, 0).iconResource == ":/icons/station-stop.svg", "stop station icon");
+	ok &= expect(classifyStation(true, 1).iconResource == ":/icons/station-platform.svg", "platform station icon");
+	ok &= expect(classifyStation(true, 4).iconResource == ":/icons/station-interchange.svg", "interchange station icon");
 
 	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
 	ok &= expect(simulationSpeedLabel(250) == "Speed: +250 ms", "delayed speed label");
@@ -80,6 +92,7 @@ int main(int argc, char* argv[]) {
 		denseBody, false, false, badgeMetrics, speedText);
 	const QRectF speedRegion = TrainBadgeItem::speedTextRect(
 		denseBody, false, false, badgeMetrics, speedText);
+	const QRectF categoryIcon = TrainBadgeItem::iconRect(denseBody, false);
 	const QString displayedIdentifier = TrainBadgeItem::elidedIdentifier(
 		longIdentifier, badgeMetrics, identifierRegion);
 	ok &= expect(badgeMetrics.horizontalAdvance(longIdentifier) > identifierRegion.width(),
@@ -88,6 +101,8 @@ int main(int argc, char* argv[]) {
 		"elided identifier fits its region");
 	ok &= expect(identifierRegion.right() <= speedRegion.left(),
 		"identifier and speed regions do not overlap");
+	ok &= expect(categoryIcon.right() <= identifierRegion.left(),
+		"train icon and identifier do not overlap");
 
 	if (!ok)
 		return 1;

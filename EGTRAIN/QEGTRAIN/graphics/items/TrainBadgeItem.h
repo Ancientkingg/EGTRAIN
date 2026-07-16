@@ -2,6 +2,7 @@
 #define TRAINBADGEITEM_H
 
 #include <QFontMetricsF>
+#include <QPixmap>
 #include <QtWidgets/QGraphicsItem>
 #include <QPainter>
 #include <QtWidgets/QStyleOptionGraphicsItem>
@@ -19,6 +20,11 @@ public:
 	void setReversed(bool reversed);
 	void setCompact(bool compact);
 
+	static QRectF iconRect(const QRectF& body, bool reversed) {
+		const qreal left = body.left() + (reversed ? 15.0 : 5.0);
+		return QRectF(left, body.center().y() - 7.0, 14.0, 14.0);
+	}
+
 	static QRectF speedTextRect(const QRectF& body, bool compact, bool reversed,
 		const QFontMetricsF& metrics, const QString& speedText) {
 		if (compact || speedText.isEmpty())
@@ -31,7 +37,7 @@ public:
 
 	static QRectF identifierTextRect(const QRectF& body, bool compact, bool reversed,
 		const QFontMetricsF& metrics, const QString& speedText) {
-		const qreal left = body.left() + (reversed ? 15.0 : 7.0);
+		const qreal left = iconRect(body, reversed).right() + 4.0;
 		const QRectF speed = speedTextRect(body, compact, reversed, metrics, speedText);
 		const qreal defaultRight = body.right() - (reversed ? 9.0 : 17.0);
 		const qreal right = speed.isEmpty() ? defaultRight : speed.left() - 4.0;
@@ -55,6 +61,7 @@ private:
 	QString m_identifier;
 	QString m_speedText;
 	TrainVisual m_visual;
+	QPixmap m_icon;
 	bool m_reversed;
 	bool m_compact;
 };
