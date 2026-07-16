@@ -59,6 +59,8 @@ jobs:
           APP="build/QEGTRAIN.app"
           test -d "$APP/Contents/Frameworks/QtCore.framework"
           test -d "$APP/Contents/Frameworks/QtCharts.framework"
+          test -f "$APP/Contents/Resources/egtrain.icns"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
           find "$APP" -iname 'libomp*.dylib' | grep -q . || { echo "ERROR: libomp not bundled"; exit 1; }
           find "$APP" -iname 'libzmq*.dylib' | grep -q . || { echo "ERROR: libzmq not bundled"; exit 1; }
           # The main executable (no install-id line) and every bundled dylib
@@ -188,6 +190,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $dist = "dist/QEGTRAIN"
+          if (-not (Test-Path "$dist/QEGTRAIN.exe")) { throw "missing QEGTRAIN.exe" }
           foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll")) {
             if (-not (Test-Path "$dist/$dll")) { throw "missing $dll" }
           }
@@ -221,7 +224,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake patchelf wget file desktop-file-utils imagemagick \
+            build-essential cmake patchelf wget file desktop-file-utils \
             qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev \
             libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
 
@@ -262,8 +265,7 @@ jobs:
           test -f "$APPDIR/usr/bin/Scenes/Lebanon/stations.json"
           test -f "$APPDIR/usr/bin/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt"
           test -f "$APPDIR/usr/bin/lebanon-case-study.md"
-          convert EGTRAIN/QEGTRAIN/resources/icons/station.png \
-            -background transparent -gravity center -resize 256x256 -extent 256x256 \
+          cp EGTRAIN/QEGTRAIN/resources/app/egtrain-256.png \
             "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"
 
           cat > "$APPDIR/usr/share/applications/qegtrain.desktop" <<'EOF'
@@ -307,6 +309,7 @@ jobs:
           ./QEGTRAIN-linux-x86_64.AppImage --appimage-extract >/dev/null
           test -x squashfs-root/usr/bin/QEGTRAIN
           test -d squashfs-root/usr/bin/Input/Input_EGTRAIN_Paimpol
+          test -f squashfs-root/usr/share/icons/hicolor/256x256/apps/qegtrain.png
           test -f squashfs-root/AppRun
           find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, and Input data"

@@ -2,7 +2,14 @@
     <qresource prefix="/">
         <file alias="icons/station.png">../resources/icons/station.png</file>
         <file alias="icons/passenger.png">../resources/icons/passenger.png</file>
-        <file alias="app/window.jpg">../resources/app/window.jpg</file>
+        <file alias="app/egtrain-16.png">../resources/app/egtrain-16.png</file>
+        <file alias="app/egtrain-32.png">../resources/app/egtrain-32.png</file>
+        <file alias="app/egtrain-48.png">../resources/app/egtrain-48.png</file>
+        <file alias="app/egtrain-64.png">../resources/app/egtrain-64.png</file>
+        <file alias="app/egtrain-128.png">../resources/app/egtrain-128.png</file>
+        <file alias="app/egtrain-256.png">../resources/app/egtrain-256.png</file>
+        <file alias="app/egtrain-512.png">../resources/app/egtrain-512.png</file>
+        <file alias="app/egtrain-1024.png">../resources/app/egtrain-1024.png</file>
         <file alias="styles/egtrain.qss">../resources/styles/egtrain.qss</file>
     </qresource>
 </RCC>

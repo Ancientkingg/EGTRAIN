@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(EGTRAIN VERSION 1.0 LANGUAGES CXX)
 
+if(WIN32)
+    enable_language(RC)
+endif()
+
 # Default to an optimised build
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
@@ -197,12 +201,28 @@ set(EGTRAIN_RESOURCES
     ${SRC_DIR}/app/resources.qrc
 )
 
+set(EGTRAIN_PLATFORM_RESOURCES)
+if(APPLE)
+    set(EGTRAIN_ICNS ${SRC_DIR}/resources/app/egtrain.icns)
+    set_source_files_properties(${EGTRAIN_ICNS}
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    list(APPEND EGTRAIN_PLATFORM_RESOURCES ${EGTRAIN_ICNS})
+elseif(WIN32)
+    set(EGTRAIN_WINDOWS_ICON ${SRC_DIR}/resources/app/egtrain.ico)
+    configure_file(
+        ${SRC_DIR}/resources/app/egtrain.rc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/egtrain.rc
+        @ONLY)
+    list(APPEND EGTRAIN_PLATFORM_RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/egtrain.rc)
+endif()
+
 # --- Executable ---
 add_executable(QEGTRAIN
     ${EGTRAIN_SOURCES}
     ${EGTRAIN_HEADERS}
     ${EGTRAIN_UI}
     ${EGTRAIN_RESOURCES}
+    ${EGTRAIN_PLATFORM_RESOURCES}
 )
 
 target_include_directories(QEGTRAIN PRIVATE
@@ -249,6 +269,7 @@ if(APPLE)
         MACOSX_BUNDLE_BUNDLE_NAME "EGTRAIN"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_ICON_FILE "egtrain.icns"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
     # Copy runtime resources (Input data) into the bundle's Resources in a single POST_BUILD step.
@@ -376,6 +397,8 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_test(NAME test_qt_resources
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
+    add_test(NAME test_app_icon_config
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_app_icon_config.py)
 
     add_executable(test_qt_resource_images
         ${SRC_DIR}/tests/test_qt_resource_images.cpp
