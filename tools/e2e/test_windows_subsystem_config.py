@@ -5,7 +5,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _has_direct_qlist_equality(text: str) -> bool:
+    normalized = re.sub(r"[\s()]", "", text)
+    return any(
+        f"{left}.{field}=={right}.{field}" in normalized
+        for field in ("items", "itemBounds")
+        for left, right in (("left", "right"), ("right", "left"))
+    )
+
+
 def test_preview_snapshot_comparator() -> None:
+    for sample in (
+        "( ( left . items ) ) == ( right.items )",
+        "right . itemBounds\n== ((left.itemBounds))",
+    ):
+        if not _has_direct_qlist_equality(sample):
+            raise SystemExit("QList equality detector misses reversed or parenthesized operands")
+
     source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
     match = re.search(
         r"auto samePreviewContent = \[\]\(const PreviewContentSnapshot& left, "
@@ -17,10 +33,8 @@ def test_preview_snapshot_comparator() -> None:
         raise SystemExit("samePreviewContent lambda is missing")
     comparator = match.group("body")
 
-    if "left.items == right.items" in comparator:
-        raise SystemExit("samePreviewContent still compares QList items directly")
-    if "left.itemBounds == right.itemBounds" in comparator:
-        raise SystemExit("samePreviewContent still compares QList item bounds directly")
+    if _has_direct_qlist_equality(comparator):
+        raise SystemExit("samePreviewContent still compares QList fields directly")
     for requirement in (
         "left.items.size() != right.items.size()",
         "left.itemBounds.size() != right.itemBounds.size()",
