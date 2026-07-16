@@ -22,12 +22,24 @@ int main(int argc, char** argv) {
         if (image.isNull() || image.size() != QSize(size, size) || !image.hasAlphaChannel())
             return 1;
     }
-    const std::array<const char*, 2> legacy_paths{
-        ":/icons/station.png",
-        ":/icons/passenger.png",
+    const std::array<const char*, 13> entity_icons{
+        ":/icons/station-stop.svg",
+        ":/icons/station-platform.svg",
+        ":/icons/station-interchange.svg",
+        ":/icons/passenger.svg",
+        ":/icons/train-passenger.svg",
+        ":/icons/train-sprinter.svg",
+        ":/icons/train-intercity.svg",
+        ":/icons/train-high-speed.svg",
+        ":/icons/train-freight.svg",
+        ":/icons/signal-neutral.svg",
+        ":/icons/signal-stop.svg",
+        ":/icons/signal-caution.svg",
+        ":/icons/signal-proceed.svg",
     };
-    for (const char* path : legacy_paths) {
-        if (QImage(path).isNull())
+    for (const char* path : entity_icons) {
+        const QImage image(path);
+        if (image.isNull() || image.size() != QSize(24, 24) || !image.hasAlphaChannel())
             return 1;
     }
     return 0;

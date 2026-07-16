@@ -1,7 +1,7 @@
 #include "graphics/items/TrainBadgeItem.h"
 
 TrainBadgeItem::TrainBadgeItem(QGraphicsItem* parent)
-	: QGraphicsItem(parent), m_visual(classifyTrainType("", "")), m_reversed(false), m_compact(false) {
+	: QGraphicsItem(parent), m_visual(classifyTrainType("", "")), m_icon(m_visual.iconResource), m_reversed(false), m_compact(false) {
 	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setZValue(5);
 }
@@ -22,6 +22,7 @@ void TrainBadgeItem::setSpeedText(const QString& speedText) {
 
 void TrainBadgeItem::setTrainVisual(const TrainVisual& visual) {
 	m_visual = visual;
+	m_icon = QPixmap(m_visual.iconResource);
 	update();
 }
 
@@ -77,6 +78,8 @@ void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 
 	const QColor textColor = m_visual.fill.lightness() < 150 ? QColor(Qt::white) : QColor("#16202a");
 	painter->setPen(textColor);
+	painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+	painter->drawPixmap(iconRect(body, m_reversed), m_icon, m_icon.rect());
 	QFont font = painter->font();
 	font.setPointSize(m_compact ? 8 : 9);
 	font.setBold(true);

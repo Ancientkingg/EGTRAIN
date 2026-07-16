@@ -495,12 +495,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	setupInfoDockWidget();
 	setupRunResultsDock();
 
-	// load image for station icon
-	station_pixmap = QPixmap(":/icons/station.png");
-
 	// load image for passenger icon
-	pax_pixmap = QPixmap(":/icons/passenger.png");
-	pax_pixmap_scaled = pax_pixmap.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	pax_pixmap = QPixmap(":/icons/passenger.svg");
+	pax_pixmap_scaled = pax_pixmap.scaled(QSize(14, 14), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
@@ -5367,7 +5364,9 @@ void MainWindow::setupGUI() {
 		pt.setY(pt.y() - station_size / 2);
 
 		// draw station icon
-		paintStationIcon(pt, station_size);
+		paintStationIcon(pt,
+			classifyStation(StationArray[i].N_StationPlatforms > 0,
+				StationArray[i].N_StationPlatforms));
 	}
 
 	// draw connections
@@ -5918,9 +5917,9 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 }
 
 // draws a station icon above the track
-void MainWindow::paintStationIcon(QPointF coord, int size) {
-	const int pinSize = std::clamp(size / 12, 16, 32);
-	IconItem* item = new IconItem(station_pixmap.scaled(QSize(pinSize, pinSize), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+void MainWindow::paintStationIcon(QPointF coord, const StationVisual& visual) {
+	const int pinSize = 24;
+	IconItem* item = new IconItem(QPixmap(visual.iconResource).scaled(QSize(pinSize, pinSize), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	item->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	scene->addItem(item);
 	m_stationDecorations.push_back(item);
@@ -6340,11 +6339,12 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	plate1->setPos(QPointF(plateCenterX, plateCenterY));
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
+	plate1->setAspectCode(180);
 
 	// add trackID, direction and immutable section display fields to signal item
 	plate1->trackID = signalling_block_sections[sectionIndex].trackLineId;
 	plate1->X = X;
-	plate1->reversedDirection = 1;
+	plate1->setReversedDirection(true);
 	// last signal of trackline
 	if (X == signalling_block_sections[sectionIndex].end_node.X) {
 		plate1->sectionAheadId = signalling_block_sections[sectionIndex].ID;
@@ -6392,11 +6392,12 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	plate2->setPos(QPointF(plateCenterX, plateCenterY));
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
+	plate2->setAspectCode(180);
 
 	// add trackID, direction and immutable section display fields to signal item
 	plate2->trackID = signalling_block_sections[sectionIndex].trackLineId;
 	plate2->X = X;
-	plate2->reversedDirection = 0;
+	plate2->setReversedDirection(false);
 	// last signal of trackline
 	if (X == signalling_block_sections[sectionIndex].end_node.X) {
 		plate2->sectionBehindId = signalling_block_sections[sectionIndex].ID;
@@ -7409,8 +7410,9 @@ void MainWindow::updatePlatforms(int t) {
 			qreal iconX = platformIcon->sceneBoundingRect().left() + iconSpacing / 2;
 
 			for (const std::string& paxID : passengerIds) {
-				int iconSize = station_size / 10;
+				const int iconSize = pax_pixmap_scaled.width();
 				auto* item = new PassengerItem(pax_pixmap_scaled);
+				item->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
 				item->setTransformationMode(Qt::SmoothTransformation);
 
@@ -7503,14 +7505,6 @@ void MainWindow::updateSignalAspect(const std::string& ID, double code, bool rev
 	for (auto* signal : m_signalsByAheadId.at(ID)) {
 		if (signal->reversedDirection == reversed) {
 			signal->setAspectCode(static_cast<int>(code));
-			if (code == 270 || code == 180) {
-				signal->setBrush(Qt::green);
-			} else if (code == 75) {
-				signal->setBrush(Qt::yellow);
-			} else if (code == 0) {
-				signal->setBrush(Qt::red);
-			}
-			signal->update();
 		}
 	}
 }
