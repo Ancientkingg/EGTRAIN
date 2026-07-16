@@ -95,7 +95,7 @@ Train::Train() {
 	numOverlaps = 0;
 	MAX_OnBoard_Passengers = 300 + 300 * number_of_wagons; // By default it is considered that a carriage can transport maximum 300 passengers so it is 300 pax for the traction unit and 300 pax for each carriage / wagon
 	Current_OnBoard_Passengers = 0;						   // It is considered that the train starts with no passengers onboard
-	for (int i = 0; i < 40; i++) {
+	for (int i = 0; i < kMaxTimetableStations; i++) {
 		StationArrivals[i] = -1;
 		StationArrivalNames[i] = "None";
 		StationDelay[i] = -1;
