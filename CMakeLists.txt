@@ -352,8 +352,10 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/simulation/Infrastructure.cpp
         ${SRC_DIR}/simulation/InitialParameters.cpp
         ${SRC_DIR}/simulation/NumberGenerator.cpp
+        ${SRC_DIR}/simulation/Passengers.cpp
         ${SRC_DIR}/simulation/RollingStock.cpp
         ${SRC_DIR}/simulation/Signalling.cpp
+        ${SRC_DIR}/simulation/Simulation.cpp
         ${SRC_DIR}/util/Logger.cpp
         ${SRC_DIR}/util/TrajectoryUtil.cpp)
     target_include_directories(test_runresults PRIVATE ${SRC_DIR})

@@ -1,6 +1,7 @@
 #include "diagrams/RunResults.h"
 
 #include "simulation/RollingStock.h"
+#include "simulation/Simulation.h"
 #include "util/Logger.hpp"
 
 #include <cmath>
@@ -289,6 +290,49 @@ int main() {
 	ok &= expect(std::isfinite(terminalPower->TotalEnergyConsWithRegBrak) &&
 					 std::isfinite(terminalPower->TotalEnergySubstRequestWithRegBrak),
 					"terminal nonfinite power does not poison regenerative totals");
+	ok &= expect(terminalPower->instant_train_power_consumption[3] == 0.0,
+					"energy calculation zeroes the terminal nonfinite sample");
+
+	{
+		auto nanSample = makeTrain("sanitize-nan", 1, 3, 0.0, 0.0, 0.0, 0.0);
+		nanSample->instant_train_power_consumption[3] = std::numeric_limits<double>::quiet_NaN();
+		nanSample->sanitizeTerminalPowerSample();
+		ok &= expect(nanSample->instant_train_power_consumption[3] == 0.0,
+					 "sanitize zeroes a nonfinite sample at End_Time");
+		ok &= expect(closeTo(nanSample->instant_train_power_consumption[2], 100.0),
+					 "sanitize leaves samples before End_Time untouched");
+	}
+
+	{
+		auto finiteSample = makeTrain("sanitize-finite", 1, 3, 0.0, 0.0, 0.0, 0.0);
+		finiteSample->sanitizeTerminalPowerSample();
+		ok &= expect(closeTo(finiteSample->instant_train_power_consumption[3], 100.0),
+					 "sanitize keeps an in-range finite sample");
+	}
+
+	{
+		auto outOfRange = makeTrain("sanitize-out-of-range", 1, 3, 0.0, 0.0, 0.0, 0.0);
+		outOfRange->instant_train_power_consumption[3] = std::numeric_limits<double>::quiet_NaN();
+		outOfRange->End_Time = 4;
+		outOfRange->sanitizeTerminalPowerSample();
+		ok &= expect(std::isnan(outOfRange->instant_train_power_consumption[3]),
+					 "sanitize does not write past the series end");
+		outOfRange->End_Time = -1;
+		outOfRange->sanitizeTerminalPowerSample();
+		ok &= expect(std::isnan(outOfRange->instant_train_power_consumption[3]),
+					 "sanitize does not write for a negative End_Time");
+	}
+
+	{
+		auto networkEnergy = makeTrain("network-energy", 1, 3, 0.0, 0.0, 0.0, 0.0);
+		networkEnergy->departure_time = 1;
+		networkEnergy->instant_train_power_consumption[3] = std::numeric_limits<double>::quiet_NaN();
+		ComputeEnergyConsumptionForAllTrains(networkEnergy.get(), 1);
+		ok &= expect(networkEnergy->instant_train_power_consumption[3] == 0.0,
+					 "network energy pass sanitizes the terminal sample");
+		ok &= expect(closeTo(networkEnergy->TotalEnergyConsumed, 220.0),
+					 "network energy pass still computes totals");
+	}
 
 	{
 		auto regionalFirst = makeRegionalTimetableTrain("regional-first", {"A"});
