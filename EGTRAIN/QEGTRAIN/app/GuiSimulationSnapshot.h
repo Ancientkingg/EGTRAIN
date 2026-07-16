@@ -31,6 +31,10 @@ struct GuiTrainState {
 	std::vector<GuiOccupiedArc> occupiedArcs;
 };
 
+inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
+	return !train.outOfSimulation;
+}
+
 struct GuiSignalState {
 	std::string sectionId;
 	int code = 0;

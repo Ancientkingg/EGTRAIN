@@ -15,6 +15,15 @@ void require(bool condition, const char* message) {
 }
 
 int main() {
+	GuiTrainState activeTrain;
+	activeTrain.occupiedArcs.push_back({7, 2.5});
+	GuiTrainState exitedTrain = activeTrain;
+	exitedTrain.outOfSimulation = true;
+	require(guiTrainPublishesOccupiedArcs(activeTrain),
+		"active train occupation was filtered");
+	require(!guiTrainPublishesOccupiedArcs(exitedTrain),
+		"out-of-simulation train occupation was retained");
+
 	GuiSimulationSnapshot first;
 	first.timestep = 1;
 	first.trains.push_back(GuiTrainState{});

@@ -50,12 +50,14 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			}
 		}
 
-		const int arcCount = std::min(train.Bs.total_arcs,
-			static_cast<int>(sizeof(train.Bs.arcs_in_signalling_block_section)
-				/ sizeof(train.Bs.arcs_in_signalling_block_section[0])));
-		for (int arc = 0; arc < arcCount; ++arc) {
-			state.occupiedArcs.push_back({train.Bs.trackLineId,
-				train.Bs.arcs_in_signalling_block_section[arc].startNode.X});
+		if (guiTrainPublishesOccupiedArcs(state)) {
+			const int arcCount = std::min(train.Bs.total_arcs,
+				static_cast<int>(sizeof(train.Bs.arcs_in_signalling_block_section)
+					/ sizeof(train.Bs.arcs_in_signalling_block_section[0])));
+			for (int arc = 0; arc < arcCount; ++arc) {
+				state.occupiedArcs.push_back({train.Bs.trackLineId,
+					train.Bs.arcs_in_signalling_block_section[arc].startNode.X});
+			}
 		}
 		snapshot.trains.push_back(std::move(state));
 	}
