@@ -4393,8 +4393,14 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "cannot open track context menu";
 	} else {
 		QAction* details = findMenuAction(trackMenu, "Show details");
-		if (details)
+		if (details) {
 			details->trigger();
+			QApplication::processEvents();
+			if (!arcInfoWidget || !arcInfoWidget->isVisible()) {
+				ok = false;
+				failures << "track context details did not open arc info";
+			}
+		}
 		QAction* copy = findMenuAction(trackMenu, "Copy arc ID");
 		if (copy)
 			copy->trigger();
@@ -4446,6 +4452,7 @@ void MainWindow::runVisualPolishE2E() {
 		temporaryContextPassenger = true;
 	}
 	if (contextPassenger) {
+		const QString passengerId = QString::fromStdString(contextPassenger->passengerId);
 		QMenu* menu = requestContextMenu(contextPassenger->sceneBoundingRect().center(), false);
 		QAction* details = findMenuAction(menu, "Show details");
 		if (!details || details->icon().isNull()) {
@@ -4456,8 +4463,14 @@ void MainWindow::runVisualPolishE2E() {
 			QApplication::processEvents();
 		}
 		QAction* copy = findMenuAction(menu, "Copy passenger ID");
-		if (copy)
+		if (copy) {
 			copy->trigger();
+			QApplication::processEvents();
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != passengerId) {
+				ok = false;
+				failures << "passenger context copy action did not copy passenger ID";
+			}
+		}
 		closeContextMenu();
 		if (temporaryContextPassenger) {
 			scene->removeItem(contextPassenger);
@@ -4469,14 +4482,42 @@ void MainWindow::runVisualPolishE2E() {
 
 	if (scene && networkView) {
 		const QPointF emptyPos = scene->itemsBoundingRect().bottomRight() + QPointF(1000.0, 1000.0);
+		if (!selectedTrainBody) {
+			ok = false;
+			failures << "cannot establish selection for empty-space context menu";
+		} else {
+			QGraphicsSceneMouseEvent selectionEvent(QEvent::GraphicsSceneMousePress);
+			selectionEvent.setButton(Qt::LeftButton);
+			selectionEvent.setButtons(Qt::LeftButton);
+			selectionEvent.setScenePos(selectedTrainBody->sceneBoundingRect().center());
+			selectionEvent.setWidget(networkView->viewport());
+			scene->mousePressEvent(&selectionEvent);
+			QApplication::processEvents();
+			if (!effect || !infoDockWidget || !infoDockWidget->isVisible()
+				|| !m_followAction || !m_followAction->isChecked() || m_followTrainIndex != selectedTrain->index) {
+				ok = false;
+				failures << "empty-space context menu could not establish selection and follow mode";
+			}
+		}
 		QMenu* menu = requestContextMenu(emptyPos, false);
-		if (!menu || !findMenuAction(menu, "Fit whole network") || !findMenuAction(menu, "Clear selection")
-			|| !findMenuAction(menu, "Stop following train")) {
+		QAction* fit = findMenuAction(menu, "Fit whole network");
+		QAction* clear = findMenuAction(menu, "Clear selection");
+		QAction* stop = findMenuAction(menu, "Stop following train");
+		if (!menu || !fit || !clear || !stop) {
 			ok = false;
 			failures << "empty-space context menu is incomplete";
 		} else {
-			findMenuAction(menu, "Fit whole network")->trigger();
+			fit->trigger();
 			QApplication::processEvents();
+			clear->trigger();
+			QApplication::processEvents();
+			stop->trigger();
+			QApplication::processEvents();
+			if ((infoDockWidget && infoDockWidget->isVisible()) || effect
+				|| (m_followAction && m_followAction->isChecked()) || m_followTrainIndex != -1) {
+				ok = false;
+				failures << "empty-space context actions did not clear selection and follow mode";
+			}
 		}
 		closeContextMenu();
 	} else {
