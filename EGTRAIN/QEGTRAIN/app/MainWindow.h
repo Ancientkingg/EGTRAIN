@@ -366,6 +366,7 @@ private:
 	QLabel* m_speedLabel;
 	QAction* m_followAction = nullptr;
 	QComboBox* m_followTrainCombo = nullptr;
+	QPointer<QMenu> m_sceneContextMenu;
 	int m_followTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
@@ -501,6 +502,15 @@ private:
 	void refreshFollowTrainChoices();
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
+	void showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
+	void centerSceneItem(QGraphicsItem* item);
+	void setFollowTrain(int trainIndex);
+	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
+	TrainItemGroup* resolveTrainItem(int trainIndex) const;
+	StationNodeItem* resolveStationNodeItem(double nodeId, int track) const;
+	TrackLineItem* resolveArcItem(double arcId, int track) const;
+	SignalItem* resolveSignalItem(int track, double position, bool reversed) const;
+	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
 	bool maybeSaveScene();
