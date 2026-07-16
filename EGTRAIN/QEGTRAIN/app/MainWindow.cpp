@@ -3786,16 +3786,42 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "network legend is missing";
 	}
-	if (m_trainBadges.isEmpty() || std::none_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-		[](const auto& entry) { return entry && entry->isVisible(); })) {
+	if (!networkView) {
 		ok = false;
-		failures << "no visible train badge rendered";
-	}
-	if (std::none_of(allArcs.cbegin(), allArcs.cend(), [](const TrackLineItem* item) {
-		return item && item->operationalState() != TrackOperationalState::Free;
-	})) {
-		ok = false;
-		failures << "playback did not render an operational track state";
+		failures << "network viewport is missing before default capture";
+	} else {
+		const QRectF visibleViewport = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
+		const bool visibleBadge = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[](const auto& entry) { return entry && entry->isVisible(); });
+		const bool badgeInViewport = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[&visibleViewport](const auto& entry) {
+				return entry && entry->isVisible()
+					&& visibleViewport.contains(entry->sceneBoundingRect().center());
+			});
+		if (!visibleBadge) {
+			ok = false;
+			failures << "no visible train badge rendered";
+		} else if (!badgeInViewport) {
+			ok = false;
+			failures << "visible train badge center is outside default viewport";
+		}
+
+		const bool operationalTrack = std::any_of(allArcs.cbegin(), allArcs.cend(),
+			[](const TrackLineItem* item) {
+				return item && item->operationalState() != TrackOperationalState::Free;
+			});
+		const bool operationalTrackInViewport = std::any_of(allArcs.cbegin(), allArcs.cend(),
+			[&visibleViewport](const TrackLineItem* item) {
+				return item && item->operationalState() != TrackOperationalState::Free
+					&& visibleViewport.intersects(item->sceneBoundingRect());
+			});
+		if (!operationalTrack) {
+			ok = false;
+			failures << "playback did not render an operational track state";
+		} else if (!operationalTrackInViewport) {
+			ok = false;
+			failures << "no non-free track intersects default viewport";
+		}
 	}
 
 	// Capture the readable default view before changing follow or zoom state.
@@ -7569,7 +7595,10 @@ void MainWindow::updateTrainPosition(int t) {
 		// the exact departure frame, and the recorded trajectory (not the live
 		// train state) is what says whether the train is on the network at t
 		else if (t >= state.departureTime && state.routeAxisPosition != -9999) {
+			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
+			if (firstTrain && !allTrains.isEmpty())
+				networkView->centerOn(allTrains.last()->sceneBoundingRect().center());
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train && !allTrains.isEmpty())
 				networkView->centerOn(allTrains.last());
 		}
