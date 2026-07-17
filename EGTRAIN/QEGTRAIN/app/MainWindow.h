@@ -222,6 +222,7 @@ public:
 	bool hasRunResults() const;
 	void updateDiagramActions();
 	QMenu* editorsMenu();
+	void showStartupChooser();
 
 	// VCoupling notifications
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);

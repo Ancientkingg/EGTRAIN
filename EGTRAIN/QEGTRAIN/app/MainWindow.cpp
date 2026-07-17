@@ -6524,9 +6524,9 @@ void MainWindow::showEvent(QShowEvent* e) {
 		return;
 	m_promptedLoad = true;
 	extern InitialParameters initial_variables;
-	// skip dialog when -n was given so scripted runs load directly
+	// skip the chooser when -n was given so scripted runs load directly
 	if (!initial_variables.nArgProvided)
-		QTimer::singleShot(0, this, &MainWindow::actionLoad_Network);
+		QTimer::singleShot(0, this, &MainWindow::showStartupChooser);
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART"))
@@ -6577,6 +6577,107 @@ QMenu* MainWindow::editorsMenu() {
 		menuBar()->insertMenu(ui->menuSimulation->menuAction(), m_editorsMenu);
 	}
 	return m_editorsMenu;
+}
+
+// First-launch case chooser: bundled scenes and recents by name, with the
+// generic open and legacy import flows as buttons. Replaces the bare
+// "Select Legacy Case Folder" dialog that used to open over the blank canvas.
+void MainWindow::showStartupChooser() {
+	QDialog dialog(this);
+	dialog.setWindowTitle("Open a Case");
+	dialog.resize(560, 460);
+	QVBoxLayout* layout = new QVBoxLayout(&dialog);
+
+	QLabel* heading = new QLabel("Choose a case study to open:", &dialog);
+	layout->addWidget(heading);
+
+	QListWidget* list = new QListWidget(&dialog);
+	QSet<QString> seen;
+	const auto addSceneItem = [&](const QString& path, const QString& badge) {
+		const QString canonical = QFileInfo(path).canonicalFilePath();
+		if (canonical.isEmpty() || seen.contains(canonical))
+			return;
+		seen.insert(canonical);
+		auto* item = new QListWidgetItem(QString("%1%2").arg(QDir(path).dirName(), badge), list);
+		item->setData(Qt::UserRole, path);
+		item->setToolTip(path);
+	};
+	// bundled scenes travel next to the binary or in the working directory
+	const QStringList sceneRoots = {
+		QDir::currentPath() + "/Scenes",
+		QCoreApplication::applicationDirPath() + "/../Resources/Scenes"};
+	for (const QString& root : sceneRoots) {
+		QDir dir(root);
+		if (!dir.exists())
+			continue;
+		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+		for (const QFileInfo& entry : entries) {
+			if (QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
+				addSceneItem(entry.absoluteFilePath(), QString());
+		}
+	}
+	QSettings settings;
+	const QStringList recent = settings.value(kRecentScenesKey).toStringList();
+	for (const QString& path : recent) {
+		if (QFileInfo(QDir(path).filePath("scene.json")).exists())
+			addSceneItem(path, "  (recent)");
+	}
+	layout->addWidget(list, 1);
+
+	QLabel* legacyHint = new QLabel(
+		"A legacy case is a folder with the original text inputs. Importing one asks "
+		"for that folder first and then for a folder to save the converted scene.", &dialog);
+	legacyHint->setWordWrap(true);
+	legacyHint->setStyleSheet("color: gray;");
+	layout->addWidget(legacyHint);
+
+	QHBoxLayout* buttons = new QHBoxLayout();
+	QPushButton* legacyBtn = new QPushButton("Import Legacy Case...", &dialog);
+	QPushButton* browseBtn = new QPushButton("Open Scene Folder...", &dialog);
+	QPushButton* skipBtn = new QPushButton("Skip", &dialog);
+	QPushButton* openBtn = new QPushButton("Open", &dialog);
+	openBtn->setDefault(true);
+	openBtn->setEnabled(false);
+	buttons->addWidget(legacyBtn);
+	buttons->addWidget(browseBtn);
+	buttons->addStretch();
+	buttons->addWidget(skipBtn);
+	buttons->addWidget(openBtn);
+	layout->addLayout(buttons);
+
+	enum { Skipped, OpenSelected, BrowseScene, ImportLegacy };
+	int choice = Skipped;
+	connect(list, &QListWidget::itemSelectionChanged, &dialog, [&]() {
+		openBtn->setEnabled(list->currentItem() != nullptr);
+	});
+	connect(list, &QListWidget::itemDoubleClicked, &dialog, [&](QListWidgetItem*) {
+		choice = OpenSelected;
+		dialog.accept();
+	});
+	connect(openBtn, &QPushButton::clicked, &dialog, [&]() { choice = OpenSelected; dialog.accept(); });
+	connect(browseBtn, &QPushButton::clicked, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
+	connect(legacyBtn, &QPushButton::clicked, &dialog, [&]() { choice = ImportLegacy; dialog.accept(); });
+	connect(skipBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+	if (list->count() > 0)
+		list->setCurrentRow(0);
+	dialog.exec();
+
+	switch (choice) {
+		case OpenSelected:
+			if (QListWidgetItem* item = list->currentItem())
+				openSceneDirectory(item->data(Qt::UserRole).toString());
+			break;
+		case BrowseScene:
+			openSceneDialog();
+			break;
+		case ImportLegacy:
+			actionLoad_Network();
+			break;
+		default:
+			statusBar()->showMessage("No case chosen; use File > Open Scene when ready", 8000);
+			break;
+	}
 }
 
 // The Run action: scenes restage through runScene so a run never uses stale
