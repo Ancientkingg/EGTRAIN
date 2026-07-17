@@ -610,6 +610,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionSimulationStart->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 	ui->actionSimulationPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
 	ui->actionSimulationStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+	ui->actionSimulationPause->setEnabled(false);
+	ui->actionSimulationStop->setEnabled(false);
 	ui->actionSimulationStart->setToolTip("Run simulation (Ctrl+R)");
 	ui->actionSimulationPause->setToolTip("Pause or resume simulation (Ctrl+.)");
 	ui->actionSimulationStop->setToolTip("Stop simulation (Ctrl+Esc)");
@@ -664,8 +666,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	caseLayersLayout->addStretch();
 	m_caseLayersDock->setWidget(caseLayersWidget);
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
-	if (ui->menuView)
+	if (ui->menuView) {
+		// zoom actions above, panel toggles below
+		ui->menuView->addSeparator();
 		ui->menuView->addAction(m_caseLayersDock->toggleViewAction());
+		// Without a menu entry a closed Run Results dock stayed unreachable
+		// until the next run finished.
+		if (m_runResultsDock)
+			ui->menuView->addAction(m_runResultsDock->toggleViewAction());
+	}
 	connect(m_stationLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_stationLayerVisible = checked;
 		for (auto* item : m_stationDecorations)
@@ -770,6 +779,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_logPane = new ConsoleWidget(this);
 	addDockWidget(Qt::BottomDockWidgetArea, m_logPane);
 	m_logPane->hide();
+	m_logPane->toggleViewAction()->setShortcut(QKeySequence("Ctrl+Shift+L"));
 	if (ui->menuView)
 		ui->menuView->addAction(m_logPane->toggleViewAction());
 
@@ -788,6 +798,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
 	m_validationDock->hide();
 	tabifyDockWidget(m_logPane, m_validationDock);
+	m_validationDock->toggleViewAction()->setShortcut(QKeySequence("Ctrl+Shift+V"));
 	if (ui->menuView)
 		ui->menuView->addAction(m_validationDock->toggleViewAction());
 
@@ -882,8 +893,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_trainUnitDock->setWidget(trainUnitWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
-	if (ui->menuView)
-		ui->menuView->addAction(m_trainUnitDock->toggleViewAction());
+	editorsMenu()->addAction(m_trainUnitDock->toggleViewAction());
 	connect(m_trainUnitListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateTrainUnitDetailPanel();
 	});
@@ -972,8 +982,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
 	m_compositionDock->hide();
 	tabifyDockWidget(m_trainUnitDock, m_compositionDock);
-	if (ui->menuView)
-		ui->menuView->addAction(m_compositionDock->toggleViewAction());
+	editorsMenu()->addAction(m_compositionDock->toggleViewAction());
 
 	connect(m_compositionListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateCompositionDetailPanel();
@@ -1105,8 +1114,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
 	m_serviceDock->hide();
 	tabifyDockWidget(m_compositionDock, m_serviceDock);
-	if (ui->menuView)
-		ui->menuView->addAction(m_serviceDock->toggleViewAction());
+	editorsMenu()->addAction(m_serviceDock->toggleViewAction());
 
 	connect(m_serviceListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateServiceDetailPanel();
@@ -1201,8 +1209,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentDock->hide();
 	m_trainUnitDock->hide();
 	tabifyDockWidget(m_serviceDock, m_incidentDock);
-	if (ui->menuView)
-		ui->menuView->addAction(m_incidentDock->toggleViewAction());
+	editorsMenu()->addAction(m_incidentDock->toggleViewAction());
 
 	connect(m_incidentListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateIncidentDetailPanel();
@@ -1242,6 +1249,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Blocking-time overlay...", this, &MainWindow::showBlockingTimeDiagram);
 	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", this, &MainWindow::showTimetableTable);
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
+	// Train paths belongs with the other charts; retire the one-entry Tools menu.
+	m_diagramsMenu->addSeparator();
+	ui->displayTrainPathDiagrams->setText("Train paths (per corridor)...");
+	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
+	if (ui->menuTools)
+		menuBar()->removeAction(ui->menuTools->menuAction());
 	updateDiagramActions();
 
 	// --- Status bar ---
@@ -3495,9 +3508,24 @@ void MainWindow::rebuildRecentScenesMenu() {
 		settings.setValue(kRecentScenesKey, cleanedRecent);
 		recent = cleanedRecent;
 	}
+	// Label entries by scene name; the full path stays in the status tip. When
+	// two checkouts share a scene name, a shortened parent path tells them apart.
+	QHash<QString, int> nameCount;
+	for (const QString& path : recent)
+		++nameCount[QDir(path).dirName()];
 	for (const QString& path : recent) {
-		QAction* action = m_recentScenesMenu->addAction(path);
+		const QString name = QDir(path).dirName();
+		QString label = name;
+		if (nameCount.value(name) > 1) {
+			QString parent = QFileInfo(path).dir().path();
+			if (parent.length() > 44)
+				parent = parent.left(20) + "..." + parent.right(20);
+			label = QString("%1 (%2)").arg(name, parent);
+		}
+		QAction* action = m_recentScenesMenu->addAction(label);
 		action->setData(path);
+		action->setStatusTip(path);
+		action->setToolTip(path);
 		connect(action, &QAction::triggered, this, [this, action]() {
 			if (!maybeSaveScene())
 				return;
@@ -6012,6 +6040,11 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 	}
 	m_worker = nullptr;
 	m_workerThread = nullptr;
+	// Pause and Stop only mean something while a worker exists.
+	if (ui->actionSimulationPause)
+		ui->actionSimulationPause->setEnabled(false);
+	if (ui->actionSimulationStop)
+		ui->actionSimulationStop->setEnabled(false);
 }
 
 void MainWindow::stopTrainAnimation(int train) {
@@ -6473,6 +6506,15 @@ void MainWindow::updateDiagramActions() {
 	}
 }
 
+// Lazily created so the menu only appears once an editor dock registers.
+QMenu* MainWindow::editorsMenu() {
+	if (!m_editorsMenu) {
+		m_editorsMenu = new QMenu("Editors", this);
+		menuBar()->insertMenu(ui->menuSimulation->menuAction(), m_editorsMenu);
+	}
+	return m_editorsMenu;
+}
+
 // The Run action: scenes restage through runScene so a run never uses stale
 // legacy state; legacy cases start the worker on the state loaded at startup.
 void MainWindow::runCurrent() {
@@ -6518,6 +6560,8 @@ void MainWindow::startSimulation() {
 	connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
 
 	m_workerThread->start();
+	ui->actionSimulationPause->setEnabled(true);
+	ui->actionSimulationStop->setEnabled(true);
 }
 
 // handle simulation completion on the main thread

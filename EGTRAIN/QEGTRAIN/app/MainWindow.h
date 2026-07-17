@@ -221,6 +221,7 @@ public:
 	void buildCorridorTrainPathDiagram(std::string corridor);
 	bool hasRunResults() const;
 	void updateDiagramActions();
+	QMenu* editorsMenu();
 
 	// VCoupling notifications
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
@@ -391,6 +392,7 @@ private:
 	long long m_startOffsetSeconds = 0; // simulation start, seconds since midnight
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
+	QMenu* m_editorsMenu = nullptr;		// Editors top-level menu (dock toggles)
 	QString m_sceneDir;
 	SceneModel m_sceneModel;
 	bool m_sceneLoaded = false;
