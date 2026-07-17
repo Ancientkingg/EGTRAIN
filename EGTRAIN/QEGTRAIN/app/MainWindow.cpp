@@ -57,6 +57,13 @@ const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailScale = 0.16;
 constexpr int kOverlayMargin = 12;
 
+// The speed slider reads left-to-right as slow-to-fast; the worker wants a
+// per-step delay, so the delay is the distance from the fast end.
+constexpr int kMaxStepDelayMs = 500;
+int stepDelayForSlider(int sliderValue) {
+	return kMaxStepDelayMs - sliderValue;
+}
+
 std::vector<const Train*> runResultTrainPointers() {
 	std::vector<const Train*> trains;
 	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
@@ -486,11 +493,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// setup speed slider (will be added to toolbar)
 	m_speedSlider = new QSlider(Qt::Horizontal);
-	m_speedSlider->setRange(0, 500);
-	m_speedSlider->setValue(0);
+	m_speedSlider->setRange(0, kMaxStepDelayMs);
+	m_speedSlider->setValue(kMaxStepDelayMs);
 	m_speedSlider->setMaximumWidth(200);
-	m_speedSlider->setToolTip("Simulation speed: fastest compressed mode");
-	m_speedLabel = new QLabel(simulationSpeedLabel(m_speedSlider->value()));
+	m_speedSlider->setToolTip("Simulation speed: fastest");
+	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())));
 
 	// setup info dock widget
 	setupInfoDockWidget();
@@ -580,9 +587,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		}
 	});
 	connect(m_speedSlider, &QSlider::valueChanged, this, [this](int value) {
-		updateSpeedModeDisplay(value);
+		const int delayMs = stepDelayForSlider(value);
+		updateSpeedModeDisplay(delayMs);
 		if (m_worker)
-			m_worker->setDelayMs(value);
+			m_worker->setDelayMs(delayMs);
 	});
 
 	// set application item
@@ -1348,6 +1356,7 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 	pen.setWidthF(2.0);
 	pen.setCosmetic(true);
 
+	QRectF previewBounds;
 	std::map<int, std::pair<const TrackPreviewLine*, qreal>> tracks;
 	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
 		const auto& line = preview.lines[index];
@@ -1359,6 +1368,7 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 			path.lineTo(line.points[point].x, line.points[point].y + offset);
 		auto* item = scene->addPath(path, pen);
 		item->setAcceptedMouseButtons(Qt::NoButton);
+		previewBounds = previewBounds.united(item->sceneBoundingRect());
 	}
 
 	for (const auto& connection : preview.connections) {
@@ -1377,9 +1387,50 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 		path.lineTo(end);
 		auto* item = scene->addPath(path, pen);
 		item->setAcceptedMouseButtons(Qt::NoButton);
+		previewBounds = previewBounds.united(item->sceneBoundingRect());
 	}
 
-	fitView();
+	// Station anchors: a fixed-size marker and name at the first trackline
+	// whose x range covers the anchor, so each direction band gets its label.
+	for (const auto& station : preview.stations) {
+		for (const auto& track : tracks) {
+			const auto& points = track.second.first->points;
+			const double minX = std::min(points.front().x, points.back().x);
+			const double maxX = std::max(points.front().x, points.back().x);
+			if (station.x < minX || station.x > maxX)
+				continue;
+			QPointF anchor;
+			if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
+				break;
+			auto* marker = scene->addEllipse(QRectF(-4.0, -4.0, 8.0, 8.0),
+											 QPen(QColor(240, 244, 250)), QBrush(QColor(70, 110, 200)));
+			marker->setPos(anchor);
+			marker->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+			marker->setAcceptedMouseButtons(Qt::NoButton);
+			auto* label = scene->addSimpleText(QString::fromStdString(station.name));
+			label->setBrush(QBrush(QColor(205, 210, 220)));
+			label->setPos(anchor);
+			label->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+			label->moveBy(0.0, 1.0);  // sits just under the marker once fixed-size
+			label->setAcceptedMouseButtons(Qt::NoButton);
+			break;
+		}
+	}
+
+	// Fit the drawn geometry directly; the generic fitView minimum-scale clamp
+	// is tuned for case-study coordinates and crops these kilometre-scale paths.
+	if (!previewBounds.isEmpty()) {
+		if (previewBounds.height() < previewBounds.width() * 0.2) {
+			const qreal grow = previewBounds.width() * 0.2 - previewBounds.height();
+			previewBounds.adjust(0, -grow / 2.0, 0, grow / 2.0);
+		}
+		const qreal marginX = previewBounds.width() * 0.05;
+		const qreal marginY = previewBounds.height() * 0.1;
+		previewBounds.adjust(-marginX, -marginY, marginX, marginY);
+		scene->setSceneRect(previewBounds);
+		networkView->fitInView(previewBounds, Qt::KeepAspectRatio);
+		updateViewportOverlays();
+	}
 	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running")
 								 .arg(static_cast<int>(preview.lines.size())));
 }
@@ -3566,11 +3617,11 @@ void MainWindow::updateCaseLayersPanel() {
 		m_simulationClockLabel->setText(QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)));
 }
 
-void MainWindow::updateSpeedModeDisplay(int value) {
+void MainWindow::updateSpeedModeDisplay(int delayMs) {
 	if (m_speedLabel)
-		m_speedLabel->setText(simulationSpeedLabel(value));
+		m_speedLabel->setText(simulationSpeedLabel(delayMs));
 	if (m_speedSlider) {
-		m_speedSlider->setToolTip(QString("Simulation speed: %1 mode").arg(simulationSpeedMode(value).toLower()));
+		m_speedSlider->setToolTip(QString("Simulation speed: %1").arg(simulationSpeedMode(delayMs).toLower()));
 	}
 }
 
@@ -3931,11 +3982,11 @@ void MainWindow::runVisualPolishE2E() {
 	} else {
 		m_speedSlider->setValue(250);
 		QApplication::processEvents();
-		if (!m_speedLabel->text().contains("+250 ms")) {
+		if (!m_speedLabel->text().contains("4.0x")) {
 			ok = false;
 			failures << "speed label did not update";
 		}
-		m_speedSlider->setValue(0);
+		m_speedSlider->setValue(m_speedSlider->maximum());
 	}
 
 	if (!m_followAction || !m_followTrainCombo || m_followTrainCombo->count() == 0) {
@@ -6547,7 +6598,7 @@ void MainWindow::startSimulation() {
 
 	// create worker and thread; sync slider before run() starts
 	m_worker = new SimulationWorker();
-	m_worker->setDelayMs(m_speedSlider->value());
+	m_worker->setDelayMs(stepDelayForSlider(m_speedSlider->value()));
 	m_workerThread = new QThread(this);
 	m_worker->moveToThread(m_workerThread);
 
