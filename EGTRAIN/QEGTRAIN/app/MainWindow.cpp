@@ -7,6 +7,7 @@
 #include "widgets/ConsoleWidget.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
+#include "diagrams/TimetableTableWindow.h"
 #include "util/TrajectoryUtil.h"
 #include "util/CsvWriter.h"
 #include "diagrams/BlockingTimeDiagram.h"
@@ -7520,20 +7521,34 @@ void MainWindow::setupRunResultsDock() {
 	m_runResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_runResultsTable->setColumnCount(8);
 	m_runResultsTable->setHorizontalHeaderLabels({
-		"Train", "Start time (s)", "End time (s)", "Travel time (s)",
-		"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
-		"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
+		"Train", "Start", "End", "Travel time",
+		"Energy (kWh)", "Energy with regen (kWh)",
+		"Substation (kWh)", "Substation with regen (kWh)"});
+	m_runResultsTable->setAlternatingRowColors(true);
 	m_runResultsTable->horizontalHeader()->setStretchLastSection(true);
 
 	QWidget* container = new QWidget(m_runResultsDock);
 	QVBoxLayout* containerLayout = new QVBoxLayout(container);
 	containerLayout->setContentsMargins(0, 0, 0, 0);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
+	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
 		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv());
 	});
+	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
+	exportPngBtn->setToolTip("Save the table as an image");
+	connect(exportPngBtn, &QPushButton::clicked, this, [this]() {
+		QString path = QFileDialog::getSaveFileName(this, "Export Table", "run_summary.png", "PNG Image (*.png)");
+		if (path.isEmpty())
+			return;
+		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
+			path += ".png";
+		if (!m_runResultsTable->grab().save(path, "PNG"))
+			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
+	});
 	QHBoxLayout* toolRow = new QHBoxLayout();
 	toolRow->addWidget(exportCsvBtn);
+	toolRow->addWidget(exportPngBtn);
 	toolRow->addStretch();
 	containerLayout->addLayout(toolRow);
 	containerLayout->addWidget(m_runResultsTable);
@@ -7557,30 +7572,46 @@ void MainWindow::refreshRunResults() {
 		"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
 	m_runResultsTable->setRowCount(static_cast<int>(results.trains.size()) + 1);
 
-	const auto valueText = [](const RunResultValue& value) {
-		return value.available ? QString::number(value.value, 'f', 6) : QStringLiteral("Unavailable");
+	// Start and end as clock times, travel time as a duration, energy with one
+	// decimal; a dash marks values the run did not produce.
+	const auto clockText = [this](const RunResultValue& value) {
+		return value.available
+			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), m_startOffsetSeconds))
+			: QStringLiteral("-");
+	};
+	const auto durationText = [](const RunResultValue& value) {
+		if (!value.available)
+			return QStringLiteral("-");
+		const long long total = static_cast<long long>(value.value);
+		return QString("%1:%2:%3")
+			.arg(total / 3600)
+			.arg((total % 3600) / 60, 2, 10, QChar('0'))
+			.arg(total % 60, 2, 10, QChar('0'));
+	};
+	const auto energyText = [](const RunResultValue& value) {
+		return value.available ? QString::number(value.value, 'f', 1) : QStringLiteral("-");
 	};
 	for (int row = 0; row < static_cast<int>(results.trains.size()); ++row) {
 		const TrainRunResult& result = results.trains[static_cast<std::size_t>(row)];
 		m_runResultsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
-		m_runResultsTable->setItem(row, 1, new QTableWidgetItem(valueText(result.startSeconds)));
-		m_runResultsTable->setItem(row, 2, new QTableWidgetItem(valueText(result.endSeconds)));
-		m_runResultsTable->setItem(row, 3, new QTableWidgetItem(valueText(result.travelSeconds)));
-		m_runResultsTable->setItem(row, 4, new QTableWidgetItem(valueText(result.energyConsumedKWh)));
-		m_runResultsTable->setItem(row, 5, new QTableWidgetItem(valueText(result.energyWithRegenKWh)));
-		m_runResultsTable->setItem(row, 6, new QTableWidgetItem(valueText(result.substationKWh)));
-		m_runResultsTable->setItem(row, 7, new QTableWidgetItem(valueText(result.substationWithRegenKWh)));
+		m_runResultsTable->setItem(row, 1, new QTableWidgetItem(clockText(result.startSeconds)));
+		m_runResultsTable->setItem(row, 2, new QTableWidgetItem(clockText(result.endSeconds)));
+		m_runResultsTable->setItem(row, 3, new QTableWidgetItem(durationText(result.travelSeconds)));
+		m_runResultsTable->setItem(row, 4, new QTableWidgetItem(energyText(result.energyConsumedKWh)));
+		m_runResultsTable->setItem(row, 5, new QTableWidgetItem(energyText(result.energyWithRegenKWh)));
+		m_runResultsTable->setItem(row, 6, new QTableWidgetItem(energyText(result.substationKWh)));
+		m_runResultsTable->setItem(row, 7, new QTableWidgetItem(energyText(result.substationWithRegenKWh)));
 	}
 
 	const int totalRow = static_cast<int>(results.trains.size());
 	m_runResultsTable->setItem(totalRow, 0, new QTableWidgetItem(QStringLiteral("Network total")));
-	m_runResultsTable->setItem(totalRow, 1, new QTableWidgetItem(valueText(results.networkStartSeconds)));
-	m_runResultsTable->setItem(totalRow, 2, new QTableWidgetItem(valueText(results.networkEndSeconds)));
-	m_runResultsTable->setItem(totalRow, 3, new QTableWidgetItem(valueText(results.networkTravelSeconds)));
-	m_runResultsTable->setItem(totalRow, 4, new QTableWidgetItem(valueText(results.energyConsumedKWh)));
-	m_runResultsTable->setItem(totalRow, 5, new QTableWidgetItem(valueText(results.energyWithRegenKWh)));
-	m_runResultsTable->setItem(totalRow, 6, new QTableWidgetItem(valueText(results.substationKWh)));
-	m_runResultsTable->setItem(totalRow, 7, new QTableWidgetItem(valueText(results.substationWithRegenKWh)));
+	m_runResultsTable->setItem(totalRow, 1, new QTableWidgetItem(clockText(results.networkStartSeconds)));
+	m_runResultsTable->setItem(totalRow, 2, new QTableWidgetItem(clockText(results.networkEndSeconds)));
+	m_runResultsTable->setItem(totalRow, 3, new QTableWidgetItem(durationText(results.networkTravelSeconds)));
+	m_runResultsTable->setItem(totalRow, 4, new QTableWidgetItem(energyText(results.energyConsumedKWh)));
+	m_runResultsTable->setItem(totalRow, 5, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
+	m_runResultsTable->setItem(totalRow, 6, new QTableWidgetItem(energyText(results.substationKWh)));
+	m_runResultsTable->setItem(totalRow, 7, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
 	m_runResultsTable->resizeColumnsToContents();
 	m_runResultsDock->show();
 	m_runResultsDock->raise();
@@ -9124,13 +9155,8 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 	// create chart
 	QChart* chart = new QChart();
 
-	// custom title
-	QString title = "Train Path Diagram: corridor ";
+	QString title = "Train paths (time vs distance), corridor ";
 	title.append(QString::fromStdString(corridor));
-	QFont font;
-	font.setPixelSize(18);
-	chart->setTitleFont(font);
-	chart->setTitleBrush(QBrush(Qt::black));
 	chart->setTitle(title);
 
 	for (int i = 0; i < numRegions; i++) {
@@ -9575,6 +9601,12 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		}
 	}
 	chart->createDefaultAxes();
+	const char* xTitles[] = {"Distance (km)", "Time", "Time"};
+	const char* yTitles[] = {"Speed (km/h)", "Speed (km/h)", "Distance (km)"};
+	if (!chart->axes(Qt::Horizontal).isEmpty())
+		chart->axes(Qt::Horizontal).first()->setTitleText(xTitles[mode]);
+	if (!chart->axes(Qt::Vertical).isEmpty())
+		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
 	DiagramWindow* win = new DiagramWindow(titles[mode], this);
 	win->setChart(chart);
@@ -9605,68 +9637,10 @@ void MainWindow::showTimetableTable() {
 		return;
 	}
 
-	QDialog* dlg = new QDialog(this);
-	dlg->setWindowTitle("Timetable: planned vs simulated");
-	dlg->resize(700, 500);
-	dlg->setAttribute(Qt::WA_DeleteOnClose);
-
-	QVBoxLayout* layout = new QVBoxLayout(dlg);
-	QTableWidget* table = new QTableWidget();
-	table->setColumnCount(8);
-	table->setHorizontalHeaderLabels({
-		"Train", "Station call", "Planned arrival", "Planned departure",
-		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
-
-	const auto timeText = [this](const RunResultValue& value) {
-		return value.available
-			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), m_startOffsetSeconds))
-			: QStringLiteral("Unavailable");
-	};
-	const auto delayText = [](const RunResultValue& value) {
-		if (!value.available)
-			return QStringLiteral("Unavailable");
-		return QString("%1%2 s")
-			.arg(value.value >= 0.0 ? "+" : "")
-			.arg(value.value, 0, 'f', 0);
-	};
-	const auto setDelayColor = [](QTableWidgetItem* item, const RunResultValue& value) {
-		if (!value.available)
-			return;
-		if (value.value > 60.0)
-			item->setForeground(QBrush(Qt::red));
-		else if (value.value > 0.0)
-			item->setForeground(QBrush(Qt::darkYellow));
-		else
-			item->setForeground(QBrush(Qt::darkGreen));
-	};
-
-	const auto rows = buildTimetableResults(runResultTrainPointers());
-	for (int row = 0; row < static_cast<int>(rows.size()); ++row) {
-		const TimetableResultRow& result = rows[static_cast<std::size_t>(row)];
-		table->insertRow(row);
-		table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
-		table->setItem(row, 1, new QTableWidgetItem(
-			QString("%1 (#%2)").arg(QString::fromStdString(result.stationId)).arg(result.callIndex)));
-		table->setItem(row, 2, new QTableWidgetItem(timeText(result.plannedArrivalSeconds)));
-		table->setItem(row, 3, new QTableWidgetItem(timeText(result.plannedDepartureSeconds)));
-		table->setItem(row, 4, new QTableWidgetItem(timeText(result.simulatedArrivalSeconds)));
-		table->setItem(row, 5, new QTableWidgetItem(timeText(result.simulatedDepartureSeconds)));
-		auto* arrivalDelayItem = new QTableWidgetItem(delayText(result.arrivalDelaySeconds));
-		auto* departureDelayItem = new QTableWidgetItem(delayText(result.departureDelaySeconds));
-		setDelayColor(arrivalDelayItem, result.arrivalDelaySeconds);
-		setDelayColor(departureDelayItem, result.departureDelaySeconds);
-		table->setItem(row, 6, arrivalDelayItem);
-		table->setItem(row, 7, departureDelayItem);
-	}
-	table->resizeColumnsToContents();
-	layout->addWidget(table);
-
-	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", dlg);
-	connect(exportCsvBtn, &QPushButton::clicked, dlg, [dlg]() {
-		saveCsvInteractive(dlg, "timetable.csv", buildTimetableCsv(allTrainIds()));
-	});
-	layout->addWidget(exportCsvBtn);
-	dlg->show();
+	auto* window = new TimetableTableWindow(buildTimetableResults(runResultTrainPointers()),
+											m_startOffsetSeconds, &buildTimetableCsv, this);
+	window->setAttribute(Qt::WA_DeleteOnClose);
+	window->show();
 }
 
 void MainWindow::showDelayDiagram() {
