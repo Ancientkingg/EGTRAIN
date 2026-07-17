@@ -219,7 +219,8 @@ public:
 
 	// train path diagram
 	void buildCorridorTrainPathDiagram(std::string corridor);
-	void askForTrainPathDiagram();
+	bool hasRunResults() const;
+	void updateDiagramActions();
 
 	// VCoupling notifications
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
@@ -261,6 +262,7 @@ public slots:
 	void releaseBlockOccupationStatus();
 	void updateTrainPosition(int t);
 	void startSimulation();
+	void runCurrent();
 	void onSimulationFinished();
 	void openSceneDialog();
 	void saveScene();
@@ -393,6 +395,9 @@ private:
 	SceneModel m_sceneModel;
 	bool m_sceneLoaded = false;
 	bool m_sceneDirty = false;
+	// A finished legacy-case run leaves end-of-run state behind; block a second
+	// Run until the case is reloaded. Scene runs restage, so they can always rerun.
+	bool m_legacyRunDone = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
