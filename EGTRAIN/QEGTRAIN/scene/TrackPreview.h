@@ -21,9 +21,17 @@ struct TrackPreviewConnection {
 	double secondX = 0.0;
 };
 
+// Station anchor along the corridor; Stations.txt stores one row per
+// direction band as "<x>\t<station id>".
+struct TrackPreviewStation {
+	std::string name;
+	double x = 0.0;
+};
+
 struct TrackPreviewResult {
 	std::vector<TrackPreviewLine> lines;
 	std::vector<TrackPreviewConnection> connections;
+	std::vector<TrackPreviewStation> stations;
 	std::vector<std::string> warnings;
 };
 

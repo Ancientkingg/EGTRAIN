@@ -82,6 +82,27 @@ TrackPreviewResult loadTrackPreview(const std::string& sceneDir) {
 			result.lines.push_back(std::move(line));
 		}
 
+		const fs::path stationsPath = root / "Stations.txt";
+		std::ifstream stations(stationsPath);
+		std::string stationRow;
+		while (stations && std::getline(stations, stationRow)) {
+			if (!stationRow.empty() && stationRow.back() == '\r')
+				stationRow.pop_back();
+			const std::size_t tab = stationRow.find('\t');
+			if (tab == std::string::npos || tab == 0 || tab + 1 >= stationRow.size())
+				continue;
+			TrackPreviewStation station;
+			try {
+				station.x = std::stod(stationRow.substr(0, tab));
+			} catch (...) {
+				result.warnings.push_back("ignored malformed station row");
+				continue;
+			}
+			station.name = stationRow.substr(tab + 1);
+			if (std::isfinite(station.x) && !station.name.empty())
+				result.stations.push_back(std::move(station));
+		}
+
 		const fs::path connectionsPath = root / "Connections.txt";
 		std::ifstream connections(connectionsPath);
 		std::string row;
