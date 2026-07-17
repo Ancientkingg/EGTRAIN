@@ -77,9 +77,10 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifyStation(true, 4).iconResource == ":/icons/station-interchange.svg", "interchange station icon");
 
 	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
-	ok &= expect(simulationSpeedLabel(250) == "Speed: +250 ms", "delayed speed label");
-	ok &= expect(simulationSpeedMode(0) == "Compressed", "compressed speed mode");
-	ok &= expect(simulationSpeedMode(500) == "Slowed", "slowed speed mode");
+	ok &= expect(simulationSpeedLabel(250) == "Speed: 4.0x", "delayed speed label");
+	ok &= expect(simulationSpeedLabel(10) == "Speed: 100x", "fast factor speed label");
+	ok &= expect(simulationSpeedMode(0) == "Fastest", "fastest speed mode");
+	ok &= expect(simulationSpeedMode(500) == "2.0x real time", "slowed speed mode");
 
 	QFont badgeFont;
 	badgeFont.setPointSize(9);
