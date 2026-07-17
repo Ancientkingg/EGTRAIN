@@ -64,6 +64,17 @@ int stepDelayForSlider(int sliderValue) {
 	return kMaxStepDelayMs - sliderValue;
 }
 
+// Spin box that displays at most ten significant digits instead of a full
+// 17-decimal tail. The stored value keeps double precision; only retyping a
+// field commits at the displayed precision.
+class CompactDoubleSpinBox : public QDoubleSpinBox {
+public:
+	using QDoubleSpinBox::QDoubleSpinBox;
+	QString textFromValue(double value) const override {
+		return QString::number(value, 'g', 10);
+	}
+};
+
 std::vector<const Train*> runResultTrainPointers() {
 	std::vector<const Train*> trains;
 	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
@@ -858,7 +869,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
 		"Resistance coefficient", "Jerk (m/s³)", "Length (m)"};
 	for (int i = 0; i < 9; ++i) {
-		auto* edit = new QDoubleSpinBox(trainUnitDetailPane);
+		auto* edit = new CompactDoubleSpinBox(trainUnitDetailPane);
 		edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
 		edit->setDecimals(std::numeric_limits<double>::max_digits10);
 		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
@@ -883,6 +894,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
 	m_trainUnitTractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_trainUnitTractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	// size columns to their headers so "Lower speed (m/s)" is never clipped
+	m_trainUnitTractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	m_trainUnitTractionTable->horizontalHeader()->setStretchLastSection(true);
 	trainUnitDetailLayout->addWidget(m_trainUnitTractionTable);
 	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
@@ -1754,7 +1767,7 @@ void MainWindow::refreshTrainUnitTractionTable() {
 	for (int row = 0; row < static_cast<int>(curve.size()); ++row) {
 		m_trainUnitTractionTable->insertRow(row);
 		for (int column = 0; column < 5; ++column) {
-			auto* edit = new QDoubleSpinBox(m_trainUnitTractionTable);
+			auto* edit = new CompactDoubleSpinBox(m_trainUnitTractionTable);
 			edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
 			edit->setDecimals(std::numeric_limits<double>::max_digits10);
 			edit->setSingleStep(0.1);
