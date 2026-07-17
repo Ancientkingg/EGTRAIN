@@ -1,15 +1,12 @@
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
-#include <QAbstractItemView>
 #include <QColor>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
-#include <QIcon>
 #include <QLabel>
-#include <QLineEdit>
-#include <QListWidget>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -19,8 +16,12 @@
 #include <QVariant>
 #include <QVBoxLayout>
 #include <QtCharts/QAbstractSeries>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLegend>
+#include <QtCharts/QValueAxis>
 #include <QtCharts/QXYSeries>
+
+#include <cmath>
 
 namespace {
 
@@ -59,76 +60,64 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	// Drag a rectangle to zoom; filter state is unaffected by zoom or pan.
 	m_view->setRubberBand(QChartView::RectangleRubberBand);
 
-	// Filter panel: search, quick actions, and one row per train.
-	QLabel* filterTitle = new QLabel("Trains", this);
-	m_search = new QLineEdit(this);
-	m_search->setPlaceholderText("Search trains...");
-	m_search->setClearButtonEnabled(true);
-	connect(m_search, &QLineEdit::textChanged, this, &DiagramWindow::applyGroupFilter);
+	// Top bar: train visibility dropdown, pin state, zoom reset, exports.
+	m_trainsButton = new TrainFilterButton(this);
+	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
+			this, &DiagramWindow::applyTrainVisibility);
 
-	QPushButton* allBtn = new QPushButton("All", this);
-	QPushButton* noneBtn = new QPushButton("None", this);
-	connect(allBtn, &QPushButton::clicked, this, &DiagramWindow::selectAllGroups);
-	connect(noneBtn, &QPushButton::clicked, this, &DiagramWindow::selectNoGroups);
-	QHBoxLayout* quickRow = new QHBoxLayout();
-	quickRow->addWidget(allBtn);
-	quickRow->addWidget(noneBtn);
-
-	m_groupList = new QListWidget(this);
-	m_groupList->setSelectionMode(QAbstractItemView::NoSelection);
-	connect(m_groupList, &QListWidget::itemChanged, this, &DiagramWindow::onGroupItemChanged);
-
-	QVBoxLayout* panelLayout = new QVBoxLayout();
-	panelLayout->addWidget(filterTitle);
-	panelLayout->addWidget(m_search);
-	panelLayout->addLayout(quickRow);
-	panelLayout->addWidget(m_groupList, 1);
-	QWidget* panel = new QWidget(this);
-	panel->setLayout(panelLayout);
-	panel->setMinimumWidth(220);
-	panel->setMaximumWidth(320);
-
-	QHBoxLayout* topRow = new QHBoxLayout();
-	topRow->addWidget(m_view, 1);
-	topRow->addWidget(panel);
-
-	// Bottom bar: export buttons, pinned readout, hover readout.
-	QPushButton* exportPngBtn = new QPushButton("Export PNG...", this);
-	connect(exportPngBtn, &QPushButton::clicked, this, &DiagramWindow::exportPng);
-	m_csvButton = new QPushButton("Export CSV...", this);
-	m_csvButton->setEnabled(false);
-	connect(m_csvButton, &QPushButton::clicked, this, &DiagramWindow::exportCsv);
 	QPushButton* clearPinBtn = new QPushButton("Clear selection", this);
 	connect(clearPinBtn, &QPushButton::clicked, this, &DiagramWindow::clearPin);
-
 	m_pinLabel = new QLabel("", this);
-	m_readout = new QLabel("hover over the chart", this);
 
-	QHBoxLayout* bar = new QHBoxLayout();
-	bar->addWidget(exportPngBtn);
-	bar->addWidget(m_csvButton);
-	bar->addWidget(clearPinBtn);
-	bar->addWidget(m_pinLabel);
-	bar->addStretch();
-	bar->addWidget(m_readout);
+	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
+	resetZoomBtn->setToolTip("Undo rubber-band zoom (drag on the chart to zoom in)");
+	connect(resetZoomBtn, &QPushButton::clicked, this, &DiagramWindow::resetZoom);
+
+	m_csvButton = new QPushButton("Export CSV...", this);
+	m_csvButton->setToolTip("Write the raw data of the visible trains to a CSV file");
+	m_csvButton->setEnabled(false);
+	connect(m_csvButton, &QPushButton::clicked, this, &DiagramWindow::exportCsv);
+
+	QPushButton* exportPngBtn = new QPushButton("Export PNG...", this);
+	exportPngBtn->setToolTip("Save the chart as an image");
+	connect(exportPngBtn, &QPushButton::clicked, this, &DiagramWindow::exportPng);
+
+	QHBoxLayout* topBar = new QHBoxLayout();
+	topBar->addWidget(m_trainsButton);
+	topBar->addWidget(clearPinBtn);
+	topBar->addWidget(m_pinLabel);
+	topBar->addStretch();
+	topBar->addWidget(resetZoomBtn);
+	topBar->addWidget(m_csvButton);
+	topBar->addWidget(exportPngBtn);
+
+	m_readout = new QLabel("Hover over the chart to read values; click a line to select its train", this);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);
-	layout->addLayout(topRow, 1);
-	layout->addLayout(bar);
+	layout->addLayout(topBar);
+	layout->addWidget(m_view, 1);
+	layout->addWidget(m_readout);
 }
 
 void DiagramWindow::setChart(QChart* chart) {
+	m_timeAxisApplied = false;
+	if (chart)
+		applyChartStyle(chart);
 	m_view->setChart(chart);  // QChartView takes ownership
-	// The train panel replaces the built-in legend, which collapses to "..."
+	// The train dropdown replaces the built-in legend, which collapses to "..."
 	// once many trains are present.
 	if (chart && chart->legend())
 		chart->legend()->hide();
-	rebuildFilterPanel();
+	rebuildFilterGroups();
+	if (m_timeAxis)
+		applyTimeAxis();
 }
 
 void DiagramWindow::setTimeAxisX(bool on, long long startOffsetSeconds) {
 	m_timeAxis = on;
 	m_startOffset = startOffsetSeconds;
+	if (m_timeAxis)
+		applyTimeAxis();
 }
 
 void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)> provider,
@@ -137,6 +126,88 @@ void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)
 	m_csvSuggestedName = suggestedFileName;
 	if (m_csvButton)
 		m_csvButton->setEnabled(static_cast<bool>(m_csvProvider));
+}
+
+// Shared look for every diagram: quiet grid, readable title, line weight that
+// survives PNG export.
+void DiagramWindow::applyChartStyle(QChart* chart) {
+	chart->setBackgroundRoundness(0);
+	chart->setBackgroundBrush(palette().brush(QPalette::Base));
+	chart->setMargins(QMargins(12, 8, 12, 8));
+
+	QFont titleFont = chart->titleFont();
+	titleFont.setPointSizeF(titleFont.pointSizeF() + 2.0);
+	titleFont.setBold(true);
+	chart->setTitleFont(titleFont);
+	chart->setTitleBrush(palette().brush(QPalette::WindowText));
+
+	const QPen gridPen(QColor(0, 0, 0, 30));
+	const QBrush labelBrush = palette().brush(QPalette::WindowText);
+	const auto axes = chart->axes();
+	for (QAbstractAxis* axis : axes) {
+		axis->setGridLinePen(gridPen);
+		axis->setLabelsBrush(labelBrush);
+		axis->setTitleBrush(labelBrush);
+		axis->setLinePen(QPen(QColor(0, 0, 0, 90)));
+	}
+
+	const auto seriesList = chart->series();
+	for (QAbstractSeries* series : seriesList) {
+		if (auto* xy = qobject_cast<QXYSeries*>(series)) {
+			QPen pen = xy->pen();
+			if (pen.widthF() < 2.0) {
+				pen.setWidthF(2.0);
+				xy->setPen(pen);
+			}
+		}
+	}
+}
+
+// Swap the raw-seconds X axis for one labelled HH:MM:SS at round intervals.
+void DiagramWindow::applyTimeAxis() {
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!chart || m_timeAxisApplied)
+		return;
+	const auto horizontal = chart->axes(Qt::Horizontal);
+	if (horizontal.isEmpty())
+		return;
+	auto* seconds = qobject_cast<QValueAxis*>(horizontal.first());
+	if (!seconds)
+		return;
+	const double min = seconds->min();
+	const double max = seconds->max();
+	const double span = max - min;
+	if (!(span > 0.0))
+		return;
+
+	// Aim for four to eight round-interval labels.
+	const double candidates[] = {30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400, 21600, 43200};
+	double step = candidates[sizeof(candidates) / sizeof(candidates[0]) - 1];
+	for (double candidate : candidates) {
+		if (span / candidate <= 8.0) {
+			step = candidate;
+			break;
+		}
+	}
+
+	auto* clock = new QCategoryAxis(chart);
+	clock->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+	clock->setMin(min);
+	clock->setMax(max);
+	clock->setTitleText("Time");
+	clock->setGridLinePen(QPen(QColor(0, 0, 0, 30)));
+	clock->setLabelsBrush(palette().brush(QPalette::WindowText));
+	clock->setTitleBrush(palette().brush(QPalette::WindowText));
+	for (double tick = std::ceil(min / step) * step; tick <= max + 1e-9; tick += step)
+		clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
+
+	const auto seriesList = chart->series();
+	chart->removeAxis(seconds);
+	seconds->deleteLater();
+	chart->addAxis(clock, Qt::AlignBottom);
+	for (QAbstractSeries* series : seriesList)
+		series->attachAxis(clock);
+	m_timeAxisApplied = true;
 }
 
 QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
@@ -148,17 +219,19 @@ QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
 	return series->name();
 }
 
-void DiagramWindow::rebuildFilterPanel() {
+void DiagramWindow::rebuildFilterGroups() {
 	m_groups.clear();
 	m_basePens.clear();
-	if (m_groupList)
-		m_groupList->clear();
 	QChart* chart = m_view ? m_view->chart() : nullptr;
-	if (!chart)
+	if (!chart) {
+		if (m_trainsButton)
+			m_trainsButton->setTrains({});
 		return;
+	}
 
 	QHash<QString, int> indexByTrain;
-	for (QAbstractSeries* series : chart->series()) {
+	const auto seriesList = chart->series();
+	for (QAbstractSeries* series : seriesList) {
 		if (auto* xy = qobject_cast<QXYSeries*>(series))
 			m_basePens.insert(series, xy->pen());
 
@@ -187,63 +260,30 @@ void DiagramWindow::rebuildFilterPanel() {
 		}
 	}
 
-	if (!m_groupList)
+	if (!m_trainsButton)
 		return;
-	for (int i = 0; i < m_groups.size(); ++i) {
-		SeriesGroup& group = m_groups[i];
-		auto* item = new QListWidgetItem(group.trainId, m_groupList);
-		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-		item->setCheckState(Qt::Checked);
-		item->setData(Qt::UserRole, group.trainId);
-		// Show the train's line colour as a swatch so the panel reads as a legend.
-		if (!group.members.isEmpty()) {
-			if (auto* xy = qobject_cast<QXYSeries*>(group.members.first())) {
-				QPixmap swatch(12, 12);
-				swatch.fill(xy->pen().color());
-				item->setIcon(QIcon(swatch));
-			}
-		}
-		group.item = item;
-	}
-}
-
-void DiagramWindow::onGroupItemChanged(QListWidgetItem* item) {
-	if (!item)
-		return;
-	setGroupChecked(item->data(Qt::UserRole).toString(), item->checkState() == Qt::Checked);
-}
-
-void DiagramWindow::setGroupChecked(const QString& trainId, bool checked) {
+	QVector<QPair<QString, QColor>> trains;
+	trains.reserve(m_groups.size());
 	for (const SeriesGroup& group : m_groups) {
-		if (group.trainId != trainId)
-			continue;
+		QColor swatch;
+		if (!group.members.isEmpty()) {
+			if (auto* xy = qobject_cast<QXYSeries*>(group.members.first()))
+				swatch = xy->pen().color();
+		}
+		trains.append({group.trainId, swatch});
+	}
+	m_trainsButton->setTrains(trains);
+}
+
+void DiagramWindow::applyTrainVisibility() {
+	if (!m_trainsButton)
+		return;
+	for (const SeriesGroup& group : m_groups) {
+		const bool visible = m_trainsButton->isTrainVisible(group.trainId);
 		for (QAbstractSeries* series : group.members)
-			series->setVisible(checked);
+			series->setVisible(visible);
 	}
 	refreshEmphasis();
-}
-
-void DiagramWindow::applyGroupFilter() {
-	const QString needle = m_search ? m_search->text().trimmed() : QString();
-	for (const SeriesGroup& group : m_groups) {
-		if (!group.item)
-			continue;
-		const bool match = needle.isEmpty() ||
-			group.trainId.contains(needle, Qt::CaseInsensitive);
-		group.item->setHidden(!match);
-	}
-}
-
-void DiagramWindow::selectAllGroups() {
-	for (const SeriesGroup& group : m_groups)
-		if (group.item && !group.item->isHidden())
-			group.item->setCheckState(Qt::Checked);
-}
-
-void DiagramWindow::selectNoGroups() {
-	for (const SeriesGroup& group : m_groups)
-		if (group.item && !group.item->isHidden())
-			group.item->setCheckState(Qt::Unchecked);
 }
 
 void DiagramWindow::pinTrain(const QString& trainId) {
@@ -281,12 +321,14 @@ void DiagramWindow::refreshEmphasis() {
 }
 
 QStringList DiagramWindow::visibleTrainIds() const {
-	QStringList ids;
-	for (const SeriesGroup& group : m_groups) {
-		if (group.item && group.item->checkState() == Qt::Checked)
-			ids.append(group.trainId);
-	}
-	return ids;
+	if (m_trainsButton)
+		return m_trainsButton->visibleTrainIds();
+	return QStringList();
+}
+
+void DiagramWindow::resetZoom() {
+	if (m_view && m_view->chart())
+		m_view->chart()->zoomReset();
 }
 
 void DiagramWindow::exportPng() {

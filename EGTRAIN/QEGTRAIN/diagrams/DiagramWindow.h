@@ -17,13 +17,12 @@
 QT_CHARTS_USE_NAMESPACE
 
 class QLabel;
-class QLineEdit;
-class QListWidget;
-class QListWidgetItem;
 class QPushButton;
+class TrainFilterButton;
 
-// Reusable non-modal window that shows a chart with a train filter panel,
-// hover and click identification, PNG export, and optional CSV export.
+// Reusable non-modal window that shows a chart with a train visibility
+// dropdown, hover and click identification, rubber-band zoom with reset,
+// PNG export, and optional CSV export.
 //
 // Series are grouped by the dynamic property "trainId" when the caller sets it
 // (the same train can own several series, such as planned and simulated lines);
@@ -33,7 +32,7 @@ class DiagramWindow : public QDialog {
 public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	void setChart(QChart* chart);                                  // takes ownership
-	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);  // format X hover as HH:MM:SS
+	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);  // label X axis and hover as HH:MM:SS
 
 	// Supply raw source data for CSV export. The provider receives the ids of the
 	// trains currently visible so it can export only what the user is looking at.
@@ -50,21 +49,19 @@ protected:
 private slots:
 	void exportPng();
 	void exportCsv();
-	void applyGroupFilter();       // apply the search box to the visible group list
-	void selectAllGroups();
-	void selectNoGroups();
+	void resetZoom();
+	void applyTrainVisibility();
 	void clearPin();
 
 private:
 	struct SeriesGroup {
 		QString trainId;
 		QVector<QAbstractSeries*> members;
-		QListWidgetItem* item = nullptr;
 	};
 
-	void rebuildFilterPanel();
-	void setGroupChecked(const QString& trainId, bool checked);
-	void onGroupItemChanged(QListWidgetItem* item);
+	void applyChartStyle(QChart* chart);
+	void applyTimeAxis();
+	void rebuildFilterGroups();
 	void pinTrain(const QString& trainId);
 	void refreshEmphasis();
 	QStringList visibleTrainIds() const;
@@ -73,10 +70,10 @@ private:
 	QPointer<QChartView> m_view;
 	QPointer<QLabel> m_readout;
 	QPointer<QLabel> m_pinLabel;
-	QPointer<QLineEdit> m_search;
-	QPointer<QListWidget> m_groupList;
+	QPointer<TrainFilterButton> m_trainsButton;
 	QPointer<QPushButton> m_csvButton;
 	bool m_timeAxis = false;
+	bool m_timeAxisApplied = false;
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;
 	QHash<QAbstractSeries*, QPen> m_basePens;
