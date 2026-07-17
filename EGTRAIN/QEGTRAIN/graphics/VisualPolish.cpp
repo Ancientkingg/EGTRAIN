@@ -125,14 +125,22 @@ StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 	return {StationVisualKind::StopMarker, QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station-stop.svg"};
 }
 
+// One simulated second renders every delayMs, so the nominal playback factor
+// against real time is 1000 / delayMs; zero delay runs unthrottled.
 QString simulationSpeedLabel(int delayMs) {
-	if (delayMs == 0)
+	if (delayMs <= 0)
 		return "Speed: fastest";
-	return QString("Speed: +%1 ms").arg(delayMs);
+	const double factor = 1000.0 / delayMs;
+	if (factor >= 10.0)
+		return QString("Speed: %1x").arg(qRound(factor));
+	return QString("Speed: %1x").arg(factor, 0, 'f', 1);
 }
 
 QString simulationSpeedMode(int delayMs) {
-	if (delayMs == 0)
-		return "Compressed";
-	return "Slowed";
+	if (delayMs <= 0)
+		return "Fastest";
+	const double factor = 1000.0 / delayMs;
+	if (factor >= 10.0)
+		return QString("%1x real time").arg(qRound(factor));
+	return QString("%1x real time").arg(factor, 0, 'f', 1);
 }
