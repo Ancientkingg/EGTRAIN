@@ -30,8 +30,8 @@ test -s "$DENSE_SHOT"
 test -s "$FOLLOW_SHOT"
 test -s "$CONTEXT_SHOT"
 for label in "Planned arrival" "Planned departure" "Simulated arrival" "Simulated departure" "Arrival delay" "Departure delay"; do
-	if ! grep -Fqi "$label" "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.cpp"; then
-		echo "missing timetable label in MainWindow.cpp: $label" >&2
+	if ! grep -Fqi "$label" "$ROOT/EGTRAIN/QEGTRAIN/diagrams/TimetableTableWindow.cpp"; then
+		echo "missing timetable label in TimetableTableWindow.cpp: $label" >&2
 		exit 1
 	fi
 done
