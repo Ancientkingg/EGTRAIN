@@ -513,7 +513,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// connect elements from UI
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::handleHelpAbout);
-	connect(ui->actionSimulationStart, &QAction::triggered, this, &MainWindow::startSimulation);
+	connect(ui->actionSimulationStart, &QAction::triggered, this, &MainWindow::runCurrent);
 	connect(ui->actionSimulationStop, &QAction::triggered, this, [this]() {
 		if (m_worker)
 			m_worker->requestStop();
@@ -1241,6 +1241,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Blocking-time overlay...", this, &MainWindow::showBlockingTimeDiagram);
 	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", this, &MainWindow::showTimetableTable);
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
+	updateDiagramActions();
 
 	// --- Status bar ---
 	statusBar()->showMessage(QString("Ready - %1 (%2 tracks, %3 routes)")
@@ -1525,8 +1526,17 @@ void MainWindow::updateSceneActions() {
 		m_saveSceneAsAction->setEnabled(m_sceneLoaded);
 	if (m_runSceneAction)
 		m_runSceneAction->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
-	if (ui->actionSimulationStart)
-		ui->actionSimulationStart->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
+	if (ui->actionSimulationStart) {
+		// Scenes rerun freely (each run restages); a legacy case runs once per load.
+		const bool sceneRunnable = m_sceneLoaded && !hasErrors(m_sceneDiagnostics);
+		const bool legacyRunnable = !m_sceneLoaded && numRegions > 0 && !m_legacyRunDone;
+		ui->actionSimulationStart->setEnabled(sceneRunnable || legacyRunnable);
+		ui->actionSimulationStart->setToolTip(
+			!m_sceneLoaded && m_legacyRunDone
+				? QString("Reload the case to run it again")
+				: QString("Run simulation (Ctrl+R)"));
+	}
+	updateDiagramActions();
 	if (m_recentScenesMenu) {
 		QSettings settings;
 		m_recentScenesMenu->setEnabled(!settings.value(kRecentScenesKey).toStringList().isEmpty());
@@ -6436,6 +6446,43 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(1000, this, &MainWindow::runLegacyImportE2E);
 }
 
+// True when a completed or loaded run left trajectory data to plot.
+bool MainWindow::hasRunResults() const {
+	for (int i = 0; i < numRegions; ++i)
+		if (regional_train[i].trajectorySize() > 0)
+			return true;
+	return false;
+}
+
+// Enable the diagram entries only while run results exist; a disabled entry
+// explains itself instead of answering with a modal error box.
+void MainWindow::updateDiagramActions() {
+	const bool available = hasRunResults();
+	const QString hint = available ? QString() : QString("Run a simulation to enable this diagram");
+	if (m_diagramsMenu) {
+		for (QAction* action : m_diagramsMenu->actions()) {
+			action->setEnabled(available);
+			action->setStatusTip(hint);
+			action->setToolTip(hint);
+		}
+	}
+	if (ui->displayTrainPathDiagrams) {
+		ui->displayTrainPathDiagrams->setEnabled(available);
+		ui->displayTrainPathDiagrams->setStatusTip(hint);
+	}
+}
+
+// The Run action: scenes restage through runScene so a run never uses stale
+// legacy state; legacy cases start the worker on the state loaded at startup.
+void MainWindow::runCurrent() {
+	if (m_worker)
+		return;
+	if (m_sceneLoaded)
+		runScene();
+	else
+		startSimulation();
+}
+
 // starts EGTRAIN simulation on a worker thread
 void MainWindow::startSimulation() {
 	if (m_worker)
@@ -6502,13 +6549,15 @@ void MainWindow::onSimulationFinished() {
 
 	// hide progress bar
 	progressBar->hide();
-	statusBar()->showMessage("Simulation complete");
+	statusBar()->showMessage("Simulation complete - open the Diagrams menu for results");
 	ui->actionSimulationPause->setText("Pause");
 	ui->actionSimulationPause->setChecked(false);
 
-	// simulation finished - ask if user wants to see train path diagram
-	if (!qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
-		askForTrainPathDiagram();
+	// The Run Results dock raised by refreshRunResults is the completion notice;
+	// diagram entries switch on here instead of a modal prompt chain.
+	if (!m_sceneLoaded)
+		m_legacyRunDone = true;
+	updateSceneActions();
 
 	// cleanup thread
 	clearSimulationWorker(false);
@@ -6549,6 +6598,7 @@ void MainWindow::teardownGUI() {
 	regionStations.clear();
 	virtualInterRegionConnections.clear();
 	m_followTrainIndex = -1;
+	m_legacyRunDone = false;
 	m_e2eAttempts = 0;
 	m_e2eFinished = false;
 	if (m_followAction)
@@ -9187,24 +9237,6 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 	win->show();
 }
 
-void MainWindow::askForTrainPathDiagram() {
-	// modal prompts deadlock the env-gated smoke runs
-	if (e2eDialogsSuppressed())
-		return;
-
-	// dialog to ask for train path diagram
-	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "Simulation Finished", "Do you want to generate the train path diagrams?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-	if (reply == QMessageBox::Yes) {
-		displayTrainPathDiagrams();
-	}
-
-	// version not showing train path diagram
-	QMessageBox msgBox;
-	msgBox.setText("Simulation finished.");
-	msgBox.exec();
-}
-
 // manage VCoupling notifications
 void MainWindow::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t) {
 	if (!m_snapshot)
@@ -9508,8 +9540,8 @@ void MainWindow::showTimeDistanceDiagram() {
 // mode 0: speed vs distance, 1: speed vs time, 2: time vs distance
 void MainWindow::buildPerTrainDiagram(int mode) {
 	// require a completed run
-	if (numRegions <= 0 || regional_train[0].trajectorySize() == 0) {
-		QMessageBox::information(this, "No Data", "Run a simulation first to view train diagrams.");
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
 		return;
 	}
 
@@ -9568,8 +9600,8 @@ void MainWindow::focusTrainInScene(const QString& trainId) {
 }
 
 void MainWindow::showTimetableTable() {
-	if (numRegions <= 0 || regional_train[0].trajectorySize() == 0) {
-		QMessageBox::information(this, "No Data", "Run a simulation first...");
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
 		return;
 	}
 
@@ -9638,8 +9670,8 @@ void MainWindow::showTimetableTable() {
 }
 
 void MainWindow::showDelayDiagram() {
-	if (numRegions <= 0 || regional_train[0].trajectorySize() == 0) {
-		QMessageBox::information(this, "No Data", "Run a simulation first...");
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
 		return;
 	}
 
@@ -9683,8 +9715,8 @@ void MainWindow::showDelayDiagram() {
 }
 
 void MainWindow::showTimetableGraph() {
-	if (numRegions <= 0 || regional_train[0].trajectorySize() == 0) {
-		QMessageBox::information(this, "No Data", "Run a simulation first...");
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
 		return;
 	}
 
@@ -9763,8 +9795,8 @@ void MainWindow::showTimetableGraph() {
 }
 
 void MainWindow::showBlockingTimeDiagram() {
-	if (numRegions <= 0 || regional_train[0].trajectorySize() == 0) {
-		QMessageBox::information(this, "No Data", "Run a simulation first...");
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
 		return;
 	}
 
