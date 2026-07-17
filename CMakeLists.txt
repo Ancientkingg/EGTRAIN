@@ -129,6 +129,8 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/util/SpeedFormat.cpp
     ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/diagrams/TrainFilterButton.cpp
+    ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
@@ -189,6 +191,8 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/util/CsvWriter.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
+    ${SRC_DIR}/diagrams/TrainFilterButton.h
+    ${SRC_DIR}/diagrams/TimetableTableWindow.h
     ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
