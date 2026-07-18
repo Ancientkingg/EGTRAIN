@@ -84,6 +84,14 @@ int main() {
 		ok &= expect(train.End_Time == 4, "trajectory allocation initializes the active end bound");
 	}
 	{
+		Train train;
+		const double zeroSpeedResistancePower = train.total_train_resistances(0.0, 0.0, 0.0) * 0.0;
+		ok &= expect(train.curvature_resistances(0.0) == 0.0,
+					 "zero curvature has no curvature resistance");
+		ok &= expect(std::isfinite(zeroSpeedResistancePower),
+					 "zero-speed total-resistance power remains finite");
+	}
+	{
 		auto train = makeTimetableTrain("timetable", {"Central"});
 		train->ScheduledArrivals[0] = 100.0;
 		train->ScheduledDepartures[0] = 130.0;
