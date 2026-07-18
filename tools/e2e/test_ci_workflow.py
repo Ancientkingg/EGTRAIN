@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main() -> None:
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
+    cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
     required = {
@@ -44,6 +45,16 @@ def main() -> None:
         )
     ):
         missing.append("sanitizer failure options")
+    if any(
+        budget not in sanitizer_test
+        for budget in (
+            'QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"',
+            'QEGTRAIN_GUI_SMOKE_SECONDS: "30"',
+        )
+    ):
+        missing.append("sanitizer GUI smoke time budgets")
+    if "set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)" not in cmake:
+        missing.append("GUI smoke CTest timeout")
     if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 2:
         missing.append("TMPDIR routing steps for smoke logs")
     uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
