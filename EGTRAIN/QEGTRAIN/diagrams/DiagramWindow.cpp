@@ -251,8 +251,9 @@ void DiagramWindow::rebuildFilterGroups() {
 
 		// Connect identification signals once per series.
 		if (auto* xy = qobject_cast<QXYSeries*>(series)) {
-			connect(xy, &QXYSeries::hovered, this, [this, series](const QPointF&, bool state) {
+			connect(xy, &QXYSeries::hovered, this, [this, series](const QPointF& point, bool state) {
 				m_hoverName = state ? series->name() : QString();
+				updateReadout(point, m_hoverName);
 			});
 			connect(xy, &QXYSeries::clicked, this, [this, trainId](const QPointF&) {
 				pinTrain(trainId);
@@ -320,6 +321,30 @@ void DiagramWindow::refreshEmphasis() {
 	}
 }
 
+void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesName) {
+	if (!m_readout || !m_view || !m_view->chart())
+		return;
+
+	const QChart* chart = m_view->chart();
+	const auto horizontal = chart->axes(Qt::Horizontal);
+	const auto vertical = chart->axes(Qt::Vertical);
+	const QString xLabel = horizontal.isEmpty() || horizontal.first()->titleText().isEmpty()
+		? QString("x") : horizontal.first()->titleText();
+	const QString yLabel = vertical.isEmpty() || vertical.first()->titleText().isEmpty()
+		? QString("y") : vertical.first()->titleText();
+	const QString xText = m_timeAxis
+		? QString::fromStdString(formatSimTime(static_cast<long long>(value.x()), m_startOffset))
+		: QString::number(value.x(), 'f', 2);
+	const QString yText = QString::number(value.y(), 'f', 2);
+	if (seriesName.isEmpty()) {
+		m_readout->setText(QString("%1: %2   %3: %4")
+			.arg(xLabel).arg(xText).arg(yLabel).arg(yText));
+	} else {
+		m_readout->setText(QString("%1   %2: %3   %4: %5")
+			.arg(seriesName).arg(xLabel).arg(xText).arg(yLabel).arg(yText));
+	}
+}
+
 QStringList DiagramWindow::visibleTrainIds() const {
 	if (m_trainsButton)
 		return m_trainsButton->visibleTrainIds();
@@ -381,13 +406,7 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 		QPointF scenePos = m_view->mapToScene(me->pos());
 		QPointF chartPos = m_view->chart()->mapFromScene(scenePos);
 		QPointF val = m_view->chart()->mapToValue(chartPos);
-		QString xText = m_timeAxis
-			? QString::fromStdString(formatSimTime(static_cast<long long>(val.x()), m_startOffset))
-			: QString::number(val.x(), 'f', 2);
-		QString text = m_hoverName.isEmpty()
-			? QString("x: %1   y: %2").arg(xText).arg(val.y(), 0, 'f', 2)
-			: QString("%1   x: %2   y: %3").arg(m_hoverName).arg(xText).arg(val.y(), 0, 'f', 2);
-		m_readout->setText(text);
+		updateReadout(val, m_hoverName);
 	}
 	return QDialog::eventFilter(obj, ev);
 }

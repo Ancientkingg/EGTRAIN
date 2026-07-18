@@ -5,6 +5,7 @@
 #include <QHash>
 #include <QPen>
 #include <QPointer>
+#include <QPointF>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -66,6 +67,7 @@ private:
 	void refreshEmphasis();
 	QStringList visibleTrainIds() const;
 	QString groupIdForSeries(QAbstractSeries* series) const;
+	void updateReadout(const QPointF& value, const QString& seriesName);
 
 	QPointer<QChartView> m_view;
 	QPointer<QLabel> m_readout;
