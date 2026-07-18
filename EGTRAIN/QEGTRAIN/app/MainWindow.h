@@ -162,7 +162,7 @@ public:
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationIcon(QPointF coord, const StationVisual& visual);
-	void paintStationName(QPointF coord, string sname, int size);
+	void paintStationName(QPointF coord, string sname);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);
@@ -623,6 +623,7 @@ private:
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	void updateViewportOverlays();
+	bool paxTextVisible() const;
 	void ensureNetworkLegend();
 
 	// list of train items (whose simulation is running)

@@ -1,7 +1,7 @@
 #include "graphics/items/SignalItem.h"
 
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
-	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_aspectIcon(":/icons/signal-neutral.svg") {
+	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_aspectIcon(":/icons/signal-neutral.svg"), m_compact(false) {
 	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
 	QRectF fixedHousing = rect;
@@ -25,7 +25,9 @@ void SignalItem::setAspectCode(int code) {
 	if (m_aspectCode == code)
 		return;
 	m_aspectCode = code;
-	m_aspectIcon = QPixmap(classifySignalAspect(code).iconResource);
+	const SignalVisual visual = classifySignalAspect(code);
+	m_aspectIcon = QPixmap(visual.iconResource);
+	m_lampColor = visual.lamp;
 	update();
 }
 
@@ -40,9 +42,29 @@ void SignalItem::setReversedDirection(bool reversed) {
 	update();
 }
 
+void SignalItem::setCompact(bool compact) {
+	if (m_compact == compact)
+		return;
+	m_compact = compact;
+	update();
+}
+
 void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
+
+	// At overview zoom the fixed-size housings overlap into solid bands, so
+	// collapse to a small tick that keeps the aspect colour visible.
+	if (m_compact) {
+		QPen tickPen(QColor("#0d131a"));
+		tickPen.setWidthF(1.0);
+		painter->setPen(tickPen);
+		painter->setBrush(m_lampColor);
+		QRectF tick(0.0, 0.0, 3.0, 8.0);
+		tick.moveCenter(rect().center());
+		painter->drawRect(tick);
+		return;
+	}
 
 	QPen housingPen(QColor("#0d131a"));
 	housingPen.setWidthF(1.0);
