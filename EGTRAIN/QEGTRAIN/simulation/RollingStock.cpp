@@ -1614,7 +1614,7 @@ void Train::implementDisp(DispatchDecision decision) {
 	std::vector<Node> stationsVec;
 
 	// read timetable from file
-	std::ifstream myfile_timetable(initial_variables.InputMainFolder + "/Timetable/" + timetableFile);
+	std::ifstream myfile_timetable(initial_variables.InputMainFolder + "/TimeTable/" + timetableFile);
 
 	// open file
 	if (myfile_timetable.is_open()) {
