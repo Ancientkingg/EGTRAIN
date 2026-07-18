@@ -56,6 +56,8 @@ const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailScale = 0.16;
 constexpr int kOverlayMargin = 12;
+constexpr qreal kStationLabelPixels = 11.0;
+constexpr qreal kReadableTextPixels = 9.0;
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -699,9 +701,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		for (auto* item : m_stationDecorations)
 			if (item)
 				item->setVisible(checked);
-		for (auto* item : m_stationNames)
-			if (item)
-				item->setVisible(checked);
+		// updateViewportOverlays owns station name visibility
 		updateViewportOverlays();
 	});
 	connect(m_trainLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -736,7 +736,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			if (!platform)
 				continue;
 			if (platform->textIcon)
-				platform->textIcon->setVisible(checked);
+				platform->textIcon->setVisible(paxTextVisible());
 			for (auto* icon : platform->passengerIcons)
 				if (icon)
 					icon->setVisible(checked);
@@ -6364,7 +6364,7 @@ void MainWindow::setupGUI() {
 		}
 
 		// print station name
-		paintStationName(pt, StationArray[i].stationName, station_size);
+		paintStationName(pt, StationArray[i].stationName);
 
 		// shifted point to draw icon (draw icon above the text)
 		pt.setY(pt.y() - station_size / 2);
@@ -7091,8 +7091,7 @@ void MainWindow::paintStationIcon(QPointF coord, const StationVisual& visual) {
 }
 
 // adds the name of each station above the track
-// size is just to set the vertical distance above the station Node
-void MainWindow::paintStationName(QPointF coord, string sname, int size) {
+void MainWindow::paintStationName(QPointF coord, string sname) {
 	// add spaces to string
 	int length = sname.length();
 	for (int i = 1; i < length; i++) // ignore possible initial uppercase (start from 1)
@@ -7109,13 +7108,18 @@ void MainWindow::paintStationName(QPointF coord, string sname, int size) {
 
 	// set text size
 	QFont font = QFont();
-	font.setPixelSize((int)size / 5);
+	font.setPixelSize((int)kStationLabelPixels);
 
-	// add text
+	// Fixed-size label anchored to the scene point so the name stays legible
+	// at overview zoom; the transform centres the device-space text block.
 	QGraphicsTextItem* station_name = new QGraphicsTextItem;
 	station_name->setPlainText(name);
 	station_name->setFont(font);
-	station_name->setPos(coord.x() - (station_name->boundingRect().width() / 2), coord.y() - (station_name->boundingRect().height() / 2));
+	station_name->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	station_name->setPos(coord);
+	station_name->setTransform(QTransform::fromTranslate(
+		-station_name->boundingRect().width() / 2.0,
+		-station_name->boundingRect().height() / 2.0));
 	station_name->setDefaultTextColor(Qt::white);
 	station_name->setZValue(3); // draw on top of every item
 	scene->addItem(station_name);
@@ -7590,6 +7594,11 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	addSignalDecoration(post2);
 	addSignalDecoration(plate2);
 	addSignalDecoration(basis2);
+
+	// match the current zoom before the next viewportChanged fires
+	const bool compactSignals = !networkView || qAbs(networkView->transform().m11()) < kDenseDetailScale;
+	plate1->setCompact(compactSignals);
+	plate2->setCompact(compactSignals);
 
 	// fit to window
 	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
@@ -8696,7 +8705,7 @@ void MainWindow::updatePlatforms(int t) {
 	// show text items from the beginning of the simulation
 	if (m_snapshot->timestep == 0) {
 		for (auto* platformIcon : allPlatforms) {
-			platformIcon->textIcon->setVisible(m_passengerLayerVisible);
+			platformIcon->textIcon->setVisible(paxTextVisible());
 		}
 	}
 
@@ -8735,7 +8744,7 @@ void MainWindow::updatePlatforms(int t) {
 		// update text item
 		auto originalCenter = platformIcon->textIcon->boundingRect().center();
 		platformIcon->textIcon->setPlainText(text);
-		platformIcon->textIcon->setVisible(m_passengerLayerVisible);
+		platformIcon->textIcon->setVisible(paxTextVisible());
 		auto newCenter = platformIcon->textIcon->boundingRect().center();
 		auto delta = originalCenter - newCenter;
 		platformIcon->textIcon->moveBy(delta.x(), delta.y());
@@ -10171,15 +10180,59 @@ void MainWindow::ensureNetworkLegend() {
 	m_networkLegend->setVisible(true);
 }
 
+bool MainWindow::paxTextVisible() const {
+	if (!m_passengerLayerVisible || !networkView)
+		return false;
+	// The platform counters use a scene-space font; draw them only once the
+	// zoom renders that font at a readable size.
+	const qreal scale = qAbs(networkView->transform().m11());
+	return (station_size / 15.0) * scale >= kReadableTextPixels;
+}
+
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
 	const qreal scale = qAbs(networkView->transform().m11());
 	const bool dense = scale >= kDenseDetailScale;
+
+	// Station labels stay on at every zoom. Greedy culling hides only the
+	// labels that would overlap one already placed at this scale.
+	const QTransform toDevice = networkView->viewportTransform();
+	QList<QRectF> placedLabels;
 	for (auto* name : m_stationNames) {
-		if (name)
-			name->setVisible(m_stationLayerVisible && dense);
+		if (!name)
+			continue;
+		if (!m_stationLayerVisible) {
+			name->setVisible(false);
+			continue;
+		}
+		QRectF deviceRect(QPointF(0.0, 0.0), name->boundingRect().size());
+		deviceRect.moveCenter(toDevice.map(name->pos()));
+		bool overlaps = false;
+		for (const QRectF& other : placedLabels) {
+			if (deviceRect.intersects(other)) {
+				overlaps = true;
+				break;
+			}
+		}
+		name->setVisible(!overlaps);
+		if (!overlaps)
+			placedLabels.append(deviceRect);
 	}
+
+	// Full signal housings only once zoomed past the dense threshold; at
+	// overview they collapse to aspect-coloured ticks.
+	for (auto* signal : allSignals) {
+		if (signal)
+			signal->setCompact(!dense);
+	}
+
+	const bool paxText = paxTextVisible();
+	for (auto* platform : allPlatforms) {
+		if (platform && platform->textIcon)
+			platform->textIcon->setVisible(paxText);
+	}
+
 	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
 		if (it.value())
 			it.value()->setCompact(!dense);
