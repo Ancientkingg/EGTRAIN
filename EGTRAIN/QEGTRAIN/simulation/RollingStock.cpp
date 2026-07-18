@@ -2179,6 +2179,7 @@ void protectStationAreas(int i) {
 
 // set vector sizes with length of simulation from user input
 void Train::setTrainVectorSizesFromInput(int vec_size) {
+	End_Time = vec_size - 1;
 	// define vector sizes with length of simulation from user input
 	instant_train_speed = std::vector<double>(vec_size, 0);
 	instant_spatial_position = std::vector<double>(vec_size, 0);
