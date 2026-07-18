@@ -771,6 +771,8 @@ public:
 
 	//! Calculation of Train Resistances due to Track Curvature
 	virtual double curvature_resistances(double R) {
+		if (R == 0.0)
+			return 0.0;
 		double Frlc;
 		Frlc = g * (total_train_mass) * 700 / (R * 1000);
 		return Frlc;
