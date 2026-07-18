@@ -61,7 +61,7 @@ def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> Non
         if isinstance(partial, bytes):
             partial = partial.decode("utf-8", errors="replace")
         log.write_text(partial, encoding="utf-8", errors="replace")
-        raise SystemExit(f"case {case_id} timed out after 600s; see {log}")
+        raise SystemExit(f"case {case_id} timed out after 900s; see {log}")
     log.write_text(proc.stdout, encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise SystemExit(f"case {case_id} failed with {proc.returncode}; see {log}")
