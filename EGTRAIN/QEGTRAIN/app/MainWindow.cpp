@@ -4238,6 +4238,19 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 
+	// The platform counters only draw once the zoom renders their font at a
+	// readable size, so run the layer toggles above that threshold and put the
+	// overview back afterwards.
+	QTransform overviewTransform;
+	if (networkView && station_size > 0) {
+		overviewTransform = networkView->transform();
+		const qreal readableScale = 11.0 * 15.0 / static_cast<qreal>(station_size);
+		if (qAbs(overviewTransform.m11()) < readableScale)
+			networkView->setTransform(QTransform::fromScale(readableScale, readableScale));
+		updateViewportOverlays();
+		QApplication::processEvents();
+	}
+
 	const auto layerToggle = [this](const char* objectName) {
 		return findChild<QCheckBox*>(objectName);
 	};
@@ -4302,6 +4315,12 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "PAX enabled but no visible passenger-owned graphics rendered";
 		}
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
+	}
+
+	if (networkView && station_size > 0) {
+		networkView->setTransform(overviewTransform);
+		updateViewportOverlays();
+		QApplication::processEvents();
 	}
 
 	const auto captureScreenshot = [this, &ok, &failures](const char* variable, const char* label) {
