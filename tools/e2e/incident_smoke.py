@@ -40,6 +40,14 @@ WINDOW_START = 800
 WINDOW_END = 1400
 _TOL = 1.0  # metres; positions within this are treated as unchanged
 
+# signal_failure phase: blocks are 2 km each (TrackLines/B0/BlockCumPari.txt),
+# so 12-B0 starts at 24 km. At the window start the train is near 14.5 km,
+# and the base run crosses 24 km around t=1160.
+FAILED_BLOCK = "12-B0"
+BLOCK_ENTRY_M = 24000.0
+SF_WINDOW_START = 900
+SF_WINDOW_END = 1500
+
 
 def export_and_run(scene_dir: Path, tmp: Path, tag: str) -> list[float | None]:
     exported = tmp / f"exported_{tag}"
@@ -135,6 +143,42 @@ def main() -> None:
         if after <= _TOL:
             sys.exit(f"incident failed: {TARGET_TRAIN} did not resume after the window (span {after:.2f} m)")
         print(f"PASS incident: {TARGET_TRAIN} moves {before:.0f} m before and {after:.0f} m after the window")
+
+        # Control for the signal_failure phase: the base run must cross the
+        # failed block entry inside the window.
+        base_crossing = [p for p in base_positions[SF_WINDOW_START:SF_WINDOW_END] if p is not None]
+        if not base_crossing or max(base_crossing) <= BLOCK_ENTRY_M + _TOL:
+            sys.exit(f"control failed: {TARGET_TRAIN} does not pass the {FAILED_BLOCK} entry at "
+                     f"{BLOCK_ENTRY_M:.0f} m during [{SF_WINDOW_START},{SF_WINDOW_END}] in the base scene")
+        print(f"PASS control: {TARGET_TRAIN} passes {BLOCK_ENTRY_M:.0f} m during the failure window in the base scene")
+
+        # Incident: same scene plus a signal_failure on a block ahead of the train.
+        sf_scene = tmp_dir / "scene_signal_failure"
+        shutil.copytree(SCENE_DIR, sf_scene)
+        sf_incidents = {"incidents": [{
+            "id": "smoke_signal_failure",
+            "type": "signal_failure",
+            "target": FAILED_BLOCK,
+            "start_seconds": SF_WINDOW_START,
+            "end_seconds": SF_WINDOW_END,
+        }]}
+        (sf_scene / "incidents.json").write_text(json.dumps(sf_incidents, indent=2), encoding="utf-8")
+
+        sf_positions = export_and_run(sf_scene, tmp_dir, "signal_failure")
+        sf_window = [p for p in sf_positions[SF_WINDOW_START:SF_WINDOW_END] if p is not None]
+        if not sf_window:
+            sys.exit(f"signal_failure failed: {TARGET_TRAIN} has no positions during the failure window")
+        held_at = max(sf_window)
+        if held_at > BLOCK_ENTRY_M + _TOL:
+            sys.exit(f"signal_failure failed: {TARGET_TRAIN} reached {held_at:.0f} m during the window but "
+                     f"should brake before the {FAILED_BLOCK} entry at {BLOCK_ENTRY_M:.0f} m")
+        if span(sf_positions, 300, SF_WINDOW_START) <= _TOL:
+            sys.exit(f"signal_failure failed: {TARGET_TRAIN} did not move before the window")
+        sf_tail = [p for p in sf_positions[SF_WINDOW_END:] if p is not None]
+        if not sf_tail or max(sf_tail) <= BLOCK_ENTRY_M + _TOL:
+            sys.exit(f"signal_failure failed: {TARGET_TRAIN} did not pass the failed block after the window")
+        print(f"PASS signal_failure: {TARGET_TRAIN} held at {held_at:.0f} m before the {FAILED_BLOCK} entry "
+              f"and passed it after the window")
 
 
 if __name__ == "__main__":
