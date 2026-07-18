@@ -3857,7 +3857,7 @@ void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, c
 	MovementAuthority MA;
 	if (IsRouteReversed == 0) { // if the train route is not reversed
 		MA.ReversedDirection = false;
-		if (S_i < TrainRoute.sequence_of_block_sections[0].start_node.X) { // With this we ensure that if the tale of the train is still out of the simulation the first Node of the block section is protected
+		if (S_i < TrainRoute.sequence_of_block_sections[0].start_node.X * 1000) { // With this we ensure that if the tale of the train is still out of the simulation the first Node of the block section is protected
 			MA.BSID = TrainRoute.sequence_of_block_sections[0].ID;
 			MA.AbsPosEoA = TrainRoute.sequence_of_block_sections[0].GeoXBegNode;
 			MA.EoA_Dist_From_BSID_Beg = 0;
@@ -3875,7 +3875,7 @@ void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, c
 
 	} else { // if instead the route is reversed
 		MA.ReversedDirection = true;
-		if (S_i < TrainRoute.sequence_of_block_sections[0].start_node.X) { // With this we ensure that if the tale of the train is still out of the simulation the first Node of the block section is protected
+		if (S_i < TrainRoute.sequence_of_block_sections[0].start_node.X * 1000) { // With this we ensure that if the tale of the train is still out of the simulation the first Node of the block section is protected
 			MA.BSID = TrainRoute.sequence_of_block_sections[0].ID;
 			MA.AbsPosEoA = TrainRoute.sequence_of_block_sections[0].GeoXBegNode;
 			MA.EoA_Dist_From_BSID_Beg = 0;

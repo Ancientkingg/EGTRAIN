@@ -972,7 +972,7 @@ else regional_train[0].max_train_speed = 33.61;*/
 		Apply_Signal_Failures_Mixed_Signalling(t);
 
 		// Only for level>=3
-		// ReportAllTrainPositionsToRBC(t, 50);    //Reporting the positions of the trains to the RBC considering a safety Margin of 50 metres
+		ReportAllTrainPositionsToRBC(t, 50);
 
 		// Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(t);  // Predict and check the Predict_MA_To_DecoupleAt for all trains which are in following mode
 
@@ -1216,7 +1216,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		Apply_Signal_Failures_Mixed_Signalling(t);
 
 		// Only for level>=3
-		// ReportAllTrainPositionsToRBC(t, 50);    //Reporting the positions of the trains to the RBC considering a safety Margin of 50 metres
+		ReportAllTrainPositionsToRBC(t, 50);
 
 		// Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(t);  // Predict and check the Predict_MA_To_DecoupleAt for all trains which are in following mode
 
