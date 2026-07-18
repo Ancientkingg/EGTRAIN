@@ -78,6 +78,12 @@ static std::unique_ptr<Train> makeTrain(const std::string& id, int first, int la
 int main() {
 	bool ok = true;
 	{
+		Train train;
+		train.End_Time = -1;
+		train.setTrainVectorSizesFromInput(5);
+		ok &= expect(train.End_Time == 4, "trajectory allocation initializes the active end bound");
+	}
+	{
 		auto train = makeTimetableTrain("timetable", {"Central"});
 		train->ScheduledArrivals[0] = 100.0;
 		train->ScheduledDepartures[0] = 130.0;
