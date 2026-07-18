@@ -52,15 +52,16 @@ def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> Non
             case_command(case_id),
             cwd=cwd,
             # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
-            # five minutes, so keep this well above the real worst case.
-            timeout=600,
+            # five minutes on a fast machine, and slow CI runners have hit the
+            # previous 600 s ceiling, so keep a wide margin over the worst case.
+            timeout=900,
         )
     except subprocess.TimeoutExpired as err:
         partial = err.stdout or b""
         if isinstance(partial, bytes):
             partial = partial.decode("utf-8", errors="replace")
         log.write_text(partial, encoding="utf-8", errors="replace")
-        raise SystemExit(f"case {case_id} timed out after 600s; see {log}")
+        raise SystemExit(f"case {case_id} timed out after 900s; see {log}")
     log.write_text(proc.stdout, encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise SystemExit(f"case {case_id} failed with {proc.returncode}; see {log}")
