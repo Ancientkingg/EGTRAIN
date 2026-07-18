@@ -2150,7 +2150,15 @@ public:
 
 		// Identification of the closest EoA where the train needs to brake at (i.e. the EoA for which the train needs to brake the earliest to meet it)
 		for (int z = 0; z <= Cons_Block; z++) {
-			if ((BS[z + BlockPos].SignallingLevel == 3) || (BS[z + BlockPos].SignallingLevel == 4)) {
+			// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
+			bool hasSignalFailureMa = false;
+			for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+				if ((it->type == "SignalFailure") && (it->BSID == BS[z + BlockPos].ID)) {
+					hasSignalFailureMa = true;
+					break;
+				}
+			}
+			if ((BS[z + BlockPos].SignallingLevel == 3) || (BS[z + BlockPos].SignallingLevel == 4) || hasSignalFailureMa) {
 				// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
 				if (IsTrainInFollowingMode == 1) { // if the train is in following mode
 					if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None") && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)) {
@@ -2179,7 +2187,10 @@ public:
 								ETCSBrakingPoint.X = it->AbsPosEoA;
 							}
 
-							if (BS[z + BlockPos].SignallingLevel == 3) {
+							if (it->type == "SignalFailure") {
+								// a failed signal is a stop target at every signalling level
+								SpeedForEoA = 0;
+							} else if (BS[z + BlockPos].SignallingLevel == 3) {
 								SpeedForEoA = 0;
 
 							} else if (BS[z + BlockPos].SignallingLevel == 4) {

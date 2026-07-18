@@ -21,6 +21,7 @@ struct SimulationIncident {
 extern std::vector<SimulationIncident> simulationIncidents;
 void Load_Incidents(const std::string& MainFolder);
 bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
+void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex);
 
 // --- TrainEvent: ordered train events (departures, arrivals, etc.) ---
 class TrainEvent {

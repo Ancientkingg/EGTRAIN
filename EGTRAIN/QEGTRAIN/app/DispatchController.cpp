@@ -967,6 +967,10 @@ else regional_train[0].max_train_speed = 33.61;*/
 
 		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
 
+		// Occupy failed sections and give them an End of Authority so both
+		// aspect-driven and moving-block trains react to the incident
+		Apply_Signal_Failures_Mixed_Signalling(t);
+
 		// Only for level>=3
 		// ReportAllTrainPositionsToRBC(t, 50);    //Reporting the positions of the trains to the RBC considering a safety Margin of 50 metres
 
@@ -1206,6 +1210,10 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
 
 		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+
+		// Occupy failed sections and give them an End of Authority so both
+		// aspect-driven and moving-block trains react to the incident
+		Apply_Signal_Failures_Mixed_Signalling(t);
 
 		// Only for level>=3
 		// ReportAllTrainPositionsToRBC(t, 50);    //Reporting the positions of the trains to the RBC considering a safety Margin of 50 metres
