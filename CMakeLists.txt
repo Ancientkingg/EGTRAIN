@@ -438,6 +438,8 @@ if(EGTRAIN_BUILD_TESTS)
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
     add_test(NAME test_app_icon_config
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_app_icon_config.py)
+    add_test(NAME test_input_path_casing
+        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_input_path_casing.py)
 
     add_executable(test_qt_resource_images
         ${SRC_DIR}/tests/test_qt_resource_images.cpp
@@ -568,7 +570,7 @@ if(EGTRAIN_BUILD_TESTS)
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
 	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_scene_tool_diagnostics
 		PROPERTIES LABELS "scene-v1")
-	set_tests_properties(test_inputvalidation test_trackpreview test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors
+	set_tests_properties(test_inputvalidation test_trackpreview test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors test_input_path_casing
 		PROPERTIES LABELS "legacy-compat")
 endif()
 
