@@ -92,6 +92,70 @@ int main() {
 					 "zero-speed total-resistance power remains finite");
 	}
 	{
+		const int savedBlocks = Blocks;
+		const double savedTimestep = timestep;
+		const double savedDelay = S_delay;
+		const auto savedRoutes = train_route;
+		const auto savedAuthorities = ETCS_MA;
+
+		Section sections[2];
+		for (int index = 0; index < 2; ++index) {
+			sections[index].ID = index == 0 ? "in-route" : "out-of-route";
+			sections[index].SignallingLevel = 3;
+			sections[index].start_node.X = index;
+			sections[index].end_node.X = index + 1;
+			sections[index].start_node.ID = index * 2;
+			sections[index].end_node.ID = index * 2 + 1;
+			sections[index].GeoXBegNode = sections[index].start_node.X * 1000;
+			sections[index].GeoXEndNode = sections[index].end_node.X * 1000;
+			sections[index].total_nodes = 2;
+			sections[index].total_arcs = 1;
+			sections[index].arcs_in_signalling_block_section[0].startNode = sections[index].start_node;
+			sections[index].arcs_in_signalling_block_section[0].endNode = sections[index].end_node;
+			sections[index].arcs_in_signalling_block_section[0].length = 1000;
+		}
+
+		Route route;
+		route.ID = "moving-block-test";
+		route.N_Block_Sections = 1;
+		route.sequence_of_block_sections[0] = sections[0];
+		route.x_of_start_node = 0;
+		route.x_of_end_node = 1;
+		train_route.clear();
+		train_route.push_back(route);
+		Blocks = 2;
+		timestep = 1;
+		S_delay = 0;
+		ETCS_MA.clear();
+
+		Train train;
+		train.trainDescription = "moving-block-test";
+		train.indexOfRoute = 0;
+		train.departure_time = 0;
+		train.CanEnter = true;
+		train.train_length = 1000;
+		train.instant_spatial_position = {1500, 1500};
+		train.instant_train_speed = {10, 10};
+		train.ReportPositionToRBC(1, sections, 1, 50);
+		bool outOfRouteAuthority = false;
+		for (const auto& authority : ETCS_MA)
+			outOfRouteAuthority |= authority.BSID == sections[1].ID;
+		ok &= expect(!outOfRouteAuthority,
+					 "reporting uses the supplied route section bound");
+
+		ETCS_MA.clear();
+		S_delay = 2;
+		train.ReportPositionToRBC(1, sections, 1, 50);
+		ok &= expect(ETCS_MA.empty(),
+					 "reporting skips delayed samples before the trajectory");
+
+		Blocks = savedBlocks;
+		timestep = savedTimestep;
+		S_delay = savedDelay;
+		train_route = savedRoutes;
+		ETCS_MA = savedAuthorities;
+	}
+	{
 		auto train = makeTimetableTrain("timetable", {"Central"});
 		train->ScheduledArrivals[0] = 100.0;
 		train->ScheduledDepartures[0] = 130.0;
