@@ -202,6 +202,16 @@ int main() {
 					 "over-cap train yields exactly kMaxTimetableStations rows");
 	}
 
+	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations - 6, "under") ==
+					 Train::kMaxTimetableStations - 6,
+				 "clampStationCount keeps under-cap counts");
+	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations, "at") ==
+					 Train::kMaxTimetableStations,
+				 "clampStationCount keeps at-cap counts");
+	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations + 5, "over") ==
+					 Train::kMaxTimetableStations,
+				 "clampStationCount truncates over-cap counts");
+
 	auto delayed = makeTrain("delayed", 3, 7, 10.0, 20.0, 30.0, 40.0);
 	const std::vector<const Train*> delayedTrains{delayed.get()};
 	const auto delayedResults = buildRunResults(delayedTrains, 0.5);

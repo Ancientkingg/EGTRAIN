@@ -490,6 +490,14 @@ void loadAllOrderListsUpgraded(char* FolderName) {
 }
 
 // Fuction to load data of a train Type. Train Type involve the same category (Intercity, Regional), the same Route, and the same stops on that Route
+int Train::clampStationCount(int requested, const string& trainId) {
+	if (requested <= kMaxTimetableStations)
+		return requested;
+	std::cerr << "Train " << trainId << " serves " << requested << " stations but the timetable arrays hold "
+			  << kMaxTimetableStations << "; dropping the last " << requested - kMaxTimetableStations << " stops\n";
+	return kMaxTimetableStations;
+}
+
 void loadTrainType(char* Train_File, int& numRegions) {
 	int N_Reg_Previous = numRegions; // Number of trains before that this category was added
 	int N_Train_Type = 0;		// Number of Trains of this Type
@@ -674,7 +682,8 @@ void loadTrainType(char* Train_File, int& numRegions) {
 		}
 
 		// Setting Stations and Dwell Times
-		regional_train[i + N_Reg_Previous].numStations = NumbStat;
+		regional_train[i + N_Reg_Previous].numStations =
+			Train::clampStationCount(NumbStat, regional_train[i + N_Reg_Previous].trainDescription);
 		regional_train[i + N_Reg_Previous].Stations = new Node[regional_train[i + N_Reg_Previous].numStations];
 
 		for (int s = 0; s < regional_train[i + N_Reg_Previous].numStations; s++) {
@@ -1658,11 +1667,11 @@ void Train::implementDisp(DispatchDecision decision) {
 			// add to vector
 			stationsVec.push_back(stop);
 
-			// save scheduled arr times
-			ScheduledArrivals[noStations] = arrTime; // noStations can be used as index
-
-			// save scheduled dep times
-			ScheduledDepartures[noStations] = depTime; // noStations can be used as index
+			// save scheduled arr and dep times; stops past the cap have no slot
+			if (noStations < kMaxTimetableStations) {
+				ScheduledArrivals[noStations] = arrTime;
+				ScheduledDepartures[noStations] = depTime;
+			}
 
 			// increase index/counter
 			noStations++;
@@ -1695,7 +1704,7 @@ void Train::implementDisp(DispatchDecision decision) {
 	}
 
 	// change stations
-	numStations = noStations;
+	numStations = clampStationCount(noStations, trainDescription);
 	Stations = stations;
 
 	// route does not change
