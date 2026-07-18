@@ -5983,3 +5983,70 @@ bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
 	}
 	return false;
 }
+
+// Apply active signal_failure incidents to the mixed signalling state. The
+// failed sections join BlocksOccupied so aspect-driven levels turn red, and
+// each one gets an End-of-Authority at its entry so moving-block trains brake
+// for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
+void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
+	for (const auto& inc : simulationIncidents) {
+		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds || timestepIndex > inc.endSeconds)
+			continue;
+		for (const auto& secID : inc.resolvedSectionIDs) {
+			bool occupied = false;
+			for (const auto& occ : BlocksOccupied) {
+				if (occ == secID) {
+					occupied = true;
+					break;
+				}
+			}
+			if (!occupied)
+				BlocksOccupied.push_back(secID);
+
+			for (int r = 0; r < N_Routes; r++) {
+				for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
+					const Section& section = train_route[r].sequence_of_block_sections[b];
+					if (section.ID != secID)
+						continue;
+					// Anchor the EoA on the section BEFORE the failed one, at its
+					// end node: a train braking for the failure stops inside that
+					// section, and the stopped-at-EoA release check only fires
+					// when the train's current section matches the MA's BSID.
+					const int anchorIndex = (b > 0) ? b - 1 : b;
+					const Section& anchor = train_route[r].sequence_of_block_sections[anchorIndex];
+					const double anchorDist = (b > 0)
+						? (anchor.end_node.X - anchor.start_node.X) * 1000
+						: 0;
+					MovementAuthority MA;
+					MA.BSID = anchor.ID;
+					MA.type = "SignalFailure";
+					MA.typePart = "Front";
+					MA.ReversedDirection = train_route[r].reversed_direction;
+					MA.EoA_Dist_From_BSID_Beg = anchorDist;
+					// The EVC maps a reversed-route EoA back through GeoXBegNode,
+					// so store the value that resolves to the failed entry.
+					MA.AbsPosEoA = train_route[r].reversed_direction
+						? anchor.GeoXBegNode - anchorDist
+						: anchor.start_node.X * 1000 + anchorDist;
+					MA.TrainInfo.trainDescription = "signal_failure:" + inc.target;
+					MA.TrainInfo.Position = MA.AbsPosEoA;
+					MA.TrainInfo.TrainSpeed = 0;
+					MA.TrainInfo.Acceleration = 0;
+					MA.TrainInfo.CurrentSectionID = anchor.ID;
+					MA.TrainInfo.NextSectionID = section.ID;
+					bool alreadyThere = false;
+					for (const auto& existing : ETCS_MA) {
+						if (existing.BSID == MA.BSID && abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
+							&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription) {
+							alreadyThere = true;
+							break;
+						}
+					}
+					if (!alreadyThere)
+						ETCS_MA.push_back(MA);
+					break;
+				}
+			}
+		}
+	}
+}
