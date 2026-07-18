@@ -102,8 +102,8 @@ int main() {
 		for (int index = 0; index < 2; ++index) {
 			sections[index].ID = index == 0 ? "in-route" : "out-of-route";
 			sections[index].SignallingLevel = 3;
-			sections[index].start_node.X = index;
-			sections[index].end_node.X = index + 1;
+			sections[index].start_node.X = 9.636 + index;
+			sections[index].end_node.X = 10.636 + index;
 			sections[index].start_node.ID = index * 2;
 			sections[index].end_node.ID = index * 2 + 1;
 			sections[index].GeoXBegNode = sections[index].start_node.X * 1000;
@@ -115,14 +115,14 @@ int main() {
 			sections[index].arcs_in_signalling_block_section[0].length = 1000;
 		}
 
-		Route route;
-		route.ID = "moving-block-test";
-		route.N_Block_Sections = 1;
-		route.sequence_of_block_sections[0] = sections[0];
-		route.x_of_start_node = 0;
-		route.x_of_end_node = 1;
+		auto route = std::make_unique<Route>();
+		route->ID = "moving-block-test";
+		route->N_Block_Sections = 1;
+		route->sequence_of_block_sections[0] = sections[0];
+		route->x_of_start_node = sections[0].start_node.X;
+		route->x_of_end_node = sections[0].end_node.X;
 		train_route.clear();
-		train_route.push_back(route);
+		train_route.push_back(*route);
 		Blocks = 2;
 		timestep = 1;
 		S_delay = 0;
@@ -134,7 +134,7 @@ int main() {
 		train.departure_time = 0;
 		train.CanEnter = true;
 		train.train_length = 1000;
-		train.instant_spatial_position = {1500, 1500};
+		train.instant_spatial_position = {10500, 10500};
 		train.instant_train_speed = {10, 10};
 		train.ReportPositionToRBC(1, sections, 1, 50);
 		bool outOfRouteAuthority = false;
@@ -142,6 +142,19 @@ int main() {
 			outOfRouteAuthority |= authority.BSID == sections[1].ID;
 		ok &= expect(!outOfRouteAuthority,
 					 "reporting uses the supplied route section bound");
+		bool foundEntranceAuthority = false;
+		double entrancePosition = std::numeric_limits<double>::quiet_NaN();
+		for (const auto& authority : ETCS_MA) {
+			if (authority.BSID == sections[0].ID && authority.type == "TrainEnd" && authority.typePart == "Tale") {
+				foundEntranceAuthority = true;
+				entrancePosition = authority.AbsPosEoA;
+				break;
+			}
+		}
+		ok &= expect(foundEntranceAuthority,
+					 "reporting creates a TrainEnd/Tale authority for the first section entrance");
+		ok &= expect(foundEntranceAuthority && std::fabs(entrancePosition - sections[0].GeoXBegNode) < 0.001,
+					 "first-section entrance authority uses the geographic start coordinate");
 
 		ETCS_MA.clear();
 		S_delay = 2;
