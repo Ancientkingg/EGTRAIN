@@ -134,7 +134,7 @@ int main() {
 		train.departure_time = 0;
 		train.CanEnter = true;
 		train.train_length = 1000;
-		train.instant_spatial_position = {10500, 10500};
+		train.instant_spatial_position = {10600, 10600};
 		train.instant_train_speed = {10, 10};
 		train.ReportPositionToRBC(1, sections, 1, 50);
 		bool outOfRouteAuthority = false;
