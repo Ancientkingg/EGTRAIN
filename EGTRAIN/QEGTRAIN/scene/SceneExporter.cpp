@@ -69,6 +69,66 @@ static std::string formatNumber(double val) {
 	return oss.str();
 }
 
+// The simulation reads signalling levels only from TrackLines/AreasCaseStudy.txt
+// (InitializeAllNetworkAreas); without the file every section keeps the unset
+// default and no signalling handler runs at all. Cover the whole exported
+// extent with ETCS level 3, the moving-block model the default simulation
+// uses, unless the scene's legacy data already provides the file.
+static void synthesizeSignallingAreas(const std::string& outDir, SceneExportResult& result) {
+	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
+		SceneDiagnostic d;
+		d.severity = sev;
+		d.code = code;
+		d.message = msg;
+		d.file = file;
+		result.diagnostics.push_back(d);
+	};
+
+	fs::path areasFile = fs::path(outDir) / "TrackLines" / "AreasCaseStudy.txt";
+	std::error_code ec;
+	if (fs::exists(areasFile, ec))
+		return;
+
+	double minX = std::numeric_limits<double>::infinity();
+	double maxX = -std::numeric_limits<double>::infinity();
+	fs::path tracklinesDir = fs::path(outDir) / "TrackLines";
+	if (fs::exists(tracklinesDir, ec) && fs::is_directory(tracklinesDir, ec)) {
+		for (const auto& entry : fs::directory_iterator(tracklinesDir, ec)) {
+			std::error_code dec;
+			if (!entry.is_directory(dec) || dec)
+				continue;
+			std::ifstream nf(entry.path() / "NodiCumPari.txt");
+			if (!nf)
+				continue;
+			std::string nline;
+			while (std::getline(nf, nline)) {
+				size_t tab1 = nline.find('\t');
+				if (tab1 == std::string::npos)
+					continue;
+				size_t tab2 = nline.find('\t', tab1 + 1);
+				if (tab2 == std::string::npos)
+					continue;
+				double x = std::atof(nline.substr(tab1 + 1, tab2 - tab1 - 1).c_str());
+				minX = std::min(minX, x);
+				maxX = std::max(maxX, x);
+			}
+		}
+	}
+	if (!(minX < maxX)) {
+		addDiag(SceneSeverity::Info, "scene.export.info", "no trackline node data so no signalling areas file was generated");
+		return;
+	}
+
+	std::ofstream out(areasFile);
+	if (!out) {
+		addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write TrackLines/AreasCaseStudy.txt");
+		result.wroteAll = false;
+		return;
+	}
+	out << "Network\t" << formatNumber(minX - 1.0) << "\t" << formatNumber(maxX + 1.0) << "\t3\n";
+	addDiag(SceneSeverity::Info, "scene.export.info", "signalling areas file covers the network at ETCS level 3");
+}
+
 static void synthesizeGuiLayout(const std::string& outDir, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
@@ -749,6 +809,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	}
 
 	if (result.success()) {
+		synthesizeSignallingAreas(outDir, result);
 		synthesizeGuiLayout(outDir, result);
 	}
 
