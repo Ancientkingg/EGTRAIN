@@ -382,6 +382,17 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
     add_test(NAME test_blockingtimediagram COMMAND test_blockingtimediagram)
 
+    add_executable(test_diagramwindow
+        ${SRC_DIR}/tests/test_diagramwindow.cpp
+        ${SRC_DIR}/diagrams/DiagramWindow.cpp
+        ${SRC_DIR}/diagrams/TrainFilterButton.cpp
+        ${SRC_DIR}/util/TimeFormat.cpp)
+    target_include_directories(test_diagramwindow PRIVATE ${SRC_DIR})
+    target_link_libraries(test_diagramwindow PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    add_test(NAME test_diagramwindow COMMAND test_diagramwindow)
+    set_tests_properties(test_diagramwindow PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_visualpolish
         ${SRC_DIR}/tests/test_visualpolish.cpp
         ${SRC_DIR}/graphics/VisualPolish.cpp)
