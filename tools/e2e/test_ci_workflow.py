@@ -109,6 +109,29 @@ def main() -> None:
         or '"$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1 | grep' in macos_package_verification
     ):
         missing.append("macOS scene validation status handling")
+    required_macos_package_checks = (
+        'APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"',
+        'test -d "$APP/Contents/Resources/Input/Input_EGTRAIN_Paimpol"',
+        'RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"',
+        'rm -rf "$RUN_DIR"',
+        'mkdir -p "$RUN_DIR"',
+        'cd "$RUN_DIR"',
+        '"$APP/Contents/MacOS/QEGTRAIN" -n 2 -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1',
+        'run_status=$?',
+        'if [ "$run_status" -ne 0 ]; then',
+        'cat "$RUN_DIR/qegtrain.log"',
+        'grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"',
+        'test -f "$RUN_DIR/Output/Output_EGTRAIN_Paimpol/EnergyConsumptionPerTrain.txt"',
+    )
+    if any(check not in macos_package_verification for check in required_macos_package_checks):
+        missing.append("macOS packaged Paimpol headless smoke")
+    app_path_index = macos_package_verification.find('APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"')
+    run_dir_index = macos_package_verification.find('cd "$RUN_DIR"')
+    if (
+        "QT_QPA_PLATFORM=offscreen" in macos_package_verification
+        or (app_path_index >= 0 and run_dir_index >= 0 and app_path_index > run_dir_index)
+    ):
+        missing.append("macOS packaged app path resolution")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 
