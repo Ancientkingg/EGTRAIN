@@ -152,7 +152,7 @@ The shell uses neutral railway-instrument colors rather than the current teal ac
 | Main text | `#24313A` |
 | Divider | `#C8CED2` |
 | Primary action and focus | `#315A70` |
-| Secondary focus or warning | `#A66A2C` |
+| Secondary focus or warning | `#965C22` |
 | Network canvas | `#12191F` |
 | Network text | `#E6EAEC` |
 
