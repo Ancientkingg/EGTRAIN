@@ -4,7 +4,7 @@ Date: 2026-07-19
 
 ## Scope and evidence
 
-This audit covers the main playback workspace, the startup chooser, and the controls that remain visible during a simulation. It uses the Copenhagen case at the 1200 by 800 logical window size exercised by `tools/e2e/visual_polish_smoke.sh`. The default, dense, follow-train, and context-menu captures all passed the smoke test on commit `8abde7e`.
+This audit covers the main playback workspace, the startup chooser, and the controls that remain visible during a simulation. It uses the Copenhagen case at the 1200 by 800 logical window size exercised by `tools/e2e/visual_polish_smoke.sh`. The default, dense, follow-train, and context-menu captures all passed the smoke test on commit `8abde7e`. The macOS captures are 2400 by 1600 physical pixels, which confirms the 2x Retina path. The current smoke does not cover a 1x display.
 
 The smoke test proves that the controls and scene items exist. It does not prove that they are readable. The captures reproduce label collisions, clipped text, toolbar crowding, a map-obscuring legend, weak zoom control, and an unreadable timestep bar.
 
@@ -23,6 +23,12 @@ Students cannot reliably identify stations in the view where they are expected t
 The Copenhagen renderer contains station-name lists with Y offsets of 900, 920, 2200, 2800, and 3500 scene units in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:6278`. `MainWindow::fitView()` includes those decorations when it calculates the scene bounds in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:8506`. The resulting default view leaves large empty regions above and below the useful track geometry while rendering the tracks thin and compressed.
 
 The map spends screen area on historical positioning corrections instead of the railway topology.
+
+### P1: Fit does not restore a full-network view
+
+`MainWindow::fitView()` first calls `fitInView()`, then raises the scale to an 8-pixel track-separation minimum in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:8506`. That second transform can crop the topology again. The default and follow captures both show scrollbars after the fitted view has been established.
+
+Fit is the recovery action for a lost or over-zoomed map. It should show the full rendered infrastructure inside viewport padding, with both scrollbars hidden.
 
 ### P1: network zoom has no lower or upper bound
 
@@ -46,6 +52,12 @@ The clock, case badge, and Follow state use large filled rectangles, so secondar
 
 The primary sequence of open, run, pause, and stop is harder to scan. Actions fall into the toolbar overflow at the supported default size.
 
+### P2: playback icons use oversized platform defaults
+
+Run, Pause, and Stop use `QStyle::SP_MediaPlay`, `SP_MediaPause`, and `SP_MediaStop` in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:631`. Their filled platform glyphs are much larger than the nearby text actions and change appearance between Qt platform styles.
+
+The playback group needs one 16-pixel monochrome icon family with matching stroke weight. The action text and tooltips should continue to carry the meaning.
+
 ### P2: the permanent legend covers the network
 
 `NetworkLegendItem` is a fixed 190 by 154 pixel overlay in `EGTRAIN/QEGTRAIN/graphics/items/NetworkLegendItem.cpp:7`. `updateViewportOverlays()` pins it to the lower-right corner in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:10259`. It has no close, collapse, or View-menu action. In both default and dense captures it occupies useful map area and can sit over tracks.
@@ -64,11 +76,23 @@ The dense capture renders a signal housing at nearly every block boundary. Their
 
 Zooming in increases detail but reduces the visual hierarchy of the operational map.
 
+### P2: the background grid has no scale or unit
+
+`NetworkView::drawBackground()` changes the grid spacing to keep cells between 24 and 96 screen pixels in `EGTRAIN/QEGTRAIN/graphics/NetworkView.cpp:47`. It does not show a distance, coordinate, or infrastructure unit. In the default capture it emphasizes the large unused region above the tracks.
+
+The operational view should not imply a measurement that the schematic cannot support. Remove the grid there. A future editor-specific grid should return only with a defined coordinate meaning.
+
 ### P2: track state relies too heavily on color
 
 Prepared and occupied sections are both solid lines. They differ mainly by green versus red and by line width. Blocked sections add a dash pattern. See `EGTRAIN/QEGTRAIN/graphics/VisualPolish.cpp:33` and the matching legend in `EGTRAIN/QEGTRAIN/graphics/items/NetworkLegendItem.cpp:9`.
 
 Red and green are also reserved for signal aspects. Reusing them for route state makes the scene harder to teach and gives users with red-green color-vision deficiency too little redundant information.
+
+### P2: free-track speed styling is an unexplained encoding
+
+`classifyTrackSpeed()` assigns blue, dark gray, or light gray and widths of 4, 3, or 2 pixels from the speed limit in `EGTRAIN/QEGTRAIN/graphics/VisualPolish.cpp:24`. The map key does not explain those tiers, and the dark mainline color has weak contrast against the canvas.
+
+An overview should not make students infer an undocumented scale. Use one neutral free-track style. Keep speed limits in the infrastructure details until the UI has a labeled speed layer.
 
 ### P2: train identity truncates at the point of use
 
@@ -106,11 +130,11 @@ The network view supports drag-to-pan, wheel zoom, Ctrl-modified scrolling, tool
 
 First-time users have to experiment or read source-level documentation to learn basic navigation.
 
-### P2: leaving the startup chooser creates an unexplained blank state
+### P1: the startup chooser reports a false empty state
 
-The startup chooser offers Open, Open Scene Folder, Import Legacy Case, and Skip in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:6577`. Skip closes the dialog and leaves the main canvas without an in-canvas next step. The only guidance is a temporary status-bar message.
+`main.cpp` selects and prepares the command-line case before it constructs `MainWindow`. A normal launch therefore has Netherlands loaded before the chooser appears. The chooser's Skip path in `EGTRAIN/QEGTRAIN/app/MainWindow.cpp:6697` leaves that case active but writes `No case chosen` to the status bar.
 
-A student who dismisses the chooser can land in an empty workspace with no persistent call to action.
+The visible case and status message disagree. The chooser must name the loaded fallback case instead of presenting Skip as an empty-workspace action.
 
 ## Design direction
 
@@ -128,18 +152,22 @@ The target is a railway operations teaching desk. It should be compact, calm, an
 - Remove the duplicate case badge and clock from the command bar.
 - Keep speed and follow controls compact. Move Start Time into simulation setup or the Simulation menu.
 - Use icon-only Zoom In and Zoom Out actions with tooltips. Keep Fit visible as the recovery action.
+- Replace the platform media icons with one custom 16-pixel monochrome set registered in `EGTRAIN/QEGTRAIN/app/resources.qrc`.
 - Replace the 10-pixel progress bar with one 28-pixel read-only simulation timeline below the canvas. It shows current clock time, `Step n of total`, and end time in one line. Keep the progress fill, but do not give it focus, a pointing cursor, click handling, or any other scrubbing cue.
-- Move the map key into the unused lower part of the left dock. Use compact 160-pixel rows, start expanded for a new profile, and keep the Map key header visible when collapsed.
+- Move the map key into the unused lower part of the left dock. Use compact 160-pixel rows, start expanded on every launch, and keep the Map key header visible when collapsed.
 - Use the left dock for case name, run readiness, layers, and the map key. Do not add decorative cards to fill space.
 
 ### Network view
 
-- Calculate fit-to-view from topology, not fixed-size labels, icons, badges, or the legend.
+- Calculate fit-to-view from rendered track and connection geometry, not fixed-size labels, icons, badges, selection hit areas, or the legend.
+- Define Fit as the full topology inside logical-pixel padding. Do not reapply the track-separation minimum when it would crop the network. Hide both scrollbars at Fit.
 - Anchor each station symbol and label as one screen-space overlay with a fixed gap.
-- Keep labels inside viewport padding. Below 2x, show selected, followed-train, interchange, and network-endpoint labels. Define a network endpoint from the rendered infrastructure node degree, not from service assumptions. From 2x up to but excluding 4x, add ordinary station labels when they do not collide. At 4x and above, try every label and resolve remaining ties by selection first, station class second, and distance from the viewport center third.
+- Keep labels inside viewport padding. Below 2x, show the selected station, the station nearest the followed train, interchanges, and network endpoints. Define a network endpoint from the rendered infrastructure node degree, not from service assumptions. From 2x up to but excluding 4x, add ordinary station labels when they do not collide. At 4x and above, try every label. Resolve ties by selection, followed-train proximity, interchange, degree-1 endpoint, remaining station class, then distance from the viewport center.
 - Reveal a culled station name on hover or selection.
+- Let station overlays accept hover but no mouse buttons. Track, station, and train selection and context menus must continue through the existing semantic hit-test path.
 - Treat fitted view as the map baseline. Clamp zoom from Fit to 12x and show map-style labels such as `Fit`, `2x`, and `12x`, not document percentages.
-- Use progressive signal detail rather than switching every signal housing at one threshold.
+- Remove the non-semantic grid from the operational view.
+- Use progressive signal detail rather than switching every signal housing at one threshold. Keep stop and caution cues prominent at Fit. Subdue repeated proceed cues so they do not overpower tracks and stations.
 
 ### Color and type
 
@@ -167,6 +195,8 @@ Track state uses both color and stroke:
 
 These use Qt pen styles rather than custom track textures. State remains legible through color, width, and dash pattern without adding visual noise to dense junctions.
 
+Against the `#12191F` canvas, the proposed contrast ratios are 7.64:1 for free, 4.84:1 for prepared, 4.42:1 for occupied, and 7.61:1 for blocked. Each exceeds the 3:1 non-text graphical-object target. The palette therefore stays less saturated while the stroke structure carries the state distinction.
+
 Signals keep standard red, amber, and green aspects because those colors have railway meaning. Their housing shape and aspect icon remain visible without color. Train categories keep their existing shape differences and move to less saturated fills.
 
 Use the platform system font for controls and labels. Use the platform fixed-width font for the simulation clock and timestep only. This avoids a font dependency and keeps numerical changes from shifting the layout.
@@ -175,12 +205,14 @@ Use the platform system font for controls and labels. Use the platform fixed-wid
 
 - No station name intersects its own station symbol at Fit, 3x, or 12x zoom.
 - Important station labels stay within 12 pixels of the viewport edge and remain discoverable when collision culling hides them.
-- Wheel and toolbar zoom cannot exceed the documented range.
-- The simulation timeline advances on every reported timestep and explains clock time, current step, total steps, and end time.
+- Fit shows the full topology with no horizontal or vertical scrollbar.
+- Real wheel events and toolbar actions cannot exceed the documented zoom range.
+- The simulation timeline advances on every reported timestep. It shows one-based steps while retaining zero-based internal values, and labels the horizon as the end of the final interval.
 - Open, Run, Pause, and Stop remain visible and adjacent at 1024 by 720, 1200 by 800, and 1440 by 900.
 - The speed control visibly identifies its slower and faster ends, with faster on the right.
 - The map key never covers track geometry.
 - Context menus contain working commands only and do not widen for unavailable placeholders.
 - Prepared, occupied, and blocked track states remain distinguishable in grayscale and with common red-green color-vision deficiencies. Signal icons remain distinguishable without aspect color at minimum zoom.
 - Keyboard focus is visible on every command-bar and layer control.
-- Visual smoke coverage records default, dense, follow, narrow-window, and maximum-zoom states.
+- Dismissing the startup chooser leaves the loaded fallback case and its status text in agreement.
+- Visual smoke coverage records default, dense, follow, narrow-window, and maximum-zoom states at 1x and 2x device-pixel ratios.
