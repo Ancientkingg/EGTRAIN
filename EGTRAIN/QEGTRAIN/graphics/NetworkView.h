@@ -26,6 +26,9 @@ public:
 	NetworkView(QWidget* parent = 0);
 	~NetworkView();
 
+	using QGraphicsView::centerOn;
+	void centerOn(const QPointF& scenePos);
+	void centerOn(QGraphicsItem* item);
 	void mousePressEvent(QMouseEvent* mouseEvent) override;
 	void fitToTopology();
 	void fitToBounds(const QRectF& bounds);
@@ -44,6 +47,7 @@ protected:
 private:
 	QRectF paintedTopologyBounds(bool* hasBounds) const;
 	void applyFit(const QRectF& bounds, bool hasBounds);
+	void centerOnScene(const QPointF& scenePos);
 	qreal calculateFittedScale() const;
 	bool atFit() const;
 

@@ -113,6 +113,19 @@ int main(int argc, char** argv) {
 	ok &= expect(view.horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOff
 			&& view.verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOff,
 		"zoom above Fit keeps the existing scrollbar policy");
+	view.fitToTopology();
+	view.zoomBy(2.0);
+	updates = 0;
+	const QPointF requestedCenter(120.0, 25.0);
+	view.centerOn(requestedCenter);
+	ok &= expect(updates == 1, "programmatic center emits one viewport update");
+	view.resize(800, 600);
+	QApplication::processEvents();
+	const QPointF centerAfterProgrammaticResize = view.mapToScene(view.viewport()->rect().center());
+	ok &= expect(QLineF(requestedCenter, centerAfterProgrammaticResize).length() < 0.5,
+		"resize preserves a programmatic scene center");
+	view.resize(640, 480);
+	QApplication::processEvents();
 	checkProgrammaticZoom(100.0, true, "zoom-in clamps at 12x");
 	ok &= expect(near(view.zoomRatio(), 12.0, 1e-5) && view.zoomLabel() == "12x",
 		"zoom-in clamps at 12x");
