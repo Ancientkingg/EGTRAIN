@@ -1,20 +1,38 @@
 #include "widgets/TimeProgressBar.h"
+#include "util/TimeFormat.h"
 
-extern InitialParameters initial_variables;
 TimeProgressBar::TimeProgressBar(QWidget* parent)
 	: QProgressBar(parent) {
 	setTextVisible(true);
-
-	setFixedHeight(10);
+	setFixedHeight(28);
+	setFocusPolicy(Qt::NoFocus);
+	setCursor(Qt::ArrowCursor);
 }
 
 TimeProgressBar::~TimeProgressBar() {
 }
 
 // updates bar and time
-void TimeProgressBar::setProgress(int t) {
-	double progress = (t / initial_variables.times) * 100;
-	setValue(progress);
+void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startOffsetSeconds) {
+	const int safeTotalSteps = qMax(0, totalSteps);
+	setRange(0, qMax(0, safeTotalSteps - 1));
+	const int clampedTimestep = safeTotalSteps > 0
+		? qBound(0, timestep, safeTotalSteps - 1)
+		: 0;
+	setValue(clampedTimestep);
 
-	setFormat("Time: " + QString::number(t) + " / " + QString::number(initial_variables.times - 1)); // 0 to (times-1)
+	const auto formatCount = [](int count) {
+		QString text = QString::number(count);
+		for (int index = text.size() - 3; index > 0; index -= 3)
+			text.insert(index, QChar(','));
+		return text;
+	};
+	const int displayedStep = safeTotalSteps > 0 ? clampedTimestep + 1 : 0;
+	const QString stepCount = formatCount(safeTotalSteps);
+	const QString displayedStepText = formatCount(displayedStep);
+	setFormat(QStringLiteral("%1 | Step %2 of %3 | Ends %4")
+		.arg(QString::fromStdString(formatSimTime(clampedTimestep, startOffsetSeconds)))
+		.arg(displayedStepText)
+		.arg(stepCount)
+		.arg(QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
 }

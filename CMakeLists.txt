@@ -419,6 +419,40 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_networkscene_selection PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_networkview
+        ${SRC_DIR}/tests/test_networkview.cpp
+        ${SRC_DIR}/graphics/NetworkView.cpp
+        ${SRC_DIR}/graphics/items/TrackLineItem.cpp
+        ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
+        ${SRC_DIR}/graphics/items/ConnectionItem.cpp
+        ${SRC_DIR}/graphics/VisualPolish.cpp)
+    target_include_directories(test_networkview PRIVATE ${SRC_DIR})
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_networkview PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    target_link_libraries(test_networkview PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+        target_compile_options(test_networkview PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+    endif()
+    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+        target_link_libraries(test_networkview PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+    elseif(OpenMP_CXX_FOUND)
+        target_link_libraries(test_networkview PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    add_test(NAME test_networkview COMMAND test_networkview)
+    set_tests_properties(test_networkview PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_timeprogressbar
+        ${SRC_DIR}/tests/test_timeprogressbar.cpp
+        ${SRC_DIR}/widgets/TimeProgressBar.cpp
+        ${SRC_DIR}/util/TimeFormat.cpp)
+    target_include_directories(test_timeprogressbar PRIVATE ${SRC_DIR})
+    target_link_libraries(test_timeprogressbar PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_timeprogressbar COMMAND test_timeprogressbar)
+    set_tests_properties(test_timeprogressbar PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 	    add_executable(test_highlighteffect
 	        ${SRC_DIR}/tests/test_highlighteffect.cpp
 	        ${SRC_DIR}/graphics/items/HighlightEffect.cpp)
