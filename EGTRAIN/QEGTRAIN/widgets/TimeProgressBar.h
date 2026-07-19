@@ -3,9 +3,6 @@
 
 #include <QProgressBar>
 
-// EGTRAIN files
-#include "simulation/Infrastructure.h"
-
 class TimeProgressBar : public QProgressBar {
 	Q_OBJECT
 
@@ -14,7 +11,7 @@ public:
 	~TimeProgressBar();
 
 	// updates bar and time
-	void setProgress(int t);
+	void setProgress(int timestep, int totalSteps, long long startOffsetSeconds);
 };
 
 #endif // TIMEPROGRESSBAR_H

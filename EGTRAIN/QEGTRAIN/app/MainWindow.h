@@ -181,11 +181,6 @@ public:
 	void egtrainPoint2Screen(Node* Node, int track, double separation);
 	void egtrainPoint2Screen(Connections* connections, int track1, int track2, double separation);
 
-	// mouse wheel zoom
-	void gentle_zoom(double factor);
-	void set_modifiers(Qt::KeyboardModifiers modifiers);
-	void set_zoom_factor_base(double value);
-
 	// loading GIF
 	void setLoadingGIF();
 	void showLoadingGIF();
@@ -294,12 +289,6 @@ private:
 
 	// progess bar
 	TimeProgressBar* progressBar;
-
-	// zoom
-	Qt::KeyboardModifiers _modifiers;
-	double _zoom_factor_base;
-	QPointF target_scene_pos, target_viewport_pos;
-	bool eventFilter(QObject* object, QEvent* event) override;
 
 	// loading
 	QLabel* loadingLabel;
@@ -491,6 +480,7 @@ private:
 	QLabel* m_caseNameLabel = nullptr;
 	QLabel* m_toolbarCaseLabel = nullptr;
 	QLabel* m_simulationClockLabel = nullptr;
+	QLabel* m_zoomStatusLabel = nullptr;
 	QCheckBox* m_stationLayerCheck = nullptr;
 	QCheckBox* m_trainLayerCheck = nullptr;
 	QCheckBox* m_signalLayerCheck = nullptr;
@@ -623,6 +613,8 @@ private:
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	void updateViewportOverlays();
+	void updateZoomStatus();
+	void updateTimeline(int timestep, int totalTimesteps);
 	bool paxTextVisible() const;
 	void ensureNetworkLegend();
 
@@ -671,8 +663,6 @@ private slots:
 	void showBlockingTimeDiagram();
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
-signals:
-	void zoomed(); // zoom
 };
 
 #endif // MAINWINDOW_H

@@ -13,6 +13,8 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QWheelEvent>
+#include <QRectF>
+#include <QString>
 #include <QDebug>
 #include <QScrollBar>
 #include <iostream>
@@ -24,8 +26,17 @@ public:
 	NetworkView(QWidget* parent = 0);
 	~NetworkView();
 
+	using QGraphicsView::centerOn;
+	void centerOn(const QPointF& scenePos);
+	void centerOn(QGraphicsItem* item);
 	void mousePressEvent(QMouseEvent* mouseEvent) override;
-	void scale(qreal sx, qreal sy);
+	void fitToTopology();
+	void fitToBounds(const QRectF& bounds);
+	bool zoomBy(qreal factor, const QPointF& viewportAnchor = QPointF(-1.0, -1.0));
+	qreal zoomRatio() const;
+	qreal fittedScale() const;
+	QRectF topologyBounds() const;
+	QString zoomLabel() const;
 
 protected:
 	void wheelEvent(QWheelEvent* event) override;
@@ -34,6 +45,19 @@ protected:
 	void scrollContentsBy(int dx, int dy) override;
 
 private:
+	QRectF paintedTopologyBounds(bool* hasBounds) const;
+	void applyFit(const QRectF& bounds, bool hasBounds);
+	void centerOnScene(const QPointF& scenePos);
+	qreal calculateFittedScale() const;
+	bool atFit() const;
+
+	QRectF m_topologyBounds;
+	qreal m_fittedScale = 1.0;
+	bool m_hasTopologyBounds = false;
+	bool m_suppressViewportChanged = false;
+	QPointF m_viewCenter;
+	bool m_hasViewCenter = false;
+
 signals:
 	void MousePressedOnView();
 	void viewportChanged();
