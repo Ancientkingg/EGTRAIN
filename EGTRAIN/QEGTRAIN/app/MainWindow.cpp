@@ -54,10 +54,9 @@ extern InitialParameters initial_variables;
 namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
-constexpr qreal kDenseDetailScale = 0.16;
+constexpr qreal kDenseDetailZoom = 3.0;
 constexpr int kOverlayMargin = 12;
 constexpr qreal kStationLabelPixels = 11.0;
-constexpr qreal kReadableTextPixels = 9.0;
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -3978,20 +3977,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 void MainWindow::runVisualPolishE2E() {
 	if (m_e2eFinished)
 		return;
-	const auto hasVisiblePassengerGraphics = [this]() {
-		for (auto* platform : allPlatforms) {
-			if (!platform)
-				continue;
-			if (platform->textIcon && platform->textIcon->isVisible())
-				return true;
-			if (std::any_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
-				[](auto* item) { return item && item->isVisible(); }))
-				return true;
-		}
-		return false;
-	};
-	if ((allTrains.isEmpty() || (initial_variables.PAX_GUI && !hasVisiblePassengerGraphics()))
-		&& m_e2eAttempts < 20) {
+	if (allTrains.isEmpty() && m_e2eAttempts < 20) {
 		++m_e2eAttempts;
 		QTimer::singleShot(500, this, &MainWindow::runVisualPolishE2E);
 		return;
@@ -4264,15 +4250,13 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 
-	// The platform counters only draw once the zoom renders their font at a
-	// readable size, so run the layer toggles above that threshold and put the
+	// Run the layer toggles above the dense-detail threshold and put the
 	// overview back afterwards.
 	qreal overviewRatio = networkView ? networkView->zoomRatio() : 1.0;
-	if (networkView && station_size > 0) {
-		const qreal readableScale = 11.0 * 15.0 / static_cast<qreal>(station_size);
-		const qreal currentScale = qAbs(networkView->transform().m11());
-		if (currentScale < readableScale)
-			networkView->setTransform(QTransform::fromScale(readableScale, readableScale));
+	if (networkView) {
+		const qreal currentRatio = networkView->zoomRatio();
+		if (currentRatio < kDenseDetailZoom)
+			networkView->zoomBy(kDenseDetailZoom / currentRatio);
 		updateViewportOverlays();
 		QApplication::processEvents();
 	}
@@ -4343,7 +4327,7 @@ void MainWindow::runVisualPolishE2E() {
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
 	}
 
-	if (networkView && station_size > 0) {
+	if (networkView) {
 		const qreal currentRatio = networkView->zoomRatio();
 		if (currentRatio > overviewRatio)
 			networkView->zoomBy(overviewRatio / currentRatio);
@@ -7695,7 +7679,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	addSignalDecoration(basis2);
 
 	// match the current zoom before the next viewportChanged fires
-	const bool compactSignals = !networkView || qAbs(networkView->transform().m11()) < kDenseDetailScale;
+	const bool compactSignals = !networkView || networkView->zoomRatio() < kDenseDetailZoom;
 	plate1->setCompact(compactSignals);
 	plate2->setCompact(compactSignals);
 
@@ -7763,7 +7747,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	badge->setSpeedText(QString::fromStdString(formatSpeedLabel(train.speedKmh)));
 	badge->setTrainVisual(visual);
 	badge->setReversed(train.reversedDirection);
-	badge->setCompact(!networkView || qAbs(networkView->transform().m11()) < kDenseDetailScale);
+	badge->setCompact(!networkView || networkView->zoomRatio() < kDenseDetailZoom);
 	badge->setAcceptedMouseButtons(Qt::NoButton);
 	scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation);
@@ -10219,17 +10203,13 @@ void MainWindow::ensureNetworkLegend() {
 bool MainWindow::paxTextVisible() const {
 	if (!m_passengerLayerVisible || !networkView)
 		return false;
-	// The platform counters use a scene-space font; draw them only once the
-	// zoom renders that font at a readable size.
-	const qreal scale = qAbs(networkView->transform().m11());
-	return (station_size / 15.0) * scale >= kReadableTextPixels;
+	return networkView->zoomRatio() >= kDenseDetailZoom;
 }
 
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
-	const qreal scale = qAbs(networkView->transform().m11());
-	const bool dense = scale >= kDenseDetailScale;
+	const bool dense = networkView->zoomRatio() >= kDenseDetailZoom;
 
 	// Station labels stay on at every zoom. Greedy culling hides only the
 	// labels that would overlap one already placed at this scale.
