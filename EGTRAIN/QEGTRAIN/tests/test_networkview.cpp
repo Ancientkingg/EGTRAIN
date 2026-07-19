@@ -23,8 +23,8 @@ static bool endpointInside(const NetworkView& view, const QPointF& point) {
 	const QPoint mapped = view.mapFromScene(point);
 	const QRect viewport = view.viewport()->rect();
 	return mapped.x() >= 24 && mapped.y() >= 24
-		&& mapped.x() <= viewport.right() - 24
-		&& mapped.y() <= viewport.bottom() - 24;
+		&& mapped.x() <= viewport.width() - 24
+		&& mapped.y() <= viewport.height() - 24;
 }
 
 int main(int argc, char** argv) {
@@ -49,11 +49,8 @@ int main(int argc, char** argv) {
 	view.fitToTopology();
 	const QRectF topology = view.topologyBounds();
 	const qreal fittedScale = view.fittedScale();
-	ok &= expect(topology.left() <= 0.0 && topology.right() >= 240.0,
-		"Fit includes track, both virtual-arc segments, and connection endpoints");
-	ok &= expect(topology.top() <= 0.0 && topology.bottom() >= 50.0,
-		"Fit includes the painted vertical extent");
-	ok &= expect(topology.right() < 1000.0, "Fit ignores far-away overlays and selection polygons");
+	ok &= expect(topology == QRectF(0.0, 0.0, 240.0, 50.0),
+		"Fit uses the exact painted endpoint union, excluding overlays and selection polygons");
 	ok &= expect(endpointInside(view, track->line().p1()) && endpointInside(view, track->line().p2()),
 		"track endpoints stay inside the fit inset");
 	ok &= expect(endpointInside(view, arc->line().p1()) && endpointInside(view, arc->line().p2()),
@@ -67,32 +64,66 @@ int main(int argc, char** argv) {
 		"Fit hides both scrollbars");
 	ok &= expect(near(view.zoomRatio(), 1.0) && view.zoomLabel() == "Fit",
 		"Fit reports the baseline label");
+	const QRectF previewBounds(-20.0, -10.0, 600.0, 120.0);
+	view.fitToBounds(previewBounds);
+	ok &= expect(view.topologyBounds() == previewBounds, "explicit fit stores preview bounds");
+	ok &= expect(near(view.zoomRatio(), 1.0) && view.zoomLabel() == "Fit",
+		"explicit fit establishes the preview baseline");
+	view.zoomBy(1.15);
+	ok &= expect(near(view.zoomRatio(), 1.15, 1e-5), "preview zoom is relative to its fitted baseline");
+	view.fitToBounds(previewBounds);
+	ok &= expect(near(view.zoomRatio(), 1.0) && view.topologyBounds() == previewBounds,
+		"explicit fit restores the preview baseline");
 
 	int updates = 0;
 	QObject::connect(&view, &NetworkView::viewportChanged, [&updates]() { ++updates; });
-	const QPoint wheelPos(view.viewport()->rect().center());
+	view.fitToBounds(previewBounds);
+	ok &= expect(updates == 1, "explicit fit emits one viewport update");
+	ok &= expect(near(view.zoomRatio(), 1.0) && view.topologyBounds() == previewBounds,
+		"explicit fit restores the preview baseline after a topology fit");
+	view.fitToTopology();
+	updates = 0;
+	const QPoint wheelPos = view.viewport()->rect().center() + QPoint(20, 0);
+	const QPointF scenePointBeforeWheel = view.mapToScene(wheelPos);
 	QWheelEvent wheel(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(0, 0), QPoint(0, 120),
 		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
 	QApplication::sendEvent(view.viewport(), &wheel);
 	ok &= expect(near(view.zoomRatio(), 1.15, 1e-5), "one wheel step applies one 1.15 zoom");
+	ok &= expect(QLineF(scenePointBeforeWheel, view.mapToScene(wheelPos)).length() < 0.5,
+		"wheel zoom keeps the scene point under the pointer fixed");
 	ok &= expect(updates == 1, "one wheel zoom emits one viewport update");
 
 	view.fitToTopology();
 	updates = 0;
-	for (int i = 0; i < 100; ++i)
-		view.zoomBy(1.15);
+	auto checkProgrammaticZoom = [&view, &updates, &ok](qreal factor, bool expectedApplied, const char* message) {
+		const int before = updates;
+		const bool applied = view.zoomBy(factor);
+		ok &= expect(applied == expectedApplied, message);
+		ok &= expect(updates == before + (expectedApplied ? 1 : 0),
+			"each programmatic zoom emits exactly one update when applied");
+	};
+	checkProgrammaticZoom(1.15, true, "programmatic zoom-in applies");
+	checkProgrammaticZoom(1.0 / 1.15, true, "programmatic zoom-out applies");
+	checkProgrammaticZoom(1.0 / 1.15, false, "zoom-out at Fit is a no-op");
+	checkProgrammaticZoom(2.0, true, "zoom-in above Fit applies");
+	const QPointF centerBeforePan = view.mapToScene(view.viewport()->rect().center());
+	view.centerOn(QPointF(180.0, 25.0));
+	ok &= expect(QLineF(centerBeforePan, view.mapToScene(view.viewport()->rect().center())).length() > 1.0,
+		"hidden scrollbars still permit panning above Fit");
+	ok &= expect(view.horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOff
+			&& view.verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOff,
+		"zoom above Fit keeps the existing scrollbar policy");
+	checkProgrammaticZoom(100.0, true, "zoom-in clamps at 12x");
 	ok &= expect(near(view.zoomRatio(), 12.0, 1e-5) && view.zoomLabel() == "12x",
 		"zoom-in clamps at 12x");
-	const int atMaximum = updates;
-	view.zoomBy(1.15);
-	ok &= expect(updates == atMaximum, "zoom-in at maximum is a no-op without notification");
-	for (int i = 0; i < 100; ++i)
-		view.zoomBy(1.0 / 1.15);
+	checkProgrammaticZoom(1.15, false, "zoom-in at maximum is a no-op");
+	checkProgrammaticZoom(1.0 / 100.0, true, "zoom-out clamps at Fit");
 	ok &= expect(near(view.zoomRatio(), 1.0, 1e-5) && view.zoomLabel() == "Fit",
 		"zoom-out clamps at Fit");
-	const int atFit = updates;
-	view.zoomBy(1.0 / 1.15);
-	ok &= expect(updates == atFit, "zoom-out at Fit is a no-op without notification");
+	checkProgrammaticZoom(1.0 / 1.15, false, "zoom-out at Fit remains a no-op");
+	ok &= expect(view.horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOff
+			&& view.verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOff,
+		"Fit hides both scrollbars after zooming");
 
 	view.fitToTopology();
 	const qreal firstBaseline = view.fittedScale();
