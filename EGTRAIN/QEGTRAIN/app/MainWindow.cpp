@@ -54,10 +54,9 @@ extern InitialParameters initial_variables;
 namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
-constexpr qreal kDenseDetailScale = 0.16;
+constexpr qreal kDenseDetailZoom = 3.0;
 constexpr int kOverlayMargin = 12;
 constexpr qreal kStationLabelPixels = 11.0;
-constexpr qreal kReadableTextPixels = 9.0;
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -523,14 +522,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
 	networkView->setScene(scene);
-	connect(networkView, &NetworkView::viewportChanged, this, &MainWindow::updateViewportOverlays);
-
-	// zoom
-	networkView->viewport()->installEventFilter(this);
+	connect(networkView, &NetworkView::viewportChanged, this, [this]() {
+		updateViewportOverlays();
+		updateZoomStatus();
+	});
 	networkView->setMouseTracking(true);
-	_modifiers = Qt::NoModifier;
-	_zoom_factor_base = 1.0015;
-	set_modifiers(Qt::NoModifier); // use mouse wheel to zoom in/out
 
 	// connect elements from UI
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::handleHelpAbout);
@@ -1248,6 +1244,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// not clobber transient load/save messages
 	m_validationStatusLabel = new QLabel(this);
 	statusBar()->addPermanentWidget(m_validationStatusLabel);
+	m_zoomStatusLabel = new QLabel(this);
+	m_zoomStatusLabel->setObjectName("zoomStatusLabel");
+	m_zoomStatusLabel->setToolTip("Network zoom");
+	statusBar()->addPermanentWidget(m_zoomStatusLabel);
+	updateZoomStatus();
 
 	// route Qt log messages to std::cout so they flow through ConsoleWidget's streambuf
 	qInstallMessageHandler([](QtMsgType, const QMessageLogContext&, const QString& msg) {
@@ -1258,6 +1259,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
 	connect(ui->actionFitView, &QAction::triggered, this, &MainWindow::fitToView);
+	ui->actionFitView->setToolTip("Restore the full network view (Ctrl+0)");
 	connect(ui->actionQuit, &QAction::triggered, this, &QApplication::quit);
 
 	// Diagrams menu
@@ -1441,7 +1443,7 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 		const qreal marginY = previewBounds.height() * 0.1;
 		previewBounds.adjust(-marginX, -marginY, marginX, marginY);
 		scene->setSceneRect(previewBounds);
-		networkView->fitInView(previewBounds, Qt::KeepAspectRatio);
+		networkView->fitToBounds(previewBounds);
 		updateViewportOverlays();
 	}
 	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running")
@@ -3984,6 +3986,14 @@ void MainWindow::runVisualPolishE2E() {
 
 	bool ok = true;
 	QStringList failures;
+	const QString timelineSentinel = QStringLiteral("E2E timeline status sentinel");
+	statusBar()->showMessage(timelineSentinel, 10000);
+	if (m_snapshot)
+		updateTimeline(m_snapshot->timestep, m_snapshot->totalTimesteps);
+	if (statusBar()->currentMessage() != timelineSentinel) {
+		ok = false;
+		failures << "timeline update overwrote transient status guidance";
+	}
 	TrainItemGroup* selectedTrain = nullptr;
 	TrainBodyItem* selectedTrainBody = nullptr;
 	QPen selectedTrainPen;
@@ -4092,6 +4102,8 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "cannot click a train without a scene and viewport";
 	} else {
+		networkView->zoomBy(4.0);
+		QApplication::processEvents();
 		for (auto* candidate : allTrains) {
 			if (!candidate || !candidate->isVisible() || !candidate->trainPolygonItemList)
 				continue;
@@ -4141,7 +4153,7 @@ void MainWindow::runVisualPolishE2E() {
 			}
 			const QPointF viewportCenter = networkView->mapToScene(networkView->viewport()->rect().center());
 			const QRectF visibleScene = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
-			const QRectF sceneBounds = scene->sceneRect();
+			const QRectF sceneBounds = networkView->sceneRect();
 			const QPointF requestedCenter = selectedTrain->sceneBoundingRect().center();
 			const auto clampedCenter = [](qreal value, qreal low, qreal high, qreal halfSpan) {
 				if (high - low <= halfSpan * 2.0)
@@ -4238,15 +4250,13 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 
-	// The platform counters only draw once the zoom renders their font at a
-	// readable size, so run the layer toggles above that threshold and put the
+	// Run the layer toggles above the dense-detail threshold and put the
 	// overview back afterwards.
-	QTransform overviewTransform;
-	if (networkView && station_size > 0) {
-		overviewTransform = networkView->transform();
-		const qreal readableScale = 11.0 * 15.0 / static_cast<qreal>(station_size);
-		if (qAbs(overviewTransform.m11()) < readableScale)
-			networkView->setTransform(QTransform::fromScale(readableScale, readableScale));
+	qreal overviewRatio = networkView ? networkView->zoomRatio() : 1.0;
+	if (networkView) {
+		const qreal currentRatio = networkView->zoomRatio();
+		if (currentRatio < kDenseDetailZoom)
+			networkView->zoomBy(kDenseDetailZoom / currentRatio);
 		updateViewportOverlays();
 		QApplication::processEvents();
 	}
@@ -4317,8 +4327,10 @@ void MainWindow::runVisualPolishE2E() {
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
 	}
 
-	if (networkView && station_size > 0) {
-		networkView->setTransform(overviewTransform);
+	if (networkView) {
+		const qreal currentRatio = networkView->zoomRatio();
+		if (currentRatio > overviewRatio)
+			networkView->zoomBy(overviewRatio / currentRatio);
 		updateViewportOverlays();
 		QApplication::processEvents();
 	}
@@ -4377,10 +4389,36 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	// Capture the readable default view before changing follow or zoom state.
+	if (networkView) {
+		for (int i = 0; i < 100; ++i)
+			ui->actionZoomIn->trigger();
+		if (networkView->zoomRatio() < 12.0 - 1e-5) {
+			ok = false;
+			failures << "toolbar zoom-in did not reach the 12x clamp";
+		}
+		for (int i = 0; i < 100; ++i)
+			ui->actionZoomOut->trigger();
+		if (networkView->zoomRatio() > 1.0 + 1e-5) {
+			ok = false;
+			failures << "toolbar zoom-out did not reach the Fit clamp";
+		}
+		QKeyEvent fitPress(QEvent::KeyPress, Qt::Key_0, Qt::ControlModifier);
+		QKeyEvent fitRelease(QEvent::KeyRelease, Qt::Key_0, Qt::ControlModifier);
+		QApplication::sendEvent(this, &fitPress);
+		QApplication::sendEvent(this, &fitRelease);
+		if (networkView->zoomLabel() != QStringLiteral("Fit")) {
+			ok = false;
+			failures << "Ctrl+0 did not trigger the Fit action";
+		}
+	}
 	captureScreenshot("QEGTRAIN_E2E_SCREENSHOT", "default");
 	if (networkView && !allTrains.isEmpty()) {
 		networkView->centerOn(allTrains.first()->sceneBoundingRect().center());
-		networkView->scale(3.0, 3.0);
+		networkView->zoomBy(3.0);
+		if (qAbs(networkView->zoomRatio() - 3.0) > 1e-5) {
+			ok = false;
+			failures << "dense capture did not restore the 3x zoom state";
+		}
 		QApplication::processEvents();
 	} else {
 		ok = false;
@@ -4559,7 +4597,14 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	if (stationItem) {
-		QMenu* menu = requestContextMenu(stationItem->sceneBoundingRect().center(), false);
+		QMenu* menu = nullptr;
+		if (networkView) {
+			const QPointF stationCenter = stationItem->sceneBoundingRect().center();
+			const QPoint screenPos = networkView->viewport()->mapToGlobal(networkView->mapFromScene(stationCenter));
+			showSceneContextMenu(stationItem, stationCenter, screenPos, false);
+			QApplication::processEvents();
+			menu = m_sceneContextMenu.data();
+		}
 		QAction* details = findMenuAction(menu, "Show details");
 		if (!details || details->icon().isNull()) {
 			ok = false;
@@ -4592,14 +4637,17 @@ void MainWindow::runVisualPolishE2E() {
 	TrackLineItem* contextArc = nullptr;
 	QMenu* trackMenu = nullptr;
 	for (auto* candidate : allArcs) {
-		if (!candidate || candidate->scene() != scene)
-			continue;
-		trackMenu = requestContextMenu(candidate->sceneBoundingRect().center(), false);
-		if (trackMenu && trackMenu->title() == "Track") {
+		if (candidate && candidate->scene() == scene && candidate->arc) {
 			contextArc = candidate;
 			break;
 		}
-		closeContextMenu();
+	}
+	if (contextArc && networkView) {
+		const QPointF trackCenter = contextArc->sceneBoundingRect().center();
+		const QPoint screenPos = networkView->viewport()->mapToGlobal(networkView->mapFromScene(trackCenter));
+		showSceneContextMenu(contextArc, trackCenter, screenPos, false);
+		QApplication::processEvents();
+		trackMenu = m_sceneContextMenu.data();
 	}
 	if (!contextArc) {
 		ok = false;
@@ -5866,6 +5914,20 @@ void MainWindow::runTrackPreviewE2E() {
 			fail("open", "preview is outside the viewport");
 		if (diagnosticsOk && itemCount >= 2 && bounds.width() >= 10.0 && visible.intersects(bounds))
 			marker("E2E_TRACK_PREVIEW_OPEN_OK");
+		if (!networkView) {
+			fail("viewport", "preview viewport is missing");
+		} else {
+			const QRectF previewFitBounds = networkView->topologyBounds();
+			const qreal previewBaseline = networkView->fittedScale();
+			const bool zoomApplied = networkView->zoomBy(1.15);
+			if (!zoomApplied || qAbs(networkView->zoomRatio() - 1.15) > 1e-5
+				|| qAbs(qAbs(networkView->transform().m11()) - previewBaseline * 1.15) > 1e-5)
+				fail("viewport", "preview zoom is not relative to the fitted baseline");
+			networkView->fitToBounds(previewFitBounds);
+			if (networkView->zoomLabel() != QStringLiteral("Fit")
+				|| networkView->topologyBounds() != previewFitBounds)
+				fail("viewport", "Fit did not restore the preview baseline");
+		}
 	}
 
 	bool runFacetOk = m_runSceneAction && !m_runSceneAction->isEnabled()
@@ -6841,6 +6903,8 @@ void MainWindow::teardownGUI() {
 	// fitting the previous network's extents; unset it after invalidating the
 	// overlay caches because this emits viewportChanged().
 	scene->setSceneRect(QRectF());
+	if (networkView)
+		networkView->fitToTopology();
 }
 
 void MainWindow::chooseOutputFolder() {
@@ -7615,7 +7679,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	addSignalDecoration(basis2);
 
 	// match the current zoom before the next viewportChanged fires
-	const bool compactSignals = !networkView || qAbs(networkView->transform().m11()) < kDenseDetailScale;
+	const bool compactSignals = !networkView || networkView->zoomRatio() < kDenseDetailZoom;
 	plate1->setCompact(compactSignals);
 	plate2->setCompact(compactSignals);
 
@@ -7683,7 +7747,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	badge->setSpeedText(QString::fromStdString(formatSpeedLabel(train.speedKmh)));
 	badge->setTrainVisual(visual);
 	badge->setReversed(train.reversedDirection);
-	badge->setCompact(!networkView || qAbs(networkView->transform().m11()) < kDenseDetailScale);
+	badge->setCompact(!networkView || networkView->zoomRatio() < kDenseDetailZoom);
 	badge->setAcceptedMouseButtons(Qt::NoButton);
 	scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation);
@@ -7703,48 +7767,6 @@ QPointF MainWindow::Coord2ScreenPoint(double x, double y, double factor) {
 	y = (height / 2) - (width * mercN / (2 * PI));
 
 	return QPointF(factor * x, factor * y);
-}
-
-void MainWindow::gentle_zoom(double factor) {
-	networkView->scale(factor, factor);
-	networkView->centerOn(target_scene_pos);
-	QPointF delta_viewport_pos = target_viewport_pos - QPointF(networkView->viewport()->width() / 2.0, networkView->viewport()->height() / 2.0);
-	QPointF viewport_center = networkView->mapFromScene(target_scene_pos) - delta_viewport_pos;
-	networkView->centerOn(networkView->mapToScene(viewport_center.toPoint()));
-	emit zoomed();
-}
-
-// zoom
-void MainWindow::set_modifiers(Qt::KeyboardModifiers modifiers) {
-	_modifiers = modifiers;
-}
-
-void MainWindow::set_zoom_factor_base(double value) {
-	_zoom_factor_base = value;
-}
-
-// zoom
-bool MainWindow::eventFilter(QObject* object, QEvent* event) {
-	if (event->type() == QEvent::MouseMove) {
-		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-		QPointF delta = target_viewport_pos - mouse_event->pos();
-		if (qAbs(delta.x()) > 5 || qAbs(delta.y()) > 5) {
-			target_viewport_pos = mouse_event->pos();
-			target_scene_pos = networkView->mapToScene(mouse_event->pos());
-		}
-	} else if (event->type() == QEvent::Wheel) {
-		QWheelEvent* wheel_event = static_cast<QWheelEvent*>(event);
-		if (QApplication::keyboardModifiers() == _modifiers) {
-			if (wheel_event->angleDelta().y() != 0) {
-				double angle = wheel_event->angleDelta().y();
-				double factor = qPow(_zoom_factor_base, angle);
-				gentle_zoom(factor);
-				return true;
-			}
-		}
-	}
-	Q_UNUSED(object)
-	return false;
 }
 
 // setup qdockwidget showing info when clicking items
@@ -8505,32 +8527,10 @@ void MainWindow::hideNetwork() {
 // fit view
 void MainWindow::fitView() {
 	ensureNetworkLegend();
-	// fit the items actually on the scene; the scene rect is unreliable after
-	// a reload because Qt's automatic rect only ever grows across loads
-	QRectF initialSceneRect;
-	bool hasSceneBounds = false;
-	for (auto* item : scene->items()) {
-		if (!item || item == m_networkLegend)
-			continue;
-		const QRectF itemBounds = item->sceneBoundingRect();
-		if (itemBounds.isEmpty())
-			continue;
-		initialSceneRect = hasSceneBounds ? initialSceneRect.united(itemBounds) : itemBounds;
-		hasSceneBounds = true;
-	}
-	if (initialSceneRect.isEmpty())
-		initialSceneRect = scene->sceneRect();
-	qreal expansionFactorX = 0.05;
-	qreal expansionFactorY = 0.05;
-	scene->setSceneRect(initialSceneRect.adjusted(-0.5 * expansionFactorX * initialSceneRect.width(), -0.5 * expansionFactorY * initialSceneRect.height(), 0.5 * expansionFactorX * initialSceneRect.width(), 0.5 * expansionFactorY * initialSceneRect.height()));
-
-	// fit to window
-	networkView->fitInView(initialSceneRect, Qt::KeepAspectRatio);
-	const qreal currentScale = qAbs(networkView->transform().m22());
-	const qreal minimumScale = track_separation > 0 ? 8.0 / track_separation : 0.0;
-	if (currentScale > 0.0 && currentScale < minimumScale)
-		networkView->scale(minimumScale / currentScale, minimumScale / currentScale);
+	if (networkView)
+		networkView->fitToTopology();
 	updateViewportOverlays();
+	updateZoomStatus();
 }
 
 bool MainWindow::hasTrackGeometry(int track) const {
@@ -8666,6 +8666,13 @@ void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int t
 
 // slot to update GUI at each timestep (no longer blocks; simulation runs on worker thread)
 
+void MainWindow::updateTimeline(int timestep, int totalTimesteps) {
+	if (m_simulationClockLabel)
+		m_simulationClockLabel->setText(QString::fromStdString(formatSimTime(timestep, m_startOffsetSeconds)));
+	if (progressBar)
+		progressBar->setProgress(timestep, totalTimesteps, m_startOffsetSeconds);
+}
+
 void MainWindow::waitForUpdates() {
 	const auto snapshot = simulation.takeSimulationSnapshot();
 	if (!snapshot)
@@ -8680,15 +8687,7 @@ void MainWindow::waitForUpdates() {
 		std::fflush(stdout);
 		autostartProgressReported = true;
 	}
-	QString clock = QString::fromStdString(formatSimTime(timestep, m_startOffsetSeconds));
-	QString endClock = QString::fromStdString(formatSimTime(static_cast<long long>(snapshot->totalTimesteps), m_startOffsetSeconds));
-	if (m_simulationClockLabel)
-		m_simulationClockLabel->setText(clock);
-	statusBar()->showMessage(QString("Simulation running  %1 / %2").arg(clock, endClock));
-
-	if (progressBar) {
-		progressBar->setProgress(timestep);
-	}
+	updateTimeline(timestep, snapshot->totalTimesteps);
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
 	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
@@ -9778,11 +9777,13 @@ void MainWindow::drawVirtualInterRegionConnections() {
 
 // --- Zoom controls ---
 void MainWindow::zoomIn() {
-	networkView->scale(1.15, 1.15);
+	if (networkView)
+		networkView->zoomBy(1.15);
 }
 
 void MainWindow::zoomOut() {
-	networkView->scale(1.0 / 1.15, 1.0 / 1.15);
+	if (networkView)
+		networkView->zoomBy(1.0 / 1.15);
 }
 
 void MainWindow::fitToView() {
@@ -10202,17 +10203,13 @@ void MainWindow::ensureNetworkLegend() {
 bool MainWindow::paxTextVisible() const {
 	if (!m_passengerLayerVisible || !networkView)
 		return false;
-	// The platform counters use a scene-space font; draw them only once the
-	// zoom renders that font at a readable size.
-	const qreal scale = qAbs(networkView->transform().m11());
-	return (station_size / 15.0) * scale >= kReadableTextPixels;
+	return networkView->zoomRatio() >= kDenseDetailZoom;
 }
 
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
-	const qreal scale = qAbs(networkView->transform().m11());
-	const bool dense = scale >= kDenseDetailScale;
+	const bool dense = networkView->zoomRatio() >= kDenseDetailZoom;
 
 	// Station labels stay on at every zoom. Greedy culling hides only the
 	// labels that would overlap one already placed at this scale.
@@ -10263,4 +10260,9 @@ void MainWindow::updateViewportOverlays() {
 		const QPoint topLeft = bottomRight - QPoint(legendSize.width(), legendSize.height());
 		m_networkLegend->setPos(networkView->mapToScene(topLeft));
 	}
+}
+
+void MainWindow::updateZoomStatus() {
+	if (m_zoomStatusLabel && networkView)
+		m_zoomStatusLabel->setText(networkView->zoomLabel());
 }
