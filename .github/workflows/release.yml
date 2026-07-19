@@ -112,6 +112,28 @@ jobs:
           [ "$validation_status" -eq 1 ]
           grep -q scene.services.none <<<"$validation_output"
           grep -q scene.trains.none <<<"$validation_output"
+          APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"
+          test -d "$APP/Contents/Resources/Input/Input_EGTRAIN_Paimpol"
+          RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"
+          rm -rf "$RUN_DIR"
+          mkdir -p "$RUN_DIR"
+          cd "$RUN_DIR"
+          set +e
+          "$APP/Contents/MacOS/QEGTRAIN" -n 2 -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          run_status=$?
+          set -e
+          if [ "$run_status" -ne 0 ]; then
+            cat "$RUN_DIR/qegtrain.log"
+          fi
+          [ "$run_status" -eq 0 ]
+          if ! grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"; then
+            cat "$RUN_DIR/qegtrain.log"
+            exit 1
+          fi
+          if ! test -f "$RUN_DIR/Output/Output_EGTRAIN_Paimpol/EnergyConsumptionPerTrain.txt"; then
+            cat "$RUN_DIR/qegtrain.log"
+            exit 1
+          fi
           echo "OK: presentation package holds the app, scene_tool, Lebanon scene, and guide"
 
       - name: Package zip
