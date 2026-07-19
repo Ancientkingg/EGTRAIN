@@ -99,6 +99,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/NetworkLegendItem.cpp
     ${SRC_DIR}/graphics/items/IconItem.cpp
     ${SRC_DIR}/graphics/items/StationNodeItem.cpp
+    ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
     ${SRC_DIR}/graphics/NetworkScene.cpp
     ${SRC_DIR}/graphics/NetworkView.cpp
     ${SRC_DIR}/simulation/NumberGenerator.cpp
@@ -159,6 +160,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/NetworkLegendItem.h
     ${SRC_DIR}/graphics/items/IconItem.h
     ${SRC_DIR}/graphics/items/StationNodeItem.h
+    ${SRC_DIR}/graphics/items/StationOverlayItem.h
     ${SRC_DIR}/graphics/NetworkScene.h
     ${SRC_DIR}/graphics/NetworkView.h
     ${SRC_DIR}/simulation/NumberGenerator.h
@@ -398,6 +400,35 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
+
+    add_executable(test_stationoverlay
+        ${SRC_DIR}/tests/test_stationoverlay.cpp
+        ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
+        ${SRC_DIR}/graphics/VisualPolish.cpp
+        ${SRC_DIR}/graphics/NetworkScene.cpp
+        ${SRC_DIR}/graphics/items/NodeItem.cpp
+        ${SRC_DIR}/graphics/items/StationNodeItem.cpp
+        ${SRC_DIR}/graphics/items/TrackLineItem.cpp
+        ${SRC_DIR}/graphics/items/ConnectionItem.cpp
+        ${SRC_DIR}/graphics/items/SignalItem.cpp
+        ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
+        ${SRC_DIR}/graphics/items/PassengerItem.cpp)
+    target_include_directories(test_stationoverlay PRIVATE ${SRC_DIR})
+    target_link_libraries(test_stationoverlay PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_stationoverlay PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+        target_compile_options(test_stationoverlay PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+    endif()
+    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+        target_link_libraries(test_stationoverlay PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+    elseif(OpenMP_CXX_FOUND)
+        target_link_libraries(test_stationoverlay PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    add_test(NAME test_stationoverlay COMMAND test_stationoverlay)
+    set_tests_properties(test_stationoverlay PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_networkscene_selection
         ${SRC_DIR}/tests/test_networkscene_selection.cpp
