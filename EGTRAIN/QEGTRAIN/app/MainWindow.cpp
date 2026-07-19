@@ -1444,8 +1444,7 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 		const qreal marginY = previewBounds.height() * 0.1;
 		previewBounds.adjust(-marginX, -marginY, marginX, marginY);
 		scene->setSceneRect(previewBounds);
-		networkView->fitInView(previewBounds, Qt::KeepAspectRatio);
-		networkView->centerOn(previewBounds.center());
+		networkView->fitToBounds(previewBounds);
 		updateViewportOverlays();
 	}
 	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running")
@@ -4416,8 +4415,11 @@ void MainWindow::runVisualPolishE2E() {
 	captureScreenshot("QEGTRAIN_E2E_SCREENSHOT", "default");
 	if (networkView && !allTrains.isEmpty()) {
 		networkView->centerOn(allTrains.first()->sceneBoundingRect().center());
-		for (int i = 0; i < 8; ++i)
-			ui->actionZoomIn->trigger();
+		networkView->zoomBy(3.0);
+		if (qAbs(networkView->zoomRatio() - 3.0) > 1e-5) {
+			ok = false;
+			failures << "dense capture did not restore the 3x zoom state";
+		}
 		QApplication::processEvents();
 	} else {
 		ok = false;
@@ -4629,14 +4631,17 @@ void MainWindow::runVisualPolishE2E() {
 	TrackLineItem* contextArc = nullptr;
 	QMenu* trackMenu = nullptr;
 	for (auto* candidate : allArcs) {
-		if (!candidate || candidate->scene() != scene)
-			continue;
-		trackMenu = requestContextMenu(candidate->sceneBoundingRect().center(), false);
-		if (trackMenu && trackMenu->title() == "Track") {
+		if (candidate && candidate->scene() == scene && candidate->arc) {
 			contextArc = candidate;
 			break;
 		}
-		closeContextMenu();
+	}
+	if (contextArc && networkView) {
+		const QPointF trackCenter = contextArc->sceneBoundingRect().center();
+		const QPoint screenPos = networkView->viewport()->mapToGlobal(networkView->mapFromScene(trackCenter));
+		showSceneContextMenu(contextArc, trackCenter, screenPos, false);
+		QApplication::processEvents();
+		trackMenu = m_sceneContextMenu.data();
 	}
 	if (!contextArc) {
 		ok = false;
@@ -5903,6 +5908,20 @@ void MainWindow::runTrackPreviewE2E() {
 			fail("open", "preview is outside the viewport");
 		if (diagnosticsOk && itemCount >= 2 && bounds.width() >= 10.0 && visible.intersects(bounds))
 			marker("E2E_TRACK_PREVIEW_OPEN_OK");
+		if (!networkView) {
+			fail("viewport", "preview viewport is missing");
+		} else {
+			const QRectF previewFitBounds = networkView->topologyBounds();
+			const qreal previewBaseline = networkView->fittedScale();
+			const bool zoomApplied = networkView->zoomBy(1.15);
+			if (!zoomApplied || qAbs(networkView->zoomRatio() - 1.15) > 1e-5
+				|| qAbs(qAbs(networkView->transform().m11()) - previewBaseline * 1.15) > 1e-5)
+				fail("viewport", "preview zoom is not relative to the fitted baseline");
+			networkView->fitToBounds(previewFitBounds);
+			if (networkView->zoomLabel() != QStringLiteral("Fit")
+				|| networkView->topologyBounds() != previewFitBounds)
+				fail("viewport", "Fit did not restore the preview baseline");
+		}
 	}
 
 	bool runFacetOk = m_runSceneAction && !m_runSceneAction->isEnabled()
