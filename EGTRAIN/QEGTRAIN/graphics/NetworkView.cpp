@@ -36,6 +36,28 @@ void NetworkView::mousePressEvent(QMouseEvent* mouseEvent) {
 	QGraphicsView::mousePressEvent(mouseEvent);
 }
 
+void NetworkView::centerOn(const QPointF& scenePos) {
+	centerOnScene(scenePos);
+}
+
+void NetworkView::centerOn(QGraphicsItem* item) {
+	if (item)
+		centerOnScene(item->sceneBoundingRect().center());
+}
+
+void NetworkView::centerOnScene(const QPointF& scenePos) {
+	const QPoint viewportCenter = viewport()->rect().center();
+	const QPointF previousCenter = m_hasViewCenter ? m_viewCenter : mapToScene(viewportCenter);
+	const bool wasSuppressed = m_suppressViewportChanged;
+	m_suppressViewportChanged = true;
+	QGraphicsView::centerOn(scenePos);
+	m_viewCenter = mapToScene(viewportCenter);
+	m_hasViewCenter = true;
+	m_suppressViewportChanged = wasSuppressed;
+	if (!wasSuppressed && previousCenter != m_viewCenter)
+		emit viewportChanged();
+}
+
 QRectF NetworkView::paintedTopologyBounds(bool* hasBounds) const {
 	QRectF bounds;
 	bool found = false;
@@ -135,14 +157,14 @@ void NetworkView::applyFit(const QRectF& bounds, bool hasBounds) {
 		setSceneRect(m_topologyBounds);
 		m_fittedScale = calculateFittedScale();
 		setTransform(QTransform::fromScale(m_fittedScale, m_fittedScale));
-		centerOn(m_topologyBounds.center());
+		QGraphicsView::centerOn(m_topologyBounds.center());
 		m_viewCenter = mapToScene(viewport()->rect().center());
 		m_hasViewCenter = true;
 	} else {
 		m_fittedScale = 1.0;
 		setSceneRect(QRectF());
 		setTransform(QTransform());
-		centerOn(QPointF(0.0, 0.0));
+		QGraphicsView::centerOn(QPointF(0.0, 0.0));
 		m_viewCenter = mapToScene(viewport()->rect().center());
 		m_hasViewCenter = true;
 	}
@@ -172,10 +194,10 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	}
-	centerOn(centerScene);
+	QGraphicsView::centerOn(centerScene);
 	if (hasAnchor) {
 		const QPointF newAnchorScene = mapToScene(anchorPoint);
-		centerOn(centerScene + anchorScene - newAnchorScene);
+		QGraphicsView::centerOn(centerScene + anchorScene - newAnchorScene);
 	}
 	m_viewCenter = mapToScene(viewport()->rect().center());
 	m_hasViewCenter = true;
@@ -238,7 +260,7 @@ void NetworkView::resizeEvent(QResizeEvent* event) {
 			setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		}
 		setTransform(QTransform::fromScale(m_fittedScale * ratio, m_fittedScale * ratio));
-		centerOn(preserveFit ? m_topologyBounds.center() : previousCenter);
+		QGraphicsView::centerOn(preserveFit ? m_topologyBounds.center() : previousCenter);
 		m_viewCenter = mapToScene(viewport()->rect().center());
 		m_hasViewCenter = true;
 	}

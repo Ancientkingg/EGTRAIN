@@ -3978,7 +3978,20 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 void MainWindow::runVisualPolishE2E() {
 	if (m_e2eFinished)
 		return;
-	if (allTrains.isEmpty() && m_e2eAttempts < 20) {
+	const auto hasVisiblePassengerGraphics = [this]() {
+		for (auto* platform : allPlatforms) {
+			if (!platform)
+				continue;
+			if (platform->textIcon && platform->textIcon->isVisible())
+				return true;
+			if (std::any_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
+				[](auto* item) { return item && item->isVisible(); }))
+				return true;
+		}
+		return false;
+	};
+	if ((allTrains.isEmpty() || (initial_variables.PAX_GUI && !hasVisiblePassengerGraphics()))
+		&& m_e2eAttempts < 20) {
 		++m_e2eAttempts;
 		QTimer::singleShot(500, this, &MainWindow::runVisualPolishE2E);
 		return;
@@ -4103,6 +4116,8 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "cannot click a train without a scene and viewport";
 	} else {
+		networkView->zoomBy(4.0);
+		QApplication::processEvents();
 		for (auto* candidate : allTrains) {
 			if (!candidate || !candidate->isVisible() || !candidate->trainPolygonItemList)
 				continue;
@@ -4152,7 +4167,7 @@ void MainWindow::runVisualPolishE2E() {
 			}
 			const QPointF viewportCenter = networkView->mapToScene(networkView->viewport()->rect().center());
 			const QRectF visibleScene = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
-			const QRectF sceneBounds = scene->sceneRect();
+			const QRectF sceneBounds = networkView->sceneRect();
 			const QPointF requestedCenter = selectedTrain->sceneBoundingRect().center();
 			const auto clampedCenter = [](qreal value, qreal low, qreal high, qreal halfSpan) {
 				if (high - low <= halfSpan * 2.0)
@@ -4257,7 +4272,7 @@ void MainWindow::runVisualPolishE2E() {
 		const qreal readableScale = 11.0 * 15.0 / static_cast<qreal>(station_size);
 		const qreal currentScale = qAbs(networkView->transform().m11());
 		if (currentScale < readableScale)
-			networkView->zoomBy(readableScale / currentScale);
+			networkView->setTransform(QTransform::fromScale(readableScale, readableScale));
 		updateViewportOverlays();
 		QApplication::processEvents();
 	}
@@ -4598,7 +4613,14 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	if (stationItem) {
-		QMenu* menu = requestContextMenu(stationItem->sceneBoundingRect().center(), false);
+		QMenu* menu = nullptr;
+		if (networkView) {
+			const QPointF stationCenter = stationItem->sceneBoundingRect().center();
+			const QPoint screenPos = networkView->viewport()->mapToGlobal(networkView->mapFromScene(stationCenter));
+			showSceneContextMenu(stationItem, stationCenter, screenPos, false);
+			QApplication::processEvents();
+			menu = m_sceneContextMenu.data();
+		}
 		QAction* details = findMenuAction(menu, "Show details");
 		if (!details || details->icon().isNull()) {
 			ok = false;
