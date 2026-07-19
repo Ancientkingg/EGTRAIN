@@ -9,6 +9,7 @@ class VirtualArcItem : public TrackLineItem {
 public:
 	VirtualArcItem(const QLineF& firstLine, const QLineF& secondLine, QGraphicsItem* parent = 0);
 	~VirtualArcItem();
+	const QLineF& secondPaintedLine() const { return secondLine; }
 
 	// reimplemented functions
 	QPainterPath shape() const;
