@@ -7,6 +7,10 @@
 #include <cmath>
 #include <limits>
 
+namespace {
+constexpr qreal kFitPadding = 24.0;
+}
+
 NetworkView::NetworkView(QWidget* parent)
 	: QGraphicsView(parent) {
 	sizePolicy().setHorizontalPolicy(QSizePolicy::Preferred);
@@ -74,8 +78,8 @@ QRectF NetworkView::paintedTopologyBounds(bool* hasBounds) const {
 qreal NetworkView::calculateFittedScale() const {
 	if (!m_hasTopologyBounds)
 		return 1.0;
-	const qreal availableWidth = qMax<qreal>(1.0, viewport()->width() - 50.0);
-	const qreal availableHeight = qMax<qreal>(1.0, viewport()->height() - 50.0);
+	const qreal availableWidth = qMax<qreal>(1.0, viewport()->width() - 2.0 * kFitPadding);
+	const qreal availableHeight = qMax<qreal>(1.0, viewport()->height() - 2.0 * kFitPadding);
 	const qreal topologyWidth = qMax<qreal>(1.0, m_topologyBounds.width());
 	const qreal topologyHeight = qMax<qreal>(1.0, m_topologyBounds.height());
 	return qMax<qreal>(std::numeric_limits<qreal>::epsilon(),
@@ -113,6 +117,14 @@ QString NetworkView::zoomLabel() const {
 void NetworkView::fitToTopology() {
 	bool hasBounds = false;
 	const QRectF bounds = paintedTopologyBounds(&hasBounds);
+	applyFit(bounds, hasBounds);
+}
+
+void NetworkView::fitToBounds(const QRectF& bounds) {
+	applyFit(bounds, !bounds.isEmpty());
+}
+
+void NetworkView::applyFit(const QRectF& bounds, bool hasBounds) {
 	m_topologyBounds = bounds;
 	m_hasTopologyBounds = hasBounds;
 	const bool wasSuppressed = m_suppressViewportChanged;
@@ -155,17 +167,17 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 
 	const bool wasSuppressed = m_suppressViewportChanged;
 	m_suppressViewportChanged = true;
+	setTransform(QTransform::fromScale(m_fittedScale * targetRatio, m_fittedScale * targetRatio));
 	if (targetRatio <= 1.0 + 1e-6) {
 		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	}
-	setTransform(QTransform::fromScale(m_fittedScale * targetRatio, m_fittedScale * targetRatio));
 	centerOn(centerScene);
 	if (hasAnchor) {
 		const QPointF newAnchorScene = mapToScene(anchorPoint);
 		centerOn(centerScene + anchorScene - newAnchorScene);
 	}
-	m_viewCenter = mapToScene(viewportCenter);
+	m_viewCenter = mapToScene(viewport()->rect().center());
 	m_hasViewCenter = true;
 	m_suppressViewportChanged = wasSuppressed;
 	if (!wasSuppressed)

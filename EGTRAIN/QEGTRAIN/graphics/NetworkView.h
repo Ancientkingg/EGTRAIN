@@ -28,6 +28,7 @@ public:
 
 	void mousePressEvent(QMouseEvent* mouseEvent) override;
 	void fitToTopology();
+	void fitToBounds(const QRectF& bounds);
 	bool zoomBy(qreal factor, const QPointF& viewportAnchor = QPointF(-1.0, -1.0));
 	qreal zoomRatio() const;
 	qreal fittedScale() const;
@@ -42,6 +43,7 @@ protected:
 
 private:
 	QRectF paintedTopologyBounds(bool* hasBounds) const;
+	void applyFit(const QRectF& bounds, bool hasBounds);
 	qreal calculateFittedScale() const;
 	bool atFit() const;
 
