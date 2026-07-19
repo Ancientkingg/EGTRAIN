@@ -122,7 +122,7 @@ jobs:
           # horizon-1000 run and populate the Run Results dock before emitting
           # E2E_GUI_RUN_RESULTS. Keep the post-completion liveness hold short so
           # the whole test still finishes under the ctest TIMEOUT (CMakeLists.txt).
-          QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "330"
+          QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"
           QEGTRAIN_GUI_SMOKE_SECONDS: "30"
         run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
 
