@@ -64,6 +64,11 @@ int main(int argc, char* argv[]) {
 	overlay.setViewportOffset(QPointF(-3.0, 7.0));
 	ok &= expect(overlay.viewportOffset() == QPointF(-3.0, 7.0), "viewport clamp offset is separate");
 	ok &= expect(overlay.displayName(QStringLiteral("KogeNord")) == QStringLiteral("Koge Nord"), "camel-case display conversion");
+	overlay.setNameVisible(false);
+	ok &= expect(!overlay.isLabelVisible(), "station-name layer hides the label without hiding the station item");
+	ok &= expect(overlay.isVisible(), "station-name layer does not hide the station symbol");
+	overlay.setNameVisible(true);
+	ok &= expect(overlay.isLabelVisible(), "station-name layer restores the label");
 	const QRectF inset(0.0, 0.0, 220.0, 120.0);
 	const StationOverlayItem::ViewportPlacement rightPlacement =
 		overlay.placementForSide(StationOverlayItem::LabelSide::Right, QPointF(80.0, 60.0), inset);
