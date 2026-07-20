@@ -32,8 +32,12 @@ NetworkView::~NetworkView() {
 }
 
 void NetworkView::mousePressEvent(QMouseEvent* mouseEvent) {
-	emit MousePressedOnView();
 	QGraphicsView::mousePressEvent(mouseEvent);
+}
+
+void NetworkView::mouseReleaseEvent(QMouseEvent* mouseEvent) {
+	QGraphicsView::mouseReleaseEvent(mouseEvent);
+	emit interactionFinished();
 }
 
 void NetworkView::centerOn(const QPointF& scenePos) {

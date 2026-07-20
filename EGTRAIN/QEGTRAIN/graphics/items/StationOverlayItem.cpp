@@ -22,7 +22,8 @@ int classPriority(StationVisualKind kind) {
 StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
 	const StationVisual& visual, int degree, QGraphicsItem* parent)
 	: QGraphicsItem(parent), m_stationName(stationName), m_stableAnchor(stableAnchor),
-	  m_visual(visual), m_degree(std::max(0, degree)) {
+	  m_visual(visual), m_degree(std::max(0, degree)), m_originalVisualKind(visual.kind),
+	  m_interchange(visual.kind == StationVisualKind::Interchange), m_endpoint(degree == 1) {
 	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setFlag(QGraphicsItem::ItemIsSelectable);
 	setAcceptHoverEvents(true);
@@ -84,6 +85,47 @@ void StationOverlayItem::setLabelSide(LabelSide side) {
 	update();
 }
 
+StationOverlayItem::ViewportPlacement StationOverlayItem::placementForSide(
+	LabelSide side, const QPointF& deviceAnchor, const QRectF& viewportInset) const {
+	const QRectF rawSymbol = m_symbolRect.translated(deviceAnchor);
+	const QRectF rawLabel = labelRectForSide(side).translated(deviceAnchor);
+	const QRectF rawCombined = rawSymbol.united(rawLabel);
+	const auto overflowFor = [&viewportInset](const QRectF& rect) {
+		return std::max<qreal>(0.0, viewportInset.left() - rect.left())
+			+ std::max<qreal>(0.0, rect.right() - viewportInset.right())
+			+ std::max<qreal>(0.0, viewportInset.top() - rect.top())
+			+ std::max<qreal>(0.0, rect.bottom() - viewportInset.bottom());
+	};
+	QPointF offset;
+	if (rawCombined.left() < viewportInset.left())
+		offset.rx() += viewportInset.left() - rawCombined.left();
+	else if (rawCombined.right() > viewportInset.right())
+		offset.rx() += viewportInset.right() - rawCombined.right();
+	if (rawCombined.top() < viewportInset.top())
+		offset.ry() += viewportInset.top() - rawCombined.top();
+	else if (rawCombined.bottom() > viewportInset.bottom())
+		offset.ry() += viewportInset.bottom() - rawCombined.bottom();
+	ViewportPlacement placement;
+	placement.side = side;
+	placement.offset = offset;
+	placement.symbolRect = rawSymbol.translated(offset);
+	placement.labelRect = rawLabel.translated(offset);
+	placement.combinedRect = rawCombined.translated(offset);
+	placement.overflow = overflowFor(rawCombined);
+	placement.fitsBeforeClamp = viewportInset.contains(rawCombined);
+	placement.fits = viewportInset.contains(placement.combinedRect);
+	return placement;
+}
+
+StationOverlayItem::ViewportPlacement StationOverlayItem::preferredViewportPlacement(
+	const QPointF& deviceAnchor, const QRectF& viewportInset) const {
+	const ViewportPlacement right = placementForSide(LabelSide::Right, deviceAnchor, viewportInset);
+	const ViewportPlacement left = placementForSide(LabelSide::Left, deviceAnchor, viewportInset);
+	if (right.fitsBeforeClamp || (!left.fitsBeforeClamp && right.overflow <= left.overflow))
+		return right;
+	return left;
+}
+
 QRectF StationOverlayItem::combinedRect() const {
 	return translated(m_symbolRect).united(translated(m_labelRect));
 }
@@ -133,7 +175,14 @@ void StationOverlayItem::setLayoutVisible(bool visible) {
 }
 
 bool StationOverlayItem::isLabelVisible() const {
-	return m_layoutVisible || m_hovered || isSelected();
+	return (m_layoutVisible && !m_collisionBlocked) || m_hovered || isSelected();
+}
+
+void StationOverlayItem::setCollisionBlocked(bool blocked) {
+	if (m_collisionBlocked == blocked)
+		return;
+	m_collisionBlocked = blocked;
+	update();
 }
 
 void StationOverlayItem::setFollowed(bool followed) {
@@ -144,12 +193,21 @@ void StationOverlayItem::setFollowed(bool followed) {
 }
 
 void StationOverlayItem::setDegree(int degree) {
+	setNetworkDegree(degree, degree >= 3, degree == 1);
+}
+
+void StationOverlayItem::setNetworkDegree(int degree, bool interchange, bool endpoint) {
 	degree = std::max(0, degree);
-	if (m_degree == degree)
+	const bool nextInterchange = interchange || degree >= 3
+		|| m_originalVisualKind == StationVisualKind::Interchange;
+	const bool nextEndpoint = endpoint || degree == 1;
+	if (m_degree == degree && m_interchange == nextInterchange && m_endpoint == nextEndpoint)
 		return;
 	m_degree = degree;
-	const bool hasPlatform = m_visual.kind != StationVisualKind::StopMarker;
-	m_visual = classifyStation(hasPlatform, m_degree);
+	m_interchange = nextInterchange;
+	m_endpoint = nextEndpoint;
+	m_visual = classifyStation(m_originalVisualKind == StationVisualKind::Platform,
+		m_interchange ? 3 : m_degree);
 	const QPixmap sourceSymbol(m_visual.iconResource);
 	m_symbol = sourceSymbol.isNull() ? QPixmap() : sourceSymbol.scaled(QSize(static_cast<int>(kSymbolPixels),
 		static_cast<int>(kSymbolPixels)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -157,11 +215,11 @@ void StationOverlayItem::setDegree(int degree) {
 }
 
 bool StationOverlayItem::isInterchange() const {
-	return m_degree >= 3 || m_visual.kind == StationVisualKind::Interchange;
+	return m_interchange || m_degree >= 3 || m_originalVisualKind == StationVisualKind::Interchange;
 }
 
 bool StationOverlayItem::isEndpoint() const {
-	return m_degree == 1;
+	return m_endpoint || m_degree == 1;
 }
 
 bool StationOverlayItem::priorityLess(const StationOverlayItem& left, const StationOverlayItem& right,
@@ -174,8 +232,8 @@ bool StationOverlayItem::priorityLess(const StationOverlayItem& left, const Stat
 		return left.isInterchange();
 	if (left.isEndpoint() != right.isEndpoint())
 		return left.isEndpoint();
-	const int leftClass = classPriority(left.m_visual.kind);
-	const int rightClass = classPriority(right.m_visual.kind);
+	const int leftClass = classPriority(left.m_originalVisualKind);
+	const int rightClass = classPriority(right.m_originalVisualKind);
 	if (leftClass != rightClass)
 		return leftClass > rightClass;
 	const QPointF leftDelta = left.m_stableAnchor - viewportCenter;
@@ -205,11 +263,18 @@ void StationOverlayItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
 }
 
 void StationOverlayItem::rebuildGeometry() {
+	m_labelRect = labelRectForSide(m_labelSide);
+}
+
+QRectF StationOverlayItem::labelRectForSide(LabelSide side) const {
 	const QFontMetricsF metrics(m_labelFont);
 	const qreal width = metrics.horizontalAdvance(m_displayName);
 	const qreal height = metrics.height();
-	if (m_labelSide == LabelSide::Right)
-		m_labelRect = QRectF(m_symbolRect.right() + kLabelGap, -height / 2.0, width, height);
-	else
-		m_labelRect = QRectF(m_symbolRect.left() - kLabelGap - width, -height / 2.0, width, height);
+	if (side == LabelSide::Right)
+		return QRectF(m_symbolRect.right() + kLabelGap, -height / 2.0, width, height);
+	if (side == LabelSide::Left)
+		return QRectF(m_symbolRect.left() - kLabelGap - width, -height / 2.0, width, height);
+	if (side == LabelSide::Above)
+		return QRectF(-width / 2.0, m_symbolRect.top() - kLabelGap - height, width, height);
+	return QRectF(-width / 2.0, m_symbolRect.bottom() + kLabelGap, width, height);
 }
