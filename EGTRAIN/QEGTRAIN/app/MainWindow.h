@@ -102,6 +102,7 @@ class QTemporaryDir; // forward declaration for m_runStagingDir
 #include "graphics/items/VirtualArcItem.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/StationNodeItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/PlatformItem.h"
 #include "graphics/items/IconItem.h"
 #include "graphics/items/PassengerItem.h"
@@ -161,8 +162,7 @@ public:
 	// painting
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
-	void paintStationIcon(QPointF coord, const StationVisual& visual);
-	void paintStationName(QPointF coord, string sname);
+	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);
@@ -490,7 +490,8 @@ private:
 	bool m_signalLayerVisible = true;
 	bool m_passengerLayerVisible = true;
 	QList<QGraphicsItem*> m_stationDecorations;
-	QList<QGraphicsTextItem*> m_stationNames;
+	QList<StationOverlayItem*> m_stationOverlays;
+	QString m_selectedStationName;
 	QList<QGraphicsItem*> m_signalDecorations;
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendItem* m_networkLegend = nullptr;
@@ -599,6 +600,7 @@ private:
 	std::string uniqueIncidentId(const std::string& baseId) const;
 
 	void runVisualPolishE2E();
+	void runStationOverlayE2E();
 	void runEditorSmokeE2E();
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
@@ -612,6 +614,7 @@ private:
 	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 	void buildTrackIndexes();
+	void updateStationOverlayDegrees();
 	void updateViewportOverlays();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
