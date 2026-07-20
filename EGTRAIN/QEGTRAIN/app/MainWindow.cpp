@@ -30,6 +30,7 @@
 #include <QThread>
 #include <QCloseEvent>
 #include <QGraphicsSceneHoverEvent>
+#include <QMouseEvent>
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -57,7 +58,6 @@ const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailZoom = 3.0;
 constexpr int kOverlayMargin = 12;
-constexpr qreal kStationLabelPixels = 11.0;
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -528,6 +528,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateViewportOverlays();
 		updateZoomStatus();
 	});
+	connect(networkView, &NetworkView::interactionFinished,
+		this, &MainWindow::updateViewportOverlays);
 	networkView->setMouseTracking(true);
 
 	// connect elements from UI
@@ -3992,9 +3994,12 @@ void MainWindow::runStationOverlayE2E() {
 		failures << value;
 	};
 	const QString caseName = QFileInfo(QString::fromStdString(InputMainFolder)).fileName();
+	const QString stationScreenshotBase = qEnvironmentVariable("QEGTRAIN_E2E_STATION_SCREENSHOT_BASE");
 	if (!networkView || m_stationOverlays.isEmpty()) {
 		fail("station overlay scene is empty");
 	} else {
+		resize(1200, 800);
+		QApplication::processEvents();
 		const QRectF topologyBounds = networkView->topologyBounds();
 		const auto checkZoom = [&](qreal ratio, const char* label) {
 			networkView->fitToTopology();
@@ -4008,22 +4013,56 @@ void MainWindow::runStationOverlayE2E() {
 				fail(QString("%1 changed topology-only fit bounds").arg(label));
 			const QRectF inset = networkView->viewport()->rect().adjusted(kOverlayMargin, kOverlayMargin,
 				-kOverlayMargin, -kOverlayMargin);
-			QList<QRectF> labels;
+			QList<QRectF> symbols;
 			for (auto* overlay : m_stationOverlays) {
-				if (!overlay || !overlay->isVisible() || !overlay->isLabelVisible())
+				if (!overlay || !overlay->isVisible())
 					continue;
 				const QPointF anchor = networkView->viewportTransform().map(overlay->stableAnchor())
 					+ overlay->viewportOffset();
-				const QRectF symbol = overlay->symbolRect().translated(anchor);
+				symbols.append(overlay->symbolRect().translated(anchor));
+			}
+			QList<QRectF> labels;
+			int importantLabels = 0;
+			int collisionBlockedLabels = 0;
+			int visibleImportantLabels = 0;
+			for (auto* overlay : m_stationOverlays) {
+				if (!overlay || !overlay->isVisible())
+					continue;
+				if (overlay->isInterchange() || overlay->isEndpoint())
+					++importantLabels;
+				if (overlay->isCollisionBlocked())
+					++collisionBlockedLabels;
+				if (!overlay->isLabelVisible())
+					continue;
+				if (overlay->isInterchange() || overlay->isEndpoint())
+					++visibleImportantLabels;
+				const QPointF anchor = networkView->viewportTransform().map(overlay->stableAnchor())
+					+ overlay->viewportOffset();
 				const QRectF labelRect = overlay->labelRect().translated(anchor);
 				if (!inset.contains(labelRect))
 					fail(QString("%1 label clipped: %2").arg(label).arg(overlay->stationName()));
-				if (labelRect.intersects(symbol))
-					fail(QString("%1 label intersects symbol: %2").arg(label).arg(overlay->stationName()));
+				for (const QRectF& otherSymbol : symbols)
+					if (labelRect.intersects(otherSymbol))
+						fail(QString("%1 label intersects symbol: %2").arg(label).arg(overlay->stationName()));
 				for (const QRectF& other : labels)
 					if (labelRect.intersects(other))
 						fail(QString("%1 labels intersect: %2").arg(label).arg(overlay->stationName()));
 				labels.append(labelRect);
+			}
+			if (labels.isEmpty())
+				fail(QString("%1 has no visible station label (%2 collision-blocked)")
+					.arg(QString::fromLatin1(label)).arg(collisionBlockedLabels));
+			if (QString::fromLatin1(label) == QLatin1String("FIT")
+				&& importantLabels > 0 && visibleImportantLabels == 0)
+				fail(QString("FIT has no visible priority label (%1 important, %2 collision-blocked)")
+					.arg(importantLabels).arg(collisionBlockedLabels));
+			if (!stationScreenshotBase.isEmpty()) {
+				const QString path = QString("%1-%2.png")
+					.arg(stationScreenshotBase, QString::fromLatin1(label).toLower());
+				if (!networkView->grab().save(path))
+					fail(QString("%1 station screenshot save failed").arg(label));
+				else
+					marker(QString("E2E_STATION_OVERLAY_SCREENSHOT_%1").arg(path));
 			}
 			marker(QString("E2E_STATION_OVERLAY_%1_%2_OK").arg(caseName, label));
 		};
@@ -4054,128 +4093,142 @@ void MainWindow::runStationOverlayE2E() {
 				fail("hover leave did not hide culled station label");
 		}
 
-		StationNodeItem* stationTarget = nullptr;
-		StationOverlayItem* overlappingOverlay = nullptr;
-		bool temporarySemanticOverlay = false;
+		const QString previousSelectedStationName = m_selectedStationName;
+		const QList<StationOverlayItem*> previousStationOverlays = m_stationOverlays;
+		const QList<QGraphicsItem*> previousStationDecorations = m_stationDecorations;
+		QList<QGraphicsItem*> previouslyVisibleItems;
 		for (auto* item : scene->items()) {
-			auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
-			if (!station || !station->node)
-				continue;
-			for (auto* overlay : m_stationOverlays) {
-				if (overlay && overlay->stationName() == QString::fromStdString(station->node->stationName)
-					&& overlay->sceneBoundingRect().intersects(station->sceneBoundingRect())) {
-					stationTarget = station;
-					overlappingOverlay = overlay;
-					break;
-				}
-			}
-			if (stationTarget)
-				break;
-		}
-		if (!stationTarget) {
-			for (auto* item : scene->items()) {
-				auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
-				if (station && station->node) {
-					stationTarget = station;
-					break;
-				}
-			}
-		}
-		if (stationTarget && !overlappingOverlay) {
-			overlappingOverlay = new StationOverlayItem(
-				QString::fromStdString(stationTarget->node->stationName),
-				stationTarget->sceneBoundingRect().center(),
-				classifyStation(!stationTarget->node->stationPlatformId.empty(), 0));
-			scene->addItem(overlappingOverlay);
-			temporarySemanticOverlay = true;
-		}
-		if (!stationTarget || !overlappingOverlay) {
-			fail("no overlapping station overlay target for semantic dispatch");
-		} else {
-			QList<QPair<QGraphicsItem*, bool>> hiddenSemanticItems;
-			for (auto* item : scene->items()) {
-				if (item == stationTarget || item == overlappingOverlay || !item->isVisible())
-					continue;
-				hiddenSemanticItems.append(qMakePair(item, true));
+			if (item && item->isVisible()) {
+				previouslyVisibleItems.append(item);
 				item->setVisible(false);
 			}
-			QPointF semanticPoint = stationTarget->sceneBoundingRect().center();
-			bool foundSemanticPoint = false;
-			const QRectF stationBounds = stationTarget->sceneBoundingRect();
-			for (int y = 0; y <= 4 && !foundSemanticPoint; ++y) {
-				for (int x = 0; x <= 4 && !foundSemanticPoint; ++x) {
-					const QPointF point(stationBounds.left() + stationBounds.width() * x / 4.0,
-						stationBounds.top() + stationBounds.height() * y / 4.0);
-					if (!overlappingOverlay->contains(overlappingOverlay->mapFromScene(point)))
-						continue;
-					QGraphicsItem* semantic = nullptr;
-					for (auto* item : scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
-						networkView->viewportTransform())) {
-						for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
-							if (qgraphicsitem_cast<NodeItem*>(candidate)
-								|| qgraphicsitem_cast<StationNodeItem*>(candidate)
-								|| qgraphicsitem_cast<TrackLineItem*>(candidate)
-								|| qgraphicsitem_cast<ConnectionItem*>(candidate)
-								|| qgraphicsitem_cast<SignalItem*>(candidate)
-								|| qgraphicsitem_cast<TrainBodyItem*>(candidate)
-								|| qgraphicsitem_cast<PassengerItem*>(candidate)) {
-								semantic = candidate;
-								break;
-							}
-						}
-						if (semantic)
+		}
+
+		Node semanticFixtureNode;
+		semanticFixtureNode.ID = -241.0;
+		semanticFixtureNode.station = true;
+		semanticFixtureNode.stationName = "E2ESemanticStation";
+		semanticFixtureNode.stationPlatformId = "E2EPlatform";
+		const QPointF semanticCenter = networkView->mapToScene(networkView->viewport()->rect().center());
+		const StationVisual semanticVisual = classifyStation(true, 0);
+		auto* stationTarget = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
+		stationTarget->track = -1;
+		stationTarget->node = &semanticFixtureNode;
+		stationTarget->setPos(semanticCenter);
+		QPen stationPen(semanticVisual.outline);
+		stationPen.setWidth(0);
+		stationPen.setCosmetic(true);
+		stationTarget->setPen(stationPen);
+		stationTarget->setBrush(semanticVisual.fill);
+		auto* overlappingOverlay = new StationOverlayItem(
+			QString::fromStdString(semanticFixtureNode.stationName), semanticCenter, semanticVisual);
+		scene->addItem(stationTarget);
+		scene->addItem(overlappingOverlay);
+		m_stationOverlays.clear();
+		m_stationDecorations.clear();
+		m_stationOverlays.append(overlappingOverlay);
+		m_stationDecorations.append(overlappingOverlay);
+		if (stationTarget->sceneBoundingRect().center() != overlappingOverlay->stableAnchor())
+			fail("semantic fixture station and overlay anchors diverged");
+
+		overlappingOverlay->setLayoutVisible(false);
+		overlappingOverlay->setCollisionBlocked(false);
+		if (overlappingOverlay->isLabelVisible())
+			fail("semantic dispatch overlay was not culled before click");
+
+		QPointF semanticPoint = stationTarget->sceneBoundingRect().center();
+		bool foundSemanticPoint = false;
+		const QRectF stationBounds = stationTarget->sceneBoundingRect();
+		for (int y = 0; y <= 4 && !foundSemanticPoint; ++y) {
+			for (int x = 0; x <= 4 && !foundSemanticPoint; ++x) {
+				const QPointF point(stationBounds.left() + stationBounds.width() * x / 4.0,
+					stationBounds.top() + stationBounds.height() * y / 4.0);
+				if (!overlappingOverlay->contains(overlappingOverlay->mapFromScene(point)))
+					continue;
+				QGraphicsItem* semantic = nullptr;
+				for (auto* item : scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
+					networkView->viewportTransform())) {
+					for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
+						if (qgraphicsitem_cast<NodeItem*>(candidate)
+							|| qgraphicsitem_cast<StationNodeItem*>(candidate)
+							|| qgraphicsitem_cast<TrackLineItem*>(candidate)
+							|| qgraphicsitem_cast<ConnectionItem*>(candidate)
+							|| qgraphicsitem_cast<SignalItem*>(candidate)
+							|| qgraphicsitem_cast<TrainBodyItem*>(candidate)
+							|| qgraphicsitem_cast<PassengerItem*>(candidate)) {
+							semantic = candidate;
 							break;
+						}
 					}
-					if (semantic == stationTarget) {
-						semanticPoint = point;
-						foundSemanticPoint = true;
-					}
+					if (semantic)
+						break;
+				}
+				if (semantic == stationTarget) {
+					semanticPoint = point;
+					foundSemanticPoint = true;
 				}
 			}
-			if (!foundSemanticPoint) {
-				fail("no clear station semantic hit point under overlay");
-				semanticPoint = stationTarget->sceneBoundingRect().center();
-			}
-			displayStationNodeInfo(stationTarget);
-			if (m_selectedStationName != QString::fromStdString(stationTarget->node->stationName))
-				fail("station selection did not track station name");
-			if (!overlappingOverlay->isLabelVisible())
-				fail("selected station label is not revealed");
+		}
+		if (!foundSemanticPoint)
+			fail("no clear station semantic hit point under overlay");
 
-			const QPointF scenePos = semanticPoint;
-			QGraphicsSceneMouseEvent click(QEvent::GraphicsSceneMousePress);
-			click.setButton(Qt::LeftButton);
-			click.setButtons(Qt::LeftButton);
-			click.setScenePos(scenePos);
-			click.setPos(networkView->mapFromScene(scenePos));
-			click.setScreenPos(networkView->viewport()->mapToGlobal(click.pos().toPoint()));
-			click.setWidget(networkView->viewport());
-			scene->mousePressEvent(&click);
-			QGraphicsItem* contextTarget = nullptr;
-			const QMetaObject::Connection contextConnection = connect(scene, &NetworkScene::ContextMenuRequested,
-				this, [&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
-			QGraphicsSceneContextMenuEvent context(QEvent::GraphicsSceneContextMenu);
-			context.setReason(QGraphicsSceneContextMenuEvent::Mouse);
-			context.setScenePos(scenePos);
-			context.setScreenPos(networkView->viewport()->mapToGlobal(networkView->mapFromScene(scenePos)));
-			context.setWidget(networkView->viewport());
-			scene->contextMenuEvent(&context);
-			disconnect(contextConnection);
-			if (contextTarget != stationTarget)
-				fail(QString("context menu did not preserve station semantic target (got=%1 expected=%2 gotType=%3 expectedType=%4)")
-					.arg(reinterpret_cast<quintptr>(contextTarget), 0, 16)
-					.arg(reinterpret_cast<quintptr>(stationTarget), 0, 16)
-					.arg(contextTarget ? contextTarget->type() : -1)
-					.arg(stationTarget ? stationTarget->type() : -1));
-			if (m_sceneContextMenu)
-				m_sceneContextMenu->close();
-			for (const auto& hidden : hiddenSemanticItems)
-				hidden.first->setVisible(hidden.second);
-		}
-		if (temporarySemanticOverlay) {
+		const QPoint clickPos = networkView->mapFromScene(semanticPoint);
+		const QPoint screenPos = networkView->viewport()->mapToGlobal(clickPos);
+		QMouseEvent press(QEvent::MouseButtonPress, QPointF(clickPos), QPointF(screenPos),
+			Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QApplication::sendEvent(networkView->viewport(), &press);
+		QMouseEvent release(QEvent::MouseButtonRelease, QPointF(clickPos), QPointF(screenPos),
+			Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(networkView->viewport(), &release);
+		QApplication::processEvents();
+		if (m_selectedStationName != QString::fromStdString(semanticFixtureNode.stationName))
+			fail("station selection did not track station name");
+		if (!overlappingOverlay->isSelected())
+			fail(QString("station click did not select the overlapping overlay (%1/%2/%3)")
+				.arg(overlappingOverlay->stationName(), m_selectedStationName)
+				.arg(m_stationOverlays.contains(overlappingOverlay)));
+		if (!overlappingOverlay->isLabelVisible())
+			fail(QString("selected station click did not reveal its culled label (layout=%1 blocked=%2 selected=%3)")
+				.arg(overlappingOverlay->isLayoutVisible())
+				.arg(overlappingOverlay->isLabelLayoutVisible() && !overlappingOverlay->isLabelVisible())
+				.arg(overlappingOverlay->isSelected()));
+
+		QGraphicsItem* contextTarget = nullptr;
+		const QMetaObject::Connection contextConnection = connect(scene, &NetworkScene::ContextMenuRequested,
+			this, [&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
+		QGraphicsSceneContextMenuEvent context(QEvent::GraphicsSceneContextMenu);
+		context.setReason(QGraphicsSceneContextMenuEvent::Mouse);
+		context.setScenePos(semanticPoint);
+		context.setScreenPos(networkView->viewport()->mapToGlobal(
+			networkView->mapFromScene(semanticPoint)));
+		context.setWidget(networkView->viewport());
+		scene->contextMenuEvent(&context);
+		disconnect(contextConnection);
+		if (contextTarget != stationTarget)
+			fail(QString("context menu did not preserve station semantic target (got=%1 expected=%2 gotType=%3 expectedType=%4)")
+				.arg(reinterpret_cast<quintptr>(contextTarget), 0, 16)
+				.arg(reinterpret_cast<quintptr>(stationTarget), 0, 16)
+				.arg(contextTarget ? contextTarget->type() : -1)
+				.arg(stationTarget ? stationTarget->type() : -1));
+
+		if (m_sceneContextMenu)
+			m_sceneContextMenu->close();
+		QApplication::processEvents();
+		if (stationTarget->graphicsEffect() == effect)
+			handleCloseInfoDockWidget();
+		if (overlappingOverlay->scene() == scene)
 			scene->removeItem(overlappingOverlay);
-			delete overlappingOverlay;
-		}
+		delete overlappingOverlay;
+		if (stationTarget->scene() == scene)
+			scene->removeItem(stationTarget);
+		delete stationTarget;
+		m_stationOverlays = previousStationOverlays;
+		m_stationDecorations = previousStationDecorations;
+		m_selectedStationName = previousSelectedStationName;
+		for (auto* item : previouslyVisibleItems)
+			if (item && item->scene() == scene)
+				item->setVisible(true);
+		updateViewportOverlays();
 
 		checkZoom(3.0, "3X");
 		checkZoom(12.0, "12X");
@@ -6705,7 +6758,7 @@ void MainWindow::setupGUI() {
 
 			// draw nodes
 			if (i > 0 && !empty(blockSets[track].member[i - 1].endNode.stationName)) { // station Node (only visible from end nodes [end_node] -> i>1)
-				paintStationNode(pt, station_node_size, line_width, track, &blockSets[track].member[i].startNode);
+				paintStationNode(pt, station_node_size, line_width, track, &blockSets[track].member[i - 1].endNode);
 				if (initial_variables.PAX_GUI) {
 					paintStationPlatform(pt, station_node_size, line_width, &blockSets[track].member[i - 1].endNode);
 				}
@@ -10400,13 +10453,18 @@ void MainWindow::updateStationOverlayDegrees() {
 		if (!overlay)
 			continue;
 		int highestDegree = 0;
+		bool hasInterchange = false;
+		bool hasEndpoint = false;
 		for (auto* item : scene->items()) {
 			auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
-			if (!station || !station->node || QString::fromStdString(station->node->stationName) != overlay->stationName())
+			if (!station || !station->node || !station->isVisible()
+				|| QString::fromStdString(station->node->stationName) != overlay->stationName())
 				continue;
 			const QPointF point = station->sceneBoundingRect().center();
 			int degree = 0;
 			for (auto* edge : scene->items()) {
+				if (!edge || !edge->isVisible())
+					continue;
 				if (auto* track = qgraphicsitem_cast<TrackLineItem*>(edge)) {
 					degree += segmentDegree(track, track->line(), point);
 					if (auto* virtualArc = dynamic_cast<VirtualArcItem*>(track))
@@ -10416,8 +10474,10 @@ void MainWindow::updateStationOverlayDegrees() {
 				}
 			}
 			highestDegree = std::max(highestDegree, degree);
+			hasInterchange = hasInterchange || degree >= 3;
+			hasEndpoint = hasEndpoint || degree == 1;
 		}
-		overlay->setDegree(highestDegree);
+		overlay->setNetworkDegree(highestDegree, hasInterchange, hasEndpoint);
 	}
 }
 
@@ -10436,34 +10496,24 @@ void MainWindow::updateViewportOverlays() {
 	const QRectF viewport = networkView->viewport()->rect();
 	const QRectF inset = viewport.adjusted(kOverlayMargin, kOverlayMargin,
 		-kOverlayMargin, -kOverlayMargin);
-	const auto translated = [](const QRectF& rect, const QPointF& point, const QPointF& offset) {
-		return rect.translated(point + offset);
-	};
-	const auto clampOffset = [&](const QRectF& rect) {
-		QPointF offset;
-		if (rect.left() < inset.left())
-			offset.rx() += inset.left() - rect.left();
-		else if (rect.right() > inset.right())
-			offset.rx() += inset.right() - rect.right();
-		if (rect.top() < inset.top())
-			offset.ry() += inset.top() - rect.top();
-		else if (rect.bottom() > inset.bottom())
-			offset.ry() += inset.bottom() - rect.bottom();
-		return offset;
-	};
-	const auto overflow = [&](const QRectF& rect) {
-		return std::max<qreal>(0.0, inset.left() - rect.left())
-			+ std::max<qreal>(0.0, rect.right() - inset.right())
-			+ std::max<qreal>(0.0, inset.top() - rect.top())
-			+ std::max<qreal>(0.0, rect.bottom() - inset.bottom());
+	struct CandidatePlacement {
+		StationOverlayItem* overlay = nullptr;
+		StationOverlayItem::ViewportPlacement right;
+		StationOverlayItem::ViewportPlacement left;
+		StationOverlayItem::ViewportPlacement above;
+		StationOverlayItem::ViewportPlacement below;
+		StationOverlayItem::ViewportPlacement current;
+		int symbolIndex = -1;
 	};
 
 	QList<QRectF> symbolRects;
 	QList<StationOverlayItem*> candidates;
+	QList<CandidatePlacement> placements;
 	for (auto* overlay : m_stationOverlays) {
 		if (!overlay)
 			continue;
 		overlay->setViewportOffset(QPointF());
+		overlay->setCollisionBlocked(false);
 		overlay->setSelected(!m_selectedStationName.isEmpty()
 			&& overlay->stationName() == m_selectedStationName);
 		overlay->setVisible(m_stationLayerVisible);
@@ -10471,27 +10521,26 @@ void MainWindow::updateViewportOverlays() {
 			continue;
 
 		const QPointF anchor = toDevice.map(overlay->stableAnchor());
-		overlay->setLabelSide(StationOverlayItem::LabelSide::Right);
-		const QRectF rightRect = translated(overlay->combinedRect(), anchor, QPointF());
-		overlay->setLabelSide(StationOverlayItem::LabelSide::Left);
-		const QRectF leftRect = translated(overlay->combinedRect(), anchor, QPointF());
-		StationOverlayItem::LabelSide side = StationOverlayItem::LabelSide::Right;
-		QRectF chosen = rightRect;
-		if (!inset.contains(rightRect) && inset.contains(leftRect)) {
-			side = StationOverlayItem::LabelSide::Left;
-			chosen = leftRect;
-		} else if (!inset.contains(rightRect) && !inset.contains(leftRect)
-			&& overflow(leftRect) < overflow(rightRect)) {
-			side = StationOverlayItem::LabelSide::Left;
-			chosen = leftRect;
-		}
-		overlay->setLabelSide(side);
-		const QPointF offset = clampOffset(chosen);
-		overlay->setViewportOffset(offset);
-		const QRectF effectiveSymbol = translated(overlay->symbolRect(), anchor, offset);
-		symbolRects.append(effectiveSymbol);
+		CandidatePlacement placement;
+		placement.overlay = overlay;
+		placement.right = overlay->placementForSide(StationOverlayItem::LabelSide::Right, anchor, inset);
+		placement.left = overlay->placementForSide(StationOverlayItem::LabelSide::Left, anchor, inset);
+		placement.above = overlay->placementForSide(StationOverlayItem::LabelSide::Above, anchor, inset);
+		placement.below = overlay->placementForSide(StationOverlayItem::LabelSide::Below, anchor, inset);
+		placement.current = overlay->preferredViewportPlacement(anchor, inset);
+		overlay->setLabelSide(placement.current.side);
+		overlay->setViewportOffset(placement.current.offset);
+		placement.symbolIndex = symbolRects.size();
+		symbolRects.append(placement.current.symbolRect);
+		placements.append(placement);
 		candidates.append(overlay);
 	}
+	const auto placementFor = [&placements](StationOverlayItem* overlay) -> CandidatePlacement* {
+		for (auto& placement : placements)
+			if (placement.overlay == overlay)
+				return &placement;
+		return nullptr;
+	};
 
 	QPointF followedCenter;
 	bool hasFollowedCenter = false;
@@ -10509,7 +10558,16 @@ void MainWindow::updateViewportOverlays() {
 			continue;
 		const QPointF delta = overlay->stableAnchor() - followedCenter;
 		const qreal distance = delta.x() * delta.x() + delta.y() * delta.y();
-		if (!nearestFollowed || distance < nearestDistance) {
+		bool nearer = !nearestFollowed || distance < nearestDistance;
+		if (!nearer && distance == nearestDistance) {
+			const int nameOrder = QString::compare(overlay->stationName(), nearestFollowed->stationName(),
+				Qt::CaseSensitive);
+			nearer = nameOrder < 0
+				|| (nameOrder == 0 && (overlay->stableAnchor().x() < nearestFollowed->stableAnchor().x()
+					|| (overlay->stableAnchor().x() == nearestFollowed->stableAnchor().x()
+						&& overlay->stableAnchor().y() < nearestFollowed->stableAnchor().y())));
+		}
+		if (nearer) {
 			nearestFollowed = overlay;
 			nearestDistance = distance;
 		}
@@ -10521,35 +10579,83 @@ void MainWindow::updateViewportOverlays() {
 		return StationOverlayItem::priorityLess(*left, *right,
 			toDevice.inverted().map(viewport.center()));
 	});
+	const bool hasOverviewPriority = std::any_of(candidates.cbegin(), candidates.cend(), [](const auto* overlay) {
+		return overlay->isSelected() || overlay->isFollowed() || overlay->isHovered()
+			|| overlay->isInterchange() || overlay->isEndpoint();
+	});
+	const bool showOrdinaryOverviewLabels = !hasOverviewPriority;
 	QList<QRectF> placedLabels;
 	for (auto* overlay : candidates) {
 		const bool forced = overlay->isSelected() || overlay->isFollowed() || overlay->isHovered();
 		const bool eligible = networkView->zoomRatio() >= 2.0
-			|| forced || overlay->isInterchange() || overlay->isEndpoint();
+			|| forced || overlay->isInterchange() || overlay->isEndpoint()
+			|| showOrdinaryOverviewLabels;
 		bool visible = false;
-		if (eligible) {
-			const QRectF label = translated(overlay->labelRect(), toDevice.map(overlay->stableAnchor()),
-				overlay->viewportOffset());
-			const QRectF inflated = label.adjusted(-4.0, -4.0, 4.0, 4.0);
-			bool collision = false;
-			for (const QRectF& symbol : symbolRects) {
-				if (inflated.intersects(symbol)) {
-					collision = true;
-					break;
-				}
+		bool collisionBlocked = false;
+		CandidatePlacement* placement = placementFor(overlay);
+		if (placement) {
+			const StationOverlayItem::ViewportPlacement* choices[4] = {
+				&placement->right, &placement->left, &placement->above, &placement->below};
+			if (placement->current.side == StationOverlayItem::LabelSide::Left) {
+				choices[0] = &placement->left;
+				choices[1] = &placement->right;
 			}
-			if (!collision) {
-				for (const QRectF& other : placedLabels) {
-					if (inflated.intersects(other)) {
-						collision = true;
+			const StationOverlayItem::ViewportPlacement* chosen = nullptr;
+			const StationOverlayItem::ViewportPlacement* hoverFallback = nullptr;
+			for (const auto* choice : choices) {
+				const QRectF inflated = choice->labelRect.adjusted(-4.0, -4.0, 4.0, 4.0);
+				bool symbolCollision = false;
+				for (const QRectF& symbol : symbolRects) {
+					if (inflated.intersects(symbol)) {
+						symbolCollision = true;
 						break;
 					}
 				}
+				if (symbolCollision)
+					continue;
+				bool symbolMovedIntoLabel = false;
+				for (const QRectF& other : placedLabels) {
+					if (other.intersects(choice->symbolRect)) {
+						symbolMovedIntoLabel = true;
+						break;
+					}
+				}
+				if (symbolMovedIntoLabel)
+					continue;
+				if (!hoverFallback)
+					hoverFallback = choice;
+				if (!eligible)
+					continue;
+				bool labelCollision = false;
+				for (const QRectF& other : placedLabels) {
+					if (inflated.intersects(other)) {
+						labelCollision = true;
+						break;
+					}
+				}
+				if (labelCollision)
+					continue;
+				chosen = choice;
+				break;
 			}
-			visible = forced || !collision;
-			if (visible)
-				placedLabels.append(inflated);
+			if (!chosen && hoverFallback) {
+				placement->current = *hoverFallback;
+				overlay->setLabelSide(hoverFallback->side);
+				overlay->setViewportOffset(hoverFallback->offset);
+				symbolRects[placement->symbolIndex] = hoverFallback->symbolRect;
+			}
+			if (!chosen)
+				collisionBlocked = !hoverFallback;
+			if (chosen) {
+				placement->current = *chosen;
+				overlay->setLabelSide(chosen->side);
+				overlay->setViewportOffset(chosen->offset);
+				symbolRects[placement->symbolIndex] = chosen->symbolRect;
+				visible = true;
+				placedLabels.append(chosen->labelRect.adjusted(-4.0, -4.0, 4.0, 4.0));
+			}
 		}
+		overlay->setCollisionBlocked(collisionBlocked);
 		overlay->setLayoutVisible(visible);
 	}
 

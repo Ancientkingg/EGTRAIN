@@ -49,7 +49,10 @@ int main(int argc, char* argv[]) {
 	bool ok = true;
 
 	StationVisual platform = classifyStation(true, 1);
+	StationVisual stopVisual = classifyStation(false, 0);
 	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), platform);
+	ok &= expect(overlay.flags().testFlag(QGraphicsItem::ItemIsSelectable),
+		"overlay remains programmatically selectable");
 	const QRectF symbol = overlay.symbolRect();
 	const QRectF right = overlay.labelRect();
 	ok &= expect(qFuzzyCompare(overlay.combinedRect().left(), symbol.left()), "combined bounds include symbol");
@@ -61,13 +64,50 @@ int main(int argc, char* argv[]) {
 	overlay.setViewportOffset(QPointF(-3.0, 7.0));
 	ok &= expect(overlay.viewportOffset() == QPointF(-3.0, 7.0), "viewport clamp offset is separate");
 	ok &= expect(overlay.displayName(QStringLiteral("KogeNord")) == QStringLiteral("Koge Nord"), "camel-case display conversion");
+	const QRectF inset(0.0, 0.0, 220.0, 120.0);
+	const StationOverlayItem::ViewportPlacement rightPlacement =
+		overlay.placementForSide(StationOverlayItem::LabelSide::Right, QPointF(80.0, 60.0), inset);
+	ok &= expect(rightPlacement.side == StationOverlayItem::LabelSide::Right,
+		"viewport placement prefers the right side");
+	ok &= expect(rightPlacement.fits, "right-side placement fits in the viewport");
+	ok &= expect(qFuzzyCompare(rightPlacement.labelRect.left(), rightPlacement.symbolRect.right() + 8.0),
+		"production placement keeps the right eight-pixel gap");
+	const StationOverlayItem::ViewportPlacement leftPlacement =
+		overlay.placementForSide(StationOverlayItem::LabelSide::Left, QPointF(80.0, 60.0), inset);
+	ok &= expect(leftPlacement.side == StationOverlayItem::LabelSide::Left,
+		"viewport placement supports the left side");
+	ok &= expect(qFuzzyCompare(leftPlacement.symbolRect.left(), leftPlacement.labelRect.right() + 8.0),
+		"production placement keeps the left eight-pixel gap");
+	const StationOverlayItem::ViewportPlacement abovePlacement =
+		overlay.placementForSide(StationOverlayItem::LabelSide::Above, QPointF(80.0, 60.0), inset);
+	ok &= expect(qFuzzyCompare(abovePlacement.labelRect.bottom() + 8.0,
+		abovePlacement.symbolRect.top()), "production placement keeps the upper eight-pixel gap");
+	const StationOverlayItem::ViewportPlacement belowPlacement =
+		overlay.placementForSide(StationOverlayItem::LabelSide::Below, QPointF(80.0, 60.0), inset);
+	ok &= expect(qFuzzyCompare(belowPlacement.symbolRect.bottom() + 8.0,
+		belowPlacement.labelRect.top()), "production placement keeps the lower eight-pixel gap");
+	const StationOverlayItem::ViewportPlacement edgePlacement =
+		overlay.preferredViewportPlacement(QPointF(2.0, 2.0), inset);
+	ok &= expect(edgePlacement.fits, "edge placement clamps the complete overlay into the viewport");
+	ok &= expect(inset.contains(edgePlacement.combinedRect), "clamped overlay stays inside the viewport inset");
+
+	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), platform);
+	multiNode.setNetworkDegree(3, true, true);
+	ok &= expect(multiNode.isInterchange(), "multi-node station keeps interchange flag");
+	ok &= expect(multiNode.isEndpoint(), "multi-node station keeps endpoint flag");
+	StationOverlayItem platformAfterDegree("PlatformAfterDegree", QPointF(12.0, 12.0), platform);
+	platformAfterDegree.setDegree(3);
+	StationOverlayItem stopAfterDegree("StopAfterDegree", QPointF(12.0, 12.0), stopVisual);
+	stopAfterDegree.setDegree(3);
+	ok &= expect(StationOverlayItem::priorityLess(platformAfterDegree, stopAfterDegree, QPointF()),
+		"platform class remains ahead of stop marker after interchange classification");
 
 	QList<StationOverlayItem*> candidates;
 	StationOverlayItem selected("Zulu", QPointF(0.0, 0.0), platform);
 	StationOverlayItem followed("Alpha", QPointF(1.0, 1.0), platform);
 	StationOverlayItem interchange("Beta", QPointF(2.0, 2.0), classifyStation(true, 3));
 	StationOverlayItem endpoint("Gamma", QPointF(3.0, 3.0), platform);
-	StationOverlayItem stop("Delta", QPointF(4.0, 4.0), classifyStation(false, 0));
+	StationOverlayItem stop("Delta", QPointF(4.0, 4.0), stopVisual);
 	selected.setSelected(true);
 	followed.setFollowed(true);
 	interchange.setDegree(3);
@@ -81,11 +121,20 @@ int main(int argc, char* argv[]) {
 	ok &= expect(candidates.at(2) == &interchange, "interchange has third priority");
 	ok &= expect(candidates.at(3) == &endpoint, "endpoint has fourth priority");
 	ok &= expect(candidates.at(4) == &stop, "stop marker has remaining priority");
+	StationOverlayItem platformPriority("ZuluPlatform", QPointF(30.0, 0.0), platform);
+	StationOverlayItem stopPriority("AlphaStop", QPointF(30.0, 0.0), stop.visual());
+	ok &= expect(StationOverlayItem::priorityLess(platformPriority, stopPriority, QPointF()),
+		"platform precedes stop marker at equal distance");
+	StationOverlayItem nameZulu("ZuluTie", QPointF(40.0, 0.0), platform);
+	StationOverlayItem nameAlpha("AlphaTie", QPointF(-40.0, 0.0), platform);
+	ok &= expect(StationOverlayItem::priorityLess(nameAlpha, nameZulu, QPointF()),
+		"station name breaks equal-distance priority ties");
 
 	{
 		QGraphicsScene hoverScene;
 		auto* hovered = new StationOverlayItem("Hovered", QPointF(0.0, 0.0), platform);
 		hovered->setLayoutVisible(false);
+		hovered->setCollisionBlocked(true);
 		hoverScene.addItem(hovered);
 		ok &= expect(!hovered->isLabelVisible(), "layout culling hides label");
 		QGraphicsSceneHoverEvent hoverEnter(QEvent::GraphicsSceneHoverEnter);
@@ -99,7 +148,7 @@ int main(int argc, char* argv[]) {
 		hoverScene.sendEvent(hovered, &hoverLeave);
 		ok &= expect(!hovered->isLabelVisible(), "hover leave hides culled label");
 		hovered->setSelected(true);
-		ok &= expect(hovered->isLabelVisible(), "selection reveals culled label");
+		ok &= expect(hovered->isLabelVisible(), "selection reveals collision-blocked label");
 	}
 
 	{
@@ -115,11 +164,15 @@ int main(int argc, char* argv[]) {
 		int stationClicks = 0;
 		QGraphicsItem* contextTarget = nullptr;
 		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode,
-			[&](StationNodeItem*) { ++stationClicks; });
+			[&](StationNodeItem*) {
+				++stationClicks;
+				decoration.setSelected(true);
+			});
 		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
 			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
 		sendLeftClick(scene, view, QPointF(0.0, 0.0));
 		ok &= expect(stationClicks == 1, "left click passes through station overlay");
+		ok &= expect(decoration.isSelected(), "semantic station selection survives default scene dispatch");
 		ok &= expect(sendContextMenu(scene, view, QPointF(0.0, 0.0)), "context event accepted through station overlay");
 		ok &= expect(contextTarget == &station, "context menu preserves station semantic target");
 	}
