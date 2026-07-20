@@ -376,6 +376,7 @@ private:
 
 	// toolbar
 	QToolBar* m_toolBar;
+	QAction* m_openCaseAction = nullptr;
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
@@ -478,8 +479,6 @@ private:
 	// taking ownership; teardownGUI clears them after scene->clear().
 	QDockWidget* m_caseLayersDock = nullptr;
 	QLabel* m_caseNameLabel = nullptr;
-	QLabel* m_toolbarCaseLabel = nullptr;
-	QLabel* m_simulationClockLabel = nullptr;
 	QLabel* m_zoomStatusLabel = nullptr;
 	QCheckBox* m_stationLayerCheck = nullptr;
 	QCheckBox* m_trainLayerCheck = nullptr;
