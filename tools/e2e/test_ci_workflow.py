@@ -62,6 +62,8 @@ def main() -> None:
         missing.append("package smoke CTest timeout")
     if "DEFAULT_HORIZON = 200" not in gui_smoke:
         missing.append("bounded GUI smoke horizon")
+    if "DEFAULT_MARKER_SECONDS = 300" not in gui_smoke:
+        missing.append("hosted-runner GUI startup budget")
     if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 2:
         missing.append("TMPDIR routing steps for smoke logs")
     uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
