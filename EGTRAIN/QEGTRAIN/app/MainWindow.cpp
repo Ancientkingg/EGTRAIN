@@ -4068,6 +4068,31 @@ void MainWindow::runStationOverlayE2E() {
 		};
 
 		checkZoom(1.0, "FIT");
+		const bool hasTopologyPriority = std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+			[](const auto* overlay) { return overlay && (overlay->isInterchange() || overlay->isEndpoint()); });
+		if (!hasTopologyPriority && m_stationOverlays.size() > 1) {
+			const QString previousSelectedStationName = m_selectedStationName;
+			StationOverlayItem* selectedOverlay = nullptr;
+			for (auto* overlay : m_stationOverlays) {
+				if (overlay && overlay->isVisible()) {
+					selectedOverlay = overlay;
+					break;
+				}
+			}
+			if (selectedOverlay) {
+				m_selectedStationName = selectedOverlay->stationName();
+				updateViewportOverlays();
+				const bool ordinaryLabelVisible = std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+					[selectedOverlay](const auto* overlay) {
+						return overlay && overlay != selectedOverlay && overlay->isLabelVisible()
+							&& !overlay->isInterchange() && !overlay->isEndpoint();
+					});
+				if (!ordinaryLabelVisible)
+					fail("FIT selected station suppressed every ordinary fallback label");
+				m_selectedStationName = previousSelectedStationName;
+				updateViewportOverlays();
+			}
+		}
 		StationOverlayItem* hovered = nullptr;
 		for (auto* overlay : m_stationOverlays) {
 			if (overlay && overlay->isVisible()) {
@@ -10579,11 +10604,10 @@ void MainWindow::updateViewportOverlays() {
 		return StationOverlayItem::priorityLess(*left, *right,
 			toDevice.inverted().map(viewport.center()));
 	});
-	const bool hasOverviewPriority = std::any_of(candidates.cbegin(), candidates.cend(), [](const auto* overlay) {
-		return overlay->isSelected() || overlay->isFollowed() || overlay->isHovered()
-			|| overlay->isInterchange() || overlay->isEndpoint();
+	const bool hasTopologyPriority = std::any_of(candidates.cbegin(), candidates.cend(), [](const auto* overlay) {
+		return overlay->isInterchange() || overlay->isEndpoint();
 	});
-	const bool showOrdinaryOverviewLabels = !hasOverviewPriority;
+	const bool showOrdinaryOverviewLabels = !hasTopologyPriority;
 	QList<QRectF> placedLabels;
 	for (auto* overlay : candidates) {
 		const bool forced = overlay->isSelected() || overlay->isFollowed() || overlay->isHovered();
