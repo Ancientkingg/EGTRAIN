@@ -8,8 +8,14 @@ SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.png"
 DENSE_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dense-e2e.png"
 FOLLOW_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-follow-e2e.png"
 CONTEXT_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-context-e2e.png"
+COMMAND_BAR_1024_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1024-e2e.png"
+COMMAND_BAR_1200_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1200-e2e.png"
+COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1440-e2e.png"
 DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dpr2-e2e.log"
 DPR2_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dpr2-e2e.png"
+DPR2_COMMAND_BAR_1024_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1024-e2e.png"
+DPR2_COMMAND_BAR_1200_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1200-e2e.png"
+DPR2_COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1440-e2e.png"
 STATION_OUT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e"
 STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-copenhagen"
 STATION_DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e-dpr2.log"
@@ -29,6 +35,9 @@ QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
 QEGTRAIN_E2E_DENSE_SCREENSHOT="$DENSE_SHOT" \
 QEGTRAIN_E2E_FOLLOW_SCREENSHOT="$FOLLOW_SHOT" \
 QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$CONTEXT_SHOT" \
+QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$COMMAND_BAR_1024_SHOT" \
+QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$COMMAND_BAR_1200_SHOT" \
+QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$COMMAND_BAR_1440_SHOT" \
 "$APP" -n 3 -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
 
 grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
@@ -37,6 +46,9 @@ test -s "$SHOT"
 test -s "$DENSE_SHOT"
 test -s "$FOLLOW_SHOT"
 test -s "$CONTEXT_SHOT"
+test -s "$COMMAND_BAR_1024_SHOT"
+test -s "$COMMAND_BAR_1200_SHOT"
+test -s "$COMMAND_BAR_1440_SHOT"
 for label in "Planned arrival" "Planned departure" "Simulated arrival" "Simulated departure" "Arrival delay" "Departure delay"; do
 	if ! grep -Fqi "$label" "$ROOT/EGTRAIN/QEGTRAIN/diagrams/TimetableTableWindow.cpp"; then
 		echo "missing timetable label in TimetableTableWindow.cpp: $label" >&2
@@ -47,7 +59,7 @@ if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"
 	echo "dead Show Graph action still present in MainWindow.ui" >&2
 	exit 1
 fi
-echo "visual polish e2e passed: $SHOT $DENSE_SHOT $FOLLOW_SHOT $CONTEXT_SHOT"
+echo "visual polish e2e passed: $SHOT $DENSE_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
 
 QT_QPA_PLATFORM=offscreen \
 QT_SCALE_FACTOR=2 \
@@ -57,10 +69,16 @@ QEGTRAIN_E2E_SCREENSHOT="$DPR2_SHOT" \
 QEGTRAIN_E2E_DENSE_SCREENSHOT="${DPR2_SHOT%.png}-dense.png" \
 QEGTRAIN_E2E_FOLLOW_SCREENSHOT="${DPR2_SHOT%.png}-follow.png" \
 QEGTRAIN_E2E_CONTEXT_SCREENSHOT="${DPR2_SHOT%.png}-context.png" \
+QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$DPR2_COMMAND_BAR_1024_SHOT" \
+QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$DPR2_COMMAND_BAR_1200_SHOT" \
+QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$DPR2_COMMAND_BAR_1440_SHOT" \
 "$APP" -n 3 -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$DPR2_OUT" 2>&1
 grep -q "E2E_VISUAL_POLISH_DPR_2.0" "$DPR2_OUT"
 grep -q "E2E_VISUAL_POLISH_OK" "$DPR2_OUT"
 test -s "$DPR2_SHOT"
+test -s "$DPR2_COMMAND_BAR_1024_SHOT"
+test -s "$DPR2_COMMAND_BAR_1200_SHOT"
+test -s "$DPR2_COMMAND_BAR_1440_SHOT"
 echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
 
 for case in 1 2 3 4; do
@@ -106,3 +124,6 @@ test -s "${STATION_SHOT_BASE}-dpr2-fit.png"
 test -s "${STATION_SHOT_BASE}-dpr2-3x.png"
 test -s "${STATION_SHOT_BASE}-dpr2-12x.png"
 echo "station overlay Copenhagen DPR2 passed: ${STATION_DPR2_OUT}"
+
+"$ROOT/tools/e2e/scene_render_smoke.sh"
+"$ROOT/tools/e2e/legacy_import_smoke.sh"
