@@ -767,15 +767,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_followTrainCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
 		if (m_updatingFollowCombo || index < 0)
 			return;
-		m_followTrainIndex = m_followTrainCombo->itemData(index).toInt();
+		if (m_followAction && m_followAction->isChecked())
+			setFollowTrain(m_followTrainCombo->itemData(index).toInt());
 	});
 	connect(m_followAction, &QAction::toggled, this, [this](bool checked) {
 		if (!checked) {
-			m_followTrainIndex = -1;
+			setFollowTrain(-1);
 			return;
 		}
 		if (m_followTrainCombo && m_followTrainCombo->currentIndex() >= 0)
-			m_followTrainIndex = m_followTrainCombo->currentData().toInt();
+			setFollowTrain(m_followTrainCombo->currentData().toInt());
+		else
+			setFollowTrain(-1);
 	});
 	m_toolBar->insertAction(ui->actionSimulationStop, m_followAction);
 	m_toolBar->insertWidget(ui->actionSimulationStop, m_followTrainCombo);
@@ -3672,6 +3675,7 @@ void MainWindow::refreshFollowTrainChoices() {
 		m_followTrainIndex = -1;
 
 	m_updatingFollowCombo = false;
+	updateViewportOverlays();
 }
 
 TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
@@ -3757,6 +3761,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 			m_followAction->setChecked(false);
 		}
 		m_followTrainIndex = -1;
+		updateViewportOverlays();
 		return;
 	}
 	if (!resolveTrainItem(trainIndex))
@@ -3773,6 +3778,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		m_followAction->setChecked(true);
 	}
 	m_followTrainIndex = trainIndex;
+	updateViewportOverlays();
 }
 
 void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard) {
@@ -5179,7 +5185,20 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	if (m_followAction && m_followTrainCombo && m_followTrainCombo->count() > 0) {
+		m_followAction->setChecked(false);
+		if (std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+			[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
+			ok = false;
+			failures << "follow deactivation left a stale station priority";
+		}
 		m_followAction->setChecked(true);
+		const int followedOverlays = static_cast<int>(std::count_if(m_stationOverlays.cbegin(),
+			m_stationOverlays.cend(), [](const auto* overlay) { return overlay && overlay->isFollowed(); }));
+		if (!m_stationOverlays.isEmpty() && followedOverlays != 1) {
+			ok = false;
+			failures << QString("follow activation updated %1 station priorities instead of one")
+				.arg(followedOverlays);
+		}
 		QApplication::processEvents();
 		if (!m_followAction->isChecked() || m_followTrainIndex < 0) {
 			ok = false;
@@ -5238,6 +5257,11 @@ void MainWindow::runVisualPolishE2E() {
 	}
 	if (m_followAction) {
 		m_followAction->setChecked(false);
+		if (std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+			[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
+			ok = false;
+			failures << "follow toggle left a stale station priority";
+		}
 		QApplication::processEvents();
 	}
 	if (m_followTrainIndex != -1) {
