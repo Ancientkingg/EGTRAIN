@@ -16,6 +16,8 @@ public:
 
 	void setIdentifier(const QString& identifier);
 	void setSpeedText(const QString& speedText);
+	void setSpeedVisible(bool visible);
+	bool isSpeedVisible() const { return m_speedVisible; }
 	void setTrainVisual(const TrainVisual& visual);
 	void setReversed(bool reversed);
 	void setCompact(bool compact);
@@ -64,6 +66,7 @@ private:
 	QPixmap m_icon;
 	bool m_reversed;
 	bool m_compact;
+	bool m_speedVisible = true;
 };
 
 #endif // TRAINBADGEITEM_H

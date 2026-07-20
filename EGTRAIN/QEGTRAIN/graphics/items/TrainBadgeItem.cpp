@@ -20,6 +20,13 @@ void TrainBadgeItem::setSpeedText(const QString& speedText) {
 	update();
 }
 
+void TrainBadgeItem::setSpeedVisible(bool visible) {
+	if (m_speedVisible == visible)
+		return;
+	m_speedVisible = visible;
+	update();
+}
+
 void TrainBadgeItem::setTrainVisual(const TrainVisual& visual) {
 	m_visual = visual;
 	m_icon = QPixmap(m_visual.iconResource);
@@ -85,10 +92,11 @@ void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	font.setBold(true);
 	painter->setFont(font);
 	const QFontMetricsF metrics(font);
-	const QRectF identifierRect = identifierTextRect(body, m_compact, m_reversed, metrics, m_speedText);
+	const QString visibleSpeedText = m_speedVisible ? m_speedText : QString();
+	const QRectF identifierRect = identifierTextRect(body, m_compact, m_reversed, metrics, visibleSpeedText);
 	painter->drawText(identifierRect, Qt::AlignVCenter | Qt::AlignLeft,
 		elidedIdentifier(m_identifier, metrics, identifierRect));
 	if (!m_compact)
-		painter->drawText(speedTextRect(body, m_compact, m_reversed, metrics, m_speedText),
-			Qt::AlignVCenter | Qt::AlignRight, m_speedText);
+		painter->drawText(speedTextRect(body, m_compact, m_reversed, metrics, visibleSpeedText),
+			Qt::AlignVCenter | Qt::AlignRight, visibleSpeedText);
 }
