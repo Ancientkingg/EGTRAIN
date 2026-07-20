@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def main() -> None:
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
+    gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
     release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
     required = {
@@ -55,6 +56,8 @@ def main() -> None:
         missing.append("sanitizer GUI smoke time budgets")
     if "set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)" not in cmake:
         missing.append("GUI smoke CTest timeout")
+    if "DEFAULT_HORIZON = 500" not in gui_smoke:
+        missing.append("bounded GUI smoke horizon")
     if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 2:
         missing.append("TMPDIR routing steps for smoke logs")
     uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
