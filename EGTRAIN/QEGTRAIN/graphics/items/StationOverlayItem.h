@@ -58,6 +58,7 @@ public:
 	QRectF deviceCombinedRect() const { return combinedRect(); }
 
 	void setLayoutVisible(bool visible);
+	void setNameVisible(bool visible);
 	void setCollisionBlocked(bool blocked);
 	bool isLayoutVisible() const { return m_layoutVisible; }
 	bool isCollisionBlocked() const { return m_collisionBlocked; }
@@ -97,6 +98,7 @@ private:
 	QRectF m_labelRect;
 	LabelSide m_labelSide = LabelSide::Right;
 	bool m_layoutVisible = true;
+	bool m_nameVisible = true;
 	bool m_collisionBlocked = false;
 	bool m_hovered = false;
 	bool m_followed = false;

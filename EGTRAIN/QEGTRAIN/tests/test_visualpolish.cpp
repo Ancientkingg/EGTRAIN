@@ -96,6 +96,12 @@ int main(int argc, char* argv[]) {
 	const QRectF categoryIcon = TrainBadgeItem::iconRect(denseBody, false);
 	const QString displayedIdentifier = TrainBadgeItem::elidedIdentifier(
 		longIdentifier, badgeMetrics, identifierRegion);
+	TrainBadgeItem speedBadge;
+	speedBadge.setSpeedText(speedText);
+	speedBadge.setSpeedVisible(false);
+	ok &= expect(!speedBadge.isSpeedVisible(), "train speed label can hide independently");
+	speedBadge.setSpeedVisible(true);
+	ok &= expect(speedBadge.isSpeedVisible(), "train speed label can restore independently");
 	ok &= expect(badgeMetrics.horizontalAdvance(longIdentifier) > identifierRegion.width(),
 		"long identifier needs elision");
 	ok &= expect(badgeMetrics.horizontalAdvance(displayedIdentifier) <= identifierRegion.width(),

@@ -66,7 +66,17 @@ QLabel#caseNameLabel {
     color: #0f625e;
     font-size: 14px;
     font-weight: 600;
-    padding: 3px 0 10px;
+    padding: 3px 0 1px;
+}
+
+QLabel#caseReadinessLabel {
+    color: #536775;
+    font-size: 11px;
+    padding: 0 0 8px;
+}
+
+QLabel#caseReadinessLabel[blocking="true"] {
+    color: #9b3e35;
 }
 
 QLabel#caseStudyTitleLabel, QLabel#layersTitleLabel {
@@ -82,22 +92,44 @@ QCheckBox {
     padding: 5px 2px;
 }
 
-QCheckBox::indicator {
-    width: 14px;
-    height: 14px;
-    border: 1px solid #9eacb5;
+QCheckBox[secondaryLayerToggle="true"] {
+    color: #536775;
+    margin-left: 16px;
+}
+
+QCheckBox:focus {
+    background: #e4eef0;
+    border: 1px solid #0f7c73;
     border-radius: 2px;
-    background: #ffffff;
 }
 
-QCheckBox::indicator:checked {
-    border-color: #0f7c73;
-    background: #0f7c73;
-}
-
-QCheckBox:focus, QPushButton:focus, QComboBox:focus, QSlider:focus, QLineEdit:focus {
+QPushButton:focus, QComboBox:focus, QSlider:focus, QLineEdit:focus {
     outline: 1px solid #0f7c73;
     outline-offset: 1px;
+}
+
+QToolButton#mapKeyToggle {
+    color: #536775;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 2px;
+    text-align: left;
+}
+
+QToolButton#mapKeyToggle:checked {
+    background: transparent;
+    border-color: transparent;
+    color: #536775;
+}
+
+QToolButton#mapKeyToggle:hover, QToolButton#mapKeyToggle:focus {
+    background: #e4eef0;
+    border-color: #8eb7b5;
+}
+
+QWidget#mapKeyBody QLabel {
+    color: #40515e;
+    font-size: 11px;
 }
 
 QPushButton:focus, QComboBox:focus, QLineEdit:focus {
