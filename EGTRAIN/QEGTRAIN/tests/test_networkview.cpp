@@ -5,6 +5,8 @@
 
 #include <QApplication>
 #include <QGraphicsRectItem>
+#include <QImage>
+#include <QPainter>
 #include <QWheelEvent>
 #include <cmath>
 #include <iostream>
@@ -27,8 +29,29 @@ static bool endpointInside(const NetworkView& view, const QPointF& point) {
 		&& mapped.y() <= viewport.height() - 24;
 }
 
+class TestNetworkView : public NetworkView {
+public:
+	using NetworkView::drawBackground;
+};
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
+	TestNetworkView backgroundView;
+	QImage background(160, 160, QImage::Format_RGB32);
+	background.fill(Qt::magenta);
+	{
+		QPainter painter(&background);
+		backgroundView.drawBackground(&painter, QRectF(0.0, 0.0, 160.0, 160.0));
+	}
+	bool uniformBackground = true;
+	for (int y = 0; y < background.height() && uniformBackground; ++y) {
+		for (int x = 0; x < background.width(); ++x) {
+			if (background.pixelColor(x, y) != QColor("#12191F")) {
+				uniformBackground = false;
+				break;
+			}
+		}
+	}
 	NetworkView view;
 	QGraphicsScene scene;
 	view.setScene(&scene);
@@ -46,6 +69,7 @@ int main(int argc, char** argv) {
 	farOverlay->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 
 	bool ok = true;
+	ok &= expect(uniformBackground, "operational canvas has one semantic background color and no grid");
 	view.fitToTopology();
 	const QRectF topology = view.topologyBounds();
 	const qreal fittedScale = view.fittedScale();

@@ -59,6 +59,9 @@ const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailZoom = 3.0;
 constexpr int kOverlayMargin = 12;
+constexpr int kSignalDecorationRole = 0;
+constexpr int kSignalTrackRole = 1;
+constexpr int kSignalBaseVisibleRole = 2;
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -778,9 +781,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_signalLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_signalLayerVisible = checked;
-		for (auto* item : m_signalDecorations)
-			if (item)
-				item->setVisible(checked);
+		updateViewportOverlays();
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_passengerLayerVisible = checked;
@@ -4335,6 +4336,8 @@ void MainWindow::runStationOverlayE2E() {
 		for (auto* item : scene->items()) {
 			if (item && item->isVisible()) {
 				previouslyVisibleItems.append(item);
+				if (item->data(kSignalDecorationRole).toBool())
+					item->setData(kSignalBaseVisibleRole, false);
 				item->setVisible(false);
 			}
 		}
@@ -4461,8 +4464,11 @@ void MainWindow::runStationOverlayE2E() {
 		m_stationDecorations = previousStationDecorations;
 		m_selectedStationName = previousSelectedStationName;
 		for (auto* item : previouslyVisibleItems)
-			if (item && item->scene() == scene)
+			if (item && item->scene() == scene) {
+				if (item->data(kSignalDecorationRole).toBool())
+					item->setData(kSignalBaseVisibleRole, true);
 				item->setVisible(true);
+			}
 		updateViewportOverlays();
 
 		checkZoom(3.0, "3X");
@@ -5013,12 +5019,31 @@ void MainWindow::runVisualPolishE2E() {
 	// Run the layer toggles above the dense-detail threshold and put the
 	// overview back afterwards.
 	qreal overviewRatio = networkView ? networkView->zoomRatio() : 1.0;
+	const auto hasVisibleSignalStructure = [this]() {
+		return std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
+			[](QGraphicsItem* item) {
+				return item && !qgraphicsitem_cast<SignalItem*>(item) && item->isVisible();
+			});
+	};
+	if (networkView) {
+		networkView->fitToTopology();
+		updateViewportOverlays();
+		QApplication::processEvents();
+	}
+	if (hasVisibleSignalStructure()) {
+		ok = false;
+		failures << "signal posts or bases remain visible at overview zoom";
+	}
 	if (networkView) {
 		const qreal currentRatio = networkView->zoomRatio();
 		if (currentRatio < kDenseDetailZoom)
 			networkView->zoomBy(kDenseDetailZoom / currentRatio);
 		updateViewportOverlays();
 		QApplication::processEvents();
+		if (!hasVisibleSignalStructure()) {
+			ok = false;
+			failures << "signal posts and bases did not return at detailed zoom";
+		}
 	}
 
 	const auto layerToggle = [this](const char* objectName) {
@@ -5125,9 +5150,9 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	if (networkView) {
-		const qreal currentRatio = networkView->zoomRatio();
-		if (currentRatio > overviewRatio)
-			networkView->zoomBy(overviewRatio / currentRatio);
+		networkView->fitToTopology();
+		if (overviewRatio > 1.0)
+			networkView->zoomBy(overviewRatio);
 		updateViewportOverlays();
 		QApplication::processEvents();
 	}
@@ -8241,7 +8266,7 @@ void MainWindow::paintArc(QPointF start, QPointF end, int pen_width, int track, 
 
 // Arc drawing
 void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track, Arc* Arc) {
-	TrackVisual visual = classifyTrackSpeed(Arc ? Arc->speedLimit : 0.0);
+	TrackVisual visual = freeTrackVisual();
 	QPen pen = QPen(visual.color);
 	pen.setWidth(std::max(pen_width, visual.width));
 	pen.setCosmetic(true);
@@ -8266,7 +8291,7 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 
 // virtual Arc drawing
 void MainWindow::virtualArcDrawing(QPointF start, QPointF middle, QPointF end, int pen_width, int track, Arc* Arc) {
-	TrackVisual visual = classifyTrackSpeed(Arc ? Arc->speedLimit : 0.0);
+	TrackVisual visual = freeTrackVisual();
 	QPen pen = QPen(visual.color);
 	pen.setWidth(std::max(pen_width, visual.width));
 	pen.setCosmetic(true);
@@ -8288,8 +8313,9 @@ void MainWindow::virtualArcDrawing(QPointF start, QPointF middle, QPointF end, i
 
 // draws a connection
 void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection) {
-	QPen pen = QPen(Qt::white);
-	pen.setWidth(pen_width);
+	const TrackVisual visual = freeTrackVisual();
+	QPen pen(visual.color);
+	pen.setWidth(std::max(pen_width, visual.width));
 	pen.setCosmetic(true);
 
 	// draws a line from start to end with a given line width
@@ -8446,12 +8472,15 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	QGraphicsLineItem* basis2 = new QGraphicsLineItem(QLineF(basisStartX, basisStartY, basisEndX, basisEndY));
 	basis2->setPen(penPost);
 
-	const auto addSignalDecoration = [this, track](QGraphicsItem* item) {
-		item->setData(0, true);
-		item->setData(1, track);
+	const bool detailedSignals = networkView && networkView->zoomRatio() >= kDenseDetailZoom;
+	const auto addSignalDecoration = [this, track, detailedSignals](QGraphicsItem* item) {
+		item->setData(kSignalDecorationRole, true);
+		item->setData(kSignalTrackRole, track);
+		item->setData(kSignalBaseVisibleRole, true);
 		scene->addItem(item);
 		m_signalDecorations.push_back(item);
-		item->setVisible(m_signalLayerVisible);
+		item->setVisible(m_signalLayerVisible
+			&& (qgraphicsitem_cast<SignalItem*>(item) || detailedSignals));
 	};
 	addSignalDecoration(post1);
 	addSignalDecoration(plate1);
@@ -8461,7 +8490,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	addSignalDecoration(basis2);
 
 	// match the current zoom before the next viewportChanged fires
-	const bool compactSignals = !networkView || networkView->zoomRatio() < kDenseDetailZoom;
+	const bool compactSignals = !detailedSignals;
 	plate1->setCompact(compactSignals);
 	plate2->setCompact(compactSignals);
 
@@ -10434,9 +10463,11 @@ void MainWindow::hideUnusedTracks() {
 			}
 		}
 
-		if (item->data(0).toBool()) {
-			if (std::find(unusedTracks.begin(), unusedTracks.end(), item->data(1).toInt()) != unusedTracks.end())
+		if (item->data(kSignalDecorationRole).toBool()) {
+			if (std::find(unusedTracks.begin(), unusedTracks.end(), item->data(kSignalTrackRole).toInt()) != unusedTracks.end()) {
+				item->setData(kSignalBaseVisibleRole, false);
 				item->hide();
+			}
 			continue;
 		}
 
@@ -11228,11 +11259,18 @@ void MainWindow::updateViewportOverlays() {
 		overlay->setLayoutVisible(visible);
 	}
 
-	// Full signal housings only once zoomed past the dense threshold; at
-	// overview they collapse to aspect-coloured ticks.
-	for (auto* signal : allSignals) {
-		if (signal)
+	// Signal plates stay available at overview as aspect cues. Posts and bases
+	// return with the full housings only at detailed zoom.
+	for (auto* item : m_signalDecorations) {
+		if (!item)
+			continue;
+		const bool baseVisible = item->data(kSignalBaseVisibleRole).toBool();
+		if (auto* signal = qgraphicsitem_cast<SignalItem*>(item)) {
 			signal->setCompact(!dense);
+			signal->setVisible(m_signalLayerVisible && baseVisible);
+		} else {
+			item->setVisible(m_signalLayerVisible && baseVisible && dense);
+		}
 	}
 
 	const bool paxText = paxTextVisible();

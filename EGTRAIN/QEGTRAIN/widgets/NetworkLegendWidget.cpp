@@ -85,14 +85,21 @@ QString stationLabel(StationVisualKind kind) {
 }
 
 NetworkLegendEntry trackEntry(const QString& label, TrackOperationalState state) {
-	const TrackStateVisual visual = classifyTrackState(state);
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Track;
 	entry.label = label;
 	entry.trackState = state;
-	entry.color = visual.color;
-	entry.lineWidth = visual.width;
-	entry.penStyle = visual.style;
+	if (state == TrackOperationalState::Free) {
+		const TrackVisual visual = freeTrackVisual();
+		entry.color = visual.color;
+		entry.lineWidth = visual.width;
+		entry.penStyle = Qt::SolidLine;
+	} else {
+		const TrackStateVisual visual = classifyTrackState(state);
+		entry.color = visual.color;
+		entry.lineWidth = visual.width;
+		entry.penStyle = visual.style;
+	}
 	return entry;
 }
 
@@ -164,7 +171,8 @@ NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
 void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	m_entries.clear();
 	if (content.hasTracks) {
-		m_entries << trackEntry("Prepared route", TrackOperationalState::Prepared)
+		m_entries << trackEntry("Free track", TrackOperationalState::Free)
+				  << trackEntry("Prepared route", TrackOperationalState::Prepared)
 				  << trackEntry("Occupied section", TrackOperationalState::Occupied)
 				  << trackEntry("Blocked section", TrackOperationalState::Blocked);
 	}

@@ -1,12 +1,18 @@
 #include "widgets/TimeProgressBar.h"
 #include "util/TimeFormat.h"
 
+#include <QFontDatabase>
+
 TimeProgressBar::TimeProgressBar(QWidget* parent)
 	: QProgressBar(parent) {
 	setTextVisible(true);
 	setFixedHeight(28);
 	setFocusPolicy(Qt::NoFocus);
 	setCursor(Qt::ArrowCursor);
+	QFont timelineFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+	timelineFont.setStyleHint(QFont::TypeWriter);
+	timelineFont.setFixedPitch(true);
+	setFont(timelineFont);
 }
 
 TimeProgressBar::~TimeProgressBar() {

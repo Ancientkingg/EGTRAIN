@@ -28,7 +28,7 @@ StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF
 	setFlag(QGraphicsItem::ItemIsSelectable);
 	setAcceptHoverEvents(true);
 	setAcceptedMouseButtons(Qt::NoButton);
-	setZValue(3.0);
+	setZValue(3.5);
 	m_labelFont.setPixelSize(static_cast<int>(kLabelPixels));
 	const QPixmap sourceSymbol(m_visual.iconResource);
 	if (!sourceSymbol.isNull())
