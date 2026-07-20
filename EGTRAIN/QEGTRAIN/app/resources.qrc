@@ -13,6 +13,11 @@
         <file alias="icons/signal-stop.svg">../resources/icons/signal-stop.svg</file>
         <file alias="icons/signal-caution.svg">../resources/icons/signal-caution.svg</file>
         <file alias="icons/signal-proceed.svg">../resources/icons/signal-proceed.svg</file>
+        <file alias="icons/run.svg">../resources/icons/run.svg</file>
+        <file alias="icons/pause.svg">../resources/icons/pause.svg</file>
+        <file alias="icons/stop.svg">../resources/icons/stop.svg</file>
+        <file alias="icons/zoom-in.svg">../resources/icons/zoom-in.svg</file>
+        <file alias="icons/zoom-out.svg">../resources/icons/zoom-out.svg</file>
         <file alias="app/egtrain-16.png">../resources/app/egtrain-16.png</file>
         <file alias="app/egtrain-32.png">../resources/app/egtrain-32.png</file>
         <file alias="app/egtrain-48.png">../resources/app/egtrain-48.png</file>

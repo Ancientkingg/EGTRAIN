@@ -59,6 +59,7 @@
     <addaction name="actionSimulationStart"/>
     <addaction name="actionSimulationPause"/>
     <addaction name="actionSimulationStop"/>
+    <addaction name="actionStartTime"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -91,13 +92,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionSimulationStart"/>
-   <addaction name="actionSimulationPause"/>
-   <addaction name="actionSimulationStop"/>
-   <addaction name="separator"/>
-   <addaction name="actionZoomIn"/>
-   <addaction name="actionZoomOut"/>
-   <addaction name="actionFitView"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionAbout">
@@ -138,6 +132,14 @@
     <string>Ctrl+Esc</string>
    </property>
   </action>
+  <action name="actionStartTime">
+   <property name="text">
+    <string>Start Time</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the clock time the simulation starts at (HH:MM)</string>
+   </property>
+  </action>
   <action name="actionLoad_Network">
    <property name="text">
     <string>Load Network...</string>
@@ -175,7 +177,7 @@
   </action>
   <action name="actionFitView">
    <property name="text">
-    <string>Fit View</string>
+    <string>Fit</string>
    </property>
    <property name="toolTip">
     <string>Fit the network view to the window</string>
