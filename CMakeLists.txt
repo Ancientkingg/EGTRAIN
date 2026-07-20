@@ -96,7 +96,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/BaseNetworkItem.cpp
     ${SRC_DIR}/graphics/items/TrackLineItem.cpp
     ${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
-    ${SRC_DIR}/graphics/items/NetworkLegendItem.cpp
+    ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
     ${SRC_DIR}/graphics/items/IconItem.cpp
     ${SRC_DIR}/graphics/items/StationNodeItem.cpp
     ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
@@ -157,7 +157,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/BaseNetworkItem.h
     ${SRC_DIR}/graphics/items/TrackLineItem.h
     ${SRC_DIR}/graphics/items/TrainBadgeItem.h
-    ${SRC_DIR}/graphics/items/NetworkLegendItem.h
+    ${SRC_DIR}/widgets/NetworkLegendWidget.h
     ${SRC_DIR}/graphics/items/IconItem.h
     ${SRC_DIR}/graphics/items/StationNodeItem.h
     ${SRC_DIR}/graphics/items/StationOverlayItem.h
@@ -397,9 +397,18 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_visualpolish
         ${SRC_DIR}/tests/test_visualpolish.cpp
+		${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
         ${SRC_DIR}/graphics/VisualPolish.cpp)
-    target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui)
+    target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
+
+    add_executable(test_networklegend
+        ${SRC_DIR}/tests/test_networklegend.cpp
+        ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
+        ${SRC_DIR}/graphics/VisualPolish.cpp)
+    target_link_libraries(test_networklegend PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_networklegend COMMAND test_networklegend)
+    set_tests_properties(test_networklegend PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_stationoverlay
         ${SRC_DIR}/tests/test_stationoverlay.cpp

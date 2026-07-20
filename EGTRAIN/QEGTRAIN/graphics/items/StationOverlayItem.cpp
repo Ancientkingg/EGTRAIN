@@ -174,8 +174,15 @@ void StationOverlayItem::setLayoutVisible(bool visible) {
 	update();
 }
 
+void StationOverlayItem::setNameVisible(bool visible) {
+	if (m_nameVisible == visible)
+		return;
+	m_nameVisible = visible;
+	update();
+}
+
 bool StationOverlayItem::isLabelVisible() const {
-	return (m_layoutVisible && !m_collisionBlocked) || m_hovered || isSelected();
+	return m_nameVisible && ((m_layoutVisible && !m_collisionBlocked) || m_hovered || isSelected());
 }
 
 void StationOverlayItem::setCollisionBlocked(bool blocked) {

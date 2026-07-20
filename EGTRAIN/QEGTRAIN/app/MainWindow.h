@@ -111,7 +111,7 @@ class QTemporaryDir; // forward declaration for m_runStagingDir
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "graphics/items/TrainBadgeItem.h"
-#include "graphics/items/NetworkLegendItem.h"
+#include "widgets/NetworkLegendWidget.h"
 #include "widgets/InfoDockWidget.h"
 #include "graphics/items/HighlightEffect.h"
 #include "widgets/TimeProgressBar.h"
@@ -479,13 +479,19 @@ private:
 	// taking ownership; teardownGUI clears them after scene->clear().
 	QDockWidget* m_caseLayersDock = nullptr;
 	QLabel* m_caseNameLabel = nullptr;
+	QLabel* m_caseReadinessLabel = nullptr;
 	QLabel* m_zoomStatusLabel = nullptr;
 	QCheckBox* m_stationLayerCheck = nullptr;
+	QCheckBox* m_stationNamesCheck = nullptr;
 	QCheckBox* m_trainLayerCheck = nullptr;
+	QCheckBox* m_trainSpeedLabelsCheck = nullptr;
 	QCheckBox* m_signalLayerCheck = nullptr;
 	QCheckBox* m_passengerLayerCheck = nullptr;
+	QAction* m_showMapKeyAction = nullptr;
 	bool m_stationLayerVisible = true;
+	bool m_stationNamesVisible = true;
 	bool m_trainLayerVisible = true;
+	bool m_trainSpeedLabelsVisible = true;
 	bool m_signalLayerVisible = true;
 	bool m_passengerLayerVisible = true;
 	QList<QGraphicsItem*> m_stationDecorations;
@@ -493,7 +499,7 @@ private:
 	QString m_selectedStationName;
 	QList<QGraphicsItem*> m_signalDecorations;
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
-	NetworkLegendItem* m_networkLegend = nullptr;
+	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
@@ -618,7 +624,7 @@ private:
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
 	bool paxTextVisible() const;
-	void ensureNetworkLegend();
+	void updateNetworkLegend();
 
 	// list of train items (whose simulation is running)
 	QList<TrainItemGroup*> allTrains;
