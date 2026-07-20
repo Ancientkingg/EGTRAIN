@@ -13,11 +13,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RUN_DIR = ROOT / "EGTRAIN" / "QEGTRAIN"
 DEFAULT_SECONDS = 75
-# Keep the smoke run short enough to reach simulation completion locally.
-DEFAULT_HORIZON = 1000
-# startup takes under 10s on a local Release build; sanitized Debug on a
-# shared CI runner needs a much larger budget before the first sim tick
-DEFAULT_MARKER_SECONDS = 120
+# Keep the smoke short enough to finish on hosted runners while still checking
+# completed-run results and generated energy output.
+DEFAULT_HORIZON = 200
+# Startup takes under 10s locally, but hosted runners can spend several
+# minutes loading Copenhagen before the first simulation tick.
+DEFAULT_MARKER_SECONDS = 300
 
 BAD_PATTERNS = (
     "AddressSanitizer",
