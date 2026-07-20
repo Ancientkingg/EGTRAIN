@@ -667,29 +667,47 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_caseNameLabel->setObjectName("caseNameLabel");
 	m_caseNameLabel->setWordWrap(true);
 	caseLayersLayout->addWidget(m_caseNameLabel);
+	m_caseReadinessLabel = new QLabel(caseLayersWidget);
+	m_caseReadinessLabel->setObjectName("caseReadinessLabel");
+	m_caseReadinessLabel->setWordWrap(true);
+	caseLayersLayout->addWidget(m_caseReadinessLabel);
 	QLabel* layersTitle = new QLabel("Layers", caseLayersWidget);
 	layersTitle->setObjectName("layersTitleLabel");
 	caseLayersLayout->addWidget(layersTitle);
-	m_stationLayerCheck = new QCheckBox("Station decorations", caseLayersWidget);
-	m_stationLayerCheck->setObjectName("layerStationDecorations");
+	m_stationLayerCheck = new QCheckBox("Stations and platforms", caseLayersWidget);
+	m_stationLayerCheck->setObjectName("layerStationsPlatforms");
 	m_stationLayerCheck->setChecked(true);
-	m_stationLayerCheck->setToolTip("Show station names, icons, and platforms");
-	m_trainLayerCheck = new QCheckBox("Trains with speed labels", caseLayersWidget);
+	m_stationLayerCheck->setToolTip("Show station symbols and platforms");
+	m_stationNamesCheck = new QCheckBox("Station names", caseLayersWidget);
+	m_stationNamesCheck->setObjectName("layerStationNames");
+	m_stationNamesCheck->setProperty("secondaryLayerToggle", true);
+	m_stationNamesCheck->setChecked(true);
+	m_stationNamesCheck->setToolTip("Show station names without changing station symbols");
+	m_trainLayerCheck = new QCheckBox("Trains", caseLayersWidget);
 	m_trainLayerCheck->setObjectName("layerTrains");
 	m_trainLayerCheck->setChecked(true);
-	m_trainLayerCheck->setToolTip("Show trains and their current speeds");
-	m_signalLayerCheck = new QCheckBox("Signal groups / aspects", caseLayersWidget);
-	m_signalLayerCheck->setObjectName("layerSignalGroups");
+	m_trainLayerCheck->setToolTip("Show trains");
+	m_trainSpeedLabelsCheck = new QCheckBox("Train speed labels", caseLayersWidget);
+	m_trainSpeedLabelsCheck->setObjectName("layerTrainSpeedLabels");
+	m_trainSpeedLabelsCheck->setProperty("secondaryLayerToggle", true);
+	m_trainSpeedLabelsCheck->setChecked(true);
+	m_trainSpeedLabelsCheck->setToolTip("Show train speeds without changing train symbols");
+	m_signalLayerCheck = new QCheckBox("Signals", caseLayersWidget);
+	m_signalLayerCheck->setObjectName("layerSignals");
 	m_signalLayerCheck->setChecked(true);
-	m_signalLayerCheck->setToolTip("Show signal groups and live aspects");
-	m_passengerLayerCheck = new QCheckBox("Passenger load", caseLayersWidget);
-	m_passengerLayerCheck->setObjectName("layerPassengerLoad");
+	m_signalLayerCheck->setToolTip("Show signals and live aspects");
+	m_passengerLayerCheck = new QCheckBox("Passengers", caseLayersWidget);
+	m_passengerLayerCheck->setObjectName("layerPassengers");
 	m_passengerLayerCheck->setChecked(true);
-	m_passengerLayerCheck->setToolTip("Show platform counters and passenger icons");
+	m_passengerLayerCheck->setToolTip("Show passenger counts and icons");
 	caseLayersLayout->addWidget(m_stationLayerCheck);
+	caseLayersLayout->addWidget(m_stationNamesCheck);
 	caseLayersLayout->addWidget(m_trainLayerCheck);
+	caseLayersLayout->addWidget(m_trainSpeedLabelsCheck);
 	caseLayersLayout->addWidget(m_signalLayerCheck);
 	caseLayersLayout->addWidget(m_passengerLayerCheck);
+	m_networkLegendWidget = new NetworkLegendWidget(caseLayersWidget);
+	caseLayersLayout->addWidget(m_networkLegendWidget);
 	caseLayersLayout->addStretch();
 	m_caseLayersDock->setWidget(caseLayersWidget);
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
@@ -697,6 +715,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		// zoom actions above, panel toggles below
 		ui->menuView->addSeparator();
 		ui->menuView->addAction(m_caseLayersDock->toggleViewAction());
+		m_showMapKeyAction = ui->menuView->addAction("Map key");
+		m_showMapKeyAction->setObjectName("actionShowMapKey");
+		connect(m_showMapKeyAction, &QAction::triggered, this, [this]() {
+			m_caseLayersDock->show();
+			m_caseLayersDock->raise();
+			m_networkLegendWidget->setExpanded(true);
+		});
 		// Without a menu entry a closed Run Results dock stayed unreachable
 		// until the next run finished.
 		if (m_runResultsDock)
@@ -708,6 +733,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			if (item)
 				item->setVisible(checked);
 		// updateViewportOverlays owns station name visibility
+		updateViewportOverlays();
+	});
+	connect(m_stationNamesCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_stationNamesVisible = checked;
+		for (auto* overlay : m_stationOverlays)
+			if (overlay)
+				overlay->setNameVisible(checked);
 		updateViewportOverlays();
 	});
 	connect(m_trainLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -726,9 +758,23 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			if (it.value()) {
 				auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
 					[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
-				it.value()->setVisible(checked && trainIt != allTrains.cend()
+				it.value()->setVisible(checked && m_trainSpeedLabelsVisible && trainIt != allTrains.cend()
 					&& !(*trainIt)->outOfSimulation);
 			}
+	});
+	connect(m_trainSpeedLabelsCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_trainSpeedLabelsVisible = checked;
+		for (auto* badge : m_trainBadges)
+			if (badge)
+				badge->setSpeedVisible(checked);
+		for (auto it = m_trainSpeedLabels.cbegin(); it != m_trainSpeedLabels.cend(); ++it) {
+			if (!it.value())
+				continue;
+			auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
+				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
+			it.value()->setVisible(checked && m_trainLayerVisible && trainIt != allTrains.cend()
+				&& !(*trainIt)->outOfSimulation);
+		}
 	});
 	connect(m_signalLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_signalLayerVisible = checked;
@@ -1774,6 +1820,7 @@ void MainWindow::refreshValidationPanel() {
 			m_validationStatusLabel->clear();
 		refreshLoadedDataTree();
 		updateSceneActions();
+		updateCaseLayersPanel();
 		return;
 	}
 
@@ -1807,6 +1854,7 @@ void MainWindow::refreshValidationPanel() {
 		m_validationStatusLabel->setText(message);
 	refreshLoadedDataTree();
 	updateSceneActions();
+	updateCaseLayersPanel();
 }
 
 void MainWindow::refreshLoadedDataTree() {
@@ -3768,6 +3816,31 @@ void MainWindow::updateCaseLayersPanel() {
 		caseName = QStringLiteral("Default case study");
 	if (m_caseNameLabel)
 		m_caseNameLabel->setText(caseName);
+
+	QString readiness = "Ready to run";
+	bool blocked = false;
+	if (m_sceneLoaded) {
+		for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics) {
+			if (diagnostic.severity != SceneSeverity::Error)
+				continue;
+			readiness = QString::fromStdString(diagnostic.message);
+			blocked = true;
+			break;
+		}
+	} else if (numRegions <= 0) {
+		readiness = "No runnable case loaded";
+		blocked = true;
+	} else if (m_legacyRunDone) {
+		readiness = "Reload the case to run again";
+		blocked = true;
+	}
+	if (m_caseReadinessLabel) {
+		m_caseReadinessLabel->setText(readiness);
+		m_caseReadinessLabel->setProperty("blocking", blocked);
+		m_caseReadinessLabel->style()->unpolish(m_caseReadinessLabel);
+		m_caseReadinessLabel->style()->polish(m_caseReadinessLabel);
+	}
+	updateNetworkLegend();
 }
 
 void MainWindow::updateSpeedModeDisplay(int delayMs) {
@@ -4457,6 +4530,13 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "no train items rendered";
 	}
+	const QVector<NetworkLegendEntry> mapKeyEntriesBeforeFit = m_networkLegendWidget
+		? m_networkLegendWidget->entries() : QVector<NetworkLegendEntry>();
+	if (!std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
+		[](const NetworkLegendEntry& entry) { return entry.kind == NetworkLegendEntryKind::Train; })) {
+		ok = false;
+		failures << "map key did not refresh when trains entered the network";
+	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && scene && !allTrains.isEmpty()) {
 		TrainItemGroup* testTrain = allTrains.first();
@@ -4944,11 +5024,16 @@ void MainWindow::runVisualPolishE2E() {
 	const auto layerToggle = [this](const char* objectName) {
 		return findChild<QCheckBox*>(objectName);
 	};
-	QCheckBox* stationLayer = layerToggle("layerStationDecorations");
+	QCheckBox* stationLayer = layerToggle("layerStationsPlatforms");
+	QCheckBox* stationNames = layerToggle("layerStationNames");
 	QCheckBox* trainLayer = layerToggle("layerTrains");
-	QCheckBox* signalLayer = layerToggle("layerSignalGroups");
-	QCheckBox* passengerLayer = layerToggle("layerPassengerLoad");
-	if (!stationLayer || !trainLayer || !signalLayer || !passengerLayer) {
+	QCheckBox* trainSpeedLabels = layerToggle("layerTrainSpeedLabels");
+	QCheckBox* signalLayer = layerToggle("layerSignals");
+	QCheckBox* passengerLayer = layerToggle("layerPassengers");
+	const QStringList mapKeyEntries = m_networkLegendWidget
+		? m_networkLegendWidget->entryLabels() : QStringList();
+	if (!stationLayer || !stationNames || !trainLayer || !trainSpeedLabels
+		|| !signalLayer || !passengerLayer) {
 		ok = false;
 		failures << "required layer controls are missing";
 	} else {
@@ -4986,6 +5071,34 @@ void MainWindow::runVisualPolishE2E() {
 			}
 		};
 		checkItemLayer(stationLayer, m_stationDecorations, "station decorations");
+		if (m_stationOverlays.isEmpty()) {
+			ok = false;
+			failures << "station-name layer has no station overlay to verify";
+		} else {
+			StationOverlayItem* station = m_stationOverlays.first();
+			const bool stationVisible = station && station->isVisible();
+			stationNames->setChecked(false);
+			QApplication::processEvents();
+			if (!station || station->isLabelVisible() || station->isVisible() != stationVisible) {
+				ok = false;
+				failures << "station-name toggle changed the station object";
+			}
+			stationNames->setChecked(true);
+		}
+		if (m_trainBadges.isEmpty()) {
+			ok = false;
+			failures << "train speed-label layer has no badge to verify";
+		} else {
+			TrainBadgeItem* badge = m_trainBadges.first();
+			const bool badgeVisible = badge && badge->isVisible();
+			trainSpeedLabels->setChecked(false);
+			QApplication::processEvents();
+			if (!badge || badge->isSpeedVisible() || badge->isVisible() != badgeVisible) {
+				ok = false;
+				failures << "train speed-label toggle changed the train object";
+			}
+			trainSpeedLabels->setChecked(true);
+		}
 		checkItemLayer(signalLayer, m_signalDecorations, "signal groups");
 		QList<QGraphicsItem*> passengerItems;
 		for (auto* platform : allPlatforms) {
@@ -5005,6 +5118,10 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "PAX enabled but no visible passenger-owned graphics rendered";
 		}
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
+		if (!m_networkLegendWidget || m_networkLegendWidget->entryLabels() != mapKeyEntries) {
+			ok = false;
+			failures << "layer toggles changed or reordered map key entries";
+		}
 	}
 
 	if (networkView) {
@@ -5026,9 +5143,24 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	};
 
-	if (!m_networkLegend || !m_networkLegend->isVisible()) {
+	if (!m_networkLegendWidget || !m_networkLegendWidget->isVisible()
+		|| !networkView || networkView->isAncestorOf(m_networkLegendWidget)) {
 		ok = false;
-		failures << "network legend is missing";
+		failures << "map key is missing from the left rail";
+	} else {
+		m_networkLegendWidget->setExpanded(false);
+		QApplication::processEvents();
+		if (m_networkLegendWidget->isExpanded() || !m_showMapKeyAction) {
+			ok = false;
+			failures << "map key did not collapse or lacks its View action";
+		} else {
+			m_showMapKeyAction->trigger();
+			QApplication::processEvents();
+			if (!m_networkLegendWidget->isExpanded() || !m_caseLayersDock->isVisible()) {
+				ok = false;
+				failures << "View did not restore the map key";
+			}
+		}
 	}
 	if (!networkView) {
 		ok = false;
@@ -6567,7 +6699,7 @@ void MainWindow::runTrackPreviewE2E() {
 			return snapshot;
 		bool hasBounds = false;
 		for (auto* item : scene->items()) {
-			if (!item || item == m_networkLegend)
+			if (!item)
 				continue;
 			snapshot.items.push_back(item);
 			const QRectF itemBounds = item->sceneBoundingRect();
@@ -6672,10 +6804,6 @@ void MainWindow::runTrackPreviewE2E() {
 			runFacetOk = false;
 	}
 	const PreviewContentSnapshot previewBeforeRun = snapshotPreviewContent();
-	const QRectF previewBounds = previewBeforeRun.bounds;
-	if (m_networkLegend)
-		// Simulate viewport repositioning changing the whole-scene bounds.
-		m_networkLegend->setPos(previewBounds.bottomRight() + QPointF(100000.0, 100000.0));
 	runScene();
 	const bool workerStarted = m_worker != nullptr;
 	QApplication::processEvents();
@@ -7573,7 +7701,8 @@ void MainWindow::teardownGUI() {
 	m_signalsByAheadId.clear();
 	allArcs.clear();
 	allPlatforms.clear();
-	m_networkLegend = nullptr;
+	if (m_networkLegendWidget)
+		m_networkLegendWidget->setCaseContent(NetworkLegendContent());
 	m_tracksBySectionId.clear();
 	m_tracksByOccupiedArc.clear();
 	m_activeTrackItems.clear();
@@ -7862,6 +7991,7 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	scene->addItem(overlay);
 	m_stationOverlays.push_back(overlay);
 	m_stationDecorations.push_back(overlay);
+	overlay->setNameVisible(m_stationNamesVisible);
 	overlay->setVisible(m_stationLayerVisible);
 }
 
@@ -8397,6 +8527,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	TrainBadgeItem* badge = new TrainBadgeItem();
 	badge->setIdentifier(QString::fromStdString(train.description));
 	badge->setSpeedText(QString::fromStdString(formatSpeedLabel(train.speedKmh)));
+	badge->setSpeedVisible(m_trainSpeedLabelsVisible);
 	badge->setTrainVisual(visual);
 	badge->setReversed(train.reversedDirection);
 	badge->setCompact(!networkView || networkView->zoomRatio() < kDenseDetailZoom);
@@ -9189,7 +9320,7 @@ void MainWindow::hideNetwork() {
 
 // fit view
 void MainWindow::fitView() {
-	ensureNetworkLegend();
+	updateNetworkLegend();
 	if (networkView)
 		networkView->fitToTopology();
 	updateViewportOverlays();
@@ -9537,6 +9668,7 @@ void MainWindow::updateSignalAspect(const std::string& ID, double code, bool rev
 void MainWindow::updateTrainPosition(int t) {
 	if (!m_snapshot)
 		return;
+	bool legendNeedsUpdate = false;
 	for (auto* group : m_vcMessageItems)
 		if (group)
 			group->setVisible(false);
@@ -9599,6 +9731,7 @@ void MainWindow::updateTrainPosition(int t) {
 				if (badge) {
 					badge->setIdentifier(QString::fromStdString(state.description));
 					badge->setSpeedText(QString::fromStdString(formatSpeedLabel(state.speedKmh)));
+					badge->setSpeedVisible(m_trainSpeedLabelsVisible);
 					badge->setTrainVisual(classifyTrainType(state.type, state.description));
 					badge->setReversed(state.reversedDirection);
 					badge->setVisible(m_trainLayerVisible);
@@ -9654,6 +9787,7 @@ void MainWindow::updateTrainPosition(int t) {
 		else if (t >= state.departureTime && state.routeAxisPosition != -9999) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
+			legendNeedsUpdate = true;
 			if (firstTrain && !allTrains.isEmpty())
 				networkView->centerOn(allTrains.last()->sceneBoundingRect().center());
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train && !allTrains.isEmpty())
@@ -9663,6 +9797,8 @@ void MainWindow::updateTrainPosition(int t) {
 	for (const GuiSectionState& state : m_snapshot->sectionStates)
 		if (state.blocked)
 			applySectionState(state, TrackOperationalState::Blocked);
+	if (legendNeedsUpdate)
+		updateNetworkLegend();
 
 }
 
@@ -10853,12 +10989,22 @@ void MainWindow::buildTrackIndexes() {
 	}
 }
 
-void MainWindow::ensureNetworkLegend() {
-	if (m_networkLegend || !scene)
+void MainWindow::updateNetworkLegend() {
+	if (!m_networkLegendWidget)
 		return;
-	m_networkLegend = new NetworkLegendItem();
-	scene->addItem(m_networkLegend);
-	m_networkLegend->setVisible(true);
+	NetworkLegendContent content;
+	content.hasTracks = numTrackLines > 0;
+	for (const TrainItemGroup* train : allTrains) {
+		if (train)
+			content.trainVisuals << classifyTrainType(train->trainType, train->trainDescription);
+	}
+	for (const StationOverlayItem* station : m_stationOverlays) {
+		if (station)
+			content.stationVisuals << station->visual();
+	}
+	content.hasSignals = !allSignals.isEmpty();
+	content.hasPassengers = initial_variables.PAX_GUI;
+	m_networkLegendWidget->setCaseContent(content);
 }
 
 void MainWindow::updateStationOverlayDegrees() {
@@ -11098,13 +11244,6 @@ void MainWindow::updateViewportOverlays() {
 	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
 		if (it.value())
 			it.value()->setCompact(!dense);
-	}
-	if (m_networkLegend) {
-		const QRect viewportRect = networkView->viewport()->rect();
-		const QSize legendSize = m_networkLegend->boundingRect().size().toSize();
-		const QPoint bottomRight = viewportRect.bottomRight() - QPoint(kOverlayMargin, kOverlayMargin);
-		const QPoint topLeft = bottomRight - QPoint(legendSize.width(), legendSize.height());
-		m_networkLegend->setPos(networkView->mapToScene(topLeft));
 	}
 }
 
