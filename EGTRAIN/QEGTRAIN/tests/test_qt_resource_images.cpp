@@ -42,5 +42,17 @@ int main(int argc, char** argv) {
         if (image.isNull() || image.size() != QSize(24, 24) || !image.hasAlphaChannel())
             return 1;
     }
+    const std::array<const char*, 5> command_icons{
+        ":/icons/run.svg",
+        ":/icons/pause.svg",
+        ":/icons/stop.svg",
+        ":/icons/zoom-in.svg",
+        ":/icons/zoom-out.svg",
+    };
+    for (const char* path : command_icons) {
+        const QImage image(path);
+        if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
+            return 1;
+    }
     return 0;
 }

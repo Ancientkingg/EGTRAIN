@@ -42,6 +42,7 @@
 #include <QSignalBlocker>
 #include <QSettings>
 #include <QIcon>
+#include <QToolButton>
 #include <QStringList>
 #include <QTemporaryDir>
 #include <QRegularExpression>
@@ -509,9 +510,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedSlider = new QSlider(Qt::Horizontal);
 	m_speedSlider->setRange(0, kMaxStepDelayMs);
 	m_speedSlider->setValue(kMaxStepDelayMs);
-	m_speedSlider->setMaximumWidth(200);
+	m_speedSlider->setMaximumWidth(108);
 	m_speedSlider->setToolTip("Simulation speed: fastest");
-	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())));
+	m_speedSlider->setObjectName("speedSlider");
+	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())), this);
+	m_speedLabel->setObjectName("speedModeLabel");
+	m_speedLabel->hide();
 
 	// setup info dock widget
 	setupInfoDockWidget();
@@ -626,25 +630,27 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// --- Build toolbar ---
 	m_toolBar = ui->mainToolBar;
+	m_toolBar->clear();
 	m_toolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	m_toolBar->setIconSize(QSize(16, 16));
+	m_toolBar->setFocusPolicy(Qt::NoFocus);
+	m_toolBar->setFixedHeight(36);
 	ui->actionSimulationStart->setText("Run");
-	ui->actionSimulationStart->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-	ui->actionSimulationPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-	ui->actionSimulationStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+	ui->actionSimulationStart->setObjectName("actionRun");
+	ui->actionSimulationStart->setIcon(QIcon(":/icons/run.svg"));
+	ui->actionSimulationStart->setProperty("iconResource", ":/icons/run.svg");
+	ui->actionSimulationPause->setObjectName("actionPause");
+	ui->actionSimulationPause->setIcon(QIcon(":/icons/pause.svg"));
+	ui->actionSimulationPause->setProperty("iconResource", ":/icons/pause.svg");
+	ui->actionSimulationStop->setObjectName("actionStop");
+	ui->actionSimulationStop->setIcon(QIcon(":/icons/stop.svg"));
+	ui->actionSimulationStop->setProperty("iconResource", ":/icons/stop.svg");
 	ui->actionSimulationPause->setEnabled(false);
 	ui->actionSimulationStop->setEnabled(false);
 	ui->actionSimulationStart->setToolTip("Run simulation (Ctrl+R)");
 	ui->actionSimulationPause->setToolTip("Pause or resume simulation (Ctrl+.)");
 	ui->actionSimulationStop->setToolTip("Stop simulation (Ctrl+Esc)");
 
-	m_toolbarCaseLabel = new QLabel(this);
-	m_toolbarCaseLabel->setObjectName("toolbarCaseLabel");
-	m_toolbarCaseLabel->setToolTip("Current case study");
-	m_simulationClockLabel = new QLabel(this);
-	m_simulationClockLabel->setObjectName("simulationClockLabel");
-	m_simulationClockLabel->setToolTip("Simulation clock");
-	m_toolBar->insertWidget(ui->actionSimulationStart, m_toolbarCaseLabel);
-	m_toolBar->insertWidget(ui->actionSimulationStop, m_simulationClockLabel);
 
 	// Keep the scenario state and the four useful display layers in the primary
 	// left rail. All scene pointers below are non-owning; QGraphicsScene owns the
@@ -752,16 +758,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	updateCaseLayersPanel();
 
-	// Speed slider in toolbar (between sim controls and zoom)
-	m_toolBar->insertSeparator(ui->actionSimulationStop);
-	m_toolBar->insertWidget(ui->actionSimulationStop, m_speedLabel);
-	m_toolBar->insertWidget(ui->actionSimulationStop, m_speedSlider);
-
 	m_followTrainCombo = new QComboBox(this);
+	m_followTrainCombo->setObjectName("followTrainCombo");
 	m_followTrainCombo->setMinimumWidth(180);
-	m_followTrainCombo->setMaximumWidth(260);
+	m_followTrainCombo->setMaximumWidth(200);
+	m_followTrainCombo->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	m_followTrainCombo->setFocusPolicy(Qt::StrongFocus);
 	m_followTrainCombo->setToolTip("Select a train to keep centered while the simulation runs");
 	m_followAction = new QAction("Follow", this);
+	m_followAction->setObjectName("actionFollow");
 	m_followAction->setCheckable(true);
 	m_followAction->setToolTip("Center the network view on the selected train");
 	connect(m_followTrainCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
@@ -780,15 +785,142 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		else
 			setFollowTrain(-1);
 	});
-	m_toolBar->insertAction(ui->actionSimulationStop, m_followAction);
-	m_toolBar->insertWidget(ui->actionSimulationStop, m_followTrainCombo);
 	refreshFollowTrainChoices();
 
-	// start time control (clock time the simulation begins at)
-	QAction* startTimeAction = new QAction("Start Time", this);
-	startTimeAction->setToolTip("Set the clock time the simulation starts at (HH:MM)");
-	connect(startTimeAction, &QAction::triggered, this, &MainWindow::setStartTime);
-	m_toolBar->insertAction(ui->actionSimulationStop, startTimeAction);
+	// The one toolbar entry for every way of opening a case goes through the
+	// existing chooser so bundled scenes, recents, folders, and legacy import
+	// keep a single entry point.
+	m_openCaseAction = new QAction("Open Case", this);
+	m_openCaseAction->setObjectName("actionOpenCase");
+	m_openCaseAction->setProperty("chooserEntryPoint", "showStartupChooser");
+	m_openCaseAction->setToolTip("Choose a bundled, recent, scene-folder, or legacy case");
+	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
+
+	connect(ui->actionStartTime, &QAction::triggered, this, &MainWindow::setStartTime);
+	ui->actionStartTime->setToolTip("Set the clock time the simulation starts at (HH:MM)");
+
+	ui->actionZoomIn->setObjectName("actionZoomIn");
+	ui->actionZoomIn->setIcon(QIcon(":/icons/zoom-in.svg"));
+	ui->actionZoomIn->setToolTip("Zoom in on the network view (Ctrl++)");
+	ui->actionZoomOut->setObjectName("actionZoomOut");
+	ui->actionZoomOut->setIcon(QIcon(":/icons/zoom-out.svg"));
+	ui->actionZoomOut->setToolTip("Zoom out on the network view (Ctrl+-)");
+	ui->actionFitView->setObjectName("actionFit");
+	ui->actionFitView->setText("Fit");
+	ui->actionFitView->setIcon(QIcon());
+
+	const auto addToolbarButton = [this](QAction* action, const char* objectName, Qt::ToolButtonStyle style) {
+		m_toolBar->addAction(action);
+		if (auto* button = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(action))) {
+			button->setObjectName(objectName);
+			button->setToolButtonStyle(style);
+			button->setAccessibleName(action->text());
+			button->setAccessibleDescription(action->toolTip());
+			button->setFocusPolicy(Qt::StrongFocus);
+			button->setAutoRaise(true);
+			button->setFixedHeight(32);
+			const QString name = QString::fromLatin1(objectName);
+			if (name == "openCaseButton")
+				button->setMinimumWidth(110);
+			else if (name == "actionRunButton")
+				button->setMinimumWidth(75);
+			else if (name == "actionPauseButton")
+				button->setMinimumWidth(91);
+			else if (name == "actionStopButton")
+				button->setMinimumWidth(81);
+			else if (name == "actionFollowButton")
+				button->setMinimumWidth(74);
+			else if (name == "actionZoomInButton" || name == "actionZoomOutButton")
+				button->setFixedWidth(34);
+			else if (name == "actionFitButton")
+				button->setMinimumWidth(44);
+		}
+	};
+	const auto addToolbarLabel = [this](const char* text, const char* objectName) {
+		auto* label = new QLabel(QString::fromLatin1(text), m_toolBar);
+		label->setObjectName(objectName);
+		label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+		label->setFocusPolicy(Qt::NoFocus);
+		label->setFixedHeight(24);
+		label->setAccessibleName(QString::fromLatin1(text));
+		m_toolBar->addWidget(label);
+		return label;
+	};
+	const auto addToolbarGroupSeparator = [this](const char* objectName, const char* description) {
+		QAction* separator = m_toolBar->addSeparator();
+		separator->setObjectName(objectName);
+		separator->setProperty("toolbarGroupBoundary", true);
+		separator->setToolTip(QString::fromLatin1(description));
+		return separator;
+	};
+
+	m_openCaseAction->setProperty("toolbarGroup", "Case");
+	addToolbarButton(m_openCaseAction, "openCaseButton", Qt::ToolButtonTextOnly);
+	addToolbarGroupSeparator("separatorCasePlayback", "Case commands / playback commands");
+	ui->actionSimulationStart->setProperty("toolbarGroup", "Playback");
+	ui->actionSimulationPause->setProperty("toolbarGroup", "Playback");
+	ui->actionSimulationStop->setProperty("toolbarGroup", "Playback");
+	addToolbarButton(ui->actionSimulationStart, "actionRunButton", Qt::ToolButtonTextBesideIcon);
+	addToolbarButton(ui->actionSimulationPause, "actionPauseButton", Qt::ToolButtonTextBesideIcon);
+	addToolbarButton(ui->actionSimulationStop, "actionStopButton", Qt::ToolButtonTextBesideIcon);
+	QLabel* slowerLabel = addToolbarLabel("Slower", "speedSlowerLabel");
+	slowerLabel->setProperty("toolbarGroup", "Playback");
+	m_speedSlider->setFixedWidth(80);
+	m_speedSlider->setFixedHeight(24);
+	m_speedSlider->setProperty("toolbarGroup", "Playback");
+	m_speedSlider->setAccessibleName("Simulation speed");
+	m_speedSlider->setAccessibleDescription("Adjust simulation speed; right is faster");
+	m_speedSlider->setFocusPolicy(Qt::StrongFocus);
+	m_toolBar->addWidget(m_speedSlider);
+	QLabel* fasterLabel = addToolbarLabel("Faster", "speedFasterLabel");
+	fasterLabel->setProperty("toolbarGroup", "Playback");
+	addToolbarGroupSeparator("separatorPlaybackView", "Playback commands / view commands");
+	m_followAction->setProperty("toolbarGroup", "View");
+	ui->actionZoomIn->setProperty("toolbarGroup", "View");
+	ui->actionZoomOut->setProperty("toolbarGroup", "View");
+	ui->actionFitView->setProperty("toolbarGroup", "View");
+	addToolbarButton(m_followAction, "actionFollowButton", Qt::ToolButtonTextOnly);
+	m_followTrainCombo->setFixedWidth(180);
+	m_followTrainCombo->setFixedHeight(32);
+	m_followTrainCombo->setAccessibleName("Train to follow");
+	m_followTrainCombo->setAccessibleDescription("Select the train to center in the network view");
+	m_toolBar->addWidget(m_followTrainCombo);
+	m_followTrainCombo->setFocusPolicy(Qt::StrongFocus);
+	addToolbarButton(ui->actionZoomIn, "actionZoomInButton", Qt::ToolButtonIconOnly);
+	addToolbarButton(ui->actionZoomOut, "actionZoomOutButton", Qt::ToolButtonIconOnly);
+	addToolbarButton(ui->actionFitView, "actionFitButton", Qt::ToolButtonTextOnly);
+
+	const auto setCommandBarTabOrder = [this]() {
+		QWidget* openCaseButton = m_toolBar->widgetForAction(m_openCaseAction);
+		QWidget* runButton = m_toolBar->widgetForAction(ui->actionSimulationStart);
+		QWidget* pauseButton = m_toolBar->widgetForAction(ui->actionSimulationPause);
+		QWidget* stopButton = m_toolBar->widgetForAction(ui->actionSimulationStop);
+		QWidget* followButton = m_toolBar->widgetForAction(m_followAction);
+		QWidget* zoomInButton = m_toolBar->widgetForAction(ui->actionZoomIn);
+		QWidget* zoomOutButton = m_toolBar->widgetForAction(ui->actionZoomOut);
+		QWidget* fitButton = m_toolBar->widgetForAction(ui->actionFitView);
+		const QList<QWidget*> commandButtons{
+			openCaseButton, runButton, pauseButton, stopButton, followButton, zoomInButton, zoomOutButton, fitButton};
+		for (QWidget* widget : commandButtons) {
+			if (widget)
+				widget->setFocusPolicy(Qt::StrongFocus);
+		}
+		if (m_speedSlider)
+			m_speedSlider->setFocusPolicy(Qt::StrongFocus);
+		if (m_followTrainCombo)
+			m_followTrainCombo->setFocusPolicy(Qt::StrongFocus);
+		QWidget::setTabOrder(openCaseButton, runButton);
+		QWidget::setTabOrder(runButton, pauseButton);
+		QWidget::setTabOrder(pauseButton, stopButton);
+		QWidget::setTabOrder(stopButton, m_speedSlider);
+		QWidget::setTabOrder(m_speedSlider, followButton);
+		QWidget::setTabOrder(followButton, m_followTrainCombo);
+		QWidget::setTabOrder(m_followTrainCombo, zoomInButton);
+		QWidget::setTabOrder(zoomInButton, zoomOutButton);
+		QWidget::setTabOrder(zoomOutButton, fitButton);
+	};
+	setCommandBarTabOrder();
+	QTimer::singleShot(0, this, setCommandBarTabOrder);
 
 	// file menu: output folder chooser
 	if (ui->menuFile) {
@@ -1297,6 +1429,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
+	// Dock/editor construction above can rebuild the top-level focus chain;
+	// restore the command-bar sequence after every child widget exists.
+	setCommandBarTabOrder();
 }
 
 MainWindow::~MainWindow() {
@@ -3622,7 +3757,7 @@ void MainWindow::updateSceneWindowTitle() {
 }
 
 void MainWindow::updateCaseLayersPanel() {
-	if (!m_caseNameLabel && !m_toolbarCaseLabel && !m_simulationClockLabel)
+	if (!m_caseNameLabel)
 		return;
 
 	QString caseName = m_sceneLoaded ? QString::fromStdString(m_sceneModel.name)
@@ -3633,10 +3768,6 @@ void MainWindow::updateCaseLayersPanel() {
 		caseName = QStringLiteral("Default case study");
 	if (m_caseNameLabel)
 		m_caseNameLabel->setText(caseName);
-	if (m_toolbarCaseLabel)
-		m_toolbarCaseLabel->setText(QString("Case: %1").arg(caseName));
-	if (m_simulationClockLabel)
-		m_simulationClockLabel->setText(QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)));
 }
 
 void MainWindow::updateSpeedModeDisplay(int delayMs) {
@@ -4364,6 +4495,190 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "simulation toolbar icons are missing or not standard media icons";
 	}
 
+	// Command-bar contract: names and order are stable so the toolbar remains
+	// testable without relying on translated display text.
+	const auto actionNamed = [this](const char* objectName) {
+		return findChild<QAction*>(objectName);
+	};
+	QAction* openCaseAction = actionNamed("actionOpenCase");
+	QAction* runAction = actionNamed("actionRun");
+	QAction* pauseAction = actionNamed("actionPause");
+	QAction* stopAction = actionNamed("actionStop");
+	QAction* zoomInAction = actionNamed("actionZoomIn");
+	QAction* zoomOutAction = actionNamed("actionZoomOut");
+	QAction* fitAction = actionNamed("actionFit");
+	const QList<QAction*> requiredActions{
+		openCaseAction, runAction, pauseAction, stopAction, zoomInAction, zoomOutAction, fitAction};
+	if (std::any_of(requiredActions.cbegin(), requiredActions.cend(), [](QAction* action) { return !action; })) {
+		ok = false;
+		failures << "command-bar actions do not have the required stable object names";
+	}
+	if (!openCaseAction || openCaseAction->property("chooserEntryPoint").toString() != "showStartupChooser") {
+		ok = false;
+		failures << "Open Case is not marked as the shared startup chooser entry point";
+	}
+	if (m_toolBar) {
+		const QStringList expectedToolbarObjects{
+			"openCaseButton", "separatorCasePlayback", "actionRunButton", "actionPauseButton", "actionStopButton",
+			"speedSlowerLabel", "speedSlider", "speedFasterLabel", "separatorPlaybackView", "actionFollowButton",
+			"followTrainCombo", "actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
+		QStringList toolbarObjects;
+		for (QAction* action : m_toolBar->actions()) {
+			if (!action)
+				continue;
+			if (QWidget* widget = m_toolBar->widgetForAction(action)) {
+				if (!widget->objectName().isEmpty())
+					toolbarObjects << widget->objectName();
+				else if (!action->objectName().isEmpty())
+					toolbarObjects << action->objectName();
+			} else if (!action->objectName().isEmpty()) {
+				toolbarObjects << action->objectName();
+			}
+		}
+		int lastIndex = -1;
+		for (const QString& objectName : expectedToolbarObjects) {
+			const int index = toolbarObjects.indexOf(objectName);
+			if (index <= lastIndex) {
+				ok = false;
+				failures << QString("command-bar order is missing or out of order: %1").arg(objectName);
+				break;
+			}
+			lastIndex = index;
+		}
+		const auto boundaryIndex = [&toolbarObjects](const char* objectName) {
+			return toolbarObjects.indexOf(QString::fromLatin1(objectName));
+		};
+		const int casePlaybackBoundary = boundaryIndex("separatorCasePlayback");
+		const int playbackViewBoundary = boundaryIndex("separatorPlaybackView");
+		const int openCaseIndex = boundaryIndex("openCaseButton");
+		const int runIndex = boundaryIndex("actionRunButton");
+		const int fasterIndex = boundaryIndex("speedFasterLabel");
+		const int followIndex = boundaryIndex("actionFollowButton");
+		if (casePlaybackBoundary <= openCaseIndex || playbackViewBoundary <= casePlaybackBoundary
+			|| runIndex <= casePlaybackBoundary || fasterIndex >= playbackViewBoundary || followIndex <= playbackViewBoundary) {
+			ok = false;
+			failures << "command-bar Case, Playback, and View ranges are not separated in order";
+		}
+		const auto checkBoundary = [this, &ok, &failures](const char* objectName) {
+			QAction* boundary = findChild<QAction*>(objectName);
+			if (!boundary || !boundary->isSeparator() || !boundary->property("toolbarGroupBoundary").toBool()) {
+				ok = false;
+				failures << QString("command-bar group boundary is not named: %1").arg(objectName);
+			}
+		};
+		checkBoundary("separatorCasePlayback");
+		checkBoundary("separatorPlaybackView");
+		if (pauseAction && stopAction) {
+			const int pauseIndex = toolbarObjects.indexOf("actionPauseButton");
+			const int stopIndex = toolbarObjects.indexOf("actionStopButton");
+			if (pauseIndex < 0 || stopIndex != pauseIndex + 1) {
+				ok = false;
+				failures << "Pause is not immediately followed by Stop in the command bar";
+			}
+		}
+	}
+
+	const auto toolbarWidget = [this](QAction* action) -> QWidget* {
+		return m_toolBar && action ? m_toolBar->widgetForAction(action) : nullptr;
+	};
+	if (!toolbarWidget(openCaseAction)) {
+		ok = false;
+		failures << "Open Case has no toolbar button";
+	} else if (toolbarWidget(openCaseAction)->objectName() != "openCaseButton") {
+		ok = false;
+		failures << "Open Case toolbar button has no stable object name";
+	}
+	const auto checkTransportIcon = [&ok, &failures, &actionNamed](const char* actionName, const char* resource) {
+		QAction* action = actionNamed(actionName);
+		QFile iconFile(QString::fromLatin1(resource));
+		if (!action || !iconFile.exists() || action->icon().isNull()
+			|| action->property("iconResource").toString() != QString::fromLatin1(resource)) {
+			ok = false;
+			failures << QString("transport icon is missing or not assigned: %1").arg(resource);
+		}
+	};
+	checkTransportIcon("actionRun", ":/icons/run.svg");
+	checkTransportIcon("actionPause", ":/icons/pause.svg");
+	checkTransportIcon("actionStop", ":/icons/stop.svg");
+
+	if (findChild<QWidget*>("toolbarCaseLabel") || findChild<QWidget*>("simulationClockLabel")) {
+		ok = false;
+		failures << "toolbar still contains the case badge or simulation clock";
+	}
+	QAction* startTimeAction = actionNamed("actionStartTime");
+	if (!startTimeAction || !ui->menuSimulation || !ui->menuSimulation->actions().contains(startTimeAction)
+		|| (m_toolBar && m_toolBar->actions().contains(startTimeAction))) {
+		ok = false;
+		failures << "Start Time is not exclusively in the Simulation menu";
+	}
+	QLabel* slowerLabel = findChild<QLabel*>("speedSlowerLabel");
+	QLabel* fasterLabel = findChild<QLabel*>("speedFasterLabel");
+	if (!m_speedSlider || !slowerLabel || !fasterLabel || slowerLabel->text() != "Slower" || fasterLabel->text() != "Faster") {
+		ok = false;
+		failures << "speed controls do not expose Slower, slider, and Faster";
+	} else {
+		m_speedSlider->setValue(m_speedSlider->minimum());
+		const int slowDelay = stepDelayForSlider(m_speedSlider->value());
+		m_speedSlider->setValue(m_speedSlider->maximum());
+		const int fastDelay = stepDelayForSlider(m_speedSlider->value());
+		if (fastDelay >= slowDelay) {
+			ok = false;
+			failures << "speed slider right-is-faster mapping changed";
+		}
+	}
+	if (!m_followAction || !m_followTrainCombo || m_followTrainCombo->minimumWidth() != 180
+		|| m_followTrainCombo->maximumWidth() > 200) {
+		ok = false;
+		failures << "Follow or train selector width contract is missing";
+	}
+
+	const auto checkTabTraversal = [&ok, &failures, this, &toolbarWidget](QAction* firstAction, const QStringList& expected) {
+		QWidget* first = toolbarWidget(firstAction);
+		if (!first) {
+			ok = false;
+			failures << "cannot start command-bar Tab traversal";
+			return;
+		}
+		first->setFocusPolicy(Qt::StrongFocus);
+		first->setFocus(Qt::TabFocusReason);
+		QStringList actual;
+		QApplication::processEvents();
+		if (QApplication::focusWidget() != first) {
+			ok = false;
+			failures << QString("command-bar focus did not start on %1").arg(first->objectName());
+			return;
+		}
+		actual << first->objectName();
+		const auto namedAncestor = [](QWidget* widget) {
+			for (QWidget* current = widget; current; current = current->parentWidget()) {
+				if (!current->objectName().isEmpty())
+					return current;
+			}
+			return widget;
+		};
+		for (int i = 1; i < expected.size(); ++i) {
+			QKeyEvent press(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+			QApplication::sendEvent(first, &press);
+			QApplication::processEvents();
+			QWidget* focused = QApplication::focusWidget();
+			QWidget* named = namedAncestor(focused);
+			actual << (named ? named->objectName() : QString());
+			first = focused;
+			if (!first)
+				break;
+		}
+		if (actual != expected) {
+			ok = false;
+			failures << QString("command-bar Tab traversal order mismatch: %1").arg(actual.join(", "));
+		}
+	};
+	showNormal();
+	resize(1024, 720);
+	QApplication::processEvents();
+	checkTabTraversal(openCaseAction, {"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton",
+		"speedSlider", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
+		"actionZoomOutButton", "actionFitButton"});
+
 	const auto caseDock = findChild<QDockWidget*>("caseLayersDock");
 	if (!caseDock || !caseDock->isVisible()) {
 		ok = false;
@@ -4374,10 +4689,9 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "case state is empty";
 	}
-	const auto clockLabel = findChild<QLabel*>("simulationClockLabel");
-	if (!clockLabel || !QRegularExpression("^\\d{2}:\\d{2}:\\d{2}").match(clockLabel->text()).hasMatch()) {
+	if (findChild<QLabel*>("simulationClockLabel")) {
 		ok = false;
-		failures << "simulation clock is not formatted";
+		failures << "toolbar still owns the simulation clock";
 	}
 
 	const auto secondaryDockHidden = [this](QDockWidget* dock) {
@@ -4391,6 +4705,69 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	showNormal();
+	resize(1200, 800);
+	QApplication::processEvents();
+	const auto checkCommandBarAtSize = [this, &ok, &failures](int width, int height, const char* screenshotVariable) {
+		resize(width, height);
+		QApplication::processEvents();
+		if (!m_toolBar) {
+			ok = false;
+			failures << QString("command bar is missing at %1x%2").arg(width).arg(height);
+			return;
+		}
+		const QStringList requiredWidgetNames{
+			"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton", "speedSlowerLabel", "speedSlider",
+			"speedFasterLabel", "actionFollowButton", "followTrainCombo",
+			"actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
+		QList<QWidget*> controls;
+		for (const QString& name : requiredWidgetNames) {
+			QWidget* widget = findChild<QWidget*>(name);
+			if (!widget || !widget->isVisibleTo(m_toolBar)) {
+				ok = false;
+				failures << QString("command-bar control %1 is hidden at %2x%3").arg(name).arg(width).arg(height);
+				continue;
+			}
+			const QRect geometry = widget->geometry();
+			const QRect toolbarArea = m_toolBar->rect().adjusted(0, 0, 0, 8);
+			if (!toolbarArea.contains(geometry) || geometry.height() > 36) {
+				ok = false;
+				failures << QString("command-bar control %1 escapes toolbar bounds at %2x%3 (%4x%5+%6+%7)")
+						.arg(name).arg(width).arg(height).arg(geometry.width()).arg(geometry.height())
+						.arg(geometry.x()).arg(geometry.y());
+			}
+			if (name == "followTrainCombo" && geometry.width() != 180) {
+				ok = false;
+				failures << QString("train selector rendered width changed at %1x%2: expected 180px, has %3px")
+					.arg(width).arg(height).arg(geometry.width());
+			}
+			if (auto* button = qobject_cast<QToolButton*>(widget)) {
+				if (button->toolButtonStyle() != Qt::ToolButtonIconOnly
+					&& !button->text().isEmpty() && button->sizeHint().width() > geometry.width()) {
+					ok = false;
+					failures << QString("command-bar text is clipped at %1x%2: %3 needs %4px, has %5px")
+						.arg(width).arg(height).arg(name).arg(button->sizeHint().width()).arg(geometry.width());
+				}
+			}
+			controls << widget;
+		}
+		for (int i = 0; i < controls.size(); ++i) {
+			for (int j = i + 1; j < controls.size(); ++j) {
+				if (controls[i]->geometry().intersects(controls[j]->geometry())) {
+					ok = false;
+					failures << QString("command-bar controls overlap at %1x%2: %3/%4")
+						.arg(width).arg(height).arg(controls[i]->objectName()).arg(controls[j]->objectName());
+				}
+			}
+		}
+		const QString screenshotPath = qEnvironmentVariable(screenshotVariable);
+		if (!screenshotPath.isEmpty() && !grab().save(screenshotPath)) {
+			ok = false;
+			failures << QString("command-bar screenshot save failed at %1x%2").arg(width).arg(height);
+		}
+	};
+	checkCommandBarAtSize(1024, 720, "QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT");
+	checkCommandBarAtSize(1200, 800, "QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT");
+	checkCommandBarAtSize(1440, 900, "QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT");
 	resize(1200, 800);
 	QApplication::processEvents();
 	const int defaultNetworkWidth = networkView ? networkView->width() : 0;
@@ -8953,8 +9330,6 @@ void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int t
 // slot to update GUI at each timestep (no longer blocks; simulation runs on worker thread)
 
 void MainWindow::updateTimeline(int timestep, int totalTimesteps) {
-	if (m_simulationClockLabel)
-		m_simulationClockLabel->setText(QString::fromStdString(formatSimTime(timestep, m_startOffsetSeconds)));
 	if (progressBar)
 		progressBar->setProgress(timestep, totalTimesteps, m_startOffsetSeconds);
 }
