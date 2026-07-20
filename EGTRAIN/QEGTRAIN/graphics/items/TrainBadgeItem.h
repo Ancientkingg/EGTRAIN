@@ -48,7 +48,7 @@ public:
 
 	static QString elidedIdentifier(const QString& identifier, const QFontMetricsF& metrics,
 		const QRectF& region) {
-		return metrics.elidedText(identifier, Qt::ElideRight, qMax(0.0, region.width()));
+		return metrics.elidedText(identifier, Qt::ElideMiddle, qMax(0.0, region.width()));
 	}
 
 	QRectF boundingRect() const override;

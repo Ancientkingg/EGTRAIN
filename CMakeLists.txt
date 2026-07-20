@@ -398,6 +398,7 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_visualpolish
         ${SRC_DIR}/tests/test_visualpolish.cpp
 		${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
+		${SRC_DIR}/graphics/items/SignalItem.cpp
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
