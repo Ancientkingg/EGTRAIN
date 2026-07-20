@@ -8,7 +8,19 @@ QToolBar {
     border: 0;
     border-bottom: 1px solid #c9d3db;
     spacing: 4px;
-    padding: 4px 8px;
+    padding: 1px 8px;
+}
+
+QToolBar::separator {
+    background: #c9d3db;
+    width: 1px;
+    margin: 0 4px;
+}
+
+QLabel#speedSlowerLabel, QLabel#speedFasterLabel {
+    color: #637584;
+    font-size: 11px;
+    padding: 0;
 }
 
 QToolButton {
@@ -16,7 +28,15 @@ QToolButton {
     border: 1px solid transparent;
     border-radius: 2px;
     color: #27333d;
-    padding: 5px 8px;
+    padding: 4px 6px;
+    min-height: 24px;
+    max-height: 32px;
+}
+
+QToolButton#actionZoomInButton, QToolButton#actionZoomOutButton {
+    min-width: 24px;
+    max-width: 28px;
+    padding: 4px;
 }
 
 QToolButton:hover, QToolButton:focus {
@@ -27,21 +47,6 @@ QToolButton:hover, QToolButton:focus {
 QToolButton:checked {
     background: #0f7c73;
     color: #ffffff;
-}
-
-QLabel#toolbarCaseLabel {
-    color: #344654;
-    font-weight: 600;
-    padding: 0 8px;
-}
-
-QLabel#simulationClockLabel {
-    background: #e8eef2;
-    border: 1px solid #c9d3db;
-    border-radius: 2px;
-    color: #27333d;
-    font-weight: 600;
-    padding: 4px 8px;
 }
 
 QDockWidget {
