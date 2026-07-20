@@ -30,6 +30,7 @@ public:
 	void centerOn(const QPointF& scenePos);
 	void centerOn(QGraphicsItem* item);
 	void mousePressEvent(QMouseEvent* mouseEvent) override;
+	void mouseReleaseEvent(QMouseEvent* mouseEvent) override;
 	void fitToTopology();
 	void fitToBounds(const QRectF& bounds);
 	bool zoomBy(qreal factor, const QPointF& viewportAnchor = QPointF(-1.0, -1.0));
@@ -59,7 +60,7 @@ private:
 	bool m_hasViewCenter = false;
 
 signals:
-	void MousePressedOnView();
+	void interactionFinished();
 	void viewportChanged();
 };
 
