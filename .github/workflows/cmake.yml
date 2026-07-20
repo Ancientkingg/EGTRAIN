@@ -119,7 +119,7 @@ jobs:
           ASAN_OPTIONS: abort_on_error=1:halt_on_error=1
           # The instrumented Debug build runs several times slower than Release,
           # so the GUI autostart smoke needs a larger budget to finish the
-          # horizon-1000 run and populate the Run Results dock before emitting
+          # horizon-200 run and populate the Run Results dock before emitting
           # E2E_GUI_RUN_RESULTS. Keep the post-completion liveness hold short so
           # the whole test still finishes under the ctest TIMEOUT (CMakeLists.txt).
           QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"
