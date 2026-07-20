@@ -37,10 +37,15 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 
 // handles the click on graphical items
 void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
-	// emit signal according to clicked item (mouse left button pressed)
+	QGraphicsItem* item = nullptr;
+	if (mouseEvent->button() == Qt::LeftButton)
+		item = semanticItemAt(mouseEvent->scenePos(), mouseEvent->widget());
+
+	// Let Qt finish its built-in selection handling before application selection
+	// highlights are applied by the semantic handlers below.
+	QGraphicsScene::mousePressEvent(mouseEvent);
+
 	if (mouseEvent->button() == Qt::LeftButton) {
-		QGraphicsItem* item = semanticItemAt(mouseEvent->scenePos(), mouseEvent->widget());
-		const bool itemClicked = item != nullptr;
 		if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
 			emit MousePressedOnNode(node);
 		else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
@@ -56,15 +61,11 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
 			emit MousePressedOnPassenger(passenger);
 
-		if (!itemClicked)
+		if (!item)
 			emit DisableHighlight();
 	}
 
-	// send signal
 	emit MousePressedOnScene();
-
-	// default implementation
-	QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
 void NetworkScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
