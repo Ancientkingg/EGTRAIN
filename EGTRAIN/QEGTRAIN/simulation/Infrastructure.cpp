@@ -216,29 +216,6 @@ int BlockSet::findArc(Arc A) {
 	return -1;
 }
 
-bool BlockSet::isMember(Arc A) {
-	if (findArc(A) != -1)
-		return true;
-	else
-		return false;
-}
-
-void BlockSet::showSet() {
-	for (int i = 0; i < len; i++) {
-		cout << member[i].ID << " ";
-	}
-}
-
-// Set the final Abscissa and Braking distance of Track arcs
-void BlockSet::setFs() {
-
-	for (int i = 0; i < len; i++) {
-		member[i].fs = member[i].length + member[i - 1].fs;
-	}
-	for (int i = len - 1; i >= 0; i--) {
-		member[i].speedInBraking = member[i + 1].speedLimit;
-	}
-}
 
 // Function to initialize the TrackLine: FolderName is the name of the Folder in which nodes and arcs are saved
 void BlockSet::defineTrainPath(char* FolderName) {
@@ -344,76 +321,6 @@ void Connections::setConnections(BlockSet* blockSets) {
 
 Connections connections[708];
 
-// Function for loading Connections
-void loadConnectionsOldVersion(int& numConnections, char* name2) {
-	double** Matr;
-	int N_CONNECTIONS = 1000; /*char name2[100];*/
-	int i = 0, j = 0;
-
-	Matr = new double*[N_CONNECTIONS];
-	for (int h = 0; h < N_CONNECTIONS; h++) {
-		Matr[h] = new double[4];
-	}
-
-	ifstream conninput;
-	conninput.open(name2, ios::binary);
-	if (!conninput) {
-		cout << "Error 55 :impossible to open the file\n";
-	} else
-		cout << "Opening Connections file.\n";
-
-	while (conninput) {
-
-		conninput >> Matr[i][j];
-		j++;
-		numConnections++;
-
-		if (j > 3) {
-			i++;
-			j = 0;
-		}
-	}
-
-	numConnections = (numConnections - 1) / 4;
-
-	conninput.close(); // Closing Connection Data File
-					   // cin.ignore();
-
-	// Fixing Arc parameter values
-	for (int i = 0; i < numConnections; i++) {
-		connections[i].idFirstTrackLine = (int)Matr[i][0];
-		connections[i].idSecondTrackLine = (int)Matr[i][2];
-		connections[i].xFirstNode = Matr[i][1];
-		connections[i].xSecondNode = Matr[i][3];
-		char A[20], blockSets[20], H[20], W[20];
-		snprintf(A, sizeof(A), "%d", connections[i].idFirstTrackLine);
-		snprintf(blockSets, sizeof(blockSets), "%d", connections[i].idSecondTrackLine);
-		snprintf(H, sizeof(H), "%f", connections[i].xFirstNode);
-		snprintf(W, sizeof(W), "%f", connections[i].xSecondNode);
-		connections[i].ID = connections[i].ID + A + "-" + blockSets + "-" + H + "-" + W;
-		std::cout << "\rConnection: " << i << " : " << connections[i].ID;
-	}
-
-	for (int i = 0; i < N_CONNECTIONS; i++)
-		delete Matr[i]; // Deleting Temporary Matrix
-	delete Matr;
-	cout << "\n\n";
-
-	// Print on a text File to Visualize connections on Autocad
-	ofstream VisualizeConnections;
-	string VisualFile;
-	VisualFile = InputMainFolder + "/TrackLines/VisualizeConnections.txt";
-	VisualizeConnections.open((char*)VisualFile.c_str());
-	for (int i = 0; i < numConnections; i++) {
-		VisualizeConnections << connections[i].xFirstNode << "," << connections[i].idFirstTrackLine << "\n"
-							 << connections[i].xSecondNode << "," << connections[i].idSecondTrackLine << "\n";
-	}
-
-	// Establish connections between TrackLines Nodes
-	for (int i = 0; i < numConnections; i++) {
-		connections[i].setConnections(blockSets);
-	}
-}
 
 // Function for loading Connections. This is a new improved version which also allows to load speed limits on switches if there is an extra column in the Connection File.
 // In the connection file it is now possible to write a row ( to describe a switch connection ) with 5 elements, specifically as: " TracklineID1 X1 TrackLineID2 X2 speed(m/s)". In that case the indicated speed limit in m/s will be set as limit on the switch

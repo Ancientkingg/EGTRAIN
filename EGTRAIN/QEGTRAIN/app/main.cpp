@@ -9,8 +9,6 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 
-#define PORT_NUMBER 9002
-
 //
 extern InitialParameters initial_variables;
 extern int numRegions;
@@ -81,14 +79,6 @@ void parseCmdOptions(int argc, char* argv[]) {
 		else {
 			std::cout << "Specify simulation period length[in seconds]:";
 			std::cin >> initial_variables.times;
-		}
-	}
-
-	// time update interval (dispatching tool)
-	if (cmdOptionEntered(argv, argv + argc, "-i")) {
-		char* argument = getCmdOption(argv, argv + argc, "-i");
-		if (argument) {
-			dispatchingTool->timeUpdateInterval = std::atoi(argument);
 		}
 	}
 

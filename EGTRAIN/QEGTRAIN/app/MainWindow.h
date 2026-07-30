@@ -157,7 +157,6 @@ public:
 
 	// track ordering
 	void orderTracks();
-	int allTracksAssigned();
 
 	// painting
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
@@ -166,16 +165,12 @@ public:
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);
-	void paintText(QPointF coord, string sname, int size);
-	void paintLine(QPointF start, QPointF end, int pen_width);
 	void paintArc(QPointF start, QPointF end, int pen_width, int track, Arc* Arc, int track_separation);
 	void arcDrawing(QPointF start, QPointF end, int pen_width, int track, Arc* Arc);
-	void virtualArcDrawing(QPointF start, QPointF middle, QPointF end, int pen_width, int track, Arc* Arc);
 	void paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection);
 	void paintSignal(double X, int size, int pen_width, int track, int track_separation, int sectionIndex);
 	void paintTrain(const GuiTrainState& train, int size, int pen_width);
 	QPointF Coord2ScreenPoint(double x, double y, double factor);
-	QPointF interpolateCartesian(QPointF start, QPointF end, qreal x1, qreal x2, qreal x);
 	void calculateStationCoordAndShift(int geo_scale);
 	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY);
 	void egtrainPoint2Screen(Node* Node, int track, double separation);
@@ -186,9 +181,6 @@ public:
 	void showLoadingGIF();
 	void stopLoadingGIF();
 
-	// display/hide network
-	void showNetwork();
-	void hideNetwork();
 
 	// fit view
 	void fitView();

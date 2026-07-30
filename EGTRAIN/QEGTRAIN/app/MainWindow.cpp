@@ -8205,34 +8205,6 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	paxIconItem = paxItem;
 }
 
-// paint text
-void MainWindow::paintText(QPointF coord, string sname, int size) {
-	// convert string
-	QString name = QString::fromStdString(sname);
-
-	// add text
-	QGraphicsTextItem* text = new QGraphicsTextItem;
-	text->setPlainText(name);
-	text->setPos(coord.x() - (text->boundingRect().width() / 2), coord.y() - (text->boundingRect().height() / 2));
-	text->setDefaultTextColor(Qt::white);
-	scene->addItem(text);
-
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
-}
-
-// draws a simple line
-void MainWindow::paintLine(QPointF start, QPointF end, int pen_width) {
-	QPen pen = QPen(Qt::white);
-	pen.setWidth(pen_width);
-	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
-	scene->addLine(QLineF(start.x(), start.y(), end.x(), end.y()), pen);
-
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
-}
 
 // draws an Arc
 void MainWindow::paintArc(QPointF start, QPointF end, int pen_width, int track, Arc* Arc, int track_separation) {
@@ -8264,27 +8236,6 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
-// virtual Arc drawing
-void MainWindow::virtualArcDrawing(QPointF start, QPointF middle, QPointF end, int pen_width, int track, Arc* Arc) {
-	TrackVisual visual = classifyTrackSpeed(Arc ? Arc->speedLimit : 0.0);
-	QPen pen = QPen(visual.color);
-	pen.setWidth(std::max(pen_width, visual.width));
-	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
-	VirtualArcItem* line = new VirtualArcItem(QLineF(start.x(), start.y(), middle.x(), middle.y()), QLineF(middle.x(), middle.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	// add track and Arc pointer to line item
-	line->track = track;
-	line->arc = Arc;
-
-	// add item to scene
-	scene->addItem(line);
-
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
-}
 
 // draws a connection
 void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection) {
@@ -9165,17 +9116,6 @@ void MainWindow::handleDisableHighlight() {
 		infoDockWidget->hide();
 }
 
-// interpolate cartesian coordinates
-QPointF MainWindow::interpolateCartesian(QPointF start, QPointF end, qreal x1, qreal x2, qreal x) {
-	// new point
-	QPointF interp_point;
-
-	// perform linear interpolation
-	interp_point.setX(start.x() + (((x - x1) / (x2 - x1)) * (end.x() - start.x())));
-	interp_point.setY(start.y() + (((x - x1) / (x2 - x1)) * (end.y() - start.y())));
-
-	return interp_point;
-}
 
 // get station screen coordinates
 // find shift vector for each station/region
@@ -9308,15 +9248,6 @@ string MainWindow::to_string_precision(double value, int precision) {
 	return out.str();
 }
 
-// show network
-void MainWindow::showNetwork() {
-	ui->centralWidget->show();
-}
-
-// hide network
-void MainWindow::hideNetwork() {
-	ui->centralWidget->hide();
-}
 
 // fit view
 void MainWindow::fitView() {
@@ -9334,17 +9265,6 @@ bool MainWindow::hasTrackGeometry(int track) const {
 	return region >= 0 && region < static_cast<int>(regionStations.size()) && regionStations[region].size() >= 2;
 }
 
-// check if all tracks are assigned to a graphical level
-int MainWindow::allTracksAssigned() {
-
-	for (int i = 0; i < numTrackLines; i++) {
-		if (blockSets[i].graphID == -1) {
-			return 0;
-		} // track not assigned
-	}
-
-	return 1; // all tracks assigned
-}
 
 // finds the indexes of the two closest stations given a point
 void MainWindow::neighbourStations(double X, int tracklineID, int* stationIdx) {

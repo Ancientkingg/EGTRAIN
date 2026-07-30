@@ -1,74 +1,12 @@
 #ifndef Rescheduling_H
 #define Rescheduling_H
 
-#include <iostream>
-#include <map>
-#include <memory>
-#include <tuple>
-#include <fstream>
-#include <sstream>
+#include <list>
 #include <string>
-#include <vector>
-#include <algorithm>
-#include <stdexcept>
 
 // EGTRAIN files
-#include "simulation/RollingStock.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/Signalling.h"
-
-#include "simulation/DispatchDecision.h"
-
-class Rescheduling {
-public:
-	// class constructor
-	Rescheduling();
-
-	// loads the dictionary
-	void loadDict();
-
-	// print dictionary
-	void printDict();
-
-	// handle message sent from rescheduling tool
-	void handleDispMessage(std::string message);
-
-	// initialize train service path diagram (print header)
-	void initalizeTrainServicePathDiagram(std::string FolderName);
-
-	// initialize output file (erase)
-	void initalizeOutfileFile(std::string FolderName);
-
-	// read input file from dispatching tool
-	void loadDispDecisions(std::string FolderName, int t);
-
-	// create new train object
-	void createTrainObject(int trainIdx);
-
-	// print time update (append to file)
-	void printTimeUpdateMsg(int t, std::string FolderName);
-
-	// time interval update used to communicate time to disp tool
-	int timeUpdateInterval;
-
-	// create joint route from existing routes
-	int createNewJointRoute(int shortRouteID, int longRouteID, std::string differentPart);
-
-	// function that implements the dynamic platform allocation
-	void checkArrivalPlatform(int trainIdx, int i);
-
-	// change platform at destination
-	void changeTrainRoute(int trainIdx, int i);
-
-private:
-	// dictionary EGTRAIN <-> rescheduling tool: keys=line,depStation,depPlatform,arrivalPlatform; values=stationArr,route,timetableFile
-	std::map<std::tuple<int, std::string, int, int>, std::tuple<std::string, int, std::string>> reschedulingDict;
-
-	// used to define when each train enters the simulation (avoiding two or more entrances at same time and location)
-	int entryTime;
-};
-
-extern std::unique_ptr<Rescheduling> dispatchingTool;
 
 /*************************************************************************************************************************************************/
 

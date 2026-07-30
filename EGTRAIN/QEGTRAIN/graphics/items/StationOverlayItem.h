@@ -40,7 +40,6 @@ public:
 	static QString displayName(const std::string& stationName);
 
 	QPointF stableAnchor() const { return m_stableAnchor; }
-	void setStableAnchor(const QPointF& anchor);
 	QPointF viewportOffset() const { return m_viewportOffset; }
 	void setViewportOffset(const QPointF& offset);
 

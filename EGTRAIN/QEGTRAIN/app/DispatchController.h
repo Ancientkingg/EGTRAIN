@@ -23,8 +23,6 @@ public:
 
 	void runSimulation();
 
-	void Train_Simulation_Mixed_Signalling(double v1, double v2, double v3);
-
 	void Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3);
 
 	void printLastTrainServicePathDiagram();
