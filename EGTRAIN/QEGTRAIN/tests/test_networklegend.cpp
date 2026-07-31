@@ -43,17 +43,23 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 11, "case content produces stable deduplicated entries");
-	ok &= expect(entries.at(0).label == "Prepared route"
-		&& entries.at(0).trackState == TrackOperationalState::Prepared
-		&& entries.at(0).color == classifyTrackState(TrackOperationalState::Prepared).color
-		&& entries.at(0).penStyle == classifyTrackState(TrackOperationalState::Prepared).style,
+	ok &= expect(entries.size() == 12, "case content produces stable deduplicated entries");
+	ok &= expect(entries.at(0).label == "Free track"
+		&& entries.at(0).trackState == TrackOperationalState::Free
+		&& entries.at(0).color == freeTrackVisual().color
+		&& entries.at(0).lineWidth == freeTrackVisual().width
+		&& entries.at(0).penStyle == Qt::SolidLine,
+		"free track entry uses the renderer base style");
+	ok &= expect(entries.at(1).label == "Prepared route"
+		&& entries.at(1).trackState == TrackOperationalState::Prepared
+		&& entries.at(1).color == classifyTrackState(TrackOperationalState::Prepared).color
+		&& entries.at(1).penStyle == classifyTrackState(TrackOperationalState::Prepared).style,
 		"prepared track entry uses renderer classification");
-	ok &= expect(entries.at(1).label == "Occupied section"
-		&& entries.at(1).color == classifyTrackState(TrackOperationalState::Occupied).color,
+	ok &= expect(entries.at(2).label == "Occupied section"
+		&& entries.at(2).color == classifyTrackState(TrackOperationalState::Occupied).color,
 		"occupied track entry uses renderer classification");
-	ok &= expect(entries.at(2).label == "Blocked section"
-		&& entries.at(2).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
+	ok &= expect(entries.at(3).label == "Blocked section"
+		&& entries.at(3).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
 		"blocked track entry keeps its non-color cue");
 
 	int intercityCount = 0;

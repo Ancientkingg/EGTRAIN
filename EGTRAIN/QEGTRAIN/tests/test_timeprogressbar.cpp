@@ -1,6 +1,7 @@
 #include "widgets/TimeProgressBar.h"
 
 #include <QApplication>
+#include <QFontDatabase>
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <iostream>
@@ -35,6 +36,10 @@ int main(int argc, char** argv) {
 		"last timestep text is exact");
 	ok &= expect(bar.height() == 28 && bar.focusPolicy() == Qt::NoFocus,
 		"timeline has fixed height and no focus");
+	ok &= expect(bar.font().family() == QFontDatabase::systemFont(QFontDatabase::FixedFont).family(),
+		"timeline uses the system fixed-width font for clock and step columns");
+	ok &= expect(bar.font().fixedPitch(),
+		"timeline font has fixed character widths");
 
 	const int beforeInput = bar.value();
 	QMouseEvent mouse(QEvent::MouseButtonPress, QPointF(10.0, 10.0), Qt::LeftButton,

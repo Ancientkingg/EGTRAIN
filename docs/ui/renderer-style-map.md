@@ -1,6 +1,6 @@
 # Renderer style map
 
-This map is the visual contract for the network playback primitives. State colors stay restrained so topology remains visible below the overlay.
+This map is the visual contract for the network playback primitives. State colors stay restrained so topology remains visible below operational overlays.
 
 ## Track operational state
 
@@ -8,12 +8,14 @@ This map is the visual contract for the network playback primitives. State color
 
 | State | Priority | Color | Pen | Meaning |
 | --- | ---: | --- | --- | --- |
-| Free | 0 | none (`#00000000`) | no underlay | No operational reservation or occupation is reported. |
-| Prepared | 1 | `#2ECC71` | solid, 8 px | A route is prepared for movement. |
-| Occupied | 2 | `#EF5350` | solid, 10 px | A train or other movement occupies the section. |
-| Blocked | 3 | `#F2A516` | dashed, 8 px | The section is unavailable or restricted. The dash pattern remains visible in monochrome output. |
+| Free | 0 | `#A0ACB4` | solid, 2 px | No operational reservation or occupation is reported. |
+| Prepared | 1 | `#4C8DAE` | dash-dot, 6 px | A route is prepared for movement. |
+| Occupied | 2 | `#D05A47` | solid, 8 px | A train or other movement occupies the section. |
+| Blocked | 3 | `#D6A13A` | dashed, 8 px | The section is unavailable or restricted. |
 
-`TrackLineItem` paints the operational underlay first, then its normal track pen. Free sections skip the underlay, so the existing topology pen remains the only stroke.
+`TrackLineItem`, `VirtualArcItem`, and `ConnectionItem` use the free-track style for base topology. `TrackLineItem` paints an operational underlay before that base stroke. Prepared, occupied, and blocked states differ by width and pen style as well as color.
+
+Measured against the `#12191F` canvas, the contrast ratios are 7.64:1 for free, 4.84:1 for prepared, 4.42:1 for occupied, and 7.61:1 for blocked. Each exceeds the 3:1 target for graphical objects.
 
 ## Signal aspect
 
@@ -27,11 +29,21 @@ This map is the visual contract for the network playback primitives. State color
 | 270 | green (`#00ff00`) | proceed chevron |
 | other | neutral gray (`#808080`) | none |
 
-`SignalItem` draws a fixed 12 by 16 housing, a lamp cue, and a direction cue while ignoring view transformations. `setReversedDirection(true)` points the direction cue left; `false` points it right. Existing callers that still set the public `reversedDirection` field are supported.
+`SignalItem` ignores view transformations. Below 3x, stop uses a prominent red circle with a bar, caution uses a prominent yellow triangle, and repeated proceed signals use a small muted-green tick. Signal posts and bases are hidden at this scale. At 3x and above, the full 12 by 16 housing, aspect icon, direction cue, post, and base return. `setReversedDirection(true)` points the direction cue left; `false` points it right.
 
 ## Train categories
 
-Train badges reuse the existing `TrainVisual` palette and a shape classification. Intercity is a capsule, Sprinter is rounded, and Freight is square, so the categories remain distinct without relying on color alone. The badge keeps its identifier and optional speed text in one `QGraphicsItem` with `ItemIgnoresTransformations`, so labels stay readable while the map zooms.
+Train badges use the following fill and outline pairs:
+
+| Category | Fill | Outline | Shape |
+| --- | --- | --- | --- |
+| Passenger | `#9BA5AA` | `#4A5960` | rounded |
+| Sprinter | `#86AA96` | `#3F6A54` | rounded |
+| Intercity | `#C6A86E` | `#765623` | capsule |
+| High speed | `#86A6B9` | `#3E627A` | rounded |
+| Freight | `#A99787` | `#5D4C3F` | square |
+
+Shape remains a second category cue. The badge keeps its identifier and optional speed text in one `QGraphicsItem` with `ItemIgnoresTransformations`. Long identifiers use middle elision so a distinguishing service suffix remains visible.
 
 ## Entity icons
 
@@ -41,8 +53,8 @@ Stations render at 24 by 24 screen pixels. Stop stations use a white roundel, pl
 
 The application loads these assets through the Qt resource aliases under `:/icons/`. `MainWindow`, `TrainBadgeItem`, and `SignalItem` cache the pixmaps and draw them with smooth transformation. Station, passenger, train badge, and signal overlays ignore view transformations so their screen sizes remain stable while the network zooms.
 
-## Surface, grid, and low zoom
+## Application surfaces
 
-`NetworkView` paints a dark neutral surface (`#101A22`) and a grid (`#1B2A35`) in `drawBackground()`. The grid uses no scene items. Its scene spacing doubles or halves around an 80-unit base so grid lines stay between 24 and 96 device pixels apart. At low zoom the grid therefore thins instead of filling the viewport, while badges and the legend remain screen-sized.
+The application shell is `#F2F3F1`, panels are `#FAFAF8`, primary text is `#24313A`, and dividers are `#C8CED2`. Primary actions and keyboard focus use `#315A70`. Warnings use `#965C22`.
 
-`NetworkLegendItem` uses the same track and train colors for prepared, occupied, blocked, Intercity, Sprinter, and Freight entries. It also ignores view transformations.
+`NetworkView` paints one dark neutral surface, `#12191F`, inside a `#3A4A54` border. It has no adaptive grid because the schematic has no displayed distance or coordinate unit. The map key lives in the Case and Layers panel and uses the same renderer classifications as the canvas.

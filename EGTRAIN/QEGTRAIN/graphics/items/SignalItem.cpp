@@ -54,15 +54,31 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	Q_UNUSED(widget);
 
 	// At overview zoom the fixed-size housings overlap into solid bands, so
-	// collapse to a small tick that keeps the aspect colour visible.
+	// keep stop and caution distinct while repeated proceed signals recede.
 	if (m_compact) {
-		QPen tickPen(QColor("#0d131a"));
-		tickPen.setWidthF(1.0);
-		painter->setPen(tickPen);
-		painter->setBrush(m_lampColor);
-		QRectF tick(0.0, 0.0, 3.0, 8.0);
-		tick.moveCenter(rect().center());
-		painter->drawRect(tick);
+		const SignalCueKind cue = classifySignalCue(m_aspectCode);
+		const QPointF center = rect().center();
+		if (cue == SignalCueKind::Stop) {
+			const QRectF lamp(center.x() - 4.0, center.y() - 4.0, 8.0, 8.0);
+			painter->setPen(QPen(QColor("#0D131A"), 1.0));
+			painter->setBrush(m_lampColor);
+			painter->drawEllipse(lamp);
+			painter->drawLine(QLineF(lamp.left() + 2.0, center.y(), lamp.right() - 2.0, center.y()));
+		} else if (cue == SignalCueKind::Caution) {
+			QPolygonF triangle;
+			triangle << QPointF(center.x(), center.y() - 4.0)
+					 << QPointF(center.x() + 4.0, center.y() + 3.5)
+					 << QPointF(center.x() - 4.0, center.y() + 3.5);
+			painter->setPen(QPen(QColor("#0D131A"), 1.0));
+			painter->setBrush(m_lampColor);
+			painter->drawPolygon(triangle);
+		} else {
+			painter->setPen(Qt::NoPen);
+			painter->setBrush(cue == SignalCueKind::Proceed
+				? QColor("#4F7A65") : QColor("#66747D"));
+			QRectF tick(center.x() - 1.0, center.y() - 3.0, 2.0, 6.0);
+			painter->drawRect(tick);
+		}
 		return;
 	}
 

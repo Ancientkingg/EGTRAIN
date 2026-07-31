@@ -51,6 +51,8 @@ int main(int argc, char* argv[]) {
 	StationVisual platform = classifyStation(true, 1);
 	StationVisual stopVisual = classifyStation(false, 0);
 	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), platform);
+	ok &= expect(overlay.zValue() > 3.0 && overlay.zValue() < 5.0,
+		"station text paints above signals and below train badges");
 	ok &= expect(overlay.flags().testFlag(QGraphicsItem::ItemIsSelectable),
 		"overlay remains programmatically selectable");
 	const QRectF symbol = overlay.symbolRect();
