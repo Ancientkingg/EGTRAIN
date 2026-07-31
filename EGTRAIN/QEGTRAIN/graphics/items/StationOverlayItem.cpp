@@ -63,10 +63,6 @@ QString StationOverlayItem::displayName(const std::string& stationName) {
 	return displayName(QString::fromStdString(stationName));
 }
 
-void StationOverlayItem::setStableAnchor(const QPointF& anchor) {
-	m_stableAnchor = anchor;
-	setPos(anchor);
-}
 
 void StationOverlayItem::setViewportOffset(const QPointF& offset) {
 	if (m_viewportOffset == offset)

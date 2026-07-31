@@ -7,8 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main() -> None:
     simulation = (ROOT / "EGTRAIN/QEGTRAIN/simulation/Simulation.cpp").read_text()
-    rescheduling_h = (ROOT / "EGTRAIN/QEGTRAIN/simulation/Rescheduling.h").read_text()
-    rescheduling_cpp = (ROOT / "EGTRAIN/QEGTRAIN/simulation/Rescheduling.cpp").read_text()
+    dispatch_controller = (ROOT / "EGTRAIN/QEGTRAIN/app/DispatchController.cpp").read_text()
 
     delay_functions = simulation[: simulation.index("void calculateDelayStatsForAllStations")]
     station_delay_functions = simulation[
@@ -31,12 +30,17 @@ def main() -> None:
         pattern = rf"std::vector<double>\s+{name}\s*\(\s*numRegions\s*\)"
         if len(re.findall(pattern, delay_functions)) != count:
             raise SystemExit(f"{name} must use {count} numRegions-sized vectors")
-    if "extern std::unique_ptr<Rescheduling> dispatchingTool;" not in rescheduling_h:
-        raise SystemExit("dispatchingTool is not declared as a unique_ptr")
-    if "std::make_unique<Rescheduling>()" not in rescheduling_cpp:
-        raise SystemExit("dispatchingTool is not created with make_unique")
-    if "Rescheduling* dispatchingTool = new" in rescheduling_cpp:
-        raise SystemExit("dispatchingTool still uses raw ownership")
+
+    setup = dispatch_controller[
+        dispatch_controller.index("void DispatchController::setupEgtrain()") :
+        dispatch_controller.index("void DispatchController::resetState()")
+    ]
+    output_initialization = (
+        'std::ofstream outputFile(InputMainFolder + "/Rescheduling/EGTRAINOutput.txt", '
+        "std::ios::binary | std::ios::trunc);"
+    )
+    if output_initialization not in setup:
+        raise SystemExit("EGTRAINOutput.txt must be truncated directly during setup")
 
 
 if __name__ == "__main__":
