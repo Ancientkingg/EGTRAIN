@@ -79,10 +79,8 @@ find_package(nlohmann_json REQUIRED)
 
 # --- Sources (mirrors QEGTRAIN.vcxproj ClCompile items) ---
 set(EGTRAIN_SOURCES
-    ${SRC_DIR}/simulation/Capacity.cpp
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
-    ${SRC_DIR}/simulation/DispatchDecision.cpp
     ${SRC_DIR}/app/DispatchController.cpp
     ${SRC_DIR}/io/geocoding.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
@@ -93,7 +91,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/graphics/items/HighlightEffect.cpp
     ${SRC_DIR}/graphics/items/NodeItem.cpp
-    ${SRC_DIR}/graphics/items/BaseNetworkItem.cpp
     ${SRC_DIR}/graphics/items/TrackLineItem.cpp
     ${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
     ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
@@ -141,10 +138,8 @@ set(EGTRAIN_SOURCES
 )
 
 set(EGTRAIN_HEADERS
-    ${SRC_DIR}/simulation/Capacity.h
     ${SRC_DIR}/graphics/items/ConnectionItem.h
     ${SRC_DIR}/widgets/ConsoleWidget.h
-    ${SRC_DIR}/simulation/DispatchDecision.h
     ${SRC_DIR}/app/DispatchController.h
     ${SRC_DIR}/io/geocoding.h
     ${SRC_DIR}/widgets/InfoDockWidget.h
@@ -154,7 +149,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/graphics/items/HighlightEffect.h
     ${SRC_DIR}/graphics/items/NodeItem.h
-    ${SRC_DIR}/graphics/items/BaseNetworkItem.h
     ${SRC_DIR}/graphics/items/TrackLineItem.h
     ${SRC_DIR}/graphics/items/TrainBadgeItem.h
     ${SRC_DIR}/widgets/NetworkLegendWidget.h
@@ -269,7 +263,6 @@ else()
 endif()
 
 target_link_libraries(QEGTRAIN PRIVATE cppzmq nlohmann_json::nlohmann_json)
-target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_HAS_ZMQ)
 message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
 
 # Platform-specific settings

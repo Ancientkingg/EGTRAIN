@@ -1,8 +1,11 @@
 #include "app/DispatchController.h"
+#include "io/RailMLParser.h"
+#include "simulation/Simulation.h"
 #include "simulation/SimulationWorker.h"
 #include "util/portability.h"  // localtime_r shim on MSVC
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 #include <regex>
 #include <thread>
 #include <chrono>
@@ -210,6 +213,9 @@ void DispatchController::setupEgtrain() {
 	cout << "\n\n";*/
 
 	TrackLinesName = InputMainFolder + "/TrackLines";
+	{
+		std::ofstream outputFile(InputMainFolder + "/Rescheduling/EGTRAINOutput.txt", std::ios::binary | std::ios::trunc);
+	}
 	TTOrderName = InputMainFolder + "/TMS/Timetable Order";
 	loadTrackLine((char*)TrackLinesName.c_str());
 
@@ -473,12 +479,6 @@ void DispatchController::prepareSimulation() {
 
 	// writeAllRoutes(InputMainFolder + "/RoutesToWrite", InputMainFolder + "/Routes", signalling_block_sections, Blocks);
 
-	string FileNetworkAreas;
-	FileNetworkAreas = InputMainFolder + "/TrackLines/AreasCaseStudy.txt";
-
-	if (std::filesystem::exists(FileNetworkAreas))
-		InitializeAllNetworkAreas(FileNetworkAreas, signalling_block_sections, Blocks);
-
 	setUpAllRoutes(); // Set Up routes of trains
 
 	// set corridor of routes
@@ -664,8 +664,6 @@ void DispatchController::runSimulation() {
 
 	// trainSimulation(signalCode1,signalCode2,signalCode3);
 
-	// Train_Simulation_Mixed_Signalling(signalCode1, signalCode2, signalCode3);  //Launch EGTRAIN without ROMA
-
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
 
 	ComputeEnergyConsumptionForAllTrains(regional_train, numRegions);
@@ -784,241 +782,7 @@ void DispatchController::runSimulation() {
 	std::cout << "\n End of Simulation";
 }
 
-extern ZMQ_channel channel;
-// Function to simulate traffic in networks with a mixed signalling system (e.g. conventional, mixed to ETCS L1, L2 and or L3)
-/**Function to Simulate traffic within the observation periodand without interactions wth the traffic management system*/
-void DispatchController::Train_Simulation_Mixed_Signalling(double v1, double v2, double v3) {
-	// logger.Log("Starting Train_Simulation_Mixed_Signalling");
-	nlohmann::json jsmsg, route_choice_json;
-
-	for (int t = 0; t < initial_variables.times; t++) {
-		// pause/stop/speed from GUI
-		if (auto* sw = SimulationWorker::active()) {
-			while (sw->isPauseRequested() && !sw->isStopRequested())
-				std::this_thread::sleep_for(std::chrono::milliseconds(50));
-			if (sw->isStopRequested())
-				break;
-			if (int delay = sw->delayMs())
-				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-		}
-		clock_t startEGTRAIN = clock(); // EGTRAIN start time
-		std::cout << "\r Time of simulation is " << t;
-/////////////////////////////////////channel.zmq_communication(to_string(t));
-
-// logger.Log(" clock at" + to_string(t));
-
-/*#pragma omp parallel
-{
-#pragma omp for*/
-
-// you can comment it if you are simulating something different
-/*if (t < 430)
-	regional_train[0].max_train_speed = 16;
-else regional_train[0].max_train_speed = 33.61;*/
-
-// print time update to file
-// dispatchingTool->printTimeUpdateMsg(t, initial_variables.InputMainFolder+ "/Rescheduling");
-
-// load dispatching decisions
-// dispatchingTool->loadDispDecisions(initial_variables.InputMainFolder + "/Rescheduling", t);
-
-// Upload for each simulation step: train characteristics
-//  MULTI-THREAD
-#pragma omp parallel for
-		for (int j = 0; j < numRegions; j++) {
-// cout << j << "++++----/n";
-
-// only one thread writing to file at a time
-#pragma omp critical(trainservicepathwrite)
-			{
-				// implement dispatching decisions
-				//	regional_train[j].executeDispDecisions(t);
-			}
-			// Rigos added this to see if it works
-			// regional_train[j].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
-			// The one that run Rafael is the following
-			regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
-			regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			regional_train[j].recordStationPassagesAtTime(t);
-
-			// Function to debug the OL list
-			bool trialbool = 0;
-			trialbool = regional_train[1].Train_Must_Stop_For_OL_Order(1, 0);
-
-// only one thread writing to file at a time
-#pragma omp critical(arrdepwrite)
-			{
-				// check if train arrived at destination or departed from origin
-				regional_train[j].checkTrainArrDep(j, t);
-			}
-		}
-
-		//}
-		// cout << "Time is : " << t << endl;
-		// for (int n = 0; n < numRegions; n++) {
-
-		//	cout << "Train is " << regional_train[n].trainDescription << " at x: " << regional_train[n].trainXPosition(t) <<" and speed: " <<regional_train[n].instant_train_speed[t] * 3.6 <<" km/h  "<< endl;
-		//}
-
-		// Here we prepare the Traffic State data
-		for (int n = 0; n < numRegions; n++) {
-
-			// round to 2 decimals
-			// cout << "n=" << n << " and train desc is " << regional_train[n].trainDescription << "\n";
-			double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
-			double trainSpeed = std::ceil((regional_train[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
-			jsmsg["trains"][regional_train[n].trainDescription]["km-point"] = xPosition;
-			jsmsg["trains"][regional_train[n].trainDescription]["speed"] = trainSpeed;
-
-			jsmsg["trains"][regional_train[n].trainDescription]["BlockOccupied"] = regional_train[n].Bs.ID;
-			jsmsg["trains"][regional_train[n].trainDescription]["lastOccTime"] = regional_train[n].ComputeLastOccupationTime_real_time(t, regional_train[n].Bs.ID, 10);
-			jsmsg["trains"][regional_train[n].trainDescription]["direction"] = train_route[regional_train[n].indexOfRoute].reversed_direction;
-
-			for (int j = 0; j < regional_train[n].Bs.total_arcs; j++) {
-				if ((xPosition < regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX * 1000) && (xPosition >= regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX * 1000)) { // Selection of the right Arc of the Block Section
-					owl << "99Train " << regional_train[n].trainDescription << " is in blocksection " << regional_train[n].Bs.ID << " so it is in TDS " << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbId << " and next is " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
-					owl << "+++++" << xPosition << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX << " , " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX << std::endl;
-				}
-			}
-			jsmsg["trains"][regional_train[n].trainDescription]["depTime"] = regional_train[n].departure_time;
-			if (regional_train[n].departure_time <= t) {
-				char c = '-';
-				int index = regional_train[n].Bs.ID.find(c);
-
-				jsmsg["trains"][regional_train[n].trainDescription]["trackID"] = regional_train[n].Bs.ID.substr(index + 1, regional_train[n].Bs.ID.length() - index - 2);
-				jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 1;
-			} else
-				jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
-
-			// train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[train_route[regional_train[n].indexOfRoute].N_Block_Sections-1].ID ;
-			// regional_train[n].direction; // probably this is the direction
-			// regional_train->TimetablePoints
-			//
-
-			// for (auto it = jsmsg["trains"].begin(); it != jsmsg["trains"].end(); ++it)
-			//{
-			//	std::cout << it.key() << " : " << it.value() << std::endl;
-			// }
-			// regional_train[n].BlockTime
-			// td::cout<<"train desc is " << regional_train[n].trainDescription <<" Bs: "<< regional_train[n].Bs.ID << "\n";
-			// regional_train[n].ComputeBlockingTimesInMixedSignallingAreas(5, (3 + bufferTime), 0.5, 50, 0,1);
-			// std::cout << "StartOccTime " << regional_train[n].trainDescription << " Start: " <<  regional_train[n].BlockTime[regional_train[n].N_BlockTimeComplete].StartOccTime << "\n";
-			// std::cout << "EndOccTime " << regional_train[n].trainDescription << " End: " << regional_train[n].BlockTime[regional_train[n].N_BlockTimeComplete].EndOccTime << "\n";
-			// regional_train[n].ComputeBlockingTimeForSingleLocation
-			// train_route[n].sequence_of_block_sections
-			// std::cout << regional_train[n].Bs.arcs_in_signalling_block_section->startNode.ID << "<<<<---- - \n\n";
-			// regional_train[n].ComputeBlockingTimes("Conventional", 5, (3 + bufferTime), 0.5, 50, 0);
-			// std::cout << "train desc222 is " << regional_train[n].BlockTime[9].StartOccTime;
-			// std::cout << xPosition<<"<<<<-----\n\n";
-
-			int Previous_Block_Index = 0;
-			Section SBs;
-			if (t >= regional_train[n].departure_time) {
-				for (int h = 0; h < train_route[regional_train[n].indexOfRoute].N_Block_Sections; h++) {
-					if ((regional_train[n].instant_spatial_position[t - 1] < train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000) &&
-						(regional_train[n].instant_spatial_position[t - 1] >= train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
-						SBs = train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[h];
-
-						if (h == 0)
-							Previous_Block_Index = h;
-						else {
-							Previous_Block_Index = h - 1;
-							break;
-						}
-						// regional_train[n].ComputeBlockingTimeForSingleLocation_real_time(Previous_Block_Index, "Conventional", regional_train[n].scheduled_departure_time, 5,(3 + bufferTime), 0.5, 0,1);
-					}
-					// if ((regional_train[n].instant_spatial_position[t - 1] <= train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[Previous_Block_Index].start_node.X * 1000) && (regional_train[n].instant_spatial_position[t] > train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[Previous_Block_Index].start_node.X * 1000)) {
-					// BlockTime[N_BlockSections].StartRunTime = t - 1;
-					//	std::cout << "Occupation itme : " << t - 1;
-
-					//	}
-				}
-			}
-		}
-		jsmsg["time"] = t;
-
-		// Here we prepare the Route choice data
-		for (int n = 0; n < 100; n++) { // for all ACTIVE passengers
-			std::string station_names[10] = {"Guingamp", "Gourland", "Tregonnau_Squiffiec", "Brelidy_Plouec",
-											 "Pontrieux_halte", "Pontrieux", "Frynaudour", "Traou_Nez", "Lancerf", "Paimpol"};
-			int random_station = rand() % 10;
-			int random_passenger = rand() % 1000;
-
-			route_choice_json["passengers"][std::to_string(random_passenger) + "--1.0"]["origin"] = station_names[random_station];
-			route_choice_json["passengers"][std::to_string(random_passenger) + "--1.0"]["destination"] = station_names[rand() % 10];
-			route_choice_json["passengers"][std::to_string(random_passenger) + "--1.0"]["departure_time"] = t + random_passenger;
-		}
-		route_choice_json["time"] = t;
-		// for the ZeroMQbroker
-		// comm(jsmsg);
-		if (initial_variables.TSM) {
-			std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
-					  << trafficStateMonitoring_xml(jsmsg) << std::flush;
-			std::thread(send_traffic_state5555, jsmsg, trafficStateMonitoring_xml(jsmsg)).detach();
-		}
-
-		if (initial_variables.RChoice) {
-			std::cout << "\n\n Sending the following Route Choice XML file" << std::endl;
-			std::cout << routeChoice_xml(route_choice_json) << std::flush;
-			std::thread(send_traffic_state5556, route_choice_json, routeChoice_xml(route_choice_json)).detach();
-		}
-
-		ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		// Occupy failed sections and give them an End of Authority so both
-		// aspect-driven and moving-block trains react to the incident
-		Apply_Signal_Failures_Mixed_Signalling(t);
-
-		// Only for level>=3
-		ReportAllTrainPositionsToRBC(t, 50);
-
-		// Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(t);  // Predict and check the Predict_MA_To_DecoupleAt for all trains which are in following mode
-
-		// dynamic platform allocation
-		//////////////////////for (int i = 0; i < numRegions; i++) { dispatchingTool->checkArrivalPlatform(i, t); }
-
-		// function to protect all station areas
-		protectStationAreas(t);
-
-		releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
-
-		activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
-
-		unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
-
-		for (int i = 0; i < numRegions; i++) {
-			regional_train[i].unlockSingleTrack(
-				train_route[regional_train[i].indexOfRoute].sequence_of_block_sections,
-				train_route[regional_train[i].indexOfRoute].N_Block_Sections,
-				t);
-		} // unlock occupied single tracks
-
-		// update output signalling file with aspect changes
-		// saveSignalAspectChanges(t, "Input_EGTRAIN/Rescheduling");
-
-		// showElementInEtcsMa(t);   //Printing the MAs
-
-		/*showElement(t,BlocksOccupied);*/
-
-		BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-		BlocksConnected.clear(); // Clear the list BlocksConnected
-
-		/*debugFunctionBlockCodes(t,"@2-B2@-1.314000/@3-B0@-1.339000",train_route[0]);*/
-
-		Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
-
-		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
-		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
-
-		publishSimulationSnapshot(t);
-	}
-}
-
-
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
-	// logger.Log("Starting Train_Simulation_Mixed_Signalling");
 	nlohmann::json jsmsg, route_choice_json;
 
 	for (int t = 0; t < initial_variables.times; t++) {
@@ -1033,8 +797,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		}
 		clock_t startEGTRAIN = clock(); // EGTRAIN start time
 		std::cout << "\r Time of simulation is " << t;
-		/////////////////////////////////////channel.zmq_communication(to_string(t));
-
 		// logger.Log(" clock at" + to_string(t));
 
 		/*#pragma omp parallel
@@ -1045,12 +807,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		/*if (t < 430)
 			regional_train[0].max_train_speed = 16;
 		else regional_train[0].max_train_speed = 33.61;*/
-
-		// print time update to file
-		// dispatchingTool->printTimeUpdateMsg(t, initial_variables.InputMainFolder+ "/Rescheduling");
-
-		// load dispatching decisions
-		// dispatchingTool->loadDispDecisions(initial_variables.InputMainFolder + "/Rescheduling", t);
 
 		// Simulate entrance process of passengers on the railway network according to route choice
 		checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
@@ -1068,12 +824,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		for (int j = 0; j < numRegions; j++) {
 			// cout << j << "++++----/n";
 
-			// only one thread writing to file at a time
-#pragma omp critical(trainservicepathwrite)
-			{
-				// implement dispatching decisions
-				//	regional_train[j].executeDispDecisions(t);
-			}
 			// Rigos added this to see if it works
 			// regional_train[j].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
 			// The one that run Rafael is the following
@@ -1194,7 +944,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		}
 		route_choice_json["time"] = t;
 		// for the ZeroMQbroker
-		// comm(jsmsg);
 		if (initial_variables.TSM) {
 			std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
 					  << trafficStateMonitoring_xml(jsmsg) << std::flush;
@@ -1219,9 +968,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		ReportAllTrainPositionsToRBC(t, 50);
 
 		// Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(t);  // Predict and check the Predict_MA_To_DecoupleAt for all trains which are in following mode
-
-		// dynamic platform allocation
-		//////////////////////for (int i = 0; i < numRegions; i++) { dispatchingTool->checkArrivalPlatform(i, t); }
 
 		// function to protect all station areas
 		protectStationAreas(t);

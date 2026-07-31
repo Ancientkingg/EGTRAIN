@@ -475,65 +475,6 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 	}
 }
 
-// Function to reverse the block section
-void Section::changeRelativeCoordinatesOfBlockSectionWithoutReversing(Section blockSets, double RouteLength) {
-
-	code = blockSets.code;
-	exit_speed = blockSets.exit_speed;
-	strcpy(state, blockSets.state);
-	withSwitchDiv = blockSets.withSwitchDiv;
-	if (withSwitchDiv == 1) {
-		XStartSwitch = RouteLength - blockSets.XStartSwitch; // The beginning of the switch becomes the end for A
-		XEndSwitch = RouteLength - blockSets.XEndSwitch;	 // The end of the Switch blockSets becomes the start of Switch A
-	} else {
-		XStartSwitch = 0; // The beginning of the switch becomes the end for A
-		XEndSwitch = 0;	  // The end of the Switch blockSets becomes the start of Switch A
-	}
-	ID = blockSets.ID;
-	length = blockSets.length;
-	total_arcs = blockSets.total_arcs;
-	total_nodes = blockSets.total_nodes;
-	N_ConnectedBS = blockSets.N_ConnectedBS;
-	// The GeoCoordinate will be reversed
-	GeoXBegNode = blockSets.GeoXEndNode;
-	GeoXEndNode = blockSets.GeoXBegNode;
-	// The trackLineId remains the same if the Block Section does not have a diverging Switch
-	trackLineId = blockSets.trackLineId;
-	// If instead it has a diverging switch the First and the second Connected Tracklines swap
-	FirstConnectedTrackLineID = blockSets.FirstConnectedTrackLineID;
-	SecondConnectedTrackLineID = blockSets.SecondConnectedTrackLineID;
-
-	// The signalling system will remain the same
-	SignallingLevel = blockSets.SignallingLevel;
-
-	start_node = blockSets.start_node;				   // StartingNode remains starting Node
-	start_node.X = RouteLength - start_node.X; // Changing the position of the Node with respect to the length of the route
-	end_node = blockSets.end_node;
-	end_node.X = RouteLength - end_node.X; // Changing the position of the Node with respect to the length of the route
-										   // Changing the sign to the gradient and the coordinates of Arc nodes
-	int k = 0;
-	for (int j = blockSets.total_arcs - 1; j >= 0; j--) {
-		arcs_in_signalling_block_section[k].gradient = -blockSets.arcs_in_signalling_block_section[j].gradient;
-		arcs_in_signalling_block_section[k].startNode = blockSets.arcs_in_signalling_block_section[j].startNode;
-		arcs_in_signalling_block_section[k].startNode.X = RouteLength - arcs_in_signalling_block_section[k].startNode.X;
-		arcs_in_signalling_block_section[k].endNode = blockSets.arcs_in_signalling_block_section[j].endNode;
-		arcs_in_signalling_block_section[k].endNode.X = RouteLength - arcs_in_signalling_block_section[k].endNode.X;
-		arcs_in_signalling_block_section[k].ID = blockSets.arcs_in_signalling_block_section[j].ID;
-		arcs_in_signalling_block_section[k].length = blockSets.arcs_in_signalling_block_section[j].length;
-		arcs_in_signalling_block_section[k].curvature = blockSets.arcs_in_signalling_block_section[j].curvature;
-		arcs_in_signalling_block_section[k].speedLimit = blockSets.arcs_in_signalling_block_section[j].speedLimit;
-		arcs_in_signalling_block_section[k].fs = blockSets.arcs_in_signalling_block_section[j].fs;
-		arcs_in_signalling_block_section[k].brakingDistance = blockSets.arcs_in_signalling_block_section[j].brakingDistance;
-		arcs_in_signalling_block_section[k].speedInBraking = blockSets.arcs_in_signalling_block_section[j].speedInBraking;
-		arcs_in_signalling_block_section[k].signalSpeedLimit = blockSets.arcs_in_signalling_block_section[j].signalSpeedLimit;
-		k++;
-	}
-
-	// Transferring the connected signalling_block_sections
-	for (int i = 0; i < N_ConnectedBS; i++) {
-		IDConnectedBS[i] = blockSets.IDConnectedBS[i];
-	}
-}
 
 // Function to set relative coordinates to the nodes of a block section. The relative reference it is the beginning Node of the block
 void Section::setRelativeCoordinatesToStartNode() {
@@ -813,172 +754,6 @@ void defSection(Section* BS, int N_Block_Previous, BlockSet blockSets) {
 	}
 }
 
-// Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
-void generateConnectBlockOldVersion(Section BS1, Section BS2, Node N1, Node N2, Section& BS3) {
-	if (N1.X < N2.X) {
-		list<Node> listnode;
-		list<Arc> listarc;
-		// Setting initial and final nodes
-		BS3.start_node = BS1.start_node;
-		BS3.end_node = BS2.end_node;
-		// Setting the connected TrackLines
-		BS3.FirstConnectedTrackLineID = BS1.trackLineId;
-		BS3.SecondConnectedTrackLineID = BS2.trackLineId;
-		// Setting the first part of Block arcs
-		for (int i = 0; i < BS1.total_arcs; i++) {
-			if (BS1.arcs_in_signalling_block_section[i].endNode.X <= N1.X) {
-				BS3.total_arcs++;
-				// filling in the list of arcs belonging to BS3
-				listarc.push_back(BS1.arcs_in_signalling_block_section[i]);
-			}
-		}
-		// Setting the first part of Block nodes
-		for (int i = 0; i < BS1.total_nodes; i++) {
-			if (BS1.nodelist_of_nodes_in_signalling_section[i].X <= N1.X) {
-				BS3.total_nodes++;
-				// filling in the list of nodes belonging to BS3
-				listnode.push_back(BS1.nodelist_of_nodes_in_signalling_section[i]);
-			}
-		}
-
-		// Creating the connection
-		Arc Connection;
-		BS3.total_arcs++;
-		Connection.startNode = N1;
-		Connection.endNode = N2;
-		list<Arc>::iterator it;
-		if (listarc.empty() != 1) { // if the Node N1 is not the first Node of the Block Section BS1
-			it = listarc.end();
-			it--;
-			// Defining connection properties
-			Connection.gradient = it->gradient;
-			Connection.curvature = it->curvature;
-			Connection.speedLimit = 16.67;
-			Connection.length = N2.X - N1.X;
-			Connection.ID = N2.X + N1.X;
-		} else { // else if the Node N1 is the first Node of the Block Section BS1
-			Connection.gradient = BS1.arcs_in_signalling_block_section[0].gradient;
-			Connection.curvature = BS1.arcs_in_signalling_block_section[0].curvature;
-			Connection.speedLimit = 16.67;
-			Connection.length = N2.X - N1.X;
-			Connection.ID = N2.X + N1.X;
-		}
-
-		// Looking if there is any station Node of BS1 which falls in the middle between N1 and N2 which would risk not to be considered
-		for (int k = 0; k < BS1.total_arcs; k++) {
-			if (BS1.arcs_in_signalling_block_section[k].endNode.stationName.empty() != 1) { // if among the nodes of BS1 there is a station falling within N1.X and N2.X
-				if ((BS1.arcs_in_signalling_block_section[k].endNode.X > N1.X) && (BS1.arcs_in_signalling_block_section[k].endNode.X <= N2.X)) {
-					if (N2.stationName.empty() == 1) {											 // then if Node N2 is not already a station
-						N2.stationName = BS1.arcs_in_signalling_block_section[k].endNode.stationName; // Push the station Node to Node N2 so that we do not lose the station point
-					}
-				}
-			}
-		}
-
-		// adding connection to the listarc
-		listarc.push_back(Connection);
-		Node NConn;
-		BS3.total_nodes++;
-		NConn = N2;
-		listnode.push_back(NConn);
-
-		// Setting the Second part of arcs of BS3
-		for (int i = 0; i < BS2.total_arcs; i++) {
-			if (BS2.arcs_in_signalling_block_section[i].endNode.X > N2.X) {
-				BS3.total_arcs++;
-				listarc.push_back(BS2.arcs_in_signalling_block_section[i]);
-			}
-		}
-		// Setting the second part of nodes of BS3
-		for (int i = 0; i < BS2.total_nodes; i++) {
-			if (BS2.nodelist_of_nodes_in_signalling_section[i].X > N2.X) {
-				BS3.total_nodes++;
-				// filling in the list of nodes belonging to BS3
-				listnode.push_back(BS2.nodelist_of_nodes_in_signalling_section[i]);
-			}
-		}
-
-		// Defining BS3 features
-		BS3.nodelist_of_nodes_in_signalling_section = new Node[BS3.total_nodes];
-		list<Node>::iterator itn = listnode.begin();
-		for (int i = 0; i < BS3.total_nodes; i++) {
-			BS3.nodelist_of_nodes_in_signalling_section[i] = *itn;
-			itn++;
-		}
-
-		it = listarc.begin();
-		for (int i = 0; i < BS3.total_arcs; i++) {
-			BS3.arcs_in_signalling_block_section[i] = *it;
-			it++;
-		}
-		char N1X[20], N2X[20];
-		sprintf_s(N1X, "%f", N1.X);
-		sprintf_s(N2X, "%f", N2.X);
-		BS3.withSwitchDiv = true; // This block contains a switch in a diverged position
-		BS3.XStartSwitch = N1.X;  // The begin of the switch is the abscissa N1.X
-		BS3.XEndSwitch = N2.X;	  // The end of the switch is in the abscissa N2.X
-		BS3.ID = BS3.ID + BS1.ID + "-" + N1X + "/" + BS2.ID + "-" + N2X;
-		BS3.length = BS3.end_node.X - BS3.start_node.X;
-	}
-
-	// Setting tdsbId for stations which are in BS3
-	// Taking the name of Block Section BS1
-	istringstream Line(BS1.ID);
-	istringstream Line2(BS2.ID);
-	list<string> TokenA, TokenB;
-	string tok1, tok2;
-	// Splitting its name in tokens separated by the charachter "@"
-	int N_validTokInA = 0;
-	int N_validTokInB = 0; // Number of valid tok in TokenA
-	while (getline(Line, tok1, '@')) {
-		if (tok1.size() > 0) {
-			if ((N_validTokInA == 0) || (N_validTokInA == 2)) {
-				TokenA.push_back(tok1);
-			}
-			N_validTokInA++; // Block Section names in list A
-		}
-	}
-
-	while (getline(Line2, tok2, '@')) {
-		if (tok2.size() > 0) {
-			if ((N_validTokInB == 0) || (N_validTokInB == 2)) {
-				TokenB.push_back(tok2);
-			}
-			N_validTokInB++; // Block Section names in list blockSets
-		}
-	}
-
-	list<string>::iterator it = TokenA.begin(); /*pointer at the name of BS1*/
-	list<string>::iterator u = TokenB.begin();	// pointer at the name of BS2
-	if (BS3.total_arcs > 0) {
-		for (int k = 0; k < BS3.total_arcs; k++) {
-			if (BS3.arcs_in_signalling_block_section[k].endNode.stationName.empty() != 1) { // if the Node is a station so the stationName is not empty
-				// Assign GeoCoordinates
-				BS3.arcs_in_signalling_block_section[k].endNode.tdsbGeoCoordX = BS3.arcs_in_signalling_block_section[k].endNode.X * 1000;
-				BS3.arcs_in_signalling_block_section[k].endNode.tdsbGeoCoordY = BS3.arcs_in_signalling_block_section[k].endNode.Y * 1000;
-				// Assign TDSB ID, in case it does not have one already
-				if (BS3.arcs_in_signalling_block_section[k].endNode.X <= N1.X) { // if the station is before or at N1, so this one will belong to BS1
-					if (BS3.arcs_in_signalling_block_section[k].endNode.tdsbId.empty() == 1) {
-						BS3.arcs_in_signalling_block_section[k].endNode.tdsbId = BS3.arcs_in_signalling_block_section[k].endNode.tdsbId + "@" + BS3.arcs_in_signalling_block_section[k].endNode.stationName + "-" + *it + "@";
-					} else { // if the tdsbId is not empty then leave it as it is
-					}
-					if (BS3.arcs_in_signalling_block_section[k].endNode.X == BS3.end_node.X) { // if such a station Node coincides with the last Node of BS3 then change also the tdsbId to last Node of BS3
-						BS3.end_node.tdsbId = BS3.arcs_in_signalling_block_section[k].endNode.tdsbId;
-					}
-				} else {																   // if instead the Station Node has a progressive higher than N1.X then it belongs to BS2
-					if (BS3.arcs_in_signalling_block_section[k].endNode.tdsbId.empty() == 1) { // if the tdsbId is empty then assign it as a TDSB on BS2
-						BS3.arcs_in_signalling_block_section[k].endNode.tdsbId = BS3.arcs_in_signalling_block_section[k].endNode.tdsbId + "@" + BS3.arcs_in_signalling_block_section[k].endNode.stationName + "-" + *u + "@";
-					} else { // if the tdsbId is not empty then leave as it is
-					}
-
-					if (BS3.arcs_in_signalling_block_section[k].endNode.X == BS3.end_node.X) { // if such a station Node coincides with the last Node of BS3 then change also the tdsbId to last Node of BS3
-						BS3.end_node.tdsbId = BS3.arcs_in_signalling_block_section[k].endNode.tdsbId;
-					}
-				}
-			}
-		}
-	}
-}
 
 // Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3) {
@@ -1832,67 +1607,6 @@ void printAllBlocksId() {
 	BlocksID.close();
 }
 
-// Print all TDS and Blocks for RECIFE-MILP input
-void printAllBlocksForRecife() {
-	ofstream RecifeBlocksID;
-	string BlocksIDName;
-	BlocksIDName = BlocksIDName + InputMainFolder + "/Tracklines/RECIFE_input.txt";
-	RecifeBlocksID.open((char*)BlocksIDName.c_str());
-	RecifeBlocksID << "Trackline \t BlockID  \t EntrySignal \t ExitSignal \t BlockStartX[Km] \tBlockEndX[Km] \t topologypartID \t TopoPartStartX[Km] \tTopoPartEndX[Km] \t length \t gradient \t curve \t speedlimit\n";
-
-	for (int i = 0; i < Blocks; i++) {
-		std::string line1 = "";
-		std::string line2 = "";
-		std::string track = std::to_string(signalling_block_sections[i].trackLineId);
-		line1 += track + "\t" + signalling_block_sections[i].ID + "\t";
-
-		std::string X_signal1 = std::to_string(signalling_block_sections[i].start_node.X);
-		std::string X_signal2 = std::to_string(signalling_block_sections[i].end_node.X);
-
-		if (std::stoi(track) >= 0) {
-			line1 += "Sign_" + X_signal1.substr(0, X_signal1.size() - 3) + "_tr_" + track + "\t" +
-					 "Sign_" + X_signal2.substr(0, X_signal2.size() - 3) + "_tr_" + track;
-		} else {
-			std::string left = signalling_block_sections[i].ID.substr(0, signalling_block_sections[i].ID.find("/"));
-			left = left.substr(0, left.find("@-"));
-			left = left.substr(left.find("-B") + 2); // we got track 1
-			std::string right = signalling_block_sections[i].ID.substr(signalling_block_sections[i].ID.find("/"));
-			// std::cout << right;
-			right = right.substr(0, right.find("@-"));
-
-			right = right.substr(right.find("-B") + 2); // we got track 2
-
-			line1 += "Sign_" + X_signal1.substr(0, X_signal1.size() - 3) + "_tr_" + left + "\t" +
-					 "Sign_" + X_signal2.substr(0, X_signal2.size() - 3) + "_tr_" + right;
-		}
-
-		line1 += "\t" + std::to_string(signalling_block_sections[i].start_node.X) + "\t" +
-				 std::to_string(signalling_block_sections[i].end_node.X) + "\t";
-
-		for (int j = 0; j < signalling_block_sections[i].total_arcs; j++) {
-
-			if (signalling_block_sections[i].ID.find("/") != std::string::npos) {
-				// if it is a block that connects two lines
-				std::string left = signalling_block_sections[i].ID.substr(0, signalling_block_sections[i].ID.find("/"));
-				std::string right = signalling_block_sections[i].ID.substr(signalling_block_sections[i].ID.find("/"));
-				// line2 += "left=" + left + "right=" + right;
-				line2 += left.substr(0, left.find("@-") + 1) + "-";
-				line2 += right.substr(1, right.find("@-")) + "-" + std::to_string(j) + "\t";
-			} else
-				line2 += signalling_block_sections[i].ID + "-" + std::to_string(j) + "\t";
-
-			line2 +=
-				std::to_string(signalling_block_sections[i].arcs_in_signalling_block_section[j].startNode.X) + "\t" +
-				std::to_string(signalling_block_sections[i].arcs_in_signalling_block_section[j].endNode.X) + "\t" +
-				std::to_string(signalling_block_sections[i].arcs_in_signalling_block_section[j].length) + "\t" +
-				std::to_string(signalling_block_sections[i].arcs_in_signalling_block_section[j].gradient) + "\t" +
-				std::to_string(signalling_block_sections[i].arcs_in_signalling_block_section[j].curvature) + "\t" +
-				std::to_string(signalling_block_sections[i].arcs_in_signalling_block_section[j].speedLimit);
-			RecifeBlocksID << line1 << line2 << "\n";
-			line2 = "";
-		}
-	}
-}
 
 // Functions to Set block Sections in consecutive order: this function returns true if the second block section has the start Node coinciding with the previous one
 bool orderBlocks(Section BS1, Section BS2) {
@@ -2998,19 +2712,6 @@ void printAllRoutes(string FolderName) {
 	}
 }
 
-void printRoutesStations(const Route& R) {
-	ofstream OUTFile;
-	string OutFileName;
-	OutFileName = OutFileName + InputMainFolder + "/Routes/Stations_OF_Route.txt";
-	OUTFile.open((char*)OutFileName.c_str(), ios::binary);
-	for (int i = 0; i < R.N_Block_Sections; i++) {
-		for (int j = 0; j < R.sequence_of_block_sections[i].total_arcs; j++) {
-			if (R.sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1)
-				OUTFile << R.sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName << " ";
-		}
-	}
-	OUTFile.close();
-}
 
 // Function to Verify validity of a route
 void verifyRouteValidity(const Route& R, int IndexRoute) {
@@ -4258,13 +3959,6 @@ void releaseBlocksBacc(Section* BS, int Blocks) {
 	}
 }
 
-// Release of final Block Section when the train exits simulation
-void relTrackCircuit1(Section* BS, int Blocks) {
-	BS[Blocks - 1].code = 270;
-	BS[Blocks - 2].code = 270;
-	BS[Blocks - 3].code = 270;
-	BS[Blocks - 4].code = 270;
-}
 
 /******************************************************************************************************************************************************/
 
@@ -4404,12 +4098,6 @@ void releaseBlocksEtcsLev1(Section* BS, int Blocks) {
 	}
 }
 
-// Release of final Block Section when the train exits simulation
-void relEtcsLev1(Section* BS, int Blocks) {
-	BS[Blocks - 1].code = 270;
-	BS[Blocks - 2].code = 270;
-	BS[Blocks - 3].code = 270;
-}
 
 
 // Multithreaded Version of ATB Signalling system - National Dutch System. To select this system is necessary to set the variable Signalling_Level=2
@@ -4548,12 +4236,6 @@ void releaseBlocksAtb(Section* BS, int Blocks) {
 	}
 }
 
-// Release of final Block Section when the train exits simulation
-void relAtb(Section* BS, int Blocks) {
-	BS[Blocks - 1].code = 270;
-	BS[Blocks - 2].code = 270;
-	BS[Blocks - 3].code = 270;
-}
 
 /************************************************************************************************************************************/
 
@@ -4782,49 +4464,6 @@ void setBlockSpeed1MixedSignalling(Section* BLS, int Blocks) {
 	}
 }
 
-// Function to Release Block Sections when a train has passed over. This function must be applied especially for the block connected which are contained in the list BlocksConnected and when a train exits simulation
-void releaseBlocksBaccMixedSignalling(Section* BS, int Blocks) {
-	list<string>::iterator it;
-	if (BlocksConnected.empty() != 1) {
-		for (it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
-			for (int h = 0; h < Blocks; h++) {
-				if (BS[h].ID == *it) {
-					if (h == 0) {
-						BS[h].code = 270;
-					} else if (h == 1) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-					} else if (h == 2) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-					} else if (h == 3) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-					} else if (h >= 4) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-						BS[h - 4].code = 270;
-						strcpy_s(BS[h - 4].state, "green");
-					}
-				}
-			}
-		}
-	}
-}
 
 // Release of final Block Section when the train exits simulation
 void relTrackCircuit1MixedSignalling(Section* BS, int blockIndex) {
@@ -4950,39 +4589,6 @@ void setBlockSpeedAtbMixedSignalling(Section* BS, int Blocks) {
 	}
 }
 
-// Function to Release Block Sections when a train has passed over. This function must be applied especially for the block connected which are contained in the list BlocksConnected and when a train exits simulation
-void releaseBlocksAtbMixedSignalling(Section* BS, int Blocks) {
-	list<string>::iterator it;
-	if (BlocksConnected.empty() != 1) {
-		for (it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
-			for (int h = 0; h < Blocks; h++) {
-				if (BS[h].ID == *it) {
-					if (h == 0) {
-						BS[h].code = 270;
-					} else if (h == 1) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-					} else if (h == 2) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-					} else if (h >= 3) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-					}
-				}
-			}
-		}
-	}
-}
 
 // Release of final Block Section when the train exits simulation
 void relAtbMixedSignalling(Section* BS, int blockIndex) {
@@ -5104,39 +4710,6 @@ void setBlockSpeedEtcsLev1MixedSignalling(Section* BS, int Blocks) {
 	}
 }
 
-// Function to Release Block Sections when a train has passed over. This function must be applied especially for the block connected which are contained in the list BlocksConnected and when a train exits simulation
-void releaseBlocksEtcsLev1MixedSignalling(Section* BS, int Blocks) {
-	list<string>::iterator it;
-	if (BlocksConnected.empty() != 1) {
-		for (it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
-			for (int h = 0; h < Blocks; h++) {
-				if (BS[h].ID == *it) {
-					if (h == 0) {
-						BS[h].code = 270;
-					} else if (h == 1) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-					} else if (h == 2) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-					} else if (h >= 3) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-					}
-				}
-			}
-		}
-	}
-}
 
 // Release of final Block Section when the train exits simulation
 void relEtcsLev1MixedSignalling(Section* BS, int blockIndex) {
@@ -5256,39 +4829,6 @@ void setBlockSpeedEtcsLev2MixedSignalling(Section* BS, int Blocks) {
 	}
 }
 
-// Function to Release Block Sections when a train has passed over. This function must be applied especially for the block connected which are contained in the list BlocksConnected and when a train exits simulation
-void releaseBlocksEtcsLev2MixedSignalling(Section* BS, int Blocks) {
-	list<string>::iterator it;
-	if (BlocksConnected.empty() != 1) {
-		for (it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
-			for (int h = 0; h < Blocks; h++) {
-				if (BS[h].ID == *it) {
-					if (h == 0) {
-						BS[h].code = 270;
-					} else if (h == 1) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-					} else if (h == 2) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-					} else if (h >= 3) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-					}
-				}
-			}
-		}
-	}
-}
 
 // Release of final Block Section when the train exits simulation
 void relEtcsLev2MixedSignalling(Section* BS, int blockIndex) {
@@ -5554,21 +5094,6 @@ void showElementInEtcsMa(int t) {
 	output.close();
 }
 
-void printBlocksAndConnections() {
-	ofstream output;
-	string outputname;
-	outputname = outputname + InputMainFolder + "/TrackLines/BlocksAndConnections.txt";
-	output.open((char*)outputname.c_str());
-
-	for (int i = 0; i < Blocks; i++) {
-		output << signalling_block_sections[i].ID << " ";
-		for (int j = 0; j < signalling_block_sections[i].N_ConnectedBS; j++) {
-			output << signalling_block_sections[i].IDConnectedBS[j] << " ";
-		}
-		output << "\n";
-	}
-	output.close();
-}
 
 // function to set mid-signals of double switches as virtual signals
 void setVirtualSignals() {

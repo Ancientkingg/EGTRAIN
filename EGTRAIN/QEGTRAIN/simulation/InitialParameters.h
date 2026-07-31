@@ -1,6 +1,9 @@
 #ifndef INITIALPARAMETERS_H
 #define INITIALPARAMETERS_H
-#include "io/RailMLParser.h"
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
 // #include <boost/filesystem.hpp>
 
 // namespace fs = boost::filesystem;

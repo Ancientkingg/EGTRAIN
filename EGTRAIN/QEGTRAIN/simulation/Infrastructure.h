@@ -209,9 +209,6 @@ public:
 
 	int findArc(Arc A);
 
-	bool isMember(Arc A);
-
-	void showSet();
 
 	BlockSet operator+(Arc A) {
 		BlockSet newset;
@@ -227,8 +224,6 @@ public:
 		return newset;
 	}
 
-	// Compute final abscissa and braking distance for all track arcs
-	void setFs();
 
 	// Load nodes and arcs from the given folder
 	void defineTrainPath(char* FolderName);
@@ -256,8 +251,6 @@ public:
 
 extern Connections connections[708];
 extern int numConnections;
-
-void loadConnectionsOldVersion(int& numConnections, string ConnectionFilePath);
 
 void loadConnections(int& numConnections, string ConnectionFilePath);
 

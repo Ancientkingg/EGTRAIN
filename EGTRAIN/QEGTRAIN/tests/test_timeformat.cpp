@@ -1,5 +1,6 @@
 // Minimal tests for time formatting utility.
 #include "util/TimeFormat.h"
+#include "util/timeutil.hpp"
 
 #include <iostream>
 #include <string>
@@ -29,6 +30,17 @@ int main() {
 	ok &= expect(parseClockToSeconds("23:59") == 86340, "parseClockToSeconds 23:59");
 	ok &= expect(parseClockToSeconds("8") == -1, "parseClockToSeconds short malformed");
 	ok &= expect(parseClockToSeconds("ab:cd") == -1, "parseClockToSeconds nonnumeric malformed");
+
+	std::tm timestamp{};
+	timestamp.tm_year = 124;
+	timestamp.tm_mon = 3;
+	timestamp.tm_mday = 2;
+	timestamp.tm_hour = 4;
+	timestamp.tm_min = 5;
+	timestamp.tm_sec = 6;
+	timestamp.tm_wday = 2;
+	ok &= expect(formatDateTime(timestamp) == "Tue 02.04.2024 4:05:06", "formatDateTime single digits");
+	ok &= expect(formatDateTimeFilename(timestamp) == "2024_04_02_4_05_06", "formatDateTimeFilename single digits");
 
 	if (!ok)
 		return 1;
