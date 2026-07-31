@@ -230,8 +230,6 @@ public:
 	// Reverse block section direction
 	void reverseBlockSection(Section blockSets, double RouteLength);
 
-	// Change relative coordinates without reversing
-	void changeRelativeCoordinatesOfBlockSectionWithoutReversing(Section blockSets, double RouteLength);
 
 	// Set node coordinates relative to start node
 	void setRelativeCoordinatesToStartNode();
@@ -265,8 +263,6 @@ void createBlockSectionsFromInputFile(Section* BS, int& Blocks, char* blockname,
 
 void generateAllBlocksFromInputFile(char* FolderName, Section* BS, int& Blocks);
 
-// Generate block sections connected by switches (old version)
-void generateConnectBlockOldVersion(Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
 
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
@@ -298,8 +294,6 @@ void setGeoCoordinates(Section* BS, int N_BS);
 // Print all block section IDs to file (useful for route creation)
 void printAllBlocksId();
 
-// Print all TDS and blocks for RECIFE-MILP input
-void printAllBlocksForRecife();
 
 // Returns true if BS2 start node coincides with BS1 end node
 bool orderBlocks(Section BS1, Section BS2);
@@ -366,7 +360,6 @@ void printRoutesBlocks(const Route& R, string FolderName, int IndexOfRoute);
 
 void printAllRoutes(string FolderName);
 
-void printRoutesStations(const Route& R);
 
 // Verify route validity
 void verifyRouteValidity(const Route& R, int IndexRoute);
@@ -451,8 +444,6 @@ void setBlockSpeed1(double V_75, double V_751, double V_0, Section* BLS, int Blo
 // Release block sections when train has passed (for connected blocks and train exit)
 void releaseBlocksBacc(Section* BS, int Blocks);
 
-// Release final block section on train exit
-void relTrackCircuit1(Section* BS, int Blocks);
 
 // --- ETCS Level 1: Italian SCMT ---
 void mEtcsLev1(Section* BS, int Blocks);
@@ -463,8 +454,6 @@ void setBlockSpeedEtcsLev1(double V_0, Section* BS, int Blocks);
 // Release block sections when train has passed
 void releaseBlocksEtcsLev1(Section* BS, int Blocks);
 
-// Release final block section on train exit
-void relEtcsLev1(Section* BS, int Blocks);
 
 // --- ATB: Dutch National Signalling System (Signalling_Level=2) ---
 void mAtb(Section* BS, int Blocks);
@@ -475,8 +464,6 @@ void setBlockSpeedAtb(double V_75, double V_0, Section* BS, int Blocks);
 // Release block sections when train has passed
 void releaseBlocksAtb(Section* BS, int Blocks);
 
-// Release final block section on train exit
-void relAtb(Section* BS, int Blocks);
 
 // --- ETCS Level 3: RBC Movement Authorities ---
 // Simulate MAs from RBC to train routes
@@ -502,7 +489,6 @@ void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int
 
 void setBlockSpeed1MixedSignalling(Section* BLS, int Blocks);
 
-void releaseBlocksBaccMixedSignalling(Section* BS, int Blocks);
 
 void relTrackCircuit1MixedSignalling(Section* BS, int blockIndex);
 
@@ -511,7 +497,6 @@ void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks);
 
 void setBlockSpeedAtbMixedSignalling(Section* BS, int Blocks);
 
-void releaseBlocksAtbMixedSignalling(Section* BS, int Blocks);
 
 void relAtbMixedSignalling(Section* BS, int blockIndex);
 
@@ -520,7 +505,6 @@ void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks);
 
 void setBlockSpeedEtcsLev1MixedSignalling(Section* BS, int Blocks);
 
-void releaseBlocksEtcsLev1MixedSignalling(Section* BS, int Blocks);
 
 void relEtcsLev1MixedSignalling(Section* BS, int blockIndex);
 
@@ -529,7 +513,6 @@ void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks);
 
 void setBlockSpeedEtcsLev2MixedSignalling(Section* BS, int Blocks);
 
-void releaseBlocksEtcsLev2MixedSignalling(Section* BS, int Blocks);
 
 void relEtcsLev2MixedSignalling(Section* BS, int blockIndex);
 
@@ -557,7 +540,6 @@ void showElement(int t, list<string> blockSets);
 
 void showElementInEtcsMa(int t);
 
-void printBlocksAndConnections();
 
 // Set mid-signals of double switches as virtual signals
 void setVirtualSignals();
