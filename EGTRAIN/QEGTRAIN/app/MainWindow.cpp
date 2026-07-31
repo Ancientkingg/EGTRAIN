@@ -5224,6 +5224,8 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "no non-free track intersects default viewport";
 		}
 	}
+	if (m_worker)
+		m_worker->requestPause();
 
 	// Capture the readable default view before changing follow or zoom state.
 	if (networkView) {
@@ -5343,6 +5345,25 @@ void MainWindow::runVisualPolishE2E() {
 	const QString signalApproachExplanation = QStringLiteral(
 		"Requires the signal route association and an approaching-train query.");
 
+	selectedTrain = nullptr;
+	selectedTrainBody = nullptr;
+	for (auto* candidate : allTrains) {
+		if (!candidate || !candidate->isVisible() || !candidate->trainPolygonItemList)
+			continue;
+		for (auto* body : *candidate->trainPolygonItemList) {
+			if (body && body->isVisible() && !body->polygon().isEmpty()) {
+				selectedTrain = candidate;
+				selectedTrainBody = body;
+				break;
+			}
+		}
+		if (selectedTrainBody)
+			break;
+	}
+	if (!selectedTrainBody) {
+		ok = false;
+		failures << "no visible train body available after pausing visual checks";
+	}
 	if (selectedTrainBody) {
 		setFollowTrain(-1);
 		QMenu* menu = requestContextMenu(selectedTrainBody->sceneBoundingRect().center(), true);
