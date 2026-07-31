@@ -21,7 +21,7 @@ NetworkView::NetworkView(QWidget* parent)
 
 	setMouseTracking(true);
 	setSceneRect(QRectF(0, 0, 0, 0));
-	setBackgroundBrush(QColor("#101A22"));
+	setBackgroundBrush(QColor("#12191F"));
 	setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
@@ -224,28 +224,7 @@ void NetworkView::wheelEvent(QWheelEvent* event) {
 }
 
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
-	painter->fillRect(rect, QColor("#101A22"));
-
-	const qreal viewScale = qAbs(transform().m11());
-	if (viewScale <= 0.0)
-		return;
-
-	qreal spacing = 80.0;
-	while (spacing * viewScale < 24.0)
-		spacing *= 2.0;
-	while (spacing * viewScale > 96.0)
-		spacing /= 2.0;
-
-	QPen gridPen(QColor("#1B2A35"));
-	gridPen.setCosmetic(true);
-	gridPen.setWidth(0);
-	painter->setPen(gridPen);
-	const qreal left = std::floor(rect.left() / spacing) * spacing;
-	const qreal top = std::floor(rect.top() / spacing) * spacing;
-	for (qreal x = left; x <= rect.right(); x += spacing)
-		painter->drawLine(QLineF(x, rect.top(), x, rect.bottom()));
-	for (qreal y = top; y <= rect.bottom(); y += spacing)
-		painter->drawLine(QLineF(rect.left(), y, rect.right(), y));
+	painter->fillRect(rect, QColor("#12191F"));
 }
 
 void NetworkView::resizeEvent(QResizeEvent* event) {
