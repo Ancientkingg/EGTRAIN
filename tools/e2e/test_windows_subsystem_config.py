@@ -14,6 +14,16 @@ def _has_direct_qlist_equality(text: str) -> bool:
     )
 
 
+def _has_direct_entry_label_equality(text: str) -> bool:
+    normalized = re.sub(r"[\s()]", "", text)
+    entry_labels = r"(?:[A-Za-z_]\w*(?:\.|->))*entryLabels"
+    return any(
+        re.search(rf"(?:{entry_labels}{operator}{other}|{other}{operator}{entry_labels})", normalized)
+        for other in ("mapKeyEntries", "labelsBeforeCollapse")
+        for operator in ("==", "!=")
+    )
+
+
 def test_preview_snapshot_comparator() -> None:
     for sample in (
         "( ( left . items ) ) == ( right.items )",
@@ -22,7 +32,21 @@ def test_preview_snapshot_comparator() -> None:
         if not _has_direct_qlist_equality(sample):
             raise SystemExit("QList equality detector misses reversed or parenthesized operands")
 
+    for sample in (
+        "entryLabels() != (mapKeyEntries)",
+        "labelsBeforeCollapse == ((legend.entryLabels()))",
+    ):
+        if not _has_direct_entry_label_equality(sample):
+            raise SystemExit("entryLabels comparison detector misses reversed or parenthesized operands")
+
     source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
+    test_source = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_networklegend.cpp").read_text(encoding="utf-8")
+    for path, text in (
+        ("MainWindow.cpp", source),
+        ("test_networklegend.cpp", test_source),
+    ):
+        if _has_direct_entry_label_equality(text):
+            raise SystemExit(f"{path} still compares entryLabels directly")
     if not re.search(
         r"if\s*\(\s*actual\.size\(\)\s*!=\s*expected\.size\(\)\s*"
         r"\|\|\s*!std::equal\(actual\.begin\(\),\s*actual\.end\(\),\s*expected\.begin\(\)\)\s*\)",
