@@ -5,6 +5,7 @@
 #include <QRegularExpression>
 #include <QToolButton>
 
+#include <algorithm>
 #include <iostream>
 
 static bool expect(bool condition, const char* message) {
@@ -99,7 +100,9 @@ int main(int argc, char* argv[]) {
 	ok &= expect(!legend.isExpanded() && body && !body->isVisible(), "map key collapses");
 	ok &= expect(header && header->isVisible(), "map key header remains visible while collapsed");
 	legend.setExpanded(true);
-	ok &= expect(legend.entryLabels() == labelsBeforeCollapse,
+	const QStringList labelsAfterExpand = legend.entryLabels();
+	ok &= expect(labelsAfterExpand.size() == labelsBeforeCollapse.size()
+		&& std::equal(labelsAfterExpand.cbegin(), labelsAfterExpand.cend(), labelsBeforeCollapse.cbegin()),
 		"collapsing does not change map key entries");
 
 	for (QLabel* row : legend.findChildren<QLabel*>(QRegularExpression("^mapKeyEntry")))
