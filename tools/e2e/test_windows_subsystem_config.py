@@ -23,6 +23,12 @@ def test_preview_snapshot_comparator() -> None:
             raise SystemExit("QList equality detector misses reversed or parenthesized operands")
 
     source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
+    if not re.search(
+        r"if\s*\(\s*actual\.size\(\)\s*!=\s*expected\.size\(\)\s*"
+        r"\|\|\s*!std::equal\(actual\.begin\(\),\s*actual\.end\(\),\s*expected\.begin\(\)\)\s*\)",
+        source,
+    ):
+        raise SystemExit("Tab traversal comparison must size-check before std::equal")
     match = re.search(
         r"auto samePreviewContent = \[\]\(const PreviewContentSnapshot& left, "
         r"const PreviewContentSnapshot& right\) \{(?P<body>.*?)\n\t\};",
