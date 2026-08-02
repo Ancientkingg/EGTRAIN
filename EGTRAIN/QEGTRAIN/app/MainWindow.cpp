@@ -4753,7 +4753,8 @@ void MainWindow::runVisualPolishE2E() {
 			if (!first)
 				break;
 		}
-		if (actual != expected) {
+		if (actual.size() != expected.size()
+			|| !std::equal(actual.begin(), actual.end(), expected.begin())) {
 			ok = false;
 			failures << QString("command-bar Tab traversal order mismatch: %1").arg(actual.join(", "));
 		}
