@@ -5144,7 +5144,11 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "PAX enabled but no visible passenger-owned graphics rendered";
 		}
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
-		if (!m_networkLegendWidget || m_networkLegendWidget->entryLabels() != mapKeyEntries) {
+		const QStringList currentMapKeyEntries = m_networkLegendWidget
+			? m_networkLegendWidget->entryLabels() : QStringList();
+		if (!m_networkLegendWidget
+			|| currentMapKeyEntries.size() != mapKeyEntries.size()
+			|| !std::equal(currentMapKeyEntries.cbegin(), currentMapKeyEntries.cend(), mapKeyEntries.cbegin())) {
 			ok = false;
 			failures << "layer toggles changed or reordered map key entries";
 		}
