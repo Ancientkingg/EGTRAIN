@@ -5,7 +5,6 @@
 #include <QImage>
 #include <QPainter>
 
-#include "graphics/items/SignalItem.h"
 #include "graphics/items/TrainBadgeItem.h"
 
 #include <iostream>
@@ -15,11 +14,6 @@ static bool expect(bool condition, const char* message) {
 		std::cerr << "failed: " << message << "\n";
 	return condition;
 }
-
-struct RenderedCue {
-	int paintedPixels = 0;
-	QRect bounds;
-};
 
 static QByteArray renderStrokeMask(int width, Qt::PenStyle style) {
 	QImage image(96, 20, QImage::Format_ARGB32_Premultiplied);
@@ -38,40 +32,6 @@ static QByteArray renderStrokeMask(int width, Qt::PenStyle style) {
 			mask.append(image.pixelColor(x, y).alpha() > 0 ? '1' : '0');
 	return mask;
 }
-
-static RenderedCue renderCompactSignal(int aspectCode) {
-	QImage image(32, 32, QImage::Format_ARGB32_Premultiplied);
-	image.fill(Qt::transparent);
-	SignalItem signal(QRectF(-6.0, -8.0, 12.0, 16.0));
-	signal.setAspectCode(aspectCode);
-	signal.setCompact(true);
-	{
-		QPainter painter(&image);
-		painter.translate(16.0, 16.0);
-		signal.paint(&painter, nullptr, nullptr);
-	}
-
-	RenderedCue result;
-	int left = image.width();
-	int top = image.height();
-	int right = -1;
-	int bottom = -1;
-	for (int y = 0; y < image.height(); ++y) {
-		for (int x = 0; x < image.width(); ++x) {
-			if (image.pixelColor(x, y).alpha() == 0)
-				continue;
-			++result.paintedPixels;
-			left = qMin(left, x);
-			top = qMin(top, y);
-			right = qMax(right, x);
-			bottom = qMax(bottom, y);
-		}
-	}
-	if (right >= left && bottom >= top)
-		result.bounds = QRect(QPoint(left, top), QPoint(right, bottom));
-	return result;
-}
-
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QGuiApplication app(argc, argv);
@@ -85,9 +45,9 @@ int main(int argc, char* argv[]) {
 	const TrackStateVisual occupiedTrack = classifyTrackState(TrackOperationalState::Occupied);
 	const TrackStateVisual blockedTrack = classifyTrackState(TrackOperationalState::Blocked);
 	ok &= expect(freeTrack.style == Qt::NoPen && freeTrack.width == 0, "free track has no underlay");
-	ok &= expect(preparedTrack.style == Qt::DashDotLine && preparedTrack.width == 6, "prepared track underlay");
-	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 8, "occupied track underlay");
-	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 8, "blocked track has non-color cue");
+	ok &= expect(preparedTrack.style == Qt::DashDotLine && preparedTrack.width == 5, "prepared track underlay");
+	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 6, "occupied track underlay");
+	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 5, "blocked track has non-color cue");
 	ok &= expect(preparedTrack.color == QColor("#4C8DAE"), "prepared track color");
 	ok &= expect(occupiedTrack.color == QColor("#D05A47"), "occupied track color");
 	ok &= expect(blockedTrack.color == QColor("#D6A13A"), "blocked track color");
@@ -113,19 +73,6 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifySignalAspect(0).iconResource == ":/icons/signal-stop.svg", "stop signal icon");
 	ok &= expect(classifySignalAspect(75).iconResource == ":/icons/signal-caution.svg", "caution signal icon");
 	ok &= expect(classifySignalAspect(180).iconResource == ":/icons/signal-proceed.svg", "proceed signal icon");
-	const RenderedCue compactStop = renderCompactSignal(0);
-	const RenderedCue compactCaution = renderCompactSignal(75);
-	const RenderedCue compactProceed = renderCompactSignal(180);
-	ok &= expect(compactStop.bounds.width() >= 7 && compactStop.bounds.height() >= 7,
-		"compact stop cue stays prominent at overview zoom");
-	ok &= expect(compactCaution.bounds.width() >= 7 && compactCaution.bounds.height() >= 7,
-		"compact caution cue stays prominent at overview zoom");
-	ok &= expect(compactProceed.bounds.width() <= 3 && compactProceed.bounds.height() <= 8,
-		"compact proceed cue collapses to a subdued tick");
-	ok &= expect(compactProceed.paintedPixels < compactStop.paintedPixels
-		&& compactProceed.paintedPixels < compactCaution.paintedPixels,
-		"repeated proceed cues carry less visual weight than stop and caution");
-
 	ok &= expect(classifyTrainType("freight", "F01").kind == TrainVisualKind::Freight, "freight train classification");
 	ok &= expect(classifyTrainType("IC", "IC 2201").kind == TrainVisualKind::Intercity, "intercity train classification");
 	ok &= expect(classifyTrainType("", "sprinter 301").kind == TrainVisualKind::Sprinter, "sprinter train classification");

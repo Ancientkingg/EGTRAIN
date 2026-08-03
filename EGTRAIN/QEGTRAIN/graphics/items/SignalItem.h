@@ -2,15 +2,12 @@
 #define SIGNALITEM_H
 
 #include <QGraphicsEllipseItem>
-#include <QPixmap>
 #include <string>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include <QWidget>
 #include <QPolygonF>
 #include <QtMath>
-
-#include "graphics/VisualPolish.h"
 
 class SignalItem : public QGraphicsEllipseItem {
 	// Q_OBJECT
@@ -22,7 +19,6 @@ public:
 	void setAspectCode(int code);
 	int aspectCode() const;
 	void setReversedDirection(bool reversed);
-	void setCompact(bool compact);
 
 	// reimplemented functions
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
@@ -52,9 +48,7 @@ public:
 
 private:
 	int m_aspectCode;
-	QPixmap m_aspectIcon;
 	QColor m_lampColor;
-	bool m_compact;
 };
 
 #endif // SIGNALITEM_H
