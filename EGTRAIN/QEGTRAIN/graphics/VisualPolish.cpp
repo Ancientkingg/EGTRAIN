@@ -28,11 +28,11 @@ TrackVisual freeTrackVisual() {
 TrackStateVisual classifyTrackState(TrackOperationalState state) {
 	switch (state) {
 	case TrackOperationalState::Prepared:
-		return {QColor("#4C8DAE"), 6, Qt::DashDotLine};
+		return {QColor("#4C8DAE"), 5, Qt::DashDotLine};
 	case TrackOperationalState::Occupied:
-		return {QColor("#D05A47"), 8, Qt::SolidLine};
+		return {QColor("#D05A47"), 6, Qt::SolidLine};
 	case TrackOperationalState::Blocked:
-		return {QColor("#D6A13A"), 8, Qt::DashLine};
+		return {QColor("#D6A13A"), 5, Qt::DashLine};
 	case TrackOperationalState::Free:
 	default:
 		return {Qt::transparent, 0, Qt::NoPen};

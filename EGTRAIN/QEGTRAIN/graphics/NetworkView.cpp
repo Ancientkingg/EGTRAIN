@@ -21,7 +21,7 @@ NetworkView::NetworkView(QWidget* parent)
 
 	setMouseTracking(true);
 	setSceneRect(QRectF(0, 0, 0, 0));
-	setBackgroundBrush(QColor("#12191F"));
+	setBackgroundBrush(Qt::black);
 	setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
@@ -221,10 +221,6 @@ void NetworkView::wheelEvent(QWheelEvent* event) {
 	} else {
 		QGraphicsView::wheelEvent(event);
 	}
-}
-
-void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
-	painter->fillRect(rect, QColor("#12191F"));
 }
 
 void NetworkView::resizeEvent(QResizeEvent* event) {
