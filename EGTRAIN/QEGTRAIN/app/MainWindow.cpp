@@ -867,20 +867,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			button->setAutoRaise(true);
 			button->setFixedHeight(32);
 			const QString name = QString::fromLatin1(objectName);
-			if (name == "openCaseButton")
-				button->setMinimumWidth(110);
-			else if (name == "actionRunButton")
-				button->setMinimumWidth(75);
-			else if (name == "actionPauseButton")
-				button->setMinimumWidth(91);
-			else if (name == "actionStopButton")
-				button->setMinimumWidth(81);
-			else if (name == "actionFollowButton")
-				button->setMinimumWidth(74);
-			else if (name == "actionZoomInButton" || name == "actionZoomOutButton")
+			if (name == "actionZoomInButton" || name == "actionZoomOutButton")
 				button->setFixedWidth(34);
-			else if (name == "actionFitButton")
-				button->setMinimumWidth(44);
 		}
 	};
 	const auto addToolbarLabel = [this](const char* text, const char* objectName) {
