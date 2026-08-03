@@ -88,6 +88,11 @@ def main() -> None:
     if not app.exists():
         raise SystemExit(f"QEGTRAIN executable not found: {app}")
 
+    source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
+    for name in ("paintStationPlatform", "arcDrawing", "paintConnection", "paintSignal"):
+        start = source.index(f"void MainWindow::{name}(")
+        if "fitInView(" in source[start:source.index("\n}\n", start)]:
+            raise SystemExit(f"{name} refits the growing startup scene instead of deferring one final fit")
     assert_launch_reaches_defaults(app, [], "no-argument launch")
     assert_launch_reaches_defaults(app, ["-n", "1", "-g", "1"], "partial-argument launch")
 

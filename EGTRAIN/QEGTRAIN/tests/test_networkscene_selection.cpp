@@ -159,6 +159,17 @@ int main(int argc, char* argv[]) {
 		ConnectionItem connection(QLineF(-12.0, 0.0, 12.0, 0.0));
 		connection.setPos(0.0, -80.0);
 		SignalItem signal(QRectF(-6.0, -8.0, 12.0, 16.0));
+		signal.setAspectCode(75);
+		signal.setReversedDirection(true);
+		signal.trackID = 3;
+		signal.sectionAheadId = "protected";
+		signal.sectionAheadLength = 125.0;
+		signal.sectionAheadTrackId = 4;
+		ok &= expect(signal.rect() == QRectF(-6.0, -8.0, 12.0, 16.0)
+			&& signal.aspectCode() == 75 && signal.reversedDirection
+			&& signal.trackID == 3 && signal.sectionAheadId == "protected"
+			&& signal.sectionAheadLength == 125.0 && signal.sectionAheadTrackId == 4,
+			"signal marker keeps scene bounds and inspector metadata");
 		signal.setPos(40.0, -80.0);
 		TrainBodyItem train(QPolygonF() << QPointF(-10.0, -6.0) << QPointF(10.0, -6.0)
 			<< QPointF(10.0, 6.0) << QPointF(-10.0, 6.0));

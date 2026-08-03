@@ -3,7 +3,6 @@
 
 #include <QFont>
 #include <QGraphicsItem>
-#include <QPixmap>
 #include <QPointF>
 #include <QRectF>
 #include <QString>
@@ -91,7 +90,6 @@ private:
 	QPointF m_stableAnchor;
 	QPointF m_viewportOffset;
 	StationVisual m_visual;
-	QPixmap m_symbol;
 	QFont m_labelFont;
 	QRectF m_symbolRect;
 	QRectF m_labelRect;

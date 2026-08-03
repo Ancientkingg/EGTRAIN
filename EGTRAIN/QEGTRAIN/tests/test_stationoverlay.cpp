@@ -57,6 +57,8 @@ int main(int argc, char* argv[]) {
 		"overlay remains programmatically selectable");
 	const QRectF symbol = overlay.symbolRect();
 	const QRectF right = overlay.labelRect();
+	ok &= expect(qFuzzyCompare(symbol.width(), 16.0) && qFuzzyCompare(symbol.height(), 16.0),
+		"station symbol stays compact");
 	ok &= expect(qFuzzyCompare(overlay.combinedRect().left(), symbol.left()), "combined bounds include symbol");
 	ok &= expect(qFuzzyCompare(right.left(), symbol.right() + 8.0), "right label gap is eight logical pixels");
 	overlay.setLabelSide(StationOverlayItem::LabelSide::Left);
