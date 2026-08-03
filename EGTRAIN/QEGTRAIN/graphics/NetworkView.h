@@ -41,7 +41,6 @@ public:
 
 protected:
 	void wheelEvent(QWheelEvent* event) override;
-	void drawBackground(QPainter* painter, const QRectF& rect) override;
 	void resizeEvent(QResizeEvent* event) override;
 	void scrollContentsBy(int dx, int dy) override;
 

@@ -10,7 +10,7 @@
 #include <cmath>
 
 namespace {
-constexpr qreal kSymbolPixels = 24.0;
+constexpr qreal kSymbolPixels = 16.0;
 constexpr qreal kLabelPixels = 11.0;
 constexpr qreal kLabelGap = 8.0;
 
@@ -30,10 +30,6 @@ StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF
 	setAcceptedMouseButtons(Qt::NoButton);
 	setZValue(3.5);
 	m_labelFont.setPixelSize(static_cast<int>(kLabelPixels));
-	const QPixmap sourceSymbol(m_visual.iconResource);
-	if (!sourceSymbol.isNull())
-		m_symbol = sourceSymbol.scaled(QSize(static_cast<int>(kSymbolPixels),
-			static_cast<int>(kSymbolPixels)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	m_displayName = displayName(m_stationName);
 	m_symbolRect = QRectF(-kSymbolPixels / 2.0, -kSymbolPixels / 2.0, kSymbolPixels, kSymbolPixels);
 	m_labelSide = LabelSide::Right;
@@ -146,14 +142,18 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 	painter->save();
-	painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 	painter->translate(m_viewportOffset);
-	if (!m_symbol.isNull()) {
-		painter->drawPixmap(m_symbolRect, m_symbol, m_symbol.rect());
+	const QColor markerColor(210, 215, 220);
+	painter->setPen(QPen(markerColor, 1.0));
+	if (m_visual.kind == StationVisualKind::StopMarker) {
+		painter->setBrush(markerColor);
+		painter->drawEllipse(m_symbolRect.adjusted(5.0, 5.0, -5.0, -5.0));
 	} else {
-		painter->setPen(QPen(m_visual.outline, 1.0));
-		painter->setBrush(m_visual.fill);
-		painter->drawEllipse(m_symbolRect);
+		painter->setBrush(Qt::NoBrush);
+		const QRectF platform = m_symbolRect.adjusted(3.0, 5.0, -3.0, -5.0);
+		painter->drawRect(platform);
+		if (m_visual.kind == StationVisualKind::Interchange)
+			painter->drawRect(platform.adjusted(-2.0, -2.0, 2.0, 2.0));
 	}
 	if (isLabelVisible()) {
 		painter->setPen(Qt::white);
@@ -211,9 +211,6 @@ void StationOverlayItem::setNetworkDegree(int degree, bool interchange, bool end
 	m_endpoint = nextEndpoint;
 	m_visual = classifyStation(m_originalVisualKind == StationVisualKind::Platform,
 		m_interchange ? 3 : m_degree);
-	const QPixmap sourceSymbol(m_visual.iconResource);
-	m_symbol = sourceSymbol.isNull() ? QPixmap() : sourceSymbol.scaled(QSize(static_cast<int>(kSymbolPixels),
-		static_cast<int>(kSymbolPixels)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	update();
 }
 

@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 	bool uniformBackground = true;
 	for (int y = 0; y < background.height() && uniformBackground; ++y) {
 		for (int x = 0; x < background.width(); ++x) {
-			if (background.pixelColor(x, y) != QColor("#12191F")) {
+			if (background.pixelColor(x, y) != QColor(Qt::black)) {
 				uniformBackground = false;
 				break;
 			}

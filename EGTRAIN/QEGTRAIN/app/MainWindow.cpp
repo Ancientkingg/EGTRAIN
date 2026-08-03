@@ -8108,8 +8108,6 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 	// add item to allPlatforms list
 	allPlatforms.push_back(platformItem);
 
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
 // paint train passenger info on top of train
@@ -8283,8 +8281,6 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 	// add item to scene
 	scene->addItem(line);
 
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
 // draws a connection
@@ -8304,8 +8300,6 @@ void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Conn
 	// add item to scene
 	scene->addItem(line);
 
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
 // draws trackside signals (X is the beginning of the block section - except for the last signal of each trackline)
@@ -8464,14 +8458,6 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	addSignalDecoration(post2);
 	addSignalDecoration(plate2);
 	addSignalDecoration(basis2);
-
-	// match the current zoom before the next viewportChanged fires
-	const bool compactSignals = !detailedSignals;
-	plate1->setCompact(compactSignals);
-	plate2->setCompact(compactSignals);
-
-	// fit to window
-	networkView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 
 	// add signals to allSignals list
 	allSignals.push_back(plate1);
@@ -11204,18 +11190,13 @@ void MainWindow::updateViewportOverlays() {
 		overlay->setLayoutVisible(visible);
 	}
 
-	// Signal plates stay available at overview as aspect cues. Posts and bases
-	// return with the full housings only at detailed zoom.
+	// Markers remain available at overview; trackside posts return at detail zoom.
 	for (auto* item : m_signalDecorations) {
 		if (!item)
 			continue;
 		const bool baseVisible = item->data(kSignalBaseVisibleRole).toBool();
-		if (auto* signal = qgraphicsitem_cast<SignalItem*>(item)) {
-			signal->setCompact(!dense);
-			signal->setVisible(m_signalLayerVisible && baseVisible);
-		} else {
-			item->setVisible(m_signalLayerVisible && baseVisible && dense);
-		}
+		item->setVisible(m_signalLayerVisible && baseVisible
+			&& (qgraphicsitem_cast<SignalItem*>(item) || dense));
 	}
 
 	const bool paxText = paxTextVisible();
