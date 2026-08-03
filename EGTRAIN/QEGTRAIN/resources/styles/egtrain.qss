@@ -28,15 +28,17 @@ QToolButton {
     border: 1px solid transparent;
     border-radius: 2px;
     color: #24313a;
-    padding: 4px 6px;
+    padding: 3px 6px;
     min-height: 24px;
     max-height: 32px;
 }
 
 QToolButton#actionZoomInButton, QToolButton#actionZoomOutButton {
-    min-width: 24px;
-    max-width: 28px;
-    padding: 4px;
+    padding: 3px;
+}
+
+QToolBar QLabel, QToolBar QSlider {
+    background: transparent;
 }
 
 QToolButton:hover, QToolButton:focus {
@@ -240,6 +242,11 @@ QStatusBar {
     background: #e8ebea;
     border-top: 1px solid #c8ced2;
     color: #5b6871;
+}
+
+QStatusBar QLabel {
+    background: transparent;
+    padding: 0 4px;
 }
 
 QMenu {
