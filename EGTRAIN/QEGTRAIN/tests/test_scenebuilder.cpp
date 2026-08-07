@@ -1,119 +1,316 @@
+#include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
 #include "simulation/Signalling.h"
+
+#include <cmath>
+#include <filesystem>
 #include <iostream>
-#include <sstream>
+#include <string>
 
 Logger owl;
 
-static bool expect(bool condition, const char* message) {
+namespace fs = std::filesystem;
+
+static bool expect(bool condition, const std::string& message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";
 	return condition;
 }
 
-static Section makeSection(const std::string& id, double startX, double endX) {
-	Section section;
-	section.ID = id;
-	section.start_node.X = startX;
-	section.end_node.X = endX;
-	section.length = endX - startX;
-	section.total_nodes = 2;
-	section.total_arcs = 1;
-	section.arcs_in_signalling_block_section[0].startNode = section.start_node;
-	section.arcs_in_signalling_block_section[0].endNode = section.end_node;
-	section.arcs_in_signalling_block_section[0].length = section.length;
-	return section;
-}
-
-static void resetRouteState() {
-	Blocks = 0;
-	N_Routes = 0;
-	train_route.clear();
-}
-
-static void seedThreeSections() {
-	signalling_block_sections[0] = makeSection("A", 0.0, 1.0);
-	signalling_block_sections[1] = makeSection("B", 1.0, 2.0);
-	signalling_block_sections[2] = makeSection("C", 2.0, 3.0);
-	Blocks = 3;
-}
-
-int main() {
-	bool ok = true;
-
-	resetRouteState();
-	seedThreeSections();
-
+static SceneModel tinyScene() {
 	SceneModel scene;
+	scene.name = "tiny-native";
+	scene.tracks = {{"track.z"}};
+	scene.nodes = {{"node.0", "track.z", 0.0, 0.0},
+		{"node.1", "track.z", 1.0, 0.2},
+		{"node.2", "track.z", 2.0, 0.0}};
+	scene.arcs = {{"arc.0", "track.z", "node.0", "node.1", 0.0, 1.0, 20.0},
+		{"arc.1", "track.z", "node.1", "node.2", 30.0, -1.0, 18.0}};
+	scene.blocks = {{"block.a", "track.z", 1.0}, {"block.b", "track.z", 1.0}};
+	SceneStation station;
+	station.id = "station.tiny";
+	station.name = "Tiny";
+	station.platforms.push_back({"platform.1", {"node.1"}});
+	scene.stations.push_back(station);
 	SceneRoute route;
-	route.id = "route.alpha";
-	route.blocks = {"A", "B", "C"};
+	route.id = "route.tiny";
+	route.blocks = {"block.a", "block.b"};
+	route.hasCorridor = true;
+	route.corridor = "corridor.tiny";
 	scene.routes.push_back(route);
+	scene.blockDependencies.push_back({"block.a", "block.b"});
+	scene.singleTrackRestrictions.push_back({"block.a", "block.b", "block.a", "block.b"});
+	scene.stationBoundaries.push_back({"block.a", true, "block.b", false});
+	return scene;
+}
 
-	setUpRoutesFromScene(scene);
+static SceneModel stableConnectionScene() {
+	SceneModel scene;
+	scene.tracks = {{"alpha"}, {"beta"}};
+	scene.nodes = {{"alpha.start", "alpha", 0.0, 0.0}, {"alpha.end", "alpha", 1.0, 0.0},
+		{"beta.start", "beta", 2.0, 0.0}, {"beta.end", "beta", 3.0, 0.0}};
+	scene.arcs = {{"alpha.arc", "alpha", "alpha.start", "alpha.end", 0.0, 0.0, 10.0},
+		{"beta.arc", "beta", "beta.start", "beta.end", 0.0, 0.0, 10.0}};
+	scene.blocks = {{"alpha.block", "alpha", 1.0}, {"beta.block", "beta", 1.0}};
+	scene.connections.push_back({"switch.stable", "beta.start", "alpha.end", true, 7.5});
+	return scene;
+}
 
-	ok &= expect(N_Routes == 1, "scene route count becomes N_Routes");
-	ok &= expect(train_route.size() == 1, "train_route has one native route");
+static SceneModel twoRegionRouteScene() {
+	SceneModel scene;
+	scene.tracks = {{"region.a"}, {"region.b"}};
+	scene.nodes = {{"a.0", "region.a", 0.0, 0.0}, {"a.1", "region.a", 1.0, 0.0},
+		{"b.0", "region.b", 1000.0, 0.0}, {"b.1", "region.b", 1001.0, 0.0},
+		{"b.2", "region.b", 1002.0, 0.0}};
+	scene.arcs = {{"a.arc", "region.a", "a.0", "a.1", 0.0, 0.0, 10.0},
+		{"b.arc.0", "region.b", "b.0", "b.1", 0.0, 0.0, 10.0},
+		{"b.arc.1", "region.b", "b.1", "b.2", 0.0, 0.0, 10.0}};
+	scene.blocks = {{"a.block", "region.a", 1.0}, {"b.block", "region.b", 2.0}};
+	scene.connections.push_back({"region.jump", "a.1", "b.0", true, 10.0});
+	SceneRoute route;
+	route.id = "route.regions";
+	route.blocks = {"a.block", "b.block"};
+	scene.routes.push_back(route);
+	return scene;
+}
+
+static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics, SceneSeverity severity,
+		const std::string& file, const std::string& codePart) {
+	for (const auto& diagnostic : diagnostics)
+		if (diagnostic.severity == severity && diagnostic.file == file
+				&& diagnostic.code.find(codePart) != std::string::npos)
+			return true;
+	return false;
+}
+
+static bool hasRuntimeSection(const std::string& canonicalReference) {
+	const std::string expected = canonicalReference.find('/') == std::string::npos
+			? "@" + canonicalReference + "@" : canonicalReference;
+	for (int index = 0; index < Blocks; ++index)
+		if (signalling_block_sections[index].ID == expected)
+			return true;
+	return false;
+}
+
+static bool runTinyBuilderChecks() {
+	bool ok = true;
+	SceneModel scene = tinyScene();
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	ok &= expect(!hasErrors(diagnostics), "complete scene builds without errors");
+	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == 3 && blockSets[0].arcs == 2,
+			"track nodes and arcs retain canonical topology");
+	ok &= expect(Blocks == 2, "two canonical blocks become two straight runtime sections");
+	ok &= expect(signalling_block_sections[0].ID == "@block.a@"
+			&& signalling_block_sections[1].ID == "@block.b@", "block IDs use the runtime boundary form");
+	ok &= expect(numStations == 1 && numAllStationPlatforms == 1, "station and platform counts are bound");
+	ok &= expect(StationArray[0].X == 1.0, "platform node anchors a station without a separate position");
+	if (!AllStationPlatforms.empty()) {
+		const auto& platform = AllStationPlatforms.front();
+		ok &= expect(platform.ID == "platform.1" && platform.StationID == "station.tiny",
+				"platform retains canonical station binding");
+		ok &= expect(platform.BlockSectionID == "@block.a@", "platform resolves to its canonical block section");
+	}
+	ok &= expect(N_Routes == 1 && train_route.size() == 1, "one native route is available");
 	if (!train_route.empty()) {
-		const Route& built = train_route[0];
-		ok &= expect(built.N_Block_Sections == 3, "native route has three sections");
-		ok &= expect(built.sequence_of_block_sections[0].ID == "A", "first section is A");
-		ok &= expect(built.sequence_of_block_sections[1].ID == "B", "second section is B");
-		ok &= expect(built.sequence_of_block_sections[2].ID == "C", "third section is C");
-		ok &= expect(built.ID == "A->C", "native route id matches legacy derived id");
-		ok &= expect(!built.reversed_direction, "native route keeps forward direction");
-		ok &= expect(built.x_of_start_node == 0.0, "native route start node set");
-		ok &= expect(built.x_of_end_node == 3.0, "native route end node set");
+		const Route& route = train_route.front();
+		ok &= expect(route.ID == "route.tiny" && route.corridor == "corridor.tiny",
+				"route retains canonical ID and corridor");
+		ok &= expect(route.N_Block_Sections == 2
+				&& route.sequence_of_block_sections[0].ID == "@block.a@"
+				&& route.sequence_of_block_sections[1].ID == "@block.b@",
+				"route retains every canonical block reference");
+	}
+	ok &= expect(signalling_block_sections[0].N_ConnectedBS == 1
+			&& signalling_block_sections[0].IDConnectedBS[0] == "@block.b@",
+			"explicit block dependency is applied without a hard-coded case dependency");
+	ok &= expect(singleTrackLimits.size() == 1
+			&& std::get<0>(singleTrackLimits.front()) == "@block.a@"
+			&& std::get<3>(singleTrackLimits.front()) == "@block.a@",
+			"single-track references resolve to runtime block IDs");
+	ok &= expect(stationBoundarySections.size() == 1
+			&& stationBoundarySections.front().entrance->ID == "@block.a@"
+			&& stationBoundarySections.front().exit->ID == "@block.b@",
+			"station boundary references resolve to runtime sections");
+
+	diagnostics = buildInfrastructureAndSignallingFromScene(stableConnectionScene());
+	ok &= expect(!hasErrors(diagnostics) && Blocks == 3, "stable-ID connection scene builds one switch section");
+	if (!hasErrors(diagnostics) && Blocks == 3) {
+		const Section& source = signalling_block_sections[0];
+		ok &= expect(source.ID == "@alpha.block@" && source.N_ConnectedBS == 1,
+				"switch dependency is derived without numeric track naming");
+		ok &= expect(!source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.empty()
+				&& source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.front()
+					== "@alpha.block@-1.000000/@beta.block@-2.000000",
+				"connection nodes resolve switch sections through stable runtime references");
+		bool hasCanonicalSwitchSpeed = false;
+		for (int index = 0; index < signalling_block_sections[2].total_arcs; ++index)
+			hasCanonicalSwitchSpeed = hasCanonicalSwitchSpeed
+					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
+		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
+	}
+	SceneModel invalidSwitchReference = stableConnectionScene();
+	invalidSwitchReference.blockDependencies.push_back(
+			{"alpha.block", "@alpha.block@-9.000000/@beta.block@-10.000000"});
+	diagnostics = buildInfrastructureAndSignallingFromScene(invalidSwitchReference);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
+			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
+			"invalid switch references are rejected before replacing the existing runtime");
+	SceneModel duplicateSwitchSection = stableConnectionScene();
+	duplicateSwitchSection.connections.push_back(
+			{"switch.duplicate", "alpha.end", "beta.start", true, 7.5});
+	diagnostics = buildInfrastructureAndSignallingFromScene(duplicateSwitchSection);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
+			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
+			"duplicate switch sections are rejected before fixed-capacity runtime mutation");
+	SceneModel runtimeBlockIdCollision = scene;
+	runtimeBlockIdCollision.blocks[1].id = "@block.a@";
+	runtimeBlockIdCollision.routes.front().blocks[1] = "@block.a@";
+	runtimeBlockIdCollision.blockDependencies.front().dependsOn = "@block.a@";
+	runtimeBlockIdCollision.singleTrackRestrictions.front().endBlock = "@block.a@";
+	runtimeBlockIdCollision.singleTrackRestrictions.front().protectedEndBlock = "@block.a@";
+	runtimeBlockIdCollision.stationBoundaries.front().exitBlock = "@block.a@";
+	diagnostics = buildInfrastructureAndSignallingFromScene(runtimeBlockIdCollision);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
+			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
+			"canonical block IDs that collapse to one runtime ID are rejected before mutation");
+	SceneModel excessiveDependencies = scene;
+	for (int index = 0; index < 10; ++index) {
+		const std::string suffix = std::to_string(index);
+		const std::string track = "dependency.track." + suffix;
+		const std::string first = "dependency.node." + suffix + ".0";
+		const std::string second = "dependency.node." + suffix + ".1";
+		const std::string block = "dependency.block." + suffix;
+		excessiveDependencies.tracks.push_back({track});
+		excessiveDependencies.nodes.push_back({first, track, 0.0, 0.0});
+		excessiveDependencies.nodes.push_back({second, track, 1.0, 0.0});
+		excessiveDependencies.arcs.push_back({"dependency.arc." + suffix, track, first, second, 0.0, 0.0, 10.0});
+		excessiveDependencies.blocks.push_back({block, track, 1.0});
+		excessiveDependencies.blockDependencies.push_back({"block.a", block});
+	}
+	diagnostics = buildInfrastructureAndSignallingFromScene(excessiveDependencies);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "capacity")
+			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
+			"dependency overflow is rejected before replacing the existing runtime");
+
+	SceneModel explicitReversed = scene;
+	explicitReversed.routes.front().reversed = true;
+	diagnostics = buildInfrastructureAndSignallingFromScene(explicitReversed);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
+			&& train_route.front().reversed_direction
+			&& train_route.front().OriginalRefReversedRoute == train_route.front().x_of_end_node * 1000.0,
+			"explicit reverse metadata retains the joined-route reference coordinate");
+
+	SceneModel descendingRoute = scene;
+	descendingRoute.routes.front().blocks = {"block.b", "block.a"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(descendingRoute);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
+			&& train_route.front().reversed_direction,
+			"descending canonical block order retains the runtime reverse direction");
+	diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	ok &= expect(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
+
+	const int blocksBeforeInvalid = Blocks;
+	SceneModel invalidReference = scene;
+	invalidReference.routes.front().blocks = {"missing.block"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(invalidReference);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"),
+			"unknown route block returns an actionable signalling diagnostic");
+	ok &= expect(Blocks == blocksBeforeInvalid && train_route.size() == 1,
+			"invalid route does not mutate or silently truncate the existing runtime");
+
+	const int routesBeforeMalformed = N_Routes;
+	const std::string routeIdBeforeMalformed = train_route.front().ID;
+	const int routeBlocksBeforeMalformed = train_route.front().N_Block_Sections;
+	SceneModel malformedReference = scene;
+	malformedReference.routes.front().blocks = {"@block.a@-0.500000"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(malformedReference);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
+			&& Blocks == blocksBeforeInvalid && N_Routes == routesBeforeMalformed
+			&& train_route.size() == 1 && train_route.front().ID == routeIdBeforeMalformed
+			&& train_route.front().N_Block_Sections == routeBlocksBeforeMalformed,
+			"malformed decorated route references are rejected before replacing the existing runtime");
+
+	diagnostics = buildInfrastructureAndSignallingFromScene(twoRegionRouteScene());
+	ok &= expect(!hasErrors(diagnostics) && N_Routes == 1 && train_route.size() == 1,
+			"two-region route builds with a multi-arc later block");
+	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 2) {
+		const Section& later = train_route.front().sequence_of_block_sections[1];
+		const bool kilometerEndpoints = later.total_arcs == 2
+				&& std::fabs(later.arcs_in_signalling_block_section[0].startNode.X - 1.0) < 1e-9
+				&& std::fabs(later.arcs_in_signalling_block_section[0].endNode.X - 2.0) < 1e-9
+				&& std::fabs(later.arcs_in_signalling_block_section[1].startNode.X - 2.0) < 1e-9
+				&& std::fabs(later.arcs_in_signalling_block_section[1].endNode.X - 3.0) < 1e-9;
+		ok &= expect(kilometerEndpoints,
+				"route normalization keeps native multi-arc lengths in kilometres");
 	}
 
-	resetRouteState();
-	signalling_block_sections[0] = makeSection("@5-B6@", 0.0, 1.0);
-	signalling_block_sections[1] = makeSection("@5-B6@-branch", 1.0, 2.0);
-	Blocks = 2;
-	setDependenciesBetweenBlocks();
-	ok &= expect(signalling_block_sections[0].N_ConnectedBS == 2,
-		"Copenhagen dependency is added once");
-	int copenhagenDependencies = 0;
-	for (int i = 0; i < signalling_block_sections[0].N_ConnectedBS; i++) {
-		if (signalling_block_sections[0].IDConnectedBS[i] == "@1-B30@-4.592000/@5-B7@-4.620000")
-			copenhagenDependencies++;
+	const int blocksBeforeInvalidTopology = Blocks;
+	SceneModel invalidTopology = scene;
+	invalidTopology.arcs.front().toNodeId = "missing.node";
+	diagnostics = buildInfrastructureAndSignallingFromScene(invalidTopology);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "ref.unresolved"),
+			"unknown arc endpoint returns an actionable infrastructure diagnostic");
+	ok &= expect(Blocks == blocksBeforeInvalidTopology, "invalid topology is rejected before runtime mutation");
+	return ok;
+}
+
+static bool runCopenhagenSmoke(const fs::path& legacyPath) {
+	const fs::path scenePath = fs::temp_directory_path() / "egtrain_native_builder_copenhagen";
+	std::error_code error;
+	fs::remove_all(scenePath, error);
+	const auto importResult = importLegacyScene(legacyPath.string(), scenePath.string(), "Copenhagen native smoke");
+	bool ok = expect(importResult.success(), "Copenhagen legacy case imports for native builder smoke");
+	if (!ok)
+		return false;
+	const auto loaded = loadScene(scenePath.string());
+	ok &= expect(!hasErrors(loaded.diagnostics), "imported Copenhagen scene loads without errors");
+	const SceneModel& scene = loaded.scene;
+	const std::size_t platformNodeCount = [&]() {
+		std::size_t count = 0;
+		for (const auto& station : scene.stations)
+			for (const auto& platform : station.platforms)
+				count += platform.nodeIds.size();
+		return count;
+	}();
+	ok &= expect(scene.tracks.size() == 168 && scene.nodes.size() == 4612 && scene.arcs.size() == 4444,
+			"Copenhagen canonical track/node/arc counts are imported");
+	ok &= expect(scene.blocks.size() == 1513 && scene.connections.size() == 328,
+			"Copenhagen canonical block and connection counts are imported");
+	ok &= expect(scene.stations.size() == 94 && platformNodeCount == 203,
+			"Copenhagen station and platform-node counts are imported");
+	ok &= expect(scene.routes.size() == 24 && scene.blockDependencies.empty(),
+			"Copenhagen routes import without the inert B30 dependency typo");
+	if (hasErrors(loaded.diagnostics))
+		return false;
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	ok &= expect(!hasErrors(diagnostics), "Copenhagen scene builds natively without errors");
+	if (hasErrors(diagnostics))
+		for (const auto& diagnostic : diagnostics)
+			if (diagnostic.severity == SceneSeverity::Error)
+				std::cerr << toDisplayText(diagnostic) << "\n";
+	ok &= expect(numTrackLines == 168 && Blocks == 1841,
+			"Copenhagen native section count matches straight blocks plus switch sections");
+	ok &= expect(numConnections == 328 && numAllStationPlatforms == 203,
+			"Copenhagen native connections and platform bindings are complete");
+	ok &= expect(N_Routes == 24 && train_route.size() == 24, "Copenhagen native route count is available");
+	for (std::size_t index = 0; index < scene.routes.size() && index < train_route.size(); ++index) {
+		ok &= expect(train_route[index].N_Block_Sections == static_cast<int>(scene.routes[index].blocks.size()),
+				"Copenhagen native routes retain every canonical block reference");
+		for (const auto& block : scene.routes[index].blocks)
+			ok &= expect(hasRuntimeSection(block), "Copenhagen route references resolve to exact runtime section IDs");
 	}
-	ok &= expect(copenhagenDependencies == 1, "Copenhagen dependency has the expected ID");
+	ok &= expect(train_route.size() > 1 && train_route[1].reversed_direction,
+			"Copenhagen descending Route1 retains legacy reverse-direction semantics");
+	fs::remove_all(scenePath, error);
+	return ok;
+}
 
-	resetRouteState();
-	signalling_block_sections[0] = makeSection("@5-B6@", 0.0, 1.0);
-	for (int i = 1; i <= 10; i++)
-		signalling_block_sections[i] = makeSection("@5-B6@-branch" + std::to_string(i), i, i + 1);
-	Blocks = 11;
-	std::ostringstream errors;
-	auto* oldErrorBuffer = std::cerr.rdbuf(errors.rdbuf());
-	setDependenciesBetweenBlocks();
-	std::cerr.rdbuf(oldErrorBuffer);
-	ok &= expect(errors.str().find("has more than") != std::string::npos,
-		"Copenhagen dependency overflow is reported");
-
-	resetRouteState();
-	seedThreeSections();
-
-	SceneModel reversedScene;
-	SceneRoute reversedRoute;
-	reversedRoute.id = "route.reversed";
-	reversedRoute.blocks = {"C", "B", "A"};
-	reversedScene.routes.push_back(reversedRoute);
-
-	setUpRoutesFromScene(reversedScene);
-
-	ok &= expect(N_Routes == 1, "reversed scene route count becomes N_Routes");
-	ok &= expect(train_route.size() == 1, "train_route has one reversed native route");
-	if (!train_route.empty()) {
-		const Route& built = train_route[0];
-		ok &= expect(built.N_Block_Sections == 3, "reversed native route has three sections");
-		ok &= expect(built.reversed_direction, "native route marks reversed direction");
-		ok &= expect(built.sequence_of_block_sections[0].ID == "C", "reversed route first section is C");
-		ok &= expect(built.sequence_of_block_sections[2].ID == "A", "reversed route third section is A");
-		ok &= expect(built.ID == "C->A", "reversed native route id matches legacy derived id");
+int main(int argc, char** argv) {
+	bool ok = runTinyBuilderChecks();
+	if (argc < 2) {
+		std::cerr << "failed: Copenhagen legacy case path is required for the native smoke test\n";
+		return 1;
 	}
-
-	resetRouteState();
+	ok &= runCopenhagenSmoke(argv[1]);
 	return ok ? 0 : 1;
 }
