@@ -3,13 +3,28 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-SCENE="${1:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut}"
+SCENE_TOOL="$ROOT/build/scene_tool"
 OUT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.log"
 SHOT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.png"
+TMP_ROOT=""
 
-if [[ ! -x "$APP" ]]; then
-	echo "QEGTRAIN app not found or not executable: $APP" >&2
+if [[ ! -x "$APP" || ! -x "$SCENE_TOOL" ]]; then
+	echo "QEGTRAIN app or scene_tool is not built" >&2
 	exit 1
+fi
+
+if [[ $# -gt 0 ]]; then
+	SCENE="$1"
+else
+	# The committed Assignment scene is intentionally loadable but incomplete.
+	# Build a runnable canonical copy from its legacy infrastructure plus its
+	# canonical operations so this smoke exercises the scene-run path.
+	SOURCE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
+	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render.XXXXXX")"
+	trap 'rm -rf "$TMP_ROOT"' EXIT
+	SCENE="$TMP_ROOT/scene"
+	"$SCENE_TOOL" import "$SOURCE/legacy" "$SCENE" Assignment
+	cp "$SOURCE/rolling_stock.json" "$SOURCE/services.json" "$SOURCE/signalling.json" "$SCENE/"
 fi
 
 rm -f "$SHOT"
