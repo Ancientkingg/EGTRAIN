@@ -538,10 +538,10 @@ int main(int argc, char** argv) {
 			<< R"({"train_units":[{"id":"u1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[0,90,1,0,0]]}],"compositions":[{"id":"c1","units":["u1"]}]})"
 			<< "\n";
 		std::ofstream(scene / "services.json")
-			<< R"({"services":[{"id":"svc1","composition":"c1","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< R"({"services":[{"id":"svc1","operating_code":"legacy-svc","composition":"c1","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
 			<< "\n";
-		std::ofstream(scene / "incidents.json")
-			<< R"({"incidents":[{"id":"inc1","type":"signal_failure","target":"12-B0","start_seconds":100,"end_seconds":300},{"id":"inc2","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150},{"id":"inc3","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2}]})"
+		std::ofstream(scene / "scenarios.json")
+			<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc1","type":"signal_failure","target":"12-B0","start_seconds":100,"end_seconds":300},{"id":"inc3","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2},{"id":"inc4","type":"train_breakdown","target":"svc1","start_seconds":25,"end_seconds":35}]},{"id":"alternate","name":"Alternate","incidents":[{"id":"inc2","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150}]}]})"
 			<< "\n";
 
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
@@ -550,13 +550,16 @@ int main(int argc, char** argv) {
 
 		std::ifstream inf(fs::path(outDir.dir) / "Incidents.txt");
 		if (expect(inf.good(), "Incidents.txt exists")) {
-			std::string l1, l2, l3;
+			std::string l1, l2, l3, l4;
 			std::getline(inf, l1);
 			std::getline(inf, l2);
 			std::getline(inf, l3);
+			std::getline(inf, l4);
 			ok &= expect(l1 == "signal_failure\t12-B0\t100\t300", ("Signal failure line correct: " + l1).c_str());
-			ok &= expect(l2 == "train_breakdown\tsvc1\t50\t150", ("Breakdown line correct: " + l2).c_str());
-			ok &= expect(l3 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l3).c_str());
+			ok &= expect(l2 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l2).c_str());
+			ok &= expect(l3 == "train_breakdown\tlegacy-svc\t25\t35",
+					("Breakdown uses the active operating code: " + l3).c_str());
+			ok &= expect(l4.empty(), "Non-default scenario incident is not exported");
 		}
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
 	}

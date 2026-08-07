@@ -11,25 +11,25 @@ bool SceneSaveResult::success() const {
 	return wroteAll && !hasErrors(diagnostics);
 }
 
-static void addWriteError(SceneSaveResult& result, const std::string& file, const std::string& message) {
-	SceneDiagnostic d;
-	d.severity = SceneSeverity::Error;
-	d.code = "scene.save.write";
-	d.file = file;
-	d.message = message;
-	result.diagnostics.push_back(d);
+static void addWriteError(SceneSaveResult& result, const std::string& file,
+		const std::string& message) {
+	SceneDiagnostic diagnostic;
+	diagnostic.severity = SceneSeverity::Error;
+	diagnostic.code = "scene.save.write";
+	diagnostic.file = file;
+	diagnostic.message = message;
+	result.diagnostics.push_back(diagnostic);
 }
 
-static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath, const std::string& filename, const json& value) {
-	fs::path path = scenePath / filename;
-	std::ofstream out(path);
-	if (!out.good()) {
+static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
+		const std::string& filename, const json& value) {
+	std::ofstream output(scenePath / filename);
+	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
 		return false;
 	}
-
-	out << value.dump(4) << "\n";
-	if (!out.good()) {
+	output << value.dump(4) << "\n";
+	if (!output) {
 		addWriteError(result, filename, "Cannot write " + filename);
 		return false;
 	}
@@ -50,36 +50,26 @@ static json writePhysical(const SceneTrainPhysical& physical) {
 	};
 }
 
-static json writeTractionCurve(const SceneTrainUnit& unit) {
-	json curve = json::array();
-	for (const auto& row : unit.tractionCurve) {
-		curve.push_back({row[0], row[1], row[2], row[3], row[4]});
-	}
-	return curve;
-}
-
 static json writeTrainUnits(const SceneModel& scene) {
 	json trainUnits = json::array();
 	for (const auto& unit : scene.trainUnits) {
-		json unitJson = {
-			{"id", unit.id}};
-		if (unit.hasPhysical) {
-			unitJson["physical"] = writePhysical(unit.physical);
-		}
+		json value = {{"id", unit.id}};
+		if (unit.hasPhysical)
+			value["physical"] = writePhysical(unit.physical);
 		if (!unit.tractionCurve.empty()) {
-			unitJson["traction_curve"] = writeTractionCurve(unit);
+			value["traction_curve"] = json::array();
+			for (const auto& row : unit.tractionCurve)
+				value["traction_curve"].push_back({row[0], row[1], row[2], row[3], row[4]});
 		}
-
 		if (!unit.sourceDataFile.empty() || !unit.sourceTractionFile.empty()) {
 			json source = json::object();
 			if (!unit.sourceDataFile.empty())
 				source["data_file"] = unit.sourceDataFile;
 			if (!unit.sourceTractionFile.empty())
 				source["traction_file"] = unit.sourceTractionFile;
-			unitJson["source"] = source;
+			value["source"] = source;
 		}
-
-		trainUnits.push_back(unitJson);
+		trainUnits.push_back(value);
 	}
 	return trainUnits;
 }
@@ -87,14 +77,7 @@ static json writeTrainUnits(const SceneModel& scene) {
 static json writeCompositions(const SceneModel& scene) {
 	json compositions = json::array();
 	for (const auto& composition : scene.compositions) {
-		json units = json::array();
-		for (const auto& unit : composition.units) {
-			units.push_back(unit);
-		}
-		compositions.push_back({
-			{"id", composition.id},
-			{"units", units},
-		});
+		compositions.push_back({{"id", composition.id}, {"units", composition.units}});
 	}
 	return compositions;
 }
@@ -102,17 +85,17 @@ static json writeCompositions(const SceneModel& scene) {
 static json writeStops(const SceneService& service) {
 	json stops = json::array();
 	for (const auto& stop : service.stops) {
-		json stopJson = {
+		json value = {
 			{"station", stop.stationId},
 			{"dwell_seconds", stop.dwellSeconds},
 		};
 		if (!stop.platformId.empty())
-			stopJson["platform"] = stop.platformId;
-		if (stop.hasArrival)
-			stopJson["arrival_seconds"] = stop.arrivalSeconds;
-		if (stop.hasDeparture)
-			stopJson["departure_seconds"] = stop.departureSeconds;
-		stops.push_back(stopJson);
+			value["platform"] = stop.platformId;
+		if (stop.hasPlannedArrival)
+			value["planned_arrival_seconds"] = stop.plannedArrivalSeconds;
+		if (stop.hasPlannedDeparture)
+			value["planned_departure_seconds"] = stop.plannedDepartureSeconds;
+		stops.push_back(value);
 	}
 	return stops;
 }
@@ -120,28 +103,110 @@ static json writeStops(const SceneService& service) {
 static json writeServices(const SceneModel& scene) {
 	json services = json::array();
 	for (const auto& service : scene.services) {
-		json serviceJson = {
+		json value = {
 			{"id", service.id},
 			{"composition", service.composition},
 			{"route", service.route},
+			{"stops", writeStops(service)},
 		};
+		if (!service.operatingCode.empty())
+			value["operating_code"] = service.operatingCode;
 		if (service.through)
-			serviceJson["through"] = true;
+			value["through"] = true;
 		if (service.hasEntryTime)
-			serviceJson["entry_time_seconds"] = service.entryTimeSeconds;
+			value["entry_time_seconds"] = service.entryTimeSeconds;
 		if (service.hasRepeat)
-			serviceJson["repeat"] = {{"headway_seconds", service.headwaySeconds}};
-		serviceJson["stops"] = writeStops(service);
-		services.push_back(serviceJson);
+			value["repeat"] = {{"headway_seconds", service.headwaySeconds}};
+		services.push_back(value);
 	}
 	return services;
 }
 
+static json writeScenarios(const SceneModel& scene) {
+	json scenarios = json::array();
+	if (scene.scenarios.empty()) {
+		scenarios.push_back({
+			{"id", "baseline"},
+			{"name", "Baseline"},
+			{"incidents", json::array()},
+			{"entrance_delays", json::array()},
+		});
+	} else {
+		for (const auto& scenario : scene.scenarios) {
+			json value = {
+				{"id", scenario.id},
+				{"name", scenario.name},
+				{"incidents", json::array()},
+				{"entrance_delays", json::array()},
+			};
+			if (!scenario.description.empty())
+				value["description"] = scenario.description;
+			for (const auto& incident : scenario.incidents) {
+				value["incidents"].push_back({
+					{"id", incident.id},
+					{"type", incident.type},
+					{"target", incident.target},
+					{"start_seconds", incident.startSeconds},
+					{"end_seconds", incident.endSeconds},
+				});
+			}
+			for (const auto& delay : scenario.entranceDelays) {
+				value["entrance_delays"].push_back({
+					{"service", delay.serviceId},
+					{"occurrence", delay.occurrence},
+					{"station", delay.stationId},
+					{"delay_seconds", delay.delaySeconds},
+				});
+			}
+			scenarios.push_back(value);
+		}
+	}
+	std::string defaultId = scene.defaultScenarioId;
+	if (defaultId.empty())
+		defaultId = scene.scenarios.empty() ? "baseline" : scene.scenarios.front().id;
+	return {{"default_scenario_id", defaultId}, {"scenarios", scenarios}};
+}
 
+static json writePassengers(const SceneModel& scene) {
+	json passengers = json::array();
+	for (const auto& passenger : scene.passengers) {
+		json value = {{"id", passenger.id}, {"journeys", json::array()}};
+		for (const auto& journey : passenger.journeys) {
+			json journeyValue = {
+				{"id", journey.id},
+				{"origin", journey.originStationId},
+				{"destination", journey.destinationStationId},
+				{"planned_departure", {
+					{"start_seconds", journey.plannedDepartureStartSeconds},
+					{"end_seconds", journey.plannedDepartureEndSeconds},
+				}},
+				{"planned_arrival", {
+					{"start_seconds", journey.plannedArrivalStartSeconds},
+					{"end_seconds", journey.plannedArrivalEndSeconds},
+				}},
+				{"legs", json::array()},
+			};
+			if (!journey.activity.empty())
+				journeyValue["activity"] = journey.activity;
+			for (const auto& leg : journey.legs) {
+				journeyValue["legs"].push_back({
+					{"id", leg.id},
+					{"origin", leg.originStationId},
+					{"destination", leg.destinationStationId},
+					{"service", leg.serviceId},
+					{"occurrence", leg.occurrence},
+				});
+			}
+			value["journeys"].push_back(journeyValue);
+		}
+		passengers.push_back(value);
+	}
+	return {{"passengers", passengers}};
+}
 
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
 	SceneSaveResult result;
-	fs::path scenePath(sceneDir);
+	const fs::path scenePath(sceneDir);
 	std::error_code ec;
 	fs::create_directories(scenePath, ec);
 	if (ec) {
@@ -152,71 +217,159 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	json sceneJson = {
 		{"schema_version", scene.schemaVersion},
 		{"name", scene.name},
+		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
 	};
 	if (!scene.description.empty())
 		sceneJson["description"] = scene.description;
 	if (!scene.baseTime.empty())
 		sceneJson["base_time"] = scene.baseTime;
-	sceneJson["units"] = {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}};
+	json settings = json::object();
+	if (scene.settings.hasDuration)
+		settings["duration_seconds"] = scene.settings.durationSeconds;
+	if (scene.settings.hasBufferTime)
+		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
+	if (scene.settings.hasRecoveryTime)
+		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
+	if (!settings.empty())
+		sceneJson["simulation_settings"] = settings;
+	if (!scene.importReport.empty()) {
+		sceneJson["import_report"] = json::array();
+		for (const auto& row : scene.importReport) {
+			sceneJson["import_report"].push_back({
+				{"category", row.category},
+				{"source_file", row.sourceFile},
+				{"source_count", row.sourceCount},
+				{"converted_count", row.convertedCount},
+				{"skipped_count", row.skippedCount},
+				{"unresolved_references", row.unresolvedReferences},
+			});
+		}
+	}
+
+	json infrastructure = {
+		{"tracks", json::array()},
+		{"nodes", json::array()},
+		{"arcs", json::array()},
+		{"blocks", json::array()},
+		{"connections", json::array()},
+	};
+	for (const auto& track : scene.tracks)
+		infrastructure["tracks"].push_back({{"id", track.id}});
+	for (const auto& node : scene.nodes) {
+		infrastructure["nodes"].push_back({
+			{"id", node.id},
+			{"track", node.trackId},
+			{"x_km", node.xKm},
+			{"y_km", node.yKm},
+		});
+	}
+	for (const auto& arc : scene.arcs) {
+		infrastructure["arcs"].push_back({
+			{"id", arc.id},
+			{"track", arc.trackId},
+			{"from", arc.fromNodeId},
+			{"to", arc.toNodeId},
+			{"curvature_radius_m", arc.curvatureRadiusM},
+			{"gradient_percent", arc.gradientPercent},
+			{"speed_limit_ms", arc.speedLimitMs},
+		});
+	}
+	for (const auto& block : scene.blocks) {
+		infrastructure["blocks"].push_back({
+			{"id", block.id},
+			{"track", block.trackId},
+			{"length_km", block.lengthKm},
+		});
+	}
+	for (const auto& connection : scene.connections) {
+		json value = {
+			{"id", connection.id},
+			{"from", connection.fromNodeId},
+			{"to", connection.toNodeId},
+		};
+		if (connection.hasSpeedLimit)
+			value["speed_limit_ms"] = connection.speedLimitMs;
+		infrastructure["connections"].push_back(value);
+	}
 
 	json stations = json::array();
 	for (const auto& station : scene.stations) {
-		json platforms = json::array();
+		json value = {{"id", station.id}, {"name", station.name}, {"platforms", json::array()}};
+		if (station.hasPosition)
+			value["position_km"] = station.positionKm;
 		for (const auto& platform : station.platforms) {
-			platforms.push_back({{"id", platform.id}});
+			value["platforms"].push_back({{"id", platform.id}, {"nodes", platform.nodeIds}});
 		}
-		stations.push_back({
-			{"id", station.id},
-			{"name", station.name},
-			{"platforms", platforms},
-		});
+		stations.push_back(value);
 	}
 
-	json signals = json::array();
-	for (const auto& signal : scene.signals) {
-		signals.push_back({{"id", signal.id}});
-	}
-
-	json routes = json::array();
+	json signalling = {
+		{"signals", json::array()},
+		{"routes", json::array()},
+		{"block_dependencies", json::array()},
+		{"single_track_restrictions", json::array()},
+		{"station_boundaries", json::array()},
+	};
+	for (const auto& signal : scene.signals)
+		signalling["signals"].push_back({{"id", signal.id}});
 	for (const auto& route : scene.routes) {
-		json blocks = json::array();
-		for (const auto& block : route.blocks) {
-			blocks.push_back(block);
-		}
-		routes.push_back({
-			{"id", route.id},
-			{"blocks", blocks},
+		json value = {{"id", route.id}, {"blocks", route.blocks}};
+		if (route.hasCorridor || !route.corridor.empty())
+			value["corridor"] = route.corridor;
+		if (route.reversed)
+			value["reversed"] = true;
+		signalling["routes"].push_back(value);
+	}
+	for (const auto& dependency : scene.blockDependencies) {
+		signalling["block_dependencies"].push_back({
+			{"block", dependency.block},
+			{"depends_on", dependency.dependsOn},
 		});
 	}
+	for (const auto& restriction : scene.singleTrackRestrictions) {
+		signalling["single_track_restrictions"].push_back({
+			{"start_block", restriction.startBlock},
+			{"end_block", restriction.endBlock},
+			{"protected_start_block", restriction.protectedStartBlock},
+			{"protected_end_block", restriction.protectedEndBlock},
+		});
+	}
+	for (const auto& boundary : scene.stationBoundaries) {
+		json value = {{"entrance_block", boundary.entranceBlock}, {"direction", boundary.direction}};
+		if (boundary.hasExitBlock || !boundary.exitBlock.empty())
+			value["exit_block"] = boundary.exitBlock;
+		signalling["station_boundaries"].push_back(value);
+	}
 
-	bool wroteAll = writeJsonFile(result, scenePath, "scene.json", sceneJson) &&
-					writeJsonFile(result, scenePath, "infrastructure.json", {{"nodes", json::array()}, {"arcs", json::array()}}) &&
-					writeJsonFile(result, scenePath, "stations.json", {{"stations", stations}}) &&
-					writeJsonFile(result, scenePath, "signalling.json", {{"signals", signals}, {"routes", routes}}) &&
-					writeJsonFile(result, scenePath, "rolling_stock.json", {{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}}) &&
-					writeJsonFile(result, scenePath, "services.json", {{"services", writeServices(scene)}});
+	bool wroteAll = true;
+	wroteAll = writeJsonFile(result, scenePath, "scene.json", sceneJson) && wroteAll;
+	wroteAll = writeJsonFile(result, scenePath, "infrastructure.json", infrastructure) && wroteAll;
+	wroteAll = writeJsonFile(result, scenePath, "stations.json", {{"stations", stations}}) && wroteAll;
+	wroteAll = writeJsonFile(result, scenePath, "signalling.json", signalling) && wroteAll;
+	wroteAll = writeJsonFile(result, scenePath, "rolling_stock.json",
+			{{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}}) && wroteAll;
+	wroteAll = writeJsonFile(result, scenePath, "services.json", {{"services", writeServices(scene)}}) && wroteAll;
+	wroteAll = writeJsonFile(result, scenePath, "scenarios.json", writeScenarios(scene)) && wroteAll;
+	if (!scene.passengers.empty()) {
+		wroteAll = writeJsonFile(result, scenePath, "passengers.json", writePassengers(scene)) && wroteAll;
+	}
 
-	fs::path incidentsPath = scenePath / "incidents.json";
+	// Keep the old flat file until every new canonical file was persisted.
 	if (wroteAll) {
-		if (scene.incidents.empty()) {
+		ec.clear();
+		fs::remove(scenePath / "incidents.json", ec);
+		if (ec) {
+			addWriteError(result, "incidents.json", "Cannot remove incidents.json: " + ec.message());
+			wroteAll = false;
+		}
+		if (scene.passengers.empty()) {
 			ec.clear();
-			fs::remove(incidentsPath, ec);
+			fs::remove(scenePath / "passengers.json", ec);
 			if (ec) {
-				addWriteError(result, "incidents.json", "Cannot remove incidents.json: " + ec.message());
+				addWriteError(result, "passengers.json",
+						"Cannot remove passengers.json: " + ec.message());
 				wroteAll = false;
 			}
-		} else {
-			json incidents = json::array();
-			for (const auto& incident : scene.incidents) {
-				incidents.push_back({
-					{"id", incident.id},
-					{"type", incident.type},
-					{"target", incident.target},
-					{"start_seconds", incident.startSeconds},
-					{"end_seconds", incident.endSeconds},
-				});
-			}
-			wroteAll = writeJsonFile(result, scenePath, "incidents.json", {{"incidents", incidents}});
 		}
 	}
 

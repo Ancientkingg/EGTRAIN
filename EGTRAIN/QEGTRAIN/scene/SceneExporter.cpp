@@ -69,11 +69,9 @@ static std::string formatNumber(double val) {
 	return oss.str();
 }
 
-// The simulation reads signalling levels only from TrackLines/AreasCaseStudy.txt
-// (InitializeAllNetworkAreas); without the file every section keeps the unset
-// default and no signalling handler runs at all. Cover the whole exported
-// extent with ETCS level 3, the moving-block model the default simulation
-// uses, unless the scene's legacy data already provides the file.
+// Older EGTRAIN variants read signalling levels from
+// TrackLines/AreasCaseStudy.txt. Keep exported legacy directories compatible
+// with them unless the scene already provides the file.
 static void synthesizeSignallingAreas(const std::string& outDir, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
@@ -465,7 +463,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		if (svc.hasEntryTime) {
 			entryTime = svc.entryTimeSeconds;
 		} else if (!svc.stops.empty()) {
-			entryTime = svc.stops[0].departureSeconds;
+			entryTime = svc.stops[0].plannedDepartureSeconds;
 		}
 
 		double headway = 99999999.0;
@@ -684,8 +682,8 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 					result.wroteAll = false;
 				}
 				std::string stId = stop.stationId;
-				std::string arr = stop.hasArrival ? formatNumber(stop.arrivalSeconds) : "-1";
-				std::string dep = stop.hasDeparture ? formatNumber(stop.departureSeconds) : "-1";
+				std::string arr = stop.hasPlannedArrival ? formatNumber(stop.plannedArrivalSeconds) : "-1";
+				std::string dep = stop.hasPlannedDeparture ? formatNumber(stop.plannedDepartureSeconds) : "-1";
 				ttf << stId << "\t" << formatNumber(stop.dwellSeconds) << "\t" << arr << "\t" << dep << "\n";
 			}
 		} else {
@@ -695,7 +693,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 
 		std::ofstream trf(fs::path(outDir) / "Trains" / fname);
 		if (trf) {
-			trf << svc.id << "\n"
+			trf << (svc.operatingCode.empty() ? svc.id : svc.operatingCode) << "\n"
 				<< formatNumber(entryTime) << "\n"
 				<< formatNumber(headway) << "\n"
 				<< rIndex << "\n"
@@ -718,21 +716,22 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		result.wroteAll = false;
 	}
 
-	if (!scene.incidents.empty()) {
+	const auto& incidents = defaultScenarioIncidents(scene);
+	if (!incidents.empty()) {
 		std::unordered_set<std::string> routeBlockTokens;
 		for (const auto& r : scene.routes) {
 			for (const auto& b : r.blocks) {
 				routeBlockTokens.insert(b);
 			}
 		}
-		std::unordered_set<std::string> serviceIds;
+		std::unordered_map<std::string, std::string> serviceOperatingCodes;
 		for (const auto& svc : scene.services) {
-			serviceIds.insert(svc.id);
+			serviceOperatingCodes[svc.id] = svc.operatingCode.empty() ? svc.id : svc.operatingCode;
 		}
 
 		std::ofstream inf(fs::path(outDir) / "Incidents.txt");
 		if (inf) {
-			for (const auto& inc : scene.incidents) {
+			for (const auto& inc : incidents) {
 				if (inc.type != "signal_failure" && inc.type != "train_breakdown") {
 					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
 							"Incident type " + inc.type + " is not supported and was skipped", inc.id);
@@ -742,11 +741,17 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
 							"Signal id " + inc.target + " matches no route block so the failure will have no effect", inc.id);
 				}
-				if (inc.type == "train_breakdown" && serviceIds.find(inc.target) == serviceIds.end()) {
-					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-							"Service id " + inc.target + " matches no service so the breakdown will have no effect", inc.id);
+				std::string target = inc.target;
+				if (inc.type == "train_breakdown") {
+					const auto service = serviceOperatingCodes.find(inc.target);
+					if (service == serviceOperatingCodes.end()) {
+						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
+								"Service id " + inc.target + " matches no service so the breakdown will have no effect", inc.id);
+					} else {
+						target = service->second;
+					}
 				}
-				inf << inc.type << "\t" << inc.target << "\t" << formatNumber(inc.startSeconds) << "\t" << formatNumber(inc.endSeconds) << "\n";
+				inf << inc.type << "\t" << target << "\t" << formatNumber(inc.startSeconds) << "\t" << formatNumber(inc.endSeconds) << "\n";
 			}
 		} else {
 			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write Incidents.txt");
