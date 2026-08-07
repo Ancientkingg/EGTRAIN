@@ -34,7 +34,7 @@ Required keys:
 Optional keys:
 
 - `description`: string.
-- `base_time`: `HH:MM:SS` day-clock origin for the simulation.
+- `base_time`: `HH:MM:SS` day-clock origin from `00:00:00` through `23:59:59`.
 - `units`: object containing only `distance: "m"`, `time: "s"`, and
   `speed: "m/s"` when present.
 - `simulation_settings`: object with optional numeric

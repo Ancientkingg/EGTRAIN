@@ -126,6 +126,8 @@ int main(int argc, char** argv) {
 				scene.scenarios[0].incidents[0].target = "missing-signal";
 			}, "scene.ref.unresolved"},
 		{"missing base time", [](SceneModel& scene) { scene.baseTime.clear(); }, "scene.basetime.missing"},
+		{"out-of-range base time", [](SceneModel& scene) { scene.baseTime = "24:00:00"; },
+				"scene.basetime.invalid"},
 		{"non-positive duration", [](SceneModel& scene) { scene.settings.durationSeconds = 0.0; },
 				"scene.duration.invalid"},
 		{"empty tracks", [](SceneModel& scene) { scene.tracks.clear(); }, "scene.topology.tracks.none"},

@@ -92,7 +92,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	DiagnosticBuilder diagnostics{result};
 
 	if (!scene.baseTime.empty()) {
-		static const std::regex timePattern("^[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$");
+		static const std::regex timePattern("^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$");
 		if (!std::regex_match(scene.baseTime, timePattern)) {
 			diagnostics.error("scene.basetime.invalid", "Invalid base_time format, must be HH:MM:SS",
 					"scene.json", "scene", "", "base_time", "",
