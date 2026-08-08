@@ -53,12 +53,11 @@ int main() {
 	}
 
 	// Association warnings.
-	expect(tractionAssociationWarning(true, true, true).empty(), "complete association has no warning");
-	expect(!tractionAssociationWarning(false, false, false).empty(), "undefined unit warns");
-	expect(tractionAssociationWarning(true, false, true).find("no traction curve") != std::string::npos,
-		   "missing curve warns");
-	expect(tractionAssociationWarning(true, true, false).find("no recorded") != std::string::npos,
-		   "curve without source file warns about the mismatch");
+	expect(tractionAssociationWarning(true, true).empty(),
+			   "unit with curve has no warning when provenance is absent");
+	expect(!tractionAssociationWarning(false, false).empty(), "undefined unit warns");
+	expect(tractionAssociationWarning(true, false).find("no traction curve") != std::string::npos,
+			   "missing curve warns");
 
 	if (!ok)
 		return 1;

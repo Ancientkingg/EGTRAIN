@@ -220,6 +220,53 @@ int main() {
 				&& reloaded.trainUnits[0].sourceTractionFile.empty(),
 			"rolling provenance fields are independently optional");
 
+	// The student-facing loaded-data summary distinguishes source, parsed,
+	// optional, and validation states and carries only concrete editor targets.
+	refreshLoadedDataSummary(reloaded);
+	const auto findCategory = [](const std::vector<SceneLoadedData>& rows,
+			const std::string& category) -> const SceneLoadedData* {
+		for (const auto& row : rows) {
+			if (row.category == category)
+				return &row;
+		}
+		return nullptr;
+	};
+	const SceneLoadedData* rolling = findCategory(reloaded.loadedData, "rolling_stock");
+	const SceneLoadedData* units = rolling ? findCategory(rolling->children, "train_units") : nullptr;
+	ok &= expect(rolling && rolling->status == "Parsed", "loaded category reports parsed canonical data");
+	ok &= expect(units && !units->children.empty()
+				&& units->children.front().targetType == "train_unit"
+				&& units->children.front().category == "unit-1"
+				&& findCategory(units->children.front().children, "train_unit_parameters")
+				&& findCategory(units->children.front().children, "tractive_effort_curve")
+				&& findCategory(units->children.front().children, "import_provenance"),
+				"loaded train-unit row owns its editor target, data, curve, and provenance");
+	const SceneLoadedData* infrastructure = findCategory(reloaded.loadedData, "infrastructure");
+	ok &= expect(infrastructure && infrastructure->targetType == "network",
+				"infrastructure summary resolves to the existing network view");
+
+	SceneModel withoutOptional = reloaded;
+	withoutOptional.sourceFiles.erase("scenarios.json");
+	withoutOptional.sourceFiles.erase("passengers.json");
+	withoutOptional.scenarios.clear();
+	withoutOptional.passengers.clear();
+	refreshLoadedDataSummary(withoutOptional);
+	const SceneLoadedData* scenariosRow = findCategory(withoutOptional.loadedData, "scenarios");
+	const SceneLoadedData* passengersRow = findCategory(withoutOptional.loadedData, "passengers");
+	ok &= expect(scenariosRow && scenariosRow->status == "Missing optional"
+				&& passengersRow && passengersRow->status == "Missing optional",
+				"absent optional scene inputs are labelled explicitly");
+	ok &= expect(withoutOptional.scenarios.empty(), "loaded-data refresh does not create canonical input");
+
+	SceneDiagnostic rollingWarning;
+	rollingWarning.severity = SceneSeverity::Warning;
+	rollingWarning.file = "rolling_stock.json";
+	refreshLoadedDataDiagnostics(reloaded, {rollingWarning});
+	rolling = findCategory(reloaded.loadedData, "rolling_stock");
+	ok &= expect(rolling && rolling->status == "Warning"
+				&& !rolling->children.empty() && rolling->children.back().status == "Warning",
+				"validation warning is visible on its loaded-data category");
+
 	// Historical aliases and flat incidents remain readable during migration.
 	fs::remove(temp.path / "scenarios.json");
 	{
