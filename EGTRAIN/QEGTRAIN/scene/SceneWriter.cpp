@@ -3,12 +3,18 @@
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <set>
+#include <utility>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
 bool SceneSaveResult::success() const {
 	return wroteAll && !hasErrors(diagnostics);
+}
+
+bool ScenarioLoadResult::success() const {
+	return !hasErrors(diagnostics);
 }
 
 static void addWriteError(SceneSaveResult& result, const std::string& file,
@@ -122,49 +128,216 @@ static json writeServices(const SceneModel& scene) {
 	return services;
 }
 
+static json writeScenarioValue(const SceneScenario& scenario) {
+	json value = {
+		{"id", scenario.id},
+		{"name", scenario.name},
+		{"incidents", json::array()},
+		{"entrance_delays", json::array()},
+	};
+	if (!scenario.description.empty())
+		value["description"] = scenario.description;
+	for (const auto& incident : scenario.incidents) {
+		value["incidents"].push_back({
+			{"id", incident.id},
+			{"type", incident.type},
+			{"target", incident.target},
+			{"start_seconds", incident.startSeconds},
+			{"end_seconds", incident.endSeconds},
+		});
+	}
+	for (const auto& delay : scenario.entranceDelays) {
+		value["entrance_delays"].push_back({
+			{"service", delay.serviceId},
+			{"occurrence", delay.occurrence},
+			{"station", delay.stationId},
+			{"delay_seconds", delay.delaySeconds},
+		});
+	}
+	return value;
+}
+
 static json writeScenarios(const SceneModel& scene) {
 	json scenarios = json::array();
 	if (scene.scenarios.empty()) {
-		scenarios.push_back({
-			{"id", "baseline"},
-			{"name", "Baseline"},
-			{"incidents", json::array()},
-			{"entrance_delays", json::array()},
-		});
+		SceneScenario baseline;
+		baseline.id = "baseline";
+		baseline.name = "Baseline";
+		scenarios.push_back(writeScenarioValue(baseline));
 	} else {
-		for (const auto& scenario : scene.scenarios) {
-			json value = {
-				{"id", scenario.id},
-				{"name", scenario.name},
-				{"incidents", json::array()},
-				{"entrance_delays", json::array()},
-			};
-			if (!scenario.description.empty())
-				value["description"] = scenario.description;
-			for (const auto& incident : scenario.incidents) {
-				value["incidents"].push_back({
-					{"id", incident.id},
-					{"type", incident.type},
-					{"target", incident.target},
-					{"start_seconds", incident.startSeconds},
-					{"end_seconds", incident.endSeconds},
-				});
-			}
-			for (const auto& delay : scenario.entranceDelays) {
-				value["entrance_delays"].push_back({
-					{"service", delay.serviceId},
-					{"occurrence", delay.occurrence},
-					{"station", delay.stationId},
-					{"delay_seconds", delay.delaySeconds},
-				});
-			}
-			scenarios.push_back(value);
-		}
+		for (const auto& scenario : scene.scenarios)
+			scenarios.push_back(writeScenarioValue(scenario));
 	}
 	std::string defaultId = scene.defaultScenarioId;
 	if (defaultId.empty())
 		defaultId = scene.scenarios.empty() ? "baseline" : scene.scenarios.front().id;
 	return {{"default_scenario_id", defaultId}, {"scenarios", scenarios}};
+}
+
+static void addScenarioDiagnostic(ScenarioLoadResult& result, SceneSeverity severity,
+		const std::string& code, const std::string& message, const std::string& path = "") {
+	SceneDiagnostic diagnostic;
+	diagnostic.severity = severity;
+	diagnostic.code = code;
+	diagnostic.file = "scenario.json";
+	diagnostic.message = message;
+	diagnostic.path = path;
+	result.diagnostics.push_back(std::move(diagnostic));
+}
+
+static bool scenarioString(const json& object, const char* key, ScenarioLoadResult& result,
+		std::string& output, bool required, const std::string& path) {
+	if (!object.is_object()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
+				"Scenario field must be an object", path);
+		return false;
+	}
+	if (!object.contains(key)) {
+		if (required)
+			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
+					std::string("Missing ") + key, path + "." + key);
+		return false;
+	}
+	if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
+				std::string("Invalid ") + key, path + "." + key);
+		return false;
+	}
+	output = object[key].get<std::string>();
+	return true;
+}
+
+static bool scenarioNumber(const json& object, const char* key, ScenarioLoadResult& result,
+		double& output, const std::string& path) {
+	if (!object.contains(key)) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
+				std::string("Missing ") + key, path + "." + key);
+		return false;
+	}
+	if (!object[key].is_number()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
+				std::string("Invalid ") + key, path + "." + key);
+		return false;
+	}
+	try {
+		output = object[key].get<double>();
+	} catch (const json::exception&) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
+				std::string("Invalid ") + key, path + "." + key);
+		return false;
+	}
+	return true;
+}
+
+static bool scenarioInteger(const json& object, const char* key, ScenarioLoadResult& result,
+		int& output, const std::string& path) {
+	if (!object.contains(key))
+		return true;
+	if (!object[key].is_number_integer()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
+				std::string("Invalid ") + key, path + "." + key);
+		return false;
+	}
+	try {
+		output = object[key].get<int>();
+	} catch (const json::exception&) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
+				std::string("Invalid ") + key, path + "." + key);
+		return false;
+	}
+	return true;
+}
+
+static void parseScenarioIncident(const json& value, std::size_t index,
+		ScenarioLoadResult& result) {
+	const std::string path = "incidents[" + std::to_string(index) + "]";
+	if (!value.is_object()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
+				"Incident must be an object", path);
+		return;
+	}
+	SceneIncident incident;
+	scenarioString(value, "id", result, incident.id, true, path);
+	scenarioString(value, "type", result, incident.type, true, path);
+	scenarioString(value, "target", result, incident.target, true, path);
+	scenarioNumber(value, "start_seconds", result, incident.startSeconds, path);
+	scenarioNumber(value, "end_seconds", result, incident.endSeconds, path);
+	result.scenario.incidents.push_back(std::move(incident));
+}
+
+static void parseScenarioEntranceDelay(const json& value, std::size_t index,
+		ScenarioLoadResult& result) {
+	const std::string path = "entrance_delays[" + std::to_string(index) + "]";
+	if (!value.is_object()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
+				"Entrance delay must be an object", path);
+		return;
+	}
+	SceneEntranceDelay delay;
+	scenarioString(value, "service", result, delay.serviceId, true, path);
+	scenarioInteger(value, "occurrence", result, delay.occurrence, path);
+	scenarioString(value, "station", result, delay.stationId, true, path);
+	scenarioNumber(value, "delay_seconds", result, delay.delaySeconds, path);
+	result.scenario.entranceDelays.push_back(std::move(delay));
+}
+
+SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath) {
+	SceneSaveResult result;
+	const fs::path path(filePath);
+	result.wroteAll = writeJsonFile(result, path.parent_path(), path.filename().string(),
+		writeScenarioValue(scenario));
+	return result;
+}
+
+ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
+	ScenarioLoadResult result;
+	std::ifstream input{fs::path(filePath)};
+	if (!input) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.file.missing",
+				"Cannot open scenario JSON");
+		return result;
+	}
+
+	json value;
+	try {
+		input >> value;
+	} catch (const json::parse_error& error) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.json.parse",
+				std::string("JSON parse error: ") + error.what());
+		return result;
+	}
+	if (!value.is_object()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.root.type",
+				"Scenario JSON root must be an object");
+		return result;
+	}
+
+	const std::set<std::string> allowed = {"id", "name", "description", "incidents", "entrance_delays"};
+	for (const auto& field : value.items()) {
+		if (allowed.find(field.key()) == allowed.end())
+			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.unknown",
+					"Scenario JSON does not allow field " + field.key(), field.key());
+	}
+	scenarioString(value, "id", result, result.scenario.id, true, "scenario");
+	scenarioString(value, "name", result, result.scenario.name, true, "scenario");
+	scenarioString(value, "description", result, result.scenario.description, false, "scenario");
+	if (!value.contains("incidents") || !value["incidents"].is_array()) {
+		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
+				"incidents must be an array", "incidents");
+	} else {
+		for (std::size_t index = 0; index < value["incidents"].size(); ++index)
+			parseScenarioIncident(value["incidents"][index], index, result);
+	}
+	if (value.contains("entrance_delays")) {
+		if (!value["entrance_delays"].is_array()) {
+			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
+					"entrance_delays must be an array", "entrance_delays");
+		} else {
+			for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index)
+				parseScenarioEntranceDelay(value["entrance_delays"][index], index, result);
+		}
+	}
+	return result;
 }
 
 static json writePassengers(const SceneModel& scene) {

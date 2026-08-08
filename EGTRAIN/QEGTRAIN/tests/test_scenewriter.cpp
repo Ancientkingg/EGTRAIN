@@ -189,6 +189,47 @@ int main() {
 	ok &= expect(scenarios["default_scenario_id"] == "baseline", "writer emits default_scenario_id");
 	ok &= expect(scenarios["scenarios"].size() == 2, "writer emits named scenarios");
 
+	const fs::path standaloneScenarioPath = temp.path / "baseline-scenario.json";
+	const SceneSaveResult standaloneSave = saveScenarioJson(source.scenarios[0], standaloneScenarioPath.string());
+	ok &= expect(standaloneSave.success(), "standalone scenario JSON saves");
+	json standaloneScenario;
+	{
+		std::ifstream input(standaloneScenarioPath);
+		input >> standaloneScenario;
+	}
+	ok &= expect(standaloneScenario.is_object()
+			&& standaloneScenario["id"] == "baseline"
+			&& standaloneScenario["entrance_delays"].size() == 1
+			&& !standaloneScenario.contains("scenarios")
+			&& !standaloneScenario.contains("infrastructure"),
+			"standalone scenario JSON contains only scenario data");
+	const ScenarioLoadResult standaloneLoad = loadScenarioJson(standaloneScenarioPath.string());
+	ok &= expect(standaloneLoad.success()
+			&& standaloneLoad.scenario.id == source.scenarios[0].id
+			&& standaloneLoad.scenario.description == source.scenarios[0].description
+			&& standaloneLoad.scenario.incidents.size() == source.scenarios[0].incidents.size()
+			&& standaloneLoad.scenario.entranceDelays.size() == 1
+			&& standaloneLoad.scenario.entranceDelays[0].delaySeconds == 30.0,
+			"standalone scenario JSON round-trips incidents and entrance delays");
+	SceneScenario duplicateScenario = source.scenarios[0];
+	duplicateScenario.id = "baseline-copy";
+	duplicateScenario.incidents[0].id = "incident-copy";
+	const fs::path duplicateScenarioPath = temp.path / "baseline-copy.json";
+	ok &= expect(saveScenarioJson(duplicateScenario, duplicateScenarioPath.string()).success(),
+			"duplicated scenario saves through the standalone boundary");
+	const ScenarioLoadResult duplicateLoad = loadScenarioJson(duplicateScenarioPath.string());
+	ok &= expect(duplicateLoad.success() && duplicateLoad.scenario.id == "baseline-copy"
+			&& duplicateLoad.scenario.incidents[0].id == "incident-copy",
+			"duplicated scenario round-trips with independent IDs");
+	const fs::path invalidScenarioPath = temp.path / "invalid-scenario.json";
+	{
+		std::ofstream output(invalidScenarioPath);
+		output << R"({"id":"broken","name":5,"incidents":[{"id":"only-id"}]})";
+	}
+	const ScenarioLoadResult invalidScenario = loadScenarioJson(invalidScenarioPath.string());
+	ok &= expect(!invalidScenario.success() && hasErrors(invalidScenario.diagnostics)
+			&& !invalidScenario.diagnostics.empty(),
+			"standalone scenario parser diagnoses structural and type errors");
 	json passengers;
 	{
 		std::ifstream input(temp.path / "passengers.json");

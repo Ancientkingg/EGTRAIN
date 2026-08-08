@@ -32,6 +32,7 @@
 #include <QMouseEvent>
 #include <QDialog>
 #include <QVBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QRadioButton>
 #include <QButtonGroup>
@@ -277,6 +278,33 @@ QStringList allTrainIds() {
 	return ids;
 }
 
+// Result windows are non-modal and may outlive the run that created them.
+// Capture one document per train now so later filtering never reads a newer run.
+std::function<std::string(const QStringList&)> snapshotCsv(
+		const std::function<std::string(const QStringList&)>& provider) {
+	std::vector<std::pair<QString, std::string>> documents;
+	for (const QString& trainId : allTrainIds()) {
+		const std::string document = provider(QStringList{trainId});
+		if (!document.empty())
+			documents.push_back({trainId, document});
+	}
+	return [documents = std::move(documents)](const QStringList& visibleTrainIds) {
+		std::string combined;
+		for (const auto& entry : documents) {
+			if (!visibleTrainIds.contains(entry.first))
+				continue;
+			if (combined.empty()) {
+				combined = entry.second;
+				continue;
+			}
+			const std::size_t firstRow = entry.second.find('\n');
+			if (firstRow != std::string::npos)
+				combined.append(entry.second, firstRow + 1, std::string::npos);
+		}
+		return combined;
+	};
+}
+
 // Write CSV text atomically to a fixed path. Used by the headless export check.
 bool writeCsvFile(const QString& path, const std::string& content) {
 	QSaveFile file(path);
@@ -343,7 +371,8 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 }
 
 bool e2eDialogsSuppressed() {
-	return qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH")
+	return qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE")
@@ -1383,7 +1412,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_stopDepartureSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDepartureSeconds);
 	connect(m_stopDwellSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDwellSeconds);
 
-	// incident editor: dockable panel for the default scenario's incidents. each
+	// scenario library and incident editor. each
 	// incident has a type (signal_failure or train_breakdown) and a target whose
 	// valid choices depend on that type, analogous to a stop's platform choices
 	// depending on the selected station.
@@ -1391,6 +1420,42 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentDock->setObjectName("incidentDock");
 	QWidget* incidentWidget = new QWidget(m_incidentDock);
 	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
+
+	QWidget* scenarioPane = new QWidget(incidentWidget);
+	QVBoxLayout* scenarioLayout = new QVBoxLayout(scenarioPane);
+	scenarioLayout->addWidget(new QLabel("Scenarios", scenarioPane));
+	m_scenarioListWidget = new QListWidget(scenarioPane);
+	m_scenarioListWidget->setObjectName("scenarioListWidget");
+	m_scenarioListWidget->setAccessibleName("Scenario library");
+	m_scenarioListWidget->setTextElideMode(Qt::ElideRight);
+	m_scenarioListWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scenarioLayout->addWidget(m_scenarioListWidget);
+	QGridLayout* scenarioButtonLayout = new QGridLayout();
+	m_blankScenarioButton = new QPushButton("Blank", scenarioPane);
+	m_blankScenarioButton->setObjectName("blankScenarioButton");
+	m_duplicateScenarioButton = new QPushButton("Duplicate", scenarioPane);
+	m_duplicateScenarioButton->setObjectName("duplicateScenarioButton");
+	m_importScenarioButton = new QPushButton("Import JSON...", scenarioPane);
+	m_importScenarioButton->setObjectName("importScenarioButton");
+	m_exportScenarioButton = new QPushButton("Export JSON...", scenarioPane);
+	m_exportScenarioButton->setObjectName("exportScenarioButton");
+	const QList<QPushButton*> scenarioButtons{m_blankScenarioButton, m_duplicateScenarioButton,
+		m_importScenarioButton, m_exportScenarioButton};
+	for (int index = 0; index < scenarioButtons.size(); ++index)
+		scenarioButtonLayout->addWidget(scenarioButtons[index], index / 2, index % 2);
+	scenarioLayout->addLayout(scenarioButtonLayout);
+	QFormLayout* scenarioDetailLayout = new QFormLayout();
+	m_scenarioIdEdit = new QLineEdit(scenarioPane);
+	m_scenarioIdEdit->setObjectName("scenarioIdEdit");
+	m_scenarioNameEdit = new QLineEdit(scenarioPane);
+	m_scenarioNameEdit->setObjectName("scenarioNameEdit");
+	m_scenarioDescriptionEdit = new QLineEdit(scenarioPane);
+	m_scenarioDescriptionEdit->setObjectName("scenarioDescriptionEdit");
+	scenarioDetailLayout->addRow("Scenario ID", m_scenarioIdEdit);
+	scenarioDetailLayout->addRow("Name", m_scenarioNameEdit);
+	scenarioDetailLayout->addRow("Description", m_scenarioDescriptionEdit);
+	scenarioLayout->addLayout(scenarioDetailLayout);
+	incidentLayout->addWidget(scenarioPane, 0);
 
 	// incident list and the buttons that manage it
 	QWidget* incidentListPane = new QWidget(incidentWidget);
@@ -1452,6 +1517,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_incidentListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateIncidentDetailPanel();
 	});
+	connect(m_scenarioListWidget, &QListWidget::currentRowChanged, this, &MainWindow::selectScenario);
+	connect(m_scenarioIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitScenarioIdEdit);
+	connect(m_scenarioNameEdit, &QLineEdit::editingFinished, this, &MainWindow::commitScenarioNameEdit);
+	connect(m_scenarioDescriptionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitScenarioDescriptionEdit);
+	connect(m_blankScenarioButton, &QPushButton::clicked, this, &MainWindow::addBlankScenario);
+	connect(m_duplicateScenarioButton, &QPushButton::clicked, this, &MainWindow::duplicateScenario);
+	connect(m_importScenarioButton, &QPushButton::clicked, this, &MainWindow::importScenario);
+	connect(m_exportScenarioButton, &QPushButton::clicked, this, &MainWindow::exportScenario);
 	connect(m_incidentIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentIdEdit);
 	connect(m_incidentTypeCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentType);
 	connect(m_incidentTargetCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentTarget);
@@ -1576,9 +1649,14 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_sceneLoaded = true;
 	m_sceneIsBundle = QFileInfo(scenePath).isFile();
 	m_sceneDirty = false;
-	m_runtimeStatus = QStringLiteral("Not built");
-	m_runtimeDiagnostics.clear();
-	m_resultsAvailable = false;
+	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
+	if (m_selectedScenarioId.empty() && !m_sceneModel.scenarios.empty()) {
+		m_selectedScenarioId = m_sceneModel.scenarios.front().id;
+		m_sceneModel.defaultScenarioId = m_selectedScenarioId;
+	}
+	m_modifiedScenarioIds.clear();
+	m_sceneDiagnostics.clear();
+	invalidateRunResults();
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	updateSceneWindowTitle();
 	updateCaseLayersPanel();
@@ -1712,6 +1790,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 
 	refreshSavedSceneMetadata(m_sceneModel);
 	m_sceneDirty = false;
+	m_modifiedScenarioIds.clear();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	statusBar()->showMessage("Scene saved");
@@ -1863,9 +1942,9 @@ void MainWindow::updateSceneActions() {
 	if (m_saveSceneAsFolderAction)
 		m_saveSceneAsFolderAction->setEnabled(m_sceneLoaded);
 	if (m_runSceneAction)
-		m_runSceneAction->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
+		m_runSceneAction->setEnabled(m_sceneLoaded && !m_worker && !hasErrors(m_sceneDiagnostics));
 	if (ui->actionSimulationStart) {
-		const bool sceneRunnable = m_sceneLoaded && !hasErrors(m_sceneDiagnostics);
+		const bool sceneRunnable = m_sceneLoaded && !m_worker && !hasErrors(m_sceneDiagnostics);
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
 		ui->actionSimulationStart->setToolTip(QString("Run simulation (Ctrl+R)"));
 	}
@@ -1884,6 +1963,7 @@ void MainWindow::refreshValidationPanel() {
 		if (m_validationStatusLabel)
 			m_validationStatusLabel->clear();
 		refreshLoadedDataTree();
+		refreshScenarioList();
 		updateSceneActions();
 		updateCaseLayersPanel();
 		return;
@@ -1918,6 +1998,7 @@ void MainWindow::refreshValidationPanel() {
 	if (m_validationStatusLabel)
 		m_validationStatusLabel->setText(message);
 	refreshLoadedDataTree();
+	refreshScenarioList();
 	updateSceneActions();
 	updateCaseLayersPanel();
 }
@@ -1972,6 +2053,17 @@ void MainWindow::refreshLoadedDataTree() {
 	}
 	auto* runtimeAndResults = addRow(caseRoot, "Runtime and results", QString(), QString(),
 			m_runtimeStatus);
+	const bool runtimeReady = m_runtimeStatus == "Ready" || m_runtimeStatus == "Running"
+		|| m_runtimeStatus == "Completed";
+	const bool runAttempted = m_runtimeStatus != "Not built";
+	addRow(runtimeAndResults, "Runtime infrastructure", QString(), "1",
+		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
+	addRow(runtimeAndResults, "Runtime rolling stock", QString(), "1",
+		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
+	addRow(runtimeAndResults, "Applied scenario", m_appliedScenarioId.empty()
+		? QStringLiteral("(none)") : QString::fromStdString(m_appliedScenarioId), "1",
+		runAttempted ? m_runtimeStatus : QStringLiteral("Not built"));
+	addRow(runtimeAndResults, "Current run", QString(), "1", m_runtimeStatus);
 	auto* runtime = addRow(runtimeAndResults, "Runtime", QString(),
 			QString::number(static_cast<int>(m_runtimeDiagnostics.size())), m_runtimeStatus);
 	for (const auto& diagnostic : m_runtimeDiagnostics) {
@@ -2051,7 +2143,7 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 			raiseDock(targetDock);
 		}
 	} else if (targetType == "incident" && m_incidentListWidget) {
-		const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
+		const auto& incidents = selectedScenarioIncidents();
 		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
 			if (QString::fromStdString(incidents[static_cast<std::size_t>(row)].id) == targetId) {
 				m_incidentListWidget->setCurrentRow(row);
@@ -2064,9 +2156,34 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 
 void MainWindow::markSceneDirty() {
 	m_sceneDirty = true;
+	if (m_worker) {
+		m_sceneChangedDuringRun = true;
+		m_resultsAvailable = false;
+		refreshLoadedDataTree();
+		updateDiagramActions();
+	} else {
+		invalidateRunResults();
+	}
+	updateSceneWindowTitle();
+	updateSceneActions();
+}
+
+void MainWindow::invalidateRunResults() {
 	m_runtimeStatus = QStringLiteral("Not built");
 	m_runtimeDiagnostics.clear();
 	m_resultsAvailable = false;
+	m_sceneChangedDuringRun = false;
+	m_appliedScenarioId.clear();
+	if (m_runResultsTable)
+		m_runResultsTable->setRowCount(0);
+	if (m_runResultsSummaryLabel)
+		m_runResultsSummaryLabel->setText(QString("No completed run | Scenario: %1").arg(scenarioContext()));
+	if (m_runResultsDock)
+		m_runResultsDock->setWindowTitle(QString("Run Results — %1 (not built)").arg(scenarioContext()));
+	if (m_runResultsDock)
+		m_runResultsDock->hide();
+	refreshLoadedDataTree();
+	updateDiagramActions();
 }
 
 void MainWindow::refreshTrainUnitPanel() {
@@ -3558,9 +3675,168 @@ void MainWindow::commitStopDwellSeconds() {
 	refreshValidationPanel();
 }
 
+SceneScenario* MainWindow::selectedScenario() {
+	if (!m_sceneLoaded)
+		return nullptr;
+	for (auto& scenario : m_sceneModel.scenarios) {
+		if (scenario.id == m_selectedScenarioId)
+			return &scenario;
+	}
+	return defaultScenario(m_sceneModel);
+}
+
+const SceneScenario* MainWindow::selectedScenario() const {
+	if (!m_sceneLoaded)
+		return nullptr;
+	for (const auto& scenario : m_sceneModel.scenarios) {
+		if (scenario.id == m_selectedScenarioId)
+			return &scenario;
+	}
+	return defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
+}
+
+std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() {
+	static std::vector<SceneIncident> empty;
+	SceneScenario* scenario = selectedScenario();
+	return scenario ? scenario->incidents : empty;
+}
+
+const std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() const {
+	static const std::vector<SceneIncident> empty;
+	const SceneScenario* scenario = selectedScenario();
+	return scenario ? scenario->incidents : empty;
+}
+
+QString MainWindow::scenarioContext() const {
+	if (!m_appliedScenarioId.empty())
+		return QString::fromStdString(m_appliedScenarioId);
+	const SceneScenario* scenario = selectedScenario();
+	return scenario ? QString::fromStdString(scenario->id) : QStringLiteral("(none)");
+}
+
+std::string MainWindow::uniqueScenarioId(const std::string& baseId) const {
+	const std::string base = baseId.empty() ? "scenario" : baseId;
+	std::string candidate = base;
+	int suffix = 2;
+	for (;;) {
+		bool used = false;
+		for (const auto& scenario : m_sceneModel.scenarios) {
+			if (scenario.id == candidate) {
+				used = true;
+				break;
+			}
+		}
+		if (!used)
+			return candidate;
+		candidate = base + "_" + std::to_string(suffix++);
+	}
+}
+
+void MainWindow::markScenarioModified() {
+	if (const SceneScenario* scenario = selectedScenario())
+		m_modifiedScenarioIds.insert(scenario->id);
+	markSceneDirty();
+}
+
+void MainWindow::selectScenario(int row) {
+	if (!m_sceneLoaded || m_worker || row < 0
+			|| row >= static_cast<int>(m_sceneModel.scenarios.size()))
+		return;
+	const std::string id = m_sceneModel.scenarios[static_cast<std::size_t>(row)].id;
+	if (id == m_selectedScenarioId) {
+		updateScenarioDetailPanel();
+		updateIncidentDetailPanel();
+		return;
+	}
+	m_selectedScenarioId = id;
+	invalidateRunResults();
+	refreshIncidentPanel();
+}
+
+void MainWindow::updateScenarioDetailPanel() {
+	const SceneScenario* scenario = selectedScenario();
+	const bool enabled = m_sceneLoaded && !m_worker && scenario != nullptr;
+	if (m_scenarioIdEdit) {
+		const QSignalBlocker blocker(m_scenarioIdEdit);
+		m_scenarioIdEdit->setText(enabled ? QString::fromStdString(scenario->id) : QString());
+		m_scenarioIdEdit->setEnabled(enabled);
+	}
+	if (m_scenarioNameEdit) {
+		const QSignalBlocker blocker(m_scenarioNameEdit);
+		m_scenarioNameEdit->setText(enabled ? QString::fromStdString(scenario->name) : QString());
+		m_scenarioNameEdit->setEnabled(enabled);
+	}
+	if (m_scenarioDescriptionEdit) {
+		const QSignalBlocker blocker(m_scenarioDescriptionEdit);
+		m_scenarioDescriptionEdit->setText(enabled ? QString::fromStdString(scenario->description) : QString());
+		m_scenarioDescriptionEdit->setEnabled(enabled);
+	}
+	if (m_blankScenarioButton)
+		m_blankScenarioButton->setEnabled(m_sceneLoaded && !m_worker);
+	if (m_duplicateScenarioButton)
+		m_duplicateScenarioButton->setEnabled(enabled);
+	if (m_importScenarioButton)
+		m_importScenarioButton->setEnabled(m_sceneLoaded && !m_worker);
+	if (m_exportScenarioButton)
+		m_exportScenarioButton->setEnabled(enabled);
+}
+
+void MainWindow::refreshScenarioList() {
+	const bool hasScene = m_sceneLoaded;
+	if (m_selectedScenarioId.empty() && hasScene) {
+		if (const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(m_sceneModel)))
+			m_selectedScenarioId = scenario->id;
+	}
+
+	if (m_scenarioListWidget) {
+		const QSignalBlocker blocker(m_scenarioListWidget);
+		m_scenarioListWidget->clear();
+		int rowToSelect = -1;
+		const auto validationStatus = [this](std::size_t index) {
+			const std::string prefix = "scenarios[" + std::to_string(index) + "]";
+			int errors = 0;
+			int warnings = 0;
+			for (const auto& diagnostic : m_sceneDiagnostics) {
+				if (diagnostic.path.rfind(prefix, 0) != 0)
+					continue;
+				if (diagnostic.severity == SceneSeverity::Error)
+					++errors;
+				else if (diagnostic.severity == SceneSeverity::Warning)
+					++warnings;
+			}
+			return errors > 0 ? QStringLiteral("Invalid")
+				: (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
+		};
+		for (std::size_t index = 0; hasScene && index < m_sceneModel.scenarios.size(); ++index) {
+			const SceneScenario& scenario = m_sceneModel.scenarios[index];
+			const QString description = scenario.description.empty()
+				? QStringLiteral("(no description)") : QString::fromStdString(scenario.description);
+			QString label = QString("%1 — %2 | %3 | %4 incident(s) | %5")
+				.arg(QString::fromStdString(scenario.id))
+				.arg(QString::fromStdString(scenario.name))
+				.arg(description)
+				.arg(static_cast<int>(scenario.incidents.size()))
+				.arg(validationStatus(index));
+			if (scenario.id == m_sceneModel.defaultScenarioId)
+				label += " | default";
+			if (m_modifiedScenarioIds.count(scenario.id) > 0)
+				label += " | modified";
+			auto* item = new QListWidgetItem(label, m_scenarioListWidget);
+			item->setToolTip(label);
+			if (scenario.id == m_selectedScenarioId)
+				rowToSelect = static_cast<int>(index);
+		}
+		m_scenarioListWidget->setCurrentRow(rowToSelect);
+		m_scenarioListWidget->setEnabled(hasScene && !m_worker);
+	}
+
+	updateScenarioDetailPanel();
+}
+
 void MainWindow::refreshIncidentPanel() {
-	bool hasScene = m_sceneLoaded;
-	const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
+	const bool hasScene = m_sceneLoaded;
+	refreshScenarioList();
+	const auto& incidents = selectedScenarioIncidents();
 
 	if (m_incidentListWidget) {
 		int previousRow = m_incidentListWidget->currentRow();
@@ -3583,19 +3859,174 @@ void MainWindow::refreshIncidentPanel() {
 				rowToSelect = previousRow;
 		}
 		m_incidentListWidget->setCurrentRow(rowToSelect);
-		m_incidentListWidget->setEnabled(hasScene);
+		m_incidentListWidget->setEnabled(hasScene && !m_worker);
 	}
 
 	if (m_addIncidentButton)
-		m_addIncidentButton->setEnabled(hasScene);
+		m_addIncidentButton->setEnabled(hasScene && !m_worker);
 
 	updateIncidentDetailPanel();
 }
 
+void MainWindow::addBlankScenario() {
+	if (!m_sceneLoaded)
+		return;
+	SceneScenario scenario;
+	scenario.id = uniqueScenarioId("new_scenario");
+	scenario.name = "New scenario";
+	m_sceneModel.scenarios.push_back(std::move(scenario));
+	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	markScenarioModified();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+}
+
+void MainWindow::duplicateScenario() {
+	const SceneScenario* selected = selectedScenario();
+	if (!selected)
+		return;
+	SceneScenario copy = *selected;
+	copy.id = uniqueScenarioId(copy.id + "_copy");
+	copy.name = "Copy of " + copy.name;
+	for (auto& incident : copy.incidents)
+		incident.id = uniqueIncidentId(incident.id + "_copy");
+	m_sceneModel.scenarios.push_back(std::move(copy));
+	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	markScenarioModified();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+}
+
+void MainWindow::exportScenario() {
+	const SceneScenario* scenario = selectedScenario();
+	if (!scenario)
+		return;
+	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", scenarioContext() + ".json",
+			"Scenario JSON (*.json)");
+	if (path.isEmpty())
+		return;
+	if (!path.endsWith(".json", Qt::CaseInsensitive))
+		path += ".json";
+	const SceneSaveResult result = saveScenarioJson(*scenario, path.toStdString());
+	if (!result.success()) {
+		showBlockingError(this, "Scenario export failed", firstDiagnosticMessage(result.diagnostics), true);
+		return;
+	}
+	statusBar()->showMessage(QString("Exported scenario %1").arg(scenarioContext()), 4000);
+}
+
+void MainWindow::importScenario() {
+	if (!m_sceneLoaded)
+		return;
+	const QString path = QFileDialog::getOpenFileName(this, "Import Scenario", QDir::homePath(),
+			"Scenario JSON (*.json)");
+	if (path.isEmpty())
+		return;
+	const ScenarioLoadResult loaded = loadScenarioJson(path.toStdString());
+	if (!loaded.success()) {
+		showBlockingError(this, "Scenario import failed", firstDiagnosticMessage(loaded.diagnostics), true);
+		return;
+	}
+	SceneScenario imported = loaded.scenario;
+	const std::string requestedId = imported.id;
+	const std::string uniqueId = uniqueScenarioId(imported.id);
+	const bool scenarioConflict = uniqueId != imported.id;
+	if (scenarioConflict)
+		imported.id = uniqueId;
+	int adjustedIncidentCount = 0;
+	for (auto& incident : imported.incidents) {
+		const std::string uniqueIncident = uniqueIncidentId(incident.id);
+		if (uniqueIncident != incident.id) {
+			incident.id = uniqueIncident;
+			++adjustedIncidentCount;
+		}
+	}
+
+	SceneModel candidate = m_sceneModel;
+	candidate.scenarios.push_back(imported);
+	const std::size_t candidateIndex = candidate.scenarios.size() - 1;
+	const std::string prefix = "scenarios[" + std::to_string(candidateIndex) + "]";
+	QStringList errors;
+	for (const auto& diagnostic : validateScene(candidate)) {
+		if (diagnostic.severity == SceneSeverity::Error && diagnostic.path.rfind(prefix, 0) == 0)
+			errors << QString::fromStdString(diagnostic.message);
+	}
+	if (!errors.isEmpty()) {
+		showBlockingError(this, "Scenario import rejected", errors.join("\n"), true);
+		return;
+	}
+	m_sceneModel.scenarios.push_back(std::move(imported));
+	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	markScenarioModified();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_selectedScenarioId));
+	if (scenarioConflict)
+		message += QString(" (ID %1 already existed; imported as %2)")
+			.arg(QString::fromStdString(requestedId), QString::fromStdString(m_selectedScenarioId));
+	if (adjustedIncidentCount > 0)
+		message += QString(" %1 incident ID(s) adjusted to remain globally unique.")
+			.arg(adjustedIncidentCount);
+	statusBar()->showMessage(message, 7000);
+	if ((scenarioConflict || adjustedIncidentCount > 0) && !e2eDialogsSuppressed())
+		QMessageBox::information(this, "Scenario ID adjusted", message);
+}
+
+void MainWindow::commitScenarioIdEdit() {
+	SceneScenario* scenario = selectedScenario();
+	if (!scenario || !m_scenarioIdEdit)
+		return;
+	const std::string newId = m_scenarioIdEdit->text().trimmed().toStdString();
+	if (newId.empty() || newId == scenario->id) {
+		if (newId.empty())
+			showBlockingError(this, "Invalid Scenario ID", "Scenario IDs must not be empty.", true);
+		updateScenarioDetailPanel();
+		return;
+	}
+	if (uniqueScenarioId(newId) != newId) {
+		showBlockingError(this, "Scenario ID already exists", "Choose a unique scenario ID.", true);
+		updateScenarioDetailPanel();
+		return;
+	}
+	const std::string oldId = scenario->id;
+	scenario->id = newId;
+	if (m_sceneModel.defaultScenarioId == oldId)
+		m_sceneModel.defaultScenarioId = newId;
+	m_selectedScenarioId = newId;
+	m_modifiedScenarioIds.erase(oldId);
+	markScenarioModified();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitScenarioNameEdit() {
+	SceneScenario* scenario = selectedScenario();
+	if (!scenario || !m_scenarioNameEdit)
+		return;
+	const std::string value = m_scenarioNameEdit->text().toStdString();
+	if (value == scenario->name)
+		return;
+	scenario->name = value;
+	markScenarioModified();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitScenarioDescriptionEdit() {
+	SceneScenario* scenario = selectedScenario();
+	if (!scenario || !m_scenarioDescriptionEdit)
+		return;
+	const std::string value = m_scenarioDescriptionEdit->text().toStdString();
+	if (value == scenario->description)
+		return;
+	scenario->description = value;
+	markScenarioModified();
+	refreshValidationPanel();
+}
+
 void MainWindow::updateIncidentDetailPanel() {
-	const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
+	const auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(incidents.size());
+	bool hasSelection = m_sceneLoaded && !m_worker && row >= 0
+		&& row < static_cast<int>(incidents.size());
 
 	if (m_incidentIdEdit) {
 		const QSignalBlocker blocker(m_incidentIdEdit);
@@ -3644,9 +4075,10 @@ void MainWindow::refreshIncidentTargetCombo() {
 	if (!m_incidentTargetCombo)
 		return;
 
-	const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
+	const auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(incidents.size());
+	bool hasSelection = m_sceneLoaded && !m_worker && row >= 0
+		&& row < static_cast<int>(incidents.size());
 
 	const QSignalBlocker blocker(m_incidentTargetCombo);
 	m_incidentTargetCombo->clear();
@@ -3682,11 +4114,12 @@ void MainWindow::refreshIncidentTargetCombo() {
 }
 
 std::string MainWindow::uniqueIncidentId(const std::string& baseId) const {
-	const auto& incidents = defaultScenarioIncidents(m_sceneModel);
-	auto idExists = [&incidents](const std::string& id) {
-		for (const auto& incident : incidents) {
-			if (incident.id == id)
-				return true;
+	auto idExists = [this](const std::string& id) {
+		for (const auto& scenario : m_sceneModel.scenarios) {
+			for (const auto& incident : scenario.incidents) {
+				if (incident.id == id)
+					return true;
+			}
 		}
 		return false;
 	};
@@ -3704,15 +4137,13 @@ void MainWindow::addIncident() {
 	if (!m_sceneLoaded)
 		return;
 
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	SceneIncident incident;
 	incident.id = uniqueIncidentId("new_incident");
 	incident.type = "signal_failure";
 	incidents.push_back(incident);
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 	refreshIncidentPanel();
 
@@ -3723,7 +4154,7 @@ void MainWindow::addIncident() {
 void MainWindow::duplicateIncident() {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
@@ -3732,9 +4163,7 @@ void MainWindow::duplicateIncident() {
 	duplicate.id = uniqueIncidentId(duplicate.id + "_copy");
 	incidents.insert(incidents.begin() + row + 1, duplicate);
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 	refreshIncidentPanel();
 
@@ -3745,7 +4174,7 @@ void MainWindow::duplicateIncident() {
 void MainWindow::deleteIncident() {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
@@ -3761,9 +4190,7 @@ void MainWindow::deleteIncident() {
 
 	incidents.erase(incidents.begin() + row);
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 	refreshIncidentPanel();
 }
@@ -3771,14 +4198,24 @@ void MainWindow::deleteIncident() {
 void MainWindow::commitIncidentIdEdit() {
 	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentIdEdit)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
 	std::string newId = m_incidentIdEdit->text().trimmed().toStdString();
-	if (newId == incidents[row].id)
+	if (newId.empty() || newId == incidents[row].id) {
+		if (newId.empty())
+			showBlockingError(this, "Invalid Incident ID", "Incident IDs must not be empty.", true);
+		updateIncidentDetailPanel();
 		return;
+	}
+	if (uniqueIncidentId(newId) != newId) {
+		showBlockingError(this, "Incident ID already exists",
+			"Incident IDs must be unique across all scenarios.", true);
+		updateIncidentDetailPanel();
+		return;
+	}
 
 	incidents[row].id = newId;
 
@@ -3790,16 +4227,14 @@ void MainWindow::commitIncidentIdEdit() {
 		item->setText(label);
 	}
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 }
 
 void MainWindow::commitIncidentType(const QString& text) {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
@@ -3849,9 +4284,7 @@ void MainWindow::commitIncidentType(const QString& text) {
 		item->setText(label);
 	}
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 
 	// rebuild only the target combo; the type combo already shows the new value
@@ -3862,7 +4295,7 @@ void MainWindow::commitIncidentType(const QString& text) {
 void MainWindow::commitIncidentTarget(const QString& text) {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
@@ -3874,16 +4307,14 @@ void MainWindow::commitIncidentTarget(const QString& text) {
 	incidents[row].target = newTarget;
 
 	// the combo already shows the chosen value; no panel rebuild needed
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 }
 
 void MainWindow::commitIncidentStartSeconds() {
 	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentStartSecondsEdit)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
@@ -3905,16 +4336,14 @@ void MainWindow::commitIncidentStartSeconds() {
 
 	incidents[row].startSeconds = newValue;
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 }
 
 void MainWindow::commitIncidentEndSeconds() {
 	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentEndSecondsEdit)
 		return;
-	auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto& incidents = selectedScenarioIncidents();
 	int row = m_incidentListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
@@ -3936,9 +4365,7 @@ void MainWindow::commitIncidentEndSeconds() {
 
 	incidents[row].endSeconds = newValue;
 
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
+	markScenarioModified();
 	refreshValidationPanel();
 }
 
@@ -4985,9 +5412,13 @@ void MainWindow::runVisualPolishE2E() {
 	showNormal();
 	resize(1024, 720);
 	QApplication::processEvents();
-	checkTabTraversal(openCaseAction, {"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton",
-		"speedSlider", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
-		"actionZoomOutButton", "actionFitButton"});
+	QStringList expectedTabTraversal{"openCaseButton"};
+	if (runAction && runAction->isEnabled())
+		expectedTabTraversal << "actionRunButton";
+	expectedTabTraversal << "actionPauseButton" << "actionStopButton" << "speedSlider"
+		<< "actionFollowButton" << "followTrainCombo" << "actionZoomInButton"
+		<< "actionZoomOutButton" << "actionFitButton";
+	checkTabTraversal(openCaseAction, expectedTabTraversal);
 
 	const auto caseDock = findChild<QDockWidget*>("caseLayersDock");
 	if (!caseDock || !caseDock->isVisible()) {
@@ -6351,6 +6782,26 @@ void MainWindow::runEditorSmokeE2E() {
 			ok = false;
 			failures << "service: pane empty";
 		}
+		bool scenarioOk = m_scenarioListWidget && m_scenarioListWidget->count() > 0
+			&& m_selectedScenarioId == m_sceneModel.defaultScenarioId;
+		if (!scenarioOk) {
+			ok = false;
+			failures << "scenario: canonical default was not initially selected";
+		} else {
+			const int originalScenarioCount = m_scenarioListWidget->count();
+			addBlankScenario();
+			duplicateScenario();
+			if (m_scenarioListWidget->count() != originalScenarioCount + 2) {
+				ok = false;
+				failures << "scenario: blank or duplicate did not add an isolated scenario";
+			}
+			m_scenarioListWidget->setCurrentRow(0);
+			QApplication::processEvents();
+			if (m_selectedScenarioId != m_sceneModel.defaultScenarioId) {
+				ok = false;
+				failures << "scenario: selection did not return to canonical default";
+			}
+		}
 		bool explorerOk = m_loadedDataTree && m_loadedDataTree->topLevelItemCount() > 0;
 		QTreeWidgetItem* caseRoot = explorerOk ? m_loadedDataTree->topLevelItem(0) : nullptr;
 		explorerOk = explorerOk && caseRoot->text(0) == "Case Study"
@@ -6429,7 +6880,7 @@ void MainWindow::runEditorSmokeE2E() {
 		expectedCompositions = m_sceneModel.compositions;
 		expectedTrainUnits = m_sceneModel.trainUnits;
 		expectedServices = m_sceneModel.services;
-		expectedIncidents = defaultScenarioIncidents(m_sceneModel);
+		expectedIncidents = selectedScenarioIncidents();
 	}
 
 	std::string editedTrainUnitId;
@@ -6875,7 +7326,7 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "incident", "delete did not apply");
 		}
 		int editedRow = -1;
-		const auto& incidents = defaultScenarioIncidents(m_sceneModel);
+		const auto& incidents = selectedScenarioIncidents();
 		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
 			if (incidents[row].id == editedIncidentId) {
 				editedRow = row;
@@ -6918,7 +7369,7 @@ void MainWindow::runEditorSmokeE2E() {
 			expectedTrainUnits = m_sceneModel.trainUnits;
 			expectedCompositions = m_sceneModel.compositions;
 			expectedServices = m_sceneModel.services;
-			expectedIncidents = defaultScenarioIncidents(m_sceneModel);
+			expectedIncidents = selectedScenarioIncidents();
 			auto result = ::saveScene(m_sceneModel, outScenePath.toStdString());
 			if (!result.success()) {
 				facetFailure(facetOk, "save/reload", "save failed");
@@ -6930,7 +7381,7 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
 			} else if (!sameServices(expectedServices, m_sceneModel.services)) {
 				facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
-			} else if (!sameIncidents(expectedIncidents, defaultScenarioIncidents(m_sceneModel))) {
+			} else if (!sameIncidents(expectedIncidents, selectedScenarioIncidents())) {
 				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
 			} else if (m_sceneDirty || hasErrors(m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
@@ -7815,12 +8266,17 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(1000, this, &MainWindow::runLegacyImportE2E);
 }
 
-// True when a completed or loaded run left trajectory data to plot.
-bool MainWindow::hasRunResults() const {
+bool MainWindow::hasRawRunResults() const {
 	for (int i = 0; i < numRegions; ++i)
 		if (regional_train[i].trajectorySize() > 0)
 			return true;
 	return false;
+}
+
+// Raw trajectories can survive a scene edit; the explicit availability flag is
+// the ownership boundary for result actions.
+bool MainWindow::hasRunResults() const {
+	return m_resultsAvailable && hasRawRunResults();
 }
 
 // Enable the diagram entries only while run results exist; a disabled entry
@@ -7838,6 +8294,12 @@ void MainWindow::updateDiagramActions() {
 	if (ui->displayTrainPathDiagrams) {
 		ui->displayTrainPathDiagrams->setEnabled(available);
 		ui->displayTrainPathDiagrams->setStatusTip(hint);
+	}
+	if (m_runResultsDock) {
+		for (QPushButton* button : m_runResultsDock->findChildren<QPushButton*>()) {
+			if (button->objectName().startsWith("resultView_"))
+				button->setEnabled(available);
+		}
 	}
 }
 
@@ -7964,6 +8426,36 @@ void MainWindow::runCurrent() {
 		statusBar()->showMessage("Open a canonical scene before running.", 5000);
 }
 
+bool MainWindow::showRunReview() {
+	if (e2eDialogsSuppressed())
+		return true;
+	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
+	const QString summary = QString("Case study: %1\nScenario: %2\nServices: %3\nCompositions: %4\nIncidents: %5\nValidation: %6 error(s), %7 warning(s)")
+		.arg(QString::fromStdString(m_sceneModel.name))
+		.arg(scenarioContext())
+		.arg(static_cast<int>(m_sceneModel.services.size()))
+		.arg(static_cast<int>(m_sceneModel.compositions.size()))
+		.arg(static_cast<int>(selectedScenarioIncidents().size()))
+		.arg(counts.errors)
+		.arg(counts.warnings);
+	QMessageBox review(QMessageBox::Question, "Review run", summary, QMessageBox::NoButton, this);
+	QAbstractButton* runButton = review.addButton("Run", QMessageBox::AcceptRole);
+	QAbstractButton* loadedButton = review.addButton("Loaded Data", QMessageBox::ActionRole);
+	QAbstractButton* validationButton = review.addButton("Validation", QMessageBox::ActionRole);
+	review.addButton("Cancel", QMessageBox::RejectRole);
+	review.exec();
+	if (review.clickedButton() == runButton)
+		return true;
+	if (review.clickedButton() == loadedButton && m_loadedDataDock) {
+		m_loadedDataDock->show();
+		m_loadedDataDock->raise();
+	} else if (review.clickedButton() == validationButton && m_validationDock) {
+		m_validationDock->show();
+		m_validationDock->raise();
+	}
+	return false;
+}
+
 // starts EGTRAIN simulation on a worker thread
 void MainWindow::startSimulation() {
 	if (m_worker)
@@ -7976,6 +8468,8 @@ void MainWindow::startSimulation() {
 	// create worker and thread; sync slider before run() starts
 	m_worker = new SimulationWorker();
 	m_worker->setDelayMs(stepDelayForSlider(m_speedSlider->value()));
+	refreshIncidentPanel();
+	updateSceneActions();
 	m_workerThread = new QThread(this);
 	m_worker->moveToThread(m_workerThread);
 
@@ -7994,8 +8488,24 @@ void MainWindow::startSimulation() {
 
 // handle simulation completion on the main thread
 void MainWindow::onSimulationFinished() {
-	refreshRunResults();
-	m_resultsAvailable = hasRunResults();
+	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
+	m_sceneChangedDuringRun = false;
+	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
+	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed") : QStringLiteral("Failed");
+	if (m_resultsAvailable) {
+		refreshRunResults();
+	} else {
+		if (m_runResultsTable)
+			m_runResultsTable->setRowCount(0);
+		if (m_runResultsSummaryLabel)
+			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: Failed%3")
+				.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(),
+					sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
+		if (m_runResultsDock) {
+			m_runResultsDock->setWindowTitle(QString("Run Results — %1 (failed)").arg(scenarioContext()));
+			m_runResultsDock->hide();
+		}
+	}
 	refreshLoadedDataTree();
 
 	// verification hook: write every CSV export from the completed run, then exit
@@ -8006,11 +8516,13 @@ void MainWindow::onSimulationFinished() {
 		const auto dump = [&dir](const QString& file, const std::string& content) {
 			return content.empty() ? true : writeCsvFile(dir + "/" + file, content);
 		};
-		bool ok = true;
-		ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
-		ok &= dump("timetable.csv", buildTimetableCsv(ids));
-		ok &= dump("blocking_time.csv", buildBlockingTimeCsv(ids));
-		ok &= dump("run_summary.csv", buildRunSummaryCsv());
+		bool ok = m_resultsAvailable;
+		if (ok) {
+			ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
+			ok &= dump("timetable.csv", buildTimetableCsv(ids));
+			ok &= dump("blocking_time.csv", buildBlockingTimeCsv(ids));
+			ok &= dump("run_summary.csv", buildRunSummaryCsv());
+		}
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_CSV_EXPORT_OK\n" : "E2E_CSV_EXPORT_FAIL\n");
 		std::fflush(stdout);
 		std::fflush(stderr);
@@ -8024,16 +8536,18 @@ void MainWindow::onSimulationFinished() {
 
 	// hide progress bar
 	progressBar->hide();
-	statusBar()->showMessage("Simulation complete - open the Diagrams menu for results");
+	statusBar()->showMessage(sceneChangedDuringRun
+		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
+		: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
 	ui->actionSimulationPause->setText("Pause");
 	ui->actionSimulationPause->setChecked(false);
 
 	// The Run Results dock raised by refreshRunResults is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
-	updateSceneActions();
-
 	// cleanup thread
 	clearSimulationWorker(false);
+	refreshIncidentPanel();
+	updateSceneActions();
 }
 
 void MainWindow::teardownGUI() {
@@ -8129,6 +8643,8 @@ void MainWindow::runScene() {
 						  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
 		return;
 	}
+	if (!showRunReview())
+		return;
 
 	statusBar()->showMessage("Preparing scene simulation...");
 	QApplication::processEvents();
@@ -8144,10 +8660,9 @@ void MainWindow::runScene() {
 		initial_variables.OutputMainFolder = outputPath.toStdString();
 	}
 	initial_variables.GUI = 1;
-	m_runtimeStatus = QStringLiteral("Not built");
-	m_runtimeDiagnostics.clear();
-	m_resultsAvailable = false;
-	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel);
+	invalidateRunResults();
+	m_appliedScenarioId = m_selectedScenarioId;
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_selectedScenarioId);
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
 		m_runtimeStatus = QStringLiteral("Failed");
@@ -8156,8 +8671,7 @@ void MainWindow::runScene() {
 		showBlockingError(this, "Cannot Run Scene", firstDiagnosticMessage(diagnostics), true);
 		return;
 	}
-	m_runtimeStatus = countDiagnostics(diagnostics).warnings > 0
-		? QStringLiteral("Warning") : QStringLiteral("Ready");
+	m_runtimeStatus = QStringLiteral("Ready");
 	refreshLoadedDataTree();
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
@@ -8170,6 +8684,8 @@ void MainWindow::runScene() {
 	updateCaseLayersPanel();
 	updateSceneActions();
 
+	m_runtimeStatus = QStringLiteral("Running");
+	refreshLoadedDataTree();
 	startSimulation();
 	statusBar()->showMessage(QString("Running scene: %1").arg(QString::fromStdString(m_sceneModel.name)));
 }
@@ -8827,12 +9343,34 @@ void MainWindow::setupRunResultsDock() {
 	QWidget* container = new QWidget(m_runResultsDock);
 	QVBoxLayout* containerLayout = new QVBoxLayout(container);
 	containerLayout->setContentsMargins(0, 0, 0, 0);
+	m_runResultsSummaryLabel = new QLabel(container);
+	m_runResultsSummaryLabel->setObjectName("runResultsContextLabel");
+	m_runResultsSummaryLabel->setWordWrap(true);
+	containerLayout->addWidget(m_runResultsSummaryLabel);
+	QHBoxLayout* resultViews = new QHBoxLayout();
+	const auto addResultViewButton = [this, resultViews](const QString& text, auto slot) {
+		auto* button = new QPushButton(text, m_runResultsDock);
+		button->setObjectName(QString("resultView_%1").arg(text).remove(' '));
+		connect(button, &QPushButton::clicked, this, slot);
+		resultViews->addWidget(button);
+	};
+	addResultViewButton("Timetable", &MainWindow::showTimetableTable);
+	addResultViewButton("Timetable graph", &MainWindow::showTimetableGraph);
+	addResultViewButton("Delays", &MainWindow::showDelayDiagram);
+	addResultViewButton("Speed / distance", &MainWindow::showSpeedDistanceDiagram);
+	addResultViewButton("Speed / time", &MainWindow::showSpeedTimeDiagram);
+	addResultViewButton("Time / distance", &MainWindow::showTimeDistanceDiagram);
+	addResultViewButton("Train paths", &MainWindow::displayTrainPathDiagrams);
+	addResultViewButton("Blocking time", &MainWindow::showBlockingTimeDiagram);
+	containerLayout->addLayout(resultViews);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
+	exportCsvBtn->setObjectName("resultView_ExportCSV");
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
 		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv());
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
+	exportPngBtn->setObjectName("resultView_ExportPNG");
 	exportPngBtn->setToolTip("Save the table as an image");
 	connect(exportPngBtn, &QPushButton::clicked, this, [this]() {
 		QString path = QFileDialog::getSaveFileName(this, "Export Table", "run_summary.png", "PNG Image (*.png)");
@@ -8857,6 +9395,10 @@ void MainWindow::setupRunResultsDock() {
 void MainWindow::refreshRunResults() {
 	if (!m_runResultsDock || !m_runResultsTable || numRegions <= 0)
 		return;
+	if (m_runResultsSummaryLabel)
+		m_runResultsSummaryLabel->setText(QString("Case: %1 | Scenario: %2 | Status: Completed")
+			.arg(QString::fromStdString(m_sceneModel.name), scenarioContext()));
+	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(scenarioContext()));
 
 	const auto trains = runResultTrainPointers();
 	const RunResults results = buildRunResults(trains, timestep);
@@ -10427,6 +10969,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 
 	QString title = "Train paths (time vs distance), corridor ";
 	title.append(QString::fromStdString(corridor));
+	title += QString(" [%1]").arg(scenarioContext());
 	chart->setTitle(title);
 
 	for (int i = 0; i < numRegions; i++) {
@@ -10526,7 +11069,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 	// panel, hover and click identification, and PNG and CSV export
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
-	win->setCsvProvider(&buildTrajectoryCsv, "train_path.csv");
+	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "train_path.csv");
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -10645,8 +11188,9 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	}
 
 	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance"};
+	const QString title = QString("%1 [%2]").arg(titles[mode], scenarioContext());
 	QChart* chart = new QChart();
-	chart->setTitle(titles[mode]);
+	chart->setTitle(title);
 
 	// one series per contiguous segment; legend distinguishes trains
 	for (int tr = 0; tr < numRegions; tr++) {
@@ -10681,9 +11225,9 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	if (!chart->axes(Qt::Vertical).isEmpty())
 		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
-	DiagramWindow* win = new DiagramWindow(titles[mode], this);
+	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
-	win->setCsvProvider(&buildTrajectoryCsv, "trajectory.csv");
+	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "trajectory.csv");
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(mode == 1 || mode == 2, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -10711,7 +11255,8 @@ void MainWindow::showTimetableTable() {
 	}
 
 	auto* window = new TimetableTableWindow(buildTimetableResults(runResultTrainPointers()),
-											m_startOffsetSeconds, &buildTimetableCsv, this);
+										m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
+	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(scenarioContext()));
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }
@@ -10723,7 +11268,8 @@ void MainWindow::showDelayDiagram() {
 	}
 
 	QChart* chart = new QChart();
-	chart->setTitle("Arrival delay along journey (minutes)");
+	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(scenarioContext());
+	chart->setTitle(title);
 	const auto rows = buildTimetableResults(runResultTrainPointers());
 
 	for (int i = 0; i < numRegions; i++) {
@@ -10752,9 +11298,9 @@ void MainWindow::showDelayDiagram() {
 		chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
 	}
 
-	DiagramWindow* win = new DiagramWindow("Arrival delay along journey (minutes)", this);
+	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
-	win->setCsvProvider(&buildTimetableCsv, "timetable.csv");
+	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(false, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -10768,7 +11314,9 @@ void MainWindow::showTimetableGraph() {
 	}
 
 	QChart* chart = new QChart();
-	chart->setTitle("Train graph: planned vs simulated arrival/departure");
+	const QString title = QString("Train graph: planned vs simulated arrival/departure [%1]")
+		.arg(scenarioContext());
+	chart->setTitle(title);
 	const auto rows = buildTimetableResults(runResultTrainPointers());
 
 	for (int i = 0; i < numRegions; i++) {
@@ -10832,9 +11380,9 @@ void MainWindow::showTimetableGraph() {
 	if (!chart->axes(Qt::Vertical).isEmpty())
 		chart->axes(Qt::Vertical).first()->setTitleText("Journey order (1-based)");
 
-	DiagramWindow* win = new DiagramWindow("Train graph: planned vs simulated arrival/departure", this);
+	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
-	win->setCsvProvider(&buildTimetableCsv, "timetable.csv");
+	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -10848,7 +11396,8 @@ void MainWindow::showBlockingTimeDiagram() {
 	}
 
 	QChart* chart = new QChart();
-	chart->setTitle("Blocking-time overlay");
+	const QString title = QString("Blocking-time overlay [%1]").arg(scenarioContext());
+	chart->setTitle(title);
 
 	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
 	std::vector<std::string> trainNames;
@@ -10967,9 +11516,9 @@ void MainWindow::showBlockingTimeDiagram() {
 		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
 	}
 
-	DiagramWindow* win = new DiagramWindow("Blocking-time overlay", this);
+	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
-	win->setCsvProvider(&buildBlockingTimeCsv, "blocking_time.csv");
+	win->setCsvProvider(snapshotCsv(&buildBlockingTimeCsv), "blocking_time.csv");
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
