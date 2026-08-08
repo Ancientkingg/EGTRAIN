@@ -27,7 +27,7 @@ or consults an `Input/` tree.
 | `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
 | `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
 | `passengers.json` | passenger journeys and legs | optional |
-| `views.json` | display preferences | optional |
+| `views.json` | reserved display preferences; recognized but not consumed by the current model/runtime | optional and unsupported |
 
 The six required files are the files needed for structural loading. A scene
 may therefore load without scenarios or passengers; the writer creates a
@@ -40,7 +40,9 @@ stock, services, and positive simulation duration.
 `SceneModel` owns the canonical values, not a second flat copy of legacy
 incidents. Incidents belong to a `SceneScenario`; the selected scenario is
 identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
-derived summaries. `import_report` is the persisted conversion summary, with
+derived, non-serialized summaries. Loaded-data navigation targets point only to
+existing editors and are not part of the canonical schema. `import_report` is
+the persisted conversion summary, with
 one row containing `category`, optional `source_file`, `source_count`,
 `converted_count`, `skipped_count`, and `unresolved_references`.
 

@@ -43,6 +43,7 @@
 #include <QSettings>
 #include <QIcon>
 #include <QToolButton>
+#include <QTreeWidgetItemIterator>
 #include <QStringList>
 #include <QRegularExpression>
 #include <cstdio>
@@ -61,6 +62,7 @@ constexpr int kOverlayMargin = 12;
 constexpr int kSignalDecorationRole = 0;
 constexpr int kSignalTrackRole = 1;
 constexpr int kSignalBaseVisibleRole = 2;
+constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -311,10 +313,31 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std
 
 void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const SceneLoadedData& item) {
 	auto* row = parent ? new QTreeWidgetItem(parent) : new QTreeWidgetItem(tree);
-	row->setText(0, QString::fromStdString(item.category));
+	QString label = QString::fromStdString(item.category);
+	const bool isEntityId = item.targetType == "train_unit" || item.targetType == "composition"
+		|| item.targetType == "service" || item.targetType == "incident";
+	if (!isEntityId && !label.contains(':')) {
+		label.replace('_', ' ');
+		if (!label.isEmpty())
+			label[0] = label[0].toUpper();
+		if (label == "Scene")
+			label = "Case metadata";
+	}
+	row->setText(0, label);
 	row->setText(1, QString::fromStdString(item.sourceFile));
 	row->setText(2, QString::number(item.parsedCount));
 	row->setText(3, QString::fromStdString(item.status));
+	if (!item.targetType.empty()) {
+		row->setData(0, kLoadedDataTargetTypeRole, QString::fromStdString(item.targetType));
+		const QString tooltip = item.targetType == "network"
+			? QStringLiteral("Activate this row to focus the existing network view.")
+			: (item.targetType == "validation"
+				? QStringLiteral("Activate this row to open the existing validation table.")
+				: (item.targetType == "train_unit_plot"
+					? QStringLiteral("Activate this row to plot this train unit's tractive effort.")
+					: QStringLiteral("Activate this row to open the existing editor.")));
+		row->setToolTip(0, tooltip);
+	}
 	for (const auto& child : item.children)
 		addLoadedDataTreeItem(tree, row, child);
 }
@@ -1010,6 +1033,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_loadedDataTree->setHeaderLabels(QStringList() << "Category" << "Source" << "Count" << "Status");
 	m_loadedDataTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_loadedDataTree->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_loadedDataTree->setUniformRowHeights(true);
+	m_loadedDataTree->setToolTip("Activate rows to open existing editors.");
+	m_loadedDataTree->setAccessibleDescription("Loaded case data. Activatable rows open existing editors.");
 	m_loadedDataTree->header()->setStretchLastSection(true);
 	m_loadedDataDock->setWidget(m_loadedDataTree);
 	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
@@ -1017,6 +1043,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	tabifyDockWidget(m_validationDock, m_loadedDataDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
+	connect(m_loadedDataTree, &QTreeWidget::itemActivated, this,
+			[this](QTreeWidgetItem* item, int) { activateLoadedDataItem(item); });
 
 	// train-unit editor: one list/detail dock for physical values and traction
 	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
@@ -1061,14 +1089,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	}
 	trainUnitDetailLayout->addLayout(trainPhysicalLayout);
 
-	trainUnitDetailLayout->addWidget(new QLabel("Source data file", trainUnitDetailPane));
+	trainUnitDetailLayout->addWidget(new QLabel("Original parameter source", trainUnitDetailPane));
 	m_trainUnitSourceDataLabel = new QLabel(trainUnitDetailPane);
 	m_trainUnitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataLabel);
-	trainUnitDetailLayout->addWidget(new QLabel("Source traction file", trainUnitDetailPane));
+	trainUnitDetailLayout->addWidget(new QLabel("Original tractive-effort source", trainUnitDetailPane));
 	m_trainUnitSourceTractionLabel = new QLabel(trainUnitDetailPane);
 	m_trainUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionLabel);
+	m_plotTrainUnitTractionButton = new QPushButton("Plot tractive effort", trainUnitDetailPane);
+	trainUnitDetailLayout->addWidget(m_plotTrainUnitTractionButton);
 
 	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
 	m_trainUnitTractionTable = new QTableWidget(0, 5, trainUnitDetailPane);
@@ -1110,6 +1140,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_deleteTrainUnitButton, &QPushButton::clicked, this, &MainWindow::deleteTrainUnit);
 	connect(m_addTrainUnitTractionButton, &QPushButton::clicked, this, &MainWindow::addTrainUnitTractionRow);
 	connect(m_removeTrainUnitTractionButton, &QPushButton::clicked, this, &MainWindow::removeTrainUnitTractionRow);
+	connect(m_plotTrainUnitTractionButton, &QPushButton::clicked, this, [this]() {
+		const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
+		if (row >= 0 && row < static_cast<int>(m_sceneModel.trainUnits.size()))
+			plotTrainUnitTraction(m_sceneModel.trainUnits[static_cast<std::size_t>(row)]);
+	});
 	connect(m_trainUnitTractionTable, &QTableWidget::currentCellChanged, this, [this](int, int, int, int) {
 		if (m_removeTrainUnitTractionButton)
 			m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
@@ -1160,18 +1195,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	unitButtonLayout->addWidget(m_moveUnitDownButton);
 	compositionDetailLayout->addLayout(unitButtonLayout);
 
-	// selected unit: its LITRA and T_LITRA source files and the tractive-effort plot
-	compositionDetailLayout->addWidget(new QLabel("Rolling-stock data file (LITRA)", compositionDetailPane));
+	// selected unit: its original sources and the tractive-effort plot
+	compositionDetailLayout->addWidget(new QLabel("Original parameter source", compositionDetailPane));
 	m_compositionUnitSourceDataLabel = new QLabel(compositionDetailPane);
 	m_compositionUnitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	m_compositionUnitSourceDataLabel->setWordWrap(true);
 	compositionDetailLayout->addWidget(m_compositionUnitSourceDataLabel);
-	compositionDetailLayout->addWidget(new QLabel("Traction data file (T_LITRA)", compositionDetailPane));
+	compositionDetailLayout->addWidget(new QLabel("Original tractive-effort source", compositionDetailPane));
 	m_compositionUnitSourceTractionLabel = new QLabel(compositionDetailPane);
 	m_compositionUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	m_compositionUnitSourceTractionLabel->setWordWrap(true);
 	compositionDetailLayout->addWidget(m_compositionUnitSourceTractionLabel);
-	m_plotTractionButton = new QPushButton("Plot Traction Curve", compositionDetailPane);
+	m_plotTractionButton = new QPushButton("Plot tractive effort", compositionDetailPane);
 	compositionDetailLayout->addWidget(m_plotTractionButton);
 	m_compositionUnitWarningLabel = new QLabel(compositionDetailPane);
 	m_compositionUnitWarningLabel->setWordWrap(true);
@@ -1281,7 +1316,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addWidget(m_stopPlatformCombo);
 
 	QHBoxLayout* stopArrivalLayout = new QHBoxLayout();
-	m_stopHasArrivalCheck = new QCheckBox("Arrival (s)", serviceDetailPane);
+	m_stopHasArrivalCheck = new QCheckBox("Planned arrival (s)", serviceDetailPane);
 	m_stopArrivalSecondsEdit = new QLineEdit(serviceDetailPane);
 	m_stopArrivalSecondsEdit->setValidator(
 		new QIntValidator(0, std::numeric_limits<int>::max(), m_stopArrivalSecondsEdit));
@@ -1290,7 +1325,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addLayout(stopArrivalLayout);
 
 	QHBoxLayout* stopDepartureLayout = new QHBoxLayout();
-	m_stopHasDepartureCheck = new QCheckBox("Departure (s)", serviceDetailPane);
+	m_stopHasDepartureCheck = new QCheckBox("Planned departure (s)", serviceDetailPane);
 	m_stopDepartureSecondsEdit = new QLineEdit(serviceDetailPane);
 	m_stopDepartureSecondsEdit->setValidator(
 		new QIntValidator(0, std::numeric_limits<int>::max(), m_stopDepartureSecondsEdit));
@@ -1541,6 +1576,9 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_sceneLoaded = true;
 	m_sceneIsBundle = QFileInfo(scenePath).isFile();
 	m_sceneDirty = false;
+	m_runtimeStatus = QStringLiteral("Not built");
+	m_runtimeDiagnostics.clear();
+	m_resultsAvailable = false;
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	updateSceneWindowTitle();
 	updateCaseLayersPanel();
@@ -1557,6 +1595,10 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshServicePanel();
 	refreshIncidentPanel();
 	renderTrackPreview(m_sceneModel);
+	if (m_loadedDataDock) {
+		m_loadedDataDock->show();
+		m_loadedDataDock->raise();
+	}
 	return true;
 }
 
@@ -1890,11 +1932,141 @@ void MainWindow::refreshLoadedDataTree() {
 
 	refreshLoadedDataSummary(m_sceneModel);
 	refreshLoadedDataDiagnostics(m_sceneModel, m_sceneDiagnostics);
-	for (const auto& item : m_sceneModel.loadedData) {
-		addLoadedDataTreeItem(m_loadedDataTree, nullptr, item);
+	auto addRow = [](QTreeWidgetItem* parent, const QString& category, const QString& source,
+			const QString& count, const QString& status) {
+		return new QTreeWidgetItem(parent, QStringList{category, source, count, status});
+	};
+	const SceneDiagnosticCounts validationCounts = countDiagnostics(m_sceneDiagnostics);
+	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(m_runtimeDiagnostics);
+	const bool dataInvalid = std::any_of(m_sceneModel.loadedData.begin(), m_sceneModel.loadedData.end(),
+		[](const SceneLoadedData& row) { return row.status == "Invalid"; });
+	const bool dataWarning = std::any_of(m_sceneModel.loadedData.begin(), m_sceneModel.loadedData.end(),
+		[](const SceneLoadedData& row) { return row.status == "Warning"; });
+	const QString caseStatus = validationCounts.errors > 0 || runtimeCounts.errors > 0 || dataInvalid
+		? QStringLiteral("Invalid")
+		: (validationCounts.warnings > 0 || runtimeCounts.warnings > 0 || dataWarning
+			? QStringLiteral("Warning") : QStringLiteral("Ready"));
+	auto* caseRoot = new QTreeWidgetItem(m_loadedDataTree);
+	caseRoot->setText(0, "Case Study");
+	caseRoot->setText(1, m_sceneDir);
+	caseRoot->setText(2, "1");
+	caseRoot->setText(3, caseStatus);
+	caseRoot->setToolTip(0, "Loaded case-study review.");
+	addRow(caseRoot, "Name", QString::fromStdString(m_sceneModel.name), "1", "Parsed");
+	addRow(caseRoot, "Description", m_sceneModel.description.empty()
+		? QStringLiteral("(none)") : QString::fromStdString(m_sceneModel.description), "1", "Parsed");
+	addRow(caseRoot, "Source path", m_sceneDir, "1", "Loaded");
+	addRow(caseRoot, "Canonical schema version", QString::number(m_sceneModel.schemaVersion), "1", "Parsed");
+	if (m_sceneIsBundle)
+		addRow(caseRoot, "Bundle format version", "1", "1", "Loaded");
+
+	auto* sourceFiles = addRow(caseRoot, "Source files discovered", QString(),
+			QString::number(static_cast<int>(m_sceneModel.sourceFiles.size())), "Loaded");
+	for (const auto& source : m_sceneModel.sourceFiles) {
+		const bool unsupported = source == "views.json";
+		addRow(sourceFiles, QString::fromStdString(source), QString::fromStdString(source), "1",
+			unsupported ? QStringLiteral("Unsupported") : QStringLiteral("Loaded"));
 	}
+	for (const auto& item : m_sceneModel.loadedData) {
+		addLoadedDataTreeItem(m_loadedDataTree, caseRoot, item);
+	}
+	auto* runtimeAndResults = addRow(caseRoot, "Runtime and results", QString(), QString(),
+			m_runtimeStatus);
+	auto* runtime = addRow(runtimeAndResults, "Runtime", QString(),
+			QString::number(static_cast<int>(m_runtimeDiagnostics.size())), m_runtimeStatus);
+	for (const auto& diagnostic : m_runtimeDiagnostics) {
+		const QString severity = diagnostic.severity == SceneSeverity::Error ? QStringLiteral("Failed")
+			: (diagnostic.severity == SceneSeverity::Warning ? QStringLiteral("Warning") : QStringLiteral("Ready"));
+		const QString detail = QString::fromStdString(diagnostic.code) + ": "
+			+ QString::fromStdString(diagnostic.message);
+		addRow(runtime, detail, QString::fromStdString(diagnostic.file), "1", severity);
+	}
+	addRow(runtimeAndResults, "Results", QString(), m_resultsAvailable ? "1" : "0",
+			m_resultsAvailable ? QStringLiteral("Ready") : QStringLiteral("Not built"));
+	caseRoot->setExpanded(true);
 	m_loadedDataTree->resizeColumnToContents(0);
 	m_loadedDataTree->resizeColumnToContents(1);
+	m_loadedDataTree->setColumnWidth(1, std::min(m_loadedDataTree->columnWidth(1), 360));
+}
+
+void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
+	if (!item)
+		return;
+	const QString targetType = item->data(0, kLoadedDataTargetTypeRole).toString();
+	const QString targetId = item->text(0);
+	if (targetType.isEmpty())
+		return;
+	auto raiseDock = [](QDockWidget* dock) {
+		if (dock) {
+			dock->show();
+			dock->raise();
+		}
+	};
+	if (targetType == "network") {
+		if (networkView) {
+			networkView->setFocus(Qt::OtherFocusReason);
+			fitToView();
+			statusBar()->showMessage("Showing the existing network view", 3000);
+		}
+		return;
+	}
+	if (targetType == "validation") {
+		raiseDock(m_validationDock);
+		if (m_validationTable) {
+			for (int row = 0; row < m_validationTable->rowCount(); ++row) {
+				QTableWidgetItem* file = m_validationTable->item(row, 3);
+				if (file && file->text() == item->text(1)) {
+					m_validationTable->selectRow(row);
+					break;
+				}
+			}
+		}
+		return;
+	}
+	if (targetType == "train_unit_plot") {
+		const QString unitId = item->parent() && item->parent()->parent()
+			? item->parent()->parent()->text(0) : QString();
+		const SceneTrainUnit* unit = trainUnitById(unitId.toStdString());
+		if (unit && !unit->tractionCurve.empty())
+			plotTrainUnitTraction(*unit);
+		return;
+	}
+
+	QListWidget* targetList = nullptr;
+	QDockWidget* targetDock = nullptr;
+	if (targetType == "train_unit") {
+		targetList = m_trainUnitListWidget;
+		targetDock = m_trainUnitDock;
+	} else if (targetType == "composition") {
+		targetList = m_compositionListWidget;
+		targetDock = m_compositionDock;
+	} else if (targetType == "service") {
+		targetList = m_serviceListWidget;
+		targetDock = m_serviceDock;
+	}
+	if (targetList) {
+		const QList<QListWidgetItem*> matches = targetList->findItems(targetId, Qt::MatchExactly);
+		if (!matches.isEmpty()) {
+			targetList->setCurrentItem(matches.front());
+			raiseDock(targetDock);
+		}
+	} else if (targetType == "incident" && m_incidentListWidget) {
+		const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
+		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
+			if (QString::fromStdString(incidents[static_cast<std::size_t>(row)].id) == targetId) {
+				m_incidentListWidget->setCurrentRow(row);
+				raiseDock(m_incidentDock);
+				return;
+			}
+		}
+	}
+}
+
+void MainWindow::markSceneDirty() {
+	m_sceneDirty = true;
+	m_runtimeStatus = QStringLiteral("Not built");
+	m_runtimeDiagnostics.clear();
+	m_resultsAvailable = false;
 }
 
 void MainWindow::refreshTrainUnitPanel() {
@@ -1954,6 +2126,8 @@ void MainWindow::updateTrainUnitDetailPanel() {
 		m_trainUnitSourceTractionLabel->setText(unit && !unit->sourceTractionFile.empty()
 			? QString::fromStdString(unit->sourceTractionFile) : QString("(none)"));
 	}
+	if (m_plotTrainUnitTractionButton)
+		m_plotTrainUnitTractionButton->setEnabled(unit && !unit->tractionCurve.empty());
 	if (m_duplicateTrainUnitButton)
 		m_duplicateTrainUnitButton->setEnabled(hasSelection);
 	if (m_deleteTrainUnitButton)
@@ -2030,7 +2204,7 @@ void MainWindow::addTrainUnit() {
 	SceneTrainUnit unit;
 	unit.id = uniqueTrainUnitId("new_train_unit");
 	m_sceneModel.trainUnits.push_back(unit);
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2049,7 +2223,7 @@ void MainWindow::duplicateTrainUnit() {
 	SceneTrainUnit duplicate = m_sceneModel.trainUnits[row];
 	duplicate.id = uniqueTrainUnitId(duplicate.id + "_copy");
 	m_sceneModel.trainUnits.insert(m_sceneModel.trainUnits.begin() + row + 1, duplicate);
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2080,7 +2254,7 @@ void MainWindow::deleteTrainUnit() {
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 		return;
 	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2121,7 +2295,7 @@ void MainWindow::commitTrainUnitIdEdit() {
 		const QSignalBlocker blocker(m_trainUnitListWidget);
 		item->setText(QString::fromStdString(newId));
 	}
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2145,7 +2319,7 @@ void MainWindow::commitTrainUnitPhysical(int fieldIndex) {
 		return;
 	*values[fieldIndex] = value;
 	m_sceneModel.trainUnits[row].hasPhysical = true;
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2164,7 +2338,7 @@ void MainWindow::addTrainUnitTractionRow() {
 		row[1] = row[0] + 1.0;
 	}
 	m_sceneModel.trainUnits[unitRow].tractionCurve.push_back(row);
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2183,7 +2357,7 @@ void MainWindow::removeTrainUnitTractionRow() {
 		return;
 	m_sceneModel.trainUnits[unitRow].tractionCurve.erase(
 			m_sceneModel.trainUnits[unitRow].tractionCurve.begin() + curveRow);
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2200,7 +2374,7 @@ void MainWindow::commitTrainUnitTractionCell(int row, int column, double value) 
 	if (row >= static_cast<int>(curve.size()) || curve[row][column] == value)
 		return;
 	curve[row][column] = value;
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2309,8 +2483,7 @@ void MainWindow::updateCompositionUnitButtons() {
 		if (hasUnitSelection) {
 			warning = QString::fromStdString(tractionAssociationWarning(
 				unit != nullptr,
-				unit && !unit->tractionCurve.empty(),
-				unit && !unit->sourceTractionFile.empty()));
+				unit && !unit->tractionCurve.empty()));
 		}
 		m_compositionUnitWarningLabel->setText(warning);
 	}
@@ -2327,25 +2500,28 @@ void MainWindow::plotSelectedCompositionUnitTraction() {
 								 "The selected unit has no traction curve to plot.");
 		return;
 	}
+	plotTrainUnitTraction(*unit);
+}
 
-	const auto samples = sampleTractionCurve(unit->tractionCurve);
+void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
+	const auto samples = sampleTractionCurve(unit.tractionCurve);
 	QChart* chart = new QChart();
-	chart->setTitle(QString("Tractive effort: %1").arg(QString::fromStdString(unit->id)));
+	chart->setTitle(QString("Tractive effort: %1").arg(QString::fromStdString(unit.id)));
 	QLineSeries* series = new QLineSeries();
-	series->setName(QString::fromStdString(unit->id));
-	series->setProperty("trainId", QString::fromStdString(unit->id));
+	series->setName(QString::fromStdString(unit.id));
+	series->setProperty("trainId", QString::fromStdString(unit.id));
 	for (const auto& point : samples)
-		series->append(point.first, point.second);
+		series->append(point.first * 3.6, point.second / 1000.0);
 	chart->addSeries(series);
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText("Speed (m/s)");
+		chart->axes(Qt::Horizontal).first()->setTitleText("Speed (km/h)");
 	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Tractive effort (N)");
+		chart->axes(Qt::Vertical).first()->setTitleText("Tractive effort (kN)");
 
-	QString title = QString("Traction curve: %1").arg(QString::fromStdString(unit->id));
-	if (!unit->sourceTractionFile.empty())
-		title += QString("  (%1)").arg(QString::fromStdString(unit->sourceTractionFile));
+	QString title = QString("Tractive effort: %1").arg(QString::fromStdString(unit.id));
+	if (!unit.sourceTractionFile.empty())
+		title += QString("  (%1)").arg(QString::fromStdString(unit.sourceTractionFile));
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -2378,7 +2554,7 @@ void MainWindow::addComposition() {
 	composition.id = uniqueCompositionId("new_composition");
 	m_sceneModel.compositions.push_back(composition);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2399,7 +2575,7 @@ void MainWindow::duplicateComposition() {
 	duplicate.id = uniqueCompositionId(duplicate.id + "_copy");
 	m_sceneModel.compositions.insert(m_sceneModel.compositions.begin() + row + 1, duplicate);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2427,7 +2603,7 @@ void MainWindow::deleteComposition() {
 
 	m_sceneModel.compositions.erase(m_sceneModel.compositions.begin() + row);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2454,7 +2630,7 @@ void MainWindow::commitCompositionIdEdit() {
 		item->setText(QString::fromStdString(newId));
 	}
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2482,7 +2658,7 @@ void MainWindow::addUnitToComposition() {
 
 	m_sceneModel.compositions[row].units.push_back(chosen.toStdString());
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2506,7 +2682,7 @@ void MainWindow::removeUnitFromComposition() {
 
 	units.erase(units.begin() + unitRow);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2535,7 +2711,7 @@ void MainWindow::moveCompositionUnitUp() {
 	units[unitRow] = units[unitRow - 1];
 	units[unitRow - 1] = moved;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2561,7 +2737,7 @@ void MainWindow::moveCompositionUnitDown() {
 	units[unitRow] = units[unitRow + 1];
 	units[unitRow + 1] = moved;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2702,7 +2878,7 @@ void MainWindow::addService() {
 	service.id = uniqueServiceId("new_service");
 	m_sceneModel.services.push_back(service);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2723,7 +2899,7 @@ void MainWindow::duplicateService() {
 	duplicate.id = uniqueServiceId(duplicate.id + "_copy");
 	m_sceneModel.services.insert(m_sceneModel.services.begin() + row + 1, duplicate);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2751,7 +2927,7 @@ void MainWindow::deleteService() {
 
 	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2778,7 +2954,7 @@ void MainWindow::commitServiceIdEdit() {
 		item->setText(QString::fromStdString(newId));
 	}
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2799,7 +2975,7 @@ void MainWindow::commitServiceComposition(const QString& text) {
 
 	// the combo already shows the chosen value and the service list labels are
 	// unchanged, so do not rebuild the panel here (that would close the popup)
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2820,7 +2996,7 @@ void MainWindow::commitServiceRoute(const QString& text) {
 
 	// the combo already shows the chosen value and the service list labels are
 	// unchanged, so do not rebuild the panel here (that would close the popup)
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2839,7 +3015,7 @@ void MainWindow::commitServiceHasEntryTime(bool checked) {
 	if (m_serviceEntryTimeSecondsEdit)
 		m_serviceEntryTimeSecondsEdit->setEnabled(checked);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2869,7 +3045,7 @@ void MainWindow::commitServiceEntryTimeSeconds() {
 
 	m_sceneModel.services[row].entryTimeSeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2888,7 +3064,7 @@ void MainWindow::commitServiceHasRepeat(bool checked) {
 	if (m_serviceHeadwaySecondsEdit)
 		m_serviceHeadwaySecondsEdit->setEnabled(checked);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -2918,7 +3094,7 @@ void MainWindow::commitServiceHeadwaySeconds() {
 
 	m_sceneModel.services[row].headwaySeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3066,7 +3242,7 @@ void MainWindow::addStop() {
 		stop.stationId = m_sceneModel.stations.front().id;
 	m_sceneModel.services[serviceRow].stops.push_back(stop);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3090,7 +3266,7 @@ void MainWindow::removeStop() {
 
 	stops.erase(stops.begin() + stopRow);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3119,7 +3295,7 @@ void MainWindow::moveStopUp() {
 	stops[stopRow] = stops[stopRow - 1];
 	stops[stopRow - 1] = moved;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3145,7 +3321,7 @@ void MainWindow::moveStopDown() {
 	stops[stopRow] = stops[stopRow + 1];
 	stops[stopRow + 1] = moved;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3195,7 +3371,7 @@ void MainWindow::commitStopStation(const QString& text) {
 		item->setText(stopRowLabel(stops[stopRow]));
 	}
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3228,7 +3404,7 @@ void MainWindow::commitStopPlatform(const QString& text) {
 		item->setText(stopRowLabel(stops[stopRow]));
 	}
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3251,7 +3427,7 @@ void MainWindow::commitStopHasArrival(bool checked) {
 	if (m_stopArrivalSecondsEdit)
 		m_stopArrivalSecondsEdit->setEnabled(checked);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3274,7 +3450,7 @@ void MainWindow::commitStopHasDeparture(bool checked) {
 	if (m_stopDepartureSecondsEdit)
 		m_stopDepartureSecondsEdit->setEnabled(checked);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3308,7 +3484,7 @@ void MainWindow::commitStopArrivalSeconds() {
 
 	stops[stopRow].plannedArrivalSeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3342,7 +3518,7 @@ void MainWindow::commitStopDepartureSeconds() {
 
 	stops[stopRow].plannedDepartureSeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3376,7 +3552,7 @@ void MainWindow::commitStopDwellSeconds() {
 
 	stops[stopRow].dwellSeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3534,7 +3710,7 @@ void MainWindow::addIncident() {
 	incident.type = "signal_failure";
 	incidents.push_back(incident);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3556,7 +3732,7 @@ void MainWindow::duplicateIncident() {
 	duplicate.id = uniqueIncidentId(duplicate.id + "_copy");
 	incidents.insert(incidents.begin() + row + 1, duplicate);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3585,7 +3761,7 @@ void MainWindow::deleteIncident() {
 
 	incidents.erase(incidents.begin() + row);
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3614,7 +3790,7 @@ void MainWindow::commitIncidentIdEdit() {
 		item->setText(label);
 	}
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3673,7 +3849,7 @@ void MainWindow::commitIncidentType(const QString& text) {
 		item->setText(label);
 	}
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3698,7 +3874,7 @@ void MainWindow::commitIncidentTarget(const QString& text) {
 	incidents[row].target = newTarget;
 
 	// the combo already shows the chosen value; no panel rebuild needed
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3729,7 +3905,7 @@ void MainWindow::commitIncidentStartSeconds() {
 
 	incidents[row].startSeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -3760,7 +3936,7 @@ void MainWindow::commitIncidentEndSeconds() {
 
 	incidents[row].endSeconds = newValue;
 
-	m_sceneDirty = true;
+	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
@@ -4832,10 +5008,14 @@ void MainWindow::runVisualPolishE2E() {
 		return dock && !dock->isVisible();
 	};
 	if (!secondaryDockHidden(m_logPane) || !secondaryDockHidden(m_validationDock)
-		|| !secondaryDockHidden(m_loadedDataDock) || !secondaryDockHidden(m_compositionDock)
-		|| !secondaryDockHidden(m_serviceDock) || !secondaryDockHidden(m_incidentDock)) {
+		|| !secondaryDockHidden(m_compositionDock) || !secondaryDockHidden(m_serviceDock)
+		|| !secondaryDockHidden(m_incidentDock)) {
 		ok = false;
 		failures << "secondary diagnostics docks are visible by default";
+	}
+	if (!m_loadedDataDock || !m_loadedDataDock->isVisible()) {
+		ok = false;
+		failures << "loaded data review is not visible after scene open";
 	}
 
 	showNormal();
@@ -6170,6 +6350,81 @@ void MainWindow::runEditorSmokeE2E() {
 		if (!m_serviceListWidget || m_serviceListWidget->count() <= 0) {
 			ok = false;
 			failures << "service: pane empty";
+		}
+		bool explorerOk = m_loadedDataTree && m_loadedDataTree->topLevelItemCount() > 0;
+		QTreeWidgetItem* caseRoot = explorerOk ? m_loadedDataTree->topLevelItem(0) : nullptr;
+		explorerOk = explorerOk && caseRoot->text(0) == "Case Study"
+			&& caseRoot->text(3) != "Invalid" && caseRoot->text(3) != "Failed";
+		for (const QString& category : {QStringLiteral("Source path"), QStringLiteral("Canonical schema version"),
+				QStringLiteral("Runtime"), QStringLiteral("Results")}) {
+			const QList<QTreeWidgetItem*> rows = m_loadedDataTree->findItems(
+				category, Qt::MatchExactly | Qt::MatchRecursive, 0);
+			QTreeWidgetItem* row = rows.isEmpty() ? nullptr : rows.front();
+			if (!row || row->text(3).isEmpty())
+				explorerOk = false;
+		}
+		if (m_sceneIsBundle) {
+			const QList<QTreeWidgetItem*> bundleRows = m_loadedDataTree->findItems(
+				"Bundle format version", Qt::MatchExactly | Qt::MatchRecursive, 0);
+			QTreeWidgetItem* bundleRow = bundleRows.isEmpty() ? nullptr : bundleRows.front();
+			if (!bundleRow || bundleRow->text(1) != "1")
+				explorerOk = false;
+		}
+		QTreeWidgetItem* trainTarget = nullptr;
+		for (QTreeWidgetItemIterator it(m_loadedDataTree); *it && !trainTarget; ++it) {
+			if ((*it)->data(0, kLoadedDataTargetTypeRole).toString() == "train_unit")
+				trainTarget = *it;
+		}
+		if (!trainTarget || !m_trainUnitListWidget) {
+			explorerOk = false;
+		} else {
+			activateLoadedDataItem(trainTarget);
+			explorerOk = explorerOk && m_trainUnitListWidget->currentItem()
+				&& m_trainUnitListWidget->currentItem()->text() == trainTarget->text(0)
+				&& m_trainUnitDock && m_trainUnitDock->isVisible();
+		}
+		bool hasParameterSource = false;
+		bool hasTractionSource = false;
+		for (QLabel* label : findChildren<QLabel*>()) {
+			hasParameterSource = hasParameterSource || label->text() == "Original parameter source";
+			hasTractionSource = hasTractionSource || label->text() == "Original tractive-effort source";
+		}
+		bool hasPlotButton = false;
+		for (QPushButton* button : findChildren<QPushButton*>())
+			hasPlotButton = hasPlotButton || button->text() == "Plot tractive effort";
+		bool hasPlannedArrival = false;
+		bool hasPlannedDeparture = false;
+		for (QCheckBox* check : findChildren<QCheckBox*>()) {
+			hasPlannedArrival = hasPlannedArrival || check->text() == "Planned arrival (s)";
+			hasPlannedDeparture = hasPlannedDeparture || check->text() == "Planned departure (s)";
+		}
+		bool axesOk = false;
+		if (m_trainUnitListWidget && m_trainUnitListWidget->count() > 0) {
+			m_trainUnitListWidget->setCurrentRow(0);
+			if (m_plotTrainUnitTractionButton && m_plotTrainUnitTractionButton->isEnabled()) {
+				m_plotTrainUnitTractionButton->click();
+				QApplication::processEvents();
+				for (QChartView* view : findChildren<QChartView*>()) {
+					QChart* chart = view->chart();
+					if (!chart)
+						continue;
+					bool hasSpeedAxis = false;
+					bool hasEffortAxis = false;
+					for (QAbstractAxis* axis : chart->axes()) {
+						hasSpeedAxis = hasSpeedAxis || axis->titleText() == "Speed (km/h)";
+						hasEffortAxis = hasEffortAxis || axis->titleText() == "Tractive effort (kN)";
+					}
+					axesOk = hasSpeedAxis && hasEffortAxis;
+					view->window()->close();
+				}
+			}
+		}
+		if (!explorerOk || !hasParameterSource || !hasTractionSource || !hasPlotButton
+				|| !hasPlannedArrival || !hasPlannedDeparture || !axesOk) {
+			ok = false;
+			failures << "explorer: load review, activation, generic provenance, plot axes, or timetable labels missing";
+		} else {
+			std::fprintf(stdout, "E2E_EDITOR_EXPLORER_OK\n");
 		}
 		expectedCompositions = m_sceneModel.compositions;
 		expectedTrainUnits = m_sceneModel.trainUnits;
@@ -7740,6 +7995,8 @@ void MainWindow::startSimulation() {
 // handle simulation completion on the main thread
 void MainWindow::onSimulationFinished() {
 	refreshRunResults();
+	m_resultsAvailable = hasRunResults();
+	refreshLoadedDataTree();
 
 	// verification hook: write every CSV export from the completed run, then exit
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")) {
@@ -7887,14 +8144,21 @@ void MainWindow::runScene() {
 		initial_variables.OutputMainFolder = outputPath.toStdString();
 	}
 	initial_variables.GUI = 1;
+	m_runtimeStatus = QStringLiteral("Not built");
+	m_runtimeDiagnostics.clear();
+	m_resultsAvailable = false;
 	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel);
-	m_sceneDiagnostics = diagnostics;
+	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
+		m_runtimeStatus = QStringLiteral("Failed");
 		updateSceneActions();
 		refreshValidationPanel();
 		showBlockingError(this, "Cannot Run Scene", firstDiagnosticMessage(diagnostics), true);
 		return;
 	}
+	m_runtimeStatus = countDiagnostics(diagnostics).warnings > 0
+		? QStringLiteral("Warning") : QStringLiteral("Ready");
+	refreshLoadedDataTree();
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 

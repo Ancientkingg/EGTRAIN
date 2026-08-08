@@ -201,6 +201,7 @@ struct SceneLoadedData {
 	std::string sourceFile;
 	int parsedCount = 0;
 	std::string status;
+	std::string targetType;
 	std::vector<SceneLoadedData> children;
 };
 

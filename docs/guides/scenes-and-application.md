@@ -8,14 +8,37 @@ and run it through the native scene path.
 
 Choose `File > Open Case Study...` and select an `.egscene` file. Use
 `File > Open Scene Folder...` when editing a canonical directory containing
-`scene.json`. Review validation diagnostics, use `Save Case Study As...` for a
-new bundle, then choose `Run Scene`. From the command line, `--scene` accepts
-the same bundle or directory path.
+`scene.json`. The **Loaded Data** dock opens with the case study so you can
+review what was found before choosing `Run Scene`. Use
+`Save Case Study As...` for a new bundle. From the command line, `--scene`
+accepts the same bundle or directory path.
 
 The application loads the six required JSON files, accepts optional scenarios,
-passengers, views, and historical compatibility aliases, and validates before a
-run. Infrastructure, signalling, rolling stock, services, the selected
+passengers, a recognized but unsupported `views.json`, and historical
+compatibility aliases, and validates before a run. Infrastructure, signalling,
+rolling stock, services, the selected
 scenario, and passengers are built directly from `SceneModel` in memory.
+
+## Review what loaded
+
+The **Loaded Data** dock keeps opening separate from running. Its case-study
+tree shows the source path, canonical schema version, bundle format version,
+source files, category counts, default and available scenarios, validation
+state, and runtime/result readiness. Expand a category to follow source data to
+parsed canonical objects. Imported scenes also show conversion, skipped, and
+unresolved-reference counts from `import_report`. `Missing optional` means the
+scene is usable without that file; `Unsupported` means the file was found but
+EGTRAIN did not consume it. `Not built` means no runtime has been prepared from
+the current input.
+
+Double-click infrastructure or signalling rows to focus the existing network
+view, validation rows to open the diagnostics table, or a train unit,
+composition, service, or default-scenario incident to open its existing editor.
+Each train-unit row owns its parameter, curve, plot, and provenance details.
+Train-unit provenance is descriptive:
+an original parameter or tractive-effort filename is not reopened by the native
+runtime. The tractive-effort plot evaluates the same piecewise polynomial as the
+runtime and displays speed in km/h and effort in kN.
 
 ## Scene directory
 
@@ -29,7 +52,7 @@ scenario, and passengers are built directly from `SceneModel` in memory.
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
-| `views.json` | optional | display defaults |
+| `views.json` | recognized optional file; currently unsupported | preserved for directory saves but not consumed by `SceneModel` or bundled |
 
 The writer emits preferred V1 keys. Stop plans use independently optional
 `planned_arrival_seconds` and `planned_departure_seconds` on any stop, plus

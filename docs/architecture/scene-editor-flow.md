@@ -7,8 +7,8 @@ The scene editor gives students one window flow for opening an assignment scene,
 ## Window flow
 
 - Start state: the main window opens with no scene selected. `Open Case Study...`, `Open Scene Folder...`, recent scenes, `Load Legacy Case...`, and `Quit` are available. Save, scene edit panes, and scene Run are disabled until a scene opens.
-- Open scene: `Open Case Study...` selects an `.egscene` bundle; `Open Scene Folder...` selects an editable canonical directory. Both load the same canonical JSON into `SceneModel`. The selected path is added to the recent-scenes list in `QSettings`.
-- Validation: opening a scene populates the validation panel with `SceneDiagnostic` entries. Structural errors are shown first. Semantic validation runs only when structural loading has no errors.
+- Open scene: `Open Case Study...` selects an `.egscene` bundle; `Open Scene Folder...` selects an editable canonical directory. Both load the same canonical JSON into `SceneModel`, add the selected path to the recent-scenes list in `QSettings`, and raise the non-modal Loaded Data review.
+- Validation: opening a scene populates the validation panel with `SceneDiagnostic` entries. Structural errors are shown first. Semantic validation runs only when structural loading has no errors; the panel remains available from the View menu and Loaded Data diagnostics.
 - Edit panes: after a valid enough model loads, the editor panes show scene data from `SceneModel`. V1 edits update `SceneModel`; they do not edit legacy files directly.
 - Save: `Save Scene` writes back to the opened bundle or directory. `Save Case Study As...` writes a portable `.egscene`; `Save Scene As Folder...` writes canonical JSON to a directory.
 - Run handoff: Run revalidates the current model. Error diagnostics block Run. If validation passes, the shared native setup builds the existing runtime globals directly from that model.
@@ -27,6 +27,7 @@ an editable or runtime fallback.
 | Central view | Existing network view and progress bar | Empty at startup. Shows canonical scene infrastructure after open and simulation state after setup and run. |
 | Scene editor dock | Overview, infrastructure context, compositions, services and timetable, incidents | Enabled for an opened bundle or directory. A legacy case must first be imported and opened as a scene. |
 | Validation panel | Dockable table of diagnostics | Visible after scene open. Updated on open, edit, save, and pre-run validation. |
+| Loaded Data panel | Case/source metadata, parsed category counts, scenarios, provenance, validation status, editor links, runtime and result readiness | Raised after scene open. Item activation reuses the existing network view, validation table, and domain editors. |
 | Existing info dock | Read-only selected item details for nodes, stations, arcs, connections, signals, trains | Enabled when the network view has selectable items. It stays read-only outside explicit editor controls. |
 | Status bar | Current scene name, scene path, dirty state, validation summary, run state | Always visible. Scene-specific fields are empty before a scene opens. |
 
@@ -36,7 +37,7 @@ Validation runs when a bundle or directory opens, after each committed editor ch
 
 Structural diagnostics come from the bundle reader or directory loader and the required JSON files. If structural loading has errors, semantic validation is skipped to avoid duplicate noise from a partial model. Semantic diagnostics check references, empty trains or routes, timetable values, dwell times, platform references, incident targets, incident windows, base time, and repeated-service headways.
 
-Save is allowed with semantic errors so students can preserve work in progress. Run is not allowed with any `SceneSeverity::Error`. Warnings and info diagnostics stay visible but do not block Run. Native builder diagnostics are appended to the panel and builder errors block Run.
+Save is allowed with semantic errors so students can preserve work in progress. Run is not allowed with any `SceneSeverity::Error`. Warnings and info diagnostics stay visible but do not block Run. Native builder diagnostics appear under **Runtime and results** in Loaded Data, and builder errors block Run.
 
 ## Simulation handoff mechanics
 
@@ -62,6 +63,12 @@ setupGUI
 ```
 
 Only after setup succeeds does the simulation worker start.
+
+The Loaded Data panel reports one global runtime state instead of claiming each
+input file built a separate runtime model. It is `Not built` after open or an
+edit, `Ready` after `prepareScene` succeeds, and `Failed` with builder
+diagnostics after preparation fails. Completed simulation output is reported as
+available, but remains outside canonical input.
 
 ## V1 edit panes
 

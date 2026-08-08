@@ -7,6 +7,7 @@
 #include <cmath>
 #include <limits>
 #include <unordered_map>
+#include <utility>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -36,19 +37,11 @@ SceneLoadedData makeLoadedData(const std::string& category, const std::string& s
 }
 
 std::string loadedDataDiagnosticStatus(const SceneDiagnosticCounts& counts) {
-	std::vector<std::string> parts;
 	if (counts.errors > 0)
-		parts.push_back(std::to_string(counts.errors) + (counts.errors == 1 ? " error" : " errors"));
+		return "Invalid";
 	if (counts.warnings > 0)
-		parts.push_back(std::to_string(counts.warnings) + (counts.warnings == 1 ? " warning" : " warnings"));
-	if (counts.infos > 0)
-		parts.push_back(std::to_string(counts.infos) + (counts.infos == 1 ? " info" : " infos"));
-	if (parts.empty())
-		return "ok";
-	std::string status = parts.front();
-	for (std::size_t i = 1; i < parts.size(); ++i)
-		status += ", " + parts[i];
-	return status;
+		return "Warning";
+	return "Ready";
 }
 
 std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDiagnostic& diagnostic) {
@@ -240,73 +233,130 @@ const std::vector<SceneIncident>& defaultScenarioIncidents(const SceneModel& sce
 void refreshLoadedDataSummary(SceneModel& scene) {
 	scene.loadedData.clear();
 
-	auto statusForFile = [&](const std::string& sourceFile) {
-		return scene.sourceFiles.count(sourceFile) > 0 ? "loaded" : "missing";
+	auto statusForFile = [&](const std::string& sourceFile, bool optional) {
+		return scene.sourceFiles.count(sourceFile) > 0 ? "Parsed"
+			: (optional ? "Missing optional" : "Invalid");
 	};
-	auto add = [&](const std::string& category, const std::string& sourceFile, int parsedCount) {
-		const std::string status = statusForFile(sourceFile);
+	auto add = [&](const std::string& category, const std::string& sourceFile, int parsedCount,
+			bool optional = false) {
+		const std::string status = statusForFile(sourceFile, optional);
 		SceneLoadedData data = makeLoadedData(category, sourceFile, parsedCount, status);
 		if (!sourceFile.empty()) {
-			data.children.push_back(makeLoadedData("raw_file", sourceFile, status == "loaded" ? 1 : 0, status));
-			data.children.push_back(makeLoadedData("parsed_objects", sourceFile, parsedCount, status));
-			data.children.push_back(makeLoadedData("derived_simulation", "", 0,
-					status == "loaded" ? "not_built" : status));
+			const bool present = scene.sourceFiles.count(sourceFile) > 0;
+			data.children.push_back(makeLoadedData("source_file", sourceFile, present ? 1 : 0,
+					present ? "Loaded" : status));
+			data.children.push_back(makeLoadedData("parsed_objects", sourceFile, parsedCount,
+					present ? "Parsed" : status));
 		}
 		scene.loadedData.push_back(data);
 	};
 	auto addChild = [&](const std::string& category, const std::string& sourceFile, int parsedCount,
-			const std::string& status) {
+			const std::string& status) -> SceneLoadedData& {
 		scene.loadedData.back().children.push_back(makeLoadedData(category, sourceFile, parsedCount, status));
+		return scene.loadedData.back().children.back();
+	};
+	auto addTarget = [](SceneLoadedData& parent, const std::string& category,
+			const std::string& sourceFile, const std::string& targetType) -> SceneLoadedData& {
+		SceneLoadedData target = makeLoadedData(category, sourceFile, 1, "Parsed");
+		target.targetType = targetType;
+		parent.children.push_back(std::move(target));
+		return parent.children.back();
 	};
 
 	add("scene", "scene.json", scene.schemaVersion > 0 ? 1 : 0);
+	SceneLoadedData& importReport = addChild("import_report", "scene.json",
+			static_cast<int>(scene.importReport.size()),
+			scene.importReport.empty() ? "Missing optional" : "Parsed");
+	bool importHasIssues = false;
+	for (const auto& reportRow : scene.importReport) {
+		const bool hasIssue = reportRow.skippedCount > 0 || reportRow.unresolvedReferences > 0;
+		importHasIssues = importHasIssues || hasIssue;
+		SceneLoadedData row = makeLoadedData(reportRow.category, reportRow.sourceFile,
+				reportRow.convertedCount, hasIssue ? "Warning" : "Parsed");
+		row.children.push_back(makeLoadedData("source_records", reportRow.sourceFile,
+				reportRow.sourceCount, "Parsed"));
+		row.children.push_back(makeLoadedData("skipped", reportRow.sourceFile,
+				reportRow.skippedCount, reportRow.skippedCount > 0 ? "Warning" : "Ready"));
+		row.children.push_back(makeLoadedData("unresolved_references", reportRow.sourceFile,
+				reportRow.unresolvedReferences,
+				reportRow.unresolvedReferences > 0 ? "Warning" : "Ready"));
+		importReport.children.push_back(std::move(row));
+	}
+	if (importHasIssues) {
+		importReport.status = "Warning";
+		scene.loadedData.back().status = "Warning";
+	}
 	add("infrastructure", "infrastructure.json", static_cast<int>(scene.tracks.size() + scene.nodes.size()
 			+ scene.arcs.size() + scene.blocks.size() + scene.connections.size()));
+	scene.loadedData.back().targetType = "network";
 	const std::string infrastructureStatus = scene.loadedData.back().status;
-	addChild("tracks", "infrastructure.json", static_cast<int>(scene.tracks.size()), infrastructureStatus);
-	addChild("nodes", "infrastructure.json", static_cast<int>(scene.nodes.size()), infrastructureStatus);
-	addChild("arcs", "infrastructure.json", static_cast<int>(scene.arcs.size()), infrastructureStatus);
-	addChild("blocks", "infrastructure.json", static_cast<int>(scene.blocks.size()), infrastructureStatus);
-	addChild("connections", "infrastructure.json", static_cast<int>(scene.connections.size()), infrastructureStatus);
+	addChild("tracks", "infrastructure.json", static_cast<int>(scene.tracks.size()), infrastructureStatus).targetType = "network";
+	addChild("nodes", "infrastructure.json", static_cast<int>(scene.nodes.size()), infrastructureStatus).targetType = "network";
+	addChild("arcs", "infrastructure.json", static_cast<int>(scene.arcs.size()), infrastructureStatus).targetType = "network";
+	addChild("blocks", "infrastructure.json", static_cast<int>(scene.blocks.size()), infrastructureStatus).targetType = "network";
+	addChild("connections", "infrastructure.json", static_cast<int>(scene.connections.size()), infrastructureStatus).targetType = "network";
 
 	add("stations", "stations.json", static_cast<int>(scene.stations.size()));
+	scene.loadedData.back().targetType = "network";
 	int platformCount = 0;
 	for (const auto& station : scene.stations)
 		platformCount += static_cast<int>(station.platforms.size());
-	addChild("platforms", "stations.json", platformCount, scene.loadedData.back().status);
+	addChild("platforms", "stations.json", platformCount, scene.loadedData.back().status).targetType = "network";
 
 	add("timetable", "services.json", static_cast<int>(scene.services.size()));
+	SceneLoadedData& services = addChild("services", "services.json",
+			static_cast<int>(scene.services.size()), scene.loadedData.back().status);
+	for (const auto& service : scene.services)
+		addTarget(services, service.id, "services.json", "service");
 
 	add("rolling_stock", "rolling_stock.json", static_cast<int>(scene.trainUnits.size()
 			+ scene.compositions.size()));
 	const std::string rollingStatus = scene.loadedData.back().status;
-	addChild("train_units", "rolling_stock.json", static_cast<int>(scene.trainUnits.size()), rollingStatus);
-	addChild("compositions", "rolling_stock.json", static_cast<int>(scene.compositions.size()), rollingStatus);
-	SceneLoadedData sourceFiles = makeLoadedData("source_files", "", 0, "missing");
+	SceneLoadedData& trainUnits = addChild("train_units", "rolling_stock.json",
+			static_cast<int>(scene.trainUnits.size()), rollingStatus);
 	for (const auto& unit : scene.trainUnits) {
+		SceneLoadedData& unitRow = addTarget(trainUnits, unit.id, "rolling_stock.json", "train_unit");
+		unitRow.children.push_back(makeLoadedData("train_unit_parameters", "rolling_stock.json",
+				unit.hasPhysical ? 1 : 0, unit.hasPhysical ? "Parsed" : "Invalid"));
+		SceneLoadedData curve = makeLoadedData("tractive_effort_curve", "rolling_stock.json",
+				static_cast<int>(unit.tractionCurve.size()), unit.tractionCurve.empty() ? "Invalid" : "Parsed");
+		if (!unit.tractionCurve.empty()) {
+			SceneLoadedData plot = makeLoadedData("Plot tractive effort", "rolling_stock.json", 1, "Ready");
+			plot.targetType = "train_unit_plot";
+			curve.children.push_back(std::move(plot));
+		}
+		unitRow.children.push_back(std::move(curve));
+		SceneLoadedData provenance = makeLoadedData("import_provenance", "", 0, "Missing optional");
 		if (!unit.sourceDataFile.empty()) {
-			sourceFiles.children.push_back(makeLoadedData("data_file", unit.sourceDataFile, 1, "loaded"));
-			++sourceFiles.parsedCount;
+			provenance.children.push_back(makeLoadedData("original_parameter_source",
+					unit.sourceDataFile, 1, "Parsed"));
+			++provenance.parsedCount;
 		}
 		if (!unit.sourceTractionFile.empty()) {
-			sourceFiles.children.push_back(makeLoadedData("traction_file", unit.sourceTractionFile, 1, "loaded"));
-			++sourceFiles.parsedCount;
+			provenance.children.push_back(makeLoadedData("original_tractive_effort_source",
+					unit.sourceTractionFile, 1, "Parsed"));
+			++provenance.parsedCount;
 		}
+		if (provenance.parsedCount > 0)
+			provenance.status = "Parsed";
+		unitRow.children.push_back(std::move(provenance));
 	}
-	if (sourceFiles.parsedCount > 0)
-		sourceFiles.status = "loaded";
-	scene.loadedData.back().children.push_back(sourceFiles);
+	SceneLoadedData& compositions = addChild("compositions", "rolling_stock.json",
+			static_cast<int>(scene.compositions.size()), rollingStatus);
+	for (const auto& composition : scene.compositions)
+		addTarget(compositions, composition.id, "rolling_stock.json", "composition");
 
 	int signallingCount = static_cast<int>(scene.signals.size() + scene.routes.size()
 			+ scene.blockDependencies.size() + scene.singleTrackRestrictions.size()
 			+ scene.stationBoundaries.size());
 	add("signalling", "signalling.json", signallingCount);
+	scene.loadedData.back().targetType = "network";
 	const std::string signallingStatus = scene.loadedData.back().status;
-	addChild("signals", "signalling.json", static_cast<int>(scene.signals.size()), signallingStatus);
-	addChild("routes", "signalling.json", static_cast<int>(scene.routes.size()), signallingStatus);
-	addChild("dependencies", "signalling.json", static_cast<int>(scene.blockDependencies.size()), signallingStatus);
+	addChild("signals", "signalling.json", static_cast<int>(scene.signals.size()), signallingStatus).targetType = "network";
+	addChild("routes", "signalling.json", static_cast<int>(scene.routes.size()), signallingStatus).targetType = "network";
+	addChild("dependencies", "signalling.json", static_cast<int>(scene.blockDependencies.size()), signallingStatus).targetType = "network";
 	addChild("restrictions", "signalling.json", static_cast<int>(scene.singleTrackRestrictions.size()
-			+ scene.stationBoundaries.size()), signallingStatus);
+			+ scene.stationBoundaries.size()), signallingStatus).targetType = "network";
 
 	int incidentCount = 0;
 	int entranceDelayCount = 0;
@@ -314,14 +364,36 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 		incidentCount += static_cast<int>(scenario.incidents.size());
 		entranceDelayCount += static_cast<int>(scenario.entranceDelays.size());
 	}
-	add("scenarios", "scenarios.json", static_cast<int>(scene.scenarios.size()));
+	const std::string scenarioSource = scene.sourceFiles.count("scenarios.json") > 0
+			? "scenarios.json"
+			: (scene.sourceFiles.count("incidents.json") > 0 ? "incidents.json" : "scenarios.json");
+	add("scenarios", scenarioSource, static_cast<int>(scene.scenarios.size()), true);
 	const std::string scenariosStatus = scene.loadedData.back().status;
-	const std::string incidentSource = scene.sourceFiles.count("scenarios.json") > 0
-			? "scenarios.json" : "incidents.json";
-	addChild("incidents", incidentSource, incidentCount, scenariosStatus);
-	addChild("entrance_delays", "scenarios.json", entranceDelayCount, scenariosStatus);
+	SceneLoadedData& scenarioItems = addChild("available_scenarios", scenarioSource,
+			static_cast<int>(scene.scenarios.size()), scenariosStatus);
+	const SceneScenario* selectedScenario = defaultScenario(static_cast<const SceneModel&>(scene));
+	const std::string effectiveDefaultScenario = selectedScenario ? selectedScenario->id : std::string();
+	for (const auto& scenario : scene.scenarios) {
+		std::string label = "Scenario: " + (scenario.name.empty()
+				? scenario.id : scenario.name + " [" + scenario.id + "]");
+		if (scenario.id == effectiveDefaultScenario)
+			label += " (default)";
+		SceneLoadedData item = makeLoadedData(label, scenarioSource,
+				static_cast<int>(scenario.incidents.size() + scenario.entranceDelays.size()), scenariosStatus);
+		for (const auto& incident : scenario.incidents) {
+			SceneLoadedData incidentItem = makeLoadedData(incident.id, scenarioSource, 1, scenariosStatus);
+			if (scenario.id == effectiveDefaultScenario) {
+				incidentItem.targetType = "incident";
+			} else
+				incidentItem.category = "Incident: " + incident.id;
+			item.children.push_back(std::move(incidentItem));
+		}
+		scenarioItems.children.push_back(std::move(item));
+	}
+	addChild("incidents", scenarioSource, incidentCount, scenariosStatus);
+	addChild("entrance_delays", scenarioSource, entranceDelayCount, scenariosStatus);
 
-	add("passengers", "passengers.json", static_cast<int>(scene.passengers.size()));
+	add("passengers", "passengers.json", static_cast<int>(scene.passengers.size()), true);
 }
 
 void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiagnostic>& diagnostics) {
@@ -353,8 +425,14 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 	for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
 		const SceneDiagnosticCounts& count = counts[i];
 		const int total = count.errors + count.warnings + count.infos;
-		scene.loadedData[i].children.push_back(makeLoadedData("validation", scene.loadedData[i].sourceFile,
-				total, loadedDataDiagnosticStatus(count)));
+		if (count.errors > 0)
+			scene.loadedData[i].status = "Invalid";
+		else if (count.warnings > 0)
+			scene.loadedData[i].status = "Warning";
+		SceneLoadedData validation = makeLoadedData("validation", scene.loadedData[i].sourceFile,
+				total, loadedDataDiagnosticStatus(count));
+		validation.targetType = "validation";
+		scene.loadedData[i].children.push_back(std::move(validation));
 	}
 }
 
