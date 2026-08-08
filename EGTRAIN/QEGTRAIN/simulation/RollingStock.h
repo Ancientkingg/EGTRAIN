@@ -3,6 +3,8 @@
 #include "simulation/Signalling.h"
 #include "util/TrajectoryUtil.h"
 
+struct SceneModel;
+
 // GUI - Virtual Coupling notifications
 #include <vector>
 extern vector<int> VCmsgTimestep;
@@ -16,6 +18,12 @@ extern vector<string> VCmsgText;
 
 extern int N_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
 extern InitialParameters initial_variables;
+
+// Build rolling stock, timetable, selected-scenario incidents, entrance
+// delays, platforms, and passengers from an in-memory canonical scene.
+// The function is transactional: errors leave existing operation globals intact.
+std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
+		const std::string& selectedScenarioId = {});
 
 class OrderList {
 public:
