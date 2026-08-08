@@ -44,11 +44,11 @@ by preview or simulation.
 
 Open the Train Units dock.
 
-1. Select Add Train Unit. A new unit appears in the list.
+1. Select Add Unit. A new unit appears in the list.
 2. Give the unit an id.
 3. Fill the physical fields: mass, length, and the other values for the stock you are modelling.
 4. Enter the traction curve rows. Each row is a speed interval with a lower speed, an upper speed, and the three coefficients C0, C1, and C2. Tractive effort at a speed follows C0 plus C1 times speed plus C2 times speed squared, in newtons, with speed in metres per second.
-5. If you imported the unit from a legacy `LITRA` and `T_LITRA` pair, the Source data file and Source traction file fields show those names.
+5. When import provenance exists, **Original parameter source** and **Original tractive-effort source** show the source filenames. Provenance is optional and is not reopened by the runtime.
 
 Repeat for every unit the presentation needs, then remove the teaching unit if
 no composition uses it.
@@ -59,8 +59,8 @@ Open the Compositions dock.
 
 1. Select Add Composition and give it an id.
 2. With the composition selected, use Add Unit to attach train units in order. Use Move Up and Move Down to set the order.
-3. Select a unit in the composition to see its rolling-stock data file and traction data file. Select Plot Traction Curve to open the tractive-effort plot for that unit. The plot labels the speed and effort axes and names the source traction file.
-4. If a unit is missing, has no traction curve, or has a curve without a recorded traction file, the panel shows a warning. Fix the unit before you rely on the run.
+3. Select a unit in the composition to see its original parameter and tractive-effort sources. Select **Plot tractive effort** to open the curve for that unit. The plot displays speed in km/h, effort in kN, and names the source file when provenance exists.
+4. If a unit is missing or has no tractive-effort curve, the panel shows a warning. Fix the unit before you rely on the run.
 
 ## Add services and timetable stops
 
