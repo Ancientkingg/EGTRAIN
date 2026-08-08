@@ -24,6 +24,11 @@ for compatibility and are listed in [Historical compatibility aliases](#historic
 legacy case directory, and the exporter may write one when explicitly asked,
 but normal loading and simulation use only the canonical files above.
 
+For a V2 `.egscene` bundle, `scenarios.json` is required and `passengers.json`
+is the only optional entry. `views.json`, `legacy/`, assets, results, and
+unknown or nested ZIP entries are excluded; see
+[V2 Transparent Scene Bundle](scene-bundle.md).
+
 ## `scene.json`
 
 Required keys:
@@ -41,6 +46,10 @@ Optional keys:
   `duration_seconds`, `buffer_time_seconds`, and
   `recovery_time_percent`.
 - `import_report`: array of conversion rows.
+
+Inside a bundle, `format` is the required string `"egscene"` and
+`bundle_version` is the required integer `1`. They are optional transport
+metadata for directory scenes and do not change the V1 data schema.
 
 An `import_report` row has `category`, `source_count`, `converted_count`,
 `skipped_count`, and `unresolved_references`; `source_file` is optional. The

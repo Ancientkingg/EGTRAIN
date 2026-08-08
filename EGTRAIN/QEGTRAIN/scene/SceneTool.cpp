@@ -1,4 +1,5 @@
 #include "scene/SceneImporter.h"
+#include "scene/SceneBundle.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneModel.h"
@@ -38,8 +39,10 @@ int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage:\n"
 				  << "  scene_tool import <legacyDir> <sceneDir> [sceneName]\n"
-				  << "  scene_tool export <sceneDir> <outDir>\n"
-				  << "  scene_tool validate <sceneDir>\n";
+				  << "  scene_tool pack <scene-directory> <output.egscene>\n"
+				  << "  scene_tool unpack <input.egscene> <output-directory>\n"
+				  << "  scene_tool export <scene-path> <outDir>\n"
+				  << "  scene_tool validate <scene-path>\n";
 		return 1;
 	}
 
@@ -67,9 +70,29 @@ int main(int argc, char** argv) {
 		auto res = importLegacyScene(legacyDir, sceneDir, sceneName);
 		printDiags(res.diagnostics);
 		return res.success() ? 0 : 1;
+	} else if (cmd == "pack") {
+		if (argc < 4) {
+			std::cerr << "Usage: scene_tool pack <scene-directory> <output.egscene>\n";
+			return 1;
+		}
+		const SceneLoadResult loaded = loadScene(argv[2]);
+		printDiags(loaded.diagnostics);
+		if (hasErrors(loaded.diagnostics))
+			return 1;
+		const SceneSaveResult saved = saveSceneBundle(loaded.scene, argv[3]);
+		printDiags(saved.diagnostics);
+		return saved.success() ? 0 : 1;
+	} else if (cmd == "unpack") {
+		if (argc < 4) {
+			std::cerr << "Usage: scene_tool unpack <input.egscene> <output-directory>\n";
+			return 1;
+		}
+		const SceneSaveResult unpacked = unpackSceneBundle(argv[2], argv[3]);
+		printDiags(unpacked.diagnostics);
+		return unpacked.success() ? 0 : 1;
 	} else if (cmd == "export") {
 		if (argc < 4) {
-			std::cerr << "Usage: scene_tool export <sceneDir> <outDir>\n";
+			std::cerr << "Usage: scene_tool export <scene-path> <outDir>\n";
 			return 1;
 		}
 		std::string sceneDir = argv[2];
@@ -79,11 +102,15 @@ int main(int argc, char** argv) {
 		return res.success() ? 0 : 1;
 	} else if (cmd == "validate") {
 		if (argc < 3) {
-			std::cerr << "Usage: scene_tool validate <sceneDir>\n";
+			std::cerr << "Usage: scene_tool validate <scene-path>\n";
 			return 1;
 		}
-		std::string sceneDir = argv[2];
-		auto diags = validateSceneDirectory(sceneDir);
+		const SceneLoadResult loaded = loadScenePath(argv[2]);
+		auto diags = loaded.diagnostics;
+		if (!hasErrors(diags)) {
+			const auto semantic = validateScene(loaded.scene);
+			diags.insert(diags.end(), semantic.begin(), semantic.end());
+		}
 		printDiags(diags);
 		return hasErrors(diags) ? 1 : 0;
 	} else {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(EGTRAIN VERSION 1.0 LANGUAGES CXX)
+project(EGTRAIN VERSION 1.0 LANGUAGES C CXX)
 
 if(WIN32)
     enable_language(RC)
@@ -47,6 +47,12 @@ check_ipo_supported(RESULT EGTRAIN_IPO_SUPPORTED OUTPUT EGTRAIN_IPO_ERROR)
 
 # Sources are in the QEGTRAIN subdirectory
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN)
+
+add_library(egtrain_miniz STATIC
+    ${SRC_DIR}/io/third_party/miniz/miniz.c)
+target_compile_definitions(egtrain_miniz PUBLIC MINIZ_NO_TIME)
+target_include_directories(egtrain_miniz PUBLIC ${SRC_DIR})
+set_target_properties(egtrain_miniz PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON)
 
 # Path-qualified includes (e.g. graphics/items/NodeItem.h) resolve against SRC_DIR
 include_directories(${SRC_DIR})
@@ -114,6 +120,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/util/TimeFormat.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
+	${SRC_DIR}/scene/SceneBundle.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
 	${SRC_DIR}/scene/SceneWriter.cpp
@@ -170,6 +177,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/TimeFormat.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
+	${SRC_DIR}/scene/SceneBundle.h
 	${SRC_DIR}/scene/SceneValidator.h
 	${SRC_DIR}/scene/SceneImporter.h
 	${SRC_DIR}/scene/SceneWriter.h
@@ -259,6 +267,7 @@ else()
 endif()
 
 target_link_libraries(QEGTRAIN PRIVATE cppzmq nlohmann_json::nlohmann_json)
+target_link_libraries(QEGTRAIN PRIVATE egtrain_miniz)
 message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
 
 # Platform-specific settings
@@ -309,10 +318,12 @@ add_executable(scene_tool
 	${SRC_DIR}/scene/SceneTool.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
+	${SRC_DIR}/scene/SceneBundle.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
-	${SRC_DIR}/scene/SceneExporter.cpp)
-target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json)
+	${SRC_DIR}/scene/SceneExporter.cpp
+	${SRC_DIR}/scene/SceneWriter.cpp)
+target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
 
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
@@ -559,10 +570,22 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_sceneexporter.cpp
         ${SRC_DIR}/scene/SceneDiagnostic.cpp
         ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SceneBundle.cpp
+        ${SRC_DIR}/scene/SceneWriter.cpp
         ${SRC_DIR}/scene/SceneValidator.cpp
         ${SRC_DIR}/scene/SceneExporter.cpp)
-    target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json)
+    target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
 	add_test(NAME test_sceneexporter COMMAND test_sceneexporter)
+
+	add_executable(test_scenebundle
+		${SRC_DIR}/tests/test_scenebundle.cpp
+		${SRC_DIR}/scene/SceneDiagnostic.cpp
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SceneBundle.cpp
+		${SRC_DIR}/scene/SceneWriter.cpp)
+	target_link_libraries(test_scenebundle PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+	add_test(NAME test_scenebundle
+		COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
 	add_executable(test_scenebuilder
 		${SRC_DIR}/tests/test_scenebuilder.cpp
@@ -671,6 +694,7 @@ if(EGTRAIN_BUILD_TESTS)
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
+	set_tests_properties(test_scenebundle PROPERTIES LABELS "scene-v2")
 endif()
 
 # Install
