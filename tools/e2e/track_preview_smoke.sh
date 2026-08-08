@@ -17,7 +17,7 @@ else
 	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-track-preview.XXXXXX")"
 	trap 'rm -rf "$TMP_ROOT"' EXIT
 	SCENE="$TMP_ROOT/scene"
-	cp -R "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut" "$SCENE"
+	cp -R "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Lebanon" "$SCENE"
 	python3 -c 'from pathlib import Path; import json, sys; Path(sys.argv[1]).write_text(json.dumps({"services": []}))' "$SCENE/services.json"
 	python3 -c 'from pathlib import Path; import json, sys; Path(sys.argv[1]).write_text(json.dumps({"train_units": [], "compositions": []}))' "$SCENE/rolling_stock.json"
 fi

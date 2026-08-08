@@ -5,9 +5,16 @@
 #include <tuple>
 #include <map>
 
+#include "scene/SceneDiagnostic.h"
+
 #include "simulation/Infrastructure.h"
 
 struct SceneModel;
+
+// Build the infrastructure/signalling globals from an already loaded scene.
+// This path is intentionally filesystem-free; the legacy setup remains the
+// default simulation entry point until a later migration milestone.
+std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene);
 
 // --- Incidents: Disruption events ---
 struct SimulationIncident {

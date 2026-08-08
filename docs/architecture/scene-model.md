@@ -105,3 +105,13 @@ uses matching files from `legacy/` when present.
 
 Milestone 1 covers this V1 directory and its compatibility path. The `.egscene`
 bundle format and native simulator input are outside this milestone.
+
+## Native infrastructure preview path
+
+The native infrastructure/signalling builder accepts an already loaded and
+validated `SceneModel` and populates the existing runtime infrastructure and
+signalling globals without opening files or consulting `legacy/`. `TrackPreview`
+also consumes the canonical model directly and resolves connections and station
+markers through canonical node IDs. The normal simulation entry point still
+uses the exporter and legacy runtime path. Operations and scenario selection
+remain Milestone 3 work; full native simulation cutover follows later.

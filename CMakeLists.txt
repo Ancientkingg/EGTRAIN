@@ -333,6 +333,7 @@ if(EGTRAIN_BUILD_TESTS)
 	add_executable(test_trackpreview
 		${SRC_DIR}/tests/test_trackpreview.cpp
 		${SRC_DIR}/scene/TrackPreview.cpp)
+	target_link_libraries(test_trackpreview PRIVATE nlohmann_json::nlohmann_json)
 	add_test(NAME test_trackpreview COMMAND test_trackpreview)
 
     add_executable(test_speedformat
@@ -583,7 +584,10 @@ if(EGTRAIN_BUILD_TESTS)
 		${SRC_DIR}/simulation/InitialParameters.cpp
 		${SRC_DIR}/simulation/NumberGenerator.cpp
 		${SRC_DIR}/util/Logger.cpp
-		${SRC_DIR}/simulation/Signalling.cpp)
+		${SRC_DIR}/simulation/Signalling.cpp
+		${SRC_DIR}/scene/SceneDiagnostic.cpp
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SceneImporter.cpp)
 	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
 	if(EGTRAIN_OPENMP_INCLUDE)
@@ -597,7 +601,8 @@ if(EGTRAIN_BUILD_TESTS)
 	elseif(OpenMP_CXX_FOUND)
 		target_link_libraries(test_scenebuilder PRIVATE OpenMP::OpenMP_CXX)
 	endif()
-	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
+	add_test(NAME test_scenebuilder
+		COMMAND test_scenebuilder ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen)
 
 	add_executable(test_railmlparser
 		${SRC_DIR}/tests/test_railmlparser.cpp
@@ -647,9 +652,9 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_scene_tool_diagnostics
+	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
-	set_tests_properties(test_inputvalidation test_trackpreview test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors test_input_path_casing
+	set_tests_properties(test_inputvalidation test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors test_input_path_casing
 		PROPERTIES LABELS "legacy-compat")
 endif()
 

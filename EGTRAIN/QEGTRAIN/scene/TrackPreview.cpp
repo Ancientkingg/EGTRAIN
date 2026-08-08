@@ -1,128 +1,125 @@
 #include "scene/TrackPreview.h"
 
-#include <algorithm>
-#include <charconv>
-#include <cmath>
-#include <filesystem>
-#include <fstream>
-#include <sstream>
-#include <utility>
+#include "scene/SceneModel.h"
 
-namespace fs = std::filesystem;
+#include <algorithm>
+#include <cmath>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 namespace {
 
-bool parseTrackId(const std::string& name, int& id) {
-	if (name.size() < 2 || name.front() != 'B')
-		return false;
+void addTrackLine(const SceneModel& scene, const SceneTrack& source,
+		const std::unordered_map<std::string, const SceneNode*>& nodesById,
+		TrackPreviewResult& result) {
+	std::vector<const SceneNode*> nodes;
+	for (const auto& node : scene.nodes)
+		if (node.trackId == source.id)
+			nodes.push_back(&node);
 
-	const char* begin = name.data() + 1;
-	const char* end = name.data() + name.size();
-	const auto parsed = std::from_chars(begin, end, id);
-	return parsed.ec == std::errc() && parsed.ptr == end;
+	std::unordered_map<std::string, std::vector<const SceneArc*>> outgoing;
+	std::unordered_map<std::string, int> incoming;
+	std::size_t arcCount = 0;
+	for (const SceneNode* node : nodes)
+		incoming[node->id] = 0;
+	for (const auto& arc : scene.arcs) {
+		if (arc.trackId != source.id)
+			continue;
+		++arcCount;
+		outgoing[arc.fromNodeId].push_back(&arc);
+		++incoming[arc.toNodeId];
+	}
+
+	std::vector<const SceneNode*> orderedNodes;
+	std::vector<const SceneNode*> starts;
+	for (const SceneNode* node : nodes)
+		if (incoming[node->id] == 0)
+			starts.push_back(node);
+	if (starts.size() == 1) {
+		const SceneNode* current = starts.front();
+		std::unordered_set<std::string> visited;
+		while (current && visited.insert(current->id).second) {
+			orderedNodes.push_back(current);
+			const auto next = outgoing.find(current->id);
+			if (next == outgoing.end() || next->second.size() != 1)
+				break;
+			const auto target = nodesById.find(next->second.front()->toNodeId);
+			current = target == nodesById.end() ? nullptr : target->second;
+		}
+	}
+	if (orderedNodes.size() != nodes.size() || orderedNodes.size() != arcCount + 1) {
+		std::sort(nodes.begin(), nodes.end(), [](const SceneNode* left, const SceneNode* right) {
+			if (left->xKm != right->xKm)
+				return left->xKm < right->xKm;
+			return left->id < right->id;
+		});
+		orderedNodes = std::move(nodes);
+		result.warnings.push_back("track " + source.id + " has no unique linear arc chain; preview uses node order");
+	}
+	if (orderedNodes.size() < 2)
+		return;
+
+	TrackPreviewLine line;
+	line.id = source.id;
+	line.points.reserve(orderedNodes.size());
+	for (const SceneNode* node : orderedNodes)
+		line.points.push_back({node->xKm, node->yKm, node->id});
+	result.lines.push_back(std::move(line));
 }
 
 } // namespace
 
-TrackPreviewResult loadTrackPreview(const std::string& sceneDir) {
+TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	TrackPreviewResult result;
+	std::unordered_map<std::string, const SceneNode*> nodesById;
+	for (const auto& node : scene.nodes)
+		if (!node.id.empty() && nodesById.emplace(node.id, &node).second == false)
+			result.warnings.push_back("duplicate node id " + node.id + " is ambiguous in preview");
 
-	try {
-		fs::path root = fs::path(sceneDir) / "legacy" / "TrackLines";
-		if (!fs::is_directory(root))
-			root = fs::path(sceneDir) / "legacy" / "Tracklines";
-		if (!fs::is_directory(root)) {
-			result.warnings.push_back("legacy track preview directory is missing");
-			return result;
+	std::vector<const SceneTrack*> tracks;
+	for (const auto& track : scene.tracks)
+		tracks.push_back(&track);
+	std::sort(tracks.begin(), tracks.end(), [](const SceneTrack* left, const SceneTrack* right) {
+		return left->id < right->id;
+	});
+	for (const SceneTrack* track : tracks)
+		addTrackLine(scene, *track, nodesById, result);
+
+	for (const auto& connection : scene.connections) {
+		const auto first = nodesById.find(connection.fromNodeId);
+		const auto second = nodesById.find(connection.toNodeId);
+		if (first == nodesById.end() || second == nodesById.end()) {
+			result.warnings.push_back("connection " + connection.id + " has an unresolved node anchor");
+			continue;
 		}
-
-		std::vector<std::pair<int, fs::path>> trackDirs;
-		for (const auto& entry : fs::directory_iterator(root)) {
-			if (!entry.is_directory())
-				continue;
-
-			int id = -1;
-			if (!parseTrackId(entry.path().filename().string(), id)) {
-				result.warnings.push_back("ignored nonnumeric track directory " + entry.path().filename().string());
-				continue;
-			}
-			trackDirs.emplace_back(id, entry.path());
-		}
-		std::sort(trackDirs.begin(), trackDirs.end(), [](const auto& left, const auto& right) {
-			return left.first < right.first;
-		});
-
-		for (const auto& trackDir : trackDirs) {
-			TrackPreviewLine line;
-			line.id = trackDir.first;
-			const fs::path nodesPath = trackDir.second / "NodiCumPari.txt";
-			std::ifstream nodes(nodesPath);
-			if (!nodes) {
-				result.warnings.push_back("could not read " + nodesPath.string());
-				continue;
-			}
-
-			std::string row;
-			while (std::getline(nodes, row)) {
-				std::istringstream values(row);
-				int nodeId = -1;
-				TrackPreviewPoint point;
-				if (!(values >> nodeId >> point.x >> point.y)
-					|| !std::isfinite(point.x) || !std::isfinite(point.y)) {
-					result.warnings.push_back("ignored malformed node row in B" + std::to_string(line.id));
-					continue;
-				}
-				line.points.push_back(point);
-			}
-
-			if (line.points.size() < 2) {
-				result.warnings.push_back("ignored track B" + std::to_string(line.id) + " with fewer than two points");
-				continue;
-			}
-			result.lines.push_back(std::move(line));
-		}
-
-		const fs::path stationsPath = root / "Stations.txt";
-		std::ifstream stations(stationsPath);
-		std::string stationRow;
-		while (stations && std::getline(stations, stationRow)) {
-			if (!stationRow.empty() && stationRow.back() == '\r')
-				stationRow.pop_back();
-			const std::size_t tab = stationRow.find('\t');
-			if (tab == std::string::npos || tab == 0 || tab + 1 >= stationRow.size())
-				continue;
-			TrackPreviewStation station;
-			try {
-				station.x = std::stod(stationRow.substr(0, tab));
-			} catch (...) {
-				result.warnings.push_back("ignored malformed station row");
-				continue;
-			}
-			station.name = stationRow.substr(tab + 1);
-			if (std::isfinite(station.x) && !station.name.empty())
-				result.stations.push_back(std::move(station));
-		}
-
-		const fs::path connectionsPath = root / "Connections.txt";
-		std::ifstream connections(connectionsPath);
-		std::string row;
-		while (connections && std::getline(connections, row)) {
-			std::istringstream values(row);
-			TrackPreviewConnection connection;
-			if (!(values >> connection.firstTrackId >> connection.firstX
-						 >> connection.secondTrackId >> connection.secondX)
-				|| !std::isfinite(connection.firstX) || !std::isfinite(connection.secondX)) {
-				result.warnings.push_back("ignored malformed connection row");
-				continue;
-			}
-			result.connections.push_back(connection);
-		}
-
-		if (result.lines.empty())
-			result.warnings.push_back("no valid legacy track preview is available");
-	} catch (const fs::filesystem_error& error) {
-		result.warnings.push_back(error.what());
+		TrackPreviewConnection preview;
+		preview.firstTrackId = first->second->trackId;
+		preview.firstNodeId = first->second->id;
+		preview.secondTrackId = second->second->trackId;
+		preview.secondNodeId = second->second->id;
+		result.connections.push_back(std::move(preview));
 	}
 
+	for (const auto& station : scene.stations) {
+		const std::string name = station.name.empty() ? station.id : station.name;
+		if (!station.platforms.empty()) {
+			for (const auto& platform : station.platforms) {
+				for (const auto& nodeId : platform.nodeIds) {
+					const auto node = nodesById.find(nodeId);
+					if (node == nodesById.end()) {
+						result.warnings.push_back("platform " + platform.id + " has an unresolved node anchor");
+						continue;
+					}
+					result.stations.push_back({name, node->second->id, node->second->xKm});
+				}
+			}
+		} else if (station.hasPosition && std::isfinite(station.positionKm)) {
+			result.stations.push_back({name, {}, station.positionKm});
+		}
+	}
+
+	if (result.lines.empty())
+		result.warnings.push_back("no valid scene track preview is available");
 	return result;
 }
