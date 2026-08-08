@@ -117,6 +117,14 @@ struct SceneComposition {
 	std::vector<std::string> units;
 };
 
+// Runtime-ready composition data shared by the native operations builder and
+// the legacy compatibility exporter. Unit pointers refer to the source scene.
+struct SceneCompositionRuntime {
+	SceneTrainPhysical physical;
+	std::vector<std::array<double, 5>> tractionCurve;
+	std::vector<const SceneTrainUnit*> units;
+};
+
 struct SceneStop {
 	std::string stationId;
 	std::string platformId;
@@ -233,6 +241,11 @@ struct SceneModel {
 	std::vector<SceneScenario> scenarios;
 	std::vector<ScenePassenger> passengers;
 };
+
+// Resolve ordered (and repeated) unit references and apply the legacy
+// multi-unit physical/tractive-effort aggregation rules.
+bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
+		SceneCompositionRuntime& result, std::string& diagnostic);
 
 // GUI/editor callers use the preferred scenario without a duplicate flat
 // incident vector in SceneModel.
