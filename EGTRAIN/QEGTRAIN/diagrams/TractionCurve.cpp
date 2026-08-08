@@ -27,12 +27,10 @@ std::vector<std::pair<double, double>> sampleTractionCurve(
 	return points;
 }
 
-std::string tractionAssociationWarning(bool unitDefined, bool hasCurve, bool hasTractionFile) {
+std::string tractionAssociationWarning(bool unitDefined, bool hasCurve) {
 	if (!unitDefined)
 		return "This unit is not defined in the train units.";
 	if (!hasCurve)
 		return "This unit has no traction curve to plot.";
-	if (!hasTractionFile)
-		return "This unit has a traction curve but no recorded T_LITRA source file.";
 	return std::string();
 }

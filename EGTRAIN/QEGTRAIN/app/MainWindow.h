@@ -388,6 +388,9 @@ private:
 	QDockWidget* m_loadedDataDock = nullptr;
 	QTreeWidget* m_loadedDataTree = nullptr;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
+	QString m_runtimeStatus = QStringLiteral("Not built");
+	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
+	bool m_resultsAvailable = false;
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
@@ -415,10 +418,11 @@ private:
 	QPushButton* m_removeUnitButton = nullptr;
 	QPushButton* m_moveUnitUpButton = nullptr;
 	QPushButton* m_moveUnitDownButton = nullptr;
-	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// LITRA source of the selected unit
-	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // T_LITRA source of the selected unit
+	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// original parameter source of the selected unit
+	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // original tractive-effort source of the selected unit
 	QLabel* m_compositionUnitWarningLabel = nullptr;		// missing or mismatched association
 	QPushButton* m_plotTractionButton = nullptr;			// open the tractive-effort plot
+	QPushButton* m_plotTrainUnitTractionButton = nullptr;
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
@@ -514,6 +518,8 @@ private:
 	void updateCaseLayersPanel();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
+	void activateLoadedDataItem(QTreeWidgetItem* item);
+	void markSceneDirty();
 
 	// composition editor
 	void refreshCompositionPanel();
@@ -528,6 +534,7 @@ private:
 	void moveCompositionUnitUp();
 	void moveCompositionUnitDown();
 	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
+	void plotTrainUnitTraction(const SceneTrainUnit& unit);
 	const SceneTrainUnit* trainUnitById(const std::string& id) const;
 	std::string uniqueCompositionId(const std::string& baseId) const;
 

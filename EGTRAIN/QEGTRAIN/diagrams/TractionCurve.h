@@ -17,9 +17,7 @@
 std::vector<std::pair<double, double>> sampleTractionCurve(
 	const std::vector<std::array<double, 5>>& curve, int stepsPerInterval = 16);
 
-// Describe a missing or mismatched traction association for a composition unit.
-// An empty string means the association is complete and the curve can be
-// plotted.
-std::string tractionAssociationWarning(bool unitDefined, bool hasCurve, bool hasTractionFile);
+// Describe why a composition unit cannot be plotted.
+std::string tractionAssociationWarning(bool unitDefined, bool hasCurve);
 
 #endif // TRACTIONCURVE_H
