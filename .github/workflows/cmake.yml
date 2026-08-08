@@ -43,8 +43,8 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
 
-      - name: Run headless Copenhagen and Brescia smokes
-        run: python3 tools/e2e/headless_smoke.py 3 4
+      - name: Run headless canonical scene smokes
+        run: python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6
 
       - name: Run editor smoke
         run: tools/e2e/editor_smoke.sh

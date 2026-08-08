@@ -9,7 +9,8 @@ from headless_smoke import case_command, route_errors, run_command
 
 def main() -> None:
     command = case_command(3)
-    expected = ["-n", "3", "-g", "0", "-TSM", "0", "-RC", "0"]
+    expected = ["--scene", str(Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
+                "-g", "0", "-TSM", "0", "-RC", "0"]
     if command[1:] != expected:
         raise SystemExit(f"headless case command does not disable the GUI and integrations: {command}")
 

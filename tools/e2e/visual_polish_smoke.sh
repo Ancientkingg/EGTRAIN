@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+SCENE_ROOT="$ROOT/EGTRAIN/QEGTRAIN/Scenes"
+SCENE="$SCENE_ROOT/Copenhagen"
 OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.log"
 SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.png"
 DENSE_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dense-e2e.png"
@@ -38,7 +40,7 @@ QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$CONTEXT_SHOT" \
 QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$COMMAND_BAR_1024_SHOT" \
 QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$COMMAND_BAR_1200_SHOT" \
 QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$COMMAND_BAR_1440_SHOT" \
-"$APP" -n 3 -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
+	"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
 
 grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
 grep -q "E2E_VISUAL_POLISH_DPR_1.0" "$OUT"
@@ -72,7 +74,7 @@ if ! QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$DPR2_COMMAND_BAR_1024_SHOT" \
 	QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$DPR2_COMMAND_BAR_1200_SHOT" \
 	QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$DPR2_COMMAND_BAR_1440_SHOT" \
-	"$APP" -n 3 -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$DPR2_OUT" 2>&1; then
+	"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$DPR2_OUT" 2>&1; then
 	cat "$DPR2_OUT" >&2
 	exit 2
 fi
@@ -84,20 +86,25 @@ test -s "$DPR2_COMMAND_BAR_1200_SHOT"
 test -s "$DPR2_COMMAND_BAR_1440_SHOT"
 echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
 
+SCENE_NAMES=(Netherlands Paimpol Copenhagen Milano_Brescia)
 for case in 1 2 3 4; do
+	scene_name="${SCENE_NAMES[$((case - 1))]}"
+	scene_path="$SCENE_ROOT/$scene_name"
 	station_out="${STATION_OUT_BASE}-${case}.log"
 	if [[ "$case" == "3" ]]; then
 		rm -f "${STATION_SHOT_BASE}-dpr1-fit.png" "${STATION_SHOT_BASE}-dpr1-3x.png" "${STATION_SHOT_BASE}-dpr1-12x.png"
 		QT_QPA_PLATFORM=offscreen \
 		QT_SCALE_FACTOR=1 \
+		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_STATION_OVERLAYS=1 \
 		QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-dpr1" \
-		"$APP" -n "$case" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
+		"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
 	else
 		QT_QPA_PLATFORM=offscreen \
 		QT_SCALE_FACTOR=1 \
+		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_STATION_OVERLAYS=1 \
-		"$APP" -n "$case" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
+			"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
 	fi
 	grep -q "E2E_STATION_OVERLAY_OK" "$station_out"
 	grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$station_out"
@@ -115,9 +122,10 @@ echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4}.log"
 rm -f "${STATION_SHOT_BASE}-dpr2-fit.png" "${STATION_SHOT_BASE}-dpr2-3x.png" "${STATION_SHOT_BASE}-dpr2-12x.png"
 QT_QPA_PLATFORM=offscreen \
 QT_SCALE_FACTOR=2 \
+QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_STATION_OVERLAYS=1 \
 QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-dpr2" \
-"$APP" -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$STATION_DPR2_OUT" 2>&1
+"$APP" --scene "$SCENE_ROOT/Copenhagen" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$STATION_DPR2_OUT" 2>&1
 grep -q "E2E_STATION_OVERLAY_OK" "$STATION_DPR2_OUT"
 grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$STATION_DPR2_OUT"
 grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$STATION_DPR2_OUT"

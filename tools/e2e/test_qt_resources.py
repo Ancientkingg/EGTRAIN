@@ -85,8 +85,10 @@ def main() -> None:
         if name in cmake:
             raise SystemExit(f"CMake still copies image asset: {name}")
 
-    if '"${SRC_DIR}/Input"' not in cmake:
-        raise SystemExit("CMake no longer copies Input data")
+    if '"${SRC_DIR}/Scenes"' not in cmake:
+        raise SystemExit("CMake no longer copies canonical Scenes data")
+    if '"${SRC_DIR}/Input"' in cmake:
+        raise SystemExit("CMake still packages legacy Input data")
     cmake_requirements = (
         "set(CMAKE_AUTORCC ON)",
         "set(EGTRAIN_RESOURCES",

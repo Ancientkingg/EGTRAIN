@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""End-to-end check that a train_breakdown incident reaches the simulation.
+"""End-to-end check that canonical incidents reach the native simulation.
 
-Exports the assignment scene twice: once unchanged and once with a
-train_breakdown incident on a single service for a window that falls inside
-the service's normal travel. Then it runs both and asserts that
+Runs the assignment scene unchanged and with incident variants, then asserts
+that
 
   * the unchanged run has the target train moving during the window (control),
   * the incident run has the target train's position frozen during the window,
   * the incident run has the target train moving before and after the window.
 
-This exercises the whole path: scene incidents.json -> SceneExporter Incidents.txt
--> Load_Incidents -> Incident_Holds_Train.
+This exercises the scenarios.json -> native operations builder -> runtime
+incident path.
 """
 from __future__ import annotations
 
@@ -23,15 +22,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-from headless_smoke import case_command
-
 ROOT = Path(__file__).resolve().parents[2]
-SCENE_TOOL = ROOT / "build/scene_tool"
 APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 SCENE_DIR = ROOT / "EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 CASE_ID = 5
-STAGED_NAME = "Input_EGTRAIN_Assignment"
-TRAJ_REL = "Output/Output_EGTRAIN_Assignment/TrainTrajectories/TrainServicePathDiagram.txt"
+TRAJ_REL = "Output/Assignment_Gvc_Gdg_Ut/TrainTrajectories/TrainServicePathDiagram.txt"
 
 # [800, 1400] lies inside the scheduled trip for IC1723-1.
 TARGET_SERVICE = "IC1723"
@@ -49,24 +44,18 @@ SF_WINDOW_START = 900
 SF_WINDOW_END = 1500
 
 
-def export_and_run(scene_dir: Path, tmp: Path, tag: str) -> list[float | None]:
-    exported = tmp / f"exported_{tag}"
+def run_scene(scene_dir: Path, tmp: Path, tag: str) -> list[float | None]:
     log = Path(tempfile.gettempdir()) / f"qegtrain-incident-{tag}.log"
+    output_root = tmp / f"output_{tag}"
+    env = os.environ.copy()
+    env["QEGTRAIN_OUTPUT_DIR"] = str(output_root)
+    command = [str(APP), "--scene", str(scene_dir), "-g", "0", "-TSM", "0", "-RC", "0"]
     with log.open("wb") as output:
-        export = subprocess.run([str(SCENE_TOOL), "export", str(scene_dir), str(exported)],
-                                stdout=output, stderr=subprocess.STDOUT)
-    if export.returncode != 0:
-        sys.exit(f"[{tag}] scene export failed with {export.returncode}; see {log}")
-    staging = tmp / f"staging_{tag}"
-    (staging / "Output").mkdir(parents=True)
-    (staging / "Input").mkdir()
-    os.symlink(exported, staging / "Input" / STAGED_NAME, target_is_directory=True)
-    with log.open("ab") as output:
-        proc = subprocess.run(case_command(CASE_ID), cwd=staging, stdout=output,
-                              stderr=subprocess.STDOUT, timeout=300)
+        proc = subprocess.run(command, cwd=ROOT / "EGTRAIN/QEGTRAIN", env=env,
+                              stdout=output, stderr=subprocess.STDOUT, timeout=300)
     if proc.returncode != 0:
         sys.exit(f"[{tag}] case {CASE_ID} exited with {proc.returncode}; see {log}")
-    traj = staging / TRAJ_REL
+    traj = output_root / TRAJ_REL
     if not traj.exists():
         sys.exit(f"[{tag}] no trajectory file written")
     return read_positions(traj, TARGET_TRAIN)
@@ -103,14 +92,14 @@ def span(positions: list[float | None], lo: int, hi: int) -> float:
 
 
 def main() -> None:
-    if not SCENE_TOOL.exists() or not APP.exists():
-        sys.exit("scene_tool or QEGTRAIN app not built")
+    if not APP.exists():
+        sys.exit("QEGTRAIN app not built")
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
 
         # Control: unchanged scene.
-        base_positions = export_and_run(SCENE_DIR, tmp_dir, "base")
+        base_positions = run_scene(SCENE_DIR, tmp_dir, "base")
         base_window = span(base_positions, WINDOW_START, WINDOW_END)
         if base_window <= _TOL:
             sys.exit(f"control failed: {TARGET_TRAIN} does not move during [{WINDOW_START},{WINDOW_END}] "
@@ -127,9 +116,12 @@ def main() -> None:
             "start_seconds": WINDOW_START,
             "end_seconds": WINDOW_END,
         }]}
-        (incident_scene / "incidents.json").write_text(json.dumps(incidents, indent=2), encoding="utf-8")
+        scenarios_path = incident_scene / "scenarios.json"
+        scenarios = json.loads(scenarios_path.read_text(encoding="utf-8"))
+        scenarios["scenarios"][0]["incidents"] = incidents["incidents"]
+        scenarios_path.write_text(json.dumps(scenarios, indent=2), encoding="utf-8")
 
-        inc_positions = export_and_run(incident_scene, tmp_dir, "incident")
+        inc_positions = run_scene(incident_scene, tmp_dir, "incident")
         held = span(inc_positions, WINDOW_START, WINDOW_END)
         if held > _TOL:
             sys.exit(f"incident failed: {TARGET_TRAIN} moved {held:.2f} m during the breakdown window "
@@ -162,9 +154,12 @@ def main() -> None:
             "start_seconds": SF_WINDOW_START,
             "end_seconds": SF_WINDOW_END,
         }]}
-        (sf_scene / "incidents.json").write_text(json.dumps(sf_incidents, indent=2), encoding="utf-8")
+        scenarios_path = sf_scene / "scenarios.json"
+        scenarios = json.loads(scenarios_path.read_text(encoding="utf-8"))
+        scenarios["scenarios"][0]["incidents"] = sf_incidents["incidents"]
+        scenarios_path.write_text(json.dumps(scenarios, indent=2), encoding="utf-8")
 
-        sf_positions = export_and_run(sf_scene, tmp_dir, "signal_failure")
+        sf_positions = run_scene(sf_scene, tmp_dir, "signal_failure")
         sf_window = [p for p in sf_positions[SF_WINDOW_START:SF_WINDOW_END] if p is not None]
         if not sf_window:
             sys.exit(f"signal_failure failed: {TARGET_TRAIN} has no positions during the failure window")
