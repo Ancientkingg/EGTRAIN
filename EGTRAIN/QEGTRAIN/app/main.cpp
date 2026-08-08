@@ -1,10 +1,12 @@
 #include <QCoreApplication>
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
+#include "scene/SceneBundle.h"
 #include "scene/SceneValidator.h"
 #include <algorithm>
 #include "util/portability.h"
 #include <QDir>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QStringList>
@@ -141,9 +143,9 @@ void parseCmdOptions(int argc, char* argv[]) {
 	}
 }
 
-QString resolveSceneDirectory(const QString& requested, const std::string& defaultName) {
+QString resolveScenePath(const QString& requested, const std::string& defaultName) {
 	if (!requested.isEmpty())
-		return QDir(requested).absolutePath();
+		return QFileInfo(requested).absoluteFilePath();
 	const QString name = QString::fromStdString(defaultName);
 	const QString applicationDir = QCoreApplication::applicationDirPath();
 	const QStringList candidates = {
@@ -185,7 +187,7 @@ int main(int argc, char* argv[]) {
 	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");
 	const bool sceneOption = cmdOptionEntered(argv, argv + argc, "--scene");
 	if (sceneOption && (!sceneArgument || sceneArgument[0] == '-')) {
-		std::cerr << "ERROR: --scene requires a scene directory.\n";
+		std::cerr << "ERROR: --scene requires a scene path or case study.\n";
 		return 1;
 	}
 	const std::string defaultName = initial_variables.name;
@@ -204,9 +206,9 @@ int main(int argc, char* argv[]) {
 
 	if (gui) {
 		QApplication application(argc, argv);
-		const QString scenePath = resolveSceneDirectory(
+		const QString scenePath = resolveScenePath(
 			sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
-		SceneLoadResult loaded = loadScene(scenePath.toStdString());
+		SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
 		if (!hasErrors(loaded.diagnostics)) {
 			const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
 			loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
@@ -228,9 +230,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	QCoreApplication application(argc, argv);
-	const QString scenePath = resolveSceneDirectory(
+	const QString scenePath = resolveScenePath(
 		sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
-	SceneLoadResult loaded = loadScene(scenePath.toStdString());
+	SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
 	if (!hasErrors(loaded.diagnostics)) {
 		const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
 		loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
