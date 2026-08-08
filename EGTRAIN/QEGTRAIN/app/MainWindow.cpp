@@ -13,6 +13,7 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/TractionCurve.h"
 #include "graphics/VisualPolish.h"
+#include "scene/SceneBundle.h"
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
@@ -562,22 +563,28 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	ui->actionLoad_Network->setText("Load Legacy Case...");
 	ui->actionLoad_Network->setShortcut(QKeySequence());
-	QAction* openSceneAction = new QAction("Open Scene...", this);
+	QAction* openSceneAction = new QAction("Open Case Study...", this);
 	openSceneAction->setShortcut(QKeySequence::Open);
+	QAction* openSceneFolderAction = new QAction("Open Scene Folder...", this);
 	m_saveSceneAction = new QAction("Save Scene", this);
 	m_saveSceneAction->setShortcut(QKeySequence::Save);
-	m_saveSceneAsAction = new QAction("Save Scene As...", this);
+	m_saveSceneAsAction = new QAction("Save Case Study As...", this);
+	m_saveSceneAsFolderAction = new QAction("Save Scene As Folder...", this);
 	m_runSceneAction = new QAction("Run Scene", this);
 	m_recentScenesMenu = new QMenu("Recent Scenes", this);
 	connect(openSceneAction, &QAction::triggered, this, &MainWindow::openSceneDialog);
+	connect(openSceneFolderAction, &QAction::triggered, this, &MainWindow::openSceneFolderDialog);
 	connect(m_saveSceneAction, &QAction::triggered, this, &MainWindow::saveScene);
 	connect(m_saveSceneAsAction, &QAction::triggered, this, &MainWindow::saveSceneAs);
+	connect(m_saveSceneAsFolderAction, &QAction::triggered, this, [this]() { saveSceneAsToDirectory(); });
 	connect(m_runSceneAction, &QAction::triggered, this, &MainWindow::runScene);
 	if (ui->menuFile) {
 		QAction* beforeAction = ui->actionLoad_Network;
 		ui->menuFile->insertAction(beforeAction, openSceneAction);
+		ui->menuFile->insertAction(beforeAction, openSceneFolderAction);
 		ui->menuFile->insertAction(beforeAction, m_saveSceneAction);
 		ui->menuFile->insertAction(beforeAction, m_saveSceneAsAction);
+		ui->menuFile->insertAction(beforeAction, m_saveSceneAsFolderAction);
 		ui->menuFile->insertAction(beforeAction, m_runSceneAction);
 		ui->menuFile->insertMenu(beforeAction, m_recentScenesMenu);
 		ui->menuFile->insertSeparator(beforeAction);
@@ -1492,17 +1499,30 @@ void MainWindow::openSceneDialog() {
 	if (!maybeSaveScene())
 		return;
 
-	QString dir = QFileDialog::getExistingDirectory(this, "Open Scene", m_sceneDir);
-	if (dir.isEmpty())
+	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
+	const QString path = QFileDialog::getOpenFileName(this, "Open Case Study", startDir,
+		"EGTRAIN Case Study (*.egscene)");
+	if (path.isEmpty())
 		return;
 
-	openSceneDirectory(dir);
+	openSceneDirectory(path);
+}
+
+void MainWindow::openSceneFolderDialog() {
+	if (!maybeSaveScene())
+		return;
+
+	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
+	const QString dir = QFileDialog::getExistingDirectory(this, "Open Scene Folder", startDir);
+	if (!dir.isEmpty())
+		openSceneDirectory(dir);
 }
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
-	QString scenePath = QDir(dir).absolutePath();
-	const bool reloadingSameScene = m_sceneLoaded && QDir(m_sceneDir).absolutePath() == scenePath;
-	auto result = loadScene(scenePath.toStdString());
+	const QString scenePath = QFileInfo(dir).absoluteFilePath();
+	const bool reloadingSameScene = m_sceneLoaded
+		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
+	auto result = loadScenePath(scenePath.toStdString());
 	int errorCount = errorDiagnosticCount(result.diagnostics);
 	if (errorCount > 0) {
 		QString message = firstDiagnosticMessage(result.diagnostics);
@@ -1519,6 +1539,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
 	m_sceneLoaded = true;
+	m_sceneIsBundle = QFileInfo(scenePath).isFile();
 	m_sceneDirty = false;
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	updateSceneWindowTitle();
@@ -1638,18 +1659,12 @@ void MainWindow::saveScene() {
 	saveSceneToCurrentDir();
 }
 
-bool MainWindow::saveSceneToCurrentDir() {
-	if (!m_sceneLoaded)
-		return false;
-	if (m_sceneDir.isEmpty())
-		return saveSceneAsToDirectory();
-
-	auto result = ::saveScene(m_sceneModel, m_sceneDir.toStdString());
+bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	if (!result.success()) {
 		QString message = firstDiagnosticMessage(result.diagnostics);
 		if (message.isEmpty())
 			message = "Scene could not be saved.";
-		QMessageBox::critical(this, "Cannot Save Scene", message);
+		showBlockingError(this, "Cannot Save Scene", message);
 		return false;
 	}
 
@@ -1666,16 +1681,53 @@ bool MainWindow::saveSceneToCurrentDir() {
 	return true;
 }
 
+bool MainWindow::saveSceneToCurrentDir() {
+	if (!m_sceneLoaded)
+		return false;
+	if (m_sceneDir.isEmpty())
+		return saveSceneAsToBundle();
+
+	auto result = m_sceneIsBundle
+		? saveSceneBundle(m_sceneModel, m_sceneDir.toStdString())
+		: ::saveScene(m_sceneModel, m_sceneDir.toStdString());
+	return finishSceneSave(result);
+}
+
 void MainWindow::saveSceneAs() {
-	saveSceneAsToDirectory();
+	saveSceneAsToBundle();
+}
+
+bool MainWindow::saveSceneAsToBundle() {
+	if (!m_sceneLoaded)
+		return false;
+
+	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
+		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
+	QString targetPath = QFileDialog::getSaveFileName(this, "Save Case Study As", startPath,
+		"EGTRAIN Case Study (*.egscene)");
+	if (targetPath.isEmpty())
+		return false;
+	if (!targetPath.endsWith(".egscene", Qt::CaseInsensitive))
+		targetPath += ".egscene";
+	targetPath = QFileInfo(targetPath).absoluteFilePath();
+
+	auto result = saveSceneBundle(m_sceneModel, targetPath.toStdString());
+	if (!result.success())
+		return finishSceneSave(result);
+
+	m_sceneDir = targetPath;
+	m_sceneIsBundle = true;
+	addRecentScene(targetPath);
+	return finishSceneSave(result);
 }
 
 bool MainWindow::saveSceneAsToDirectory() {
 	if (!m_sceneLoaded)
 		return false;
 
-	QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : m_sceneDir;
-	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As", startDir);
+	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
+		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
+	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As Folder", startDir);
 	if (dir.isEmpty())
 		return false;
 
@@ -1686,7 +1738,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
 		if (isNonEmpty && !hasSceneJson) {
 			auto response = QMessageBox::question(this,
-												  "Save Scene As",
+										  "Save Scene As Folder",
 												  "The selected folder is not empty and does not contain scene.json. Save scene files there?",
 												  QMessageBox::Yes | QMessageBox::No,
 												  QMessageBox::No);
@@ -1699,31 +1751,17 @@ bool MainWindow::saveSceneAsToDirectory() {
 		return false;
 
 	auto result = ::saveScene(m_sceneModel, targetPath.toStdString());
-	if (!result.success()) {
-		QString message = firstDiagnosticMessage(result.diagnostics);
-		if (message.isEmpty())
-			message = "Scene could not be saved.";
-		QMessageBox::critical(this, "Cannot Save Scene", message);
-		return false;
-	}
+	if (!result.success())
+		return finishSceneSave(result);
 
 	m_sceneDir = targetPath;
-	refreshSavedSceneMetadata(m_sceneModel);
-	m_sceneDirty = false;
-	updateSceneWindowTitle();
-	updateSceneActions();
+	m_sceneIsBundle = false;
 	addRecentScene(targetPath);
-	statusBar()->showMessage("Scene saved");
-	refreshValidationPanel();
-	refreshCompositionPanel();
-	refreshTrainUnitPanel();
-	refreshServicePanel();
-	refreshIncidentPanel();
-	return true;
+	return finishSceneSave(result);
 }
 
 bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
-	if (m_sceneDir.isEmpty())
+	if (m_sceneDir.isEmpty() || m_sceneIsBundle || !QFileInfo(m_sceneDir).isDir())
 		return true;
 
 	QString sourcePath = QDir(m_sceneDir).absolutePath();
@@ -1780,6 +1818,8 @@ void MainWindow::updateSceneActions() {
 		m_saveSceneAction->setEnabled(m_sceneLoaded && m_sceneDirty);
 	if (m_saveSceneAsAction)
 		m_saveSceneAsAction->setEnabled(m_sceneLoaded);
+	if (m_saveSceneAsFolderAction)
+		m_saveSceneAsFolderAction->setEnabled(m_sceneLoaded);
 	if (m_runSceneAction)
 		m_runSceneAction->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
 	if (ui->actionSimulationStart) {
@@ -3727,7 +3767,7 @@ void MainWindow::commitIncidentEndSeconds() {
 }
 
 void MainWindow::addRecentScene(const QString& path) {
-	QString cleanPath = QDir(path).absolutePath();
+	const QString cleanPath = QFileInfo(path).absoluteFilePath();
 	QSettings settings;
 	QStringList recent = settings.value(kRecentScenesKey).toStringList();
 	recent.removeAll(cleanPath);
@@ -3749,7 +3789,11 @@ void MainWindow::rebuildRecentScenesMenu() {
 	QStringList cleanedRecent;
 	bool pruned = false;
 	for (const QString& path : recent) {
-		if (!QFileInfo(QDir(path).filePath("scene.json")).exists()) {
+		const QFileInfo info(path);
+		const bool exists = info.isFile()
+			? info.exists() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0
+			: QFileInfo(QDir(path).filePath("scene.json")).exists();
+		if (!exists) {
 			pruned = true;
 		} else {
 			cleanedRecent.append(path);
@@ -3763,12 +3807,13 @@ void MainWindow::rebuildRecentScenesMenu() {
 	// two checkouts share a scene name, a shortened parent path tells them apart.
 	QHash<QString, int> nameCount;
 	for (const QString& path : recent)
-		++nameCount[QDir(path).dirName()];
+		++nameCount[QFileInfo(path).fileName()];
 	for (const QString& path : recent) {
-		const QString name = QDir(path).dirName();
+		const QFileInfo info(path);
+		const QString name = info.fileName();
 		QString label = name;
 		if (nameCount.value(name) > 1) {
-			QString parent = QFileInfo(path).dir().path();
+			QString parent = info.dir().path();
 			if (parent.length() > 44)
 				parent = parent.left(20) + "..." + parent.right(20);
 			label = QString("%1 (%2)").arg(name, parent);
@@ -7569,7 +7614,7 @@ void MainWindow::showStartupChooser() {
 		if (canonical.isEmpty() || seen.contains(canonical))
 			return;
 		seen.insert(canonical);
-		auto* item = new QListWidgetItem(QString("%1%2").arg(QDir(path).dirName(), badge), list);
+		auto* item = new QListWidgetItem(QString("%1%2").arg(QFileInfo(path).fileName(), badge), list);
 		item->setData(Qt::UserRole, path);
 		item->setToolTip(path);
 	};
@@ -7581,16 +7626,19 @@ void MainWindow::showStartupChooser() {
 		QDir dir(root);
 		if (!dir.exists())
 			continue;
-		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 		for (const QFileInfo& entry : entries) {
-			if (QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
+			if ((entry.isDir() && QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
+				|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0))
 				addSceneItem(entry.absoluteFilePath(), QString());
 		}
 	}
 	QSettings settings;
 	const QStringList recent = settings.value(kRecentScenesKey).toStringList();
 	for (const QString& path : recent) {
-		if (QFileInfo(QDir(path).filePath("scene.json")).exists())
+		const QFileInfo info(path);
+		if ((info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
+			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0))
 			addSceneItem(path, "  (recent)");
 	}
 	layout->addWidget(list, 1);
@@ -7640,13 +7688,13 @@ void MainWindow::showStartupChooser() {
 				openSceneDirectory(item->data(Qt::UserRole).toString());
 			break;
 		case BrowseScene:
-			openSceneDialog();
+			openSceneFolderDialog();
 			break;
 		case ImportLegacy:
 			actionLoad_Network();
 			break;
 		default:
-			statusBar()->showMessage("No case chosen; use File > Open Scene when ready", 8000);
+		statusBar()->showMessage("No case chosen; use File > Open Case Study when ready", 8000);
 			break;
 	}
 }

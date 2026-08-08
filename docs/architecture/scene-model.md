@@ -120,8 +120,15 @@ normal simulator input.
 
 The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full
-legacy trees are not duplicated. The transparent `.egscene` bundle is V2 and
-does not change the V1 schema described here.
+legacy trees are not duplicated.
+
+## Bundle format (v2)
+
+The transparent `.egscene` transport container packages the existing V1 JSON
+files without changing `SceneModel` or the V1 schema. Its manifest and safety
+rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
+Directories remain the editable source of truth; bundle loading extracts to a
+temporary directory and reuses `loadScene`.
 
 ## Native runtime path
 

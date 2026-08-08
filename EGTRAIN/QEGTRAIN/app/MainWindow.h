@@ -134,6 +134,8 @@ extern bool GUI;
 
 using namespace std;
 
+struct SceneSaveResult;
+
 namespace Ui {
 class MainWindow;
 }
@@ -247,6 +249,7 @@ public slots:
 	void runCurrent();
 	void onSimulationFinished();
 	void openSceneDialog();
+	void openSceneFolderDialog();
 	void saveScene();
 	void saveSceneAs();
 	void runScene();
@@ -372,9 +375,11 @@ private:
 	QString m_sceneDir;
 	SceneModel m_sceneModel;
 	bool m_sceneLoaded = false;
+	bool m_sceneIsBundle = false;
 	bool m_sceneDirty = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
+	QAction* m_saveSceneAsFolderAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
 	QMenu* m_recentScenesMenu = nullptr;
 	QDockWidget* m_validationDock = nullptr;
@@ -500,7 +505,9 @@ private:
 	void rebuildRecentScenesMenu();
 	bool maybeSaveScene();
 	void renderTrackPreview(const SceneModel& sceneModel);
+	bool finishSceneSave(const SceneSaveResult& result);
 	bool saveSceneToCurrentDir();
+	bool saveSceneAsToBundle();
 	bool saveSceneAsToDirectory();
 	bool copyScenePassthroughFiles(const QString& targetDir);
 	void updateSceneWindowTitle();
