@@ -50,6 +50,17 @@ static void writeText(const fs::path& path, const std::string& content) {
 	output << content;
 }
 
+static void writeUtf16Le(const fs::path& path, const std::string& content) {
+	fs::create_directories(path.parent_path());
+	std::ofstream output(path, std::ios::binary);
+	output.put(static_cast<char>(0xff));
+	output.put(static_cast<char>(0xfe));
+	for (const unsigned char value : content) {
+		output.put(static_cast<char>(value));
+		output.put('\0');
+	}
+}
+
 static bool readJson(const fs::path& path, json& value) {
 	std::ifstream input(path);
 	if (!input)
@@ -188,7 +199,7 @@ int main(int argc, char** argv) {
 		writeText(legacy / "TrackLines/B0/ArchiCumPari.txt", "7 1 2 100 2 30\n");
 		writeText(legacy / "TrackLines/B1/ArchiCumPari.txt", "7 1 2 200 3 40\n");
 		writeText(legacy / "TrackLines/B0/BlockCumPari.txt", "99 0.5\n");
-		writeText(legacy / "TrackLines/B1/BlockCumPari.txt", "88 0.6\n");
+		writeUtf16Le(legacy / "TrackLines/B1/BlockCumPari.txt", "88 0.6\r\n");
 		writeText(legacy / "TrackLines/Connections.txt", "0 0 1 0 7\n0 9 1 9 8\n");
 		writeText(legacy / "TrackLines/Stations.txt", "0\tGuingamp\n1\tPaimpol\n");
 		writeText(legacy / "Routes/Route0.txt", "@0-B0@\n");
@@ -236,6 +247,10 @@ int main(int argc, char** argv) {
 					&& infrastructure["arcs"][0]["to"] == "B0.node.2", "Arc node references");
 			ok &= expect(infrastructure["blocks"][0]["id"] == "0-B0"
 					&& infrastructure["blocks"][0]["length_km"] == 0.5, "Row-position block id");
+			ok &= expect(infrastructure["blocks"].size() == 2
+					&& infrastructure["blocks"][1]["id"] == "0-B1"
+					&& infrastructure["blocks"][1]["length_km"] == 0.6,
+					"UTF-16LE block data is imported");
 			ok &= expect(infrastructure["connections"].size() == 1
 					&& infrastructure["connections"][0]["from"] == "B0.node.1", "Resolved connection ref");
 			ok &= expect(rolling["train_units"].size() == 1

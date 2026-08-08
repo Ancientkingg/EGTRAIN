@@ -1,11 +1,7 @@
+#include "scene/SceneModel.h"
 #include "scene/TrackPreview.h"
 
-#include <chrono>
-#include <filesystem>
-#include <fstream>
 #include <iostream>
-
-namespace fs = std::filesystem;
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -13,62 +9,49 @@ static bool expect(bool condition, const char* message) {
 	return condition;
 }
 
-struct TempDir {
-	fs::path path;
-
-	TempDir() {
-		path = fs::temp_directory_path()
-			   / ("track_preview_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-		fs::create_directories(path);
-	}
-
-	~TempDir() {
-		std::error_code ec;
-		fs::remove_all(path, ec);
-	}
-};
-
-static void writeFile(const fs::path& path, const std::string& text) {
-	fs::create_directories(path.parent_path());
-	std::ofstream(path) << text;
-}
-
 int main() {
+	SceneModel scene;
+	scene.tracks = {{"line-z"}, {"line.a"}};
+	scene.nodes = {
+		{"z.start", "line-z", 10.0, 1.0},
+		{"z.end", "line-z", 20.0, 2.0},
+		{"a.start", "line.a", 10.0, -1.0},
+		{"a.end", "line.a", 20.0, -2.0},
+	};
+	scene.arcs = {
+		{"z.arc", "line-z", "z.start", "z.end", 0.0, 0.0, 12.0},
+		{"a.arc", "line.a", "a.start", "a.end", 0.0, 0.0, 12.0},
+	};
+	scene.connections.push_back({"switch.7", "z.end", "a.end", false, 0.0});
+	SceneStation station;
+	station.id = "station.anchor";
+	station.name = "Anchor";
+	station.platforms.push_back({"platform-east", {"z.start"}});
+	scene.stations.push_back(station);
+
+	const TrackPreviewResult result = loadTrackPreview(scene);
 	bool ok = true;
-
-	{
-		TempDir scene;
-		const fs::path tracks = scene.path / "legacy" / "TrackLines";
-		writeFile(tracks / "B10" / "NodiCumPari.txt", "1 10 0\n2 20 1\n");
-		writeFile(tracks / "B2" / "NodiCumPari.txt", "bad row\n1 0 0\n2 5 0\n");
-		writeFile(tracks / "B3" / "NodiCumPari.txt", "1 3 0\n");
-		writeFile(tracks / "Bbad" / "NodiCumPari.txt", "1 0 0\n2 1 0\n");
-		writeFile(tracks / "Connections.txt", "2 4.5 10 10.5\ninvalid\n");
-
-		const auto result = loadTrackPreview(scene.path.string());
-		ok &= expect(result.lines.size() == 2, "keeps only tracks with at least two valid points");
-		ok &= expect(result.lines[0].id == 2 && result.lines[1].id == 10, "sorts B directories numerically");
-		ok &= expect(result.lines[0].points.size() == 2, "skips malformed node rows");
-		ok &= expect(result.connections.size() == 1, "parses valid connections and skips malformed rows");
-		ok &= expect(result.connections[0].firstTrackId == 2 && result.connections[0].secondTrackId == 10,
-					 "preserves connection track ids");
-		ok &= expect(!result.warnings.empty(), "reports non-blocking diagnostics for malformed input");
+	ok &= expect(result.lines.size() == 2, "preview renders both in-memory tracks without legacy files");
+	if (result.lines.size() == 2) {
+		ok &= expect(result.lines[0].id == "line-z" && result.lines[1].id == "line.a",
+				"preview preserves arbitrary string track IDs in deterministic order");
+		ok &= expect(result.lines[0].points.front().nodeId == "z.start"
+				&& result.lines[0].points.back().nodeId == "z.end",
+				"preview points retain canonical node IDs");
 	}
-
-	{
-		TempDir scene;
-		const fs::path tracks = scene.path / "legacy" / "Tracklines";
-		writeFile(tracks / "B0" / "NodiCumPari.txt", "1 0 0\n2 1 0\n");
-		ok &= expect(loadTrackPreview(scene.path.string()).lines.size() == 1,
-					 "accepts legacy Tracklines spelling");
+	ok &= expect(result.connections.size() == 1, "preview resolves one canonical connection");
+	if (!result.connections.empty()) {
+		const auto& connection = result.connections.front();
+		ok &= expect(connection.firstTrackId == "line-z" && connection.firstNodeId == "z.end"
+				&& connection.secondTrackId == "line.a" && connection.secondNodeId == "a.end",
+				"connection endpoints resolve through canonical node references");
 	}
-
-	{
-		TempDir scene;
-		const auto result = loadTrackPreview(scene.path.string());
-		ok &= expect(result.lines.empty(), "missing preview directory returns no lines");
-		ok &= expect(!result.warnings.empty(), "missing preview directory reports a warning");
+	ok &= expect(result.stations.size() == 1, "preview renders one station anchor");
+	if (!result.stations.empty()) {
+		const auto& stationAnchor = result.stations.front();
+		ok &= expect(stationAnchor.name == "Anchor" && stationAnchor.nodeId == "z.start"
+				&& stationAnchor.x == 10.0,
+				"station preview prefers the platform node anchor");
 	}
-
 	return ok ? 0 : 1;
 }

@@ -3,205 +3,647 @@
         {
             "id": "LebaneseUniversity",
             "name": "LebaneseUniversity",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "LebaneseUniversity.platform.1",
+                    "nodes": [
+                        "B0.node.7"
+                    ]
+                },
+                {
+                    "id": "LebaneseUniversity.platform.2",
+                    "nodes": [
+                        "B1.node.7"
+                    ]
+                }
+            ],
             "position_km": 0.579
         },
         {
             "id": "HaretHreik",
             "name": "HaretHreik",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "HaretHreik.platform.1",
+                    "nodes": [
+                        "B0.node.29"
+                    ]
+                },
+                {
+                    "id": "HaretHreik.platform.2",
+                    "nodes": [
+                        "B1.node.29"
+                    ]
+                }
+            ],
             "position_km": 3.254
         },
         {
             "id": "MichelZakhourSt",
             "name": "MichelZakhourSt",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "MichelZakhourSt.platform.1",
+                    "nodes": [
+                        "B0.node.36"
+                    ]
+                },
+                {
+                    "id": "MichelZakhourSt.platform.2",
+                    "nodes": [
+                        "B1.node.36"
+                    ]
+                }
+            ],
             "position_km": 3.931
         },
         {
             "id": "Chiyah",
             "name": "Chiyah",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Chiyah.platform.1",
+                    "nodes": [
+                        "B0.node.49"
+                    ]
+                },
+                {
+                    "id": "Chiyah.platform.2",
+                    "nodes": [
+                        "B1.node.49"
+                    ]
+                }
+            ],
             "position_km": 5.247
         },
         {
             "id": "NBTCentralStation",
             "name": "NBTCentralStation",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "NBTCentralStation.platform.1",
+                    "nodes": [
+                        "B0.node.60"
+                    ]
+                },
+                {
+                    "id": "NBTCentralStation.platform.2",
+                    "nodes": [
+                        "B1.node.60"
+                    ]
+                }
+            ],
             "position_km": 6.485
         },
         {
             "id": "BourjHammoud",
             "name": "BourjHammoud",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "BourjHammoud.platform.1",
+                    "nodes": [
+                        "B0.node.75"
+                    ]
+                },
+                {
+                    "id": "BourjHammoud.platform.2",
+                    "nodes": [
+                        "B1.node.75"
+                    ]
+                }
+            ],
             "position_km": 8.441
         },
         {
             "id": "Dora",
             "name": "Dora",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dora.platform.1",
+                    "nodes": [
+                        "B0.node.82"
+                    ]
+                },
+                {
+                    "id": "Dora.platform.2",
+                    "nodes": [
+                        "B1.node.82"
+                    ]
+                }
+            ],
             "position_km": 9.539
         },
         {
             "id": "NahrElMot",
             "name": "NahrElMot",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "NahrElMot.platform.1",
+                    "nodes": [
+                        "B0.node.87"
+                    ]
+                },
+                {
+                    "id": "NahrElMot.platform.2",
+                    "nodes": [
+                        "B1.node.87"
+                    ]
+                }
+            ],
             "position_km": 11.016
         },
         {
             "id": "JalElDib",
             "name": "JalElDib",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "JalElDib.platform.1",
+                    "nodes": [
+                        "B0.node.95"
+                    ]
+                },
+                {
+                    "id": "JalElDib.platform.2",
+                    "nodes": [
+                        "B1.node.95"
+                    ]
+                }
+            ],
             "position_km": 13.092
         },
         {
             "id": "Antelias",
             "name": "Antelias",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Antelias.platform.1",
+                    "nodes": [
+                        "B0.node.100"
+                    ]
+                },
+                {
+                    "id": "Antelias.platform.2",
+                    "nodes": [
+                        "B1.node.100"
+                    ]
+                }
+            ],
             "position_km": 14.963
         },
         {
             "id": "Dbayeh",
             "name": "Dbayeh",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dbayeh.platform.1",
+                    "nodes": [
+                        "B0.node.102"
+                    ]
+                },
+                {
+                    "id": "Dbayeh.platform.2",
+                    "nodes": [
+                        "B1.node.102"
+                    ]
+                }
+            ],
             "position_km": 15.978
         },
         {
             "id": "ZoukMosbeh",
             "name": "ZoukMosbeh",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "ZoukMosbeh.platform.1",
+                    "nodes": [
+                        "B0.node.113"
+                    ]
+                },
+                {
+                    "id": "ZoukMosbeh.platform.2",
+                    "nodes": [
+                        "B1.node.113"
+                    ]
+                }
+            ],
             "position_km": 19.173
         },
         {
             "id": "JouniehPort",
             "name": "JouniehPort",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "JouniehPort.platform.1",
+                    "nodes": [
+                        "B0.node.116"
+                    ]
+                },
+                {
+                    "id": "JouniehPort.platform.2",
+                    "nodes": [
+                        "B1.node.116"
+                    ]
+                }
+            ],
             "position_km": 20.172
         },
         {
             "id": "Jounieh",
             "name": "Jounieh",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Jounieh.platform.1",
+                    "nodes": [
+                        "B0.node.124"
+                    ]
+                },
+                {
+                    "id": "Jounieh.platform.2",
+                    "nodes": [
+                        "B1.node.124"
+                    ]
+                }
+            ],
             "position_km": 22.46
         },
         {
             "id": "Tabarja",
             "name": "Tabarja",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Tabarja.platform.1",
+                    "nodes": [
+                        "B0.node.157"
+                    ]
+                },
+                {
+                    "id": "Tabarja.platform.2",
+                    "nodes": [
+                        "B1.node.157"
+                    ]
+                }
+            ],
             "position_km": 30.217
         },
         {
             "id": "NahrIbrahim",
             "name": "NahrIbrahim",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "NahrIbrahim.platform.1",
+                    "nodes": [
+                        "B0.node.174"
+                    ]
+                },
+                {
+                    "id": "NahrIbrahim.platform.2",
+                    "nodes": [
+                        "B1.node.174"
+                    ]
+                }
+            ],
             "position_km": 34.746
         },
         {
             "id": "Fidar",
             "name": "Fidar",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Fidar.platform.1",
+                    "nodes": [
+                        "B0.node.189"
+                    ]
+                },
+                {
+                    "id": "Fidar.platform.2",
+                    "nodes": [
+                        "B1.node.189"
+                    ]
+                }
+            ],
             "position_km": 39.154
         },
         {
             "id": "Jbeil",
             "name": "Jbeil",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Jbeil.platform.1",
+                    "nodes": [
+                        "B0.node.196"
+                    ]
+                },
+                {
+                    "id": "Jbeil.platform.2",
+                    "nodes": [
+                        "B1.node.196"
+                    ]
+                }
+            ],
             "position_km": 42.094
         },
         {
             "id": "Amchit",
             "name": "Amchit",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Amchit.platform.1",
+                    "nodes": [
+                        "B0.node.202"
+                    ]
+                },
+                {
+                    "id": "Amchit.platform.2",
+                    "nodes": [
+                        "B1.node.202"
+                    ]
+                }
+            ],
             "position_km": 45.071
         },
         {
             "id": "KfarAabida",
             "name": "KfarAabida",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "KfarAabida.platform.1",
+                    "nodes": [
+                        "B0.node.234"
+                    ]
+                },
+                {
+                    "id": "KfarAabida.platform.2",
+                    "nodes": [
+                        "B1.node.234"
+                    ]
+                }
+            ],
             "position_km": 54.464
         },
         {
             "id": "Batroun",
             "name": "Batroun",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Batroun.platform.1",
+                    "nodes": [
+                        "B0.node.241"
+                    ]
+                },
+                {
+                    "id": "Batroun.platform.2",
+                    "nodes": [
+                        "B1.node.241"
+                    ]
+                }
+            ],
             "position_km": 57.249
         },
         {
             "id": "Herri",
             "name": "Herri",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Herri.platform.1",
+                    "nodes": [
+                        "B0.node.271"
+                    ]
+                },
+                {
+                    "id": "Herri.platform.2",
+                    "nodes": [
+                        "B1.node.271"
+                    ]
+                }
+            ],
             "position_km": 65.282
         },
         {
             "id": "Chekka",
             "name": "Chekka",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Chekka.platform.1",
+                    "nodes": [
+                        "B0.node.278"
+                    ]
+                },
+                {
+                    "id": "Chekka.platform.2",
+                    "nodes": [
+                        "B1.node.278"
+                    ]
+                }
+            ],
             "position_km": 68.534
         },
         {
             "id": "Enfeh",
             "name": "Enfeh",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Enfeh.platform.1",
+                    "nodes": [
+                        "B0.node.284"
+                    ]
+                },
+                {
+                    "id": "Enfeh.platform.2",
+                    "nodes": [
+                        "B1.node.284"
+                    ]
+                }
+            ],
             "position_km": 71.077
         },
         {
             "id": "Balamand",
             "name": "Balamand",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Balamand.platform.1",
+                    "nodes": [
+                        "B0.node.290"
+                    ]
+                },
+                {
+                    "id": "Balamand.platform.2",
+                    "nodes": [
+                        "B1.node.290"
+                    ]
+                }
+            ],
             "position_km": 76.477
         },
         {
             "id": "Kalmoun",
             "name": "Kalmoun",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Kalmoun.platform.1",
+                    "nodes": [
+                        "B0.node.294"
+                    ]
+                },
+                {
+                    "id": "Kalmoun.platform.2",
+                    "nodes": [
+                        "B1.node.294"
+                    ]
+                }
+            ],
             "position_km": 79.082
         },
         {
             "id": "Bahsas",
             "name": "Bahsas",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bahsas.platform.1",
+                    "nodes": [
+                        "B0.node.303"
+                    ]
+                },
+                {
+                    "id": "Bahsas.platform.2",
+                    "nodes": [
+                        "B1.node.303"
+                    ]
+                }
+            ],
             "position_km": 82.878
         },
         {
             "id": "Tripoli",
             "name": "Tripoli",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Tripoli.platform.1",
+                    "nodes": [
+                        "B0.node.313"
+                    ]
+                },
+                {
+                    "id": "Tripoli.platform.2",
+                    "nodes": [
+                        "B1.node.313"
+                    ]
+                }
+            ],
             "position_km": 86.412
         },
         {
             "id": "Beddaoui",
             "name": "Beddaoui",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Beddaoui.platform.1",
+                    "nodes": [
+                        "B0.node.321"
+                    ]
+                },
+                {
+                    "id": "Beddaoui.platform.2",
+                    "nodes": [
+                        "B1.node.321"
+                    ]
+                }
+            ],
             "position_km": 89.609
         },
         {
             "id": "DeirAmar",
             "name": "DeirAmar",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "DeirAmar.platform.1",
+                    "nodes": [
+                        "B0.node.330"
+                    ]
+                },
+                {
+                    "id": "DeirAmar.platform.2",
+                    "nodes": [
+                        "B1.node.330"
+                    ]
+                }
+            ],
             "position_km": 93.845
         },
         {
             "id": "Minieh",
             "name": "Minieh",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Minieh.platform.1",
+                    "nodes": [
+                        "B0.node.342"
+                    ]
+                },
+                {
+                    "id": "Minieh.platform.2",
+                    "nodes": [
+                        "B1.node.342"
+                    ]
+                }
+            ],
             "position_km": 97.609
         },
         {
             "id": "AlAabde",
             "name": "AlAabde",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "AlAabde.platform.1",
+                    "nodes": [
+                        "B0.node.358"
+                    ]
+                },
+                {
+                    "id": "AlAabde.platform.2",
+                    "nodes": [
+                        "B1.node.358"
+                    ]
+                }
+            ],
             "position_km": 102.405
         },
         {
             "id": "TripoliIntlAirport",
             "name": "TripoliIntlAirport",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "TripoliIntlAirport.platform.1",
+                    "nodes": [
+                        "B0.node.377"
+                    ]
+                },
+                {
+                    "id": "TripoliIntlAirport.platform.2",
+                    "nodes": [
+                        "B1.node.377"
+                    ]
+                }
+            ],
             "position_km": 113.623
         },
         {
             "id": "TellAbbas",
             "name": "TellAbbas",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "TellAbbas.platform.1",
+                    "nodes": [
+                        "B0.node.387"
+                    ]
+                },
+                {
+                    "id": "TellAbbas.platform.2",
+                    "nodes": [
+                        "B1.node.387"
+                    ]
+                }
+            ],
             "position_km": 118.379
         }
     ]

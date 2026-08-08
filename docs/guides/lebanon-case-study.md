@@ -25,7 +25,8 @@ The docks on the right hold the editors. If a dock is hidden, turn it back on fr
 Present in the scene:
 
 - 34 stations, in `stations.json`.
-- The track geometry for lines B0 through B7, kept under `legacy/Tracklines`. The network drawing and the simulation both read this legacy passthrough. The canonical `infrastructure.json` holds no separate geometry, so do not expect arc or node records there.
+- Canonical track geometry for lines B0 through B7, in `infrastructure.json`. The network preview reads these nodes, arcs, connections, and platform anchors directly.
+- The original track files under `legacy/Tracklines`. The current simulation runtime still uses this compatibility passthrough; its removal belongs to a later migration milestone.
 
 Not present, and yours to add:
 

@@ -1,7 +1,9 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
+#include <codecvt>
 #include <filesystem>
 #include <fstream>
+#include <locale>
 #include <sstream>
 #include <unordered_set>
 #include <unordered_map>
@@ -13,6 +15,7 @@
 #include <map>
 #include <regex>
 #include <set>
+#include <utility>
 #include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
@@ -129,10 +132,26 @@ static bool isSwitchTransitionRouteToken(const std::string& token) {
 }
 
 static bool readFile(const fs::path& path, std::string& content) {
-	std::ifstream f(path);
+	std::ifstream f(path, std::ios::binary);
 	if (!f.good())
 		return false;
 	content.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+	if (content.size() >= 2
+			&& static_cast<unsigned char>(content[0]) == 0xff
+			&& static_cast<unsigned char>(content[1]) == 0xfe) {
+		std::u16string utf16;
+		utf16.reserve(content.size() / 2);
+		for (std::size_t i = 2; i + 1 < content.size(); i += 2) {
+			utf16.push_back(static_cast<char16_t>(static_cast<unsigned char>(content[i])
+					| (static_cast<unsigned int>(static_cast<unsigned char>(content[i + 1])) << 8)));
+		}
+		try {
+			content = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(utf16);
+		} catch (...) {
+			content.clear();
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -1014,15 +1033,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			loadedRouteIds.insert(joinedId);
 			report.converted("signalling.joined_routes", joinsSource);
 		}
-	}
-
-	// Only the dependency proven by the current Copenhagen signalling path is
-	// persisted. Other signals, virtual signals and TDS rows remain derived.
-	if (blockIds.count("1-B30") && blockIds.count("5-B6") && blockIds.count("5-B7")) {
-		blockDependencies.push_back({{"block", "5-B6"},
-			{"depends_on", "@1-B30@-4.592000/@5-B7@-4.620000"}});
-		report.source("signalling.dependencies", "Copenhagen hard-coded dependency");
-		report.converted("signalling.dependencies", "Copenhagen hard-coded dependency");
 	}
 
 	const fs::path singleTrackPath = guiDir.empty() ? fs::path() : findChild(guiDir, "singleTrackLimits.txt");

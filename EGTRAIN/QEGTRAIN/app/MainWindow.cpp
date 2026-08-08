@@ -431,6 +431,16 @@ bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPa
 	return true;
 }
 
+bool previewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId, qreal offset, QPointF& point) {
+	for (const auto& candidate : line.points) {
+		if (candidate.nodeId == nodeId) {
+			point = QPointF(candidate.x, candidate.y + offset);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point) {
 	if (line.points.empty())
 		return false;
@@ -1533,12 +1543,12 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
-	renderTrackPreview(scenePath);
+	renderTrackPreview(m_sceneModel);
 	return true;
 }
 
-void MainWindow::renderTrackPreview(const QString& sceneDir) {
-	const TrackPreviewResult preview = loadTrackPreview(sceneDir.toStdString());
+void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
+	const TrackPreviewResult preview = loadTrackPreview(sceneModel);
 	if (preview.lines.empty()) {
 		statusBar()->showMessage("Scene loaded - no track preview available; simulation not running");
 		return;
@@ -1549,7 +1559,7 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 	pen.setCosmetic(true);
 
 	QRectF previewBounds;
-	std::map<int, std::pair<const TrackPreviewLine*, qreal>> tracks;
+	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
 	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
 		const auto& line = preview.lines[index];
 		const qreal offset = static_cast<qreal>(index) * 3.0;
@@ -1571,8 +1581,8 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 
 		QPointF start;
 		QPointF end;
-		if (!previewPointAtX(*first->second.first, connection.firstX, first->second.second, start)
-			|| !previewPointAtX(*second->second.first, connection.secondX, second->second.second, end))
+		if (!previewPointAtNode(*first->second.first, connection.firstNodeId, first->second.second, start)
+			|| !previewPointAtNode(*second->second.first, connection.secondNodeId, second->second.second, end))
 			continue;
 
 		QPainterPath path(start);
@@ -1587,13 +1597,18 @@ void MainWindow::renderTrackPreview(const QString& sceneDir) {
 	for (const auto& station : preview.stations) {
 		for (const auto& track : tracks) {
 			const auto& points = track.second.first->points;
-			const double minX = std::min(points.front().x, points.back().x);
-			const double maxX = std::max(points.front().x, points.back().x);
-			if (station.x < minX || station.x > maxX)
-				continue;
 			QPointF anchor;
-			if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
-				break;
+			if (!station.nodeId.empty()) {
+				if (!previewPointAtNode(*track.second.first, station.nodeId, track.second.second, anchor))
+					continue;
+			} else {
+				const double minX = std::min(points.front().x, points.back().x);
+				const double maxX = std::max(points.front().x, points.back().x);
+				if (station.x < minX || station.x > maxX)
+					continue;
+				if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
+					break;
+			}
 			auto* marker = scene->addEllipse(QRectF(-4.0, -4.0, 8.0, 8.0),
 											 QPen(QColor(240, 244, 250)), QBrush(QColor(70, 110, 200)));
 			marker->setPos(anchor);

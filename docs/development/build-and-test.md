@@ -33,7 +33,12 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Current tests cover time formatting, input validation, speed formatting, trajectory accessors, blocking-time diagram data, visual classification, scene validation, scene import/export, scene writing, native scene route building, and smoke output decoding.
+Current tests cover time formatting, input validation, speed formatting, trajectory accessors, blocking-time diagram data, visual classification, scene validation, scene import/export, scene writing, native infrastructure/signalling building, canonical TrackPreview rendering, and smoke output decoding.
+
+The native builder and TrackPreview tests operate on an in-memory canonical
+`SceneModel`; the builder performs no filesystem reads. The default simulation
+continues to use the exporter and legacy runtime path. Operations and scenario
+selection are Milestone 3 work, with full native cutover planned later.
 
 Scene tests use CTest labels:
 
