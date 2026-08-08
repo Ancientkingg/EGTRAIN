@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from headless_smoke import case_command, route_errors, run_command
+from headless_smoke import case_command, route_errors, run_command, scene_output_dir
 
 
 def main() -> None:
@@ -13,6 +13,10 @@ def main() -> None:
                 "-g", "0", "-TSM", "0", "-RC", "0"]
     if command[1:] != expected:
         raise SystemExit(f"headless case command does not disable the GUI and integrations: {command}")
+
+    assignment_output = scene_output_dir(5, Path("/tmp/qegtrain-smoke"))
+    if assignment_output.name != "Assignment Gvc-Gdg-Ut":
+        raise SystemExit(f"headless output path ignores the canonical scene name: {assignment_output}")
 
     errors = route_errors("ok\nERROR4 in Route r1\nERROR5 in Route r1\n")
     if errors != ["ERROR4 in Route r1", "ERROR5 in Route r1"]:

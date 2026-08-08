@@ -22,11 +22,12 @@ import sys
 import tempfile
 from pathlib import Path
 
+from headless_smoke import scene_output_dir
+
 ROOT = Path(__file__).resolve().parents[2]
 APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 SCENE_DIR = ROOT / "EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 CASE_ID = 5
-TRAJ_REL = "Output/Assignment_Gvc_Gdg_Ut/TrainTrajectories/TrainServicePathDiagram.txt"
 
 # [800, 1400] lies inside the scheduled trip for IC1723-1.
 TARGET_SERVICE = "IC1723"
@@ -55,7 +56,7 @@ def run_scene(scene_dir: Path, tmp: Path, tag: str) -> list[float | None]:
                               stdout=output, stderr=subprocess.STDOUT, timeout=300)
     if proc.returncode != 0:
         sys.exit(f"[{tag}] case {CASE_ID} exited with {proc.returncode}; see {log}")
-    traj = output_root / TRAJ_REL
+    traj = scene_output_dir(CASE_ID, output_root) / "TrainTrajectories/TrainServicePathDiagram.txt"
     if not traj.exists():
         sys.exit(f"[{tag}] no trajectory file written")
     return read_positions(traj, TARGET_TRAIN)

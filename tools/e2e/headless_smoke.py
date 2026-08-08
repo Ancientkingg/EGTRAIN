@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import math
 import os
 import subprocess
@@ -19,10 +20,6 @@ SCENES = {
     6: "Lebanon",
 }
 
-CASES = {
-    case_id: f"Output/{scene_name}/TrainTrajectories"
-    for case_id, scene_name in SCENES.items()
-}
 ASSERT_MOVEMENT = {2, 3, 4, 5}
 ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
 
@@ -52,6 +49,11 @@ def case_command(case_id: int) -> list[str]:
     except KeyError as exc:
         raise ValueError(f"unknown canonical case id: {case_id}") from exc
     return [str(APP), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0"]
+
+
+def scene_output_dir(case_id: int, out_base: Path = RUN_DIR) -> Path:
+    scene = json.loads((SCENE_DIR / SCENES[case_id] / "scene.json").read_text(encoding="utf-8"))
+    return out_base / "Output" / scene["name"]
 
 
 def route_errors(output: str) -> list[str]:
@@ -136,7 +138,7 @@ def check_trajectory_file(path: Path) -> tuple[bool, bool]:
 
 
 def check_movement(case_id: int, out_base: Path = RUN_DIR) -> None:
-    out_dir = out_base / CASES[case_id]
+    out_dir = scene_output_dir(case_id, out_base) / "TrainTrajectories"
     candidates = [
         out_dir / "TrainPathDiagram.txt",
         out_dir / "TrainServicePathDiagram.txt",
@@ -165,7 +167,7 @@ def check_movement(case_id: int, out_base: Path = RUN_DIR) -> None:
 
 
 def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
-    stats = out_base / CASES[case_id] / "Stats_Stations.txt"
+    stats = scene_output_dir(case_id, out_base) / "TrainTrajectories/Stats_Stations.txt"
     rows = 0
     for line in stats.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
         parts = line.split()
