@@ -391,6 +391,11 @@ private:
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
 	bool m_resultsAvailable = false;
+	bool m_sceneChangedDuringRun = false;
+	std::string m_selectedScenarioId;
+	std::string m_appliedScenarioId;
+	std::set<std::string> m_modifiedScenarioIds;
+	QLabel* m_runResultsSummaryLabel = nullptr;
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
@@ -452,8 +457,16 @@ private:
 	QLineEdit* m_stopDepartureSecondsEdit = nullptr; // whole seconds
 	QLineEdit* m_stopDwellSecondsEdit = nullptr;	 // whole seconds, always present
 
-	// incident editor dock: edits the scene's flat list of incidents
+	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
+	QListWidget* m_scenarioListWidget = nullptr;
+	QLineEdit* m_scenarioIdEdit = nullptr;
+	QLineEdit* m_scenarioNameEdit = nullptr;
+	QLineEdit* m_scenarioDescriptionEdit = nullptr;
+	QPushButton* m_blankScenarioButton = nullptr;
+	QPushButton* m_duplicateScenarioButton = nullptr;
+	QPushButton* m_importScenarioButton = nullptr;
+	QPushButton* m_exportScenarioButton = nullptr;
 	QListWidget* m_incidentListWidget = nullptr;	 // one row per SceneIncident
 	QLineEdit* m_incidentIdEdit = nullptr;			 // id of the selected incident
 	QComboBox* m_incidentTypeCombo = nullptr;		 // "signal_failure" | "train_breakdown"
@@ -520,6 +533,7 @@ private:
 	void refreshLoadedDataTree();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
 	void markSceneDirty();
+	void invalidateRunResults();
 
 	// composition editor
 	void refreshCompositionPanel();
@@ -584,7 +598,17 @@ private:
 	void commitStopDwellSeconds();
 
 	// incident editor
+	void refreshScenarioList();
 	void refreshIncidentPanel();
+	void updateScenarioDetailPanel();
+	void selectScenario(int row);
+	void addBlankScenario();
+	void duplicateScenario();
+	void importScenario();
+	void exportScenario();
+	void commitScenarioIdEdit();
+	void commitScenarioNameEdit();
+	void commitScenarioDescriptionEdit();
 	void updateIncidentDetailPanel();
 	void refreshIncidentTargetCombo();
 	void addIncident();
@@ -596,6 +620,14 @@ private:
 	void commitIncidentStartSeconds();
 	void commitIncidentEndSeconds();
 	std::string uniqueIncidentId(const std::string& baseId) const;
+	std::string uniqueScenarioId(const std::string& baseId) const;
+	SceneScenario* selectedScenario();
+	const SceneScenario* selectedScenario() const;
+	std::vector<SceneIncident>& selectedScenarioIncidents();
+	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
+	void markScenarioModified();
+	QString scenarioContext() const;
+	bool showRunReview();
 
 	void runVisualPolishE2E();
 	void runStationOverlayE2E();
@@ -618,6 +650,7 @@ private:
 	void updateTimeline(int timestep, int totalTimesteps);
 	bool paxTextVisible() const;
 	void updateNetworkLegend();
+	bool hasRawRunResults() const;
 
 	// list of train items (whose simulation is running)
 	QList<TrainItemGroup*> allTrains;

@@ -152,6 +152,36 @@ If `scenarios.json` is absent, loading creates a baseline scenario. A legacy
 `incidents.json` is read into that baseline for compatibility. Saving writes
 the scenario model to `scenarios.json` and removes the stale flat file.
 
+### Standalone scenario JSON
+
+The scenario editor's import/export boundary is one scenario object, not a
+scene bundle and not the `scenarios.json` wrapper:
+
+```json
+{
+  "id": "signal-failure",
+  "name": "Signal failure",
+  "description": "Optional notes",
+  "incidents": [
+    {"id": "incident-1", "type": "signal_failure", "target": "signal-1",
+     "start_seconds": 300, "end_seconds": 600}
+  ],
+  "entrance_delays": [
+    {"service": "service-1", "occurrence": 1, "station": "station-1",
+     "delay_seconds": 30}
+  ]
+}
+```
+
+`description` and `entrance_delays` are optional; the other fields shown are
+the scenario-only contract. Infrastructure, services, rolling stock, and
+results are deliberately excluded. The same scenario serializer is used for
+the entries inside `scenarios.json`, so incident and entrance-delay values do
+not diverge between the two forms. The editor checks incident types/targets
+and entrance-delay references against the open scene before importing. A
+conflicting scenario or incident ID is never used as-is; the imported object
+is added with a reported unique ID.
+
 ## `passengers.json`
 
 This file is optional. Its root key is `passengers`. Each passenger has `id`

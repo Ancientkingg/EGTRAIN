@@ -74,9 +74,9 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	topBar->addWidget(pngButton);
 
 	m_table = new QTableWidget(this);
-	m_table->setColumnCount(8);
+	m_table->setColumnCount(9);
 	m_table->setHorizontalHeaderLabels({
-		"Train", "Station call", "Planned arrival", "Planned departure",
+		"Train/service", "Station", "Journey order", "Planned arrival", "Planned departure",
 		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 	m_table->setAlternatingRowColors(true);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -135,16 +135,17 @@ void TimetableTableWindow::fillTable() {
 		auto* trainItem = makeItem(trainId, true, 0.0);
 		trainItem->setData(Qt::UserRole, trainId);
 		m_table->setItem(row, 0, trainItem);
-		m_table->setItem(row, 1, makeItem(
-			QString("%1 (visit %2)").arg(QString::fromStdString(result.stationId)).arg(result.callIndex),
-			true, static_cast<double>(result.journeyIndex)));
-		m_table->setItem(row, 2, makeItem(timeText(result.plannedArrivalSeconds),
+		m_table->setItem(row, 1, makeItem(QString::fromStdString(result.stationId), true,
+			static_cast<double>(result.journeyIndex)));
+		m_table->setItem(row, 2, makeItem(QString::number(result.journeyIndex), true,
+			static_cast<double>(result.journeyIndex)));
+		m_table->setItem(row, 3, makeItem(timeText(result.plannedArrivalSeconds),
 			result.plannedArrivalSeconds.available, result.plannedArrivalSeconds.value));
-		m_table->setItem(row, 3, makeItem(timeText(result.plannedDepartureSeconds),
+		m_table->setItem(row, 4, makeItem(timeText(result.plannedDepartureSeconds),
 			result.plannedDepartureSeconds.available, result.plannedDepartureSeconds.value));
-		m_table->setItem(row, 4, makeItem(timeText(result.simulatedArrivalSeconds),
+		m_table->setItem(row, 5, makeItem(timeText(result.simulatedArrivalSeconds),
 			result.simulatedArrivalSeconds.available, result.simulatedArrivalSeconds.value));
-		m_table->setItem(row, 5, makeItem(timeText(result.simulatedDepartureSeconds),
+		m_table->setItem(row, 6, makeItem(timeText(result.simulatedDepartureSeconds),
 			result.simulatedDepartureSeconds.available, result.simulatedDepartureSeconds.value));
 		auto* arrivalDelayItem = makeItem(delayText(result.arrivalDelaySeconds),
 			result.arrivalDelaySeconds.available, result.arrivalDelaySeconds.value);
@@ -152,8 +153,8 @@ void TimetableTableWindow::fillTable() {
 			result.departureDelaySeconds.available, result.departureDelaySeconds.value);
 		setDelayColor(arrivalDelayItem, result.arrivalDelaySeconds);
 		setDelayColor(departureDelayItem, result.departureDelaySeconds);
-		m_table->setItem(row, 6, arrivalDelayItem);
-		m_table->setItem(row, 7, departureDelayItem);
+		m_table->setItem(row, 7, arrivalDelayItem);
+		m_table->setItem(row, 8, departureDelayItem);
 	}
 	m_table->resizeColumnsToContents();
 	// Content sizing can undercut the header text; keep every title readable.
