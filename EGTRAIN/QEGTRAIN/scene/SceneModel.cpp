@@ -4,6 +4,9 @@
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <cmath>
+#include <limits>
+#include <unordered_map>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -63,6 +66,138 @@ std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDia
 }
 
 } // namespace
+
+bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
+		SceneCompositionRuntime& result, std::string& diagnostic) {
+	result = SceneCompositionRuntime();
+	diagnostic.clear();
+
+	const SceneComposition* composition = nullptr;
+	for (const auto& candidate : scene.compositions) {
+		if (candidate.id == compositionId) {
+			composition = &candidate;
+			break;
+		}
+	}
+	if (!composition) {
+		diagnostic = "Unknown composition " + compositionId;
+		return false;
+	}
+	if (composition->units.empty()) {
+		diagnostic = "Composition " + compositionId + " has no units";
+		return false;
+	}
+
+	std::unordered_map<std::string, const SceneTrainUnit*> unitsById;
+	for (const auto& unit : scene.trainUnits)
+		unitsById.emplace(unit.id, &unit);
+	for (const auto& unitId : composition->units) {
+		const auto it = unitsById.find(unitId);
+		if (it == unitsById.end()) {
+			diagnostic = "Missing unit " + unitId + " for composition " + compositionId;
+			return false;
+		}
+		if (!it->second->hasPhysical || it->second->tractionCurve.empty()) {
+			diagnostic = "Unit missing physical or traction data: " + unitId;
+			return false;
+		}
+		result.units.push_back(it->second);
+	}
+
+	if (result.units.size() == 1) {
+		result.physical = result.units.front()->physical;
+		result.tractionCurve = result.units.front()->tractionCurve;
+		return true;
+	}
+
+	double sumMassTraction = 0.0;
+	double sumNumberWagons = 0.0;
+	double sumWagonMass = 0.0;
+	double minMaxSpeed = std::numeric_limits<double>::infinity();
+	double minMaxDecel = std::numeric_limits<double>::infinity();
+	const double firstFrontalArea = result.units.front()->physical.frontal_area_m2;
+	double sumTotalMass = 0.0;
+	double sumWeightedResistance = 0.0;
+	double sumUnweightedResistance = 0.0;
+	double minJerk = std::numeric_limits<double>::infinity();
+	double sumLength = 0.0;
+
+	for (const SceneTrainUnit* unit : result.units) {
+		const SceneTrainPhysical& physical = unit->physical;
+		sumMassTraction += physical.mass_of_traction_unit_kg;
+		sumNumberWagons += physical.number_of_wagons;
+		sumWagonMass += physical.number_of_wagons * physical.mass_of_a_wagon_kg;
+		if (physical.max_speed_ms < minMaxSpeed)
+			minMaxSpeed = physical.max_speed_ms;
+		if (physical.max_deceleration_ms2 < minMaxDecel)
+			minMaxDecel = physical.max_deceleration_ms2;
+		const double unitTotalMass = physical.mass_of_traction_unit_kg
+				+ physical.number_of_wagons * physical.mass_of_a_wagon_kg;
+		sumTotalMass += unitTotalMass;
+		sumWeightedResistance += unitTotalMass * physical.resistance_coefficient;
+		sumUnweightedResistance += physical.resistance_coefficient;
+		if (physical.jerk_ms3 < minJerk)
+			minJerk = physical.jerk_ms3;
+		sumLength += physical.length_m;
+	}
+
+	result.physical.mass_of_traction_unit_kg = sumMassTraction;
+	result.physical.number_of_wagons = sumNumberWagons;
+	result.physical.mass_of_a_wagon_kg = sumNumberWagons > 0.0
+			? sumWagonMass / sumNumberWagons : 0.0;
+	result.physical.max_speed_ms = minMaxSpeed;
+	result.physical.max_deceleration_ms2 = minMaxDecel;
+	result.physical.frontal_area_m2 = firstFrontalArea;
+	result.physical.resistance_coefficient = sumTotalMass > 0.0
+			? sumWeightedResistance / sumTotalMass
+			: sumUnweightedResistance / result.units.size();
+	result.physical.jerk_ms3 = minJerk;
+	result.physical.length_m = sumLength;
+
+	std::vector<double> boundaries;
+	for (const SceneTrainUnit* unit : result.units) {
+		for (const auto& row : unit->tractionCurve) {
+			boundaries.push_back(row[0]);
+			boundaries.push_back(row[1]);
+		}
+	}
+	std::sort(boundaries.begin(), boundaries.end());
+	const auto nearlyEqual = [](double left, double right) {
+		return std::abs(left - right) <= 1e-9
+				* std::max(1.0, std::max(std::abs(left), std::abs(right)));
+	};
+	boundaries.erase(std::unique(boundaries.begin(), boundaries.end(), nearlyEqual), boundaries.end());
+
+	for (std::size_t index = 0; index + 1 < boundaries.size(); ++index) {
+		const double lower = boundaries[index];
+		const double upper = boundaries[index + 1];
+		if (lower >= upper)
+			continue;
+		const double midpoint = (lower + upper) / 2.0;
+		double sumC0 = 0.0;
+		double sumC1 = 0.0;
+		double sumC2 = 0.0;
+		bool covered = false;
+		for (const SceneTrainUnit* unit : result.units) {
+			for (const auto& row : unit->tractionCurve) {
+				if (midpoint >= row[0] && midpoint < row[1]) {
+					sumC0 += row[2];
+					sumC1 += row[3];
+					sumC2 += row[4];
+					covered = true;
+				}
+			}
+		}
+		if (covered)
+			result.tractionCurve.push_back({lower, upper, sumC0, sumC1, sumC2});
+	}
+
+	if (result.tractionCurve.empty()) {
+		diagnostic = "Combined traction curve is empty for composition " + compositionId;
+		return false;
+	}
+	return true;
+}
 
 SceneScenario* defaultScenario(SceneModel& scene) {
 	if (scene.scenarios.empty()) {

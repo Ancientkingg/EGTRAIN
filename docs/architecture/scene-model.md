@@ -6,11 +6,15 @@ the scene editor and the existing simulator path:
 ```text
 legacy case -> SceneImporter -> canonical SceneModel + legacy passthrough
 canonical files -> loadScene -> validation -> editor
+canonical model -> native infrastructure -> native operations globals
 canonical model -> SceneExporter -> legacy input -> existing simulator
 ```
 
-The last arrow is still the runtime path in this PR. V1 does not make the
-simulator a native JSON consumer.
+Milestone 3 adds a filesystem-free operations builder after the native
+infrastructure builder. It consumes canonical services, compositions,
+scenarios, entrance delays, and passengers directly into the existing runtime
+globals. The legacy exporter/default run path remains in place until the M4
+cutover; the native builder is not called by normal GUI or CLI startup yet.
 
 ## Canonical directory
 
@@ -69,6 +73,24 @@ Passenger journey windows use absolute seconds from midnight. They are not
 random passenger draws, simulation results, or a replacement for the legacy
 runtime's conditional DAS/RouteChoice CSV loader.
 
+The native operations path gives every expanded occurrence the stable runtime
+identity `<service id>-<occurrence>` and uses the canonical service ID for
+breakdown targets and passenger legs. Repetition keeps the canonical entry in
+`scheduled_departure_time`; the compatibility hourly-retiming algorithm may
+derive `departure_time` while leaving that canonical value unchanged. Arrival
+and departure timetable values remain independently optional and are staged as
+runtime `-1` when absent, including repeated occurrences.
+
+Only the selected scenario is applied: an explicit selection wins, otherwise
+the exact default is used, with the first scenario used only when no default is
+declared. Scenario entrance delays are resolved by service, occurrence, and
+station; signal failures must resolve to exact runtime sections. Passenger
+journeys and legs are built in memory, including journeys with no legs, and
+their actual planned times are sampled from the canonical windows using the
+existing random-number behavior. Platform stopping lists are populated from
+the resolved occurrence stops without invoking the filesystem-era platform
+loader.
+
 ## Validation layers
 
 The public validator separates three questions:
@@ -113,5 +135,6 @@ validated `SceneModel` and populates the existing runtime infrastructure and
 signalling globals without opening files or consulting `legacy/`. `TrackPreview`
 also consumes the canonical model directly and resolves connections and station
 markers through canonical node IDs. The normal simulation entry point still
-uses the exporter and legacy runtime path. Operations and scenario selection
-remain Milestone 3 work; full native simulation cutover follows later.
+uses the exporter and legacy runtime path. Native operations and selected
+scenario mapping are now available as an explicit migration builder; full
+native simulation cutover follows later.

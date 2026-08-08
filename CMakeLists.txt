@@ -352,12 +352,15 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/simulation/Infrastructure.cpp
         ${SRC_DIR}/simulation/InitialParameters.cpp
         ${SRC_DIR}/simulation/NumberGenerator.cpp
+        ${SRC_DIR}/simulation/Optimisation.cpp
         ${SRC_DIR}/simulation/Passengers.cpp
         ${SRC_DIR}/simulation/RollingStock.cpp
         ${SRC_DIR}/simulation/Signalling.cpp
         ${SRC_DIR}/simulation/Simulation.cpp
         ${SRC_DIR}/util/Logger.cpp
-        ${SRC_DIR}/util/TrajectoryUtil.cpp)
+        ${SRC_DIR}/util/TrajectoryUtil.cpp
+        ${SRC_DIR}/scene/SceneDiagnostic.cpp
+        ${SRC_DIR}/scene/SceneModel.cpp)
     target_include_directories(test_runresults PRIVATE ${SRC_DIR})
     target_link_libraries(test_runresults PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
     if(EGTRAIN_OPENMP_INCLUDE)
@@ -604,6 +607,35 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scenebuilder
 		COMMAND test_scenebuilder ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen)
 
+	add_executable(test_operationsbuilder
+		${SRC_DIR}/tests/test_operationsbuilder.cpp
+		${SRC_DIR}/simulation/Infrastructure.cpp
+		${SRC_DIR}/simulation/InitialParameters.cpp
+		${SRC_DIR}/simulation/NumberGenerator.cpp
+		${SRC_DIR}/simulation/Optimisation.cpp
+		${SRC_DIR}/simulation/Passengers.cpp
+		${SRC_DIR}/simulation/RollingStock.cpp
+		${SRC_DIR}/simulation/Signalling.cpp
+		${SRC_DIR}/simulation/Simulation.cpp
+		${SRC_DIR}/util/Logger.cpp
+		${SRC_DIR}/util/TrajectoryUtil.cpp
+		${SRC_DIR}/scene/SceneDiagnostic.cpp
+		${SRC_DIR}/scene/SceneModel.cpp)
+	target_include_directories(test_operationsbuilder PRIVATE ${SRC_DIR})
+	target_link_libraries(test_operationsbuilder PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+	if(EGTRAIN_OPENMP_INCLUDE)
+		target_include_directories(test_operationsbuilder PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+	endif()
+	if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+		target_compile_options(test_operationsbuilder PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+	endif()
+	if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+		target_link_libraries(test_operationsbuilder PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+	elseif(OpenMP_CXX_FOUND)
+		target_link_libraries(test_operationsbuilder PRIVATE OpenMP::OpenMP_CXX)
+	endif()
+	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
+
 	add_executable(test_railmlparser
 		${SRC_DIR}/tests/test_railmlparser.cpp
 		${SRC_DIR}/io/RailMLParser.cpp
@@ -652,7 +684,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_scene_tool_diagnostics test_trackpreview
+	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_inputvalidation test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors test_input_path_casing
 		PROPERTIES LABELS "legacy-compat")
