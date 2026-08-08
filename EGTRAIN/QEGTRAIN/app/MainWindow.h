@@ -512,7 +512,7 @@ private:
 	void rebuildRecentScenesMenu();
 	bool maybeSaveScene();
 	bool openSceneDirectory(const QString& dir);
-	void renderTrackPreview(const QString& sceneDir);
+	void renderTrackPreview(const SceneModel& sceneModel);
 	bool saveSceneToCurrentDir();
 	bool saveSceneAsToDirectory();
 	bool copyScenePassthroughFiles(const QString& targetDir);

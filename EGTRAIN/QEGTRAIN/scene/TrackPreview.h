@@ -7,24 +7,24 @@
 struct TrackPreviewPoint {
 	double x = 0.0;
 	double y = 0.0;
+	std::string nodeId;
 };
 
 struct TrackPreviewLine {
-	int id = -1;
+	std::string id;
 	std::vector<TrackPreviewPoint> points;
 };
 
 struct TrackPreviewConnection {
-	int firstTrackId = -1;
-	double firstX = 0.0;
-	int secondTrackId = -1;
-	double secondX = 0.0;
+	std::string firstTrackId;
+	std::string firstNodeId;
+	std::string secondTrackId;
+	std::string secondNodeId;
 };
 
-// Station anchor along the corridor; Stations.txt stores one row per
-// direction band as "<x>\t<station id>".
 struct TrackPreviewStation {
 	std::string name;
+	std::string nodeId;
 	double x = 0.0;
 };
 
@@ -35,6 +35,8 @@ struct TrackPreviewResult {
 	std::vector<std::string> warnings;
 };
 
-TrackPreviewResult loadTrackPreview(const std::string& sceneDir);
+struct SceneModel;
+
+TrackPreviewResult loadTrackPreview(const SceneModel& scene);
 
 #endif
