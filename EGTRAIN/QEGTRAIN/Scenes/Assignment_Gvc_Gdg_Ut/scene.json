@@ -1,11 +1,217 @@
 {
-    "schema_version": 1,
-    "name": "Assignment Gvc-Gdg-Ut",
-    "description": "Den Haag Centraal - Gouda - Utrecht Centraal corridor",
-    "base_time": "07:00:00",
-    "units": {
-        "distance": "m",
-        "time": "s",
-        "speed": "m/s"
+  "import_report": [
+    {
+      "category": "legacy_root",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "prior canonical Assignment_Gvc_Gdg_Ut scene",
+      "unresolved_references": 0
+    },
+    {
+      "category": "simulation_settings",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "prior canonical Assignment_Gvc_Gdg_Ut/scene.json",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.tracks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "TrackLines",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 33,
+      "skipped_count": 0,
+      "source_count": 33,
+      "source_file": "prior-canonical-export/TrackLines/B0/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 32,
+      "skipped_count": 0,
+      "source_count": 32,
+      "source_file": "prior-canonical-export/TrackLines/B0/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 32,
+      "skipped_count": 0,
+      "source_count": 32,
+      "source_file": "prior-canonical-export/TrackLines/B0/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 33,
+      "skipped_count": 0,
+      "source_count": 33,
+      "source_file": "prior-canonical-export/TrackLines/B1/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 32,
+      "skipped_count": 0,
+      "source_count": 32,
+      "source_file": "prior-canonical-export/TrackLines/B1/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 32,
+      "skipped_count": 0,
+      "source_count": 32,
+      "source_file": "prior-canonical-export/TrackLines/B1/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "stations",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "prior-canonical-export/TrackLines/Stations.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.manifest",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "prior-canonical-export/trainNames.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 32,
+      "skipped_count": 0,
+      "source_count": 32,
+      "source_file": "prior-canonical-export/Routes/Route0.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 32,
+      "skipped_count": 0,
+      "source_count": 32,
+      "source_file": "prior-canonical-export/Routes/Route1.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TimeTable/IC1723.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "IC1723",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TimeTable/S19825.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "S19825",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TimeTable/IC2025.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "IC2025",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TimeTable/S9827.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "S9827",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/SLT_Sprinter.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_SLT_Sprinter.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "SLT_Sprinter",
+      "unresolved_references": 0
+    },
+    {
+      "category": "scenarios",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "scenarios.json",
+      "unresolved_references": 0
     }
+  ],
+  "name": "Assignment Gvc-Gdg-Ut",
+  "schema_version": 1,
+  "units": {
+    "distance": "m",
+    "speed": "m/s",
+    "time": "s"
+  },
+  "base_time": "07:00:00",
+  "simulation_settings": {
+    "buffer_time_seconds": 0.0,
+    "duration_seconds": 10000.0,
+    "recovery_time_percent": 0.0
+  }
 }

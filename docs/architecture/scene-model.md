@@ -1,20 +1,19 @@
 # V1 Scene Model
 
-V1 is a directory of canonical JSON files. The model is the hand-off between
-the scene editor and the existing simulator path:
+V1 is a directory of canonical JSON files. It is the only normal GUI, CLI,
+preview, and simulation input:
 
 ```text
-legacy case -> SceneImporter -> canonical SceneModel + legacy passthrough
-canonical files -> loadScene -> validation -> editor
-canonical model -> native infrastructure -> native operations globals
-canonical model -> SceneExporter -> legacy input -> existing simulator
+legacy case -> explicit SceneImporter -> canonical SceneModel
+canonical files -> loadScene -> validation -> editor/preview
+canonical model -> native infrastructure + operations -> simulator
+canonical model -> explicit SceneExporter -> legacy interoperability files
 ```
 
-Milestone 3 adds a filesystem-free operations builder after the native
-infrastructure builder. It consumes canonical services, compositions,
-scenarios, entrance delays, and passengers directly into the existing runtime
-globals. The legacy exporter/default run path remains in place until the M4
-cutover; the native builder is not called by normal GUI or CLI startup yet.
+`DispatchController::prepareScene` is the shared native setup seam. It consumes
+the loaded model through the infrastructure/signalling and operations builders
+and prepares runtime output directories. Neither builder opens provenance files
+or consults an `Input/` tree.
 
 ## Canonical directory
 
@@ -32,9 +31,9 @@ cutover; the native builder is not called by normal GUI or CLI startup yet.
 
 The six required files are the files needed for structural loading. A scene
 may therefore load without scenarios or passengers; the writer creates a
-baseline `scenarios.json` even when there are no named scenarios. Imported
-scenes also carry a `legacy/` tree for files still consumed by the legacy
-runtime.
+baseline `scenarios.json` even when there are no named scenarios. Runnable
+validation additionally requires populated infrastructure, routes, rolling
+stock, services, and positive simulation duration.
 
 ## Model ownership
 
@@ -106,35 +105,29 @@ The public validator separates three questions:
 model validation only when structural loading has no error diagnostics, which
 avoids cascaded reference errors from partially parsed files.
 
-## Compatibility and scope
+## Compatibility boundary
 
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed
 in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases).
 
 `SceneImporter` maps the legacy seven-token train definition, physical and
-traction source files, timetable rows, routes, and stations into the model;
-runtime support trees that are not yet native inputs are preserved under
-`legacy/`. `SceneExporter` writes the canonical train, service, route, and
-scenario-compatible data and carries the passthrough tree into the temporary
-legacy input used by the current run path.
+traction source files, timetable rows, routes, stations, supported scenarios,
+and passengers into the model. It is an explicit conversion command/UI action,
+not a fallback used when running a scene. `SceneExporter` remains an explicit
+interoperability tool; exporting does not change the active scene or stage the
+normal simulator input.
 
-The compatibility exporter does not synthesize Rollout or passenger CSV files
-from the new scenario/passenger JSON. Those values already round-trip through
-the canonical loader, writer, importer, and validator, but their execution and
-scenario selection remain later-milestone work; the unchanged runtime still
-uses matching files from `legacy/` when present.
+The committed scenes contain only canonical structured data. Historical source
+filenames remain as compact provenance in `source` and `import_report`; full
+legacy trees are not duplicated. The transparent `.egscene` bundle is V2 and
+does not change the V1 schema described here.
 
-Milestone 1 covers this V1 directory and its compatibility path. The `.egscene`
-bundle format and native simulator input are outside this milestone.
+## Native runtime path
 
-## Native infrastructure preview path
-
-The native infrastructure/signalling builder accepts an already loaded and
-validated `SceneModel` and populates the existing runtime infrastructure and
-signalling globals without opening files or consulting `legacy/`. `TrackPreview`
-also consumes the canonical model directly and resolves connections and station
-markers through canonical node IDs. The normal simulation entry point still
-uses the exporter and legacy runtime path. Native operations and selected
-scenario mapping are now available as an explicit migration builder; full
-native simulation cutover follows later.
+The infrastructure/signalling builder accepts an already loaded and validated
+`SceneModel` and populates the existing runtime globals. The operations builder
+then creates services, train occurrences, the selected scenario, entrance
+delays, and passengers in memory. `TrackPreview` resolves connections and
+station markers through the same canonical node IDs. GUI Run, `--scene`, and
+the numeric case shortcuts all enter this shared native path.

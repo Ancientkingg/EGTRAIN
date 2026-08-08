@@ -39,12 +39,14 @@ research project are available from
 
 ## Included case studies
 
-EGTRAIN includes four railway scenarios:
+EGTRAIN includes six canonical railway scenes:
 
 - Netherlands
 - Paimpol, France
 - Copenhagen, Denmark
 - Milan to Brescia, Italy
+- Assignment Gvc-Gdg-Ut
+- Lebanon teaching baseline
 
 They can be selected with the `-n` command-line option:
 
@@ -52,6 +54,8 @@ They can be selected with the `-n` command-line option:
 - `-n 2`: Paimpol
 - `-n 3`: Copenhagen
 - `-n 4`: Milan to Brescia
+- `-n 5`: Assignment Gvc-Gdg-Ut
+- `-n 6`: Lebanon
 
 ## Build
 
@@ -80,11 +84,11 @@ cmake --build build
 
 ## Run
 
-Run EGTRAIN from `EGTRAIN/QEGTRAIN` so legacy relative input paths resolve:
+Run the built application from the repository root or from its installed
+package:
 
 ```bash
-cd EGTRAIN/QEGTRAIN
-../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+./build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
 ```
 
 Launching without arguments opens the graphical application with the
@@ -92,9 +96,11 @@ Netherlands case study. Command-line options can select another case or
 configure an automated run. For example:
 
 ```bash
-../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \
+./build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \
   -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
 ```
+
+Use `--scene path/to/scene` to select any canonical V1 scene directory directly.
 
 Add `--interactive` to use the legacy terminal questionnaire.
 
@@ -108,7 +114,7 @@ tools/e2e/headless_smoke.py
 tools/e2e/visual_polish_smoke.sh
 ```
 
-The smoke tests cover all four case studies and check application startup,
+The smoke tests cover all six scenes and check application startup,
 train movement, trajectory samples, served-station output, and the graphical
 interface.
 
@@ -124,7 +130,7 @@ interface.
 
 ```text
 EGTRAIN/QEGTRAIN/        C++ Qt application source
-EGTRAIN/QEGTRAIN/Input/  Included case-study data
+EGTRAIN/QEGTRAIN/Scenes/ Canonical included case-study data
 EGTRAIN/QEGTRAIN/tests/  C++ regression tests
 tools/e2e/               End-to-end smoke tests
 tools/golden_master/     Output comparison helpers

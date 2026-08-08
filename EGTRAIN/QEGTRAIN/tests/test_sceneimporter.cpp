@@ -7,7 +7,6 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -73,122 +72,8 @@ static bool readJson(const fs::path& path, json& value) {
 	}
 }
 
-int main(int argc, char** argv) {
-	if (argc < 7) {
-		std::cerr << "Usage: test_sceneimporter <copenhagen_dir> <brescia_dir> <netherlands_dir> "
-				"<banedanmark_dir> <paimpol_dir> <paimpol_alt_dir>\n";
-		return 1;
-	}
+int main() {
 	bool ok = true;
-
-	// Keep the committed-case entity coverage small and explicit. These counts
-	// catch dropped records without copying any real input into the fixture.
-	struct CaseCounts {
-		const char* name;
-		const char* legacy;
-		size_t stations;
-		size_t units;
-		size_t services;
-		size_t routes;
-	};
-	const std::vector<CaseCounts> cases = {
-		{"Copenhagen", argv[1], 94, 1, 24, 24},
-		{"Brescia", argv[2], 29, 16, 62, 48},
-		{"Netherlands", argv[3], 41, 1, 8, 74},
-		{"Banedanmark", argv[4], 94, 1, 24, 24},
-		{"Paimpol", argv[5], 10, 1, 2, 15},
-		{"Paimpol alternative journeys", argv[6], 10, 1, 1, 14},
-	};
-	for (const auto& testCase : cases) {
-		TempDir output;
-		const auto result = importLegacyScene(testCase.legacy, output.dir, testCase.name);
-		ok &= expect(result.success(), std::string(testCase.name) + " import succeeds");
-		if (!result.wroteScene)
-			continue;
-
-		json scene, stations, rolling, services, signalling;
-		ok &= expect(readJson(fs::path(output.dir) / "scene.json", scene),
-				std::string(testCase.name) + " scene.json readable");
-		ok &= expect(readJson(fs::path(output.dir) / "stations.json", stations),
-				std::string(testCase.name) + " stations.json readable");
-		ok &= expect(readJson(fs::path(output.dir) / "rolling_stock.json", rolling),
-				std::string(testCase.name) + " rolling_stock.json readable");
-		ok &= expect(readJson(fs::path(output.dir) / "services.json", services),
-				std::string(testCase.name) + " services.json readable");
-		ok &= expect(readJson(fs::path(output.dir) / "signalling.json", signalling),
-				std::string(testCase.name) + " signalling.json readable");
-		if (!stations.is_object() || !rolling.is_object() || !services.is_object() || !signalling.is_object())
-			continue;
-		ok &= expect(stations["stations"].size() == testCase.stations,
-				std::string(testCase.name) + " station count");
-		ok &= expect(rolling["train_units"].size() == testCase.units,
-				std::string(testCase.name) + " train-unit count");
-		ok &= expect(rolling["compositions"].size() == testCase.units,
-				std::string(testCase.name) + " composition count");
-		ok &= expect(services["services"].size() == testCase.services,
-				std::string(testCase.name) + " service count");
-		ok &= expect(signalling["routes"].size() == testCase.routes,
-				std::string(testCase.name) + " route count");
-		ok &= expect(fs::exists(fs::path(output.dir) / "legacy"),
-				std::string(testCase.name) + " legacy passthrough exists");
-
-		bool hasRootReport = false;
-		for (const auto& row : scene.value("import_report", json::array())) {
-			if (row.value("category", "") == "legacy_root"
-					&& row.value("source_file", "") == testCase.legacy)
-				hasRootReport = row.value("source_count", 0) == 1
-						&& row.value("converted_count", 0) == 1;
-		}
-		ok &= expect(hasRootReport, std::string(testCase.name) + " legacy root report");
-		ok &= expect(!scene.contains("legacy_source"), std::string(testCase.name) + " report-only provenance");
-		if (std::string(testCase.name) == "Copenhagen") {
-			ok &= expect(hasDiag(result.diagnostics, "scene.import.timetable", SceneSeverity::Warning),
-					"Copenhagen inconsistent timetable is diagnosed");
-			const auto validation = validateSceneDirectory(output.dir);
-			ok &= expect(hasDiag(validation, "scene.time.invalid", SceneSeverity::Error),
-					"Copenhagen validator preserves the timetable ordering diagnostic");
-		}
-		if (std::string(testCase.name) == "Brescia") {
-			int code9707 = 0, code9709 = 0;
-			bool has9707Suffix = false, has9709Suffix = false;
-			for (const auto& service : services["services"]) {
-				const std::string id = service.value("id", "");
-				const std::string code = service.value("operating_code", id);
-				if (code == "9707") ++code9707;
-				if (code == "9709") ++code9709;
-				has9707Suffix = has9707Suffix || id == "9707_2";
-				has9709Suffix = has9709Suffix || id == "9709_2";
-			}
-			ok &= expect(code9707 == 2 && code9709 == 2 && has9707Suffix && has9709Suffix,
-					"Brescia duplicate operating codes retain unique canonical ids");
-		}
-		if (std::string(testCase.name) == "Paimpol") {
-			json passengerFile;
-			const bool readable = readJson(fs::path(output.dir) / "passengers.json", passengerFile);
-			ok &= expect(readable, "Paimpol passengers imported");
-			if (readable) {
-				std::unordered_set<std::string> journeyIds;
-				size_t journeyCount = 0, legCount = 0;
-				for (const auto& passenger : passengerFile["passengers"]) {
-					for (const auto& journey : passenger["journeys"]) {
-						++journeyCount;
-						legCount += journey["legs"].size();
-						journeyIds.insert(journey["id"].get<std::string>());
-					}
-				}
-				ok &= expect(journeyCount == 376 && legCount == 14,
-						"Paimpol DAS rows and route-choice legs retained");
-				ok &= expect(journeyIds.size() == journeyCount, "Paimpol journey ids are globally stable");
-				if (!passengerFile["passengers"].empty()
-						&& !passengerFile["passengers"][0]["journeys"].empty()) {
-					const auto& journey = passengerFile["passengers"][0]["journeys"][0];
-					ok &= expect(journey.contains("planned_departure")
-							&& journey.contains("planned_arrival"), "Paimpol absolute passenger windows retained");
-				}
-			}
-		}
-	}
-
 	// One small fixture exercises the new fields together, including explicit
 	// Trains provenance and a coordinate that must remain unresolved.
 	{

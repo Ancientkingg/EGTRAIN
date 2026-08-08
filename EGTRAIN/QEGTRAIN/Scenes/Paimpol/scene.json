@@ -1,5 +1,425 @@
 {
-    "legacy_source": "Input/Input_EGTRAIN_Paimpol",
-    "name": "Paimpol",
-    "schema_version": 1
+  "base_time": "07:10:40",
+  "import_report": [
+    {
+      "category": "legacy_root",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Input/Input_EGTRAIN_Paimpol",
+      "unresolved_references": 0
+    },
+    {
+      "category": "simulation_settings",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "compiled InitialParameters",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.tracks",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "TrackLines",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 352,
+      "skipped_count": 0,
+      "source_count": 352,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B0/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 351,
+      "skipped_count": 0,
+      "source_count": 351,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B0/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B0/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 17,
+      "skipped_count": 0,
+      "source_count": 17,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B1/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 16,
+      "skipped_count": 0,
+      "source_count": 16,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B1/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B1/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B2/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B2/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B2/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B3/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B3/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B3/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B4/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B4/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B4/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B5/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B5/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/B5/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.connections",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/Connections.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "stations",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/TrackLines/Stations.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.manifest",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/trainNames.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route0.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route1.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 124,
+      "skipped_count": 0,
+      "source_count": 124,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 124,
+      "skipped_count": 0,
+      "source_count": 124,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route3.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 124,
+      "skipped_count": 0,
+      "source_count": 124,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route4.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 124,
+      "skipped_count": 0,
+      "source_count": 124,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route5.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route6.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route7.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 124,
+      "skipped_count": 0,
+      "source_count": 124,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route8.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route9.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route10.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 124,
+      "skipped_count": 0,
+      "source_count": 124,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route11.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 125,
+      "skipped_count": 0,
+      "source_count": 125,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route12.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 38,
+      "skipped_count": 0,
+      "source_count": 38,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route13.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 36,
+      "skipped_count": 0,
+      "source_count": 36,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Routes/Route14.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.corridors",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/GUI/caseStudyRouteCorridors.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.single_track_restrictions",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/GUI/singleTrackLimits.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "/TimeTable/Guin-Paim-ALL-STOPS-1.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Guin-Paim-ALL-STOPS-1",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TimeTable/Guin-Paim-EXPRESS-1.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Guin-Paim-EXPRESS-1",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/Draisy.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 3,
+      "source_count": 6,
+      "source_file": "/TrainData/Draisy-traction.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Draisy",
+      "unresolved_references": 0
+    },
+    {
+      "category": "scenarios",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "scenarios.json",
+      "unresolved_references": 0
+    },
+    {
+      "category": "passengers.das",
+      "converted_count": 376,
+      "skipped_count": 0,
+      "source_count": 376,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Passengers/DAS_FrenchCaseStudy.csv",
+      "unresolved_references": 0
+    },
+    {
+      "category": "passengers.route_choice",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/Passengers/RouteChoiceFC_EQ1.csv",
+      "unresolved_references": 3
+    }
+  ],
+  "name": "Paimpol",
+  "schema_version": 1,
+  "simulation_settings": {
+    "buffer_time_seconds": 0.0,
+    "duration_seconds": 9000.0,
+    "recovery_time_percent": 0.0
+  },
+  "units": {
+    "distance": "m",
+    "speed": "m/s",
+    "time": "s"
+  }
 }

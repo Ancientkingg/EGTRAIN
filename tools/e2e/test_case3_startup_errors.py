@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -15,14 +17,19 @@ ERRORS = (
 
 def main() -> None:
     app = Path(sys.argv[1]).resolve()
-    proc = subprocess.run(
-        [str(app), "-n", "3", "-h", "1", "-g", "0", "-TSM", "0", "-RC", "0"],
-        cwd=ROOT / "EGTRAIN/QEGTRAIN",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        timeout=120,
-    )
+    with tempfile.TemporaryDirectory() as tmp:
+        env = os.environ.copy()
+        env["QEGTRAIN_OUTPUT_DIR"] = tmp
+        proc = subprocess.run(
+            [str(app), "--scene", str(ROOT / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
+             "-h", "1", "-g", "0", "-TSM", "0", "-RC", "0"],
+            cwd=tmp,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=120,
+        )
     if proc.returncode != 0:
         raise SystemExit(f"case 3 startup exited with {proc.returncode}")
     found = [message for message in ERRORS if message in proc.stdout]

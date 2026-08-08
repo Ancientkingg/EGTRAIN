@@ -101,7 +101,8 @@ jobs:
           test -x "$PKG/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
           test -x "$PKG/scene_tool"
           test -f "$PKG/Scenes/Lebanon/stations.json"
-          test -f "$PKG/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt"
+          test -f "$PKG/Scenes/Lebanon/scene.json"
+          test -f "$PKG/Scenes/Lebanon/scenarios.json"
           test -f "$PKG/lebanon-case-study.md"
           # scene_tool links only header-only JSON, so it runs without Qt.
           set +e
@@ -109,17 +110,16 @@ jobs:
           validation_status=$?
           set -e
           printf '%s\n' "$validation_output"
-          [ "$validation_status" -eq 1 ]
-          grep -q scene.services.none <<<"$validation_output"
-          grep -q scene.trains.none <<<"$validation_output"
+          [ "$validation_status" -eq 0 ]
           APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"
-          test -d "$APP/Contents/Resources/Input/Input_EGTRAIN_Paimpol"
+          test -d "$APP/Contents/Resources/Scenes/Paimpol"
           RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"
           rm -rf "$RUN_DIR"
           mkdir -p "$RUN_DIR"
           cd "$RUN_DIR"
           set +e
-          "$APP/Contents/MacOS/QEGTRAIN" -n 2 -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
+          "$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
           run_status=$?
           set -e
           if [ "$run_status" -ne 0 ]; then
@@ -130,11 +130,11 @@ jobs:
             cat "$RUN_DIR/qegtrain.log"
             exit 1
           fi
-          if ! test -f "$RUN_DIR/Output/Output_EGTRAIN_Paimpol/EnergyConsumptionPerTrain.txt"; then
+          if ! test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"; then
             cat "$RUN_DIR/qegtrain.log"
             exit 1
           fi
-          echo "OK: presentation package holds the app, scene_tool, Lebanon scene, and guide"
+          echo "OK: presentation package holds the app, scene_tool, canonical scenes, and guide"
 
       - name: Package zip
         run: |
@@ -195,18 +195,13 @@ jobs:
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/ -ErrorAction SilentlyContinue
           # Qt runtime: DLLs + platform/imageformat plugins next to the exe
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
-          # Case data. The app resolves Input/ from the working directory;
-          # double-clicking the exe sets the working directory to its own
-          # folder, so the data must sit beside it. Images ship inside the
-          # binary as Qt resources.
-          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Input "$dist/Input"
-          # Presentation package: the command-line tool, the Lebanon scene, and
+          # Canonical scenes ship beside the executable for packaged defaults.
+          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
+          # Presentation package: the command-line tool, the canonical scenes, and
           # the guide. scene_tool links only header-only JSON, so it needs no Qt.
           $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
           if (-not $tool) { throw "scene_tool.exe not found under build/" }
           Copy-Item $tool.FullName "$dist/scene_tool.exe"
-          New-Item -ItemType Directory -Force -Path "$dist/Scenes" | Out-Null
-          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes/Lebanon "$dist/Scenes/Lebanon"
           Copy-Item docs/guides/lebanon-case-study.md "$dist/lebanon-case-study.md"
 
       - name: Verify the package is complete
@@ -221,12 +216,11 @@ jobs:
           if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
           if (-not (Test-Path "$dist/imageformats/qsvg.dll")) { throw "missing imageformats/qsvg.dll" }
           if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
-          if (-not (Test-Path "$dist/Input/Input_EGTRAIN_Paimpol")) { throw "missing Input case data" }
           if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
-          if (-not (Test-Path "$dist/Scenes/Lebanon/stations.json")) { throw "missing Lebanon scene" }
-          if (-not (Test-Path "$dist/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt")) { throw "missing Lebanon track passthrough" }
+          if (-not (Test-Path "$dist/Scenes/Paimpol/scene.json")) { throw "missing canonical Paimpol scene" }
+          if (-not (Test-Path "$dist/Scenes/Lebanon/scenarios.json")) { throw "missing canonical Lebanon scene" }
           if (-not (Test-Path "$dist/lebanon-case-study.md")) { throw "missing Lebanon guide" }
-          Write-Host "OK: exe, Qt runtime, libzmq, Input data, scene_tool, Lebanon scene, and guide are present"
+          Write-Host "OK: exe, Qt runtime, libzmq, canonical scenes, scene_tool, and guide are present"
 
       - name: Zip
         shell: pwsh
@@ -272,10 +266,8 @@ jobs:
           test -n "$EXE"
           cp "$EXE" "$APPDIR/usr/bin/QEGTRAIN"
 
-          # Case data lives beside the executable. The app falls back to this
-          # location when launched outside the package tree. Images ship inside
-          # the binary as Qt resources.
-          cp -R EGTRAIN/QEGTRAIN/Input "$APPDIR/usr/bin/Input"
+          # Canonical scenes live beside the executable for packaged defaults.
+          cp -R EGTRAIN/QEGTRAIN/Scenes "$APPDIR/usr/bin/Scenes"
 
           # Presentation package: the command-line tool, the Lebanon scene, and
           # the guide, bundled beside the executable. scene_tool links only
@@ -283,12 +275,10 @@ jobs:
           TOOL="$(find build -type f -perm -111 -name scene_tool | head -n 1)"
           test -n "$TOOL"
           cp "$TOOL" "$APPDIR/usr/bin/scene_tool"
-          mkdir -p "$APPDIR/usr/bin/Scenes"
-          cp -R EGTRAIN/QEGTRAIN/Scenes/Lebanon "$APPDIR/usr/bin/Scenes/Lebanon"
           cp docs/guides/lebanon-case-study.md "$APPDIR/usr/bin/lebanon-case-study.md"
           test -x "$APPDIR/usr/bin/scene_tool"
-          test -f "$APPDIR/usr/bin/Scenes/Lebanon/stations.json"
-          test -f "$APPDIR/usr/bin/Scenes/Lebanon/legacy/Tracklines/B7/BlockCumPari.txt"
+          test -f "$APPDIR/usr/bin/Scenes/Paimpol/scene.json"
+          test -f "$APPDIR/usr/bin/Scenes/Lebanon/scenarios.json"
           test -f "$APPDIR/usr/bin/lebanon-case-study.md"
           cp EGTRAIN/QEGTRAIN/resources/app/egtrain-256.png \
             "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"
@@ -333,13 +323,13 @@ jobs:
           chmod +x QEGTRAIN-linux-x86_64.AppImage
           ./QEGTRAIN-linux-x86_64.AppImage --appimage-extract >/dev/null
           test -x squashfs-root/usr/bin/QEGTRAIN
-          test -d squashfs-root/usr/bin/Input/Input_EGTRAIN_Paimpol
+          test -f squashfs-root/usr/bin/Scenes/Paimpol/scene.json
           test -f squashfs-root/usr/share/icons/hicolor/256x256/apps/qegtrain.png
           test -f squashfs-root/AppRun
           find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
           find squashfs-root -name 'libQt5Svg.so*' -print -quit | grep -q .
           find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
-          echo "OK: AppImage contains executable, Qt runtime, and Input data"
+          echo "OK: AppImage contains executable, Qt runtime, and canonical Scenes"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

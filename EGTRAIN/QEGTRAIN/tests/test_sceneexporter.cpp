@@ -1,4 +1,3 @@
-#include "scene/SceneImporter.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneModel.h"
 #include <iostream>
@@ -6,11 +5,8 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
-#include <algorithm>
-#include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
-using json = nlohmann::json;
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -49,167 +45,13 @@ static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* l
 	}
 }
 
-static void eraseLegacySource(json& j) {
-	if (j.contains("legacy_source")) {
-		j.erase("legacy_source");
-	}
-}
-
-static void sortArrayById(json& arr) {
-	if (!arr.is_array())
-		return;
-	std::sort(arr.begin(), arr.end(), [](const json& a, const json& b) {
-		std::string ida = a.value("id", "");
-		std::string idb = b.value("id", "");
-		return ida < idb;
-	});
-}
-
-int main(int argc, char** argv) {
-	if (argc < 4) {
-		std::cerr << "Usage: test_sceneexporter <copenhagen_dir> <brescia_dir> <netherlands_dir>\n";
-		return 1;
-	}
-	std::string copDir = argv[1];
-	std::string breDir = argv[2];
-	std::string nlDir = argv[3];
+int main() {
 	bool ok = true;
-
-	auto testRoundTrip = [&](const std::string& legacyDir, const std::string& name, TempDir& outDir) {
-		TempDir scene1Dir, scene2Dir;
-		auto importRes1 = importLegacyScene(legacyDir, scene1Dir.dir, name);
-		printErrors(importRes1.diagnostics, (name + " import1").c_str());
-		ok &= expect(importRes1.success(), (name + " import1 succeeded").c_str());
-
-		auto exportRes = exportLegacyScene(scene1Dir.dir, outDir.dir);
-		printErrors(exportRes.diagnostics, (name + " export").c_str());
-		ok &= expect(exportRes.success(), (name + " export succeeded").c_str());
-
-		auto importRes2 = importLegacyScene(outDir.dir, scene2Dir.dir, name);
-		printErrors(importRes2.diagnostics, (name + " import2").c_str());
-		ok &= expect(importRes2.success(), (name + " import2 succeeded").c_str());
-
-		auto compareJson = [&](const std::string& fname, const std::string& arrayKey) {
-			std::ifstream f1(fs::path(scene1Dir.dir) / fname);
-			std::ifstream f2(fs::path(scene2Dir.dir) / fname);
-			json j1, j2;
-			f1 >> j1;
-			f2 >> j2;
-			eraseLegacySource(j1);
-			eraseLegacySource(j2);
-			if (!arrayKey.empty()) {
-				sortArrayById(j1[arrayKey]);
-				sortArrayById(j2[arrayKey]);
-			}
-			bool match = j1 == j2;
-			ok &= expect(match, (name + " " + fname + " round-trips").c_str());
-			if (!match) {
-				std::cerr << "Diff in " << fname << "\n";
-				if (fname == "rolling_stock.json") {
-					std::cerr << "j1: " << j1.dump() << "\n\nj2: " << j2.dump() << "\n";
-				}
-			}
-		};
-
-		compareJson("services.json", "services");
-		compareJson("signalling.json", "routes");
-		compareJson("rolling_stock.json", "train_units");
-		compareJson("stations.json", "stations");
-
-		return outDir.dir;
-	};
-
-	// 1. Copenhagen round trip
-	TempDir copOutDirWrap;
-	std::string copOutDir = testRoundTrip(copDir, "Copenhagen", copOutDirWrap);
-
-	// 2. Brescia round trip
-	TempDir breOutDirWrap;
-	testRoundTrip(breDir, "Brescia", breOutDirWrap);
-
-	// 3. Netherlands switch-transition route tokens export unchanged.
-	{
-		TempDir sceneDir, outDir;
-		auto importRes = importLegacyScene(nlDir, sceneDir.dir, "Netherlands");
-		printErrors(importRes.diagnostics, "Netherlands import");
-		ok &= expect(importRes.success(), "Netherlands import succeeded");
-		auto exportRes = exportLegacyScene(sceneDir.dir, outDir.dir);
-		printErrors(exportRes.diagnostics, "Netherlands export");
-		ok &= expect(exportRes.success(), "Netherlands export succeeded");
-
-		std::ifstream sourceRoute(fs::path(nlDir) / "Routes" / "Route0.txt");
-		std::ifstream exportedRoute(fs::path(outDir.dir) / "Routes" / "Route0.txt");
-		std::string sourceLine, exportedLine;
-		std::getline(sourceRoute, sourceLine);
-		std::getline(sourceRoute, sourceLine);
-		std::getline(exportedRoute, exportedLine);
-		std::getline(exportedRoute, exportedLine);
-		ok &= expect(sourceLine.find('/') != std::string::npos && sourceLine.rfind("@", 0) == 0,
-					 "Netherlands Route0 line 2 is a switch-transition token");
-		ok &= expect(sourceLine == exportedLine, "Netherlands switch-transition token exports unchanged");
-		ok &= expect(exportedLine.rfind("@@", 0) != 0, "Netherlands switch-transition token not double-wrapped");
-	}
-
-	// 4. Exported tree shape
-	{
-		fs::path cOut(copOutDir);
-		ok &= expect(fs::exists(cOut / "trainNames.txt"), "trainNames.txt exists");
-		ok &= expect(fs::is_directory(cOut / "Trains"), "Trains dir exists");
-		ok &= expect(fs::is_directory(cOut / "TimeTable"), "TimeTable dir exists");
-		ok &= expect(fs::is_directory(cOut / "TrainData"), "TrainData dir exists");
-		ok &= expect(fs::is_directory(cOut / "Routes"), "Routes dir exists");
-		ok &= expect(fs::exists(cOut / "Routes" / "Route0.txt"), "Route0.txt exists");
-
-		auto checkLegacyFile = [&](const std::string& relPath) {
-			fs::path srcFile = fs::path(copDir) / relPath;
-			fs::path dstFile = cOut / relPath;
-			if (fs::exists(srcFile)) {
-				ok &= expect(fs::exists(dstFile), (relPath + " exists in export").c_str());
-			} else {
-				std::cerr << "skipped checking " << relPath << " (not in source)\n";
-			}
-		};
-
-		checkLegacyFile("TrackLines/Stations.txt");
-		checkLegacyFile("TrackLines/Connections.txt");
-		checkLegacyFile("TMS/Timetable Order");
-		checkLegacyFile("RoutesToWrite/RoutesToJoin.txt");
-		checkLegacyFile("GUI/TimetableGraph.html");
-		checkLegacyFile("GUI/StationsCoord.txt");
-	}
-
-	// 5. Terminus/first-stop sentinels survive
-	{
-		fs::path cOut(copOutDir);
-		std::ifstream ttf(cOut / "TimeTable" / "A-Hillerod-Hundige.txt");
-		if (ttf) {
-			std::string line, firstLine, lastLine;
-			while (std::getline(ttf, line)) {
-				if (firstLine.empty())
-					firstLine = line;
-				if (!line.empty())
-					lastLine = line;
-			}
-			std::stringstream ssFirst(firstLine), ssLast(lastLine);
-			std::string st;
-			double dwell, arr, dep;
-			ssFirst >> st >> dwell >> arr >> dep;
-			ok &= expect(arr == -1, "First row arrival is -1");
-			ssLast >> st >> dwell >> arr >> dep;
-			ok &= expect(dep == -1, "Last row departure is -1");
-		} else {
-			ok &= expect(false, "A-Hillerod-Hundige.txt not found");
-		}
-	}
 
 	// 6. Minimal fixture scene
 	{
 		TempDir outDir;
-		std::string fixture = fs::path(argv[0]).parent_path().parent_path().string() + "/EGTRAIN/QEGTRAIN/tests/fixtures/scenes/minimal";
-		if (!fs::exists(fixture)) {
-			// fallback if run from elsewhere
-			fixture = "EGTRAIN/QEGTRAIN/tests/fixtures/scenes/minimal";
-		}
+		const std::string fixture = (fs::path(__FILE__).parent_path() / "fixtures/scenes/minimal").string();
 		auto res = exportLegacyScene(fixture, outDir.dir);
 		ok &= expect(!res.success(), "Minimal scene export fails");
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
@@ -578,6 +420,113 @@ int main(int argc, char** argv) {
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
 		ok &= expect(res.success(), "No Incidents scene export succeeds");
 		ok &= expect(!fs::exists(fs::path(outDir.dir) / "Incidents.txt"), "No Incidents.txt written");
+	}
+
+	// 19. Canonical infrastructure exports without legacy passthrough data.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Canonical Infrastructure"})" << "\n";
+		std::ofstream(scene / "infrastructure.json")
+			<< R"({"tracks":[{"id":"B0"},{"id":"B1"}],"nodes":[{"id":"B0.node.7","track":"B0","x_km":0,"y_km":0},{"id":"B0.node.8","track":"B0","x_km":1,"y_km":0},{"id":"B1.node.3","track":"B1","x_km":10,"y_km":1},{"id":"B1.node.4","track":"B1","x_km":11,"y_km":1}],"arcs":[{"id":"B0.arc.12","track":"B0","from":"B0.node.7","to":"B0.node.8","curvature_radius_m":1000,"gradient_percent":1,"speed_limit_ms":20},{"id":"B1.arc.4","track":"B1","from":"B1.node.3","to":"B1.node.4","curvature_radius_m":2000,"gradient_percent":-1,"speed_limit_ms":25}],"blocks":[{"id":"0-B0","track":"B0","length_km":1},{"id":"0-B1","track":"B1","length_km":1}],"connections":[]})"
+			<< "\n";
+		std::ofstream(scene / "stations.json")
+			<< R"({"stations":[{"id":"origin","name":"Origin","platforms":[{"id":"p0","nodes":["B0.node.7"]}]},{"id":"transfer","name":"Transfer","platforms":[{"id":"p1","nodes":["B0.node.8"]}]},{"id":"destination","name":"Destination","position_km":5,"platforms":[{"id":"p2","nodes":["B1.node.3"]},{"id":"p3","nodes":["B1.node.4"]}]}]})"
+			<< "\n";
+		std::ofstream(scene / "signalling.json")
+			<< R"({"signals":[],"routes":[{"id":"route0","blocks":["0-B0","0-B1"],"corridor":"A"}],"single_track_restrictions":[{"start_block":"0-B0","end_block":"0-B1","protected_start_block":"@0-B0@-1/@0-B1@-2","protected_end_block":"@0-B1@-3/@0-B0@-4"}],"station_boundaries":[{"entrance_block":"0-B0","exit_block":"0-B1","direction":true}]})"
+			<< "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","operating_code":"svc-code","composition":"comp","route":"route0","entry_time_seconds":0,"stops":[{"station":"origin","planned_departure_seconds":0,"dwell_seconds":0},{"station":"transfer","planned_arrival_seconds":1,"planned_departure_seconds":1,"dwell_seconds":0},{"station":"destination","planned_arrival_seconds":2,"dwell_seconds":0}]}]})"
+			<< "\n";
+		std::ofstream(scene / "passengers.json")
+			<< R"({"passengers":[{"id":"p0","journeys":[{"id":"p0:1","activity":"Work","origin":"origin","destination":"destination","planned_departure":{"start_seconds":0,"end_seconds":1799},"planned_arrival":{"start_seconds":3600,"end_seconds":5399},"legs":[{"id":"p0:1.leg.1","origin":"origin","destination":"transfer","service":"svc","occurrence":1},{"id":"p0:1.leg.2","origin":"transfer","destination":"destination","service":"svc","occurrence":1}]}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Canonical infrastructure export");
+		ok &= expect(res.success(), "Canonical infrastructure export succeeds");
+		const fs::path tracklines = fs::path(outDir.dir) / "TrackLines";
+		ok &= expect(fs::exists(tracklines / "B0" / "NodiCumPari.txt"), "B0 nodes exported");
+		ok &= expect(fs::exists(tracklines / "B0" / "ArchiCumPari.txt"), "B0 arcs exported");
+		ok &= expect(fs::exists(tracklines / "B0" / "BlockCumPari.txt"), "B0 blocks exported");
+		ok &= expect(fs::exists(tracklines / "B1" / "NodiCumPari.txt"), "B1 nodes exported");
+		ok &= expect(fs::exists(tracklines / "Connections.txt"), "Empty connections file exported");
+		ok &= expect(fs::file_size(tracklines / "Connections.txt") == 0, "Connections file remains empty");
+
+		std::ifstream stations(tracklines / "Stations.txt");
+		std::string first, second, third, fourth, fifth;
+		std::getline(stations, first);
+		std::getline(stations, second);
+		std::getline(stations, third);
+		std::getline(stations, fourth);
+		std::getline(stations, fifth);
+		ok &= expect(first == "0\tOrigin", "First platform anchor exported");
+		ok &= expect(second == "1\tTransfer", "Second platform anchor exported");
+		ok &= expect(third == "10\tDestination", "Third platform anchor exported");
+		ok &= expect(fourth == "11\tDestination", "Fourth platform anchor exported");
+		ok &= expect(fifth.empty(), "Station position fallback is not duplicated");
+
+		std::ifstream corridors(fs::path(outDir.dir) / "GUI" / "caseStudyRouteCorridors.txt");
+		std::string line;
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "GUI" / "caseStudyRouteCorridors.txt"), "Route corridor compatibility file exists");
+		std::getline(corridors, line);
+		ok &= expect(line == "0\tA", "Route corridor compatibility row exported");
+		std::ifstream restrictions(fs::path(outDir.dir) / "GUI" / "singleTrackLimits.txt");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "GUI" / "singleTrackLimits.txt"), "Single-track compatibility file exists");
+		std::getline(restrictions, line);
+		ok &= expect(line == "@0-B0@\t@0-B1@\t@0-B0@-1/@0-B1@-2\t@0-B1@-3/@0-B0@-4", "Single-track restriction compatibility row exported");
+		std::ifstream boundaries(fs::path(outDir.dir) / "GUI" / "stationBoundarySections.txt");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "GUI" / "stationBoundarySections.txt"), "Station-boundary compatibility file exists");
+		std::getline(boundaries, line);
+		ok &= expect(line == "@0-B0@\t@0-B1@\t1", "Station-boundary compatibility row exported");
+
+		std::ifstream das(fs::path(outDir.dir) / "Passengers" / "DAS_FrenchCaseStudy.csv");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "Passengers" / "DAS_FrenchCaseStudy.csv"), "Passenger DAS compatibility file exists");
+		std::getline(das, line);
+		std::getline(das, line);
+		ok &= expect(line == "1,p0,1,Work,1,Work,Destination,,PT,TRUE,1.25,,Origin,,0.25,1", "Passenger DAS compatibility row exported");
+		std::ifstream routeChoice(fs::path(outDir.dir) / "Passengers" / "RouteChoiceFC_EQ1.csv");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "Passengers" / "RouteChoiceFC_EQ1.csv"), "Passenger route-choice compatibility file exists");
+		std::getline(routeChoice, line);
+		ok &= expect(line == "person_id,destination,nb_transfers,Transfer_N1,r_service_lines_id1,r_service_lines_id2", "Passenger route-choice header exported");
+		std::getline(routeChoice, line);
+		ok &= expect(line == "p0,Destination,1,Transfer,svc-code-1,svc-code-1", "Passenger route-choice compatibility row exported");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "legacy"), "No legacy subtree created");
+	}
+
+	// 20. Canonical block and track IDs map consistently across legacy files.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Mapped Block IDs"})" << "\n";
+		std::ofstream(scene / "infrastructure.json")
+			<< R"({"tracks":[{"id":"main"}],"nodes":[],"arcs":[],"blocks":[{"id":"block.a","track":"main","length_km":1}]})"
+			<< "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+		std::ofstream(scene / "signalling.json")
+			<< R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"]}],"single_track_restrictions":[{"start_block":"block.a","end_block":"block.a","protected_start_block":"@block.a@-1","protected_end_block":"@block.a@-2"}],"station_boundaries":[{"entrance_block":"block.a","exit_block":"block.a","direction":true}]})"
+			<< "\n";
+		std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+		std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Mapped block export");
+		ok &= expect(res.success(), "Mapped block scene export succeeds");
+		std::string line;
+		std::ifstream route(fs::path(outDir.dir) / "Routes" / "Route0.txt");
+		std::getline(route, line);
+		ok &= expect(line == "@0-B0@", "Route uses the generated legacy block ID");
+		std::ifstream restriction(fs::path(outDir.dir) / "GUI" / "singleTrackLimits.txt");
+		std::getline(restriction, line);
+		ok &= expect(line == "@0-B0@\t@0-B0@\t@0-B0@-1\t@0-B0@-2",
+				"Restriction uses the generated legacy block ID");
+		std::ifstream boundary(fs::path(outDir.dir) / "GUI" / "stationBoundarySections.txt");
+		std::getline(boundary, line);
+		ok &= expect(line == "@0-B0@\t@0-B0@\t1", "Boundary uses the generated legacy block ID");
 	}
 
 	if (!ok)

@@ -3,25 +3,19 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-SCENE_TOOL="$ROOT/build/scene_tool"
 ALT_SCENE="${QEGTRAIN_E2E_SCENE_ALT:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Copenhagen}"
 OUT="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e"
 LOG="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log"
 
-if [[ ! -x "$APP" || ! -x "$SCENE_TOOL" ]]; then
-	echo "QEGTRAIN app or scene_tool is not built" >&2
+if [[ ! -x "$APP" ]]; then
+	echo "QEGTRAIN app is not built" >&2
 	exit 1
 fi
 
 if [[ $# -gt 0 ]]; then
 	SCENE="$1"
 else
-	SOURCE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
-	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-smoke.XXXXXX")"
-	trap 'rm -rf "$TMP_ROOT"' EXIT
-	SCENE="$TMP_ROOT/scene"
-	"$SCENE_TOOL" import "$SOURCE/legacy" "$SCENE" Assignment
-	cp "$SOURCE/rolling_stock.json" "$SOURCE/services.json" "$SOURCE/signalling.json" "$SCENE/"
+	SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 fi
 
 if [[ ! -d "$ALT_SCENE" ]]; then
@@ -45,7 +39,7 @@ QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCENE_ALT="$ALT_SCENE" \
 QEGTRAIN_E2E_OUT="$OUT" \
 QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-"$APP" -n 3 -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+"$APP" --scene "$SCENE" -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
 APP_EXIT=$?
 set -e
 

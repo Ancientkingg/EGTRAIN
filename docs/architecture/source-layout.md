@@ -16,7 +16,7 @@ folders and the renames so the next reader does not have to reconstruct them.
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
 | `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar` |
 | `diagrams/` | Chart windows: `DiagramWindow`, `BlockingTimeDiagram` |
-| `io/` | Input, formats, geocoding, validation; vendored pugixml in `io/third_party/` |
+| `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `TimeUtil`, `TrajectoryUtil`, `portability`, `Logger`, `SpeedFormat`, `TimeFormat` |
 | `tests/` | Unit tests |
 

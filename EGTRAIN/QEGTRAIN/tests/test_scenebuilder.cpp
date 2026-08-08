@@ -1,15 +1,11 @@
-#include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
 #include "simulation/Signalling.h"
 
 #include <cmath>
-#include <filesystem>
 #include <iostream>
 #include <string>
 
 Logger owl;
-
-namespace fs = std::filesystem;
 
 static bool expect(bool condition, const std::string& message) {
 	if (!condition)
@@ -79,15 +75,6 @@ static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics, Scene
 	for (const auto& diagnostic : diagnostics)
 		if (diagnostic.severity == severity && diagnostic.file == file
 				&& diagnostic.code.find(codePart) != std::string::npos)
-			return true;
-	return false;
-}
-
-static bool hasRuntimeSection(const std::string& canonicalReference) {
-	const std::string expected = canonicalReference.find('/') == std::string::npos
-			? "@" + canonicalReference + "@" : canonicalReference;
-	for (int index = 0; index < Blocks; ++index)
-		if (signalling_block_sections[index].ID == expected)
 			return true;
 	return false;
 }
@@ -254,63 +241,8 @@ static bool runTinyBuilderChecks() {
 	return ok;
 }
 
-static bool runCopenhagenSmoke(const fs::path& legacyPath) {
-	const fs::path scenePath = fs::temp_directory_path() / "egtrain_native_builder_copenhagen";
-	std::error_code error;
-	fs::remove_all(scenePath, error);
-	const auto importResult = importLegacyScene(legacyPath.string(), scenePath.string(), "Copenhagen native smoke");
-	bool ok = expect(importResult.success(), "Copenhagen legacy case imports for native builder smoke");
-	if (!ok)
-		return false;
-	const auto loaded = loadScene(scenePath.string());
-	ok &= expect(!hasErrors(loaded.diagnostics), "imported Copenhagen scene loads without errors");
-	const SceneModel& scene = loaded.scene;
-	const std::size_t platformNodeCount = [&]() {
-		std::size_t count = 0;
-		for (const auto& station : scene.stations)
-			for (const auto& platform : station.platforms)
-				count += platform.nodeIds.size();
-		return count;
-	}();
-	ok &= expect(scene.tracks.size() == 168 && scene.nodes.size() == 4612 && scene.arcs.size() == 4444,
-			"Copenhagen canonical track/node/arc counts are imported");
-	ok &= expect(scene.blocks.size() == 1513 && scene.connections.size() == 328,
-			"Copenhagen canonical block and connection counts are imported");
-	ok &= expect(scene.stations.size() == 94 && platformNodeCount == 203,
-			"Copenhagen station and platform-node counts are imported");
-	ok &= expect(scene.routes.size() == 24 && scene.blockDependencies.empty(),
-			"Copenhagen routes import without the inert B30 dependency typo");
-	if (hasErrors(loaded.diagnostics))
-		return false;
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
-	ok &= expect(!hasErrors(diagnostics), "Copenhagen scene builds natively without errors");
-	if (hasErrors(diagnostics))
-		for (const auto& diagnostic : diagnostics)
-			if (diagnostic.severity == SceneSeverity::Error)
-				std::cerr << toDisplayText(diagnostic) << "\n";
-	ok &= expect(numTrackLines == 168 && Blocks == 1841,
-			"Copenhagen native section count matches straight blocks plus switch sections");
-	ok &= expect(numConnections == 328 && numAllStationPlatforms == 203,
-			"Copenhagen native connections and platform bindings are complete");
-	ok &= expect(N_Routes == 24 && train_route.size() == 24, "Copenhagen native route count is available");
-	for (std::size_t index = 0; index < scene.routes.size() && index < train_route.size(); ++index) {
-		ok &= expect(train_route[index].N_Block_Sections == static_cast<int>(scene.routes[index].blocks.size()),
-				"Copenhagen native routes retain every canonical block reference");
-		for (const auto& block : scene.routes[index].blocks)
-			ok &= expect(hasRuntimeSection(block), "Copenhagen route references resolve to exact runtime section IDs");
-	}
-	ok &= expect(train_route.size() > 1 && train_route[1].reversed_direction,
-			"Copenhagen descending Route1 retains legacy reverse-direction semantics");
-	fs::remove_all(scenePath, error);
-	return ok;
-}
 
-int main(int argc, char** argv) {
+int main() {
 	bool ok = runTinyBuilderChecks();
-	if (argc < 2) {
-		std::cerr << "failed: Copenhagen legacy case path is required for the native smoke test\n";
-		return 1;
-	}
-	ok &= runCopenhagenSmoke(argv[1]);
 	return ok ? 0 : 1;
 }

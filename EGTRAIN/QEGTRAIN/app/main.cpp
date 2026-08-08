@@ -1,13 +1,13 @@
 #include <QCoreApplication>
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
-#include "io/InputValidation.h"
-#include "io/geocoding.h"
+#include "scene/SceneValidator.h"
 #include <algorithm>
 #include "util/portability.h"
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QStringList>
 
 //
 extern InitialParameters initial_variables;
@@ -53,7 +53,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	} else if (promptForMissingOptions) {
 		int case_study;
-		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Brescia, 5: Assignment):";
+		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Milano-Brescia, 5: Assignment, 6: Lebanon):";
 		std::cin >> case_study;
 		initial_variables.set_case(case_study);
 	} else {
@@ -65,36 +65,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		char* argument = getCmdOption(argv, argv + argc, "-h");
 		if (argument) {
 			initial_variables.times = std::atoi(argument);
-		}
-
-	} else if (promptForMissingOptions) {
-		char answer;
-		do {
-			std::cout << "The duration of the simulation of the " << initial_variables.name << " is " << initial_variables.times << " seconds.\n";
-			std::cout << "Do you want to change it (y:yes, n:no): ";
-			std::cin >> answer;
-		} while (!cin.fail() && answer != 'y' && answer != 'n');
-		if (answer == 'n' || answer == 'N')
-			std::cout << "Simulation period set to " << initial_variables.times << '\n';
-		else {
-			std::cout << "Specify simulation period length[in seconds]:";
-			std::cin >> initial_variables.times;
-		}
-	}
-
-	// # tracklines
-	if (cmdOptionEntered(argv, argv + argc, "-t")) {
-		char* argument = getCmdOption(argv, argv + argc, "-t");
-		if (argument) {
-			numTrackLines = std::atoi(argument);
-		}
-	}
-
-	// # routes
-	if (cmdOptionEntered(argv, argv + argc, "-r")) {
-		char* argument = getCmdOption(argv, argv + argc, "-r");
-		if (argument) {
-			N_Routes = std::atoi(argument);
+			initial_variables.durationOverride = true;
 		}
 	}
 
@@ -103,6 +74,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		char* argument = getCmdOption(argv, argv + argc, "-b");
 		if (argument) {
 			bufferTime = std::atof(argument);
+			initial_variables.bufferTimeOverride = true;
 		}
 	}
 
@@ -111,6 +83,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		char* argument = getCmdOption(argv, argv + argc, "-c");
 		if (argument) {
 			recoveryTimePercentage = std::atof(argument);
+			initial_variables.recoveryTimeOverride = true;
 		}
 	}
 
@@ -168,165 +141,114 @@ void parseCmdOptions(int argc, char* argv[]) {
 	}
 }
 
+QString resolveSceneDirectory(const QString& requested, const std::string& defaultName) {
+	if (!requested.isEmpty())
+		return QDir(requested).absolutePath();
+	const QString name = QString::fromStdString(defaultName);
+	const QString applicationDir = QCoreApplication::applicationDirPath();
+	const QStringList candidates = {
+		QDir(applicationDir).filePath("Scenes/" + name),
+		QDir(applicationDir).filePath("../Resources/Scenes/" + name),
+		QDir(applicationDir).filePath("../share/EGTRAIN/Scenes/" + name),
+		QDir(applicationDir).filePath("../../EGTRAIN/QEGTRAIN/Scenes/" + name)
+	};
+	for (const QString& candidate : candidates)
+		if (QDir(candidate).exists())
+			return QDir(candidate).absolutePath();
+	return candidates.front();
+}
+
+QString resolveOutputDirectory(const std::string& sceneName) {
+	QString base = qEnvironmentVariable("QEGTRAIN_OUTPUT_DIR");
+	if (base.isEmpty()) {
+		base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+		if (base.isEmpty())
+			base = QDir::homePath() + "/EGTRAIN";
+	}
+	const QString suffix = sceneName.empty() ? QStringLiteral("scene") : QString::fromStdString(sceneName);
+	const QString output = QDir(base).filePath("Output/" + suffix);
+	QDir().mkpath(output);
+	return QDir(output).absolutePath();
+}
+
+void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
+	for (const SceneDiagnostic& diagnostic : diagnostics)
+		std::cerr << toDisplayText(diagnostic) << '\n';
+}
+
 Logger owl;
 int main(int argc, char* argv[]) {
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
-
-	// Passenger passeng(1, 2, 3, "type", 3, "stop type", "location", 4, "stopmode", TRUE, 2.3, 2.4, "prev stop", 33, 0.4, 3, 0.342);
-
-	LoggerSettings settings;
-	LoggerSettings settings2;
-	LoggerSettings settings3;
-	settings.filename = "filename.log";
-	settings.b_overwriteFile = true;
-	settings.b_stdout = false;
-	settings.b_datetime = false;
-
-	settings2.filename = "filename2.log";
-	settings2.b_overwriteFile = true;
-	settings2.b_stdout = false;
-	settings2.b_datetime = true;
-
-	settings3.filename = "filename3.log";
-	settings3.b_overwriteFile = true;
-	settings3.b_stdout = false;
-	settings3.b_datetime = true;
-
-	logger.init(settings3);
-
-	owl.init(settings);
-	owl << owl.prefix(__FILE__, __LINE__);
-
-	// owl.prefix(__FILE__, __LINE__);
-	Logger owl2;
-	owl2.init(settings2);
-	owl2 << owl2.prefix(__FILE__, __LINE__);
-	// OwlInit(settings);
-
-	owl << "asdfa asdgdfssssssssssssssssssssssssssssssssss as " << initial_variables.GUI << std::endl;
-	eglogger << "fouble: " << 1.234 << '\n';
-	owl << "int " << 1345 << std::endl;
-	owl2 << "asdfasdfasdfasdfasdf" << 65 << std::endl;
-	eglogger << "fouble: " << 1.234;
-
-	// parse command line arguments
 	parseCmdOptions(argc, argv);
-	if (initial_variables.InputMainFolder.empty()) {
-		std::cout << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Brescia, 5 Assignment.\n";
+
+	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");
+	const bool sceneOption = cmdOptionEntered(argv, argv + argc, "--scene");
+	if (sceneOption && (!sceneArgument || sceneArgument[0] == '-')) {
+		std::cerr << "ERROR: --scene requires a scene directory.\n";
 		return 1;
 	}
-	// initial_variables.set_case(3);
-	std::cout << "Graphical user interface (GUI): " << initial_variables.GUI << "\n";
-	if (initial_variables.GUI) {
-		std::cout << "Passenger GUI: " << initial_variables.PAX_GUI << std::endl;
+	const std::string defaultName = initial_variables.name;
+	if (defaultName.empty()) {
+		std::cerr << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut, 6 Lebanon.\n";
+		return 1;
+	}
+	if (sceneOption)
+		initial_variables.nArgProvided = true;
+
+	const bool gui = initial_variables.GUI != 0;
+	if (gui)
+		std::cout << "Graphical user interface (GUI): 1\n";
+	else
+		std::cout << "Graphical user interface (GUI): 0\n";
+
+	if (gui) {
+		QApplication application(argc, argv);
+		const QString scenePath = resolveSceneDirectory(
+			sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
+		SceneLoadResult loaded = loadScene(scenePath.toStdString());
+		if (!hasErrors(loaded.diagnostics)) {
+			const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
+			loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
+		}
+		if (hasErrors(loaded.diagnostics)) {
+			printSceneDiagnostics(loaded.diagnostics);
+			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
+								  QString::fromStdString(toDisplayText(loaded.diagnostics.front())));
+			return 1;
+		}
+		initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
+		InputMainFolder.clear();
+		initial_variables.InputMainFolder.clear();
+		MainWindow window;
+		if (!window.openSceneDirectory(scenePath))
+			return 1;
+		window.openGUI();
+		return application.exec();
 	}
 
-	InputMainFolder = initial_variables.InputMainFolder;
-	auto resolvePackagedInputFolder = []() {
-		QString inputPath = QString::fromStdString(InputMainFolder);
-#ifdef __APPLE__
-		QString bundledPath = QDir(QCoreApplication::applicationDirPath() + "/../Resources")
-								  .filePath(inputPath);
-		if (QDir(bundledPath).exists())
-			InputMainFolder = bundledPath.toStdString();
-#else
-		if (!QDir(inputPath).exists() && QDir(inputPath).isRelative()) {
-			QString candidate = QDir(QCoreApplication::applicationDirPath()).filePath(inputPath);
-			if (QDir(candidate).exists())
-				InputMainFolder = candidate.toStdString();
-		}
-#endif
-		initial_variables.InputMainFolder = InputMainFolder;
-	};
-
-	// times = 8000;
-
-	if (initial_variables.GUI) {
-		numTrackLines = initial_variables.numTrackLines;
-		N_Routes = initial_variables.N_Routes;
-		bufferTime = initial_variables.bufferTime;
-		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
-
-		// define vector sizes with length of simulation from user input
-		train_route = std::vector<Route>(N_Routes);
-
-		// start application
-		QApplication a(argc, argv);
-		resolvePackagedInputFolder();
-		const InputCheckResult inputCheck = validateCaseStudyInput(initial_variables.InputMainFolder);
-		if (!inputCheck.ok) {
-			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN", QString::fromStdString(inputCheck.message));
-			return 1;
-		}
-
-		// resolve output folder to a writable absolute path and ensure it exists
-		{
-			QString outRel = QString::fromStdString(initial_variables.OutputMainFolder);
-			QString outAbs = outRel;
-			if (QDir(outRel).isRelative()) {
-				QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-				if (base.isEmpty())
-					base = QDir::homePath() + "/EGTRAIN";
-				outAbs = base + "/" + outRel;
-			}
-			QDir().mkpath(outAbs);
-			initial_variables.OutputMainFolder = outAbs.toStdString();
-		}
-
-		// initialize GUI
-
-		// w.actionLoad_Network();
-
-		// reads and processes station coordinates
-		readStationInfo();
-
-		// start EGTRAIN
-		simulation.setupEgtrain();
-		// prepare simulation
-		simulation.prepareSimulation();
-		MainWindow w;
-
-		// launch GUI
-		w.openGUI();
-
-		return a.exec();
-	} else {
-		QCoreApplication a(argc, argv);
-		resolvePackagedInputFolder();
-		const InputCheckResult inputCheck = validateCaseStudyInput(initial_variables.InputMainFolder);
-		if (!inputCheck.ok) {
-			std::cerr << inputCheck.message << "\n";
-			return 1;
-		}
-
-		numTrackLines = initial_variables.numTrackLines;
-		N_Routes = initial_variables.N_Routes;
-		bufferTime = initial_variables.bufferTime;
-		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
-
-		// parse command line arguments
-		// parseCmdOptions(argc, argv);
-
-		// define vector sizes with length of simulation from user input
-		train_route = std::vector<Route>(N_Routes);
-
-		// reads and processes station coordinates
-		readStationInfo();
-
-		// start EGTRAIN
-		simulation.setupEgtrain();
-		// prepare simulation
-		simulation.prepareSimulation();
-
-		// run simulation
-		simulation.runSimulation();
-		if (numRegions <= 0)
-			return 1;
+	QCoreApplication application(argc, argv);
+	const QString scenePath = resolveSceneDirectory(
+		sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
+	SceneLoadResult loaded = loadScene(scenePath.toStdString());
+	if (!hasErrors(loaded.diagnostics)) {
+		const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
+		loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
 	}
-
-	// print last services
+	if (hasErrors(loaded.diagnostics)) {
+		printSceneDiagnostics(loaded.diagnostics);
+		return 1;
+	}
+	initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
+	InputMainFolder.clear();
+	initial_variables.InputMainFolder.clear();
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(loaded.scene);
+	printSceneDiagnostics(diagnostics);
+	if (hasErrors(diagnostics))
+		return 1;
+	simulation.runSimulation();
+	if (numRegions <= 0)
+		return 1;
 	simulation.printLastTrainServicePathDiagram();
-
 	return 0;
 }

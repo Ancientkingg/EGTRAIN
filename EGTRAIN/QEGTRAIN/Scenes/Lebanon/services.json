@@ -1,3 +1,25 @@
 {
-    "services": []
+    "services": [
+        {
+            "composition": "lebanon-teaching-train",
+            "entry_time_seconds": 60.0,
+            "id": "LB-1",
+            "operating_code": "LB-1",
+            "route": "lebanon-teaching-route",
+            "stops": [
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_departure_seconds": 120.0,
+                    "platform": "LebaneseUniversity.platform.1",
+                    "station": "LebaneseUniversity"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 600.0,
+                    "platform": "HaretHreik.platform.1",
+                    "station": "HaretHreik"
+                }
+            ]
+        }
+    ]
 }

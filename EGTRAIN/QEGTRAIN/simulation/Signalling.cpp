@@ -2829,6 +2829,10 @@ bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
 
 } // namespace
 
+void resetNativeInfrastructureState() {
+	nativeResetRuntime();
+}
+
 std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene) {
 	std::vector<SceneDiagnostic> diagnostics;
 	auto add = [&](SceneSeverity severity, const std::string& code, const std::string& message,

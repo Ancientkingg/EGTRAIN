@@ -3,199 +3,1138 @@
         {
             "id": "Ut",
             "name": "Ut",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ut.platform.1",
+                    "nodes": [
+                        "B5.node.26"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.2",
+                    "nodes": [
+                        "B9.node.12"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.3",
+                    "nodes": [
+                        "B10.node.12"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.4",
+                    "nodes": [
+                        "B11.node.11"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.5",
+                    "nodes": [
+                        "B14.node.10"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.6",
+                    "nodes": [
+                        "B17.node.10"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.7",
+                    "nodes": [
+                        "B19.node.9"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.8",
+                    "nodes": [
+                        "B21.node.11"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.9",
+                    "nodes": [
+                        "B23.node.9"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.10",
+                    "nodes": [
+                        "B27.node.7"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.11",
+                    "nodes": [
+                        "B28.node.6"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.12",
+                    "nodes": [
+                        "B29.node.6"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.13",
+                    "nodes": [
+                        "B30.node.3"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.14",
+                    "nodes": [
+                        "B31.node.2"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.15",
+                    "nodes": [
+                        "B32.node.2"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.16",
+                    "nodes": [
+                        "B33.node.2"
+                    ]
+                }
+            ],
             "position_km": 1.335
         },
         {
             "id": "Utzl",
             "name": "Utzl",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Utzl.platform.1",
+                    "nodes": [
+                        "B237.node.12"
+                    ]
+                },
+                {
+                    "id": "Utzl.platform.2",
+                    "nodes": [
+                        "B238.node.9"
+                    ]
+                },
+                {
+                    "id": "Utzl.platform.3",
+                    "nodes": [
+                        "B239.node.7"
+                    ]
+                },
+                {
+                    "id": "Utzl.platform.4",
+                    "nodes": [
+                        "B240.node.7"
+                    ]
+                }
+            ],
             "position_km": 3.287
         },
         {
             "id": "Uto",
             "name": "Uto",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Uto.platform.1",
+                    "nodes": [
+                        "B27.node.29"
+                    ]
+                },
+                {
+                    "id": "Uto.platform.2",
+                    "nodes": [
+                        "B29.node.31"
+                    ]
+                },
+                {
+                    "id": "Uto.platform.3",
+                    "nodes": [
+                        "B31.node.28"
+                    ]
+                },
+                {
+                    "id": "Uto.platform.4",
+                    "nodes": [
+                        "B48.node.5"
+                    ]
+                },
+                {
+                    "id": "Uto.platform.5",
+                    "nodes": [
+                        "B49.node.4"
+                    ]
+                }
+            ],
             "position_km": 4.282
         },
         {
             "id": "Mas",
             "name": "Mas",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Mas.platform.1",
+                    "nodes": [
+                        "B237.node.34"
+                    ]
+                },
+                {
+                    "id": "Mas.platform.2",
+                    "nodes": [
+                        "B238.node.31"
+                    ]
+                },
+                {
+                    "id": "Mas.platform.3",
+                    "nodes": [
+                        "B239.node.30"
+                    ]
+                },
+                {
+                    "id": "Mas.platform.4",
+                    "nodes": [
+                        "B240.node.33"
+                    ]
+                }
+            ],
             "position_km": 8.482
         },
         {
             "id": "Bhv",
             "name": "Bhv",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bhv.platform.1",
+                    "nodes": [
+                        "B27.node.58"
+                    ]
+                },
+                {
+                    "id": "Bhv.platform.2",
+                    "nodes": [
+                        "B29.node.61"
+                    ]
+                }
+            ],
             "position_km": 10.213
         },
         {
             "id": "Dld",
             "name": "Dld",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dld.platform.1",
+                    "nodes": [
+                        "B27.node.71"
+                    ]
+                },
+                {
+                    "id": "Dld.platform.2",
+                    "nodes": [
+                        "B29.node.74"
+                    ]
+                }
+            ],
             "position_km": 13.112
         },
         {
             "id": "Hor",
             "name": "Hor",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hor.platform.1",
+                    "nodes": [
+                        "B218.node.27"
+                    ]
+                },
+                {
+                    "id": "Hor.platform.2",
+                    "nodes": [
+                        "B220.node.27"
+                    ]
+                }
+            ],
             "position_km": 13.205
         },
         {
             "id": "Bkl",
             "name": "Bkl",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bkl.platform.1",
+                    "nodes": [
+                        "B237.node.49"
+                    ]
+                },
+                {
+                    "id": "Bkl.platform.2",
+                    "nodes": [
+                        "B238.node.46"
+                    ]
+                },
+                {
+                    "id": "Bkl.platform.3",
+                    "nodes": [
+                        "B239.node.46"
+                    ]
+                },
+                {
+                    "id": "Bkl.platform.4",
+                    "nodes": [
+                        "B240.node.49"
+                    ]
+                }
+            ],
             "position_km": 13.667
         },
         {
             "id": "Hvsp",
             "name": "Hvsp",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hvsp.platform.1",
+                    "nodes": [
+                        "B218.node.32"
+                    ]
+                },
+                {
+                    "id": "Hvsp.platform.2",
+                    "nodes": [
+                        "B220.node.32"
+                    ]
+                }
+            ],
             "position_km": 17.53
         },
         {
             "id": "Stz",
             "name": "Stz",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Stz.platform.1",
+                    "nodes": [
+                        "B29.node.84"
+                    ]
+                }
+            ],
             "position_km": 18.089
         },
         {
             "id": "St",
             "name": "St",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "St.platform.1",
+                    "nodes": [
+                        "B29.node.90"
+                    ]
+                },
+                {
+                    "id": "St.platform.2",
+                    "nodes": [
+                        "B54.node.4"
+                    ]
+                }
+            ],
             "position_km": 19.147
         },
         {
             "id": "Sd",
             "name": "Sd",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Sd.platform.1",
+                    "nodes": [
+                        "B29.node.97"
+                    ]
+                }
+            ],
             "position_km": 20.452
         },
         {
             "id": "Brn",
             "name": "Brn",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Brn.platform.1",
+                    "nodes": [
+                        "B29.node.115"
+                    ]
+                },
+                {
+                    "id": "Brn.platform.2",
+                    "nodes": [
+                        "B55.node.9"
+                    ]
+                },
+                {
+                    "id": "Brn.platform.3",
+                    "nodes": [
+                        "B56.node.9"
+                    ]
+                },
+                {
+                    "id": "Brn.platform.4",
+                    "nodes": [
+                        "B57.node.2"
+                    ]
+                }
+            ],
             "position_km": 23.697
         },
         {
             "id": "Ac",
             "name": "Ac",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ac.platform.1",
+                    "nodes": [
+                        "B237.node.71"
+                    ]
+                },
+                {
+                    "id": "Ac.platform.2",
+                    "nodes": [
+                        "B238.node.68"
+                    ]
+                },
+                {
+                    "id": "Ac.platform.3",
+                    "nodes": [
+                        "B239.node.69"
+                    ]
+                },
+                {
+                    "id": "Ac.platform.4",
+                    "nodes": [
+                        "B240.node.72"
+                    ]
+                }
+            ],
             "position_km": 26.167
         },
         {
             "id": "Ashd",
             "name": "Ashd",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ashd.platform.1",
+                    "nodes": [
+                        "B237.node.76"
+                    ]
+                },
+                {
+                    "id": "Ashd.platform.2",
+                    "nodes": [
+                        "B238.node.73"
+                    ]
+                },
+                {
+                    "id": "Ashd.platform.3",
+                    "nodes": [
+                        "B239.node.75"
+                    ]
+                },
+                {
+                    "id": "Ashd.platform.4",
+                    "nodes": [
+                        "B240.node.78"
+                    ]
+                },
+                {
+                    "id": "Ashd.platform.5",
+                    "nodes": [
+                        "B253.node.3"
+                    ]
+                },
+                {
+                    "id": "Ashd.platform.6",
+                    "nodes": [
+                        "B254.node.3"
+                    ]
+                }
+            ],
             "position_km": 28.267
         },
         {
             "id": "Asb",
             "name": "Asb",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Asb.platform.1",
+                    "nodes": [
+                        "B237.node.84"
+                    ]
+                },
+                {
+                    "id": "Asb.platform.2",
+                    "nodes": [
+                        "B238.node.82"
+                    ]
+                },
+                {
+                    "id": "Asb.platform.3",
+                    "nodes": [
+                        "B255.node.5"
+                    ]
+                },
+                {
+                    "id": "Asb.platform.4",
+                    "nodes": [
+                        "B256.node.5"
+                    ]
+                },
+                {
+                    "id": "Asb.platform.5",
+                    "nodes": [
+                        "B257.node.4"
+                    ]
+                },
+                {
+                    "id": "Asb.platform.6",
+                    "nodes": [
+                        "B258.node.5"
+                    ]
+                }
+            ],
             "position_km": 30.367
         },
         {
             "id": "Alm",
             "name": "Alm",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Alm.platform.1",
+                    "nodes": [
+                        "B224.node.11"
+                    ]
+                },
+                {
+                    "id": "Alm.platform.2",
+                    "nodes": [
+                        "B225.node.11"
+                    ]
+                },
+                {
+                    "id": "Alm.platform.3",
+                    "nodes": [
+                        "B226.node.6"
+                    ]
+                },
+                {
+                    "id": "Alm.platform.4",
+                    "nodes": [
+                        "B227.node.6"
+                    ]
+                }
+            ],
             "position_km": 30.654
         },
         {
             "id": "Hvs",
             "name": "Hvs",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hvs.platform.1",
+                    "nodes": [
+                        "B29.node.138"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.2",
+                    "nodes": [
+                        "B56.node.31"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.3",
+                    "nodes": [
+                        "B60.node.9"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.4",
+                    "nodes": [
+                        "B62.node.10"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.5",
+                    "nodes": [
+                        "B64.node.9"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.6",
+                    "nodes": [
+                        "B225.node.17"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.7",
+                    "nodes": [
+                        "B226.node.11"
+                    ]
+                },
+                {
+                    "id": "Hvs.platform.8",
+                    "nodes": [
+                        "B227.node.12"
+                    ]
+                }
+            ],
             "position_km": 31.003
         },
         {
             "id": "Dvd",
             "name": "Dvd",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dvd.platform.1",
+                    "nodes": [
+                        "B237.node.85"
+                    ]
+                },
+                {
+                    "id": "Dvd.platform.2",
+                    "nodes": [
+                        "B238.node.83"
+                    ]
+                },
+                {
+                    "id": "Dvd.platform.3",
+                    "nodes": [
+                        "B255.node.13"
+                    ]
+                },
+                {
+                    "id": "Dvd.platform.4",
+                    "nodes": [
+                        "B256.node.12"
+                    ]
+                }
+            ],
             "position_km": 31.867
         },
         {
             "id": "Hvsm",
             "name": "Hvsm",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hvsm.platform.1",
+                    "nodes": [
+                        "B29.node.150"
+                    ]
+                },
+                {
+                    "id": "Hvsm.platform.2",
+                    "nodes": [
+                        "B56.node.42"
+                    ]
+                },
+                {
+                    "id": "Hvsm.platform.3",
+                    "nodes": [
+                        "B226.node.22"
+                    ]
+                },
+                {
+                    "id": "Hvsm.platform.4",
+                    "nodes": [
+                        "B227.node.23"
+                    ]
+                }
+            ],
             "position_km": 32.346
         },
         {
             "id": "Almm",
             "name": "Almm",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Almm.platform.1",
+                    "nodes": [
+                        "B226.node.24"
+                    ]
+                },
+                {
+                    "id": "Almm.platform.2",
+                    "nodes": [
+                        "B227.node.25"
+                    ]
+                }
+            ],
             "position_km": 32.726
         },
         {
             "id": "Asa",
             "name": "Asa",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Asa.platform.1",
+                    "nodes": [
+                        "B255.node.21"
+                    ]
+                },
+                {
+                    "id": "Asa.platform.2",
+                    "nodes": [
+                        "B256.node.20"
+                    ]
+                }
+            ],
             "position_km": 34.797
         },
         {
             "id": "Bsmz",
             "name": "Bsmz",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bsmz.platform.1",
+                    "nodes": [
+                        "B29.node.162"
+                    ]
+                },
+                {
+                    "id": "Bsmz.platform.2",
+                    "nodes": [
+                        "B56.node.59"
+                    ]
+                },
+                {
+                    "id": "Bsmz.platform.3",
+                    "nodes": [
+                        "B226.node.38"
+                    ]
+                },
+                {
+                    "id": "Bsmz.platform.4",
+                    "nodes": [
+                        "B227.node.39"
+                    ]
+                }
+            ],
             "position_km": 35.552
         },
         {
             "id": "Ampo",
             "name": "Ampo",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ampo.platform.1",
+                    "nodes": [
+                        "B226.node.43"
+                    ]
+                },
+                {
+                    "id": "Ampo.platform.2",
+                    "nodes": [
+                        "B227.node.44"
+                    ]
+                }
+            ],
             "position_km": 36.643
         },
         {
             "id": "Ndb",
             "name": "Ndb",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ndb.platform.1",
+                    "nodes": [
+                        "B29.node.172"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.2",
+                    "nodes": [
+                        "B56.node.69"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.3",
+                    "nodes": [
+                        "B72.node.7"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.4",
+                    "nodes": [
+                        "B73.node.4"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.5",
+                    "nodes": [
+                        "B74.node.4"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.6",
+                    "nodes": [
+                        "B75.node.2"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.7",
+                    "nodes": [
+                        "B226.node.46"
+                    ]
+                },
+                {
+                    "id": "Ndb.platform.8",
+                    "nodes": [
+                        "B227.node.47"
+                    ]
+                }
+            ],
             "position_km": 37.23
         },
         {
             "id": "Wp",
             "name": "Wp",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Wp.platform.1",
+                    "nodes": [
+                        "B29.node.198"
+                    ]
+                },
+                {
+                    "id": "Wp.platform.2",
+                    "nodes": [
+                        "B56.node.97"
+                    ]
+                },
+                {
+                    "id": "Wp.platform.3",
+                    "nodes": [
+                        "B78.node.4"
+                    ]
+                },
+                {
+                    "id": "Wp.platform.4",
+                    "nodes": [
+                        "B79.node.4"
+                    ]
+                },
+                {
+                    "id": "Wp.platform.5",
+                    "nodes": [
+                        "B80.node.4"
+                    ]
+                },
+                {
+                    "id": "Wp.platform.6",
+                    "nodes": [
+                        "B81.node.3"
+                    ]
+                }
+            ],
             "position_km": 46.181
         },
         {
             "id": "Dmn",
             "name": "Dmn",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dmn.platform.1",
+                    "nodes": [
+                        "B78.node.34"
+                    ]
+                },
+                {
+                    "id": "Dmn.platform.2",
+                    "nodes": [
+                        "B88.node.6"
+                    ]
+                }
+            ],
             "position_km": 52.657
         },
         {
             "id": "Dmnz",
             "name": "Dmnz",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dmnz.platform.1",
+                    "nodes": [
+                        "B259.node.15"
+                    ]
+                },
+                {
+                    "id": "Dmnz.platform.2",
+                    "nodes": [
+                        "B260.node.10"
+                    ]
+                }
+            ],
             "position_km": 53.593
         },
         {
             "id": "Assp",
             "name": "Assp",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Assp.platform.1",
+                    "nodes": [
+                        "B78.node.38"
+                    ]
+                },
+                {
+                    "id": "Assp.platform.2",
+                    "nodes": [
+                        "B88.node.10"
+                    ]
+                }
+            ],
             "position_km": 54.202
         },
         {
             "id": "Asdm",
             "name": "Asdm",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Asdm.platform.1",
+                    "nodes": [
+                        "B78.node.50"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.2",
+                    "nodes": [
+                        "B88.node.21"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.3",
+                    "nodes": [
+                        "B89.node.11"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.4",
+                    "nodes": [
+                        "B91.node.9"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.5",
+                    "nodes": [
+                        "B92.node.8"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.6",
+                    "nodes": [
+                        "B94.node.6"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.7",
+                    "nodes": [
+                        "B96.node.5"
+                    ]
+                },
+                {
+                    "id": "Asdm.platform.8",
+                    "nodes": [
+                        "B97.node.5"
+                    ]
+                }
+            ],
             "position_km": 55.522
         },
         {
             "id": "Rai",
             "name": "Rai",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Rai.platform.1",
+                    "nodes": [
+                        "B259.node.44"
+                    ]
+                },
+                {
+                    "id": "Rai.platform.2",
+                    "nodes": [
+                        "B262.node.26"
+                    ]
+                },
+                {
+                    "id": "Rai.platform.3",
+                    "nodes": [
+                        "B263.node.17"
+                    ]
+                },
+                {
+                    "id": "Rai.platform.4",
+                    "nodes": [
+                        "B264.node.17"
+                    ]
+                }
+            ],
             "position_km": 58.883
         },
         {
             "id": "Asd",
             "name": "Asd",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Asd.platform.1",
+                    "nodes": [
+                        "B78.node.79"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.2",
+                    "nodes": [
+                        "B88.node.51"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.3",
+                    "nodes": [
+                        "B135.node.13"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.4",
+                    "nodes": [
+                        "B141.node.7"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.5",
+                    "nodes": [
+                        "B143.node.8"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.6",
+                    "nodes": [
+                        "B144.node.15"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.7",
+                    "nodes": [
+                        "B147.node.12"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.8",
+                    "nodes": [
+                        "B148.node.15"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.9",
+                    "nodes": [
+                        "B149.node.12"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.10",
+                    "nodes": [
+                        "B155.node.8"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.11",
+                    "nodes": [
+                        "B164.node.5"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.12",
+                    "nodes": [
+                        "B165.node.5"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.13",
+                    "nodes": [
+                        "B166.node.3"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.14",
+                    "nodes": [
+                        "B167.node.5"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.15",
+                    "nodes": [
+                        "B168.node.3"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.16",
+                    "nodes": [
+                        "B169.node.3"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.17",
+                    "nodes": [
+                        "B170.node.3"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.18",
+                    "nodes": [
+                        "B174.node.3"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.19",
+                    "nodes": [
+                        "B175.node.3"
+                    ]
+                },
+                {
+                    "id": "Asd.platform.20",
+                    "nodes": [
+                        "B176.node.3"
+                    ]
+                }
+            ],
             "position_km": 59.396
         },
         {
             "id": "Asdz",
             "name": "Asdz",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Asdz.platform.1",
+                    "nodes": [
+                        "B259.node.50"
+                    ]
+                },
+                {
+                    "id": "Asdz.platform.2",
+                    "nodes": [
+                        "B262.node.32"
+                    ]
+                },
+                {
+                    "id": "Asdz.platform.3",
+                    "nodes": [
+                        "B263.node.23"
+                    ]
+                },
+                {
+                    "id": "Asdz.platform.4",
+                    "nodes": [
+                        "B264.node.23"
+                    ]
+                }
+            ],
             "position_km": 60.183
         },
         {
@@ -219,7 +1158,20 @@
         {
             "id": "virtualAsdmLink",
             "name": "virtualAsdmLink",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "virtualAsdmLink.platform.1",
+                    "nodes": [
+                        "B255.node.29"
+                    ]
+                },
+                {
+                    "id": "virtualAsdmLink.platform.2",
+                    "nodes": [
+                        "B256.node.28"
+                    ]
+                }
+            ],
             "position_km": 36.899
         },
         {
@@ -243,7 +1195,26 @@
         {
             "id": "virtualDvdLink",
             "name": "virtualDvdLink",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "virtualDvdLink.platform.1",
+                    "nodes": [
+                        "B95.node.1"
+                    ]
+                },
+                {
+                    "id": "virtualDvdLink.platform.2",
+                    "nodes": [
+                        "B259.node.27"
+                    ]
+                },
+                {
+                    "id": "virtualDvdLink.platform.3",
+                    "nodes": [
+                        "B262.node.9"
+                    ]
+                }
+            ],
             "position_km": 55.216
         }
     ]
