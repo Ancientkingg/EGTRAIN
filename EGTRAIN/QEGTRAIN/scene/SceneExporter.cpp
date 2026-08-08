@@ -1,4 +1,5 @@
 #include "scene/SceneExporter.h"
+#include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
 #include <filesystem>
 #include <fstream>
@@ -888,7 +889,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		result.diagnostics.push_back(d);
 	};
 
-	SceneLoadResult loadRes = loadScene(sceneDir);
+	SceneLoadResult loadRes = loadScenePath(sceneDir);
 	if (hasErrors(loadRes.diagnostics)) {
 		result.diagnostics = loadRes.diagnostics;
 		return result;

@@ -36,7 +36,8 @@ ctest --test-dir build --output-on-failure
 Current tests cover time formatting, speed formatting, trajectory accessors,
 blocking-time diagram data, visual classification, scene validation, explicit
 legacy import/export, scene writing, both native runtime builders, canonical
-TrackPreview rendering, and smoke output decoding.
+TrackPreview rendering, transparent scene bundle round-trips/security limits,
+and smoke output decoding.
 
 The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs
@@ -52,7 +53,13 @@ ctest --test-dir build -LE legacy-compat --output-on-failure
 
 `scene-v1` covers the canonical scene model. `legacy-compat` covers only the
 explicit importer/exporter boundary; normal simulation is not in that label.
-Add a `scene-v2` label when V2 tests exist.
+`scene-v2` covers `.egscene` container round-trips and hostile-archive checks.
+
+Run the focused bundle test with:
+
+```bash
+ctest --test-dir build -L scene-v2 --output-on-failure
+```
 
 ## Simulation Smoke Test
 
@@ -101,6 +108,6 @@ tools/e2e/headless_smoke.py
 tools/e2e/roundtrip_smoke.py
 ```
 
-For scene-format changes, also validate and export all six scene directories
-with `build/scene_tool`. For UI or rendering changes, also run
+For scene-format changes, also pack/unpack and validate/export the committed
+scene directories with `build/scene_tool`. For UI or rendering changes, also run
 `tools/e2e/visual_polish_smoke.sh`.
