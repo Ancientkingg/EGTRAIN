@@ -52,6 +52,9 @@ jobs:
       - name: Run scene roundtrip smoke
         run: python3 tools/e2e/roundtrip_smoke.py
 
+      - name: Run bundle smoke
+        run: python3 tools/e2e/bundle_smoke.py build/scene_tool build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+
       - name: Run assignment smoke
         run: python3 tools/e2e/assignment_smoke.py
 

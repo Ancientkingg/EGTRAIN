@@ -100,7 +100,9 @@ configure an automated run. For example:
   -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
 ```
 
-Use `--scene path/to/scene` to select any canonical V1 scene directory directly.
+Use `--scene path/to/case.egscene` to open a portable case-study bundle, or pass
+a canonical V1 scene directory while authoring. See
+[Opening an `.egscene` case study](docs/guides/opening-a-case-study.md).
 
 Add `--interactive` to use the legacy terminal questionnaire.
 

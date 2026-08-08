@@ -19,7 +19,7 @@ The main window opens with a menu bar, the network view, and the editor docks. T
 
 ## Open the Lebanon scene
 
-Choose File > Open Scene and select the `Scenes/Lebanon` folder inside the package. The network view draws the Lebanon track layout and the 34 stations.
+Choose File > Open Scene Folder and select the `Scenes/Lebanon` folder inside the package. The network view draws the Lebanon track layout and the 34 stations. If you downloaded `Lebanon.egscene` separately, choose File > Open Case Study instead.
 
 The docks on the right hold the editors. If a dock is hidden, turn it back on from the View menu. You will use Train Units, Compositions, Services, and Validation.
 
@@ -83,7 +83,7 @@ Run stays gated while errors remain.
 
 ## Save a working copy
 
-Choose File > Save Scene As and pick a folder outside the package. This writes your edits to a separate copy and leaves the supplied Lebanon scene unchanged. Use File > Save Scene, or Ctrl+S, to save later edits to that working copy.
+Choose File > Save Case Study As and write `Lebanon-working.egscene` outside the package. This leaves the supplied Lebanon scene unchanged. Use File > Save Scene, or Ctrl+S, to save later edits to that working copy. Use File > Save Scene As Folder only when you need editable JSON files.
 
 Do not save into the package folder. Keep the supplied scene as your clean starting point.
 
@@ -139,11 +139,14 @@ If a run stops with an error:
 
 ```
 scene_tool import <legacyDir> <sceneDir> [sceneName]
-scene_tool validate <sceneDir>
-scene_tool export <sceneDir> <outDir>
+scene_tool pack <sceneDir> <output.egscene>
+scene_tool unpack <input.egscene> <sceneDir>
+scene_tool validate <scenePath>
+scene_tool export <scenePath> <outDir>
 ```
 
 - `import` builds a scene from a legacy case folder. The Lebanon scene was built this way from the supplied network.
+- `pack` and `unpack` convert between an editable directory and a portable bundle.
 - `validate` prints the same errors the Validation dock shows.
 - `export` writes legacy interoperability files into a clean directory. Normal
   simulation does not read that export.
@@ -153,7 +156,7 @@ scene_tool export <sceneDir> <outDir>
 Run this once on the presentation machine before the session.
 
 - [ ] The package launches with no missing-library error.
-- [ ] File > Open Scene loads `Scenes/Lebanon` and the network draws.
+- [ ] File > Open Scene Folder loads `Scenes/Lebanon` and the network draws.
 - [ ] The supplied teaching baseline runs once without edits.
 - [ ] The presentation train units, compositions, services, and timetable are authored and saved to a working copy.
 - [ ] The Validation dock is clear.
@@ -161,4 +164,4 @@ Run this once on the presentation machine before the session.
 - [ ] Every diagram in the Diagrams menu opens with readable data.
 - [ ] The Run Results dock shows travel time and energy per train and the network totals.
 - [ ] One PNG and one CSV export open correctly outside the package.
-- [ ] The supplied `Scenes/Lebanon` folder is unchanged; edits live in the working copy.
+- [ ] The supplied `Scenes/Lebanon` folder is unchanged; edits live in `Lebanon-working.egscene`.

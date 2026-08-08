@@ -1,15 +1,16 @@
 # Using EGTRAIN and authoring V1 scenes
 
-This guide covers the V1 workflow: open a canonical directory, convert an
-external legacy case when needed, edit planned input, validate it, and run it
-through the native scene path.
+This guide covers canonical scene authoring: open a V1 directory or V2 bundle,
+convert an external legacy case when needed, edit planned input, validate it,
+and run it through the native scene path.
 
 ## Open and run
 
-Choose `File > Open Scene...` and select the directory containing `scene.json`.
-Review validation diagnostics, use `Save Scene As...` for a working copy, then
-choose `Run Scene`. From the command line, `--scene path/to/scene` selects the
-same directory.
+Choose `File > Open Case Study...` and select an `.egscene` file. Use
+`File > Open Scene Folder...` when editing a canonical directory containing
+`scene.json`. Review validation diagnostics, use `Save Case Study As...` for a
+new bundle, then choose `Run Scene`. From the command line, `--scene` accepts
+the same bundle or directory path.
 
 The application loads the six required JSON files, accepts optional scenarios,
 passengers, views, and historical compatibility aliases, and validates before a
@@ -40,6 +41,25 @@ Scenario files use `default_scenario_id`, named `scenarios`, concrete
 `incidents`, and `entrance_delays`. Passenger windows use absolute seconds
 from midnight. The complete key contract and historical aliases are in the
 [schema reference](../architecture/scene-schema.md).
+
+## Portable bundles
+
+V2 `.egscene` files package canonical V1 JSON in a deterministic ZIP archive.
+The bundle version describes the container; `schema_version` still describes
+the canonical data. Bundles include `scenarios.json`, omit generated results
+and legacy input, and do not replace editable directory scenes.
+
+Use `scene_tool` to pack, inspect, or unpack a bundle:
+
+```bash
+./build/scene_tool pack path/to/scene case-study.egscene
+./build/scene_tool validate case-study.egscene
+./build/scene_tool unpack case-study.egscene path/to/unpacked-scene
+```
+
+See [Opening an `.egscene` case study](opening-a-case-study.md) for the student
+workflow and [Scene bundle format](../architecture/scene-bundle.md) for the
+entry allowlist and size limits.
 
 ## Convert a legacy case
 
@@ -99,7 +119,8 @@ behavior from a filename.
 Named-scenario selection, entrance delays, incidents, and passengers execute
 from canonical data. The runtime applies only the selected/default scenario.
 
-Run the structural and semantic validation command after edits:
+Run the structural and semantic validation command after edits. The path can
+name a scene directory or bundle:
 
 ```bash
 ./build/scene_tool validate path/to/scene
@@ -121,5 +142,5 @@ half-hour bucket format instead of silently changing it.
 
 ## Scope
 
-This guide describes the canonical V1 directory and native runtime. The
-`.egscene` bundle is a later transport format and does not change the V1 model.
+The V2 bundle changes packaging only. V1 JSON and `SceneModel` remain the
+simulation-data contract.

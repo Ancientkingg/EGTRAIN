@@ -1,7 +1,7 @@
 name: Release
 
 # Builds downloadable applications for macOS, Windows, and Linux.
-# Main pushes publish a GitHub Release with the three platform packages.
+# Main pushes publish the three platform packages and six case-study bundles.
 # v* tags publish releases using the tag name. Manual runs test packaging jobs.
 on:
   push:
@@ -104,7 +104,7 @@ jobs:
           test -f "$PKG/Scenes/Lebanon/scene.json"
           test -f "$PKG/Scenes/Lebanon/scenarios.json"
           test -f "$PKG/lebanon-case-study.md"
-          # scene_tool links only header-only JSON, so it runs without Qt.
+          # scene_tool uses header-only JSON and vendored miniz, so it runs without Qt.
           set +e
           validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"
           validation_status=$?
@@ -135,6 +135,35 @@ jobs:
             exit 1
           fi
           echo "OK: presentation package holds the app, scene_tool, canonical scenes, and guide"
+
+      - name: Generate scene bundles
+        run: |
+          set -euo pipefail
+          mkdir -p build/scene-bundles
+          scenes=(
+            Netherlands
+            Paimpol
+            Copenhagen
+            Milano_Brescia
+            Assignment_Gvc_Gdg_Ut
+            Lebanon
+          )
+          for name in "${scenes[@]}"; do
+            bundle="build/scene-bundles/$name.egscene"
+            build/scene_tool pack "EGTRAIN/QEGTRAIN/Scenes/$name" "$bundle"
+            validation_log="$RUNNER_TEMP/$name-bundle-validation.log"
+            if ! build/scene_tool validate "$bundle" >"$validation_log" 2>&1; then
+              cat "$validation_log"
+              exit 1
+            fi
+          done
+
+      - name: Upload scene bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGTRAIN-scenes
+          path: build/scene-bundles/*.egscene
+          if-no-files-found: error
 
       - name: Package zip
         run: |
@@ -198,7 +227,7 @@ jobs:
           # Canonical scenes ship beside the executable for packaged defaults.
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           # Presentation package: the command-line tool, the canonical scenes, and
-          # the guide. scene_tool links only header-only JSON, so it needs no Qt.
+          # the guide. scene_tool uses header-only JSON and vendored miniz, so it needs no Qt.
           $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
           if (-not $tool) { throw "scene_tool.exe not found under build/" }
           Copy-Item $tool.FullName "$dist/scene_tool.exe"
@@ -270,8 +299,8 @@ jobs:
           cp -R EGTRAIN/QEGTRAIN/Scenes "$APPDIR/usr/bin/Scenes"
 
           # Presentation package: the command-line tool, the Lebanon scene, and
-          # the guide, bundled beside the executable. scene_tool links only
-          # header-only JSON, so it carries no Qt dependency.
+          # the guide, bundled beside the executable. scene_tool uses
+          # header-only JSON and vendored miniz, so it carries no Qt dependency.
           TOOL="$(find build -type f -perm -111 -name scene_tool | head -n 1)"
           test -n "$TOOL"
           cp "$TOOL" "$APPDIR/usr/bin/scene_tool"
@@ -392,6 +421,12 @@ jobs:
             artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
             artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip
             artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
+            artifacts/EGTRAIN-scenes/Netherlands.egscene
+            artifacts/EGTRAIN-scenes/Paimpol.egscene
+            artifacts/EGTRAIN-scenes/Copenhagen.egscene
+            artifacts/EGTRAIN-scenes/Milano_Brescia.egscene
+            artifacts/EGTRAIN-scenes/Assignment_Gvc_Gdg_Ut.egscene
+            artifacts/EGTRAIN-scenes/Lebanon.egscene
           )
 
           for file in "${expected[@]}"; do
@@ -399,8 +434,8 @@ jobs:
           done
 
           count="$(find artifacts -type f | wc -l | tr -d ' ')"
-          if [[ "$count" != "3" ]]; then
-            echo "Expected exactly 3 release assets, found $count"
+          if [[ "$count" != "9" ]]; then
+            echo "Expected exactly 9 release assets, found $count"
             find artifacts -type f -print
             exit 1
           fi
@@ -415,6 +450,7 @@ jobs:
             artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
             artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip
             artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
+            artifacts/EGTRAIN-scenes/*.egscene
           prerelease: ${{ steps.release-meta.outputs.prerelease }}
           make_latest: ${{ steps.release-meta.outputs.make_latest }}
           fail_on_unmatched_files: true
@@ -424,4 +460,4 @@ jobs:
             - Commit: ${{ github.sha }}
             - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            Download the package for your platform, unzip, and run.
+            Download the package for your platform. Case studies are also available as `.egscene` files.

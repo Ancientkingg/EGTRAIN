@@ -16,6 +16,7 @@ def main() -> None:
         "Run headless canonical scene smokes": "tools/e2e/headless_smoke.py 1 2 3 4 5 6",
         "Run editor smoke": "tools/e2e/editor_smoke.sh",
         "Run scene roundtrip smoke": "tools/e2e/roundtrip_smoke.py",
+        "Run bundle smoke": "tools/e2e/bundle_smoke.py",
         "Run assignment smoke": "tools/e2e/assignment_smoke.py",
         "Run incident smoke": "tools/e2e/incident_smoke.py",
         "Run scene render smoke": "tools/e2e/scene_render_smoke.sh",
@@ -140,6 +141,28 @@ def main() -> None:
         or (app_path_index >= 0 and run_dir_index >= 0 and app_path_index > run_dir_index)
     ):
         missing.append("macOS packaged app path resolution")
+    scene_names = (
+        "Netherlands",
+        "Paimpol",
+        "Copenhagen",
+        "Milano_Brescia",
+        "Assignment_Gvc_Gdg_Ut",
+        "Lebanon",
+    )
+    if any(f"            {name}\n" not in release_workflow for name in scene_names) or any(
+        command not in release_workflow
+        for command in (
+            'build/scene_tool pack "EGTRAIN/QEGTRAIN/Scenes/$name" "$bundle"',
+            'build/scene_tool validate "$bundle"',
+            "name: EGTRAIN-scenes",
+        )
+    ):
+        missing.append("six deterministic release scene bundles")
+    if any(
+        f"artifacts/EGTRAIN-scenes/{name}.egscene" not in release_workflow
+        for name in scene_names
+    ) or "artifacts/EGTRAIN-scenes/*.egscene" not in release_workflow:
+        missing.append("scene bundles in published release assets")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 
