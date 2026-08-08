@@ -173,6 +173,15 @@ int main(int argc, char** argv) {
 	const SceneSaveResult replacementSave = saveSceneBundle(source.scene, firstBundle.string());
 	ok &= expect(replacementSave.success() && readBytes(firstBundle) == readBytes(secondBundle),
 			"existing bundle is atomically replaced");
+	const std::string originalBundleBytes = readBytes(firstBundle);
+	SceneModel editedScene = source.scene;
+	editedScene.description += " (edited)";
+	const fs::path saveAsBundle = temp.path / "save-as.egscene";
+	const SceneSaveResult saveAsResult = saveSceneBundle(editedScene, saveAsBundle.string());
+	ok &= expect(saveAsResult.success()
+			&& readBytes(firstBundle) == originalBundleBytes
+			&& readBytes(saveAsBundle) != originalBundleBytes,
+			"Save As writes a second bundle without changing the original bytes");
 
 	const SceneLoadResult bundled = loadScenePath(firstBundle.string());
 	ok &= expect(!hasErrors(bundled.diagnostics), "bundle loads through shared path dispatch");

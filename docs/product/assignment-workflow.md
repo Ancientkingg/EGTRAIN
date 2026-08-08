@@ -19,6 +19,7 @@ EGTRAIN should replace the current OpenTrack workflow used in the railway traffi
 - As a student, I can inspect speed-distance, speed-time, time-distance, delay, and blocking-time diagrams.
 - As a student, I can toggle trains in diagrams and export tables and figures for a report.
 - As a student, I can add assignment incidents such as a signal failure or train breakdown.
+- As a student, I can duplicate and select named incident scenarios, run the selected scenario, and review its results.
 
 ## V1 Editor Scope
 
@@ -51,3 +52,7 @@ Full infrastructure editing is a later milestone:
 ## Data Policy
 
 Students should work through the application. Hand editing should remain possible for review, debugging, and research, but it should not be the normal assignment workflow.
+
+The completed loop is open, validate, select or edit a scenario, save a case
+copy when needed, review the run summary, run the selected scenario, and use
+the existing results views for timetable and delay analysis.

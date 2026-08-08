@@ -33,7 +33,7 @@ the current input.
 
 Double-click infrastructure or signalling rows to focus the existing network
 view, validation rows to open the diagnostics table, or a train unit,
-composition, service, or default-scenario incident to open its existing editor.
+composition, service, or scenario incident to open its existing editor.
 Each train-unit row owns its parameter, curve, plot, and provenance details.
 Train-unit provenance is descriptive:
 an original parameter or tractive-effort filename is not reopened by the native
@@ -64,6 +64,26 @@ Scenario files use `default_scenario_id`, named `scenarios`, concrete
 `incidents`, and `entrance_delays`. Passenger windows use absolute seconds
 from midnight. The complete key contract and historical aliases are in the
 [schema reference](../architecture/scene-schema.md).
+
+## Scenario library and student loop
+
+Open the **Incidents** dock to choose the canonical default or another named
+scenario. The library shows each scenario's ID, name, incident count, default
+and validation status, and an in-memory modified marker. **Blank** and
+**Duplicate** create isolated scenarios; editing incidents, names, or
+descriptions changes only the selected scenario. **Import JSON...** and
+**Export JSON...** use the standalone scenario object documented in the schema
+reference. Imports retain entrance delays, validate references against the
+open case, and report any adjusted ID rather than replacing an existing
+scenario or incident.
+
+The completed student loop is: open a case, review **Loaded Data** and
+**Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
+review the run summary, run the selected scenario, then use **Run Results** to
+open the existing timetable, delay, speed, and blocking-time views. Results
+are cleared when the case or scenario changes and are rebuilt only by a new
+run, so a result window is never presented as belonging to a newly selected
+scenario.
 
 ## Portable bundles
 
