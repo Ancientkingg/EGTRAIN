@@ -309,9 +309,9 @@ bool nativeFinite(double value) {
 void addNativeDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
 		const std::string& message, const std::string& file, const std::string& itemType,
 		const std::string& itemId, const std::string& path = {}, const std::string& relatedId = {},
-		const std::string& suggestedFix = {}) {
+		const std::string& suggestedFix = {}, SceneSeverity severity = SceneSeverity::Error) {
 	SceneDiagnostic diagnostic;
-	diagnostic.severity = SceneSeverity::Error;
+	diagnostic.severity = severity;
 	diagnostic.code = code;
 	diagnostic.message = message;
 	diagnostic.file = file;
@@ -501,6 +501,28 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 
 } // namespace
 
+void resetNativeOperationsState() {
+	N_OrderLists = 0;
+	numRegions = 0;
+	N_Train = 0;
+	N_TrainD = 0;
+	numAllStationPlatforms = 0;
+	numAllDailyPassengers = 0;
+	for (int index = 0; index < Max_N_Reg; ++index) {
+		nativeClearRegionalTrain(regional_train[index]);
+		regional_train[index].~Regional();
+		new (&regional_train[index]) Regional();
+	}
+	for (OrderList& orderList : OL)
+		orderList = OrderList();
+	AllStationPlatforms.clear();
+	AllDailyPassengers.clear();
+	simulationIncidents.clear();
+	VCmsgTimestep.clear();
+	VCmsgTrain.clear();
+	VCmsgText.clear();
+}
+
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		const std::string& selectedScenarioId) {
 	std::vector<SceneDiagnostic> diagnostics;
@@ -517,9 +539,11 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	if (!parseNativeBaseTime(scene.baseTime, baseTime))
 		addNativeDiagnostic(diagnostics, "scene.native.time.base", "base_time must be HH:MM:SS",
 				"scene.json", "scene", scene.name, "base_time");
-	if (!scene.settings.hasDuration || !nativeFinite(scene.settings.durationSeconds)
-			|| scene.settings.durationSeconds < 1.0
-			|| scene.settings.durationSeconds > static_cast<double>(INT_MAX))
+	const double durationSeconds = initial_variables.durationOverride
+			? initial_variables.times : scene.settings.durationSeconds;
+	if (!scene.settings.hasDuration || !nativeFinite(durationSeconds)
+			|| durationSeconds < 1.0
+			|| durationSeconds > static_cast<double>(INT_MAX))
 		addNativeDiagnostic(diagnostics, "scene.native.time.duration", "A positive finite simulation duration is required",
 				"scene.json", "scene", scene.name, "settings.duration_seconds");
 	if (scene.settings.hasBufferTime && (!nativeFinite(scene.settings.bufferTimeSeconds)
@@ -628,7 +652,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat", "Repeated services require a positive finite headway",
 						"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
 			else {
-				const double rawCount = std::ceil(scene.settings.durationSeconds / headway);
+				const double rawCount = std::ceil(durationSeconds / headway);
 				if (!nativeFinite(rawCount) || rawCount > static_cast<double>(INT_MAX))
 					addNativeDiagnostic(diagnostics, "scene.native.capacity.occurrences", "Service repeat count exceeds the runtime integer capacity",
 							"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
@@ -669,29 +693,52 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			std::unordered_set<std::string> candidatePlatforms;
 			Node selectedNode;
 			bool selected = false;
+			const auto considerNode = [&](const Node& node) {
+				if (!nativeRuntimeNodeMatchesStation(node, *station, stationName))
+					return;
+				if (explicitPlatform != nullptr && node.stationPlatformId != explicitPlatform->id)
+					return;
+				candidatePlatforms.insert(node.stationPlatformId);
+				if (!selected) {
+					selectedNode = node;
+					selected = true;
+				}
+			};
 			for (int sectionIndex = 0; sectionIndex < runtimeRoute.N_Block_Sections; ++sectionIndex) {
 				const Section& section = runtimeRoute.sequence_of_block_sections[sectionIndex];
-				for (int nodeIndex = 0; nodeIndex < section.total_nodes; ++nodeIndex) {
-					const Node& node = section.nodelist_of_nodes_in_signalling_section[nodeIndex];
-					if (!nativeRuntimeNodeMatchesStation(node, *station, stationName))
-						continue;
-					if (explicitPlatform != nullptr && node.stationPlatformId != explicitPlatform->id)
-						continue;
-					candidatePlatforms.insert(node.stationPlatformId);
-					if (!selected) {
-						selectedNode = node;
-						selected = true;
-					}
-				}
+				considerNode(section.start_node);
+				for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex)
+					considerNode(section.arcs_in_signalling_block_section[arcIndex].endNode);
 			}
 			if (stop.platformId.empty()) {
-				if (candidatePlatforms.size() != 1) {
-					addNativeDiagnostic(diagnostics, candidatePlatforms.empty() ? "scene.native.ref.platform" : "scene.native.ref.platform.ambiguous",
-							candidatePlatforms.empty() ? "A stop without a platform does not resolve on this route" : "A stop without a platform resolves to multiple route platforms",
+				if (candidatePlatforms.size() > 1) {
+					addNativeDiagnostic(diagnostics, "scene.native.ref.platform.ambiguous",
+							"A stop without a platform resolves to multiple route platforms",
 							"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id");
-						continue;
-					}
+					continue;
+				}
+				if (!candidatePlatforms.empty())
 					resolvedPlatformId = *candidatePlatforms.begin();
+				else {
+					// Legacy timetables may retain stops before a train enters, or after it
+					// leaves, its simulated route. Keep those schedule rows without inventing
+					// a platform assignment; they remain inert in route station matching.
+					selectedNode.station = true;
+					selectedNode.stationName = stationName;
+					selectedNode.stationPlatformId = "None";
+					if (station->hasPosition)
+						selectedNode.X = station->positionKm;
+					else if (!station->platforms.empty()) {
+						for (const StationPlatform& platform : AllStationPlatforms) {
+							if (platform.ID == station->platforms.front().id) {
+								selectedNode.X = platform.X;
+								selectedNode.Y = platform.Y;
+								break;
+							}
+						}
+					}
+					selected = true;
+				}
 			}
 			if (!selected) {
 				if (!stop.platformId.empty())
@@ -699,10 +746,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 							"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id", stop.platformId);
 				continue;
 			}
-			if ((stop.hasPlannedArrival && (!nativeFinite(stop.plannedArrivalSeconds) || stop.plannedArrivalSeconds < 0.0))
-					|| (stop.hasPlannedDeparture && (!nativeFinite(stop.plannedDepartureSeconds) || stop.plannedDepartureSeconds < 0.0))
+			if ((stop.hasPlannedArrival && !nativeFinite(stop.plannedArrivalSeconds))
+					|| (stop.hasPlannedDeparture && !nativeFinite(stop.plannedDepartureSeconds))
 					|| !nativeFinite(stop.dwellSeconds) || stop.dwellSeconds < 0.0)
-				addNativeDiagnostic(diagnostics, "scene.native.timetable.stop", "Stop timetable values must be finite and non-negative when present",
+				addNativeDiagnostic(diagnostics, "scene.native.timetable.stop", "Stop timetable values must be finite and dwell must be non-negative",
 						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]");
 			if (stop.hasPlannedArrival && stop.hasPlannedDeparture
 					&& stop.plannedDepartureSeconds < stop.plannedArrivalSeconds)
@@ -857,7 +904,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	InitialParameters stagedParameters = initial_variables;
 	stagedParameters.name = scene.name;
 	stagedParameters.startingSimulationTime = baseTime;
-	stagedParameters.times = scene.settings.durationSeconds;
+	stagedParameters.times = durationSeconds;
 	stagedParameters.bufferTime = scene.settings.hasBufferTime
 			? static_cast<int>(std::llround(scene.settings.bufferTimeSeconds)) : 0;
 	stagedParameters.recoveryTimePercentage = scene.settings.hasRecoveryTime
@@ -865,22 +912,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
 	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
 	stagedParameters.num_OrderLists = 0;
-	stagedParameters.Service_lines.clear();
-	stagedParameters.Line_stations.clear();
-	for (const SceneService& service : scene.services) {
-		stagedParameters.Service_lines.push_back(service.id);
-		std::vector<std::string>& lineStations = stagedParameters.Line_stations[service.id];
-		for (const SceneStop& stop : service.stops) {
-			const SceneStation* station = nativeStationForId(stationById, stop.stationId);
-			if (station == nullptr)
-				continue;
-			const std::string stationName = station->name.empty() ? station->id : station->name;
-			if (std::find(lineStations.begin(), lineStations.end(), stationName) == lineStations.end())
-				lineStations.push_back(stationName);
-		}
-	}
 
-	const int vectorSize = std::max(1, static_cast<int>(std::ceil(scene.settings.durationSeconds / timestep)));
+	const int vectorSize = std::max(1, static_cast<int>(std::ceil(durationSeconds / timestep)));
 	std::list<StationPlatform> stagedPlatforms = AllStationPlatforms;
 	for (StationPlatform& platform : stagedPlatforms) {
 		const auto stationIt = stationById.find(platform.StationID);
@@ -940,6 +973,14 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			journey.Planned_Arrival_Time = sourceJourney.plannedArrivalStartSeconds;
 			for (const ScenePassengerLeg& sourceLeg : sourceJourney.legs) {
 				const auto trainIt = occurrenceIndex.find(nativeOccurrenceKey(sourceLeg.serviceId, sourceLeg.occurrence));
+				if (trainIt == occurrenceIndex.end() && serviceById.count(sourceLeg.serviceId) != 0) {
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
+							"Passenger leg refers to a service occurrence outside the simulation horizon",
+							"passengers.json", "leg", sourceLeg.id,
+							"passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs",
+							sourceLeg.serviceId + "-" + std::to_string(sourceLeg.occurrence), {}, SceneSeverity::Warning);
+					continue;
+				}
 				const auto originStop = trainIt == occurrenceIndex.end() ? nullptr
 						: nativeStopForStation(trains[trainIt->second], sourceLeg.originStationId);
 				const auto destinationStop = trainIt == occurrenceIndex.end() ? nullptr
@@ -991,6 +1032,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	}
 
 	initial_variables = stagedParameters;
+	if (!initial_variables.bufferTimeOverride)
+		bufferTime = initial_variables.bufferTime;
+	if (!initial_variables.recoveryTimeOverride)
+		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
 	N_OrderLists = 0;
 	numRegions = static_cast<int>(trains.size());
 	N_Train = 0;
@@ -2202,7 +2247,7 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	//}
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
-		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, initial_variables.InputMainFolder + "/Rescheduling");
+		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, initial_variables.OutputMainFolder + "/Rescheduling");
 		cout << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << endl;
 	}
 	// train departing from origin

@@ -2,6 +2,7 @@
 #include "scene/SceneValidator.h"
 
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -130,7 +131,14 @@ int main(int argc, char** argv) {
 				"scene.basetime.invalid"},
 		{"non-positive duration", [](SceneModel& scene) { scene.settings.durationSeconds = 0.0; },
 				"scene.duration.invalid"},
+		{"non-finite duration", [](SceneModel& scene) {
+				scene.settings.durationSeconds = std::numeric_limits<double>::quiet_NaN();
+			}, "scene.duration.invalid"},
 		{"empty tracks", [](SceneModel& scene) { scene.tracks.clear(); }, "scene.topology.tracks.none"},
+		{"empty nodes", [](SceneModel& scene) { scene.nodes.clear(); }, "scene.topology.nodes.none"},
+		{"empty arcs", [](SceneModel& scene) { scene.arcs.clear(); }, "scene.topology.arcs.none"},
+		{"empty blocks", [](SceneModel& scene) { scene.blocks.clear(); }, "scene.topology.blocks.none"},
+		{"empty routes", [](SceneModel& scene) { scene.routes.clear(); }, "scene.routes.none"},
 		{"unbound platform", [](SceneModel& scene) { scene.stations[0].platforms[0].nodeIds.clear(); },
 				"scene.platform.nodes.none"},
 		{"unknown route block", [](SceneModel& scene) { scene.routes[0].blocks[0] = "missing-block"; },

@@ -1,4 +1,5 @@
 {
+    "block_dependencies": [],
     "routes": [
         {
             "blocks": [
@@ -128,6 +129,7 @@
                 "123-B0",
                 "124-B0"
             ],
+            "corridor": "A",
             "id": "route0"
         },
         {
@@ -258,6 +260,7 @@
                 "1-B0",
                 "0-B0"
             ],
+            "corridor": "A",
             "id": "route1"
         },
         {
@@ -387,6 +390,7 @@
                 "@122-B0@-36.586000/@0-B2@-36.636000",
                 "1-B2"
             ],
+            "corridor": "A",
             "id": "route2"
         },
         {
@@ -516,6 +520,7 @@
                 "@1-B3@-0.250000/@1-B0@-0.300000",
                 "0-B3"
             ],
+            "corridor": "A",
             "id": "route3"
         },
         {
@@ -645,6 +650,7 @@
                 "@122-B0@-36.586000/@0-B2@-36.636000",
                 "1-B2"
             ],
+            "corridor": "A",
             "id": "route4"
         },
         {
@@ -1769,5 +1775,32 @@
             "id": "route14"
         }
     ],
-    "signals": []
+    "signals": [],
+    "single_track_restrictions": [
+        {
+            "end_block": "31-B0",
+            "protected_end_block": "@32-B0@-9.539000/@0-B4@-9.549000",
+            "protected_start_block": "@1-B3@-0.250000/@1-B0@-0.300000",
+            "start_block": "2-B0"
+        },
+        {
+            "end_block": "70-B0",
+            "protected_end_block": "@71-B0@-21.235000/@0-B1@-21.252000",
+            "protected_start_block": "@3-B4@-10.347000/@35-B0@-10.357000",
+            "start_block": "36-B0"
+        },
+        {
+            "end_block": "102-B0",
+            "protected_end_block": "@103-B0@-30.866000/@0-B5@-30.889000",
+            "protected_start_block": "@3-B1@-22.208000/@74-B0@-22.238000",
+            "start_block": "75-B0"
+        },
+        {
+            "end_block": "121-B0",
+            "protected_end_block": "@122-B0@-36.586000/@0-B2@-36.636000",
+            "protected_start_block": "@2-B5@-31.342000/@105-B0@-31.365000",
+            "start_block": "106-B0"
+        }
+    ],
+    "station_boundaries": []
 }

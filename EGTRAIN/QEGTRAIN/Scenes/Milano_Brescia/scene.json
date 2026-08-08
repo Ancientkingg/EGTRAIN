@@ -1,5 +1,2577 @@
 {
-    "legacy_source": "Input/Input_EGTRAIN_Milano_Brescia",
-    "name": "Milano_Brescia",
-    "schema_version": 1
+  "base_time": "06:28:20",
+  "import_report": [
+    {
+      "category": "legacy_root",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia",
+      "unresolved_references": 0
+    },
+    {
+      "category": "simulation_settings",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "compiled InitialParameters",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.tracks",
+      "converted_count": 38,
+      "skipped_count": 0,
+      "source_count": 38,
+      "source_file": "TrackLines",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 95,
+      "skipped_count": 0,
+      "source_count": 95,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B0/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 94,
+      "skipped_count": 0,
+      "source_count": 94,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B0/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B0/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 100,
+      "skipped_count": 0,
+      "source_count": 100,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B1/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 99,
+      "skipped_count": 0,
+      "source_count": 99,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B1/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B1/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 128,
+      "skipped_count": 0,
+      "source_count": 128,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B2/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 127,
+      "skipped_count": 0,
+      "source_count": 127,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B2/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 43,
+      "skipped_count": 0,
+      "source_count": 43,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B2/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B3/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B3/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B3/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 129,
+      "skipped_count": 0,
+      "source_count": 129,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B4/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 128,
+      "skipped_count": 0,
+      "source_count": 128,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B4/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 43,
+      "skipped_count": 0,
+      "source_count": 43,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B4/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B5/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B5/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B5/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B6/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B6/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B6/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B7/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B7/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B7/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B8/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B8/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B8/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B9/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B9/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B9/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B10/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B10/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B10/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 34,
+      "skipped_count": 0,
+      "source_count": 34,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B11/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 33,
+      "skipped_count": 0,
+      "source_count": 33,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B11/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B11/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 36,
+      "skipped_count": 0,
+      "source_count": 36,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B12/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 35,
+      "skipped_count": 0,
+      "source_count": 35,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B12/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B12/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 130,
+      "skipped_count": 0,
+      "source_count": 130,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B13/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 129,
+      "skipped_count": 0,
+      "source_count": 129,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B13/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 35,
+      "skipped_count": 0,
+      "source_count": 35,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B13/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 132,
+      "skipped_count": 0,
+      "source_count": 132,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B14/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 131,
+      "skipped_count": 0,
+      "source_count": 131,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B14/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 37,
+      "skipped_count": 0,
+      "source_count": 37,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B14/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B15/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B15/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B15/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B16/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B16/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B16/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B17/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B17/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B17/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B18/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B18/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B18/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B19/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B19/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B19/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B20/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B20/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B20/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B21/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B21/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B21/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B22/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B22/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B22/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B23/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B23/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B23/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B24/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B24/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B24/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 12,
+      "skipped_count": 0,
+      "source_count": 12,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B25/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 11,
+      "skipped_count": 0,
+      "source_count": 11,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B25/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B25/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 11,
+      "skipped_count": 0,
+      "source_count": 11,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B26/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B26/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B26/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 16,
+      "skipped_count": 0,
+      "source_count": 16,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B27/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 15,
+      "skipped_count": 0,
+      "source_count": 15,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B27/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B27/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B28/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B28/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B28/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B29/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B29/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B29/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B30/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B30/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B30/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B31/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B31/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B31/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 11,
+      "skipped_count": 0,
+      "source_count": 11,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B32/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B32/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B32/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B33/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B33/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B33/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B34/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B34/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B34/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B35/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B35/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B35/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B36/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B36/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B36/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B37/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B37/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/B37/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.connections",
+      "converted_count": 109,
+      "skipped_count": 0,
+      "source_count": 109,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/Connections.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "stations",
+      "converted_count": 29,
+      "skipped_count": 0,
+      "source_count": 29,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/TrackLines/Stations.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.manifest",
+      "converted_count": 62,
+      "skipped_count": 0,
+      "source_count": 62,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/trainNames.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route0.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 43,
+      "skipped_count": 0,
+      "source_count": 43,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route1.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 51,
+      "skipped_count": 0,
+      "source_count": 51,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 43,
+      "skipped_count": 0,
+      "source_count": 43,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route3.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 18,
+      "skipped_count": 0,
+      "source_count": 18,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route4.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 48,
+      "skipped_count": 0,
+      "source_count": 48,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route5.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 48,
+      "skipped_count": 0,
+      "source_count": 48,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route6.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 48,
+      "skipped_count": 0,
+      "source_count": 48,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route7.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 50,
+      "skipped_count": 0,
+      "source_count": 50,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route8.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 42,
+      "skipped_count": 0,
+      "source_count": 42,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route9.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 48,
+      "skipped_count": 0,
+      "source_count": 48,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route10.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route11.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 48,
+      "skipped_count": 0,
+      "source_count": 48,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route12.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 26,
+      "skipped_count": 0,
+      "source_count": 26,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route13.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route14.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 15,
+      "skipped_count": 0,
+      "source_count": 15,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route15.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 13,
+      "skipped_count": 0,
+      "source_count": 13,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route16.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 50,
+      "skipped_count": 0,
+      "source_count": 50,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route17.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 48,
+      "skipped_count": 0,
+      "source_count": 48,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route18.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 21,
+      "skipped_count": 0,
+      "source_count": 21,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route19.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 21,
+      "skipped_count": 0,
+      "source_count": 21,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route20.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 50,
+      "skipped_count": 0,
+      "source_count": 50,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route21.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route22.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route23.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route24.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route25.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 43,
+      "skipped_count": 0,
+      "source_count": 43,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route26.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 25,
+      "skipped_count": 0,
+      "source_count": 25,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route27.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route28.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route29.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 17,
+      "skipped_count": 0,
+      "source_count": 17,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route30.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 52,
+      "skipped_count": 0,
+      "source_count": 52,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route31.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 52,
+      "skipped_count": 0,
+      "source_count": 52,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route32.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route33.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 21,
+      "skipped_count": 0,
+      "source_count": 21,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route34.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 52,
+      "skipped_count": 0,
+      "source_count": 52,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route35.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 43,
+      "skipped_count": 0,
+      "source_count": 43,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route36.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route37.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 26,
+      "skipped_count": 0,
+      "source_count": 26,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route38.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 52,
+      "skipped_count": 0,
+      "source_count": 52,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route39.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route40.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route41.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route42.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route43.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route44.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 50,
+      "skipped_count": 0,
+      "source_count": 50,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route45.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route46.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 41,
+      "skipped_count": 0,
+      "source_count": 41,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/Routes/Route47.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.corridors",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/GUI/caseStudyRouteCorridors.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "201",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "233-232",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/2054.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2054",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/2055.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2055",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "/TimeTable/2090.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2090",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "/TimeTable/2096.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2096",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/2201.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2201",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/2601.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2601",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/2602.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2602",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/2603.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2603",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/2604.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "2604",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/4903.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "4903",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TimeTable/4904.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "4904",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/4906.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "4906",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TimeTable/4908.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "4908",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "8951",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "8971",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9604-9609",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9703-9704",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9705",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9707",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9709",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9707_2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "9709_2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/10450.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10450",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/10452.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10452",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/10456.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10456",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/10603.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10603",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TimeTable/10604.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10604",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/10606.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10606",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/10610.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10610",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "/TimeTable/10711.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10711",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "/TimeTable/10713.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10713",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "/TimeTable/10714.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10714",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "/TimeTable/10716.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10716",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "/TimeTable/10718.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10718",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/10800.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10800",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/10801.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10801",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "10802",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23001.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23001",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23003.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23003",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23004.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23004",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23005.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23005",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23006.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23006",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23008.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23008",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TimeTable/23010.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "23010",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/28431.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "28431",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/28445.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "28445",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "41015",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "41501",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "46501",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "46623",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "46625",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "47379-47378-47379-47378",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/48363-48362-48363.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "48363-48362-48363",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "50343",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/51159.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "51159",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "53214-53215-53214",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "54150-54151",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "58000",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/61625.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "61625",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TimeTable/38206-38207.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "38206-38207",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/E402B_EN_415.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_E402B_EN_415.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "E402B_EN_415",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/REG_E464_np_225_120_160_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_REG_E464_np_225_120_160_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "REG_E464_np_225_120_160_B",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/REG_E464_np_335_125_160_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_REG_E464_np_335_125_160_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "REG_E464_np_335_125_160_B",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/REG_E464_np_360_120_160_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_REG_E464_np_360_120_160_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "REG_E464_np_360_120_160_B",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/REG_E464_np_270_120_140_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_REG_E464_np_270_120_140_B.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "REG_E464_np_270_120_140_B",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/ETR_675.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_ETR_675.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "ETR_675",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/ETR_500_12.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "/TrainData/T_ETR_500_12.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "ETR_500_12",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/ETR_1000.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_ETR_1000.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "ETR_1000",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/ETR_500_8.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_ETR_500_8.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "ETR_500_8",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/MRV_E655_600_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_MRV_E655_600_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "MRV_E655_600_75_100_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/MRI_E483_500_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_MRI_E483_500_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "MRI_E483_500_75_100_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/MRI_E655_900_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_MRI_E655_900_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "MRI_E655_900_75_100_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/MRI_E655_830_80_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_MRI_E655_830_80_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "MRI_E655_830_80_100_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/MRS_E655_1100_80_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_MRS_E655_1100_80_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "MRS_E655_1100_80_100_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/TEC_E405_1550_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_TEC_E405_1550_75_100_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "TEC_E405_1550_75_100_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/TCS_E405_1300_75_120_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "/TrainData/T_TCS_E405_1300_75_120_A.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "TCS_E405_1300_75_120_A",
+      "unresolved_references": 0
+    },
+    {
+      "category": "scenarios",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "scenarios.json",
+      "unresolved_references": 0
+    }
+  ],
+  "name": "Milano_Brescia",
+  "schema_version": 1,
+  "simulation_settings": {
+    "buffer_time_seconds": 0.0,
+    "duration_seconds": 4000.0,
+    "recovery_time_percent": 0.0
+  },
+  "units": {
+    "distance": "m",
+    "speed": "m/s",
+    "time": "s"
+  }
 }

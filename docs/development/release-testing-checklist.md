@@ -14,8 +14,8 @@ Use this checklist before merging release workflow changes or pushing a `v*` tag
 ## Artifact Checks
 
 - macOS: unzip `QEGTRAIN-macos-arm64.zip`; confirm it contains `QEGTRAIN.app`.
-- Windows: unzip `QEGTRAIN-windows-x64.zip`; confirm it contains `QEGTRAIN.exe`, Qt DLLs, `platforms/qwindows.dll`, a `libzmq` DLL, and `Input/`.
-- Linux: mark `QEGTRAIN-linux-x86_64.AppImage` executable; confirm `--appimage-extract` creates `squashfs-root/usr/bin/QEGTRAIN` and `squashfs-root/usr/bin/Input/`.
+- Windows: unzip `QEGTRAIN-windows-x64.zip`; confirm it contains `QEGTRAIN.exe`, Qt DLLs, `platforms/qwindows.dll`, a `libzmq` DLL, and all six directories under `Scenes/`.
+- Linux: mark `QEGTRAIN-linux-x86_64.AppImage` executable; confirm `--appimage-extract` creates `squashfs-root/usr/bin/QEGTRAIN` and `squashfs-root/usr/bin/Scenes/` with all six scenes.
 
 ## Tagged Release Rehearsal
 

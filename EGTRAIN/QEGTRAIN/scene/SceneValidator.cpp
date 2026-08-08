@@ -99,8 +99,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"Write the base time as HH:MM:SS, for example 08:00:00");
 		}
 	}
-	if (scene.settings.hasDuration && scene.settings.durationSeconds <= 0.0) {
-		diagnostics.error("scene.duration.invalid", "Simulation duration must be positive", "scene.json",
+	if (scene.settings.hasDuration && (!std::isfinite(scene.settings.durationSeconds)
+			|| scene.settings.durationSeconds <= 0.0)) {
+		diagnostics.error("scene.duration.invalid", "Simulation duration must be positive and finite", "scene.json",
 				"scene", "", "simulation_settings.duration_seconds", "",
 				"Use a duration greater than 0 seconds");
 	}
@@ -341,6 +342,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 
 	std::unordered_set<std::string> serviceIds;
+	std::unordered_map<std::string, double> serviceOccurrences;
 	collectIds(scene.services, "services.json", "service", "services", diagnostics, serviceIds);
 	for (std::size_t index = 0; index < scene.services.size(); ++index) {
 		const SceneService& service = scene.services[index];
@@ -355,6 +357,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.repeat.invalid", "Non-positive headway", "services.json", "service",
 					service.id, path + ".repeat.headway_seconds", "",
 					"Use a headway greater than 0 seconds");
+		double occurrences = 1.0;
+		if (service.hasRepeat && service.headwaySeconds > 0.0 && scene.settings.hasDuration
+				&& std::isfinite(scene.settings.durationSeconds) && scene.settings.durationSeconds > 0.0)
+			occurrences = std::max(1.0, std::ceil(
+					scene.settings.durationSeconds / service.headwaySeconds));
+		serviceOccurrences[service.id] = occurrences;
 		if (service.stops.empty()) {
 			if (!service.through)
 				diagnostics.warning("scene.service.no_stops", "Service has no stops", "services.json",
@@ -523,6 +531,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				if (leg.occurrence <= 0)
 					diagnostics.error("scene.occurrence.invalid", "Passenger leg occurrence must be positive",
 							"passengers.json", "leg", leg.id, legPath + ".occurrence");
+				else if (hasId(serviceIds, leg.serviceId)
+						&& leg.occurrence > serviceOccurrences[leg.serviceId])
+					diagnostics.warning("scene.passenger.occurrence.out_of_horizon",
+							"Passenger leg refers to a service occurrence outside the simulation horizon",
+							"passengers.json", "leg", leg.id, legPath + ".occurrence",
+							leg.serviceId + "-" + std::to_string(leg.occurrence));
 				if (legIndex == 0 && leg.originStationId != journey.originStationId)
 					diagnostics.error("scene.passenger.continuity", "First passenger leg does not start at journey origin",
 							"passengers.json", "journey", journey.id, legPath + ".origin", leg.originStationId);
@@ -542,8 +556,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (scene.baseTime.empty())
 			diagnostics.error("scene.basetime.missing", "Runnable scene requires base_time", "scene.json",
 					"scene", "", "base_time", "", "Set scene.json base_time to HH:MM:SS");
-		if (!scene.settings.hasDuration)
-			diagnostics.error("scene.duration.missing", "Runnable scene requires a positive duration",
+		if (!scene.settings.hasDuration || !std::isfinite(scene.settings.durationSeconds)
+				|| scene.settings.durationSeconds <= 0.0)
+			diagnostics.error("scene.duration.missing", "Runnable scene requires a positive finite duration",
 					"scene.json", "scene", "", "simulation_settings.duration_seconds");
 		if (scene.tracks.empty())
 			diagnostics.error("scene.topology.tracks.none", "Runnable scene has no tracks",

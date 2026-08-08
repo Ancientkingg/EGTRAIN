@@ -1,13 +1,18 @@
-# Netherlands Input Audit
+# Netherlands legacy-import audit (historical)
+
+> This records the pre-cutover repair of the Cumpari source. Milestone 4
+> removed the committed `Input/` tree after conversion; use the canonical
+> `EGTRAIN/QEGTRAIN/Scenes/Netherlands` directory for current runs.
 
 ## Scope
-Audited `EGTRAIN/QEGTRAIN/Input/Input_EGTRAIN_Netherlands` for the assignment case study path.
+Audited the former `EGTRAIN/QEGTRAIN/Input/Input_EGTRAIN_Netherlands` tree for
+the assignment case-study conversion.
 
-Baseline commands:
+Current compatibility checks:
 
 ```bash
-./build/scene_tool import EGTRAIN/QEGTRAIN/Input/Input_EGTRAIN_Netherlands /tmp/nl-scene Netherlands
-./build/scene_tool validate /tmp/nl-scene
+./build/scene_tool validate EGTRAIN/QEGTRAIN/Scenes/Netherlands
+./build/scene_tool export EGTRAIN/QEGTRAIN/Scenes/Netherlands /tmp/nl-legacy-export
 ```
 
 Before repair, import found 41 stations and 74 routes, but no services or rolling stock. Validation failed with:
@@ -35,7 +40,7 @@ V1 route entries are opaque strings, so these are valid route tokens. The import
 
 The exporter also preserves those already-legacy-formatted transition tokens instead of wrapping them as `@...@`. This keeps exported Netherlands route files byte-compatible for transition rows.
 
-## Current Result
+## Pre-cutover result
 After repair:
 
 - Import exits 0.
@@ -52,7 +57,9 @@ After repair:
 
 The professor's `Trains.zip` contains the same train directory now stored in the case. Its active root files are `Spr1.txt` through `Spr8.txt`. The supplied `trainNames.txt` lists those eight files. The committed versions use `T_SLT06.txt` in place of the attachment's `T455_04.txt`, which keeps the active SLT services tied to the SLT traction curve.
 
-Locked by `test_sceneimporter`, which now imports and validates the Netherlands source and checks that complex route tokens are preserved without parse warnings. `test_sceneexporter` checks that exported Netherlands switch-transition route tokens are not double-wrapped.
+Focused importer/exporter tests preserve complex switch-transition tokens, and
+the round-trip smoke exports, reimports, and compares the converted Netherlands
+entity counts.
 
 ## Runtime Check
 Case 1 now loads the Sprinter trains and runs to `End of Simulation` without the previous zero-train or train-file-open errors.
@@ -65,7 +72,7 @@ Remaining runtime limitations:
 
 End-to-end Netherlands movement remains outside this slice.
 
-## Current limits
+## Historical limits
 - Unused Waterloo and other bucketed train sets under `Trains/` were left untouched.
 - The active services cover Utrecht, Hilversum, Baarn, and Den Dolder. They do not cover Amsterdam.
 - The case contains Amsterdam to Hilversum timetables and SLT and VIRM train data, but the services and planned times still need work.

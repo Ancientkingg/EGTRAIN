@@ -1,2 +1,0 @@
-OspitalettoT.	30	300	360
-Rovato	30	660	720

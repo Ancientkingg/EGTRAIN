@@ -162,11 +162,12 @@ Journey and leg IDs are scene-wide stable IDs. An empty `legs` array preserves
 a DAS journey for which the legacy route-choice input has no matching row; the
 validator warns instead of guessing a route.
 
-Passenger JSON is separate from the runtime's conditional CSV integration.
-That integration reads DAS and RouteChoice only when both exact files exist:
+Passenger JSON is native runtime input. The explicit legacy importer recognizes
+DAS and RouteChoice only when both exact files exist:
 `Passengers/DAS_FrenchCaseStudy.csv` and
-`Passengers/RouteChoiceFC_EQ1.csv`. Random draws and generated passenger
-results are not scene input.
+`Passengers/RouteChoiceFC_EQ1.csv`. After conversion the runtime reads the
+canonical journeys and legs; random draws and generated passenger results are
+not scene input.
 
 ## Compatibility aliases
 
@@ -185,10 +186,8 @@ The loader accepts these historical forms when the preferred key is absent;
 `loaded_data` is runtime metadata, not an editable source section. `views.json`
 is display-only.
 
-The current runtime still needs the legacy compatibility tree for track-line
-data and other input it reads directly. The editor exports canonical data to
-a temporary legacy input tree before starting the simulator; keep `legacy/`
-when preparing an imported scene for a run.
+The editor and simulator use canonical data directly. `legacy/` is not a V1
+scene requirement; import and export are explicit interoperability actions.
 
 Use the three validation layers before running:
 

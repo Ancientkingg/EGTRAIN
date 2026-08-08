@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import json
 import math
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -7,19 +9,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
+SCENE_DIR = RUN_DIR / "Scenes"
 
-CASES = {
-    1: "Output/Output_EGTRAIN_Netherlands/TrainTrajectories",
-    2: "Output/Output_EGTRAIN_Paimpol/TrainTrajectories",
-    3: "Output/Output_EGTRAIN_Banedanmark/TrainTrajectories",
-    4: "Output/Output_EGTRAIN_Milano_Brescia/TrainTrajectories",
-    5: "Output/Output_EGTRAIN_Assignment/TrainTrajectories",
+SCENES = {
+    1: "Netherlands",
+    2: "Paimpol",
+    3: "Copenhagen",
+    4: "Milano_Brescia",
+    5: "Assignment_Gvc_Gdg_Ut",
+    6: "Lebanon",
 }
-ASSERT_MOVEMENT = {2, 3, 4}
-ASSERT_STATION_ARRIVALS = {2, 3, 4}
+
+ASSERT_MOVEMENT = {2, 3, 4, 5}
+ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
 
 
-def run_command(args, cwd=None, input=None, timeout=None):
+def run_command(args, cwd=None, input=None, timeout=None, env=None):
     input_bytes = input.encode("utf-8") if isinstance(input, str) else input
     proc = subprocess.run(
         args,
@@ -28,6 +33,7 @@ def run_command(args, cwd=None, input=None, timeout=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         timeout=timeout,
+        env=env,
     )
     return subprocess.CompletedProcess(
         proc.args,
@@ -38,7 +44,16 @@ def run_command(args, cwd=None, input=None, timeout=None):
 
 
 def case_command(case_id: int) -> list[str]:
-    return [str(APP), "-n", str(case_id), "-g", "0", "-TSM", "0", "-RC", "0"]
+    try:
+        scene_name = SCENES[case_id]
+    except KeyError as exc:
+        raise ValueError(f"unknown canonical case id: {case_id}") from exc
+    return [str(APP), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0"]
+
+
+def scene_output_dir(case_id: int, out_base: Path = RUN_DIR) -> Path:
+    scene = json.loads((SCENE_DIR / SCENES[case_id] / "scene.json").read_text(encoding="utf-8"))
+    return out_base / "Output" / scene["name"]
 
 
 def route_errors(output: str) -> list[str]:
@@ -48,6 +63,8 @@ def route_errors(output: str) -> list[str]:
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
     log = ROOT / f"tools/e2e/headless_case_{case_id}.log"
     try:
+        env = os.environ.copy()
+        env["QEGTRAIN_OUTPUT_DIR"] = str(out_base)
         proc = run_command(
             case_command(case_id),
             cwd=cwd,
@@ -55,6 +72,7 @@ def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> Non
             # five minutes on a fast machine, and slow CI runners have hit the
             # previous 600 s ceiling, so keep a wide margin over the worst case.
             timeout=900,
+            env=env,
         )
     except subprocess.TimeoutExpired as err:
         partial = err.stdout or b""
@@ -120,7 +138,7 @@ def check_trajectory_file(path: Path) -> tuple[bool, bool]:
 
 
 def check_movement(case_id: int, out_base: Path = RUN_DIR) -> None:
-    out_dir = out_base / CASES[case_id]
+    out_dir = scene_output_dir(case_id, out_base) / "TrainTrajectories"
     candidates = [
         out_dir / "TrainPathDiagram.txt",
         out_dir / "TrainServicePathDiagram.txt",
@@ -149,7 +167,7 @@ def check_movement(case_id: int, out_base: Path = RUN_DIR) -> None:
 
 
 def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
-    stats = out_base / CASES[case_id] / "Stats_Stations.txt"
+    stats = scene_output_dir(case_id, out_base) / "TrainTrajectories/Stats_Stations.txt"
     rows = 0
     for line in stats.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
         parts = line.split()
@@ -170,7 +188,7 @@ def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
 
 
 def main() -> None:
-    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4]
+    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4, 5, 6]
     for case_id in selected:
         run_case(case_id)
         if case_id in ASSERT_MOVEMENT:

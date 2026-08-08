@@ -1,5 +1,4705 @@
 {
-    "legacy_source": "Input/Input_EGTRAIN_Copenhagen",
-    "name": "Copenhagen",
-    "schema_version": 1
+  "base_time": "06:28:20",
+  "import_report": [
+    {
+      "category": "legacy_root",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark",
+      "unresolved_references": 0
+    },
+    {
+      "category": "simulation_settings",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "compiled InitialParameters",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.tracks",
+      "converted_count": 168,
+      "skipped_count": 0,
+      "source_count": 168,
+      "source_file": "TrackLines",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 771,
+      "skipped_count": 0,
+      "source_count": 771,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B0/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 770,
+      "skipped_count": 0,
+      "source_count": 770,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B0/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 235,
+      "skipped_count": 0,
+      "source_count": 235,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B0/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 754,
+      "skipped_count": 0,
+      "source_count": 754,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B1/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 753,
+      "skipped_count": 0,
+      "source_count": 753,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B1/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 231,
+      "skipped_count": 0,
+      "source_count": 231,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B1/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B2/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B2/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B2/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B3/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B3/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B3/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 12,
+      "skipped_count": 0,
+      "source_count": 12,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B4/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 11,
+      "skipped_count": 0,
+      "source_count": 11,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B4/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B4/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B5/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B5/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B5/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 439,
+      "skipped_count": 0,
+      "source_count": 439,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B6/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 438,
+      "skipped_count": 0,
+      "source_count": 438,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B6/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 133,
+      "skipped_count": 0,
+      "source_count": 133,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B6/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 437,
+      "skipped_count": 0,
+      "source_count": 437,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B7/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 436,
+      "skipped_count": 0,
+      "source_count": 436,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B7/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 133,
+      "skipped_count": 0,
+      "source_count": 133,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B7/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 187,
+      "skipped_count": 0,
+      "source_count": 187,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B8/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 186,
+      "skipped_count": 0,
+      "source_count": 186,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B8/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 56,
+      "skipped_count": 0,
+      "source_count": 56,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B8/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 181,
+      "skipped_count": 0,
+      "source_count": 181,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B9/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 180,
+      "skipped_count": 0,
+      "source_count": 180,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B9/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 55,
+      "skipped_count": 0,
+      "source_count": 55,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B9/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B10/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B10/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B10/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B11/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 18,
+      "skipped_count": 0,
+      "source_count": 18,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B11/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B11/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B12/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 18,
+      "skipped_count": 0,
+      "source_count": 18,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B12/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B12/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B13/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B13/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B13/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 349,
+      "skipped_count": 0,
+      "source_count": 349,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B14/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 348,
+      "skipped_count": 0,
+      "source_count": 348,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B14/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 108,
+      "skipped_count": 0,
+      "source_count": 108,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B14/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 348,
+      "skipped_count": 0,
+      "source_count": 348,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B15/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 347,
+      "skipped_count": 0,
+      "source_count": 347,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B15/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 107,
+      "skipped_count": 0,
+      "source_count": 107,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B15/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B16/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B16/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B16/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 13,
+      "skipped_count": 0,
+      "source_count": 13,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B17/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 12,
+      "skipped_count": 0,
+      "source_count": 12,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B17/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B17/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B18/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B18/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B18/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B19/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 9,
+      "skipped_count": 0,
+      "source_count": 9,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B19/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B19/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 12,
+      "skipped_count": 0,
+      "source_count": 12,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B20/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 11,
+      "skipped_count": 0,
+      "source_count": 11,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B20/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B20/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 142,
+      "skipped_count": 0,
+      "source_count": 142,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B21/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 141,
+      "skipped_count": 0,
+      "source_count": 141,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B21/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 42,
+      "skipped_count": 0,
+      "source_count": 42,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B21/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 206,
+      "skipped_count": 0,
+      "source_count": 206,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B22/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 205,
+      "skipped_count": 0,
+      "source_count": 205,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B22/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 62,
+      "skipped_count": 0,
+      "source_count": 62,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B22/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 70,
+      "skipped_count": 0,
+      "source_count": 70,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B23/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 69,
+      "skipped_count": 0,
+      "source_count": 69,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B23/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 22,
+      "skipped_count": 0,
+      "source_count": 22,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B23/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B24/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B24/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B24/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B25/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B25/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B25/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B26/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B26/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B26/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 8,
+      "skipped_count": 0,
+      "source_count": 8,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B27/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B27/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B27/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 7,
+      "skipped_count": 0,
+      "source_count": 7,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B28/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B28/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B28/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B29/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B29/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B29/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 5,
+      "skipped_count": 0,
+      "source_count": 5,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B30/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B30/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B30/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B31/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B31/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B31/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B32/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B32/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B32/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B33/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B33/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B33/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B34/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B34/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B34/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B35/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B35/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B35/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B36/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B36/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B36/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B37/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B37/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B37/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B38/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B38/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B38/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B39/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B39/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B39/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B40/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B40/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B40/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B41/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B41/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B41/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B42/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B42/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B42/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B43/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B43/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B43/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B44/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B44/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B44/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B45/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B45/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B45/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B46/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B46/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B46/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B47/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B47/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B47/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B48/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B48/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B48/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B49/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B49/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B49/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B50/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B50/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B50/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B51/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B51/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B51/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B52/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B52/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B52/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B53/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B53/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B53/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B54/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B54/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B54/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B55/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B55/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B55/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B56/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B56/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B56/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B57/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B57/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B57/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B58/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B58/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B58/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B59/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B59/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B59/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B60/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B60/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B60/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B61/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B61/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B61/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B62/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B62/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B62/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B63/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B63/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B63/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B64/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B64/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B64/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B65/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B65/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B65/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B66/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B66/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B66/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B67/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B67/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B67/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B68/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B68/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B68/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B69/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B69/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B69/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B70/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B70/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B70/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B71/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B71/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B71/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B72/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B72/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B72/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B73/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B73/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B73/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B74/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B74/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B74/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B75/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B75/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B75/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B76/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B76/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B76/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B77/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B77/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B77/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B78/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B78/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B78/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B79/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B79/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B79/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B80/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B80/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B80/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B81/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B81/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B81/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B82/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B82/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B82/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B83/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B83/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B83/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B84/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B84/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B84/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B85/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B85/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B85/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B86/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B86/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B86/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B87/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B87/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B87/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B88/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B88/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B88/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B89/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B89/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B89/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B90/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B90/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B90/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B91/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B91/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B91/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B92/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B92/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B92/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B93/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B93/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B93/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B94/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B94/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B94/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B95/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B95/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B95/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B96/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B96/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B96/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B97/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B97/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B97/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B98/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B98/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B98/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B99/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B99/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B99/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B100/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B100/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B100/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B101/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B101/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B101/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B102/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B102/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B102/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B103/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B103/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B103/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B104/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B104/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B104/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B105/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B105/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B105/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B106/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B106/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B106/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B107/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B107/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B107/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B108/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B108/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B108/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B109/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B109/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B109/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B110/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B110/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B110/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B111/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B111/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B111/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B112/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B112/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B112/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B113/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B113/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B113/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B114/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B114/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B114/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B115/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B115/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B115/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B116/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B116/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B116/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B117/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B117/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B117/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B118/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B118/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B118/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B119/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B119/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B119/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B120/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B120/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B120/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B121/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B121/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B121/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B122/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B122/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B122/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B123/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B123/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B123/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B124/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B124/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B124/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B125/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B125/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B125/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B126/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B126/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B126/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B127/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B127/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B127/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B128/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B128/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B128/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B129/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B129/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B129/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B130/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B130/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B130/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B131/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B131/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B131/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B132/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B132/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B132/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B133/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B133/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B133/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B134/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B134/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B134/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B135/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B135/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B135/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B136/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B136/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B136/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B137/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B137/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B137/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B138/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B138/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B138/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B139/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B139/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B139/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B140/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B140/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B140/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B141/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B141/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B141/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B142/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B142/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B142/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B143/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B143/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B143/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B144/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B144/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B144/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B145/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B145/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B145/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B146/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B146/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B146/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B147/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B147/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B147/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B148/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B148/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B148/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B149/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B149/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B149/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B150/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B150/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B150/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B151/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B151/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B151/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B152/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B152/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B152/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B153/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B153/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B153/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B154/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B154/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B154/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B155/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B155/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B155/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B156/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B156/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B156/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B157/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B157/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B157/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B158/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B158/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B158/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B159/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B159/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B159/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B160/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B160/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B160/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B161/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B161/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B161/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B162/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B162/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B162/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B163/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B163/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B163/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B164/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B164/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B164/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B165/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B165/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B165/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B166/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B166/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B166/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.nodes",
+      "converted_count": 4,
+      "skipped_count": 0,
+      "source_count": 4,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B167/NodiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.arcs",
+      "converted_count": 3,
+      "skipped_count": 0,
+      "source_count": 3,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B167/ArchiCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.blocks",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B167/BlockCumPari.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "infrastructure.connections",
+      "converted_count": 328,
+      "skipped_count": 0,
+      "source_count": 328,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/Connections.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "stations",
+      "converted_count": 94,
+      "skipped_count": 0,
+      "source_count": 94,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/Stations.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.manifest",
+      "converted_count": 24,
+      "skipped_count": 0,
+      "source_count": 24,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/trainNames.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 161,
+      "skipped_count": 0,
+      "source_count": 161,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route0.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 163,
+      "skipped_count": 0,
+      "source_count": 163,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route1.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 163,
+      "skipped_count": 0,
+      "source_count": 163,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 165,
+      "skipped_count": 0,
+      "source_count": 165,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route3.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 76,
+      "skipped_count": 0,
+      "source_count": 76,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route4.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 78,
+      "skipped_count": 0,
+      "source_count": 78,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route5.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 196,
+      "skipped_count": 0,
+      "source_count": 196,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route6.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 194,
+      "skipped_count": 0,
+      "source_count": 194,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route7.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 195,
+      "skipped_count": 0,
+      "source_count": 195,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route8.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 193,
+      "skipped_count": 0,
+      "source_count": 193,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route9.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 195,
+      "skipped_count": 0,
+      "source_count": 195,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route10.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 195,
+      "skipped_count": 0,
+      "source_count": 195,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route11.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 194,
+      "skipped_count": 0,
+      "source_count": 194,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route12.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 194,
+      "skipped_count": 0,
+      "source_count": 194,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route13.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 202,
+      "skipped_count": 0,
+      "source_count": 202,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route14.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 203,
+      "skipped_count": 0,
+      "source_count": 203,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route15.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 202,
+      "skipped_count": 0,
+      "source_count": 202,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route16.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 201,
+      "skipped_count": 0,
+      "source_count": 201,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route17.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 45,
+      "skipped_count": 0,
+      "source_count": 45,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route18.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 45,
+      "skipped_count": 0,
+      "source_count": 45,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route19.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 45,
+      "skipped_count": 0,
+      "source_count": 45,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route20.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 45,
+      "skipped_count": 0,
+      "source_count": 45,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route21.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 123,
+      "skipped_count": 0,
+      "source_count": 123,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route22.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "signalling.routes",
+      "converted_count": 120,
+      "skipped_count": 0,
+      "source_count": 120,
+      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route23.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 23,
+      "skipped_count": 0,
+      "source_count": 23,
+      "source_file": "/TimeTable/A_Hillerod_Hundige.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "A-Hillerod-Hundige",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 23,
+      "skipped_count": 0,
+      "source_count": 23,
+      "source_file": "/TimeTable/A_Hillerod_Hundige_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "A-Hillerod-Hundige-2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 23,
+      "skipped_count": 0,
+      "source_count": 23,
+      "source_file": "/TimeTable/A_Hundige_Hillerod.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "A-Hundige-Hillerod",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 23,
+      "skipped_count": 0,
+      "source_count": 23,
+      "source_file": "/TimeTable/A_Hundige_Hillerod_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "A-Hundige-Hillerod-2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 20,
+      "skipped_count": 0,
+      "source_count": 20,
+      "source_file": "/TimeTable/Bx_Buddinge_HojeTaastrup.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Bx-Buddinge-HojeTaastrup",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 21,
+      "skipped_count": 0,
+      "source_count": 21,
+      "source_file": "/TimeTable/Bx_HojeTaastrup_Buddinge.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "Bx-HojeTaastrup-Buddinge",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 29,
+      "skipped_count": 0,
+      "source_count": 29,
+      "source_file": "/TimeTable/B_Farum_HojeTaastrup.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "B-Farum-HojeTaastrup_1",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 29,
+      "skipped_count": 0,
+      "source_count": 29,
+      "source_file": "/TimeTable/B_Farum_HojeTaastrup_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "B-Farum-HojeTaastrup_2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 29,
+      "skipped_count": 0,
+      "source_count": 29,
+      "source_file": "/TimeTable/B_HojeTaastrup_Farum.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "B-HojeTaastrup-Farum_1",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 29,
+      "skipped_count": 0,
+      "source_count": 29,
+      "source_file": "/TimeTable/B_HojeTaastrup_Farum_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "B-HojeTaastrup-Farum_2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 28,
+      "skipped_count": 0,
+      "source_count": 28,
+      "source_file": "/TimeTable/C_Frederikssund_Klampenborg_All_Stops.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "C-Frederikssund-Klapmenborg-All-Stops",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 27,
+      "skipped_count": 0,
+      "source_count": 27,
+      "source_file": "/TimeTable/C_Frederikssund_Klampenborg_Limited_Stops.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "C-Frederikssund-Klapmenborg-Limited-Stops",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 28,
+      "skipped_count": 0,
+      "source_count": 28,
+      "source_file": "/TimeTable/C_Klampenborg_Frederikssund_All_Stops.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "C-Klapmenborg-Frederikssund-All-Stops",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 27,
+      "skipped_count": 0,
+      "source_count": 27,
+      "source_file": "/TimeTable/C_Klampenborg_Frederikssund_Limited_Stops.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "C-Klapmenborg-Frederikssund-Limited-Stops",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 27,
+      "skipped_count": 0,
+      "source_count": 27,
+      "source_file": "/TimeTable/E_Holte_Koge.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "E-Holte-Koge",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 27,
+      "skipped_count": 0,
+      "source_count": 27,
+      "source_file": "/TimeTable/E_Holte_Koge_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "E-Holte-Koge_2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 27,
+      "skipped_count": 0,
+      "source_count": 27,
+      "source_file": "/TimeTable/E_Koge_Holte.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "E-Koge-Holte",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 27,
+      "skipped_count": 0,
+      "source_count": 27,
+      "source_file": "/TimeTable/E_Koge_Holte_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "E-Koge-Holte_2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 13,
+      "skipped_count": 0,
+      "source_count": 13,
+      "source_file": "/TimeTable/F_Hellerup_NyEllebjerg.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "F-Hellerup-NyEllebjerg",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 13,
+      "skipped_count": 0,
+      "source_count": 13,
+      "source_file": "/TimeTable/F_Hellerup_NyEllebjerg_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "F-Hellerup-NyEllebjerg-2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 13,
+      "skipped_count": 0,
+      "source_count": 13,
+      "source_file": "/TimeTable/F_NyEllebjerg_Hellerup.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "F-NyEllebjerg-Hellerup",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 13,
+      "skipped_count": 0,
+      "source_count": 13,
+      "source_file": "/TimeTable/F_NyEllebjerg_Hellerup_2.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "F-NyEllebjerg-Hellerup-2",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "/TimeTable/H_Ballerup_Osterport.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "H-Ballerup-Osterport",
+      "unresolved_references": 0
+    },
+    {
+      "category": "timetable",
+      "converted_count": 19,
+      "skipped_count": 0,
+      "source_count": 19,
+      "source_file": "/TimeTable/H_Osterport_Ballerup.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "services",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "H-Osterport-Ballerup",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.data",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "/TrainData/LITRA_SA.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.traction",
+      "converted_count": 2,
+      "skipped_count": 0,
+      "source_count": 2,
+      "source_file": "/TrainData/T_LITRA_SA.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "rolling_stock.compositions",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "LITRA_SA",
+      "unresolved_references": 0
+    },
+    {
+      "category": "scenarios",
+      "converted_count": 1,
+      "skipped_count": 0,
+      "source_count": 1,
+      "source_file": "scenarios.json",
+      "unresolved_references": 0
+    }
+  ],
+  "name": "Copenhagen",
+  "schema_version": 1,
+  "simulation_settings": {
+    "buffer_time_seconds": 0.0,
+    "duration_seconds": 8000.0,
+    "recovery_time_percent": 0.0
+  },
+  "units": {
+    "distance": "m",
+    "speed": "m/s",
+    "time": "s"
+  }
 }

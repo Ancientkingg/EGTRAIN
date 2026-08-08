@@ -1,2 +1,0 @@
-OspitalettoT.	30	50700	50760
-Rovato	30	51060	51120

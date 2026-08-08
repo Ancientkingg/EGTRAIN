@@ -3,175 +3,756 @@
         {
             "id": "Segrate",
             "name": "Segrate",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Segrate.platform.1",
+                    "nodes": [
+                        "B0.node.2"
+                    ]
+                },
+                {
+                    "id": "Segrate.platform.2",
+                    "nodes": [
+                        "B1.node.2"
+                    ]
+                }
+            ],
             "position_km": 9.9
         },
         {
             "id": "PioltelloLim.1Tr",
             "name": "PioltelloLim.1Tr",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "PioltelloLim.1Tr.platform.1",
+                    "nodes": [
+                        "B0.node.13"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim.1Tr.platform.2",
+                    "nodes": [
+                        "B1.node.13"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim.1Tr.platform.3",
+                    "nodes": [
+                        "B2.node.15"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim.1Tr.platform.4",
+                    "nodes": [
+                        "B3.node.5"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim.1Tr.platform.5",
+                    "nodes": [
+                        "B4.node.15"
+                    ]
+                }
+            ],
             "position_km": 12.152
         },
         {
             "id": "PioltelloLim.",
             "name": "PioltelloLim.",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "PioltelloLim..platform.1",
+                    "nodes": [
+                        "B0.node.14"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim..platform.2",
+                    "nodes": [
+                        "B1.node.14"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim..platform.3",
+                    "nodes": [
+                        "B2.node.16"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim..platform.4",
+                    "nodes": [
+                        "B3.node.6"
+                    ]
+                },
+                {
+                    "id": "PioltelloLim..platform.5",
+                    "nodes": [
+                        "B4.node.16"
+                    ]
+                }
+            ],
             "position_km": 12.31
         },
         {
             "id": "Vignate",
             "name": "Vignate",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vignate.platform.1",
+                    "nodes": [
+                        "B0.node.26"
+                    ]
+                },
+                {
+                    "id": "Vignate.platform.2",
+                    "nodes": [
+                        "B1.node.26"
+                    ]
+                }
+            ],
             "position_km": 16.09
         },
         {
             "id": "MelzoScalo3-5",
             "name": "MelzoScalo3-5",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "MelzoScalo3-5.platform.1",
+                    "nodes": [
+                        "B7.node.4"
+                    ]
+                },
+                {
+                    "id": "MelzoScalo3-5.platform.2",
+                    "nodes": [
+                        "B8.node.4"
+                    ]
+                },
+                {
+                    "id": "MelzoScalo3-5.platform.3",
+                    "nodes": [
+                        "B9.node.4"
+                    ]
+                }
+            ],
             "position_km": 18.642
         },
         {
             "id": "MelzoScalo",
             "name": "MelzoScalo",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "MelzoScalo.platform.1",
+                    "nodes": [
+                        "B0.node.34"
+                    ]
+                },
+                {
+                    "id": "MelzoScalo.platform.2",
+                    "nodes": [
+                        "B1.node.34"
+                    ]
+                },
+                {
+                    "id": "MelzoScalo.platform.3",
+                    "nodes": [
+                        "B2.node.35"
+                    ]
+                },
+                {
+                    "id": "MelzoScalo.platform.4",
+                    "nodes": [
+                        "B4.node.36"
+                    ]
+                },
+                {
+                    "id": "MelzoScalo.platform.5",
+                    "nodes": [
+                        "B9.node.7"
+                    ]
+                }
+            ],
             "position_km": 18.75
         },
         {
             "id": "Melzo",
             "name": "Melzo",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Melzo.platform.1",
+                    "nodes": [
+                        "B0.node.38"
+                    ]
+                },
+                {
+                    "id": "Melzo.platform.2",
+                    "nodes": [
+                        "B1.node.41"
+                    ]
+                }
+            ],
             "position_km": 19.6
         },
         {
             "id": "PozzuoloMartesana",
             "name": "PozzuoloMartesana",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "PozzuoloMartesana.platform.1",
+                    "nodes": [
+                        "B0.node.43"
+                    ]
+                },
+                {
+                    "id": "PozzuoloMartesana.platform.2",
+                    "nodes": [
+                        "B1.node.46"
+                    ]
+                }
+            ],
             "position_km": 22.61
         },
         {
             "id": "Trecella",
             "name": "Trecella",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Trecella.platform.1",
+                    "nodes": [
+                        "B0.node.48"
+                    ]
+                },
+                {
+                    "id": "Trecella.platform.2",
+                    "nodes": [
+                        "B1.node.51"
+                    ]
+                }
+            ],
             "position_km": 24.585
         },
         {
             "id": "CassanoD'Adda",
             "name": "CassanoD'Adda",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "CassanoD'Adda.platform.1",
+                    "nodes": [
+                        "B0.node.57"
+                    ]
+                },
+                {
+                    "id": "CassanoD'Adda.platform.2",
+                    "nodes": [
+                        "B1.node.60"
+                    ]
+                },
+                {
+                    "id": "CassanoD'Adda.platform.3",
+                    "nodes": [
+                        "B10.node.5"
+                    ]
+                }
+            ],
             "position_km": 27.152
         },
         {
             "id": "BivioCasirate",
             "name": "BivioCasirate",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "BivioCasirate.platform.1",
+                    "nodes": [
+                        "B2.node.53"
+                    ]
+                },
+                {
+                    "id": "BivioCasirate.platform.2",
+                    "nodes": [
+                        "B4.node.54"
+                    ]
+                }
+            ],
             "position_km": 27.425
         },
         {
             "id": "PMBivioAdda",
             "name": "PMBivioAdda",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "PMBivioAdda.platform.1",
+                    "nodes": [
+                        "B0.node.67"
+                    ]
+                },
+                {
+                    "id": "PMBivioAdda.platform.2",
+                    "nodes": [
+                        "B1.node.71"
+                    ]
+                },
+                {
+                    "id": "PMBivioAdda.platform.3",
+                    "nodes": [
+                        "B11.node.10"
+                    ]
+                },
+                {
+                    "id": "PMBivioAdda.platform.4",
+                    "nodes": [
+                        "B12.node.10"
+                    ]
+                },
+                {
+                    "id": "PMBivioAdda.platform.5",
+                    "nodes": [
+                        "B15.node.4"
+                    ]
+                }
+            ],
             "position_km": 29.25
         },
         {
             "id": "TreviglioOvest",
             "name": "TreviglioOvest",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "TreviglioOvest.platform.1",
+                    "nodes": [
+                        "B0.node.87"
+                    ]
+                },
+                {
+                    "id": "TreviglioOvest.platform.2",
+                    "nodes": [
+                        "B1.node.92"
+                    ]
+                }
+            ],
             "position_km": 32.932
         },
         {
             "id": "TreviglioTr",
             "name": "TreviglioTr",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "TreviglioTr.platform.1",
+                    "nodes": [
+                        "B23.node.8"
+                    ]
+                },
+                {
+                    "id": "TreviglioTr.platform.2",
+                    "nodes": [
+                        "B24.node.5"
+                    ]
+                }
+            ],
             "position_km": 32.97
         },
         {
             "id": "Treviglio",
             "name": "Treviglio",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Treviglio.platform.1",
+                    "nodes": [
+                        "B11.node.31"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.2",
+                    "nodes": [
+                        "B12.node.32"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.3",
+                    "nodes": [
+                        "B13.node.17"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.4",
+                    "nodes": [
+                        "B14.node.17"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.5",
+                    "nodes": [
+                        "B16.node.6"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.6",
+                    "nodes": [
+                        "B17.node.5"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.7",
+                    "nodes": [
+                        "B18.node.2"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.8",
+                    "nodes": [
+                        "B25.node.8"
+                    ]
+                },
+                {
+                    "id": "Treviglio.platform.9",
+                    "nodes": [
+                        "B26.node.7"
+                    ]
+                }
+            ],
             "position_km": 33.143
         },
         {
             "id": "Vidalengo",
             "name": "Vidalengo",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vidalengo.platform.1",
+                    "nodes": [
+                        "B13.node.32"
+                    ]
+                },
+                {
+                    "id": "Vidalengo.platform.2",
+                    "nodes": [
+                        "B14.node.32"
+                    ]
+                }
+            ],
             "position_km": 37.146
         },
         {
             "id": "Caravaggio",
             "name": "Caravaggio",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Caravaggio.platform.1",
+                    "nodes": [
+                        "B16.node.19"
+                    ]
+                }
+            ],
             "position_km": 38.176
         },
         {
             "id": "MorengoBariano",
             "name": "MorengoBariano",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "MorengoBariano.platform.1",
+                    "nodes": [
+                        "B13.node.39"
+                    ]
+                },
+                {
+                    "id": "MorengoBariano.platform.2",
+                    "nodes": [
+                        "B14.node.39"
+                    ]
+                }
+            ],
             "position_km": 42.117
         },
         {
             "id": "Romano1p",
             "name": "Romano1p",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Romano1p.platform.1",
+                    "nodes": [
+                        "B13.node.48"
+                    ]
+                },
+                {
+                    "id": "Romano1p.platform.2",
+                    "nodes": [
+                        "B14.node.48"
+                    ]
+                },
+                {
+                    "id": "Romano1p.platform.3",
+                    "nodes": [
+                        "B19.node.1"
+                    ]
+                },
+                {
+                    "id": "Romano1p.platform.4",
+                    "nodes": [
+                        "B20.node.4"
+                    ]
+                }
+            ],
             "position_km": 45.27
         },
         {
             "id": "Romano",
             "name": "Romano",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Romano.platform.1",
+                    "nodes": [
+                        "B13.node.52"
+                    ]
+                },
+                {
+                    "id": "Romano.platform.2",
+                    "nodes": [
+                        "B14.node.53"
+                    ]
+                },
+                {
+                    "id": "Romano.platform.3",
+                    "nodes": [
+                        "B19.node.6"
+                    ]
+                },
+                {
+                    "id": "Romano.platform.4",
+                    "nodes": [
+                        "B21.node.3"
+                    ]
+                }
+            ],
             "position_km": 46.052
         },
         {
             "id": "Calcio",
             "name": "Calcio",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Calcio.platform.1",
+                    "nodes": [
+                        "B13.node.67"
+                    ]
+                },
+                {
+                    "id": "Calcio.platform.2",
+                    "nodes": [
+                        "B14.node.68"
+                    ]
+                }
+            ],
             "position_km": 53.018
         },
         {
             "id": "Chiari",
             "name": "Chiari",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Chiari.platform.1",
+                    "nodes": [
+                        "B13.node.78"
+                    ]
+                },
+                {
+                    "id": "Chiari.platform.2",
+                    "nodes": [
+                        "B14.node.79"
+                    ]
+                }
+            ],
             "position_km": 59.778
         },
         {
             "id": "Coccaglio",
             "name": "Coccaglio",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Coccaglio.platform.1",
+                    "nodes": [
+                        "B27.node.2"
+                    ]
+                }
+            ],
             "position_km": 63.693
         },
         {
             "id": "Rovato",
             "name": "Rovato",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Rovato.platform.1",
+                    "nodes": [
+                        "B13.node.94"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.2",
+                    "nodes": [
+                        "B14.node.95"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.3",
+                    "nodes": [
+                        "B27.node.13"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.4",
+                    "nodes": [
+                        "B28.node.7"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.5",
+                    "nodes": [
+                        "B29.node.4"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.6",
+                    "nodes": [
+                        "B30.node.4"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.7",
+                    "nodes": [
+                        "B31.node.6"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.8",
+                    "nodes": [
+                        "B32.node.4"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.9",
+                    "nodes": [
+                        "B33.node.4"
+                    ]
+                },
+                {
+                    "id": "Rovato.platform.10",
+                    "nodes": [
+                        "B34.node.4"
+                    ]
+                }
+            ],
             "position_km": 65.827
         },
         {
             "id": "PMBresciaOvest",
             "name": "PMBresciaOvest",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "PMBresciaOvest.platform.1",
+                    "nodes": [
+                        "B2.node.110"
+                    ]
+                },
+                {
+                    "id": "PMBresciaOvest.platform.2",
+                    "nodes": [
+                        "B4.node.111"
+                    ]
+                }
+            ],
             "position_km": 66.997
         },
         {
             "id": "OspitalettoT.W",
             "name": "OspitalettoT.W",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "OspitalettoT.W.platform.1",
+                    "nodes": [
+                        "B13.node.107"
+                    ]
+                },
+                {
+                    "id": "OspitalettoT.W.platform.2",
+                    "nodes": [
+                        "B14.node.109"
+                    ]
+                },
+                {
+                    "id": "OspitalettoT.W.platform.3",
+                    "nodes": [
+                        "B35.node.4"
+                    ]
+                },
+                {
+                    "id": "OspitalettoT.W.platform.4",
+                    "nodes": [
+                        "B36.node.4"
+                    ]
+                }
+            ],
             "position_km": 71.36
         },
         {
             "id": "OspitalettoT.",
             "name": "OspitalettoT.",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "OspitalettoT..platform.1",
+                    "nodes": [
+                        "B13.node.111"
+                    ]
+                },
+                {
+                    "id": "OspitalettoT..platform.2",
+                    "nodes": [
+                        "B14.node.113"
+                    ]
+                }
+            ],
             "position_km": 71.653
         },
         {
             "id": "OspitalettoT.1E",
             "name": "OspitalettoT.1E",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "OspitalettoT.1E.platform.1",
+                    "nodes": [
+                        "B13.node.114"
+                    ]
+                },
+                {
+                    "id": "OspitalettoT.1E.platform.2",
+                    "nodes": [
+                        "B14.node.116"
+                    ]
+                },
+                {
+                    "id": "OspitalettoT.1E.platform.3",
+                    "nodes": [
+                        "B37.node.4"
+                    ]
+                }
+            ],
             "position_km": 71.86
         },
         {
             "id": "BivioRoncadelle",
             "name": "BivioRoncadelle",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "BivioRoncadelle.platform.1",
+                    "nodes": [
+                        "B13.node.129"
+                    ]
+                },
+                {
+                    "id": "BivioRoncadelle.platform.2",
+                    "nodes": [
+                        "B14.node.131"
+                    ]
+                }
+            ],
             "position_km": 78.508
         }
     ]

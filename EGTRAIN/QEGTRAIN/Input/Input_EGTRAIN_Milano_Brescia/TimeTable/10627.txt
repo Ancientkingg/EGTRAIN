@@ -1,2 +1,0 @@
-Segrate	30	18060	18120
-PioltelloLim.1Tr	30	18420	-1

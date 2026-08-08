@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RUN_DIR = ROOT / "EGTRAIN" / "QEGTRAIN"
+SCENE = RUN_DIR / "Scenes" / "Copenhagen"
 DEFAULT_SECONDS = 75
 # Keep the smoke short enough to finish on hosted runners while still checking
 # completed-run results and generated energy output.
@@ -82,8 +83,8 @@ def main() -> None:
 
     args = [
         str(app),
-        "-n",
-        "3",
+        "--scene",
+        str(SCENE),
         "-h",
         horizon,
         "-g",

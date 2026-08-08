@@ -1,4 +1,1309 @@
 {
-    "nodes": [],
-    "arcs": []
+    "arcs": [
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.1",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.2",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.2",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.3",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.3",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.4",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.4",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.103",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.5",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.5",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.104",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.6",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.6",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.105",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.7",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.7",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.106",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.8",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.8",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.107",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.9",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.9",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.108",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.10",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.10",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.109",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.11",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.11",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.110",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.12",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.12",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.111",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.13",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.13",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.112",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.14",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.14",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.113",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.15",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.15",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.114",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.16",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.16",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.115",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.17",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.17",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.116",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.18",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.18",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.117",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.19",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.19",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.118",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.20",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.20",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.119",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.21",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.21",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.120",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.22",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.22",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.121",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.23",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.23",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.122",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.24",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.24",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.123",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.25",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.25",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.124",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.26",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.26",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.125",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.27",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.27",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.126",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.28",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.28",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.127",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.29",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.29",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.128",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.30",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.30",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.129",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.31",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.31",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.130",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.32",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B0.node.32",
+            "gradient_percent": 0.0,
+            "id": "B0.arc.131",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B0.node.33",
+            "track": "B0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.1",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.2",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.2",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.3",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.3",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.4",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.4",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.103",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.5",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.5",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.104",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.6",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.6",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.105",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.7",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.7",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.106",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.8",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.8",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.107",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.9",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.9",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.108",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.10",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.10",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.109",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.11",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.11",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.110",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.12",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.12",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.111",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.13",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.13",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.112",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.14",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.14",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.113",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.15",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.15",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.114",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.16",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.16",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.115",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.17",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.17",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.116",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.18",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.18",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.117",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.19",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.19",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.118",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.20",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.20",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.119",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.21",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.21",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.120",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.22",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.22",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.121",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.23",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.23",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.122",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.24",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.24",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.123",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.25",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.25",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.124",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.26",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.26",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.125",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.27",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.27",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.126",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.28",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.28",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.127",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.29",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.29",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.128",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.30",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.30",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.129",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.31",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.31",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.130",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.32",
+            "track": "B1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "B1.node.32",
+            "gradient_percent": 0.0,
+            "id": "B1.arc.131",
+            "speed_limit_ms": 36.111111111111,
+            "to": "B1.node.33",
+            "track": "B1"
+        }
+    ],
+    "blocks": [
+        {
+            "id": "0-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "1-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "2-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "3-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "4-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "5-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "6-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "7-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "8-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "9-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "10-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "11-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "12-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "13-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "14-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "15-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "16-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "17-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "18-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "19-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "20-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "21-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "22-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "23-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "24-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "25-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "26-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "27-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "28-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "29-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "30-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "31-B0",
+            "length_km": 2.0,
+            "track": "B0"
+        },
+        {
+            "id": "0-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "1-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "2-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "3-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "4-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "5-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "6-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "7-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "8-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "9-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "10-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "11-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "12-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "13-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "14-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "15-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "16-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "17-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "18-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "19-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "20-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "21-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "22-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "23-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "24-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "25-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "26-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "27-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "28-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "29-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "30-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        },
+        {
+            "id": "31-B1",
+            "length_km": 2.0,
+            "track": "B1"
+        }
+    ],
+    "connections": [],
+    "nodes": [
+        {
+            "id": "B0.node.1",
+            "track": "B0",
+            "x_km": 0.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.2",
+            "track": "B0",
+            "x_km": 2.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.3",
+            "track": "B0",
+            "x_km": 4.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.4",
+            "track": "B0",
+            "x_km": 6.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.5",
+            "track": "B0",
+            "x_km": 8.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.6",
+            "track": "B0",
+            "x_km": 10.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.7",
+            "track": "B0",
+            "x_km": 12.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.8",
+            "track": "B0",
+            "x_km": 14.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.9",
+            "track": "B0",
+            "x_km": 16.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.10",
+            "track": "B0",
+            "x_km": 18.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.11",
+            "track": "B0",
+            "x_km": 20.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.12",
+            "track": "B0",
+            "x_km": 22.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.13",
+            "track": "B0",
+            "x_km": 24.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.14",
+            "track": "B0",
+            "x_km": 26.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.15",
+            "track": "B0",
+            "x_km": 28.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.16",
+            "track": "B0",
+            "x_km": 30.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.17",
+            "track": "B0",
+            "x_km": 32.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.18",
+            "track": "B0",
+            "x_km": 34.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.19",
+            "track": "B0",
+            "x_km": 36.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.20",
+            "track": "B0",
+            "x_km": 38.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.21",
+            "track": "B0",
+            "x_km": 40.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.22",
+            "track": "B0",
+            "x_km": 42.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.23",
+            "track": "B0",
+            "x_km": 44.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.24",
+            "track": "B0",
+            "x_km": 46.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.25",
+            "track": "B0",
+            "x_km": 48.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.26",
+            "track": "B0",
+            "x_km": 50.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.27",
+            "track": "B0",
+            "x_km": 52.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.28",
+            "track": "B0",
+            "x_km": 54.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.29",
+            "track": "B0",
+            "x_km": 56.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.30",
+            "track": "B0",
+            "x_km": 58.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.31",
+            "track": "B0",
+            "x_km": 60.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.32",
+            "track": "B0",
+            "x_km": 62.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B0.node.33",
+            "track": "B0",
+            "x_km": 64.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.1",
+            "track": "B1",
+            "x_km": 100.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.2",
+            "track": "B1",
+            "x_km": 102.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.3",
+            "track": "B1",
+            "x_km": 104.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.4",
+            "track": "B1",
+            "x_km": 106.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.5",
+            "track": "B1",
+            "x_km": 108.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.6",
+            "track": "B1",
+            "x_km": 110.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.7",
+            "track": "B1",
+            "x_km": 112.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.8",
+            "track": "B1",
+            "x_km": 114.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.9",
+            "track": "B1",
+            "x_km": 116.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.10",
+            "track": "B1",
+            "x_km": 118.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.11",
+            "track": "B1",
+            "x_km": 120.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.12",
+            "track": "B1",
+            "x_km": 122.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.13",
+            "track": "B1",
+            "x_km": 124.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.14",
+            "track": "B1",
+            "x_km": 126.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.15",
+            "track": "B1",
+            "x_km": 128.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.16",
+            "track": "B1",
+            "x_km": 130.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.17",
+            "track": "B1",
+            "x_km": 132.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.18",
+            "track": "B1",
+            "x_km": 134.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.19",
+            "track": "B1",
+            "x_km": 136.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.20",
+            "track": "B1",
+            "x_km": 138.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.21",
+            "track": "B1",
+            "x_km": 140.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.22",
+            "track": "B1",
+            "x_km": 142.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.23",
+            "track": "B1",
+            "x_km": 144.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.24",
+            "track": "B1",
+            "x_km": 146.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.25",
+            "track": "B1",
+            "x_km": 148.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.26",
+            "track": "B1",
+            "x_km": 150.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.27",
+            "track": "B1",
+            "x_km": 152.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.28",
+            "track": "B1",
+            "x_km": 154.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.29",
+            "track": "B1",
+            "x_km": 156.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.30",
+            "track": "B1",
+            "x_km": 158.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.31",
+            "track": "B1",
+            "x_km": 160.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.32",
+            "track": "B1",
+            "x_km": 162.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "B1.node.33",
+            "track": "B1",
+            "x_km": 164.0,
+            "y_km": 0.0
+        }
+    ],
+    "tracks": [
+        {
+            "id": "B0"
+        },
+        {
+            "id": "B1"
+        }
+    ]
 }

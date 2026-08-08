@@ -20,9 +20,9 @@ for compatibility and are listed in [Historical compatibility aliases](#historic
 | `passengers.json` | no | passenger journeys and legs |
 | `views.json` | no | display preferences; not simulation input |
 
-An imported scene may also contain `legacy/`. The current application exports
-the canonical model to a temporary legacy input tree before starting the
-existing simulator, so that passthrough remains part of the V1 contract.
+`legacy/` is not part of the runnable V1 contract. The importer may read a
+legacy case directory, and the exporter may write one when explicitly asked,
+but normal loading and simulation use only the canonical files above.
 
 ## `scene.json`
 
@@ -157,11 +157,11 @@ Journey and leg IDs are stable across the scene. A journey may have an empty
 `legs` array when the active legacy route-choice file has no row for it; this
 is reported as a warning rather than inventing a route.
 
-Passenger JSON is distinct from the legacy passenger runtime. Random draws and
-simulation results are not scene input. The legacy DAS/RouteChoice loader is
-used only when both exact files
+Random draws and simulation results are not scene input. The explicit legacy
+importer recognizes passenger data only when both exact source files
 `Passengers/DAS_FrenchCaseStudy.csv` and
-`Passengers/RouteChoiceFC_EQ1.csv` exist.
+`Passengers/RouteChoiceFC_EQ1.csv` exist. Once converted, the native runtime
+uses `passengers.json` and does not reopen those CSVs.
 
 ## `views.json` and runtime metadata
 
@@ -202,13 +202,12 @@ operating_code entry_time_seconds headway_seconds route_index data_file traction
 ```
 
 It maps the explicit physical, traction, and timetable relationships into the
-canonical files, imports numeric `Routes/Route<N>.txt` files as routes, and
-reads stations from the legacy track-line station file. Selected runtime
-support trees that still need passthrough are copied below `legacy/`. The
-legacy runtime and export path remains active in Milestone 1.
+canonical files, imports numeric `Routes/Route<N>.txt` files as routes, reads
+stations from the legacy track-line station file, and reports skipped or
+unresolved values in `scene.json.import_report`. Import is an explicit boundary;
+the resulting scene must be validated and corrected before it is used when the
+report exposes ambiguous source relationships.
 
-That bridge does not generate passenger DAS/RouteChoice CSVs or entrance-delay
-Rollout files from canonical JSON. In Milestone 1 those fields are authoritative
-for persistence, import, and validation, while the unchanged simulator still
-uses any corresponding files in `legacy/`. Native scenario selection and
-canonical passenger execution belong to later milestones.
+The reverse exporter remains available for interoperability. It does not make
+legacy files authoritative, and the normal runtime never invokes it. Canonical
+scenario selection and passengers execute directly from `SceneModel`.

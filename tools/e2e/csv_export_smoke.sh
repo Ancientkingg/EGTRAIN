@@ -5,6 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
 OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e"
 LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.log"
 
@@ -20,7 +21,7 @@ cd "$ROOT/EGTRAIN/QEGTRAIN"
 QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_EXPORT_DIR="$OUTDIR" \
-"$APP" -n 2 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
 
 grep -q "E2E_CSV_EXPORT_OK" "$LOG"
 
