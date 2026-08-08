@@ -3,15 +3,27 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-SCENE="${1:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut}"
+SCENE_TOOL="$ROOT/build/scene_tool"
 ALT_SCENE="${QEGTRAIN_E2E_SCENE_ALT:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Copenhagen}"
 OUT="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e"
 LOG="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log"
 
-if [[ ! -x "$APP" ]]; then
-	echo "QEGTRAIN app not found or not executable: $APP" >&2
+if [[ ! -x "$APP" || ! -x "$SCENE_TOOL" ]]; then
+	echo "QEGTRAIN app or scene_tool is not built" >&2
 	exit 1
 fi
+
+if [[ $# -gt 0 ]]; then
+	SCENE="$1"
+else
+	SOURCE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
+	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-smoke.XXXXXX")"
+	trap 'rm -rf "$TMP_ROOT"' EXIT
+	SCENE="$TMP_ROOT/scene"
+	"$SCENE_TOOL" import "$SOURCE/legacy" "$SCENE" Assignment
+	cp "$SOURCE/rolling_stock.json" "$SOURCE/services.json" "$SOURCE/signalling.json" "$SCENE/"
+fi
+
 if [[ ! -d "$ALT_SCENE" ]]; then
 	echo "Alternate scene not found: $ALT_SCENE" >&2
 	exit 1
