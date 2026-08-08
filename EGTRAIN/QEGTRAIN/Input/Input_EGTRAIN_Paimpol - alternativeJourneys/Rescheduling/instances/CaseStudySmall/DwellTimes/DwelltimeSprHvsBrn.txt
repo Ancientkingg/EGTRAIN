@@ -1,2 +1,0 @@
-Hvs,{TrivialDistribution, 60.000000}
-Brn,{TrivialDistribution, 60.000000}

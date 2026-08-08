@@ -12,9 +12,11 @@
 struct SceneModel;
 
 // Build the infrastructure/signalling globals from an already loaded scene.
-// This path is intentionally filesystem-free; the legacy setup remains the
-// default simulation entry point until a later migration milestone.
+// This path is filesystem-free and is the normal V1 runtime path.
 std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene);
+
+// Release fixed-capacity native infrastructure state between scene runs.
+void resetNativeInfrastructureState();
 
 // --- Incidents: Disruption events ---
 struct SimulationIncident {

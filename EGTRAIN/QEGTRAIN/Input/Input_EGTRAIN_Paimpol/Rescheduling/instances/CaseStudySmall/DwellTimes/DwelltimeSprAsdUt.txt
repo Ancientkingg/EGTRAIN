@@ -1,4 +1,0 @@
-Asd,{TrivialDistribution, 60.000000}
-Asa,{TrivialDistribution, 60.000000}
-Asb,{TrivialDistribution, 60.000000}
-Ut,{TrivialDistribution, 60.000000}

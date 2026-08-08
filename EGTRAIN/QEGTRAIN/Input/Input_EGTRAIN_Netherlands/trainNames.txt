@@ -1,8 +1,0 @@
-Spr1.txt
-Spr2.txt
-Spr3.txt
-Spr4.txt
-Spr5.txt
-Spr6.txt
-Spr7.txt
-Spr8.txt

@@ -1,7 +1,0 @@
-SprinterSLT
-39000
-90000
-1
-Input_EGTRAIN/TrainData/SLT06.txt
-Input_EGTRAIN/TrainData/T_SLT06.txt
-Input_EGTRAIN/TimeTable/SprHvsUt.txt
