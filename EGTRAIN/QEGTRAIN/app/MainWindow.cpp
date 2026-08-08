@@ -381,10 +381,10 @@ double computeHorizon(const SceneModel& scene) {
 		if (service.entryTimeSeconds > maxSeconds)
 			maxSeconds = service.entryTimeSeconds;
 		for (const auto& stop : service.stops) {
-			if (stop.hasArrival && stop.arrivalSeconds > maxSeconds)
-				maxSeconds = stop.arrivalSeconds;
-			if (stop.hasDeparture && stop.departureSeconds > maxSeconds)
-				maxSeconds = stop.departureSeconds;
+			if (stop.hasPlannedArrival && stop.plannedArrivalSeconds > maxSeconds)
+				maxSeconds = stop.plannedArrivalSeconds;
+			if (stop.hasPlannedDeparture && stop.plannedDepartureSeconds > maxSeconds)
+				maxSeconds = stop.plannedDepartureSeconds;
 		}
 	}
 	double horizon = maxSeconds + 600.0;
@@ -1336,7 +1336,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_stopDepartureSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDepartureSeconds);
 	connect(m_stopDwellSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitStopDwellSeconds);
 
-	// incident editor: dockable panel for the flat list of scene incidents. each
+	// incident editor: dockable panel for the default scenario's incidents. each
 	// incident has a type (signal_failure or train_breakdown) and a target whose
 	// valid choices depend on that type, analogous to a stop's platform choices
 	// depending on the selected station.
@@ -1813,7 +1813,7 @@ void MainWindow::refreshValidationPanel() {
 		return;
 	}
 
-	m_sceneDiagnostics = validateScene(m_sceneModel);
+	m_sceneDiagnostics = validateRunnableScene(m_sceneModel);
 
 	std::vector<SceneDiagnostic> ordered = m_sceneDiagnostics;
 	std::stable_sort(ordered.begin(), ordered.end(), [](const SceneDiagnostic& a, const SceneDiagnostic& b) {
@@ -2943,30 +2943,30 @@ void MainWindow::updateStopDetailPanel() {
 	// station combo from inside its own signal
 	refreshStopPlatformCombo();
 
-	bool hasArrival = hasSelection && stop.hasArrival;
+	bool hasPlannedArrival = hasSelection && stop.hasPlannedArrival;
 	if (m_stopHasArrivalCheck) {
 		const QSignalBlocker blocker(m_stopHasArrivalCheck);
-		m_stopHasArrivalCheck->setChecked(hasArrival);
+		m_stopHasArrivalCheck->setChecked(hasPlannedArrival);
 		m_stopHasArrivalCheck->setEnabled(hasSelection);
 	}
 	if (m_stopArrivalSecondsEdit) {
 		const QSignalBlocker blocker(m_stopArrivalSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(stop.arrivalSeconds) : 0;
+		int seconds = hasSelection ? static_cast<int>(stop.plannedArrivalSeconds) : 0;
 		m_stopArrivalSecondsEdit->setText(QString::number(seconds));
-		m_stopArrivalSecondsEdit->setEnabled(hasArrival);
+		m_stopArrivalSecondsEdit->setEnabled(hasPlannedArrival);
 	}
 
-	bool hasDeparture = hasSelection && stop.hasDeparture;
+	bool hasPlannedDeparture = hasSelection && stop.hasPlannedDeparture;
 	if (m_stopHasDepartureCheck) {
 		const QSignalBlocker blocker(m_stopHasDepartureCheck);
-		m_stopHasDepartureCheck->setChecked(hasDeparture);
+		m_stopHasDepartureCheck->setChecked(hasPlannedDeparture);
 		m_stopHasDepartureCheck->setEnabled(hasSelection);
 	}
 	if (m_stopDepartureSecondsEdit) {
 		const QSignalBlocker blocker(m_stopDepartureSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(stop.departureSeconds) : 0;
+		int seconds = hasSelection ? static_cast<int>(stop.plannedDepartureSeconds) : 0;
 		m_stopDepartureSecondsEdit->setText(QString::number(seconds));
-		m_stopDepartureSecondsEdit->setEnabled(hasDeparture);
+		m_stopDepartureSecondsEdit->setEnabled(hasPlannedDeparture);
 	}
 
 	if (m_stopDwellSecondsEdit) {
@@ -3210,10 +3210,10 @@ void MainWindow::commitStopHasArrival(bool checked) {
 	int stopRow = m_stopListWidget->currentRow();
 	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
 		return;
-	if (checked == stops[stopRow].hasArrival)
+	if (checked == stops[stopRow].hasPlannedArrival)
 		return;
 
-	stops[stopRow].hasArrival = checked;
+	stops[stopRow].hasPlannedArrival = checked;
 	if (m_stopArrivalSecondsEdit)
 		m_stopArrivalSecondsEdit->setEnabled(checked);
 
@@ -3233,10 +3233,10 @@ void MainWindow::commitStopHasDeparture(bool checked) {
 	int stopRow = m_stopListWidget->currentRow();
 	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
 		return;
-	if (checked == stops[stopRow].hasDeparture)
+	if (checked == stops[stopRow].hasPlannedDeparture)
 		return;
 
-	stops[stopRow].hasDeparture = checked;
+	stops[stopRow].hasPlannedDeparture = checked;
 	if (m_stopDepartureSecondsEdit)
 		m_stopDepartureSecondsEdit->setEnabled(checked);
 
@@ -3269,10 +3269,10 @@ void MainWindow::commitStopArrivalSeconds() {
 	}
 
 	double newValue = static_cast<double>(seconds);
-	if (newValue == stops[stopRow].arrivalSeconds)
+	if (newValue == stops[stopRow].plannedArrivalSeconds)
 		return;
 
-	stops[stopRow].arrivalSeconds = newValue;
+	stops[stopRow].plannedArrivalSeconds = newValue;
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -3303,10 +3303,10 @@ void MainWindow::commitStopDepartureSeconds() {
 	}
 
 	double newValue = static_cast<double>(seconds);
-	if (newValue == stops[stopRow].departureSeconds)
+	if (newValue == stops[stopRow].plannedDepartureSeconds)
 		return;
 
-	stops[stopRow].departureSeconds = newValue;
+	stops[stopRow].plannedDepartureSeconds = newValue;
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -3350,13 +3350,14 @@ void MainWindow::commitStopDwellSeconds() {
 
 void MainWindow::refreshIncidentPanel() {
 	bool hasScene = m_sceneLoaded;
+	const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
 
 	if (m_incidentListWidget) {
 		int previousRow = m_incidentListWidget->currentRow();
 		const QSignalBlocker blocker(m_incidentListWidget);
 		m_incidentListWidget->clear();
 		if (hasScene) {
-			for (const auto& incident : m_sceneModel.incidents) {
+			for (const auto& incident : incidents) {
 				QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
 				m_incidentListWidget->addItem(label);
 			}
@@ -3382,19 +3383,20 @@ void MainWindow::refreshIncidentPanel() {
 }
 
 void MainWindow::updateIncidentDetailPanel() {
+	const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
 	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.incidents.size());
+	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(incidents.size());
 
 	if (m_incidentIdEdit) {
 		const QSignalBlocker blocker(m_incidentIdEdit);
-		m_incidentIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.incidents[row].id) : QString());
+		m_incidentIdEdit->setText(hasSelection ? QString::fromStdString(incidents[row].id) : QString());
 		m_incidentIdEdit->setEnabled(hasSelection);
 	}
 
 	if (m_incidentTypeCombo) {
 		const QSignalBlocker blocker(m_incidentTypeCombo);
 		if (hasSelection) {
-			QString currentType = QString::fromStdString(m_sceneModel.incidents[row].type);
+			QString currentType = QString::fromStdString(incidents[row].type);
 			int typeIndex = m_incidentTypeCombo->findText(currentType);
 			// unknown type: default to signal_failure
 			m_incidentTypeCombo->setCurrentIndex(typeIndex >= 0 ? typeIndex : 0);
@@ -3410,14 +3412,14 @@ void MainWindow::updateIncidentDetailPanel() {
 
 	if (m_incidentStartSecondsEdit) {
 		const QSignalBlocker blocker(m_incidentStartSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(m_sceneModel.incidents[row].startSeconds) : 0;
+		int seconds = hasSelection ? static_cast<int>(incidents[row].startSeconds) : 0;
 		m_incidentStartSecondsEdit->setText(QString::number(seconds));
 		m_incidentStartSecondsEdit->setEnabled(hasSelection);
 	}
 
 	if (m_incidentEndSecondsEdit) {
 		const QSignalBlocker blocker(m_incidentEndSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(m_sceneModel.incidents[row].endSeconds) : 0;
+		int seconds = hasSelection ? static_cast<int>(incidents[row].endSeconds) : 0;
 		m_incidentEndSecondsEdit->setText(QString::number(seconds));
 		m_incidentEndSecondsEdit->setEnabled(hasSelection);
 	}
@@ -3432,15 +3434,16 @@ void MainWindow::refreshIncidentTargetCombo() {
 	if (!m_incidentTargetCombo)
 		return;
 
+	const auto& incidents = defaultScenarioIncidents(static_cast<const SceneModel&>(m_sceneModel));
 	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.incidents.size());
+	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(incidents.size());
 
 	const QSignalBlocker blocker(m_incidentTargetCombo);
 	m_incidentTargetCombo->clear();
 	m_incidentTargetCombo->addItem(QString()); // blank choice: no target
 
 	if (hasSelection) {
-		const SceneIncident& incident = m_sceneModel.incidents[row];
+		const SceneIncident& incident = incidents[row];
 		// which pool of ids to offer depends on the current type
 		QString typeText = m_incidentTypeCombo ? m_incidentTypeCombo->currentText() : QString();
 		if (typeText == "signal_failure") {
@@ -3469,8 +3472,9 @@ void MainWindow::refreshIncidentTargetCombo() {
 }
 
 std::string MainWindow::uniqueIncidentId(const std::string& baseId) const {
-	auto idExists = [this](const std::string& id) {
-		for (const auto& incident : m_sceneModel.incidents) {
+	const auto& incidents = defaultScenarioIncidents(m_sceneModel);
+	auto idExists = [&incidents](const std::string& id) {
+		for (const auto& incident : incidents) {
 			if (incident.id == id)
 				return true;
 		}
@@ -3490,10 +3494,11 @@ void MainWindow::addIncident() {
 	if (!m_sceneLoaded)
 		return;
 
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	SceneIncident incident;
 	incident.id = uniqueIncidentId("new_incident");
 	incident.type = "signal_failure";
-	m_sceneModel.incidents.push_back(incident);
+	incidents.push_back(incident);
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -3502,19 +3507,20 @@ void MainWindow::addIncident() {
 	refreshIncidentPanel();
 
 	if (m_incidentListWidget)
-		m_incidentListWidget->setCurrentRow(static_cast<int>(m_sceneModel.incidents.size()) - 1);
+		m_incidentListWidget->setCurrentRow(static_cast<int>(incidents.size()) - 1);
 }
 
 void MainWindow::duplicateIncident() {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
-	SceneIncident duplicate = m_sceneModel.incidents[row];
+	SceneIncident duplicate = incidents[row];
 	duplicate.id = uniqueIncidentId(duplicate.id + "_copy");
-	m_sceneModel.incidents.insert(m_sceneModel.incidents.begin() + row + 1, duplicate);
+	incidents.insert(incidents.begin() + row + 1, duplicate);
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -3529,11 +3535,12 @@ void MainWindow::duplicateIncident() {
 void MainWindow::deleteIncident() {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
-	QString id = QString::fromStdString(m_sceneModel.incidents[row].id);
+	QString id = QString::fromStdString(incidents[row].id);
 	auto response = QMessageBox::question(this,
 										  "Delete Incident",
 										  QString("Delete incident '%1'?").arg(id),
@@ -3542,7 +3549,7 @@ void MainWindow::deleteIncident() {
 	if (response != QMessageBox::Yes)
 		return;
 
-	m_sceneModel.incidents.erase(m_sceneModel.incidents.begin() + row);
+	incidents.erase(incidents.begin() + row);
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -3554,21 +3561,22 @@ void MainWindow::deleteIncident() {
 void MainWindow::commitIncidentIdEdit() {
 	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentIdEdit)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
 	std::string newId = m_incidentIdEdit->text().trimmed().toStdString();
-	if (newId == m_sceneModel.incidents[row].id)
+	if (newId == incidents[row].id)
 		return;
 
-	m_sceneModel.incidents[row].id = newId;
+	incidents[row].id = newId;
 
 	// update the list row label in place instead of rebuilding the panel, so a
 	// focus-out that lands on another control keeps that pending click intact
 	if (QListWidgetItem* item = m_incidentListWidget->item(row)) {
 		const QSignalBlocker blocker(m_incidentListWidget);
-		QString label = QString::fromStdString(newId) + " (" + QString::fromStdString(m_sceneModel.incidents[row].type) + ")";
+		QString label = QString::fromStdString(newId) + " (" + QString::fromStdString(incidents[row].type) + ")";
 		item->setText(label);
 	}
 
@@ -3581,19 +3589,20 @@ void MainWindow::commitIncidentIdEdit() {
 void MainWindow::commitIncidentType(const QString& text) {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
 	std::string newType = text.toStdString();
-	if (newType == m_sceneModel.incidents[row].type)
+	if (newType == incidents[row].type)
 		return;
 
-	m_sceneModel.incidents[row].type = newType;
+	incidents[row].type = newType;
 
 	// when the type changes the valid target pool also changes; drop a target
 	// that is no longer valid for the new type
-	bool targetValid = m_sceneModel.incidents[row].target.empty();
+	bool targetValid = incidents[row].target.empty();
 	if (!targetValid) {
 		if (newType == "signal_failure") {
 #ifdef signals
@@ -3606,14 +3615,14 @@ void MainWindow::commitIncidentType(const QString& text) {
 #undef EGTRAIN_INCIDENT_RESTORE_SIGNALS
 #endif
 			for (int i = 0; i < static_cast<int>(signalList.size()); ++i) {
-				if (signalList[i].id == m_sceneModel.incidents[row].target) {
+				if (signalList[i].id == incidents[row].target) {
 					targetValid = true;
 					break;
 				}
 			}
 		} else {
 			for (const auto& service : m_sceneModel.services) {
-				if (service.id == m_sceneModel.incidents[row].target) {
+				if (service.id == incidents[row].target) {
 					targetValid = true;
 					break;
 				}
@@ -3621,12 +3630,12 @@ void MainWindow::commitIncidentType(const QString& text) {
 		}
 	}
 	if (!targetValid)
-		m_sceneModel.incidents[row].target.clear();
+		incidents[row].target.clear();
 
 	// update the list row label in place to reflect the new type
 	if (QListWidgetItem* item = m_incidentListWidget->item(row)) {
 		const QSignalBlocker blocker(m_incidentListWidget);
-		QString label = QString::fromStdString(m_sceneModel.incidents[row].id) + " (" + text + ")";
+		QString label = QString::fromStdString(incidents[row].id) + " (" + text + ")";
 		item->setText(label);
 	}
 
@@ -3643,15 +3652,16 @@ void MainWindow::commitIncidentType(const QString& text) {
 void MainWindow::commitIncidentTarget(const QString& text) {
 	if (!m_sceneLoaded || !m_incidentListWidget)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
 	std::string newTarget = text.toStdString();
-	if (newTarget == m_sceneModel.incidents[row].target)
+	if (newTarget == incidents[row].target)
 		return;
 
-	m_sceneModel.incidents[row].target = newTarget;
+	incidents[row].target = newTarget;
 
 	// the combo already shows the chosen value; no panel rebuild needed
 	m_sceneDirty = true;
@@ -3663,8 +3673,9 @@ void MainWindow::commitIncidentTarget(const QString& text) {
 void MainWindow::commitIncidentStartSeconds() {
 	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentStartSecondsEdit)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
 	bool ok = false;
@@ -3679,10 +3690,10 @@ void MainWindow::commitIncidentStartSeconds() {
 	}
 
 	double newValue = static_cast<double>(seconds);
-	if (newValue == m_sceneModel.incidents[row].startSeconds)
+	if (newValue == incidents[row].startSeconds)
 		return;
 
-	m_sceneModel.incidents[row].startSeconds = newValue;
+	incidents[row].startSeconds = newValue;
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -3693,8 +3704,9 @@ void MainWindow::commitIncidentStartSeconds() {
 void MainWindow::commitIncidentEndSeconds() {
 	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentEndSecondsEdit)
 		return;
+	auto& incidents = defaultScenarioIncidents(m_sceneModel);
 	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.incidents.size()))
+	if (row < 0 || row >= static_cast<int>(incidents.size()))
 		return;
 
 	bool ok = false;
@@ -3709,10 +3721,10 @@ void MainWindow::commitIncidentEndSeconds() {
 	}
 
 	double newValue = static_cast<double>(seconds);
-	if (newValue == m_sceneModel.incidents[row].endSeconds)
+	if (newValue == incidents[row].endSeconds)
 		return;
 
-	m_sceneModel.incidents[row].endSeconds = newValue;
+	incidents[row].endSeconds = newValue;
 
 	m_sceneDirty = true;
 	updateSceneWindowTitle();
@@ -5981,9 +5993,9 @@ void MainWindow::runEditorSmokeE2E() {
 	};
 	auto sameStop = [](const SceneStop& left, const SceneStop& right) {
 		return left.stationId == right.stationId && left.platformId == right.platformId
-			&& left.hasArrival == right.hasArrival && left.hasDeparture == right.hasDeparture
-			&& left.arrivalSeconds == right.arrivalSeconds
-			&& left.departureSeconds == right.departureSeconds
+			&& left.hasPlannedArrival == right.hasPlannedArrival && left.hasPlannedDeparture == right.hasPlannedDeparture
+			&& left.plannedArrivalSeconds == right.plannedArrivalSeconds
+			&& left.plannedDepartureSeconds == right.plannedDepartureSeconds
 			&& left.dwellSeconds == right.dwellSeconds;
 	};
 	auto sameCompositions = [](const std::vector<SceneComposition>& left, const std::vector<SceneComposition>& right) {
@@ -6015,7 +6027,8 @@ void MainWindow::runEditorSmokeE2E() {
 		if (left.size() != right.size())
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [&](const SceneService& a, const SceneService& b) {
-			if (a.id != b.id || a.composition != b.composition || a.route != b.route || a.through != b.through
+			if (a.id != b.id || a.operatingCode != b.operatingCode
+				|| a.composition != b.composition || a.route != b.route || a.through != b.through
 				|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
 				|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds
 				|| a.stops.size() != b.stops.size())
@@ -6114,7 +6127,7 @@ void MainWindow::runEditorSmokeE2E() {
 		expectedCompositions = m_sceneModel.compositions;
 		expectedTrainUnits = m_sceneModel.trainUnits;
 		expectedServices = m_sceneModel.services;
-		expectedIncidents = m_sceneModel.incidents;
+		expectedIncidents = defaultScenarioIncidents(m_sceneModel);
 	}
 
 	std::string editedTrainUnitId;
@@ -6460,10 +6473,10 @@ void MainWindow::runEditorSmokeE2E() {
 						commitStopPlatform(QString::fromStdString(platformId));
 					double lastTime = 0.0;
 					for (const auto& stop : m_sceneModel.services[serviceRow].stops) {
-						if (stop.hasArrival)
-							lastTime = std::max(lastTime, stop.arrivalSeconds);
-						if (stop.hasDeparture)
-							lastTime = std::max(lastTime, stop.departureSeconds);
+						if (stop.hasPlannedArrival)
+							lastTime = std::max(lastTime, stop.plannedArrivalSeconds);
+						if (stop.hasPlannedDeparture)
+							lastTime = std::max(lastTime, stop.plannedDepartureSeconds);
 					}
 					const int arrivalSeconds = static_cast<int>(lastTime) + 600;
 					const int departureSeconds = arrivalSeconds + 60;
@@ -6483,13 +6496,13 @@ void MainWindow::runEditorSmokeE2E() {
 						facetFailure(facetOk, "timetable", "station edit did not apply the chosen station");
 					if (!platformId.empty() && committedStop.platformId != platformId)
 						facetFailure(facetOk, "timetable", "platform edit did not apply the chosen platform");
-					if (!committedStop.hasArrival)
+					if (!committedStop.hasPlannedArrival)
 						facetFailure(facetOk, "timetable", "arrival flag did not apply");
-					if (committedStop.arrivalSeconds != static_cast<double>(arrivalSeconds))
+					if (committedStop.plannedArrivalSeconds != static_cast<double>(arrivalSeconds))
 						facetFailure(facetOk, "timetable", "arrival seconds did not apply the requested value");
-					if (!committedStop.hasDeparture)
+					if (!committedStop.hasPlannedDeparture)
 						facetFailure(facetOk, "timetable", "departure flag did not apply");
-					if (committedStop.departureSeconds != static_cast<double>(departureSeconds))
+					if (committedStop.plannedDepartureSeconds != static_cast<double>(departureSeconds))
 						facetFailure(facetOk, "timetable", "departure seconds did not apply the requested value");
 					if (committedStop.dwellSeconds != 60.0)
 						facetFailure(facetOk, "timetable", "dwell did not apply the requested 60 seconds");
@@ -6506,7 +6519,7 @@ void MainWindow::runEditorSmokeE2E() {
 				moveStopDown();
 				if (!sameStop(m_sceneModel.services[serviceRow].stops.back(), editedStop))
 					facetFailure(facetOk, "timetable", "move down did not restore edited stop");
-				// The source scene's final stop intentionally omits departure_seconds;
+				// The source scene's final stop intentionally omits a planned departure;
 				// leave the edited stop before it so the model remains valid for save/reload.
 				m_stopListWidget->setCurrentRow(originalStopCount);
 				moveStopUp();
@@ -6560,16 +6573,17 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "incident", "delete did not apply");
 		}
 		int editedRow = -1;
-		for (int row = 0; row < static_cast<int>(m_sceneModel.incidents.size()); ++row) {
-			if (m_sceneModel.incidents[row].id == editedIncidentId) {
+		const auto& incidents = defaultScenarioIncidents(m_sceneModel);
+		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
+			if (incidents[row].id == editedIncidentId) {
 				editedRow = row;
 				break;
 			}
 		}
-		if (editedRow < 0 || m_sceneModel.incidents[editedRow].type != "train_breakdown"
-				|| m_sceneModel.incidents[editedRow].target != editedServiceId
-				|| m_sceneModel.incidents[editedRow].startSeconds != 100.0
-				|| m_sceneModel.incidents[editedRow].endSeconds != 200.0)
+		if (editedRow < 0 || incidents[editedRow].type != "train_breakdown"
+				|| incidents[editedRow].target != editedServiceId
+				|| incidents[editedRow].startSeconds != 100.0
+				|| incidents[editedRow].endSeconds != 200.0)
 			facetFailure(facetOk, "incident", "edited incident was not retained");
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
@@ -6602,7 +6616,7 @@ void MainWindow::runEditorSmokeE2E() {
 			expectedTrainUnits = m_sceneModel.trainUnits;
 			expectedCompositions = m_sceneModel.compositions;
 			expectedServices = m_sceneModel.services;
-			expectedIncidents = m_sceneModel.incidents;
+			expectedIncidents = defaultScenarioIncidents(m_sceneModel);
 			auto result = ::saveScene(m_sceneModel, outScenePath.toStdString());
 			if (!result.success()) {
 				facetFailure(facetOk, "save/reload", "save failed");
@@ -6614,7 +6628,7 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
 			} else if (!sameServices(expectedServices, m_sceneModel.services)) {
 				facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
-			} else if (!sameIncidents(expectedIncidents, m_sceneModel.incidents)) {
+			} else if (!sameIncidents(expectedIncidents, defaultScenarioIncidents(m_sceneModel))) {
 				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
 			} else if (m_sceneDirty || hasErrors(m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
@@ -6662,12 +6676,14 @@ void MainWindow::runTrackPreviewE2E() {
 #undef signals
 #endif
 	auto sameSceneModel = [](const SceneModel& left, const SceneModel& right) {
+		const auto& leftIncidents = defaultScenarioIncidents(left);
+		const auto& rightIncidents = defaultScenarioIncidents(right);
 		if (left.schemaVersion != right.schemaVersion || left.name != right.name
 			|| left.description != right.description || left.baseTime != right.baseTime
 			|| left.stations.size() != right.stations.size() || left.signals.size() != right.signals.size()
 			|| left.routes.size() != right.routes.size() || left.trainUnits.size() != right.trainUnits.size()
 			|| left.compositions.size() != right.compositions.size() || left.services.size() != right.services.size()
-			|| left.incidents.size() != right.incidents.size())
+			|| leftIncidents.size() != rightIncidents.size())
 			return false;
 		if (!std::equal(left.stations.begin(), left.stations.end(), right.stations.begin(), [](const auto& a, const auto& b) {
 			return a.id == b.id && a.name == b.name && a.platforms.size() == b.platforms.size()
@@ -6696,18 +6712,19 @@ void MainWindow::runTrackPreviewE2E() {
 			[](const auto& a, const auto& b) { return a.id == b.id && a.units == b.units; }))
 			return false;
 		if (!std::equal(left.services.begin(), left.services.end(), right.services.begin(), [](const auto& a, const auto& b) {
-			if (a.id != b.id || a.composition != b.composition || a.route != b.route || a.through != b.through
+			if (a.id != b.id || a.operatingCode != b.operatingCode
+				|| a.composition != b.composition || a.route != b.route || a.through != b.through
 				|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
 				|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds || a.stops.size() != b.stops.size())
 				return false;
 			return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), [](const auto& x, const auto& y) {
-				return x.stationId == y.stationId && x.platformId == y.platformId && x.hasArrival == y.hasArrival
-					&& x.hasDeparture == y.hasDeparture && x.arrivalSeconds == y.arrivalSeconds
-					&& x.departureSeconds == y.departureSeconds && x.dwellSeconds == y.dwellSeconds;
+				return x.stationId == y.stationId && x.platformId == y.platformId && x.hasPlannedArrival == y.hasPlannedArrival
+					&& x.hasPlannedDeparture == y.hasPlannedDeparture && x.plannedArrivalSeconds == y.plannedArrivalSeconds
+					&& x.plannedDepartureSeconds == y.plannedDepartureSeconds && x.dwellSeconds == y.dwellSeconds;
 			});
 		}))
 			return false;
-		return std::equal(left.incidents.begin(), left.incidents.end(), right.incidents.begin(),
+		return std::equal(leftIncidents.begin(), leftIncidents.end(), rightIncidents.begin(),
 			[](const auto& a, const auto& b) {
 				return a.id == b.id && a.type == b.type && a.target == b.target
 					&& a.startSeconds == b.startSeconds && a.endSeconds == b.endSeconds;
@@ -6808,9 +6825,27 @@ void MainWindow::runTrackPreviewE2E() {
 	if (m_sceneLoaded) {
 		const SceneModel incomplete = m_sceneModel;
 		SceneModel fixed = incomplete;
+		fixed.baseTime = "08:00:00";
+		fixed.settings.hasDuration = true;
+		fixed.settings.durationSeconds = 3600.0;
+		fixed.tracks = {{"e2e_track"}};
+		fixed.nodes = {
+			{"e2e_node_1", "e2e_track", 0.0, 0.0},
+			{"e2e_node_2", "e2e_track", 1.0, 0.0},
+		};
+		fixed.arcs = {{"e2e_arc", "e2e_track", "e2e_node_1", "e2e_node_2", 0.0, 0.0, 1.0}};
+		fixed.blocks = {{"e2e_block", "e2e_track", 1.0}};
+		fixed.connections.clear();
+		fixed.stations.clear();
+		SceneStation station;
+		station.id = "e2e_station";
+		station.name = "E2E station";
+		station.platforms.push_back({"e2e_platform", {"e2e_node_1"}});
+		fixed.stations.push_back(station);
 		fixed.trainUnits.clear();
 		SceneTrainUnit unit;
 		unit.id = "e2e_unit";
+		unit.hasPhysical = true;
 		unit.tractionCurve.push_back({{0.0, 1.0, 1.0, 0.0, 0.0}});
 		fixed.trainUnits.push_back(unit);
 		fixed.compositions.clear();
@@ -6830,7 +6865,7 @@ void MainWindow::runTrackPreviewE2E() {
 		service.route = route.id;
 		service.through = true;
 		fixed.services.push_back(service);
-		fixed.incidents.clear();
+		defaultScenarioIncidents(fixed).clear();
 		m_sceneModel = fixed;
 		refreshValidationPanel();
 		if (hasErrors(m_sceneDiagnostics) || !m_runSceneAction || !m_runSceneAction->isEnabled()
@@ -7970,7 +8005,7 @@ void MainWindow::actionLoad_Network() {
 		showBlockingError(this, "Cannot Open Imported Scene", diagnosticSummary(diagnostics));
 		return;
 	}
-	const auto semanticDiagnostics = validateScene(loadResult.scene);
+	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
 	showBlockingError(this, "Legacy Import Diagnostics", diagnosticSummary(diagnostics), true);
 	openSceneDirectory(destinationPath);
