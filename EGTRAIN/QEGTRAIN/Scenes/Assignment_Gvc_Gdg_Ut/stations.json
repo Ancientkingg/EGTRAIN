@@ -2,39 +2,60 @@
     "stations": [
         {
             "id": "Gvc",
-            "name": "Den Haag Centraal",
+            "name": "Gvc",
             "platforms": [
                 {
-                    "id": "p1"
+                    "id": "Gvc.platform.1",
+                    "nodes": [
+                        "B0.node.1"
+                    ]
                 },
                 {
-                    "id": "p2"
+                    "id": "Gvc.platform.2",
+                    "nodes": [
+                        "B1.node.33"
+                    ]
                 }
-            ]
+            ],
+            "position_km": 0.0
         },
         {
             "id": "Gdg",
-            "name": "Gouda",
+            "name": "Gdg",
             "platforms": [
                 {
-                    "id": "p1"
+                    "id": "Gdg.platform.1",
+                    "nodes": [
+                        "B0.node.15"
+                    ]
                 },
                 {
-                    "id": "p2"
+                    "id": "Gdg.platform.2",
+                    "nodes": [
+                        "B1.node.19"
+                    ]
                 }
-            ]
+            ],
+            "position_km": 28.0
         },
         {
             "id": "Ut",
-            "name": "Utrecht Centraal",
+            "name": "Ut",
             "platforms": [
                 {
-                    "id": "p1"
+                    "id": "Ut.platform.1",
+                    "nodes": [
+                        "B0.node.33"
+                    ]
                 },
                 {
-                    "id": "p2"
+                    "id": "Ut.platform.2",
+                    "nodes": [
+                        "B1.node.1"
+                    ]
                 }
-            ]
+            ],
+            "position_km": 64.0
         }
     ]
 }

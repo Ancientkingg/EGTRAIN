@@ -1,4 +1,42 @@
 {
-    "compositions": [],
-    "train_units": []
+    "compositions": [
+        {
+            "id": "lebanon-teaching-train",
+            "units": [
+                "lebanon-teaching-unit"
+            ]
+        }
+    ],
+    "train_units": [
+        {
+            "id": "lebanon-teaching-unit",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 70.0,
+                "mass_of_a_wagon_kg": 0.0,
+                "mass_of_traction_unit_kg": 151000.0,
+                "max_deceleration_ms2": 0.75,
+                "max_speed_ms": 36.111111111111,
+                "number_of_wagons": 0.0,
+                "resistance_coefficient": 0.004
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    8.611111111111,
+                    209000.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    8.611111111111,
+                    36.111111111111,
+                    324607.2915,
+                    -17671.4923,
+                    292.9005
+                ]
+            ]
+        }
+    ]
 }

@@ -3,565 +3,1877 @@
         {
             "id": "Frederikssund",
             "name": "Frederikssund",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Frederikssund.platform.1",
+                    "nodes": [
+                        "B0.node.3"
+                    ]
+                },
+                {
+                    "id": "Frederikssund.platform.2",
+                    "nodes": [
+                        "B1.node.2"
+                    ]
+                }
+            ],
             "position_km": 0.17
         },
         {
             "id": "Koge",
             "name": "Koge",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Koge.platform.1",
+                    "nodes": [
+                        "B6.node.2"
+                    ]
+                },
+                {
+                    "id": "Koge.platform.2",
+                    "nodes": [
+                        "B7.node.2"
+                    ]
+                }
+            ],
             "position_km": 2.92
         },
         {
             "id": "Vinge",
             "name": "Vinge",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vinge.platform.1",
+                    "nodes": [
+                        "B0.node.51"
+                    ]
+                },
+                {
+                    "id": "Vinge.platform.2",
+                    "nodes": [
+                        "B1.node.49"
+                    ]
+                }
+            ],
             "position_km": 4.53
         },
         {
             "id": "Olby",
             "name": "Olby",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Olby.platform.1",
+                    "nodes": [
+                        "B6.node.31"
+                    ]
+                },
+                {
+                    "id": "Olby.platform.2",
+                    "nodes": [
+                        "B7.node.31"
+                    ]
+                }
+            ],
             "position_km": 5.472
         },
         {
             "id": "KogeNord",
             "name": "KogeNord",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "KogeNord.platform.1",
+                    "nodes": [
+                        "B6.node.49"
+                    ]
+                },
+                {
+                    "id": "KogeNord.platform.2",
+                    "nodes": [
+                        "B7.node.49"
+                    ]
+                }
+            ],
             "position_km": 7.196
         },
         {
             "id": "Olstykke",
             "name": "Olstykke",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Olstykke.platform.1",
+                    "nodes": [
+                        "B0.node.86"
+                    ]
+                },
+                {
+                    "id": "Olstykke.platform.2",
+                    "nodes": [
+                        "B1.node.84"
+                    ]
+                }
+            ],
             "position_km": 7.81
         },
         {
             "id": "Egedal",
             "name": "Egedal",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Egedal.platform.1",
+                    "nodes": [
+                        "B0.node.112"
+                    ]
+                },
+                {
+                    "id": "Egedal.platform.2",
+                    "nodes": [
+                        "B1.node.111"
+                    ]
+                }
+            ],
             "position_km": 10.279
         },
         {
             "id": "Jersie",
             "name": "Jersie",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Jersie.platform.1",
+                    "nodes": [
+                        "B6.node.91"
+                    ]
+                },
+                {
+                    "id": "Jersie.platform.2",
+                    "nodes": [
+                        "B7.node.91"
+                    ]
+                }
+            ],
             "position_km": 11.042
         },
         {
             "id": "Stenlose",
             "name": "Stenlose",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Stenlose.platform.1",
+                    "nodes": [
+                        "B0.node.128"
+                    ]
+                },
+                {
+                    "id": "Stenlose.platform.2",
+                    "nodes": [
+                        "B1.node.127"
+                    ]
+                }
+            ],
             "position_km": 11.75
         },
         {
             "id": "SolrodStrand",
             "name": "SolrodStrand",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "SolrodStrand.platform.1",
+                    "nodes": [
+                        "B6.node.108"
+                    ]
+                },
+                {
+                    "id": "SolrodStrand.platform.2",
+                    "nodes": [
+                        "B7.node.108"
+                    ]
+                }
+            ],
             "position_km": 12.51
         },
         {
             "id": "Vekso",
             "name": "Vekso",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vekso.platform.1",
+                    "nodes": [
+                        "B0.node.170"
+                    ]
+                },
+                {
+                    "id": "Vekso.platform.2",
+                    "nodes": [
+                        "B1.node.169"
+                    ]
+                }
+            ],
             "position_km": 15.75
         },
         {
             "id": "Karlslunde",
             "name": "Karlslunde",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Karlslunde.platform.1",
+                    "nodes": [
+                        "B6.node.163"
+                    ]
+                },
+                {
+                    "id": "Karlslunde.platform.2",
+                    "nodes": [
+                        "B7.node.163"
+                    ]
+                }
+            ],
             "position_km": 17.579
         },
         {
             "id": "Kildedal",
             "name": "Kildedal",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Kildedal.platform.1",
+                    "nodes": [
+                        "B0.node.200"
+                    ]
+                },
+                {
+                    "id": "Kildedal.platform.2",
+                    "nodes": [
+                        "B1.node.200"
+                    ]
+                }
+            ],
             "position_km": 18.665
         },
         {
             "id": "Greve",
             "name": "Greve",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Greve.platform.1",
+                    "nodes": [
+                        "B6.node.190"
+                    ]
+                },
+                {
+                    "id": "Greve.platform.2",
+                    "nodes": [
+                        "B7.node.190"
+                    ]
+                }
+            ],
             "position_km": 20.0
         },
         {
             "id": "Malov",
             "name": "Malov",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Malov.platform.1",
+                    "nodes": [
+                        "B0.node.222"
+                    ]
+                },
+                {
+                    "id": "Malov.platform.2",
+                    "nodes": [
+                        "B1.node.222"
+                    ]
+                }
+            ],
             "position_km": 20.762
         },
         {
             "id": "HojeTaastrup",
             "name": "HojeTaastrup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "HojeTaastrup.platform.1",
+                    "nodes": [
+                        "B8.node.8"
+                    ]
+                },
+                {
+                    "id": "HojeTaastrup.platform.2",
+                    "nodes": [
+                        "B9.node.8"
+                    ]
+                }
+            ],
             "position_km": 22.225
         },
         {
             "id": "Hundige",
             "name": "Hundige",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hundige.platform.1",
+                    "nodes": [
+                        "B6.node.223"
+                    ]
+                },
+                {
+                    "id": "Hundige.platform.2",
+                    "nodes": [
+                        "B7.node.223"
+                    ]
+                },
+                {
+                    "id": "Hundige.platform.3",
+                    "nodes": [
+                        "B11.node.10"
+                    ]
+                },
+                {
+                    "id": "Hundige.platform.4",
+                    "nodes": [
+                        "B12.node.9"
+                    ]
+                }
+            ],
             "position_km": 23.116
         },
         {
             "id": "BallerupStorage",
             "name": "BallerupStorage",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "BallerupStorage.platform.1",
+                    "nodes": [
+                        "B27.node.2"
+                    ]
+                },
+                {
+                    "id": "BallerupStorage.platform.2",
+                    "nodes": [
+                        "B28.node.2"
+                    ]
+                }
+            ],
             "position_km": 23.63
         },
         {
             "id": "Ballerup",
             "name": "Ballerup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ballerup.platform.1",
+                    "nodes": [
+                        "B0.node.257"
+                    ]
+                },
+                {
+                    "id": "Ballerup.platform.2",
+                    "nodes": [
+                        "B1.node.258"
+                    ]
+                }
+            ],
             "position_km": 23.95
         },
         {
             "id": "Taastrup",
             "name": "Taastrup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Taastrup.platform.1",
+                    "nodes": [
+                        "B8.node.33"
+                    ]
+                },
+                {
+                    "id": "Taastrup.platform.2",
+                    "nodes": [
+                        "B9.node.33"
+                    ]
+                }
+            ],
             "position_km": 24.466
         },
         {
             "id": "Ishoj",
             "name": "Ishoj",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ishoj.platform.1",
+                    "nodes": [
+                        "B6.node.249"
+                    ]
+                },
+                {
+                    "id": "Ishoj.platform.2",
+                    "nodes": [
+                        "B7.node.249"
+                    ]
+                }
+            ],
             "position_km": 25.407
         },
         {
             "id": "Malmparken",
             "name": "Malmparken",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Malmparken.platform.1",
+                    "nodes": [
+                        "B0.node.279"
+                    ]
+                },
+                {
+                    "id": "Malmparken.platform.2",
+                    "nodes": [
+                        "B1.node.280"
+                    ]
+                }
+            ],
             "position_km": 25.857
         },
         {
             "id": "Skovlunde",
             "name": "Skovlunde",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Skovlunde.platform.1",
+                    "nodes": [
+                        "B0.node.290"
+                    ]
+                },
+                {
+                    "id": "Skovlunde.platform.2",
+                    "nodes": [
+                        "B1.node.290"
+                    ]
+                }
+            ],
             "position_km": 26.84
         },
         {
             "id": "Vallensbaek",
             "name": "Vallensbaek",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vallensbaek.platform.1",
+                    "nodes": [
+                        "B6.node.273"
+                    ]
+                },
+                {
+                    "id": "Vallensbaek.platform.2",
+                    "nodes": [
+                        "B7.node.273"
+                    ]
+                }
+            ],
             "position_km": 27.678
         },
         {
             "id": "Albertslund",
             "name": "Albertslund",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Albertslund.platform.1",
+                    "nodes": [
+                        "B8.node.70"
+                    ]
+                },
+                {
+                    "id": "Albertslund.platform.2",
+                    "nodes": [
+                        "B9.node.70"
+                    ]
+                }
+            ],
             "position_km": 27.802
         },
         {
             "id": "Herlev",
             "name": "Herlev",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Herlev.platform.1",
+                    "nodes": [
+                        "B0.node.320"
+                    ]
+                },
+                {
+                    "id": "Herlev.platform.2",
+                    "nodes": [
+                        "B1.node.318"
+                    ]
+                }
+            ],
             "position_km": 29.6
         },
         {
             "id": "BrondbyStrand",
             "name": "BrondbyStrand",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "BrondbyStrand.platform.1",
+                    "nodes": [
+                        "B6.node.298"
+                    ]
+                },
+                {
+                    "id": "BrondbyStrand.platform.2",
+                    "nodes": [
+                        "B7.node.298"
+                    ]
+                }
+            ],
             "position_km": 29.85
         },
         {
             "id": "Glostrup",
             "name": "Glostrup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Glostrup.platform.1",
+                    "nodes": [
+                        "B8.node.100"
+                    ]
+                },
+                {
+                    "id": "Glostrup.platform.2",
+                    "nodes": [
+                        "B9.node.100"
+                    ]
+                }
+            ],
             "position_km": 30.62
         },
         {
             "id": "Husum",
             "name": "Husum",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Husum.platform.1",
+                    "nodes": [
+                        "B0.node.337"
+                    ]
+                },
+                {
+                    "id": "Husum.platform.2",
+                    "nodes": [
+                        "B1.node.335"
+                    ]
+                }
+            ],
             "position_km": 31.107
         },
         {
             "id": "Avedore",
             "name": "Avedore",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Avedore.platform.1",
+                    "nodes": [
+                        "B6.node.322"
+                    ]
+                },
+                {
+                    "id": "Avedore.platform.2",
+                    "nodes": [
+                        "B7.node.322"
+                    ]
+                }
+            ],
             "position_km": 32.179
         },
         {
             "id": "Islev",
             "name": "Islev",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Islev.platform.1",
+                    "nodes": [
+                        "B0.node.352"
+                    ]
+                },
+                {
+                    "id": "Islev.platform.2",
+                    "nodes": [
+                        "B1.node.350"
+                    ]
+                }
+            ],
             "position_km": 32.54
         },
         {
             "id": "Brondbyoster",
             "name": "Brondbyoster",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Brondbyoster.platform.1",
+                    "nodes": [
+                        "B8.node.130"
+                    ]
+                },
+                {
+                    "id": "Brondbyoster.platform.2",
+                    "nodes": [
+                        "B9.node.130"
+                    ]
+                }
+            ],
             "position_km": 33.38
         },
         {
             "id": "Jyllingevej",
             "name": "Jyllingevej",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Jyllingevej.platform.1",
+                    "nodes": [
+                        "B0.node.364"
+                    ]
+                },
+                {
+                    "id": "Jyllingevej.platform.2",
+                    "nodes": [
+                        "B1.node.361"
+                    ]
+                }
+            ],
             "position_km": 33.64
         },
         {
             "id": "Friheden",
             "name": "Friheden",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Friheden.platform.1",
+                    "nodes": [
+                        "B6.node.341"
+                    ]
+                },
+                {
+                    "id": "Friheden.platform.2",
+                    "nodes": [
+                        "B7.node.341"
+                    ]
+                }
+            ],
             "position_km": 34.012
         },
         {
             "id": "Rodovre",
             "name": "Rodovre",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Rodovre.platform.1",
+                    "nodes": [
+                        "B8.node.142"
+                    ]
+                },
+                {
+                    "id": "Rodovre.platform.2",
+                    "nodes": [
+                        "B9.node.142"
+                    ]
+                }
+            ],
             "position_km": 34.483
         },
         {
             "id": "Vanlose",
             "name": "Vanlose",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vanlose.platform.1",
+                    "nodes": [
+                        "B0.node.375"
+                    ]
+                },
+                {
+                    "id": "Vanlose.platform.2",
+                    "nodes": [
+                        "B1.node.372"
+                    ]
+                }
+            ],
             "position_km": 34.55
         },
         {
             "id": "FlintholmCH",
             "name": "FlintholmCH",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "FlintholmCH.platform.1",
+                    "nodes": [
+                        "B0.node.383"
+                    ]
+                },
+                {
+                    "id": "FlintholmCH.platform.2",
+                    "nodes": [
+                        "B1.node.379"
+                    ]
+                }
+            ],
             "position_km": 35.06
         },
         {
             "id": "Amarken",
             "name": "Amarken",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Amarken.platform.1",
+                    "nodes": [
+                        "B6.node.360"
+                    ]
+                },
+                {
+                    "id": "Amarken.platform.2",
+                    "nodes": [
+                        "B7.node.360"
+                    ]
+                }
+            ],
             "position_km": 35.55
         },
         {
             "id": "Hvidovre",
             "name": "Hvidovre",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hvidovre.platform.1",
+                    "nodes": [
+                        "B8.node.158"
+                    ]
+                },
+                {
+                    "id": "Hvidovre.platform.2",
+                    "nodes": [
+                        "B9.node.158"
+                    ]
+                }
+            ],
             "position_km": 35.921
         },
         {
             "id": "PeterBangsvej",
             "name": "PeterBangsvej",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "PeterBangsvej.platform.1",
+                    "nodes": [
+                        "B0.node.393"
+                    ]
+                },
+                {
+                    "id": "PeterBangsvej.platform.2",
+                    "nodes": [
+                        "B1.node.388"
+                    ]
+                }
+            ],
             "position_km": 35.94
         },
         {
             "id": "DanshojBBx",
             "name": "DanshojBBx",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "DanshojBBx.platform.1",
+                    "nodes": [
+                        "B8.node.166"
+                    ]
+                },
+                {
+                    "id": "DanshojBBx.platform.2",
+                    "nodes": [
+                        "B9.node.166"
+                    ]
+                }
+            ],
             "position_km": 36.632
         },
         {
             "id": "Langgade",
             "name": "Langgade",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Langgade.platform.1",
+                    "nodes": [
+                        "B0.node.404"
+                    ]
+                },
+                {
+                    "id": "Langgade.platform.2",
+                    "nodes": [
+                        "B1.node.399"
+                    ]
+                }
+            ],
             "position_km": 37.0
         },
         {
             "id": "NyEllebjergAE",
             "name": "NyEllebjergAE",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "NyEllebjergAE.platform.1",
+                    "nodes": [
+                        "B6.node.380"
+                    ]
+                },
+                {
+                    "id": "NyEllebjergAE.platform.2",
+                    "nodes": [
+                        "B7.node.380"
+                    ]
+                }
+            ],
             "position_km": 37.38
         },
         {
             "id": "Valby",
             "name": "Valby",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Valby.platform.1",
+                    "nodes": [
+                        "B0.node.415"
+                    ]
+                },
+                {
+                    "id": "Valby.platform.2",
+                    "nodes": [
+                        "B1.node.412"
+                    ]
+                },
+                {
+                    "id": "Valby.platform.3",
+                    "nodes": [
+                        "B8.node.181"
+                    ]
+                }
+            ],
             "position_km": 37.896
         },
         {
             "id": "Sjaelor",
             "name": "Sjaelor",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Sjaelor.platform.1",
+                    "nodes": [
+                        "B6.node.387"
+                    ]
+                },
+                {
+                    "id": "Sjaelor.platform.2",
+                    "nodes": [
+                        "B7.node.387"
+                    ]
+                }
+            ],
             "position_km": 37.952
         },
         {
             "id": "NyEllebjergF",
             "name": "NyEllebjergF",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "NyEllebjergF.platform.1",
+                    "nodes": [
+                        "B21.node.2"
+                    ]
+                },
+                {
+                    "id": "NyEllebjergF.platform.2",
+                    "nodes": [
+                        "B22.node.2"
+                    ]
+                }
+            ],
             "position_km": 38.013
         },
         {
             "id": "Sydhavn",
             "name": "Sydhavn",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Sydhavn.platform.1",
+                    "nodes": [
+                        "B6.node.397"
+                    ]
+                },
+                {
+                    "id": "Sydhavn.platform.2",
+                    "nodes": [
+                        "B7.node.397"
+                    ]
+                }
+            ],
             "position_km": 38.92
         },
         {
             "id": "VigerslevAlle",
             "name": "VigerslevAlle",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "VigerslevAlle.platform.1",
+                    "nodes": [
+                        "B21.node.17"
+                    ]
+                },
+                {
+                    "id": "VigerslevAlle.platform.2",
+                    "nodes": [
+                        "B22.node.17"
+                    ]
+                }
+            ],
             "position_km": 39.109
         },
         {
             "id": "Carlsberg",
             "name": "Carlsberg",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Carlsberg.platform.1",
+                    "nodes": [
+                        "B0.node.433"
+                    ]
+                },
+                {
+                    "id": "Carlsberg.platform.2",
+                    "nodes": [
+                        "B1.node.428"
+                    ]
+                }
+            ],
             "position_km": 39.3
         },
         {
             "id": "DanshojF",
             "name": "DanshojF",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "DanshojF.platform.1",
+                    "nodes": [
+                        "B21.node.25"
+                    ]
+                },
+                {
+                    "id": "DanshojF.platform.2",
+                    "nodes": [
+                        "B22.node.25"
+                    ]
+                }
+            ],
             "position_km": 39.831
         },
         {
             "id": "Alholm",
             "name": "Alholm",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Alholm.platform.1",
+                    "nodes": [
+                        "B21.node.34"
+                    ]
+                },
+                {
+                    "id": "Alholm.platform.2",
+                    "nodes": [
+                        "B22.node.34"
+                    ]
+                }
+            ],
             "position_km": 40.653
         },
         {
             "id": "Dybbolsbro",
             "name": "Dybbolsbro",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dybbolsbro.platform.1",
+                    "nodes": [
+                        "B0.node.449"
+                    ]
+                },
+                {
+                    "id": "Dybbolsbro.platform.2",
+                    "nodes": [
+                        "B1.node.447"
+                    ]
+                },
+                {
+                    "id": "Dybbolsbro.platform.3",
+                    "nodes": [
+                        "B6.node.419"
+                    ]
+                },
+                {
+                    "id": "Dybbolsbro.platform.4",
+                    "nodes": [
+                        "B7.node.420"
+                    ]
+                }
+            ],
             "position_km": 40.875
         },
         {
             "id": "KBHallen",
             "name": "KBHallen",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "KBHallen.platform.1",
+                    "nodes": [
+                        "B21.node.41"
+                    ]
+                },
+                {
+                    "id": "KBHallen.platform.2",
+                    "nodes": [
+                        "B22.node.41"
+                    ]
+                }
+            ],
             "position_km": 41.301
         },
         {
             "id": "KobenhavnH",
             "name": "KobenhavnH",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "KobenhavnH.platform.1",
+                    "nodes": [
+                        "B0.node.462"
+                    ]
+                },
+                {
+                    "id": "KobenhavnH.platform.2",
+                    "nodes": [
+                        "B1.node.459"
+                    ]
+                },
+                {
+                    "id": "KobenhavnH.platform.3",
+                    "nodes": [
+                        "B6.node.433"
+                    ]
+                },
+                {
+                    "id": "KobenhavnH.platform.4",
+                    "nodes": [
+                        "B7.node.432"
+                    ]
+                }
+            ],
             "position_km": 41.755
         },
         {
             "id": "FlintholmF",
             "name": "FlintholmF",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "FlintholmF.platform.1",
+                    "nodes": [
+                        "B21.node.53"
+                    ]
+                },
+                {
+                    "id": "FlintholmF.platform.2",
+                    "nodes": [
+                        "B22.node.53"
+                    ]
+                }
+            ],
             "position_km": 42.305
         },
         {
             "id": "Vesterport",
             "name": "Vesterport",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vesterport.platform.1",
+                    "nodes": [
+                        "B0.node.471"
+                    ]
+                },
+                {
+                    "id": "Vesterport.platform.2",
+                    "nodes": [
+                        "B1.node.467"
+                    ]
+                }
+            ],
             "position_km": 42.335
         },
         {
             "id": "Norreport",
             "name": "Norreport",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Norreport.platform.1",
+                    "nodes": [
+                        "B0.node.482"
+                    ]
+                },
+                {
+                    "id": "Norreport.platform.2",
+                    "nodes": [
+                        "B1.node.479"
+                    ]
+                }
+            ],
             "position_km": 43.38
         },
         {
             "id": "Grondal",
             "name": "Grondal",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Grondal.platform.1",
+                    "nodes": [
+                        "B21.node.67"
+                    ]
+                },
+                {
+                    "id": "Grondal.platform.2",
+                    "nodes": [
+                        "B22.node.67"
+                    ]
+                }
+            ],
             "position_km": 43.454
         },
         {
             "id": "Fuglebakken",
             "name": "Fuglebakken",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Fuglebakken.platform.1",
+                    "nodes": [
+                        "B21.node.76"
+                    ]
+                },
+                {
+                    "id": "Fuglebakken.platform.2",
+                    "nodes": [
+                        "B22.node.76"
+                    ]
+                }
+            ],
             "position_km": 44.342
         },
         {
             "id": "OsterportH",
             "name": "OsterportH",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "OsterportH.platform.1",
+                    "nodes": [
+                        "B4.node.11"
+                    ]
+                }
+            ],
             "position_km": 44.53
         },
         {
             "id": "Osterport",
             "name": "Osterport",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Osterport.platform.1",
+                    "nodes": [
+                        "B0.node.500"
+                    ]
+                },
+                {
+                    "id": "Osterport.platform.2",
+                    "nodes": [
+                        "B1.node.496"
+                    ]
+                }
+            ],
             "position_km": 44.84
         },
         {
             "id": "Norrebro",
             "name": "Norrebro",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Norrebro.platform.1",
+                    "nodes": [
+                        "B21.node.87"
+                    ]
+                },
+                {
+                    "id": "Norrebro.platform.2",
+                    "nodes": [
+                        "B22.node.87"
+                    ]
+                }
+            ],
             "position_km": 45.349
         },
         {
             "id": "Bispebjerg",
             "name": "Bispebjerg",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bispebjerg.platform.1",
+                    "nodes": [
+                        "B21.node.96"
+                    ]
+                },
+                {
+                    "id": "Bispebjerg.platform.2",
+                    "nodes": [
+                        "B22.node.96"
+                    ]
+                }
+            ],
             "position_km": 46.075
         },
         {
             "id": "Nordhavn",
             "name": "Nordhavn",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Nordhavn.platform.1",
+                    "nodes": [
+                        "B0.node.517"
+                    ]
+                },
+                {
+                    "id": "Nordhavn.platform.2",
+                    "nodes": [
+                        "B1.node.512"
+                    ]
+                }
+            ],
             "position_km": 46.27
         },
         {
             "id": "Svanemollen",
             "name": "Svanemollen",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Svanemollen.platform.1",
+                    "nodes": [
+                        "B0.node.532"
+                    ]
+                },
+                {
+                    "id": "Svanemollen.platform.2",
+                    "nodes": [
+                        "B1.node.527"
+                    ]
+                },
+                {
+                    "id": "Svanemollen.platform.3",
+                    "nodes": [
+                        "B14.node.8"
+                    ]
+                },
+                {
+                    "id": "Svanemollen.platform.4",
+                    "nodes": [
+                        "B15.node.8"
+                    ]
+                }
+            ],
             "position_km": 47.6
         },
         {
             "id": "RyparkenF",
             "name": "RyparkenF",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "RyparkenF.platform.1",
+                    "nodes": [
+                        "B21.node.114"
+                    ]
+                },
+                {
+                    "id": "RyparkenF.platform.2",
+                    "nodes": [
+                        "B22.node.114"
+                    ]
+                }
+            ],
             "position_km": 47.646
         },
         {
             "id": "RyparkenBBx",
             "name": "RyparkenBBx",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "RyparkenBBx.platform.1",
+                    "nodes": [
+                        "B0.node.548"
+                    ]
+                },
+                {
+                    "id": "RyparkenBBx.platform.2",
+                    "nodes": [
+                        "B1.node.543"
+                    ]
+                }
+            ],
             "position_km": 48.95
         },
         {
             "id": "Hellerup",
             "name": "Hellerup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hellerup.platform.1",
+                    "nodes": [
+                        "B14.node.31"
+                    ]
+                },
+                {
+                    "id": "Hellerup.platform.2",
+                    "nodes": [
+                        "B15.node.31"
+                    ]
+                },
+                {
+                    "id": "Hellerup.platform.3",
+                    "nodes": [
+                        "B21.node.139"
+                    ]
+                },
+                {
+                    "id": "Hellerup.platform.4",
+                    "nodes": [
+                        "B22.node.139"
+                    ]
+                },
+                {
+                    "id": "Hellerup.platform.5",
+                    "nodes": [
+                        "B23.node.4"
+                    ]
+                }
+            ],
             "position_km": 49.569
         },
         {
             "id": "HellerupStorage",
             "name": "HellerupStorage",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "HellerupStorage.platform.1",
+                    "nodes": [
+                        "B25.node.5"
+                    ]
+                },
+                {
+                    "id": "HellerupStorage.platform.2",
+                    "nodes": [
+                        "B26.node.5"
+                    ]
+                }
+            ],
             "position_km": 49.9
         },
         {
             "id": "Emdrup",
             "name": "Emdrup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Emdrup.platform.1",
+                    "nodes": [
+                        "B0.node.569"
+                    ]
+                },
+                {
+                    "id": "Emdrup.platform.2",
+                    "nodes": [
+                        "B1.node.564"
+                    ]
+                }
+            ],
             "position_km": 50.986
         },
         {
             "id": "Charlottenlund",
             "name": "Charlottenlund",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Charlottenlund.platform.1",
+                    "nodes": [
+                        "B22.node.158"
+                    ]
+                },
+                {
+                    "id": "Charlottenlund.platform.2",
+                    "nodes": [
+                        "B23.node.22"
+                    ]
+                }
+            ],
             "position_km": 51.066
         },
         {
             "id": "Bernstorffsvej",
             "name": "Bernstorffsvej",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bernstorffsvej.platform.1",
+                    "nodes": [
+                        "B14.node.56"
+                    ]
+                },
+                {
+                    "id": "Bernstorffsvej.platform.2",
+                    "nodes": [
+                        "B15.node.55"
+                    ]
+                }
+            ],
             "position_km": 51.645
         },
         {
             "id": "Dyssegard",
             "name": "Dyssegard",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Dyssegard.platform.1",
+                    "nodes": [
+                        "B0.node.586"
+                    ]
+                },
+                {
+                    "id": "Dyssegard.platform.2",
+                    "nodes": [
+                        "B1.node.581"
+                    ]
+                }
+            ],
             "position_km": 52.367
         },
         {
             "id": "Gentofte",
             "name": "Gentofte",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Gentofte.platform.1",
+                    "nodes": [
+                        "B14.node.71"
+                    ]
+                },
+                {
+                    "id": "Gentofte.platform.2",
+                    "nodes": [
+                        "B15.node.69"
+                    ]
+                }
+            ],
             "position_km": 52.785
         },
         {
             "id": "Vangede",
             "name": "Vangede",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vangede.platform.1",
+                    "nodes": [
+                        "B0.node.597"
+                    ]
+                },
+                {
+                    "id": "Vangede.platform.2",
+                    "nodes": [
+                        "B1.node.592"
+                    ]
+                }
+            ],
             "position_km": 53.345
         },
         {
             "id": "Ordrup",
             "name": "Ordrup",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Ordrup.platform.1",
+                    "nodes": [
+                        "B22.node.183"
+                    ]
+                },
+                {
+                    "id": "Ordrup.platform.2",
+                    "nodes": [
+                        "B23.node.47"
+                    ]
+                }
+            ],
             "position_km": 53.461
         },
         {
             "id": "Jaegersborg",
             "name": "Jaegersborg",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Jaegersborg.platform.1",
+                    "nodes": [
+                        "B14.node.88"
+                    ]
+                },
+                {
+                    "id": "Jaegersborg.platform.2",
+                    "nodes": [
+                        "B15.node.87"
+                    ]
+                }
+            ],
             "position_km": 54.341
         },
         {
             "id": "Kildebakke",
             "name": "Kildebakke",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Kildebakke.platform.1",
+                    "nodes": [
+                        "B0.node.610"
+                    ]
+                },
+                {
+                    "id": "Kildebakke.platform.2",
+                    "nodes": [
+                        "B1.node.605"
+                    ]
+                }
+            ],
             "position_km": 54.575
         },
         {
             "id": "Klampenborg",
             "name": "Klampenborg",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Klampenborg.platform.1",
+                    "nodes": [
+                        "B22.node.204"
+                    ]
+                },
+                {
+                    "id": "Klampenborg.platform.2",
+                    "nodes": [
+                        "B23.node.68"
+                    ]
+                }
+            ],
             "position_km": 55.199
         },
         {
             "id": "Buddinge",
             "name": "Buddinge",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Buddinge.platform.1",
+                    "nodes": [
+                        "B0.node.621"
+                    ]
+                },
+                {
+                    "id": "Buddinge.platform.2",
+                    "nodes": [
+                        "B1.node.616"
+                    ]
+                }
+            ],
             "position_km": 55.6
         },
         {
             "id": "Lyngby",
             "name": "Lyngby",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Lyngby.platform.1",
+                    "nodes": [
+                        "B14.node.105"
+                    ]
+                },
+                {
+                    "id": "Lyngby.platform.2",
+                    "nodes": [
+                        "B15.node.103"
+                    ]
+                },
+                {
+                    "id": "Lyngby.platform.3",
+                    "nodes": [
+                        "B17.node.6"
+                    ]
+                }
+            ],
             "position_km": 55.642
         },
         {
             "id": "BuddingeReverse",
             "name": "BuddingeReverse",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "BuddingeReverse.platform.1",
+                    "nodes": [
+                        "B29.node.5"
+                    ]
+                }
+            ],
             "position_km": 56.05
         },
         {
             "id": "Stengarden",
             "name": "Stengarden",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Stengarden.platform.1",
+                    "nodes": [
+                        "B0.node.641"
+                    ]
+                },
+                {
+                    "id": "Stengarden.platform.2",
+                    "nodes": [
+                        "B1.node.638"
+                    ]
+                }
+            ],
             "position_km": 57.375
         },
         {
             "id": "Sorgenfri",
             "name": "Sorgenfri",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Sorgenfri.platform.1",
+                    "nodes": [
+                        "B14.node.126"
+                    ]
+                },
+                {
+                    "id": "Sorgenfri.platform.2",
+                    "nodes": [
+                        "B15.node.125"
+                    ]
+                }
+            ],
             "position_km": 57.554
         },
         {
             "id": "Bagsvaerd",
             "name": "Bagsvaerd",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Bagsvaerd.platform.1",
+                    "nodes": [
+                        "B0.node.654"
+                    ]
+                },
+                {
+                    "id": "Bagsvaerd.platform.2",
+                    "nodes": [
+                        "B1.node.651"
+                    ]
+                }
+            ],
             "position_km": 58.575
         },
         {
             "id": "Virum",
             "name": "Virum",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Virum.platform.1",
+                    "nodes": [
+                        "B14.node.147"
+                    ]
+                },
+                {
+                    "id": "Virum.platform.2",
+                    "nodes": [
+                        "B15.node.145"
+                    ]
+                }
+            ],
             "position_km": 59.517
         },
         {
             "id": "Skovbrynet",
             "name": "Skovbrynet",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Skovbrynet.platform.1",
+                    "nodes": [
+                        "B0.node.669"
+                    ]
+                },
+                {
+                    "id": "Skovbrynet.platform.2",
+                    "nodes": [
+                        "B1.node.666"
+                    ]
+                }
+            ],
             "position_km": 60.0
         },
         {
             "id": "Holte",
             "name": "Holte",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Holte.platform.1",
+                    "nodes": [
+                        "B14.node.161"
+                    ]
+                },
+                {
+                    "id": "Holte.platform.2",
+                    "nodes": [
+                        "B15.node.160"
+                    ]
+                },
+                {
+                    "id": "Holte.platform.3",
+                    "nodes": [
+                        "B18.node.4"
+                    ]
+                }
+            ],
             "position_km": 60.659
         },
         {
             "id": "Hareskov",
             "name": "Hareskov",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hareskov.platform.1",
+                    "nodes": [
+                        "B0.node.691"
+                    ]
+                },
+                {
+                    "id": "Hareskov.platform.2",
+                    "nodes": [
+                        "B1.node.689"
+                    ]
+                }
+            ],
             "position_km": 61.981
         },
         {
             "id": "Vaerlose",
             "name": "Vaerlose",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Vaerlose.platform.1",
+                    "nodes": [
+                        "B0.node.723"
+                    ]
+                },
+                {
+                    "id": "Vaerlose.platform.2",
+                    "nodes": [
+                        "B1.node.721"
+                    ]
+                }
+            ],
             "position_km": 64.968
         },
         {
             "id": "Birkerod",
             "name": "Birkerod",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Birkerod.platform.1",
+                    "nodes": [
+                        "B14.node.214"
+                    ]
+                },
+                {
+                    "id": "Birkerod.platform.2",
+                    "nodes": [
+                        "B15.node.215"
+                    ]
+                },
+                {
+                    "id": "Birkerod.platform.3",
+                    "nodes": [
+                        "B19.node.5"
+                    ]
+                }
+            ],
             "position_km": 65.634
         },
         {
             "id": "Farum",
             "name": "Farum",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Farum.platform.1",
+                    "nodes": [
+                        "B0.node.769"
+                    ]
+                },
+                {
+                    "id": "Farum.platform.2",
+                    "nodes": [
+                        "B5.node.7"
+                    ]
+                }
+            ],
             "position_km": 69.15
         },
         {
             "id": "Allerod",
             "name": "Allerod",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Allerod.platform.1",
+                    "nodes": [
+                        "B14.node.274"
+                    ]
+                },
+                {
+                    "id": "Allerod.platform.2",
+                    "nodes": [
+                        "B15.node.274"
+                    ]
+                },
+                {
+                    "id": "Allerod.platform.3",
+                    "nodes": [
+                        "B20.node.4"
+                    ]
+                }
+            ],
             "position_km": 71.191
         },
         {
             "id": "Hillerod",
             "name": "Hillerod",
-            "platforms": [],
+            "platforms": [
+                {
+                    "id": "Hillerod.platform.1",
+                    "nodes": [
+                        "B14.node.347"
+                    ]
+                },
+                {
+                    "id": "Hillerod.platform.2",
+                    "nodes": [
+                        "B15.node.347"
+                    ]
+                },
+                {
+                    "id": "Hillerod.platform.3",
+                    "nodes": [
+                        "B16.node.5"
+                    ]
+                }
+            ],
             "position_km": 78.14
         }
     ]

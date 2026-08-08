@@ -1,8 +1,7 @@
 {
-    "signals": [],
+    "block_dependencies": [],
     "routes": [
         {
-            "id": "route0",
             "blocks": [
                 "0-B0",
                 "1-B0",
@@ -36,10 +35,10 @@
                 "29-B0",
                 "30-B0",
                 "31-B0"
-            ]
+            ],
+            "id": "route0"
         },
         {
-            "id": "route1",
             "blocks": [
                 "0-B1",
                 "1-B1",
@@ -73,7 +72,11 @@
                 "29-B1",
                 "30-B1",
                 "31-B1"
-            ]
+            ],
+            "id": "route1"
         }
-    ]
+    ],
+    "signals": [],
+    "single_track_restrictions": [],
+    "station_boundaries": []
 }

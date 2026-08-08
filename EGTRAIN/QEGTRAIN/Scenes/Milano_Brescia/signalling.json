@@ -1,4 +1,5 @@
 {
+    "block_dependencies": [],
     "routes": [
         {
             "blocks": [
@@ -13,6 +14,7 @@
                 "33-B13",
                 "34-B13"
             ],
+            "corridor": "A",
             "id": "route0"
         },
         {
@@ -1684,5 +1686,7 @@
             "id": "route47"
         }
     ],
-    "signals": []
+    "signals": [],
+    "single_track_restrictions": [],
+    "station_boundaries": []
 }
