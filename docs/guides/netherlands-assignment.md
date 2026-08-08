@@ -41,7 +41,7 @@ They are leads, not confirmed assignments. We must establish direction, station 
 
 `EGTRAIN/QEGTRAIN/Scenes/Netherlands` is the full V1 reference scene. Keep it intact. Create the smaller Amsterdam to Hilversum scene only after the selected services work on the full network.
 
-The repaired legacy case currently imports and validates with:
+The committed canonical case validates with:
 
 - 41 stations
 - 74 routes with 5,429 route entries
@@ -50,17 +50,15 @@ The repaired legacy case currently imports and validates with:
 
 The eight services run to the end of the simulation, but they do not yet establish the Amsterdam to Hilversum assignment. Station output, optional passenger data, the GUI timetable template, the candidate route directions, and the Intercity services still need verification.
 
-Reproduce the baseline with:
+Validate the baseline with:
 
 ```bash
-./build/scene_tool import \
-  EGTRAIN/QEGTRAIN/Input/Input_EGTRAIN_Netherlands \
-  /tmp/netherlands-v1 \
-  Netherlands
-./build/scene_tool validate /tmp/netherlands-v1
+./build/scene_tool validate EGTRAIN/QEGTRAIN/Scenes/Netherlands
 ```
 
-Compare the result with `EGTRAIN/QEGTRAIN/Scenes/Netherlands`. Record every importer adjustment that affects the proposed assignment.
+If you explicitly re-import an external historical case archive, compare it
+with `EGTRAIN/QEGTRAIN/Scenes/Netherlands` and record every importer adjustment
+that affects the proposed assignment.
 
 ## Decisions for the co-author team
 
@@ -138,7 +136,9 @@ A question stays in the assignment only when:
 
 Copy the verified full scene. Remove unused services, rolling stock, routes, and infrastructure in that order. Validate and run after each reduction. Keep a dependency when removing it changes the route or simulation result.
 
-The current V1 format still depends on `legacy/` for track geometry and other runtime inputs. Do not distribute a scene without that directory until the native scene-input work listed in the [V1 reference](v1-scene-properties.md#work-that-removes-the-legacy-dependency) is complete.
+The V1 scene is self-contained canonical input. Validate and run the reduced
+copy after every deletion; do not add a `legacy/` passthrough or edit an
+interoperability export as though it were the scene.
 
 ### 5. Test the student workflow
 

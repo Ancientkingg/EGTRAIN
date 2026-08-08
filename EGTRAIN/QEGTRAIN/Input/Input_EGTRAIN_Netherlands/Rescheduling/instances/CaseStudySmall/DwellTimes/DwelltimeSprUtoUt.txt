@@ -1,2 +1,0 @@
-Uto,{TrivialDistribution, 42.000000}
-Ut,{TrivialDistribution, 60.000000}

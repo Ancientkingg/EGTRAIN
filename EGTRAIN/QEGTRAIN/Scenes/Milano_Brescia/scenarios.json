@@ -1,0 +1,11 @@
+{
+    "default_scenario_id": "baseline",
+    "scenarios": [
+        {
+            "entrance_delays": [],
+            "id": "baseline",
+            "incidents": [],
+            "name": "Baseline"
+        }
+    ]
+}

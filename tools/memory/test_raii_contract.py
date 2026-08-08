@@ -31,16 +31,10 @@ def main() -> None:
         if len(re.findall(pattern, delay_functions)) != count:
             raise SystemExit(f"{name} must use {count} numRegions-sized vectors")
 
-    setup = dispatch_controller[
-        dispatch_controller.index("void DispatchController::setupEgtrain()") :
-        dispatch_controller.index("void DispatchController::resetState()")
-    ]
-    output_initialization = (
-        'std::ofstream outputFile(InputMainFolder + "/Rescheduling/EGTRAINOutput.txt", '
-        "std::ios::binary | std::ios::trunc);"
-    )
-    if output_initialization not in setup:
-        raise SystemExit("EGTRAINOutput.txt must be truncated directly during setup")
+    if "void DispatchController::setupEgtrain()" in dispatch_controller:
+        raise SystemExit("obsolete legacy setup path is still compiled")
+    if "void DispatchController::prepareSimulation()" in dispatch_controller:
+        raise SystemExit("obsolete legacy preparation path is still compiled")
 
 
 if __name__ == "__main__":

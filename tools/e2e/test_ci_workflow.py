@@ -13,7 +13,7 @@ def main() -> None:
     blocks = workflow.split("\n      - ")
     required = {
         "Test": "ctest --test-dir build",
-        "Run headless Copenhagen and Brescia smokes": "tools/e2e/headless_smoke.py 3 4",
+        "Run headless canonical scene smokes": "tools/e2e/headless_smoke.py 1 2 3 4 5 6",
         "Run editor smoke": "tools/e2e/editor_smoke.sh",
         "Run scene roundtrip smoke": "tools/e2e/roundtrip_smoke.py",
         "Run assignment smoke": "tools/e2e/assignment_smoke.py",
@@ -109,9 +109,7 @@ def main() -> None:
         'validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"',
         "validation_status=$?",
         "set -e",
-        '[ "$validation_status" -eq 1 ]',
-        'grep -q scene.services.none <<<"$validation_output"',
-        'grep -q scene.trains.none <<<"$validation_output"',
+        '[ "$validation_status" -eq 0 ]',
     )
     if (
         any(check not in macos_package_verification for check in required_macos_validation)
@@ -120,17 +118,18 @@ def main() -> None:
         missing.append("macOS scene validation status handling")
     required_macos_package_checks = (
         'APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"',
-        'test -d "$APP/Contents/Resources/Input/Input_EGTRAIN_Paimpol"',
+        'test -d "$APP/Contents/Resources/Scenes/Paimpol"',
         'RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"',
         'rm -rf "$RUN_DIR"',
         'mkdir -p "$RUN_DIR"',
         'cd "$RUN_DIR"',
-        '"$APP/Contents/MacOS/QEGTRAIN" -n 2 -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1',
+        'QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \\',
+        '"$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1',
         'run_status=$?',
         'if [ "$run_status" -ne 0 ]; then',
         'cat "$RUN_DIR/qegtrain.log"',
         'grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"',
-        'test -f "$RUN_DIR/Output/Output_EGTRAIN_Paimpol/EnergyConsumptionPerTrain.txt"',
+        'test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"',
     )
     if any(check not in macos_package_verification for check in required_macos_package_checks):
         missing.append("macOS packaged Paimpol headless smoke")

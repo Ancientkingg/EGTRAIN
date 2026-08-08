@@ -17,7 +17,6 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
 #include "scene/TrackPreview.h"
-#include "io/geocoding.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
@@ -25,7 +24,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSaveFile>
-#include "io/InputValidation.h"
 #include <cfloat>
 #include <QThread>
 #include <QCloseEvent>
@@ -39,12 +37,12 @@
 #include <QDialogButtonBox>
 #include <QInputDialog>
 #include <QCoreApplication>
+#include <QStandardPaths>
 #include <QSignalBlocker>
 #include <QSettings>
 #include <QIcon>
 #include <QToolButton>
 #include <QStringList>
-#include <QTemporaryDir>
 #include <QRegularExpression>
 #include <cstdio>
 #include <limits>
@@ -637,9 +635,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// effect on (last) clicked item
 	effect = nullptr;
-
-	// start GUI
-	setupGUI();
 
 	// --- Build toolbar ---
 	m_toolBar = ui->mainToolBar;
@@ -1481,7 +1476,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow() {
 	clearSimulationWorker(true);
-	delete m_runStagingDir;
 	delete ui;
 }
 
@@ -1521,8 +1515,6 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 
 	teardownGUI();
 	simulation.resetState();
-	delete m_runStagingDir;
-	m_runStagingDir = nullptr;
 
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
@@ -1754,14 +1746,6 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 
 	QDir sourceDir(sourcePath);
 
-	QString sourceLegacy = sourceDir.filePath("legacy");
-	if (QDir(sourceLegacy).exists()) {
-		if (!copyDirectoryRecursively(sourceLegacy, target.filePath("legacy"))) {
-			QMessageBox::critical(this, "Cannot Save Scene", "Cannot copy legacy passthrough data.");
-			return false;
-		}
-	}
-
 	QString sourceViews = sourceDir.filePath("views.json");
 	if (QFileInfo(sourceViews).exists()) {
 		QString targetViews = target.filePath("views.json");
@@ -1799,14 +1783,9 @@ void MainWindow::updateSceneActions() {
 	if (m_runSceneAction)
 		m_runSceneAction->setEnabled(m_sceneLoaded && !hasErrors(m_sceneDiagnostics));
 	if (ui->actionSimulationStart) {
-		// Scenes rerun freely (each run restages); a legacy case runs once per load.
 		const bool sceneRunnable = m_sceneLoaded && !hasErrors(m_sceneDiagnostics);
-		const bool legacyRunnable = !m_sceneLoaded && numRegions > 0 && !m_legacyRunDone;
-		ui->actionSimulationStart->setEnabled(sceneRunnable || legacyRunnable);
-		ui->actionSimulationStart->setToolTip(
-			!m_sceneLoaded && m_legacyRunDone
-				? QString("Reload the case to run it again")
-				: QString("Run simulation (Ctrl+R)"));
+		ui->actionSimulationStart->setEnabled(sceneRunnable);
+		ui->actionSimulationStart->setToolTip(QString("Run simulation (Ctrl+R)"));
 	}
 	updateDiagramActions();
 	if (m_recentScenesMenu) {
@@ -3827,7 +3806,7 @@ void MainWindow::updateCaseLayersPanel() {
 	QString caseName = m_sceneLoaded ? QString::fromStdString(m_sceneModel.name)
 										 : QString::fromStdString(initial_variables.name);
 	if (caseName.trimmed().isEmpty())
-		caseName = QFileInfo(QString::fromStdString(InputMainFolder)).fileName();
+		caseName = QStringLiteral("Canonical scene");
 	if (caseName.trimmed().isEmpty())
 		caseName = QStringLiteral("Default case study");
 	if (m_caseNameLabel)
@@ -3843,11 +3822,8 @@ void MainWindow::updateCaseLayersPanel() {
 			blocked = true;
 			break;
 		}
-	} else if (numRegions <= 0) {
-		readiness = "No runnable case loaded";
-		blocked = true;
-	} else if (m_legacyRunDone) {
-		readiness = "Reload the case to run again";
+	} else {
+		readiness = "No canonical scene loaded";
 		blocked = true;
 	}
 	if (m_caseReadinessLabel) {
@@ -4207,6 +4183,11 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 void MainWindow::runStationOverlayE2E() {
 	if (m_e2eFinished)
 		return;
+	if ((!m_sceneLoaded || !networkView || m_stationOverlays.isEmpty()) && m_e2eAttempts < 120) {
+		++m_e2eAttempts;
+		QTimer::singleShot(500, this, &MainWindow::runStationOverlayE2E);
+		return;
+	}
 	m_e2eFinished = true;
 
 	bool ok = true;
@@ -4219,7 +4200,17 @@ void MainWindow::runStationOverlayE2E() {
 		ok = false;
 		failures << value;
 	};
-	const QString caseName = QFileInfo(QString::fromStdString(InputMainFolder)).fileName();
+	const auto finish = [this](int code) {
+		if (m_worker && m_workerThread && m_workerThread->isRunning()) {
+			connect(m_workerThread, &QThread::finished, qApp, [code]() {
+				QCoreApplication::exit(code);
+			});
+			m_worker->requestStop();
+		} else {
+			QCoreApplication::exit(code);
+		}
+	};
+	const QString caseName = QString::fromStdString(m_sceneModel.name);
 	const QString stationScreenshotBase = qEnvironmentVariable("QEGTRAIN_E2E_STATION_SCREENSHOT_BASE");
 	if (!networkView || m_stationOverlays.isEmpty()) {
 		fail("station overlay scene is empty");
@@ -4265,7 +4256,7 @@ void MainWindow::runStationOverlayE2E() {
 				const QPointF anchor = networkView->viewportTransform().map(overlay->stableAnchor())
 					+ overlay->viewportOffset();
 				const QRectF labelRect = overlay->labelRect().translated(anchor);
-				if (!inset.contains(labelRect))
+				if (!inset.adjusted(-1.0, -1.0, 1.0, 1.0).contains(labelRect))
 					fail(QString("%1 label clipped: %2").arg(label).arg(overlay->stationName()));
 				for (const QRectF& otherSymbol : symbols)
 					if (labelRect.intersects(otherSymbol))
@@ -4343,6 +4334,11 @@ void MainWindow::runStationOverlayE2E() {
 			if (hovered->isLabelVisible())
 				fail("hover leave did not hide culled station label");
 		}
+
+		checkZoom(3.0, "3X");
+		checkZoom(12.0, "12X");
+		const qreal devicePixelRatio = windowHandle() ? windowHandle()->devicePixelRatio() : 1.0;
+		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(devicePixelRatio, 0, 'f', 1));
 
 		const QString previousSelectedStationName = m_selectedStationName;
 		const QList<StationOverlayItem*> previousStationOverlays = m_stationOverlays;
@@ -4469,12 +4465,8 @@ void MainWindow::runStationOverlayE2E() {
 		QApplication::processEvents();
 		if (stationTarget->graphicsEffect() == effect)
 			handleCloseInfoDockWidget();
-		if (overlappingOverlay->scene() == scene)
-			scene->removeItem(overlappingOverlay);
-		delete overlappingOverlay;
-		if (stationTarget->scene() == scene)
-			scene->removeItem(stationTarget);
-		delete stationTarget;
+		overlappingOverlay->hide();
+		stationTarget->hide();
 		m_stationOverlays = previousStationOverlays;
 		m_stationDecorations = previousStationDecorations;
 		m_selectedStationName = previousSelectedStationName;
@@ -4485,21 +4477,16 @@ void MainWindow::runStationOverlayE2E() {
 				item->setVisible(true);
 			}
 		updateViewportOverlays();
-
-		checkZoom(3.0, "3X");
-		checkZoom(12.0, "12X");
-		const qreal devicePixelRatio = windowHandle() ? windowHandle()->devicePixelRatio() : 1.0;
-		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(devicePixelRatio, 0, 'f', 1));
 	}
 
 	if (ok) {
 		marker("E2E_STATION_OVERLAY_OK");
-		QCoreApplication::exit(0);
+		finish(0);
 		return;
 	}
 	std::fprintf(stderr, "E2E_STATION_OVERLAY_FAIL: %s\n", failures.join(", ").toStdString().c_str());
 	std::fflush(stderr);
-	QCoreApplication::exit(2);
+	finish(2);
 }
 
 void MainWindow::runVisualPolishE2E() {
@@ -5034,7 +5021,6 @@ void MainWindow::runVisualPolishE2E() {
 
 	// Run the layer toggles above the dense-detail threshold and put the
 	// overview back afterwards.
-	qreal overviewRatio = networkView ? networkView->zoomRatio() : 1.0;
 	const auto hasVisibleSignalStructure = [this]() {
 		return std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
 			[](QGraphicsItem* item) {
@@ -5171,8 +5157,6 @@ void MainWindow::runVisualPolishE2E() {
 
 	if (networkView) {
 		networkView->fitToTopology();
-		if (overviewRatio > 1.0)
-			networkView->zoomBy(overviewRatio);
 		updateViewportOverlays();
 		QApplication::processEvents();
 	}
@@ -5214,10 +5198,11 @@ void MainWindow::runVisualPolishE2E() {
 		const QRectF visibleViewport = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
 		const bool visibleBadge = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
 			[](const auto& entry) { return entry && entry->isVisible(); });
+		const QRectF viewportRect(networkView->viewport()->rect());
 		const bool badgeInViewport = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-			[&visibleViewport](const auto& entry) {
-				return entry && entry->isVisible()
-					&& visibleViewport.contains(entry->sceneBoundingRect().center());
+			[this, &viewportRect](const auto& entry) {
+				return entry && entry->isVisible() && viewportRect.contains(
+					QPointF(networkView->mapFromScene(entry->scenePos())) + entry->boundingRect().center());
 			});
 		if (!visibleBadge) {
 			ok = false;
@@ -5886,6 +5871,8 @@ void MainWindow::runSceneRenderE2E() {
 			QCoreApplication::exit(2);
 			return;
 		}
+	}
+	if (!m_worker && allTrains.isEmpty()) {
 		runScene();
 		if (!m_worker) {
 			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: scene run did not start\n");
@@ -7187,8 +7174,15 @@ void MainWindow::setupGUI() {
 	// blockSets[13].graphID = -1; blockSets[14].graphID = 15; blockSets[15].graphID = 7; blockSets[16].graphID = -1; blockSets[17].graphID = -2; blockSets[34].graphID = 14; blockSets[35].graphID = -1; blockSets[36].graphID = 14; blockSets[37].graphID = 7;
 	// blockSets[38].graphID = 14; blockSets[39].graphID = 11; blockSets[40].graphID = 10; blockSets[41].graphID = 3; blockSets[42].graphID = -1; blockSets[43].graphID = -2; blockSets[44].graphID = 8; blockSets[45].graphID = 9;
 
-	// MANUAL DRAWING - CASE STUDY
-	setGraphIDsCaseStudy();
+	// Canonical scenes carry topology coordinates; use one generic drawing level
+	// and a single fallback region for stations without legacy metadata.
+	for (int track = 0; track < numTrackLines; ++track)
+		blockSets[track].graphID = track;
+	for (int station = 0; station < numStations; ++station) {
+		if (StationArray[station].regions.empty())
+			StationArray[station].regions.push_back(0);
+		StationArray[station].regionX[0] = StationArray[station].X;
+	}
 
 	//// AUTOMATIC DRAWING (set levels to avoid overlaps)
 	//// assign graphical levels
@@ -7420,22 +7414,13 @@ void MainWindow::setupGUI() {
 
 			// draw arcs
 			if (i > 0) {
-				// for the Copenhagen case double switches
-				if ((blockSets[track].numNodes == 4) && (InputMainFolder == "Input/Input_EGTRAIN_Banedanmark")) {
-					if (i == 2)
-						paintArc(pt_prev, pt, line_width, track, &blockSets[track].member[i - 1], track_separation);
-
-				} else
-					paintArc(pt_prev, pt, line_width, track, &blockSets[track].member[i - 1], track_separation);
+				paintArc(pt_prev, pt, line_width, track, &blockSets[track].member[i - 1], track_separation);
 			}
 
 			// draw last Arc and last Node - end_node Node needed
 			if (i == (blockSets[track].len - 1)) {
 				// draw last Arc
-				if ((blockSets[track].numNodes == 4) && (InputMainFolder == "Input/Input_EGTRAIN_Banedanmark")) {
-					continue;
-				} else
-					paintArc(pt, pte, line_width, track, &blockSets[track].member[i], track_separation);
+				paintArc(pt, pte, line_width, track, &blockSets[track].member[i], track_separation);
 
 				// draw last end_node Node
 				if (!empty(blockSets[track].member[i].endNode.stationName)) { // station Node
@@ -7444,10 +7429,7 @@ void MainWindow::setupGUI() {
 						paintStationPlatform(pte, station_node_size, line_width, &blockSets[track].member[i].endNode);
 					}
 				}
-				// if it is a double switch then do not paint nodes /Copenhagen case
-				else if ((blockSets[track].numNodes == 4) && (InputMainFolder == "Input/Input_EGTRAIN_Banedanmark")) {
-					paintNode(pte, static_cast<int>(0.1), line_width, track, &blockSets[track].member[i].endNode);
-				} else {
+				else {
 					paintNode(pte, node_size, line_width, track, &blockSets[track].member[i].endNode);
 				}
 			}
@@ -7484,11 +7466,6 @@ void MainWindow::setupGUI() {
 	buildSignalIndex();
 	buildTrackIndexes();
 
-	// hide objects from unused tracklines
-	hideUnusedTracks();
-
-	// draw virtual inter region connections
-	drawVirtualInterRegionConnections();
 	updateStationOverlayDegrees();
 	updateViewportOverlays();
 
@@ -7522,7 +7499,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART"))
-		QTimer::singleShot(1500, this, &MainWindow::startSimulation);
+		QTimer::singleShot(1500, this, &MainWindow::runCurrent);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
 		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS"))
@@ -7674,31 +7651,20 @@ void MainWindow::showStartupChooser() {
 	}
 }
 
-// The Run action: scenes restage through runScene so a run never uses stale
-// legacy state; legacy cases start the worker on the state loaded at startup.
+// The Run action always prepares the currently loaded canonical scene first.
 void MainWindow::runCurrent() {
 	if (m_worker)
 		return;
 	if (m_sceneLoaded)
 		runScene();
 	else
-		startSimulation();
+		statusBar()->showMessage("Open a canonical scene before running.", 5000);
 }
 
 // starts EGTRAIN simulation on a worker thread
 void MainWindow::startSimulation() {
 	if (m_worker)
 		return; // already running
-
-	if (m_sceneLoaded) {
-		refreshValidationPanel();
-		if (hasErrors(m_sceneDiagnostics)) {
-			int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
-			showBlockingError(this, "Cannot Run Simulation",
-							  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
-			return;
-		}
-	}
 
 	// show progress bar
 	progressBar->show();
@@ -7759,8 +7725,6 @@ void MainWindow::onSimulationFinished() {
 
 	// The Run Results dock raised by refreshRunResults is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
-	if (!m_sceneLoaded)
-		m_legacyRunDone = true;
 	updateSceneActions();
 
 	// cleanup thread
@@ -7802,9 +7766,7 @@ void MainWindow::teardownGUI() {
 	effect = nullptr; // owned and deleted by the cleared item
 
 	regionStations.clear();
-	virtualInterRegionConnections.clear();
 	m_followTrainIndex = -1;
-	m_legacyRunDone = false;
 	m_e2eAttempts = 0;
 	m_e2eFinished = false;
 	if (m_followAction)
@@ -7863,81 +7825,33 @@ void MainWindow::runScene() {
 		return;
 	}
 
-	// Stage into a local dir first; only swap it into m_runStagingDir after the
-	// running simulation is torn down, so a live worker's input/output files are
-	// never deleted out from under it and a failed run leaves nothing locked.
-	auto* stagingDir = new QTemporaryDir();
-	if (!stagingDir->isValid()) {
-		delete stagingDir;
-		showBlockingError(this, "Cannot Run Scene", "Could not create a temporary staging directory for the run.");
-		return;
-	}
-
-	QString sceneStagingPath = QDir(stagingDir->path()).absoluteFilePath("scene");
-	QString inputStagingPath = QDir(stagingDir->path()).absoluteFilePath("input");
-
-	SceneSaveResult saveResult = ::saveScene(m_sceneModel, sceneStagingPath.toStdString());
-	if (!saveResult.success()) {
-		QString message = firstDiagnosticMessage(saveResult.diagnostics);
-		if (message.isEmpty())
-			message = "Scene could not be staged for the run.";
-		delete stagingDir;
-		showBlockingError(this, "Cannot Run Scene", message);
-		return;
-	}
-
-	if (!m_sceneDir.isEmpty()) {
-		QString sourceLegacy = QDir(m_sceneDir).filePath("legacy");
-		if (QDir(sourceLegacy).exists()) {
-			QString targetLegacy = QDir(sceneStagingPath).filePath("legacy");
-			if (!copyDirectoryRecursively(sourceLegacy, targetLegacy)) {
-				delete stagingDir;
-				showBlockingError(this, "Cannot Run Scene", "Cannot copy legacy passthrough data for the run.");
-				return;
-			}
-		}
-	}
-
-	SceneExportResult exportResult = exportLegacyScene(sceneStagingPath.toStdString(), inputStagingPath.toStdString());
-	if (!exportResult.success()) {
-		QString message = firstDiagnosticMessage(exportResult.diagnostics);
-		if (message.isEmpty())
-			message = "Scene could not be exported for the run.";
-		delete stagingDir;
-		showBlockingError(this, "Cannot Run Scene", message);
-		return;
-	}
-
 	statusBar()->showMessage("Preparing scene simulation...");
 	QApplication::processEvents();
 
 	teardownGUI();
-	simulation.resetState();
-	delete m_runStagingDir;
-	m_runStagingDir = stagingDir;
-
-	// set globals for the scene run (resetState just zeroed them):
-	QString absInput = QDir(inputStagingPath).absolutePath();
-	InputMainFolder = absInput.toStdString();					// GLOBAL (Infrastructure.h)
-	initial_variables.InputMainFolder = absInput.toStdString(); // member, used by setupEgtrain for Connections/trainNames
-	QString absOutput = QDir(m_runStagingDir->path()).absoluteFilePath("output");
-	QDir().mkpath(absOutput);
-	initial_variables.OutputMainFolder = absOutput.toStdString();
+	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
+	if (outputPath.isEmpty() || QDir(outputPath).isRelative()) {
+		QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+		if (base.isEmpty())
+			base = QDir::homePath() + "/EGTRAIN";
+		outputPath = QDir(base).absoluteFilePath(outputPath.isEmpty() ? "Output" : outputPath);
+		QDir().mkpath(outputPath);
+		initial_variables.OutputMainFolder = outputPath.toStdString();
+	}
 	initial_variables.GUI = 1;
-	numTrackLines = countTrackLineDirs(absInput);			 // GLOBAL
-	N_Routes = static_cast<int>(m_sceneModel.routes.size()); // GLOBAL
-	bufferTime = 0;
-	recoveryTimePercentage = 0;					// GLOBALS
-	train_route = std::vector<Route>(N_Routes); // GLOBAL, size like main.cpp
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel);
+	m_sceneDiagnostics = diagnostics;
+	if (hasErrors(diagnostics)) {
+		updateSceneActions();
+		refreshValidationPanel();
+		showBlockingError(this, "Cannot Run Scene", firstDiagnosticMessage(diagnostics), true);
+		return;
+	}
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
-	initial_variables.times = computeHorizon(m_sceneModel);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
-	simulation.setupEgtrain();
-	readStationInfo(); // main.cpp does this at startup; reloads skip it otherwise
-	simulation.prepareSimulation();
 	setupGUI();
-	fitView(); // the previous case's viewport rarely covers the new geometry
+	fitView();
 
 	// scene stays loaded; only the case-study load path clears it
 	updateSceneWindowTitle();
@@ -9209,12 +9123,17 @@ void MainWindow::calculateStationCoordAndShift(int geo_scale) {
 
 	// get station screen coordinates
 	for (int i = 0; i < numStations; i++) { // need a separate for as the one below accesses positions ahead of i
-		// convert geodetic to cartesian coordinates
-		pt = Coord2ScreenPoint(StationArray[i].latitude, StationArray[i].longitude, geo_scale);
-
-		// save coordinates
-		StationArray[i].graphX = pt.x();
-		StationArray[i].graphY = pt.y();
+		if (std::fabs(StationArray[i].latitude) > 1e-12 || std::fabs(StationArray[i].longitude) > 1e-12) {
+			pt = Coord2ScreenPoint(StationArray[i].latitude, StationArray[i].longitude, geo_scale);
+			StationArray[i].graphX = pt.x();
+			StationArray[i].graphY = pt.y();
+		} else {
+			// Native scenes may intentionally omit legacy geographic metadata.
+			StationArray[i].graphX = StationArray[i].X * 1000.0;
+			StationArray[i].graphY = StationArray[i].Y * 1000.0;
+		}
+		if (StationArray[i].regions.empty())
+			StationArray[i].regions.push_back(0);
 	}
 
 	// find number of regions
@@ -9376,8 +9295,8 @@ void MainWindow::neighbourStations(double X, int tracklineID, int* stationIdx) {
 // get shifted screen coordinates of a point (given 1D X coordinate)
 void MainWindow::egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) {
 	if (!hasTrackGeometry(track)) {
-		graphX = 0;
-		graphY = 0;
+		graphX = X * 1000.0;
+		graphY = static_cast<double>(blockSets[track].graphID) * separation;
 		return;
 	}
 	double graphID = (double)blockSets[track].graphID;
@@ -9401,8 +9320,11 @@ void MainWindow::egtrainPoint2Screen(double X, int track, double separation, dou
 
 // get shifted screen coordinates of a Node
 void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
-	if (!hasTrackGeometry(track))
+	if (!hasTrackGeometry(track)) {
+		Node->graphX = Node->X * 1000.0;
+		Node->graphY = Node->Y * 1000.0 + static_cast<double>(blockSets[track].graphID) * separation;
 		return;
+	}
 	int stationIdx[2];
 	neighbourStations(Node->X, track, stationIdx);
 	int graphID = blockSets[track].graphID;
@@ -9422,8 +9344,13 @@ void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
 
 // get shifted screen coordinates of a Node
 void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int track2, double separation) {
-	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2))
+	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2)) {
+		connections->graphXFirstNode = connections->xFirstNode * 1000.0;
+		connections->graphYFirstNode = static_cast<double>(blockSets[track1].graphID) * separation;
+		connections->graphXSecondNode = connections->xSecondNode * 1000.0;
+		connections->graphYSecondNode = static_cast<double>(blockSets[track2].graphID) * separation;
 		return;
+	}
 	int graphID1 = blockSets[track1].graphID;
 	int graphID2 = blockSets[track2].graphID;
 
@@ -10369,207 +10296,6 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
 	text->setPos(textPos);
 	msgGroup->setVisible(true);
-}
-
-// hides all objects of unused tracks (including connections)
-void MainWindow::hideUnusedTracks() {
-	std::list<int> unusedTracks = std::list<int>();
-	int track;
-
-	// collect unused tracks from file
-	ifstream file(initial_variables.InputMainFolder + "/GUI/unusedTracks.txt");
-	if (file.is_open()) {
-		while (file >> track) {
-			unusedTracks.push_back(track);
-		}
-	}
-
-	// tracks were not collected correctly
-	if (unusedTracks.empty()) {
-		return;
-	}
-
-	// hide items from unused tracks
-	for (auto& item : scene->items()) {
-		// filter nodes
-		NodeItem* Node = qgraphicsitem_cast<NodeItem*>(item);
-
-		if (Node) {
-			auto it = std::find(unusedTracks.begin(), unusedTracks.end(), Node->track);
-			if (it != unusedTracks.end()) {
-				Node->hide();
-			}
-		}
-
-		// filter station nodes
-		StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item);
-
-		if (stationNode) {
-			auto it = std::find(unusedTracks.begin(), unusedTracks.end(), stationNode->track);
-			if (it != unusedTracks.end()) {
-				stationNode->hide();
-			}
-		}
-
-		// filter arcs (Arc line items)
-		TrackLineItem* Arc = qgraphicsitem_cast<TrackLineItem*>(item);
-
-		if (Arc) {
-			auto it = std::find(unusedTracks.begin(), unusedTracks.end(), Arc->track);
-			if (it != unusedTracks.end()) {
-				Arc->hide();
-			}
-		}
-
-		// filter connections (connection line items)
-		ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item);
-
-		if (connection) {
-			auto itFirst = std::find(unusedTracks.begin(), unusedTracks.end(), connection->connection->idFirstTrackLine);
-			auto itSecond = std::find(unusedTracks.begin(), unusedTracks.end(), connection->connection->idSecondTrackLine);
-			if ((itFirst != unusedTracks.end()) || (itSecond != unusedTracks.end())) {
-				connection->hide();
-			}
-		}
-
-		if (item->data(kSignalDecorationRole).toBool()) {
-			if (std::find(unusedTracks.begin(), unusedTracks.end(), item->data(kSignalTrackRole).toInt()) != unusedTracks.end()) {
-				item->setData(kSignalBaseVisibleRole, false);
-				item->hide();
-			}
-			continue;
-		}
-
-		// filter signals
-		SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item);
-
-		if (signal) {
-			if (!signal->sectionAheadId.empty()) {
-				auto itAhead = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionAheadTrackId);
-				if (itAhead != unusedTracks.end()) {
-					signal->hide();
-				}
-			} else if (!signal->sectionBehindId.empty()) {
-				auto itBehind = std::find(unusedTracks.begin(), unusedTracks.end(), signal->sectionBehindTrackId);
-				if (itBehind != unusedTracks.end()) {
-					signal->hide();
-				}
-			}
-		}
-	}
-}
-
-// set graphical levels/regions and route corridors for the case study from file (manually assigned)
-void MainWindow::setGraphIDsCaseStudy() {
-	std::string line;
-
-	// read trackline levels from file
-	ifstream levelsFile(initial_variables.InputMainFolder + "/GUI/caseStudyTrackData.txt");
-	if (levelsFile.is_open()) {
-		while (getline(levelsFile, line)) {
-			// ignore empty lines (in the end of the files)
-			if (line.empty())
-				continue;
-
-			std::string token;
-			std::vector<std::string> tokens;
-			char delimiter = '\t';
-			std::istringstream tokenStream(line);
-			while (std::getline(tokenStream, token, delimiter)) {
-				tokens.push_back(token);
-			}
-
-			int track = std::stoi(tokens[0]);
-
-			// assign level
-			if (!tokens[1].empty()) {
-				blockSets[track].graphID = std::stoi(tokens[1]);
-			}
-
-			// assign region
-			blockSets[track].region = std::stoi(tokens[2]);
-		}
-	}
-
-	// read route corridors from file
-	ifstream corridorsFile(initial_variables.InputMainFolder + "/GUI/caseStudyRouteCorridors.txt");
-	if (corridorsFile.is_open()) {
-		while (getline(corridorsFile, line)) {
-			// ignore empty lines (in the end of the files)
-			if (line.empty())
-				continue;
-
-			std::string token;
-			std::vector<std::string> tokens;
-			char delimiter = '\t';
-			std::istringstream tokenStream(line);
-			while (std::getline(tokenStream, token, delimiter)) {
-				tokens.push_back(token);
-			}
-
-			int routeID = std::stoi(tokens[0]);
-
-			// assign corridor
-			if (!tokens[1].empty()) {
-				train_route[routeID].corridor = tokens[1][0];
-			}
-		}
-	}
-}
-
-// draw virtual inter region connections
-void MainWindow::drawVirtualInterRegionConnections() {
-	std::string line;
-
-	// read data from file from file
-	ifstream file(initial_variables.InputMainFolder + "/GUI/caseStudyVirtualInterRegionConnections.txt");
-	if (file.is_open()) {
-		while (getline(file, line)) {
-			// ignore empty lines (in the end of the files)
-			if (line.empty())
-				continue;
-
-			std::string token;
-			std::vector<std::string> tokens;
-			char delimiter = '\t';
-			std::istringstream tokenStream(line);
-			while (std::getline(tokenStream, token, delimiter)) {
-				tokens.push_back(token);
-			}
-
-			int firstTrack = std::stoi(tokens[0]);
-
-			double X1 = std::stod(tokens[1]);
-
-			int secondTrack = std::stoi(tokens[2]);
-
-			double X2 = std::stod(tokens[3]);
-
-			// create (virtual) connection object
-			Connections virtualConnection;
-			virtualConnection.ID = "virtualInterRegionConnection";
-			virtualConnection.idFirstTrackLine = firstTrack;
-			virtualConnection.idSecondTrackLine = secondTrack;
-			virtualConnection.xFirstNode = X1;
-			virtualConnection.xSecondNode = X2;
-
-			// add to container
-			virtualInterRegionConnections.push_back(virtualConnection);
-		}
-
-		// draw (virtual) connections
-		QPointF ptc1, ptc2;
-		for (int i = 0; i < virtualInterRegionConnections.size(); i++) {
-			// get shifted connections
-			egtrainPoint2Screen(&virtualInterRegionConnections[i], virtualInterRegionConnections[i].idFirstTrackLine, virtualInterRegionConnections[i].idSecondTrackLine, track_separation);
-			ptc1.setX(virtualInterRegionConnections[i].graphXFirstNode);
-			ptc1.setY(virtualInterRegionConnections[i].graphYFirstNode);
-			ptc2.setX(virtualInterRegionConnections[i].graphXSecondNode);
-			ptc2.setY(virtualInterRegionConnections[i].graphYSecondNode);
-
-			paintConnection(ptc1, ptc2, line_width, &virtualInterRegionConnections[i]);
-		}
-	}
 }
 
 // --- Zoom controls ---

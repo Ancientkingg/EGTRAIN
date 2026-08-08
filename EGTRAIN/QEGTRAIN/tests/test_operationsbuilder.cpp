@@ -1,8 +1,10 @@
 #include "scene/SceneModel.h"
 #include "simulation/Passengers.h"
+#include "simulation/Optimisation.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -120,6 +122,8 @@ static SceneModel completeScene() {
 int main() {
 	bool ok = true;
 	SceneModel scene = completeScene();
+	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";
+	InputMainFolder = initial_variables.InputMainFolder;
 	auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(infrastructureDiagnostics), "M2 infrastructure builder accepts the complete fixture");
 	if (hasErrors(infrastructureDiagnostics))
@@ -127,6 +131,9 @@ int main() {
 
 	const auto diagnostics = buildOperationsFromScene(scene, "scenario.selected");
 	ok &= expect(!hasErrors(diagnostics), "M3 operations builder accepts the complete fixture");
+	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__"
+			&& InputMainFolder == initial_variables.InputMainFolder,
+			"native builders do not access or rewrite the legacy input folder");
 	ok &= expect(numRegions == 3 && N_Train == 3 && N_TrainD == 0, "repeat expansion populates train counts");
 	ok &= expect(regional_train[0].trainDescription == "service.native-1"
 			&& regional_train[1].trainDescription == "service.native-2"
@@ -185,6 +192,8 @@ int main() {
 			&& initial_variables.times == 90.0
 			&& initial_variables.bufferTime == 7
 			&& initial_variables.recoveryTimePercentage == 12
+			&& bufferTime == 7.0
+			&& recoveryTimePercentage == 12.0
 			&& initial_variables.num_OrderLists == 0, "canonical simulation settings are committed");
 
 	const std::string previousDescription = regional_train[0].trainDescription;
@@ -195,5 +204,50 @@ int main() {
 	ok &= expect(regional_train[0].trainDescription == previousDescription
 			&& simulationIncidents.size() == previousIncidentCount
 			&& initial_variables.name == previousName, "invalid operations build preserves prior runtime state");
+
+	SceneModel reversed = completeScene();
+	reversed.routes[0].blocks = {"block.2", "block.1", "signal.0"};
+	std::reverse(reversed.services[0].stops.begin(), reversed.services[0].stops.end());
+	reversed.passengers.clear();
+	const auto reversedInfrastructure = buildInfrastructureAndSignallingFromScene(reversed);
+	const auto reversedOperations = buildOperationsFromScene(reversed, "scenario.selected");
+	ok &= expect(!hasErrors(reversedInfrastructure) && !hasErrors(reversedOperations),
+			"reversed routes resolve stop nodes without legacy node-list storage");
+
+	SceneModel routeExternal = completeScene();
+	routeExternal.routes[0].blocks = {"signal.0", "block.1"};
+	routeExternal.stations.push_back(
+			{"station.3", "Three", true, 3.0, {{"platform.3", {"node.3"}}}});
+	routeExternal.services[0].stops.push_back(
+			{"station.3", {}, true, true, -120.0, -60.0, 2.0});
+	routeExternal.passengers.clear();
+	const auto routeExternalInfrastructure = buildInfrastructureAndSignallingFromScene(routeExternal);
+	const auto routeExternalOperations = buildOperationsFromScene(routeExternal, "scenario.base");
+	ok &= expect(!hasErrors(routeExternalInfrastructure) && !hasErrors(routeExternalOperations),
+			"pre-entry and post-exit timetable rows remain valid without an invented platform");
+	ok &= expect(regional_train[0].numStations == 4
+			&& regional_train[0].Stations[3].stationPlatformId == ""
+			&& regional_train[0].ScheduledArrivals[3] == -120.0
+			&& regional_train[0].ScheduledDepartures[3] == -60.0,
+			"route-external timetable rows preserve negative relative planned times");
+
+	SceneModel shortHorizon = completeScene();
+	shortHorizon.settings.durationSeconds = 20.0;
+	const auto shortInfrastructure = buildInfrastructureAndSignallingFromScene(shortHorizon);
+	const auto shortOperations = buildOperationsFromScene(shortHorizon, "scenario.base");
+	ok &= expect(!hasErrors(shortInfrastructure) && !hasErrors(shortOperations)
+			&& numRegions == 1 && AllDailyPassengers.front().Journeys.front().N_Trips == 0,
+			"passenger legs beyond a shortened run horizon are reported and skipped");
+
+	initial_variables.times = 120.0;
+	initial_variables.durationOverride = true;
+	SceneModel extendedHorizon = completeScene();
+	const auto extendedInfrastructure = buildInfrastructureAndSignallingFromScene(extendedHorizon);
+	const auto extendedOperations = buildOperationsFromScene(extendedHorizon, "scenario.selected");
+	ok &= expect(!hasErrors(extendedInfrastructure) && !hasErrors(extendedOperations)
+			&& initial_variables.times == 120.0 && numRegions == 4
+			&& regional_train[0].instant_train_speed.size() == 120,
+			"duration override sizes repeated services and runtime vectors to the effective horizon");
+	initial_variables.durationOverride = false;
 	return ok ? 0 : 1;
 }

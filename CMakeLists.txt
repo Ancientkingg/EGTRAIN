@@ -82,7 +82,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
     ${SRC_DIR}/app/DispatchController.cpp
-    ${SRC_DIR}/io/geocoding.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
     ${SRC_DIR}/simulation/Infrastructure.cpp
     ${SRC_DIR}/simulation/InitialParameters.cpp
@@ -113,7 +112,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp
     ${SRC_DIR}/util/TimeFormat.cpp
-    ${SRC_DIR}/io/InputValidation.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
@@ -141,7 +139,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/ConnectionItem.h
     ${SRC_DIR}/widgets/ConsoleWidget.h
     ${SRC_DIR}/app/DispatchController.h
-    ${SRC_DIR}/io/geocoding.h
     ${SRC_DIR}/widgets/InfoDockWidget.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
@@ -171,7 +168,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Simulation.h
     ${SRC_DIR}/simulation/SimulationWorker.h
     ${SRC_DIR}/util/TimeFormat.h
-    ${SRC_DIR}/io/InputValidation.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SceneValidator.h
@@ -276,12 +272,19 @@ if(APPLE)
         MACOSX_BUNDLE_ICON_FILE "egtrain.icns"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
-    # Copy runtime resources (Input data) into the bundle's Resources in a single POST_BUILD step.
+    # Copy canonical scene data into the bundle's Resources in a single POST_BUILD step.
     add_custom_command(TARGET QEGTRAIN POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${SRC_DIR}/Input"
-            "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources/Input"
-        COMMENT "Copying Input data into .app bundle"
+            "${SRC_DIR}/Scenes"
+            "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources/Scenes"
+        COMMENT "Copying Scenes data into .app bundle"
+    )
+else()
+    add_custom_command(TARGET QEGTRAIN POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${SRC_DIR}/Scenes"
+            "$<TARGET_FILE_DIR:QEGTRAIN>/Scenes"
+        COMMENT "Copying Scenes data next to QEGTRAIN"
     )
 endif()
 
@@ -324,11 +327,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
     target_include_directories(test_guisimulationsnapshot PRIVATE ${SRC_DIR})
     add_test(NAME test_guisimulationsnapshot COMMAND test_guisimulationsnapshot)
-
-    add_executable(test_inputvalidation
-        ${SRC_DIR}/tests/test_inputvalidation.cpp
-        ${SRC_DIR}/io/InputValidation.cpp)
-    add_test(NAME test_inputvalidation COMMAND test_inputvalidation)
 
 	add_executable(test_trackpreview
 		${SRC_DIR}/tests/test_trackpreview.cpp
@@ -521,9 +519,6 @@ if(EGTRAIN_BUILD_TESTS)
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
     add_test(NAME test_app_icon_config
         COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_app_icon_config.py)
-    add_test(NAME test_input_path_casing
-        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_input_path_casing.py)
-
     add_executable(test_qt_resource_images
         ${SRC_DIR}/tests/test_qt_resource_images.cpp
         ${EGTRAIN_RESOURCES})
@@ -549,14 +544,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/scene/SceneValidator.cpp
         ${SRC_DIR}/scene/SceneImporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE nlohmann_json::nlohmann_json)
-	add_test(NAME test_sceneimporter
-		COMMAND test_sceneimporter
-		${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
-		${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
-		${SRC_DIR}/Input/Input_EGTRAIN_Netherlands
-		${SRC_DIR}/Input/Input_EGTRAIN_Banedanmark
-		${SRC_DIR}/Input/Input_EGTRAIN_Paimpol
-		"${SRC_DIR}/Input/Input_EGTRAIN_Paimpol - alternativeJourneys")
+	add_test(NAME test_sceneimporter COMMAND test_sceneimporter)
 
 	add_executable(test_scenewriter
 		${SRC_DIR}/tests/test_scenewriter.cpp
@@ -572,14 +560,9 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/scene/SceneDiagnostic.cpp
         ${SRC_DIR}/scene/SceneModel.cpp
         ${SRC_DIR}/scene/SceneValidator.cpp
-        ${SRC_DIR}/scene/SceneImporter.cpp
         ${SRC_DIR}/scene/SceneExporter.cpp)
     target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json)
-	add_test(NAME test_sceneexporter
-		COMMAND test_sceneexporter
-			${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen
-			${SRC_DIR}/Input/Input_EGTRAIN_Milano_Brescia
-			${SRC_DIR}/Input/Input_EGTRAIN_Netherlands)
+	add_test(NAME test_sceneexporter COMMAND test_sceneexporter)
 
 	add_executable(test_scenebuilder
 		${SRC_DIR}/tests/test_scenebuilder.cpp
@@ -589,8 +572,7 @@ if(EGTRAIN_BUILD_TESTS)
 		${SRC_DIR}/util/Logger.cpp
 		${SRC_DIR}/simulation/Signalling.cpp
 		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp
-		${SRC_DIR}/scene/SceneImporter.cpp)
+		${SRC_DIR}/scene/SceneModel.cpp)
 	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
 	if(EGTRAIN_OPENMP_INCLUDE)
@@ -604,8 +586,7 @@ if(EGTRAIN_BUILD_TESTS)
 	elseif(OpenMP_CXX_FOUND)
 		target_link_libraries(test_scenebuilder PRIVATE OpenMP::OpenMP_CXX)
 	endif()
-	add_test(NAME test_scenebuilder
-		COMMAND test_scenebuilder ${SRC_DIR}/Input/Input_EGTRAIN_Copenhagen)
+	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
 	add_executable(test_operationsbuilder
 		${SRC_DIR}/tests/test_operationsbuilder.cpp
@@ -647,14 +628,16 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_test(NAME test_headless_smoke_decode
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
-	add_test(NAME test_case3_startup_errors
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
-	set_tests_properties(test_case3_startup_errors PROPERTIES TIMEOUT 120)
 	add_test(NAME test_scene_tool_diagnostics
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_scene_tool_diagnostics.py $<TARGET_FILE:scene_tool>)
 	add_test(NAME test_startup_launch_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
+	add_test(NAME test_native_startup_without_legacy
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_native_startup_without_legacy PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+		TIMEOUT 120)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	# Release completes in seconds; the ceiling exists for the instrumented
@@ -686,7 +669,7 @@ if(EGTRAIN_BUILD_TESTS)
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
 	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
-	set_tests_properties(test_inputvalidation test_sceneimporter test_sceneexporter test_headless_smoke_decode test_case3_startup_errors test_input_path_casing
+	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
 endif()
 
@@ -695,3 +678,4 @@ install(TARGETS QEGTRAIN scene_tool
     RUNTIME DESTINATION bin
     BUNDLE DESTINATION .
     FRAMEWORK DESTINATION .)
+install(DIRECTORY ${SRC_DIR}/Scenes/ DESTINATION share/EGTRAIN/Scenes)

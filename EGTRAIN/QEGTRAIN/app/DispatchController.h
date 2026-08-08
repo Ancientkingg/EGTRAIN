@@ -1,13 +1,21 @@
 #ifndef DISPATCHCONTROLLER_H
 #define DISPATCHCONTROLLER_H
 
-#include "simulation/Optimisation.h"
 #include "app/GuiSimulationSnapshot.h"
+#include "simulation/Optimisation.h"
+#include "simulation/Rescheduling.h"
 
 #include <QObject>
 
-// dispatching tool
-#include "simulation/Rescheduling.h"
+#ifdef signals
+#define EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#undef signals
+#endif
+#include "scene/SceneModel.h"
+#ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#endif
 
 class DispatchController : public QObject {
 	Q_OBJECT
@@ -15,21 +23,16 @@ class DispatchController : public QObject {
 public:
 	DispatchController(QObject* parent = 0) : QObject() {}
 
-	void setupEgtrain();
+	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
+			const std::string& selectedScenarioId = {});
 
 	void resetState();
-
-	void prepareSimulation();
 
 	void runSimulation();
 
 	void Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3);
 
 	void printLastTrainServicePathDiagram();
-
-	void printTimetableGraph();
-
-	void printCommonTimetableGraph();
 
 	void setVectorSizesFromInput(int vec_size);
 

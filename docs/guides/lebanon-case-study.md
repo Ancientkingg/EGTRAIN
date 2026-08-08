@@ -2,7 +2,10 @@
 
 This guide takes you from a fresh install to a finished simulation run of the Lebanon case study. It covers the packaged application, the authoring steps you complete in the editor, the diagrams and results, and the file exports. Follow it in order for the presentation.
 
-The Lebanon scene ships as an infrastructure shell. It contains the 34 stations and the track network. It does not contain rolling stock, compositions, services, or a timetable. You add those in the editor before the scene can run. The section [What the shell already contains](#what-the-shell-already-contains) lists exactly what is present and what you supply.
+The Lebanon scene ships as a runnable teaching baseline. It contains the 34
+stations, the track network, one short route, and one example service. Run that
+baseline first, then save a working copy and replace the example operating data
+with the case you want to study.
 
 ## Install and launch
 
@@ -20,21 +23,22 @@ Choose File > Open Scene and select the `Scenes/Lebanon` folder inside the packa
 
 The docks on the right hold the editors. If a dock is hidden, turn it back on from the View menu. You will use Train Units, Compositions, Services, and Validation.
 
-## What the shell already contains
+## What the baseline contains
 
 Present in the scene:
 
 - 34 stations, in `stations.json`.
 - Canonical track geometry for lines B0 through B7, in `infrastructure.json`. The network preview reads these nodes, arcs, connections, and platform anchors directly.
-- The original track files under `legacy/Tracklines`. The current simulation runtime still uses this compatibility passthrough; its removal belongs to a later migration milestone.
+- A short B0 teaching route between Lebanese University and Haret Hreik.
+- One teaching train unit and composition, one `LB-1` service, and a baseline scenario.
 
-Not present, and yours to add:
+The example train parameters reuse EGTRAIN's existing Assignment SLT parameters
+only to make the former infrastructure shell runnable. They are not claimed as
+Lebanon rolling-stock data and carry no Lebanon source provenance. Replace them
+before using the scene for engineering conclusions.
 
-- Train units and their traction curves.
-- Compositions.
-- Services and their timetable stops.
-
-Until you add train and service data, Validation reports two errors: no services defined and no trains defined. That is expected for the shell.
+All simulation input is canonical JSON. No hidden `legacy/` files are required
+by preview or simulation.
 
 ## Add train units and traction curves
 
@@ -46,7 +50,8 @@ Open the Train Units dock.
 4. Enter the traction curve rows. Each row is a speed interval with a lower speed, an upper speed, and the three coefficients C0, C1, and C2. Tractive effort at a speed follows C0 plus C1 times speed plus C2 times speed squared, in newtons, with speed in metres per second.
 5. If you imported the unit from a legacy `LITRA` and `T_LITRA` pair, the Source data file and Source traction file fields show those names.
 
-Repeat for every unit the presentation needs.
+Repeat for every unit the presentation needs, then remove the teaching unit if
+no composition uses it.
 
 ## Build compositions
 
@@ -140,7 +145,8 @@ scene_tool export <sceneDir> <outDir>
 
 - `import` builds a scene from a legacy case folder. The Lebanon scene was built this way from the supplied network.
 - `validate` prints the same errors the Validation dock shows.
-- `export` writes the legacy files a simulation run reads, including the B0 through B7 track passthrough, into a clean directory.
+- `export` writes legacy interoperability files into a clean directory. Normal
+  simulation does not read that export.
 
 ## Rehearsal checklist for 15 July
 
@@ -148,7 +154,8 @@ Run this once on the presentation machine before the session.
 
 - [ ] The package launches with no missing-library error.
 - [ ] File > Open Scene loads `Scenes/Lebanon` and the network draws.
-- [ ] The train units, compositions, services, and timetable for the presentation are authored and saved to a working copy.
+- [ ] The supplied teaching baseline runs once without edits.
+- [ ] The presentation train units, compositions, services, and timetable are authored and saved to a working copy.
 - [ ] The Validation dock is clear.
 - [ ] Simulation > Start completes and the status bar reads Simulation complete.
 - [ ] Every diagram in the Diagrams menu opens with readable data.

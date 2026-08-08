@@ -3,28 +3,18 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-SCENE_TOOL="$ROOT/build/scene_tool"
 OUT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.log"
 SHOT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.png"
-TMP_ROOT=""
 
-if [[ ! -x "$APP" || ! -x "$SCENE_TOOL" ]]; then
-	echo "QEGTRAIN app or scene_tool is not built" >&2
+if [[ ! -x "$APP" ]]; then
+	echo "QEGTRAIN app is not built" >&2
 	exit 1
 fi
 
 if [[ $# -gt 0 ]]; then
 	SCENE="$1"
 else
-	# The committed Assignment scene is intentionally loadable but incomplete.
-	# Build a runnable canonical copy from its legacy infrastructure plus its
-	# canonical operations so this smoke exercises the scene-run path.
-	SOURCE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
-	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render.XXXXXX")"
-	trap 'rm -rf "$TMP_ROOT"' EXIT
-	SCENE="$TMP_ROOT/scene"
-	"$SCENE_TOOL" import "$SOURCE/legacy" "$SCENE" Assignment
-	cp "$SOURCE/rolling_stock.json" "$SOURCE/services.json" "$SOURCE/signalling.json" "$SCENE/"
+	SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 fi
 
 rm -f "$SHOT"
@@ -32,7 +22,7 @@ cd "$ROOT/EGTRAIN/QEGTRAIN"
 QEGTRAIN_E2E_SCENE_RUN=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
-"$APP" -n 3 -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$OUT" 2>&1 &
+"$APP" --scene "$SCENE" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$OUT" 2>&1 &
 APP_PID=$!
 
 # macOS has no timeout binary; a hung run must not block the caller

@@ -93,7 +93,6 @@
 QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
-class QTemporaryDir; // forward declaration for m_runStagingDir
 
 // custom GUI files
 #include "graphics/NetworkView.h"
@@ -151,6 +150,9 @@ public:
 
 	// teardown GUI (clears scene + item lists for in-place case study reload)
 	void teardownGUI();
+
+	// Load a canonical scene for the application entry point and scene chooser.
+	bool openSceneDirectory(const QString& dir);
 
 	// open GUI
 	void openGUI();
@@ -214,15 +216,6 @@ public:
 	// VCoupling notifications
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
 	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
-
-	// hide objects of unused tracks
-	void hideUnusedTracks();
-
-	// draw virtual inter region connections
-	void drawVirtualInterRegionConnections();
-
-	// set graphical levels for case study from file (manually defined)
-	void setGraphIDsCaseStudy();
 
 protected:
 	void showEvent(QShowEvent* e) override;
@@ -380,9 +373,6 @@ private:
 	SceneModel m_sceneModel;
 	bool m_sceneLoaded = false;
 	bool m_sceneDirty = false;
-	// A finished legacy-case run leaves end-of-run state behind; block a second
-	// Run until the case is reloaded. Scene runs restage, so they can always rerun.
-	bool m_legacyRunDone = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
@@ -465,8 +455,6 @@ private:
 	QPushButton* m_duplicateIncidentButton = nullptr;
 	QPushButton* m_deleteIncidentButton = nullptr;
 
-	QTemporaryDir* m_runStagingDir = nullptr; // owned staging area for the currently running scene
-
 	// Compact shell state. These pointers observe scene-owned items without
 	// taking ownership; teardownGUI clears them after scene->clear().
 	QDockWidget* m_caseLayersDock = nullptr;
@@ -511,7 +499,6 @@ private:
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
 	bool maybeSaveScene();
-	bool openSceneDirectory(const QString& dir);
 	void renderTrackPreview(const SceneModel& sceneModel);
 	bool saveSceneToCurrentDir();
 	bool saveSceneAsToDirectory();
@@ -637,9 +624,6 @@ private:
 
 	// associates regions and station indexes
 	std::vector<std::vector<int>> regionStations;
-
-	// container to store virtual inter region connections
-	std::vector<Connections> virtualInterRegionConnections;
 
 	// scene item sizes
 	int global_scale;

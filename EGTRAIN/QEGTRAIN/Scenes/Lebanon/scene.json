@@ -1,5 +1,81 @@
 {
-    "legacy_source": "Input/Input_EGTRAIN_Lebanon",
+    "base_time": "06:00:00",
+    "import_report": [
+        {
+            "category": "legacy_root",
+            "converted_count": 1,
+            "skipped_count": 0,
+            "source_count": 1,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "infrastructure.tracks",
+            "converted_count": 8,
+            "skipped_count": 0,
+            "source_count": 8,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "infrastructure.nodes",
+            "converted_count": 894,
+            "skipped_count": 0,
+            "source_count": 894,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "infrastructure.arcs",
+            "converted_count": 886,
+            "skipped_count": 0,
+            "source_count": 886,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "infrastructure.blocks",
+            "converted_count": 461,
+            "skipped_count": 0,
+            "source_count": 461,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "infrastructure.connections",
+            "converted_count": 12,
+            "skipped_count": 0,
+            "source_count": 12,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "stations",
+            "converted_count": 34,
+            "skipped_count": 0,
+            "source_count": 34,
+            "source_file": "prior canonical Lebanon infrastructure shell",
+            "unresolved_references": 0
+        },
+        {
+            "category": "teaching_baseline",
+            "converted_count": 4,
+            "skipped_count": 0,
+            "source_count": 4,
+            "source_file": "manual M4 route/service/scenario; train parameters reuse Assignment SLT without Lebanon provenance",
+            "unresolved_references": 0
+        }
+    ],
     "name": "Lebanon",
-    "schema_version": 1
+    "schema_version": 1,
+    "simulation_settings": {
+        "buffer_time_seconds": 0.0,
+        "duration_seconds": 3600.0,
+        "recovery_time_percent": 0.0
+    },
+    "units": {
+        "distance": "m",
+        "speed": "m/s",
+        "time": "s"
+    }
 }

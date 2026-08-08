@@ -1,53 +1,53 @@
 {
-    "compositions": [
-        {
-            "id": "Draisy",
-            "units": [
-                "Draisy"
-            ]
-        }
-    ],
-    "train_units": [
-        {
-            "id": "Draisy",
-            "physical": {
-                "frontal_area_m2": 1.45,
-                "jerk_ms3": 0.75,
-                "length_m": 46.0,
-                "mass_of_a_wagon_kg": 19000.0,
-                "mass_of_traction_unit_kg": 19000.0,
-                "max_deceleration_ms2": 1.5,
-                "max_speed_ms": 27.7778,
-                "number_of_wagons": 1.0,
-                "resistance_coefficient": 0.004
-            },
-            "source": {
-                "data_file": "/TrainData/Draisy.txt",
-                "traction_file": "/TrainData/Draisy-traction.txt"
-            },
-            "traction_curve": [
-                [
-                    0.0,
-                    6.111,
-                    50000.0,
-                    0.0,
-                    0.0
-                ],
-                [
-                    6.111,
-                    16.6667,
-                    100439.0,
-                    -10241.0,
-                    318.41
-                ],
-                [
-                    16.6667,
-                    33.33,
-                    37825.0,
-                    -1525.5,
-                    20.25
-                ]
-            ]
-        }
-    ]
+  "compositions": [
+    {
+      "id": "Draisy",
+      "units": [
+        "Draisy"
+      ]
+    }
+  ],
+  "train_units": [
+    {
+      "id": "Draisy",
+      "physical": {
+        "frontal_area_m2": 1.45,
+        "jerk_ms3": 0.75,
+        "length_m": 46.0,
+        "mass_of_a_wagon_kg": 19000.0,
+        "mass_of_traction_unit_kg": 19000.0,
+        "max_deceleration_ms2": 1.5,
+        "max_speed_ms": 27.7778,
+        "number_of_wagons": 1.0,
+        "resistance_coefficient": 0.004
+      },
+      "source": {
+        "data_file": "/TrainData/Draisy.txt",
+        "traction_file": "/TrainData/Draisy-traction.txt"
+      },
+      "traction_curve": [
+        [
+          0.0,
+          6.111,
+          50000.0,
+          0.0,
+          0.0
+        ],
+        [
+          6.111,
+          16.6667,
+          100439.0,
+          -10241.0,
+          318.41
+        ],
+        [
+          16.6667,
+          33.33,
+          37825.0,
+          -1525.5,
+          20.25
+        ]
+      ]
+    }
+  ]
 }

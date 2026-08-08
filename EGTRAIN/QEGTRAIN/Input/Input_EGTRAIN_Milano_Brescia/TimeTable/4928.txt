@@ -1,2 +1,0 @@
-OspitalettoT.	30	43500	43560
-Rovato	30	43860	43920
