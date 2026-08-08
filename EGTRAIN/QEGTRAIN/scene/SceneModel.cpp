@@ -1,25 +1,29 @@
 #include "scene/SceneModel.h"
+
 #include <algorithm>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
-static bool readFile(const std::string& path, std::string& content) {
-	std::ifstream f(path);
-	if (!f.good())
+namespace {
+
+bool readFile(const fs::path& path, std::string& content) {
+	std::ifstream input(path);
+	if (!input)
 		return false;
-	content.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+	content.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
 	return true;
 }
 
-static std::string joinPath(const std::string& parent, const std::string& key) {
+std::string joinPath(const std::string& parent, const std::string& key) {
 	return parent.empty() ? key : parent + "." + key;
 }
 
-static SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile, int parsedCount, const std::string& status) {
+SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile,
+		int parsedCount, const std::string& status) {
 	SceneLoadedData data;
 	data.category = category;
 	data.sourceFile = sourceFile;
@@ -28,7 +32,7 @@ static SceneLoadedData makeLoadedData(const std::string& category, const std::st
 	return data;
 }
 
-static std::string loadedDataDiagnosticStatus(const SceneDiagnosticCounts& counts) {
+std::string loadedDataDiagnosticStatus(const SceneDiagnosticCounts& counts) {
 	std::vector<std::string> parts;
 	if (counts.errors > 0)
 		parts.push_back(std::to_string(counts.errors) + (counts.errors == 1 ? " error" : " errors"));
@@ -38,13 +42,13 @@ static std::string loadedDataDiagnosticStatus(const SceneDiagnosticCounts& count
 		parts.push_back(std::to_string(counts.infos) + (counts.infos == 1 ? " info" : " infos"));
 	if (parts.empty())
 		return "ok";
-	std::string status = parts[0];
+	std::string status = parts.front();
 	for (std::size_t i = 1; i < parts.size(); ++i)
 		status += ", " + parts[i];
 	return status;
 }
 
-static std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDiagnostic& diagnostic) {
+std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDiagnostic& diagnostic) {
 	if (!diagnostic.file.empty()) {
 		for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
 			if (scene.loadedData[i].sourceFile == diagnostic.file)
@@ -58,66 +62,131 @@ static std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const S
 	return 0;
 }
 
+} // namespace
+
+SceneScenario* defaultScenario(SceneModel& scene) {
+	if (scene.scenarios.empty()) {
+		SceneScenario baseline;
+		baseline.id = "baseline";
+		baseline.name = "Baseline";
+		scene.scenarios.push_back(baseline);
+	}
+	if (scene.defaultScenarioId.empty())
+		scene.defaultScenarioId = scene.scenarios.front().id;
+	for (auto& scenario : scene.scenarios) {
+		if (scenario.id == scene.defaultScenarioId)
+			return &scenario;
+	}
+	return &scene.scenarios.front();
+}
+
+const SceneScenario* defaultScenario(const SceneModel& scene) {
+	if (scene.scenarios.empty())
+		return nullptr;
+	if (scene.defaultScenarioId.empty())
+		return &scene.scenarios.front();
+	for (const auto& scenario : scene.scenarios) {
+		if (scenario.id == scene.defaultScenarioId)
+			return &scenario;
+	}
+	return &scene.scenarios.front();
+}
+
+std::vector<SceneIncident>& defaultScenarioIncidents(SceneModel& scene) {
+	return defaultScenario(scene)->incidents;
+}
+
+const std::vector<SceneIncident>& defaultScenarioIncidents(const SceneModel& scene) {
+	static const std::vector<SceneIncident> empty;
+	const SceneScenario* scenario = defaultScenario(scene);
+	return scenario ? scenario->incidents : empty;
+}
+
 void refreshLoadedDataSummary(SceneModel& scene) {
 	scene.loadedData.clear();
 
-	auto add = [&](const std::string& category, const std::string& sourceFile, int parsedCount, const std::string& status) {
+	auto statusForFile = [&](const std::string& sourceFile) {
+		return scene.sourceFiles.count(sourceFile) > 0 ? "loaded" : "missing";
+	};
+	auto add = [&](const std::string& category, const std::string& sourceFile, int parsedCount) {
+		const std::string status = statusForFile(sourceFile);
 		SceneLoadedData data = makeLoadedData(category, sourceFile, parsedCount, status);
 		if (!sourceFile.empty()) {
 			data.children.push_back(makeLoadedData("raw_file", sourceFile, status == "loaded" ? 1 : 0, status));
 			data.children.push_back(makeLoadedData("parsed_objects", sourceFile, parsedCount, status));
-			data.children.push_back(makeLoadedData("derived_simulation", "", 0, status == "loaded" ? "not_built" : status));
+			data.children.push_back(makeLoadedData("derived_simulation", "", 0,
+					status == "loaded" ? "not_built" : status));
 		}
 		scene.loadedData.push_back(data);
 	};
-	auto statusForFile = [&](const std::string& sourceFile) {
-		return scene.sourceFiles.count(sourceFile) > 0 ? "loaded" : "missing";
+	auto addChild = [&](const std::string& category, const std::string& sourceFile, int parsedCount,
+			const std::string& status) {
+		scene.loadedData.back().children.push_back(makeLoadedData(category, sourceFile, parsedCount, status));
 	};
 
-	add("scene", "scene.json", scene.schemaVersion > 0 ? 1 : 0, statusForFile("scene.json"));
-	add("infrastructure", "infrastructure.json", 0, statusForFile("infrastructure.json"));
-	add("stations", "stations.json", static_cast<int>(scene.stations.size()), statusForFile("stations.json"));
-	add("timetable", "services.json", static_cast<int>(scene.services.size()), statusForFile("services.json"));
-	add("rolling_stock", "rolling_stock.json",
-			static_cast<int>(scene.trainUnits.size() + scene.compositions.size()),
-			statusForFile("rolling_stock.json"));
-	{
-		SceneLoadedData& rollingStock = scene.loadedData.back();
-		const std::string status = rollingStock.status;
-		rollingStock.children.push_back(makeLoadedData("train_units", "rolling_stock.json",
-				static_cast<int>(scene.trainUnits.size()), status));
-		rollingStock.children.push_back(makeLoadedData("compositions", "rolling_stock.json",
-				static_cast<int>(scene.compositions.size()), status));
+	add("scene", "scene.json", scene.schemaVersion > 0 ? 1 : 0);
+	add("infrastructure", "infrastructure.json", static_cast<int>(scene.tracks.size() + scene.nodes.size()
+			+ scene.arcs.size() + scene.blocks.size() + scene.connections.size()));
+	const std::string infrastructureStatus = scene.loadedData.back().status;
+	addChild("tracks", "infrastructure.json", static_cast<int>(scene.tracks.size()), infrastructureStatus);
+	addChild("nodes", "infrastructure.json", static_cast<int>(scene.nodes.size()), infrastructureStatus);
+	addChild("arcs", "infrastructure.json", static_cast<int>(scene.arcs.size()), infrastructureStatus);
+	addChild("blocks", "infrastructure.json", static_cast<int>(scene.blocks.size()), infrastructureStatus);
+	addChild("connections", "infrastructure.json", static_cast<int>(scene.connections.size()), infrastructureStatus);
 
-		SceneLoadedData sourceFiles = makeLoadedData("source_files", "",
-				0, "missing");
-		for (const auto& unit : scene.trainUnits) {
-			if (!unit.sourceDataFile.empty()) {
-				sourceFiles.children.push_back(makeLoadedData("data_file", unit.sourceDataFile, 1, "loaded"));
-				++sourceFiles.parsedCount;
-			}
-			if (!unit.sourceTractionFile.empty()) {
-				sourceFiles.children.push_back(makeLoadedData("traction_file", unit.sourceTractionFile, 1, "loaded"));
-				++sourceFiles.parsedCount;
-			}
+	add("stations", "stations.json", static_cast<int>(scene.stations.size()));
+	int platformCount = 0;
+	for (const auto& station : scene.stations)
+		platformCount += static_cast<int>(station.platforms.size());
+	addChild("platforms", "stations.json", platformCount, scene.loadedData.back().status);
+
+	add("timetable", "services.json", static_cast<int>(scene.services.size()));
+
+	add("rolling_stock", "rolling_stock.json", static_cast<int>(scene.trainUnits.size()
+			+ scene.compositions.size()));
+	const std::string rollingStatus = scene.loadedData.back().status;
+	addChild("train_units", "rolling_stock.json", static_cast<int>(scene.trainUnits.size()), rollingStatus);
+	addChild("compositions", "rolling_stock.json", static_cast<int>(scene.compositions.size()), rollingStatus);
+	SceneLoadedData sourceFiles = makeLoadedData("source_files", "", 0, "missing");
+	for (const auto& unit : scene.trainUnits) {
+		if (!unit.sourceDataFile.empty()) {
+			sourceFiles.children.push_back(makeLoadedData("data_file", unit.sourceDataFile, 1, "loaded"));
+			++sourceFiles.parsedCount;
 		}
-		if (sourceFiles.parsedCount > 0)
-			sourceFiles.status = "loaded";
-		rollingStock.children.push_back(sourceFiles);
+		if (!unit.sourceTractionFile.empty()) {
+			sourceFiles.children.push_back(makeLoadedData("traction_file", unit.sourceTractionFile, 1, "loaded"));
+			++sourceFiles.parsedCount;
+		}
 	}
-	add("signalling", "signalling.json",
-			static_cast<int>(scene.signals.size() + scene.routes.size()),
-			statusForFile("signalling.json"));
-	{
-		SceneLoadedData& signalling = scene.loadedData.back();
-		const std::string status = signalling.status;
-		signalling.children.push_back(makeLoadedData("signals", "signalling.json",
-				static_cast<int>(scene.signals.size()), status));
-		signalling.children.push_back(makeLoadedData("routes", "signalling.json",
-				static_cast<int>(scene.routes.size()), status));
+	if (sourceFiles.parsedCount > 0)
+		sourceFiles.status = "loaded";
+	scene.loadedData.back().children.push_back(sourceFiles);
+
+	int signallingCount = static_cast<int>(scene.signals.size() + scene.routes.size()
+			+ scene.blockDependencies.size() + scene.singleTrackRestrictions.size()
+			+ scene.stationBoundaries.size());
+	add("signalling", "signalling.json", signallingCount);
+	const std::string signallingStatus = scene.loadedData.back().status;
+	addChild("signals", "signalling.json", static_cast<int>(scene.signals.size()), signallingStatus);
+	addChild("routes", "signalling.json", static_cast<int>(scene.routes.size()), signallingStatus);
+	addChild("dependencies", "signalling.json", static_cast<int>(scene.blockDependencies.size()), signallingStatus);
+	addChild("restrictions", "signalling.json", static_cast<int>(scene.singleTrackRestrictions.size()
+			+ scene.stationBoundaries.size()), signallingStatus);
+
+	int incidentCount = 0;
+	int entranceDelayCount = 0;
+	for (const auto& scenario : scene.scenarios) {
+		incidentCount += static_cast<int>(scenario.incidents.size());
+		entranceDelayCount += static_cast<int>(scenario.entranceDelays.size());
 	}
-	add("incidents", "incidents.json", static_cast<int>(scene.incidents.size()), statusForFile("incidents.json"));
-	add("passenger_data", "", 0, "unimplemented");
+	add("scenarios", "scenarios.json", static_cast<int>(scene.scenarios.size()));
+	const std::string scenariosStatus = scene.loadedData.back().status;
+	const std::string incidentSource = scene.sourceFiles.count("scenarios.json") > 0
+			? "scenarios.json" : "incidents.json";
+	addChild("incidents", incidentSource, incidentCount, scenariosStatus);
+	addChild("entrance_delays", "scenarios.json", entranceDelayCount, scenariosStatus);
+
+	add("passengers", "passengers.json", static_cast<int>(scene.passengers.size()));
 }
 
 void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiagnostic>& diagnostics) {
@@ -128,9 +197,9 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 
 	std::vector<SceneDiagnosticCounts> counts(scene.loadedData.size());
 	for (auto& item : scene.loadedData) {
-		item.children.erase(std::remove_if(item.children.begin(), item.children.end(), [](const SceneLoadedData& child) {
-			return child.category == "validation";
-		}), item.children.end());
+		item.children.erase(std::remove_if(item.children.begin(), item.children.end(),
+				[](const SceneLoadedData& child) { return child.category == "validation"; }),
+			item.children.end());
 	}
 	for (const auto& diagnostic : diagnostics) {
 		SceneDiagnosticCounts& count = counts[loadedDataIndexForDiagnostic(scene, diagnostic)];
@@ -148,370 +217,755 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 	}
 	for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
 		const SceneDiagnosticCounts& count = counts[i];
-		int total = count.errors + count.warnings + count.infos;
-		scene.loadedData[i].children.push_back(makeLoadedData("validation", scene.loadedData[i].sourceFile, total, loadedDataDiagnosticStatus(count)));
+		const int total = count.errors + count.warnings + count.infos;
+		scene.loadedData[i].children.push_back(makeLoadedData("validation", scene.loadedData[i].sourceFile,
+				total, loadedDataDiagnosticStatus(count)));
 	}
 }
 
 void refreshSavedSceneMetadata(SceneModel& scene) {
-	scene.sourceFiles.insert("scene.json");
-	scene.sourceFiles.insert("infrastructure.json");
-	scene.sourceFiles.insert("stations.json");
-	scene.sourceFiles.insert("signalling.json");
-	scene.sourceFiles.insert("rolling_stock.json");
-	scene.sourceFiles.insert("services.json");
-	if (!scene.incidents.empty())
-		scene.sourceFiles.insert("incidents.json");
+	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			"rolling_stock.json", "services.json", "scenarios.json"})
+		scene.sourceFiles.insert(file);
+	scene.sourceFiles.erase("incidents.json");
+	if (scene.passengers.empty())
+		scene.sourceFiles.erase("passengers.json");
 	else
-		scene.sourceFiles.erase("incidents.json");
+		scene.sourceFiles.insert("passengers.json");
 	refreshLoadedDataSummary(scene);
 }
 
 SceneLoadResult loadScene(const std::string& sceneDir) {
 	SceneLoadResult result;
-	auto addError = [&](const std::string& code, const std::string& file, const std::string& msg, const std::string& path = "") {
-		SceneDiagnostic d;
-		d.severity = SceneSeverity::Error;
-		d.code = code;
-		d.file = file;
-		d.message = msg;
-		d.path = path;
-		result.diagnostics.push_back(d);
+	auto addDiagnostic = [&](SceneSeverity severity, const std::string& code,
+			const std::string& file, const std::string& message, const std::string& path = "") {
+		SceneDiagnostic diagnostic;
+		diagnostic.severity = severity;
+		diagnostic.code = code;
+		diagnostic.file = file;
+		diagnostic.message = message;
+		diagnostic.path = path;
+		result.diagnostics.push_back(diagnostic);
+	};
+	auto addError = [&](const std::string& code, const std::string& file,
+			const std::string& message, const std::string& path = "") {
+		addDiagnostic(SceneSeverity::Error, code, file, message, path);
+	};
+	auto addWarning = [&](const std::string& code, const std::string& file,
+			const std::string& message, const std::string& path = "") {
+		addDiagnostic(SceneSeverity::Warning, code, file, message, path);
 	};
 
-	if (!fs::exists(sceneDir) || !fs::is_directory(sceneDir)) {
+	if (!fs::is_directory(sceneDir)) {
 		addError("scene.dir.missing", "", "Scene directory missing or invalid");
 		return result;
 	}
 
-	auto parseJsonFile = [&](const std::string& filename, json& outJson) -> bool {
-		std::string path = (fs::path(sceneDir) / filename).string();
+	auto parseObject = [&](const std::string& file, json& value, bool required) {
 		std::string content;
-		if (!readFile(path, content)) {
-			addError("scene.file.missing", filename, "Required file is missing");
+		if (!readFile(fs::path(sceneDir) / file, content)) {
+			if (required)
+				addError("scene.file.missing", file, "Required file is missing");
 			return false;
 		}
 		try {
-			outJson = json::parse(content);
-		} catch (const json::parse_error& e) {
-			addError("scene.json.parse", filename, std::string("JSON parse error: ") + e.what());
+			value = json::parse(content);
+		} catch (const json::parse_error& error) {
+			addError("scene.json.parse", file, std::string("JSON parse error: ") + error.what());
 			return false;
 		}
-		if (!outJson.is_object()) {
-			addError("scene.section.missing", filename, "Root element must be an object");
+		if (!value.is_object()) {
+			addError("scene.section.missing", file, "Root element must be an object");
 			return false;
 		}
-		result.scene.sourceFiles.insert(filename);
+		result.scene.sourceFiles.insert(file);
 		return true;
+	};
+	auto arraySection = [&](const json& object, const char* key, const std::string& file,
+			const std::string& path, bool required) {
+		if (!object.is_object()) {
+			addError("scene.item.invalid", file, "Expected an object", path);
+			return false;
+		}
+		if (!object.contains(key)) {
+			if (required)
+				addError("scene.section.missing", file, std::string("Missing ") + key + " section",
+						joinPath(path, key));
+			return false;
+		}
+		if (!object[key].is_array()) {
+			addError("scene.section.missing", file, std::string("Mistyped ") + key + " section",
+					joinPath(path, key));
+			return false;
+		}
+		return true;
+	};
+	auto stringField = [&](const json& object, const char* key, const std::string& file,
+			const std::string& path, std::string& output, bool required = true) {
+		if (!object.is_object()) {
+			addError("scene.item.invalid", file, "Array item must be an object", path);
+			return false;
+		}
+		if (!object.contains(key)) {
+			if (required)
+				addError("scene.field.missing", file, std::string("Missing ") + key,
+						joinPath(path, key));
+			return false;
+		}
+		if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
+			addError("scene.field.missing", file, std::string("Invalid ") + key,
+					joinPath(path, key));
+			return false;
+		}
+		output = object[key].get<std::string>();
+		return true;
+	};
+	auto numberField = [&](const json& object, const char* key, const std::string& file,
+			const std::string& path, double& output, bool required = true) {
+		if (!object.is_object()) {
+			addError("scene.item.invalid", file, "Array item must be an object", path);
+			return false;
+		}
+		if (!object.contains(key)) {
+			if (required)
+				addError("scene.field.missing", file, std::string("Missing ") + key,
+						joinPath(path, key));
+			return false;
+		}
+		if (!object[key].is_number()) {
+			addError("scene.field.missing", file, std::string("Invalid ") + key,
+					joinPath(path, key));
+			return false;
+		}
+		output = object[key].get<double>();
+		return true;
+	};
+	auto integerField = [&](const json& object, const char* key, const std::string& file,
+			const std::string& path, int& output, bool required = true) {
+		if (!object.is_object()) {
+			addError("scene.item.invalid", file, "Array item must be an object", path);
+			return false;
+		}
+		if (!object.contains(key)) {
+			if (required)
+				addError("scene.field.missing", file, std::string("Missing ") + key,
+						joinPath(path, key));
+			return false;
+		}
+		if (!object[key].is_number_integer()) {
+			addError("scene.field.missing", file, std::string("Invalid ") + key,
+					joinPath(path, key));
+			return false;
+		}
+		output = object[key].get<int>();
+		return true;
+	};
+	auto isSimulationResultField = [](const std::string& name) {
+		return name == "results" || name == "simulation_results"
+				|| name.find("simulated_") == 0 || name.find("actual_") == 0
+				|| name == "delay_seconds"
+				|| name.find("arrival_delay") != std::string::npos
+				|| name.find("departure_delay") != std::string::npos;
 	};
 
-	// A required top-level key that must hold an array.
-	auto requireArraySection = [&](const json& root, const char* key, const std::string& file) -> bool {
-		if (!root.contains(key) || !root[key].is_array()) {
-			addError("scene.section.missing", file, std::string("Missing or mistyped ") + key + " section");
-			return false;
-		}
-		return true;
-	};
-	// A required field that must hold a non-empty string. Reports and returns
-	// false on failure; loading continues so one pass surfaces every problem.
-	auto requireString = [&](const json& obj, const char* key, const std::string& file, const std::string& path, std::string& out) -> bool {
-		if (!obj.contains(key) || !obj[key].is_string() || obj[key].get<std::string>().empty()) {
-			addError("scene.field.missing", file, std::string("Missing or invalid ") + key, joinPath(path, key));
-			return false;
-		}
-		out = obj[key].get<std::string>();
-		return true;
-	};
-	auto requireNumber = [&](const json& obj, const char* key, const std::string& file, const std::string& path, double& out) -> bool {
-		if (!obj.contains(key) || !obj[key].is_number()) {
-			addError("scene.field.missing", file, std::string("Missing or invalid ") + key, joinPath(path, key));
-			return false;
-		}
-		out = obj[key].get<double>();
-		return true;
-	};
-
-	json sceneJson, infraJson, stationsJson, sigJson, rollingJson, servicesJson;
-	bool sceneOk = parseJsonFile("scene.json", sceneJson);
-	bool infraOk = parseJsonFile("infrastructure.json", infraJson);
-	bool stationsOk = parseJsonFile("stations.json", stationsJson);
-	bool sigOk = parseJsonFile("signalling.json", sigJson);
-	bool rollingOk = parseJsonFile("rolling_stock.json", rollingJson);
-	bool servicesOk = parseJsonFile("services.json", servicesJson);
-
-	// Optional files
-	json incidentsJson, viewsJson;
-	bool incidentsOk = false;
-	if (fs::exists(fs::path(sceneDir) / "incidents.json")) {
-		incidentsOk = parseJsonFile("incidents.json", incidentsJson);
-	}
-	if (fs::exists(fs::path(sceneDir) / "views.json")) {
-		parseJsonFile("views.json", viewsJson); // just parse-check
-	}
+	json sceneJson;
+	json infrastructureJson;
+	json stationsJson;
+	json signallingJson;
+	json rollingStockJson;
+	json servicesJson;
+	json scenariosJson;
+	json incidentsJson;
+	json passengersJson;
+	json viewsJson;
+	const bool sceneOk = parseObject("scene.json", sceneJson, true);
+	const bool infrastructureOk = parseObject("infrastructure.json", infrastructureJson, true);
+	const bool stationsOk = parseObject("stations.json", stationsJson, true);
+	const bool signallingOk = parseObject("signalling.json", signallingJson, true);
+	const bool rollingStockOk = parseObject("rolling_stock.json", rollingStockJson, true);
+	const bool servicesOk = parseObject("services.json", servicesJson, true);
+	const bool scenariosPresent = fs::exists(fs::path(sceneDir) / "scenarios.json");
+	const bool incidentsPresent = fs::exists(fs::path(sceneDir) / "incidents.json");
+	const bool scenariosOk = parseObject("scenarios.json", scenariosJson, scenariosPresent);
+	const bool incidentsOk = !scenariosPresent
+			&& parseObject("incidents.json", incidentsJson, incidentsPresent);
+	const bool passengersOk = parseObject("passengers.json", passengersJson,
+			fs::exists(fs::path(sceneDir) / "passengers.json"));
+	parseObject("views.json", viewsJson, false);
 
 	if (sceneOk) {
 		if (!sceneJson.contains("schema_version")) {
-			addError("scene.version.missing", "scene.json", "Missing schema_version");
-		} else if (!sceneJson["schema_version"].is_number_integer() || sceneJson["schema_version"].get<int>() != 1) {
-			addError("scene.version.unsupported", "scene.json", "Unsupported schema_version, must be the integer 1");
+			addError("scene.version.missing", "scene.json", "Missing schema_version", "schema_version");
+		} else if (!sceneJson["schema_version"].is_number_integer()
+				|| sceneJson["schema_version"].get<int>() != 1) {
+			addError("scene.version.unsupported", "scene.json",
+					"Unsupported schema_version, must be the integer 1", "schema_version");
 		} else {
 			result.scene.schemaVersion = sceneJson["schema_version"].get<int>();
 		}
-		requireString(sceneJson, "name", "scene.json", "", result.scene.name);
-		if (sceneJson.contains("description")) {
-			if (sceneJson["description"].is_string()) {
-				result.scene.description = sceneJson["description"].get<std::string>();
-			} else {
-				addError("scene.field.missing", "scene.json", "description must be a string", "description");
-			}
-		}
-		if (sceneJson.contains("base_time")) {
-			if (sceneJson["base_time"].is_string()) {
-				result.scene.baseTime = sceneJson["base_time"].get<std::string>();
-			} else {
-				addError("scene.field.missing", "scene.json", "base_time must be a string", "base_time");
-			}
-		}
+		stringField(sceneJson, "name", "scene.json", "", result.scene.name);
+		stringField(sceneJson, "description", "scene.json", "", result.scene.description, false);
+		stringField(sceneJson, "base_time", "scene.json", "", result.scene.baseTime, false);
 		if (sceneJson.contains("units")) {
-			if (!sceneJson["units"].is_object()) {
+			const json& units = sceneJson["units"];
+			if (!units.is_object()) {
 				addError("scene.field.missing", "scene.json", "units must be an object", "units");
 			} else {
-				const auto& units = sceneJson["units"];
-				if (units.contains("distance") && units["distance"] != "m") {
-					addError("scene.units.unsupported", "scene.json", "Distance unit must be m", "units.distance");
+				for (const auto& unit : {std::pair<const char*, const char*>("distance", "m"),
+						std::pair<const char*, const char*>("time", "s"),
+						std::pair<const char*, const char*>("speed", "m/s")}) {
+					if (units.contains(unit.first) && (!units[unit.first].is_string()
+							|| units[unit.first].get<std::string>() != unit.second)) {
+						addError("scene.units.unsupported", "scene.json",
+								std::string("Unsupported ") + unit.first + " unit",
+								std::string("units.") + unit.first);
+					}
 				}
-				if (units.contains("time") && units["time"] != "s") {
-					addError("scene.units.unsupported", "scene.json", "Time unit must be s", "units.time");
-				}
-				if (units.contains("speed") && units["speed"] != "m/s") {
-					addError("scene.units.unsupported", "scene.json", "Speed unit must be m/s", "units.speed");
+			}
+		}
+		if (sceneJson.contains("simulation_settings")) {
+			const json& settings = sceneJson["simulation_settings"];
+			if (!settings.is_object()) {
+				addError("scene.field.missing", "scene.json",
+						"simulation_settings must be an object", "simulation_settings");
+			} else {
+				result.scene.settings.hasDuration = numberField(settings, "duration_seconds", "scene.json",
+						"simulation_settings", result.scene.settings.durationSeconds, false);
+				result.scene.settings.hasBufferTime = numberField(settings, "buffer_time_seconds", "scene.json",
+						"simulation_settings", result.scene.settings.bufferTimeSeconds, false);
+				result.scene.settings.hasRecoveryTime = numberField(settings, "recovery_time_percent", "scene.json",
+						"simulation_settings", result.scene.settings.recoveryTimePercent, false);
+			}
+		}
+		if (sceneJson.contains("import_report")) {
+			if (arraySection(sceneJson, "import_report", "scene.json", "", false)) {
+				for (std::size_t index = 0; index < sceneJson["import_report"].size(); ++index) {
+					const json& value = sceneJson["import_report"][index];
+					const std::string path = "import_report[" + std::to_string(index) + "]";
+					SceneImportReportRow row;
+					stringField(value, "category", "scene.json", path, row.category);
+					stringField(value, "source_file", "scene.json", path, row.sourceFile, false);
+					integerField(value, "source_count", "scene.json", path, row.sourceCount);
+					integerField(value, "converted_count", "scene.json", path, row.convertedCount);
+					integerField(value, "skipped_count", "scene.json", path, row.skippedCount);
+					integerField(value, "unresolved_references", "scene.json", path,
+							row.unresolvedReferences);
+					result.scene.importReport.push_back(row);
 				}
 			}
 		}
 	}
 
-	if (infraOk) {
-		requireArraySection(infraJson, "nodes", "infrastructure.json");
-		requireArraySection(infraJson, "arcs", "infrastructure.json");
-	}
-
-	if (stationsOk && requireArraySection(stationsJson, "stations", "stations.json")) {
-		size_t idx = 0;
-		for (const auto& st : stationsJson["stations"]) {
-			std::string path = "stations[" + std::to_string(idx++) + "]";
-			SceneStation s;
-			requireString(st, "id", "stations.json", path, s.id);
-			requireString(st, "name", "stations.json", path, s.name);
-			if (st.contains("platforms") && st["platforms"].is_array()) {
-				size_t pidx = 0;
-				for (const auto& pf : st["platforms"]) {
-					ScenePlatform p;
-					requireString(pf, "id", "stations.json", path + ".platforms[" + std::to_string(pidx++) + "]", p.id);
-					s.platforms.push_back(p);
-				}
+	if (infrastructureOk) {
+		if (arraySection(infrastructureJson, "tracks", "infrastructure.json", "", false)) {
+			for (std::size_t index = 0; index < infrastructureJson["tracks"].size(); ++index) {
+				const std::string path = "tracks[" + std::to_string(index) + "]";
+				SceneTrack track;
+				stringField(infrastructureJson["tracks"][index], "id", "infrastructure.json", path, track.id);
+				result.scene.tracks.push_back(track);
 			}
-			result.scene.stations.push_back(s);
+		}
+		if (arraySection(infrastructureJson, "nodes", "infrastructure.json", "", true)) {
+			for (std::size_t index = 0; index < infrastructureJson["nodes"].size(); ++index) {
+				const std::string path = "nodes[" + std::to_string(index) + "]";
+				SceneNode node;
+				stringField(infrastructureJson["nodes"][index], "id", "infrastructure.json", path, node.id);
+				stringField(infrastructureJson["nodes"][index], "track", "infrastructure.json", path,
+						node.trackId);
+				numberField(infrastructureJson["nodes"][index], "x_km", "infrastructure.json", path,
+						node.xKm);
+				numberField(infrastructureJson["nodes"][index], "y_km", "infrastructure.json", path,
+						node.yKm);
+				result.scene.nodes.push_back(node);
+			}
+		}
+		if (arraySection(infrastructureJson, "arcs", "infrastructure.json", "", true)) {
+			for (std::size_t index = 0; index < infrastructureJson["arcs"].size(); ++index) {
+				const std::string path = "arcs[" + std::to_string(index) + "]";
+				SceneArc arc;
+				stringField(infrastructureJson["arcs"][index], "id", "infrastructure.json", path, arc.id);
+				stringField(infrastructureJson["arcs"][index], "track", "infrastructure.json", path,
+						arc.trackId);
+				stringField(infrastructureJson["arcs"][index], "from", "infrastructure.json", path,
+						arc.fromNodeId);
+				stringField(infrastructureJson["arcs"][index], "to", "infrastructure.json", path,
+						arc.toNodeId);
+				numberField(infrastructureJson["arcs"][index], "curvature_radius_m", "infrastructure.json",
+						path, arc.curvatureRadiusM);
+				numberField(infrastructureJson["arcs"][index], "gradient_percent", "infrastructure.json",
+						path, arc.gradientPercent);
+				numberField(infrastructureJson["arcs"][index], "speed_limit_ms", "infrastructure.json",
+						path, arc.speedLimitMs);
+				result.scene.arcs.push_back(arc);
+			}
+		}
+		if (arraySection(infrastructureJson, "blocks", "infrastructure.json", "", false)) {
+			for (std::size_t index = 0; index < infrastructureJson["blocks"].size(); ++index) {
+				const std::string path = "blocks[" + std::to_string(index) + "]";
+				SceneBlock block;
+				stringField(infrastructureJson["blocks"][index], "id", "infrastructure.json", path,
+						block.id);
+				stringField(infrastructureJson["blocks"][index], "track", "infrastructure.json", path,
+						block.trackId);
+				numberField(infrastructureJson["blocks"][index], "length_km", "infrastructure.json", path,
+						block.lengthKm);
+				result.scene.blocks.push_back(block);
+			}
+		}
+		if (arraySection(infrastructureJson, "connections", "infrastructure.json", "", false)) {
+			for (std::size_t index = 0; index < infrastructureJson["connections"].size(); ++index) {
+				const std::string path = "connections[" + std::to_string(index) + "]";
+				SceneConnection connection;
+				stringField(infrastructureJson["connections"][index], "id", "infrastructure.json", path,
+						connection.id);
+				stringField(infrastructureJson["connections"][index], "from", "infrastructure.json", path,
+						connection.fromNodeId);
+				stringField(infrastructureJson["connections"][index], "to", "infrastructure.json", path,
+						connection.toNodeId);
+				connection.hasSpeedLimit = numberField(infrastructureJson["connections"][index],
+						"speed_limit_ms", "infrastructure.json", path, connection.speedLimitMs, false);
+				result.scene.connections.push_back(connection);
+			}
 		}
 	}
 
-	if (sigOk) {
-		if (requireArraySection(sigJson, "signals", "signalling.json")) {
-			size_t idx = 0;
-			for (const auto& sg : sigJson["signals"]) {
-				SceneSignal s;
-				requireString(sg, "id", "signalling.json", "signals[" + std::to_string(idx++) + "]", s.id);
-				result.scene.signals.push_back(s);
-			}
-		}
-		if (requireArraySection(sigJson, "routes", "signalling.json")) {
-			size_t idx = 0;
-			for (const auto& rt : sigJson["routes"]) {
-				std::string path = "routes[" + std::to_string(idx++) + "]";
-				SceneRoute r;
-				requireString(rt, "id", "signalling.json", path, r.id);
-				if (!rt.contains("blocks") || !rt["blocks"].is_array()) {
-					addError("scene.field.missing", "signalling.json", "Missing or invalid blocks", path + ".blocks");
+	if (stationsOk && arraySection(stationsJson, "stations", "stations.json", "", true)) {
+		for (std::size_t index = 0; index < stationsJson["stations"].size(); ++index) {
+			const std::string stationPath = "stations[" + std::to_string(index) + "]";
+			const json& value = stationsJson["stations"][index];
+			SceneStation station;
+			stringField(value, "id", "stations.json", stationPath, station.id);
+			stringField(value, "name", "stations.json", stationPath, station.name);
+			station.hasPosition = numberField(value, "position_km", "stations.json", stationPath,
+					station.positionKm, false);
+			if (value.contains("platforms")) {
+				if (!value["platforms"].is_array()) {
+					addError("scene.field.missing", "stations.json", "platforms must be an array",
+							stationPath + ".platforms");
 				} else {
-					for (const auto& blk : rt["blocks"]) {
-						if (blk.is_string())
-							r.blocks.push_back(blk.get<std::string>());
-					}
-				}
-				result.scene.routes.push_back(r);
-			}
-		}
-	}
-
-	if (rollingOk) {
-		if (requireArraySection(rollingJson, "train_units", "rolling_stock.json")) {
-			size_t idx = 0;
-			for (const auto& tu : rollingJson["train_units"]) {
-				std::string tuPath = "train_units[" + std::to_string(idx++) + "]";
-				SceneTrainUnit t;
-				requireString(tu, "id", "rolling_stock.json", tuPath, t.id);
-				if (tu.contains("physical")) {
-					if (!tu["physical"].is_object()) {
-						addError("scene.field.missing", "rolling_stock.json", "physical must be an object", tuPath + ".physical");
-					} else {
-						t.hasPhysical = true;
-						auto& ph = tu["physical"];
-						requireNumber(ph, "mass_of_traction_unit_kg", "rolling_stock.json", tuPath + ".physical", t.physical.mass_of_traction_unit_kg);
-						requireNumber(ph, "mass_of_a_wagon_kg", "rolling_stock.json", tuPath + ".physical", t.physical.mass_of_a_wagon_kg);
-						requireNumber(ph, "number_of_wagons", "rolling_stock.json", tuPath + ".physical", t.physical.number_of_wagons);
-						requireNumber(ph, "max_speed_ms", "rolling_stock.json", tuPath + ".physical", t.physical.max_speed_ms);
-						requireNumber(ph, "max_deceleration_ms2", "rolling_stock.json", tuPath + ".physical", t.physical.max_deceleration_ms2);
-						requireNumber(ph, "frontal_area_m2", "rolling_stock.json", tuPath + ".physical", t.physical.frontal_area_m2);
-						requireNumber(ph, "resistance_coefficient", "rolling_stock.json", tuPath + ".physical", t.physical.resistance_coefficient);
-						requireNumber(ph, "jerk_ms3", "rolling_stock.json", tuPath + ".physical", t.physical.jerk_ms3);
-						requireNumber(ph, "length_m", "rolling_stock.json", tuPath + ".physical", t.physical.length_m);
-					}
-				}
-				if (tu.contains("traction_curve")) {
-					if (!tu["traction_curve"].is_array()) {
-						addError("scene.field.missing", "rolling_stock.json", "traction_curve must be an array", tuPath + ".traction_curve");
-					} else {
-						size_t tcIdx = 0;
-						for (const auto& row : tu["traction_curve"]) {
-							if (!row.is_array() || row.size() != 5) {
-								addError("scene.field.missing", "rolling_stock.json", "traction_curve row must be an array of 5 numbers", tuPath + ".traction_curve[" + std::to_string(tcIdx) + "]");
+					for (std::size_t platformIndex = 0; platformIndex < value["platforms"].size();
+							++platformIndex) {
+						const std::string platformPath = stationPath + ".platforms["
+								+ std::to_string(platformIndex) + "]";
+						const json& platformValue = value["platforms"][platformIndex];
+						ScenePlatform platform;
+						stringField(platformValue, "id", "stations.json", platformPath, platform.id);
+						if (platformValue.contains("nodes")) {
+							if (!platformValue["nodes"].is_array()) {
+								addError("scene.field.missing", "stations.json",
+										"nodes must be an array", platformPath + ".nodes");
 							} else {
-								bool ok = true;
-								std::array<double, 5> arr;
-								for (int i = 0; i < 5; ++i) {
-									if (!row[i].is_number()) {
-										ok = false;
-										break;
+								for (std::size_t nodeIndex = 0; nodeIndex < platformValue["nodes"].size();
+										++nodeIndex) {
+									if (!platformValue["nodes"][nodeIndex].is_string()) {
+										addError("scene.field.missing", "stations.json",
+												"Platform node reference must be a string",
+												platformPath + ".nodes["
+												+ std::to_string(nodeIndex) + "]");
+										continue;
 									}
-									arr[i] = row[i].get<double>();
-								}
-								if (!ok) {
-									addError("scene.field.missing", "rolling_stock.json", "traction_curve row must contain numbers", tuPath + ".traction_curve[" + std::to_string(tcIdx) + "]");
-								} else {
-									t.tractionCurve.push_back(arr);
+									platform.nodeIds.push_back(platformValue["nodes"][nodeIndex].get<std::string>());
 								}
 							}
-							tcIdx++;
 						}
+						station.platforms.push_back(platform);
 					}
 				}
-				if (tu.contains("source")) {
-					if (!tu["source"].is_object()) {
-						addError("scene.field.missing", "rolling_stock.json", "source must be an object", tuPath + ".source");
+			}
+			result.scene.stations.push_back(station);
+		}
+	}
+
+	if (signallingOk) {
+		if (arraySection(signallingJson, "signals", "signalling.json", "", true)) {
+			for (std::size_t index = 0; index < signallingJson["signals"].size(); ++index) {
+				const std::string path = "signals[" + std::to_string(index) + "]";
+				SceneSignal signal;
+				stringField(signallingJson["signals"][index], "id", "signalling.json", path, signal.id);
+				result.scene.signals.push_back(signal);
+			}
+		}
+		if (arraySection(signallingJson, "routes", "signalling.json", "", true)) {
+			for (std::size_t index = 0; index < signallingJson["routes"].size(); ++index) {
+				const std::string path = "routes[" + std::to_string(index) + "]";
+				const json& value = signallingJson["routes"][index];
+				SceneRoute route;
+				stringField(value, "id", "signalling.json", path, route.id);
+				if (arraySection(value, "blocks", "signalling.json", path, true)) {
+					for (std::size_t blockIndex = 0; blockIndex < value["blocks"].size(); ++blockIndex) {
+						if (!value["blocks"][blockIndex].is_string()) {
+							addError("scene.field.missing", "signalling.json",
+									"Route block reference must be a string",
+									path + ".blocks[" + std::to_string(blockIndex) + "]");
+							continue;
+						}
+						route.blocks.push_back(value["blocks"][blockIndex].get<std::string>());
+					}
+				}
+				route.hasCorridor = stringField(value, "corridor", "signalling.json", path,
+						route.corridor, false);
+				if (value.contains("reversed")) {
+					if (!value["reversed"].is_boolean())
+						addError("scene.field.missing", "signalling.json", "reversed must be a boolean",
+								path + ".reversed");
+					else
+						route.reversed = value["reversed"].get<bool>();
+				}
+				result.scene.routes.push_back(route);
+			}
+		}
+		if (arraySection(signallingJson, "block_dependencies", "signalling.json", "", false)) {
+			for (std::size_t index = 0; index < signallingJson["block_dependencies"].size(); ++index) {
+				const std::string path = "block_dependencies[" + std::to_string(index) + "]";
+				SceneBlockDependency dependency;
+				stringField(signallingJson["block_dependencies"][index], "block", "signalling.json", path,
+						dependency.block);
+				stringField(signallingJson["block_dependencies"][index], "depends_on", "signalling.json",
+						path, dependency.dependsOn);
+				result.scene.blockDependencies.push_back(dependency);
+			}
+		}
+		if (arraySection(signallingJson, "single_track_restrictions", "signalling.json", "", false)) {
+			for (std::size_t index = 0; index < signallingJson["single_track_restrictions"].size(); ++index) {
+				const std::string path = "single_track_restrictions[" + std::to_string(index) + "]";
+				const json& value = signallingJson["single_track_restrictions"][index];
+				SceneSingleTrackRestriction restriction;
+				stringField(value, "start_block", "signalling.json", path, restriction.startBlock);
+				stringField(value, "end_block", "signalling.json", path, restriction.endBlock);
+				stringField(value, "protected_start_block", "signalling.json", path,
+						restriction.protectedStartBlock);
+				stringField(value, "protected_end_block", "signalling.json", path,
+						restriction.protectedEndBlock);
+				result.scene.singleTrackRestrictions.push_back(restriction);
+			}
+		}
+		if (arraySection(signallingJson, "station_boundaries", "signalling.json", "", false)) {
+			for (std::size_t index = 0; index < signallingJson["station_boundaries"].size(); ++index) {
+				const std::string path = "station_boundaries[" + std::to_string(index) + "]";
+				const json& value = signallingJson["station_boundaries"][index];
+				SceneStationBoundary boundary;
+				stringField(value, "entrance_block", "signalling.json", path, boundary.entranceBlock);
+				boundary.hasExitBlock = stringField(value, "exit_block", "signalling.json", path,
+						boundary.exitBlock, false);
+				if (value.contains("direction")) {
+					if (!value["direction"].is_boolean())
+						addError("scene.field.missing", "signalling.json", "direction must be a boolean",
+								path + ".direction");
+					else
+						boundary.direction = value["direction"].get<bool>();
+				}
+				result.scene.stationBoundaries.push_back(boundary);
+			}
+		}
+	}
+
+	if (rollingStockOk) {
+		if (arraySection(rollingStockJson, "train_units", "rolling_stock.json", "", true)) {
+			for (std::size_t index = 0; index < rollingStockJson["train_units"].size(); ++index) {
+				const std::string path = "train_units[" + std::to_string(index) + "]";
+				const json& value = rollingStockJson["train_units"][index];
+				SceneTrainUnit unit;
+				stringField(value, "id", "rolling_stock.json", path, unit.id);
+				if (value.contains("physical")) {
+					if (!value["physical"].is_object()) {
+						addError("scene.field.missing", "rolling_stock.json", "physical must be an object",
+								path + ".physical");
 					} else {
-						auto& src = tu["source"];
-						requireString(src, "data_file", "rolling_stock.json", tuPath + ".source", t.sourceDataFile);
-						requireString(src, "traction_file", "rolling_stock.json", tuPath + ".source", t.sourceTractionFile);
+						const json& physical = value["physical"];
+						unit.hasPhysical = true;
+						numberField(physical, "mass_of_traction_unit_kg", "rolling_stock.json",
+								path + ".physical", unit.physical.mass_of_traction_unit_kg);
+						numberField(physical, "mass_of_a_wagon_kg", "rolling_stock.json",
+								path + ".physical", unit.physical.mass_of_a_wagon_kg);
+						numberField(physical, "number_of_wagons", "rolling_stock.json",
+								path + ".physical", unit.physical.number_of_wagons);
+						numberField(physical, "max_speed_ms", "rolling_stock.json",
+								path + ".physical", unit.physical.max_speed_ms);
+						numberField(physical, "max_deceleration_ms2", "rolling_stock.json",
+								path + ".physical", unit.physical.max_deceleration_ms2);
+						numberField(physical, "frontal_area_m2", "rolling_stock.json",
+								path + ".physical", unit.physical.frontal_area_m2);
+						numberField(physical, "resistance_coefficient", "rolling_stock.json",
+								path + ".physical", unit.physical.resistance_coefficient);
+						numberField(physical, "jerk_ms3", "rolling_stock.json",
+								path + ".physical", unit.physical.jerk_ms3);
+						numberField(physical, "length_m", "rolling_stock.json",
+								path + ".physical", unit.physical.length_m);
 					}
 				}
-				result.scene.trainUnits.push_back(t);
+				if (value.contains("traction_curve")) {
+					if (!value["traction_curve"].is_array()) {
+						addError("scene.field.missing", "rolling_stock.json",
+								"traction_curve must be an array", path + ".traction_curve");
+					} else {
+						for (std::size_t rowIndex = 0; rowIndex < value["traction_curve"].size(); ++rowIndex) {
+							const json& row = value["traction_curve"][rowIndex];
+							const std::string rowPath = path + ".traction_curve["
+									+ std::to_string(rowIndex) + "]";
+							if (!row.is_array() || row.size() != 5) {
+								addError("scene.field.missing", "rolling_stock.json",
+										"traction_curve row must contain five numbers", rowPath);
+								continue;
+							}
+							std::array<double, 5> values{};
+							bool valid = true;
+							for (std::size_t valueIndex = 0; valueIndex < values.size(); ++valueIndex) {
+								if (!row[valueIndex].is_number()) {
+									valid = false;
+									break;
+								}
+								values[valueIndex] = row[valueIndex].get<double>();
+							}
+							if (!valid) {
+								addError("scene.field.missing", "rolling_stock.json",
+										"traction_curve row must contain numbers", rowPath);
+							} else {
+								unit.tractionCurve.push_back(values);
+							}
+						}
+					}
+				}
+				if (value.contains("source")) {
+					if (!value["source"].is_object()) {
+						addError("scene.field.missing", "rolling_stock.json", "source must be an object",
+								path + ".source");
+					} else {
+						const json& source = value["source"];
+						stringField(source, "data_file", "rolling_stock.json", path + ".source",
+								unit.sourceDataFile, false);
+						stringField(source, "traction_file", "rolling_stock.json", path + ".source",
+								unit.sourceTractionFile, false);
+					}
+				}
+				result.scene.trainUnits.push_back(unit);
 			}
 		}
-		if (requireArraySection(rollingJson, "compositions", "rolling_stock.json")) {
-			size_t idx = 0;
-			for (const auto& cp : rollingJson["compositions"]) {
-				std::string path = "compositions[" + std::to_string(idx++) + "]";
-				SceneComposition c;
-				requireString(cp, "id", "rolling_stock.json", path, c.id);
-				if (!cp.contains("units") || !cp["units"].is_array()) {
-					addError("scene.field.missing", "rolling_stock.json", "Missing or invalid units", path + ".units");
-				} else {
-					for (const auto& u : cp["units"]) {
-						if (u.is_string())
-							c.units.push_back(u.get<std::string>());
+		if (arraySection(rollingStockJson, "compositions", "rolling_stock.json", "", true)) {
+			for (std::size_t index = 0; index < rollingStockJson["compositions"].size(); ++index) {
+				const std::string path = "compositions[" + std::to_string(index) + "]";
+				const json& value = rollingStockJson["compositions"][index];
+				SceneComposition composition;
+				stringField(value, "id", "rolling_stock.json", path, composition.id);
+				if (!arraySection(value, "units", "rolling_stock.json", path, true)) {
+					result.scene.compositions.push_back(composition);
+					continue;
+				}
+				for (std::size_t unitIndex = 0; unitIndex < value["units"].size(); ++unitIndex) {
+					if (!value["units"][unitIndex].is_string()) {
+						addError("scene.field.missing", "rolling_stock.json",
+								"Composition unit reference must be a string",
+								path + ".units[" + std::to_string(unitIndex) + "]");
+						continue;
 					}
+					composition.units.push_back(value["units"][unitIndex].get<std::string>());
 				}
-				result.scene.compositions.push_back(c);
+				result.scene.compositions.push_back(composition);
 			}
-		}
-	}
-
-	if (servicesOk && requireArraySection(servicesJson, "services", "services.json")) {
-		size_t idx = 0;
-		for (const auto& sv : servicesJson["services"]) {
-			std::string path = "services[" + std::to_string(idx++) + "]";
-			SceneService s;
-			requireString(sv, "id", "services.json", path, s.id);
-			requireString(sv, "composition", "services.json", path, s.composition);
-			requireString(sv, "route", "services.json", path, s.route);
-			if (sv.contains("through")) {
-				if (sv["through"].is_boolean()) {
-					s.through = sv["through"].get<bool>();
-				} else {
-					addError("scene.field.missing", "services.json", "through must be a boolean", path + ".through");
-				}
-			}
-			if (sv.contains("entry_time_seconds")) {
-				if (sv["entry_time_seconds"].is_number()) {
-					s.hasEntryTime = true;
-					s.entryTimeSeconds = sv["entry_time_seconds"].get<double>();
-				} else {
-					addError("scene.field.missing", "services.json", "entry_time_seconds must be a number", path + ".entry_time_seconds");
-				}
-			}
-			if (sv.contains("repeat")) {
-				if (!sv["repeat"].is_object()) {
-					addError("scene.field.missing", "services.json", "repeat must be an object", path + ".repeat");
-				} else {
-					s.hasRepeat = true;
-					requireNumber(sv["repeat"], "headway_seconds", "services.json", path + ".repeat", s.headwaySeconds);
-				}
-			}
-			if (!sv.contains("stops") || !sv["stops"].is_array()) {
-				addError("scene.field.missing", "services.json", "Missing or invalid stops", path + ".stops");
-			} else {
-				size_t sidx = 0;
-				for (const auto& stp : sv["stops"]) {
-					std::string stopPath = path + ".stops[" + std::to_string(sidx) + "]";
-					SceneStop t;
-					requireString(stp, "station", "services.json", stopPath, t.stationId);
-					if (stp.contains("platform")) {
-						if (stp["platform"].is_string()) {
-							t.platformId = stp["platform"].get<std::string>();
-						} else {
-							addError("scene.field.missing", "services.json", "platform must be a string", stopPath + ".platform");
-						}
-					}
-					// arrival_seconds is optional on any stop: an absent arrival
-					// means the stop has no scheduled arrival time.
-					if (stp.contains("arrival_seconds")) {
-						if (stp["arrival_seconds"].is_number()) {
-							t.hasArrival = true;
-							t.arrivalSeconds = stp["arrival_seconds"].get<double>();
-						} else {
-							addError("scene.field.missing", "services.json", "arrival_seconds must be a number", stopPath + ".arrival_seconds");
-						}
-					}
-					if (stp.contains("departure_seconds")) {
-						if (stp["departure_seconds"].is_number()) {
-							t.hasDeparture = true;
-							t.departureSeconds = stp["departure_seconds"].get<double>();
-						} else {
-							addError("scene.field.missing", "services.json", "departure_seconds must be a number", stopPath + ".departure_seconds");
-						}
-					} else if (sidx < sv["stops"].size() - 1) {
-						addError("scene.field.missing", "services.json", "Missing departure_seconds (only the last stop may omit it)", stopPath + ".departure_seconds");
-					}
-					requireNumber(stp, "dwell_seconds", "services.json", stopPath, t.dwellSeconds);
-					s.stops.push_back(t);
-					++sidx;
-				}
-			}
-			result.scene.services.push_back(s);
 		}
 	}
 
-	if (incidentsOk && requireArraySection(incidentsJson, "incidents", "incidents.json")) {
-		size_t idx = 0;
-		for (const auto& inc : incidentsJson["incidents"]) {
-			std::string path = "incidents[" + std::to_string(idx++) + "]";
-			SceneIncident i;
-			requireString(inc, "id", "incidents.json", path, i.id);
-			requireString(inc, "type", "incidents.json", path, i.type);
-			requireString(inc, "target", "incidents.json", path, i.target);
-			requireNumber(inc, "start_seconds", "incidents.json", path, i.startSeconds);
-			requireNumber(inc, "end_seconds", "incidents.json", path, i.endSeconds);
-			result.scene.incidents.push_back(i);
+	if (servicesOk && arraySection(servicesJson, "services", "services.json", "", true)) {
+		for (std::size_t index = 0; index < servicesJson["services"].size(); ++index) {
+			const std::string path = "services[" + std::to_string(index) + "]";
+			const json& value = servicesJson["services"][index];
+			SceneService service;
+			stringField(value, "id", "services.json", path, service.id);
+			stringField(value, "operating_code", "services.json", path, service.operatingCode, false);
+			stringField(value, "composition", "services.json", path, service.composition);
+			stringField(value, "route", "services.json", path, service.route);
+			if (value.contains("through")) {
+				if (!value["through"].is_boolean())
+					addError("scene.field.missing", "services.json", "through must be a boolean",
+							path + ".through");
+				else
+					service.through = value["through"].get<bool>();
+			}
+			service.hasEntryTime = numberField(value, "entry_time_seconds", "services.json", path,
+					service.entryTimeSeconds, false);
+			if (value.contains("repeat")) {
+				if (!value["repeat"].is_object()) {
+					addError("scene.field.missing", "services.json", "repeat must be an object",
+							path + ".repeat");
+				} else {
+					service.hasRepeat = true;
+					numberField(value["repeat"], "headway_seconds", "services.json", path + ".repeat",
+							service.headwaySeconds);
+				}
+			}
+			if (arraySection(value, "stops", "services.json", path, true)) {
+				for (std::size_t stopIndex = 0; stopIndex < value["stops"].size(); ++stopIndex) {
+					const std::string stopPath = path + ".stops[" + std::to_string(stopIndex) + "]";
+					const json& stopValue = value["stops"][stopIndex];
+					SceneStop stop;
+					if (stopValue.is_object()) {
+						for (const auto& field : stopValue.items()) {
+							if (isSimulationResultField(field.key()))
+								addError("scene.timetable.results", "services.json",
+										"Service stop input must not contain simulation-result fields",
+										stopPath + "." + field.key());
+						}
+					}
+					stringField(stopValue, "station", "services.json", stopPath, stop.stationId);
+					stringField(stopValue, "platform", "services.json", stopPath, stop.platformId, false);
+					stop.hasPlannedArrival = numberField(stopValue, "planned_arrival_seconds", "services.json",
+							stopPath, stop.plannedArrivalSeconds, false);
+					if (!stop.hasPlannedArrival)
+						stop.hasPlannedArrival = numberField(stopValue, "arrival_seconds", "services.json",
+								stopPath, stop.plannedArrivalSeconds, false);
+					stop.hasPlannedDeparture = numberField(stopValue, "planned_departure_seconds", "services.json",
+							stopPath, stop.plannedDepartureSeconds, false);
+					if (!stop.hasPlannedDeparture)
+						stop.hasPlannedDeparture = numberField(stopValue, "departure_seconds", "services.json",
+								stopPath, stop.plannedDepartureSeconds, false);
+					numberField(stopValue, "dwell_seconds", "services.json", stopPath, stop.dwellSeconds);
+					service.stops.push_back(stop);
+				}
+			}
+			result.scene.services.push_back(service);
+		}
+	}
+
+	auto parseIncidentArray = [&](const json& root, const std::string& file, const std::string& path,
+			std::vector<SceneIncident>& output) {
+		if (!arraySection(root, "incidents", file, path, true))
+			return;
+		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
+			const std::string incidentPath = path.empty()
+					? "incidents[" + std::to_string(index) + "]"
+					: path + ".incidents[" + std::to_string(index) + "]";
+			const json& value = root["incidents"][index];
+			SceneIncident incident;
+			stringField(value, "id", file, incidentPath, incident.id);
+			stringField(value, "type", file, incidentPath, incident.type);
+			stringField(value, "target", file, incidentPath, incident.target);
+			numberField(value, "start_seconds", file, incidentPath, incident.startSeconds);
+			numberField(value, "end_seconds", file, incidentPath, incident.endSeconds);
+			output.push_back(incident);
+		}
+	};
+
+	if (scenariosPresent && incidentsPresent) {
+		addWarning("scene.compatibility.incidents_ignored", "incidents.json",
+				"scenarios.json is authoritative; incidents.json was ignored for compatibility");
+	}
+	if (scenariosPresent) {
+		if (scenariosOk) {
+			stringField(scenariosJson, "default_scenario_id", "scenarios.json", "",
+					result.scene.defaultScenarioId);
+			if (arraySection(scenariosJson, "scenarios", "scenarios.json", "", true)) {
+				for (std::size_t index = 0; index < scenariosJson["scenarios"].size(); ++index) {
+					const std::string path = "scenarios[" + std::to_string(index) + "]";
+					const json& value = scenariosJson["scenarios"][index];
+					SceneScenario scenario;
+					stringField(value, "id", "scenarios.json", path, scenario.id);
+					stringField(value, "name", "scenarios.json", path, scenario.name);
+					stringField(value, "description", "scenarios.json", path, scenario.description, false);
+					parseIncidentArray(value, "scenarios.json", path, scenario.incidents);
+					if (arraySection(value, "entrance_delays", "scenarios.json", path, false)) {
+						for (std::size_t delayIndex = 0; delayIndex < value["entrance_delays"].size();
+								++delayIndex) {
+							const std::string delayPath = path + ".entrance_delays["
+									+ std::to_string(delayIndex) + "]";
+							const json& delayValue = value["entrance_delays"][delayIndex];
+							SceneEntranceDelay delay;
+							stringField(delayValue, "service", "scenarios.json", delayPath, delay.serviceId);
+							integerField(delayValue, "occurrence", "scenarios.json", delayPath,
+									delay.occurrence, false);
+							stringField(delayValue, "station", "scenarios.json", delayPath, delay.stationId);
+							numberField(delayValue, "delay_seconds", "scenarios.json", delayPath,
+								delay.delaySeconds);
+							scenario.entranceDelays.push_back(delay);
+						}
+					}
+					result.scene.scenarios.push_back(scenario);
+				}
+			}
+		}
+	} else {
+		SceneScenario baseline;
+		baseline.id = "baseline";
+		baseline.name = "Baseline";
+		result.scene.defaultScenarioId = baseline.id;
+		if (incidentsPresent && incidentsOk)
+			parseIncidentArray(incidentsJson, "incidents.json", "", baseline.incidents);
+		result.scene.scenarios.push_back(baseline);
+	}
+
+	if (passengersOk && arraySection(passengersJson, "passengers", "passengers.json", "", true)) {
+		auto rejectSimulationResultFields = [&](const json& object, const std::string& path) {
+			if (!object.is_object())
+				return;
+			for (const auto& key : object.items()) {
+				if (isSimulationResultField(key.key())) {
+					addError("scene.passengers.results", "passengers.json",
+							"Passenger input must not contain simulation-result fields",
+							path + "." + key.key());
+				}
+			}
+		};
+		for (std::size_t passengerIndex = 0; passengerIndex < passengersJson["passengers"].size();
+				++passengerIndex) {
+			const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
+			const json& value = passengersJson["passengers"][passengerIndex];
+			ScenePassenger passenger;
+			stringField(value, "id", "passengers.json", passengerPath, passenger.id);
+			rejectSimulationResultFields(value, passengerPath);
+			if (arraySection(value, "journeys", "passengers.json", passengerPath, true)) {
+				for (std::size_t journeyIndex = 0; journeyIndex < value["journeys"].size(); ++journeyIndex) {
+					const std::string journeyPath = passengerPath + ".journeys["
+							+ std::to_string(journeyIndex) + "]";
+					const json& journeyValue = value["journeys"][journeyIndex];
+					ScenePassengerJourney journey;
+					rejectSimulationResultFields(journeyValue, journeyPath);
+					stringField(journeyValue, "id", "passengers.json", journeyPath, journey.id);
+					stringField(journeyValue, "activity", "passengers.json", journeyPath, journey.activity, false);
+					stringField(journeyValue, "origin", "passengers.json", journeyPath,
+							journey.originStationId);
+					stringField(journeyValue, "destination", "passengers.json", journeyPath,
+							journey.destinationStationId);
+					if (journeyValue.contains("planned_departure")
+							&& journeyValue["planned_departure"].is_object()) {
+						const std::string windowPath = journeyPath + ".planned_departure";
+						numberField(journeyValue["planned_departure"], "start_seconds", "passengers.json",
+								windowPath, journey.plannedDepartureStartSeconds);
+						numberField(journeyValue["planned_departure"], "end_seconds", "passengers.json",
+								windowPath, journey.plannedDepartureEndSeconds);
+					} else {
+						addError("scene.field.missing", "passengers.json",
+								"Missing planned_departure window", journeyPath + ".planned_departure");
+					}
+					if (journeyValue.contains("planned_arrival")
+							&& journeyValue["planned_arrival"].is_object()) {
+						const std::string windowPath = journeyPath + ".planned_arrival";
+						numberField(journeyValue["planned_arrival"], "start_seconds", "passengers.json",
+								windowPath, journey.plannedArrivalStartSeconds);
+						numberField(journeyValue["planned_arrival"], "end_seconds", "passengers.json",
+								windowPath, journey.plannedArrivalEndSeconds);
+					} else {
+						addError("scene.field.missing", "passengers.json",
+								"Missing planned_arrival window", journeyPath + ".planned_arrival");
+					}
+					if (arraySection(journeyValue, "legs", "passengers.json", journeyPath, true)) {
+						for (std::size_t legIndex = 0; legIndex < journeyValue["legs"].size(); ++legIndex) {
+							const std::string legPath = journeyPath + ".legs["
+									+ std::to_string(legIndex) + "]";
+							const json& legValue = journeyValue["legs"][legIndex];
+							ScenePassengerLeg leg;
+							rejectSimulationResultFields(legValue, legPath);
+							stringField(legValue, "id", "passengers.json", legPath, leg.id);
+							stringField(legValue, "origin", "passengers.json", legPath, leg.originStationId);
+							stringField(legValue, "destination", "passengers.json", legPath,
+									leg.destinationStationId);
+							stringField(legValue, "service", "passengers.json", legPath, leg.serviceId);
+							integerField(legValue, "occurrence", "passengers.json", legPath,
+									leg.occurrence, false);
+							journey.legs.push_back(leg);
+						}
+					}
+					passenger.journeys.push_back(journey);
+				}
+			}
+			result.scene.passengers.push_back(passenger);
 		}
 	}
 

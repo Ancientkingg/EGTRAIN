@@ -1,68 +1,107 @@
-# Scene Model Design
+# V1 Scene Model
 
-The current scene input is split across many legacy folders and text files. It is hard to validate, hard to edit, and easy to break. V1 should introduce a canonical scene model that sits between the UI and the current simulator input files.
-
-```text
-legacy case folder -> importer -> canonical scene -> validator -> editor UI
-canonical scene -> exporter -> current simulator input files
-```
-
-## Goals
-
-- Use one scene model for validation, UI editing, and export.
-- Keep the current simulator running while the input layer changes.
-- Convert old case-study folders into the new format.
-- Keep scene files readable for instructors and researchers.
-- Make manual text editing optional instead of required.
-
-## Format
-
-Use one directory per scene. Prefer JSON for V1 because Qt can read and write it without a new parser dependency.
+V1 is a directory of canonical JSON files. The model is the hand-off between
+the scene editor and the existing simulator path:
 
 ```text
-scene.json              metadata, schema version, units, base time
-infrastructure.json     nodes, arcs, tracks, switches, speed limits, gradients
-stations.json           stations, station types, platforms
-signalling.json         signals, block sections, routes, corridors
-rolling_stock.json      train units and train compositions
-services.json           services, stops, dwell times, platforms, timetable values
-incidents.json          signal failures, train breakdowns, disruption windows
-views.json              default diagram and viewport settings
+legacy case -> SceneImporter -> canonical SceneModel + legacy passthrough
+canonical files -> loadScene -> validation -> editor
+canonical model -> SceneExporter -> legacy input -> existing simulator
 ```
 
-The schema can be split later if a single-file scene is easier for exchange.
+The last arrow is still the runtime path in this PR. V1 does not make the
+simulator a native JSON consumer.
 
-The V1 schema is defined in scene-schema.md.
+## Canonical directory
 
-## Validator
+| File | Role | Input status |
+| --- | --- | --- |
+| `scene.json` | schema version, identity, units, base time, simulation settings, and optional import report | required |
+| `infrastructure.json` | tracks, nodes, arcs, blocks, and connections | required |
+| `stations.json` | stations, positions, platforms, and platform nodes | required |
+| `signalling.json` | signals, routes, dependencies, single-track restrictions, and station boundaries | required |
+| `rolling_stock.json` | train units, physical data, traction curves, and compositions | required |
+| `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
+| `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
+| `passengers.json` | passenger journeys and legs | optional |
+| `views.json` | display preferences | optional |
 
-The validator should catch:
+The six required files are the files needed for structural loading. A scene
+may therefore load without scenarios or passengers; the writer creates a
+baseline `scenarios.json` even when there are no named scenarios. Imported
+scenes also carry a `legacy/` tree for files still consumed by the legacy
+runtime.
 
-- missing files
-- unresolved station, route, platform, signal, or train references
-- zero trains
-- empty routes
-- invalid timetable values
-- invalid dwell times
-- incident targets that do not exist
-- output path problems
+## Model ownership
 
-Each error should name the scene item and suggest the smallest fix.
+`SceneModel` owns the canonical values, not a second flat copy of legacy
+incidents. Incidents belong to a `SceneScenario`; the selected scenario is
+identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
+derived summaries. `import_report` is the persisted conversion summary, with
+one row containing `category`, optional `source_file`, `source_count`,
+`converted_count`, `skipped_count`, and `unresolved_references`.
 
-## Converter
+The scene-level simulation settings are deliberately small: `base_time`,
+`simulation_settings.duration_seconds`,
+`simulation_settings.buffer_time_seconds`, and
+`simulation_settings.recovery_time_percent`. Legacy case counts, GUI flags,
+output paths, and network feature flags are not scene-model settings.
 
-The converter has two directions:
+Services keep physical and traction provenance explicit. A train unit's
+`source.data_file` and `source.traction_file` are independent relationships;
+the model does not infer one from a filename such as `LITRA` or `T_...`.
 
-- Legacy importer: reads existing case-study folders and writes canonical scenes. Implemented; see scene-schema.md for the mapping.
-- Legacy exporter: writes the current simulator input files from a canonical scene. Implemented. The editor->export->simulate path now exists end to end.
+Service stop input uses `planned_arrival_seconds` and
+`planned_departure_seconds`. Each is independently optional on every stop.
+Legacy timetable sentinels such as `-1` become absent planned fields; they
+are not converted into simulation results. An incomplete intermediate
+schedule may produce a validation warning, but departure omission is not
+restricted to the last stop. Dwell and repetition remain planned input as
+well.
 
-The editor should save the canonical scene. The simulation can keep reading exported legacy files until the simulator input layer is replaced.
+Each service also has a unique canonical `id` and an optional
+`operating_code`. The latter defaults to the ID and preserves the active train
+identity consumed by the existing simulator. It is intentionally not required
+to be unique: Milano-Brescia contains distinct service definitions sharing
+codes `9707` and `9709`.
 
-## Migration Path
+Passenger journey windows use absolute seconds from midnight. They are not
+random passenger draws, simulation results, or a replacement for the legacy
+runtime's conditional DAS/RouteChoice CSV loader.
 
-1. Define the scene schema.
-2. Import Copenhagen and Brescia into canonical scenes.
-3. Validate converted scenes.
-4. Export scenes back to current input files.
-5. Add the MVP editor on top of the scene model.
-6. Build the Amsterdam to Hilversum assignment case through the scene model.
+## Validation layers
+
+The public validator separates three questions:
+
+- `validateSceneStructure` checks the directory, JSON, required sections, and
+  field shape without cross-file semantic checks.
+- `validateScene` checks the loaded model: references, identifiers, values,
+  timetable consistency, incidents, and other scene relationships.
+- `validateRunnableScene` checks the minimum complete model needed for a run.
+
+`validateSceneDirectory` loads and performs semantic validation;
+`validateRunnableSceneDirectory` adds runnable-completeness checks. Both run
+model validation only when structural loading has no error diagnostics, which
+avoids cascaded reference errors from partially parsed files.
+
+## Compatibility and scope
+
+The loader accepts historical aliases for existing scenes, while the writer
+emits only preferred V1 keys. The aliases and their exact mappings are listed
+in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases).
+
+`SceneImporter` maps the legacy seven-token train definition, physical and
+traction source files, timetable rows, routes, and stations into the model;
+runtime support trees that are not yet native inputs are preserved under
+`legacy/`. `SceneExporter` writes the canonical train, service, route, and
+scenario-compatible data and carries the passthrough tree into the temporary
+legacy input used by the current run path.
+
+The compatibility exporter does not synthesize Rollout or passenger CSV files
+from the new scenario/passenger JSON. Those values already round-trip through
+the canonical loader, writer, importer, and validator, but their execution and
+scenario selection remain later-milestone work; the unchanged runtime still
+uses matching files from `legacy/` when present.
+
+Milestone 1 covers this V1 directory and its compatibility path. The `.egscene`
+bundle format and native simulator input are outside this milestone.
