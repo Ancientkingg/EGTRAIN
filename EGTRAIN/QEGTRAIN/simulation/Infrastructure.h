@@ -185,10 +185,6 @@ public:
 	}
 };
 
-void loadArc(Arc* A, int& arcs, Node* N, int numNodes, char* name2);
-
-void loadNode(Node* N, int& numNodes, char* name1);
-
 // --- BlockSet: a train path (track line) composed of arcs and nodes ---
 
 #define maxsize 1500
@@ -198,40 +194,17 @@ public:
 	int ID;
 	int len;
 	int arcs, numNodes;              // Number of arcs and nodes in this track line
-	Arc A[1500];                     // All arcs belonging to this BlockSet (loaded from file)
-	Node N[1500];                    // All nodes belonging to this BlockSet (loaded from file)
+	Arc A[1500];                     // Runtime arcs populated from the scene model
+	Node N[1500];                    // Runtime nodes populated from the scene model
 	Arc member[maxsize];             // Member arcs of the track line
 	int graphID;                     // Graphical display level
 	int region;                      // Geographical region
 	double firstSwitchX, lastSwitchX; // X coordinates of first and last switch
 
 	BlockSet();
-
-	int findArc(Arc A);
-
-
-	BlockSet operator+(Arc A) {
-		BlockSet newset;
-		if (len == maxsize) {
-			cout << "There too many Arc in this Trackline";
-			return *this;
-		}
-		newset = *this;
-		if (findArc(A) == -1) {
-			newset.member[newset.len] = A;
-			newset.len++;
-		}
-		return newset;
-	}
-
-
-	// Load nodes and arcs from the given folder
-	void defineTrainPath(char* FolderName);
 };
 
 extern BlockSet blockSets[268];
-
-void loadTrackLine(char* TrackLineFolder);
 
 // --- Connections: links between track lines (switches, joints, etc.) ---
 
@@ -245,14 +218,10 @@ public:
 	double speedlimit; // Speed limit in m/s (default 16.67 m/s)
 	double graphXFirstNode, graphYFirstNode, graphXSecondNode, graphYSecondNode;
 	Connections();
-
-	void setConnections(BlockSet* blockSets);
 };
 
 extern Connections connections[708];
 extern int numConnections;
-
-void loadConnections(int& numConnections, string ConnectionFilePath);
 
 // --- StationPlatform: platform details (length, capacity, waiting passengers) ---
 
@@ -314,7 +283,6 @@ extern Stations DisturbanceInput;
 extern Stations Final_Station;      // Fictitious station to measure delays at trains' final stations
 extern int numStations;
 
-void loadStations(char* FileStations);
 void printStations();
 void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay);
 
