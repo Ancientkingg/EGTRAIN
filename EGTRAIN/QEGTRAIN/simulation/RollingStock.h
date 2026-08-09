@@ -77,61 +77,6 @@ public:
 		delete[] Matr;
 	}
 
-	// Upgraded Function to Load the features of a single OrderList object from an input file
-	// This upgraded function is set to distinguish whether the Order List refers to a merging or a diverging junction where train reordering can occur
-	// In this version of the function there is no initalisation of the BlockID of the OrderedList as that is an old version.
-	// Now the OrderedList is updated with the bool Is_DivergingJunction or Is_MergingJunction. So in the initialising text files the second row should indicate whether the Ordered List
-	// Refers to a "MergingJunction" or to a "DivergingJunction"
-
-	void Load_OrderList_Upgraded(char* OrderFile) {
-		string* Matr;
-		int N_List = 0;
-		Matr = new string[1000];
-		ifstream inputfile;
-		inputfile.open(OrderFile, ios::binary);
-		if (!inputfile) {
-			cout << "\nError 72 : impossible to open OrderList file\n";
-		} else
-			cout << "Loading Order List files ...\n";
-
-		while (inputfile) {
-			inputfile >> Matr[N_List];
-			std::cout << "\rLoading Order List file : " << N_List;
-			N_List++;
-		}
-		std::cout << "\n";
-		N_List = (N_List - 1);
-		numTeList = N_List - 2;
-		inputfile.close(); // Closing OrderList Data File
-
-		// find this
-		Node_X = atof(Matr[0].c_str());
-		string JunctionType;
-		JunctionType = Matr[1];
-		if (JunctionType == "MergingJunction") {
-			Is_MergingJunction = true;
-		} else if (JunctionType == "DivergingJunction") {
-			Is_DivergingJunction = 1;
-		}
-
-		else {
-			cout << "\n"
-				 << "Error 74: OL text file to initialise Order List referring to location abscissa " << Matr[0] << " does not correctly specify whether it is a Merging or Diverging Junction. The text on the second line of the text file should be either 'MergingJunction' or 'DivergingJunction' " << "\n";
-			cout << "Any other expression raises an incorrect OL specification " << "\n";
-		}
-
-		ID = ID + JunctionType + "_" + Matr[0];
-		for (int i = 2; i < N_List; i++) {
-			TE[i - 2].trainDescription = Matr[i];
-		}
-		// Assigning the successor for each TrainElement in the OrderedList (i.e. taking the id of the train that is the successor in the list)
-		for (int i = numTeList - 1; i >= 0; i--) {
-			TE[i].SuccessorID = TE[i + 1].trainDescription;
-		}
-		// Deleting the Matrix
-		delete[] Matr;
-	}
-
 	// Function to detect the implemented train order at the OL
 	void Detect_Implemented_Order() {
 		if (Implemented_Order.empty() || (LastEnteredTrain != Implemented_Order.back())) { // if the list is empty or the LastEnteredTrain is different from the last Element of the list
@@ -214,7 +159,6 @@ extern OrderList OL[20];
 // Function to Load All The OrderLists referred to Critical Nodes in the Infrastructure
 void loadAllOrderLists(char* FolderName);
 
-void loadAllOrderListsUpgraded(char* FolderName);
 
 // Function to Reset the Lists that will be updated at each instant
 void resetOlToUpdate();
@@ -7943,9 +7887,6 @@ extern Regional regional_train[Max_N_Reg];
 extern Regional P, PD; /*This train is a Proof Train to measure the simulated Headway for each different Signalling Layout
 				P is the Proof Train on the Even Track, while PD is the proof Train on the Odd track*/
 
-// Fuction to load data of a train Type. Train Type involve the same category (Intercity, Regional), the same Route, and the same stops on that Route
-void loadTrainType(char* Train_File, int& numRegions);
-
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
 void Occupy_Block_Sections_Of_Route(int i);
 
@@ -7957,10 +7898,6 @@ void Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(int t);
 
 // Function to determine the scheduled sequence of train departure from a certain Node and print it on a text file
 void Print_Scheduled_Dep_Order_In_Node(double Node_X);
-
-// Function to Rename trains according to the ROMA denomination: the trains in the ROMA file must be ordered according to the timetable departure
-// the train renamed must depart or pass from the Node with abscissa Node_X
-void nameTrainDescriptionAsRomaTool(char* FileNamesROMA, double Node_X);
 
 // Debugging Function
 void Function_To_Debug_Occupation_Train(Train T, Section* BS, int Blocks);
@@ -7988,8 +7925,6 @@ void ComputeBlockingTimesETCS3ForAllTrains(double SetupTime, double ReleaseTime,
 
 // Debug Activate Signalling Function
 void Debug_Activate_Signalling();
-
-void LoadAllTrainFiles(string MainFolder);
 
 void DetectConflictsForAllTrains(Train* Trains, int numTrains);
 

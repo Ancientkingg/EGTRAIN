@@ -87,13 +87,6 @@ public:
 extern list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
 extern int numAllDailyPassengers;		   // This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
 
-
-void initialiseAllDailyPassengersFromDailyActivitySchedule(string DASFileName, list<Passenger>& All_Pax, int& N_All_Pax);
-
-void updatePassengerRouteChoice(string RCFileName, list<Passenger>& All_Pax, int& N_All_Pax);
-
-void assignPlatformsToTripsInJourney(list<Passenger>& ALLPAXlist, list<StationPlatform> ALLPLATFORMS);
-
 void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger> ALLPAX, string MainFolder);
 
 void printPassengerTotalJourneyDelay(list<Passenger> ALLPAX, string MainFolder);
