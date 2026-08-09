@@ -71,8 +71,9 @@ to be unique: Milano-Brescia contains distinct service definitions sharing
 codes `9707` and `9709`.
 
 Passenger journey windows use absolute seconds from midnight. They are not
-random passenger draws, simulation results, or a replacement for the legacy
-runtime's conditional DAS/RouteChoice CSV loader.
+random passenger draws or simulation results. DAS and RouteChoice CSV files
+are read only by explicit legacy import and written only by explicit legacy
+export.
 
 The native operations path gives every expanded occurrence the stable runtime
 identity `<service id>-<occurrence>` and uses the canonical service ID for
