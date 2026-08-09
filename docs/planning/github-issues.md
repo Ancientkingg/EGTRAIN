@@ -1,5 +1,8 @@
 # GitHub Issue Plan
 
+This document preserves the initial backlog. See [Roadmap](roadmap.md) for the
+current corridor, completed migration work, and active priorities.
+
 ## Milestones
 
 1. Repository setup

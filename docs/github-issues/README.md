@@ -2,7 +2,8 @@
 
 Last updated: 2026-07-06
 
-This directory mirrors GitHub issues that track UI design and release automation work for EGTRAIN. It exists because no local issue mirror was present in the repository.
+This directory is a dated snapshot of issues that tracked UI design and release
+automation work. Use GitHub for current issue state and acceptance criteria.
 
 ## Source Tree Reorganization
 

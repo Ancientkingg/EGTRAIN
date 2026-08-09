@@ -1,162 +1,121 @@
 # Roadmap
 
-## Product Target
+## Current product state
 
-EGTRAIN V1 should support the railway traffic management assignment without requiring students to edit legacy input files. The application should load an assignment scene, edit assignment-level train and timetable data, run simulations, show the required diagrams, and export report data.
+EGTRAIN uses canonical V1 scene data for normal GUI, CLI, preview, and
+simulation input. The native builders construct infrastructure, signalling,
+rolling stock, services, timetables, the selected scenario, entrance delays,
+and passengers directly from `SceneModel`. Legacy import and export remain
+explicit interoperability tools.
 
-Full infrastructure editing is not part of V1. It stays on the roadmap after the assignment workflow works.
+Six case studies are committed as canonical scene directories. V2 `.egscene`
+files provide the portable form of the same V1 data. The application can open
+and save both forms. Loaded Data, validation, train and service editors, named
+scenario editing, native simulation, planned and simulated timetable results,
+CSV export, and PNG export are implemented.
 
-## Baseline In Place
+Release automation builds macOS, Windows, and Linux packages and publishes six
+validated `.egscene` bundles. The remaining release gate is a recorded
+clean-install GUI rehearsal, not package generation.
 
-- Qt application build through CMake.
-- Start, pause, stop, and playback speed controls.
-- Worker-thread simulation path.
-- Smooth train drawing and current-speed labels.
-- Timetable, delay, speed, and blocking-time diagrams.
-- Read-only right-side train information.
-- Console logging moved into an in-app log pane.
-- Headless smoke tests for Copenhagen and Brescia.
-- Visual smoke test for the main UI.
-- GitHub Actions build and unit-test workflow.
+## P0: Packaged student release rehearsal
 
-## P0: Repository Setup
+Goal: prove that a student can use a downloaded package and case study without
+a source checkout or development dependencies.
 
-Goal: make the repository buildable, testable, and clean from a fresh clone.
+- Complete and record the Windows, macOS, and Linux rehearsal in issue #74.
+- Open a downloaded `.egscene`, inspect Loaded Data, select or edit a scenario,
+  save a working copy, run it, inspect results, export CSV and PNG files, and
+  reopen the saved copy.
+- Treat CI package and bundle checks as automated evidence. They do not replace
+  the clean-install GUI run.
+- Fold the remaining macOS GUI acceptance from #233 into the same rehearsal.
+  Track any failure as a focused platform issue.
 
-Status: done.
+See [Release Testing Checklist](../development/release-testing-checklist.md).
 
-## P0: Scene Model And Converter
+## P0: Assignment case-study fidelity
 
-Goal: replace the messy scene input workflow with a clean canonical scene format.
+Goal: make `Assignment_Gvc_Gdg_Ut` match the source corridor, stopping patterns,
+and train material without guessed parameters.
 
-Missing work:
+1. Complete #182 for intermediate stations, distinct `Gd` and `Gdg` records,
+   route reachability, and source stopping patterns.
+2. Complete #228 for traceable ICM3, ICM4, IRM3, and SGM3 physical and traction
+   source data. This can proceed alongside #182.
+3. Complete #181 after #228, using that data for train-unit definitions and the
+   four assignment service compositions.
 
-- Define the V1 scene schema.
-- Write a scene validator with user-facing diagnostics.
-- Import legacy case-study folders into the new format.
-- Export canonical scenes back to the current simulator input files.
-- Add conversion tests for Copenhagen and Brescia.
-- Add clear errors for malformed input.
+The assignment epic remains #4. Do not substitute similar train types or infer
+missing physics.
 
-## P0: MVP Scene Editor
+## P1: Assignment-level editing gaps
 
-Goal: let students edit assignment-level data in the app.
+Goal: support the remaining assignment changes through canonical data and the
+GUI.
 
-Missing work:
+- #35: define, persist, and apply per-service performance controls.
+- #36: add repeated-service count and train-number step. Repeat headway editing
+  already exists.
+- #37: add the course-defined timetable rounding workflow.
+- #51: add reduced-speed and recovery behavior for train breakdowns. Basic
+  target and incident-window editing already exists.
+- #164: add passenger record inspection, interactive import, edit/delete,
+  row-context validation, and persistence. Canonical passenger storage and
+  native simulation are already implemented.
 
-- Scene open, save, and save-as flow.
-- Validation panel.
-- Train composition editor.
-- Service and stopping-pattern editor.
-- Timetable editor with half-hour service support.
-- Repeated-service creation.
-- Per-service performance parameter editor.
-- Incident editor for signal failures and train breakdowns.
-- Infrastructure context selection without full track drawing.
+## P1: Assignment analysis and disruption outputs
 
-## P0: Assignment Case Study
+Goal: provide the unfinished assignment analysis workflows without relisting
+basic scenario editing as missing.
 
-Goal: build the first EGTRAIN version of the OpenTrack assignment.
+- #38: support the Gouda overtaking workflow.
+- #45 through #49: add minimum headway, timetable compression, critical-block,
+  buffer-time, and capacity-percentage workflows.
+- #52: report primary, secondary, per-train, and total arrival delay.
 
-Missing work:
+Signal-failure editing and selected-scenario execution are complete.
 
-- Audit and repair Netherlands input data.
-- Verify the Amsterdam to Hilversum route candidates.
-- Build a curated assignment scene.
-- Add train material variants.
-- Add base timetable and disruption scenarios.
-- Add an assignment smoke test.
-- Check the workflow from a student perspective.
+## P1: Focused UI, release, and test reliability
 
-## P1: CI/CD Pipeline
+Keep defects and small workflow gaps as focused issues. Current examples are
+repository hygiene (#68), native migration parity evidence (#85 and #86),
+bundle drag and drop (#103), hostile-bundle regression coverage (#105),
+bundle-guide screenshots (#107), scenario change visibility (#126), export
+provenance (#129), consent-based updates (#155), startup state (#240),
+deterministic train reselection (#244), station-name acronyms (#246), overview
+station markers (#252), and measured startup or case-loading latency (#257).
 
-Goal: make pull requests and release candidates prove that the application builds, runs, and keeps its generated files out of git.
+## P2: Full infrastructure editing
 
-Missing work:
+The full infrastructure editor remains under epic #8 and issues #53 through
+#58. It covers canonical node, arc, track, switch, station, platform, signal,
+block, and topology editing. Normal verification must validate and save the
+canonical scene. Legacy export is an additional compatibility check only where
+the feature promises it.
 
-- Run unit tests on every pull request and push to `main`.
-- Add headless smoke tests to CI.
-- Add visual smoke test to CI where the runner supports it.
-- Upload failure logs and screenshots as workflow artifacts.
-- Add repository hygiene checks for generated files, backup files, and internal notes.
-- Add a release matrix for Windows, macOS, and Linux.
-- Build short-lived artifacts on `main`.
-- Add tagged release workflow for `v*` tags.
-- Package Windows releases as a portable zip first.
-- Package macOS releases as a zipped `.app` first.
-- Package Linux releases as an AppImage or portable archive first.
-- Attach all three platform packages to GitHub Releases.
-- Document a release testing checklist.
+## P2: Measurement-led performance and refactoring
 
-## P1: Student Workflow UI
+Measure before changing storage or ownership. Use #62, #63, and #257 to identify
+the dominant memory, playback, startup, or loading cost. Schedule #60, #61, or
+other storage changes only when measurements support them.
 
-Goal: make the GUI fit the assignment steps.
+Issues #117 through #120 remain valid but deferred. Extract editor or session
+ownership from `MainWindow` only when a product change is blocked, duplicated
+state causes defects, or focused tests cannot be added safely.
 
-Missing work:
+## Completed scene migration
 
-- Make load network the main entry point.
-- Add guided setup for assignment runs.
-- Improve simulation controls and speed control.
-- Use proper `HH:MM:SS` time formatting with a configurable base time.
-- Keep read-only panes clearly read-only.
-- Add camera follow options.
-- Add visual cues for acceleration and braking.
-- Distinguish station, train, and track types.
+| PR | Completed work |
+| --- | --- |
+| #260 | Canonical V1 model coverage |
+| #261 | Native infrastructure and signalling construction |
+| #262 | Native rolling stock, services, scenarios, entrance delays, and passengers |
+| #263 | Normal GUI, CLI, preview, and simulation cutover to canonical scenes |
+| #264 | Portable `.egscene` bundles and release distribution |
+| #265 | Loaded Data inspection and lineage |
+| #266 | Named scenario and transparent results workflow |
+| #267 | Removal of obsolete normal-runtime legacy readers |
 
-## P1: Diagrams And Exports
-
-Goal: support the figures and tables students need in their report.
-
-Missing work:
-
-- Train filtering in diagrams.
-- Hover readouts for graph values.
-- Planned timetable table and graph views.
-- Simulated timetable table and graph views.
-- Blocking-time overlay on the simulated timetable.
-- Speed-distance, speed-time, and single-train time-distance diagrams.
-- PNG export for diagrams.
-- CSV export for tables.
-
-## P1: Capacity And Disruptions
-
-Goal: support the capacity and disruption sections of the assignment.
-
-Missing work:
-
-- Minimum headway workflow.
-- Timetable compression.
-- Critical-block highlighting.
-- Buffer-time calculation.
-- Capacity percentage calculation.
-- Signal failure scenario.
-- Train breakdown scenario.
-- Primary, secondary, and total delay output.
-
-## P2: Full Infrastructure Editor
-
-Goal: edit infrastructure inside the application after V1 works.
-
-Missing work:
-
-- Node and arc editing.
-- Track and switch editing.
-- Gradient, curve, and speed-limit editing.
-- Station and platform editing.
-- Signal and block-section editing.
-- Topology validation.
-- Visual scene editor linked to the tabular model.
-
-## P2: Memory And Performance
-
-Goal: lower memory use without changing simulation behavior.
-
-Missing work:
-
-- Inventory ownership and raw pointer use.
-- Replace oversized fixed arrays one storage type at a time.
-- Start with `BlockSet B[268]`.
-- Then handle `signalling_block_sections[6000]`.
-- Then handle embedded fixed arrays inside `Route`, `BlockSet`, and `Section`.
-- Add memory measurement scripts.
-- Profile GUI playback and simulation step time.
+The migration is complete. Explicit legacy import and export remain supported
+for compatibility and research workflows.

@@ -1,5 +1,12 @@
 # Netherlands assignment development brief
 
+This brief records the superseded Amsterdam to Hilversum exploration. Active
+assignment work uses `Assignment_Gvc_Gdg_Ut` and the Den Haag Centraal to
+Utrecht corridor described in
+[Assignment Corridor](../product/assignment-corridor.md).
+The remaining text is retained unchanged as a dated working record and is not
+the current implementation plan.
+
 ## Purpose
 
 This is a working brief for the assignment lead and two teaching assistants. The three of us are co-authors of a new EGTRAIN assignment based on the existing OpenTrack assignment. The teaching assistants are not students completing the assignment.

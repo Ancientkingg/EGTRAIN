@@ -6,7 +6,7 @@ Start here:
 - [Opening an `.egscene` case study](guides/opening-a-case-study.md)
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [V1 scene property reference](guides/v1-scene-properties.md)
-- [Netherlands scene assignment](guides/netherlands-assignment.md)
+- [Assignment corridor](product/assignment-corridor.md)
 - [Assignment workflow](product/assignment-workflow.md)
 - [Scene model design](architecture/scene-model.md)
 - [Roadmap](planning/roadmap.md)
@@ -15,5 +15,9 @@ Start here:
 - [Build and test guide](development/build-and-test.md)
 - [Release testing checklist](development/release-testing-checklist.md)
 - [Writing style](development/writing-style.md)
+
+Historical reference:
+
+- [Superseded Netherlands assignment brief](guides/netherlands-assignment.md)
 
 Keep new documentation short, concrete, and current.
