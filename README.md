@@ -124,6 +124,7 @@ interface.
 
 - [Application and scene guide](docs/guides/scenes-and-application.md)
 - [Scene property reference](docs/guides/v1-scene-properties.md)
+- [Assignment corridor](docs/product/assignment-corridor.md)
 - [Assignment workflow](docs/product/assignment-workflow.md)
 - [Scene model architecture](docs/architecture/scene-model.md)
 - [Build and test guide](docs/development/build-and-test.md)

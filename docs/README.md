@@ -6,6 +6,7 @@ Start here:
 - [Opening an `.egscene` case study](guides/opening-a-case-study.md)
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [V1 scene property reference](guides/v1-scene-properties.md)
+- [Assignment corridor](product/assignment-corridor.md)
 - [Assignment workflow](product/assignment-workflow.md)
 - [Scene model design](architecture/scene-model.md)
 - [Build and test guide](development/build-and-test.md)
