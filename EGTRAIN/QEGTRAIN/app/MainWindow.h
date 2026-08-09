@@ -248,6 +248,7 @@ public slots:
 	void startSimulation();
 	void runCurrent();
 	void onSimulationFinished();
+	void newScene();
 	void openSceneDialog();
 	void openSceneFolderDialog();
 	void saveScene();
@@ -365,6 +366,7 @@ private:
 	// toolbar
 	QToolBar* m_toolBar;
 	QAction* m_openCaseAction = nullptr;
+	QAction* m_newSceneAction = nullptr;
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
@@ -387,6 +389,13 @@ private:
 	QLabel* m_validationStatusLabel = nullptr;
 	QDockWidget* m_loadedDataDock = nullptr;
 	QTreeWidget* m_loadedDataTree = nullptr;
+	QDockWidget* m_caseSettingsDock = nullptr;
+	QLineEdit* m_caseNameEdit = nullptr;
+	QLineEdit* m_caseDescriptionEdit = nullptr;
+	QLineEdit* m_caseBaseTimeEdit = nullptr;
+	QDoubleSpinBox* m_caseDurationSecondsEdit = nullptr;
+	QDoubleSpinBox* m_caseBufferSecondsEdit = nullptr;
+	QDoubleSpinBox* m_caseRecoveryPercentEdit = nullptr;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
@@ -529,6 +538,9 @@ private:
 	bool copyScenePassthroughFiles(const QString& targetDir);
 	void updateSceneWindowTitle();
 	void updateCaseLayersPanel();
+	void refreshCaseSettingsPanel();
+	void commitPendingCaseSettings();
+	void commitCaseSettings();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
