@@ -28,7 +28,6 @@ struct SimulationIncident {
 };
 
 extern std::vector<SimulationIncident> simulationIncidents;
-void Load_Incidents(const std::string& MainFolder);
 bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex);
 
@@ -264,15 +263,6 @@ void createEquiBlockSections(double L, Section* BS, int& Blocks, BlockSet blockS
 // Generate all block sections with equal length
 void generateAllBlocksWithEquiLength(double L, Section* BS, int& Blocks);
 
-// Load block section lengths from external file
-void loadBlockSections(Section* BS, int& Blocks, char* blockname);
-
-// Create block sections with lengths from text files
-void createBlockSectionsFromInputFile(Section* BS, int& Blocks, char* blockname, BlockSet blockSets);
-
-void generateAllBlocksFromInputFile(char* FolderName, Section* BS, int& Blocks);
-
-
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
 
@@ -335,9 +325,6 @@ public:
 	// Identify ending edges of diverging switches that are also start of another diverging switch
 	void identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<InfraElement>& RouteInfrastructureElements);
 
-	// Load route from file and create it
-	void createRoute(char* FileName);
-
 	// Build route from canonical scene block ids.
 	void createRouteFromBlockIds(const std::vector<std::string>& blockIds);
 
@@ -346,20 +333,6 @@ public:
 };
 
 extern std::vector<Route> train_route;
-
-void writeRouteFilesFromTracks(string FileName, Section* BS, int N_BS, string RouteFolder);
-
-// Write all routes from input folder
-void writeAllRoutes(string InputFolderName, string OutputFolderName, Section* BS, int N_BS);
-
-// Join two routes together
-void joinRoutes(int IndexRoute1, int IndexRoute2, bool IsReversed, vector<Route>& AllRoutes, int& numAllRoutes);
-
-// Load joined routes to generate
-void loadAllJoinedRoutes(string FolderName, vector<Route>& AllRoutes, int& numAllRoutes);
-
-// Set up all routes
-void setUpAllRoutes();
 
 // Set up all routes from canonical scene model.
 void setUpRoutesFromScene(const SceneModel& scene);
@@ -553,20 +526,11 @@ void showElementInEtcsMa(int t);
 // Set mid-signals of double switches as virtual signals
 void setVirtualSignals();
 
-// Load route corridors from input file
-void loadRouteCorridors();
-
 // Set virtual signals on routes from original block sections (info lost during route creation)
 void setRouteVirtualSignals();
 
 // Single track limits: (first plain block ID, last plain block ID, occupying train, block IDs to block, _)
 extern std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string>> singleTrackLimits;
-
-// Load single track limits
-void loadSingleTrackLimits();
-
-// Load station boundary sections
-void loadStationBoundarySections();
 
 // --- StationBoundarySection: protects entrance of main stations ---
 class StationBoundarySection {
