@@ -33,15 +33,16 @@ for name in trajectory timetable run_summary; do
 	fi
 done
 
-# Blocking-time data is only present when the case study defines complete
-# blocking times, so validate its header only when the file was written.
+# The blocking-time export also carries the visible planned reference layer.
 if [[ -s "$OUTDIR/blocking_time.csv" ]]; then
 	head -n1 "$OUTDIR/blocking_time.csv" | grep -q "^Train,Block,Occupation start\[s\]" \
 		|| { echo "blocking_time.csv header mismatch" >&2; exit 1; }
+	grep -q ",planned reference," "$OUTDIR/blocking_time.csv" \
+		|| { echo "blocking_time.csv missing planned reference rows" >&2; exit 1; }
 fi
 
 # Headers must match the documented schema.
-head -n1 "$OUTDIR/trajectory.csv" | grep -q "^Train,Time\[s\],Position\[m\],Speed\[m/s\],Power\[kW\],Energy\[kWh\],Block" \
+head -n1 "$OUTDIR/trajectory.csv" | grep -q "^Train,Operating code,Service ID,Occurrence,Time\[s\],Position\[m\],Speed\[m/s\],Power\[kW\],Tractive effort\[kN\],Energy\[kWh\],Block" \
 	|| { echo "trajectory.csv header mismatch" >&2; exit 1; }
 head -n1 "$OUTDIR/timetable.csv" | grep -q "^Train,Station,Journey order,Operating code,Planned arrival\[s\]" \
 	|| { echo "timetable.csv header mismatch" >&2; exit 1; }
@@ -53,6 +54,54 @@ traj_rows=$(($(wc -l < "$OUTDIR/trajectory.csv") - 1))
 tt_rows=$(($(wc -l < "$OUTDIR/timetable.csv") - 1))
 if (( traj_rows < 1 )); then echo "trajectory.csv has no data rows" >&2; exit 1; fi
 if (( tt_rows < 1 )); then echo "timetable.csv has no data rows" >&2; exit 1; fi
+
+# The integrator records the effort and power for the interval ending at a row,
+# so the power uses that train's preceding speed sample.  Check that retained
+# relationship in kW; allow 0.05 kW plus 0.1% for CSV decimal formatting.
+awk -F, '
+function abs(value) { return value < 0 ? -value : value }
+NR == 1 {
+	for (i = 1; i <= NF; ++i)
+		column[$i] = i
+	if (!("Operating code" in column) || !("Service ID" in column) || !("Occurrence" in column) ||
+		!("Speed[m/s]" in column) || !("Power[kW]" in column) || !("Tractive effort[kN]" in column)) {
+		print "trajectory.csv identity or force header missing" > "/dev/stderr"
+		schema = 0
+		exit 1
+	}
+	schema = 1
+	next
+}
+{
+	train = $(column["Train"])
+	time = $(column["Time[s]"])
+	effort = $(column["Tractive effort[kN]"])
+	speed = $(column["Speed[m/s]"])
+	power = $(column["Power[kW]"])
+	if (train == "" || time == "" || effort == "" || speed == "" || power == "")
+		next
+	if (effort > 0.001) positive = 1
+	if (effort < -0.001) negative = 1
+	if (abs(effort) <= 0.001) zero = 1
+	if (abs(speed) > 0.001 && (train in previousSpeed) && time > previousTime[train] && abs(previousSpeed[train]) > 0.001) {
+		expected = effort * previousSpeed[train]
+		tolerance = 0.05 + 0.001 * abs(power)
+		if (abs(expected - power) > tolerance) {
+			if (!mismatch)
+				print "force/power mismatch on trajectory row " NR ": " expected " kW vs " power " kW" > "/dev/stderr"
+			mismatch = 1
+		}
+	}
+	previousSpeed[train] = speed
+	previousTime[train] = time
+}
+END {
+	if (!schema || mismatch || !positive || !zero || !negative) {
+		if (!positive || !zero || !negative)
+			print "Paimpol trajectory lacks required force signs: positive=" positive ", zero=" zero ", negative=" negative > "/dev/stderr"
+		exit 1
+	}
+}' "$OUTDIR/trajectory.csv" || exit 1
 
 # The run summary always ends with the network totals row.
 grep -q "^Network total," "$OUTDIR/run_summary.csv" \

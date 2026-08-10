@@ -54,6 +54,26 @@ int main() {
 		ok &= expect(segments[2].midPositionKm == 1.25, "critical station midpoint");
 	}
 
+	const std::vector<BlockingTimeDiagramSegment> scoped = filterBlockingTimeDiagramSegments(
+		segments, {"A"}, {"@12-B7@"}, 12.0, 18.0);
+	ok &= expect(scoped.size() == 1, "route block and train scope filters segments");
+	if (!scoped.empty()) {
+		ok &= expect(scoped[0].startTime == 12.0 && scoped[0].endTime == 18.0,
+			"time scope clips copied segment bounds");
+		ok &= expect(scoped[0].style == BlockingTimeSegmentStyle::Critical,
+			"critical style survives when the conflicting train is hidden");
+	}
+
+	const std::vector<BlockingTimePlannedReference> references = {
+		{"A", "Origin", "departure", 10.0, 0.0},
+		{"A", "Destination", "arrival", 30.0, 2.0},
+		{"B", "Other", "departure", 40.0, 0.0}};
+	const auto crossing = filterBlockingTimePlannedReferences(references, 15.0, 25.0);
+	ok &= expect(crossing.size() == 2 && crossing.front().time == 10.0 && crossing.back().time == 30.0,
+		"planned scope retains both source points for a visible line crossing");
+	ok &= expect(filterBlockingTimePlannedReferences(references, 31.0, 39.0).empty(),
+		"off-window planned points do not create an empty scoped chart or export");
+
 	if (!ok)
 		return 1;
 

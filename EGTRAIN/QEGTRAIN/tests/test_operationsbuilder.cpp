@@ -162,6 +162,22 @@ int main() {
 	ok &= expect(regional_train[0].ScheduledArrivals[0] == -1.0
 			&& regional_train[0].ScheduledArrivals[1] == 120.0
 			&& regional_train[0].ScheduledDepartures[2] == -1.0, "optional timetable fields retain runtime -1 sentinels");
+	ok &= expect(regional_train[0].stationIsOnRoute(0)
+			&& regional_train[0].stationRoutePositionMeters(0) == 0.0,
+			"planned references retain a valid route-origin station at kilometre zero");
+	Node offRouteStation;
+	offRouteStation.station = true;
+	offRouteStation.stationName = "Outside";
+	Train routeMembershipProbe;
+	routeMembershipProbe.Stations = &offRouteStation;
+	routeMembershipProbe.numStations = 1;
+	routeMembershipProbe.indexOfRoute = regional_train[0].indexOfRoute;
+	ok &= expect(!routeMembershipProbe.stationIsOnRoute(0)
+			&& routeMembershipProbe.stationRoutePositionMeters(0) < 0.0,
+			"route-external static timetable stops remain inert in planned route results");
+	ok &= expect(regional_train[0].instant_train_tractive_effort.size()
+			== regional_train[0].instant_spatial_position.size(),
+			"tractive-effort samples are allocated with the trajectory");
 	ok &= expect(regional_train[1].ScheduledDepartures[0] == 145.0
 			&& regional_train[1].ScheduledDepartures[1] == 160.0
 			&& regional_train[1].EntranceDelay == 5.0, "selected entrance delays apply to the requested occurrence and stops");
