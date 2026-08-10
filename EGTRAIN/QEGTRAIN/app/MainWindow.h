@@ -396,6 +396,12 @@ private:
 	QDoubleSpinBox* m_caseDurationSecondsEdit = nullptr;
 	QDoubleSpinBox* m_caseBufferSecondsEdit = nullptr;
 	QDoubleSpinBox* m_caseRecoveryPercentEdit = nullptr;
+	QDockWidget* m_infrastructureDock = nullptr;
+	QComboBox* m_infrastructureFacetCombo = nullptr;
+	QTableWidget* m_infrastructureTable = nullptr;
+	QPushButton* m_addInfrastructureButton = nullptr;
+	QPushButton* m_deleteInfrastructureButton = nullptr;
+	QString m_infrastructureSelectionId;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
@@ -541,6 +547,13 @@ private:
 	void refreshCaseSettingsPanel();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
+	void refreshInfrastructurePanel();
+	void refreshInfrastructureTable();
+	void commitInfrastructureCell(int row, int column);
+	void addInfrastructureEntity();
+	void deleteInfrastructureEntity();
+	void updateInfrastructureSelection();
+	std::string uniqueInfrastructureId(const std::string& baseId, const QString& facet) const;
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
