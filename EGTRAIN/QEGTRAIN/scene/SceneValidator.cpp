@@ -416,29 +416,146 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	const bool infrastructureUsableForRuntimeChecks = !scene.tracks.empty()
 			&& errorCount() == errorsBeforeInfrastructure
 			&& nativeChainNodes.size() == scene.tracks.size();
+	std::unordered_map<std::string, std::unordered_set<std::string>> blockNodeIds;
+	if (infrastructureUsableForRuntimeChecks) {
+		for (const auto& track : scene.tracks) {
+			const auto chain = nativeChainNodes.find(track.id);
+			if (chain == nativeChainNodes.end() || chain->second.empty())
+				continue;
+			std::vector<const SceneBlock*> trackBlocks;
+			for (const auto& block : scene.blocks)
+				if (block.trackId == track.id)
+					trackBlocks.push_back(&block);
+			if (trackBlocks.empty())
+				continue;
+
+			struct BlockSpan {
+				const SceneBlock* block = nullptr;
+				double start = 0.0;
+				double end = 0.0;
+			};
+			std::vector<BlockSpan> spans;
+			const double trackEnd = chain->second.back()->xKm;
+			double cursor = chain->second.front()->xKm;
+			bool spansValid = true;
+			for (std::size_t index = 0; index < trackBlocks.size(); ++index) {
+				const SceneBlock* block = trackBlocks[index];
+				double end = cursor + block->lengthKm;
+				if (end > trackEnd + kNativeCoordinateTolerance) {
+					if (index + 1 == trackBlocks.size()
+							&& cursor < trackEnd - kNativeCoordinateTolerance)
+						end = trackEnd;
+					else
+						spansValid = false;
+				}
+				spans.push_back({block, cursor, std::min(end, trackEnd)});
+				cursor = end;
+			}
+			if (cursor < trackEnd - kNativeCoordinateTolerance && !spans.empty())
+				spans.back().end = trackEnd;
+			if (!spansValid)
+				continue;
+			for (const BlockSpan& span : spans) {
+				auto& ids = blockNodeIds[span.block->id];
+				for (const SceneNode* node : chain->second)
+					if (node->xKm >= span.start - kNativeCoordinateTolerance
+							&& node->xKm <= span.end + kNativeCoordinateTolerance)
+						ids.insert(node->id);
+			}
+		}
+	}
+	std::unordered_map<std::string, std::unordered_set<std::string>> sectionNodeIds = blockNodeIds;
+	for (const auto& entry : blockNodeIds)
+		sectionNodeIds[nativeRuntimeBlockId(entry.first)] = entry.second;
+	if (infrastructureUsableForRuntimeChecks) {
+		for (const auto& connection : scene.connections) {
+			const auto from = nodesById.find(connection.fromNodeId);
+			const auto to = nodesById.find(connection.toNodeId);
+			if (from == nodesById.end() || to == nodesById.end())
+				continue;
+			const SceneNode* first = from->second;
+			const SceneNode* second = to->second;
+			if (first->xKm > second->xKm)
+				std::swap(first, second);
+			if (first->xKm + kNativeCoordinateTolerance >= second->xKm)
+				continue;
+			for (const auto& firstBlock : blockNodeIds) {
+				if (firstBlock.second.count(first->id) == 0)
+					continue;
+				for (const auto& secondBlock : blockNodeIds) {
+					if (secondBlock.second.count(second->id) == 0)
+						continue;
+					const std::string id = nativeRuntimeBlockId(firstBlock.first) + "-"
+							+ nativeFormattedCoordinate(first->xKm) + "/"
+							+ nativeRuntimeBlockId(secondBlock.first) + "-"
+							+ nativeFormattedCoordinate(second->xKm);
+					auto& ids = sectionNodeIds[id];
+					for (const auto& nodeId : firstBlock.second) {
+						const auto node = nodesById.find(nodeId);
+						if (node != nodesById.end()
+								&& node->second->xKm <= first->xKm + kNativeCoordinateTolerance)
+							ids.insert(nodeId);
+					}
+					ids.insert(second->id);
+					for (const auto& nodeId : secondBlock.second) {
+						const auto node = nodesById.find(nodeId);
+						if (node != nodesById.end()
+								&& node->second->xKm > second->xKm + kNativeCoordinateTolerance)
+							ids.insert(nodeId);
+					}
+				}
+			}
+		}
+	}
 
 	std::unordered_set<std::string> stationIds;
 	std::unordered_map<std::string, const SceneStation*> stations;
+	std::unordered_map<std::string, std::string> platformOwnerByNode;
 	for (std::size_t index = 0; index < scene.stations.size(); ++index) {
 		const SceneStation& station = scene.stations[index];
 		const std::string path = "stations[" + std::to_string(index) + "]";
-		if (!stationIds.insert(station.id).second) {
+		if (station.id.empty()) {
+			diagnostics.error("scene.id.empty", "Station id must not be empty", "stations.json", "station",
+					station.id, path + ".id", "", "Give each station a non-empty id");
+		} else if (!stationIds.insert(station.id).second) {
 			diagnostics.error("scene.id.duplicate", "Duplicate station id", "stations.json", "station",
 					station.id, path + ".id", station.id);
 		}
-		stations[station.id] = &station;
+		if (!station.id.empty())
+			stations[station.id] = &station;
+		if (station.hasPosition && !std::isfinite(station.positionKm))
+			diagnostics.error("scene.station.position.invalid", "Station position must be finite", "stations.json",
+					"station", station.id, path + ".position_km", "", "Use a finite position in kilometres");
+		if (!station.hasPosition && station.platforms.empty())
+			diagnostics.error("scene.station.anchor.missing", "Station has neither a position nor a platform anchor",
+					"stations.json", "station", station.id, path, "", "Set a position or add a bound platform");
 		std::unordered_set<std::string> platformIds;
 		for (std::size_t platformIndex = 0; platformIndex < station.platforms.size(); ++platformIndex) {
 			const ScenePlatform& platform = station.platforms[platformIndex];
 			const std::string platformPath = path + ".platforms[" + std::to_string(platformIndex) + "]";
-			if (!platformIds.insert(platform.id).second)
+			if (platform.id.empty())
+				diagnostics.error("scene.id.empty", "Platform id must not be empty", "stations.json", "platform",
+						platform.id, platformPath + ".id", "", "Give each platform a non-empty id");
+			else if (!platformIds.insert(platform.id).second)
 				diagnostics.error("scene.id.duplicate", "Duplicate platform id on station", "stations.json",
 						"platform", platform.id, platformPath + ".id", station.id);
+			if (platform.nodeIds.empty())
+				diagnostics.error("scene.platform.nodes.none", "Platform has no bound nodes", "stations.json",
+						"platform", platform.id, platformPath + ".nodes", "", "Bind the platform to at least one node");
 			for (std::size_t nodeIndex = 0; nodeIndex < platform.nodeIds.size(); ++nodeIndex) {
-				if (!hasId(nodeIds, platform.nodeIds[nodeIndex])) {
+				const std::string& nodeId = platform.nodeIds[nodeIndex];
+				if (!hasId(nodeIds, nodeId)) {
 					diagnostics.error("scene.ref.unresolved", "Platform refers to unknown node", "stations.json",
 							"platform", platform.id, platformPath + ".nodes[" + std::to_string(nodeIndex) + "]",
-							platform.nodeIds[nodeIndex]);
+							nodeId);
+				} else if (!station.id.empty() && !platform.id.empty()) {
+					const std::string owner = station.id + "\n" + platform.id;
+					const auto inserted = platformOwnerByNode.emplace(nodeId, owner);
+					if (!inserted.second && inserted.first->second != owner)
+						diagnostics.error("scene.platform.node.conflict",
+								"Node is bound to more than one station/platform", "stations.json", "platform",
+								platform.id, platformPath + ".nodes[" + std::to_string(nodeIndex) + "]",
+								nodeId, "Keep one station/platform assignment for each node");
 				}
 			}
 		}
@@ -449,6 +566,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	std::unordered_set<std::string> routeIds;
 	collectIds(scene.routes, "signalling.json", "route", "routes", diagnostics, routeIds);
 	std::unordered_set<std::string> routeBlockIds;
+	std::unordered_map<std::string, std::unordered_set<std::string>> routeNodeIds;
+	std::unordered_set<std::string> routesWithCompleteNodeMembership;
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		const SceneRoute& route = scene.routes[index];
 		const std::string path = "routes[" + std::to_string(index) + "]";
@@ -456,10 +575,19 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.route.empty", "Route has no blocks", "signalling.json", "route", route.id,
 					path + ".blocks", "", "List the block ids the route runs through");
 		}
+		bool nodeMembershipComplete = !route.blocks.empty() && !blockNodeIds.empty();
 		for (const auto& token : route.blocks) {
-			for (const auto& component : routeComponents(token))
+			for (const auto& component : routeComponents(token)) {
 				routeBlockIds.insert(component);
+			}
+			const auto nodes = sectionNodeIds.find(token);
+			if (nodes == sectionNodeIds.end())
+				nodeMembershipComplete = false;
+			else
+				routeNodeIds[route.id].insert(nodes->second.begin(), nodes->second.end());
 		}
+		if (nodeMembershipComplete)
+			routesWithCompleteNodeMembership.insert(route.id);
 		if (!blockIds.empty()) {
 			for (std::size_t blockIndex = 0; blockIndex < route.blocks.size(); ++blockIndex) {
 				const std::string blockPath = path + ".blocks[" + std::to_string(blockIndex) + "]";
@@ -626,16 +754,29 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.ref.unresolved", "Stop refers to unknown station", "services.json",
 						"service", service.id, stopPath + ".station", stop.stationId);
 			} else if (!stop.platformId.empty()) {
-				bool platformFound = false;
+				const ScenePlatform* selectedPlatform = nullptr;
 				for (const auto& platform : station->second->platforms) {
 					if (platform.id == stop.platformId) {
-						platformFound = true;
+						selectedPlatform = &platform;
 						break;
 					}
 				}
-				if (!platformFound)
+				if (selectedPlatform == nullptr) {
 					diagnostics.error("scene.ref.platform", "Stop refers to platform not on station",
 							"services.json", "service", service.id, stopPath + ".platform", stop.platformId);
+				} else if (!selectedPlatform->nodeIds.empty()
+						&& routesWithCompleteNodeMembership.count(service.route) > 0) {
+					const auto routeNodes = routeNodeIds.find(service.route);
+					const bool accessible = routeNodes != routeNodeIds.end()
+							&& std::any_of(selectedPlatform->nodeIds.begin(), selectedPlatform->nodeIds.end(),
+									[&routeNodes](const std::string& nodeId) {
+										return routeNodes->second.count(nodeId) > 0;
+									});
+					if (!accessible)
+						diagnostics.error("scene.ref.platform.route", "Stop platform is not present on the service route",
+								"services.json", "service", service.id, stopPath + ".platform", stop.platformId,
+								"Bind the platform to a node on the selected route or choose another platform");
+				}
 			}
 			if (stop.hasPlannedArrival && stop.hasPlannedDeparture
 					&& stop.plannedDepartureSeconds < stop.plannedArrivalSeconds) {
