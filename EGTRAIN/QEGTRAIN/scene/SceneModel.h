@@ -64,6 +64,14 @@ struct SceneStation {
 
 struct SceneSignal { std::string id; };
 
+struct SceneSignallingArea {
+	std::string id;
+	double startKm = 0.0;
+	double endKm = 0.0;
+	int level = 0;
+	std::string trackId; // Empty means network-wide.
+};
+
 struct SceneRoute {
 	std::string id;
 	std::vector<std::string> blocks;
@@ -265,6 +273,7 @@ struct SceneModel {
 	std::vector<SceneConnection> connections;
 	std::vector<SceneStation> stations;
 	std::vector<SceneSignal> signals;
+	std::vector<SceneSignallingArea> signallingAreas;
 	std::vector<SceneRoute> routes;
 	std::vector<SceneBlockDependency> blockDependencies;
 	std::vector<SceneSingleTrackRestriction> singleTrackRestrictions;

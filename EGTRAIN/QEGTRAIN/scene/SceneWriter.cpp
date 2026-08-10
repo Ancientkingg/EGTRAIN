@@ -518,6 +518,20 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	};
 	for (const auto& signal : scene.signals)
 		signalling["signals"].push_back({{"id", signal.id}});
+	if (!scene.signallingAreas.empty()) {
+		signalling["signalling_areas"] = json::array();
+		for (const auto& area : scene.signallingAreas) {
+			json value = {
+				{"id", area.id},
+				{"start_km", area.startKm},
+				{"end_km", area.endKm},
+				{"level", area.level},
+			};
+			if (!area.trackId.empty())
+				value["track"] = area.trackId;
+			signalling["signalling_areas"].push_back(std::move(value));
+		}
+	}
 	for (const auto& route : scene.routes) {
 		json value = {{"id", route.id}, {"blocks", route.blocks}};
 		if (route.hasCorridor || !route.corridor.empty())

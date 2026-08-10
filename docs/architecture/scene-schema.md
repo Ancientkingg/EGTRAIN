@@ -84,12 +84,24 @@ Required root arrays are `signals` and `routes`.
 - `signals[]`: `{ "id": string }`.
 - `routes[]`: required `id` and string-array `blocks`; optional string
   `corridor` and boolean `reversed`.
+- `signalling_areas[]`: required `id`, numeric `start_km`, numeric `end_km`,
+  and integer `level` from 0 through 5; optional `track` refers to a canonical
+  track ID. The array is optional.
 - `block_dependencies[]`: `{ "block": string, "depends_on": string }`.
 - `single_track_restrictions[]`: preferred explicit
   `start_block`, `end_block`, `protected_start_block`, and
   `protected_end_block`.
 - `station_boundaries[]`: required `entrance_block`, optional `exit_block`,
   and optional boolean `direction`.
+
+A signalling area covers a native section only when the section's complete
+coordinate span lies inside the area. Network-wide areas are applied before
+track-scoped areas; a track-scoped value overrides the network-wide value.
+Either connected track matches a derived switch section. Different values at
+the same precedence tier that cover one section are invalid. The builder
+applies areas after base and switch sections exist and before routes copy them.
+A section with no matching area retains the unset signalling value. The loader
+and writer never create a default level.
 
 ## `rolling_stock.json`
 

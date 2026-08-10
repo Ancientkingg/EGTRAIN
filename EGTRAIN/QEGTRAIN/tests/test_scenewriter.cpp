@@ -73,6 +73,7 @@ static SceneModel completeScene() {
 	scene.stations.push_back(second);
 
 	scene.signals.push_back({"signal-1"});
+	scene.signallingAreas.push_back({"area-1", 0.25, 0.75, 4, "track-1"});
 	SceneRoute route;
 	route.id = "route-1";
 	route.blocks = {"block-1", "block-2"};
@@ -182,6 +183,34 @@ int main() {
 			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json"})
 		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
 	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
+	json signalling;
+	{
+		std::ifstream input(temp.path / "signalling.json");
+		input >> signalling;
+	}
+	ok &= expect(signalling["signalling_areas"].size() == 1
+			&& signalling["signalling_areas"][0]["id"] == "area-1"
+			&& signalling["signalling_areas"][0]["start_km"] == 0.25
+			&& signalling["signalling_areas"][0]["end_km"] == 0.75
+			&& signalling["signalling_areas"][0]["level"] == 4
+			&& signalling["signalling_areas"][0]["track"] == "track-1",
+			"writer emits signalling area fields");
+	SceneModel absentAreas = completeScene();
+	absentAreas.signallingAreas.clear();
+	const fs::path absentAreasPath = temp.path / "absent-signalling-areas";
+	ok &= expect(saveScene(absentAreas, absentAreasPath.string()).success(),
+			"scene without signalling areas saves");
+	json absentSignalling;
+	{
+		std::ifstream input(absentAreasPath / "signalling.json");
+		input >> absentSignalling;
+	}
+	ok &= expect(!absentSignalling.contains("signalling_areas"),
+			"writer preserves an absent signalling area array");
+	SceneModel absentAreasReloaded;
+	ok &= expect(loadHasNoErrors(absentAreasPath, absentAreasReloaded)
+			&& absentAreasReloaded.signallingAreas.empty(),
+			"scene without signalling areas reloads with no inferred defaults");
 
 	json services;
 	{
@@ -274,6 +303,13 @@ int main() {
 			"topology round-trips");
 	ok &= expect(reloaded.routes[0].corridor == "corridor-1" && reloaded.routes[0].reversed,
 			"route corridor and direction round-trip");
+	ok &= expect(reloaded.signallingAreas.size() == 1
+			&& reloaded.signallingAreas[0].id == "area-1"
+			&& reloaded.signallingAreas[0].startKm == 0.25
+			&& reloaded.signallingAreas[0].endKm == 0.75
+			&& reloaded.signallingAreas[0].level == 4
+			&& reloaded.signallingAreas[0].trackId == "track-1",
+			"signalling area fields round-trip");
 	ok &= expect(reloaded.services[0].stops[0].hasPlannedDeparture
 				&& reloaded.services[0].stops[0].plannedDepartureSeconds == 100.0,
 			"planned departure round-trips");

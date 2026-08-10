@@ -2183,6 +2183,14 @@ struct NativeBlockPlan {
 	double endX = 0.0;
 };
 
+struct NativeSectionPlan {
+	std::string id;
+	double startX = 0.0;
+	double endX = 0.0;
+	std::string firstTrackId;
+	std::string secondTrackId;
+};
+
 struct NativeStationBinding {
 	const SceneStation* station = nullptr;
 	const ScenePlatform* platform = nullptr;
@@ -2522,12 +2530,18 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		}
 	}
 	std::unordered_set<std::string> plannedSectionIds;
+	std::vector<NativeSectionPlan> signallingSectionPlans;
+	signallingSectionPlans.reserve(blockPlans.size() + scene.connections.size());
 	for (const auto& plan : blockPlans) {
 		const std::string runtimeId = nativeRuntimeBlockId(plan.source->id);
-		if (!plannedSectionIds.insert(runtimeId).second)
+		if (!plannedSectionIds.insert(runtimeId).second) {
 			add(SceneSeverity::Error, "scene.native.id.duplicate",
 				"Blocks produce the same runtime section ID", "infrastructure.json",
 				"block", plan.source->id, "blocks", runtimeId);
+		} else {
+			signallingSectionPlans.push_back(
+					{runtimeId, plan.startX, plan.endX, plan.source->trackId, {}});
+		}
 	}
 	auto plannedRuntimeId = [&](const std::string& reference) {
 		if (plannedSectionIds.find(reference) != plannedSectionIds.end())
@@ -2570,10 +2584,14 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 						&& second->xKm <= secondPlan.endX + kNativeCoordinateTolerance) {
 					const std::string derivedId = nativeRuntimeBlockId(firstPlan.source->id) + "-" + firstX
 							+ "/" + nativeRuntimeBlockId(secondPlan.source->id) + "-" + secondX;
-					if (!plannedSectionIds.insert(derivedId).second)
+					if (!plannedSectionIds.insert(derivedId).second) {
 						add(SceneSeverity::Error, "scene.native.id.duplicate",
 							"Connections produce the same runtime switch section",
 							"infrastructure.json", "connection", connection.id, "connections", derivedId);
+					} else {
+						signallingSectionPlans.push_back({derivedId, firstPlan.startX, secondPlan.endX,
+							firstPlan.source->trackId, secondPlan.source->trackId});
+					}
 					int derivedArcCount = 1;
 					for (const SceneArc* arc : nativeTracks[firstPlan.trackSlot].chainArcs) {
 						const double beginX = std::max(firstPlan.startX, nodesById[arc->fromNodeId]->xKm);
@@ -2686,6 +2704,66 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 							"signalling.json", "station_boundary", boundary.entranceBlock, "station_boundaries", component);
 			}
 		}
+	}
+	std::unordered_set<std::string> signallingAreaIds;
+	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
+		const SceneSignallingArea& area = scene.signallingAreas[index];
+		const std::string path = "signalling_areas[" + std::to_string(index) + "]";
+		if (area.id.empty())
+			add(SceneSeverity::Error, "scene.native.id.empty", "Signalling area id is empty",
+				"signalling.json", "signalling_area", area.id, path + ".id");
+		else if (!signallingAreaIds.insert(area.id).second)
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate signalling area id",
+				"signalling.json", "signalling_area", area.id, path + ".id");
+		if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
+				|| !(area.startKm < area.endKm))
+			add(SceneSeverity::Error, "scene.native.signalling_area.range",
+				"Signalling area coordinates must be finite with start below end",
+				"signalling.json", "signalling_area", area.id, path);
+		if (area.level < 0 || area.level > 5)
+			add(SceneSeverity::Error, "scene.native.signalling_area.level",
+				"Signalling area level must be between 0 and 5",
+				"signalling.json", "signalling_area", area.id, path + ".level");
+		if (!area.trackId.empty() && tracksById.find(area.trackId) == tracksById.end())
+			add(SceneSeverity::Error, "scene.native.ref.unresolved",
+				"Signalling area refers to an unknown track", "signalling.json", "signalling_area",
+				area.id, path + ".track", area.trackId);
+	}
+	auto sectionSpanInsideArea = [](const NativeSectionPlan& section, const SceneSignallingArea& area) {
+		return section.startX >= area.startKm - kNativeCoordinateTolerance
+				&& section.endX <= area.endKm + kNativeCoordinateTolerance;
+	};
+	std::unordered_map<std::string, int> plannedSignallingLevels;
+	for (const auto& section : signallingSectionPlans) {
+		int selectedLevel = -1;
+		for (const bool trackScoped : {false, true}) {
+			bool matched = false;
+			bool conflict = false;
+			int level = -1;
+			std::string firstAreaId;
+			for (const auto& area : scene.signallingAreas) {
+				if (area.trackId.empty() != !trackScoped
+						|| !sectionSpanInsideArea(section, area)
+						|| (trackScoped && area.trackId != section.firstTrackId
+								&& area.trackId != section.secondTrackId))
+					continue;
+				if (!matched) {
+					matched = true;
+					level = area.level;
+					firstAreaId = area.id;
+				} else if (level != area.level) {
+					conflict = true;
+					add(SceneSeverity::Error, "scene.native.signalling_area.conflict",
+						"Multiple signalling areas assign different levels to one runtime section",
+						"signalling.json", "signalling_area", area.id, "signalling_areas",
+						firstAreaId + " -> " + section.id);
+				}
+			}
+			if (matched && !conflict)
+				selectedLevel = level;
+		}
+		if (selectedLevel >= 0)
+			plannedSignallingLevels[section.id] = selectedLevel;
 	}
 
 	if (nativeHasErrors(diagnostics))
@@ -2929,6 +3007,13 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			"infrastructure.json", "block", "", "connections", std::to_string(kNativeMaxBlocks));
 		return diagnostics;
 	}
+	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
+		const auto plannedLevel = plannedSignallingLevels.find(signalling_block_sections[sectionIndex].ID);
+		if (plannedLevel != plannedSignallingLevels.end())
+			signalling_block_sections[sectionIndex].SignallingLevel = plannedLevel->second;
+	}
+	if (nativeHasErrors(diagnostics))
+		return diagnostics;
 	setDependenciesBetweenBlocksInternal(false);
 
 	std::unordered_map<std::string, int> sectionAliases;

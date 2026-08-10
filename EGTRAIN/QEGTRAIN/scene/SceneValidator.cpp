@@ -563,6 +563,27 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 
 	std::unordered_set<std::string> signalIds;
 	collectIds(scene.signals, "signalling.json", "signal", "signals", diagnostics, signalIds);
+	std::unordered_set<std::string> signallingAreaIds;
+	collectIds(scene.signallingAreas, "signalling.json", "signalling area", "signalling_areas",
+			diagnostics, signallingAreaIds);
+	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
+		const SceneSignallingArea& area = scene.signallingAreas[index];
+		const std::string path = "signalling_areas[" + std::to_string(index) + "]";
+		if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
+				|| !(area.startKm < area.endKm))
+			diagnostics.error("scene.signalling_area.range",
+				"Signalling area start_km and end_km must be finite with start_km below end_km",
+				"signalling.json", "signalling_area", area.id, path, area.id,
+				"Use a finite increasing coordinate range");
+		if (area.level < 0 || area.level > 5)
+			diagnostics.error("scene.signalling_area.level", "Signalling area level must be between 0 and 5",
+				"signalling.json", "signalling_area", area.id, path + ".level", area.trackId,
+				"Use a signalling level from 0 through 5");
+		if (!area.trackId.empty() && !hasId(trackIds, area.trackId))
+			diagnostics.error("scene.ref.unresolved", "Signalling area refers to unknown track",
+				"signalling.json", "signalling_area", area.id, path + ".track", area.trackId,
+				"Add the track or leave track blank for a network-wide area");
+	}
 	std::unordered_set<std::string> routeIds;
 	collectIds(scene.routes, "signalling.json", "route", "routes", diagnostics, routeIds);
 	std::unordered_set<std::string> routeBlockIds;
@@ -1107,7 +1128,15 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				double startX = 0.0;
 				double endX = 0.0;
 			};
+			struct PlannedSignallingSection {
+				std::string id;
+				double startX = 0.0;
+				double endX = 0.0;
+				std::string firstTrackId;
+				std::string secondTrackId;
+			};
 			std::vector<NativeBlockPlan> blockPlans;
+			std::vector<PlannedSignallingSection> plannedSignallingSections;
 			std::vector<const SceneTrack*> orderedTracks;
 			orderedTracks.reserve(scene.tracks.size());
 			for (const auto& track : scene.tracks)
@@ -1187,6 +1216,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					runtimeCapacity("Canonical block IDs normalize to the same native runtime section ID",
 							"infrastructure.json", "block", plan.source->id, "blocks", runtimeId,
 							"Give each block a distinct native runtime section ID");
+				plannedSignallingSections.push_back(
+						{runtimeId, plan.startX, plan.endX, plan.trackId, {}});
 			}
 			auto plannedRuntimeId = [&](const std::string& reference) {
 				if (plannedSectionIds.find(reference) != plannedSectionIds.end())
@@ -1228,6 +1259,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 							runtimeCapacity("Connections produce the same native runtime switch section ID",
 									"infrastructure.json", "connection", connection.id, "connections", derivedId,
 									"Give each switch connection a distinct runtime section ID");
+						plannedSignallingSections.push_back({derivedId, firstPlan.startX, secondPlan.endX,
+								firstPlan.trackId, secondPlan.trackId});
 						int derivedArcCount = 1;
 						for (const SceneArc* arc : nativeChainArcs[firstPlan.trackId]) {
 							const auto fromNode = nodesById.find(arc->fromNodeId);
@@ -1255,6 +1288,36 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 							runtimeCapacity("Derived switch section exceeds the runtime arc capacity",
 									"infrastructure.json", "connection", connection.id, "connections",
 									std::to_string(kNativeMaxSectionArcs), "Reduce the connected block spans");
+					}
+				}
+			}
+			for (const PlannedSignallingSection& section : plannedSignallingSections) {
+				for (const bool trackScoped : {false, true}) {
+					const SceneSignallingArea* matched = nullptr;
+					for (std::size_t areaIndex = 0; areaIndex < scene.signallingAreas.size(); ++areaIndex) {
+						const SceneSignallingArea& area = scene.signallingAreas[areaIndex];
+						if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
+								|| !(area.startKm < area.endKm) || area.level < 0 || area.level > 5
+								|| area.trackId.empty() != !trackScoped
+								|| section.startX < area.startKm - kNativeCoordinateTolerance
+								|| section.endX > area.endKm + kNativeCoordinateTolerance)
+							continue;
+						if (trackScoped && area.trackId != section.firstTrackId
+								&& area.trackId != section.secondTrackId)
+							continue;
+						if (!matched) {
+							matched = &area;
+							continue;
+						}
+						if (matched->level != area.level) {
+							diagnostics.error("scene.signalling_area.conflict",
+									"Multiple signalling areas assign different levels to one runtime section",
+									"signalling.json", "signalling_area", area.id,
+									"signalling_areas[" + std::to_string(areaIndex) + "]",
+									matched->id + " -> " + section.id,
+									"Adjust area ranges, levels, or track scope");
+							break;
+						}
 					}
 				}
 			}

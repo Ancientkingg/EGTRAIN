@@ -121,6 +121,64 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	SceneModel validAreas = clean;
+	validAreas.signallingAreas = {
+		{"network-area", 0.0, 2.0, 2, {}},
+		{"track-area", 0.25, 1.75, 4, "track-1"},
+	};
+	ok &= expect(validateScene(validAreas).empty(),
+			"network-wide and track-scoped signalling areas validate");
+	SceneModel duplicateArea = clean;
+	duplicateArea.signallingAreas = {{"area", 0.0, 1.0, 2, {}}, {"area", 1.0, 2.0, 2, {}}};
+	ok &= expect(hasCode(validateScene(duplicateArea), "scene.id.duplicate"),
+			"signalling area IDs must be unique");
+	SceneModel invalidAreaRange = clean;
+	invalidAreaRange.signallingAreas = {{"area", 1.0, 1.0, 2, {}}};
+	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
+			"signalling area ranges must increase");
+	invalidAreaRange.signallingAreas[0].startKm = std::numeric_limits<double>::quiet_NaN();
+	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
+			"signalling area coordinates must be finite");
+	SceneModel invalidAreaLevel = clean;
+	invalidAreaLevel.signallingAreas = {{"area", 0.0, 1.0, 6, {}}};
+	ok &= expect(hasCode(validateScene(invalidAreaLevel), "scene.signalling_area.level"),
+			"signalling area levels must be between zero and five");
+	SceneModel unknownAreaTrack = clean;
+	unknownAreaTrack.signallingAreas = {{"area", 0.0, 1.0, 2, "missing-track"}};
+	ok &= expect(hasCodeAndPath(validateScene(unknownAreaTrack), "scene.ref.unresolved",
+			"signalling_areas[0].track"), "signalling area track references must resolve");
+	SceneModel overlapWithoutSharedSection = clean;
+	overlapWithoutSharedSection.signallingAreas = {
+		{"first", 0.0, 1.5, 2, {}}, {"second", 1.0, 2.0, 3, {}}};
+	ok &= expect(!hasCode(validateRunnableScene(overlapWithoutSharedSection),
+			"scene.signalling_area.conflict"),
+			"coordinate overlap is allowed when no complete section receives both levels");
+	SceneModel conflictingNetworkAreas = clean;
+	conflictingNetworkAreas.signallingAreas = {
+		{"first", 0.0, 2.0, 2, {}}, {"second", 0.0, 2.0, 3, {}}};
+	ok &= expect(hasCode(validateRunnableScene(conflictingNetworkAreas),
+			"scene.signalling_area.conflict"),
+			"network-wide areas cannot assign different levels to one runtime section");
+	SceneModel conflictingTrackAreas = clean;
+	conflictingTrackAreas.signallingAreas = {
+		{"first", 0.0, 2.0, 2, "track-1"}, {"second", 0.0, 2.0, 3, "track-1"}};
+	ok &= expect(hasCode(validateRunnableScene(conflictingTrackAreas),
+			"scene.signalling_area.conflict"),
+			"same-track areas cannot assign different levels to one runtime section");
+	SceneModel conflictingDerivedAreas = clean;
+	conflictingDerivedAreas.tracks.push_back({"track-2"});
+	conflictingDerivedAreas.nodes.push_back({"node-4", "track-2", 3.0, 0.0});
+	conflictingDerivedAreas.nodes.push_back({"node-5", "track-2", 4.0, 0.0});
+	conflictingDerivedAreas.arcs.push_back(
+			{"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
+	conflictingDerivedAreas.blocks.push_back({"block-3", "track-2", 1.0});
+	conflictingDerivedAreas.connections = {
+		{"connection-1", "node-3", "node-4", false, 0.0}};
+	conflictingDerivedAreas.signallingAreas = {
+		{"first", 0.0, 4.0, 2, "track-1"}, {"second", 0.0, 4.0, 3, "track-2"}};
+	ok &= expect(hasCode(validateRunnableScene(conflictingDerivedAreas),
+			"scene.signalling_area.conflict"),
+			"different track scopes cannot conflict on one derived switch section");
 
 	struct FailureCase {
 		const char* name;
