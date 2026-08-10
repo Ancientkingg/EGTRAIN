@@ -160,6 +160,42 @@ int main(int argc, char** argv) {
 		{"non-finite duration", [](SceneModel& scene) {
 				scene.settings.durationSeconds = std::numeric_limits<double>::quiet_NaN();
 			}, "scene.duration.invalid"},
+		{"performance below range", [](SceneModel& scene) {
+				scene.services[0].performancePercent = 0.5;
+			}, "scene.performance.invalid", "services[service-1].performance_percent"},
+		{"non-finite maximum speed", [](SceneModel& scene) {
+				scene.services[0].hasMaximumSpeed = true;
+				scene.services[0].maximumSpeedKmh = std::numeric_limits<double>::infinity();
+			}, "scene.speed.invalid", "services[service-1].maximum_speed_kmh"},
+		{"non-positive repeat count", [](SceneModel& scene) {
+				scene.services[0].hasRepeat = true;
+				scene.services[0].headwaySeconds = 30.0;
+				scene.services[0].hasRepeatCount = true;
+				scene.services[0].repeatCount = 0;
+			}, "scene.repeat.count.invalid", "services[service-1].repeat.count"},
+		{"non-decimal operating-code step", [](SceneModel& scene) {
+				scene.services[0].operatingCode = "R100";
+				scene.services[0].hasRepeat = true;
+				scene.services[0].headwaySeconds = 30.0;
+				scene.services[0].hasOperatingCodeStep = true;
+				scene.services[0].operatingCodeStep = 2;
+			}, "scene.repeat.step.invalid", "services[service-1].repeat.operating_code_step"},
+		{"overflowing operating-code step", [](SceneModel& scene) {
+				scene.services[0].operatingCode = "9223372036854775806";
+				scene.services[0].hasRepeat = true;
+				scene.services[0].headwaySeconds = 30.0;
+				scene.services[0].hasRepeatCount = true;
+				scene.services[0].repeatCount = 2;
+				scene.services[0].hasOperatingCodeStep = true;
+				scene.services[0].operatingCodeStep = 2;
+			}, "scene.repeat.step.invalid", "services[service-1].repeat.operating_code_step"},
+		{"entrance delay beyond explicit pattern", [](SceneModel& scene) {
+				scene.services[0].hasRepeat = true;
+				scene.services[0].headwaySeconds = 30.0;
+				scene.services[0].hasRepeatCount = true;
+				scene.services[0].repeatCount = 1;
+				scene.scenarios[0].entranceDelays[0].occurrence = 2;
+			}, "scene.entrance.occurrence.out_of_horizon", "scenarios[0].entrance_delays[0].occurrence"},
 		{"non-finite node coordinate", [](SceneModel& scene) {
 				scene.nodes[0].xKm = std::numeric_limits<double>::quiet_NaN();
 			}, "scene.node.coordinate.invalid", "nodes[0].x_km"},
@@ -244,6 +280,25 @@ int main(int argc, char** argv) {
 			passed = passed && hasCodeAndPath(diagnostics, test.code, test.path);
 		ok &= expect(passed, test.name);
 	}
+	SceneService repeated = clean.services[0];
+	repeated.operatingCode = "1723";
+	repeated.hasRepeat = true;
+	repeated.headwaySeconds = 30.0;
+	repeated.hasRepeatCount = true;
+	repeated.repeatCount = 3;
+	repeated.hasOperatingCodeStep = true;
+	repeated.operatingCodeStep = 2;
+	ok &= expect(sceneServiceOccurrenceCount(repeated, 1.0) == 3,
+			"explicit repeat count overrides the duration horizon");
+	ok &= expect(sceneServiceOccurrenceOperatingCode(repeated, 1) == "1723"
+				&& sceneServiceOccurrenceOperatingCode(repeated, 2) == "1725"
+				&& sceneServiceOccurrenceOperatingCode(repeated, 3) == "1727",
+			"decimal operating-code step expands occurrences predictably");
+	SceneService readableRepeat = clean.services[0];
+	readableRepeat.hasRepeat = true;
+	readableRepeat.headwaySeconds = 30.0;
+	ok &= expect(sceneServiceOccurrenceOperatingCode(readableRepeat, 2) == "service-1-2",
+			"repeated services without a step expose readable occurrence codes");
 	SceneModel negativeGradient = clean;
 	negativeGradient.arcs[0].gradientPercent = -100.0;
 	ok &= expect(validateScene(negativeGradient).empty(), "negative arc gradient is allowed");

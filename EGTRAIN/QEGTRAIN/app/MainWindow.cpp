@@ -72,14 +72,13 @@ int stepDelayForSlider(int sliderValue) {
 	return kMaxStepDelayMs - sliderValue;
 }
 
-// Spin box that displays at most ten significant digits instead of a full
-// 17-decimal tail. The stored value keeps double precision; only retyping a
-// field commits at the displayed precision.
+// Keep enough significant digits for a displayed value to round-trip to the
+// same double when pending editor fields are committed.
 class CompactDoubleSpinBox : public QDoubleSpinBox {
 public:
 	using QDoubleSpinBox::QDoubleSpinBox;
 	QString textFromValue(double value) const override {
-		return QString::number(value, 'g', 10);
+		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
 	}
 };
 
@@ -159,6 +158,7 @@ std::string buildTimetableCsv(const QStringList& visibleTrainIds) {
 			r.trainId,
 			r.stationId,
 			std::to_string(r.journeyIndex),
+			r.operatingCode,
 			csvValue(r.plannedArrivalSeconds),
 			csvValue(r.plannedDepartureSeconds),
 			csvValue(r.simulatedArrivalSeconds),
@@ -169,8 +169,8 @@ std::string buildTimetableCsv(const QStringList& visibleTrainIds) {
 	if (rows.empty())
 		return std::string();
 	return csv::makeDocument(
-		{"Train", "Station", "Journey order", "Planned arrival[s]", "Planned departure[s]",
-		 "Simulated arrival[s]", "Simulated departure[s]", "Arrival delay[s]", "Departure delay[s]"},
+		{"Train", "Station", "Journey order", "Operating code", "Planned arrival[s]", "Planned departure[s]",
+			"Simulated arrival[s]", "Simulated departure[s]", "Arrival delay[s]", "Departure delay[s]"},
 		rows);
 }
 
@@ -245,6 +245,9 @@ std::string buildRunSummaryCsv() {
 	for (const TrainRunResult& t : results.trains) {
 		rows.push_back({
 			t.trainId,
+			t.operatingCode,
+			csv::formatDouble(t.performancePercent),
+			csv::formatDouble(t.appliedMaximumSpeedKmh),
 			csvValue(t.startSeconds),
 			csvValue(t.endSeconds),
 			csvValue(t.travelSeconds),
@@ -255,6 +258,9 @@ std::string buildRunSummaryCsv() {
 	}
 	rows.push_back({
 		"Network total",
+		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue),
 		csvValue(results.networkStartSeconds),
 		csvValue(results.networkEndSeconds),
 		csvValue(results.networkTravelSeconds),
@@ -265,8 +271,8 @@ std::string buildRunSummaryCsv() {
 	if (results.trains.empty())
 		return std::string();
 	return csv::makeDocument(
-		{"Train", "Start[s]", "End[s]", "Travel time[s]", "Energy consumed[kWh]",
-		 "Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]"},
+		{"Train", "Operating code", "Performance [%]", "Applied maximum speed [km/h]", "Start[s]", "End[s]", "Travel time[s]", "Energy consumed[kWh]",
+			"Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]"},
 		rows);
 }
 
@@ -1516,13 +1522,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	QVBoxLayout* serviceDetailLayout = new QVBoxLayout(serviceDetailPane);
 	serviceDetailLayout->addWidget(new QLabel("Service Id", serviceDetailPane));
 	m_serviceIdEdit = new QLineEdit(serviceDetailPane);
+	m_serviceIdEdit->setObjectName("serviceIdEdit");
 	serviceDetailLayout->addWidget(m_serviceIdEdit);
+	serviceDetailLayout->addWidget(new QLabel("Operating code", serviceDetailPane));
+	m_serviceOperatingCodeEdit = new QLineEdit(serviceDetailPane);
+	m_serviceOperatingCodeEdit->setObjectName("serviceOperatingCodeEdit");
+	serviceDetailLayout->addWidget(m_serviceOperatingCodeEdit);
 	serviceDetailLayout->addWidget(new QLabel("Composition", serviceDetailPane));
 	m_serviceCompositionCombo = new QComboBox(serviceDetailPane);
 	serviceDetailLayout->addWidget(m_serviceCompositionCombo);
 	serviceDetailLayout->addWidget(new QLabel("Route", serviceDetailPane));
 	m_serviceRouteCombo = new QComboBox(serviceDetailPane);
 	serviceDetailLayout->addWidget(m_serviceRouteCombo);
+	m_serviceThroughCheck = new QCheckBox("Through service", serviceDetailPane);
+	m_serviceThroughCheck->setObjectName("serviceThroughCheck");
+	serviceDetailLayout->addWidget(m_serviceThroughCheck);
 
 	QHBoxLayout* entryTimeLayout = new QHBoxLayout();
 	m_serviceHasEntryTimeCheck = new QCheckBox("Entry Time (s)", serviceDetailPane);
@@ -1541,6 +1555,51 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	repeatLayout->addWidget(m_serviceHasRepeatCheck);
 	repeatLayout->addWidget(m_serviceHeadwaySecondsEdit);
 	serviceDetailLayout->addLayout(repeatLayout);
+
+	QHBoxLayout* repeatCountLayout = new QHBoxLayout();
+	m_serviceHasRepeatCountCheck = new QCheckBox("Occurrence count", serviceDetailPane);
+	m_serviceHasRepeatCountCheck->setObjectName("serviceHasRepeatCountCheck");
+	m_serviceRepeatCountEdit = new QLineEdit(serviceDetailPane);
+	m_serviceRepeatCountEdit->setObjectName("serviceRepeatCountEdit");
+	m_serviceRepeatCountEdit->setValidator(
+		new QIntValidator(1, std::numeric_limits<int>::max(), m_serviceRepeatCountEdit));
+	repeatCountLayout->addWidget(m_serviceHasRepeatCountCheck);
+	repeatCountLayout->addWidget(m_serviceRepeatCountEdit);
+	serviceDetailLayout->addLayout(repeatCountLayout);
+
+	QHBoxLayout* performanceLayout = new QHBoxLayout();
+	performanceLayout->addWidget(new QLabel("Performance (%)", serviceDetailPane));
+	m_servicePerformancePercentEdit = new CompactDoubleSpinBox(serviceDetailPane);
+	m_servicePerformancePercentEdit->setObjectName("servicePerformancePercentEdit");
+	m_servicePerformancePercentEdit->setRange(1.0, 100.0);
+	m_servicePerformancePercentEdit->setDecimals(std::numeric_limits<double>::max_digits10);
+	m_servicePerformancePercentEdit->setValue(100);
+	performanceLayout->addWidget(m_servicePerformancePercentEdit);
+	serviceDetailLayout->addLayout(performanceLayout);
+
+	QHBoxLayout* maximumSpeedLayout = new QHBoxLayout();
+	m_serviceHasMaximumSpeedCheck = new QCheckBox("Maximum speed (km/h)", serviceDetailPane);
+	m_serviceHasMaximumSpeedCheck->setObjectName("serviceHasMaximumSpeedCheck");
+	m_serviceMaximumSpeedKmhEdit = new CompactDoubleSpinBox(serviceDetailPane);
+	m_serviceMaximumSpeedKmhEdit->setObjectName("serviceMaximumSpeedKmhEdit");
+	m_serviceMaximumSpeedKmhEdit->setRange(0.1, 1000.0);
+	m_serviceMaximumSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
+	m_serviceMaximumSpeedKmhEdit->setValue(100.0);
+	maximumSpeedLayout->addWidget(m_serviceHasMaximumSpeedCheck);
+	maximumSpeedLayout->addWidget(m_serviceMaximumSpeedKmhEdit);
+	serviceDetailLayout->addLayout(maximumSpeedLayout);
+
+	QHBoxLayout* operatingCodeStepLayout = new QHBoxLayout();
+	m_serviceHasOperatingCodeStepCheck = new QCheckBox("Operating-code step", serviceDetailPane);
+	m_serviceHasOperatingCodeStepCheck->setObjectName("serviceHasOperatingCodeStepCheck");
+	m_serviceOperatingCodeStepEdit = new QLineEdit(serviceDetailPane);
+	m_serviceOperatingCodeStepEdit->setObjectName("serviceOperatingCodeStepEdit");
+	m_serviceOperatingCodeStepEdit->setValidator(
+		new QIntValidator(-std::numeric_limits<int>::max(), std::numeric_limits<int>::max(),
+			m_serviceOperatingCodeStepEdit));
+	operatingCodeStepLayout->addWidget(m_serviceHasOperatingCodeStepCheck);
+	operatingCodeStepLayout->addWidget(m_serviceOperatingCodeStepEdit);
+	serviceDetailLayout->addLayout(operatingCodeStepLayout);
 
 	serviceDetailLayout->addWidget(new QLabel("Timetable (stops)", serviceDetailPane));
 	m_stopListWidget = new QListWidget(serviceDetailPane);
@@ -1596,6 +1655,32 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailScroll->setWidget(serviceDetailPane);
 	serviceLayout->addWidget(serviceDetailScroll);
 
+	QWidget* occurrencePane = new QWidget(serviceWidget);
+	QVBoxLayout* occurrenceLayout = new QVBoxLayout(occurrencePane);
+	occurrenceLayout->addWidget(new QLabel("Run occurrences", occurrencePane));
+	m_serviceOccurrenceSelectionLabel = new QLabel(occurrencePane);
+	m_serviceOccurrenceSelectionLabel->setObjectName("serviceOccurrenceSelectionLabel");
+	occurrenceLayout->addWidget(m_serviceOccurrenceSelectionLabel);
+	m_serviceOccurrenceTable = new QTableWidget(occurrencePane);
+	m_serviceOccurrenceTable->setObjectName("serviceOccurrenceTable");
+	m_serviceOccurrenceTable->setColumnCount(6);
+	m_serviceOccurrenceTable->setHorizontalHeaderLabels({
+		"Include", "Operating code", "Service / occurrence", "Offset / departure", "Performance (%)", "Maximum speed (km/h)"});
+	m_serviceOccurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_serviceOccurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_serviceOccurrenceTable->setAlternatingRowColors(true);
+	m_serviceOccurrenceTable->horizontalHeader()->setStretchLastSection(true);
+	occurrenceLayout->addWidget(m_serviceOccurrenceTable, 1);
+	QHBoxLayout* occurrenceButtonLayout = new QHBoxLayout();
+	m_selectAllOccurrencesButton = new QPushButton("Select all", occurrencePane);
+	m_selectAllOccurrencesButton->setObjectName("selectAllOccurrencesButton");
+	m_selectNoneOccurrencesButton = new QPushButton("Select none", occurrencePane);
+	m_selectNoneOccurrencesButton->setObjectName("selectNoneOccurrencesButton");
+	occurrenceButtonLayout->addWidget(m_selectAllOccurrencesButton);
+	occurrenceButtonLayout->addWidget(m_selectNoneOccurrencesButton);
+	occurrenceLayout->addLayout(occurrenceButtonLayout);
+	serviceLayout->addWidget(occurrencePane);
+
 	m_serviceDock->setWidget(serviceWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
 	m_serviceDock->hide();
@@ -1606,15 +1691,27 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateServiceDetailPanel();
 	});
 	connect(m_serviceIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceIdEdit);
+	connect(m_serviceOperatingCodeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceOperatingCode);
 	connect(m_serviceCompositionCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceComposition);
 	connect(m_serviceRouteCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceRoute);
+	connect(m_serviceThroughCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceThrough);
 	connect(m_serviceHasEntryTimeCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasEntryTime);
 	connect(m_serviceEntryTimeSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceEntryTimeSeconds);
 	connect(m_serviceHasRepeatCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasRepeat);
 	connect(m_serviceHeadwaySecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceHeadwaySeconds);
+	connect(m_serviceHasRepeatCountCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasRepeatCount);
+	connect(m_serviceRepeatCountEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceRepeatCount);
+	connect(m_servicePerformancePercentEdit, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &MainWindow::commitServicePerformancePercent);
+	connect(m_serviceHasMaximumSpeedCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasMaximumSpeed);
+	connect(m_serviceMaximumSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &MainWindow::commitServiceMaximumSpeed);
+	connect(m_serviceHasOperatingCodeStepCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasOperatingCodeStep);
+	connect(m_serviceOperatingCodeStepEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceOperatingCodeStep);
 	connect(m_addServiceButton, &QPushButton::clicked, this, &MainWindow::addService);
 	connect(m_duplicateServiceButton, &QPushButton::clicked, this, &MainWindow::duplicateService);
 	connect(m_deleteServiceButton, &QPushButton::clicked, this, &MainWindow::deleteService);
+	connect(m_serviceOccurrenceTable, &QTableWidget::itemChanged, this, &MainWindow::updateServiceOccurrenceSelection);
+	connect(m_selectAllOccurrencesButton, &QPushButton::clicked, this, &MainWindow::selectAllServiceOccurrences);
+	connect(m_selectNoneOccurrencesButton, &QPushButton::clicked, this, &MainWindow::selectNoneServiceOccurrences);
 
 	connect(m_stopListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateStopDetailPanel();
@@ -1827,6 +1924,9 @@ void MainWindow::newScene() {
 	if (!maybeSaveScene())
 		return;
 
+	m_excludedSceneOccurrences.clear();
+	m_lastRunSelectedOccurrences = 0;
+	m_lastRunTotalOccurrences = 0;
 	teardownGUI();
 	simulation.resetState();
 	m_sceneDir.clear();
@@ -1902,6 +2002,9 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	teardownGUI();
 	simulation.resetState();
 
+	m_excludedSceneOccurrences.clear();
+	m_lastRunSelectedOccurrences = 0;
+	m_lastRunTotalOccurrences = 0;
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
 	m_sceneLoaded = true;
@@ -2234,6 +2337,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingCaseSettings();
+	commitPendingServiceSettings();
 	if (m_sceneDir.isEmpty())
 		return saveSceneAsToBundle();
 
@@ -2251,6 +2355,7 @@ bool MainWindow::saveSceneAsToBundle() {
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingCaseSettings();
+	commitPendingServiceSettings();
 
 	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
@@ -2276,6 +2381,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingCaseSettings();
+	commitPendingServiceSettings();
 
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
@@ -2351,6 +2457,7 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 
 bool MainWindow::maybeSaveScene() {
 	commitPendingCaseSettings();
+	commitPendingServiceSettings();
 	if (!m_sceneDirty)
 		return true;
 
@@ -2380,6 +2487,8 @@ void MainWindow::updateSceneActions() {
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
 		ui->actionSimulationStart->setToolTip(QString("Run simulation (Ctrl+R)"));
 	}
+	if (m_serviceDock)
+		m_serviceDock->setEnabled(m_sceneLoaded && !m_worker);
 	updateDiagramActions();
 	if (m_recentScenesMenu) {
 		QSettings settings;
@@ -2697,6 +2806,7 @@ void MainWindow::commitCaseSettings() {
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	markSceneDirty();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
 }
 
 std::string MainWindow::uniqueInfrastructureId(const std::string& baseId, const QString& facet) const {
@@ -4263,6 +4373,8 @@ void MainWindow::moveCompositionUnitDown() {
 
 void MainWindow::refreshServicePanel() {
 	bool hasScene = m_sceneLoaded;
+	if (m_serviceDock)
+		m_serviceDock->setEnabled(hasScene && !m_worker);
 
 	if (m_serviceListWidget) {
 		int previousRow = m_serviceListWidget->currentRow();
@@ -4283,23 +4395,31 @@ void MainWindow::refreshServicePanel() {
 				rowToSelect = previousRow;
 		}
 		m_serviceListWidget->setCurrentRow(rowToSelect);
-		m_serviceListWidget->setEnabled(hasScene);
+		m_serviceListWidget->setEnabled(hasScene && !m_worker);
 	}
 
 	if (m_addServiceButton)
-		m_addServiceButton->setEnabled(hasScene);
+		m_addServiceButton->setEnabled(hasScene && !m_worker);
 
 	updateServiceDetailPanel();
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::updateServiceDetailPanel() {
 	int row = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
 	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.services.size());
+	const bool editorAvailable = hasSelection && !m_worker;
 
 	if (m_serviceIdEdit) {
 		const QSignalBlocker blocker(m_serviceIdEdit);
 		m_serviceIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.services[row].id) : QString());
-		m_serviceIdEdit->setEnabled(hasSelection);
+		m_serviceIdEdit->setEnabled(editorAvailable);
+	}
+
+	if (m_serviceOperatingCodeEdit) {
+		const QSignalBlocker blocker(m_serviceOperatingCodeEdit);
+		m_serviceOperatingCodeEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.services[row].operatingCode) : QString());
+		m_serviceOperatingCodeEdit->setEnabled(editorAvailable);
 	}
 
 	if (m_serviceCompositionCombo) {
@@ -4313,7 +4433,7 @@ void MainWindow::updateServiceDetailPanel() {
 				m_serviceCompositionCombo->addItem(currentComposition); // dangling reference, still shown/selectable
 			m_serviceCompositionCombo->setCurrentText(currentComposition);
 		}
-		m_serviceCompositionCombo->setEnabled(hasSelection);
+		m_serviceCompositionCombo->setEnabled(editorAvailable);
 	}
 
 	if (m_serviceRouteCombo) {
@@ -4327,33 +4447,85 @@ void MainWindow::updateServiceDetailPanel() {
 				m_serviceRouteCombo->addItem(currentRoute); // dangling reference, still shown/selectable
 			m_serviceRouteCombo->setCurrentText(currentRoute);
 		}
-		m_serviceRouteCombo->setEnabled(hasSelection);
+		m_serviceRouteCombo->setEnabled(editorAvailable);
+	}
+
+	if (m_serviceThroughCheck) {
+		const QSignalBlocker blocker(m_serviceThroughCheck);
+		m_serviceThroughCheck->setChecked(hasSelection && m_sceneModel.services[row].through);
+		m_serviceThroughCheck->setEnabled(editorAvailable);
 	}
 
 	bool hasEntryTime = hasSelection && m_sceneModel.services[row].hasEntryTime;
 	if (m_serviceHasEntryTimeCheck) {
 		const QSignalBlocker blocker(m_serviceHasEntryTimeCheck);
 		m_serviceHasEntryTimeCheck->setChecked(hasEntryTime);
-		m_serviceHasEntryTimeCheck->setEnabled(hasSelection);
+		m_serviceHasEntryTimeCheck->setEnabled(editorAvailable);
 	}
 	if (m_serviceEntryTimeSecondsEdit) {
 		const QSignalBlocker blocker(m_serviceEntryTimeSecondsEdit);
 		int seconds = hasSelection ? static_cast<int>(m_sceneModel.services[row].entryTimeSeconds) : 0;
 		m_serviceEntryTimeSecondsEdit->setText(QString::number(seconds));
-		m_serviceEntryTimeSecondsEdit->setEnabled(hasEntryTime);
+		m_serviceEntryTimeSecondsEdit->setEnabled(editorAvailable && hasEntryTime);
 	}
 
 	bool hasRepeat = hasSelection && m_sceneModel.services[row].hasRepeat;
 	if (m_serviceHasRepeatCheck) {
 		const QSignalBlocker blocker(m_serviceHasRepeatCheck);
 		m_serviceHasRepeatCheck->setChecked(hasRepeat);
-		m_serviceHasRepeatCheck->setEnabled(hasSelection);
+		m_serviceHasRepeatCheck->setEnabled(editorAvailable);
 	}
 	if (m_serviceHeadwaySecondsEdit) {
 		const QSignalBlocker blocker(m_serviceHeadwaySecondsEdit);
 		int seconds = hasSelection ? static_cast<int>(m_sceneModel.services[row].headwaySeconds) : 0;
 		m_serviceHeadwaySecondsEdit->setText(QString::number(seconds));
-		m_serviceHeadwaySecondsEdit->setEnabled(hasRepeat);
+		m_serviceHeadwaySecondsEdit->setEnabled(editorAvailable && hasRepeat);
+	}
+
+	bool hasRepeatCount = hasSelection && m_sceneModel.services[row].hasRepeatCount;
+	if (m_serviceHasRepeatCountCheck) {
+		const QSignalBlocker blocker(m_serviceHasRepeatCountCheck);
+		m_serviceHasRepeatCountCheck->setChecked(hasRepeatCount);
+		m_serviceHasRepeatCountCheck->setEnabled(editorAvailable && hasRepeat);
+	}
+	if (m_serviceRepeatCountEdit) {
+		const QSignalBlocker blocker(m_serviceRepeatCountEdit);
+		int count = hasSelection ? m_sceneModel.services[row].repeatCount : 1;
+		m_serviceRepeatCountEdit->setText(QString::number(std::max(1, count)));
+		m_serviceRepeatCountEdit->setEnabled(editorAvailable && hasRepeat && hasRepeatCount);
+	}
+
+	if (m_servicePerformancePercentEdit) {
+		const QSignalBlocker blocker(m_servicePerformancePercentEdit);
+		m_servicePerformancePercentEdit->setValue(hasSelection
+			? std::clamp(m_sceneModel.services[row].performancePercent, 1.0, 100.0) : 100.0);
+		m_servicePerformancePercentEdit->setEnabled(editorAvailable);
+	}
+
+	const bool hasMaximumSpeed = hasSelection && m_sceneModel.services[row].hasMaximumSpeed;
+	if (m_serviceHasMaximumSpeedCheck) {
+		const QSignalBlocker blocker(m_serviceHasMaximumSpeedCheck);
+		m_serviceHasMaximumSpeedCheck->setChecked(hasMaximumSpeed);
+		m_serviceHasMaximumSpeedCheck->setEnabled(editorAvailable);
+	}
+	if (m_serviceMaximumSpeedKmhEdit) {
+		const QSignalBlocker blocker(m_serviceMaximumSpeedKmhEdit);
+		m_serviceMaximumSpeedKmhEdit->setValue(hasSelection
+			? std::max(0.1, m_sceneModel.services[row].maximumSpeedKmh) : 100.0);
+		m_serviceMaximumSpeedKmhEdit->setEnabled(editorAvailable && hasMaximumSpeed);
+	}
+
+	const bool hasOperatingCodeStep = hasSelection && m_sceneModel.services[row].hasOperatingCodeStep;
+	if (m_serviceHasOperatingCodeStepCheck) {
+		const QSignalBlocker blocker(m_serviceHasOperatingCodeStepCheck);
+		m_serviceHasOperatingCodeStepCheck->setChecked(hasOperatingCodeStep);
+		m_serviceHasOperatingCodeStepCheck->setEnabled(editorAvailable && hasRepeat);
+	}
+	if (m_serviceOperatingCodeStepEdit) {
+		const QSignalBlocker blocker(m_serviceOperatingCodeStepEdit);
+		int step = hasSelection ? m_sceneModel.services[row].operatingCodeStep : 1;
+		m_serviceOperatingCodeStepEdit->setText(QString::number(step == 0 ? 1 : step));
+		m_serviceOperatingCodeStepEdit->setEnabled(editorAvailable && hasRepeat && hasOperatingCodeStep);
 	}
 
 	// the stop list is part of the service detail, so it refreshes whenever the
@@ -4361,9 +4533,9 @@ void MainWindow::updateServiceDetailPanel() {
 	refreshStopList();
 
 	if (m_duplicateServiceButton)
-		m_duplicateServiceButton->setEnabled(hasSelection);
+		m_duplicateServiceButton->setEnabled(editorAvailable);
 	if (m_deleteServiceButton)
-		m_deleteServiceButton->setEnabled(hasSelection);
+		m_deleteServiceButton->setEnabled(editorAvailable);
 }
 
 std::string MainWindow::uniqueServiceId(const std::string& baseId) const {
@@ -4382,6 +4554,216 @@ std::string MainWindow::uniqueServiceId(const std::string& baseId) const {
 		++suffix;
 	}
 	return candidate;
+}
+
+double MainWindow::serviceOccurrenceDuration() const {
+	if (initial_variables.durationOverride)
+		return initial_variables.times;
+	return m_sceneModel.settings.hasDuration
+		? m_sceneModel.settings.durationSeconds : computeHorizon(m_sceneModel);
+}
+
+void MainWindow::pruneExcludedServiceOccurrences() {
+	if (!m_sceneLoaded)
+		return;
+	const double durationSeconds = serviceOccurrenceDuration();
+	for (auto it = m_excludedSceneOccurrences.begin(); it != m_excludedSceneOccurrences.end();) {
+		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+				[&](const SceneService& candidate) { return candidate.id == it->serviceId; });
+		if (service == m_sceneModel.services.end() || it->occurrence < 1
+				|| it->occurrence > sceneServiceOccurrenceCount(*service, durationSeconds))
+			it = m_excludedSceneOccurrences.erase(it);
+		else
+			++it;
+	}
+}
+
+void MainWindow::migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId) {
+	if (oldId == newId)
+		return;
+	SceneRunSelection migrated;
+	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
+		SceneServiceOccurrence replacement = value;
+		if (replacement.serviceId == oldId)
+			replacement.serviceId = newId;
+		migrated.insert(replacement);
+	}
+	m_excludedSceneOccurrences.swap(migrated);
+}
+
+int MainWindow::totalServiceOccurrences() const {
+	if (!m_sceneLoaded)
+		return 0;
+	const double durationSeconds = serviceOccurrenceDuration();
+	int total = 0;
+	for (const SceneService& service : m_sceneModel.services) {
+		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
+		if (count > std::numeric_limits<int>::max() - total)
+			return std::numeric_limits<int>::max();
+		total += count;
+	}
+	return total;
+}
+
+int MainWindow::selectedServiceOccurrences() const {
+	if (!m_sceneLoaded)
+		return 0;
+	const double durationSeconds = serviceOccurrenceDuration();
+	int excluded = 0;
+	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
+		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+				[&](const SceneService& candidate) { return candidate.id == value.serviceId; });
+		if (service != m_sceneModel.services.end() && value.occurrence >= 1
+				&& value.occurrence <= sceneServiceOccurrenceCount(*service, durationSeconds))
+			++excluded;
+	}
+	return std::max(0, totalServiceOccurrences() - excluded);
+}
+
+SceneRunSelection MainWindow::selectedSceneOccurrences() const {
+	SceneRunSelection selection;
+	if (!m_sceneLoaded || m_excludedSceneOccurrences.empty())
+		return selection;
+	if (totalServiceOccurrences() > Max_N_Reg)
+		return selection;
+	const double durationSeconds = serviceOccurrenceDuration();
+	for (const SceneService& service : m_sceneModel.services) {
+		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
+		for (int occurrence = 1; occurrence <= count; ++occurrence) {
+			SceneServiceOccurrence value;
+			value.serviceId = service.id;
+			value.occurrence = occurrence;
+			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end())
+				selection.insert(value);
+		}
+	}
+	return selection;
+}
+
+void MainWindow::refreshServiceOccurrencePreview() {
+	if (!m_serviceOccurrenceTable)
+		return;
+	pruneExcludedServiceOccurrences();
+	m_updatingServiceOccurrencePreview = true;
+	m_serviceOccurrenceTable->clearContents();
+	if (!m_sceneLoaded) {
+		m_serviceOccurrenceTable->setRowCount(0);
+		m_updatingServiceOccurrencePreview = false;
+		if (m_serviceOccurrenceSelectionLabel)
+			m_serviceOccurrenceSelectionLabel->setText(QStringLiteral("No scene loaded"));
+		if (m_selectAllOccurrencesButton)
+			m_selectAllOccurrencesButton->setEnabled(false);
+		if (m_selectNoneOccurrencesButton)
+			m_selectNoneOccurrencesButton->setEnabled(false);
+		return;
+	}
+
+	const double durationSeconds = serviceOccurrenceDuration();
+	const int totalOccurrences = totalServiceOccurrences();
+	const int displayedOccurrences = std::min(totalOccurrences, Max_N_Reg);
+	if (totalOccurrences > Max_N_Reg)
+		m_excludedSceneOccurrences.clear();
+	m_serviceOccurrenceTable->setRowCount(displayedOccurrences);
+	int row = 0;
+	for (const SceneService& service : m_sceneModel.services) {
+		const int count = std::min(std::max(0, sceneServiceOccurrenceCount(service, durationSeconds)),
+				displayedOccurrences - row);
+		for (int occurrence = 1; occurrence <= count; ++occurrence, ++row) {
+			SceneServiceOccurrence value;
+			value.serviceId = service.id;
+			value.occurrence = occurrence;
+			const bool checked = m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end();
+			auto* include = new QTableWidgetItem();
+			include->setFlags(include->flags() | Qt::ItemIsUserCheckable);
+			include->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+			include->setData(Qt::UserRole, QString::fromStdString(service.id));
+			include->setData(Qt::UserRole + 1, occurrence);
+			m_serviceOccurrenceTable->setItem(row, 0, include);
+			m_serviceOccurrenceTable->setItem(row, 1,
+				new QTableWidgetItem(QString::fromStdString(sceneServiceOccurrenceOperatingCode(service, occurrence))));
+			m_serviceOccurrenceTable->setItem(row, 2,
+				new QTableWidgetItem(QString("%1 / %2").arg(QString::fromStdString(service.id)).arg(occurrence)));
+			double offset = 0.0;
+			if (service.hasRepeat && service.headwaySeconds > 0.0)
+				offset = service.headwaySeconds * static_cast<double>(occurrence - 1);
+			QString context = QString("+%1 s").arg(QString::number(offset, 'f', 0));
+			if (!service.stops.empty() && service.stops.front().hasPlannedDeparture) {
+				context = QString("Departure %1 (+%2 s)")
+					.arg(QString::fromStdString(formatSimTime(
+						static_cast<long long>(service.stops.front().plannedDepartureSeconds + offset),
+						m_startOffsetSeconds)))
+					.arg(QString::number(offset, 'f', 0));
+			} else if (service.hasEntryTime) {
+				context = QString("Entry %1 (+%2 s)")
+					.arg(QString::fromStdString(formatSimTime(
+						static_cast<long long>(service.entryTimeSeconds + offset), m_startOffsetSeconds)))
+					.arg(QString::number(offset, 'f', 0));
+			}
+			m_serviceOccurrenceTable->setItem(row, 3, new QTableWidgetItem(context));
+			m_serviceOccurrenceTable->setItem(row, 4,
+				new QTableWidgetItem(QString::number(static_cast<double>(service.performancePercent), 'g', 6)));
+			m_serviceOccurrenceTable->setItem(row, 5, new QTableWidgetItem(service.hasMaximumSpeed
+				? QString::number(service.maximumSpeedKmh, 'g', 6) : QStringLiteral("-")));
+		}
+		if (row >= displayedOccurrences)
+			break;
+	}
+	m_serviceOccurrenceTable->resizeColumnsToContents();
+	m_updatingServiceOccurrencePreview = false;
+	if (m_serviceOccurrenceSelectionLabel) {
+		if (totalOccurrences > Max_N_Reg)
+			m_serviceOccurrenceSelectionLabel->setText(QString("%1 occurrences; first %2 shown. Reduce the pattern to select a subset.")
+				.arg(totalOccurrences).arg(Max_N_Reg));
+		else
+			m_serviceOccurrenceSelectionLabel->setText(QString("%1/%2 occurrences selected")
+				.arg(selectedServiceOccurrences()).arg(totalOccurrences));
+	}
+	const bool controlsEnabled = m_sceneLoaded && !m_worker && totalOccurrences <= Max_N_Reg;
+	if (m_serviceOccurrenceTable)
+		m_serviceOccurrenceTable->setEnabled(controlsEnabled);
+	if (m_selectAllOccurrencesButton)
+		m_selectAllOccurrencesButton->setEnabled(controlsEnabled);
+	if (m_selectNoneOccurrencesButton)
+		m_selectNoneOccurrencesButton->setEnabled(controlsEnabled);
+}
+
+void MainWindow::updateServiceOccurrenceSelection(QTableWidgetItem* item) {
+	if (m_updatingServiceOccurrencePreview || !item || item->column() != 0)
+		return;
+	SceneServiceOccurrence value;
+	value.serviceId = item->data(Qt::UserRole).toString().toStdString();
+	value.occurrence = item->data(Qt::UserRole + 1).toInt();
+	if (item->checkState() == Qt::Checked)
+		m_excludedSceneOccurrences.erase(value);
+	else
+		m_excludedSceneOccurrences.insert(value);
+	if (m_serviceOccurrenceSelectionLabel)
+		m_serviceOccurrenceSelectionLabel->setText(QString("%1/%2 occurrences selected")
+			.arg(selectedServiceOccurrences()).arg(totalServiceOccurrences()));
+}
+
+void MainWindow::selectAllServiceOccurrences() {
+	if (m_worker)
+		return;
+	m_excludedSceneOccurrences.clear();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::selectNoneServiceOccurrences() {
+	if (m_worker || totalServiceOccurrences() > Max_N_Reg)
+		return;
+	const double durationSeconds = serviceOccurrenceDuration();
+	m_excludedSceneOccurrences.clear();
+	for (const SceneService& service : m_sceneModel.services) {
+		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
+		for (int occurrence = 1; occurrence <= count; ++occurrence) {
+			SceneServiceOccurrence value;
+			value.serviceId = service.id;
+			value.occurrence = occurrence;
+			m_excludedSceneOccurrences.insert(value);
+		}
+	}
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::addService() {
@@ -4459,6 +4841,21 @@ void MainWindow::commitServiceIdEdit() {
 	if (newId == m_sceneModel.services[row].id)
 		return;
 
+	const std::string oldId = m_sceneModel.services[row].id;
+	for (auto& scenario : m_sceneModel.scenarios) {
+		for (auto& delay : scenario.entranceDelays)
+			if (delay.serviceId == oldId)
+				delay.serviceId = newId;
+		for (auto& incident : scenario.incidents)
+			if (incident.type == "train_breakdown" && incident.target == oldId)
+				incident.target = newId;
+	}
+	for (auto& passenger : m_sceneModel.passengers)
+		for (auto& journey : passenger.journeys)
+			for (auto& leg : journey.legs)
+				if (leg.serviceId == oldId)
+					leg.serviceId = newId;
+	migrateExcludedServiceOccurrences(oldId, newId);
 	m_sceneModel.services[row].id = newId;
 
 	// update the list row label in place instead of rebuilding the panel, so a
@@ -4472,6 +4869,22 @@ void MainWindow::commitServiceIdEdit() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceOperatingCode() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceOperatingCodeEdit)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	const std::string value = m_serviceOperatingCodeEdit->text().trimmed().toStdString();
+	if (value == m_sceneModel.services[row].operatingCode)
+		return;
+	m_sceneModel.services[row].operatingCode = value;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::commitServiceComposition(const QString& text) {
@@ -4514,6 +4927,21 @@ void MainWindow::commitServiceRoute(const QString& text) {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceThrough(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	if (checked == m_sceneModel.services[row].through)
+		return;
+	m_sceneModel.services[row].through = checked;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::commitServiceHasEntryTime(bool checked) {
@@ -4533,6 +4961,7 @@ void MainWindow::commitServiceHasEntryTime(bool checked) {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::commitServiceEntryTimeSeconds() {
@@ -4563,6 +4992,7 @@ void MainWindow::commitServiceEntryTimeSeconds() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::commitServiceHasRepeat(bool checked) {
@@ -4574,14 +5004,34 @@ void MainWindow::commitServiceHasRepeat(bool checked) {
 	if (checked == m_sceneModel.services[row].hasRepeat)
 		return;
 
-	m_sceneModel.services[row].hasRepeat = checked;
+	SceneService& service = m_sceneModel.services[row];
+	service.hasRepeat = checked;
+	if (!checked) {
+		service.hasRepeatCount = false;
+		service.hasOperatingCodeStep = false;
+	}
 	if (m_serviceHeadwaySecondsEdit)
 		m_serviceHeadwaySecondsEdit->setEnabled(checked);
+	if (m_serviceHasRepeatCountCheck) {
+		const QSignalBlocker blocker(m_serviceHasRepeatCountCheck);
+		m_serviceHasRepeatCountCheck->setChecked(checked && service.hasRepeatCount);
+		m_serviceHasRepeatCountCheck->setEnabled(checked && !m_worker);
+	}
+	if (m_serviceRepeatCountEdit)
+		m_serviceRepeatCountEdit->setEnabled(checked && service.hasRepeatCount && !m_worker);
+	if (m_serviceHasOperatingCodeStepCheck) {
+		const QSignalBlocker blocker(m_serviceHasOperatingCodeStepCheck);
+		m_serviceHasOperatingCodeStepCheck->setChecked(checked && service.hasOperatingCodeStep);
+		m_serviceHasOperatingCodeStepCheck->setEnabled(checked && !m_worker);
+	}
+	if (m_serviceOperatingCodeStepEdit)
+		m_serviceOperatingCodeStepEdit->setEnabled(checked && service.hasOperatingCodeStep && !m_worker);
 
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::commitServiceHeadwaySeconds() {
@@ -4612,6 +5062,171 @@ void MainWindow::commitServiceHeadwaySeconds() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceHasRepeatCount(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	if (checked == m_sceneModel.services[row].hasRepeatCount)
+		return;
+	m_sceneModel.services[row].hasRepeatCount = checked;
+	if (checked && m_sceneModel.services[row].repeatCount < 1)
+		m_sceneModel.services[row].repeatCount = 1;
+	if (m_serviceRepeatCountEdit) {
+		const QSignalBlocker blocker(m_serviceRepeatCountEdit);
+		m_serviceRepeatCountEdit->setText(QString::number(std::max(1, m_sceneModel.services[row].repeatCount)));
+		m_serviceRepeatCountEdit->setEnabled(checked && !m_worker);
+	}
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceRepeatCount() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceRepeatCountEdit)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	bool ok = false;
+	int count = m_serviceRepeatCountEdit->text().toInt(&ok);
+	if (!ok || count < 1)
+		count = 1;
+	{
+		const QSignalBlocker blocker(m_serviceRepeatCountEdit);
+		m_serviceRepeatCountEdit->setText(QString::number(count));
+	}
+	if (count == m_sceneModel.services[row].repeatCount)
+		return;
+	m_sceneModel.services[row].repeatCount = count;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServicePerformancePercent(double value) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	value = std::clamp(value, 1.0, 100.0);
+	if (value == m_sceneModel.services[row].performancePercent)
+		return;
+	m_sceneModel.services[row].performancePercent = value;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceHasMaximumSpeed(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	if (checked == m_sceneModel.services[row].hasMaximumSpeed)
+		return;
+	m_sceneModel.services[row].hasMaximumSpeed = checked;
+	if (checked && m_sceneModel.services[row].maximumSpeedKmh <= 0.0)
+		m_sceneModel.services[row].maximumSpeedKmh = 100.0;
+	if (m_serviceMaximumSpeedKmhEdit) {
+		const QSignalBlocker blocker(m_serviceMaximumSpeedKmhEdit);
+		m_serviceMaximumSpeedKmhEdit->setValue(std::max(0.1, m_sceneModel.services[row].maximumSpeedKmh));
+		m_serviceMaximumSpeedKmhEdit->setEnabled(checked && !m_worker);
+	}
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceMaximumSpeed() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceMaximumSpeedKmhEdit)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	const double value = m_serviceMaximumSpeedKmhEdit->value();
+	if (value == m_sceneModel.services[row].maximumSpeedKmh)
+		return;
+	m_sceneModel.services[row].maximumSpeedKmh = value;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceHasOperatingCodeStep(bool checked) {
+	if (!m_sceneLoaded || !m_serviceListWidget)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	if (checked == m_sceneModel.services[row].hasOperatingCodeStep)
+		return;
+	m_sceneModel.services[row].hasOperatingCodeStep = checked;
+	if (checked && m_sceneModel.services[row].operatingCodeStep == 0)
+		m_sceneModel.services[row].operatingCodeStep = 1;
+	if (m_serviceOperatingCodeStepEdit) {
+		const QSignalBlocker blocker(m_serviceOperatingCodeStepEdit);
+		m_serviceOperatingCodeStepEdit->setText(QString::number(
+			m_sceneModel.services[row].operatingCodeStep == 0 ? 1 : m_sceneModel.services[row].operatingCodeStep));
+		m_serviceOperatingCodeStepEdit->setEnabled(checked && !m_worker);
+	}
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceOperatingCodeStep() {
+	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceOperatingCodeStepEdit)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	bool ok = false;
+	int value = m_serviceOperatingCodeStepEdit->text().toInt(&ok);
+	if (!ok || value == 0)
+		value = 1;
+	{
+		const QSignalBlocker blocker(m_serviceOperatingCodeStepEdit);
+		m_serviceOperatingCodeStepEdit->setText(QString::number(value));
+	}
+	if (value == m_sceneModel.services[row].operatingCodeStep)
+		return;
+	m_sceneModel.services[row].operatingCodeStep = value;
+	m_sceneModel.services[row].hasOperatingCodeStep = true;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitPendingServiceSettings() {
+	if (!m_sceneLoaded || m_worker)
+		return;
+	commitServiceIdEdit();
+	commitServiceOperatingCode();
+	if (m_serviceHasEntryTimeCheck && m_serviceHasEntryTimeCheck->isChecked())
+		commitServiceEntryTimeSeconds();
+	if (m_serviceHasRepeatCheck && m_serviceHasRepeatCheck->isChecked()) {
+		commitServiceHeadwaySeconds();
+		if (m_serviceHasRepeatCountCheck && m_serviceHasRepeatCountCheck->isChecked())
+			commitServiceRepeatCount();
+		if (m_serviceHasOperatingCodeStepCheck && m_serviceHasOperatingCodeStepCheck->isChecked())
+			commitServiceOperatingCodeStep();
+	}
+	if (m_servicePerformancePercentEdit) {
+		m_servicePerformancePercentEdit->interpretText();
+		commitServicePerformancePercent(m_servicePerformancePercentEdit->value());
+	}
+	if (m_serviceHasMaximumSpeedCheck && m_serviceHasMaximumSpeedCheck->isChecked()
+			&& m_serviceMaximumSpeedKmhEdit) {
+		m_serviceMaximumSpeedKmhEdit->interpretText();
+		commitServiceMaximumSpeed();
+	}
 }
 
 void MainWindow::refreshStopList() {
@@ -8094,7 +8709,14 @@ void MainWindow::runEditorSmokeE2E() {
 		if (left.size() != right.size())
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [&](const SceneService& a, const SceneService& b) {
-			if (a.id != b.id || a.operatingCode != b.operatingCode || a.composition != b.composition || a.route != b.route || a.through != b.through || a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds || a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds || a.stops.size() != b.stops.size())
+			if (a.id != b.id || a.operatingCode != b.operatingCode || a.composition != b.composition || a.route != b.route
+					|| a.performancePercent != b.performancePercent || a.hasMaximumSpeed != b.hasMaximumSpeed
+					|| a.maximumSpeedKmh != b.maximumSpeedKmh || a.through != b.through
+					|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
+					|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds
+					|| a.hasRepeatCount != b.hasRepeatCount || a.repeatCount != b.repeatCount
+					|| a.hasOperatingCodeStep != b.hasOperatingCodeStep
+					|| a.operatingCodeStep != b.operatingCodeStep || a.stops.size() != b.stops.size())
 				return false;
 			return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), sameStop);
 		});
@@ -8912,6 +9534,8 @@ void MainWindow::runEditorSmokeE2E() {
 		facetFailure(facetOk, "service", "scene or service setup unavailable");
 	} else {
 		bool facetOk = true;
+		const double precisePerformancePercent = 99.12345678901234;
+		const double preciseMaximumSpeedKmh = 876.5432109876543;
 		const int originalCount = m_serviceListWidget->count();
 		m_serviceListWidget->setCurrentRow(0);
 		duplicateService();
@@ -8919,6 +9543,34 @@ void MainWindow::runEditorSmokeE2E() {
 			facetFailure(facetOk, "service", "duplicate did not apply");
 		} else {
 			m_serviceListWidget->setCurrentRow(1);
+			const std::string oldServiceId = m_sceneModel.services[1].id;
+			int referenceScenarioRow = -1;
+			std::size_t temporaryDelayCount = 0;
+			std::size_t temporaryIncidentCount = 0;
+			for (int scenarioRow = 0; scenarioRow < static_cast<int>(m_sceneModel.scenarios.size()); ++scenarioRow) {
+				if (m_sceneModel.scenarios[static_cast<std::size_t>(scenarioRow)].id == m_selectedScenarioId) {
+					referenceScenarioRow = scenarioRow;
+					break;
+				}
+			}
+			if (referenceScenarioRow >= 0) {
+				SceneScenario& referenceScenario = m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+				if (!m_sceneModel.services[1].stops.empty()) {
+					SceneEntranceDelay delay;
+					delay.serviceId = oldServiceId;
+					delay.stationId = m_sceneModel.services[1].stops.front().stationId;
+					referenceScenario.entranceDelays.push_back(delay);
+					++temporaryDelayCount;
+				}
+				SceneIncident incident;
+				incident.id = uniqueIncidentId("e2e_service_rename_incident");
+				incident.type = "train_breakdown";
+				incident.target = oldServiceId;
+				incident.endSeconds = 1.0;
+				referenceScenario.incidents.push_back(incident);
+				++temporaryIncidentCount;
+			}
+			m_excludedSceneOccurrences.insert(SceneServiceOccurrence{oldServiceId, 1});
 			editedServiceId = uniqueServiceId("e2e_service");
 			if (!m_serviceIdEdit) {
 				facetFailure(facetOk, "service", "id editor unavailable");
@@ -8928,8 +9580,37 @@ void MainWindow::runEditorSmokeE2E() {
 				if (m_sceneModel.services.size() <= 1 || m_sceneModel.services[1].id != editedServiceId)
 					facetFailure(facetOk, "service", "id edit did not apply");
 			}
+			bool referencesUpdated = true;
+			if (referenceScenarioRow >= 0) {
+				const SceneScenario& referenceScenario = m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+				if (temporaryDelayCount > 0)
+					referencesUpdated = referencesUpdated && !referenceScenario.entranceDelays.empty()
+						&& referenceScenario.entranceDelays.back().serviceId == editedServiceId;
+				if (temporaryIncidentCount > 0)
+					referencesUpdated = referencesUpdated && !referenceScenario.incidents.empty()
+						&& referenceScenario.incidents.back().target == editedServiceId;
+			}
+			if (m_excludedSceneOccurrences.find(SceneServiceOccurrence{editedServiceId, 1})
+					== m_excludedSceneOccurrences.end())
+				referencesUpdated = false;
+			if (!referencesUpdated)
+				facetFailure(facetOk, "service", "service ID rename did not update canonical references or occurrence exclusions");
+			if (referenceScenarioRow >= 0) {
+				SceneScenario& referenceScenario = m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+				if (temporaryDelayCount > 0 && !referenceScenario.entranceDelays.empty())
+					referenceScenario.entranceDelays.pop_back();
+				if (temporaryIncidentCount > 0 && !referenceScenario.incidents.empty())
+					referenceScenario.incidents.pop_back();
+			}
+			selectAllServiceOccurrences();
 			commitServiceComposition(QString::fromStdString(editedCompositionId));
 			commitServiceRoute(QString::fromStdString(expectedServices[0].route));
+			if (m_serviceOperatingCodeEdit) {
+				m_serviceOperatingCodeEdit->setText("1723");
+				QMetaObject::invokeMethod(m_serviceOperatingCodeEdit, "editingFinished", Qt::DirectConnection);
+			}
+			if (m_serviceThroughCheck)
+				m_serviceThroughCheck->setChecked(true);
 			commitServiceHasEntryTime(false);
 			commitServiceHasEntryTime(true);
 			if (m_serviceEntryTimeSecondsEdit)
@@ -8937,8 +9618,78 @@ void MainWindow::runEditorSmokeE2E() {
 			commitServiceEntryTimeSeconds();
 			commitServiceHasRepeat(true);
 			if (m_serviceHeadwaySecondsEdit)
-				m_serviceHeadwaySecondsEdit->setText("600");
+				m_serviceHeadwaySecondsEdit->setText("1800");
 			commitServiceHeadwaySeconds();
+			if (m_serviceHasRepeatCountCheck)
+				m_serviceHasRepeatCountCheck->setChecked(true);
+			if (m_serviceRepeatCountEdit) {
+				m_serviceRepeatCountEdit->setText("3");
+				QMetaObject::invokeMethod(m_serviceRepeatCountEdit, "editingFinished", Qt::DirectConnection);
+			}
+			if (m_servicePerformancePercentEdit)
+				m_servicePerformancePercentEdit->setValue(95.5);
+			if (m_serviceHasMaximumSpeedCheck)
+				m_serviceHasMaximumSpeedCheck->setChecked(true);
+			if (m_serviceMaximumSpeedKmhEdit) {
+				m_serviceMaximumSpeedKmhEdit->setValue(100.0);
+				QMetaObject::invokeMethod(m_serviceMaximumSpeedKmhEdit, "editingFinished", Qt::DirectConnection);
+			}
+			if (m_serviceHasOperatingCodeStepCheck)
+				m_serviceHasOperatingCodeStepCheck->setChecked(true);
+			if (m_serviceOperatingCodeStepEdit) {
+				m_serviceOperatingCodeStepEdit->setText("2");
+				QMetaObject::invokeMethod(m_serviceOperatingCodeStepEdit, "editingFinished", Qt::DirectConnection);
+			}
+			refreshServiceOccurrencePreview();
+			bool occurrencePreviewOk = m_serviceOccurrenceTable != nullptr;
+			int serviceOccurrences = 0;
+			QStringList previewCodes;
+			if (m_serviceOccurrenceTable) {
+				for (int previewRow = 0; previewRow < m_serviceOccurrenceTable->rowCount(); ++previewRow) {
+					QTableWidgetItem* include = m_serviceOccurrenceTable->item(previewRow, 0);
+					if (!include || include->data(Qt::UserRole).toString().toStdString() != editedServiceId)
+						continue;
+					++serviceOccurrences;
+					previewCodes << m_serviceOccurrenceTable->item(previewRow, 1)->text();
+					if (include->checkState() != Qt::Checked)
+						occurrencePreviewOk = false;
+				}
+			}
+			occurrencePreviewOk = occurrencePreviewOk && serviceOccurrences == 3
+				&& previewCodes == QStringList({"1723", "1725", "1727"})
+				&& m_sceneModel.services[1].operatingCode == "1723"
+				&& m_sceneModel.services[1].performancePercent == 95.5
+				&& m_sceneModel.services[1].hasRepeat && m_sceneModel.services[1].headwaySeconds == 1800.0
+				&& m_sceneModel.services[1].hasRepeatCount && m_sceneModel.services[1].repeatCount == 3
+				&& m_sceneModel.services[1].hasOperatingCodeStep && m_sceneModel.services[1].operatingCodeStep == 2
+				&& m_sceneModel.services[1].hasMaximumSpeed && m_sceneModel.services[1].maximumSpeedKmh == 100.0;
+			if (!occurrencePreviewOk)
+				facetFailure(facetOk, "service", "occurrence preview did not derive the requested codes or fields");
+			m_sceneModel.services[1].performancePercent = precisePerformancePercent;
+			m_sceneModel.services[1].hasMaximumSpeed = true;
+			m_sceneModel.services[1].maximumSpeedKmh = preciseMaximumSpeedKmh;
+			updateServiceDetailPanel();
+			commitPendingServiceSettings();
+			if (m_sceneModel.services[1].performancePercent != precisePerformancePercent
+					|| m_sceneModel.services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
+				facetFailure(facetOk, "service", "untouched precise service settings changed during pending commit");
+			const SceneService serviceBeforeSelection = m_sceneModel.services[1];
+			const bool dirtyBeforeSelection = m_sceneDirty;
+			selectNoneServiceOccurrences();
+			if (m_serviceOccurrenceTable) {
+				for (int previewRow = 0; previewRow < m_serviceOccurrenceTable->rowCount(); ++previewRow) {
+					QTableWidgetItem* include = m_serviceOccurrenceTable->item(previewRow, 0);
+					if (include && include->data(Qt::UserRole).toString().toStdString() == editedServiceId
+							&& include->data(Qt::UserRole + 1).toInt() == 1)
+						include->setCheckState(Qt::Checked);
+				}
+			}
+			const bool oneOccurrenceSelected = selectedServiceOccurrences() == 1
+				&& selectedSceneOccurrences().count(SceneServiceOccurrence{editedServiceId, 1}) == 1;
+			const bool selectionDidNotDirty = m_sceneDirty == dirtyBeforeSelection
+				&& sameServices({serviceBeforeSelection}, {m_sceneModel.services[1]});
+			if (!oneOccurrenceSelected || !selectionDidNotDirty)
+				facetFailure(facetOk, "service", "occurrence selection changed canonical fields or dirty state");
 		}
 		addService();
 		if (m_serviceListWidget->count() != originalCount + 2) {
@@ -8962,12 +9713,18 @@ void MainWindow::runEditorSmokeE2E() {
 			const SceneService& edited = m_sceneModel.services[editedRow];
 			if (edited.composition != editedCompositionId || edited.route != expectedServices[0].route
 					|| !edited.hasEntryTime || edited.entryTimeSeconds != 600.0
-					|| !edited.hasRepeat || edited.headwaySeconds != 600.0
+					|| !edited.hasRepeat || edited.headwaySeconds != 1800.0
+					|| !edited.hasRepeatCount || edited.repeatCount != 3
+					|| edited.operatingCode != "1723" || edited.performancePercent != precisePerformancePercent
+					|| !edited.hasMaximumSpeed || edited.maximumSpeedKmh != preciseMaximumSpeedKmh
+					|| !edited.hasOperatingCodeStep || edited.operatingCodeStep != 2 || !edited.through
 					|| edited.stops.size() != expectedServices[0].stops.size())
 				facetFailure(facetOk, "service", "edited fields did not persist in memory");
 		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_SERVICE_OK\n");
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_SERVICE_OCCURRENCES_OK\n");
 	}
 
 	if (!m_sceneLoaded || !m_serviceListWidget || !m_stopListWidget || editedServiceId.empty()) {
@@ -9152,6 +9909,16 @@ void MainWindow::runEditorSmokeE2E() {
 		if (outputDir.exists() && !outputDir.removeRecursively()) {
 			facetFailure(facetOk, "save/reload", "output path could not be cleaned");
 		} else {
+			for (int row = 0; row < static_cast<int>(m_sceneModel.services.size()); ++row) {
+				if (m_sceneModel.services[static_cast<std::size_t>(row)].id != editedServiceId)
+					continue;
+				m_serviceListWidget->setCurrentRow(row);
+				m_serviceOperatingCodeEdit->setText("1731");
+				commitPendingServiceSettings();
+				if (m_sceneModel.services[static_cast<std::size_t>(row)].operatingCode != "1731")
+					facetFailure(facetOk, "save/reload", "pending service text did not commit before persistence");
+				break;
+			}
 			expectedTrainUnits = m_sceneModel.trainUnits;
 			expectedCompositions = m_sceneModel.compositions;
 			expectedServices = m_sceneModel.services;
@@ -9171,6 +9938,17 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
 			} else if (m_sceneDirty || hasErrors(m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
+			} else {
+				bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
+				if (m_serviceOccurrenceTable) {
+					for (int row = 0; row < m_serviceOccurrenceTable->rowCount(); ++row) {
+						QTableWidgetItem* include = m_serviceOccurrenceTable->item(row, 0);
+						selectionRoundtripOk = selectionRoundtripOk && include
+							&& include->checkState() == Qt::Checked;
+					}
+				}
+				if (!selectionRoundtripOk)
+					facetFailure(facetOk, "save/reload", "temporary occurrence selection was serialized or not reset on reopen");
 			}
 		}
 		if (facetOk)
@@ -10222,10 +11000,12 @@ bool MainWindow::showRunReview() {
 	if (e2eDialogsSuppressed())
 		return true;
 	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
-	const QString summary = QString("Case study: %1\nScenario: %2\nServices: %3\nCompositions: %4\nIncidents: %5\nValidation: %6 error(s), %7 warning(s)")
+	const QString summary = QString("Case study: %1\nScenario: %2\nServices: %3\nOccurrences: %4/%5 selected\nCompositions: %6\nIncidents: %7\nValidation: %8 error(s), %9 warning(s)")
 		.arg(QString::fromStdString(m_sceneModel.name))
 		.arg(scenarioContext())
 		.arg(static_cast<int>(m_sceneModel.services.size()))
+		.arg(selectedServiceOccurrences())
+		.arg(totalServiceOccurrences())
 		.arg(static_cast<int>(m_sceneModel.compositions.size()))
 		.arg(static_cast<int>(selectedScenarioIncidents().size()))
 		.arg(counts.errors)
@@ -10433,11 +11213,19 @@ void MainWindow::runScene() {
 		return;
 
 	commitPendingCaseSettings();
+	commitPendingServiceSettings();
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
 		showBlockingError(this, "Cannot Run Scene",
 						  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
+		return;
+	}
+	pruneExcludedServiceOccurrences();
+	m_lastRunTotalOccurrences = totalServiceOccurrences();
+	m_lastRunSelectedOccurrences = selectedServiceOccurrences();
+	if (m_lastRunSelectedOccurrences <= 0) {
+		showBlockingError(this, "Cannot Run Scene", "Select at least one generated service occurrence before running.", true);
 		return;
 	}
 	if (!showRunReview())
@@ -10459,7 +11247,8 @@ void MainWindow::runScene() {
 	initial_variables.GUI = 1;
 	invalidateRunResults();
 	m_appliedScenarioId = m_selectedScenarioId;
-	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_selectedScenarioId);
+	const SceneRunSelection selection = selectedSceneOccurrences();
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_selectedScenarioId, selection);
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
 		m_runtimeStatus = QStringLiteral("Failed");
@@ -11129,9 +11918,9 @@ void MainWindow::setupRunResultsDock() {
 	m_runResultsTable->setObjectName("runResultsTable");
 	m_runResultsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_runResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_runResultsTable->setColumnCount(8);
+	m_runResultsTable->setColumnCount(11);
 	m_runResultsTable->setHorizontalHeaderLabels({
-		"Train", "Start", "End", "Travel time",
+		"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start", "End", "Travel time",
 		"Energy (kWh)", "Energy with regen (kWh)",
 		"Substation (kWh)", "Substation with regen (kWh)"});
 	m_runResultsTable->setAlternatingRowColors(true);
@@ -11193,17 +11982,18 @@ void MainWindow::refreshRunResults() {
 	if (!m_runResultsDock || !m_runResultsTable || numRegions <= 0)
 		return;
 	if (m_runResultsSummaryLabel)
-		m_runResultsSummaryLabel->setText(QString("Case: %1 | Scenario: %2 | Status: Completed")
-			.arg(QString::fromStdString(m_sceneModel.name), scenarioContext()));
+		m_runResultsSummaryLabel->setText(QString("Case: %1 | Scenario: %2 | Occurrences: %3/%4 selected | Status: Completed")
+			.arg(QString::fromStdString(m_sceneModel.name), scenarioContext())
+			.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences));
 	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(scenarioContext()));
 
 	const auto trains = runResultTrainPointers();
 	const RunResults results = buildRunResults(trains, timestep);
-	const int totalColumns = 8;
+	const int totalColumns = 11;
 	m_runResultsTable->clear();
 	m_runResultsTable->setColumnCount(totalColumns);
 	m_runResultsTable->setHorizontalHeaderLabels({
-		"Train", "Start time (s)", "End time (s)", "Travel time (s)",
+		"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (s)", "End time (s)", "Travel time (s)",
 		"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
 		"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
 	m_runResultsTable->setRowCount(static_cast<int>(results.trains.size()) + 1);
@@ -11230,24 +12020,32 @@ void MainWindow::refreshRunResults() {
 	for (int row = 0; row < static_cast<int>(results.trains.size()); ++row) {
 		const TrainRunResult& result = results.trains[static_cast<std::size_t>(row)];
 		m_runResultsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
-		m_runResultsTable->setItem(row, 1, new QTableWidgetItem(clockText(result.startSeconds)));
-		m_runResultsTable->setItem(row, 2, new QTableWidgetItem(clockText(result.endSeconds)));
-		m_runResultsTable->setItem(row, 3, new QTableWidgetItem(durationText(result.travelSeconds)));
-		m_runResultsTable->setItem(row, 4, new QTableWidgetItem(energyText(result.energyConsumedKWh)));
-		m_runResultsTable->setItem(row, 5, new QTableWidgetItem(energyText(result.energyWithRegenKWh)));
-		m_runResultsTable->setItem(row, 6, new QTableWidgetItem(energyText(result.substationKWh)));
-		m_runResultsTable->setItem(row, 7, new QTableWidgetItem(energyText(result.substationWithRegenKWh)));
+		m_runResultsTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(result.operatingCode)));
+		m_runResultsTable->setItem(row, 2,
+			new QTableWidgetItem(QString::number(result.performancePercent, 'f', 1)));
+		m_runResultsTable->setItem(row, 3,
+			new QTableWidgetItem(QString::number(result.appliedMaximumSpeedKmh, 'f', 1)));
+		m_runResultsTable->setItem(row, 4, new QTableWidgetItem(clockText(result.startSeconds)));
+		m_runResultsTable->setItem(row, 5, new QTableWidgetItem(clockText(result.endSeconds)));
+		m_runResultsTable->setItem(row, 6, new QTableWidgetItem(durationText(result.travelSeconds)));
+		m_runResultsTable->setItem(row, 7, new QTableWidgetItem(energyText(result.energyConsumedKWh)));
+		m_runResultsTable->setItem(row, 8, new QTableWidgetItem(energyText(result.energyWithRegenKWh)));
+		m_runResultsTable->setItem(row, 9, new QTableWidgetItem(energyText(result.substationKWh)));
+		m_runResultsTable->setItem(row, 10, new QTableWidgetItem(energyText(result.substationWithRegenKWh)));
 	}
 
 	const int totalRow = static_cast<int>(results.trains.size());
 	m_runResultsTable->setItem(totalRow, 0, new QTableWidgetItem(QStringLiteral("Network total")));
-	m_runResultsTable->setItem(totalRow, 1, new QTableWidgetItem(clockText(results.networkStartSeconds)));
-	m_runResultsTable->setItem(totalRow, 2, new QTableWidgetItem(clockText(results.networkEndSeconds)));
-	m_runResultsTable->setItem(totalRow, 3, new QTableWidgetItem(durationText(results.networkTravelSeconds)));
-	m_runResultsTable->setItem(totalRow, 4, new QTableWidgetItem(energyText(results.energyConsumedKWh)));
-	m_runResultsTable->setItem(totalRow, 5, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
-	m_runResultsTable->setItem(totalRow, 6, new QTableWidgetItem(energyText(results.substationKWh)));
-	m_runResultsTable->setItem(totalRow, 7, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
+	m_runResultsTable->setItem(totalRow, 1, new QTableWidgetItem(QStringLiteral("-")));
+	m_runResultsTable->setItem(totalRow, 2, new QTableWidgetItem(QStringLiteral("-")));
+	m_runResultsTable->setItem(totalRow, 3, new QTableWidgetItem(QStringLiteral("-")));
+	m_runResultsTable->setItem(totalRow, 4, new QTableWidgetItem(clockText(results.networkStartSeconds)));
+	m_runResultsTable->setItem(totalRow, 5, new QTableWidgetItem(clockText(results.networkEndSeconds)));
+	m_runResultsTable->setItem(totalRow, 6, new QTableWidgetItem(durationText(results.networkTravelSeconds)));
+	m_runResultsTable->setItem(totalRow, 7, new QTableWidgetItem(energyText(results.energyConsumedKWh)));
+	m_runResultsTable->setItem(totalRow, 8, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
+	m_runResultsTable->setItem(totalRow, 9, new QTableWidgetItem(energyText(results.substationKWh)));
+	m_runResultsTable->setItem(totalRow, 10, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
 	m_runResultsTable->resizeColumnsToContents();
 	m_runResultsDock->show();
 	m_runResultsDock->raise();

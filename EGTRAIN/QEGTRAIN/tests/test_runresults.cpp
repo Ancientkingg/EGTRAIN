@@ -170,6 +170,9 @@ int main() {
 	}
 	{
 		auto train = makeTimetableTrain("timetable", {"Central"});
+		train->operatingCode = "R100";
+		train->serviceId = "service-1";
+		train->serviceOccurrence = 3;
 		train->ScheduledArrivals[0] = 100.0;
 		train->ScheduledDepartures[0] = 130.0;
 		train->TimetablePoints.push_back(makeTimetableEvent("Central", 112.0, 145.0));
@@ -178,6 +181,9 @@ int main() {
 		ok &= expect(rows.size() == 1, "one timetable station row");
 		ok &= expect(rows[0].callIndex == 1 && rows[0].stationId == "Central",
 					 "timetable row keeps station occurrence identity");
+		ok &= expect(rows[0].operatingCode == "R100" && rows[0].serviceId == "service-1"
+					 && rows[0].occurrence == 3,
+					 "timetable row carries service provenance");
 		ok &= expect(rows[0].plannedArrivalSeconds.available &&
 					 closeTo(rows[0].plannedArrivalSeconds.value, 100.0),
 					 "planned arrival is preserved");
@@ -304,9 +310,28 @@ int main() {
 				 "clampStationCount truncates over-cap counts");
 
 	auto delayed = makeTrain("delayed", 3, 7, 10.0, 20.0, 30.0, 40.0);
+	delayed->operatingCode = "1725";
+	delayed->serviceId = "service.native";
+	delayed->serviceOccurrence = 2;
+	delayed->servicePerformancePercent = 75.0;
+	delayed->hasConfiguredMaximumSpeed = true;
+	delayed->configuredMaximumSpeedKmh = 120.0;
+	delayed->compositionMaximumSpeedMs = 40.0;
+	delayed->appliedMaximumSpeedMs = 25.0;
+	delayed->appliedMaximumSpeedKmh = 90.0;
 	const std::vector<const Train*> delayedTrains{delayed.get()};
 	const auto delayedResults = buildRunResults(delayedTrains, 0.5);
 	ok &= expect(delayedResults.trains.size() == 1, "one train result");
+	ok &= expect(delayedResults.trains[0].operatingCode == "1725"
+				 && delayedResults.trains[0].serviceId == "service.native"
+				 && delayedResults.trains[0].occurrence == 2
+				 && closeTo(delayedResults.trains[0].performancePercent, 75.0)
+				 && delayedResults.trains[0].hasConfiguredMaximumSpeed
+				 && closeTo(delayedResults.trains[0].configuredMaximumSpeedKmh, 120.0)
+				 && closeTo(delayedResults.trains[0].compositionMaximumSpeedMs, 40.0)
+				 && closeTo(delayedResults.trains[0].appliedMaximumSpeedMs, 25.0)
+				 && closeTo(delayedResults.trains[0].appliedMaximumSpeedKmh, 90.0),
+				 "run result carries operating, service, performance, and speed provenance");
 	ok &= expect(delayedResults.trains[0].startSeconds.available &&
 					 closeTo(delayedResults.trains[0].startSeconds.value, 1.5),
 					 "delayed active start uses first valid sample");

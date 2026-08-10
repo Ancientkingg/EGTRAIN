@@ -1,6 +1,8 @@
 #include "scene/SceneModel.h"
 
 #include <algorithm>
+#include <cctype>
+#include <climits>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -59,6 +61,49 @@ std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDia
 }
 
 } // namespace
+
+int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds) {
+	if (!service.hasRepeat)
+		return 1;
+	if (service.hasRepeatCount)
+		return service.repeatCount > 0 ? service.repeatCount : 1;
+	if (!std::isfinite(service.headwaySeconds) || service.headwaySeconds <= 0.0
+			|| !std::isfinite(durationSeconds) || durationSeconds <= 0.0)
+		return 1;
+	const double rawCount = std::ceil(durationSeconds / service.headwaySeconds);
+	if (!std::isfinite(rawCount) || rawCount >= static_cast<double>(INT_MAX))
+		return INT_MAX;
+	return std::max(1, static_cast<int>(rawCount));
+}
+
+std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence) {
+	if (occurrence <= 0)
+		return {};
+	const std::string base = service.operatingCode.empty() ? service.id : service.operatingCode;
+	if (base.empty())
+		return {};
+	if (service.hasOperatingCodeStep) {
+		if (!service.hasRepeat || service.operatingCodeStep == 0
+				|| !std::all_of(base.begin(), base.end(), [](unsigned char value) {
+					return std::isdigit(value) != 0;
+				}))
+			return {};
+		try {
+			const long long baseValue = std::stoll(base);
+			const long long delta = static_cast<long long>(service.operatingCodeStep)
+					* static_cast<long long>(occurrence - 1);
+			if ((delta > 0 && baseValue > std::numeric_limits<long long>::max() - delta)
+					|| (delta < 0 && baseValue < std::numeric_limits<long long>::min() - delta))
+				return {};
+			return std::to_string(baseValue + delta);
+		} catch (const std::exception&) {
+			return {};
+		}
+	}
+	if (service.hasRepeat)
+		return base + "-" + std::to_string(occurrence);
+	return base;
+}
 
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
@@ -586,7 +631,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					joinPath(path, key));
 			return false;
 		}
-		output = object[key].get<int>();
+		try {
+			output = object[key].get<int>();
+		} catch (const json::exception&) {
+			addError("scene.field.missing", file, std::string("Invalid ") + key,
+					joinPath(path, key));
+			return false;
+		}
 		return true;
 	};
 	auto isSimulationResultField = [](const std::string& name) {
@@ -1002,6 +1053,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			stringField(value, "operating_code", "services.json", path, service.operatingCode, false);
 			stringField(value, "composition", "services.json", path, service.composition);
 			stringField(value, "route", "services.json", path, service.route);
+			numberField(value, "performance_percent", "services.json", path,
+				service.performancePercent, false);
+			service.hasMaximumSpeed = numberField(value, "maximum_speed_kmh", "services.json", path,
+				service.maximumSpeedKmh, false);
 			if (value.contains("through")) {
 				if (!value["through"].is_boolean())
 					addError("scene.field.missing", "services.json", "through must be a boolean",
@@ -1019,6 +1074,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					service.hasRepeat = true;
 					numberField(value["repeat"], "headway_seconds", "services.json", path + ".repeat",
 							service.headwaySeconds);
+					service.hasRepeatCount = integerField(value["repeat"], "count", "services.json",
+							path + ".repeat", service.repeatCount, false);
+					service.hasOperatingCodeStep = integerField(value["repeat"], "operating_code_step",
+							"services.json", path + ".repeat", service.operatingCodeStep, false);
 				}
 			}
 			if (arraySection(value, "stops", "services.json", path, true)) {

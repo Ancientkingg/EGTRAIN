@@ -117,12 +117,21 @@ static json writeServices(const SceneModel& scene) {
 		};
 		if (!service.operatingCode.empty())
 			value["operating_code"] = service.operatingCode;
+		if (service.performancePercent != 100.0)
+			value["performance_percent"] = service.performancePercent;
+		if (service.hasMaximumSpeed)
+			value["maximum_speed_kmh"] = service.maximumSpeedKmh;
 		if (service.through)
 			value["through"] = true;
 		if (service.hasEntryTime)
 			value["entry_time_seconds"] = service.entryTimeSeconds;
-		if (service.hasRepeat)
+		if (service.hasRepeat) {
 			value["repeat"] = {{"headway_seconds", service.headwaySeconds}};
+			if (service.hasRepeatCount)
+				value["repeat"]["count"] = service.repeatCount;
+			if (service.hasOperatingCodeStep)
+				value["repeat"]["operating_code_step"] = service.operatingCodeStep;
+		}
 		services.push_back(value);
 	}
 	return services;

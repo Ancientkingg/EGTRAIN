@@ -1,7 +1,6 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
 #include <cmath>
-#include <iterator>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -27,29 +26,13 @@ bool orderTrainEvents(TrainEvent A, TrainEvent blockSets) {
 
 // Function to order Trains in a list where time events are also equal
 void orderListOfTrainEvents(list<TrainEvent>& OutputList) {
-
-	list<TrainEvent> List;
-	List = OutputList;
-	OutputList.clear(); // deleting all the elements from Outputlist
-
-	while (List.size() > 0) {
-		double Min = 999999999;
-		TrainEvent CurrentMin;
-		for (list<TrainEvent>::iterator it = List.begin(); it != List.end(); it++) {
-			if (it->Time < Min) {
-				Min = it->Time;
-			}
-		}
-		// Set the object TrainEvent having the minimum time
-		for (list<TrainEvent>::iterator it = List.begin(); it != List.end(); it++) {
-			if (it->Time == Min) {
-				CurrentMin = *it;
-				List.erase(it); // remove the minimum from the list and put it in the new outputList
-				OutputList.push_back(CurrentMin);
-				break;
-			}
-		}
-	}
+	OutputList.sort([](const TrainEvent& left, const TrainEvent& right) {
+		const bool leftFinite = std::isfinite(left.Time);
+		const bool rightFinite = std::isfinite(right.Time);
+		if (leftFinite != rightFinite)
+			return leftFinite;
+		return leftFinite && left.Time < right.Time;
+	});
 }
 
 

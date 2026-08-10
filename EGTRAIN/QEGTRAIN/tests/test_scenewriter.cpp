@@ -159,6 +159,15 @@ int main() {
 	bool ok = true;
 	TempDir temp;
 	SceneModel source = completeScene();
+	source.services[0].performancePercent = 87.5;
+	source.services[0].hasMaximumSpeed = true;
+	source.services[0].maximumSpeedKmh = 120.0;
+	source.services[0].hasRepeat = true;
+	source.services[0].headwaySeconds = 900.0;
+	source.services[0].hasRepeatCount = true;
+	source.services[0].repeatCount = 3;
+	source.services[0].hasOperatingCodeStep = true;
+	source.services[0].operatingCodeStep = 2;
 	SceneSaveResult saved = saveScene(source, temp.path.string());
 	printErrors(saved.diagnostics, "save");
 	ok &= expect(saved.success(), "complete canonical scene saves");
@@ -175,6 +184,12 @@ int main() {
 	const json& firstStop = services["services"][0]["stops"][0];
 	ok &= expect(services["services"][0]["operating_code"] == "R100",
 			"writer emits the service operating code");
+	ok &= expect(services["services"][0]["performance_percent"] == 87.5
+				&& services["services"][0]["maximum_speed_kmh"] == 120.0,
+			"writer emits optional performance and maximum speed");
+	ok &= expect(services["services"][0]["repeat"]["count"] == 3
+				&& services["services"][0]["repeat"]["operating_code_step"] == 2,
+			"writer emits explicit repeat count and operating-code step");
 	ok &= expect(firstStop.contains("planned_departure_seconds"), "writer emits planned departure");
 	ok &= expect(!firstStop.contains("departure_seconds"), "writer omits legacy departure alias");
 	const json& lastStop = services["services"][0]["stops"][1];
@@ -250,6 +265,27 @@ int main() {
 				&& reloaded.services[0].stops[0].plannedDepartureSeconds == 100.0,
 			"planned departure round-trips");
 	ok &= expect(reloaded.services[0].operatingCode == "R100", "service operating code round-trips");
+	ok &= expect(reloaded.services[0].performancePercent == 87.5
+				&& reloaded.services[0].hasMaximumSpeed
+				&& reloaded.services[0].maximumSpeedKmh == 120.0
+				&& reloaded.services[0].hasRepeatCount && reloaded.services[0].repeatCount == 3
+				&& reloaded.services[0].hasOperatingCodeStep
+				&& reloaded.services[0].operatingCodeStep == 2,
+				"optional service runtime properties round-trip");
+
+	SceneModel legacyDefaults = completeScene();
+	const fs::path legacyDefaultsPath = temp.path / "legacy-defaults";
+	ok &= expect(saveScene(legacyDefaults, legacyDefaultsPath.string()).success(),
+			"legacy-default service still saves");
+	json legacyServices;
+	{
+		std::ifstream input(legacyDefaultsPath / "services.json");
+		input >> legacyServices;
+	}
+	ok &= expect(!legacyServices["services"][0].contains("performance_percent")
+				&& !legacyServices["services"][0].contains("maximum_speed_kmh")
+				&& !legacyServices["services"][0].contains("repeat"),
+				"default service properties remain omitted for legacy scenes");
 	ok &= expect(reloaded.services[0].stops[1].hasPlannedArrival
 				&& reloaded.services[0].stops[1].plannedArrivalSeconds == 200.0,
 			"planned arrival round-trips");

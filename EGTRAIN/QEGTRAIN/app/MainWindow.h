@@ -411,6 +411,8 @@ private:
 	std::string m_appliedScenarioId;
 	std::set<std::string> m_modifiedScenarioIds;
 	QLabel* m_runResultsSummaryLabel = nullptr;
+	int m_lastRunSelectedOccurrences = 0;
+	int m_lastRunTotalOccurrences = 0;
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
@@ -448,15 +450,30 @@ private:
 	QDockWidget* m_serviceDock = nullptr;
 	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
 	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
+	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
 	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
 	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
+	QCheckBox* m_serviceThroughCheck = nullptr;
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
 	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
 	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr; // whole seconds
+	QCheckBox* m_serviceHasRepeatCountCheck = nullptr;
+	QLineEdit* m_serviceRepeatCountEdit = nullptr;
+	QDoubleSpinBox* m_servicePerformancePercentEdit = nullptr;
+	QCheckBox* m_serviceHasMaximumSpeedCheck = nullptr;
+	QDoubleSpinBox* m_serviceMaximumSpeedKmhEdit = nullptr;
+	QCheckBox* m_serviceHasOperatingCodeStepCheck = nullptr;
+	QLineEdit* m_serviceOperatingCodeStepEdit = nullptr;
 	QPushButton* m_addServiceButton = nullptr;
 	QPushButton* m_duplicateServiceButton = nullptr;
 	QPushButton* m_deleteServiceButton = nullptr;
+	QTableWidget* m_serviceOccurrenceTable = nullptr;
+	QPushButton* m_selectAllOccurrencesButton = nullptr;
+	QPushButton* m_selectNoneOccurrencesButton = nullptr;
+	QLabel* m_serviceOccurrenceSelectionLabel = nullptr;
+	bool m_updatingServiceOccurrencePreview = false;
+	SceneRunSelection m_excludedSceneOccurrences;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
 	QListWidget* m_stopListWidget = nullptr; // one row per SceneStop of the selected service
@@ -598,12 +615,32 @@ private:
 	void duplicateService();
 	void deleteService();
 	void commitServiceIdEdit();
+	void commitServiceOperatingCode();
 	void commitServiceComposition(const QString& text);
 	void commitServiceRoute(const QString& text);
+	void commitServiceThrough(bool checked);
 	void commitServiceHasEntryTime(bool checked);
 	void commitServiceEntryTimeSeconds();
 	void commitServiceHasRepeat(bool checked);
 	void commitServiceHeadwaySeconds();
+	void commitServiceHasRepeatCount(bool checked);
+	void commitServiceRepeatCount();
+	void commitServicePerformancePercent(double value);
+	void commitServiceHasMaximumSpeed(bool checked);
+	void commitServiceMaximumSpeed();
+	void commitServiceHasOperatingCodeStep(bool checked);
+	void commitServiceOperatingCodeStep();
+	void commitPendingServiceSettings();
+	void refreshServiceOccurrencePreview();
+	void updateServiceOccurrenceSelection(QTableWidgetItem* item);
+	void selectAllServiceOccurrences();
+	void selectNoneServiceOccurrences();
+	double serviceOccurrenceDuration() const;
+	int totalServiceOccurrences() const;
+	int selectedServiceOccurrences() const;
+	SceneRunSelection selectedSceneOccurrences() const;
+	void pruneExcludedServiceOccurrences();
+	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
 	std::string uniqueServiceId(const std::string& baseId) const;
 
 	// stop (timetable) editor: edits the selected service's stops in place
