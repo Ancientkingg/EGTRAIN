@@ -85,6 +85,21 @@ are cleared when the case or scenario changes and are rebuilt only by a new
 run, so a result window is never presented as belonging to a newly selected
 scenario.
 
+The incident editor exposes occurrence, reduced-speed cap, recovery end (or
+until-destination), and destination termination directly; these are not hidden
+JSON-only settings. A completed incident-free run can be frozen with **Set
+delay baseline**. Selecting another scenario retains that baseline, while a
+canonical scene edit, **New**, or **Open** clears it and advances the local
+scene revision. **Compare delays** requires an incident run with no entrance
+delays and matching scene revision, base time, duration, timestep, and full
+selected `(service_id, occurrence)` identity set. The compact table and CSV
+show baseline/scenario identities, matching final authored timetable arrivals,
+positive contribution, primary/secondary attribution, incident IDs, first
+direct time/location, and destination-termination outcome. Primary means direct runtime evidence exists
+for that occurrence; secondary means it does not. Timetable differences alone
+are never treated as causal, and a comparison with no direct evidence anywhere
+is rejected. Positive contribution rows sum exactly to total arrival delay.
+
 ## Portable bundles
 
 V2 `.egscene` files package canonical V1 JSON in a deterministic ZIP archive.

@@ -147,13 +147,24 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 	if (!scenario.description.empty())
 		value["description"] = scenario.description;
 	for (const auto& incident : scenario.incidents) {
-		value["incidents"].push_back({
+		const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
+		json incidentValue = {
 			{"id", incident.id},
 			{"type", incident.type},
 			{"target", incident.target},
 			{"start_seconds", incident.startSeconds},
-			{"end_seconds", incident.endSeconds},
-		});
+		};
+		// Keep the historical five-field shape byte-for-byte in behavior while
+		// allowing reduced-speed incidents to run until the destination.
+		if (!hasReducedSpeed || incident.hasEndSeconds || incident.endSeconds != 0.0)
+			incidentValue["end_seconds"] = incident.endSeconds;
+		if (incident.hasOccurrence || incident.occurrence != 1)
+			incidentValue["occurrence"] = incident.occurrence;
+		if (hasReducedSpeed)
+			incidentValue["reduced_speed_kmh"] = incident.reducedSpeedKmh;
+		if (incident.terminateAtDestination)
+			incidentValue["terminate_at_destination"] = true;
+		value["incidents"].push_back(std::move(incidentValue));
 	}
 	for (const auto& delay : scenario.entranceDelays) {
 		value["entrance_delays"].push_back({
@@ -270,7 +281,20 @@ static void parseScenarioIncident(const json& value, std::size_t index,
 	scenarioString(value, "type", result, incident.type, true, path);
 	scenarioString(value, "target", result, incident.target, true, path);
 	scenarioNumber(value, "start_seconds", result, incident.startSeconds, path);
-	scenarioNumber(value, "end_seconds", result, incident.endSeconds, path);
+	if (value.contains("end_seconds"))
+		incident.hasEndSeconds = scenarioNumber(value, "end_seconds", result, incident.endSeconds, path);
+	incident.hasOccurrence = value.contains("occurrence")
+		&& scenarioInteger(value, "occurrence", result, incident.occurrence, path);
+	if (value.contains("reduced_speed_kmh"))
+		incident.hasReducedSpeed = scenarioNumber(value, "reduced_speed_kmh", result,
+				incident.reducedSpeedKmh, path);
+	if (value.contains("terminate_at_destination")) {
+		if (!value["terminate_at_destination"].is_boolean())
+			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
+					"Invalid terminate_at_destination", path + ".terminate_at_destination");
+		else
+			incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
+	}
 	result.scenario.incidents.push_back(std::move(incident));
 }
 

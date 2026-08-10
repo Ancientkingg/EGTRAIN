@@ -280,6 +280,53 @@ int main(int argc, char** argv) {
 			passed = passed && hasCodeAndPath(diagnostics, test.code, test.path);
 		ok &= expect(passed, test.name);
 	}
+	SceneModel reducedBreakdown = clean;
+	SceneIncident& reducedIncident = reducedBreakdown.scenarios[0].incidents[0];
+	reducedIncident.type = "train_breakdown";
+	reducedIncident.target = "service-1";
+	reducedIncident.startSeconds = 300.0;
+	reducedIncident.endSeconds = 0.0;
+	reducedIncident.hasEndSeconds = false;
+	reducedIncident.hasReducedSpeed = true;
+	reducedIncident.reducedSpeedKmh = 40.0;
+	reducedIncident.hasOccurrence = true;
+	reducedIncident.occurrence = 1;
+	ok &= expect(validateRunnableScene(reducedBreakdown).empty(),
+			"reduced-speed breakdown may omit recovery end");
+
+	SceneModel fullHoldWithoutEnd = reducedBreakdown;
+	fullHoldWithoutEnd.scenarios[0].incidents[0].hasReducedSpeed = false;
+	fullHoldWithoutEnd.scenarios[0].incidents[0].reducedSpeedKmh = 0.0;
+	ok &= expect(hasCode(validateRunnableScene(fullHoldWithoutEnd), "scene.incident.window"),
+			"legacy full-hold breakdown requires an end");
+
+	SceneModel invalidBreakdown = reducedBreakdown;
+	invalidBreakdown.scenarios[0].incidents[0].occurrence = 0;
+	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.occurrence.invalid"),
+			"breakdown occurrence must be positive");
+	invalidBreakdown = reducedBreakdown;
+	invalidBreakdown.services[0].hasRepeat = true;
+	invalidBreakdown.services[0].headwaySeconds = 30.0;
+	invalidBreakdown.services[0].hasRepeatCount = true;
+	invalidBreakdown.services[0].repeatCount = 1;
+	invalidBreakdown.scenarios[0].incidents[0].occurrence = 2;
+	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.occurrence.invalid"),
+			"breakdown occurrence must be inside the configured repeat range");
+	invalidBreakdown = reducedBreakdown;
+	invalidBreakdown.scenarios[0].incidents[0].reducedSpeedKmh = 0.0;
+	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.speed"),
+			"reduced breakdown speed must be positive");
+	invalidBreakdown = reducedBreakdown;
+	invalidBreakdown.scenarios[0].incidents[0].hasEndSeconds = true;
+	invalidBreakdown.scenarios[0].incidents[0].endSeconds = 300.0;
+	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.window"),
+			"breakdown recovery end must be after start");
+	invalidBreakdown = reducedBreakdown;
+	invalidBreakdown.scenarios[0].incidents[0].terminateAtDestination = true;
+	invalidBreakdown.scenarios[0].incidents[0].type = "signal_failure";
+	invalidBreakdown.scenarios[0].incidents[0].target = "signal-1";
+	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.fields"),
+			"signal failures reject breakdown-only fields");
 	SceneService repeated = clean.services[0];
 	repeated.operatingCode = "1723";
 	repeated.hasRepeat = true;

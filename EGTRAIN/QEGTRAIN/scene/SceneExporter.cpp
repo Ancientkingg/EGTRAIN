@@ -1144,6 +1144,16 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 							"Incident type " + inc.type + " is not supported and was skipped", inc.id);
 					continue;
 				}
+				if (inc.type == "train_breakdown"
+						&& (inc.hasOccurrence || inc.occurrence != 1
+							|| inc.hasReducedSpeed || inc.reducedSpeedKmh != 0.0
+							|| inc.terminateAtDestination
+							|| (!inc.hasEndSeconds && inc.endSeconds == 0.0))) {
+					addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+							"Enhanced breakdown " + inc.id + " was skipped because the legacy four-column exporter cannot represent its occurrence, speed, recovery, or destination semantics",
+							inc.id);
+					continue;
+				}
 				if (inc.type == "signal_failure" && routeBlockTokens.find(inc.target) == routeBlockTokens.end()) {
 					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
 							"Signal id " + inc.target + " matches no route block so the failure will have no effect", inc.id);
