@@ -30,9 +30,9 @@ std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
 	return tokens;
 }
 
-bool shareBlockId(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
-	std::vector<std::string> aTokens = comparableBlockTokens(a.blockId);
-	std::vector<std::string> bTokens = comparableBlockTokens(b.blockId);
+bool shareBlockId(const std::string& aBlockId, const std::string& bBlockId) {
+	std::vector<std::string> aTokens = comparableBlockTokens(aBlockId);
+	std::vector<std::string> bTokens = comparableBlockTokens(bBlockId);
 	for (const std::string& aToken : aTokens) {
 		for (const std::string& bToken : bTokens) {
 			if (aToken == bToken)
@@ -40,6 +40,10 @@ bool shareBlockId(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramIn
 		}
 	}
 	return false;
+}
+
+bool shareBlockId(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
+	return shareBlockId(a.blockId, b.blockId);
 }
 
 bool validInterval(const BlockingTimeDiagramInput& block) {
@@ -112,4 +116,58 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 		}
 	}
 	return segments;
+}
+
+std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
+	const std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<std::string>& allowedTrainIds,
+	const std::vector<std::string>& allowedBlockIds,
+	double startTime,
+	double endTime) {
+	std::vector<BlockingTimeDiagramSegment> filtered;
+	if (!std::isfinite(startTime) || !std::isfinite(endTime) || endTime < startTime)
+		return filtered;
+
+	for (const BlockingTimeDiagramSegment& source : segments) {
+		if ((!allowedTrainIds.empty() &&
+			 std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end()) ||
+			(!allowedBlockIds.empty() && std::none_of(allowedBlockIds.begin(), allowedBlockIds.end(),
+				[&source](const std::string& allowedBlockId) { return shareBlockId(source.blockId, allowedBlockId); })) ||
+			source.endTime <= startTime || source.startTime >= endTime)
+			continue;
+
+		BlockingTimeDiagramSegment segment = source;
+		segment.startTime = std::max(segment.startTime, startTime);
+		segment.endTime = std::min(segment.endTime, endTime);
+		if (segment.endTime > segment.startTime)
+			filtered.push_back(std::move(segment));
+	}
+	return filtered;
+}
+
+std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(
+	const std::vector<BlockingTimePlannedReference>& references,
+	double startTime,
+	double endTime) {
+	std::vector<BlockingTimePlannedReference> filtered;
+	if (!std::isfinite(startTime) || !std::isfinite(endTime) || endTime < startTime)
+		return filtered;
+
+	const auto segmentIntersects = [startTime, endTime](double first, double second) {
+		return std::isfinite(first) && std::isfinite(second) &&
+			std::max(first, second) >= startTime && std::min(first, second) <= endTime;
+	};
+	for (std::size_t i = 0; i < references.size(); ++i) {
+		const BlockingTimePlannedReference& reference = references[i];
+		if (!std::isfinite(reference.time))
+			continue;
+		const bool pointVisible = reference.time >= startTime && reference.time <= endTime;
+		const bool previousVisible = i > 0 && references[i - 1].trainName == reference.trainName &&
+			segmentIntersects(references[i - 1].time, reference.time);
+		const bool nextVisible = i + 1 < references.size() && references[i + 1].trainName == reference.trainName &&
+			segmentIntersects(reference.time, references[i + 1].time);
+		if (pointVisible || previousVisible || nextVisible)
+			filtered.push_back(reference);
+	}
+	return filtered;
 }
