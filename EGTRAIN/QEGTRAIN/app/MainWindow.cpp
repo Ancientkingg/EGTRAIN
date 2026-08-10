@@ -11124,6 +11124,7 @@ void MainWindow::runEditorSmokeE2E() {
 					}
 				}
 			}
+		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
 	}
