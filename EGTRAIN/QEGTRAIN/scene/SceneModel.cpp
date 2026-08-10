@@ -1127,7 +1127,20 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			stringField(value, "type", file, incidentPath, incident.type);
 			stringField(value, "target", file, incidentPath, incident.target);
 			numberField(value, "start_seconds", file, incidentPath, incident.startSeconds);
-			numberField(value, "end_seconds", file, incidentPath, incident.endSeconds);
+			incident.hasEndSeconds = numberField(value, "end_seconds", file, incidentPath,
+					incident.endSeconds, false);
+			incident.hasOccurrence = integerField(value, "occurrence", file, incidentPath,
+					incident.occurrence, false);
+			incident.hasReducedSpeed = numberField(value, "reduced_speed_kmh", file, incidentPath,
+					incident.reducedSpeedKmh, false);
+			if (value.contains("terminate_at_destination")) {
+				if (!value["terminate_at_destination"].is_boolean()) {
+					addError("scene.field.missing", file, "Invalid terminate_at_destination",
+							joinPath(incidentPath, "terminate_at_destination"));
+				} else {
+					incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
+				}
+			}
 			output.push_back(incident);
 		}
 	};

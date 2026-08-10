@@ -169,9 +169,30 @@ ID selects one named scenario. Each scenario has required `id`, `name`, and
 `incidents` array; it may have `description` and `entrance_delays`.
 
 Each incident is concrete input with `id`, `type` (`signal_failure` or
-`train_breakdown`), `target`, `start_seconds`, and `end_seconds`. An entrance
-delay has `service`, optional integer `occurrence`, `station`, and numeric
+`train_breakdown`), `target`, and finite non-negative `start_seconds`.
+`end_seconds` is explicitly optional in the JSON shape, but is required for
+signal failures and legacy full-hold breakdowns. A breakdown with
+`reduced_speed_kmh` may omit `end_seconds`; its positive finite speed cap then
+continues until the target reaches its normal route end. When present, an end
+is recovery time and the breakdown interval is `[start_seconds, end_seconds)`.
+The optional breakdown fields are:
+
+- `occurrence`: positive 1-based service occurrence. When omitted, the
+  breakdown targets every occurrence of the canonical `target` service.
+- `reduced_speed_kmh`: positive finite effective-trajectory speed cap. It
+  changes neither composition data nor the canonical service maximum.
+- `terminate_at_destination`: boolean request retained after recovery; the
+  result is marked when that occurrence reaches its authored route end.
+
+The occurrence must be inside the service's configured repeat range. Signal
+failures accept only the legacy target/start/end fields. An entrance delay has
+`service`, optional integer `occurrence`, `station`, and numeric
 `delay_seconds`.
+
+The four-column legacy `Incidents.txt` exporter cannot represent an enhanced
+breakdown (occurrence, reduced speed, destination termination, or an omitted
+end), so it skips that row with a compatibility diagnostic instead of
+exporting full-hold semantics.
 
 If `scenarios.json` is absent, loading creates a baseline scenario. A legacy
 `incidents.json` is read into that baseline for compatibility. Saving writes
@@ -206,6 +227,36 @@ not diverge between the two forms. The editor checks incident types/targets
 and entrance-delay references against the open scene before importing. A
 conflicting scenario or incident ID is never used as-is; the imported object
 is added with a reported unique ID.
+
+An occurrence-specific reduced-speed breakdown can instead be authored as:
+
+```json
+{"id": "breakdown-2", "type": "train_breakdown", "target": "service-1",
+ "start_seconds": 900, "occurrence": 2, "reduced_speed_kmh": 40,
+ "terminate_at_destination": true}
+```
+
+### Delay comparison provenance
+
+The results UI can freeze a completed incident-free, no-entrance-delay run as
+the delay baseline. A comparison run must contain incidents, no entrance
+delays, and the same scene revision, base time, duration, timestep, and full
+selected `(service_id, occurrence)` identity set; its scenario ID must differ
+from the baseline. Baseline and scenario results are value snapshots, not
+runtime train pointers.
+
+For each occurrence, final arrival is the simulated arrival at its last
+authored timetable station and call. Baseline and scenario must use the same
+endpoint and both arrivals must be available; otherwise comparison is rejected.
+Only positive `scenario - baseline` values are rows, and their exact sum is
+the total arrival delay. A positive row is `primary` only when the scenario
+occurrence has direct runtime evidence (incident ID plus first direct time and
+location); otherwise it is `secondary`. No attribution is inferred from a
+timetable difference alone. A comparison is rejected when the incident run
+has no direct evidence anywhere. Signal-failure evidence is direct only when
+the train stops at an active `SignalFailure` EoA; a breakdown hold or applied
+speed cap is direct evidence. Destination request and termination outcome are
+reported with each row.
 
 ## `passengers.json`
 

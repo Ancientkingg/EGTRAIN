@@ -171,11 +171,46 @@ stops may be marked `through: true`; a repeated service uses a positive
 }
 ```
 
-An incident is concrete input with `id`, `type`, `target`, `start_seconds`,
-and `end_seconds`. Valid types are `signal_failure` and `train_breakdown`.
-An entrance delay has `service`, optional `occurrence`, `station`, and
-`delay_seconds`. If no scenario file is supplied, the loader creates a
-baseline; the historical flat incident file is read into that baseline.
+An incident is concrete input with `id`, `type`, `target`, and finite
+non-negative `start_seconds`. Valid types are `signal_failure` and
+`train_breakdown`. Signal failures require `end_seconds`; the interval is
+start-inclusive and end-inclusive for compatibility. Legacy full-hold
+breakdowns also require an end, with `[start_seconds, end_seconds)` semantics.
+A reduced-speed breakdown may omit `end_seconds`, in which case its cap lasts
+until the targeted occurrence reaches its normal route end. When present,
+`end_seconds` is recovery time.
+
+Breakdown-only optional fields are:
+
+- `occurrence`: positive 1-based occurrence of the target service. Omit it to
+  target every occurrence; a configured occurrence must be within the service
+  repeat range.
+- `reduced_speed_kmh`: positive finite cap on the matched occurrence's
+  effective trajectory speed. It does not mutate composition or service
+  maximum-speed data.
+- `terminate_at_destination`: retain a destination-termination request after
+  recovery and report whether the occurrence reached its normal route end.
+
+Signal failures reject these breakdown-only fields. The four-column legacy
+`Incidents.txt` export skips enhanced breakdowns and emits a compatibility
+diagnostic because it cannot encode occurrence, cap, recovery omission, or
+termination semantics.
+
+If no scenario file is supplied, the loader creates a baseline; the historical
+flat incident file is read into that baseline.
+
+The current results UI can freeze an incident-free, no-entrance-delay run with
+**Set delay baseline**. An incident comparison must have incidents and no
+entrance delays, different scenario IDs, and matching scene revision, base
+time, duration, timestep, and selected `(service_id, occurrence)` identities.
+Final arrival is the simulated arrival at the last authored timetable station
+and call. The endpoint must match and be available in both runs. Only positive
+scenario-minus-baseline contributions are included, and their exact sum is the
+total delay. A positive row is `primary` only when that occurrence has direct
+runtime incident evidence; otherwise it is `secondary`. Timetable differences
+alone never establish causality, and comparison is rejected if the incident
+run has no direct evidence anywhere. The table/CSV includes incident IDs,
+first direct time/location, and destination termination outcome.
 
 ## Passengers
 

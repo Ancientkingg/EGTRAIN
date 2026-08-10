@@ -186,8 +186,61 @@ int main() {
 	ok &= expect(simulationIncidents.size() == 2
 			&& simulationIncidents[0].target == "signal.0"
 			&& simulationIncidents[1].target == "service.native", "only the selected scenario reaches runtime incidents");
+	ok &= expect(simulationIncidents[1].id == "incident.breakdown"
+			&& simulationIncidents[1].hasEndSeconds
+			&& !simulationIncidents[1].hasOccurrence
+			&& !simulationIncidents[1].hasReducedSpeed,
+			"legacy breakdown incidents retain full-hold runtime defaults");
 	if (!simulationIncidents.empty())
 		ok &= expect(!simulationIncidents.front().resolvedSectionIDs.empty(), "signal failure resolves its exact runtime section");
+	SceneModel occurrenceSpecific = completeScene();
+	SceneIncident& occurrenceBreakdown = occurrenceSpecific.scenarios[1].incidents[1];
+	occurrenceBreakdown.hasOccurrence = true;
+	occurrenceBreakdown.occurrence = 2;
+	occurrenceBreakdown.hasReducedSpeed = true;
+	occurrenceBreakdown.reducedSpeedKmh = 40.0;
+	occurrenceBreakdown.hasEndSeconds = false;
+	occurrenceBreakdown.endSeconds = 0.0;
+	occurrenceBreakdown.terminateAtDestination = true;
+	const auto occurrenceInfrastructure = buildInfrastructureAndSignallingFromScene(occurrenceSpecific);
+	const auto occurrenceOperations = buildOperationsFromScene(occurrenceSpecific, "scenario.selected");
+	ok &= expect(!hasErrors(occurrenceInfrastructure) && !hasErrors(occurrenceOperations)
+			&& simulationIncidents.size() == 2
+			&& simulationIncidents[1].hasOccurrence && simulationIncidents[1].occurrence == 2
+			&& simulationIncidents[1].hasReducedSpeed
+			&& std::fabs(simulationIncidents[1].reducedSpeedKmh - 40.0) < 1e-9
+			&& Incident_Holds_Train("service.native-2", 50) == false
+			&& regional_train[1].destinationTerminationRequested
+			&& !regional_train[0].destinationTerminationRequested
+			&& !regional_train[2].destinationTerminationRequested,
+			"reduced breakdown staging targets one occurrence and continues without recovery");
+	regional_train[1].directIncidentIds.clear();
+	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(10.0, 50) - 10.0) < 1e-9
+			&& regional_train[1].directIncidentIds.empty(),
+			"a nonbinding breakdown cap is not recorded as direct evidence");
+	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(25.0, 50) - 40.0 / 3.6) < 1e-9
+			&& regional_train[1].directIncidentIds == std::vector<std::string>{"incident.breakdown"}
+			&& std::fabs(regional_train[0].effectiveIncidentSpeedLimit(25.0, 50) - 25.0) < 1e-9,
+			"a binding cap records direct evidence only on the targeted occurrence");
+	SimulationIncident overlappingHold = simulationIncidents[1];
+	overlappingHold.id = "incident.hold";
+	overlappingHold.hasReducedSpeed = false;
+	overlappingHold.reducedSpeedKmh = 0.0;
+	overlappingHold.hasEndSeconds = true;
+	overlappingHold.startSeconds = 45.0;
+	overlappingHold.endSeconds = 55.0;
+	simulationIncidents.push_back(overlappingHold);
+	ok &= expect(Incident_Holds_Train("service.native-2", 50)
+			&& Active_Train_Breakdown("service.native-2", 50)->id == "incident.hold",
+			"an overlapping full hold dominates an earlier reduced-speed incident");
+	SimulationIncident strictCap = simulationIncidents[1];
+	strictCap.id = "incident.strict-cap";
+	strictCap.reducedSpeedKmh = 30.0;
+	simulationIncidents.push_back(strictCap);
+	regional_train[1].directIncidentIds.clear();
+	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(25.0, 60) - 30.0 / 3.6) < 1e-9
+			&& regional_train[1].directIncidentIds == std::vector<std::string>{"incident.strict-cap"},
+			"the strictest concurrent cap supplies the governing direct evidence");
 	ok &= expect(AllStationPlatforms.size() == 3, "native operations reuses the M2 platform list");
 	if (!AllStationPlatforms.empty())
 		ok &= expect(AllStationPlatforms.front().List_Trains_Stopping_At_Platform.front() == "service.native-1",

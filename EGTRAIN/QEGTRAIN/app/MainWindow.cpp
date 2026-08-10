@@ -433,10 +433,25 @@ bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
 	return true;
 }
 
+std::string joinIncidentIds(const std::vector<std::string>& ids) {
+	std::string result;
+	for (const std::string& id : ids) {
+		if (!result.empty())
+			result += ";";
+		result += id;
+	}
+	return result;
+}
+
+std::string terminationOutcome(bool requested, bool terminated) {
+	if (!requested)
+		return "not requested";
+	return terminated ? "terminated at destination" : "not terminated at destination";
+}
+
 // Run summary: per-train start, end, travel time, and energy totals, plus a
 // network totals row.
-std::string buildRunSummaryCsv() {
-	const RunResults results = buildRunResults(runResultTrainPointers(), timestep);
+std::string buildRunSummaryCsv(const RunResults& results) {
 	std::vector<std::vector<std::string>> rows;
 	for (const TrainRunResult& t : results.trains) {
 		rows.push_back({
@@ -450,7 +465,11 @@ std::string buildRunSummaryCsv() {
 			csvValue(t.energyConsumedKWh),
 			csvValue(t.energyWithRegenKWh),
 			csvValue(t.substationKWh),
-			csvValue(t.substationWithRegenKWh)});
+			csvValue(t.substationWithRegenKWh),
+			joinIncidentIds(t.directIncidentIds),
+			csvValue(t.firstDirectIncidentTime),
+			csvValue(t.firstDirectIncidentLocation),
+			terminationOutcome(t.destinationTerminationRequested, t.destinationTerminated)});
 	}
 	rows.push_back({
 		"Network total",
@@ -463,12 +482,43 @@ std::string buildRunSummaryCsv() {
 		csvValue(results.energyConsumedKWh),
 		csvValue(results.energyWithRegenKWh),
 		csvValue(results.substationKWh),
-		csvValue(results.substationWithRegenKWh)});
+		csvValue(results.substationWithRegenKWh),
+		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue)});
 	if (results.trains.empty())
 		return std::string();
 	return csv::makeDocument(
 		{"Train", "Operating code", "Performance [%]", "Applied maximum speed [km/h]", "Start[s]", "End[s]", "Travel time[s]", "Energy consumed[kWh]",
-			"Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]"},
+			"Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]", "Incident IDs",
+			"First direct time[s]", "First direct location[m]", "Termination outcome"},
+		rows);
+}
+std::string delayComparisonCsv(const DelayRunSnapshot& baseline,
+		const DelayRunSnapshot& scenario, const DelayComparisonResult& comparison) {
+	std::vector<std::vector<std::string>> rows;
+	for (const DelayComparisonRow& row : comparison.rows) {
+		rows.push_back({
+			baseline.scenarioId,
+			scenario.scenarioId,
+			baseline.caseRevision,
+			row.serviceId,
+			std::to_string(row.occurrence),
+			row.operatingCode,
+			csvValue(row.baselineFinalArrival),
+			csvValue(row.scenarioFinalArrival),
+			csvValue(row.positiveContribution),
+			row.attribution,
+			joinIncidentIds(row.incidentIds),
+			csvValue(row.firstDirectTime),
+			csvValue(row.firstDirectLocation),
+			terminationOutcome(row.destinationTerminationRequested, row.destinationTerminated)});
+	}
+	return csv::makeDocument(
+		{"Baseline scenario", "Scenario", "Case revision", "Service", "Occurrence", "Operating code",
+			"Baseline final arrival[s]", "Scenario final arrival[s]", "Positive contribution[s]",
+			"Attribution", "Incident IDs", "First direct time[s]", "First direct location[m]", "Termination outcome"},
 		rows);
 }
 
@@ -2403,11 +2453,35 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentStartSecondsEdit->setValidator(
 		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentStartSecondsEdit));
 	incidentDetailLayout->addWidget(m_incidentStartSecondsEdit);
-	incidentDetailLayout->addWidget(new QLabel("End (s)", incidentDetailPane));
+	incidentDetailLayout->addWidget(new QLabel("Recovery end (s)", incidentDetailPane));
 	m_incidentEndSecondsEdit = new QLineEdit(incidentDetailPane);
+	m_incidentEndSecondsEdit->setObjectName("incidentEndSecondsEdit");
 	m_incidentEndSecondsEdit->setValidator(
 		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentEndSecondsEdit));
 	incidentDetailLayout->addWidget(m_incidentEndSecondsEdit);
+	m_incidentHasEndSecondsCheck = new QCheckBox("Use recovery end", incidentDetailPane);
+	m_incidentHasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
+	m_incidentHasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
+	incidentDetailLayout->addWidget(m_incidentHasEndSecondsCheck);
+	m_incidentHasOccurrenceCheck = new QCheckBox("Occurrence (1-based)", incidentDetailPane);
+	m_incidentHasOccurrenceCheck->setObjectName("incidentHasOccurrenceCheck");
+	m_incidentOccurrenceEdit = new QLineEdit(incidentDetailPane);
+	m_incidentOccurrenceEdit->setObjectName("incidentOccurrenceEdit");
+	m_incidentOccurrenceEdit->setValidator(new QIntValidator(1, std::numeric_limits<int>::max(), m_incidentOccurrenceEdit));
+	incidentDetailLayout->addWidget(m_incidentHasOccurrenceCheck);
+	incidentDetailLayout->addWidget(m_incidentOccurrenceEdit);
+	m_incidentHasReducedSpeedCheck = new QCheckBox("Reduced speed cap", incidentDetailPane);
+	m_incidentHasReducedSpeedCheck->setObjectName("incidentHasReducedSpeedCheck");
+	m_incidentReducedSpeedKmhEdit = new CompactDoubleSpinBox(incidentDetailPane);
+	m_incidentReducedSpeedKmhEdit->setObjectName("incidentReducedSpeedKmhEdit");
+	m_incidentReducedSpeedKmhEdit->setRange(0.01, 1000.0);
+	m_incidentReducedSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
+	m_incidentReducedSpeedKmhEdit->setSuffix(" km/h");
+	incidentDetailLayout->addWidget(m_incidentHasReducedSpeedCheck);
+	incidentDetailLayout->addWidget(m_incidentReducedSpeedKmhEdit);
+	m_incidentTerminateAtDestinationCheck = new QCheckBox("Terminate at destination", incidentDetailPane);
+	m_incidentTerminateAtDestinationCheck->setObjectName("incidentTerminateAtDestinationCheck");
+	incidentDetailLayout->addWidget(m_incidentTerminateAtDestinationCheck);
 	incidentDetailLayout->addStretch();
 
 	// the detail pane may become taller than the dock, so let it scroll rather
@@ -2441,6 +2515,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_incidentTargetCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentTarget);
 	connect(m_incidentStartSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentStartSeconds);
 	connect(m_incidentEndSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentEndSeconds);
+	connect(m_incidentHasOccurrenceCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasOccurrence);
+	connect(m_incidentOccurrenceEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentOccurrence);
+	connect(m_incidentHasReducedSpeedCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasReducedSpeed);
+	connect(m_incidentReducedSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &MainWindow::commitIncidentReducedSpeed);
+	connect(m_incidentHasEndSecondsCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasEndSeconds);
+	connect(m_incidentTerminateAtDestinationCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentTerminateAtDestination);
 	connect(m_addIncidentButton, &QPushButton::clicked, this, &MainWindow::addIncident);
 	connect(m_duplicateIncidentButton, &QPushButton::clicked, this, &MainWindow::duplicateIncident);
 	connect(m_deleteIncidentButton, &QPushButton::clicked, this, &MainWindow::deleteIncident);
@@ -2528,6 +2608,8 @@ void MainWindow::newScene() {
 	simulation.resetState();
 	m_sceneDir.clear();
 	m_sceneModel = makeNewSceneModel();
+	++m_sceneRevision;
+	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = false;
 	m_sceneDirty = true;
@@ -2604,6 +2686,8 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_lastRunTotalOccurrences = 0;
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
+	++m_sceneRevision;
+	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = QFileInfo(scenePath).isFile();
 	m_sceneDirty = false;
@@ -3293,6 +3377,8 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 }
 
 void MainWindow::markSceneDirty() {
+	++m_sceneRevision;
+	m_delayBaseline.reset();
 	m_sceneDirty = true;
 	if (m_worker) {
 		m_sceneChangedDuringRun = true;
@@ -3312,6 +3398,8 @@ void MainWindow::invalidateRunResults() {
 	m_resultsAvailable = false;
 	m_sceneChangedDuringRun = false;
 	m_appliedScenarioId.clear();
+	m_completedRunResults = RunResults();
+	m_completedTimetableResults.clear();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)
@@ -6310,6 +6398,14 @@ std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() {
 	return scenario ? scenario->incidents : empty;
 }
 
+SceneIncident* MainWindow::selectedIncident() {
+	if (!m_incidentListWidget)
+		return nullptr;
+	auto& incidents = selectedScenarioIncidents();
+	const int row = m_incidentListWidget->currentRow();
+	return row >= 0 && row < static_cast<int>(incidents.size()) ? &incidents[row] : nullptr;
+}
+
 const std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() const {
 	static const std::vector<SceneIncident> empty;
 	const SceneScenario* scenario = selectedScenario();
@@ -6454,6 +6550,10 @@ void MainWindow::refreshIncidentPanel() {
 		if (hasScene) {
 			for (const auto& incident : incidents) {
 				QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
+				if (incident.hasOccurrence || incident.occurrence != 1)
+					label += QString(" #%1").arg(incident.occurrence);
+				if (incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0)
+					label += QString(" / %1 km/h").arg(incident.reducedSpeedKmh);
 				m_incidentListWidget->addItem(label);
 			}
 		}
@@ -6636,6 +6736,7 @@ void MainWindow::updateIncidentDetailPanel() {
 	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
 	bool hasSelection = m_sceneLoaded && !m_worker && row >= 0
 		&& row < static_cast<int>(incidents.size());
+	const bool isBreakdown = hasSelection && incidents[static_cast<std::size_t>(row)].type == "train_breakdown";
 
 	if (m_incidentIdEdit) {
 		const QSignalBlocker blocker(m_incidentIdEdit);
@@ -6672,6 +6773,49 @@ void MainWindow::updateIncidentDetailPanel() {
 		int seconds = hasSelection ? static_cast<int>(incidents[row].endSeconds) : 0;
 		m_incidentEndSecondsEdit->setText(QString::number(seconds));
 		m_incidentEndSecondsEdit->setEnabled(hasSelection);
+	}
+	if (m_incidentHasEndSecondsCheck) {
+		const QSignalBlocker blocker(m_incidentHasEndSecondsCheck);
+		const bool hasEnd = hasSelection && (incidents[static_cast<std::size_t>(row)].hasEndSeconds
+			|| incidents[static_cast<std::size_t>(row)].endSeconds != 0.0);
+		m_incidentHasEndSecondsCheck->setChecked(hasEnd);
+		m_incidentHasEndSecondsCheck->setEnabled(hasSelection);
+	}
+	if (m_incidentHasOccurrenceCheck) {
+		const QSignalBlocker blocker(m_incidentHasOccurrenceCheck);
+		const bool hasOccurrence = isBreakdown && (incidents[static_cast<std::size_t>(row)].hasOccurrence
+			|| incidents[static_cast<std::size_t>(row)].occurrence != 1);
+		m_incidentHasOccurrenceCheck->setChecked(hasOccurrence);
+		m_incidentHasOccurrenceCheck->setEnabled(isBreakdown);
+	}
+	if (m_incidentOccurrenceEdit) {
+		const QSignalBlocker blocker(m_incidentOccurrenceEdit);
+		const int occurrence = hasSelection ? std::max(1, incidents[static_cast<std::size_t>(row)].occurrence) : 1;
+		m_incidentOccurrenceEdit->setText(QString::number(occurrence));
+		m_incidentOccurrenceEdit->setEnabled(isBreakdown
+			&& m_incidentHasOccurrenceCheck && m_incidentHasOccurrenceCheck->isChecked());
+	}
+	if (m_incidentHasReducedSpeedCheck) {
+		const QSignalBlocker blocker(m_incidentHasReducedSpeedCheck);
+		const bool hasCap = isBreakdown && (incidents[static_cast<std::size_t>(row)].hasReducedSpeed
+			|| incidents[static_cast<std::size_t>(row)].reducedSpeedKmh != 0.0);
+		m_incidentHasReducedSpeedCheck->setChecked(hasCap);
+		m_incidentHasReducedSpeedCheck->setEnabled(isBreakdown);
+	}
+	if (m_incidentReducedSpeedKmhEdit) {
+		const QSignalBlocker blocker(m_incidentReducedSpeedKmhEdit);
+		const double cap = hasSelection && std::isfinite(incidents[static_cast<std::size_t>(row)].reducedSpeedKmh)
+			&& incidents[static_cast<std::size_t>(row)].reducedSpeedKmh > 0.0
+			? incidents[static_cast<std::size_t>(row)].reducedSpeedKmh : 40.0;
+		m_incidentReducedSpeedKmhEdit->setValue(cap);
+		m_incidentReducedSpeedKmhEdit->setEnabled(isBreakdown
+			&& m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked());
+	}
+	if (m_incidentTerminateAtDestinationCheck) {
+		const QSignalBlocker blocker(m_incidentTerminateAtDestinationCheck);
+		m_incidentTerminateAtDestinationCheck->setChecked(isBreakdown && hasSelection
+			&& incidents[static_cast<std::size_t>(row)].terminateAtDestination);
+		m_incidentTerminateAtDestinationCheck->setEnabled(isBreakdown);
 	}
 
 	if (m_duplicateIncidentButton)
@@ -6750,6 +6894,7 @@ void MainWindow::addIncident() {
 	SceneIncident incident;
 	incident.id = uniqueIncidentId("new_incident");
 	incident.type = "signal_failure";
+	incident.hasEndSeconds = true;
 	incidents.push_back(incident);
 
 	markScenarioModified();
@@ -6853,6 +6998,13 @@ void MainWindow::commitIncidentType(const QString& text) {
 		return;
 
 	incidents[row].type = newType;
+	if (newType == "signal_failure") {
+		incidents[row].hasOccurrence = false;
+		incidents[row].occurrence = 1;
+		incidents[row].hasReducedSpeed = false;
+		incidents[row].reducedSpeedKmh = 0.0;
+		incidents[row].terminateAtDestination = false;
+	}
 
 	// when the type changes the valid target pool also changes; drop a target
 	// that is no longer valid for the new type
@@ -6896,9 +7048,8 @@ void MainWindow::commitIncidentType(const QString& text) {
 	markScenarioModified();
 	refreshValidationPanel();
 
-	// rebuild only the target combo; the type combo already shows the new value
-	// so rebuilding it from inside its own signal is unnecessary and harmful
-	refreshIncidentTargetCombo();
+	// The target choices and breakdown-only controls both depend on the type.
+	updateIncidentDetailPanel();
 }
 
 void MainWindow::commitIncidentTarget(const QString& text) {
@@ -6969,11 +7120,114 @@ void MainWindow::commitIncidentEndSeconds() {
 	}
 
 	double newValue = static_cast<double>(seconds);
-	if (newValue == incidents[row].endSeconds)
+	if (newValue == incidents[row].endSeconds && incidents[row].hasEndSeconds)
 		return;
 
 	incidents[row].endSeconds = newValue;
+	incidents[row].hasEndSeconds = true;
 
+	markScenarioModified();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitIncidentOccurrence() {
+	if (!m_sceneLoaded || !m_incidentOccurrenceEdit)
+		return;
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	bool ok = false;
+	int occurrence = m_incidentOccurrenceEdit->text().toInt(&ok);
+	if (!ok || occurrence < 1)
+		occurrence = 1;
+	{
+		const QSignalBlocker blocker(m_incidentOccurrenceEdit);
+		m_incidentOccurrenceEdit->setText(QString::number(occurrence));
+	}
+	if (incident->occurrence == occurrence && incident->hasOccurrence)
+		return;
+	incident->occurrence = occurrence;
+	incident->hasOccurrence = true;
+	markScenarioModified();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+}
+
+void MainWindow::commitIncidentHasOccurrence(bool checked) {
+	if (!m_sceneLoaded)
+		return;
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	if (incident->hasOccurrence == checked)
+		return;
+	incident->hasOccurrence = checked;
+	if (!checked)
+		incident->occurrence = 1;
+	markScenarioModified();
+	refreshValidationPanel();
+	updateIncidentDetailPanel();
+}
+
+void MainWindow::commitIncidentReducedSpeed() {
+	if (!m_sceneLoaded || !m_incidentReducedSpeedKmhEdit)
+		return;
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	const double speed = m_incidentReducedSpeedKmhEdit->value();
+	if (incident->reducedSpeedKmh == speed && incident->hasReducedSpeed)
+		return;
+	incident->reducedSpeedKmh = speed;
+	incident->hasReducedSpeed = true;
+	markScenarioModified();
+	refreshValidationPanel();
+	refreshIncidentPanel();
+}
+
+void MainWindow::commitIncidentHasReducedSpeed(bool checked) {
+	if (!m_sceneLoaded)
+		return;
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	if (incident->hasReducedSpeed == checked)
+		return;
+	incident->hasReducedSpeed = checked;
+	if (checked && m_incidentReducedSpeedKmhEdit)
+		incident->reducedSpeedKmh = m_incidentReducedSpeedKmhEdit->value();
+	else if (!checked)
+		incident->reducedSpeedKmh = 0.0;
+	markScenarioModified();
+	refreshValidationPanel();
+	updateIncidentDetailPanel();
+}
+
+void MainWindow::commitIncidentHasEndSeconds(bool checked) {
+	if (!m_sceneLoaded)
+		return;
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	if (incident->hasEndSeconds == checked)
+		return;
+	incident->hasEndSeconds = checked;
+	if (!checked)
+		incident->endSeconds = 0.0;
+	markScenarioModified();
+	refreshValidationPanel();
+	updateIncidentDetailPanel();
+}
+
+void MainWindow::commitIncidentTerminateAtDestination(bool checked) {
+	if (!m_sceneLoaded)
+		return;
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	if (incident->terminateAtDestination == checked)
+		return;
+	incident->terminateAtDestination = checked;
 	markScenarioModified();
 	refreshValidationPanel();
 }
@@ -9322,7 +9576,13 @@ void MainWindow::runEditorSmokeE2E() {
 		if (left.size() != right.size())
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneIncident& a, const SceneIncident& b) {
-			return a.id == b.id && a.type == b.type && a.target == b.target && a.startSeconds == b.startSeconds && a.endSeconds == b.endSeconds;
+			return a.id == b.id && a.type == b.type && a.target == b.target
+				&& a.startSeconds == b.startSeconds && a.endSeconds == b.endSeconds
+				&& a.hasOccurrence == b.hasOccurrence && a.occurrence == b.occurrence
+				&& a.hasReducedSpeed == b.hasReducedSpeed
+				&& a.reducedSpeedKmh == b.reducedSpeedKmh
+				&& a.terminateAtDestination == b.terminateAtDestination
+				&& a.hasEndSeconds == b.hasEndSeconds;
 		});
 	};
 	auto sameStations = [](const std::vector<SceneStation>& left, const std::vector<SceneStation>& right) {
@@ -10438,6 +10698,7 @@ void MainWindow::runEditorSmokeE2E() {
 		facetFailure(facetOk, "incident", "scene or edited service unavailable");
 	} else {
 		bool facetOk = true;
+		const double preciseBreakdownSpeed = 40.125;
 		const int originalCount = m_incidentListWidget->count();
 		editedIncidentId = uniqueIncidentId("e2e_incident");
 		addIncident();
@@ -10447,7 +10708,10 @@ void MainWindow::runEditorSmokeE2E() {
 			if (m_incidentIdEdit)
 				m_incidentIdEdit->setText(QString::fromStdString(editedIncidentId));
 			commitIncidentIdEdit();
-			commitIncidentType("train_breakdown");
+			if (m_incidentTypeCombo)
+				m_incidentTypeCombo->setCurrentText("train_breakdown");
+			if (!m_incidentHasReducedSpeedCheck || !m_incidentHasReducedSpeedCheck->isEnabled())
+				facetFailure(facetOk, "incident", "breakdown controls stayed disabled after the type change");
 			commitIncidentTarget(QString::fromStdString(editedServiceId));
 			if (m_incidentStartSecondsEdit)
 				m_incidentStartSecondsEdit->setText("100");
@@ -10455,6 +10719,24 @@ void MainWindow::runEditorSmokeE2E() {
 			if (m_incidentEndSecondsEdit)
 				m_incidentEndSecondsEdit->setText("200");
 			commitIncidentEndSeconds();
+			if (m_incidentHasOccurrenceCheck)
+				m_incidentHasOccurrenceCheck->setChecked(true);
+			if (m_incidentOccurrenceEdit)
+				m_incidentOccurrenceEdit->setText("2");
+			commitIncidentOccurrence();
+			if (m_incidentHasReducedSpeedCheck)
+				m_incidentHasReducedSpeedCheck->setChecked(true);
+			if (SceneIncident* incident = selectedIncident(); !incident
+					|| !incident->hasReducedSpeed || !m_incidentReducedSpeedKmhEdit
+					|| incident->reducedSpeedKmh != m_incidentReducedSpeedKmhEdit->value())
+				facetFailure(facetOk, "incident", "enabling the speed cap did not commit its displayed value");
+			if (m_incidentReducedSpeedKmhEdit)
+				m_incidentReducedSpeedKmhEdit->setValue(preciseBreakdownSpeed);
+			commitIncidentReducedSpeed();
+			if (m_incidentHasEndSecondsCheck)
+				m_incidentHasEndSecondsCheck->setChecked(false);
+			if (m_incidentTerminateAtDestinationCheck)
+				m_incidentTerminateAtDestinationCheck->setChecked(true);
 		}
 		duplicateIncident();
 		if (m_incidentListWidget->count() != originalCount + 2) {
@@ -10476,7 +10758,12 @@ void MainWindow::runEditorSmokeE2E() {
 		if (editedRow < 0 || incidents[editedRow].type != "train_breakdown"
 				|| incidents[editedRow].target != editedServiceId
 				|| incidents[editedRow].startSeconds != 100.0
-				|| incidents[editedRow].endSeconds != 200.0)
+				|| incidents[editedRow].endSeconds != 0.0
+				|| !incidents[editedRow].hasOccurrence || incidents[editedRow].occurrence != 2
+				|| !incidents[editedRow].hasReducedSpeed
+				|| incidents[editedRow].reducedSpeedKmh != preciseBreakdownSpeed
+				|| incidents[editedRow].hasEndSeconds
+				|| !incidents[editedRow].terminateAtDestination)
 			facetFailure(facetOk, "incident", "edited incident was not retained");
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
@@ -11462,6 +11749,14 @@ void MainWindow::updateDiagramActions() {
 				button->setEnabled(available);
 		}
 	}
+	const DelayRunSnapshot current = completedDelaySnapshot();
+	const bool canSetBaseline = available && !current.scenarioId.empty()
+		&& !current.hasIncidents && !current.hasEntranceDelays;
+	if (m_setDelayBaselineButton)
+		m_setDelayBaselineButton->setEnabled(canSetBaseline);
+	if (m_compareDelayButton)
+		m_compareDelayButton->setEnabled(available && m_delayBaseline.has_value()
+			&& current.hasIncidents && !current.hasEntranceDelays);
 }
 
 // Lazily created so the menu only appears once an editor dock registers.
@@ -11597,7 +11892,24 @@ bool MainWindow::showRunReview() {
 	if (e2eDialogsSuppressed())
 		return true;
 	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
-	const QString summary = QString("Case study: %1\nScenario: %2\nServices: %3\nOccurrences: %4/%5 selected\nCompositions: %6\nIncidents: %7\nValidation: %8 error(s), %9 warning(s)")
+	QString incidentDetails;
+	for (const SceneIncident& incident : selectedScenarioIncidents()) {
+		QString detail = QString::fromStdString(incident.id) + " [" + QString::fromStdString(incident.type) + "]";
+		if (incident.hasOccurrence || incident.occurrence != 1)
+			detail += QString(" occurrence=%1").arg(incident.occurrence);
+		if (incident.hasReducedSpeed)
+			detail += QString(" cap=%1 km/h").arg(incident.reducedSpeedKmh);
+		if (incident.hasEndSeconds || incident.endSeconds != 0.0)
+			detail += QString(" recovery=%1 s").arg(incident.endSeconds);
+		else if (incident.type == "train_breakdown" && incident.hasReducedSpeed)
+			detail += " until destination";
+		if (incident.terminateAtDestination)
+			detail += " terminate at destination";
+		if (!incidentDetails.isEmpty())
+			incidentDetails += "; ";
+		incidentDetails += detail;
+	}
+	QString summary = QString("Case study: %1\nScenario: %2\nServices: %3\nOccurrences: %4/%5 selected\nCompositions: %6\nIncidents: %7\nValidation: %8 error(s), %9 warning(s)")
 		.arg(QString::fromStdString(m_sceneModel.name))
 		.arg(scenarioContext())
 		.arg(static_cast<int>(m_sceneModel.services.size()))
@@ -11607,6 +11919,8 @@ bool MainWindow::showRunReview() {
 		.arg(static_cast<int>(selectedScenarioIncidents().size()))
 		.arg(counts.errors)
 		.arg(counts.warnings);
+	if (!incidentDetails.isEmpty())
+		summary += "\nIncident configuration: " + incidentDetails;
 	QMessageBox review(QMessageBox::Question, "Review run", summary, QMessageBox::NoButton, this);
 	QAbstractButton* runButton = review.addButton("Run", QMessageBox::AcceptRole);
 	QAbstractButton* loadedButton = review.addButton("Loaded Data", QMessageBox::ActionRole);
@@ -11623,6 +11937,113 @@ bool MainWindow::showRunReview() {
 		m_validationDock->raise();
 	}
 	return false;
+}
+
+DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
+	DelayRunSnapshot snapshot;
+	if (!m_resultsAvailable || m_completedRunResults.trains.empty())
+		return snapshot;
+	snapshot.caseRevision = std::to_string(m_sceneRevision);
+	snapshot.scenarioId = m_appliedScenarioId;
+	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_sceneModel.baseTime));
+	snapshot.durationSeconds = std::isfinite(initial_variables.times)
+		? initial_variables.times : 0.0;
+	snapshot.timestep = timestep;
+	for (const SceneScenario& scenario : m_sceneModel.scenarios) {
+		if (scenario.id != snapshot.scenarioId)
+			continue;
+		snapshot.hasIncidents = !scenario.incidents.empty();
+		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
+		break;
+	}
+	snapshot.run = m_completedRunResults;
+	snapshot.timetable = m_completedTimetableResults;
+	return snapshot;
+}
+
+void MainWindow::setDelayBaseline() {
+	const DelayRunSnapshot snapshot = completedDelaySnapshot();
+	if (snapshot.scenarioId.empty() || snapshot.run.trains.empty()) {
+		QMessageBox::warning(this, "Delay baseline unavailable", "Complete an incident-free run first.");
+		return;
+	}
+	if (snapshot.hasIncidents || snapshot.hasEntranceDelays) {
+		QMessageBox::warning(this, "Delay baseline rejected",
+			"The delay baseline must have no incidents and no entrance delays.");
+		return;
+	}
+	m_delayBaseline = snapshot;
+	statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
+	refreshRunResults();
+	updateDiagramActions();
+}
+
+void MainWindow::showDelayComparison() {
+	if (!m_delayBaseline) {
+		QMessageBox::warning(this, "Delay comparison unavailable", "Set an incident-free delay baseline first.");
+		return;
+	}
+	const DelayRunSnapshot scenario = completedDelaySnapshot();
+	const DelayComparisonResult comparison = compareDelayRuns(*m_delayBaseline, scenario);
+	if (!comparison.valid) {
+		QMessageBox::warning(this, "Delay comparison rejected", QString::fromStdString(comparison.diagnostic));
+		return;
+	}
+
+	QDialog dialog(this);
+	dialog.setWindowTitle("Incident delay comparison");
+	dialog.resize(1180, 520);
+	QVBoxLayout* layout = new QVBoxLayout(&dialog);
+	QLabel* context = new QLabel(QString("Baseline: %1 | Scenario: %2 | Total positive arrival delay: %3 s")
+		.arg(QString::fromStdString(m_delayBaseline->scenarioId), QString::fromStdString(scenario.scenarioId))
+		.arg(comparison.totalArrivalDelay.available ? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-")), &dialog);
+	context->setWordWrap(true);
+	layout->addWidget(context);
+	QTableWidget* table = new QTableWidget(&dialog);
+	table->setObjectName("delayComparisonTable");
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	table->setColumnCount(13);
+	table->setHorizontalHeaderLabels({
+		"Service", "Occurrence", "Operating code", "Baseline final arrival", "Scenario final arrival",
+		"Positive delay", "Attribution", "Incident IDs", "First direct time", "First direct location",
+		"Termination requested", "Terminated", "Baseline / scenario"});
+	table->setRowCount(static_cast<int>(comparison.rows.size()));
+	const auto valueText = [](const RunResultValue& value) {
+		return value.available ? QString::number(value.value, 'g', 12) : QStringLiteral("-");
+	};
+	for (int index = 0; index < static_cast<int>(comparison.rows.size()); ++index) {
+		const DelayComparisonRow& row = comparison.rows[static_cast<std::size_t>(index)];
+		table->setItem(index, 0, new QTableWidgetItem(QString::fromStdString(row.serviceId)));
+		table->setItem(index, 1, new QTableWidgetItem(QString::number(row.occurrence)));
+		table->setItem(index, 2, new QTableWidgetItem(QString::fromStdString(row.operatingCode)));
+		table->setItem(index, 3, new QTableWidgetItem(valueText(row.baselineFinalArrival)));
+		table->setItem(index, 4, new QTableWidgetItem(valueText(row.scenarioFinalArrival)));
+		table->setItem(index, 5, new QTableWidgetItem(valueText(row.positiveContribution)));
+		table->setItem(index, 6, new QTableWidgetItem(QString::fromStdString(row.attribution)));
+		table->setItem(index, 7, new QTableWidgetItem(QString::fromStdString(joinIncidentIds(row.incidentIds))));
+		table->setItem(index, 8, new QTableWidgetItem(valueText(row.firstDirectTime)));
+		table->setItem(index, 9, new QTableWidgetItem(valueText(row.firstDirectLocation)));
+		table->setItem(index, 10, new QTableWidgetItem(row.destinationTerminationRequested ? "yes" : "no"));
+		table->setItem(index, 11, new QTableWidgetItem(row.destinationTerminated ? "yes" : "no"));
+		table->setItem(index, 12, new QTableWidgetItem(QString("%1 / %2")
+			.arg(QString::fromStdString(m_delayBaseline->scenarioId), QString::fromStdString(scenario.scenarioId))));
+	}
+	table->resizeColumnsToContents();
+	layout->addWidget(table, 1);
+	QHBoxLayout* actions = new QHBoxLayout();
+	QPushButton* exportButton = new QPushButton("Export CSV...", &dialog);
+	exportButton->setObjectName("delayComparisonExportCsvButton");
+	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison]() {
+		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison));
+	});
+	actions->addWidget(exportButton);
+	actions->addStretch();
+	QDialogButtonBox* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+	connect(closeButtons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	actions->addWidget(closeButtons);
+	layout->addLayout(actions);
+	dialog.exec();
 }
 
 // starts EGTRAIN simulation on a worker thread
@@ -11663,6 +12084,10 @@ void MainWindow::onSimulationFinished() {
 	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
 	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed") : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
+		const auto trains = runResultTrainPointers();
+		// Freeze result values before a subsequent run replaces the runtime trains.
+		m_completedRunResults = buildRunResults(trains, timestep);
+		m_completedTimetableResults = buildTimetableResults(trains);
 		refreshRunResults();
 	} else {
 		if (m_runResultsTable)
@@ -11691,7 +12116,7 @@ void MainWindow::onSimulationFinished() {
 			ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
 			ok &= dump("timetable.csv", buildTimetableCsv(ids));
 			ok &= dump("blocking_time.csv", buildBlockingTimeCsv(ids));
-			ok &= dump("run_summary.csv", buildRunSummaryCsv());
+			ok &= dump("run_summary.csv", buildRunSummaryCsv(m_completedRunResults));
 			const CapacityAnalysisScope capacityScope = firstCapacityScopeWithPair();
 			std::string capacityCsv;
 			if (capacityScope.routeIndex >= 0) {
@@ -12565,7 +12990,7 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
-		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv());
+		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults));
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
 	exportPngBtn->setObjectName("resultView_ExportPNG");
@@ -12582,6 +13007,16 @@ void MainWindow::setupRunResultsDock() {
 	QHBoxLayout* toolRow = new QHBoxLayout();
 	toolRow->addWidget(exportCsvBtn);
 	toolRow->addWidget(exportPngBtn);
+	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
+	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
+	m_setDelayBaselineButton->setToolTip("Freeze this completed incident-free run as the delay baseline");
+	connect(m_setDelayBaselineButton, &QPushButton::clicked, this, &MainWindow::setDelayBaseline);
+	toolRow->addWidget(m_setDelayBaselineButton);
+	m_compareDelayButton = new QPushButton("Compare delays", container);
+	m_compareDelayButton->setObjectName("compareDelayButton");
+	m_compareDelayButton->setToolTip("Compare the completed incident run with the frozen delay baseline");
+	connect(m_compareDelayButton, &QPushButton::clicked, this, &MainWindow::showDelayComparison);
+	toolRow->addWidget(m_compareDelayButton);
 	toolRow->addStretch();
 	containerLayout->addLayout(toolRow);
 	containerLayout->addWidget(m_runResultsTable);
@@ -12591,16 +13026,28 @@ void MainWindow::setupRunResultsDock() {
 }
 
 void MainWindow::refreshRunResults() {
-	if (!m_runResultsDock || !m_runResultsTable || numRegions <= 0)
+	if (!m_runResultsDock || !m_runResultsTable || m_completedRunResults.trains.empty())
 		return;
-	if (m_runResultsSummaryLabel)
-		m_runResultsSummaryLabel->setText(QString("Case: %1 | Scenario: %2 | Occurrences: %3/%4 selected | Status: Completed")
+	int directEvidenceCount = 0;
+	int destinationTerminationCount = 0;
+	for (const TrainRunResult& result : m_completedRunResults.trains) {
+		if (!result.directIncidentIds.empty())
+			++directEvidenceCount;
+		if (result.destinationTerminated)
+			++destinationTerminationCount;
+	}
+	if (m_runResultsSummaryLabel) {
+		QString summary = QString("Case: %1 | Scenario: %2 | Occurrences: %3/%4 selected | Status: Completed | Direct incident evidence: %5 | Destination terminations: %6")
 			.arg(QString::fromStdString(m_sceneModel.name), scenarioContext())
-			.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences));
+			.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences)
+			.arg(directEvidenceCount).arg(destinationTerminationCount);
+		if (m_delayBaseline)
+			summary += QString(" | Delay baseline: %1").arg(QString::fromStdString(m_delayBaseline->scenarioId));
+		m_runResultsSummaryLabel->setText(summary);
+	}
 	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(scenarioContext()));
 
-	const auto trains = runResultTrainPointers();
-	const RunResults results = buildRunResults(trains, timestep);
+	const RunResults& results = m_completedRunResults;
 	const int totalColumns = 11;
 	m_runResultsTable->clear();
 	m_runResultsTable->setColumnCount(totalColumns);
@@ -14468,8 +14915,8 @@ void MainWindow::showTimetableTable() {
 		return;
 	}
 
-	auto* window = new TimetableTableWindow(buildTimetableResults(runResultTrainPointers()),
-										m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
+	auto* window = new TimetableTableWindow(m_completedTimetableResults,
+									m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
 	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(scenarioContext()));
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
@@ -14484,7 +14931,7 @@ void MainWindow::showDelayDiagram() {
 	QChart* chart = new QChart();
 	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(scenarioContext());
 	chart->setTitle(title);
-	const auto rows = buildTimetableResults(runResultTrainPointers());
+	const auto& rows = m_completedTimetableResults;
 
 	for (int i = 0; i < numRegions; i++) {
 		QLineSeries* series = new QLineSeries();

@@ -590,6 +590,11 @@ public:
 	double compositionMaximumSpeedMs = 0.0;
 	double appliedMaximumSpeedMs = 0.0;
 	double appliedMaximumSpeedKmh = 0.0;
+	std::vector<std::string> directIncidentIds;
+	double firstDirectIncidentTime = -1.0;
+	double firstDirectIncidentLocation = -1.0;
+	bool destinationTerminationRequested = false;
+	bool destinationTerminated = false;
 	Arc As;							 // Temporary Arc object representing the Arc occupied by the train in a determined time instant
 	Section Bs;						 // Temporary Block Section Object representing the Block Section occupied by the Train in a certain time instant
 	double Start_Node_X = 0.0;		 // It represents the X of the Node from which the train starts its run
@@ -2869,6 +2874,8 @@ public:
 			// window; entrance processing is also suspended, so a train whose
 			// window covers its entry time simply enters after the window.
 			if (i > 0 && Incident_Holds_Train(trainDescription, i)) {
+				if (const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, i))
+					recordDirectIncident(*incident, i * timestep, instant_spatial_position[i - 1]);
 				instant_train_speed[i] = 0;
 				instant_spatial_position[i] = instant_spatial_position[i - 1];
 				instant_train_power_consumption[i] = 0;
@@ -2914,6 +2921,7 @@ public:
 					if (Speeds[k] <= V_lim)
 						V_lim = Speeds[k];
 				}
+				V_lim = effectiveIncidentSpeedLimit(V_lim, i);
 				// Imposing Station Nodes via cached indices
 				for (int s = 0; s < numStations; s++) {
 					int h = stationBlockSection[s];
@@ -3053,6 +3061,8 @@ public:
 				// Release of signalling system when the train exits simulation
 				if (instant_spatial_position[i - 1] >= train_route[indexOfRoute].x_of_end_node * 1000) {
 					End_Time = i - 1;
+					if (destinationTerminationRequested)
+						destinationTerminated = true;
 					instant_train_speed[i] = 0;
 					instant_spatial_position[i] = -9999;
 					instant_train_power_consumption[i] = -9999;
@@ -3168,6 +3178,48 @@ public:
 		}
 	}
 
+	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
+			double locationMeters) {
+		if (incidentId.empty())
+			return;
+		if (std::find(directIncidentIds.begin(), directIncidentIds.end(), incidentId)
+				== directIncidentIds.end())
+			directIncidentIds.push_back(incidentId);
+		if (firstDirectIncidentTime < 0.0) {
+			firstDirectIncidentTime = timeSeconds;
+			firstDirectIncidentLocation = locationMeters;
+		}
+	}
+
+	void recordDirectIncident(const SimulationIncident& incident, double timeSeconds,
+			double locationMeters) {
+		recordDirectIncidentId(incident.id.empty() ? incident.target : incident.id,
+			timeSeconds, locationMeters);
+	}
+
+	void recordDirectSignalFailure(const MovementAuthority& authority, double timeSeconds) {
+		if (authority.type != "SignalFailure")
+			return;
+		const std::string prefix = "signal_failure:";
+		const std::string& encoded = authority.TrainInfo.trainDescription;
+		if (encoded.rfind(prefix, 0) != 0)
+			return;
+		const std::string incidentId = encoded.substr(prefix.size());
+		recordDirectIncidentId(incidentId, timeSeconds, authority.AbsPosEoA);
+	}
+
+	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
+		const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, timestepIndex);
+		const double cap = incident ? incident->reducedSpeedKmh / 3.6 : 0.0;
+		if (incident && incident->hasReducedSpeed && cap > 0.0 && std::isfinite(cap)
+				&& cap < candidate) {
+			recordDirectIncident(*incident, timestepIndex * timestep, instant_spatial_position.empty()
+					? 0.0 : instant_spatial_position[std::max(0, timestepIndex - 1)]);
+			return cap;
+		}
+		return candidate;
+	}
+
 	// Function to Replicate a train repeated regularly over the time
 	void ReplicateTrainTrajectory(Train T_2_Replicate) {
 		// Offset (i.e. time headway) between the two trains
@@ -3201,6 +3253,8 @@ public:
 		if (OutOfSimulation == 0) {
 			// same breakdown hold as Trajectory_Block_Section
 			if (i > 0 && Incident_Holds_Train(trainDescription, i)) {
+				if (const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, i))
+					recordDirectIncident(*incident, i * timestep, instant_spatial_position[i - 1]);
 				instant_train_speed[i] = 0;
 				instant_spatial_position[i] = instant_spatial_position[i - 1];
 				instant_train_power_consumption[i] = 0;
@@ -3255,6 +3309,7 @@ public:
 					if (Speeds[k] <= V_lim)
 						V_lim = Speeds[k];
 				}
+				V_lim = effectiveIncidentSpeedLimit(V_lim, i);
 				cout << "Right speed limit " << to_string(V_lim * 3.6) << endl;
 				// Imposing Station Nodes via cached indices
 				for (int s = 0; s < numStations; s++) {
@@ -3275,6 +3330,7 @@ public:
 					(this->Last_Received_MA.RelativePosEoA - instant_spatial_position[i - 1] < 4)) {
 					Last_MA_StoppedAt = Last_Received_MA;
 					IsTrainStoppedForEoA = true;
+					recordDirectSignalFailure(Last_MA_StoppedAt, i * timestep);
 					cout << "IsTrainStoppedForEoA" << endl;
 				}
 
@@ -3439,6 +3495,8 @@ public:
 				// Release of signalling system when the train exits simulation
 				if (instant_spatial_position[i - 1] >= train_route[indexOfRoute].x_of_end_node * 1000) {
 					End_Time = i - 1;
+					if (destinationTerminationRequested)
+						destinationTerminated = true;
 					instant_train_speed[i] = 0;
 					instant_spatial_position[i] = -9999;
 					instant_train_power_consumption[i] = -9999;
@@ -3606,6 +3664,8 @@ public:
 			// window; entrance processing is also suspended, so a train whose
 			// window covers its entry time simply enters after the window.
 			if (time_seconds > 0 && Incident_Holds_Train(trainDescription, time_seconds)) {
+				if (const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, time_seconds))
+					recordDirectIncident(*incident, time_seconds * timestep, instant_spatial_position[time_seconds - 1]);
 				instant_train_speed[time_seconds] = 0;
 				instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
 				instant_train_power_consumption[time_seconds] = 0;
@@ -3662,6 +3722,7 @@ public:
 					if (Speeds[k] <= V_lim)
 						V_lim = Speeds[k];
 				}
+				V_lim = effectiveIncidentSpeedLimit(V_lim, time_seconds);
 
 				// Imposing Station Nodes via cached indices
 				for (int s = 0; s < numStations; s++) {
@@ -3685,6 +3746,7 @@ public:
 
 					Last_MA_StoppedAt = Last_Received_MA;
 					IsTrainStoppedForEoA = true;
+					recordDirectSignalFailure(Last_MA_StoppedAt, time_seconds * timestep);
 				}
 
 				// Calculating the most severe value of Train Braking Distance at time instant i
@@ -4045,6 +4107,8 @@ public:
 				// Release of signalling system when the train exits simulation
 				if (instant_spatial_position[time_seconds - 1] >= train_route[indexOfRoute].x_of_end_node * 1000) {
 					End_Time = time_seconds - 1;
+					if (destinationTerminationRequested)
+						destinationTerminated = true;
 					instant_train_speed[time_seconds] = 0;
 					instant_spatial_position[time_seconds] = -9999;
 					instant_train_power_consumption[time_seconds] = -9999;
@@ -7949,6 +8013,11 @@ public:
 		compositionMaximumSpeedMs = ob2.compositionMaximumSpeedMs;
 		appliedMaximumSpeedMs = ob2.appliedMaximumSpeedMs;
 		appliedMaximumSpeedKmh = ob2.appliedMaximumSpeedKmh;
+		directIncidentIds = ob2.directIncidentIds;
+		firstDirectIncidentTime = ob2.firstDirectIncidentTime;
+		firstDirectIncidentLocation = ob2.firstDirectIncidentLocation;
+		destinationTerminationRequested = ob2.destinationTerminationRequested;
+		destinationTerminated = ob2.destinationTerminated;
 		return *this;
 	}
 };
