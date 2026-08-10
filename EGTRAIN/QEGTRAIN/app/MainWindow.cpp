@@ -615,6 +615,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	ui->actionLoad_Network->setText("Load Legacy Case...");
 	ui->actionLoad_Network->setShortcut(QKeySequence());
+	m_newSceneAction = new QAction("New Case Study...", this);
+	m_newSceneAction->setObjectName("actionNewCaseStudy");
+	m_newSceneAction->setShortcut(QKeySequence::New);
 	QAction* openSceneAction = new QAction("Open Case Study...", this);
 	openSceneAction->setShortcut(QKeySequence::Open);
 	QAction* openSceneFolderAction = new QAction("Open Scene Folder...", this);
@@ -624,6 +627,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_saveSceneAsFolderAction = new QAction("Save Scene As Folder...", this);
 	m_runSceneAction = new QAction("Run Scene", this);
 	m_recentScenesMenu = new QMenu("Recent Scenes", this);
+	connect(m_newSceneAction, &QAction::triggered, this, &MainWindow::newScene);
 	connect(openSceneAction, &QAction::triggered, this, &MainWindow::openSceneDialog);
 	connect(openSceneFolderAction, &QAction::triggered, this, &MainWindow::openSceneFolderDialog);
 	connect(m_saveSceneAction, &QAction::triggered, this, &MainWindow::saveScene);
@@ -632,6 +636,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_runSceneAction, &QAction::triggered, this, &MainWindow::runScene);
 	if (ui->menuFile) {
 		QAction* beforeAction = ui->actionLoad_Network;
+		ui->menuFile->insertAction(beforeAction, m_newSceneAction);
 		ui->menuFile->insertAction(beforeAction, openSceneAction);
 		ui->menuFile->insertAction(beforeAction, openSceneFolderAction);
 		ui->menuFile->insertAction(beforeAction, m_saveSceneAction);
@@ -1074,6 +1079,52 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 	connect(m_loadedDataTree, &QTreeWidget::itemActivated, this,
 			[this](QTreeWidgetItem* item, int) { activateLoadedDataItem(item); });
+
+	// Case settings: the six scene-level values stay in one small editor so
+	// opening the panel never changes the model and every edit uses one commit path.
+	m_caseSettingsDock = new QDockWidget("Case Settings", this);
+	m_caseSettingsDock->setObjectName("caseSettingsDock");
+	QWidget* caseSettingsWidget = new QWidget(m_caseSettingsDock);
+	QFormLayout* caseSettingsLayout = new QFormLayout(caseSettingsWidget);
+	m_caseNameEdit = new QLineEdit(caseSettingsWidget);
+	m_caseNameEdit->setObjectName("caseNameEdit");
+	m_caseDescriptionEdit = new QLineEdit(caseSettingsWidget);
+	m_caseDescriptionEdit->setObjectName("caseDescriptionEdit");
+	m_caseBaseTimeEdit = new QLineEdit(caseSettingsWidget);
+	m_caseBaseTimeEdit->setObjectName("caseBaseTimeEdit");
+	caseSettingsLayout->addRow("Name", m_caseNameEdit);
+	caseSettingsLayout->addRow("Description", m_caseDescriptionEdit);
+	caseSettingsLayout->addRow("Base time", m_caseBaseTimeEdit);
+	const auto makeCaseSettingSpinBox = [caseSettingsWidget](const char* objectName) {
+		auto* edit = new CompactDoubleSpinBox(caseSettingsWidget);
+		edit->setObjectName(objectName);
+		edit->setRange(0.0, std::numeric_limits<double>::max());
+		edit->setDecimals(std::numeric_limits<double>::max_digits10);
+		edit->setSingleStep(1.0);
+		edit->setKeyboardTracking(false);
+		return edit;
+	};
+	m_caseDurationSecondsEdit = makeCaseSettingSpinBox("caseDurationSecondsEdit");
+	m_caseBufferSecondsEdit = makeCaseSettingSpinBox("caseBufferSecondsEdit");
+	m_caseRecoveryPercentEdit = makeCaseSettingSpinBox("caseRecoveryPercentEdit");
+	caseSettingsLayout->addRow("Duration / horizon (s)", m_caseDurationSecondsEdit);
+	caseSettingsLayout->addRow("Buffer (s)", m_caseBufferSecondsEdit);
+	caseSettingsLayout->addRow("Recovery (%)", m_caseRecoveryPercentEdit);
+	caseSettingsLayout->addRow(new QLabel("Changes apply when editing finishes.", caseSettingsWidget));
+	m_caseSettingsDock->setWidget(caseSettingsWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_caseSettingsDock);
+	m_caseSettingsDock->hide();
+	editorsMenu()->addAction(m_caseSettingsDock->toggleViewAction());
+	connect(m_caseNameEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
+	connect(m_caseDescriptionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
+	connect(m_caseBaseTimeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
+	connect(m_caseDurationSecondsEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+			this, [this](double) { commitCaseSettings(); });
+	connect(m_caseBufferSecondsEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+			this, [this](double) { commitCaseSettings(); });
+	connect(m_caseRecoveryPercentEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+			this, [this](double) { commitCaseSettings(); });
+	refreshCaseSettingsPanel();
 
 	// train-unit editor: one list/detail dock for physical values and traction
 	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
@@ -1603,6 +1654,39 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 	}
 }
 
+void MainWindow::newScene() {
+	if (!maybeSaveScene())
+		return;
+
+	teardownGUI();
+	simulation.resetState();
+	m_sceneDir.clear();
+	m_sceneModel = makeNewSceneModel();
+	m_sceneLoaded = true;
+	m_sceneIsBundle = false;
+	m_sceneDirty = true;
+	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
+	m_modifiedScenarioIds.clear();
+	m_sceneDiagnostics.clear();
+	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
+	invalidateRunResults();
+	updateSceneWindowTitle();
+	updateCaseLayersPanel();
+	updateSceneActions();
+	statusBar()->showMessage("New case study created; save it to choose a location");
+	refreshCaseSettingsPanel();
+	refreshValidationPanel();
+	refreshCompositionPanel();
+	refreshTrainUnitPanel();
+	refreshServicePanel();
+	refreshIncidentPanel();
+	renderTrackPreview(m_sceneModel);
+	if (m_caseSettingsDock) {
+		m_caseSettingsDock->show();
+		m_caseSettingsDock->raise();
+	}
+}
+
 void MainWindow::openSceneDialog() {
 	if (!maybeSaveScene())
 		return;
@@ -1658,6 +1742,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_sceneDiagnostics.clear();
 	invalidateRunResults();
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
+	refreshCaseSettingsPanel();
 	updateSceneWindowTitle();
 	updateCaseLayersPanel();
 	updateSceneActions();
@@ -1805,6 +1890,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 bool MainWindow::saveSceneToCurrentDir() {
 	if (!m_sceneLoaded)
 		return false;
+	commitPendingCaseSettings();
 	if (m_sceneDir.isEmpty())
 		return saveSceneAsToBundle();
 
@@ -1821,6 +1907,7 @@ void MainWindow::saveSceneAs() {
 bool MainWindow::saveSceneAsToBundle() {
 	if (!m_sceneLoaded)
 		return false;
+	commitPendingCaseSettings();
 
 	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
@@ -1845,6 +1932,7 @@ bool MainWindow::saveSceneAsToBundle() {
 bool MainWindow::saveSceneAsToDirectory() {
 	if (!m_sceneLoaded)
 		return false;
+	commitPendingCaseSettings();
 
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
@@ -1919,6 +2007,7 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 }
 
 bool MainWindow::maybeSaveScene() {
+	commitPendingCaseSettings();
 	if (!m_sceneDirty)
 		return true;
 
@@ -2184,6 +2273,87 @@ void MainWindow::invalidateRunResults() {
 		m_runResultsDock->hide();
 	refreshLoadedDataTree();
 	updateDiagramActions();
+}
+
+void MainWindow::refreshCaseSettingsPanel() {
+	const bool hasScene = m_sceneLoaded;
+	if (m_caseSettingsDock)
+		m_caseSettingsDock->setEnabled(hasScene);
+	if (m_caseNameEdit) {
+		const QSignalBlocker blocker(m_caseNameEdit);
+		m_caseNameEdit->setText(hasScene ? QString::fromStdString(m_sceneModel.name) : QString());
+		m_caseNameEdit->setEnabled(hasScene);
+	}
+	if (m_caseDescriptionEdit) {
+		const QSignalBlocker blocker(m_caseDescriptionEdit);
+		m_caseDescriptionEdit->setText(hasScene ? QString::fromStdString(m_sceneModel.description) : QString());
+		m_caseDescriptionEdit->setEnabled(hasScene);
+	}
+	if (m_caseBaseTimeEdit) {
+		const QSignalBlocker blocker(m_caseBaseTimeEdit);
+		m_caseBaseTimeEdit->setText(hasScene ? QString::fromStdString(m_sceneModel.baseTime) : QString());
+		m_caseBaseTimeEdit->setEnabled(hasScene);
+	}
+	if (m_caseDurationSecondsEdit) {
+		const QSignalBlocker blocker(m_caseDurationSecondsEdit);
+		m_caseDurationSecondsEdit->setValue(hasScene ? m_sceneModel.settings.durationSeconds : 0.0);
+		m_caseDurationSecondsEdit->setEnabled(hasScene);
+	}
+	if (m_caseBufferSecondsEdit) {
+		const QSignalBlocker blocker(m_caseBufferSecondsEdit);
+		m_caseBufferSecondsEdit->setValue(hasScene ? m_sceneModel.settings.bufferTimeSeconds : 0.0);
+		m_caseBufferSecondsEdit->setEnabled(hasScene);
+	}
+	if (m_caseRecoveryPercentEdit) {
+		const QSignalBlocker blocker(m_caseRecoveryPercentEdit);
+		m_caseRecoveryPercentEdit->setValue(hasScene ? m_sceneModel.settings.recoveryTimePercent : 0.0);
+		m_caseRecoveryPercentEdit->setEnabled(hasScene);
+	}
+}
+
+void MainWindow::commitPendingCaseSettings() {
+	if (m_caseDurationSecondsEdit)
+		m_caseDurationSecondsEdit->interpretText();
+	if (m_caseBufferSecondsEdit)
+		m_caseBufferSecondsEdit->interpretText();
+	if (m_caseRecoveryPercentEdit)
+		m_caseRecoveryPercentEdit->interpretText();
+	commitCaseSettings();
+}
+
+void MainWindow::commitCaseSettings() {
+	if (!m_sceneLoaded || !m_caseNameEdit || !m_caseDescriptionEdit || !m_caseBaseTimeEdit
+		|| !m_caseDurationSecondsEdit || !m_caseBufferSecondsEdit || !m_caseRecoveryPercentEdit)
+		return;
+
+	const std::string name = m_caseNameEdit->text().toStdString();
+	const std::string description = m_caseDescriptionEdit->text().toStdString();
+	const std::string baseTime = m_caseBaseTimeEdit->text().toStdString();
+	const double durationSeconds = m_caseDurationSecondsEdit->value();
+	const double bufferSeconds = m_caseBufferSecondsEdit->value();
+	const double recoveryPercent = m_caseRecoveryPercentEdit->value();
+	const bool durationChanged = m_sceneModel.settings.durationSeconds != durationSeconds;
+	const bool bufferChanged = m_sceneModel.settings.bufferTimeSeconds != bufferSeconds;
+	const bool recoveryChanged = m_sceneModel.settings.recoveryTimePercent != recoveryPercent;
+	const bool changed = m_sceneModel.name != name
+		|| m_sceneModel.description != description
+		|| m_sceneModel.baseTime != baseTime
+		|| durationChanged || bufferChanged || recoveryChanged;
+	if (!changed)
+		return;
+
+	m_sceneModel.name = name;
+	m_sceneModel.description = description;
+	m_sceneModel.baseTime = baseTime;
+	m_sceneModel.settings.hasDuration = m_sceneModel.settings.hasDuration || durationChanged;
+	m_sceneModel.settings.durationSeconds = durationSeconds;
+	m_sceneModel.settings.hasBufferTime = m_sceneModel.settings.hasBufferTime || bufferChanged;
+	m_sceneModel.settings.bufferTimeSeconds = bufferSeconds;
+	m_sceneModel.settings.hasRecoveryTime = m_sceneModel.settings.hasRecoveryTime || recoveryChanged;
+	m_sceneModel.settings.recoveryTimePercent = recoveryPercent;
+	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
+	markSceneDirty();
+	refreshValidationPanel();
 }
 
 void MainWindow::refreshTrainUnitPanel() {
@@ -6637,6 +6807,20 @@ void MainWindow::runEditorSmokeE2E() {
 			}
 		});
 	};
+	auto cancelConfirmation = [this]() {
+		QTimer::singleShot(25, this, []() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QMessageBox*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				if (auto* button = dialog->button(QMessageBox::Cancel))
+					button->click();
+				else
+					dialog->done(QMessageBox::Cancel);
+				break;
+			}
+		});
+	};
 	auto acceptUnitChoice = [this](const QString& unitId) {
 		QTimer::singleShot(25, this, [unitId]() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
@@ -6759,6 +6943,184 @@ void MainWindow::runEditorSmokeE2E() {
 				failures << "scene: primary scene not restored";
 			}
 		}
+	}
+
+	// step b: create, edit, save, and reopen a blank canonical case before the
+	// existing loaded-scene editor facets run.
+	{
+		bool facetOk = true;
+		const QString originalScenePath = scenePath;
+		QTemporaryDir newCaseTempDir;
+		QString outBase = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
+		if (outBase.isEmpty())
+			outBase = newCaseTempDir.path();
+		if (!m_sceneLoaded || originalScenePath.isEmpty()) {
+			facetFailure(facetOk, "new case", "the original scene was not available to restore");
+		} else {
+			newScene();
+			QApplication::processEvents();
+			if (!m_sceneLoaded || !m_sceneDirty || !m_sceneDir.isEmpty() || m_sceneIsBundle
+				|| !m_saveSceneAction || !m_saveSceneAction->isEnabled()
+				|| !m_saveSceneAsAction || !m_saveSceneAsAction->isEnabled()
+				|| !m_saveSceneAsFolderAction || !m_saveSceneAsFolderAction->isEnabled())
+				facetFailure(facetOk, "new case", "new case did not start unsaved and dirty with save actions enabled");
+			if (!m_runSceneAction || m_runSceneAction->isEnabled()
+				|| !ui->actionSimulationStart || ui->actionSimulationStart->isEnabled())
+				facetFailure(facetOk, "new case", "Run actions were enabled for an empty case");
+
+			auto* nameEdit = findChild<QLineEdit*>("caseNameEdit");
+			auto* descriptionEdit = findChild<QLineEdit*>("caseDescriptionEdit");
+			auto* baseTimeEdit = findChild<QLineEdit*>("caseBaseTimeEdit");
+			auto* durationEdit = findChild<QDoubleSpinBox*>("caseDurationSecondsEdit");
+			auto* bufferEdit = findChild<QDoubleSpinBox*>("caseBufferSecondsEdit");
+			auto* recoveryEdit = findChild<QDoubleSpinBox*>("caseRecoveryPercentEdit");
+			if (!nameEdit || !descriptionEdit || !baseTimeEdit || !durationEdit || !bufferEdit || !recoveryEdit
+				|| !m_caseSettingsDock || !m_caseSettingsDock->isVisible()) {
+				facetFailure(facetOk, "new case", "case settings controls or dock are unavailable");
+			} else {
+				nameEdit->setText("E2E New Case");
+				descriptionEdit->setText("new case editor smoke");
+				baseTimeEdit->setText("09:15:30");
+				durationEdit->setValue(7200.0);
+				bufferEdit->setValue(30.0);
+				recoveryEdit->setValue(7.5);
+				commitPendingCaseSettings();
+				if (m_sceneModel.name != "E2E New Case" || m_sceneModel.description != "new case editor smoke"
+						|| m_sceneModel.baseTime != "09:15:30"
+						|| !m_sceneModel.settings.hasDuration || m_sceneModel.settings.durationSeconds != 7200.0
+						|| !m_sceneModel.settings.hasBufferTime || m_sceneModel.settings.bufferTimeSeconds != 30.0
+						|| !m_sceneModel.settings.hasRecoveryTime || m_sceneModel.settings.recoveryTimePercent != 7.5
+						|| m_startOffsetSeconds != 9 * 3600 + 15 * 60 + 30)
+					facetFailure(facetOk, "new case", "case settings edits did not commit all six values");
+			}
+
+			const QString newCaseFolder = QDir(outBase).filePath("editor_smoke_new_case");
+			const QString newCaseBundle = QDir(outBase).filePath("editor_smoke_new_case.egscene");
+			const QString absentSettingsFolder = QDir(outBase).filePath("editor_smoke_new_case_absent_settings");
+			if (!QDir().mkpath(outBase))
+				facetFailure(facetOk, "new case", "output directory could not be created");
+			QDir(newCaseFolder).removeRecursively();
+			QDir(absentSettingsFolder).removeRecursively();
+			QFile::remove(newCaseBundle);
+			const SceneSaveResult folderSave = ::saveScene(m_sceneModel, newCaseFolder.toStdString());
+			const SceneSaveResult bundleSave = saveSceneBundle(m_sceneModel, newCaseBundle.toStdString());
+			if (!folderSave.success() || !bundleSave.success())
+				facetFailure(facetOk, "new case", "folder or bundle save failed");
+			std::string expectedName = "E2E New Case";
+			std::string expectedDescription = "new case editor smoke";
+			const auto verifyNewCase = [&]() {
+				const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
+				return m_sceneLoaded && !m_sceneDirty && m_sceneModel.schemaVersion == 1
+					&& m_sceneModel.name == expectedName
+					&& m_sceneModel.description == expectedDescription
+					&& m_sceneModel.baseTime == "09:15:30"
+					&& m_sceneModel.settings.hasDuration && m_sceneModel.settings.durationSeconds == 7200.0
+					&& m_sceneModel.settings.hasBufferTime && m_sceneModel.settings.bufferTimeSeconds == 30.0
+					&& m_sceneModel.settings.hasRecoveryTime && m_sceneModel.settings.recoveryTimePercent == 7.5
+					&& m_sceneModel.defaultScenarioId == "baseline" && scenario
+					&& scenario->id == "baseline" && scenario->name == "Baseline"
+					&& scenario->incidents.empty() && scenario->entranceDelays.empty();
+			};
+			if (!openSceneDirectory(newCaseFolder) || !verifyNewCase())
+				facetFailure(facetOk, "new case", "folder save did not reopen with the edited settings");
+
+			const QString savedName = QStringLiteral("E2E New Case Saved");
+			const QString savedDescription = QStringLiteral("new case editor smoke saved");
+			if (nameEdit && descriptionEdit && m_caseSettingsDock) {
+				m_caseSettingsDock->show();
+				m_caseSettingsDock->raise();
+				descriptionEdit->setText(savedDescription);
+				commitCaseSettings();
+				nameEdit->setFocus();
+				nameEdit->setText(savedName);
+				QApplication::processEvents();
+				if (!m_saveSceneAction || !m_saveSceneAction->isEnabled()
+						|| QApplication::focusWidget() != nameEdit)
+					facetFailure(facetOk, "new case", "Save action was not ready for focused pending case text");
+				else
+					m_saveSceneAction->trigger();
+				expectedName = savedName.toStdString();
+				expectedDescription = savedDescription.toStdString();
+				if (!openSceneDirectory(newCaseFolder) || !verifyNewCase()
+						|| !nameEdit || nameEdit->text() != savedName)
+					facetFailure(facetOk, "new case", "Save action did not persist focused pending case text");
+			} else {
+				facetFailure(facetOk, "new case", "case settings controls or dock are unavailable for Save action");
+			}
+
+			QFile::remove(newCaseBundle);
+			const SceneSaveResult updatedBundleSave = saveSceneBundle(m_sceneModel, newCaseBundle.toStdString());
+			if (!updatedBundleSave.success() || !openSceneDirectory(newCaseBundle) || !verifyNewCase())
+				facetFailure(facetOk, "new case", "bundle save did not reopen with the edited settings");
+			if (!openSceneDirectory(newCaseFolder) || !verifyNewCase())
+				facetFailure(facetOk, "new case", "saved folder could not be restored for New action check");
+
+			const QString pendingNewName = QStringLiteral("E2E Pending New Case");
+			if (nameEdit && m_caseSettingsDock && m_newSceneAction) {
+				m_caseSettingsDock->show();
+				m_caseSettingsDock->raise();
+				nameEdit->setFocus();
+				nameEdit->setText(pendingNewName);
+				QApplication::processEvents();
+				const bool cleanBeforeNew = !m_sceneDirty
+					&& m_sceneModel.name == expectedName
+					&& nameEdit->text() == pendingNewName
+					&& QApplication::focusWidget() == nameEdit;
+				if (!cleanBeforeNew)
+					facetFailure(facetOk, "new case", "New action precondition was not a clean scene with focused pending text");
+				else {
+					cancelConfirmation();
+					m_newSceneAction->trigger();
+					QApplication::processEvents();
+					if (m_sceneDir != QFileInfo(newCaseFolder).absoluteFilePath()
+							|| !m_sceneDirty || m_sceneModel.name != pendingNewName.toStdString()
+							|| nameEdit->text() != pendingNewName)
+						facetFailure(facetOk, "new case", "Cancel did not preserve the dirty scene after pending New action text");
+				}
+			} else {
+				facetFailure(facetOk, "new case", "New action or case settings controls are unavailable");
+			}
+
+			SceneModel absentSettings = makeNewSceneModel();
+			absentSettings.name = "E2E Absent Settings";
+			absentSettings.description = "metadata-only baseline";
+			absentSettings.settings.hasDuration = false;
+			absentSettings.settings.durationSeconds = 0.0;
+			absentSettings.settings.hasBufferTime = false;
+			absentSettings.settings.bufferTimeSeconds = 0.0;
+			absentSettings.settings.hasRecoveryTime = false;
+			absentSettings.settings.recoveryTimePercent = 0.0;
+			const SceneSaveResult absentSave = ::saveScene(absentSettings, absentSettingsFolder.toStdString());
+			if (!absentSave.success() || !openSceneDirectory(absentSettingsFolder)
+					|| m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
+					|| m_sceneModel.settings.hasRecoveryTime)
+				facetFailure(facetOk, "new case", "canonical scene with absent optional settings did not load");
+			else if (descriptionEdit && m_caseSettingsDock) {
+				m_caseSettingsDock->show();
+				m_caseSettingsDock->raise();
+				descriptionEdit->setText("metadata-only edit");
+				commitCaseSettings();
+				const bool flagsRemainAbsent = !m_sceneModel.settings.hasDuration
+					&& !m_sceneModel.settings.hasBufferTime && !m_sceneModel.settings.hasRecoveryTime;
+				if (!flagsRemainAbsent || !m_saveSceneAction || !m_saveSceneAction->isEnabled())
+					facetFailure(facetOk, "new case", "metadata-only edit did not keep optional settings absent before Save");
+				else {
+					m_saveSceneAction->trigger();
+					if (m_sceneDirty || m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
+							|| m_sceneModel.settings.hasRecoveryTime
+							|| !openSceneDirectory(absentSettingsFolder)
+							|| m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
+							|| m_sceneModel.settings.hasRecoveryTime)
+						facetFailure(facetOk, "new case", "metadata-only Save created optional settings");
+				}
+			} else {
+				facetFailure(facetOk, "new case", "case settings controls or dock are unavailable for metadata-only Save");
+			}
+			if (!openSceneDirectory(originalScenePath))
+				facetFailure(facetOk, "new case", "original scene could not be restored");
+		}
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_NEW_CASE_OK\n");
 	}
 
 	// step b: validation assertions
@@ -8368,12 +8730,14 @@ void MainWindow::showStartupChooser() {
 	layout->addWidget(legacyHint);
 
 	QHBoxLayout* buttons = new QHBoxLayout();
+	QPushButton* newCaseBtn = new QPushButton("New Case Study...", &dialog);
 	QPushButton* legacyBtn = new QPushButton("Import Legacy Case...", &dialog);
 	QPushButton* browseBtn = new QPushButton("Open Scene Folder...", &dialog);
 	QPushButton* skipBtn = new QPushButton("Skip", &dialog);
 	QPushButton* openBtn = new QPushButton("Open", &dialog);
 	openBtn->setDefault(true);
 	openBtn->setEnabled(false);
+	buttons->addWidget(newCaseBtn);
 	buttons->addWidget(legacyBtn);
 	buttons->addWidget(browseBtn);
 	buttons->addStretch();
@@ -8381,7 +8745,7 @@ void MainWindow::showStartupChooser() {
 	buttons->addWidget(openBtn);
 	layout->addLayout(buttons);
 
-	enum { Skipped, OpenSelected, BrowseScene, ImportLegacy };
+	enum { Skipped, OpenSelected, BrowseScene, ImportLegacy, NewCase };
 	int choice = Skipped;
 	connect(list, &QListWidget::itemSelectionChanged, &dialog, [&]() {
 		openBtn->setEnabled(list->currentItem() != nullptr);
@@ -8393,6 +8757,7 @@ void MainWindow::showStartupChooser() {
 	connect(openBtn, &QPushButton::clicked, &dialog, [&]() { choice = OpenSelected; dialog.accept(); });
 	connect(browseBtn, &QPushButton::clicked, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
 	connect(legacyBtn, &QPushButton::clicked, &dialog, [&]() { choice = ImportLegacy; dialog.accept(); });
+	connect(newCaseBtn, &QPushButton::clicked, &dialog, [&]() { choice = NewCase; dialog.accept(); });
 	connect(skipBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
 
 	if (list->count() > 0)
@@ -8409,6 +8774,9 @@ void MainWindow::showStartupChooser() {
 			break;
 		case ImportLegacy:
 			actionLoad_Network();
+			break;
+		case NewCase:
+			newScene();
 			break;
 		default:
 		statusBar()->showMessage("No case chosen; use File > Open Case Study when ready", 8000);
@@ -8636,6 +9004,7 @@ void MainWindow::runScene() {
 	if (!m_sceneLoaded)
 		return;
 
+	commitPendingCaseSettings();
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;

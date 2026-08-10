@@ -60,6 +60,22 @@ std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDia
 
 } // namespace
 
+SceneModel makeNewSceneModel() {
+	SceneModel scene;
+	scene.schemaVersion = 1;
+	scene.name = "Untitled Case Study";
+	scene.baseTime = "08:00:00";
+	scene.settings.hasDuration = true;
+	scene.settings.durationSeconds = 3600.0;
+	scene.settings.hasBufferTime = true;
+	scene.settings.bufferTimeSeconds = 0.0;
+	scene.settings.hasRecoveryTime = true;
+	scene.settings.recoveryTimePercent = 0.0;
+	scene.defaultScenarioId = "baseline";
+	scene.scenarios.push_back({"baseline", "Baseline", {}, {}, {}});
+	return scene;
+}
+
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
 		SceneCompositionRuntime& result, std::string& diagnostic) {
 	result = SceneCompositionRuntime();

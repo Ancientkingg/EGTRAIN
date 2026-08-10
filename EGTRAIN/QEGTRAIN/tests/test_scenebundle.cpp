@@ -153,6 +153,29 @@ static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second
 	return true;
 }
 
+static bool testNewSceneRoundTrip(const fs::path& root) {
+	const SceneModel expected = makeNewSceneModel();
+	const fs::path folder = root / "new-scene";
+	const fs::path bundle = root / "new-scene.egscene";
+	bool ok = true;
+	ok &= expect(saveScene(expected, folder.string()).success(), "new scene saves as canonical folder");
+	ok &= expect(saveSceneBundle(expected, bundle.string()).success(), "new scene saves as canonical bundle");
+	const SceneLoadResult folderLoad = loadScene(folder.string());
+	const SceneLoadResult bundleLoad = loadScenePath(bundle.string());
+	ok &= expect(!hasErrors(folderLoad.diagnostics), "new scene folder has no structural diagnostics");
+	ok &= expect(!hasErrors(bundleLoad.diagnostics), "new scene bundle has no structural diagnostics");
+	ok &= expect(sameCanonicalFiles(expected, folderLoad.scene, root / "folder-semantics"),
+			"new scene folder preserves canonical case data");
+	ok &= expect(sameCanonicalFiles(expected, bundleLoad.scene, root / "bundle-semantics"),
+			"new scene bundle preserves canonical case data");
+	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			"rolling_stock.json", "services.json", "scenarios.json"})
+		ok &= expect(fs::is_regular_file(folder / name), "new scene folder remains canonical");
+	ok &= expect(fs::is_regular_file(bundle) && bundle.extension() == ".egscene",
+			"new scene bundle remains an egscene container");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage: test_scenebundle <scene-directory>\n";
@@ -161,6 +184,7 @@ int main(int argc, char** argv) {
 
 	bool ok = true;
 	TempDir temp;
+	ok &= testNewSceneRoundTrip(temp.path);
 	const SceneLoadResult source = loadScene(argv[1]);
 	ok &= expect(!hasErrors(source.diagnostics), "canonical directory loads");
 	const fs::path firstBundle = temp.path / "first.egscene";
