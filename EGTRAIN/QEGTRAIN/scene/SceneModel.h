@@ -179,6 +179,15 @@ struct SceneIncident {
 	std::string target;
 	double startSeconds = 0.0;
 	double endSeconds = 0.0;
+	// Optional breakdown targeting/configuration.  These members deliberately
+	// follow the original five fields so existing aggregate initializers keep
+	// their legacy full-hold behavior.
+	bool hasOccurrence = false;
+	int occurrence = 1;
+	bool hasReducedSpeed = false;
+	double reducedSpeedKmh = 0.0;
+	bool terminateAtDestination = false;
+	bool hasEndSeconds = false;
 };
 
 struct SceneEntranceDelay {

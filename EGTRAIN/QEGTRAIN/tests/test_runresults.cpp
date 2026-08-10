@@ -322,6 +322,10 @@ int main() {
 	const std::vector<const Train*> delayedTrains{delayed.get()};
 	const auto delayedResults = buildRunResults(delayedTrains, 0.5);
 	ok &= expect(delayedResults.trains.size() == 1, "one train result");
+	ok &= expect(delayedResults.trains[0].directIncidentIds.empty()
+				 && !delayedResults.trains[0].firstDirectIncidentTime.available
+				 && !delayedResults.trains[0].firstDirectIncidentLocation.available,
+				 "missing direct incident evidence stays unavailable");
 	ok &= expect(delayedResults.trains[0].operatingCode == "1725"
 				 && delayedResults.trains[0].serviceId == "service.native"
 				 && delayedResults.trains[0].occurrence == 2
@@ -341,6 +345,15 @@ int main() {
 	ok &= expect(delayedResults.trains[0].travelSeconds.available &&
 					 closeTo(delayedResults.trains[0].travelSeconds.value, 2.0),
 					 "travel time spans active bounds");
+	delayed->directIncidentIds = {"incident.breakdown"};
+	delayed->firstDirectIncidentTime = 2.0;
+	delayed->firstDirectIncidentLocation = 30.0;
+	const auto directResults = buildRunResults(delayedTrains, 0.5);
+	ok &= expect(directResults.trains[0].firstDirectIncidentTime.available
+				 && closeTo(directResults.trains[0].firstDirectIncidentTime.value, 2.0)
+				 && directResults.trains[0].firstDirectIncidentLocation.available
+				 && closeTo(directResults.trains[0].firstDirectIncidentLocation.value, 30.0),
+				 "recorded direct incident evidence remains available");
 
 	auto gap = makeTrain("gap", 1, 5, 11.0, 21.0, 31.0, 41.0);
 	gap->instant_spatial_position[3] = -9999.0;
@@ -496,6 +509,92 @@ int main() {
 					 regionalRunResults.trains[0].trainId == "regional-first" &&
 					 regionalRunResults.trains[1].trainId == "regional-second",
 					"safe Regional collection keeps both run result rows");
+	}
+
+	{
+		DelayRunSnapshot baseline;
+		baseline.caseRevision = "revision-7";
+		baseline.scenarioId = "baseline";
+		baseline.baseTimeSeconds = 8 * 3600;
+		baseline.durationSeconds = 3600.0;
+		baseline.timestep = 1.0;
+		baseline.hasIncidents = false;
+		baseline.hasEntranceDelays = false;
+		DelayRunSnapshot scenario = baseline;
+		scenario.scenarioId = "incident-run";
+		scenario.hasIncidents = true;
+
+		const auto addIdentity = [](RunResults& results, const std::string& service, int occurrence,
+				const std::string& code, const std::vector<std::string>& incidentIds = {}) {
+			TrainRunResult train;
+			train.trainId = service + "-" + std::to_string(occurrence);
+			train.serviceId = service;
+			train.occurrence = occurrence;
+			train.operatingCode = code;
+			train.directIncidentIds = incidentIds;
+			results.trains.push_back(train);
+		};
+		addIdentity(baseline.run, "service-a", 1, "A1");
+		addIdentity(baseline.run, "service-a", 2, "A2");
+		addIdentity(baseline.run, "service-a", 3, "A3");
+		addIdentity(scenario.run, "service-a", 1, "A1", {"signal-failure-1"});
+		addIdentity(scenario.run, "service-a", 2, "A2");
+		addIdentity(scenario.run, "service-a", 3, "A3");
+		const auto addArrival = [](std::vector<TimetableResultRow>& rows, int occurrence, double arrival) {
+			TimetableResultRow row;
+			row.serviceId = "service-a";
+			row.occurrence = occurrence;
+			row.stationId = "destination";
+			row.simulatedArrivalSeconds = {true, arrival};
+			rows.push_back(row);
+		};
+		addArrival(baseline.timetable, 1, 100.0);
+		addArrival(baseline.timetable, 2, 150.0);
+		addArrival(baseline.timetable, 3, 200.0);
+		addArrival(scenario.timetable, 1, 112.0);
+		addArrival(scenario.timetable, 2, 155.0);
+		addArrival(scenario.timetable, 3, 190.0);
+		scenario.run.trains[0].firstDirectIncidentTime = {true, 80.0};
+		scenario.run.trains[0].firstDirectIncidentLocation = {true, 1234.0};
+		scenario.run.trains[0].destinationTerminationRequested = true;
+		scenario.run.trains[0].destinationTerminated = true;
+
+		const DelayComparisonResult comparison = compareDelayRuns(baseline, scenario);
+		ok &= expect(comparison.valid && comparison.rows.size() == 2
+				&& comparison.rows[0].attribution == "primary"
+				&& comparison.rows[1].attribution == "secondary"
+				&& closeTo(comparison.totalArrivalDelay.value, 17.0),
+				"delay comparison keeps primary plus following-secondary rows and exact total");
+		ok &= expect(comparison.rows[0].incidentIds == std::vector<std::string>{"signal-failure-1"}
+				&& comparison.rows[0].firstDirectTime.available
+				&& closeTo(comparison.rows[0].firstDirectTime.value, 80.0)
+				&& comparison.rows[0].destinationTerminationRequested
+				&& comparison.rows[0].destinationTerminated,
+				"signal-failure direct evidence and destination outcome reach comparison rows");
+
+		DelayRunSnapshot mismatched = scenario;
+		mismatched.run.trains.pop_back();
+		const DelayComparisonResult mismatchResult = compareDelayRuns(baseline, mismatched);
+		ok &= expect(!mismatchResult.valid, "delay comparison rejects selected occurrence identity mismatch");
+		DelayRunSnapshot noEvidence = scenario;
+		for (TrainRunResult& train : noEvidence.run.trains)
+			train.directIncidentIds.clear();
+		const DelayComparisonResult noEvidenceResult = compareDelayRuns(baseline, noEvidence);
+		ok &= expect(!noEvidenceResult.valid, "delay comparison rejects incident runs without direct evidence");
+		DelayRunSnapshot incompleteBaseline = baseline;
+		DelayRunSnapshot incompleteScenario = scenario;
+		TimetableResultRow baselineDestination;
+		baselineDestination.serviceId = "service-a";
+		baselineDestination.occurrence = 1;
+		baselineDestination.stationId = "later-destination";
+		baselineDestination.simulatedArrivalSeconds = {true, 220.0};
+		incompleteBaseline.timetable.push_back(baselineDestination);
+		TimetableResultRow missingScenarioDestination = baselineDestination;
+		missingScenarioDestination.simulatedArrivalSeconds = {};
+		incompleteScenario.timetable.push_back(missingScenarioDestination);
+		const DelayComparisonResult incompleteResult = compareDelayRuns(incompleteBaseline, incompleteScenario);
+		ok &= expect(!incompleteResult.valid,
+				"delay comparison rejects an unavailable final destination arrival");
 	}
 
 	if (!ok)

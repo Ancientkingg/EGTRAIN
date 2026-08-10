@@ -22,13 +22,21 @@ void resetNativeInfrastructureState();
 struct SimulationIncident {
 	std::string type;
 	std::string target;
-	double startSeconds;
-	double endSeconds;
+	double startSeconds = 0.0;
+	double endSeconds = 0.0;
 	std::vector<std::string> resolvedSectionIDs; // Resolved section IDs for signal_failure
+	std::string id;
+	bool hasOccurrence = false;
+	int occurrence = 1;
+	bool hasReducedSpeed = false;
+	double reducedSpeedKmh = 0.0;
+	bool terminateAtDestination = false;
+	bool hasEndSeconds = false;
 };
 
 extern std::vector<SimulationIncident> simulationIncidents;
 bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
+const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, int timestepIndex);
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex);
 
 // --- TrainEvent: ordered train events (departures, arrivals, etc.) ---

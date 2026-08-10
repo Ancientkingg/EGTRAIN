@@ -1,5 +1,6 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
+#include <algorithm>
 #include <cmath>
 #include <unordered_map>
 #include <unordered_set>
@@ -5691,15 +5692,60 @@ void saveSignalAspectChanges(int t, std::string FolderName) {
 
 std::vector<SimulationIncident> simulationIncidents;
 
+namespace {
+bool runtimeIncidentHasEnd(const SimulationIncident& incident) {
+	return incident.hasEndSeconds || incident.endSeconds != 0.0;
+}
+
+bool trainOccurrence(const std::string& trainDesc, std::string& serviceId, int& occurrence) {
+	const std::size_t separator = trainDesc.rfind('-');
+	if (separator == std::string::npos || separator == 0 || separator + 1 >= trainDesc.size())
+		return false;
+	try {
+		std::size_t parsed = 0;
+		occurrence = std::stoi(trainDesc.substr(separator + 1), &parsed);
+		if (parsed != trainDesc.size() - separator - 1 || occurrence < 1)
+			return false;
+	} catch (const std::exception&) {
+		return false;
+	}
+	serviceId = trainDesc.substr(0, separator);
+	return true;
+}
+
+bool breakdownMatchesTrain(const SimulationIncident& incident, const std::string& trainDesc) {
+	std::string serviceId;
+	int occurrence = 0;
+	if (!trainOccurrence(trainDesc, serviceId, occurrence) || serviceId != incident.target)
+		return false;
+	return !incident.hasOccurrence || occurrence == incident.occurrence;
+}
+
+bool breakdownActive(const SimulationIncident& incident, const std::string& trainDesc,
+		int timestepIndex) {
+	if (incident.type != "train_breakdown" || !breakdownMatchesTrain(incident, trainDesc)
+			|| timestepIndex < incident.startSeconds)
+		return false;
+	return !runtimeIncidentHasEnd(incident) || timestepIndex < incident.endSeconds;
+}
+} // namespace
+
+const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, int timestepIndex) {
+	const SimulationIncident* strictestCap = nullptr;
+	for (const auto& incident : simulationIncidents) {
+		if (!breakdownActive(incident, trainDesc, timestepIndex))
+			continue;
+		if (!incident.hasReducedSpeed)
+			return &incident;
+		if (!strictestCap || incident.reducedSpeedKmh < strictestCap->reducedSpeedKmh)
+			strictestCap = &incident;
+	}
+	return strictestCap;
+}
 
 bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
-	for (const auto& inc : simulationIncidents) {
-		// trainDescription is "<service>-<n>", so a service target holds every repeat
-		if (inc.type == "train_breakdown" && timestepIndex >= inc.startSeconds && timestepIndex < inc.endSeconds && trainDesc.rfind(inc.target + "-", 0) == 0) {
-			return true;
-		}
-	}
-	return false;
+	const SimulationIncident* incident = Active_Train_Breakdown(trainDesc, timestepIndex);
+	return incident != nullptr && !incident->hasReducedSpeed;
 }
 
 // Apply active signal_failure incidents to the mixed signalling state. The
@@ -5708,7 +5754,8 @@ bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
 // for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 	for (const auto& inc : simulationIncidents) {
-		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds || timestepIndex > inc.endSeconds)
+		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds
+				|| (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds))
 			continue;
 		for (const auto& secID : inc.resolvedSectionIDs) {
 			bool occupied = false;
@@ -5746,7 +5793,8 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 					MA.AbsPosEoA = train_route[r].reversed_direction
 						? anchor.GeoXBegNode - anchorDist
 						: anchor.start_node.X * 1000 + anchorDist;
-					MA.TrainInfo.trainDescription = "signal_failure:" + inc.target;
+					MA.TrainInfo.trainDescription = "signal_failure:"
+							+ (inc.id.empty() ? inc.target : inc.id);
 					MA.TrainInfo.Position = MA.AbsPosEoA;
 					MA.TrainInfo.TrainSpeed = 0;
 					MA.TrainInfo.Acceleration = 0;

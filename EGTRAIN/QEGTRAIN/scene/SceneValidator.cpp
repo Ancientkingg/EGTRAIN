@@ -848,6 +848,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		for (std::size_t incidentIndex = 0; incidentIndex < scenario.incidents.size(); ++incidentIndex) {
 			const SceneIncident& incident = scenario.incidents[incidentIndex];
 			const std::string path = scenarioPath + ".incidents[" + std::to_string(incidentIndex) + "]";
+			const bool hasOccurrence = incident.hasOccurrence || incident.occurrence != 1;
+			const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
+			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
 			if (!incidentIds.insert(incident.id).second)
 				diagnostics.error("scene.id.duplicate", "Duplicate incident id", "scenarios.json", "incident",
 						incident.id, path + ".id", incident.id);
@@ -862,16 +865,44 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				if (!hasId(serviceIds, incident.target))
 					diagnostics.error("scene.ref.unresolved", "Train breakdown refers to unknown service",
 							"scenarios.json", "incident", incident.id, path + ".target", incident.target);
+				if (hasOccurrence) {
+					if (incident.occurrence <= 0)
+						diagnostics.error("scene.occurrence.invalid", "Breakdown occurrence must be positive",
+								"scenarios.json", "incident", incident.id, path + ".occurrence");
+					else if (hasId(serviceIds, incident.target)
+							&& incident.occurrence > serviceOccurrences[incident.target])
+						diagnostics.error("scene.occurrence.invalid", "Breakdown occurrence is outside the configured service pattern",
+								"scenarios.json", "incident", incident.id, path + ".occurrence",
+								incident.target + "-" + std::to_string(incident.occurrence));
+				}
+				if (hasReducedSpeed
+						&& (!std::isfinite(incident.reducedSpeedKmh) || incident.reducedSpeedKmh <= 0.0))
+					diagnostics.error("scene.incident.speed", "Reduced breakdown speed must be positive and finite",
+							"scenarios.json", "incident", incident.id, path + ".reduced_speed_kmh");
+				if (!hasReducedSpeed && !hasEnd)
+					diagnostics.error("scene.incident.window", "A full-hold breakdown requires end_seconds",
+							"scenarios.json", "incident", incident.id, path + ".end_seconds");
 			} else {
 				diagnostics.error("scene.incident.type", "Unknown incident type", "scenarios.json", "incident",
 						incident.id, path + ".type", incident.type,
 						"Use signal_failure or train_breakdown");
 			}
-			if (incident.endSeconds <= incident.startSeconds || incident.startSeconds < 0.0
-					|| incident.endSeconds < 0.0)
-				diagnostics.error("scene.incident.window", "Invalid incident time window", "scenarios.json",
-						"incident", incident.id, path, "",
-						"Set end_seconds after start_seconds, both 0 or more");
+			if (!std::isfinite(incident.startSeconds) || incident.startSeconds < 0.0)
+				diagnostics.error("scene.incident.window", "Incident start_seconds must be finite and non-negative",
+						"scenarios.json", "incident", incident.id, path + ".start_seconds");
+			if (incident.type == "signal_failure") {
+				if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination)
+					diagnostics.error("scene.incident.fields", "Signal failures do not accept breakdown-only fields",
+							"scenarios.json", "incident", incident.id, path);
+				if (!hasEnd || !std::isfinite(incident.endSeconds)
+						|| incident.endSeconds <= incident.startSeconds)
+					diagnostics.error("scene.incident.window", "Signal failure requires end_seconds after start_seconds",
+							"scenarios.json", "incident", incident.id, path + ".end_seconds");
+			} else if (hasEnd && (!std::isfinite(incident.endSeconds)
+					|| incident.endSeconds <= incident.startSeconds)) {
+				diagnostics.error("scene.incident.window", "Incident end_seconds must be after start_seconds",
+						"scenarios.json", "incident", incident.id, path + ".end_seconds");
+			}
 		}
 		for (std::size_t delayIndex = 0; delayIndex < scenario.entranceDelays.size(); ++delayIndex) {
 			const SceneEntranceDelay& delay = scenario.entranceDelays[delayIndex];

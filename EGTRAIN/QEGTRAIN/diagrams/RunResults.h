@@ -29,6 +29,11 @@ struct TrainRunResult {
 	RunResultValue energyWithRegenKWh;
 	RunResultValue substationKWh;
 	RunResultValue substationWithRegenKWh;
+	std::vector<std::string> directIncidentIds;
+	RunResultValue firstDirectIncidentTime;
+	RunResultValue firstDirectIncidentLocation;
+	bool destinationTerminationRequested = false;
+	bool destinationTerminated = false;
 };
 
 struct TimetableResultRow {
@@ -58,6 +63,42 @@ struct RunResults {
 	RunResultValue substationWithRegenKWh;
 };
 
+// A frozen pair of completed runs.  It owns values only; no runtime Train
+// pointers survive completion.
+struct DelayRunSnapshot {
+	std::string caseRevision;
+	std::string scenarioId;
+	double baseTimeSeconds = 0.0;
+	double durationSeconds = 0.0;
+	double timestep = 0.0;
+	bool hasIncidents = false;
+	bool hasEntranceDelays = false;
+	RunResults run;
+	std::vector<TimetableResultRow> timetable;
+};
+
+struct DelayComparisonRow {
+	std::string serviceId;
+	int occurrence = 1;
+	std::string operatingCode;
+	RunResultValue baselineFinalArrival;
+	RunResultValue scenarioFinalArrival;
+	RunResultValue positiveContribution;
+	std::string attribution; // "primary" or "secondary"
+	std::vector<std::string> incidentIds;
+	RunResultValue firstDirectTime;
+	RunResultValue firstDirectLocation;
+	bool destinationTerminationRequested = false;
+	bool destinationTerminated = false;
+};
+
+struct DelayComparisonResult {
+	bool valid = false;
+	std::string diagnostic;
+	std::vector<DelayComparisonRow> rows;
+	RunResultValue totalArrivalDelay;
+};
+
 // Preserve the legacy MJ-to-kWh conversion used by text outputs.
 constexpr double kEnergyMJToKWh = 0.27778;
 constexpr double energyMJKWh(double energyMJ) {
@@ -66,5 +107,7 @@ constexpr double energyMJKWh(double energyMJ) {
 
 RunResults buildRunResults(const std::vector<const Train*>& trains, double timestep);
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains);
+DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
+		const DelayRunSnapshot& scenario);
 
 #endif // RUNRESULTS_H

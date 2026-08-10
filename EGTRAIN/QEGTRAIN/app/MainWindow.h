@@ -68,6 +68,7 @@
 #include <utility>
 #include <unordered_map>
 #include <tuple>
+#include <optional>
 #include <QStatusBar>
 #include <QSlider>
 #include <QHBoxLayout>
@@ -129,6 +130,7 @@ class ConsoleWidget; // forward declaration for m_logPane
 
 #include "simulation/SimulationWorker.h"
 #include "diagrams/CapacityAnalysis.h"
+#include "diagrams/RunResults.h"
 
 // boolean to define if GUI is used or not
 extern bool GUI;
@@ -294,6 +296,8 @@ private:
 	InfoDockWidget* infoDockWidget;
 	QDockWidget* m_runResultsDock = nullptr;
 	QTableWidget* m_runResultsTable = nullptr;
+	QPushButton* m_setDelayBaselineButton = nullptr;
+	QPushButton* m_compareDelayButton = nullptr;
 	QWidget* arcInfoWidget;
 	QLineEdit* arcIDText;
 	QLineEdit* arcFirstNodeIDText;
@@ -411,6 +415,10 @@ private:
 	std::string m_selectedScenarioId;
 	std::string m_appliedScenarioId;
 	std::set<std::string> m_modifiedScenarioIds;
+	RunResults m_completedRunResults;
+	std::vector<TimetableResultRow> m_completedTimetableResults;
+	std::optional<DelayRunSnapshot> m_delayBaseline;
+	quint64 m_sceneRevision = 0;
 	QLabel* m_runResultsSummaryLabel = nullptr;
 	int m_lastRunSelectedOccurrences = 0;
 	int m_lastRunTotalOccurrences = 0;
@@ -506,6 +514,12 @@ private:
 	QComboBox* m_incidentTargetCombo = nullptr;		 // signal id or service id depending on type
 	QLineEdit* m_incidentStartSecondsEdit = nullptr; // whole seconds
 	QLineEdit* m_incidentEndSecondsEdit = nullptr;	 // whole seconds
+	QCheckBox* m_incidentHasOccurrenceCheck = nullptr;
+	QLineEdit* m_incidentOccurrenceEdit = nullptr;
+	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
+	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
+	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
+	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
 	QPushButton* m_addIncidentButton = nullptr;
 	QPushButton* m_duplicateIncidentButton = nullptr;
 	QPushButton* m_deleteIncidentButton = nullptr;
@@ -682,15 +696,25 @@ private:
 	void commitIncidentTarget(const QString& text);
 	void commitIncidentStartSeconds();
 	void commitIncidentEndSeconds();
+	void commitIncidentOccurrence();
+	void commitIncidentHasOccurrence(bool checked);
+	void commitIncidentReducedSpeed();
+	void commitIncidentHasReducedSpeed(bool checked);
+	void commitIncidentHasEndSeconds(bool checked);
+	void commitIncidentTerminateAtDestination(bool checked);
 	std::string uniqueIncidentId(const std::string& baseId) const;
 	std::string uniqueScenarioId(const std::string& baseId) const;
 	SceneScenario* selectedScenario();
 	const SceneScenario* selectedScenario() const;
+	SceneIncident* selectedIncident();
 	std::vector<SceneIncident>& selectedScenarioIncidents();
 	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
 	void markScenarioModified();
 	QString scenarioContext() const;
 	bool showRunReview();
+	void setDelayBaseline();
+	void showDelayComparison();
+	DelayRunSnapshot completedDelaySnapshot() const;
 
 	void runVisualPolishE2E();
 	void runStationOverlayE2E();

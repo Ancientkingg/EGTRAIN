@@ -126,6 +126,13 @@ static SceneModel completeScene() {
 	SceneScenario alternate;
 	alternate.id = "alternate";
 	alternate.name = "Alternate";
+	SceneIncident enhancedBreakdown{"breakdown-2", "train_breakdown", "service-1", 900.0, 0.0};
+	enhancedBreakdown.hasOccurrence = true;
+	enhancedBreakdown.occurrence = 2;
+	enhancedBreakdown.hasReducedSpeed = true;
+	enhancedBreakdown.reducedSpeedKmh = 40.0;
+	enhancedBreakdown.terminateAtDestination = true;
+	alternate.incidents.push_back(enhancedBreakdown);
 	scene.scenarios.push_back(alternate);
 	scene.defaultScenarioId = "baseline";
 
@@ -203,6 +210,12 @@ int main() {
 	}
 	ok &= expect(scenarios["default_scenario_id"] == "baseline", "writer emits default_scenario_id");
 	ok &= expect(scenarios["scenarios"].size() == 2, "writer emits named scenarios");
+	const json& enhancedJson = scenarios["scenarios"][1]["incidents"][0];
+	ok &= expect(enhancedJson["occurrence"] == 2
+			&& enhancedJson["reduced_speed_kmh"] == 40.0
+			&& enhancedJson["terminate_at_destination"] == true
+			&& !enhancedJson.contains("end_seconds"),
+			"writer preserves occurrence-specific reduced breakdown without recovery end");
 
 	const fs::path standaloneScenarioPath = temp.path / "baseline-scenario.json";
 	const SceneSaveResult standaloneSave = saveScenarioJson(source.scenarios[0], standaloneScenarioPath.string());
@@ -272,8 +285,18 @@ int main() {
 				&& reloaded.services[0].hasOperatingCodeStep
 				&& reloaded.services[0].operatingCodeStep == 2,
 				"optional service runtime properties round-trip");
+	ok &= expect(reloaded.scenarios[1].incidents.size() == 1
+				&& reloaded.scenarios[1].incidents[0].hasOccurrence
+				&& reloaded.scenarios[1].incidents[0].occurrence == 2
+				&& reloaded.scenarios[1].incidents[0].hasReducedSpeed
+				&& reloaded.scenarios[1].incidents[0].reducedSpeedKmh == 40.0
+				&& !reloaded.scenarios[1].incidents[0].hasEndSeconds
+				&& reloaded.scenarios[1].incidents[0].terminateAtDestination,
+				"enhanced breakdown fields round-trip through canonical scene files");
 
 	SceneModel legacyDefaults = completeScene();
+	legacyDefaults.scenarios[1].incidents[0].hasReducedSpeed = false;
+	legacyDefaults.scenarios[1].incidents[0].reducedSpeedKmh = 40.125;
 	const fs::path legacyDefaultsPath = temp.path / "legacy-defaults";
 	ok &= expect(saveScene(legacyDefaults, legacyDefaultsPath.string()).success(),
 			"legacy-default service still saves");
@@ -282,6 +305,14 @@ int main() {
 		std::ifstream input(legacyDefaultsPath / "services.json");
 		input >> legacyServices;
 	}
+	json normalizedScenarios;
+	{
+		std::ifstream input(legacyDefaultsPath / "scenarios.json");
+		input >> normalizedScenarios;
+	}
+	ok &= expect(normalizedScenarios["scenarios"][1]["incidents"][0]["reduced_speed_kmh"] == 40.125
+			&& !normalizedScenarios["scenarios"][1]["incidents"][0].contains("end_seconds"),
+			"writer preserves a nonzero reduced speed when its presence flag is stale");
 	ok &= expect(!legacyServices["services"][0].contains("performance_percent")
 				&& !legacyServices["services"][0].contains("maximum_speed_kmh")
 				&& !legacyServices["services"][0].contains("repeat"),

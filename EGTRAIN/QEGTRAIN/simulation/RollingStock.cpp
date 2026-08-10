@@ -308,6 +308,7 @@ struct NativeTrainPlan {
 	double compositionMaximumSpeedMs = 0.0;
 	double appliedMaximumSpeedMs = 0.0;
 	double appliedMaximumSpeedKmh = 0.0;
+	bool destinationTerminationRequested = false;
 	double scheduledDeparture = 0.0;
 	double entranceDelay = 0.0;
 };
@@ -467,6 +468,11 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.compositionMaximumSpeedMs = plan.compositionMaximumSpeedMs;
 	train.appliedMaximumSpeedMs = plan.appliedMaximumSpeedMs;
 	train.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedKmh;
+	train.destinationTerminationRequested = plan.destinationTerminationRequested;
+	train.destinationTerminated = false;
+	train.directIncidentIds.clear();
+	train.firstDirectIncidentTime = -1.0;
+	train.firstDirectIncidentLocation = -1.0;
 	train.TrainRouteID = plan.routeId;
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;
@@ -911,15 +917,69 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 						"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].type");
 				continue;
 			}
-			if (!nativeFinite(incident.startSeconds) || !nativeFinite(incident.endSeconds)
-					|| incident.startSeconds < 0.0 || incident.endSeconds <= incident.startSeconds) {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.time", "Incident start/end must be finite with end after start",
-						"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "]");
+			const bool hasOccurrence = incident.hasOccurrence || incident.occurrence != 1;
+			const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
+			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
+			if (!nativeFinite(incident.startSeconds) || incident.startSeconds < 0.0) {
+				addNativeDiagnostic(diagnostics, "scene.native.incident.time",
+						"Incident start must be finite and non-negative", "scenarios.json", "incident",
+						incident.id, "incidents[" + incident.id + "].start_seconds");
 				valid = false;
 			}
+			if (incident.type == "signal_failure") {
+				if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.fields",
+							"Signal failures do not accept breakdown-only fields", "scenarios.json", "incident",
+							incident.id, "incidents[" + incident.id + "]");
+					valid = false;
+				}
+				if (!hasEnd || !nativeFinite(incident.endSeconds)
+						|| incident.endSeconds <= incident.startSeconds) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.time",
+							"Signal failure requires end after start", "scenarios.json", "incident", incident.id,
+							"incidents[" + incident.id + "].end_seconds");
+					valid = false;
+				}
+			} else {
+				if (hasOccurrence && (incident.occurrence < 1
+						|| repeatCounts.find(incident.target) == repeatCounts.end()
+						|| incident.occurrence > repeatCounts[incident.target])) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.occurrence",
+							"Breakdown occurrence is outside the configured service pattern", "scenarios.json",
+							"incident", incident.id, "incidents[" + incident.id + "].occurrence");
+					valid = false;
+				}
+				if (hasReducedSpeed && (!nativeFinite(incident.reducedSpeedKmh)
+						|| incident.reducedSpeedKmh <= 0.0)) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.speed",
+							"Reduced breakdown speed must be positive and finite", "scenarios.json", "incident",
+							incident.id, "incidents[" + incident.id + "].reduced_speed_kmh");
+					valid = false;
+				}
+				if (!hasReducedSpeed && !hasEnd) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.time",
+							"A full-hold breakdown requires end_seconds", "scenarios.json", "incident",
+							incident.id, "incidents[" + incident.id + "].end_seconds");
+					valid = false;
+				}
+				if (hasEnd && (!nativeFinite(incident.endSeconds)
+						|| incident.endSeconds <= incident.startSeconds)) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.time",
+							"Incident end must be after start", "scenarios.json", "incident", incident.id,
+							"incidents[" + incident.id + "].end_seconds");
+					valid = false;
+				}
+			}
 			SimulationIncident runtimeIncident;
+			runtimeIncident.id = incident.id;
 			runtimeIncident.type = incident.type;
 			runtimeIncident.target = incident.target;
+			runtimeIncident.hasOccurrence = hasOccurrence;
+			runtimeIncident.occurrence = incident.occurrence;
+			runtimeIncident.hasReducedSpeed = hasReducedSpeed;
+			runtimeIncident.reducedSpeedKmh = incident.reducedSpeedKmh;
+			runtimeIncident.terminateAtDestination = incident.terminateAtDestination;
+			runtimeIncident.hasEndSeconds = hasEnd;
 			runtimeIncident.startSeconds = incident.startSeconds;
 			runtimeIncident.endSeconds = incident.endSeconds;
 			if (incident.type == "signal_failure") {
@@ -988,6 +1048,16 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			for (NativeStopPlan& trainStop : train.stops) {
 				if (trainStop.stationId == delay.stationId) {
 					trainStop.plannedDeparture += delay.delaySeconds;
+					break;
+				}
+			}
+		}
+		for (NativeTrainPlan& train : trains) {
+			for (const SimulationIncident& incident : stagedIncidents) {
+				if (incident.type == "train_breakdown" && incident.terminateAtDestination
+						&& incident.target == train.serviceId
+						&& (!incident.hasOccurrence || incident.occurrence == train.occurrence)) {
+					train.destinationTerminationRequested = true;
 					break;
 				}
 			}
