@@ -22,7 +22,7 @@ or consults an `Input/` tree.
 | `scene.json` | schema version, identity, units, base time, simulation settings, and optional import report | required |
 | `infrastructure.json` | tracks, nodes, arcs, blocks, and connections | required |
 | `stations.json` | stations, positions, platforms, and platform nodes | required |
-| `signalling.json` | signals, routes, dependencies, single-track restrictions, and station boundaries | required |
+| `signalling.json` | signals, routes, signalling areas, dependencies, single-track restrictions, and station boundaries | required |
 | `rolling_stock.json` | train units, physical data, traction curves, and compositions | required |
 | `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
 | `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
@@ -162,3 +162,11 @@ rows and operating code/service identity to timetable rows. `TrackPreview`
 resolves connections and station markers through the same canonical node IDs.
 GUI Run, `--scene`, and the numeric case shortcuts all enter this shared native
 path; there is no legacy-runtime fallback.
+
+Canonical signalling areas assign levels to the base and derived switch
+sections before route construction copies those sections. An area has a
+complete chainage span, a level from 0 through 5, and optional canonical track
+scope. Track-scoped areas override a network-wide area; conflicting values for
+one section are rejected. Missing coverage keeps the native unset value. Normal
+runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
+conventional or ETCS default.
