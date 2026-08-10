@@ -139,6 +139,10 @@ int main(int argc, char** argv) {
 				"blocks[0].id"},
 		{"empty connection id", [](SceneModel& scene) { scene.connections[0].id.clear(); }, "scene.id.empty",
 				"connections[0].id"},
+		{"empty station id", [](SceneModel& scene) { scene.stations[0].id.clear(); }, "scene.id.empty",
+				"stations[0].id"},
+		{"empty platform id", [](SceneModel& scene) { scene.stations[0].platforms[0].id.clear(); }, "scene.id.empty",
+				"stations[0].platforms[0].id"},
 		{"duplicate route id", [](SceneModel& scene) { scene.routes.push_back(scene.routes[0]); },
 				"scene.id.duplicate"},
 		{"unknown composition unit", [](SceneModel& scene) { scene.compositions[0].units[0] = "missing-unit"; },
@@ -188,7 +192,41 @@ int main(int argc, char** argv) {
 		{"empty blocks", [](SceneModel& scene) { scene.blocks.clear(); }, "scene.topology.blocks.none"},
 		{"empty routes", [](SceneModel& scene) { scene.routes.clear(); }, "scene.routes.none"},
 		{"unbound platform", [](SceneModel& scene) { scene.stations[0].platforms[0].nodeIds.clear(); },
-				"scene.platform.nodes.none"},
+				"scene.platform.nodes.none", "stations[0].platforms[0].nodes"},
+		{"unanchored station", [](SceneModel& scene) { scene.stations[0].platforms.clear(); },
+				"scene.station.anchor.missing", "stations[0]"},
+		{"non-finite station position", [](SceneModel& scene) {
+				scene.stations[0].hasPosition = true;
+				scene.stations[0].positionKm = std::numeric_limits<double>::quiet_NaN();
+			}, "scene.station.position.invalid", "stations[0].position_km"},
+		{"conflicting platform node", [](SceneModel& scene) {
+				scene.stations[1].platforms[0].nodeIds = {"node-1"};
+			}, "scene.platform.node.conflict", "stations[1].platforms[0].nodes[0]"},
+		{"platform outside service route", [](SceneModel& scene) {
+				scene.tracks.push_back({"track-2"});
+				scene.nodes.push_back({"node-4", "track-2", 0.0, 1.0});
+				scene.nodes.push_back({"node-5", "track-2", 1.0, 1.0});
+				scene.arcs.push_back({"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
+				scene.blocks.push_back({"block-3", "track-2", 1.0});
+				scene.stations[1].platforms[0].nodeIds = {"node-5"};
+			}, "scene.ref.platform.route", "services[service-1].stops[1].platform"},
+		{"platform outside composite switch route", [](SceneModel& scene) {
+				scene.tracks = {{"track-A"}, {"track-B"}};
+				scene.nodes = {
+					{"a-0", "track-A", 0.0, 0.0}, {"a-05", "track-A", 0.5, 0.0},
+					{"a-2", "track-A", 2.0, 0.0}, {"b-0", "track-B", 0.0, 1.0},
+					{"b-15", "track-B", 1.5, 1.0}, {"b-2", "track-B", 2.0, 1.0}};
+				scene.arcs = {
+					{"a-1", "track-A", "a-0", "a-05", 0.0, 0.0, 40.0},
+					{"a-2", "track-A", "a-05", "a-2", 0.0, 0.0, 40.0},
+					{"b-1", "track-B", "b-0", "b-15", 0.0, 0.0, 40.0},
+					{"b-2", "track-B", "b-15", "b-2", 0.0, 0.0, 40.0}};
+				scene.blocks = {{"A", "track-A", 2.0}, {"B", "track-B", 2.0}};
+				scene.connections = {{"switch", "a-05", "b-15", false, 0.0}};
+				scene.stations[0].platforms[0].nodeIds = {"a-0"};
+				scene.stations[1].platforms[0].nodeIds = {"a-2"};
+				scene.routes[0].blocks = {"@A@-0.500000/@B@-1.500000"};
+			}, "scene.ref.platform.route", "services[service-1].stops[1].platform"},
 		{"unknown route block", [](SceneModel& scene) { scene.routes[0].blocks[0] = "missing-block"; },
 				"scene.ref.unresolved"},
 		{"unknown default scenario", [](SceneModel& scene) { scene.defaultScenarioId = "missing"; },

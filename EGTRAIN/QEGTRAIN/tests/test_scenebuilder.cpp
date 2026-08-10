@@ -28,6 +28,12 @@ static SceneModel tinyScene() {
 	station.name = "Tiny";
 	station.platforms.push_back({"platform.1", {"node.1"}});
 	scene.stations.push_back(station);
+	SceneStation destination;
+	destination.id = "station.end";
+	destination.name = "End";
+	destination.platforms.push_back({"platform.2", {"node.2"}});
+	scene.stations.push_back(destination);
+	scene.signals.push_back({"block.a"});
 	SceneRoute route;
 	route.id = "route.tiny";
 	route.blocks = {"block.a", "block.b"};
@@ -89,13 +95,19 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(Blocks == 2, "two canonical blocks become two straight runtime sections");
 	ok &= expect(signalling_block_sections[0].ID == "@block.a@"
 			&& signalling_block_sections[1].ID == "@block.b@", "block IDs use the runtime boundary form");
-	ok &= expect(numStations == 1 && numAllStationPlatforms == 1, "station and platform counts are bound");
+	ok &= expect(numStations == 2 && numAllStationPlatforms == 2, "station and platform counts are bound");
 	ok &= expect(StationArray[0].X == 1.0, "platform node anchors a station without a separate position");
 	if (!AllStationPlatforms.empty()) {
 		const auto& platform = AllStationPlatforms.front();
 		ok &= expect(platform.ID == "platform.1" && platform.StationID == "station.tiny",
 				"platform retains canonical station binding");
 		ok &= expect(platform.BlockSectionID == "@block.a@", "platform resolves to its canonical block section");
+	}
+	if (AllStationPlatforms.size() == 2) {
+		const auto& platform = AllStationPlatforms.back();
+		ok &= expect(platform.ID == "platform.2" && platform.StationID == "station.end"
+				&& platform.BlockSectionID == "@block.b@",
+			"destination platform resolves on the same authored route");
 	}
 	ok &= expect(N_Routes == 1 && train_route.size() == 1, "one native route is available");
 	if (!train_route.empty()) {
