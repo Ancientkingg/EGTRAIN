@@ -137,6 +137,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/util/TrajectoryUtil.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
+    ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
     ${SRC_DIR}/scene/SceneExporter.cpp
@@ -196,6 +197,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
+    ${SRC_DIR}/diagrams/CapacityAnalysis.h
     ${SRC_DIR}/diagrams/TractionCurve.h
     ${SRC_DIR}/graphics/VisualPolish.h
     ${SRC_DIR}/scene/SceneExporter.h
@@ -389,6 +391,12 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_blockingtimediagram.cpp
         ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
     add_test(NAME test_blockingtimediagram COMMAND test_blockingtimediagram)
+
+    add_executable(test_capacityanalysis
+        ${SRC_DIR}/tests/test_capacityanalysis.cpp
+        ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
+        ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
+    add_test(NAME test_capacityanalysis COMMAND test_capacityanalysis)
 
     add_executable(test_diagramwindow
         ${SRC_DIR}/tests/test_diagramwindow.cpp

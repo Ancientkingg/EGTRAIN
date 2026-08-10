@@ -48,6 +48,29 @@ head -n1 "$OUTDIR/timetable.csv" | grep -q "^Train,Station,Journey order,Operati
 	|| { echo "timetable.csv header mismatch" >&2; exit 1; }
 head -n1 "$OUTDIR/run_summary.csv" | grep -q "^Train,Operating code,Performance \[%\],Applied maximum speed \[km/h\],Start\[s\],End\[s\],Travel time\[s\]" \
 	|| { echo "run_summary.csv header mismatch" >&2; exit 1; }
+if [[ -s "$OUTDIR/capacity_analysis.csv" ]]; then
+	head -n1 "$OUTDIR/capacity_analysis.csv" | grep -q "^Record type,Leader,Follower,Identity,Operating code,Original reference\[s\].*Cycle time\[s\],Period\[s\],Cycle / period \[%\],Section,Reference label,Reference source" \
+		|| { echo "capacity_analysis.csv header mismatch" >&2; exit 1; }
+	for record in summary pair compression critical; do
+		grep -q "^$record," "$OUTDIR/capacity_analysis.csv" \
+			|| { echo "capacity_analysis.csv missing $record records" >&2; exit 1; }
+	done
+	awk -F, '
+NR == 1 {
+	for (i = 1; i <= NF; ++i) column[$i] = i
+	next
+}
+NR == 2 {
+	if ($(column["Cycle time[s]"]) == "" || $(column["Period[s]"]) == "" ||
+		$(column["Cycle / period [%]"]) == "" || $(column["Section"]) == "")
+		exit 1
+}
+' "$OUTDIR/capacity_analysis.csv" \
+		|| { echo "capacity_analysis.csv summary lacks cycle, period, percentage, or section" >&2; exit 1; }
+else
+	grep -q "E2E_CAPACITY_EXPORT_UNAVAILABLE" "$LOG" \
+		|| { echo "capacity export was skipped without an explicit unavailable marker" >&2; exit 1; }
+fi
 
 # Trajectory and timetable must carry data rows, not just a header.
 traj_rows=$(($(wc -l < "$OUTDIR/trajectory.csv") - 1))

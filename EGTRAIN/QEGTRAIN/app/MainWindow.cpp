@@ -11,6 +11,7 @@
 #include "util/TrajectoryUtil.h"
 #include "util/CsvWriter.h"
 #include "diagrams/BlockingTimeDiagram.h"
+#include "diagrams/CapacityAnalysis.h"
 #include "diagrams/TractionCurve.h"
 #include "graphics/VisualPolish.h"
 #include "scene/SceneBundle.h"
@@ -49,6 +50,7 @@
 #include <QToolButton>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
+#include <QTabWidget>
 #include <QRegularExpression>
 #include <cstdio>
 #include <algorithm>
@@ -204,6 +206,10 @@ const char* blockingSegmentTypeName(BlockingTimeSegmentStyle style) {
 	}
 }
 
+const char* blockingSegmentTypeName(const BlockingTimeDiagramSegment& segment) {
+	return segment.capacityCritical ? "capacity critical block" : blockingSegmentTypeName(segment.style);
+}
+
 struct BlockingTimeScope {
 	std::vector<std::string> trainIds;
 	std::vector<std::string> blockIds;
@@ -293,7 +299,7 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			csv::formatDouble(s.startTime),
 			csv::formatDouble(s.endTime),
 			csv::formatDouble(s.midPositionKm),
-			blockingSegmentTypeName(s.style),
+			blockingSegmentTypeName(s),
 			std::string(),
 			std::string(),
 			std::string()});
@@ -464,6 +470,405 @@ std::string buildRunSummaryCsv() {
 		{"Train", "Operating code", "Performance [%]", "Applied maximum speed [km/h]", "Start[s]", "End[s]", "Travel time[s]", "Energy consumed[kWh]",
 			"Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]"},
 		rows);
+}
+
+struct CapacityAnalysisScope {
+	int routeIndex = -1;
+	std::vector<std::string> blockIds;
+	std::vector<std::string> occurrenceIds;
+	std::string cycleEndOccurrenceId;
+	double periodSeconds = 3600.0;
+};
+
+BlockingTimeDiagramInput capacityOccupation(const BlockingTimes& source) {
+	BlockingTimeDiagramInput occupation;
+	occupation.blockId = source.BlockID;
+	occupation.startOccTime = source.StartOccTime;
+	occupation.endOccTime = source.EndOccTime;
+	occupation.posStart = source.PosStart;
+	occupation.posEnd = source.PosEnd;
+	occupation.switchName = source.SwitchName;
+	occupation.stationName = source.stationName;
+	occupation.isComplete = source.IsComplete;
+	return occupation;
+}
+
+CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAnalysisScope& scope) {
+	CapacityAnalysisTrain result;
+	result.runtimeId = train.trainDescription;
+	result.operatingCode = train.operatingCode;
+	if (scope.blockIds.empty())
+		return result;
+
+	const BlockingTimes* reference = nullptr;
+	for (int blockIndex = 0; blockIndex < train.N_BlockTimeComplete; ++blockIndex) {
+		const BlockingTimes& source = train.BlockTime[blockIndex];
+		const BlockingTimeDiagramInput occupation = capacityOccupation(source);
+		if (!validBlockingTimeDiagramInput(occupation))
+			continue;
+		if (!reference && shareBlockingTimeResource(occupation.blockId, scope.blockIds.front()))
+			reference = &source;
+		for (const std::string& selectedBlock : scope.blockIds) {
+			if (shareBlockingTimeResource(occupation.blockId, selectedBlock)) {
+				result.occupations.push_back(occupation);
+				break;
+			}
+		}
+	}
+	if (!reference || !std::isfinite(reference->StartRunTime) || reference->StartRunTime < 0.0) {
+		result.occupations.clear();
+		return result;
+	}
+	result.profileReferenceTime = reference->StartRunTime;
+	result.referenceLabel = "block " + scope.blockIds.front() + " entry";
+	result.referenceSource = "selected section StartRunTime";
+
+	// A boundary stop is the authored reference when its route position matches
+	// the selected section entry. The 5 m tolerance is the native route tolerance.
+	if (train.Stations && reference->PosStart >= 0.0) {
+		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
+		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
+			const double stationPosition = train.stationRoutePositionMeters(stationIndex);
+			if (!std::isfinite(stationPosition) || std::abs(stationPosition - reference->PosStart) > 5.0)
+				continue;
+			const double departure = train.ScheduledDepartures[stationIndex];
+			const double arrival = train.ScheduledArrivals[stationIndex];
+			const double authored = departure >= 0.0 ? departure : arrival;
+			if (!std::isfinite(authored) || authored < 0.0)
+				continue;
+			const std::string station = train.stationNameForArrivalStats(stationIndex);
+			result.scheduledReferenceTime = authored;
+			result.referenceLabel = station + " boundary";
+			result.referenceSource = departure >= 0.0
+				? "authored ScheduledDeparture at boundary station"
+				: "authored ScheduledArrival at boundary station (departure absent)";
+			return result;
+		}
+	}
+
+	if (std::isfinite(train.scheduled_departure_time) && train.scheduled_departure_time >= 0.0
+		&& train.RunStartTime >= 0) {
+		result.scheduledReferenceTime = train.scheduled_departure_time
+			+ (reference->StartRunTime - static_cast<double>(train.RunStartTime));
+		result.referenceSource = "canonical scheduled entry + elapsed from RunStartTime";
+	} else {
+		result.scheduledReferenceTime = result.profileReferenceTime;
+		result.referenceSource = "profile reference fallback (scheduled entry unavailable)";
+	}
+	return result;
+}
+
+std::vector<CapacityAnalysisTrain> capacityTrainsForScope(const CapacityAnalysisScope& scope) {
+	std::vector<CapacityAnalysisTrain> candidates;
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
+		const CapacityAnalysisTrain candidate = capacityTrainForScope(regional_train[trainIndex], scope);
+		if (candidate.occupations.empty())
+			continue;
+		if (!scope.occurrenceIds.empty() && std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(),
+			candidate.runtimeId) == scope.occurrenceIds.end())
+			continue;
+		candidates.push_back(candidate);
+	}
+	if (scope.occurrenceIds.empty())
+		return candidates;
+	std::vector<CapacityAnalysisTrain> trains;
+	trains.reserve(scope.occurrenceIds.size());
+	for (const std::string& occurrenceId : scope.occurrenceIds) {
+		const auto it = std::find_if(candidates.begin(), candidates.end(),
+			[&occurrenceId](const CapacityAnalysisTrain& candidate) {
+				return candidate.runtimeId == occurrenceId;
+			});
+		if (it != candidates.end())
+			trains.push_back(*it);
+	}
+	return trains;
+}
+
+CapacityAnalysisScope firstCapacityScopeWithPair() {
+	CapacityAnalysisScope empty;
+	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
+		const Route& route = train_route[routeIndex];
+		for (int blockIndex = 0; blockIndex < route.N_Block_Sections; ++blockIndex) {
+			CapacityAnalysisScope candidate;
+			candidate.routeIndex = static_cast<int>(routeIndex);
+			candidate.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
+			const auto trains = capacityTrainsForScope(candidate);
+			if (trains.size() < 2)
+				continue;
+			for (const auto& train : trains)
+				candidate.occurrenceIds.push_back(train.runtimeId);
+			return candidate;
+		}
+	}
+	return empty;
+}
+
+QString capacityScopeLabel(const CapacityAnalysisScope& scope) {
+	if (scope.routeIndex < 0 || scope.routeIndex >= static_cast<int>(train_route.size()))
+		return QStringLiteral("no selected route");
+	const Route& route = train_route[static_cast<std::size_t>(scope.routeIndex)];
+	QString label = QString::fromStdString(route.ID);
+	if (!route.corridor.empty())
+		label += QString(" / %1").arg(QString::fromStdString(route.corridor));
+	if (!scope.blockIds.empty())
+		label += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
+			QString::fromStdString(scope.blockIds.back()));
+	return label;
+}
+
+std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence) {
+	QStringList values;
+	for (const auto& item : evidence)
+		values << QString("%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
+			.arg(QString::fromStdString(item.leaderBlockId), QString::fromStdString(item.followerBlockId),
+				QString::fromStdString(csv::formatDouble(item.leaderOffset)),
+				QString::fromStdString(csv::formatDouble(item.followerOffset)),
+				QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
+	return values.join("; ").toStdString();
+}
+
+std::string buildCapacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel) {
+	if (!result.analyzable || result.cycleEndIdentity.empty() || !std::isfinite(result.cycleTime)
+		|| result.cycleTime < 0.0 || !std::isfinite(result.cyclePercentage))
+		return std::string();
+	const std::vector<std::string> header = {
+		"Record type", "Leader", "Follower", "Identity", "Operating code", "Original reference[s]",
+		"Scheduled reference[s]", "Compressed reference[s]", "Shift[s]", "Scheduled headway[s]",
+		"Minimum headway[s]", "Buffer[s]", "Block", "Leader offset[s]", "Follower offset[s]",
+		"Candidate headway[s]", "Gap[s]", "Cycle time[s]", "Period[s]", "Cycle / period [%]",
+		"Section", "Reference label", "Reference source", "Notes"};
+	constexpr std::size_t kColumnCount = 24;
+	std::vector<std::vector<std::string>> rows;
+	const auto referenceSource = [&result](const std::string& identity) {
+		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
+			if (result.trainIdentities[index] == identity && index < result.referenceSources.size())
+				return result.referenceSources[index];
+		return std::string();
+	};
+	const auto referenceLabel = [&result](const std::string& identity) {
+		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
+			if (result.trainIdentities[index] == identity && index < result.referenceLabels.size())
+				return result.referenceLabels[index];
+		return std::string();
+	};
+	std::vector<std::string> summary(kColumnCount);
+	summary[0] = "summary";
+	summary[1] = result.firstIdentity;
+	summary[2] = result.cycleEndIdentity;
+	summary[17] = csv::formatDouble(result.cycleTime);
+	summary[18] = csv::formatDouble(result.periodSeconds);
+	summary[19] = csv::formatDouble(result.cyclePercentage);
+	summary[20] = sectionLabel.toStdString();
+	summary[21] = referenceLabel(result.firstIdentity) + " -> " + referenceLabel(result.cycleEndIdentity);
+	summary[22] = referenceSource(result.firstIdentity) + " -> " + referenceSource(result.cycleEndIdentity);
+	summary[23] = "explicit cycle start and next-period closing occurrence";
+	rows.push_back(std::move(summary));
+	for (const auto& pair : result.allPairs) {
+		if (pair.governingEvidence.empty()) {
+			std::vector<std::string> record(kColumnCount);
+			record[0] = "pair";
+			record[1] = pair.leaderIdentity;
+			record[2] = pair.followerIdentity;
+			record[9] = csv::formatDouble(pair.scheduledHeadway);
+			record[10] = csv::formatDouble(pair.minimumHeadway);
+			record[11] = csv::formatDouble(pair.buffer);
+			record[20] = sectionLabel.toStdString();
+			record[21] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
+			record[22] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
+			record[23] = pair.adjacent ? "no shared constraint" : "nonadjacent; no shared constraint";
+			rows.push_back(std::move(record));
+			continue;
+		}
+		for (const auto& evidence : pair.governingEvidence) {
+			std::vector<std::string> record(kColumnCount);
+			record[0] = "pair";
+			record[1] = pair.leaderIdentity;
+			record[2] = pair.followerIdentity;
+			record[9] = csv::formatDouble(pair.scheduledHeadway);
+			record[10] = csv::formatDouble(pair.minimumHeadway);
+			record[11] = csv::formatDouble(pair.buffer);
+			record[12] = evidence.leaderBlockId + " / " + evidence.followerBlockId;
+			record[13] = csv::formatDouble(evidence.leaderOffset);
+			record[14] = csv::formatDouble(evidence.followerOffset);
+			record[15] = csv::formatDouble(evidence.candidateHeadway);
+			record[20] = sectionLabel.toStdString();
+			record[21] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
+			record[22] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
+			record[23] = pair.adjacent ? "governing resource" : "nonadjacent ordered constraint; governing resource";
+			rows.push_back(std::move(record));
+		}
+	}
+	for (const auto& row : result.compression) {
+		const auto appendCompressionRecord = [&](const CapacityCompressionEvidence* governing) {
+			const std::string predecessor = governing ? governing->predecessorIdentity : std::string();
+			std::vector<std::string> record(kColumnCount);
+			record[0] = "compression";
+			record[1] = predecessor;
+			record[3] = row.identity;
+			record[4] = row.operatingCode;
+			record[5] = csv::formatDouble(row.originalReference);
+			record[6] = csv::formatDouble(row.scheduledReference);
+			record[7] = csv::formatDouble(row.compressedReference);
+			record[8] = csv::formatDouble(row.shift);
+			record[12] = governing ? capacityEvidenceText(governing->governingEvidence) : std::string();
+			record[20] = sectionLabel.toStdString();
+			record[21] = referenceLabel(row.identity);
+			record[22] = referenceSource(row.identity);
+			record[23] = "governing predecessor=" + predecessor;
+			rows.push_back(std::move(record));
+		};
+		if (row.governingPredecessors.empty())
+			appendCompressionRecord(nullptr);
+		else
+			for (const auto& governing : row.governingPredecessors)
+				appendCompressionRecord(&governing);
+	}
+	for (const auto& critical : result.criticalBlocks) {
+		std::vector<std::string> record(kColumnCount);
+		record[0] = "critical";
+		record[1] = critical.leaderIdentity;
+		record[2] = critical.followerIdentity;
+		record[12] = critical.leaderBlockId + " / " + critical.followerBlockId;
+		record[16] = csv::formatDouble(critical.gap);
+		record[20] = sectionLabel.toStdString();
+		record[21] = referenceLabel(critical.leaderIdentity) + " -> " + referenceLabel(critical.followerIdentity);
+		record[22] = referenceSource(critical.leaderIdentity) + " -> " + referenceSource(critical.followerIdentity);
+		record[23] = "capacity critical block";
+		rows.push_back(std::move(record));
+	}
+	return csv::makeDocument(header, rows);
+}
+
+bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) {
+	if (train_route.empty())
+		return false;
+	QDialog dialog(parent);
+	dialog.setWindowTitle("Capacity analysis");
+	auto* layout = new QVBoxLayout(&dialog);
+	auto* form = new QFormLayout();
+	auto* routeCombo = new QComboBox(&dialog);
+	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
+		const Route& route = train_route[routeIndex];
+		const QString corridor = route.corridor.empty()
+			? QStringLiteral("no corridor") : QString::fromStdString(route.corridor);
+		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.ID), corridor),
+			static_cast<int>(routeIndex));
+	}
+	auto* firstBlock = new QComboBox(&dialog);
+	auto* lastBlock = new QComboBox(&dialog);
+	auto* period = new QDoubleSpinBox(&dialog);
+	period->setRange(0.001, std::numeric_limits<double>::max());
+	period->setDecimals(3);
+	period->setSingleStep(60.0);
+	period->setSuffix(" s");
+	period->setValue(3600.0);
+	auto* cycleEnd = new QComboBox(&dialog);
+	cycleEnd->addItem("Select the first train in the next period...");
+	auto* occurrences = new QListWidget(&dialog);
+	occurrences->setSelectionMode(QAbstractItemView::SingleSelection);
+	occurrences->setDragDropMode(QAbstractItemView::InternalMove);
+	occurrences->setDefaultDropAction(Qt::MoveAction);
+	occurrences->setMinimumHeight(180);
+	form->addRow("Route / corridor:", routeCombo);
+	form->addRow("First block:", firstBlock);
+	form->addRow("Last block:", lastBlock);
+	form->addRow("Analysis period:", period);
+	form->addRow("Cycle-closing occurrence:", cycleEnd);
+	layout->addLayout(form);
+	auto* note = new QLabel(
+		"Checked occurrences are analyzed in the displayed order (A → B); selecting exactly two enables the pair workflow. "
+		"Pre-/post-Gdg order changes are separate explicit sections. Select the occurrence of the first service in the next "
+		"period that closes the capacity cycle; EGTRAIN does not infer it from the last row.", &dialog);
+	note->setWordWrap(true);
+	layout->addWidget(note);
+	layout->addWidget(new QLabel("Occurrences with complete occupations on the selected section:", &dialog));
+	layout->addWidget(occurrences);
+
+	const auto refillBlocks = [routeCombo, firstBlock, lastBlock]() {
+		firstBlock->clear();
+		lastBlock->clear();
+		const int routeIndex = routeCombo->currentData().toInt();
+		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()))
+			return;
+		const Route& route = train_route[static_cast<std::size_t>(routeIndex)];
+		for (int blockIndex = 0; blockIndex < route.N_Block_Sections; ++blockIndex) {
+			const QString blockId = QString::fromStdString(route.sequence_of_block_sections[blockIndex].ID);
+			firstBlock->addItem(blockId);
+			lastBlock->addItem(blockId);
+		}
+		if (firstBlock->count() > 0)
+			lastBlock->setCurrentIndex(lastBlock->count() - 1);
+	};
+	const auto currentScope = [routeCombo, firstBlock, lastBlock, period]() {
+		CapacityAnalysisScope candidate;
+		candidate.routeIndex = routeCombo->currentData().toInt();
+		candidate.periodSeconds = period->value();
+		if (candidate.routeIndex < 0 || candidate.routeIndex >= static_cast<int>(train_route.size()))
+			return candidate;
+		const Route& route = train_route[static_cast<std::size_t>(candidate.routeIndex)];
+		const int first = std::min(firstBlock->currentIndex(), lastBlock->currentIndex());
+		const int last = std::max(firstBlock->currentIndex(), lastBlock->currentIndex());
+		for (int blockIndex = first; blockIndex <= last && blockIndex < route.N_Block_Sections; ++blockIndex)
+			if (blockIndex >= 0)
+				candidate.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
+		return candidate;
+	};
+	const auto refillOccurrences = [occurrences, cycleEnd, currentScope]() {
+		occurrences->clear();
+		cycleEnd->clear();
+		cycleEnd->addItem("Select the first train in the next period...");
+		const auto trains = capacityTrainsForScope(currentScope());
+		for (const CapacityAnalysisTrain& train : trains) {
+			const QString identity = QString::fromStdString(train.runtimeId);
+			const QString code = QString::fromStdString(train.operatingCode);
+			auto* item = new QListWidgetItem(
+				QString("%1 | %2 | %3").arg(identity, code, QString::fromStdString(train.referenceSource)), occurrences);
+			item->setData(Qt::UserRole, identity);
+			item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
+			item->setCheckState(Qt::Checked);
+			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
+		}
+	};
+	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[refillBlocks, refillOccurrences](int) { refillBlocks(); refillOccurrences(); });
+	QObject::connect(firstBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[refillOccurrences](int) { refillOccurrences(); });
+	QObject::connect(lastBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[refillOccurrences](int) { refillOccurrences(); });
+	if (routeCombo->count() > 0)
+		routeCombo->setCurrentIndex(0);
+	refillBlocks();
+	refillOccurrences();
+
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+		int selected = 0;
+		for (int row = 0; row < occurrences->count(); ++row)
+			selected += occurrences->item(row)->checkState() == Qt::Checked ? 1 : 0;
+		if (selected < 2) {
+			QMessageBox::information(&dialog, "Capacity analysis", "Select at least two ordered occurrences with a common entry block.");
+			return;
+		}
+		scope = currentScope();
+		scope.occurrenceIds.clear();
+		for (int row = 0; row < occurrences->count(); ++row) {
+			const QListWidgetItem* item = occurrences->item(row);
+			if (item->checkState() == Qt::Checked)
+				scope.occurrenceIds.push_back(item->data(Qt::UserRole).toString().toStdString());
+		}
+		scope.cycleEndOccurrenceId = cycleEnd->currentData().toString().toStdString();
+		const auto selectedCycleEnd = std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(),
+			scope.cycleEndOccurrenceId);
+		if (selectedCycleEnd == scope.occurrenceIds.end() || selectedCycleEnd == scope.occurrenceIds.begin()) {
+			QMessageBox::information(&dialog, "Capacity analysis",
+				"Choose a checked cycle-closing occurrence after the first row, normally the first train in the next period.");
+			return;
+		}
+		dialog.accept();
+	});
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	layout->addWidget(buttons);
+	return dialog.exec() == QDialog::Accepted;
 }
 
 // Ids of every loaded train, used when a whole result table is exported.
@@ -2071,6 +2476,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addSeparator();
 	m_diagramsMenu->addAction("Timetable graph (train graph)...", this, &MainWindow::showTimetableGraph);
 	m_diagramsMenu->addAction("Blocking-time overlay...", this, &MainWindow::showBlockingTimeDiagram);
+	m_diagramsMenu->addAction("Capacity analysis...", this, &MainWindow::showCapacityAnalysis);
 	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", this, &MainWindow::showTimetableTable);
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
@@ -11286,6 +11692,19 @@ void MainWindow::onSimulationFinished() {
 			ok &= dump("timetable.csv", buildTimetableCsv(ids));
 			ok &= dump("blocking_time.csv", buildBlockingTimeCsv(ids));
 			ok &= dump("run_summary.csv", buildRunSummaryCsv());
+			const CapacityAnalysisScope capacityScope = firstCapacityScopeWithPair();
+			std::string capacityCsv;
+			if (capacityScope.routeIndex >= 0) {
+				const auto capacityTrains = capacityTrainsForScope(capacityScope);
+				capacityCsv = buildCapacityAnalysisCsv(
+					analyzeCapacity(capacityTrains, capacityScope.periodSeconds,
+						capacityScope.cycleEndOccurrenceId), capacityScopeLabel(capacityScope));
+			}
+			if (capacityCsv.empty()) {
+				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
+			} else {
+				ok &= dump("capacity_analysis.csv", capacityCsv);
+			}
 		}
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_CSV_EXPORT_OK\n" : "E2E_CSV_EXPORT_FAIL\n");
 		std::fflush(stdout);
@@ -12140,6 +12559,7 @@ void MainWindow::setupRunResultsDock() {
 	addResultViewButton("Tractive effort / distance", &MainWindow::showTractiveEffortDistanceDiagram);
 	addResultViewButton("Train paths", &MainWindow::displayTrainPathDiagrams);
 	addResultViewButton("Blocking time", &MainWindow::showBlockingTimeDiagram);
+	addResultViewButton("Capacity", &MainWindow::showCapacityAnalysis);
 	containerLayout->addLayout(resultViews);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
@@ -14346,6 +14766,248 @@ void MainWindow::showBlockingTimeDiagram() {
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
+}
+
+void MainWindow::showCapacityAnalysis() {
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open capacity analysis", 5000);
+		return;
+	}
+
+	CapacityAnalysisScope scope = firstCapacityScopeWithPair();
+	if (scope.routeIndex < 0) {
+		QMessageBox::information(this, "Capacity analysis",
+			"No retained native blocking-time section has two occurrences with a common entry block. "
+			"Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.");
+		return;
+	}
+	if (!e2eDialogsSuppressed() && !chooseCapacityAnalysisScope(this, scope))
+		return;
+	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
+		QMessageBox::information(this, "Capacity analysis",
+			"No route section has two occurrences with a common entry block. Choose a common entry or split the analysis into pre-/post-Gdg sections.");
+		return;
+	}
+	const auto trains = capacityTrainsForScope(scope);
+	if (trains.size() < 2) {
+		QMessageBox::information(this, "Capacity analysis",
+			"Fewer than two occurrences share the selected section entry. Choose a common entry or a narrower section.");
+		return;
+	}
+	const QString sectionLabel = capacityScopeLabel(scope);
+	const CapacityAnalysisResult result = analyzeCapacity(trains, scope.periodSeconds,
+		scope.cycleEndOccurrenceId);
+	if (!result.analyzable) {
+		QMessageBox::information(this, "Capacity analysis",
+			"The selected occurrences do not form a valid shared-resource chain. Choose a common entry or split pre-/post-Gdg order into separate sections.");
+		return;
+	}
+	if (result.cycleEndIdentity.empty() || result.cycleTime < 0.0) {
+		QMessageBox::information(this, "Capacity analysis",
+			"The cycle-closing occurrence must be a selected row after the first occurrence.");
+		return;
+	}
+
+	QDialog* dialog = new QDialog(this);
+	dialog->setAttribute(Qt::WA_DeleteOnClose);
+	dialog->setWindowTitle(QString("Capacity analysis | %1").arg(sectionLabel));
+	dialog->setModal(false);
+	dialog->resize(1050, 650);
+	auto* layout = new QVBoxLayout(dialog);
+	auto* summary = new QLabel(dialog);
+	summary->setWordWrap(true);
+	const QString percentage = QString::fromStdString(csv::formatDouble(result.cyclePercentage));
+	const QString cycle = QString::fromStdString(csv::formatDouble(result.cycleTime));
+	const QString period = QString::fromStdString(csv::formatDouble(result.periodSeconds));
+	const auto sourceFor = [&result](const std::string& identity) {
+		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
+			if (result.trainIdentities[index] == identity && index < result.referenceSources.size())
+				return QString::fromStdString(result.referenceSources[index]);
+		return QString();
+	};
+	summary->setText(QString("Section: %1 | cycle/occupation time = %2 s | period = %3 s | cycle/period*100 = %4%% | "
+		"cycle start = %5 (%6) | cycle end = %7 (%8) | conflict-free compressed occupations. "
+		"Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
+		.arg(sectionLabel, cycle, period, percentage, QString::fromStdString(result.firstIdentity),
+			sourceFor(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
+			sourceFor(result.cycleEndIdentity)));
+	layout->addWidget(summary);
+
+	auto* tabs = new QTabWidget(dialog);
+	const auto labelFor = [&result](const std::string& identity) {
+		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
+			if (result.trainIdentities[index] == identity && index < result.referenceLabels.size())
+				return QString::fromStdString(result.referenceLabels[index]);
+		return QString();
+	};
+	const auto addTable = [tabs](const QStringList& headers, int rows) {
+		auto* table = new QTableWidget(rows, headers.size(), tabs);
+		table->setHorizontalHeaderLabels(headers);
+		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		table->setSelectionBehavior(QAbstractItemView::SelectRows);
+		table->setAlternatingRowColors(true);
+		table->horizontalHeader()->setStretchLastSection(true);
+		tabs->addTab(table, QString());
+		return table;
+	};
+	auto* pairTable = addTable({"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]",
+		"Minimum headway [s]", "Buffer [s]", "Governing block evidence", "Reference label/source (leader → follower)"},
+		static_cast<int>(result.pairs.size()));
+	for (int row = 0; row < pairTable->rowCount(); ++row) {
+		const CapacityPairRow& pair = result.pairs[static_cast<std::size_t>(row)];
+		const std::string evidence = capacityEvidenceText(pair.governingEvidence);
+		const QString source = labelFor(pair.leaderIdentity) + " [" + sourceFor(pair.leaderIdentity) + "] → "
+			+ labelFor(pair.followerIdentity) + " [" + sourceFor(pair.followerIdentity) + "]";
+		const QStringList values = {QString::fromStdString(pair.leaderIdentity), QString::fromStdString(pair.followerIdentity),
+			QString::fromStdString(pair.leaderOperatingCode), QString::fromStdString(pair.followerOperatingCode),
+			QString::fromStdString(csv::formatDouble(pair.scheduledHeadway)), QString::fromStdString(csv::formatDouble(pair.minimumHeadway)),
+			QString::fromStdString(csv::formatDouble(pair.buffer)), QString::fromStdString(evidence), source};
+		for (int column = 0; column < values.size(); ++column)
+			pairTable->setItem(row, column, new QTableWidgetItem(values[column]));
+	}
+	tabs->setTabText(0, QString("Pairs (%1)").arg(pairTable->rowCount()));
+
+	auto* compressionTable = addTable({"Identity", "Operating code", "Original reference [s]", "Scheduled reference [s]",
+		"Compressed reference [s]", "Shift [s]", "Governing predecessor / block evidence"},
+		static_cast<int>(result.compression.size()));
+	for (int row = 0; row < compressionTable->rowCount(); ++row) {
+		const CapacityCompressionRow& compressed = result.compression[static_cast<std::size_t>(row)];
+		QStringList governing;
+		for (const CapacityCompressionEvidence& predecessor : compressed.governingPredecessors)
+			governing << QString("%1 (%2 s): %3").arg(QString::fromStdString(predecessor.predecessorIdentity),
+				QString::fromStdString(csv::formatDouble(predecessor.minimumHeadway)),
+				QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence)));
+		const QStringList values = {QString::fromStdString(compressed.identity), QString::fromStdString(compressed.operatingCode),
+			QString::fromStdString(csv::formatDouble(compressed.originalReference)),
+			QString::fromStdString(csv::formatDouble(compressed.scheduledReference)),
+			QString::fromStdString(csv::formatDouble(compressed.compressedReference)),
+			QString::fromStdString(csv::formatDouble(compressed.shift)), governing.join("; ")};
+		for (int column = 0; column < values.size(); ++column)
+			compressionTable->setItem(row, column, new QTableWidgetItem(values[column]));
+	}
+	tabs->setTabText(1, QString("Compression (%1)").arg(compressionTable->rowCount()));
+
+	auto* criticalTable = addTable({"Leader", "Follower", "Leader block", "Follower block", "Gap [s]"},
+		static_cast<int>(result.criticalBlocks.size()));
+	for (int row = 0; row < criticalTable->rowCount(); ++row) {
+		const CapacityCriticalBlock& critical = result.criticalBlocks[static_cast<std::size_t>(row)];
+		const QStringList values = {QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
+			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId),
+			QString::fromStdString(csv::formatDouble(critical.gap))};
+		for (int column = 0; column < values.size(); ++column)
+			criticalTable->setItem(row, column, new QTableWidgetItem(values[column]));
+	}
+	tabs->setTabText(2, QString("Critical blocks (%1)").arg(criticalTable->rowCount()));
+	for (int index = 0; index < tabs->count(); ++index)
+		qobject_cast<QTableWidget*>(tabs->widget(index))->resizeColumnsToContents();
+	layout->addWidget(tabs, 1);
+
+	auto* buttons = new QHBoxLayout();
+	QPushButton* exportButton = new QPushButton("Export capacity CSV...", dialog);
+	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel]() {
+		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel));
+	});
+	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
+	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel]() {
+		showCompressedBlockingTimeDiagram(result, sectionLabel);
+	});
+	QPushButton* closeButton = new QPushButton("Close", dialog);
+	connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
+	buttons->addWidget(exportButton);
+	buttons->addWidget(diagramButton);
+	buttons->addStretch();
+	buttons->addWidget(closeButton);
+	layout->addLayout(buttons);
+	dialog->show();
+}
+
+void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
+	const QString& sectionLabel) {
+	const std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(
+		result.compressedOccupations, result.trainIdentities);
+	if (segments.empty()) {
+		QMessageBox::information(this, "Capacity diagram", "No complete compressed occupation data is available.");
+		return;
+	}
+	QChart* chart = new QChart();
+	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3")
+		.arg(sectionLabel, QString::fromStdString(result.firstIdentity),
+			QString::fromStdString(result.cycleEndIdentity)));
+	const QColor defaultColor(100, 160, 240, 150);
+	const QColor stationColor(60, 110, 190, 180);
+	const QColor switchColor(240, 210, 40, 180);
+	const QColor switchStationColor(200, 160, 20, 190);
+	const QColor criticalColor(220, 50, 50, 200);
+	const QColor criticalStationColor(170, 30, 30, 220);
+	const QColor capacityColor(235, 175, 20, 230);
+	const auto colorFor = [&](const BlockingTimeDiagramSegment& segment) {
+		if (segment.capacityCritical)
+			return capacityColor;
+		switch (segment.style) {
+			case BlockingTimeSegmentStyle::Station: return stationColor;
+			case BlockingTimeSegmentStyle::Switch: return switchColor;
+			case BlockingTimeSegmentStyle::SwitchStation: return switchStationColor;
+			case BlockingTimeSegmentStyle::Critical: return criticalColor;
+			case BlockingTimeSegmentStyle::CriticalStation: return criticalStationColor;
+			case BlockingTimeSegmentStyle::Default: default: return defaultColor;
+		}
+	};
+	const auto suffixFor = [](const BlockingTimeDiagramSegment& segment) {
+		if (segment.capacityCritical)
+			return " (capacity critical block)";
+		switch (segment.style) {
+			case BlockingTimeSegmentStyle::Station: return " (station)";
+			case BlockingTimeSegmentStyle::Switch: return " (switch)";
+			case BlockingTimeSegmentStyle::SwitchStation: return " (switch/station)";
+			case BlockingTimeSegmentStyle::Critical: return " (conflict)";
+			case BlockingTimeSegmentStyle::CriticalStation: return " (conflict/station)";
+			case BlockingTimeSegmentStyle::Default: default: return "";
+		}
+	};
+	std::map<std::string, bool> legendEntries;
+	for (const BlockingTimeDiagramSegment& segment : segments) {
+		auto* series = new QLineSeries();
+		const std::string legendKey = segment.trainName + suffixFor(segment);
+		series->setName(QString::fromStdString(legendKey));
+		series->setProperty("trainId", QString::fromStdString(segment.trainName));
+		const bool firstLegendEntry = legendEntries.find(legendKey) == legendEntries.end();
+		QPen pen(colorFor(segment));
+		pen.setWidthF(segment.penWidth);
+		series->setPen(pen);
+		series->append(segment.startTime, segment.midPositionKm);
+		series->append(segment.endTime, segment.midPositionKm);
+		chart->addSeries(series);
+		if (!firstLegendEntry)
+			for (QLegendMarker* marker : chart->legend()->markers(series))
+				marker->setVisible(false);
+		legendEntries[legendKey] = true;
+	}
+	auto addKey = [chart](const QString& name, const QColor& color) {
+		auto* series = new QLineSeries();
+		series->setName(name);
+		QPen pen(color);
+		pen.setWidthF(4.0);
+		series->setPen(pen);
+		chart->addSeries(series);
+	};
+	addKey("Key: Conflict", criticalColor);
+	addKey("Key: Capacity critical block (touching)", capacityColor);
+	chart->createDefaultAxes();
+	if (!chart->axes(Qt::Horizontal).isEmpty())
+		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
+	if (!chart->axes(Qt::Vertical).isEmpty())
+		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
+	DiagramWindow* window = new DiagramWindow(chart->title(), this);
+	window->setChart(chart);
+	const std::function<std::string(const QStringList&)> csvProvider =
+		[segments](const QStringList& visibleTrainIds) {
+			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
+		};
+	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv");
+	connect(window, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
+	window->setTimeAxisX(true, m_startOffsetSeconds);
+	window->setAttribute(Qt::WA_DeleteOnClose);
+	window->show();
 }
 
 void MainWindow::buildSignalIndex() {
