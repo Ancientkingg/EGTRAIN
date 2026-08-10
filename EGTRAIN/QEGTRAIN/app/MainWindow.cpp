@@ -210,6 +210,50 @@ const char* blockingSegmentTypeName(const BlockingTimeDiagramSegment& segment) {
 	return segment.capacityCritical ? "capacity critical block" : blockingSegmentTypeName(segment.style);
 }
 
+const QColor kBlockingSwitchColor(240, 210, 40, 180);
+const QColor kBlockingCriticalColor(220, 50, 50, 200);
+const QColor kBlockingCapacityColor(235, 175, 20, 230);
+
+void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
+	bool useCapacityCriticalStyle) {
+	const auto colorFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
+		if (useCapacityCriticalStyle && segment.capacityCritical)
+			return kBlockingCapacityColor;
+		switch (segment.style) {
+			case BlockingTimeSegmentStyle::Station: return QColor(60, 110, 190, 180);
+			case BlockingTimeSegmentStyle::Switch: return kBlockingSwitchColor;
+			case BlockingTimeSegmentStyle::SwitchStation: return QColor(200, 160, 20, 190);
+			case BlockingTimeSegmentStyle::Critical: return kBlockingCriticalColor;
+			case BlockingTimeSegmentStyle::CriticalStation: return QColor(170, 30, 30, 220);
+			case BlockingTimeSegmentStyle::Default: default: return QColor(100, 160, 240, 150);
+		}
+	};
+	const auto suffixFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
+		if (useCapacityCriticalStyle && segment.capacityCritical)
+			return std::string(" (capacity critical block)");
+		if (segment.style == BlockingTimeSegmentStyle::Default)
+			return std::string();
+		return " (" + std::string(blockingSegmentTypeName(segment.style)) + ")";
+	};
+	std::map<std::string, bool> legendEntries;
+	for (const BlockingTimeDiagramSegment& segment : segments) {
+		auto* series = new QLineSeries();
+		const std::string legendKey = segment.trainName + suffixFor(segment);
+		series->setName(QString::fromStdString(legendKey));
+		series->setProperty("trainId", QString::fromStdString(segment.trainName));
+		const bool firstLegendEntry = legendEntries.emplace(legendKey, true).second;
+		QPen pen(colorFor(segment));
+		pen.setWidthF(segment.penWidth);
+		series->setPen(pen);
+		series->append(segment.startTime, segment.midPositionKm);
+		series->append(segment.endTime, segment.midPositionKm);
+		chart->addSeries(series);
+		if (!firstLegendEntry)
+			for (QLegendMarker* marker : chart->legend()->markers(series))
+				marker->setVisible(false);
+	}
+}
+
 struct BlockingTimeScope {
 	std::vector<std::string> trainIds;
 	std::vector<std::string> blockIds;
@@ -15199,69 +15243,7 @@ void MainWindow::showBlockingTimeDiagram() {
 			scenarioContext());
 	chart->setTitle(title);
 
-	QColor defaultColor(100, 160, 240, 150);
-	QColor stationColor(60, 110, 190, 180);
-	QColor switchColor(240, 210, 40, 180);
-	QColor switchStationColor(200, 160, 20, 190);
-	QColor criticalColor(220, 50, 50, 200);
-	QColor criticalStationColor(170, 30, 30, 220);
-
-	auto colorForStyle = [&](BlockingTimeSegmentStyle style) {
-		switch (style) {
-			case BlockingTimeSegmentStyle::Station:
-				return stationColor;
-			case BlockingTimeSegmentStyle::Switch:
-				return switchColor;
-			case BlockingTimeSegmentStyle::SwitchStation:
-				return switchStationColor;
-			case BlockingTimeSegmentStyle::Critical:
-				return criticalColor;
-			case BlockingTimeSegmentStyle::CriticalStation:
-				return criticalStationColor;
-			case BlockingTimeSegmentStyle::Default:
-			default:
-				return defaultColor;
-		}
-	};
-	auto suffixForStyle = [](BlockingTimeSegmentStyle style) {
-		switch (style) {
-			case BlockingTimeSegmentStyle::Station:
-				return " (station)";
-			case BlockingTimeSegmentStyle::Switch:
-				return " (switch)";
-			case BlockingTimeSegmentStyle::SwitchStation:
-				return " (switch/station)";
-			case BlockingTimeSegmentStyle::Critical:
-				return " (conflict)";
-			case BlockingTimeSegmentStyle::CriticalStation:
-				return " (conflict/station)";
-			case BlockingTimeSegmentStyle::Default:
-			default:
-				return "";
-		}
-	};
-
-	std::map<std::string, bool> legendEntries;
-	for (const BlockingTimeDiagramSegment& segment : segments) {
-		QLineSeries* series = new QLineSeries();
-		std::string legendKey = segment.trainName + suffixForStyle(segment.style);
-		series->setName(QString::fromStdString(legendKey));
-		series->setProperty("trainId", QString::fromStdString(segment.trainName));
-		bool firstLegendEntry = legendEntries.find(legendKey) == legendEntries.end();
-
-		QPen pen(colorForStyle(segment.style));
-		pen.setWidthF(segment.penWidth);
-		series->setPen(pen);
-		series->append(segment.startTime, segment.midPositionKm);
-		series->append(segment.endTime, segment.midPositionKm);
-		chart->addSeries(series);
-		if (firstLegendEntry) {
-			legendEntries[legendKey] = true;
-		} else {
-			for (QLegendMarker* marker : chart->legend()->markers(series))
-				marker->setVisible(false);
-		}
-	}
+	addBlockingTimeSeries(chart, segments, false);
 
 	const QColor plannedColors[] = {
 		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
@@ -15288,14 +15270,14 @@ void MainWindow::showBlockingTimeDiagram() {
 
 	QLineSeries* dummySwitch = new QLineSeries();
 	dummySwitch->setName("Key: Switch");
-	QPen dummySwitchPen(switchColor);
+	QPen dummySwitchPen(kBlockingSwitchColor);
 	dummySwitchPen.setWidthF(4.0);
 	dummySwitch->setPen(dummySwitchPen);
 	chart->addSeries(dummySwitch);
 
 	QLineSeries* dummyCritical = new QLineSeries();
 	dummyCritical->setName("Key: Conflict");
-	QPen dummyCriticalPen(criticalColor);
+	QPen dummyCriticalPen(kBlockingCriticalColor);
 	dummyCriticalPen.setWidthF(4.0);
 	dummyCritical->setPen(dummyCriticalPen);
 	chart->addSeries(dummyCritical);
@@ -15488,55 +15470,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3")
 		.arg(sectionLabel, QString::fromStdString(result.firstIdentity),
 			QString::fromStdString(result.cycleEndIdentity)));
-	const QColor defaultColor(100, 160, 240, 150);
-	const QColor stationColor(60, 110, 190, 180);
-	const QColor switchColor(240, 210, 40, 180);
-	const QColor switchStationColor(200, 160, 20, 190);
-	const QColor criticalColor(220, 50, 50, 200);
-	const QColor criticalStationColor(170, 30, 30, 220);
-	const QColor capacityColor(235, 175, 20, 230);
-	const auto colorFor = [&](const BlockingTimeDiagramSegment& segment) {
-		if (segment.capacityCritical)
-			return capacityColor;
-		switch (segment.style) {
-			case BlockingTimeSegmentStyle::Station: return stationColor;
-			case BlockingTimeSegmentStyle::Switch: return switchColor;
-			case BlockingTimeSegmentStyle::SwitchStation: return switchStationColor;
-			case BlockingTimeSegmentStyle::Critical: return criticalColor;
-			case BlockingTimeSegmentStyle::CriticalStation: return criticalStationColor;
-			case BlockingTimeSegmentStyle::Default: default: return defaultColor;
-		}
-	};
-	const auto suffixFor = [](const BlockingTimeDiagramSegment& segment) {
-		if (segment.capacityCritical)
-			return " (capacity critical block)";
-		switch (segment.style) {
-			case BlockingTimeSegmentStyle::Station: return " (station)";
-			case BlockingTimeSegmentStyle::Switch: return " (switch)";
-			case BlockingTimeSegmentStyle::SwitchStation: return " (switch/station)";
-			case BlockingTimeSegmentStyle::Critical: return " (conflict)";
-			case BlockingTimeSegmentStyle::CriticalStation: return " (conflict/station)";
-			case BlockingTimeSegmentStyle::Default: default: return "";
-		}
-	};
-	std::map<std::string, bool> legendEntries;
-	for (const BlockingTimeDiagramSegment& segment : segments) {
-		auto* series = new QLineSeries();
-		const std::string legendKey = segment.trainName + suffixFor(segment);
-		series->setName(QString::fromStdString(legendKey));
-		series->setProperty("trainId", QString::fromStdString(segment.trainName));
-		const bool firstLegendEntry = legendEntries.find(legendKey) == legendEntries.end();
-		QPen pen(colorFor(segment));
-		pen.setWidthF(segment.penWidth);
-		series->setPen(pen);
-		series->append(segment.startTime, segment.midPositionKm);
-		series->append(segment.endTime, segment.midPositionKm);
-		chart->addSeries(series);
-		if (!firstLegendEntry)
-			for (QLegendMarker* marker : chart->legend()->markers(series))
-				marker->setVisible(false);
-		legendEntries[legendKey] = true;
-	}
+	addBlockingTimeSeries(chart, segments, true);
 	auto addKey = [chart](const QString& name, const QColor& color) {
 		auto* series = new QLineSeries();
 		series->setName(name);
@@ -15545,8 +15479,8 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		series->setPen(pen);
 		chart->addSeries(series);
 	};
-	addKey("Key: Conflict", criticalColor);
-	addKey("Key: Capacity critical block (touching)", capacityColor);
+	addKey("Key: Conflict", kBlockingCriticalColor);
+	addKey("Key: Capacity critical block (touching)", kBlockingCapacityColor);
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty())
 		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
