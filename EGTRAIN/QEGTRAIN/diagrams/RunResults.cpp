@@ -76,6 +76,9 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
 			TimetableResultRow row;
 			row.trainId = train.trainDescription;
+			row.operatingCode = train.operatingCode;
+			row.serviceId = train.serviceId;
+			row.occurrence = train.serviceOccurrence;
 			row.stationId = train.stationNameForArrivalStats(stationIndex);
 			row.journeyIndex = stationIndex + 1;
 			for (int previous = 0; previous <= stationIndex; ++previous) {
@@ -109,6 +112,15 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		const Train& train = *trainPtr;
 		TrainRunResult row;
 		row.trainId = train.trainDescription;
+		row.operatingCode = train.operatingCode;
+		row.serviceId = train.serviceId;
+		row.occurrence = train.serviceOccurrence;
+		row.performancePercent = train.servicePerformancePercent;
+		row.hasConfiguredMaximumSpeed = train.hasConfiguredMaximumSpeed;
+		row.configuredMaximumSpeedKmh = train.configuredMaximumSpeedKmh;
+		row.compositionMaximumSpeedMs = train.compositionMaximumSpeedMs;
+		row.appliedMaximumSpeedMs = train.appliedMaximumSpeedMs;
+		row.appliedMaximumSpeedKmh = train.appliedMaximumSpeedKmh;
 
 		const bool boundsInPositionSeries = train.earliestActiveTrajectoryIndex >= 0 &&
 			train.End_Time >= train.earliestActiveTrajectoryIndex &&

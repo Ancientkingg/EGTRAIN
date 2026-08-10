@@ -13,6 +13,15 @@ struct RunResultValue {
 
 struct TrainRunResult {
 	std::string trainId;
+	std::string operatingCode;
+	std::string serviceId;
+	int occurrence = 1;
+	double performancePercent = 100.0;
+	bool hasConfiguredMaximumSpeed = false;
+	double configuredMaximumSpeedKmh = 0.0;
+	double compositionMaximumSpeedMs = 0.0;
+	double appliedMaximumSpeedMs = 0.0;
+	double appliedMaximumSpeedKmh = 0.0;
 	RunResultValue startSeconds;
 	RunResultValue endSeconds;
 	RunResultValue travelSeconds;
@@ -24,6 +33,9 @@ struct TrainRunResult {
 
 struct TimetableResultRow {
 	std::string trainId;
+	std::string operatingCode;
+	std::string serviceId;
+	int occurrence = 1;
 	std::string stationId;
 	int journeyIndex = 0;
 	int callIndex = 0;

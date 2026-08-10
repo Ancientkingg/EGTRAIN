@@ -3,10 +3,16 @@
 #include "simulation/Optimisation.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
+#include "simulation/Simulation.h"
+#ifdef signals
+#undef signals
+#endif
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <iterator>
+#include <limits>
 #include <string>
 
 Logger owl;
@@ -139,6 +145,10 @@ int main() {
 			&& regional_train[1].trainDescription == "service.native-2"
 			&& regional_train[2].trainDescription == "service.native-3", "occurrence IDs are canonical and stable");
 	ok &= expect(regional_train[0].type == "service.native", "occurrences share the canonical service type");
+	ok &= expect(regional_train[0].operatingCode == "9707-1"
+			&& regional_train[1].operatingCode == "9707-2"
+			&& regional_train[2].operatingCode == "9707-3",
+			"repeated services without a step expose readable operating codes");
 	ok &= expect(regional_train[0].number_of_wagons == 3.0
 			&& regional_train[0].total_train_mass == 290.0
 			&& regional_train[0].velocityIntervals == 2,
@@ -196,6 +206,133 @@ int main() {
 			&& recoveryTimePercentage == 12.0
 			&& initial_variables.num_OrderLists == 0, "canonical simulation settings are committed");
 
+	SceneModel stepped = completeScene();
+	stepped.services[0].operatingCode = "1723";
+	stepped.services[0].hasRepeatCount = true;
+	stepped.services[0].repeatCount = 4;
+	stepped.services[0].hasOperatingCodeStep = true;
+	stepped.services[0].operatingCodeStep = 2;
+	const auto steppedInfrastructure = buildInfrastructureAndSignallingFromScene(stepped);
+	const auto steppedOperations = buildOperationsFromScene(stepped, "scenario.selected");
+	ok &= expect(!hasErrors(steppedInfrastructure) && !hasErrors(steppedOperations)
+				&& numRegions == 4
+				&& regional_train[0].operatingCode == "1723"
+				&& regional_train[1].operatingCode == "1725"
+				&& regional_train[3].operatingCode == "1729",
+				"explicit repeat count and stepped operating codes reach each occurrence");
+
+	SceneModel tuned = completeScene();
+	tuned.services[0].performancePercent = 50.0;
+	tuned.services[0].hasMaximumSpeed = true;
+	tuned.services[0].maximumSpeedKmh = 20.0;
+	SceneService sharedService = tuned.services[0];
+	sharedService.id = "service.other";
+	sharedService.operatingCode = "other";
+	sharedService.hasRepeat = false;
+	sharedService.hasRepeatCount = false;
+	sharedService.hasOperatingCodeStep = false;
+	sharedService.performancePercent = 100.0;
+	sharedService.hasMaximumSpeed = false;
+	sharedService.hasEntryTime = true;
+	sharedService.entryTimeSeconds = 200.0;
+	tuned.services.push_back(sharedService);
+	const auto tunedInfrastructure = buildInfrastructureAndSignallingFromScene(tuned);
+	const auto tunedOperations = buildOperationsFromScene(tuned, "scenario.selected");
+	ok &= expect(!hasErrors(tunedInfrastructure) && !hasErrors(tunedOperations)
+				&& numRegions == 4
+				&& std::fabs(regional_train[0].compositionMaximumSpeedMs - 25.0) < 1e-9
+				&& std::fabs(regional_train[0].max_train_speed - (20.0 / 3.6 * 0.5)) < 1e-9
+				&& std::fabs(regional_train[3].max_train_speed - 25.0) < 1e-9,
+				"service cap and performance apply in precedence order per train");
+	ok &= expect(tuned.trainUnits[0].physical.max_speed_ms == 30.0
+				&& tuned.trainUnits[1].physical.max_speed_ms == 25.0
+				&& tuned.compositions[0].units == std::vector<std::string>{"unit.1", "unit.2"},
+				"services sharing a composition do not mutate source rolling-stock data");
+	{
+		const double previousPerformance = regional_train[0].servicePerformancePercent;
+		regional_train[0].servicePerformancePercent = 100.0;
+		const double fullForce = regional_train[0].tractiveEffort(5.0);
+		regional_train[0].servicePerformancePercent = 50.0;
+		const double reducedForce = regional_train[0].tractiveEffort(5.0);
+		regional_train[0].servicePerformancePercent = previousPerformance;
+		ok &= expect(fullForce > 0.0 && std::fabs(reducedForce - fullForce * 0.5) < 1e-9,
+				"performance scales tractive effort exactly once");
+	}
+
+	SceneModel selectedScene = completeScene();
+	selectedScene.scenarios[1].entranceDelays.push_back(
+			{"service.native", 1, "missing-station", -100.0});
+	ScenePassengerJourney excludedJourney = selectedScene.passengers[0].journeys[0];
+	excludedJourney.id = "journey.excluded";
+	for (ScenePassengerLeg& leg : excludedJourney.legs)
+		leg.occurrence = 1;
+	selectedScene.passengers[0].journeys.push_back(excludedJourney);
+	const SceneRunSelection onlySecond{{"service.native", 2}};
+	const auto selectedInfrastructure = buildInfrastructureAndSignallingFromScene(selectedScene);
+	const auto selectedOperations = buildOperationsFromScene(selectedScene, "scenario.selected", onlySecond);
+	bool selectedJourneyHasTrips = false;
+	bool excludedJourneyHasNoTrips = false;
+	if (!AllDailyPassengers.empty()) {
+		for (const Journey& journey : AllDailyPassengers.front().Journeys) {
+			if (journey.ID == "journey.1")
+				selectedJourneyHasTrips = journey.N_Trips == 2;
+			if (journey.ID == "journey.excluded")
+				excludedJourneyHasNoTrips = journey.N_Trips == 0;
+		}
+	}
+	ok &= expect(!hasErrors(selectedInfrastructure) && !hasErrors(selectedOperations)
+				&& numRegions == 1 && regional_train[0].trainDescription == "service.native-2"
+				&& regional_train[0].EntranceDelay == 5.0
+				&& selectedJourneyHasTrips && excludedJourneyHasNoTrips,
+				"occurrence selection builds one train and skips excluded delays and passenger legs");
+
+	SceneModel sparsePattern = completeScene();
+	sparsePattern.services[0].hasRepeatCount = true;
+	sparsePattern.services[0].repeatCount = 1000000000;
+	const SceneRunSelection lateOccurrence{{"service.native", 999999999}};
+	const auto sparseInfrastructure = buildInfrastructureAndSignallingFromScene(sparsePattern);
+	const auto sparseOperations = buildOperationsFromScene(
+			sparsePattern, "scenario.selected", lateOccurrence);
+	ok &= expect(!hasErrors(sparseInfrastructure) && !hasErrors(sparseOperations)
+				&& numRegions == 1
+				&& regional_train[0].trainDescription == "service.native-999999999",
+				"a sparse selection does not expand every occurrence in a large pattern");
+
+	SceneModel outOfPattern = completeScene();
+	outOfPattern.services[0].hasRepeatCount = true;
+	outOfPattern.services[0].repeatCount = 1;
+	const auto outOfPatternInfrastructure = buildInfrastructureAndSignallingFromScene(outOfPattern);
+	const auto outOfPatternOperations = buildOperationsFromScene(outOfPattern, "scenario.selected");
+	const SceneRunSelection firstOccurrence{{"service.native", 1}};
+	const auto excludedOutOfPatternOperations = buildOperationsFromScene(
+			outOfPattern, "scenario.selected", firstOccurrence);
+	ok &= expect(!hasErrors(outOfPatternInfrastructure) && !hasErrors(outOfPatternOperations)
+				&& !hasErrors(excludedOutOfPatternOperations)
+				&& numRegions == 1 && regional_train[0].trainDescription == "service.native-1"
+				&& regional_train[0].EntranceDelay == 0.0,
+				"out-of-pattern entrance delays are skipped for all and selected runs");
+
+	TrainEvent finiteLate;
+	finiteLate.Time = 2.0;
+	TrainEvent finiteEarly;
+	finiteEarly.Time = 1.0;
+	TrainEvent nanFirst;
+	nanFirst.Time = std::numeric_limits<double>::quiet_NaN();
+	nanFirst.trainDescription = "nan-first";
+	TrainEvent nanLast;
+	nanLast.Time = std::numeric_limits<double>::quiet_NaN();
+	nanLast.trainDescription = "nan-last";
+	std::list<TrainEvent> unorderedEvents = {nanFirst, finiteLate, finiteEarly, nanLast};
+	orderListOfTrainEvents(unorderedEvents);
+	const auto eventIt = unorderedEvents.begin();
+	ok &= expect(unorderedEvents.size() == 4 && eventIt->Time == 1.0
+				&& std::next(eventIt)->Time == 2.0
+				&& std::isnan(std::next(eventIt, 2)->Time)
+				&& std::isnan(std::next(eventIt, 3)->Time)
+				&& std::next(eventIt, 2)->trainDescription == "nan-first"
+				&& std::next(eventIt, 3)->trainDescription == "nan-last",
+				"train event sorting terminates and places non-finite times last");
+
 	const std::string previousDescription = regional_train[0].trainDescription;
 	const std::size_t previousIncidentCount = simulationIncidents.size();
 	const std::string previousName = initial_variables.name;
@@ -245,9 +382,39 @@ int main() {
 	const auto extendedInfrastructure = buildInfrastructureAndSignallingFromScene(extendedHorizon);
 	const auto extendedOperations = buildOperationsFromScene(extendedHorizon, "scenario.selected");
 	ok &= expect(!hasErrors(extendedInfrastructure) && !hasErrors(extendedOperations)
-			&& initial_variables.times == 120.0 && numRegions == 4
-			&& regional_train[0].instant_train_speed.size() == 120,
-			"duration override sizes repeated services and runtime vectors to the effective horizon");
+				&& initial_variables.times == 120.0 && numRegions == 4
+				&& regional_train[0].instant_train_speed.size() == 120,
+				"duration override sizes repeated services and runtime vectors to the effective horizon");
 	initial_variables.durationOverride = false;
+
+	SceneModel trajectoryPerformance = completeScene();
+	trajectoryPerformance.settings.durationSeconds = 600.0;
+	trajectoryPerformance.services[0].hasEntryTime = true;
+	trajectoryPerformance.services[0].entryTimeSeconds = 0.0;
+	trajectoryPerformance.services[0].hasRepeatCount = true;
+	trajectoryPerformance.services[0].repeatCount = 1;
+	trajectoryPerformance.services[0].through = true;
+	trajectoryPerformance.services[0].stops.clear();
+	for (SceneTrainUnit& trainUnit : trajectoryPerformance.trainUnits)
+		for (auto& band : trainUnit.tractionCurve)
+			band[2] = 10000.0;
+	trajectoryPerformance.services[0].performancePercent = 100.0;
+	const auto trajectoryFullInfrastructure = buildInfrastructureAndSignallingFromScene(trajectoryPerformance);
+	const auto trajectoryFullOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
+	int fullPerformanceEnd = -1;
+	if (!hasErrors(trajectoryFullInfrastructure) && !hasErrors(trajectoryFullOperations) && numRegions == 1) {
+		TrainSimulationForComputingHW(signalCode1, signalCode2, signalCode3);
+		fullPerformanceEnd = regional_train[0].End_Time;
+	}
+	trajectoryPerformance.services[0].performancePercent = 50.0;
+	const auto trajectoryReducedInfrastructure = buildInfrastructureAndSignallingFromScene(trajectoryPerformance);
+	const auto trajectoryReducedOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
+	int reducedPerformanceEnd = -1;
+	if (!hasErrors(trajectoryReducedInfrastructure) && !hasErrors(trajectoryReducedOperations) && numRegions == 1) {
+		TrainSimulationForComputingHW(signalCode1, signalCode2, signalCode3);
+		reducedPerformanceEnd = regional_train[0].End_Time;
+	}
+	ok &= expect(fullPerformanceEnd >= 0 && reducedPerformanceEnd > fullPerformanceEnd,
+			"reduced performance delays native route completion");
 	return ok ? 0 : 1;
 }

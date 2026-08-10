@@ -140,13 +140,38 @@ struct SceneService {
 	std::string operatingCode;
 	std::string composition;
 	std::string route;
+	double performancePercent = 100.0;
+	bool hasMaximumSpeed = false;
+	double maximumSpeedKmh = 0.0;
 	bool through = false;
 	bool hasEntryTime = false;
 	double entryTimeSeconds = 0.0;
 	bool hasRepeat = false;
 	double headwaySeconds = 0.0;
+	bool hasRepeatCount = false;
+	int repeatCount = 0;
+	bool hasOperatingCodeStep = false;
+	int operatingCodeStep = 0;
 	std::vector<SceneStop> stops;
 };
+
+struct SceneServiceOccurrence {
+	std::string serviceId;
+	int occurrence = 1;
+
+	bool operator==(const SceneServiceOccurrence& other) const {
+		return serviceId == other.serviceId && occurrence == other.occurrence;
+	}
+	bool operator!=(const SceneServiceOccurrence& other) const {
+		return !(*this == other);
+	}
+	bool operator<(const SceneServiceOccurrence& other) const {
+		return serviceId < other.serviceId
+				|| (serviceId == other.serviceId && occurrence < other.occurrence);
+	}
+};
+
+using SceneRunSelection = std::set<SceneServiceOccurrence>;
 
 struct SceneIncident {
 	std::string id;
@@ -244,6 +269,9 @@ struct SceneModel {
 };
 
 SceneModel makeNewSceneModel();
+
+int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds);
+std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence);
 
 // Resolve ordered (and repeated) unit references and apply the legacy
 // multi-unit physical/tractive-effort aggregation rules.

@@ -3,7 +3,11 @@
 #include "simulation/Signalling.h"
 #include "util/TrajectoryUtil.h"
 
+#include <set>
+
 struct SceneModel;
+struct SceneServiceOccurrence;
+using SceneRunSelection = std::set<SceneServiceOccurrence>;
 
 // GUI - Virtual Coupling notifications
 #include <vector>
@@ -23,7 +27,8 @@ extern InitialParameters initial_variables;
 // delays, platforms, and passengers from an in-memory canonical scene.
 // The function is transactional: errors leave existing operation globals intact.
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
-		const std::string& selectedScenarioId = {});
+		const std::string& selectedScenarioId = {},
+		const SceneRunSelection& selectedOccurrences = {});
 
 // Release native train-owned arrays and operation globals between scene runs.
 void resetNativeOperationsState();
@@ -575,6 +580,15 @@ public:
 	int temp, stop, counter;		 // Temporary variables for simulating train movement(temp=instant of time in which train starts braking, stop=time instant in which train starts stopping at a station), counter: number of times in which it enters in braking condition equation
 	double ID = 0.0;				 // Train ID number
 	string type;					 // This specifies if it is an Intercity, a regional or a metro train
+	string operatingCode;
+	string serviceId;
+	int serviceOccurrence = 1;
+	double servicePerformancePercent = 100.0;
+	bool hasConfiguredMaximumSpeed = false;
+	double configuredMaximumSpeedKmh = 0.0;
+	double compositionMaximumSpeedMs = 0.0;
+	double appliedMaximumSpeedMs = 0.0;
+	double appliedMaximumSpeedKmh = 0.0;
 	Arc As;							 // Temporary Arc object representing the Arc occupied by the train in a determined time instant
 	Section Bs;						 // Temporary Block Section Object representing the Block Section occupied by the Train in a certain time instant
 	double Start_Node_X = 0.0;		 // It represents the X of the Node from which the train starts its run
@@ -683,7 +697,9 @@ public:
 				Ftr = C0[i] + C1[i] * V + C2[i] * pow(V, 2);
 			}
 		}
-		return Ftr;
+		if (servicePerformancePercent == 100.0)
+			return Ftr;
+		return Ftr * servicePerformancePercent / 100.0;
 	}
 
 	//  Calculation of Braking Effort affected by Jerk
@@ -7879,6 +7895,15 @@ public:
 		massPerWagonAxle = ob2.massPerWagonAxle;
 		Jerk = ob2.Jerk;
 		train_length = ob2.train_length;
+		operatingCode = ob2.operatingCode;
+		serviceId = ob2.serviceId;
+		serviceOccurrence = ob2.serviceOccurrence;
+		servicePerformancePercent = ob2.servicePerformancePercent;
+		hasConfiguredMaximumSpeed = ob2.hasConfiguredMaximumSpeed;
+		configuredMaximumSpeedKmh = ob2.configuredMaximumSpeedKmh;
+		compositionMaximumSpeedMs = ob2.compositionMaximumSpeedMs;
+		appliedMaximumSpeedMs = ob2.appliedMaximumSpeedMs;
+		appliedMaximumSpeedKmh = ob2.appliedMaximumSpeedKmh;
 		return *this;
 	}
 };

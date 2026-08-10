@@ -88,15 +88,43 @@ unit IDs. Services refer to the composition ID, not directly to a source file.
 
 The root of `services.json` is `services`. A service requires `id`,
 `composition`, `route`, and `stops`. Optional service properties are
-`operating_code`, `through`, `entry_time_seconds`, and
-`repeat.headway_seconds`. `id` is the unique reference used by the canonical
-model. `operating_code` is the train identity used by the current simulator;
-it defaults to `id` and may be shared by distinct services. The legacy
-importer retains the first token of each `Trains` definition here instead of
-changing it when duplicate canonical IDs need a suffix. A legacy train
-breakdown targeting a shared code is expanded to each matching service because
-the current runtime applies that prefix to every matching train; import reports
-the expansion.
+`operating_code`, `performance_percent`, `maximum_speed_kmh`, `through`,
+`entry_time_seconds`, and `repeat`. `id` is the unique canonical reference;
+each occurrence is identified by `(service id, occurrence)` with occurrence
+numbered from 1. `operating_code` defaults to `id` and may be shared by
+distinct services. The existing runtime train key remains `service-id-occurrence`.
+
+`performance_percent` is a finite percentage from `1` through `100`, default
+`100.0`. It scales tractive effort and the commanded maximum speed exactly
+once; it does not scale braking, mass, shared composition data, buffer, or
+recovery. `maximum_speed_kmh`, when present, is a positive finite cap in km/h.
+The native speed precedence is:
+
+```text
+min(composition maximum speed, maximum_speed_kmh if present)
+    * performance_percent / 100
+```
+
+The 100% case uses the unchanged raw force/speed path. A repeat requires a
+positive finite `headway_seconds` in seconds. Optional `repeat.count` is a
+positive integer total occurrence count, including the base; it overrides
+`ceil(duration_seconds / headway_seconds)`. If omitted, that ceiling remains
+the horizon. Entry and stop times are offset by
+`(occurrence - 1) * headway_seconds`.
+
+Optional `repeat.operating_code_step` must be nonzero and requires a decimal
+base operating code. A base `1723` with step `2` therefore exposes `1723`,
+`1725`, `1727`; without a step, a repeat exposes a readable base-plus-
+occurrence code. The canonical service ID never advances. A non-empty
+`SceneRunSelection` builds only the listed service/occurrence identities and
+skips excluded delays and passenger legs; an empty selection builds all.
+Selections must refer to occurrences inside the service horizon.
+
+The legacy importer retains the first token of each `Trains` definition here
+instead of changing it when duplicate canonical IDs need a suffix. A legacy
+train breakdown targeting a shared code is expanded to each matching service
+because the current runtime applies that prefix to every matching train; import
+reports the expansion.
 
 Each stop requires `station` and `dwell_seconds`; `platform` is optional. The
 preferred planned-time keys are independently optional on every stop:
