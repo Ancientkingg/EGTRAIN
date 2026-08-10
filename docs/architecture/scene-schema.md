@@ -113,12 +113,37 @@ Each composition has `id` and a string-array `units` of train-unit IDs.
 ## `services.json`
 
 The root key is `services`. Each service has required `id`, `composition`,
-`route`, and `stops`; it may have boolean `through`, numeric
-`entry_time_seconds`, string `operating_code`, and
-`repeat: { "headway_seconds": number }`. The ID is the unique cross-file
-reference. The operating code defaults to that ID, but may repeat: it preserves
-the active legacy `Trains` token used for `Train::type`, train descriptions,
-and the current compatibility export.
+`route`, and `stops`. The ID is the unique cross-file reference and remains
+the stable service identity even when the service is repeated. `operating_code`
+is optional and defaults to the service ID; it may be shared by distinct
+services. Runtime occurrence identity is the pair
+`(service_id, occurrence)`, with a 1-based occurrence number, and its existing
+display key is `service_id-occurrence`.
+
+Optional runtime controls are:
+
+- `performance_percent`: percentage, default `100.0`, finite range `1..100`.
+  It scales available tractive effort and the commanded maximum speed, but not
+  braking, mass, composition data, recovery, or buffer settings.
+- `maximum_speed_kmh`: positive finite speed in km/h. It is a service cap and
+  is applied as `min(composition max speed, service cap)` before performance
+  scaling. The writer omits it when it is not configured.
+- `through`: boolean, and `entry_time_seconds`: seconds relative to the scene
+  base-time origin.
+- `repeat`: an object with positive finite `headway_seconds` in seconds. Its
+  optional positive integer `count` is the total number of occurrences,
+  including the base occurrence, and overrides the duration/headway horizon.
+  When omitted, the horizon remains `ceil(duration_seconds / headway_seconds)`.
+  Stop and entry offsets remain `(occurrence - 1) * headway_seconds`.
+
+`repeat.operating_code_step` is optional, nonzero, and valid only when the
+  base operating code is decimal digits. It adds the step for each occurrence
+  (for example `1723`, `1725`, `1727` with step `2`). Invalid stepped input is
+  rejected. Without a step, repeated services expose a readable
+  `base-operating-code-occurrence` code. The canonical service ID never
+  advances or changes. Run selection uses a set of `(service_id, occurrence)`
+  identities; an empty set builds all occurrences, while a non-empty set must
+  name occurrences inside each service's horizon.
 
 Each stop has required string `station` and numeric `dwell_seconds`, plus an
 optional string `platform`. The planned timetable keys are:

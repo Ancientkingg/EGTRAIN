@@ -43,9 +43,9 @@ fi
 # Headers must match the documented schema.
 head -n1 "$OUTDIR/trajectory.csv" | grep -q "^Train,Time\[s\],Position\[m\],Speed\[m/s\],Power\[kW\],Energy\[kWh\],Block" \
 	|| { echo "trajectory.csv header mismatch" >&2; exit 1; }
-head -n1 "$OUTDIR/timetable.csv" | grep -q "^Train,Station,Journey order,Planned arrival\[s\]" \
+head -n1 "$OUTDIR/timetable.csv" | grep -q "^Train,Station,Journey order,Operating code,Planned arrival\[s\]" \
 	|| { echo "timetable.csv header mismatch" >&2; exit 1; }
-head -n1 "$OUTDIR/run_summary.csv" | grep -q "^Train,Start\[s\],End\[s\],Travel time\[s\]" \
+head -n1 "$OUTDIR/run_summary.csv" | grep -q "^Train,Operating code,Performance \[%\],Applied maximum speed \[km/h\],Start\[s\],End\[s\],Travel time\[s\]" \
 	|| { echo "run_summary.csv header mismatch" >&2; exit 1; }
 
 # Trajectory and timetable must carry data rows, not just a header.

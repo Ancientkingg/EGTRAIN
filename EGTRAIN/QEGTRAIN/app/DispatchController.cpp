@@ -163,7 +163,7 @@ extern Logger owl;
 DispatchController simulation;
 
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
-		const std::string& selectedScenarioId) {
+		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
 	resetState();
 	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene);
 	if (hasErrors(diagnostics))
@@ -178,7 +178,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	}
 
 	const std::vector<SceneDiagnostic> operations =
-		buildOperationsFromScene(scene, selectedScenarioId);
+		buildOperationsFromScene(scene, selectedScenarioId, selectedOccurrences);
 	diagnostics.insert(diagnostics.end(), operations.begin(), operations.end());
 	if (hasErrors(diagnostics)) {
 		resetState();

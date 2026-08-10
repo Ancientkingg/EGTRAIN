@@ -68,30 +68,47 @@ Each service also has a unique canonical `id` and an optional
 `operating_code`. The latter defaults to the ID and preserves the active train
 identity consumed by the existing simulator. It is intentionally not required
 to be unique: Milano-Brescia contains distinct service definitions sharing
-codes `9707` and `9709`.
+codes `9707` and `9709`. `performance_percent` defaults to `100.0` and must be
+finite in `1..100`; `maximum_speed_kmh`, when present, is a positive finite
+service cap in km/h. The native commanded speed is the composition maximum
+limited by that cap, then multiplied by performance; 100% takes the legacy
+raw path. Performance does not alter braking, mass, shared composition data,
+buffer, or recovery.
 
 Passenger journey windows use absolute seconds from midnight. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
 are read only by explicit legacy import and written only by explicit legacy
 export.
 
-The native operations path gives every expanded occurrence the stable runtime
-identity `<service id>-<occurrence>` and uses the canonical service ID for
-breakdown targets and passenger legs. Repetition keeps the canonical entry in
-`scheduled_departure_time`; the compatibility hourly-retiming algorithm may
-derive `departure_time` while leaving that canonical value unchanged. Arrival
-and departure timetable values remain independently optional and are staged as
-runtime `-1` when absent, including repeated occurrences.
+The native operations path gives every expanded occurrence the stable identity
+`(service id, 1-based occurrence)` and the existing runtime key
+`<service id>-<occurrence>`. It uses the canonical service ID for breakdown
+targets and passenger legs. A repeated service without a step exposes a
+readable base-plus-occurrence operating code; a step is accepted only for a
+decimal base (for example `1723`, `1725`, `1727`). An explicit repeat count is
+the total occurrence count, including the base, and overrides the duration
+horizon; without it, the count is `ceil(duration / headway)`. Entry and stop
+offsets remain `(occurrence - 1) * headway`. The canonical service ID never
+advances. Repetition keeps the canonical entry in `scheduled_departure_time`;
+the compatibility hourly-retiming algorithm may derive `departure_time` while
+leaving that canonical value unchanged. Arrival and departure timetable values
+remain independently optional and are staged as runtime `-1` when absent,
+including repeated occurrences.
 
 Only the selected scenario is applied: an explicit selection wins, otherwise
 the exact default is used, with the first scenario used only when no default is
-declared. Scenario entrance delays are resolved by service, occurrence, and
-station; signal failures must resolve to exact runtime sections. Passenger
-journeys and legs are built in memory, including journeys with no legs, and
-their actual planned times are sampled from the canonical windows using the
-existing random-number behavior. Platform stopping lists are populated from
-the resolved occurrence stops without invoking the filesystem-era platform
-loader.
+declared. `DispatchController::prepareScene` and
+`buildOperationsFromScene` accept a `SceneRunSelection`, a set of
+service/occurrence identities. Empty means all; a non-empty selection is
+validated, builds only selected trains, and skips delays and passenger legs for
+excluded occurrences without modifying the scene. Capacity checks use the
+selected train set. Scenario entrance delays are resolved by service,
+occurrence, and station; signal failures must resolve to exact runtime
+sections. Passenger journeys and legs are built in memory, including journeys
+with no legs, and their actual planned times are sampled from the canonical
+windows using the existing random-number behavior. Platform stopping lists are
+populated from the resolved occurrence stops without invoking the
+filesystem-era platform loader.
 
 ## Validation layers
 
@@ -138,6 +155,10 @@ temporary directory and reuses `loadScene`.
 The infrastructure/signalling builder accepts an already loaded and validated
 `SceneModel` and populates the existing runtime globals. The operations builder
 then creates services, train occurrences, the selected scenario, entrance
-delays, and passengers in memory. `TrackPreview` resolves connections and
-station markers through the same canonical node IDs. GUI Run, `--scene`, and
-the numeric case shortcuts all enter this shared native path.
+delays, and passengers in memory. Each native `Train` carries operating code,
+service ID, occurrence, performance, configured cap, composition maximum, and
+applied maximum-speed provenance. `RunResults` copies that provenance to train
+rows and operating code/service identity to timetable rows. `TrackPreview`
+resolves connections and station markers through the same canonical node IDs.
+GUI Run, `--scene`, and the numeric case shortcuts all enter this shared native
+path; there is no legacy-runtime fallback.

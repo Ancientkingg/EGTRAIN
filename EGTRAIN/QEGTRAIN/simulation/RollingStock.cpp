@@ -284,6 +284,8 @@ struct NativeStopPlan {
 	std::string platformId;
 	Node node;
 	double dwellSeconds = 0.0;
+	bool hasPlannedArrival = false;
+	bool hasPlannedDeparture = false;
 	double plannedArrival = -1.0;
 	double plannedDeparture = -1.0;
 };
@@ -292,12 +294,20 @@ struct NativeTrainPlan {
 	std::string routeId;
 	std::string trainDescription;
 	std::string type;
+	std::string operatingCode;
+	std::string serviceId;
 	SceneTrainPhysical physical;
 	std::vector<std::array<double, 5>> tractionCurve;
 	std::vector<NativeStopPlan> stops;
 	int occurrence = 1;
 	int routeIndex = -1;
 	bool direction = false;
+	double servicePerformancePercent = 100.0;
+	bool hasConfiguredMaximumSpeed = false;
+	double configuredMaximumSpeedKmh = 0.0;
+	double compositionMaximumSpeedMs = 0.0;
+	double appliedMaximumSpeedMs = 0.0;
+	double appliedMaximumSpeedKmh = 0.0;
 	double scheduledDeparture = 0.0;
 	double entranceDelay = 0.0;
 };
@@ -380,10 +390,6 @@ const NativeStopPlan* nativeStopForStation(const NativeTrainPlan& train, const s
 	return nullptr;
 }
 
-std::string nativeOccurrenceKey(const std::string& serviceId, int occurrence) {
-	return serviceId + "\n" + std::to_string(occurrence);
-}
-
 int nativeRouteIndex(const std::string& routeId) {
 	for (std::size_t index = 0; index < train_route.size(); ++index)
 		if (train_route[index].ID == routeId)
@@ -452,6 +458,15 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.g = 9.81;
 	train.ID = plan.occurrence;
 	train.type = plan.type;
+	train.operatingCode = plan.operatingCode;
+	train.serviceId = plan.serviceId;
+	train.serviceOccurrence = plan.occurrence;
+	train.servicePerformancePercent = plan.servicePerformancePercent;
+	train.hasConfiguredMaximumSpeed = plan.hasConfiguredMaximumSpeed;
+	train.configuredMaximumSpeedKmh = plan.configuredMaximumSpeedKmh;
+	train.compositionMaximumSpeedMs = plan.compositionMaximumSpeedMs;
+	train.appliedMaximumSpeedMs = plan.appliedMaximumSpeedMs;
+	train.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedKmh;
 	train.TrainRouteID = plan.routeId;
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;
@@ -460,7 +475,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
 	train.number_of_wagons = plan.physical.number_of_wagons;
-	train.max_train_speed = plan.physical.max_speed_ms;
+	train.max_train_speed = plan.appliedMaximumSpeedMs;
 	train.max_train_decelaration = plan.physical.max_deceleration_ms2;
 	train.frontal_wagon_area = plan.physical.frontal_area_m2;
 	train.resistanceCoefficient = plan.physical.resistance_coefficient;
@@ -524,7 +539,7 @@ void resetNativeOperationsState() {
 }
 
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
-		const std::string& selectedScenarioId) {
+		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
 	std::vector<SceneDiagnostic> diagnostics;
 	nativeIndexById(scene.trainUnits, diagnostics, "trains.json", "train_unit");
 	nativeIndexById(scene.compositions, diagnostics, "trains.json", "composition");
@@ -554,6 +569,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			|| scene.settings.recoveryTimePercent < 0.0))
 		addNativeDiagnostic(diagnostics, "scene.native.settings.recovery", "recovery_time_percent must be finite and non-negative",
 				"scene.json", "scene", scene.name, "settings.recovery_time_percent");
+	std::unordered_map<std::string, int> repeatCounts;
+	for (const SceneService& service : scene.services)
+		repeatCounts[service.id] = sceneServiceOccurrenceCount(service, durationSeconds);
 
 	const auto defaultScenario = [&]() -> const SceneScenario* {
 		if (!selectedScenarioId.empty()) {
@@ -586,9 +604,28 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			routeById[pair.first] = runtimeIndex;
 	}
 
-	std::unordered_map<std::string, int> repeatCounts;
 	std::vector<NativeTrainPlan> trains;
-	std::unordered_map<std::string, std::size_t> occurrenceIndex;
+	std::map<SceneServiceOccurrence, std::size_t> occurrenceIndex;
+	if (!selectedOccurrences.empty()) {
+		for (const SceneServiceOccurrence& selection : selectedOccurrences) {
+			const auto serviceIt = serviceById.find(selection.serviceId);
+			const auto countIt = repeatCounts.find(selection.serviceId);
+			if (serviceIt == serviceById.end() || countIt == repeatCounts.end()) {
+				addNativeDiagnostic(diagnostics, "scene.native.selection.service",
+						"Selected occurrence refers to an unknown service", "services.json", "selection",
+						selection.serviceId, "selected_occurrences", selection.serviceId);
+			} else if (selection.occurrence < 1 || selection.occurrence > countIt->second) {
+				addNativeDiagnostic(diagnostics, "scene.native.selection.occurrence",
+						"Selected occurrence is outside the service horizon", "services.json", "selection",
+						selection.serviceId, "selected_occurrences", selection.serviceId + "-"
+								+ std::to_string(selection.occurrence));
+			}
+		}
+	}
+	const auto occurrenceSelected = [&selectedOccurrences](const std::string& serviceId, int occurrence) {
+		return selectedOccurrences.empty()
+				|| selectedOccurrences.count(SceneServiceOccurrence{serviceId, occurrence}) > 0;
+	};
 	for (const SceneService& service : scene.services) {
 		if (service.id.empty())
 			continue;
@@ -597,6 +634,25 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 					"services.json", "service", service.id, "services[" + service.id + "].stops");
 		if (service.stops.empty() && !service.through)
 			continue;
+		if (!nativeFinite(service.performancePercent) || service.performancePercent < 1.0
+				|| service.performancePercent > 100.0)
+			addNativeDiagnostic(diagnostics, "scene.native.service.performance",
+					"Service performance_percent must be finite and between 1 and 100",
+					"services.json", "service", service.id, "services[" + service.id + "].performance_percent");
+		if (service.hasMaximumSpeed
+				&& (!nativeFinite(service.maximumSpeedKmh) || service.maximumSpeedKmh <= 0.0))
+			addNativeDiagnostic(diagnostics, "scene.native.service.speed",
+					"Service maximum_speed_kmh must be positive and finite",
+					"services.json", "service", service.id, "services[" + service.id + "].maximum_speed_kmh");
+		if (service.hasRepeatCount && (!service.hasRepeat || service.repeatCount <= 0))
+			addNativeDiagnostic(diagnostics, "scene.native.service.repeat_count",
+					"Repeated service count must be a positive integer inside repeat",
+					"services.json", "service", service.id, "services[" + service.id + "].repeat.count");
+		if (service.hasOperatingCodeStep && sceneServiceOccurrenceOperatingCode(service, 1).empty())
+			addNativeDiagnostic(diagnostics, "scene.native.service.operating_code_step",
+					"Operating code step requires a nonzero step and a decimal base operating code",
+					"services.json", "service", service.id,
+					"services[" + service.id + "].repeat.operating_code_step");
 		if (service.stops.size() > Train::kMaxTimetableStations)
 			addNativeDiagnostic(diagnostics, "scene.native.capacity.stops", "Service stops exceed the runtime timetable capacity",
 					"services.json", "service", service.id, "services[" + service.id + "].stops", {},
@@ -644,24 +700,46 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		if (routeIt == routeById.end() || composition.tractionCurve.size() > 20)
 			continue;
 
-		int occurrences = 1;
+		const int occurrences = repeatCounts[service.id];
 		double headway = 0.0;
 		if (service.hasRepeat) {
 			headway = service.headwaySeconds;
 			if (!nativeFinite(headway) || headway <= 0.0)
 				addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat", "Repeated services require a positive finite headway",
 						"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
-			else {
+			else if (service.hasRepeatCount && service.repeatCount <= 0)
+				addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat_count",
+						"Repeated service count must be a positive integer", "services.json", "service", service.id,
+						"services[" + service.id + "].repeat.count");
+			else if (!service.hasRepeatCount) {
 				const double rawCount = std::ceil(durationSeconds / headway);
 				if (!nativeFinite(rawCount) || rawCount > static_cast<double>(INT_MAX))
 					addNativeDiagnostic(diagnostics, "scene.native.capacity.occurrences", "Service repeat count exceeds the runtime integer capacity",
 							"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
-				else
-					occurrences = std::max(1, static_cast<int>(rawCount));
 			}
 		}
-		repeatCounts[service.id] = occurrences;
-		if (occurrences > Max_N_Reg || trains.size() + static_cast<std::size_t>(occurrences) > Max_N_Reg) {
+		if (service.hasOperatingCodeStep
+				&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
+				&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
+			addNativeDiagnostic(diagnostics, "scene.native.service.operating_code_step",
+					"Operating code progression exceeds the supported integer range",
+					"services.json", "service", service.id,
+					"services[" + service.id + "].repeat.operating_code_step");
+
+		std::vector<int> occurrencesToBuild;
+		if (selectedOccurrences.empty()) {
+			if (occurrences <= Max_N_Reg)
+				for (int occurrence = 1; occurrence <= occurrences; ++occurrence)
+					occurrencesToBuild.push_back(occurrence);
+		} else {
+			for (const SceneServiceOccurrence& selection : selectedOccurrences)
+				if (selection.serviceId == service.id && selection.occurrence >= 1
+						&& selection.occurrence <= occurrences)
+					occurrencesToBuild.push_back(selection.occurrence);
+		}
+		const std::size_t selectedCount = selectedOccurrences.empty()
+				? static_cast<std::size_t>(occurrences) : occurrencesToBuild.size();
+		if (selectedCount > Max_N_Reg || trains.size() + selectedCount > Max_N_Reg) {
 			addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "Expanded service occurrences exceed the runtime train capacity",
 					"services.json", "service", service.id, "services[" + service.id + "].headway_seconds", {},
 					std::to_string(Max_N_Reg));
@@ -761,21 +839,36 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			stopPlan.platformId = resolvedPlatformId;
 			stopPlan.node = selectedNode;
 			stopPlan.dwellSeconds = stop.dwellSeconds;
+			stopPlan.hasPlannedArrival = stop.hasPlannedArrival;
+			stopPlan.hasPlannedDeparture = stop.hasPlannedDeparture;
 			stopPlan.plannedArrival = stop.hasPlannedArrival ? stop.plannedArrivalSeconds : -1.0;
 			stopPlan.plannedDeparture = stop.hasPlannedDeparture ? stop.plannedDepartureSeconds : -1.0;
 			baseStops.push_back(std::move(stopPlan));
 		}
 
-		for (int occurrence = 1; occurrence <= occurrences; ++occurrence) {
+		for (const int occurrence : occurrencesToBuild) {
 			NativeTrainPlan plan;
 			plan.routeId = service.route;
 			plan.trainDescription = service.id + "-" + std::to_string(occurrence);
 			plan.type = service.id;
+			plan.operatingCode = sceneServiceOccurrenceOperatingCode(service, occurrence);
+			plan.serviceId = service.id;
 			plan.physical = composition.physical;
 			plan.tractionCurve = composition.tractionCurve;
 			plan.occurrence = occurrence;
 			plan.routeIndex = routeIt->second;
 			plan.direction = runtimeRoute.reversed_direction;
+			plan.servicePerformancePercent = service.performancePercent;
+			plan.hasConfiguredMaximumSpeed = service.hasMaximumSpeed;
+			plan.configuredMaximumSpeedKmh = service.maximumSpeedKmh;
+			plan.compositionMaximumSpeedMs = composition.physical.max_speed_ms;
+			const double commandedMaximumSpeed = service.hasMaximumSpeed
+					? std::min(composition.physical.max_speed_ms, service.maximumSpeedKmh / 3.6)
+					: composition.physical.max_speed_ms;
+			plan.appliedMaximumSpeedMs = service.performancePercent == 100.0
+					? commandedMaximumSpeed
+					: commandedMaximumSpeed * service.performancePercent / 100.0;
+			plan.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedMs * 3.6;
 			const double offset = service.hasRepeat ? (occurrence - 1) * headway : 0.0;
 			const double entry = service.hasEntryTime ? service.entryTimeSeconds
 					: ((!service.stops.empty() && service.stops.front().hasPlannedDeparture
@@ -784,12 +877,12 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			plan.scheduledDeparture = entry + offset;
 			plan.stops = baseStops;
 			for (NativeStopPlan& stop : plan.stops) {
-				if (stop.plannedArrival >= 0.0)
+				if (stop.hasPlannedArrival)
 					stop.plannedArrival += offset;
-				if (stop.plannedDeparture >= 0.0)
+				if (stop.hasPlannedDeparture)
 					stop.plannedDeparture += offset;
 			}
-			occurrenceIndex.emplace(nativeOccurrenceKey(service.id, occurrence), trains.size());
+			occurrenceIndex.emplace(SceneServiceOccurrence{service.id, occurrence}, trains.size());
 			trains.push_back(std::move(plan));
 		}
 	}
@@ -799,8 +892,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				"services.json", "scene", scene.name, "services", {}, std::to_string(Max_N_Reg));
 
 	std::vector<SimulationIncident> stagedIncidents;
-	std::unordered_map<std::string, double> occurrenceDelay;
-	std::unordered_set<std::string> appliedDelayStations;
+	std::map<SceneServiceOccurrence, double> occurrenceDelay;
+	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
 	if (scenario != nullptr) {
 		std::unordered_set<std::string> canonicalBlocks;
 		std::unordered_set<std::string> canonicalSignals;
@@ -849,13 +942,16 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		for (const SceneEntranceDelay& delay : scenario->entranceDelays) {
 			const auto serviceIt = serviceById.find(delay.serviceId);
 			const auto countIt = repeatCounts.find(delay.serviceId);
-			const std::string key = nativeOccurrenceKey(delay.serviceId, delay.occurrence);
-			if (serviceIt == serviceById.end() || countIt == repeatCounts.end() || delay.occurrence < 1
-					|| delay.occurrence > countIt->second) {
+			const SceneServiceOccurrence key{delay.serviceId, delay.occurrence};
+			if (serviceIt == serviceById.end() || countIt == repeatCounts.end() || delay.occurrence < 1) {
 				addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "Entrance delay service/occurrence is unknown",
 						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.serviceId);
 				continue;
 			}
+			const bool outsidePattern = delay.occurrence > countIt->second;
+			if (outsidePattern || (!selectedOccurrences.empty()
+					&& !occurrenceSelected(delay.serviceId, delay.occurrence)))
+				continue;
 			if (!nativeFinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
 				addNativeDiagnostic(diagnostics, "scene.native.entrance.value", "Entrance delay must be finite and non-negative",
 						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
@@ -879,7 +975,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				continue;
 			}
 			occurrenceDelay[key] = delay.delaySeconds;
-			if (!appliedDelayStations.insert(key + "\n" + delay.stationId).second)
+			if (!appliedDelayStations.insert({key, delay.stationId}).second)
 				continue;
 			const auto trainIt = occurrenceIndex.find(key);
 			if (trainIt == occurrenceIndex.end()) {
@@ -972,7 +1068,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			journey.Planned_Departure_Time = sourceJourney.plannedDepartureStartSeconds;
 			journey.Planned_Arrival_Time = sourceJourney.plannedArrivalStartSeconds;
 			for (const ScenePassengerLeg& sourceLeg : sourceJourney.legs) {
-				const auto trainIt = occurrenceIndex.find(nativeOccurrenceKey(sourceLeg.serviceId, sourceLeg.occurrence));
+				const SceneServiceOccurrence key{sourceLeg.serviceId, sourceLeg.occurrence};
+				if (!selectedOccurrences.empty() && !occurrenceSelected(sourceLeg.serviceId, sourceLeg.occurrence))
+					continue;
+				const auto trainIt = occurrenceIndex.find(key);
 				if (trainIt == occurrenceIndex.end() && serviceById.count(sourceLeg.serviceId) != 0) {
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
 							"Passenger leg refers to a service occurrence outside the simulation horizon",
