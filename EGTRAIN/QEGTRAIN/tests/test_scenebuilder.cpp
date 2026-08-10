@@ -58,6 +58,16 @@ static SceneModel stableConnectionScene() {
 	return scene;
 }
 
+static SceneModel signallingAreasScene() {
+	SceneModel scene = stableConnectionScene();
+	scene.routes.push_back({"route.switch", {"@alpha.block@-1.000000/@beta.block@-2.000000"}, false, {}, false});
+	scene.signallingAreas = {
+		{"network-area", 0.0, 3.0, 1, {}},
+		{"alpha-area", 0.0, 3.0, 3, "alpha"},
+	};
+	return scene;
+}
+
 static SceneModel twoRegionRouteScene() {
 	SceneModel scene;
 	scene.tracks = {{"region.a"}, {"region.b"}};
@@ -147,6 +157,38 @@ static bool runTinyBuilderChecks() {
 					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
 		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
 	}
+	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
+	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
+			"signalling areas apply before route construction");
+	if (!hasErrors(diagnostics) && Blocks == 3) {
+		const Section& alpha = signalling_block_sections[0];
+		const Section& beta = signalling_block_sections[1];
+		const Section& derived = signalling_block_sections[2];
+		ok &= expect(alpha.SignallingLevel == 3 && beta.SignallingLevel == 1
+				&& derived.SignallingLevel == 3,
+				"network and track-scoped levels reach base and derived switch sections");
+		ok &= expect(!train_route.empty() && train_route.front().N_Block_Sections == 1
+				&& train_route.front().sequence_of_block_sections[0].SignallingLevel == 3,
+				"signalling level is copied into the derived route section");
+	}
+	const int blocksBeforeConflict = Blocks;
+	std::vector<std::string> sectionIdsBeforeConflict;
+	for (int index = 0; index < Blocks; ++index)
+		sectionIdsBeforeConflict.push_back(signalling_block_sections[index].ID);
+	SceneModel conflictingAreas = signallingAreasScene();
+	conflictingAreas.signallingAreas.push_back({"beta-area", 0.0, 3.0, 4, "beta"});
+	conflictingAreas.tracks.push_back({"gamma"});
+	conflictingAreas.nodes.push_back({"gamma.start", "gamma", 4.0, 0.0});
+	conflictingAreas.nodes.push_back({"gamma.end", "gamma", 5.0, 0.0});
+	conflictingAreas.arcs.push_back({"gamma.arc", "gamma", "gamma.start", "gamma.end", 0.0, 0.0, 10.0});
+	conflictingAreas.blocks.push_back({"gamma.block", "gamma", 1.0});
+	diagnostics = buildInfrastructureAndSignallingFromScene(conflictingAreas);
+	bool sectionIdsUnchanged = Blocks == blocksBeforeConflict;
+	for (std::size_t index = 0; sectionIdsUnchanged && index < sectionIdsBeforeConflict.size(); ++index)
+		sectionIdsUnchanged = signalling_block_sections[index].ID == sectionIdsBeforeConflict[index];
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "signalling_area.conflict")
+				&& sectionIdsUnchanged,
+			"same-tier conflicting track areas are rejected before replacing the prior runtime");
 	SceneModel invalidSwitchReference = stableConnectionScene();
 	invalidSwitchReference.blockDependencies.push_back(
 			{"alpha.block", "@alpha.block@-9.000000/@beta.block@-10.000000"});

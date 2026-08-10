@@ -407,13 +407,14 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 	for (const auto& composition : scene.compositions)
 		addTarget(compositions, composition.id, "rolling_stock.json", "composition");
 
-	int signallingCount = static_cast<int>(scene.signals.size() + scene.routes.size()
+	int signallingCount = static_cast<int>(scene.signals.size() + scene.signallingAreas.size() + scene.routes.size()
 			+ scene.blockDependencies.size() + scene.singleTrackRestrictions.size()
 			+ scene.stationBoundaries.size());
 	add("signalling", "signalling.json", signallingCount);
 	scene.loadedData.back().targetType = "network";
 	const std::string signallingStatus = scene.loadedData.back().status;
 	addChild("signals", "signalling.json", static_cast<int>(scene.signals.size()), signallingStatus).targetType = "network";
+	addChild("signalling_areas", "signalling.json", static_cast<int>(scene.signallingAreas.size()), signallingStatus).targetType = "network";
 	addChild("routes", "signalling.json", static_cast<int>(scene.routes.size()), signallingStatus).targetType = "network";
 	addChild("dependencies", "signalling.json", static_cast<int>(scene.blockDependencies.size()), signallingStatus).targetType = "network";
 	addChild("restrictions", "signalling.json", static_cast<int>(scene.singleTrackRestrictions.size()
@@ -863,6 +864,19 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				SceneSignal signal;
 				stringField(signallingJson["signals"][index], "id", "signalling.json", path, signal.id);
 				result.scene.signals.push_back(signal);
+			}
+		}
+		if (arraySection(signallingJson, "signalling_areas", "signalling.json", "", false)) {
+			for (std::size_t index = 0; index < signallingJson["signalling_areas"].size(); ++index) {
+				const std::string path = "signalling_areas[" + std::to_string(index) + "]";
+				const json& value = signallingJson["signalling_areas"][index];
+				SceneSignallingArea area;
+				stringField(value, "id", "signalling.json", path, area.id);
+				numberField(value, "start_km", "signalling.json", path, area.startKm);
+				numberField(value, "end_km", "signalling.json", path, area.endKm);
+				integerField(value, "level", "signalling.json", path, area.level);
+				stringField(value, "track", "signalling.json", path, area.trackId, false);
+				result.scene.signallingAreas.push_back(std::move(area));
 			}
 		}
 		if (arraySection(signallingJson, "routes", "signalling.json", "", true)) {
