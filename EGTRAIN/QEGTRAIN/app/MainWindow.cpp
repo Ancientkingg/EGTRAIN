@@ -2459,8 +2459,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentEndSecondsEdit->setValidator(
 		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentEndSecondsEdit));
 	incidentDetailLayout->addWidget(m_incidentEndSecondsEdit);
-	m_incidentHasEndSecondsCheck = new QCheckBox("Use recovery end (otherwise until destination)", incidentDetailPane);
+	m_incidentHasEndSecondsCheck = new QCheckBox("Use recovery end", incidentDetailPane);
 	m_incidentHasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
+	m_incidentHasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
 	incidentDetailLayout->addWidget(m_incidentHasEndSecondsCheck);
 	m_incidentHasOccurrenceCheck = new QCheckBox("Occurrence (1-based)", incidentDetailPane);
 	m_incidentHasOccurrenceCheck->setObjectName("incidentHasOccurrenceCheck");
