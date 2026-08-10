@@ -1311,6 +1311,23 @@ std::vector<SceneSignal>& sceneSignals(SceneModel& sceneModel) {
 #endif
 	return result;
 }
+
+std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
+	std::vector<std::string> targets;
+	std::set<std::string> seen;
+	const auto add = [&targets, &seen](const std::string& target) {
+		if (!target.empty() && seen.insert(target).second)
+			targets.push_back(target);
+	};
+	for (const auto& signal : sceneSignals(sceneModel))
+		add(signal.id);
+	for (const auto& block : sceneModel.blocks)
+		add(block.id);
+	for (const auto& route : sceneModel.routes)
+		for (const auto& blockToken : route.blocks)
+			add(blockToken);
+	return targets;
+}
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
@@ -2033,14 +2050,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	}
 	trainUnitDetailLayout->addLayout(trainPhysicalLayout);
 
-	trainUnitDetailLayout->addWidget(new QLabel("Original parameter source", trainUnitDetailPane));
-	m_trainUnitSourceDataLabel = new QLabel(trainUnitDetailPane);
-	m_trainUnitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataLabel);
-	trainUnitDetailLayout->addWidget(new QLabel("Original tractive-effort source", trainUnitDetailPane));
-	m_trainUnitSourceTractionLabel = new QLabel(trainUnitDetailPane);
-	m_trainUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionLabel);
+	trainUnitDetailLayout->addWidget(new QLabel("Parameter source reference", trainUnitDetailPane));
+	m_trainUnitSourceDataEdit = new QLineEdit(trainUnitDetailPane);
+	m_trainUnitSourceDataEdit->setPlaceholderText("Optional");
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataEdit);
+	trainUnitDetailLayout->addWidget(new QLabel("Tractive-effort source reference", trainUnitDetailPane));
+	m_trainUnitSourceTractionEdit = new QLineEdit(trainUnitDetailPane);
+	m_trainUnitSourceTractionEdit->setPlaceholderText("Optional");
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionEdit);
 	m_plotTrainUnitTractionButton = new QPushButton("Plot input traction characteristic", trainUnitDetailPane);
 	trainUnitDetailLayout->addWidget(m_plotTrainUnitTractionButton);
 
@@ -2075,6 +2092,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateTrainUnitDetailPanel();
 	});
 	connect(m_trainUnitIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitIdEdit);
+	connect(m_trainUnitSourceDataEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitSources);
+	connect(m_trainUnitSourceTractionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitSources);
 	for (int i = 0; i < 9; ++i) {
 		connect(m_trainUnitPhysicalEdits[static_cast<size_t>(i)], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 				this, [this, i](double) { commitTrainUnitPhysical(i); });
@@ -3064,6 +3083,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 		return false;
 	commitPendingCaseSettings();
 	commitPendingServiceSettings();
+	commitTrainUnitSources();
 	if (m_sceneDir.isEmpty())
 		return saveSceneAsToBundle();
 
@@ -3082,6 +3102,7 @@ bool MainWindow::saveSceneAsToBundle() {
 		return false;
 	commitPendingCaseSettings();
 	commitPendingServiceSettings();
+	commitTrainUnitSources();
 
 	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
@@ -3108,6 +3129,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 		return false;
 	commitPendingCaseSettings();
 	commitPendingServiceSettings();
+	commitTrainUnitSources();
 
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
@@ -3184,6 +3206,7 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 bool MainWindow::maybeSaveScene() {
 	commitPendingCaseSettings();
 	commitPendingServiceSettings();
+	commitTrainUnitSources();
 	if (!m_sceneDirty)
 		return true;
 
@@ -4538,13 +4561,13 @@ void MainWindow::updateTrainUnitDetailPanel() {
 		m_trainUnitPhysicalEdits[index]->setValue(values[index]);
 		m_trainUnitPhysicalEdits[index]->setEnabled(hasSelection);
 	}
-	if (m_trainUnitSourceDataLabel) {
-		m_trainUnitSourceDataLabel->setText(unit && !unit->sourceDataFile.empty()
-			? QString::fromStdString(unit->sourceDataFile) : QString("(none)"));
+	if (m_trainUnitSourceDataEdit) {
+		m_trainUnitSourceDataEdit->setText(unit ? QString::fromStdString(unit->sourceDataFile) : QString());
+		m_trainUnitSourceDataEdit->setEnabled(hasSelection);
 	}
-	if (m_trainUnitSourceTractionLabel) {
-		m_trainUnitSourceTractionLabel->setText(unit && !unit->sourceTractionFile.empty()
-			? QString::fromStdString(unit->sourceTractionFile) : QString("(none)"));
+	if (m_trainUnitSourceTractionEdit) {
+		m_trainUnitSourceTractionEdit->setText(unit ? QString::fromStdString(unit->sourceTractionFile) : QString());
+		m_trainUnitSourceTractionEdit->setEnabled(hasSelection);
 	}
 	if (m_plotTrainUnitTractionButton)
 		m_plotTrainUnitTractionButton->setEnabled(unit && !unit->tractionCurve.empty());
@@ -4720,6 +4743,27 @@ void MainWindow::commitTrainUnitIdEdit() {
 	updateSceneActions();
 	refreshValidationPanel();
 	refreshCompositionPanel();
+}
+
+void MainWindow::commitTrainUnitSources() {
+	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitSourceDataEdit
+			|| !m_trainUnitSourceTractionEdit)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	SceneTrainUnit& unit = m_sceneModel.trainUnits[static_cast<std::size_t>(row)];
+	const std::string sourceDataFile = m_trainUnitSourceDataEdit->text().toStdString();
+	const std::string sourceTractionFile = m_trainUnitSourceTractionEdit->text().toStdString();
+	if (unit.sourceDataFile == sourceDataFile && unit.sourceTractionFile == sourceTractionFile)
+		return;
+	unit.sourceDataFile = sourceDataFile;
+	unit.sourceTractionFile = sourceTractionFile;
+	markSceneDirty();
+	updateSceneWindowTitle();
+	updateSceneActions();
+	refreshValidationPanel();
+	updateCompositionUnitButtons();
 }
 
 void MainWindow::commitTrainUnitPhysical(int fieldIndex) {
@@ -5033,15 +5077,26 @@ void MainWindow::deleteComposition() {
 void MainWindow::commitCompositionIdEdit() {
 	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionIdEdit)
 		return;
-	int row = m_compositionListWidget->currentRow();
+	const int row = m_compositionListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
 		return;
 
-	std::string newId = m_compositionIdEdit->text().trimmed().toStdString();
-	if (newId == m_sceneModel.compositions[row].id)
+	const std::string oldId = m_sceneModel.compositions[row].id;
+	const std::string newId = m_compositionIdEdit->text().trimmed().toStdString();
+	if (newId == oldId)
 		return;
+	const bool duplicate = newId.empty() || uniqueCompositionId(newId) != newId;
+	if (duplicate) {
+		m_compositionIdEdit->setText(QString::fromStdString(oldId));
+		return;
+	}
 
 	m_sceneModel.compositions[row].id = newId;
+	for (auto& service : m_sceneModel.services) {
+		if (service.composition == oldId)
+			service.composition = newId;
+	}
+	updateServiceDetailPanel();
 
 	// update the list row label in place instead of rebuilding the panel, so a
 	// focus-out that lands on another control keeps that pending click intact
@@ -6953,17 +7008,8 @@ void MainWindow::refreshIncidentTargetCombo() {
 		// which pool of ids to offer depends on the current type
 		QString typeText = m_incidentTypeCombo ? m_incidentTypeCombo->currentText() : QString();
 		if (typeText == "signal_failure") {
-#ifdef signals
-#define EGTRAIN_INCIDENT_RESTORE_SIGNALS
-#undef signals
-#endif
-			const auto& signalList = m_sceneModel.signals;
-#ifdef EGTRAIN_INCIDENT_RESTORE_SIGNALS
-#define signals Q_SIGNALS
-#undef EGTRAIN_INCIDENT_RESTORE_SIGNALS
-#endif
-			for (int i = 0; i < static_cast<int>(signalList.size()); ++i)
-				m_incidentTargetCombo->addItem(QString::fromStdString(signalList[i].id));
+			for (const auto& target : signalFailureTargets(m_sceneModel))
+				m_incidentTargetCombo->addItem(QString::fromStdString(target));
 		} else {
 			// train_breakdown or any unrecognised type: offer service ids
 			for (const auto& service : m_sceneModel.services)
@@ -7122,21 +7168,8 @@ void MainWindow::commitIncidentType(const QString& text) {
 	bool targetValid = incidents[row].target.empty();
 	if (!targetValid) {
 		if (newType == "signal_failure") {
-#ifdef signals
-#define EGTRAIN_INCIDENT_RESTORE_SIGNALS
-#undef signals
-#endif
-			const auto& signalList = m_sceneModel.signals;
-#ifdef EGTRAIN_INCIDENT_RESTORE_SIGNALS
-#define signals Q_SIGNALS
-#undef EGTRAIN_INCIDENT_RESTORE_SIGNALS
-#endif
-			for (int i = 0; i < static_cast<int>(signalList.size()); ++i) {
-				if (signalList[i].id == incidents[row].target) {
-					targetValid = true;
-					break;
-				}
-			}
+			const auto targets = signalFailureTargets(m_sceneModel);
+			targetValid = std::find(targets.begin(), targets.end(), incidents[row].target) != targets.end();
 		} else {
 			for (const auto& service : m_sceneModel.services) {
 				if (service.id == incidents[row].target) {
@@ -10032,6 +10065,23 @@ void MainWindow::runEditorSmokeE2E() {
 							commitIncidentEndSeconds();
 						}
 					}
+					const std::vector<SceneSignal> savedSignals = sceneSignals(m_sceneModel);
+					sceneSignals(m_sceneModel).clear();
+					refreshIncidentPanel();
+					const bool blockTargetOffered = m_incidentTargetCombo
+						&& m_incidentTargetCombo->findText(QString::fromStdString(renamedBlockId)) >= 0;
+					if (!blockTargetOffered) {
+						facetFailure(facetOk, "stations/signalling", "block target was not offered with an empty signal list");
+					} else {
+						m_incidentTargetCombo->setCurrentText(QString::fromStdString(renamedBlockId));
+						commitIncidentTarget(QString::fromStdString(renamedBlockId));
+						const SceneIncident* blockIncident = selectedIncident();
+						if (!blockIncident || blockIncident->target != renamedBlockId)
+							facetFailure(facetOk, "stations/signalling", "block signal_failure target did not persist canonically");
+					}
+					sceneSignals(m_sceneModel) = savedSignals;
+					refreshIncidentPanel();
+					refreshValidationPanel();
 				} else {
 					facetFailure(facetOk, "stations/signalling", "incident controls unavailable for signal coverage");
 				}
@@ -10254,12 +10304,13 @@ void MainWindow::runEditorSmokeE2E() {
 		bool hasParameterSource = false;
 		bool hasTractionSource = false;
 		for (QLabel* label : findChildren<QLabel*>()) {
-			hasParameterSource = hasParameterSource || label->text() == "Original parameter source";
-			hasTractionSource = hasTractionSource || label->text() == "Original tractive-effort source";
+			hasParameterSource = hasParameterSource || label->text() == "Parameter source reference";
+			hasTractionSource = hasTractionSource || label->text() == "Tractive-effort source reference";
 		}
 		bool hasPlotButton = false;
 		for (QPushButton* button : findChildren<QPushButton*>())
 				hasPlotButton = hasPlotButton || button->text() == "Plot input traction characteristic";
+		const bool hasEditableTrainSources = m_trainUnitSourceDataEdit && m_trainUnitSourceTractionEdit;
 		bool hasPlannedArrival = false;
 		bool hasPlannedDeparture = false;
 		for (QCheckBox* check : findChildren<QCheckBox*>()) {
@@ -10287,7 +10338,7 @@ void MainWindow::runEditorSmokeE2E() {
 				}
 			}
 		}
-		if (!explorerOk || !hasParameterSource || !hasTractionSource || !hasPlotButton
+		if (!explorerOk || !hasParameterSource || !hasTractionSource || !hasPlotButton || !hasEditableTrainSources
 				|| !hasPlannedArrival || !hasPlannedDeparture || !axesOk) {
 			ok = false;
 			failures << "explorer: load review, activation, generic provenance, plot axes, or timetable labels missing";
@@ -10359,6 +10410,26 @@ void MainWindow::runEditorSmokeE2E() {
 			}
 			if (oldReferencePresent || !newReferencePresent)
 				facetFailure(facetOk, "train unit", "rename did not update composition references");
+
+			m_trainUnitListWidget->setCurrentRow(originalCount);
+			const QString initialSourceData = QStringLiteral("e2e/source-data-initial.txt");
+			const QString initialSourceTraction = QStringLiteral("e2e/source-traction-initial.txt");
+			const QString editedSourceData = QStringLiteral("e2e/source-data-final.txt");
+			const QString editedSourceTraction = QStringLiteral("e2e/source-traction-final.txt");
+			if (!m_trainUnitSourceDataEdit || !m_trainUnitSourceTractionEdit) {
+				facetFailure(facetOk, "train unit", "source reference editors unavailable");
+			} else {
+				m_trainUnitSourceDataEdit->setText(initialSourceData);
+				m_trainUnitSourceTractionEdit->setText(initialSourceTraction);
+				QMetaObject::invokeMethod(m_trainUnitSourceDataEdit, "editingFinished", Qt::DirectConnection);
+				m_trainUnitSourceDataEdit->setText(editedSourceData);
+				m_trainUnitSourceTractionEdit->setText(editedSourceTraction);
+				QMetaObject::invokeMethod(m_trainUnitSourceTractionEdit, "editingFinished", Qt::DirectConnection);
+				const SceneTrainUnit& editedUnit = m_sceneModel.trainUnits[originalCount];
+				if (editedUnit.sourceDataFile != editedSourceData.toStdString()
+						|| editedUnit.sourceTractionFile != editedSourceTraction.toStdString())
+					facetFailure(facetOk, "train unit", "source reference edits did not commit both fields");
+			}
 
 			const double physicalValues[] = {
 				101.1234567890123, 51.0000000012345, 2.0, 40.1234567890123,
@@ -10462,15 +10533,13 @@ void MainWindow::runEditorSmokeE2E() {
 				}
 			}
 		}
-		if (!m_sceneModel.trainUnits.empty() && !m_sceneModel.trainUnits.front().sourceDataFile.empty()) {
+		if (!m_sceneModel.trainUnits.empty()) {
 			m_trainUnitListWidget->setCurrentRow(0);
-			if (!m_trainUnitSourceDataLabel || m_trainUnitSourceDataLabel->text().toStdString() != m_sceneModel.trainUnits.front().sourceDataFile)
-				facetFailure(facetOk, "train unit", "source data filename is not visible and unchanged");
-		}
-		if (!m_sceneModel.trainUnits.empty() && !m_sceneModel.trainUnits.front().sourceTractionFile.empty()) {
-			m_trainUnitListWidget->setCurrentRow(0);
-			if (!m_trainUnitSourceTractionLabel || m_trainUnitSourceTractionLabel->text().toStdString() != m_sceneModel.trainUnits.front().sourceTractionFile)
-				facetFailure(facetOk, "train unit", "source traction filename is not visible and unchanged");
+			if (!m_trainUnitSourceDataEdit || m_trainUnitSourceDataEdit->text().toStdString()
+					!= m_sceneModel.trainUnits.front().sourceDataFile
+				|| !m_trainUnitSourceTractionEdit || m_trainUnitSourceTractionEdit->text().toStdString()
+					!= m_sceneModel.trainUnits.front().sourceTractionFile)
+				facetFailure(facetOk, "train unit", "source references are not visible and unchanged");
 		}
 		expectedCompositions = m_sceneModel.compositions;
 		if (facetOk)
@@ -10484,57 +10553,102 @@ void MainWindow::runEditorSmokeE2E() {
 	} else {
 		bool facetOk = true;
 		const int originalCount = m_compositionListWidget->count();
-		m_compositionListWidget->setCurrentRow(0);
-		// the selected unit surfaces its source files and a plottable traction curve
-		if (m_compositionUnitsListWidget && m_compositionUnitsListWidget->count() > 0 &&
-			m_compositionUnitsListWidget->item(0)) {
-			m_compositionUnitsListWidget->setCurrentRow(0);
-			const SceneTrainUnit* tractionUnit =
-				trainUnitById(m_compositionUnitsListWidget->item(0)->text().toStdString());
-			if (tractionUnit && !tractionUnit->tractionCurve.empty()) {
-				if (!m_plotTractionButton || !m_plotTractionButton->isEnabled())
-					facetFailure(facetOk, "composition", "traction plot disabled for a unit with a curve");
-				if (sampleTractionCurve(tractionUnit->tractionCurve).empty())
-					facetFailure(facetOk, "composition", "traction curve produced no plot samples");
-				if (m_compositionUnitSourceDataLabel && m_compositionUnitSourceDataLabel->text().isEmpty())
-					facetFailure(facetOk, "composition", "unit source data label empty");
-			}
-		}
-		duplicateComposition();
-		if (m_compositionListWidget->count() != originalCount + 1) {
-			facetFailure(facetOk, "composition", "duplicate did not apply");
-		} else {
-			m_compositionListWidget->setCurrentRow(1);
-			editedCompositionId = uniqueCompositionId("e2e_composition");
-			if (!m_compositionIdEdit) {
-				facetFailure(facetOk, "composition", "id editor unavailable");
-			} else {
-				m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
-				commitCompositionIdEdit();
-				if (m_sceneModel.compositions.size() <= 1 || m_sceneModel.compositions[1].id != editedCompositionId)
-					facetFailure(facetOk, "composition", "id edit did not apply");
-			}
-		}
-		addComposition();
-		if (m_compositionListWidget->count() != originalCount + 2) {
-			facetFailure(facetOk, "composition", "add did not apply");
-		} else {
-			acceptConfirmation();
-			deleteComposition();
-			if (m_compositionListWidget->count() != originalCount + 1)
-				facetFailure(facetOk, "composition", "delete did not apply");
-		}
-		int editedRow = -1;
+		int assignedCompositionRow = -1;
 		for (int row = 0; row < static_cast<int>(m_sceneModel.compositions.size()); ++row) {
-			if (m_sceneModel.compositions[row].id == editedCompositionId) {
-				editedRow = row;
+			const std::string& compositionId = m_sceneModel.compositions[static_cast<std::size_t>(row)].id;
+			if (std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+					[&compositionId](const SceneService& service) { return service.composition == compositionId; })) {
+				assignedCompositionRow = row;
 				break;
 			}
 		}
-		if (editedRow < 0 || m_sceneModel.compositions[editedRow].units != expectedCompositions[0].units)
-			facetFailure(facetOk, "composition", "edited composition was not retained");
-		if (facetOk)
-			std::fprintf(stdout, "E2E_EDITOR_COMPOSITION_OK\n");
+		if (assignedCompositionRow < 0) {
+			facetFailure(facetOk, "composition", "no service-assigned composition available for rename coverage");
+		} else {
+			m_compositionListWidget->setCurrentRow(assignedCompositionRow);
+			// the selected unit surfaces its source files and a plottable traction curve
+			if (m_compositionUnitsListWidget && m_compositionUnitsListWidget->count() > 0 &&
+				m_compositionUnitsListWidget->item(0)) {
+				m_compositionUnitsListWidget->setCurrentRow(0);
+				const SceneTrainUnit* tractionUnit =
+					trainUnitById(m_compositionUnitsListWidget->item(0)->text().toStdString());
+				if (tractionUnit && !tractionUnit->tractionCurve.empty()) {
+					if (!m_plotTractionButton || !m_plotTractionButton->isEnabled())
+						facetFailure(facetOk, "composition", "traction plot disabled for a unit with a curve");
+					if (sampleTractionCurve(tractionUnit->tractionCurve).empty())
+						facetFailure(facetOk, "composition", "traction curve produced no plot samples");
+					if (m_compositionUnitSourceDataLabel && m_compositionUnitSourceDataLabel->text().isEmpty())
+						facetFailure(facetOk, "composition", "unit source data label empty");
+				}
+			}
+			duplicateComposition();
+			if (m_compositionListWidget->count() != originalCount + 1) {
+				facetFailure(facetOk, "composition", "duplicate did not apply");
+			} else {
+				const std::string originalAssignedCompositionId =
+					m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id;
+				const std::string duplicateCompositionId =
+					m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow + 1)].id;
+				m_compositionListWidget->setCurrentRow(assignedCompositionRow);
+				if (!m_compositionIdEdit) {
+					facetFailure(facetOk, "composition", "id editor unavailable");
+				} else {
+					m_compositionIdEdit->setText(QString());
+					commitCompositionIdEdit();
+					const bool emptyRejected = m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
+							== originalAssignedCompositionId
+						&& m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
+						&& m_compositionListWidget->currentRow() == assignedCompositionRow;
+					m_compositionIdEdit->setText(QString::fromStdString(duplicateCompositionId));
+					commitCompositionIdEdit();
+					const bool duplicateRejected = m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
+							== originalAssignedCompositionId
+						&& m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
+						&& m_compositionListWidget->currentRow() == assignedCompositionRow;
+					if (!emptyRejected || !duplicateRejected)
+						facetFailure(facetOk, "composition", "empty or duplicate ID was not rejected with the prior text restored");
+
+					editedCompositionId = uniqueCompositionId("e2e_composition");
+					m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
+					commitCompositionIdEdit();
+					int migratedServiceCount = 0;
+					int staleServiceCount = 0;
+					for (const auto& service : m_sceneModel.services) {
+						if (service.composition == editedCompositionId)
+							++migratedServiceCount;
+						if (service.composition == originalAssignedCompositionId)
+							++staleServiceCount;
+					}
+					if (m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id != editedCompositionId
+							|| migratedServiceCount <= 0 || staleServiceCount != 0
+							|| m_compositionListWidget->currentRow() != assignedCompositionRow
+							|| !m_serviceCompositionCombo
+							|| m_serviceCompositionCombo->findText(QString::fromStdString(editedCompositionId)) < 0)
+						facetFailure(facetOk, "composition", "id edit did not apply");
+				}
+			}
+			addComposition();
+			if (m_compositionListWidget->count() != originalCount + 2) {
+				facetFailure(facetOk, "composition", "add did not apply");
+			} else {
+				acceptConfirmation();
+				deleteComposition();
+				if (m_compositionListWidget->count() != originalCount + 1)
+					facetFailure(facetOk, "composition", "delete did not apply");
+			}
+			int editedRow = -1;
+			for (int row = 0; row < static_cast<int>(m_sceneModel.compositions.size()); ++row) {
+				if (m_sceneModel.compositions[row].id == editedCompositionId) {
+					editedRow = row;
+					break;
+				}
+			}
+			if (editedRow < 0 || m_sceneModel.compositions[editedRow].units
+					!= expectedCompositions[static_cast<std::size_t>(assignedCompositionRow)].units)
+				facetFailure(facetOk, "composition", "edited composition was not retained");
+			if (facetOk)
+				std::fprintf(stdout, "E2E_EDITOR_COMPOSITION_OK\n");
+		}
 	}
 
 	std::string editedServiceId;
@@ -10985,8 +11099,31 @@ void MainWindow::runEditorSmokeE2E() {
 				}
 				if (!selectionRoundtripOk)
 					facetFailure(facetOk, "save/reload", "temporary occurrence selection was serialized or not reset on reopen");
+
+				const auto editedUnit = std::find_if(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
+					[&editedTrainUnitId](const SceneTrainUnit& unit) { return unit.id == editedTrainUnitId; });
+				if (editedUnit == m_sceneModel.trainUnits.end() || !m_trainUnitSourceDataEdit) {
+					facetFailure(facetOk, "save/reload", "edited train unit or source editor unavailable");
+				} else {
+					const int trainUnitRow = static_cast<int>(std::distance(m_sceneModel.trainUnits.begin(), editedUnit));
+					m_trainUnitListWidget->setCurrentRow(trainUnitRow);
+					const std::string pendingSource = "e2e/source-data-pending-save.txt";
+					m_trainUnitSourceDataEdit->setFocus();
+					m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
+					if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile == pendingSource) {
+						facetFailure(facetOk, "save/reload", "pending source edit committed before the save path");
+					} else if (!saveSceneToCurrentDir()) {
+						facetFailure(facetOk, "save/reload", "save path rejected a pending source edit");
+					} else if (!openSceneDirectory(outScenePath)) {
+						facetFailure(facetOk, "save/reload", "scene with a pending source edit did not reload");
+					} else {
+						const auto reloadedUnit = std::find_if(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
+							[&editedTrainUnitId](const SceneTrainUnit& unit) { return unit.id == editedTrainUnitId; });
+						if (reloadedUnit == m_sceneModel.trainUnits.end() || reloadedUnit->sourceDataFile != pendingSource)
+							facetFailure(facetOk, "save/reload", "pending source edit was not saved and reloaded");
+					}
+				}
 			}
-		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
 	}
@@ -12401,6 +12538,7 @@ void MainWindow::runScene() {
 
 	commitPendingCaseSettings();
 	commitPendingServiceSettings();
+	commitTrainUnitSources();
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;

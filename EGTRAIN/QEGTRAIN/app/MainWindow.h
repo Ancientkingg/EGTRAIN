@@ -428,8 +428,8 @@ private:
 	QListWidget* m_trainUnitListWidget = nullptr;
 	QLineEdit* m_trainUnitIdEdit = nullptr;
 	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
-	QLabel* m_trainUnitSourceDataLabel = nullptr;
-	QLabel* m_trainUnitSourceTractionLabel = nullptr;
+	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
+	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
 	QTableWidget* m_trainUnitTractionTable = nullptr;
 	QPushButton* m_addTrainUnitButton = nullptr;
 	QPushButton* m_duplicateTrainUnitButton = nullptr;
@@ -617,6 +617,7 @@ private:
 	void duplicateTrainUnit();
 	void deleteTrainUnit();
 	void commitTrainUnitIdEdit();
+	void commitTrainUnitSources();
 	void commitTrainUnitPhysical(int fieldIndex);
 	void addTrainUnitTractionRow();
 	void removeTrainUnitTractionRow();
