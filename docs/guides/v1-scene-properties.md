@@ -56,6 +56,10 @@ A route has `id`, a string-array `blocks`, and optional `corridor` and
 
 Use these optional arrays for explicit signalling relationships:
 
+- `signalling_areas`: `id`, numeric `start_km`, numeric `end_km`, integer
+  `level` from 0 through 5, and optional canonical `track`. A section must fit
+  completely inside the area. Track-scoped areas override network-wide areas;
+  missing coverage remains unset.
 - `block_dependencies`: `{ "block": "...", "depends_on": "..." }`.
 - `single_track_restrictions`: `start_block`, `end_block`,
   `protected_start_block`, and `protected_end_block`.

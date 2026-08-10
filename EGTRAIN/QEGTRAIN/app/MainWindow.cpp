@@ -1898,6 +1898,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureFacetCombo->addItem("Stations", "stations");
 	m_infrastructureFacetCombo->addItem("Platforms", "platforms");
 	m_infrastructureFacetCombo->addItem("Signals", "signals");
+	m_infrastructureFacetCombo->addItem("Signalling area", "signalling_areas");
 	m_infrastructureFacetCombo->addItem("Routes", "routes");
 	m_infrastructureFacetCombo->addItem("Block dependencies", "block_dependencies");
 	m_infrastructureFacetCombo->addItem("Single-track restrictions", "single_track_restrictions");
@@ -3517,6 +3518,9 @@ std::string MainWindow::uniqueInfrastructureId(const std::string& baseId, const 
 		if (facet == "signals")
 			return std::any_of(sceneSignals(m_sceneModel).begin(), sceneSignals(m_sceneModel).end(),
 							   [&id](const SceneSignal& item) { return item.id == id; });
+		if (facet == "signalling_areas")
+			return std::any_of(m_sceneModel.signallingAreas.begin(), m_sceneModel.signallingAreas.end(),
+							   [&id](const SceneSignallingArea& item) { return item.id == id; });
 		return std::any_of(m_sceneModel.routes.begin(), m_sceneModel.routes.end(),
 						   [&id](const SceneRoute& item) { return item.id == id; });
 	};
@@ -3576,6 +3580,8 @@ void MainWindow::refreshInfrastructureTable() {
 		headers << "Station ID" << "ID" << "Nodes";
 	else if (facet == "signals")
 		headers << "ID";
+	else if (facet == "signalling_areas")
+		headers << "ID" << "Start km" << "End km" << "Level" << "Track ID";
 	else if (facet == "routes")
 		headers << "ID" << "Blocks" << "Has corridor" << "Corridor" << "Reversed";
 	else if (facet == "block_dependencies")
@@ -3664,6 +3670,16 @@ void MainWindow::refreshInfrastructureTable() {
 		m_infrastructureTable->setRowCount(static_cast<int>(signalsList.size()));
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row)
 			setCell(row, 0, QString::fromStdString(signalsList[static_cast<std::size_t>(row)].id));
+	} else if (facet == "signalling_areas") {
+		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.signallingAreas.size()));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			const SceneSignallingArea& area = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
+			setCell(row, 0, QString::fromStdString(area.id));
+			setCell(row, 1, QString::number(area.startKm, 'g', precision));
+			setCell(row, 2, QString::number(area.endKm, 'g', precision));
+			setCell(row, 3, QString::number(area.level));
+			setCell(row, 4, QString::fromStdString(area.trackId));
+		}
 	} else if (facet == "routes") {
 		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.routes.size()));
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
@@ -3830,6 +3846,9 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 			for (auto& block : m_sceneModel.blocks)
 				if (block.trackId == oldId)
 					block.trackId = newId;
+			for (auto& area : m_sceneModel.signallingAreas)
+				if (area.trackId == oldId)
+					area.trackId = newId;
 			m_infrastructureSelectionId = value;
 			changed = true;
 		}
@@ -4090,6 +4109,39 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 			m_infrastructureSelectionId = value;
 			changed = true;
 		}
+	} else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size())) {
+		SceneSignallingArea& area = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
+		if (column == 0) {
+			const std::string oldId = area.id;
+			const std::string newId = value.toStdString();
+			if (oldId != newId) {
+				if (!idCanReplaceRow(m_sceneModel.signallingAreas, newId)) {
+					rejectUnsafeId();
+					return;
+				}
+				area.id = newId;
+				m_infrastructureSelectionId = value;
+				changed = true;
+			}
+		} else if (column == 1) {
+			parseNumber(area.startKm);
+		} else if (column == 2) {
+			parseNumber(area.endKm);
+		} else if (column == 3) {
+			bool parsed = false;
+			const int level = value.toInt(&parsed);
+			if (!parsed) {
+				refreshInfrastructureTable();
+				return;
+			}
+			if (area.level != level) {
+				area.level = level;
+				changed = true;
+			}
+		} else if (column == 4 && area.trackId != value.toStdString()) {
+			area.trackId = value.toStdString();
+			changed = true;
+		}
 	} else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size())) {
 		SceneRoute& route = m_sceneModel.routes[static_cast<std::size_t>(row)];
 		if (column == 0) {
@@ -4241,6 +4293,10 @@ void MainWindow::addInfrastructureEntity() {
 		id = uniqueInfrastructureId("signal", facet);
 		sceneSignals(m_sceneModel).push_back({id});
 		newRow = static_cast<int>(sceneSignals(m_sceneModel).size()) - 1;
+	} else if (facet == "signalling_areas") {
+		id = uniqueInfrastructureId("signalling-area", facet);
+		m_sceneModel.signallingAreas.push_back({id, 0.0, 0.0, 0, {}});
+		newRow = static_cast<int>(m_sceneModel.signallingAreas.size()) - 1;
 	} else if (facet == "routes") {
 		id = uniqueInfrastructureId("route", facet);
 		m_sceneModel.routes.push_back({id, {}, false, {}, false});
@@ -4295,7 +4351,16 @@ void MainWindow::deleteInfrastructureEntity() {
 		}
 	}
 	QString referenceSummary;
-	if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size())) {
+	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size())) {
+		const std::string trackId = m_sceneModel.tracks[static_cast<std::size_t>(row)].id;
+		int areaCount = 0;
+		for (const auto& area : m_sceneModel.signallingAreas)
+			if (area.trackId == trackId)
+				++areaCount;
+		referenceSummary = areaCount == 0
+			? QStringLiteral("No signalling-area references")
+			: QStringLiteral("Referencing signalling areas: %1").arg(areaCount);
+	} else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size())) {
 		const std::string stationId = m_sceneModel.stations[static_cast<std::size_t>(row)].id;
 		QMap<QString, int> serviceCounts;
 		for (const auto& service : m_sceneModel.services)
@@ -4358,6 +4423,8 @@ void MainWindow::deleteInfrastructureEntity() {
 			m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].platforms.begin() + platformIndex);
 	else if (facet == "signals" && row < static_cast<int>(sceneSignals(m_sceneModel).size()))
 		sceneSignals(m_sceneModel).erase(sceneSignals(m_sceneModel).begin() + row);
+	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
+		m_sceneModel.signallingAreas.erase(m_sceneModel.signallingAreas.begin() + row);
 	else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size()))
 		m_sceneModel.routes.erase(m_sceneModel.routes.begin() + row);
 	else if (facet == "block_dependencies" && row < static_cast<int>(m_sceneModel.blockDependencies.size()))
@@ -9489,6 +9556,7 @@ void MainWindow::runEditorSmokeE2E() {
 	std::vector<SceneBlockDependency> expectedBlockDependencies;
 	std::vector<SceneSingleTrackRestriction> expectedSingleTrackRestrictions;
 	std::vector<SceneStationBoundary> expectedStationBoundaries;
+	std::vector<SceneSignallingArea> expectedSignallingAreas;
 	std::vector<SceneStation> expectedStations;
 	std::vector<SceneSignal> expectedSignals;
 	std::vector<SceneService> expectedNewCaseServices;
@@ -9602,6 +9670,16 @@ void MainWindow::runEditorSmokeE2E() {
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneSignal& a, const SceneSignal& b) {
 			return a.id == b.id;
+		});
+	};
+	auto sameSignallingAreas = [](const std::vector<SceneSignallingArea>& left,
+			const std::vector<SceneSignallingArea>& right) {
+		if (left.size() != right.size())
+			return false;
+		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneSignallingArea& a,
+				const SceneSignallingArea& b) {
+			return a.id == b.id && a.startKm == b.startKm && a.endKm == b.endKm
+				&& a.level == b.level && a.trackId == b.trackId;
 		});
 	};
 	auto sameInfrastructure = [](const SceneModel& left, const std::vector<SceneTrack>& tracks,
@@ -9813,6 +9891,35 @@ void MainWindow::runEditorSmokeE2E() {
 					facetFailure(facetOk, "stations/signalling", "platform table authoring or station move did not apply");
 				if (!addInfrastructureRow("signals") || !setInfrastructureCell("signals", 0, 0, "e2e-signal"))
 					facetFailure(facetOk, "stations/signalling", "signal table authoring did not apply");
+				if (!addInfrastructureRow("signalling_areas"))
+					facetFailure(facetOk, "stations/signalling", "signalling area row could not be added");
+				const bool signallingAreaStartsInvalid = m_sceneModel.signallingAreas.size() == 1
+						&& m_sceneModel.signallingAreas.front().startKm == 0.0
+						&& m_sceneModel.signallingAreas.front().endKm == 0.0
+						&& m_sceneModel.signallingAreas.front().level == 0
+						&& m_sceneModel.signallingAreas.front().trackId.empty();
+				if (!signallingAreaStartsInvalid)
+					facetFailure(facetOk, "stations/signalling", "Add did not create an inert signalling area row");
+				if (!setInfrastructureCell("signalling_areas", 0, 0, "e2e-signalling-area")
+						|| !setInfrastructureCell("signalling_areas", 0, 1, "0.25")
+						|| !setInfrastructureCell("signalling_areas", 0, 2, "1.75")
+						|| !setInfrastructureCell("signalling_areas", 0, 3, "4"))
+					facetFailure(facetOk, "stations/signalling", "network-wide signalling area authoring did not apply");
+				const bool networkAreaAuthored = m_sceneModel.signallingAreas.size() == 1
+						&& m_sceneModel.signallingAreas.front().id == "e2e-signalling-area"
+						&& m_sceneModel.signallingAreas.front().level == 4
+						&& m_sceneModel.signallingAreas.front().trackId.empty();
+				if (!networkAreaAuthored)
+					facetFailure(facetOk, "stations/signalling", "network-wide signalling area was not canonical");
+				if (!setInfrastructureCell("signalling_areas", 0, 4, "e2e-main")
+						|| m_sceneModel.signallingAreas.front().trackId != "e2e-main")
+					facetFailure(facetOk, "stations/signalling", "signalling area track-scope edit did not apply");
+				const bool areaTrackRenameUpdated = setInfrastructureCell("tracks", 0, 0, "e2e-main-renamed")
+						&& m_sceneModel.signallingAreas.front().trackId == "e2e-main-renamed"
+						&& setInfrastructureCell("tracks", 0, 0, "e2e-main")
+						&& m_sceneModel.signallingAreas.front().trackId == "e2e-main";
+				if (!areaTrackRenameUpdated)
+					facetFailure(facetOk, "stations/signalling", "track rename did not preserve signalling-area scope");
 				if (!addInfrastructureRow("routes") || !setInfrastructureCell("routes", 0, 0, "e2e-block-route") || !setInfrastructureCell("routes", 0, 1, QString::fromStdString("@" + oldBlockId + "@-0.25/@" + secondBlockId + "@-0.50")) || !setInfrastructureCell("routes", 0, 2, "true") || !setInfrastructureCell("routes", 0, 3, "e2e-corridor") || !setInfrastructureCell("routes", 0, 4, "true"))
 					facetFailure(facetOk, "stations/signalling", "route table authoring did not apply");
 				if (!addInfrastructureRow("block_dependencies") || !setInfrastructureCell("block_dependencies", 0, 0, QString::fromStdString("@" + oldBlockId + "@-1.0")) || !setInfrastructureCell("block_dependencies", 0, 1, QString::fromStdString(secondBlockId)) || !addInfrastructureRow("single_track_restrictions") || !setInfrastructureCell("single_track_restrictions", 0, 0, QString::fromStdString(oldBlockId)) || !setInfrastructureCell("single_track_restrictions", 0, 1, QString::fromStdString(secondBlockId)) || !setInfrastructureCell("single_track_restrictions", 0, 2, QString::fromStdString("@" + oldBlockId + "@-1.0/@" + secondBlockId + "@-2.0")) || !setInfrastructureCell("single_track_restrictions", 0, 3, QString::fromStdString(secondBlockId)) || !addInfrastructureRow("station_boundaries") || !setInfrastructureCell("station_boundaries", 0, 0, QString::fromStdString("@" + oldBlockId + "@-3.0")) || !setInfrastructureCell("station_boundaries", 0, 1, "true") || !setInfrastructureCell("station_boundaries", 0, 2, QString::fromStdString(secondBlockId)) || !setInfrastructureCell("station_boundaries", 0, 3, "false"))
@@ -9893,6 +10000,7 @@ void MainWindow::runEditorSmokeE2E() {
 				expectedBlockDependencies = m_sceneModel.blockDependencies;
 				expectedSingleTrackRestrictions = m_sceneModel.singleTrackRestrictions;
 				expectedStationBoundaries = m_sceneModel.stationBoundaries;
+				expectedSignallingAreas = m_sceneModel.signallingAreas;
 				expectedStations = m_sceneModel.stations;
 				expectedSignals = sceneSignals(m_sceneModel);
 				expectedNewCaseServices = m_sceneModel.services;
@@ -9923,7 +10031,7 @@ void MainWindow::runEditorSmokeE2E() {
 			std::string expectedDescription = "new case editor smoke";
 			const auto verifyNewCase = [&]() {
 				const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
-				return m_sceneLoaded && !m_sceneDirty && m_sceneModel.schemaVersion == 1 && m_sceneModel.name == expectedName && m_sceneModel.description == expectedDescription && m_sceneModel.baseTime == "09:15:30" && m_sceneModel.settings.hasDuration && m_sceneModel.settings.durationSeconds == 7200.0 && m_sceneModel.settings.hasBufferTime && m_sceneModel.settings.bufferTimeSeconds == 30.0 && m_sceneModel.settings.hasRecoveryTime && m_sceneModel.settings.recoveryTimePercent == 7.5 && m_sceneModel.defaultScenarioId == "baseline" && scenario && scenario->id == "baseline" && scenario->name == "Baseline" && sameIncidents(scenario->incidents, expectedNewCaseIncidents) && scenario->entranceDelays.empty() && (expectedTracks.empty() || sameInfrastructure(m_sceneModel, expectedTracks, expectedNodes, expectedArcs, expectedBlocks, expectedConnections)) && (expectedRoutes.empty() || sameBlockReferences(m_sceneModel, expectedRoutes, expectedBlockDependencies, expectedSingleTrackRestrictions, expectedStationBoundaries)) && (expectedStations.empty() || sameStations(m_sceneModel.stations, expectedStations)) && (expectedSignals.empty() || sameSignals(sceneSignals(m_sceneModel), expectedSignals)) && (expectedNewCaseServices.empty() || sameServices(m_sceneModel.services, expectedNewCaseServices));
+				return m_sceneLoaded && !m_sceneDirty && m_sceneModel.schemaVersion == 1 && m_sceneModel.name == expectedName && m_sceneModel.description == expectedDescription && m_sceneModel.baseTime == "09:15:30" && m_sceneModel.settings.hasDuration && m_sceneModel.settings.durationSeconds == 7200.0 && m_sceneModel.settings.hasBufferTime && m_sceneModel.settings.bufferTimeSeconds == 30.0 && m_sceneModel.settings.hasRecoveryTime && m_sceneModel.settings.recoveryTimePercent == 7.5 && m_sceneModel.defaultScenarioId == "baseline" && scenario && scenario->id == "baseline" && scenario->name == "Baseline" && sameIncidents(scenario->incidents, expectedNewCaseIncidents) && scenario->entranceDelays.empty() && (expectedTracks.empty() || sameInfrastructure(m_sceneModel, expectedTracks, expectedNodes, expectedArcs, expectedBlocks, expectedConnections)) && (expectedRoutes.empty() || sameBlockReferences(m_sceneModel, expectedRoutes, expectedBlockDependencies, expectedSingleTrackRestrictions, expectedStationBoundaries)) && (expectedSignallingAreas.empty() || sameSignallingAreas(m_sceneModel.signallingAreas, expectedSignallingAreas)) && (expectedStations.empty() || sameStations(m_sceneModel.stations, expectedStations)) && (expectedSignals.empty() || sameSignals(sceneSignals(m_sceneModel), expectedSignals)) && (expectedNewCaseServices.empty() || sameServices(m_sceneModel.services, expectedNewCaseServices));
 			};
 			if (!openSceneDirectory(newCaseFolder) || !verifyNewCase())
 				facetFailure(facetOk, "new case", "folder save did not reopen with the edited settings");
