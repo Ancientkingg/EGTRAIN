@@ -30,8 +30,9 @@ int main() {
 			block("@13-B0@", 25.0, 40.0, 1600.0, 2200.0, "SW13", "None", true),
 		},
 		{
-			block("@12-B9@", 15.0, 25.0, 1000.0, 1500.0, "None", "StationA", true),
+			block("@12-B0@", 15.0, 25.0, 1000.0, 1500.0, "None", "StationA", true),
 			block("@40-B0@", 50.0, 45.0, 1800.0, 2100.0, "None", "None", true),
+			block("@42-B0@", 45.0, 45.0, 1900.0, 2200.0, "None", "None", true),
 			block("@41-B0@", 60.0, 70.0, 2100.0, 2300.0, "None", "None", false),
 		},
 	};
@@ -39,6 +40,10 @@ int main() {
 	std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(trains, names);
 
 	bool ok = true;
+	ok &= expect(!shareBlockingTimeResource("2-B0", "2-B4"),
+		"distinct decorated block resources do not match");
+	ok &= expect(shareBlockingTimeResource("@2-B0@-1.0/@3-B1@-2.0", "2-B0"),
+		"composite block matches its exact component");
 	ok &= expect(segments.size() == 3, "invalid and incomplete intervals are filtered");
 	if (segments.size() >= 3) {
 		ok &= expect(segments[0].trainName == "A", "first segment train name");
@@ -55,7 +60,7 @@ int main() {
 	}
 
 	const std::vector<BlockingTimeDiagramSegment> scoped = filterBlockingTimeDiagramSegments(
-		segments, {"A"}, {"@12-B7@"}, 12.0, 18.0);
+		segments, {"A"}, {"@12-B0@"}, 12.0, 18.0);
 	ok &= expect(scoped.size() == 1, "route block and train scope filters segments");
 	if (!scoped.empty()) {
 		ok &= expect(scoped[0].startTime == 12.0 && scoped[0].endTime == 18.0,
@@ -73,6 +78,13 @@ int main() {
 		"planned scope retains both source points for a visible line crossing");
 	ok &= expect(filterBlockingTimePlannedReferences(references, 31.0, 39.0).empty(),
 		"off-window planned points do not create an empty scoped chart or export");
+	const auto nearTouch = buildBlockingTimeDiagramSegments({
+		{block("T", 0.0, 10.00000005, 0.0, 100.0, "None", "None", true)},
+		{block("T", 10.0, 20.0, 0.0, 100.0, "None", "None", true)}}, {"A", "B"});
+	ok &= expect(nearTouch.size() == 2
+		&& nearTouch[0].style == BlockingTimeSegmentStyle::Default
+		&& nearTouch[1].style == BlockingTimeSegmentStyle::Default,
+		"sub-tolerance touching is not also styled as an overlap conflict");
 
 	if (!ok)
 		return 1;

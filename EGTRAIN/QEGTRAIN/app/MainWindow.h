@@ -128,6 +128,7 @@ class ConsoleWidget; // forward declaration for m_logPane
 #include <QToolBar>
 
 #include "simulation/SimulationWorker.h"
+#include "diagrams/CapacityAnalysis.h"
 
 // boolean to define if GUI is used or not
 extern bool GUI;
@@ -755,6 +756,8 @@ private slots:
 	void showTimetableTable();
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
+	void showCapacityAnalysis();
+	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
 };
