@@ -570,6 +570,7 @@ public:
 	std::vector<double> instant_spatial_position; // Vector of istantaneous Spatial position of the Train
 	std::vector<std::string> instant_block_section_occupied;
 	std::vector<double> instant_train_power_consumption;  // Vector of istantaneous Train Power Consumption [W]
+	std::vector<double> instant_train_tractive_effort;    // Branch-applied wheel effort [N], aligned with trajectory samples
 	std::vector<double> instant_train_energy_consumption; // Vector of istantaneous Train Energy Consumption [MJ]
 	double TotalEnergyConsumed, TotalEnergySubstationRequest, TotalEnergyConsWithRegBrak, TotalEnergySubstRequestWithRegBrak;
 	// These values represent the total energy consumed by the train with no regenerative braking, the total energy requested to the SubStation, and the TotalEnergy consumed with regenerative braking;
@@ -781,11 +782,15 @@ public:
 	}
 
 	// A completed trajectory can leave a non-finite power sample at End_Time;
-	// treat that boundary sample as zero, matching train_energy_consumption().
+	// treat that boundary sample and its aligned effort as zero, matching
+	// train_energy_consumption().
 	void sanitizeTerminalPowerSample() {
 		if (End_Time >= 0 && End_Time < static_cast<int>(instant_train_power_consumption.size()) &&
-			!std::isfinite(instant_train_power_consumption[static_cast<std::size_t>(End_Time)]))
+			!std::isfinite(instant_train_power_consumption[static_cast<std::size_t>(End_Time)])) {
 			instant_train_power_consumption[static_cast<std::size_t>(End_Time)] = 0.0;
+			if (End_Time < static_cast<int>(instant_train_tractive_effort.size()))
+				instant_train_tractive_effort[static_cast<std::size_t>(End_Time)] = 0.0;
+		}
 	}
 
 	// Function to calculate Total Energy Consumed with and without regenrative braking (the inputs are the Eta of the Substation and the Eta of the regenerative braking)
@@ -3176,11 +3181,12 @@ public:
 		for (int t = 0; t < initial_variables.times; t++) {
 			if (t < departure_time) {
 				instant_spatial_position[t] = train_route[indexOfRoute].x_of_start_node * 1000;
-				instant_train_energy_consumption[t] = instant_train_speed[t] = instant_train_power_consumption[t] = 0;
+				instant_train_energy_consumption[t] = instant_train_speed[t] = instant_train_power_consumption[t] = instant_train_tractive_effort[t] = 0;
 			} else {
 				instant_spatial_position[t] = T_2_Replicate.instant_spatial_position[t - Offset];
 				instant_train_speed[t] = T_2_Replicate.instant_train_speed[t - Offset];
 				instant_train_power_consumption[t] = T_2_Replicate.instant_train_power_consumption[t - Offset];
+				instant_train_tractive_effort[t] = T_2_Replicate.instant_train_tractive_effort[t - Offset];
 				instant_train_energy_consumption[t] = T_2_Replicate.instant_train_energy_consumption[t - Offset];
 				// Updating the status of infrastructure elements
 				if (t > 0) {
@@ -3603,6 +3609,7 @@ public:
 				instant_train_speed[time_seconds] = 0;
 				instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
 				instant_train_power_consumption[time_seconds] = 0;
+				instant_train_tractive_effort[time_seconds] = 0;
 				train_energy_consumption(time_seconds);
 				Eq[time_seconds] = 5;
 				return;
@@ -3742,7 +3749,8 @@ public:
 					}
 
 					Eq[time_seconds] = 1;
-					instant_train_power_consumption[time_seconds] = tractiveEffort(instant_train_speed[time_seconds - 1]) * instant_train_speed[time_seconds - 1];
+					instant_train_tractive_effort[time_seconds] = tractiveEffort(instant_train_speed[time_seconds - 1]);
+					instant_train_power_consumption[time_seconds] = instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1];
 					train_energy_consumption(time_seconds);
 					temp = time_seconds;
 					stop = time_seconds;
@@ -3831,12 +3839,13 @@ public:
 					instant_train_speed[i]=Vbrak[brakingPoint+counter-1];    if (instant_train_speed[i]<0)instant_train_speed[i]=0;
 					instant_spatial_position[i]=Sbrak[brakingPoint+counter-1];}*/
 
-					instant_train_power_consumption[time_seconds] =
+					instant_train_tractive_effort[time_seconds] =
 						-(brakingEffort((time_seconds - temp - 1) * timestep) +
 						  gradient_resistances(As.gradient) +
 						  curvature_resistances(As.curvature) -
-						  total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature)) *
-						instant_train_speed[time_seconds - 1]; /*Eq[i]=3;*/
+						  total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
+					instant_train_power_consumption[time_seconds] =
+						instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1]; /*Eq[i]=3;*/
 					train_energy_consumption(time_seconds);
 					stop = time_seconds;
 					BX[time_seconds] = Braking_Distance;
@@ -3853,18 +3862,19 @@ public:
 
 				// Cruising Phase
 				else if ((instant_spatial_position[time_seconds - 1] < Braking_Distance) && (instant_train_speed[time_seconds - 1] >= V_lim) && instant_train_speed[time_seconds - 1] > 0) {
-					if (instant_train_speed[time_seconds - 1] > V_lim) {
+					const bool cappedToLimit = instant_train_speed[time_seconds - 1] > V_lim;
+					if (cappedToLimit)
 						instant_train_speed[time_seconds - 1] = V_lim;
-						instant_spatial_position[time_seconds - 1] = instant_spatial_position[time_seconds - 1];
-						instant_train_power_consumption[time_seconds - 1] = total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature) * instant_train_speed[time_seconds - 1];
+					instant_train_speed[time_seconds] = V_lim;
+					instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep;
+					const double cruisingEffort = total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature);
+					if (cappedToLimit) {
+						instant_train_tractive_effort[time_seconds - 1] = cruisingEffort;
+						instant_train_power_consumption[time_seconds - 1] = cruisingEffort * instant_train_speed[time_seconds - 1];
 						train_energy_consumption(time_seconds - 1);
-						instant_train_speed[time_seconds] = V_lim;
-						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep;
-					} else {
-						instant_train_speed[time_seconds] = V_lim;
-						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep;
 					}
-					instant_train_power_consumption[time_seconds] = total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature) * instant_train_speed[time_seconds - 1];
+					instant_train_tractive_effort[time_seconds] = cruisingEffort;
+					instant_train_power_consumption[time_seconds] = cruisingEffort * instant_train_speed[time_seconds - 1];
 					Eq[time_seconds] = 12;
 					train_energy_consumption(time_seconds);
 					temp = time_seconds;
@@ -4017,7 +4027,8 @@ public:
 						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep; // Determining distance
 
 						// Computing power and Energy
-						instant_train_power_consumption[time_seconds] = (Acc_i * total_train_mass * massFactor) * instant_train_speed[time_seconds - 1];
+						instant_train_tractive_effort[time_seconds] = Acc_i * total_train_mass * massFactor;
+						instant_train_power_consumption[time_seconds] = instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1];
 						train_energy_consumption(time_seconds);
 						temp = time_seconds;
 						stop = time_seconds;
@@ -4037,6 +4048,7 @@ public:
 					instant_train_speed[time_seconds] = 0;
 					instant_spatial_position[time_seconds] = -9999;
 					instant_train_power_consumption[time_seconds] = -9999;
+					instant_train_tractive_effort[time_seconds] = -9999;
 					Xobmin = train_route[indexOfRoute].x_of_end_node * 1000;
 					Vobmin = train_route[indexOfRoute].sequence_of_block_sections[train_route[indexOfRoute].N_Block_Sections - 1].arcs_in_signalling_block_section[train_route[indexOfRoute].sequence_of_block_sections[train_route[indexOfRoute].N_Block_Sections - 1].total_arcs - 1].speedInBraking; /*This is the speedInBraking of the last Arc of the Route*/
 					relLastSectionMixedSignalling(train_route[indexOfRoute].sequence_of_block_sections[train_route[indexOfRoute].N_Block_Sections - 1].ID);
@@ -4134,6 +4146,7 @@ public:
 							}
 						}
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 					}
 
@@ -4161,6 +4174,7 @@ public:
 						}
 
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 					}
 
@@ -4182,6 +4196,7 @@ public:
 							BrakingForEoA = false; // setting BrakingForEoA to false since the train starts moving again
 						}
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 						counter = 0;
 					}
@@ -4255,6 +4270,7 @@ public:
 						}
 
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 						counter = 0;
 					}
@@ -4287,6 +4303,7 @@ public:
 							XCurrentServiceStop = -1;
 						}
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 						counter = 0;
 					}
@@ -4320,6 +4337,7 @@ public:
 							Eq[time_seconds] = 341;
 						}
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 						counter = 0;
 					}
@@ -4331,6 +4349,7 @@ public:
 						instant_train_speed[time_seconds] = 0;
 						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
 						instant_train_power_consumption[time_seconds] = 0;
+						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
 					}
 					GradientExceptionInBraking = false;
@@ -4355,6 +4374,7 @@ public:
 				instant_spatial_position[time_seconds] = Start_Node_X * 1000;
 				instant_block_section_occupied[time_seconds] = "-";
 				instant_train_power_consumption[time_seconds] = 0.0;
+				instant_train_tractive_effort[time_seconds] = 0.0;
 			}
 			// cout << instant_spatial_position[i] << " " << As.gradient << " " << As.curvature << "\n";
 		} else {
@@ -7647,10 +7667,38 @@ public:
 		}
 	}
 
+	bool stationIsOnRoute(int stationIndex, const vector<string>& allowedBlockIds = {}) const {
+		if (!Stations || stationIndex < 0 || stationIndex >= numStations ||
+			indexOfRoute < 0 || indexOfRoute >= static_cast<int>(train_route.size()))
+			return false;
+		const string& stationName = Stations[stationIndex].stationName;
+		if (stationName.empty() || stationName == "None")
+			return false;
+		const auto matches = [&stationName](const Node& node) {
+			return node.station && node.stationName == stationName;
+		};
+		const Route& route = train_route[indexOfRoute];
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			const Section& section = route.sequence_of_block_sections[h];
+			if (!allowedBlockIds.empty() &&
+				std::find(allowedBlockIds.begin(), allowedBlockIds.end(), section.ID) == allowedBlockIds.end())
+				continue;
+			if (matches(section.start_node) || matches(section.end_node))
+				return true;
+			for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex) {
+				if (matches(section.arcs_in_signalling_block_section[arcIndex].endNode))
+					return true;
+			}
+		}
+		return false;
+	}
+
 	double stationRoutePositionMeters(int stationIndex) const {
+		if (!stationIsOnRoute(stationIndex))
+			return -1;
+		const string stationName = stationNameForArrivalStats(stationIndex);
 		double stationX = Stations[stationIndex].X;
 		if (stationX == 0) {
-			const string stationName = stationNameForArrivalStats(stationIndex);
 			for (int h = 0; h < ::numStations; h++) {
 				if (StationArray[h].stationName == stationName) {
 					stationX = StationArray[h].X;
@@ -7658,9 +7706,6 @@ public:
 				}
 			}
 		}
-		if (stationX == 0)
-			return -1;
-
 		const double stationMeters = stationX * 1000.0;
 		for (int h = 0; h < train_route[indexOfRoute].N_Block_Sections; h++) {
 			const Section& section = train_route[indexOfRoute].sequence_of_block_sections[h];

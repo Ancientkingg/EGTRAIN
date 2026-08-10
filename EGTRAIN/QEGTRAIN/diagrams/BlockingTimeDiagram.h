@@ -34,8 +34,32 @@ struct BlockingTimeDiagramSegment {
 	BlockingTimeSegmentStyle style = BlockingTimeSegmentStyle::Default;
 };
 
+struct BlockingTimePlannedReference {
+	std::string trainName;
+	std::string stationName;
+	std::string eventType;
+	double time = 0.0;
+	double positionKm = 0.0;
+};
+
 std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 	const std::vector<std::vector<BlockingTimeDiagramInput>>& trains,
 	const std::vector<std::string>& trainNames);
+
+// Return copies of already-classified occupation segments in the selected
+// train/block/time scope. Empty train or block lists mean no restriction.
+std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
+	const std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<std::string>& allowedTrainIds,
+	const std::vector<std::string>& allowedBlockIds,
+	double startTime,
+	double endTime);
+
+// Keep planned source points that fall in the time window or form a visible
+// line segment across it. Input points for each train must be contiguous.
+std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(
+	const std::vector<BlockingTimePlannedReference>& references,
+	double startTime,
+	double endTime);
 
 #endif // BLOCKINGTIMEDIAGRAM_H

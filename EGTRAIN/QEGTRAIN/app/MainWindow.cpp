@@ -31,6 +31,9 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QMouseEvent>
 #include <QDialog>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QFormLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
@@ -48,6 +51,8 @@
 #include <QStringList>
 #include <QRegularExpression>
 #include <cstdio>
+#include <algorithm>
+#include <cmath>
 #include <limits>
 #include <map>
 
@@ -100,9 +105,9 @@ std::string csvValue(const RunResultValue& value) {
 	return value.available ? csv::formatDouble(value.value) : std::string(csv::kMissingValue);
 }
 
-// Per-train trajectory: time, position, speed, power, cumulative energy, block.
-// Reads raw simulation samples over the valid trajectory ranges so gaps never
-// produce a false row.
+// Per-train trajectory: identity, time, position, speed, power, wheel effort,
+// cumulative energy, block. Reads raw simulation samples over the valid
+// trajectory ranges so gaps never produce a false row.
 std::string buildTrajectoryCsv(const QStringList& visibleTrainIds) {
 	std::vector<std::vector<std::string>> rows;
 	for (int tr = 0; tr < numRegions; ++tr) {
@@ -125,6 +130,9 @@ std::string buildTrajectoryCsv(const QStringList& visibleTrainIds) {
 					: std::string(csv::kMissingValue);
 				std::vector<std::string> row;
 				row.push_back(train.trainDescription);
+				row.push_back(train.operatingCode);
+				row.push_back(train.serviceId);
+				row.push_back(std::to_string(train.serviceOccurrence));
 				row.push_back(csv::formatDouble(i * timestep));
 				row.push_back(sampleAt(train.instant_spatial_position, i));
 				row.push_back(sampleAt(train.instant_train_speed, i));
@@ -134,7 +142,11 @@ std::string buildTrajectoryCsv(const QStringList& visibleTrainIds) {
 				std::string energy = i >= 0 && i < static_cast<int>(train.instant_train_energy_consumption.size())
 					? csv::formatDouble(train.instant_train_energy_consumption[static_cast<std::size_t>(i)] * kEnergyMJToKWh)
 					: std::string(csv::kMissingValue);
+				std::string effort = i >= 0 && i < static_cast<int>(train.instant_train_tractive_effort.size())
+					? csv::formatDouble(train.instant_train_tractive_effort[static_cast<std::size_t>(i)] / 1000.0)
+					: std::string(csv::kMissingValue);
 				row.push_back(power);
+				row.push_back(effort);
 				row.push_back(energy);
 				row.push_back(block);
 				rows.push_back(std::move(row));
@@ -144,7 +156,7 @@ std::string buildTrajectoryCsv(const QStringList& visibleTrainIds) {
 	if (rows.empty())
 		return std::string();
 	return csv::makeDocument(
-		{"Train", "Time[s]", "Position[m]", "Speed[m/s]", "Power[kW]", "Energy[kWh]", "Block"}, rows);
+		{"Train", "Operating code", "Service ID", "Occurrence", "Time[s]", "Position[m]", "Speed[m/s]", "Power[kW]", "Tractive effort[kN]", "Energy[kWh]", "Block"}, rows);
 }
 
 // Timetable: train, station, planned and simulated arrival and departure, delay.
@@ -183,17 +195,30 @@ const char* blockingSegmentTypeName(BlockingTimeSegmentStyle style) {
 		case BlockingTimeSegmentStyle::SwitchStation:
 			return "switch/station";
 		case BlockingTimeSegmentStyle::Critical:
-			return "critical";
+			return "conflict";
 		case BlockingTimeSegmentStyle::CriticalStation:
-			return "critical/station";
+			return "conflict/station";
 		case BlockingTimeSegmentStyle::Default:
 		default:
 			return "block";
 	}
 }
 
-// Blocking-time: train, block, occupation start, occupation end, position, type.
-std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
+struct BlockingTimeScope {
+	std::vector<std::string> trainIds;
+	std::vector<std::string> blockIds;
+	double startTime = 0.0;
+	double endTime = 0.0;
+	int routeIndex = -1;
+};
+
+BlockingTimeScope defaultBlockingTimeScope() {
+	BlockingTimeScope scope;
+	scope.endTime = std::max(0.0, initial_variables.times * timestep);
+	return scope;
+}
+
+std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
 	std::vector<std::string> trainNames;
 	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
@@ -217,7 +242,47 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
 		trains.push_back(blocks);
 		trainNames.push_back(t.trainDescription);
 	}
-	const auto segments = buildBlockingTimeDiagramSegments(trains, trainNames);
+	return buildBlockingTimeDiagramSegments(trains, trainNames);
+}
+
+std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
+	const BlockingTimeScope& scope) {
+	std::vector<BlockingTimePlannedReference> references;
+	if (scope.routeIndex >= 0 && scope.trainIds.empty())
+		return references;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (!scope.trainIds.empty() &&
+			std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainDescription) == scope.trainIds.end())
+			continue;
+		if (!train.Stations)
+			continue;
+		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
+		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
+			if (!train.stationIsOnRoute(stationIndex, scope.blockIds))
+				continue;
+			const double positionMeters = train.stationRoutePositionMeters(stationIndex);
+			if (!std::isfinite(positionMeters) || positionMeters < 0.0)
+				continue;
+			const double positionKm = positionMeters / 1000.0;
+			const auto append = [&](const char* eventType, double time) {
+				if (!std::isfinite(time) || time < 0.0)
+					return;
+				references.push_back({train.trainDescription, train.stationNameForArrivalStats(stationIndex),
+					eventType, time, positionKm});
+			};
+			append("arrival", train.ScheduledArrivals[stationIndex]);
+			append("departure", train.ScheduledDepartures[stationIndex]);
+		}
+	}
+	return references;
+}
+
+// Blocking-time: keep the occupation-column prefix and append planned
+// reference rows so the visible dashed layer is exportable too.
+std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
+	const std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<BlockingTimePlannedReference>& plannedReferences) {
 	std::vector<std::vector<std::string>> rows;
 	for (const BlockingTimeDiagramSegment& s : segments) {
 		if (!trainInVisibleSet(visibleTrainIds, s.trainName))
@@ -228,13 +293,138 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
 			csv::formatDouble(s.startTime),
 			csv::formatDouble(s.endTime),
 			csv::formatDouble(s.midPositionKm),
-			blockingSegmentTypeName(s.style)});
+			blockingSegmentTypeName(s.style),
+			std::string(),
+			std::string(),
+			std::string()});
+	}
+	for (const BlockingTimePlannedReference& reference : plannedReferences) {
+		if (!trainInVisibleSet(visibleTrainIds, reference.trainName))
+			continue;
+		rows.push_back({
+			reference.trainName,
+			std::string(),
+			std::string(),
+			std::string(),
+			csv::formatDouble(reference.positionKm),
+			"planned reference",
+			reference.eventType,
+			reference.stationName,
+			csv::formatDouble(reference.time)});
 	}
 	if (rows.empty())
 		return std::string();
 	return csv::makeDocument(
-		{"Train", "Block", "Occupation start[s]", "Occupation end[s]", "Position[km]", "Segment type"},
+		{"Train", "Block", "Occupation start[s]", "Occupation end[s]", "Position[km]", "Segment type",
+			"Planned reference", "Station", "Planned time[s]"},
 		rows);
+}
+
+std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
+	const BlockingTimeScope scope = defaultBlockingTimeScope();
+	return buildBlockingTimeCsv(visibleTrainIds,
+		filterBlockingTimeDiagramSegments(buildAllBlockingTimeSegments(), scope.trainIds, scope.blockIds,
+			scope.startTime, scope.endTime),
+		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope),
+			scope.startTime, scope.endTime));
+}
+
+bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
+	QDialog dialog(parent);
+	dialog.setWindowTitle("Blocking-time scope");
+	auto* form = new QFormLayout(&dialog);
+	auto* routeCombo = new QComboBox(&dialog);
+	routeCombo->addItem("All routes / all corridors", -1);
+	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
+		const Route& route = train_route[routeIndex];
+		const QString corridor = route.corridor.empty()
+			? QStringLiteral("no corridor") : QString::fromStdString(route.corridor);
+		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.ID), corridor),
+			static_cast<int>(routeIndex));
+	}
+	auto* firstBlock = new QComboBox(&dialog);
+	auto* lastBlock = new QComboBox(&dialog);
+	auto* startTime = new QDoubleSpinBox(&dialog);
+	auto* endTime = new QDoubleSpinBox(&dialog);
+	const double caseEnd = std::max(0.0, initial_variables.times * timestep);
+	for (QDoubleSpinBox* spinBox : {startTime, endTime}) {
+		spinBox->setRange(0.0, caseEnd);
+		spinBox->setDecimals(3);
+		spinBox->setSingleStep(timestep > 0.0 ? timestep : 1.0);
+		spinBox->setSuffix(" s");
+	}
+	startTime->setValue(scope.startTime);
+	endTime->setValue(scope.endTime);
+
+	const auto refillBlocks = [routeCombo, firstBlock, lastBlock]() {
+		firstBlock->clear();
+		lastBlock->clear();
+		const int routeIndex = routeCombo->currentData().toInt();
+		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size())) {
+			firstBlock->addItem("All blocks");
+			lastBlock->addItem("All blocks");
+			firstBlock->setEnabled(false);
+			lastBlock->setEnabled(false);
+			return;
+		}
+		const Route& route = train_route[static_cast<std::size_t>(routeIndex)];
+		for (int blockIndex = 0; blockIndex < route.N_Block_Sections; ++blockIndex) {
+			const QString blockId = QString::fromStdString(route.sequence_of_block_sections[blockIndex].ID);
+			firstBlock->addItem(blockId);
+			lastBlock->addItem(blockId);
+		}
+		const bool hasBlocks = firstBlock->count() > 0;
+		firstBlock->setEnabled(hasBlocks);
+		lastBlock->setEnabled(hasBlocks);
+		if (hasBlocks)
+			lastBlock->setCurrentIndex(lastBlock->count() - 1);
+	};
+	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[refillBlocks](int) { refillBlocks(); });
+	refillBlocks();
+
+	form->addRow("Route / corridor:", routeCombo);
+	form->addRow("First block:", firstBlock);
+	form->addRow("Last block:", lastBlock);
+	form->addRow("Start after case base:", startTime);
+	form->addRow("End after case base:", endTime);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	form->addRow(buttons);
+	if (dialog.exec() != QDialog::Accepted)
+		return false;
+
+	scope.startTime = std::min(startTime->value(), endTime->value());
+	scope.endTime = std::max(startTime->value(), endTime->value());
+	if (scope.endTime <= scope.startTime) {
+		const double step = timestep > 0.0 ? timestep : 1.0;
+		if (scope.startTime + step <= caseEnd)
+			scope.endTime = scope.startTime + step;
+		else
+			scope.startTime = std::max(0.0, scope.endTime - step);
+	}
+	if (scope.endTime <= scope.startTime)
+		return false;
+	scope.trainIds.clear();
+	scope.blockIds.clear();
+	const int routeIndex = routeCombo->currentData().toInt();
+	scope.routeIndex = routeIndex >= 0 && routeIndex < static_cast<int>(train_route.size())
+		? routeIndex : -1;
+	if (scope.routeIndex < 0)
+		return true;
+
+	const Route& route = train_route[static_cast<std::size_t>(scope.routeIndex)];
+	const int first = std::min(firstBlock->currentIndex(), lastBlock->currentIndex());
+	const int last = std::max(firstBlock->currentIndex(), lastBlock->currentIndex());
+	for (int blockIndex = first; blockIndex >= 0 && blockIndex <= last && blockIndex < route.N_Block_Sections; ++blockIndex)
+		scope.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
+		const Train& train = regional_train[trainIndex];
+		if (train.indexOfRoute == scope.routeIndex || train.TrainRouteID == route.ID)
+			scope.trainIds.push_back(train.trainDescription);
+	}
+	return true;
 }
 
 // Run summary: per-train start, end, travel time, and energy totals, plus a
@@ -1351,7 +1541,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainUnitSourceTractionLabel = new QLabel(trainUnitDetailPane);
 	m_trainUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionLabel);
-	m_plotTrainUnitTractionButton = new QPushButton("Plot tractive effort", trainUnitDetailPane);
+	m_plotTrainUnitTractionButton = new QPushButton("Plot input traction characteristic", trainUnitDetailPane);
 	trainUnitDetailLayout->addWidget(m_plotTrainUnitTractionButton);
 
 	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
@@ -1460,7 +1650,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_compositionUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	m_compositionUnitSourceTractionLabel->setWordWrap(true);
 	compositionDetailLayout->addWidget(m_compositionUnitSourceTractionLabel);
-	m_plotTractionButton = new QPushButton("Plot tractive effort", compositionDetailPane);
+	m_plotTractionButton = new QPushButton("Plot input traction characteristic", compositionDetailPane);
 	compositionDetailLayout->addWidget(m_plotTractionButton);
 	m_compositionUnitWarningLabel = new QLabel(compositionDetailPane);
 	m_compositionUnitWarningLabel->setWordWrap(true);
@@ -1877,6 +2067,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Speed / Distance (per train)...", this, &MainWindow::showSpeedDistanceDiagram);
 	m_diagramsMenu->addAction("Speed / Time (per train)...", this, &MainWindow::showSpeedTimeDiagram);
 	m_diagramsMenu->addAction("Time / Distance (per train)...", this, &MainWindow::showTimeDistanceDiagram);
+	m_diagramsMenu->addAction("Simulated tractive effort / Distance (per train)...", this, &MainWindow::showTractiveEffortDistanceDiagram);
 	m_diagramsMenu->addSeparator();
 	m_diagramsMenu->addAction("Timetable graph (train graph)...", this, &MainWindow::showTimetableGraph);
 	m_diagramsMenu->addAction("Blocking-time overlay...", this, &MainWindow::showBlockingTimeDiagram);
@@ -4130,7 +4321,7 @@ void MainWindow::plotSelectedCompositionUnitTraction() {
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	const auto samples = sampleTractionCurve(unit.tractionCurve);
 	QChart* chart = new QChart();
-	chart->setTitle(QString("Tractive effort: %1").arg(QString::fromStdString(unit.id)));
+	chart->setTitle(QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id)));
 	QLineSeries* series = new QLineSeries();
 	series->setName(QString::fromStdString(unit.id));
 	series->setProperty("trainId", QString::fromStdString(unit.id));
@@ -4143,7 +4334,7 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	if (!chart->axes(Qt::Vertical).isEmpty())
 		chart->axes(Qt::Vertical).first()->setTitleText("Tractive effort (kN)");
 
-	QString title = QString("Tractive effort: %1").arg(QString::fromStdString(unit.id));
+	QString title = QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id));
 	if (!unit.sourceTractionFile.empty())
 		title += QString("  (%1)").arg(QString::fromStdString(unit.sourceTractionFile));
 	DiagramWindow* win = new DiagramWindow(title, this);
@@ -9250,7 +9441,7 @@ void MainWindow::runEditorSmokeE2E() {
 		}
 		bool hasPlotButton = false;
 		for (QPushButton* button : findChildren<QPushButton*>())
-			hasPlotButton = hasPlotButton || button->text() == "Plot tractive effort";
+				hasPlotButton = hasPlotButton || button->text() == "Plot input traction characteristic";
 		bool hasPlannedArrival = false;
 		bool hasPlannedDeparture = false;
 		for (QCheckBox* check : findChildren<QCheckBox*>()) {
@@ -11946,6 +12137,7 @@ void MainWindow::setupRunResultsDock() {
 	addResultViewButton("Speed / distance", &MainWindow::showSpeedDistanceDiagram);
 	addResultViewButton("Speed / time", &MainWindow::showSpeedTimeDiagram);
 	addResultViewButton("Time / distance", &MainWindow::showTimeDistanceDiagram);
+	addResultViewButton("Tractive effort / distance", &MainWindow::showTractiveEffortDistanceDiagram);
 	addResultViewButton("Train paths", &MainWindow::displayTrainPathDiagrams);
 	addResultViewButton("Blocking time", &MainWindow::showBlockingTimeDiagram);
 	containerLayout->addLayout(resultViews);
@@ -13774,7 +13966,12 @@ void MainWindow::showTimeDistanceDiagram() {
 	buildPerTrainDiagram(2);
 }
 
-// mode 0: speed vs distance, 1: speed vs time, 2: time vs distance
+void MainWindow::showTractiveEffortDistanceDiagram() {
+	buildPerTrainDiagram(3);
+}
+
+// mode 0: speed vs distance, 1: speed vs time, 2: time vs distance,
+// 3: simulated tractive effort vs distance
 void MainWindow::buildPerTrainDiagram(int mode) {
 	// require a completed run
 	if (!hasRunResults()) {
@@ -13782,7 +13979,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		return;
 	}
 
-	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance"};
+	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
 	const QString title = QString("%1 [%2]").arg(titles[mode], scenarioContext());
 	QChart* chart = new QChart();
 	chart->setTitle(title);
@@ -13806,15 +14003,17 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 					series->append(dist, spd); // x: distance (km), y: speed (km/h)
 				else if (mode == 1)
 					series->append(tSec, spd); // x: time (s),      y: speed (km/h)
-				else
+				else if (mode == 2)
 					series->append(tSec, dist); // x: time (s),      y: distance (km)
+				else if (i < static_cast<int>(train.instant_train_tractive_effort.size()))
+					series->append(dist, train.instant_train_tractive_effort[static_cast<std::size_t>(i)] / 1000.0);
 			}
 			chart->addSeries(series);
 		}
 	}
 	chart->createDefaultAxes();
-	const char* xTitles[] = {"Distance (km)", "Time", "Time"};
-	const char* yTitles[] = {"Speed (km/h)", "Speed (km/h)", "Distance (km)"};
+	const char* xTitles[] = {"Distance (km)", "Time", "Time", "Distance (km)"};
+	const char* yTitles[] = {"Speed (km/h)", "Speed (km/h)", "Distance (km)", "Simulated tractive effort (kN)"};
 	if (!chart->axes(Qt::Horizontal).isEmpty())
 		chart->axes(Qt::Horizontal).first()->setTitleText(xTitles[mode]);
 	if (!chart->axes(Qt::Vertical).isEmpty())
@@ -13990,40 +14189,40 @@ void MainWindow::showBlockingTimeDiagram() {
 		return;
 	}
 
-	QChart* chart = new QChart();
-	const QString title = QString("Blocking-time overlay [%1]").arg(scenarioContext());
-	chart->setTitle(title);
-
-	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
-	std::vector<std::string> trainNames;
-	trains.reserve(numRegions);
-	trainNames.reserve(numRegions);
-	for (int i = 0; i < numRegions; i++) {
-		Train& t = regional_train[i];
-		std::vector<BlockingTimeDiagramInput> blocks;
-		blocks.reserve(t.N_BlockTimeComplete);
-		for (int j = 0; j < t.N_BlockTimeComplete; j++) {
-			BlockingTimeDiagramInput block;
-			block.blockId = t.BlockTime[j].BlockID;
-			block.startOccTime = t.BlockTime[j].StartOccTime;
-			block.endOccTime = t.BlockTime[j].EndOccTime;
-			block.posStart = t.BlockTime[j].PosStart;
-			block.posEnd = t.BlockTime[j].PosEnd;
-			block.switchName = t.BlockTime[j].SwitchName;
-			block.stationName = t.BlockTime[j].stationName;
-			block.isComplete = t.BlockTime[j].IsComplete;
-			blocks.push_back(block);
-		}
-		trains.push_back(blocks);
-		trainNames.push_back(t.trainDescription);
-	}
-
-	std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(trains, trainNames);
-	if (segments.empty()) {
-		delete chart;
+	const std::vector<BlockingTimeDiagramSegment> allSegments = buildAllBlockingTimeSegments();
+	BlockingTimeScope scope = defaultBlockingTimeScope();
+	if (!e2eDialogsSuppressed() && !chooseBlockingTimeScope(this, scope))
+		return;
+	const std::vector<BlockingTimeDiagramSegment> segments =
+		scope.routeIndex >= 0 && scope.trainIds.empty()
+			? std::vector<BlockingTimeDiagramSegment>()
+			: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
+				scope.startTime, scope.endTime);
+	const std::vector<BlockingTimePlannedReference> plannedReferences =
+		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope),
+			scope.startTime, scope.endTime);
+	if (segments.empty() && plannedReferences.empty()) {
 		QMessageBox::information(this, "No Data", "No complete blocking-time data is available for this simulation.");
 		return;
 	}
+
+	QChart* chart = new QChart();
+	QString routeScope = QStringLiteral("all routes");
+	if (scope.routeIndex >= 0 && scope.routeIndex < static_cast<int>(train_route.size())) {
+		const Route& route = train_route[static_cast<std::size_t>(scope.routeIndex)];
+		routeScope = QString::fromStdString(route.ID);
+		if (!route.corridor.empty())
+			routeScope += QString(" / %1").arg(QString::fromStdString(route.corridor));
+		if (!scope.blockIds.empty())
+			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
+				QString::fromStdString(scope.blockIds.back()));
+	}
+	const QString title = QString("Blocking time: actual occupations and dashed planned timetable | %1 | %2 to %3 [%4]")
+		.arg(routeScope,
+			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
+			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
+			scenarioContext());
+	chart->setTitle(title);
 
 	QColor defaultColor(100, 160, 240, 150);
 	QColor stationColor(60, 110, 190, 180);
@@ -14058,9 +14257,9 @@ void MainWindow::showBlockingTimeDiagram() {
 			case BlockingTimeSegmentStyle::SwitchStation:
 				return " (switch/station)";
 			case BlockingTimeSegmentStyle::Critical:
-				return " (critical)";
+				return " (conflict)";
 			case BlockingTimeSegmentStyle::CriticalStation:
-				return " (critical/station)";
+				return " (conflict/station)";
 			case BlockingTimeSegmentStyle::Default:
 			default:
 				return "";
@@ -14089,6 +14288,29 @@ void MainWindow::showBlockingTimeDiagram() {
 		}
 	}
 
+	const QColor plannedColors[] = {
+		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
+		QColor(138, 43, 226), QColor(210, 105, 30), QColor(0, 128, 128)};
+	std::map<std::string, QLineSeries*> plannedSeries;
+	int plannedColorIndex = 0;
+	for (const BlockingTimePlannedReference& reference : plannedReferences) {
+		auto it = plannedSeries.find(reference.trainName);
+		if (it == plannedSeries.end()) {
+			auto* series = new QLineSeries();
+			series->setName(QString::fromStdString(reference.trainName + " (planned reference)"));
+			series->setProperty("trainId", QString::fromStdString(reference.trainName));
+			QPen pen(plannedColors[plannedColorIndex % (sizeof(plannedColors) / sizeof(plannedColors[0]))]);
+			pen.setStyle(Qt::DashLine);
+			pen.setWidthF(2.5);
+			series->setPen(pen);
+			series->setPointsVisible(true);
+			chart->addSeries(series);
+			it = plannedSeries.emplace(reference.trainName, series).first;
+			++plannedColorIndex;
+		}
+		it->second->append(reference.time, reference.positionKm);
+	}
+
 	QLineSeries* dummySwitch = new QLineSeries();
 	dummySwitch->setName("Key: Switch");
 	QPen dummySwitchPen(switchColor);
@@ -14097,7 +14319,7 @@ void MainWindow::showBlockingTimeDiagram() {
 	chart->addSeries(dummySwitch);
 
 	QLineSeries* dummyCritical = new QLineSeries();
-	dummyCritical->setName("Key: Critical");
+	dummyCritical->setName("Key: Conflict");
 	QPen dummyCriticalPen(criticalColor);
 	dummyCriticalPen.setWidthF(4.0);
 	dummyCritical->setPen(dummyCriticalPen);
@@ -14106,6 +14328,8 @@ void MainWindow::showBlockingTimeDiagram() {
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty()) {
 		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
+		if (auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first()))
+			axis->setRange(scope.startTime, scope.endTime);
 	}
 	if (!chart->axes(Qt::Vertical).isEmpty()) {
 		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
@@ -14113,7 +14337,11 @@ void MainWindow::showBlockingTimeDiagram() {
 
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
-	win->setCsvProvider(snapshotCsv(&buildBlockingTimeCsv), "blocking_time.csv");
+	const std::function<std::string(const QStringList&)> scopedCsv =
+		[segments, plannedReferences](const QStringList& visibleTrainIds) {
+			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences);
+		};
+	win->setCsvProvider(snapshotCsv(scopedCsv), "blocking_time.csv");
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
