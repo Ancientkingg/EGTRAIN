@@ -243,6 +243,8 @@ struct SceneModel {
 	std::vector<ScenePassenger> passengers;
 };
 
+SceneModel makeNewSceneModel();
+
 // Resolve ordered (and repeated) unit references and apply the legacy
 // multi-unit physical/tractive-effort aggregation rules.
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
