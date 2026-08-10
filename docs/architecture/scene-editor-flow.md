@@ -2,17 +2,22 @@
 
 ## Purpose and users
 
-The scene editor gives students one window flow for opening an assignment scene, editing timetable and incident data, running EGTRAIN, and inspecting the existing diagrams. Instructors need portable bundles, editable scene directories, and clear validation errors. Researchers need readable JSON inputs and reproducible runs without direct legacy-file editing.
+The scene editor gives instructors one window flow for creating a railway case,
+authoring its canonical data, running EGTRAIN, and packaging the result. Students
+can edit the supplied timetable and scenarios and inspect the same result views.
+Researchers retain readable JSON inputs and reproducible native runs without
+using legacy files.
 
 ## Window flow
 
-- Start state: the main window opens with no scene selected. `Open Case Study...`, `Open Scene Folder...`, recent scenes, `Load Legacy Case...`, and `Quit` are available. Save, scene edit panes, and scene Run are disabled until a scene opens.
+- Start state: the main window opens with no scene selected. `New Case Study...`, `Open Case Study...`, `Open Scene Folder...`, recent scenes, `Load Legacy Case...`, and `Quit` are available. Save, scene edit panes, and scene Run are disabled until a scene opens.
+- New scene: `New Case Study...` creates the smallest structurally valid `SceneModel`. It remains editable and saveable while semantic diagnostics identify the railway data still required for Run.
 - Open scene: `Open Case Study...` selects an `.egscene` bundle; `Open Scene Folder...` selects an editable canonical directory. Both load the same canonical JSON into `SceneModel`, add the selected path to the recent-scenes list in `QSettings`, and raise the non-modal Loaded Data review.
 - Validation: opening a scene populates the validation panel with `SceneDiagnostic` entries. Structural errors are shown first. Semantic validation runs only when structural loading has no errors; the panel remains available from the View menu and Loaded Data diagnostics.
 - Edit panes: after a valid enough model loads, the editor panes show scene data from `SceneModel`. V1 edits update `SceneModel`; they do not edit legacy files directly.
 - Save: `Save Scene` writes back to the opened bundle or directory. `Save Case Study As...` writes a portable `.egscene`; `Save Scene As Folder...` writes canonical JSON to a directory.
 - Run handoff: Run revalidates the current model. Error diagnostics block Run. If validation passes, the shared native setup builds the existing runtime globals directly from that model.
-- Back to diagrams: after the run, students return to the normal EGTRAIN diagram tools: speed-distance, speed-time, time-distance, delay, train path, and blocking-time diagrams.
+- Back to results: after the run, students can inspect speed, time, applied tractive effort, blocking-time, timetable, delay, and capacity results. Existing tables and diagrams provide CSV or PNG export where applicable.
 
 `Load Legacy Case...` is an explicit conversion action. It reads a selected
 external legacy directory into a new canonical scene; the source files are not
@@ -25,7 +30,7 @@ an editable or runtime fallback.
 | File menu | `Open Case Study...`, `Open Scene Folder...`, `Save Scene`, `Save Case Study As...`, `Save Scene As Folder...`, recent scenes, `Load Legacy Case...`, `Quit` | Open, recent scenes, legacy case picker, and Quit are always enabled. Save is enabled when a scene is loaded and dirty. Both Save As actions are enabled when a scene is loaded. |
 | Simulation menu and toolbar | `Run`, `Pause`, `Stop`, speed control | Run is enabled when a runnable scene is loaded and no scene error diagnostics are current. Pause and Stop are enabled only while simulation is running. |
 | Central view | Existing network view and progress bar | Empty at startup. Shows canonical scene infrastructure after open and simulation state after setup and run. |
-| Scene editor dock | Overview, infrastructure context, compositions, services and timetable, incidents | Enabled for an opened bundle or directory. A legacy case must first be imported and opened as a scene. |
+| Editor docks | Case settings, infrastructure, train units, compositions, services and timetable, incidents | Enabled for a new or opened canonical scene. A legacy case must first be imported as a scene. |
 | Validation panel | Dockable table of diagnostics | Visible after scene open. Updated on open, edit, save, and pre-run validation. |
 | Loaded Data panel | Case/source metadata, parsed category counts, scenarios, provenance, validation status, editor links, runtime and result readiness | Raised after scene open. Item activation reuses the existing network view, validation table, and domain editors. |
 | Existing info dock | Read-only selected item details for nodes, stations, arcs, connections, signals, trains | Enabled when the network view has selectable items. It stays read-only outside explicit editor controls. |
@@ -35,7 +40,7 @@ an editable or runtime fallback.
 
 Validation runs when a bundle or directory opens, after each committed editor change, after Save or Save As, and immediately before Run. The pre-run validation is mandatory even when the panel already shows no errors.
 
-Structural diagnostics come from the bundle reader or directory loader and the required JSON files. If structural loading has errors, semantic validation is skipped to avoid duplicate noise from a partial model. Semantic diagnostics check references, empty trains or routes, timetable values, dwell times, platform references, incident targets, incident windows, base time, and repeated-service headways.
+Structural diagnostics come from the bundle reader or directory loader and the required JSON files. If structural loading has errors, semantic validation is skipped to avoid duplicate noise from a partial model. Semantic diagnostics check topology, identifiers and references, rolling-stock values and traction intervals, timetable values, signalling coverage, incidents, base time, and repeated-service rules.
 
 Save is allowed with semantic errors so students can preserve work in progress. Run is not allowed with any `SceneSeverity::Error`. Warnings and info diagnostics stay visible but do not block Run. Native builder diagnostics appear under **Runtime and results** in Loaded Data, and builder errors block Run.
 
@@ -72,43 +77,29 @@ available, but remains outside canonical input.
 
 ## V1 edit panes
 
-Tables are read-only first. Editing happens through explicit row, cell, add, duplicate, and delete controls inside the editor panes.
+Editing uses explicit fields, table cells, and add, duplicate, move, and delete
+controls. The network view previews canonical infrastructure; it is not a CAD
+surface.
 
-| Pane | Editable in V1 | Read-only in V1 |
+| Pane | Editable in V1 | Derived or read-only |
 |---|---|---|
-| Overview | None for scene JSON metadata | Scene name, scene path, schema version, base time, units, derived run parameters, validation summary |
-| Infrastructure context | None | Stations, platforms, signals, routes, block ids, imported infrastructure context |
-| Compositions | Train compositions and unit membership | Full train-unit source files and traction curve structure |
-| Services and timetable | Services, composition choice, route choice, stopping patterns, station stops, platform choices, arrival times, departure times, dwell times, entry time, repeated-service headway, per-service performance values | Station definitions, route block definitions, signal definitions |
-| Incidents | Signal failure incidents and train breakdown incidents: id, type, target, start time, end time | Target lists derived from signals and services |
+| Case settings | Name, description, base time, duration, buffer, recovery | Schema version, units, scene path, validation summary |
+| Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
+| Train units | ID, nine native physical fields, traction rows, parameter source reference, traction source reference | Static traction plot; composition usage |
+| Compositions | ID and ordered train-unit membership | Selected-unit source references and traction plot |
+| Services and timetable | ID, operating code, composition, route, through state, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stops, platforms, planned arrival/departure, dwell | Generated occurrence identities and offsets |
+| Incidents | Scenario metadata; signal failures and train breakdowns; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, and services |
 
-Per-service performance values still need new fields in `services.json` and `SceneModel`. Incident edits are part of the native run handoff and require no generated legacy file.
+Canonical entrance delays can be loaded and run but do not yet have an editor;
+issue #126 tracks that optional scenario extension. The assignment workflow uses
+signal-failure and train-breakdown incidents.
 
 ## Explicit out-of-scope list
 
-- Full infrastructure editing in V1.
-- Drawing or editing nodes, arcs, tracks, switches, gradients, curves, speed limits, station topology, platform topology, signals, block sections, routes, or corridors.
+- Drag-and-drop railway CAD, route painting, or automatic signal placement.
+- Automatic timetable optimization or performance sweeps.
+- A generic scenario scripting language.
 - Treating legacy files as the editable source of truth.
 - Editing legacy source files from the UI.
 - Treating an explicit interoperability export as a scene directory.
-- Replacing existing diagram windows or diagram export behavior as part of the scene editor flow.
 - General-purpose JSON text editing inside the application.
-
-## Consequences for #23 and #24
-
-#23 implements the scene load and save UI:
-
-- File menu actions for opening bundles or folders, saving bundles or folders, recent scenes, and legacy import.
-- Main-window scene state: current scene path, current `SceneModel`, dirty flag, recent-scenes `QSettings`, and action enabled state.
-- Open dialogs for `.egscene` files and canonical directories.
-- Save and Save As behavior for bundles and canonical JSON directories.
-- Unsaved-change prompts when opening another scene, loading a legacy case, or quitting.
-
-#24 implements the validation panel:
-
-- Dockable `Scene Validation` panel.
-- Table columns for severity, code, message, file, path, and suggested fix.
-- Population from `SceneDiagnostic` entries on open, edit, save, and pre-run validation.
-- Error summary in the status bar.
-- Run gating when any diagnostic has error severity.
-- Selection behavior that opens or focuses the related editor row when the diagnostic identifies an item.

@@ -48,7 +48,7 @@ Open the Train Units dock.
 2. Give the unit an id.
 3. Fill the physical fields: mass, length, and the other values for the stock you are modelling.
 4. Enter the traction curve rows. Each row is a speed interval with a lower speed, an upper speed, and the three coefficients C0, C1, and C2. Tractive effort at a speed follows C0 plus C1 times speed plus C2 times speed squared, in newtons, with speed in metres per second.
-5. When import provenance exists, **Original parameter source** and **Original tractive-effort source** show the source filenames. Provenance is optional and is not reopened by the runtime.
+5. **Parameter source reference** and **Tractive-effort source reference** retain imported filenames and accept references for newly authored units. Provenance is optional and is not reopened by the runtime.
 
 Repeat for every unit the presentation needs, then remove the teaching unit if
 no composition uses it.
