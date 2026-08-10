@@ -536,7 +536,7 @@ private:
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 
-	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance
+	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
@@ -750,6 +750,7 @@ private slots:
 	void showSpeedDistanceDiagram();
 	void showSpeedTimeDiagram();
 	void showTimeDistanceDiagram();
+	void showTractiveEffortDistanceDiagram();
 	void showTimetableGraph();
 	void showTimetableTable();
 	void showDelayDiagram();
