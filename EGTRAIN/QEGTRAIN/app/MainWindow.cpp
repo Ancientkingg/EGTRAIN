@@ -514,6 +514,37 @@ bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPoin
 	point = QPointF(closest->x, closest->y + offset);
 	return true;
 }
+
+std::string rewriteBlockReference(const std::string& reference,
+		const std::string& oldId, const std::string& newId) {
+	if (reference == oldId)
+		return newId;
+
+	std::string rewritten;
+	std::size_t begin = 0;
+	while (begin <= reference.size()) {
+		const std::size_t slash = reference.find('/', begin);
+		std::string part = reference.substr(begin,
+				slash == std::string::npos ? std::string::npos : slash - begin);
+		std::size_t idBegin = 0;
+		std::size_t idEnd = part.find('@');
+		if (!part.empty() && part.front() == '@') {
+			idBegin = 1;
+			idEnd = part.find('@', 1);
+		}
+		if (idEnd == std::string::npos)
+			idEnd = part.size();
+		if (part.substr(idBegin, idEnd - idBegin) == oldId)
+			part.replace(idBegin, idEnd - idBegin, newId);
+		if (!rewritten.empty())
+			rewritten += '/';
+		rewritten += part;
+		if (slash == std::string::npos)
+			break;
+		begin = slash + 1;
+	}
+	return rewritten;
+}
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
@@ -1126,6 +1157,65 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			this, [this](double) { commitCaseSettings(); });
 	refreshCaseSettingsPanel();
 
+	// Infrastructure editor: one small facet selector and a table keep all
+	// canonical infrastructure fields visible without introducing a second model.
+	m_infrastructureDock = new QDockWidget("Infrastructure", this);
+	m_infrastructureDock->setObjectName("infrastructureDock");
+	QWidget* infrastructureWidget = new QWidget(m_infrastructureDock);
+	QVBoxLayout* infrastructureLayout = new QVBoxLayout(infrastructureWidget);
+	QHBoxLayout* infrastructureToolbar = new QHBoxLayout();
+	infrastructureToolbar->addWidget(new QLabel("Entity", infrastructureWidget));
+	m_infrastructureFacetCombo = new QComboBox(infrastructureWidget);
+	m_infrastructureFacetCombo->setObjectName("infrastructureFacetCombo");
+	m_infrastructureFacetCombo->setAccessibleName("Infrastructure entity");
+	m_infrastructureFacetCombo->addItem("Tracks", "tracks");
+	m_infrastructureFacetCombo->addItem("Nodes", "nodes");
+	m_infrastructureFacetCombo->addItem("Arcs", "arcs");
+	m_infrastructureFacetCombo->addItem("Blocks", "blocks");
+	m_infrastructureFacetCombo->addItem("Connections", "connections");
+	infrastructureToolbar->addWidget(m_infrastructureFacetCombo, 1);
+	m_addInfrastructureButton = new QPushButton("Add", infrastructureWidget);
+	m_addInfrastructureButton->setObjectName("infrastructureAddButton");
+	m_deleteInfrastructureButton = new QPushButton("Delete", infrastructureWidget);
+	m_deleteInfrastructureButton->setObjectName("infrastructureDeleteButton");
+	infrastructureToolbar->addWidget(m_addInfrastructureButton);
+	infrastructureToolbar->addWidget(m_deleteInfrastructureButton);
+	infrastructureLayout->addLayout(infrastructureToolbar);
+	m_infrastructureTable = new QTableWidget(infrastructureWidget);
+	m_infrastructureTable->setObjectName("infrastructureTable");
+	m_infrastructureTable->setAccessibleName("Infrastructure fields");
+	m_infrastructureTable->setEditTriggers(QAbstractItemView::AllEditTriggers);
+	m_infrastructureTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_infrastructureTable->setSelectionMode(QAbstractItemView::SingleSelection);
+	m_infrastructureTable->horizontalHeader()->setStretchLastSection(true);
+	infrastructureLayout->addWidget(m_infrastructureTable);
+	m_infrastructureDock->setWidget(infrastructureWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
+	m_infrastructureDock->hide();
+	editorsMenu()->addAction(m_infrastructureDock->toggleViewAction());
+	connect(m_infrastructureFacetCombo, &QComboBox::currentTextChanged, this,
+			[this](const QString&) {
+				m_infrastructureSelectionId.clear();
+				refreshInfrastructureTable();
+			});
+	connect(m_infrastructureTable, &QTableWidget::itemChanged, this,
+			[this](QTableWidgetItem* item) {
+				if (item)
+					commitInfrastructureCell(item->row(), item->column());
+			});
+	connect(m_infrastructureTable, &QTableWidget::itemSelectionChanged, this,
+				&MainWindow::updateInfrastructureSelection);
+	connect(m_infrastructureDock, &QDockWidget::visibilityChanged, this,
+			[this](bool visible) {
+				if (visible)
+					updateInfrastructureSelection();
+			});
+	connect(m_addInfrastructureButton, &QPushButton::clicked, this,
+				&MainWindow::addInfrastructureEntity);
+	connect(m_deleteInfrastructureButton, &QPushButton::clicked, this,
+				&MainWindow::deleteInfrastructureEntity);
+	refreshInfrastructurePanel();
+
 	// train-unit editor: one list/detail dock for physical values and traction
 	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
 	m_trainUnitDock = new QDockWidget("Train Units", this);
@@ -1635,6 +1725,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
+	refreshInfrastructurePanel();
 	// Dock/editor construction above can rebuild the top-level focus chain;
 	// restore the command-bar sequence after every child widget exists.
 	setCommandBarTabOrder();
@@ -1680,10 +1771,15 @@ void MainWindow::newScene() {
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
+	refreshInfrastructurePanel();
 	renderTrackPreview(m_sceneModel);
 	if (m_caseSettingsDock) {
 		m_caseSettingsDock->show();
 		m_caseSettingsDock->raise();
+	}
+	if (m_infrastructureDock) {
+		m_infrastructureDock->show();
+		m_infrastructureDock->raise();
 	}
 }
 
@@ -1757,6 +1853,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
+	refreshInfrastructurePanel();
 	renderTrackPreview(m_sceneModel);
 	if (m_loadedDataDock) {
 		m_loadedDataDock->show();
@@ -1766,23 +1863,79 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 }
 
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
+	const QString selectedInfrastructureId = m_infrastructureSelectionId;
+	const bool hasRuntimeGraphics = static_cast<bool>(m_snapshot)
+		|| !allTrains.isEmpty() || !allArcs.isEmpty() || !allSignals.isEmpty()
+		|| !allPlatforms.isEmpty() || !m_stationOverlays.isEmpty() || !m_stationDecorations.isEmpty()
+		|| !m_signalDecorations.isEmpty() || !m_vcMessageItems.isEmpty()
+		|| !m_trainAnimations.isEmpty() || !m_tracksBySectionId.empty()
+		|| !m_tracksByOccupiedArc.empty() || !m_activeTrackItems.empty();
+	if (hasRuntimeGraphics) {
+		// A dirty edit invalidates run results; clear the runtime-owned item
+		// observers before rebuilding the authoring preview so no stale pointers
+		// remain after scene->clear().
+		teardownGUI();
+		m_infrastructureSelectionId = selectedInfrastructureId;
+	} else if (scene) {
+		scene->clear();
+	}
+	effect = nullptr;
+	const QString selectedFacet = m_infrastructureFacetCombo
+		? m_infrastructureFacetCombo->currentData().toString() : QString();
+	const std::string selectedId = m_infrastructureSelectionId.toStdString();
+	std::set<std::string> selectedTrackIds;
+	std::string selectedNodeId;
+	const auto selectTrack = [&selectedTrackIds](const std::string& id) {
+		if (!id.empty())
+			selectedTrackIds.insert(id);
+	};
+	if (selectedFacet == "tracks") {
+		selectTrack(selectedId);
+	} else if (selectedFacet == "nodes") {
+		selectedNodeId = selectedId;
+		for (const auto& node : sceneModel.nodes)
+			if (node.id == selectedId)
+				selectTrack(node.trackId);
+	} else if (selectedFacet == "arcs") {
+		for (const auto& arc : sceneModel.arcs)
+			if (arc.id == selectedId)
+				selectTrack(arc.trackId);
+	} else if (selectedFacet == "blocks") {
+		for (const auto& block : sceneModel.blocks)
+			if (block.id == selectedId)
+				selectTrack(block.trackId);
+	} else if (selectedFacet == "connections") {
+		for (const auto& connection : sceneModel.connections) {
+			if (connection.id != selectedId)
+				continue;
+			for (const auto& node : sceneModel.nodes) {
+				if (node.id == connection.fromNodeId || node.id == connection.toNodeId)
+					selectTrack(node.trackId);
+			}
+		}
+	}
 	const TrackPreviewResult preview = loadTrackPreview(sceneModel);
 	if (preview.lines.empty()) {
+		if (scene)
+			scene->setSceneRect(QRectF());
 		statusBar()->showMessage("Scene loaded - no track preview available; simulation not running");
 		return;
 	}
-
-	QPen pen(QColor(185, 190, 198));
-	pen.setWidthF(2.0);
-	pen.setCosmetic(true);
 
 	QRectF previewBounds;
 	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
 	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
 		const auto& line = preview.lines[index];
+		if (line.points.size() < 2 || std::any_of(line.points.begin(), line.points.end(), [](const auto& point) {
+				return !std::isfinite(point.x) || !std::isfinite(point.y);
+			}))
+			continue;
 		const qreal offset = static_cast<qreal>(index) * 3.0;
 		tracks[line.id] = {&line, offset};
 
+		QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : QColor(185, 190, 198));
+		pen.setWidthF(selectedTrackIds.count(line.id) > 0 ? 3.5 : 2.0);
+		pen.setCosmetic(true);
 		QPainterPath path(QPointF(line.points.front().x, line.points.front().y + offset));
 		for (std::size_t point = 1; point < line.points.size(); ++point)
 			path.lineTo(line.points[point].x, line.points[point].y + offset);
@@ -1805,9 +1958,87 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 
 		QPainterPath path(start);
 		path.lineTo(end);
+		QPen pen(QColor(185, 190, 198));
+		pen.setWidthF(2.0);
+		pen.setCosmetic(true);
 		auto* item = scene->addPath(path, pen);
 		item->setAcceptedMouseButtons(Qt::NoButton);
 		previewBounds = previewBounds.united(item->sceneBoundingRect());
+	}
+
+	// Infrastructure selections use a few lightweight overlays rather than a
+	// second graphics-item model. Invalid intermediate references simply do not
+	// produce an overlay; the canonical model remains untouched.
+	if (m_infrastructureDock && m_infrastructureDock->isVisible()) {
+		for (const auto& node : sceneModel.nodes) {
+			const auto track = tracks.find(node.trackId);
+			if (track == tracks.end())
+				continue;
+			QPointF point;
+			if (!previewPointAtNode(*track->second.first, node.id, track->second.second, point))
+				continue;
+			const bool highlighted = node.id == selectedNodeId || selectedTrackIds.count(node.trackId) > 0;
+			const qreal radius = highlighted ? 4.5 : 2.5;
+			auto* marker = scene->addEllipse(QRectF(-radius, -radius, radius * 2.0, radius * 2.0),
+				QPen(highlighted ? QColor(255, 215, 105) : QColor(130, 155, 185)),
+				QBrush(highlighted ? QColor(220, 115, 45) : QColor(85, 105, 130)));
+			marker->setPos(point);
+			marker->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+			marker->setAcceptedMouseButtons(Qt::NoButton);
+		}
+
+		if (selectedFacet == "arcs") {
+			for (const auto& arc : sceneModel.arcs) {
+				if (arc.id != selectedId)
+					continue;
+				const auto track = tracks.find(arc.trackId);
+				if (track == tracks.end())
+					break;
+				QPointF start;
+				QPointF end;
+				if (!previewPointAtNode(*track->second.first, arc.fromNodeId, track->second.second, start)
+					|| !previewPointAtNode(*track->second.first, arc.toNodeId, track->second.second, end))
+					break;
+				QPainterPath path(start);
+				path.lineTo(end);
+				QPen highlight(QColor(255, 110, 90));
+				highlight.setWidthF(6.0);
+				highlight.setCosmetic(true);
+				auto* item = scene->addPath(path, highlight);
+				item->setAcceptedMouseButtons(Qt::NoButton);
+				break;
+			}
+		}
+
+		if (selectedFacet == "connections") {
+			for (const auto& connection : sceneModel.connections) {
+				if (connection.id != selectedId)
+					continue;
+				const auto fromNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
+					[&connection](const SceneNode& node) { return node.id == connection.fromNodeId; });
+				const auto toNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
+					[&connection](const SceneNode& node) { return node.id == connection.toNodeId; });
+				if (fromNode == sceneModel.nodes.end() || toNode == sceneModel.nodes.end())
+					break;
+				const auto first = tracks.find(fromNode->trackId);
+				const auto second = tracks.find(toNode->trackId);
+				if (first == tracks.end() || second == tracks.end())
+					break;
+				QPointF start;
+				QPointF end;
+				if (!previewPointAtNode(*first->second.first, fromNode->id, first->second.second, start)
+					|| !previewPointAtNode(*second->second.first, toNode->id, second->second.second, end))
+					break;
+				QPainterPath path(start);
+				path.lineTo(end);
+				QPen highlight(QColor(255, 110, 90));
+				highlight.setWidthF(6.0);
+				highlight.setCosmetic(true);
+				auto* item = scene->addPath(path, highlight);
+				item->setAcceptedMouseButtons(Qt::NoButton);
+				break;
+			}
+		}
 	}
 
 	// Station anchors: a fixed-size marker and name at the first trackline
@@ -1857,7 +2088,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		updateViewportOverlays();
 	}
 	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running")
-								 .arg(static_cast<int>(preview.lines.size())));
+									 .arg(static_cast<int>(tracks.size())));
 }
 
 void MainWindow::saveScene() {
@@ -1884,6 +2115,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
+	refreshInfrastructurePanel();
 	return true;
 }
 
@@ -2354,6 +2586,450 @@ void MainWindow::commitCaseSettings() {
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	markSceneDirty();
 	refreshValidationPanel();
+}
+
+std::string MainWindow::uniqueInfrastructureId(const std::string& baseId, const QString& facet) const {
+	const auto exists = [this, &facet](const std::string& id) {
+		if (facet == "tracks")
+			return std::any_of(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
+				[&id](const SceneTrack& item) { return item.id == id; });
+		if (facet == "nodes")
+			return std::any_of(m_sceneModel.nodes.begin(), m_sceneModel.nodes.end(),
+				[&id](const SceneNode& item) { return item.id == id; });
+		if (facet == "arcs")
+			return std::any_of(m_sceneModel.arcs.begin(), m_sceneModel.arcs.end(),
+				[&id](const SceneArc& item) { return item.id == id; });
+		if (facet == "blocks")
+			return std::any_of(m_sceneModel.blocks.begin(), m_sceneModel.blocks.end(),
+				[&id](const SceneBlock& item) { return item.id == id; });
+		return std::any_of(m_sceneModel.connections.begin(), m_sceneModel.connections.end(),
+			[&id](const SceneConnection& item) { return item.id == id; });
+	};
+	std::string candidate = baseId;
+	int suffix = 2;
+	while (exists(candidate))
+		candidate = baseId + "_" + std::to_string(suffix++);
+	return candidate;
+}
+
+void MainWindow::refreshInfrastructurePanel() {
+	const bool editable = m_sceneLoaded && !m_worker;
+	if (m_infrastructureDock)
+		m_infrastructureDock->setEnabled(editable);
+	if (m_infrastructureFacetCombo) {
+		const QSignalBlocker blocker(m_infrastructureFacetCombo);
+		m_infrastructureFacetCombo->setEnabled(editable);
+	}
+	if (m_addInfrastructureButton)
+		m_addInfrastructureButton->setEnabled(editable);
+	refreshInfrastructureTable();
+}
+
+void MainWindow::refreshInfrastructureTable() {
+	if (!m_infrastructureTable || !m_infrastructureFacetCombo)
+		return;
+
+	const QString facet = m_infrastructureFacetCombo->currentData().toString();
+	const int previousRow = m_infrastructureTable->currentRow();
+	const QString previousId = m_infrastructureSelectionId;
+	QStringList headers;
+	if (facet == "tracks")
+		headers << "ID";
+	else if (facet == "nodes")
+		headers << "ID" << "Track ID" << "X (km)" << "Y (km)";
+	else if (facet == "arcs")
+		headers << "ID" << "Track ID" << "From node" << "To node"
+			<< "Curvature radius (m)" << "Gradient (%)" << "Speed limit (m/s)";
+	else if (facet == "blocks")
+		headers << "ID" << "Track ID" << "Length (km)";
+	else
+		headers << "ID" << "From node" << "To node" << "Has speed limit"
+			<< "Speed limit (m/s)";
+
+	QSignalBlocker blocker(m_infrastructureTable);
+	m_infrastructureTable->clearContents();
+	m_infrastructureTable->setColumnCount(headers.size());
+	m_infrastructureTable->setHorizontalHeaderLabels(headers);
+	const auto setCell = [this](int row, int column, const QString& text) {
+		m_infrastructureTable->setItem(row, column, new QTableWidgetItem(text));
+	};
+	const int precision = std::numeric_limits<double>::max_digits10;
+	if (facet == "tracks") {
+		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.tracks.size()));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row)
+			setCell(row, 0, QString::fromStdString(m_sceneModel.tracks[static_cast<std::size_t>(row)].id));
+	} else if (facet == "nodes") {
+		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.nodes.size()));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			const SceneNode& node = m_sceneModel.nodes[static_cast<std::size_t>(row)];
+			setCell(row, 0, QString::fromStdString(node.id));
+			setCell(row, 1, QString::fromStdString(node.trackId));
+			setCell(row, 2, QString::number(node.xKm, 'g', precision));
+			setCell(row, 3, QString::number(node.yKm, 'g', precision));
+		}
+	} else if (facet == "arcs") {
+		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.arcs.size()));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			const SceneArc& arc = m_sceneModel.arcs[static_cast<std::size_t>(row)];
+			setCell(row, 0, QString::fromStdString(arc.id));
+			setCell(row, 1, QString::fromStdString(arc.trackId));
+			setCell(row, 2, QString::fromStdString(arc.fromNodeId));
+			setCell(row, 3, QString::fromStdString(arc.toNodeId));
+			setCell(row, 4, QString::number(arc.curvatureRadiusM, 'g', precision));
+			setCell(row, 5, QString::number(arc.gradientPercent, 'g', precision));
+			setCell(row, 6, QString::number(arc.speedLimitMs, 'g', precision));
+		}
+	} else if (facet == "blocks") {
+		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.blocks.size()));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			const SceneBlock& block = m_sceneModel.blocks[static_cast<std::size_t>(row)];
+			setCell(row, 0, QString::fromStdString(block.id));
+			setCell(row, 1, QString::fromStdString(block.trackId));
+			setCell(row, 2, QString::number(block.lengthKm, 'g', precision));
+		}
+	} else {
+		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.connections.size()));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			const SceneConnection& connection = m_sceneModel.connections[static_cast<std::size_t>(row)];
+			setCell(row, 0, QString::fromStdString(connection.id));
+			setCell(row, 1, QString::fromStdString(connection.fromNodeId));
+			setCell(row, 2, QString::fromStdString(connection.toNodeId));
+			setCell(row, 3, connection.hasSpeedLimit ? QStringLiteral("true") : QStringLiteral("false"));
+			setCell(row, 4, QString::number(connection.speedLimitMs, 'g', precision));
+		}
+	}
+	m_infrastructureTable->setEnabled(m_sceneLoaded && !m_worker);
+	m_infrastructureTable->resizeColumnsToContents();
+	int rowToSelect = -1;
+	for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+		if (m_infrastructureTable->item(row, 0)
+				&& m_infrastructureTable->item(row, 0)->text() == previousId) {
+			rowToSelect = row;
+			break;
+		}
+	}
+	if (rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
+		rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, m_infrastructureTable->rowCount() - 1);
+	m_infrastructureTable->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : 0);
+	updateInfrastructureSelection();
+	if (m_deleteInfrastructureButton)
+		m_deleteInfrastructureButton->setEnabled(m_sceneLoaded && !m_worker && rowToSelect >= 0);
+}
+
+void MainWindow::updateInfrastructureSelection() {
+	if (!m_infrastructureTable)
+		return;
+	const int row = m_infrastructureTable->currentRow();
+	const QTableWidgetItem* item = row >= 0 ? m_infrastructureTable->item(row, 0) : nullptr;
+	m_infrastructureSelectionId = item ? item->text() : QString();
+	if (m_sceneLoaded && !m_worker && !m_resultsAvailable)
+		renderTrackPreview(m_sceneModel);
+}
+
+void MainWindow::commitInfrastructureCell(int row, int column) {
+	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo || !m_infrastructureTable
+			|| row < 0 || row >= m_infrastructureTable->rowCount())
+		return;
+	const QString facet = m_infrastructureFacetCombo->currentData().toString();
+	const QTableWidgetItem* item = m_infrastructureTable->item(row, column);
+	if (!item)
+		return;
+	const QString value = item->text().trimmed();
+	bool changed = false;
+	const auto idCanReplaceRow = [row](const auto& items, const std::string& id) {
+		if (id.empty())
+			return false;
+		for (int index = 0; index < static_cast<int>(items.size()); ++index)
+			if (index != row && items[static_cast<std::size_t>(index)].id == id)
+				return false;
+		return true;
+	};
+	const auto rejectUnsafeId = [this]() {
+		statusBar()->showMessage("Infrastructure IDs must be non-empty and unique", 4000);
+		refreshInfrastructureTable();
+	};
+	const auto parseNumber = [&](double& target) {
+		bool parsed = false;
+		const double number = value.toDouble(&parsed);
+		if (!parsed || !std::isfinite(number)) {
+			refreshInfrastructureTable();
+			return false;
+		}
+		if (target != number) {
+			target = number;
+			changed = true;
+		}
+		return true;
+	};
+	const auto parseBool = [&](bool& target) {
+		const QString lower = value.toLower();
+		if (lower != "true" && lower != "false") {
+			refreshInfrastructureTable();
+			return false;
+		}
+		const bool flag = lower == "true";
+		if (target != flag) {
+			target = flag;
+			changed = true;
+		}
+		return true;
+	};
+	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size()) && column == 0) {
+		SceneTrack& track = m_sceneModel.tracks[static_cast<std::size_t>(row)];
+		const std::string oldId = track.id;
+		const std::string newId = value.toStdString();
+		if (oldId != newId) {
+			if (!idCanReplaceRow(m_sceneModel.tracks, newId)) {
+				rejectUnsafeId();
+				return;
+			}
+			track.id = newId;
+			for (auto& node : m_sceneModel.nodes)
+				if (node.trackId == oldId)
+					node.trackId = newId;
+			for (auto& arc : m_sceneModel.arcs)
+				if (arc.trackId == oldId)
+					arc.trackId = newId;
+			for (auto& block : m_sceneModel.blocks)
+				if (block.trackId == oldId)
+					block.trackId = newId;
+			m_infrastructureSelectionId = value;
+			changed = true;
+		}
+	} else if (facet == "nodes" && row < static_cast<int>(m_sceneModel.nodes.size())) {
+		SceneNode& node = m_sceneModel.nodes[static_cast<std::size_t>(row)];
+		if (column == 0) {
+			const std::string oldId = node.id;
+			const std::string newId = value.toStdString();
+			if (oldId != newId) {
+				if (!idCanReplaceRow(m_sceneModel.nodes, newId)) {
+					rejectUnsafeId();
+					return;
+				}
+				node.id = newId;
+				for (auto& arc : m_sceneModel.arcs) {
+					if (arc.fromNodeId == oldId)
+						arc.fromNodeId = newId;
+					if (arc.toNodeId == oldId)
+						arc.toNodeId = newId;
+				}
+				for (auto& connection : m_sceneModel.connections) {
+					if (connection.fromNodeId == oldId)
+						connection.fromNodeId = newId;
+					if (connection.toNodeId == oldId)
+						connection.toNodeId = newId;
+				}
+				for (auto& station : m_sceneModel.stations)
+					for (auto& platform : station.platforms)
+						for (auto& nodeId : platform.nodeIds)
+							if (nodeId == oldId)
+								nodeId = newId;
+				m_infrastructureSelectionId = value;
+				changed = true;
+			}
+		} else if (column == 1 && node.trackId != value.toStdString()) {
+			node.trackId = value.toStdString();
+			changed = true;
+		} else if (column == 2) {
+			parseNumber(node.xKm);
+		} else if (column == 3) {
+			parseNumber(node.yKm);
+		}
+	} else if (facet == "arcs" && row < static_cast<int>(m_sceneModel.arcs.size())) {
+		SceneArc& arc = m_sceneModel.arcs[static_cast<std::size_t>(row)];
+		if (column == 0 && arc.id != value.toStdString()) {
+			if (!idCanReplaceRow(m_sceneModel.arcs, value.toStdString())) {
+				rejectUnsafeId();
+				return;
+			}
+			arc.id = value.toStdString();
+			m_infrastructureSelectionId = value;
+			changed = true;
+		} else if (column == 1 && arc.trackId != value.toStdString()) {
+			arc.trackId = value.toStdString();
+			changed = true;
+		} else if (column == 2 && arc.fromNodeId != value.toStdString()) {
+			arc.fromNodeId = value.toStdString();
+			changed = true;
+		} else if (column == 3 && arc.toNodeId != value.toStdString()) {
+			arc.toNodeId = value.toStdString();
+			changed = true;
+		} else if (column == 4) {
+			parseNumber(arc.curvatureRadiusM);
+		} else if (column == 5) {
+			parseNumber(arc.gradientPercent);
+		} else if (column == 6) {
+			parseNumber(arc.speedLimitMs);
+		}
+	} else if (facet == "blocks" && row < static_cast<int>(m_sceneModel.blocks.size())) {
+		SceneBlock& block = m_sceneModel.blocks[static_cast<std::size_t>(row)];
+		if (column == 0) {
+			const std::string oldId = block.id;
+			const std::string newId = value.toStdString();
+			if (oldId == newId)
+				return;
+			if (!idCanReplaceRow(m_sceneModel.blocks, newId)) {
+				rejectUnsafeId();
+				return;
+			}
+			block.id = newId;
+			const auto rewrite = [&oldId, &newId](std::string& reference) {
+				reference = rewriteBlockReference(reference, oldId, newId);
+			};
+			for (auto& route : m_sceneModel.routes)
+				for (auto& reference : route.blocks)
+					rewrite(reference);
+			for (auto& dependency : m_sceneModel.blockDependencies) {
+				rewrite(dependency.block);
+				rewrite(dependency.dependsOn);
+			}
+			for (auto& restriction : m_sceneModel.singleTrackRestrictions) {
+				rewrite(restriction.startBlock);
+				rewrite(restriction.endBlock);
+				rewrite(restriction.protectedStartBlock);
+				rewrite(restriction.protectedEndBlock);
+			}
+			for (auto& boundary : m_sceneModel.stationBoundaries) {
+				rewrite(boundary.entranceBlock);
+				if (boundary.hasExitBlock)
+					rewrite(boundary.exitBlock);
+			}
+			for (auto& scenario : m_sceneModel.scenarios)
+				for (auto& incident : scenario.incidents)
+					if (incident.type == "signal_failure")
+						rewrite(incident.target);
+			m_infrastructureSelectionId = value;
+			changed = true;
+		} else if (column == 1 && block.trackId != value.toStdString()) {
+			block.trackId = value.toStdString();
+			changed = true;
+		} else if (column == 2) {
+			parseNumber(block.lengthKm);
+		}
+	} else if (facet == "connections" && row < static_cast<int>(m_sceneModel.connections.size())) {
+		SceneConnection& connection = m_sceneModel.connections[static_cast<std::size_t>(row)];
+		if (column == 0 && connection.id != value.toStdString()) {
+			if (!idCanReplaceRow(m_sceneModel.connections, value.toStdString())) {
+				rejectUnsafeId();
+				return;
+			}
+			connection.id = value.toStdString();
+			m_infrastructureSelectionId = value;
+			changed = true;
+		} else if (column == 1 && connection.fromNodeId != value.toStdString()) {
+			connection.fromNodeId = value.toStdString();
+			changed = true;
+		} else if (column == 2 && connection.toNodeId != value.toStdString()) {
+			connection.toNodeId = value.toStdString();
+			changed = true;
+		} else if (column == 3) {
+			parseBool(connection.hasSpeedLimit);
+		} else if (column == 4) {
+			parseNumber(connection.speedLimitMs);
+		}
+	}
+	if (!changed)
+		return;
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshInfrastructureTable();
+}
+
+void MainWindow::addInfrastructureEntity() {
+	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo)
+		return;
+	const QString facet = m_infrastructureFacetCombo->currentData().toString();
+	std::string id;
+	int newRow = -1;
+	if (facet == "tracks") {
+		id = uniqueInfrastructureId("track", facet);
+		m_sceneModel.tracks.push_back({id});
+		newRow = static_cast<int>(m_sceneModel.tracks.size()) - 1;
+	} else if (facet == "nodes") {
+		id = uniqueInfrastructureId("node", facet);
+		const std::string trackId = m_sceneModel.tracks.empty() ? std::string() : m_sceneModel.tracks.front().id;
+		double x = 0.0;
+		for (const auto& node : m_sceneModel.nodes)
+			if (node.trackId == trackId && std::isfinite(node.xKm))
+				x = std::max(x, node.xKm + 1.0);
+		m_sceneModel.nodes.push_back({id, trackId, x, 0.0});
+		newRow = static_cast<int>(m_sceneModel.nodes.size()) - 1;
+	} else if (facet == "arcs") {
+		id = uniqueInfrastructureId("arc", facet);
+		const std::string trackId = m_sceneModel.tracks.empty() ? std::string() : m_sceneModel.tracks.front().id;
+		std::vector<std::string> nodeIds;
+		for (const auto& node : m_sceneModel.nodes)
+			if (node.trackId == trackId)
+				nodeIds.push_back(node.id);
+		std::string from;
+		std::string to;
+		if (nodeIds.size() >= 2) {
+			std::size_t index = 0;
+			for (const auto& arc : m_sceneModel.arcs)
+				if (arc.trackId == trackId && index + 1 < nodeIds.size())
+					++index;
+			from = nodeIds[index];
+			to = nodeIds[std::min(index + 1, nodeIds.size() - 1)];
+		}
+		m_sceneModel.arcs.push_back({id, trackId, from, to, 0.0, 0.0, 20.0});
+		newRow = static_cast<int>(m_sceneModel.arcs.size()) - 1;
+	} else if (facet == "blocks") {
+		id = uniqueInfrastructureId("block", facet);
+		const std::string trackId = m_sceneModel.tracks.empty() ? std::string() : m_sceneModel.tracks.front().id;
+		m_sceneModel.blocks.push_back({id, trackId, 1.0});
+		newRow = static_cast<int>(m_sceneModel.blocks.size()) - 1;
+	} else {
+		id = uniqueInfrastructureId("connection", facet);
+		std::string from;
+		std::string to;
+		if (m_sceneModel.nodes.size() >= 2) {
+			from = m_sceneModel.nodes[0].id;
+			to = m_sceneModel.nodes[1].id;
+		}
+		m_sceneModel.connections.push_back({id, from, to, false, 0.0});
+		newRow = static_cast<int>(m_sceneModel.connections.size()) - 1;
+	}
+	m_infrastructureSelectionId = QString::fromStdString(id);
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshInfrastructureTable();
+	if (m_infrastructureTable && newRow >= 0 && newRow < m_infrastructureTable->rowCount())
+		m_infrastructureTable->setCurrentCell(newRow, 0);
+}
+
+void MainWindow::deleteInfrastructureEntity() {
+	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo || !m_infrastructureTable)
+		return;
+	const QString facet = m_infrastructureFacetCombo->currentData().toString();
+	const int row = m_infrastructureTable->currentRow();
+	if (row < 0)
+		return;
+	const QString id = m_infrastructureTable->item(row, 0)
+		? m_infrastructureTable->item(row, 0)->text() : QString();
+	if (id.isEmpty())
+		return;
+	const QMessageBox::StandardButton answer = QMessageBox::question(this, "Delete infrastructure entity",
+		QString("Delete %1 '%2'? Referenced entities will remain and validation will show any fallout.")
+			.arg(m_infrastructureFacetCombo->currentText().toLower(), id),
+		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+	if (answer != QMessageBox::Yes)
+		return;
+	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size()))
+		m_sceneModel.tracks.erase(m_sceneModel.tracks.begin() + row);
+	else if (facet == "nodes" && row < static_cast<int>(m_sceneModel.nodes.size()))
+		m_sceneModel.nodes.erase(m_sceneModel.nodes.begin() + row);
+	else if (facet == "arcs" && row < static_cast<int>(m_sceneModel.arcs.size()))
+		m_sceneModel.arcs.erase(m_sceneModel.arcs.begin() + row);
+	else if (facet == "blocks" && row < static_cast<int>(m_sceneModel.blocks.size()))
+		m_sceneModel.blocks.erase(m_sceneModel.blocks.begin() + row);
+	else if (facet == "connections" && row < static_cast<int>(m_sceneModel.connections.size()))
+		m_sceneModel.connections.erase(m_sceneModel.connections.begin() + row);
+	else
+		return;
+	m_infrastructureSelectionId.clear();
+	markSceneDirty();
+	refreshValidationPanel();
+	refreshInfrastructureTable();
 }
 
 void MainWindow::refreshTrainUnitPanel() {
@@ -6787,6 +7463,15 @@ void MainWindow::runEditorSmokeE2E() {
 	std::vector<SceneComposition> expectedCompositions;
 	std::vector<SceneService> expectedServices;
 	std::vector<SceneIncident> expectedIncidents;
+	std::vector<SceneTrack> expectedTracks;
+	std::vector<SceneNode> expectedNodes;
+	std::vector<SceneArc> expectedArcs;
+	std::vector<SceneBlock> expectedBlocks;
+	std::vector<SceneConnection> expectedConnections;
+	std::vector<SceneRoute> expectedRoutes;
+	std::vector<SceneBlockDependency> expectedBlockDependencies;
+	std::vector<SceneSingleTrackRestriction> expectedSingleTrackRestrictions;
+	std::vector<SceneStationBoundary> expectedStationBoundaries;
 
 	auto facetFailure = [&](bool& facetOk, const char* facet, const QString& message) {
 		facetOk = false;
@@ -6885,6 +7570,78 @@ void MainWindow::runEditorSmokeE2E() {
 			return a.id == b.id && a.type == b.type && a.target == b.target
 				&& a.startSeconds == b.startSeconds && a.endSeconds == b.endSeconds;
 		});
+	};
+	auto sameInfrastructure = [](const SceneModel& left, const std::vector<SceneTrack>& tracks,
+			const std::vector<SceneNode>& nodes, const std::vector<SceneArc>& arcs,
+			const std::vector<SceneBlock>& blocks, const std::vector<SceneConnection>& connections) {
+		if (left.tracks.size() != tracks.size() || left.nodes.size() != nodes.size()
+				|| left.arcs.size() != arcs.size() || left.blocks.size() != blocks.size()
+				|| left.connections.size() != connections.size())
+			return false;
+		for (std::size_t i = 0; i < tracks.size(); ++i)
+			if (left.tracks[i].id != tracks[i].id)
+				return false;
+		for (std::size_t i = 0; i < nodes.size(); ++i) {
+			if (left.nodes[i].id != nodes[i].id || left.nodes[i].trackId != nodes[i].trackId
+					|| left.nodes[i].xKm != nodes[i].xKm || left.nodes[i].yKm != nodes[i].yKm)
+				return false;
+		}
+		for (std::size_t i = 0; i < arcs.size(); ++i) {
+			if (left.arcs[i].id != arcs[i].id || left.arcs[i].trackId != arcs[i].trackId
+					|| left.arcs[i].fromNodeId != arcs[i].fromNodeId || left.arcs[i].toNodeId != arcs[i].toNodeId
+					|| left.arcs[i].curvatureRadiusM != arcs[i].curvatureRadiusM
+					|| left.arcs[i].gradientPercent != arcs[i].gradientPercent
+					|| left.arcs[i].speedLimitMs != arcs[i].speedLimitMs)
+				return false;
+		}
+		for (std::size_t i = 0; i < blocks.size(); ++i)
+			if (left.blocks[i].id != blocks[i].id || left.blocks[i].trackId != blocks[i].trackId
+					|| left.blocks[i].lengthKm != blocks[i].lengthKm)
+				return false;
+		for (std::size_t i = 0; i < connections.size(); ++i)
+			if (left.connections[i].id != connections[i].id
+					|| left.connections[i].fromNodeId != connections[i].fromNodeId
+					|| left.connections[i].toNodeId != connections[i].toNodeId
+					|| left.connections[i].hasSpeedLimit != connections[i].hasSpeedLimit
+					|| left.connections[i].speedLimitMs != connections[i].speedLimitMs)
+				return false;
+		return true;
+	};
+	auto sameBlockReferences = [](const SceneModel& left, const std::vector<SceneRoute>& routes,
+			const std::vector<SceneBlockDependency>& dependencies,
+			const std::vector<SceneSingleTrackRestriction>& restrictions,
+			const std::vector<SceneStationBoundary>& boundaries) {
+		if (left.routes.size() != routes.size() || left.blockDependencies.size() != dependencies.size()
+				|| left.singleTrackRestrictions.size() != restrictions.size()
+				|| left.stationBoundaries.size() != boundaries.size())
+			return false;
+		for (std::size_t index = 0; index < routes.size(); ++index) {
+			if (left.routes[index].id != routes[index].id || left.routes[index].blocks != routes[index].blocks
+					|| left.routes[index].hasCorridor != routes[index].hasCorridor
+					|| left.routes[index].corridor != routes[index].corridor
+					|| left.routes[index].reversed != routes[index].reversed)
+				return false;
+		}
+		for (std::size_t index = 0; index < dependencies.size(); ++index) {
+			if (left.blockDependencies[index].block != dependencies[index].block
+					|| left.blockDependencies[index].dependsOn != dependencies[index].dependsOn)
+				return false;
+		}
+		for (std::size_t index = 0; index < restrictions.size(); ++index) {
+			if (left.singleTrackRestrictions[index].startBlock != restrictions[index].startBlock
+					|| left.singleTrackRestrictions[index].endBlock != restrictions[index].endBlock
+					|| left.singleTrackRestrictions[index].protectedStartBlock != restrictions[index].protectedStartBlock
+					|| left.singleTrackRestrictions[index].protectedEndBlock != restrictions[index].protectedEndBlock)
+				return false;
+		}
+		for (std::size_t index = 0; index < boundaries.size(); ++index) {
+			if (left.stationBoundaries[index].entranceBlock != boundaries[index].entranceBlock
+					|| left.stationBoundaries[index].hasExitBlock != boundaries[index].hasExitBlock
+					|| left.stationBoundaries[index].exitBlock != boundaries[index].exitBlock
+					|| left.stationBoundaries[index].direction != boundaries[index].direction)
+				return false;
+		}
+		return true;
 	};
 
 	// step a: load scene from env
@@ -6992,9 +7749,151 @@ void MainWindow::runEditorSmokeE2E() {
 						|| !m_sceneModel.settings.hasRecoveryTime || m_sceneModel.settings.recoveryTimePercent != 7.5
 						|| m_startOffsetSeconds != 9 * 3600 + 15 * 60 + 30)
 					facetFailure(facetOk, "new case", "case settings edits did not commit all six values");
-			}
+				}
 
-			const QString newCaseFolder = QDir(outBase).filePath("editor_smoke_new_case");
+				auto* infrastructureDock = findChild<QDockWidget*>("infrastructureDock");
+				auto* infrastructureFacet = findChild<QComboBox*>("infrastructureFacetCombo");
+				auto* infrastructureTable = findChild<QTableWidget*>("infrastructureTable");
+				auto* infrastructureAdd = findChild<QPushButton*>("infrastructureAddButton");
+				if (!infrastructureDock || !infrastructureFacet || !infrastructureTable || !infrastructureAdd) {
+					facetFailure(facetOk, "infrastructure", "infrastructure controls or dock are unavailable");
+				} else {
+					infrastructureDock->show();
+					infrastructureDock->raise();
+					auto chooseInfrastructureFacet = [&](const char* facet) {
+						const int index = infrastructureFacet->findData(QString::fromLatin1(facet));
+						if (index < 0)
+							return false;
+						infrastructureFacet->setCurrentIndex(index);
+						QApplication::processEvents();
+						return true;
+					};
+					auto setInfrastructureCell = [&](const char* facet, int row, int column, const QString& value) {
+						if (!chooseInfrastructureFacet(facet) || row < 0 || row >= infrastructureTable->rowCount()
+								|| !infrastructureTable->item(row, column))
+							return false;
+						infrastructureTable->item(row, column)->setText(value);
+						QApplication::processEvents();
+						return true;
+					};
+				auto addInfrastructureRow = [&](const char* facet) {
+						if (!chooseInfrastructureFacet(facet))
+							return false;
+						infrastructureAdd->click();
+						QApplication::processEvents();
+						return true;
+					};
+					if (!addInfrastructureRow("tracks")
+							|| !setInfrastructureCell("tracks", 0, 0, "e2e-main")
+							|| !addInfrastructureRow("tracks")
+							|| !setInfrastructureCell("tracks", 1, 0, "e2e-yard"))
+						facetFailure(facetOk, "infrastructure", "track creation or ID editing did not apply");
+					if (!setInfrastructureCell("tracks", 0, 0, "e2e-yard")
+							|| m_sceneModel.tracks.size() != 2 || m_sceneModel.tracks[0].id != "e2e-main")
+						facetFailure(facetOk, "infrastructure", "duplicate track ID was not rejected safely");
+					for (int row = 0; row < 3; ++row) {
+						if (!addInfrastructureRow("nodes")
+								|| !setInfrastructureCell("nodes", row, 0, QString("e2e-main-node-%1").arg(row))
+								|| !setInfrastructureCell("nodes", row, 1, "e2e-main")
+								|| !setInfrastructureCell("nodes", row, 2, QString::number(row))
+								|| !setInfrastructureCell("nodes", row, 3, QString::number(row == 1 ? 0.25 : 0.0)))
+							facetFailure(facetOk, "infrastructure", "main-track node field edit did not apply");
+					}
+					for (int row = 3; row < 5; ++row) {
+						if (!addInfrastructureRow("nodes")
+								|| !setInfrastructureCell("nodes", row, 0, QString("e2e-yard-node-%1").arg(row - 3))
+								|| !setInfrastructureCell("nodes", row, 1, "e2e-yard")
+								|| !setInfrastructureCell("nodes", row, 2, QString::number(row - 3))
+								|| !setInfrastructureCell("nodes", row, 3, "1.0"))
+							facetFailure(facetOk, "infrastructure", "yard-track node field edit did not apply");
+					}
+					const QStringList mainNodeIds = {"e2e-main-node-0", "e2e-main-node-1", "e2e-main-node-2"};
+					const QStringList yardNodeIds = {"e2e-yard-node-0", "e2e-yard-node-1"};
+					for (int row = 0; row < 2; ++row) {
+						if (!addInfrastructureRow("arcs")
+								|| !setInfrastructureCell("arcs", row, 0, QString("e2e-main-arc-%1").arg(row))
+								|| !setInfrastructureCell("arcs", row, 1, "e2e-main")
+								|| !setInfrastructureCell("arcs", row, 2, mainNodeIds[row])
+								|| !setInfrastructureCell("arcs", row, 3, mainNodeIds[row + 1])
+								|| !setInfrastructureCell("arcs", row, 4, row == 0 ? "0" : "1250.5")
+								|| !setInfrastructureCell("arcs", row, 5, row == 0 ? "-1.5" : "2.25")
+								|| !setInfrastructureCell("arcs", row, 6, row == 0 ? "22.5" : "18.75"))
+							facetFailure(facetOk, "infrastructure", "main-track arc field edit did not apply");
+					}
+					if (!addInfrastructureRow("arcs")
+							|| !setInfrastructureCell("arcs", 2, 0, "e2e-yard-arc-0")
+							|| !setInfrastructureCell("arcs", 2, 1, "e2e-yard")
+							|| !setInfrastructureCell("arcs", 2, 2, yardNodeIds[0])
+							|| !setInfrastructureCell("arcs", 2, 3, yardNodeIds[1])
+							|| !setInfrastructureCell("arcs", 2, 4, "0")
+							|| !setInfrastructureCell("arcs", 2, 5, "0")
+							|| !setInfrastructureCell("arcs", 2, 6, "16.5"))
+						facetFailure(facetOk, "infrastructure", "yard-track arc field edit did not apply");
+					for (int row = 0; row < 2; ++row) {
+						if (!addInfrastructureRow("blocks")
+								|| !setInfrastructureCell("blocks", row, 0, QString("e2e-main-block-%1").arg(row))
+								|| !setInfrastructureCell("blocks", row, 1, "e2e-main")
+								|| !setInfrastructureCell("blocks", row, 2, row == 0 ? "1.25" : "0.75"))
+							facetFailure(facetOk, "infrastructure", "main-track block field edit did not apply");
+					}
+					if (!addInfrastructureRow("blocks")
+							|| !setInfrastructureCell("blocks", 2, 0, "e2e-yard-block-0")
+							|| !setInfrastructureCell("blocks", 2, 1, "e2e-yard")
+							|| !setInfrastructureCell("blocks", 2, 2, "1.0"))
+						facetFailure(facetOk, "infrastructure", "yard-track block field edit did not apply");
+					const std::string oldBlockId = "e2e-main-block-0";
+					const std::string secondBlockId = "e2e-main-block-1";
+					SceneRoute blockReferenceRoute;
+					blockReferenceRoute.id = "e2e-block-route";
+					blockReferenceRoute.blocks = {
+						"@" + oldBlockId + "@-0.25/@" + secondBlockId + "@-0.50"};
+					m_sceneModel.routes.push_back(blockReferenceRoute);
+					m_sceneModel.blockDependencies.push_back({"@" + oldBlockId + "@-1.0", secondBlockId});
+					m_sceneModel.singleTrackRestrictions.push_back({
+						oldBlockId, secondBlockId,
+						"@" + oldBlockId + "@-1.0/@" + secondBlockId + "@-2.0", secondBlockId});
+					m_sceneModel.stationBoundaries.push_back({"@" + oldBlockId + "@-3.0", true, secondBlockId, false});
+					refreshValidationPanel();
+					const std::string renamedBlockId = "e2e-main-block-renamed";
+					const bool blockRenamed = setInfrastructureCell("blocks", 0, 0,
+						QString::fromStdString(renamedBlockId));
+					const bool blockReferencesUpdated = blockRenamed && m_sceneModel.blocks.size() >= 2
+						&& m_sceneModel.blocks[0].id == renamedBlockId
+						&& m_sceneModel.routes.size() == 1
+						&& m_sceneModel.routes[0].blocks[0]
+							== "@e2e-main-block-renamed@-0.25/@e2e-main-block-1@-0.50"
+						&& m_sceneModel.blockDependencies.size() == 1
+						&& m_sceneModel.blockDependencies[0].block == "@e2e-main-block-renamed@-1.0"
+						&& m_sceneModel.singleTrackRestrictions.size() == 1
+						&& m_sceneModel.singleTrackRestrictions[0].protectedStartBlock
+							== "@e2e-main-block-renamed@-1.0/@e2e-main-block-1@-2.0"
+						&& m_sceneModel.stationBoundaries.size() == 1
+						&& m_sceneModel.stationBoundaries[0].entranceBlock == "@e2e-main-block-renamed@-3.0";
+					if (!blockReferencesUpdated)
+						facetFailure(facetOk, "infrastructure", "block ID rename did not update decorated/composite references");
+					if (!addInfrastructureRow("connections")
+							|| !setInfrastructureCell("connections", 0, 0, "e2e-switch")
+							|| !setInfrastructureCell("connections", 0, 1, mainNodeIds[2])
+							|| !setInfrastructureCell("connections", 0, 2, yardNodeIds[0])
+							|| !setInfrastructureCell("connections", 0, 3, "true")
+							|| !setInfrastructureCell("connections", 0, 4, "9.25"))
+						facetFailure(facetOk, "infrastructure", "connection field edit did not apply");
+					expectedTracks = m_sceneModel.tracks;
+					expectedNodes = m_sceneModel.nodes;
+					expectedArcs = m_sceneModel.arcs;
+					expectedBlocks = m_sceneModel.blocks;
+					expectedConnections = m_sceneModel.connections;
+					expectedRoutes = m_sceneModel.routes;
+					expectedBlockDependencies = m_sceneModel.blockDependencies;
+					expectedSingleTrackRestrictions = m_sceneModel.singleTrackRestrictions;
+					expectedStationBoundaries = m_sceneModel.stationBoundaries;
+					if (loadTrackPreview(m_sceneModel).lines.size() < 2)
+						facetFailure(facetOk, "infrastructure", "authored topology did not reach the existing preview");
+					if (facetOk)
+						std::fprintf(stdout, "E2E_EDITOR_INFRASTRUCTURE_OK\n");
+				}
+
+				const QString newCaseFolder = QDir(outBase).filePath("editor_smoke_new_case");
 			const QString newCaseBundle = QDir(outBase).filePath("editor_smoke_new_case.egscene");
 			const QString absentSettingsFolder = QDir(outBase).filePath("editor_smoke_new_case_absent_settings");
 			if (!QDir().mkpath(outBase))
@@ -7019,7 +7918,11 @@ void MainWindow::runEditorSmokeE2E() {
 					&& m_sceneModel.settings.hasRecoveryTime && m_sceneModel.settings.recoveryTimePercent == 7.5
 					&& m_sceneModel.defaultScenarioId == "baseline" && scenario
 					&& scenario->id == "baseline" && scenario->name == "Baseline"
-					&& scenario->incidents.empty() && scenario->entranceDelays.empty();
+					&& scenario->incidents.empty() && scenario->entranceDelays.empty()
+					&& (expectedTracks.empty() || sameInfrastructure(m_sceneModel, expectedTracks, expectedNodes,
+						expectedArcs, expectedBlocks, expectedConnections))
+					&& (expectedRoutes.empty() || sameBlockReferences(m_sceneModel, expectedRoutes,
+						expectedBlockDependencies, expectedSingleTrackRestrictions, expectedStationBoundaries));
 			};
 			if (!openSceneDirectory(newCaseFolder) || !verifyNewCase())
 				facetFailure(facetOk, "new case", "folder save did not reopen with the edited settings");
@@ -8835,6 +9738,7 @@ void MainWindow::startSimulation() {
 
 	// create worker and thread; sync slider before run() starts
 	m_worker = new SimulationWorker();
+	refreshInfrastructurePanel();
 	m_worker->setDelayMs(stepDelayForSlider(m_speedSlider->value()));
 	refreshIncidentPanel();
 	updateSceneActions();
@@ -8895,6 +9799,7 @@ void MainWindow::onSimulationFinished() {
 		std::fflush(stdout);
 		std::fflush(stderr);
 		clearSimulationWorker(false);
+		refreshInfrastructurePanel();
 		QCoreApplication::exit(ok ? 0 : 2);
 		return;
 	}
@@ -8914,6 +9819,7 @@ void MainWindow::onSimulationFinished() {
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
+	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
 }
@@ -8946,6 +9852,7 @@ void MainWindow::teardownGUI() {
 	m_tracksBySectionId.clear();
 	m_tracksByOccupiedArc.clear();
 	m_activeTrackItems.clear();
+	m_infrastructureSelectionId.clear();
 	trainPaxInfoItem = nullptr;
 	trainPaxItem = nullptr;
 	paxIconInfoItem = nullptr;
