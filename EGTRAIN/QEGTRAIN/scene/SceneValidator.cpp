@@ -714,7 +714,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 
 	std::unordered_set<std::string> serviceIds;
-	std::unordered_map<std::string, double> serviceOccurrences;
+	std::unordered_map<std::string, int> serviceOccurrences;
 	collectIds(scene.services, "services.json", "service", "services", diagnostics, serviceIds);
 	for (std::size_t index = 0; index < scene.services.size(); ++index) {
 		const SceneService& service = scene.services[index];
@@ -725,15 +725,45 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!hasId(routeIds, service.route))
 			diagnostics.error("scene.ref.unresolved", "Service refers to unknown route", "services.json",
 					"service", service.id, path + ".route", service.route);
-		if (service.hasRepeat && service.headwaySeconds <= 0.0)
-			diagnostics.error("scene.repeat.invalid", "Non-positive headway", "services.json", "service",
+		if (!std::isfinite(service.performancePercent) || service.performancePercent < 1.0
+				|| service.performancePercent > 100.0)
+			diagnostics.error("scene.performance.invalid", "Service performance_percent must be finite and between 1 and 100",
+					"services.json", "service", service.id, path + ".performance_percent", "",
+					"Use a performance percentage from 1 through 100");
+		if (service.hasMaximumSpeed
+				&& (!std::isfinite(service.maximumSpeedKmh) || service.maximumSpeedKmh <= 0.0))
+			diagnostics.error("scene.speed.invalid", "Service maximum_speed_kmh must be positive and finite",
+					"services.json", "service", service.id, path + ".maximum_speed_kmh", "",
+					"Use a positive maximum speed in km/h");
+		if (service.hasRepeat && (!std::isfinite(service.headwaySeconds) || service.headwaySeconds <= 0.0))
+			diagnostics.error("scene.repeat.invalid", "Non-positive or non-finite headway", "services.json", "service",
 					service.id, path + ".repeat.headway_seconds", "",
 					"Use a headway greater than 0 seconds");
-		double occurrences = 1.0;
-		if (service.hasRepeat && service.headwaySeconds > 0.0 && scene.settings.hasDuration
-				&& std::isfinite(scene.settings.durationSeconds) && scene.settings.durationSeconds > 0.0)
-			occurrences = std::max(1.0, std::ceil(
-					scene.settings.durationSeconds / service.headwaySeconds));
+		if (service.hasRepeatCount && !service.hasRepeat)
+			diagnostics.error("scene.repeat.count.invalid", "repeat.count requires a repeat object",
+					"services.json", "service", service.id, path + ".repeat.count");
+		if (service.hasRepeat && service.hasRepeatCount && service.repeatCount <= 0)
+			diagnostics.error("scene.repeat.count.invalid", "repeat.count must be a positive integer",
+					"services.json", "service", service.id, path + ".repeat.count", "",
+					"Use a count of 1 or more");
+		if (service.hasOperatingCodeStep && !service.hasRepeat)
+			diagnostics.error("scene.repeat.step.invalid", "repeat.operating_code_step requires a repeat object",
+					"services.json", "service", service.id, path + ".repeat.operating_code_step");
+		if (service.hasRepeat && service.hasOperatingCodeStep
+				&& sceneServiceOccurrenceOperatingCode(service, 1).empty())
+			diagnostics.error("scene.repeat.step.invalid",
+					"repeat.operating_code_step must be nonzero and use a decimal operating code base",
+					"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
+					"Use a nonzero step with a decimal operating_code");
+		const int occurrences = sceneServiceOccurrenceCount(service,
+				scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0);
+		if (service.hasRepeat && service.hasOperatingCodeStep
+				&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
+				&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
+			diagnostics.error("scene.repeat.step.invalid",
+					"repeat.operating_code_step progression exceeds the supported integer range",
+					"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
+					"Use a smaller decimal base, step, or repeat count");
 		serviceOccurrences[service.id] = occurrences;
 		if (service.stops.empty()) {
 			if (!service.through)
@@ -855,6 +885,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			if (delay.occurrence <= 0)
 				diagnostics.error("scene.occurrence.invalid", "Entrance delay occurrence must be positive",
 						"scenarios.json", "entrance_delay", delay.serviceId, path + ".occurrence");
+			else if (hasId(serviceIds, delay.serviceId)
+					&& delay.occurrence > serviceOccurrences[delay.serviceId])
+				diagnostics.warning("scene.entrance.occurrence.out_of_horizon",
+						"Entrance delay refers to a service occurrence outside the configured pattern",
+						"scenarios.json", "entrance_delay", delay.serviceId, path + ".occurrence",
+						delay.serviceId + "-" + std::to_string(delay.occurrence));
 			if (delay.delaySeconds < 0.0)
 				diagnostics.error("scene.delay.invalid", "Entrance delay cannot be negative", "scenarios.json",
 						"entrance_delay", delay.serviceId, path + ".delay_seconds");
