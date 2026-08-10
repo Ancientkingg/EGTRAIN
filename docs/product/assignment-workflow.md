@@ -5,37 +5,36 @@ work behind the TU Delft OpenTrack assignment. The controls and result views are
 EGTRAIN-native. Students should reproduce the method and explain their modelling
 choices, not copy OpenTrack menus or target the model-answer timestamps.
 
-The committed `Assignment_Gvc_Gdg_Ut` scene is an incomplete synthetic fixture.
-It is useful for product smoke tests, but it is not the distributable assignment
-case. The course archive named `OpenTrack data 2016.zip` is not in the repository,
-and the model-answer PDF does not contain enough infrastructure, signalling, or
-rolling-stock data to reconstruct it. [Issue #182](https://github.com/Ancientkingg/EGTRAIN/issues/182)
-tracks the corridor and signalling source. [Issue #228](https://github.com/Ancientkingg/EGTRAIN/issues/228)
-and [issue #181](https://github.com/Ancientkingg/EGTRAIN/issues/181) track the train
-sources and compositions. Do not distribute the fixture as the completed course
-case or fill those gaps from screenshots.
+The application provides the complete authoring and analysis path. It does not
+invent the railway records. An instructor supplies authoritative infrastructure,
+signalling, and rolling-stock values and records the train-unit source references
+in the editor. The committed `Assignment_Gvc_Gdg_Ut` scene is a synthetic smoke
+fixture, not a distributable TU Delft case. Issues
+[#182](https://github.com/Ancientkingg/EGTRAIN/issues/182),
+[#228](https://github.com/Ancientkingg/EGTRAIN/issues/228), and
+[#181](https://github.com/Ancientkingg/EGTRAIN/issues/181) track optional project
+work to add a source-backed example dataset.
 
 ## Instructor preparation
 
-Once the source records are available, an instructor can build the case through
-the normal application workflow:
+An instructor can build the case through the normal application workflow:
 
 1. Choose **File > New Case Study...** and enter the case name, base time,
    duration, buffer, and recovery settings in **Case Settings**.
 2. Use the **Infrastructure** table and network preview to add tracks, nodes,
    arcs, blocks, connections, stations, platforms, signals, routes, dependencies,
    restrictions, boundaries, and signalling areas.
-3. Add sourced train units, their physical fields and traction curves, then build
-   ordered compositions from those units.
+3. Add sourced train units, their physical fields, traction curves, and source
+   references, then build ordered compositions from those units.
 4. Add the four services, route and platform stops, planned arrival and departure
    times, dwell, per-service performance, and repeat rules.
-5. Add named scenarios for the signal failure and occurrence-specific train
-   breakdown.
+5. Add named scenarios. A signal failure can target the corresponding canonical
+   signal or block. A breakdown can target one generated service occurrence.
 6. Resolve validation errors, run representative services, and save both the
    canonical folder and a `.egscene` bundle. Reopen the bundle before release.
 
-The assignment defines these base services and compositions. Their physical
-train-unit records still require the sources tracked in issues #228 and #181.
+The assignment defines these base services and compositions. The instructor
+enters their sourced physical and traction records through the train-unit editor.
 
 | Service | Assignment composition |
 | --- | --- |
@@ -68,17 +67,17 @@ with an implicit conventional or ETCS setting.
 | 10 | Inspect speed versus distance | Open the existing speed-distance result and filter the trains. | Explain acceleration, braking, and line-speed effects. |
 | 11 | Inspect actual tractive effort | Open the applied tractive-effort distance result or export its CSV. | Distinguish positive traction, coasting or balance, and braking from the static traction curve. |
 | 12 | Compare an alternative composition | Duplicate or edit a composition assignment and rerun. | Explain the change in performance and feasibility. |
-| 13 | Compare SGM and Plan V | Select the sourced alternatives and rerun the same service. | Explain the observed differences. This exercise remains blocked until #228 and #181 supply both records. |
+| 13 | Compare SGM and Plan V | Author or select the sourced alternatives and rerun the same service. | Explain the observed differences. |
 | 14 | Compute minimum headways | Open **Capacity**, choose an ordered pair and explicit route section. | Interpret the minimum headway and governing block. |
 | 15 | Compress the timetable | Use the same ordered occurrence sequence in **Capacity** and open the compressed diagram. | Check that order is preserved and occupations do not conflict. |
 | 16 | Identify critical blocks | Inspect the reported touching constraints in the compressed result. | Explain why a critical touch is not an overlap conflict. |
 | 17 | Obtain buffer times | Read scheduled headway, minimum headway, and their unclamped difference. | Interpret positive or negative buffer. |
 | 18 | Assess capacity consumption | Select the analysis period and explicit cycle-closing occurrence. | Reproduce the displayed numerator, denominator, and percentage, then compare it with the course recommendation. |
 | 19 | Generate a multi-hour timetable | Increase repeat count while retaining the interval and code step. | Check occurrence identities and planned offsets. |
-| 20 | Simulate signal failure | Select the 08:30 to 09:00 signal-failure scenario and run the same occurrence set as the baseline. | Inspect the affected traffic and blocking-time change. The historical S451 mapping remains blocked by #182. |
+| 20 | Simulate signal failure | Map S451 to the corresponding canonical signal or block, set the 08:30 to 09:00 window, and run the same occurrence set as the baseline. | Inspect the affected traffic and blocking-time change. |
 | 21 | Simulate rolling-stock breakdown | Target IC 1727 at 08:25, set the 40 km/h cap, and request destination termination at Utrecht. | Check that sibling repeats are unchanged and the target continues under signalling. |
 | 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and open delay comparison. | Interpret direct primary rows, propagated secondary rows, and the reconciled total arrival delay. |
-| 23 | Add the extra train | Create a normal through service with the 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit propagated delay. This exercise remains blocked until sourced Plan V data is available. |
+| 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit propagated delay. |
 | 24 | Export results | Use CSV from result tables and PNG from diagrams. | Keep the input settings and selected occurrences with submitted evidence. |
 | 25 | Save and distribute | Save the canonical folder, use **Save As** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
 
