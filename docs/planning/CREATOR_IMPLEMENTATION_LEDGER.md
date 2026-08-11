@@ -11,7 +11,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Current milestone: PR 1, section resolution and signal binding
 - Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-section-resolution`
 - Current branch: `feature/creator-section-resolution`
-- Current PR: not opened
+- Current PR: #290, `Bind signals to canonical track sections`
 - Completed milestones and PRs: none
 - Open milestone dependencies: PR 1 has no implementation dependency. Issues #85 and #86 are parity gates.
 
@@ -149,6 +149,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   output-parity tuning and no case-name exception.
 - `graphify update .` completed after the final source changes with 4864 nodes, 10893 edges, and 232 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
+- Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
 ## Review record
 
@@ -184,5 +185,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Rebuild the final source after diagnostic cleanup, rerun the focused and complete gates, update the ledger with
-the exact final results, then commit, push, and open PR 1. Run fresh correctness and Ponytail reviews before merge.
+Run a fresh independent correctness review of PR #290. Resolve every verified finding, rerun affected gates, then
+run the fresh Ponytail simplicity review before final verification and merge.
