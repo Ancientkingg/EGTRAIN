@@ -46,7 +46,9 @@ Legacy counts, GUI/output/network flags, and output paths do not belong here.
 `nodes` and `arcs` are required arrays. `tracks`, `blocks`, and `connections`
 may be empty or omitted on input. A station has `id`, `name`, optional
 `position_km`, and optional `platforms`; each platform has `id` and a `nodes`
-array of node IDs.
+array of node IDs. Optional positive finite `length_m` and `width_m` values
+control passenger capacity. When either key is absent, its effective value is
+100 m or 2.5 m respectively, preserving existing scenes.
 
 Block IDs cannot contain `/`. The section catalog reserves that character for
 connection-derived section identities and reports existing conflicting IDs as
@@ -247,7 +249,9 @@ DAS and RouteChoice only when both exact files exist:
 `Passengers/DAS_FrenchCaseStudy.csv` and
 `Passengers/RouteChoiceFC_EQ1.csv`. After conversion the runtime reads the
 canonical journeys and legs; random draws and generated passenger results are
-not scene input.
+not scene input. The Passengers dock supports passenger, journey, and ordered-leg
+editing. Its Import action appends non-colliding passenger IDs from that same
+file pair and keeps unresolved references visible for correction or deletion.
 
 ## Compatibility aliases
 

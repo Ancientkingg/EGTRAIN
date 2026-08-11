@@ -276,6 +276,40 @@ int main() {
 	if (!AllStationPlatforms.empty())
 		ok &= expect(AllStationPlatforms.front().List_Trains_Stopping_At_Platform.front() == "service.native-1",
 				"platform stopping lists use stable occurrence descriptions");
+	SceneModel geometry = completeScene();
+	geometry.stations[0].platforms[0].hasLength = true;
+	geometry.stations[0].platforms[0].lengthM = 140.0;
+	geometry.stations[0].platforms[0].hasWidth = true;
+	geometry.stations[0].platforms[0].widthM = 3.0;
+	const auto geometryInfrastructure = buildInfrastructureAndSignallingFromScene(geometry);
+	const auto geometryOperations = buildOperationsFromScene(geometry, "scenario.selected");
+	ok &= expect(!hasErrors(geometryInfrastructure) && !hasErrors(geometryOperations)
+			&& AllStationPlatforms.size() == 3,
+			"explicit platform geometry reaches native operations");
+	if (AllStationPlatforms.size() == 3) {
+		auto platform = AllStationPlatforms.begin();
+		ok &= expect(platform->length == 140.0 && platform->width == 3.0
+				&& platform->Max_Passenger_Volume == static_cast<int>((140.0 * 3.0)
+						/ (3.14159 * std::pow(0.8, 2)) * 0.8),
+				"native platform capacity keeps the existing area formula");
+		++platform;
+		ok &= expect(platform != AllStationPlatforms.end() && platform->length == 100.0
+				&& platform->width == 2.5, "absent platform geometry keeps effective defaults");
+	}
+	const std::string geometryPreviousName = initial_variables.name;
+	const int geometryPreviousRegions = numRegions;
+	const double previousPlatformLength = AllStationPlatforms.empty()
+			? -1.0 : AllStationPlatforms.front().length;
+	SceneModel invalidGeometry = completeScene();
+	invalidGeometry.stations[0].platforms[0].hasLength = true;
+	invalidGeometry.stations[0].platforms[0].lengthM = std::numeric_limits<double>::max();
+	const auto invalidGeometryDiagnostics = buildOperationsFromScene(invalidGeometry, "scenario.selected");
+	ok &= expect(hasErrors(invalidGeometryDiagnostics)
+			&& hasCode(invalidGeometryDiagnostics, "scene.native.platform.capacity")
+			&& numRegions == geometryPreviousRegions
+			&& initial_variables.name == geometryPreviousName
+			&& (!AllStationPlatforms.empty() && AllStationPlatforms.front().length == previousPlatformLength),
+			"unsafe platform capacity is rejected before native state publication");
 	ok &= expect(AllDailyPassengers.size() == 1, "passenger journeys are built without filesystem input");
 	if (!AllDailyPassengers.empty() && !AllDailyPassengers.front().Journeys.empty()) {
 		const Journey& journey = AllDailyPassengers.front().Journeys.front();
@@ -364,8 +398,10 @@ int main() {
 			{"service.native", 1, "station.0", 7.0});
 	ScenePassengerJourney excludedJourney = selectedScene.passengers[0].journeys[0];
 	excludedJourney.id = "journey.excluded";
-	for (ScenePassengerLeg& leg : excludedJourney.legs)
+	for (ScenePassengerLeg& leg : excludedJourney.legs) {
+		leg.id += ".excluded";
 		leg.occurrence = 1;
+	}
 	selectedScene.passengers[0].journeys.push_back(excludedJourney);
 	const SceneRunSelection onlySecond{{"service.native", 2}};
 	const auto selectedInfrastructure = buildInfrastructureAndSignallingFromScene(selectedScene);
@@ -385,6 +421,22 @@ int main() {
 				&& regional_train[0].EntranceDelay == 5.0
 				&& selectedJourneyHasTrips && excludedJourneyHasNoTrips,
 				"occurrence selection builds one train and skips excluded delays and passenger legs");
+	SceneModel invalidUnselectedPassenger = completeScene();
+	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].serviceId = "service.missing";
+	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].occurrence = 1;
+	const int previousRegions = numRegions;
+	const std::string previousTrainDescription = regional_train[0].trainDescription;
+	const std::string previousOperationsName = initial_variables.name;
+	const std::size_t previousPassengerCount = AllDailyPassengers.size();
+	const auto invalidUnselectedPassengerDiagnostics = buildOperationsFromScene(
+			invalidUnselectedPassenger, "scenario.selected", onlySecond);
+	ok &= expect(hasErrors(invalidUnselectedPassengerDiagnostics)
+				&& hasCode(invalidUnselectedPassengerDiagnostics, "scene.native.passenger.service")
+				&& numRegions == previousRegions
+				&& regional_train[0].trainDescription == previousTrainDescription
+				&& initial_variables.name == previousOperationsName
+				&& AllDailyPassengers.size() == previousPassengerCount,
+				"invalid unselected passenger legs are rejected before native state publication");
 
 	SceneModel sparsePattern = completeScene();
 	sparsePattern.services[0].hasRepeatCount = true;
@@ -523,6 +575,7 @@ int main() {
 	trajectoryPerformance.services[0].repeatCount = 1;
 	trajectoryPerformance.services[0].through = true;
 	trajectoryPerformance.services[0].stops.clear();
+	trajectoryPerformance.passengers.clear();
 	for (SceneTrainUnit& trainUnit : trajectoryPerformance.trainUnits)
 		for (auto& band : trainUnit.tractionCurve)
 			band[2] = 10000.0;

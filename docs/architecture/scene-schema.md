@@ -76,7 +76,11 @@ empty or omitted on input and are emitted by the writer.
 
 The root key is `stations`. Each station has required string `id` and `name`,
 optional numeric `position_km`, and optional `platforms`. A platform has an
-`id` and an optional `nodes` array of node IDs.
+`id`, an optional `nodes` array of node IDs, and optional positive finite
+`length_m` and `width_m` values. Missing dimensions retain the V1 compatibility
+defaults of 100 m by 2.5 m. The passenger runtime derives integer platform
+capacity from the effective dimensions and rejects values that produce less
+than one passenger or exceed its integer capacity field.
 
 ## `signalling.json`
 
@@ -304,7 +308,9 @@ Random draws and simulation results are not scene input. The explicit legacy
 importer recognizes passenger data only when both exact source files
 `Passengers/DAS_FrenchCaseStudy.csv` and
 `Passengers/RouteChoiceFC_EQ1.csv` exist. Once converted, the native runtime
-uses `passengers.json` and does not reopen those CSVs.
+uses `passengers.json` and does not reopen those CSVs. The passenger editor can
+append records from the same exact file pair. Its transient result table reports
+accepted, unresolved, malformed, and ID-collision rows before the scene is saved.
 
 ## `views.json` and runtime metadata
 

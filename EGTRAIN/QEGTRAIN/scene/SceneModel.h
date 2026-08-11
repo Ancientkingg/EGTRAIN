@@ -52,6 +52,10 @@ struct SceneConnection {
 struct ScenePlatform {
 	std::string id;
 	std::vector<std::string> nodeIds;
+	bool hasLength = false;
+	double lengthM = 100.0;
+	bool hasWidth = false;
+	double widthM = 2.5;
 };
 
 struct SceneStation {

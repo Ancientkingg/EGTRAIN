@@ -831,6 +831,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						const json& platformValue = value["platforms"][platformIndex];
 						ScenePlatform platform;
 						stringField(platformValue, "id", "stations.json", platformPath, platform.id);
+						platform.hasLength = numberField(platformValue, "length_m", "stations.json",
+								platformPath, platform.lengthM, false);
+						platform.hasWidth = numberField(platformValue, "width_m", "stations.json",
+								platformPath, platform.widthM, false);
 						if (platformValue.contains("nodes")) {
 							if (!platformValue["nodes"].is_array()) {
 								addError("scene.field.missing", "stations.json",

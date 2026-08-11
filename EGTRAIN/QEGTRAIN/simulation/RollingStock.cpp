@@ -534,6 +534,34 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	const auto stationById = nativeIndexById(scene.stations, diagnostics, "stations.json", "station");
 	const auto routes = nativeIndexById(scene.routes, diagnostics, "signalling.json", "route");
 	const auto serviceById = nativeIndexById(scene.services, diagnostics, "services.json", "service");
+	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
+		const SceneStation& station = scene.stations[stationIndex];
+		for (std::size_t platformIndex = 0; platformIndex < station.platforms.size(); ++platformIndex) {
+			const ScenePlatform& platform = station.platforms[platformIndex];
+			const std::string path = "stations[" + std::to_string(stationIndex) + "].platforms["
+					+ std::to_string(platformIndex) + "]";
+			if (platform.hasLength && (!nativeFinite(platform.lengthM) || platform.lengthM <= 0.0))
+				addNativeDiagnostic(diagnostics, "scene.native.platform.length", "Platform length_m must be positive and finite",
+						"stations.json", "platform", platform.id, path + ".length_m", {},
+						"Use a platform length greater than 0 metres");
+			if (platform.hasWidth && (!nativeFinite(platform.widthM) || platform.widthM <= 0.0))
+				addNativeDiagnostic(diagnostics, "scene.native.platform.width", "Platform width_m must be positive and finite",
+						"stations.json", "platform", platform.id, path + ".width_m", {},
+						"Use a platform width greater than 0 metres");
+			const double effectiveLength = platform.hasLength ? platform.lengthM : 100.0;
+			const double effectiveWidth = platform.hasWidth ? platform.widthM : 2.5;
+			const double capacity = effectiveLength * effectiveWidth
+					/ (3.14159 * std::pow(0.8, 2)) * 0.8;
+			if (nativeFinite(effectiveLength) && effectiveLength > 0.0
+					&& nativeFinite(effectiveWidth) && effectiveWidth > 0.0
+					&& (!nativeFinite(capacity) || capacity < 1.0
+							|| capacity > static_cast<double>(INT_MAX)))
+				addNativeDiagnostic(diagnostics, "scene.native.platform.capacity",
+						"Platform geometry produces an unsupported passenger capacity", "stations.json",
+						"platform", platform.id, path, {},
+						"Use dimensions that produce at least one passenger and fit the runtime capacity field");
+		}
+	}
 	if (scene.services.empty())
 		addNativeDiagnostic(diagnostics, "scene.native.services.none", "A runnable scene requires at least one service",
 				"services.json", "service", "", "services");
@@ -1066,6 +1094,97 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		}
 	}
 
+	// Validate passenger references before occurrence selection.  A filtered run
+	// must not hide an invalid canonical passenger row from the native contract.
+	std::unordered_set<std::string> passengerIds;
+	std::unordered_set<std::string> journeyIds;
+	std::unordered_set<std::string> passengerLegIds;
+	for (std::size_t passengerIndex = 0; passengerIndex < scene.passengers.size(); ++passengerIndex) {
+		const ScenePassenger& sourcePassenger = scene.passengers[passengerIndex];
+		const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
+		if (!passengerIds.insert(sourcePassenger.id).second)
+			addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger id",
+					"passengers.json", "passenger", sourcePassenger.id, passengerPath + ".id");
+		for (std::size_t journeyIndex = 0; journeyIndex < sourcePassenger.journeys.size(); ++journeyIndex) {
+			const ScenePassengerJourney& sourceJourney = sourcePassenger.journeys[journeyIndex];
+			const std::string journeyPath = passengerPath + ".journeys[" + std::to_string(journeyIndex) + "]";
+			if (!journeyIds.insert(sourceJourney.id).second)
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger journey id",
+						"passengers.json", "journey", sourceJourney.id, journeyPath + ".id");
+			if (nativeStationForId(stationById, sourceJourney.originStationId) == nullptr)
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger journey origin station is unknown",
+						"passengers.json", "journey", sourceJourney.id, journeyPath + ".origin",
+						sourceJourney.originStationId);
+			if (nativeStationForId(stationById, sourceJourney.destinationStationId) == nullptr)
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger journey destination station is unknown",
+						"passengers.json", "journey", sourceJourney.id, journeyPath + ".destination",
+						sourceJourney.destinationStationId);
+			if (!nativeFinite(sourceJourney.plannedDepartureStartSeconds)
+					|| !nativeFinite(sourceJourney.plannedDepartureEndSeconds)
+					|| sourceJourney.plannedDepartureStartSeconds < 0.0
+					|| sourceJourney.plannedDepartureEndSeconds < sourceJourney.plannedDepartureStartSeconds)
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger planned departure window is invalid",
+						"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_departure",
+						{}, "Use finite non-negative bounds with start no later than end");
+			if (!nativeFinite(sourceJourney.plannedArrivalStartSeconds)
+					|| !nativeFinite(sourceJourney.plannedArrivalEndSeconds)
+					|| sourceJourney.plannedArrivalStartSeconds < 0.0
+					|| sourceJourney.plannedArrivalEndSeconds < sourceJourney.plannedArrivalStartSeconds)
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger planned arrival window is invalid",
+						"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_arrival",
+						{}, "Use finite non-negative bounds with start no later than end");
+			for (std::size_t legIndex = 0; legIndex < sourceJourney.legs.size(); ++legIndex) {
+				const ScenePassengerLeg& sourceLeg = sourceJourney.legs[legIndex];
+				const std::string legPath = journeyPath + ".legs[" + std::to_string(legIndex) + "]";
+				if (!passengerLegIds.insert(sourceLeg.id).second)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger leg id",
+							"passengers.json", "leg", sourceLeg.id, legPath + ".id");
+				if (nativeStationForId(stationById, sourceLeg.originStationId) == nullptr)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger leg origin station is unknown",
+							"passengers.json", "leg", sourceLeg.id, legPath + ".origin",
+							sourceLeg.originStationId);
+				if (nativeStationForId(stationById, sourceLeg.destinationStationId) == nullptr)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger leg destination station is unknown",
+							"passengers.json", "leg", sourceLeg.id, legPath + ".destination",
+							sourceLeg.destinationStationId);
+				const auto serviceIt = serviceById.find(sourceLeg.serviceId);
+				if (serviceIt == serviceById.end()) {
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.service", "Passenger leg refers to an unknown service",
+							"passengers.json", "leg", sourceLeg.id, legPath + ".service", sourceLeg.serviceId);
+				} else {
+					if (nativeStopForStation(*serviceIt->second, sourceLeg.originStationId) == nullptr)
+						addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
+								"Passenger leg origin is not a stop of the referenced service",
+								"passengers.json", "leg", sourceLeg.id, legPath + ".origin", sourceLeg.serviceId,
+								"Choose an origin station from the service stop pattern");
+					if (nativeStopForStation(*serviceIt->second, sourceLeg.destinationStationId) == nullptr)
+						addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
+								"Passenger leg destination is not a stop of the referenced service",
+								"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
+								"Choose a destination station from the service stop pattern");
+				}
+				if (sourceLeg.occurrence <= 0)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
+							"Passenger leg occurrence must be positive", "passengers.json", "leg", sourceLeg.id,
+							legPath + ".occurrence", {}, "Use a positive occurrence number");
+				if (legIndex == 0 && sourceLeg.originStationId != sourceJourney.originStationId)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
+							"First passenger leg does not start at journey origin", "passengers.json", "journey",
+							sourceJourney.id, legPath + ".origin", sourceLeg.originStationId);
+				if (legIndex > 0
+						&& sourceLeg.originStationId != sourceJourney.legs[legIndex - 1].destinationStationId)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
+							"Passenger legs are not continuous", "passengers.json", "journey", sourceJourney.id,
+							legPath + ".origin", sourceLeg.originStationId);
+				if (legIndex + 1 == sourceJourney.legs.size()
+						&& sourceLeg.destinationStationId != sourceJourney.destinationStationId)
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
+							"Last passenger leg does not end at journey destination", "passengers.json", "journey",
+							sourceJourney.id, legPath + ".destination", sourceLeg.destinationStationId);
+			}
+		}
+	}
+
 	if (hasErrors(diagnostics))
 		return diagnostics;
 
@@ -1085,10 +1204,15 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	std::list<StationPlatform> stagedPlatforms = AllStationPlatforms;
 	for (StationPlatform& platform : stagedPlatforms) {
 		const auto stationIt = stationById.find(platform.StationID);
-		if (stationIt != stationById.end())
+		const ScenePlatform* sourcePlatform = nullptr;
+		if (stationIt != stationById.end()) {
+			sourcePlatform = nativePlatformForStation(*stationIt->second, platform.ID);
 			platform.StationID = stationIt->second->name.empty() ? stationIt->second->id : stationIt->second->name;
-		platform.length = 100;
-		platform.width = 2.5;
+		}
+		platform.length = sourcePlatform != nullptr && sourcePlatform->hasLength
+				? sourcePlatform->lengthM : 100.0;
+		platform.width = sourcePlatform != nullptr && sourcePlatform->hasWidth
+				? sourcePlatform->widthM : 2.5;
 		platform.Max_Passenger_Volume = static_cast<int>((platform.length * platform.width)
 				/ (3.14159 * std::pow(0.8, 2)) * 0.8);
 		platform.Current_N_Passengers = 0;

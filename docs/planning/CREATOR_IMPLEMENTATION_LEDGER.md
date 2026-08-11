@@ -7,19 +7,21 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`
-- Current milestone: PR 4, entrance-delay and complete scenario authoring
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/scenario-authoring`
-- Current branch: `feature/scenario-authoring`
-- Current PR: #293, `Add entrance delay scenario authoring` (draft)
+- Current `origin/main`: `10f15b5ba6f52715adcc390519204de4169ba77c`
+- Current milestone: PR 5, passenger authoring and explicit platform geometry
+- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/passenger-authoring`
+- Current branch: `feature/passenger-authoring`
+- Current PR: none
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
   - PR #291, `Add structured topology authoring`, merged as
     `14b242cc8829c06358f74be8c2717e85f9238b05`;
   - PR #292, `Make editor mutations reference-safe`, merged as
-    `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`.
-- Open milestone dependencies: PR 4 depends on merged PR #292. Issues #85 and #86 remain parity gates.
+    `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`;
+  - PR #293, `Add entrance delay scenario authoring`, merged as
+    `10f15b5ba6f52715adcc390519204de4169ba77c`.
+- Open milestone dependencies: PR 5 depends on merged PR #293. Issues #85 and #86 remain parity gates.
 
 ## Planning-baseline creator gaps
 
@@ -90,6 +92,23 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Validation and native staging will both reject non-finite or negative delay values, missing service stops,
   stops without planned departures, out-of-pattern occurrences, and unequal delay values for one service
   occurrence. Equal delays at distinct stations remain compatible with current native semantics.
+- PR 5 will extend `ScenePlatform` with optional explicit length and width plus the current 100 m by 2.5 m
+  effective defaults. Presence flags keep old files byte-shape compatible when they are loaded and saved; the
+  values remain visible in the existing Platforms facet and use the unchanged native capacity formula.
+- PR 5 will extract the existing exact DAS/RouteChoice conversion into one passenger-only import seam shared by
+  full legacy conversion and the active-scene editor. It appends only new passenger IDs, retains parseable rows
+  with unresolved references for correction, and reports every accepted or rejected source row. It does not
+  replace infrastructure, routes, services, or scenarios in the active scene.
+- The passenger editor will be one list/detail dock over `SceneModel`: passengers, journeys, and ordered legs.
+  It will reuse station/service occurrence choices, current validation diagnostics, PR 3 dirty/result
+  invalidation, and existing folder/bundle persistence. No tree-model or generic editor framework is needed.
+- Passenger validation will reject non-finite windows and service legs whose origin or destination is not a stop
+  of the referenced service, closing validator/native staging disagreement exposed by public/imported rows.
+- Passenger CSV station resolution gives an exact canonical station ID precedence, then accepts one unique exact
+  or normalized ID/display-name match. Ambiguous display-name matches remain unresolved for public correction.
+- The unchanged native capacity formula stores an integer. Effective platform geometry must therefore produce at
+  least one passenger and fit that integer field; semantic and direct-native validation reject unsafe dimensions
+  before the capacity conversion or runtime-state publication.
 
 ## Compatibility decisions
 
@@ -103,13 +122,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   loadable and saveable; normal public deletes stop creating new dangling references.
 - PR 4 changes no schema, folder writer, standalone scenario JSON, or bundle format. Previously accepted
   out-of-pattern or otherwise ineffective entrance delays will load and save but must be corrected before Run.
+- PR 5 keeps schema version 1 and adds only optional `length_m` and `width_m` platform keys. Missing keys retain
+  the exact existing 100 m by 2.5 m behavior and remain omitted on save until explicitly authored.
 
 ## GitHub issue state
 
 - Closed by PR #290: #50 and #58.
 - Closed by PR #291: #57 and #286.
 - Closed by PR #292: #287.
-- Current milestone: #126.
+- Closed by PR #293: #126.
+- Current milestone: #164 and #288.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
 - Authoritative-data dependencies only: #181, #182, #228.
@@ -149,6 +171,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The public editor smoke creates, edits, duplicates, and deletes an entrance delay for occurrence 2, proves its
   native effect, reviews every incident and delay field, commits a focused delay on Save, and preserves the row
   through directory and `.egscene` reopen. Standalone scenario JSON retains all four delay fields.
+- PR 5 adds optional platform length and width fields with visible 100 m and 2.5 m compatibility defaults,
+  directory and bundle persistence, matching validator/native capacity checks, and unchanged capacity math.
+- The Passengers dock edits passengers, journeys, absolute windows, and ordered service-occurrence legs. It
+  appends the exact DAS/RouteChoice pair through the shared importer, leaves unresolved references visible,
+  rejects ID collisions, and reports every source row. A fatal or incomplete import leaves the scene unchanged.
+- Station and service rename/delete integrity now includes passenger journey and leg references. The public
+  smoke covers passenger/journey/leg add, edit, move, delete, import, focused Save, folder/bundle reopen, and
+  native passenger/platform staging without private model mutation for the claimed authoring operations.
 
 ## Verification record
 
@@ -204,6 +234,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
   6 existing cross-region transitions and Netherlands reports 26 as `scene.route.region_jump` warnings.
 - `git diff --check` passed.
+- PR 5 focused build passed for `test_scenevalidator`, `test_sceneimporter`, `test_scenewriter`,
+  `test_scenebundle`, `test_operationsbuilder`, and `QEGTRAIN`. The five-test focused CTest gate passed 5 of 5
+  in 2.44 seconds. The editor smoke passed after its seven scene tests.
 
 ### Full tests and smokes run
 
@@ -237,6 +270,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
   - Assignment smoke passed its canonical timetable assertion;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
+- PR 5 pre-review gate:
+  - configure and full build passed;
+  - CTest passed 43 of 43 in 133.47 seconds;
+  - editor smoke passed, including passenger/platform authoring and failed-import no-mutation;
+  - visual-polish smoke passed at device-pixel ratios 1 and 2, plus station overlay, scene render, and legacy import;
+  - six-case native headless smoke passed every case and trajectory/station assertion;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS` after validating, exporting, and reimporting each scene;
+  - Assignment smoke passed its canonical timetable assertion;
+  - `git diff --check` passed.
   - after the eighth corrected-diff fix, the full build passed and CTest passed 43 of 43 in 118.19 seconds;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
   - after the seventh corrected-diff fixes, the full configure and build passed and CTest passed 43 of 43
@@ -407,6 +449,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   gate passed 3 of 3 in 2.11 seconds, editor smoke passed after all 7 scene tests, and the full CTest suite
   passed 43 of 43 in 123.76 seconds.
 - The post-Ponytail `graphify update .` rebuilt 6,078 nodes, 9,704 edges, and 1,695 communities.
+- PR #293 current-head CI passed both jobs at final head `055a9ec`. The build job completed in 20 minutes
+  49 seconds and included CTest plus the headless, editor, round-trip, bundle, Assignment, incident, render,
+  track-preview, and visual smokes. The sanitizer job completed in 13 minutes 33 seconds.
+- PR #293 merged as `10f15b5ba6f52715adcc390519204de4169ba77c`; issue #126 closed with the merge.
+- PR 5 baseline configured and built successfully from merged main `10f15b5`. The focused validator, importer,
+  writer, bundle, and operations-builder gate passed 5 of 5 in 3.13 seconds. The baseline editor smoke passed
+  after all 7 scene tests passed.
+- After the PR 5 core implementation and lead capacity-boundary correction, the focused validator, importer,
+  writer, bundle, and operations-builder gate passed 5 of 5 in 2.73 seconds. `git diff --check` passed.
 
 ## Review record
 
@@ -650,9 +701,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 3 are complete. PR 4 is technically clean and awaiting final CI and merge. PRs 5 and 6 remain open.
+- PRs 1 through 4 are complete. PRs 5 and 6 remain open.
 
 ## Next action
 
-Wait for PR #293 CI, mark the draft ready, merge when both jobs pass, update the ledger, reread the execution
-prompt and ledger, remove the clean worktree, and begin PR 5 from the merged `origin/main`.
+Freeze the PR 5 diff, run fresh independent correctness review and Ponytail review for #164 and #288, fix every
+verified finding, rerun the affected gate, then open and merge the milestone PR.

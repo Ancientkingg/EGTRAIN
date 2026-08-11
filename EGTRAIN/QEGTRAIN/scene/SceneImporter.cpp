@@ -25,6 +25,10 @@ bool SceneImportResult::success() const {
 	return wroteScene && !hasErrors(diagnostics);
 }
 
+bool ScenePassengerImportResult::success() const {
+	return !hasErrors(diagnostics);
+}
+
 // Case-insensitive path resolution helper
 static fs::path resolvePath(const fs::path& base, const std::string& relPath) {
 	fs::path current = base;
@@ -237,6 +241,15 @@ struct ReportBuilder {
 	void unresolved(const std::string& category, const std::string& sourceFile) {
 		++row(category, sourceFile).unresolvedReferences;
 	}
+	void append(const ReportBuilder& other) {
+		for (const auto& source : other.rows) {
+			SceneImportReportRow& target = row(source.category, source.sourceFile);
+			target.sourceCount += source.sourceCount;
+			target.convertedCount += source.convertedCount;
+			target.skippedCount += source.skippedCount;
+			target.unresolvedReferences += source.unresolvedReferences;
+		}
+	}
 };
 
 static std::string lowerCopy(std::string value) {
@@ -361,6 +374,413 @@ static std::pair<double, double> passengerTimeWindow(const std::string& token) {
 	if (std::fabs(fraction - 0.75) < 1e-9)
 		return {hour * 3600.0 + 1800.0, hour * 3600.0 + 3599.0};
 	return {hour * 3600.0, hour * 3600.0};
+}
+
+struct LegacyPassengerServiceReference {
+	std::string id;
+	std::string operatingCode;
+};
+
+struct LegacyPassengerStationReference {
+	std::string id;
+	std::string name;
+};
+
+struct LegacyPassengerSources {
+	fs::path directory;
+	fs::path das;
+	fs::path routeChoice;
+	bool hasDas = false;
+	bool hasRouteChoice = false;
+	bool hasPair = false;
+};
+
+struct LegacyPassengerParseResult {
+	json passengers = json::array();
+	LegacyPassengerSources sources;
+	ReportBuilder report;
+	std::vector<ScenePassengerImportRow> rows;
+	std::vector<SceneDiagnostic> diagnostics;
+};
+
+static LegacyPassengerSources locateLegacyPassengerSources(const fs::path& root) {
+	LegacyPassengerSources result;
+	result.directory = findChild(root, "Passengers");
+	if (result.directory.empty() || !fs::is_directory(result.directory))
+		result.directory = root;
+
+	result.das = result.directory / "DAS_FrenchCaseStudy.csv";
+	result.routeChoice = result.directory / "RouteChoiceFC_EQ1.csv";
+	result.hasDas = fs::is_regular_file(result.das);
+	result.hasRouteChoice = fs::is_regular_file(result.routeChoice);
+	result.hasPair = result.hasDas && result.hasRouteChoice;
+	return result;
+}
+
+static std::string passengerStationIdFor(const std::vector<LegacyPassengerStationReference>& stations,
+		const std::string& raw, bool& ambiguous) {
+	ambiguous = false;
+	std::size_t exactIdCount = 0;
+	std::string exactId;
+	for (const LegacyPassengerStationReference& station : stations) {
+		if (station.id == raw) {
+			++exactIdCount;
+			exactId = station.id;
+		}
+	}
+	if (exactIdCount == 1)
+		return exactId;
+	if (exactIdCount > 1) {
+		ambiguous = true;
+		return raw;
+	}
+	const std::string normalized = normaliseStationName(raw);
+	std::vector<std::string> matches;
+	for (const LegacyPassengerStationReference& station : stations) {
+		const bool exactMatch = station.id == raw || (!station.name.empty() && station.name == raw);
+		const bool idMatch = !station.id.empty() && normaliseStationName(station.id) == normalized;
+		const bool nameMatch = !station.name.empty() && normaliseStationName(station.name) == normalized;
+		if ((exactMatch || idMatch || nameMatch)
+				&& std::find(matches.begin(), matches.end(), station.id) == matches.end())
+			matches.push_back(station.id);
+	}
+	if (matches.size() == 1)
+		return matches.front();
+	if (matches.size() > 1)
+		ambiguous = true;
+	return raw;
+}
+
+static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRootOrPassengerDir,
+		const std::vector<LegacyPassengerStationReference>& stations,
+		const std::vector<LegacyPassengerServiceReference>& services) {
+	LegacyPassengerParseResult result;
+	result.sources = locateLegacyPassengerSources(legacyRootOrPassengerDir);
+	const std::string dasSource = result.sources.das.string();
+	const std::string routeChoiceSource = result.sources.routeChoice.string();
+	const auto record = [&](const fs::path& source, int row, const std::string& passengerId,
+			bool accepted, bool unresolved, const std::string& context) {
+		ScenePassengerImportRow value;
+		value.sourceFile = source.string();
+		value.row = row;
+		value.passengerId = passengerId;
+		value.accepted = accepted;
+		value.unresolvedReferences = unresolved;
+		value.context = context;
+		result.rows.push_back(std::move(value));
+	};
+	const auto addDiag = [&](SceneSeverity severity, const std::string& code,
+			const std::string& message, const fs::path& source, int row,
+			const std::string& category = {}, bool unresolved = false) {
+		SceneDiagnostic diagnostic;
+		diagnostic.severity = severity;
+		diagnostic.code = code;
+		diagnostic.message = message;
+		diagnostic.file = source.string();
+		const std::string diagnosticCategory = category.empty()
+				? (source == result.sources.das ? "passengers.das"
+						: source == result.sources.routeChoice ? "passengers.route_choice" : std::string())
+				: category;
+		diagnostic.itemType = diagnosticCategory;
+		diagnostic.path = row > 0 && !diagnosticCategory.empty()
+				? diagnosticCategory + ".rows[" + std::to_string(row) + "]" : std::string();
+		result.diagnostics.push_back(std::move(diagnostic));
+		if (unresolved && !category.empty())
+			result.report.unresolved(category, source.string());
+	};
+	const auto knownStation = [&stations](const std::string& id) {
+		return std::any_of(stations.begin(), stations.end(), [&id](const LegacyPassengerStationReference& station) {
+			return station.id == id;
+		});
+	};
+
+	if (!result.sources.hasPair) {
+		if (result.sources.hasDas)
+			result.report.skipped("passengers.das", dasSource);
+		if (result.sources.hasRouteChoice)
+			result.report.skipped("passengers.route_choice", routeChoiceSource);
+		if (result.sources.hasDas || result.sources.hasRouteChoice) {
+			addDiag(SceneSeverity::Warning, "scene.import.passengers",
+					"Passenger import requires both exact DAS and route-choice files",
+					result.sources.directory, 0, "passengers", true);
+		}
+		return result;
+	}
+
+	std::unordered_map<std::string, std::size_t> passengerIndex;
+	std::unordered_map<std::string, std::vector<std::pair<std::size_t, std::size_t>>> journeysByPersonDestination;
+	std::string content;
+	if (!readFile(result.sources.das, content)) {
+		addDiag(SceneSeverity::Error, "scene.import.read", "Cannot read passenger DAS file",
+				result.sources.das, 0, "passengers.das");
+		return result;
+	}
+	std::stringstream input(content);
+	std::string line;
+	bool header = true;
+	int rowNo = 0;
+	while (std::getline(input, line)) {
+		if (header) {
+			header = false;
+			continue;
+		}
+		if (trim(line).empty())
+			continue;
+		++rowNo;
+		result.report.source("passengers.das", dasSource);
+		const auto fields = splitCsvNaive(line);
+		if (fields.size() <= 14) {
+			result.report.skipped("passengers.das", dasSource);
+			record(result.sources.das, rowNo, {}, false, false, "Malformed passenger DAS row");
+			addDiag(SceneSeverity::Warning, "scene.import.parse",
+					"Malformed passenger DAS row " + std::to_string(rowNo), result.sources.das,
+					rowNo);
+			continue;
+		}
+		const std::string personId = fields[1];
+		if (personId.empty()) {
+			result.report.skipped("passengers.das", dasSource);
+			record(result.sources.das, rowNo, {}, false, true, "Passenger row has no person id");
+			addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger row has no person id",
+					result.sources.das, rowNo, "passengers.das", true);
+			continue;
+		}
+		std::size_t pIndex = 0;
+		const auto foundPassenger = passengerIndex.find(personId);
+		if (foundPassenger == passengerIndex.end()) {
+			pIndex = result.passengers.size();
+			passengerIndex[personId] = pIndex;
+			result.passengers.push_back({{"id", personId}, {"journeys", json::array()}});
+		} else {
+			pIndex = foundPassenger->second;
+		}
+		std::string journeyId = personId + ":" + (fields[4].empty() ? std::to_string(rowNo) : fields[4]);
+		const std::string originalJourneyId = journeyId;
+		for (int suffix = 2;; ++suffix) {
+			bool duplicate = false;
+			for (const auto& journey : result.passengers[pIndex]["journeys"])
+				if (journey["id"] == journeyId)
+					duplicate = true;
+			if (!duplicate)
+				break;
+			journeyId = originalJourneyId + "_" + std::to_string(suffix);
+		}
+		bool ambiguousOrigin = false, ambiguousDestination = false;
+		const std::string origin = passengerStationIdFor(stations, fields[12], ambiguousOrigin);
+		const std::string destination = passengerStationIdFor(stations, fields[6], ambiguousDestination);
+		const bool unresolved = ambiguousOrigin || ambiguousDestination
+				|| std::none_of(stations.begin(), stations.end(), [&](const LegacyPassengerStationReference& value) {
+					return value.id == origin;
+				})
+				|| std::none_of(stations.begin(), stations.end(), [&](const LegacyPassengerStationReference& value) {
+					return value.id == destination;
+				});
+		const std::string context = unresolved
+				? "Accepted with unresolved station reference" : "Accepted";
+		if (unresolved)
+			addDiag(SceneSeverity::Warning, "scene.import.ref",
+					"Passenger journey has an unresolved station reference", result.sources.das,
+					rowNo, "passengers.das", true);
+		const auto departure = passengerTimeWindow(fields[14]);
+		const auto arrival = passengerTimeWindow(fields[10]);
+		json journey = {{"id", journeyId}, {"activity", fields[5]}, {"origin", origin}, {"destination", destination},
+			{"planned_departure", {{"start_seconds", departure.first}, {"end_seconds", departure.second}}},
+			{"planned_arrival", {{"start_seconds", arrival.first}, {"end_seconds", arrival.second}}}, {"legs", json::array()}};
+		const std::size_t jIndex = result.passengers[pIndex]["journeys"].size();
+		result.passengers[pIndex]["journeys"].push_back(journey);
+		journeysByPersonDestination[personId + "\n" + destination].push_back({pIndex, jIndex});
+		result.report.converted("passengers.das", dasSource);
+		record(result.sources.das, rowNo, personId, true, unresolved, context);
+	}
+
+	if (!readFile(result.sources.routeChoice, content)) {
+		addDiag(SceneSeverity::Error, "scene.import.read", "Cannot read passenger route-choice file",
+				result.sources.routeChoice, 0, "passengers.route_choice");
+		return result;
+	}
+	std::stringstream routeInput(content);
+	std::string routeLine;
+	std::vector<std::string> headers;
+	std::vector<std::size_t> transferColumns;
+	std::vector<std::size_t> serviceColumns;
+	bool routeHeader = true;
+	int routeRow = 0;
+	while (std::getline(routeInput, routeLine)) {
+		if (routeHeader) {
+			routeHeader = false;
+			headers = splitCsvNaive(routeLine);
+			for (std::size_t i = 0; i < headers.size(); ++i) {
+				const std::string lower = lowerCopy(headers[i]);
+				if (lower.rfind("transfer_n", 0) == 0)
+					transferColumns.push_back(i);
+				if (lower.rfind("r_service_lines_id", 0) == 0)
+					serviceColumns.push_back(i);
+			}
+			continue;
+		}
+		if (trim(routeLine).empty())
+			continue;
+		++routeRow;
+		result.report.source("passengers.route_choice", routeChoiceSource);
+		const auto fields = splitCsvNaive(routeLine);
+		if (fields.size() < headers.size()) {
+			result.report.skipped("passengers.route_choice", routeChoiceSource);
+			record(result.sources.routeChoice, routeRow, {}, false, false, "Malformed passenger route-choice row");
+			addDiag(SceneSeverity::Warning, "scene.import.parse",
+					"Malformed passenger route-choice row " + std::to_string(routeRow),
+					result.sources.routeChoice, routeRow);
+			continue;
+		}
+		auto column = [&](std::initializer_list<const char*> wanted) -> std::size_t {
+			for (std::size_t i = 0; i < headers.size(); ++i) {
+				const std::string header = lowerCopy(headers[i]);
+				for (const char* value : wanted)
+					if (header == value)
+						return i;
+			}
+			return headers.size();
+		};
+		const std::size_t personColumn = column({"person_id", "person"});
+		const std::size_t destinationColumn = column({"destination"});
+		const std::size_t transferCountColumn = column({"nb_transfers"});
+		int transferCount = 0;
+		if (personColumn == headers.size() || destinationColumn == headers.size()
+				|| transferCountColumn == headers.size()
+				|| !parseIntegerToken(fields[transferCountColumn], transferCount) || transferCount < 0) {
+			result.report.skipped("passengers.route_choice", routeChoiceSource);
+			record(result.sources.routeChoice, routeRow,
+				personColumn < fields.size() ? fields[personColumn] : std::string(), false, true,
+					"Passenger route-choice header or transfer count is invalid");
+			addDiag(SceneSeverity::Warning, "scene.import.parse",
+					"Passenger route-choice header or transfer count is invalid",
+					result.sources.routeChoice, routeRow, "passengers.route_choice", true);
+			continue;
+		}
+		const std::string personId = fields[personColumn];
+		bool destinationAmbiguous = false;
+		const std::string destination = passengerStationIdFor(stations, fields[destinationColumn], destinationAmbiguous);
+		const auto journeyIt = journeysByPersonDestination.find(personId + "\n" + destination);
+		if (destinationAmbiguous || journeyIt == journeysByPersonDestination.end() || journeyIt->second.size() != 1) {
+			result.report.skipped("passengers.route_choice", routeChoiceSource);
+			record(result.sources.routeChoice, routeRow, personId, false, true,
+					"Passenger route-choice journey reference is missing or ambiguous");
+			addDiag(SceneSeverity::Warning, "scene.import.ref",
+					"Passenger route-choice journey reference is missing or ambiguous",
+					result.sources.routeChoice, routeRow, "passengers.route_choice", true);
+			continue;
+		}
+		const auto target = journeyIt->second.front();
+		std::vector<std::string> transferStations;
+		for (int i = 0; i < transferCount; ++i) {
+			if (static_cast<std::size_t>(i) >= transferColumns.size())
+				break;
+			transferStations.push_back(fields[transferColumns[static_cast<std::size_t>(i)]]);
+		}
+		if (static_cast<int>(transferStations.size()) != transferCount
+				|| static_cast<std::size_t>(transferCount + 1) > serviceColumns.size()) {
+			result.report.skipped("passengers.route_choice", routeChoiceSource);
+			record(result.sources.routeChoice, routeRow, personId, false, true,
+					"Passenger route-choice leg columns are incomplete");
+			addDiag(SceneSeverity::Warning, "scene.import.ref",
+					"Passenger route-choice leg columns are incomplete", result.sources.routeChoice,
+					routeRow, "passengers.route_choice", true);
+			continue;
+		}
+		std::vector<std::string> legServices;
+		for (int i = 0; i <= transferCount; ++i)
+			legServices.push_back(fields[serviceColumns[static_cast<std::size_t>(i)]]);
+		std::vector<std::string> legStations;
+		legStations.push_back(result.passengers[target.first]["journeys"][target.second]["origin"].get<std::string>());
+		bool transferUnresolved = false;
+		for (const auto& transfer : transferStations) {
+			bool ambiguous = false;
+			const std::string station = passengerStationIdFor(stations, transfer, ambiguous);
+			legStations.push_back(station);
+			transferUnresolved = transferUnresolved || ambiguous || !knownStation(station);
+		}
+		legStations.push_back(result.passengers[target.first]["journeys"][target.second]["destination"].get<std::string>());
+		if (transferUnresolved)
+			addDiag(SceneSeverity::Warning, "scene.import.ref",
+					"Passenger route-choice transfer station is unresolved or ambiguous", result.sources.routeChoice,
+					routeRow, "passengers.route_choice", true);
+		bool unresolved = transferUnresolved;
+		for (std::size_t i = 0; i < legServices.size(); ++i) {
+			const std::string token = legServices[i];
+			std::string serviceId;
+			int occurrence = 1;
+			bool serviceAmbiguous = false;
+			for (const auto& service : services) {
+				const std::string prefix = (service.operatingCode.empty() ? service.id : service.operatingCode) + "-";
+				if (token.rfind(prefix, 0) != 0)
+					continue;
+				int candidateOccurrence = 0;
+				if (!parseIntegerToken(token.substr(prefix.size()), candidateOccurrence) || candidateOccurrence < 1)
+					continue;
+				if (!serviceId.empty())
+					serviceAmbiguous = true;
+				serviceId = service.id;
+				occurrence = candidateOccurrence;
+			}
+			if (serviceAmbiguous)
+				serviceId.clear();
+			bool originAmbiguous = false, destinationAmbiguous = false;
+			if (i >= legStations.size() - 1)
+				break;
+			const std::string origin = passengerStationIdFor(stations, legStations[i], originAmbiguous);
+			const std::string destinationStation = passengerStationIdFor(stations, legStations[i + 1], destinationAmbiguous);
+			if (serviceId.empty() || serviceAmbiguous || originAmbiguous || destinationAmbiguous
+					|| !knownStation(origin) || !knownStation(destinationStation)) {
+				unresolved = true;
+				addDiag(SceneSeverity::Warning, "scene.import.ref",
+						"Passenger route-choice service or station reference is ambiguous",
+						result.sources.routeChoice, routeRow, "passengers.route_choice", true);
+			}
+			result.passengers[target.first]["journeys"][target.second]["legs"].push_back({
+				{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>()
+						+ ".leg." + std::to_string(i + 1)},
+				{"origin", origin}, {"destination", destinationStation},
+				{"service", serviceId.empty() ? token : serviceId}, {"occurrence", occurrence}});
+		}
+		result.report.converted("passengers.route_choice", routeChoiceSource);
+		record(result.sources.routeChoice, routeRow, personId, true, unresolved,
+				unresolved ? "Accepted with unresolved service or station reference" : "Accepted");
+	}
+	return result;
+}
+
+static std::vector<ScenePassenger> scenePassengersFromJson(const json& values) {
+	std::vector<ScenePassenger> passengers;
+	for (const auto& value : values) {
+		ScenePassenger passenger;
+		passenger.id = value.value("id", "");
+		for (const auto& journeyValue : value.value("journeys", json::array())) {
+			ScenePassengerJourney journey;
+			journey.id = journeyValue.value("id", "");
+			journey.activity = journeyValue.value("activity", "");
+			journey.originStationId = journeyValue.value("origin", "");
+			journey.destinationStationId = journeyValue.value("destination", "");
+			if (journeyValue.contains("planned_departure")) {
+				journey.plannedDepartureStartSeconds = journeyValue["planned_departure"].value("start_seconds", 0.0);
+				journey.plannedDepartureEndSeconds = journeyValue["planned_departure"].value("end_seconds", 0.0);
+			}
+			if (journeyValue.contains("planned_arrival")) {
+				journey.plannedArrivalStartSeconds = journeyValue["planned_arrival"].value("start_seconds", 0.0);
+				journey.plannedArrivalEndSeconds = journeyValue["planned_arrival"].value("end_seconds", 0.0);
+			}
+			for (const auto& legValue : journeyValue.value("legs", json::array())) {
+				ScenePassengerLeg leg;
+				leg.id = legValue.value("id", "");
+				leg.originStationId = legValue.value("origin", "");
+				leg.destinationStationId = legValue.value("destination", "");
+				leg.serviceId = legValue.value("service", "");
+				leg.occurrence = legValue.value("occurrence", 1);
+				journey.legs.push_back(std::move(leg));
+			}
+			passenger.journeys.push_back(std::move(journey));
+		}
+		passengers.push_back(std::move(passenger));
+	}
+	return passengers;
 }
 
 SceneImportResult importLegacyScene(const std::string& legacyDir,
@@ -1400,190 +1820,22 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	// The passenger importer is intentionally gated by the same two exact files
 	// used by DispatchController. It keeps deterministic windows, never random
 	// draws or generated runtime results.
-	const fs::path passengerDir = findChild(legacyPath, "Passengers");
-	const fs::path dasPath = passengerDir.empty() ? fs::path() : passengerDir / "DAS_FrenchCaseStudy.csv";
-	const fs::path routeChoicePath = passengerDir.empty() ? fs::path() : passengerDir / "RouteChoiceFC_EQ1.csv";
-	const bool hasDas = !passengerDir.empty() && fs::is_regular_file(dasPath);
-	const bool hasRouteChoice = !passengerDir.empty() && fs::is_regular_file(routeChoicePath);
-	const std::string dasSource = (passengerDir / "DAS_FrenchCaseStudy.csv").string();
-	const std::string routeChoiceSource = (passengerDir / "RouteChoiceFC_EQ1.csv").string();
-	if (hasDas && hasRouteChoice) {
-		std::unordered_map<std::string, std::size_t> passengerIndex;
-		std::unordered_map<std::string, std::vector<std::pair<std::size_t, std::size_t>>> journeysByPersonDestination;
-		std::string content;
-		readFile(dasPath, content);
-		std::stringstream input(content);
-		std::string line;
-		bool header = true;
-		int rowNo = 0;
-		while (std::getline(input, line)) {
-			if (header) { header = false; continue; }
-			if (trim(line).empty()) continue;
-			++rowNo;
-			report.source("passengers.das", dasSource);
-			const auto fields = splitCsvNaive(line);
-			if (fields.size() <= 14) {
-				report.skipped("passengers.das", dasSource);
-				addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed passenger DAS row " + std::to_string(rowNo), dasPath.string());
-				continue;
-			}
-			const std::string personId = fields[1];
-			if (personId.empty()) {
-				report.skipped("passengers.das", dasSource);
-				addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger row has no person id", dasPath.string(), "passengers.das", true);
-				continue;
-			}
-			std::size_t pIndex = 0;
-			const auto foundPassenger = passengerIndex.find(personId);
-			if (foundPassenger == passengerIndex.end()) {
-				pIndex = passengers.size();
-				passengerIndex[personId] = pIndex;
-				passengers.push_back({{"id", personId}, {"journeys", json::array()}});
-			} else pIndex = foundPassenger->second;
-			std::string journeyId = personId + ":" + (fields[4].empty() ? std::to_string(rowNo) : fields[4]);
-			const std::string originalJourneyId = journeyId;
-			for (int suffix = 2;; ++suffix) {
-				bool duplicate = false;
-				for (const auto& journey : passengers[pIndex]["journeys"])
-					if (journey["id"] == journeyId) duplicate = true;
-				if (!duplicate) break;
-				journeyId = originalJourneyId + "_" + std::to_string(suffix);
-			}
-			bool ambiguousOrigin = false, ambiguousDestination = false;
-			const std::string origin = stationIdFor(fields[12], ambiguousOrigin);
-			const std::string destination = stationIdFor(fields[6], ambiguousDestination);
-			if (ambiguousOrigin || ambiguousDestination
-					|| std::none_of(stations.begin(), stations.end(), [&](const json& value) { return value["id"] == origin; })
-					|| std::none_of(stations.begin(), stations.end(), [&](const json& value) { return value["id"] == destination; })) {
-				addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger journey has an unresolved station reference", dasPath.string(), "passengers.das", true);
-			}
-			const auto departure = passengerTimeWindow(fields[14]);
-			const auto arrival = passengerTimeWindow(fields[10]);
-			json journey = {{"id", journeyId}, {"activity", fields[5]}, {"origin", origin}, {"destination", destination},
-				{"planned_departure", {{"start_seconds", departure.first}, {"end_seconds", departure.second}}},
-				{"planned_arrival", {{"start_seconds", arrival.first}, {"end_seconds", arrival.second}}}, {"legs", json::array()}};
-			const std::size_t jIndex = passengers[pIndex]["journeys"].size();
-			passengers[pIndex]["journeys"].push_back(journey);
-			journeysByPersonDestination[personId + "\n" + destination].push_back({pIndex, jIndex});
-			report.converted("passengers.das", dasSource);
-		}
-
-		readFile(routeChoicePath, content);
-		std::stringstream routeInput(content);
-		std::string routeLine;
-		std::vector<std::string> headers;
-		std::vector<std::size_t> transferColumns;
-		std::vector<std::size_t> serviceColumns;
-		bool routeHeader = true;
-		int routeRow = 0;
-		while (std::getline(routeInput, routeLine)) {
-			if (routeHeader) {
-				routeHeader = false;
-				headers = splitCsvNaive(routeLine);
-				for (std::size_t i = 0; i < headers.size(); ++i) {
-					const std::string lower = lowerCopy(headers[i]);
-					if (lower.rfind("transfer_n", 0) == 0) transferColumns.push_back(i);
-					if (lower.rfind("r_service_lines_id", 0) == 0) serviceColumns.push_back(i);
-				}
-				continue;
-			}
-			if (trim(routeLine).empty()) continue;
-			++routeRow;
-			report.source("passengers.route_choice", routeChoiceSource);
-			const auto fields = splitCsvNaive(routeLine);
-			if (fields.size() < headers.size()) {
-				report.skipped("passengers.route_choice", routeChoiceSource);
-				addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed passenger route-choice row " + std::to_string(routeRow), routeChoicePath.string());
-				continue;
-			}
-			auto column = [&](std::initializer_list<const char*> wanted) -> std::size_t {
-				for (std::size_t i = 0; i < headers.size(); ++i) {
-					const std::string header = lowerCopy(headers[i]);
-					for (const char* value : wanted)
-						if (header == value) return i;
-				}
-				return headers.size();
-			};
-			const std::size_t personColumn = column({"person_id", "person"});
-			const std::size_t destinationColumn = column({"destination"});
-			const std::size_t transferCountColumn = column({"nb_transfers"});
-			int transferCount = 0;
-			if (personColumn == headers.size() || destinationColumn == headers.size() || transferCountColumn == headers.size()
-				|| !parseIntegerToken(fields[transferCountColumn], transferCount) || transferCount < 0) {
-				report.skipped("passengers.route_choice", routeChoiceSource);
-				addDiag(SceneSeverity::Warning, "scene.import.parse", "Passenger route-choice header or transfer count is invalid", routeChoicePath.string(), "passengers.route_choice", true);
-				continue;
-			}
-			const std::string personId = fields[personColumn];
-			bool destinationAmbiguous = false;
-			const std::string destination = stationIdFor(fields[destinationColumn], destinationAmbiguous);
-			const auto journeyIt = journeysByPersonDestination.find(personId + "\n" + destination);
-			if (destinationAmbiguous || journeyIt == journeysByPersonDestination.end() || journeyIt->second.size() != 1) {
-				report.skipped("passengers.route_choice", routeChoiceSource);
-				addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger route-choice journey reference is missing or ambiguous", routeChoicePath.string(), "passengers.route_choice", true);
-				continue;
-			}
-			const auto target = journeyIt->second.front();
-			std::vector<std::string> transferStations;
-			for (int i = 0; i < transferCount; ++i) {
-				if (static_cast<std::size_t>(i) >= transferColumns.size()) break;
-				transferStations.push_back(fields[transferColumns[static_cast<std::size_t>(i)]]);
-			}
-			if (static_cast<int>(transferStations.size()) != transferCount || static_cast<std::size_t>(transferCount + 1) > serviceColumns.size()) {
-				report.skipped("passengers.route_choice", routeChoiceSource);
-				addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger route-choice leg columns are incomplete", routeChoicePath.string(), "passengers.route_choice", true);
-				continue;
-			}
-			std::vector<std::string> legServices;
-			for (int i = 0; i <= transferCount; ++i) legServices.push_back(fields[serviceColumns[static_cast<std::size_t>(i)]]);
-			std::vector<std::string> legStations;
-			legStations.push_back(passengers[target.first]["journeys"][target.second]["origin"].get<std::string>());
-			bool transferAmbiguous = false;
-			for (const auto& transfer : transferStations) {
-				bool ambiguous = false;
-				legStations.push_back(stationIdFor(transfer, ambiguous));
-				transferAmbiguous = transferAmbiguous || ambiguous;
-			}
-			legStations.push_back(passengers[target.first]["journeys"][target.second]["destination"].get<std::string>());
-			if (transferAmbiguous) {
-				addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger route-choice transfer station is ambiguous",
-						routeChoicePath.string(), "passengers.route_choice", true);
-			}
-			for (std::size_t i = 0; i < legServices.size(); ++i) {
-				const std::string token = legServices[i];
-				std::string serviceId;
-				int occurrence = 1;
-				bool serviceAmbiguous = false;
-				for (const auto& service : services) {
-					const std::string prefix = service.value("operating_code",
-							service["id"].get<std::string>()) + "-";
-					if (token.rfind(prefix, 0) != 0) continue;
-					int candidateOccurrence = 0;
-					if (!parseIntegerToken(token.substr(prefix.size()), candidateOccurrence) || candidateOccurrence < 1) continue;
-					if (!serviceId.empty()) serviceAmbiguous = true;
-					serviceId = service["id"].get<std::string>();
-					occurrence = candidateOccurrence;
-				}
-				if (serviceAmbiguous)
-					serviceId.clear();
-				bool originAmbiguous = false, destinationAmbiguous = false;
-				if (i >= legStations.size() - 1) break;
-				const std::string origin = stationIdFor(legStations[i], originAmbiguous);
-				const std::string destinationStation = stationIdFor(legStations[i + 1], destinationAmbiguous);
-				if (serviceId.empty() || serviceAmbiguous || originAmbiguous || destinationAmbiguous) {
-					addDiag(SceneSeverity::Warning, "scene.import.ref", "Passenger route-choice service or station reference is ambiguous", routeChoicePath.string(), "passengers.route_choice", true);
-				}
-				passengers[target.first]["journeys"][target.second]["legs"].push_back({
-					{"id", passengers[target.first]["journeys"][target.second]["id"].get<std::string>() + ".leg." + std::to_string(i + 1)},
-					{"origin", origin}, {"destination", destinationStation}, {"service", serviceId.empty() ? token : serviceId}, {"occurrence", occurrence}});
-			}
-			report.converted("passengers.route_choice", routeChoiceSource);
-		}
-	} else if (hasDas || hasRouteChoice) {
-		if (hasDas) report.skipped("passengers.das", dasSource);
-		if (hasRouteChoice) report.skipped("passengers.route_choice", routeChoiceSource);
-		addDiag(SceneSeverity::Warning, "scene.import.passengers", "Passenger import requires both exact DAS and route-choice files", passengerDir.string(), "passengers", true);
-	}
+	std::vector<LegacyPassengerStationReference> passengerStations;
+	for (const auto& station : stations)
+		passengerStations.push_back({station["id"].get<std::string>(),
+				station.value("name", station["id"].get<std::string>())});
+	std::vector<LegacyPassengerServiceReference> passengerServices;
+	for (const auto& service : services)
+		passengerServices.push_back({service["id"].get<std::string>(),
+				service.value("operating_code", service["id"].get<std::string>())});
+	const LegacyPassengerParseResult passengerImport = parseLegacyPassengers(legacyPath,
+			passengerStations, passengerServices);
+	passengers = passengerImport.passengers;
+	report.append(passengerImport.report);
+	result.diagnostics.insert(result.diagnostics.end(), passengerImport.diagnostics.begin(),
+			passengerImport.diagnostics.end());
+	const bool hasDas = passengerImport.sources.hasDas;
+	const bool hasRouteChoice = passengerImport.sources.hasRouteChoice;
 
 	json sceneJson = {{"schema_version", 1}, {"name", sceneName},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}}};
@@ -1770,5 +2022,34 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		if (cleanupEc) addDiag(SceneSeverity::Warning, "scene.import.cleanup", "Could not remove import backup: " + cleanupEc.message(), backupPath.string());
 	}
 	result.wroteScene = true;
+	return result;
+}
+
+ScenePassengerImportResult importLegacyPassengers(const std::string& legacyRootOrPassengerDir,
+		const SceneModel& scene) {
+	ScenePassengerImportResult result;
+	std::vector<LegacyPassengerStationReference> stations;
+	for (const auto& station : scene.stations)
+		stations.push_back({station.id, station.name});
+	std::vector<LegacyPassengerServiceReference> services;
+	for (const auto& service : scene.services)
+		services.push_back({service.id, service.operatingCode.empty() ? service.id : service.operatingCode});
+	const LegacyPassengerParseResult parsed = parseLegacyPassengers(legacyRootOrPassengerDir,
+			stations, services);
+	result.passengers = scenePassengersFromJson(parsed.passengers);
+	result.rows = parsed.rows;
+	result.report = parsed.report.rows;
+	result.diagnostics = parsed.diagnostics;
+	if (!parsed.sources.hasPair) {
+		SceneDiagnostic diagnostic;
+		diagnostic.severity = SceneSeverity::Error;
+		diagnostic.code = "scene.import.passengers.missing";
+		diagnostic.message = "Passenger import requires both DAS_FrenchCaseStudy.csv and RouteChoiceFC_EQ1.csv";
+		diagnostic.file = parsed.sources.directory.string();
+		diagnostic.itemType = "passengers";
+		diagnostic.path = "DAS_FrenchCaseStudy.csv,RouteChoiceFC_EQ1.csv";
+		diagnostic.suggestedFix = "Place both exact legacy passenger files in the case's Passengers directory";
+		result.diagnostics.push_back(std::move(diagnostic));
+	}
 	return result;
 }

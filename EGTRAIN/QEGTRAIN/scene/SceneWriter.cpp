@@ -504,7 +504,12 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		if (station.hasPosition)
 			value["position_km"] = station.positionKm;
 		for (const auto& platform : station.platforms) {
-			value["platforms"].push_back({{"id", platform.id}, {"nodes", platform.nodeIds}});
+			json platformValue = {{"id", platform.id}, {"nodes", platform.nodeIds}};
+			if (platform.hasLength)
+				platformValue["length_m"] = platform.lengthM;
+			if (platform.hasWidth)
+				platformValue["width_m"] = platform.widthM;
+			value["platforms"].push_back(std::move(platformValue));
 		}
 		stations.push_back(value);
 	}

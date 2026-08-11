@@ -123,6 +123,34 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	SceneModel invalidPlatformLength = clean;
+	invalidPlatformLength.stations[0].platforms[0].hasLength = true;
+	invalidPlatformLength.stations[0].platforms[0].lengthM = std::numeric_limits<double>::infinity();
+	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformLength), "scene.platform.length.invalid",
+			"stations[0].platforms[0].length_m"), "explicit non-finite platform length is rejected at its field");
+	SceneModel invalidPlatformWidth = clean;
+	invalidPlatformWidth.stations[0].platforms[0].hasWidth = true;
+	invalidPlatformWidth.stations[0].platforms[0].widthM = 0.0;
+	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformWidth), "scene.platform.width.invalid",
+			"stations[0].platforms[0].width_m"), "explicit non-positive platform width is rejected at its field");
+	SceneModel invalidPlatformCapacity = clean;
+	invalidPlatformCapacity.stations[0].platforms[0].hasLength = true;
+	invalidPlatformCapacity.stations[0].platforms[0].lengthM = 0.01;
+	invalidPlatformCapacity.stations[0].platforms[0].hasWidth = true;
+	invalidPlatformCapacity.stations[0].platforms[0].widthM = 0.01;
+	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformCapacity), "scene.platform.capacity.invalid",
+			"stations[0].platforms[0]"), "platform geometry must produce a usable integer capacity");
+	SceneModel nonFinitePassengerWindow = clean;
+	nonFinitePassengerWindow.passengers[0].journeys[0].plannedArrivalEndSeconds =
+			std::numeric_limits<double>::quiet_NaN();
+	ok &= expect(hasCodeAndPath(validateScene(nonFinitePassengerWindow), "scene.passenger.window",
+			"passengers[0].journeys[0].planned_arrival"), "non-finite passenger windows are rejected");
+	SceneModel passengerMissingStop = clean;
+	passengerMissingStop.services[0].stops.pop_back();
+	const auto passengerStopDiagnostics = validateScene(passengerMissingStop);
+	ok &= expect(hasCodeAndPath(passengerStopDiagnostics, "scene.passenger.leg.stop",
+			"passengers[0].journeys[0].legs[0].destination"),
+			"passenger leg destination must be a stop of its service");
 	const SceneSectionInventory inventory = buildSceneSectionInventory(clean);
 	ok &= expect(inventory.sections.size() == 4
 				&& inventory.sections[0].id == "@block-1@"
