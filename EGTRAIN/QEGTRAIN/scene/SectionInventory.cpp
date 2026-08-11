@@ -203,8 +203,15 @@ SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 		transition.joinsReverse = transition.joinsReverse || switchReverse;
 		transition.switchChain = transition.joinsForward || transition.joinsReverse;
 	}
-	transition.regionJump = sectionBoundaryIsRegionJump(left, right, true)
-			|| sectionBoundaryIsRegionJump(left, right, false);
+	const auto rightUsesBlock = [&right](const std::string& id) {
+		return !id.empty() && (right.sourceBlockId == id
+				|| right.firstBlockId == id || right.secondBlockId == id);
+	};
+	const bool sharesSourceBlock = rightUsesBlock(left.sourceBlockId)
+			|| rightUsesBlock(left.firstBlockId) || rightUsesBlock(left.secondBlockId);
+	transition.regionJump = !sharesSourceBlock
+			&& (sectionBoundaryIsRegionJump(left, right, true)
+			|| sectionBoundaryIsRegionJump(left, right, false));
 	return transition;
 }
 

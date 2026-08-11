@@ -203,10 +203,11 @@ int main(int argc, char** argv) {
 		else if (section.sourceConnectionId == "a-to-c")
 			cToA = section.id;
 	}
+	reversedFork.importReport.push_back({"legacy_root"});
 	reversedFork.routes.push_back({"reversed-fork", {bToA, cToA}, false, "", false});
 	ok &= expect(!bToA.empty() && !cToA.empty()
 				&& hasCode(validateScene(reversedFork), "scene.route.disconnected"),
-			"a switch section's internal connection cannot join it to another branch");
+			"legacy compatibility cannot turn a wrong-branch switch fork into a regional jump");
 	SceneModel switchDirectionChange = switchTopology;
 	switchDirectionChange.routes.push_back(
 			{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});

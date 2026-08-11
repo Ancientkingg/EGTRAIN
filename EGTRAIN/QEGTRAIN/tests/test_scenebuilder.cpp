@@ -214,6 +214,30 @@ static bool runTinyBuilderChecks() {
 			&& Blocks == blocksBeforeDerivedUTurn
 			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
 			"direct native-builder callers reject a connection-derived U-turn before runtime mutation");
+	SceneModel legacyFork = switchChainScene();
+	legacyFork.connections.push_back({"a-to-c", "a.1", "c.0", false, 0.0});
+	legacyFork.nodes[0].xKm = 100.0;
+	legacyFork.nodes[1].xKm = 101.0;
+	legacyFork.nodes[2].xKm = 0.0;
+	legacyFork.nodes[3].xKm = 1.0;
+	legacyFork.nodes[4].xKm = 2.0;
+	legacyFork.nodes[5].xKm = 3.0;
+	std::string bToA;
+	std::string cToA;
+	for (const auto& section : buildSceneSectionInventory(legacyFork).sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			bToA = section.id;
+		else if (section.sourceConnectionId == "a-to-c")
+			cToA = section.id;
+	}
+	legacyFork.importReport.push_back({"legacy_root"});
+	legacyFork.routes.push_back({"legacy-fork", {bToA, cToA}, false, {}, false});
+	const int blocksBeforeLegacyFork = Blocks;
+	diagnostics = buildInfrastructureAndSignallingFromScene(legacyFork);
+	ok &= expect(!bToA.empty() && !cToA.empty()
+			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
+			&& Blocks == blocksBeforeLegacyFork,
+			"legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation");
 	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
 			"signalling areas apply before route construction");

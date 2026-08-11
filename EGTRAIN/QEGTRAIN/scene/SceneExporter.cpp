@@ -34,9 +34,10 @@ static std::string sanitizeFilename(const std::string& name) {
 static bool isPositionedRouteEndpoint(const std::string& token) {
 	size_t first = token.find('@');
 	size_t last = token.rfind('@');
-	if (first != 0 || last == std::string::npos || first == last || last + 1 >= token.length())
+	if (first != 0 || last == std::string::npos || first == last
+			|| last + 2 >= token.length() || token[last + 1] != '-')
 		return false;
-	std::string position = token.substr(last + 1);
+	std::string position = token.substr(last + 2);
 	size_t i = 0;
 	if (position[i] == '+' || position[i] == '-')
 		i++;
