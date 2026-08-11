@@ -73,6 +73,7 @@ constexpr int kSignalDecorationRole = 0;
 constexpr int kSignalTrackRole = 1;
 constexpr int kSignalBaseVisibleRole = 2;
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
+constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -3959,9 +3960,10 @@ void MainWindow::commitPendingEditorValues() {
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
 			for (int column : {3, 4}) {
 				auto* edit = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(row, column));
-				QLineEdit* textEdit = edit ? edit->findChild<QLineEdit*>() : nullptr;
-				if (!hasEditorFocus(edit) || !textEdit || !textEdit->isModified())
+				if (!hasEditorFocus(edit)
+						|| !edit->property(kPlatformGeometryEditedProperty).toBool())
 					continue;
+				edit->setProperty(kPlatformGeometryEditedProperty, false);
 				edit->interpretText();
 				pendingGeometry.emplace_back(row, column, edit->value());
 			}
@@ -4542,6 +4544,17 @@ void MainWindow::refreshInfrastructureTable() {
 						[this, row, column](double next) {
 							commitPlatformGeometryCell(row, column, next);
 						});
+					if (QLineEdit* textEdit = edit->findChild<QLineEdit*>()) {
+						connect(textEdit, &QLineEdit::textEdited, edit, [edit]() {
+							edit->setProperty(kPlatformGeometryEditedProperty, edit->hasAcceptableInput());
+						});
+					}
+					connect(edit, &QAbstractSpinBox::editingFinished, this, [this, edit, row, column]() {
+						if (!edit->property(kPlatformGeometryEditedProperty).toBool())
+							return;
+						edit->setProperty(kPlatformGeometryEditedProperty, false);
+						commitPlatformGeometryCell(row, column, edit->value());
+					});
 					return edit;
 				};
 				auto* lengthEdit = makeGeometrySpin(platform.hasLength ? platform.lengthM : 100.0,
@@ -14327,6 +14340,7 @@ void MainWindow::runEditorSmokeE2E() {
 							|| m_infrastructureFacetCombo->findData("platforms") < 0) {
 						facetFailure(facetOk, "save/reload", "platform geometry controls were unavailable for focused Save");
 					} else {
+						activateWindow();
 						if (m_infrastructureDock) {
 							m_infrastructureDock->show();
 							m_infrastructureDock->raise();
@@ -14334,18 +14348,51 @@ void MainWindow::runEditorSmokeE2E() {
 						m_infrastructureFacetCombo->setCurrentIndex(
 							m_infrastructureFacetCombo->findData("platforms"));
 						QApplication::processEvents();
-						auto* implicitLengthEdit = qobject_cast<QDoubleSpinBox*>(
-							m_infrastructureTable->cellWidget(1, 3));
+						const auto enterSpinText = [](QLineEdit* editor, const QString& text) {
+							editor->selectAll();
+							for (const QChar character : text) {
+								QKeyEvent keyPress(QEvent::KeyPress, character.unicode(), Qt::NoModifier,
+									QString(character));
+								QApplication::sendEvent(editor, &keyPress);
+							}
+						};
+						int implicitPlatformRow = -1;
+						ScenePlatform* implicitPlatform = nullptr;
+						int platformRow = 0;
+						for (auto& station : m_sceneModel.stations) {
+							for (auto& platform : station.platforms) {
+								if (!implicitPlatform && !platform.hasLength && !platform.hasWidth) {
+									implicitPlatformRow = platformRow;
+									implicitPlatform = &platform;
+								}
+								++platformRow;
+							}
+						}
+						auto* implicitLengthEdit = implicitPlatformRow >= 0
+							? qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(implicitPlatformRow, 3))
+							: nullptr;
+						auto* implicitWidthEdit = implicitPlatformRow >= 0
+							? qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(implicitPlatformRow, 4))
+							: nullptr;
 						QLineEdit* implicitLength = spinTextEdit(implicitLengthEdit);
-						if (!implicitLength || m_sceneModel.stations.size() < 2
-								|| m_sceneModel.stations[1].platforms.empty()
-								|| m_sceneModel.stations[1].platforms.front().hasLength) {
-							facetFailure(facetOk, "save/reload", "implicit platform length was unavailable");
+						QLineEdit* implicitWidth = spinTextEdit(implicitWidthEdit);
+						if (!implicitPlatform || !implicitLength || !implicitWidth) {
+							facetFailure(facetOk, "save/reload", "implicit platform geometry was unavailable");
 						} else {
+							implicitWidth->setFocus();
+							QApplication::processEvents();
+							if (!implicitWidth->hasFocus())
+								facetFailure(facetOk, "save/reload", "implicit platform width could not receive focus");
+							enterSpinText(implicitWidth, QStringLiteral("2.5"));
 							implicitLength->setFocus();
 							QApplication::processEvents();
-							if (!triggerPendingSave()
-									|| m_sceneModel.stations[1].platforms.front().hasLength)
+							if (!implicitLength->hasFocus()) {
+								facetFailure(facetOk, "save/reload", "implicit platform length could not receive focus");
+							} else if (!implicitPlatform->hasWidth || implicitPlatform->widthM != 2.5) {
+								facetFailure(facetOk, "save/reload",
+									"same-value platform geometry was not committed on focus loss");
+							} else if (!triggerPendingSave()
+									|| implicitPlatform->hasLength)
 								facetFailure(facetOk, "save/reload",
 									"Save materialized an untouched compatibility platform length");
 						}
@@ -14355,9 +14402,8 @@ void MainWindow::runEditorSmokeE2E() {
 							facetFailure(facetOk, "save/reload", "focused platform length editor was unavailable");
 						} else {
 							const double pendingLengthValue = 234.5;
-							pendingLength->setText(QString::number(pendingLengthValue, 'g', 16));
-							pendingLength->setModified(true);
 							pendingLength->setFocus();
+							enterSpinText(pendingLength, QString::number(pendingLengthValue, 'g', 16));
 							if (!triggerPendingSave() || m_sceneModel.stations.empty()
 									|| m_sceneModel.stations.front().platforms.empty()
 									|| !m_sceneModel.stations.front().platforms.front().hasLength

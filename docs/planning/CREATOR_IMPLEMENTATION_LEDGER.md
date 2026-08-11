@@ -252,6 +252,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After correcting the untouched platform-default finding, the same five-test gate passed 5 of 5 in 2.10 seconds.
   The editor smoke passed after all seven scene tests and now focuses an implicit 100 m platform value before Save,
   proving that no optional geometry is materialized without an edit.
+- After correcting same-valued geometry on focus loss, the same five-test gate passed 5 of 5 in 2.12 seconds.
+  Editor smoke passed after all seven scene tests. It sends real numeric key input for an implicit 2.5 m width,
+  changes focus, and verifies that the value becomes explicit while an untouched focused length remains absent.
 
 ### Full tests and smokes run
 
@@ -478,6 +481,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After the PR 5 core implementation and lead capacity-boundary correction, the focused validator, importer,
   writer, bundle, and operations-builder gate passed 5 of 5 in 2.73 seconds. `git diff --check` passed.
 - The PR 5 untouched-default correction graph update completed with 5034 nodes, 11497 edges, and 235 communities.
+- The final PR 5 geometry correction graph update completed with 5034 nodes, 11496 edges, and 242 communities.
 
 ## Review record
 
@@ -487,6 +491,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   displayed platform default and pressing Save set the optional geometry presence flag, wrote the default value,
   marked the scene dirty, and invalidated results even though the user had not edited it. The reviewer independently
   passed the five-test focused gate and editor smoke before reproducing the no-op Save path.
+- The next fresh corrected-diff review found no P0 or P1 issue and one remaining P2: after a user typed the same
+  displayed default and moved focus away, `keyboardTracking(false)` emitted no value change and the later Save
+  ignored the now-unfocused editor. Qt normalization can also clear `QLineEdit::isModified`, so that flag could not
+  recover all same-valued edits after focus loss. The reviewer passed the focused gate, editor smoke, and all six
+  committed scene validations and found no other passenger, persistence, or native-staging defect.
 - The first fresh PR 5 review found no P0 issue and four merge blockers:
   1. malformed or non-finite DAS time tokens were silently converted to midnight and reported as accepted;
   2. passenger-leg validation checked service-stop membership but not that the destination follows the origin;
@@ -699,9 +708,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   through one repeated-stop-aware helper, and omits occurrence-filtered or otherwise incomplete journeys whole.
   Legacy-import provenance preserves one committed invalid Paimpol row as a warning without guessing corrected
   railway data; native staging omits that journey instead of creating an impossible trip.
-- Pending platform geometry now commits only when Qt reports that the focused spin-box text was modified. Merely
-  focusing a displayed compatibility default leaves the optional field absent, while typed values and spin changes
-  retain their existing commit paths. The public editor smoke covers both the no-op focus and typed focused Save.
+- Platform spin boxes record valid user input when `textEdited` fires, before Qt can normalize the text. That marker
+  is consumed on focus loss or pending Save. Merely focusing a displayed compatibility default leaves the optional
+  field absent, while same-valued, changed, and spin-button edits become explicit through existing commit paths.
+  The public editor smoke covers untouched focus, same-value focus loss, and a changed still-focused Save.
 
 ### Ponytail findings
 
@@ -746,5 +756,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Commit and push the untouched-platform correction, obtain a fresh corrected-diff review for PR #294, then run the
+Commit and push the same-valued platform correction, obtain a fresh corrected-diff review for PR #294, then run the
 Ponytail review and merge only after the affected local gate and GitHub checks are clean.
