@@ -209,10 +209,11 @@ int main(int argc, char** argv) {
 				&& hasCode(validateScene(reversedFork), "scene.route.disconnected"),
 			"legacy compatibility cannot turn a wrong-branch switch fork into a regional jump");
 	SceneModel switchDirectionChange = switchTopology;
+	switchDirectionChange.importReport.push_back({"legacy_root"});
 	switchDirectionChange.routes.push_back(
 			{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});
 	ok &= expect(hasCode(validateScene(switchDirectionChange), "scene.route.direction"),
-			"a connection-derived route cannot reverse through the same switch section");
+			"legacy provenance cannot hide a connection-derived route reversal");
 	SceneModel regionJump = clean;
 	regionJump.tracks.push_back({"region-track"});
 	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});

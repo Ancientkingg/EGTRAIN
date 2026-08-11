@@ -205,6 +205,7 @@ static bool runTinyBuilderChecks() {
 		else if (section.sourceConnectionId == "b-to-c")
 			bToC = section.id;
 	}
+	derivedUTurn.importReport.push_back({"legacy_root"});
 	derivedUTurn.routes.push_back({"switch-u-turn", {aToB, bToC, aToB}, false, {}, false});
 	const int blocksBeforeDerivedUTurn = Blocks;
 	const std::string firstSectionBeforeDerivedUTurn = signalling_block_sections[0].ID;
@@ -213,7 +214,7 @@ static bool runTinyBuilderChecks() {
 			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& Blocks == blocksBeforeDerivedUTurn
 			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
-			"direct native-builder callers reject a connection-derived U-turn before runtime mutation");
+			"legacy provenance cannot hide a connection-derived U-turn from native preflight");
 	SceneModel legacyFork = switchChainScene();
 	legacyFork.connections.push_back({"a-to-c", "a.1", "c.0", false, 0.0});
 	legacyFork.nodes[0].xKm = 100.0;

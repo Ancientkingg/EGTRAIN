@@ -2590,7 +2590,11 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
 						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
-				if (!transition.switchChain || !hasLegacyImport) {
+				const bool legacyRegionalDerivedJoin = hasLegacyImport
+						&& routeSections[sectionIndex - 1]->connectionDerived
+						&& routeSections[sectionIndex]->connectionDerived
+						&& transition.regionJump;
+				if (!legacyRegionalDerivedJoin) {
 					forward = forward || transition.joinsForward;
 					reverse = reverse || transition.joinsReverse;
 				}

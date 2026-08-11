@@ -44,7 +44,6 @@ struct SceneSectionInventory {
 struct SceneSectionTransition {
 	bool joinsForward = false;
 	bool joinsReverse = false;
-	bool switchChain = false;
 	bool regionJump = false;
 };
 

@@ -201,7 +201,6 @@ SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 						&& right.secondConnectionKm <= left.firstConnectionKm + kCoordinateTolerance;
 		transition.joinsForward = transition.joinsForward || switchForward;
 		transition.joinsReverse = transition.joinsReverse || switchReverse;
-		transition.switchChain = transition.joinsForward || transition.joinsReverse;
 	}
 	const auto rightUsesBlock = [&right](const std::string& id) {
 		return !id.empty() && (right.sourceBlockId == id

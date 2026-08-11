@@ -115,6 +115,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   The new regressions prove that legacy regional compatibility cannot accept a wrong-branch fork
   through shared source blocks and that negative-coordinate connection targets are diagnosed and
   skipped by the legacy exporter.
+- After the fifth corrected-diff review, the same six-test gate passed 6 of 6 in 3.45 seconds.
+  The regressions now keep legacy switch-chain direction evidence except for the exact regional
+  bridge shape required by committed compatibility data, and skip malformed as well as exact
+  compound legacy incident targets.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -150,6 +154,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - the editor smoke passed after its 7 scene tests;
   - the incident smoke passed both breakdown and bound-signal hold/release checks;
   - all six committed scenes validated with no errors and only their previously recorded warnings;
+  - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
+  - Assignment smoke passed its canonical timetable assertion;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
+  - after the fifth corrected-diff fixes, the full build passed and CTest passed 43 of 43 in 118.81 seconds;
+  - the editor smoke passed after its 7 scene tests;
+  - the incident smoke passed both breakdown and bound-signal hold/release checks;
+  - all six committed scenes validated with no errors and their recorded warning groups unchanged;
   - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
   - Assignment smoke passed its canonical timetable assertion;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
@@ -191,6 +202,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   and 236 communities.
 - `graphify update .` completed after the fourth corrected-diff fixes with 4872 nodes, 10911 edges,
   and 237 communities.
+- `graphify update .` completed after the fifth corrected-diff fixes with 4871 nodes, 10910 edges,
+  and 231 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -224,7 +237,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
      downgraded to `scene.route.region_jump`, after which the native builder constructed the route;
   2. the positioned-endpoint parser treated the format separator as the coordinate sign, so a
      negative coordinate such as `@block@--1.000000` evaded the unrepresentable-target diagnostic.
-- A fifth fresh corrected-diff review remains required before Ponytail review.
+- The fifth fresh corrected-diff review found no P0 issue and two remaining P1 merge blockers:
+  1. legacy provenance suppressed all connection-derived direction evidence, allowing a derived
+     U-turn to pass semantic and direct native preflight and mutate runtime state;
+  2. malformed slash-containing signal bindings fell through the positioned-target check, were
+     exported to `Incidents.txt`, and then reimported into an invalid unresolved target.
+- A sixth fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -258,6 +276,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Parsed the positioned-section separator separately from the signed coordinate, preserving positive
   targets and correctly recognizing negative-coordinate compound targets.
 - Added legacy wrong-branch no-mutation and negative-coordinate export regressions.
+- Retained the legacy direction exception only for a connection-derived join across a recorded
+  regional discontinuity. Ordinary derived switch chains now contribute direction in legacy and
+  canonical scenes, so a U-turn is rejected before native mutation.
+- Skipped every slash-containing signal-failure target in legacy export because the preserved
+  four-column incident loader cannot represent any compound identity.
+- Removed the now-unused `SceneSectionTransition::switchChain` flag instead of preserving dead
+  compatibility machinery.
+- Added legacy derived-U-turn and malformed compound export regressions.
 
 ### Ponytail findings
 
@@ -275,10 +301,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. A fifth independent correctness review and Ponytail review remain
+- PR 1 has no known test or parity blocker. A sixth independent correctness review and Ponytail review remain
   before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the fourth corrected-diff fixes, then run a fifth fresh review of PR #290. When no merge blocker
+Commit and push the fifth corrected-diff fixes, then run a sixth fresh review of PR #290. When no merge blocker
 remains, run the fresh Ponytail simplicity review before final verification and merge.

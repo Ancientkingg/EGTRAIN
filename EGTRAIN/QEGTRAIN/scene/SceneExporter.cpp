@@ -1161,9 +1161,9 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
 					if (signal != scene.signals.end() && !signal->protectedSection.empty())
 						target = signal->protectedSection;
-					if (isSwitchTransitionRouteEntry(target)) {
+					if (target.find('/') != std::string::npos) {
 						addDiag(SceneSeverity::Warning, "scene.export.compatibility",
-								"Signal failure " + inc.id + " was skipped because legacy incidents cannot target a connection-derived section",
+								"Signal failure " + inc.id + " was skipped because legacy incidents cannot target compound sections",
 								inc.id);
 						continue;
 					}
