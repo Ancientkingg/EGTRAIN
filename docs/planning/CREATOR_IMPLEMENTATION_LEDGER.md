@@ -249,6 +249,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   gate passed 5 of 5 in 2.43 seconds. Editor smoke passed after all seven scene tests. All six committed scene
   directories validated with exit 0; Paimpol's one historical reverse passenger leg is now a warning and is
   omitted as a whole journey by native staging.
+- After correcting the untouched platform-default finding, the same five-test gate passed 5 of 5 in 2.10 seconds.
+  The editor smoke passed after all seven scene tests and now focuses an implicit 100 m platform value before Save,
+  proving that no optional geometry is materialized without an edit.
 
 ### Full tests and smokes run
 
@@ -291,6 +294,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - six-case round-trip smoke ended with `ROUNDTRIP PASS` after validating, exporting, and reimporting each scene;
   - Assignment smoke passed its canonical timetable assertion;
   - `git diff --check` passed.
+  - after the first correctness corrections, the full build passed and CTest passed 43 of 43 in 130.25 seconds;
+  - the corrected editor smoke passed after its 7 scene tests;
+  - all six committed scene directories validated with no errors, including one recorded Paimpol passenger-order
+    compatibility warning.
   - after the eighth corrected-diff fix, the full build passed and CTest passed 43 of 43 in 118.19 seconds;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
   - after the seventh corrected-diff fixes, the full configure and build passed and CTest passed 43 of 43
@@ -470,11 +477,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   after all 7 scene tests passed.
 - After the PR 5 core implementation and lead capacity-boundary correction, the focused validator, importer,
   writer, bundle, and operations-builder gate passed 5 of 5 in 2.73 seconds. `git diff --check` passed.
+- The PR 5 untouched-default correction graph update completed with 5034 nodes, 11497 edges, and 235 communities.
 
 ## Review record
 
 ### Independent correctness findings
 
+- The fresh corrected-diff review found no P0 or P1 issue and one P2 compatibility defect: focusing an untouched
+  displayed platform default and pressing Save set the optional geometry presence flag, wrote the default value,
+  marked the scene dirty, and invalidated results even though the user had not edited it. The reviewer independently
+  passed the five-test focused gate and editor smoke before reproducing the no-op Save path.
 - The first fresh PR 5 review found no P0 issue and four merge blockers:
   1. malformed or non-finite DAS time tokens were silently converted to midnight and reported as accepted;
   2. passenger-leg validation checked service-stop membership but not that the destination follows the origin;
@@ -687,6 +699,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   through one repeated-stop-aware helper, and omits occurrence-filtered or otherwise incomplete journeys whole.
   Legacy-import provenance preserves one committed invalid Paimpol row as a warning without guessing corrected
   railway data; native staging omits that journey instead of creating an impossible trip.
+- Pending platform geometry now commits only when Qt reports that the focused spin-box text was modified. Merely
+  focusing a displayed compatibility default leaves the optional field absent, while typed values and spin changes
+  retain their existing commit paths. The public editor smoke covers both the no-op focus and typed focused Save.
 
 ### Ponytail findings
 
@@ -731,5 +746,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Obtain a fresh corrected-diff review for PR #294, fix any verified finding, then run the Ponytail review and merge
-only after the affected local gate and GitHub checks are clean.
+Commit and push the untouched-platform correction, obtain a fresh corrected-diff review for PR #294, then run the
+Ponytail review and merge only after the affected local gate and GitHub checks are clean.

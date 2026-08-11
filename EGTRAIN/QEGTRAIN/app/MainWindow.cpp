@@ -3959,7 +3959,8 @@ void MainWindow::commitPendingEditorValues() {
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
 			for (int column : {3, 4}) {
 				auto* edit = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(row, column));
-				if (!hasEditorFocus(edit))
+				QLineEdit* textEdit = edit ? edit->findChild<QLineEdit*>() : nullptr;
+				if (!hasEditorFocus(edit) || !textEdit || !textEdit->isModified())
 					continue;
 				edit->interpretText();
 				pendingGeometry.emplace_back(row, column, edit->value());
@@ -14333,6 +14334,21 @@ void MainWindow::runEditorSmokeE2E() {
 						m_infrastructureFacetCombo->setCurrentIndex(
 							m_infrastructureFacetCombo->findData("platforms"));
 						QApplication::processEvents();
+						auto* implicitLengthEdit = qobject_cast<QDoubleSpinBox*>(
+							m_infrastructureTable->cellWidget(1, 3));
+						QLineEdit* implicitLength = spinTextEdit(implicitLengthEdit);
+						if (!implicitLength || m_sceneModel.stations.size() < 2
+								|| m_sceneModel.stations[1].platforms.empty()
+								|| m_sceneModel.stations[1].platforms.front().hasLength) {
+							facetFailure(facetOk, "save/reload", "implicit platform length was unavailable");
+						} else {
+							implicitLength->setFocus();
+							QApplication::processEvents();
+							if (!triggerPendingSave()
+									|| m_sceneModel.stations[1].platforms.front().hasLength)
+								facetFailure(facetOk, "save/reload",
+									"Save materialized an untouched compatibility platform length");
+						}
 						auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(0, 3));
 						QLineEdit* pendingLength = spinTextEdit(lengthEdit);
 						if (!pendingLength) {
@@ -14340,6 +14356,7 @@ void MainWindow::runEditorSmokeE2E() {
 						} else {
 							const double pendingLengthValue = 234.5;
 							pendingLength->setText(QString::number(pendingLengthValue, 'g', 16));
+							pendingLength->setModified(true);
 							pendingLength->setFocus();
 							if (!triggerPendingSave() || m_sceneModel.stations.empty()
 									|| m_sceneModel.stations.front().platforms.empty()
