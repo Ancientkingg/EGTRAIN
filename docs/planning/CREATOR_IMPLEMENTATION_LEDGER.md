@@ -139,6 +139,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   passed 6 of 6 in 2.54 seconds. The new regressions prove that `/` receives one
   actionable canonical validation error, direct native preflight rejects it before runtime mutation,
   and legacy export can still map an exact stored slash-bearing reference for recovery.
+- After the tenth corrected-diff review, the same six-test gate passed 6 of 6 in 2.56 seconds.
+  The exporter regression proves that a signal-failure target matching both a signal and a section
+  is diagnosed and skipped instead of being silently retargeted through the signal binding.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -308,7 +311,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   checks split it and direct native staging interpreted `/` as the connection-section delimiter. The
   runtime also uses the delimiter in switch occupancy, GUI state, rendering, and signal-output paths, so
   accepting the ID would require a new escaped identity grammar rather than a local parser exception.
-- A tenth fresh corrected-diff review remains required before Ponytail review.
+- The tenth fresh corrected-diff review found one P1 export-parity blocker. When a signal ID also matched
+  an exact section ID, validator and native staging rejected the target as ambiguous, but legacy export
+  resolved the signal binding and silently wrote a failure for a different section. No other P0, P1, or
+  P2 blocker was found in that review.
+- An eleventh fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -374,6 +381,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   the established runtime section grammar cannot distinguish safely.
 - Made exact block-ID precedence suppress misleading route-component errors, and qualified the legacy
   export regression so it is not cited as canonical runtime support.
+- Made legacy incident export use the shared section inventory before resolving a matching signal. An
+  ambiguous target now produces `scene.ref.ambiguous` and no incident row, matching validation and native staging.
 
 ### Ponytail findings
 
@@ -391,10 +400,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. A tenth independent correctness review and Ponytail review remain
+- PR 1 has no known test or parity blocker. An eleventh independent correctness review and Ponytail review remain
   before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Run the six focused PR 1 tests, commit and push the ninth corrected-diff fix, then run a tenth fresh review of
-PR #290. When no merge blocker remains, run the fresh Ponytail simplicity review before final verification and merge.
+Commit and push the tenth corrected-diff fix, then run an eleventh fresh review of PR #290. When no merge blocker
+remains, run the fresh Ponytail simplicity review before final verification and merge.

@@ -415,6 +415,22 @@ int main() {
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning),
 				"Connection-derived signal target reports the legacy format limit");
+
+		std::ofstream(scene / "signalling.json")
+			<< R"({"signals":[{"id":"canonical-block","protected_section":"canonical-other"}],"routes":[{"id":"route0","blocks":["canonical-block","canonical-other"]}]})"
+			<< "\n";
+		std::ofstream(scene / "scenarios.json")
+			<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc-ambiguous","type":"signal_failure","target":"canonical-block","start_seconds":1,"end_seconds":2}]}]})"
+			<< "\n";
+		TempDir ambiguousOut;
+		auto ambiguous = exportLegacyScene(sceneDir.dir, ambiguousOut.dir);
+		ok &= expect(!ambiguous.success(), "Ambiguous incident export fails");
+		ok &= expect(hasDiag(ambiguous.diagnostics, "scene.ref.ambiguous"),
+				"Ambiguous signal and section target is diagnosed during export");
+		std::ifstream ambiguousIncidents(fs::path(ambiguousOut.dir) / "Incidents.txt");
+		std::string ambiguousLine;
+		std::getline(ambiguousIncidents, ambiguousLine);
+		ok &= expect(ambiguousLine.empty(), "Ambiguous signal failure is not silently retargeted");
 	}
 
 	// 18. Scene without incidents writes no Incidents.txt

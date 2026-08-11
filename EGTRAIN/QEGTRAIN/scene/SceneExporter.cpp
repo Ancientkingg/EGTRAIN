@@ -1,6 +1,7 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -903,6 +904,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	}
 
 	const SceneModel& scene = loadRes.scene;
+	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	const auto legacyTrackIds = buildLegacyTrackIds(scene);
 	const auto legacyBlockIds = buildLegacyBlockIds(scene, legacyTrackIds);
 
@@ -1159,6 +1161,11 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 				if (inc.type == "signal_failure") {
 					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
 							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
+					if (signal != scene.signals.end() && sectionInventory.resolve(inc.target) != nullptr) {
+						addDiag(SceneSeverity::Error, "scene.ref.ambiguous",
+								"Signal failure target matches both a signal and a section", inc.id);
+						continue;
+					}
 					if (signal != scene.signals.end() && !signal->protectedSection.empty())
 						target = signal->protectedSection;
 					const bool wrappedReference = target.size() > 2
