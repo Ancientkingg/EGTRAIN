@@ -348,6 +348,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - `graphify update .` ran against the PR 3 worktree through the canonical checkout's maintained graph directory.
   It rebuilt 6,053 nodes, 9,936 edges, and 1,633 communities, retaining 46 fail-closed nodes whose source files
   still exist but left the current scan corpus.
+- After correcting the first PR 3 review findings, the full build passed, all 7 scene tests passed in 0.69
+  seconds, `tools/e2e/editor_smoke.sh` passed, and `git diff --check` passed.
+- The post-correction `graphify update .` rebuilt 6,053 nodes, 9,943 edges, and 1,633 communities.
 
 ## Review record
 
@@ -360,6 +363,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   changing the selected scenario.
 - A separate read-only pre-commit trace found no remaining P0, P1, or P2 issue in the pending-commit, save/run,
   delete-consumer, service-rename, or public-smoke paths.
+- The first fresh review of PR #292 found no P0 or P1 issue and three P2 gaps:
+  1. composition add, duplicate, and delete did not rebuild the service composition selector;
+  2. service add, duplicate, and delete did not rebuild train-breakdown target choices;
+  3. a focused breakdown end-time edit was skipped when the optional end-time checkbox was initially clear.
+  The same review independently passed the build, 43 of 43 CTest cases, the focused scene gate, editor smoke, and
+  `git diff --check`.
 
 - The first fresh review of PR #290 found no P0 issue and four merge blockers:
   1. overlapping connection-derived sections could be accepted through a shared block without matching the
@@ -515,6 +524,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Route-detail refresh now runs once at the common infrastructure-selection boundary. The existing helper hides
   the pane on every non-Route facet, and the smoke asserts both its initial hidden state and the Routes-to-Blocks
   transition so stale route controls cannot remain visible.
+- PR 3 now refreshes service composition choices after every accepted composition mutation and breakdown targets
+  after every accepted service mutation. Pending incident end-time text commits when the editor has focus even if
+  its checkbox was previously clear. Focused smoke checks cover both selector add/delete paths and the unchecked
+  end-time Run handoff.
 
 ### Ponytail findings
 

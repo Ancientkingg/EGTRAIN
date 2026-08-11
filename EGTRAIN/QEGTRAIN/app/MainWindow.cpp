@@ -3653,7 +3653,9 @@ void MainWindow::commitPendingEditorValues() {
 	commitScenarioDescriptionEdit();
 	commitIncidentIdEdit();
 	commitIncidentStartSeconds();
-	if (m_incidentHasEndSecondsCheck && m_incidentHasEndSecondsCheck->isChecked())
+	if (m_incidentEndSecondsEdit && ((m_incidentHasEndSecondsCheck
+			&& m_incidentHasEndSecondsCheck->isChecked())
+			|| hasEditorFocus(m_incidentEndSecondsEdit)))
 		commitIncidentEndSeconds();
 	if (m_incidentHasOccurrenceCheck && m_incidentHasOccurrenceCheck->isChecked())
 		commitIncidentOccurrence();
@@ -5420,8 +5422,9 @@ void MainWindow::commitTrainUnitIdEdit() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitTrainUnitSources() {
@@ -5700,8 +5703,9 @@ void MainWindow::addComposition() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
+	refreshValidationPanel();
 
 	if (m_compositionListWidget)
 		m_compositionListWidget->setCurrentRow(static_cast<int>(m_sceneModel.compositions.size()) - 1);
@@ -5721,8 +5725,9 @@ void MainWindow::duplicateComposition() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
+	refreshValidationPanel();
 
 	if (m_compositionListWidget)
 		m_compositionListWidget->setCurrentRow(row + 1);
@@ -5757,6 +5762,7 @@ void MainWindow::deleteComposition() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
 	refreshValidationPanel();
 }
 
@@ -6315,6 +6321,7 @@ void MainWindow::addService() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshServicePanel();
+	refreshIncidentTargetCombo();
 	refreshValidationPanel();
 
 	if (m_serviceListWidget)
@@ -6335,8 +6342,9 @@ void MainWindow::duplicateService() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshServicePanel();
+	refreshIncidentTargetCombo();
+	refreshValidationPanel();
 
 	if (m_serviceListWidget)
 		m_serviceListWidget->setCurrentRow(row + 1);
@@ -6376,8 +6384,9 @@ void MainWindow::deleteService() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshServicePanel();
+	refreshIncidentTargetCombo();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitServiceIdEdit() {
@@ -11679,13 +11688,19 @@ void MainWindow::runEditorSmokeE2E() {
 						}))
 				facetFailure(facetOk, "composition", "service-referenced composition delete was not refused");
 			addComposition();
-			if (m_compositionListWidget->count() != originalCount + 2) {
-				facetFailure(facetOk, "composition", "add did not apply");
+			const std::string temporaryCompositionId = m_sceneModel.compositions.back().id;
+			if (m_compositionListWidget->count() != originalCount + 2
+					|| !m_serviceCompositionCombo
+					|| m_serviceCompositionCombo->findText(
+						QString::fromStdString(temporaryCompositionId)) < 0) {
+				facetFailure(facetOk, "composition", "add did not refresh the service selector");
 			} else {
 				acceptConfirmation();
 				deleteComposition();
-				if (m_compositionListWidget->count() != originalCount + 1)
-					facetFailure(facetOk, "composition", "delete did not apply");
+				if (m_compositionListWidget->count() != originalCount + 1
+						|| m_serviceCompositionCombo->findText(
+							QString::fromStdString(temporaryCompositionId)) >= 0)
+					facetFailure(facetOk, "composition", "delete did not refresh the service selector");
 			}
 			int editedRow = -1;
 			for (int row = 0; row < static_cast<int>(m_sceneModel.compositions.size()); ++row) {
@@ -12125,6 +12140,20 @@ void MainWindow::runEditorSmokeE2E() {
 				|| incidents[editedRow].hasEndSeconds
 				|| !incidents[editedRow].terminateAtDestination)
 			facetFailure(facetOk, "incident", "edited incident was not retained");
+		if (!m_serviceListWidget || !m_incidentTargetCombo) {
+			facetFailure(facetOk, "incident", "service target controls unavailable");
+		} else {
+			const int serviceCount = m_serviceListWidget->count();
+			addService();
+			const std::string temporaryServiceId = m_sceneModel.services.back().id;
+			if (m_incidentTargetCombo->findText(QString::fromStdString(temporaryServiceId)) < 0)
+				facetFailure(facetOk, "incident", "service add did not refresh breakdown targets");
+			acceptConfirmation();
+			deleteService();
+			if (m_serviceListWidget->count() != serviceCount
+					|| m_incidentTargetCombo->findText(QString::fromStdString(temporaryServiceId)) >= 0)
+				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
+		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
 	}
@@ -12277,7 +12306,8 @@ void MainWindow::runEditorSmokeE2E() {
 					if (pendingServiceRow < 0 || pendingStopRow < 0 || scenarioRow < 0
 							|| !m_stopListWidget || !m_stopDwellSecondsEdit
 							|| !m_scenarioListWidget || !m_scenarioDescriptionEdit
-							|| !m_incidentListWidget || !m_incidentStartSecondsEdit) {
+							|| !m_incidentListWidget || !m_incidentEndSecondsEdit
+							|| !m_incidentHasEndSecondsCheck) {
 						facetFailure(facetOk, "save/reload", "pending stop, scenario, or incident controls were unavailable");
 					} else {
 						m_serviceListWidget->setCurrentRow(pendingServiceRow);
@@ -12314,9 +12344,11 @@ void MainWindow::runEditorSmokeE2E() {
 							const int incidentRow = static_cast<int>(std::distance(incidents.begin(), pendingIncident));
 							m_incidentListWidget->setCurrentRow(incidentRow);
 							QApplication::processEvents();
-							const int pendingIncidentStart = static_cast<int>(pendingIncident->startSeconds) + 1;
-							m_incidentStartSecondsEdit->setText(QString::number(pendingIncidentStart));
-							m_incidentStartSecondsEdit->setFocus();
+							if (m_incidentHasEndSecondsCheck->isChecked())
+								m_incidentHasEndSecondsCheck->setChecked(false);
+							const int pendingIncidentEnd = static_cast<int>(pendingIncident->endSeconds) + 200;
+							m_incidentEndSecondsEdit->setText(QString::number(pendingIncidentEnd));
+							m_incidentEndSecondsEdit->setFocus();
 							QApplication::processEvents();
 							if (m_sceneModel.routes.empty()) {
 								facetFailure(facetOk, "save/reload", "route unavailable for blocked Run coverage");
@@ -12326,7 +12358,8 @@ void MainWindow::runEditorSmokeE2E() {
 								m_runSceneAction->trigger();
 								QApplication::processEvents();
 								if (m_worker || !selectedIncident()
-										|| selectedIncident()->startSeconds != pendingIncidentStart)
+										|| !selectedIncident()->hasEndSeconds
+										|| selectedIncident()->endSeconds != pendingIncidentEnd)
 									facetFailure(facetOk, "save/reload", "Run did not flush focused incident text before validation");
 								m_sceneModel.routes.front().blocks = validRoute;
 								refreshValidationPanel();
