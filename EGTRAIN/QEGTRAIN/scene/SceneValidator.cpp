@@ -729,10 +729,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 
 	std::unordered_set<std::string> serviceIds;
+	std::unordered_map<std::string, const SceneService*> services;
 	std::unordered_map<std::string, int> serviceOccurrences;
 	collectIds(scene.services, "services.json", "service", "services", diagnostics, serviceIds);
 	for (std::size_t index = 0; index < scene.services.size(); ++index) {
 		const SceneService& service = scene.services[index];
+		services.emplace(service.id, &service);
 		const std::string path = "services[" + service.id + "]";
 		if (!hasId(compositionIds, service.composition))
 			diagnostics.error("scene.ref.unresolved", "Service refers to unknown composition", "services.json",
@@ -933,27 +935,70 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						"scenarios.json", "incident", incident.id, path + ".end_seconds");
 			}
 		}
+		std::unordered_map<std::string, std::unordered_map<int, double>> entranceDelayValues;
 		for (std::size_t delayIndex = 0; delayIndex < scenario.entranceDelays.size(); ++delayIndex) {
 			const SceneEntranceDelay& delay = scenario.entranceDelays[delayIndex];
 			const std::string path = scenarioPath + ".entrance_delays[" + std::to_string(delayIndex) + "]";
-			if (!hasId(serviceIds, delay.serviceId))
+			bool valid = true;
+			const auto service = services.find(delay.serviceId);
+			if (service == services.end()) {
 				diagnostics.error("scene.ref.unresolved", "Entrance delay refers to unknown service",
 						"scenarios.json", "entrance_delay", delay.serviceId, path + ".service", delay.serviceId);
-			if (!hasId(stationIds, delay.stationId))
+				valid = false;
+			}
+			if (!hasId(stationIds, delay.stationId)) {
 				diagnostics.error("scene.ref.unresolved", "Entrance delay refers to unknown station",
 						"scenarios.json", "entrance_delay", delay.serviceId, path + ".station", delay.stationId);
-			if (delay.occurrence <= 0)
+				valid = false;
+			} else if (service != services.end()) {
+				const auto stop = std::find_if(service->second->stops.begin(), service->second->stops.end(),
+						[&delay](const SceneStop& candidate) { return candidate.stationId == delay.stationId; });
+				if (stop == service->second->stops.end()) {
+					diagnostics.error("scene.entrance.station",
+							"Entrance delay station is not a stop of the service", "scenarios.json",
+							"entrance_delay", delay.serviceId, path + ".station", delay.stationId,
+							"Choose a station from the service stop pattern");
+					valid = false;
+				} else if (!stop->hasPlannedDeparture) {
+					diagnostics.error("scene.entrance.timetable",
+							"Entrance delay requires a planned departure at the selected stop", "scenarios.json",
+							"entrance_delay", delay.serviceId, path + ".station", delay.stationId,
+							"Choose a stop with a planned departure or add its departure time");
+					valid = false;
+				}
+			}
+			if (delay.occurrence <= 0) {
 				diagnostics.error("scene.occurrence.invalid", "Entrance delay occurrence must be positive",
 						"scenarios.json", "entrance_delay", delay.serviceId, path + ".occurrence");
-			else if (hasId(serviceIds, delay.serviceId)
-					&& delay.occurrence > serviceOccurrences[delay.serviceId])
-				diagnostics.warning("scene.entrance.occurrence.out_of_horizon",
+				valid = false;
+			} else if (service != services.end()
+					&& delay.occurrence > serviceOccurrences[delay.serviceId]) {
+				diagnostics.error("scene.entrance.occurrence.out_of_horizon",
 						"Entrance delay refers to a service occurrence outside the configured pattern",
 						"scenarios.json", "entrance_delay", delay.serviceId, path + ".occurrence",
-						delay.serviceId + "-" + std::to_string(delay.occurrence));
-			if (delay.delaySeconds < 0.0)
-				diagnostics.error("scene.delay.invalid", "Entrance delay cannot be negative", "scenarios.json",
-						"entrance_delay", delay.serviceId, path + ".delay_seconds");
+						delay.serviceId + "-" + std::to_string(delay.occurrence),
+						"Choose an occurrence within the service repeat pattern");
+				valid = false;
+			}
+			if (!std::isfinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
+				diagnostics.error("scene.delay.invalid", "Entrance delay must be finite and non-negative",
+						"scenarios.json", "entrance_delay", delay.serviceId, path + ".delay_seconds", "",
+						"Use a finite delay of 0 or more seconds");
+				valid = false;
+			}
+			if (valid) {
+				auto& occurrenceValues = entranceDelayValues[delay.serviceId];
+				const auto previous = occurrenceValues.find(delay.occurrence);
+				if (previous != occurrenceValues.end() && previous->second != delay.delaySeconds) {
+					diagnostics.error("scene.entrance.conflict",
+							"Conflicting entrance delays target one service occurrence", "scenarios.json",
+							"entrance_delay", delay.serviceId, path + ".delay_seconds",
+							delay.serviceId + "-" + std::to_string(delay.occurrence),
+							"Use one delay value for every station targeted in the same occurrence");
+				} else {
+					occurrenceValues.emplace(delay.occurrence, delay.delaySeconds);
+				}
+			}
 		}
 	}
 	if (!scene.defaultScenarioId.empty() && !hasId(scenarioIds, scene.defaultScenarioId))
