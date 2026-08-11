@@ -7,29 +7,27 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current milestone: PR 1, section resolution and signal binding
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-section-resolution`
-- Current branch: `feature/creator-section-resolution`
-- Current PR: #290, `Bind signals to canonical track sections`
-- Completed milestones and PRs: none
-- Open milestone dependencies: PR 1 has no implementation dependency. Issues #85 and #86 are parity gates.
+- Current `origin/main`: `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
+- Current milestone: PR 2, structured topology authoring and explicit block order
+- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/structured-topology-authoring`
+- Current branch: `feature/structured-topology-authoring`
+- Current PR: not opened
+- Completed milestones and PRs: PR #290, `Bind signals to canonical track sections`, merged as
+  `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
+- Open milestone dependencies: PR 2 depends on merged PR #290. Issues #85 and #86 remain parity gates.
 
 ## Confirmed creator gaps
 
 1. Switch routes and linked signalling structures expose generated section strings.
-2. Signals have no explicit protected-section binding.
-3. Signal and compound-target validation is broader than native resolution.
-4. Route adjacency is not validated and native construction can reorder sections.
-5. Block placement follows hidden vector order without insert, reorder, or placement inspection.
-6. Save, Save As, close, and Run can omit focused editor values.
-7. Service rename can migrate references to an empty or duplicate ID.
-8. Referenced deletes can leave dangling references and dependent selectors can remain stale.
-9. Entrance delays and non-default scenario deletion are not publicly authorable.
-10. Passenger journeys and legs lack public import, inspection, and CRUD.
-11. Passenger platform geometry uses hidden fixed values.
-12. General result exports lack a saved-input snapshot and complete run provenance.
-13. The current creator smoke bypasses public operations and does not prove a seventh case.
+2. Block placement follows hidden vector order without insert, reorder, or placement inspection.
+3. Save, Save As, close, and Run can omit focused editor values.
+4. Service rename can migrate references to an empty or duplicate ID.
+5. Referenced deletes can leave dangling references and dependent selectors can remain stale.
+6. Entrance delays and non-default scenario deletion are not publicly authorable.
+7. Passenger journeys and legs lack public import, inspection, and CRUD.
+8. Passenger platform geometry uses hidden fixed values.
+9. General result exports lack a saved-input snapshot and complete run provenance.
+10. The current creator smoke bypasses public operations and does not prove a seventh case.
 
 ## Disproven or outdated findings
 
@@ -40,7 +38,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Architecture and schema decisions
 
 - Use the current `SceneModel` and native runtime. Do not create a second topology model or validator.
-- PR 1 will add one small plain-C++ derived section inventory under `scene/`. It contains current runtime ID,
+- PR 1 added one small plain-C++ derived section inventory under `scene/`. It contains current runtime ID,
   source block/connection IDs, block placement, endpoints, node membership, and exact reference resolution.
   It is transient and derived from `SceneModel`; it is not persisted and is not a second topology model.
 - Add one optional string protected-section reference to `SceneSignal`. The value is the exact current V1
@@ -76,7 +74,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## GitHub issue state
 
-- Reopened and reused: #50, #57, #58.
+- Closed by PR #290: #50 and #58.
+- Reopened and reused for current work: #57.
 - Updated and reused: #126.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
@@ -258,8 +257,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - `graphify update .` completed after the eighth corrected-diff fix with 4871 nodes, 10910 edges,
   and 233 communities.
 - The final PR 1 `graphify update .` completed with 4871 nodes, 10912 edges, and 236 communities.
+- PR #290 current-head CI passed both jobs. The build job completed in 21 minutes 13 seconds and included
+  CTest, headless, editor, round-trip, bundle, Assignment, incident, render, track-preview, and visual smokes.
+  The sanitizer job completed in 15 minutes 46 seconds.
 - `git diff --check` passed after the final rebuild and graph refresh.
-- Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
+- PR 1 merge commit: `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`.
 
 ## Review record
 
@@ -413,10 +415,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known correctness, simplicity, test, or parity blocker. Final CI and merge remain.
-  PRs 2 through 6 remain open.
+- PR 1 is complete. PRs 2 through 6 remain open.
 
 ## Next action
 
-Complete final PR #290 verification, update its public summary and issue state, merge after CI is green, then
-update the ledger from merged `origin/main` and begin PR 2 in a fresh worktree.
+Read current issues #57 and #286 and inspect the PR 1 editor/inventory delta on merged `main`. Obtain narrow
+topology and editor specialist handoffs, fix the smallest PR 2 design, then delegate bounded implementation.
