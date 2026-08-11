@@ -205,6 +205,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
   - Assignment smoke passed its canonical timetable assertion;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
+  - after the tenth corrected-diff fix, the full build passed and CTest passed 43 of 43 in 118.23 seconds.
+  - the eleventh independent reviewer passed CTest 43 of 43 in 117.44 seconds and passed the live
+    breakdown and protected-signal incident smoke.
   - after the sixth corrected-diff fixes, the full configure and build passed and CTest passed 43 of 43
     in 118.89 seconds;
   - editor smoke passed after its 7 scene tests;
@@ -253,6 +256,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   and 233 communities.
 - `graphify update .` completed after the eighth corrected-diff fix with 4871 nodes, 10910 edges,
   and 233 communities.
+- `graphify update .` completed after the tenth corrected-diff fix with 4871 nodes, 10912 edges,
+  and 237 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -315,7 +320,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   an exact section ID, validator and native staging rejected the target as ambiguous, but legacy export
   resolved the signal binding and silently wrote a failure for a different section. No other P0, P1, or
   P2 blocker was found in that review.
-- An eleventh fresh corrected-diff review remains required before Ponytail review.
+- The eleventh fresh corrected-diff review found no P0, P1, or P2 issue at `64ce206`. It independently
+  traced public signal binding, folder and bundle persistence, shared resolution, validation, native
+  infrastructure and operations staging, runtime incident behavior, and legacy export.
 
 ### Corrections made
 
@@ -400,10 +407,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. An eleventh independent correctness review and Ponytail review remain
-  before merge. PRs 2 through 6 remain open.
+- PR 1 has no known correctness, test, or parity blocker. Ponytail review remains before merge.
+  PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the tenth corrected-diff fix, then run an eleventh fresh review of PR #290. When no merge blocker
-remains, run the fresh Ponytail simplicity review before final verification and merge.
+Run the fresh Ponytail simplicity review of PR #290, apply any practical simplifications, then complete final
+verification and merge.
