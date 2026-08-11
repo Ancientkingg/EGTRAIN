@@ -11,7 +11,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Current milestone: PR 4, entrance-delay and complete scenario authoring
 - Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/scenario-authoring`
 - Current branch: `feature/scenario-authoring`
-- Current PR: not opened
+- Current PR: #293, `Add entrance delay scenario authoring` (draft)
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
@@ -619,5 +619,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Commit and open PR 4, run the fresh independent correctness review on the actual diff, correct every supported
-finding, then run the separate Ponytail simplicity review before merge.
+Run the fresh independent correctness review on PR #293, correct every supported finding, then run the separate
+Ponytail simplicity review before merge.
