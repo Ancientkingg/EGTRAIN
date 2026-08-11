@@ -294,6 +294,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   gate passed 5 of 5 in 2.19 seconds. The first editor-smoke run reached every feature marker except the focused
   New Case Save marker because the newly exercised modal confirmation left the offscreen window inactive. After
   explicitly reactivating the window in that test path, the editor smoke passed after all 7 scene tests.
+- The fresh corrected-diff reviewer independently passed the build, CTest 43 of 43 in 120.15 seconds, editor smoke,
+  and visual-polish smoke before reporting the two remaining P2 boundary/test gaps.
+- After the second PR 2 correction, the build passed, the five-test topology/persistence gate passed 5 of 5 in
+  2.19 seconds, and the editor smoke passed after all 7 scene tests.
 - `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
@@ -363,6 +367,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   construction. It found two P2 boundary defects: an incomplete dependency, restriction, or boundary row could
   not be deleted while its first required selector was empty, and Add silently used the first valid track when
   the block filter selected an orphan empty-track bucket.
+- The fresh corrected PR 2 review found no P0 or P1 issue at `e686f5a` but blocked on two remaining P2s. A loaded
+  `SceneTrack` with an empty ID still counted as a valid Add target even though validation rejects it. The negative
+  Add regression checked only the disabled button, not the handler guard, and the incomplete-row regression
+  exercised only dependencies rather than all three anonymous row types.
 
 ### Corrections made
 
@@ -436,6 +444,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The public editor smoke now proves both corrections. Its first post-review run exposed an offscreen focus loss
   after the new confirmation dialog, so the existing focused-Save check now explicitly reactivates the main
   window before requesting focus. The rebuilt smoke then passed without weakening the focused-value assertion.
+- The final correction requires a non-empty selected track ID in both button enablement and the mutation slot.
+  The smoke exercises the disabled public action and then the slot's defensive check, and it creates, confirms,
+  deletes, and recreates incomplete dependency, restriction, and boundary rows through the existing controls.
 
 ### Ponytail findings
 

@@ -4167,7 +4167,8 @@ void MainWindow::refreshInfrastructureTable() {
 	if (isBlocks) {
 		const std::string selectedTrack = m_blockTrackFilterCombo
 			? m_blockTrackFilterCombo->currentData().toString().toStdString() : std::string();
-		canAdd = canAdd && std::any_of(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
+		canAdd = canAdd && !selectedTrack.empty()
+			&& std::any_of(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
 			[&selectedTrack](const SceneTrack& track) { return track.id == selectedTrack; });
 	}
 	if (m_addInfrastructureButton)
@@ -4727,7 +4728,7 @@ void MainWindow::addInfrastructureEntity() {
 			? m_blockTrackFilterCombo->currentData().toString().toStdString() : std::string();
 		const auto track = std::find_if(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
 			[&selectedTrack](const SceneTrack& candidate) { return candidate.id == selectedTrack; });
-		if (track == m_sceneModel.tracks.end()) {
+		if (selectedTrack.empty() || track == m_sceneModel.tracks.end()) {
 			statusBar()->showMessage("Select a valid track before adding a block", 4000);
 			return;
 		}
@@ -10618,6 +10619,7 @@ void MainWindow::runEditorSmokeE2E() {
 				const bool orphanTrackAddDisabled = setInfrastructureCell("blocks", 1, 1, QString())
 					&& !infrastructureAdd->isEnabled();
 				infrastructureAdd->click();
+				addInfrastructureEntity(); // also exercise the handler's defensive check
 				QApplication::processEvents();
 				if (!orphanTrackAddDisabled || m_sceneModel.blocks.size() != blocksBeforeInvalidAdd)
 					facetFailure(facetOk, "infrastructure", "Add accepted an invalid selected block track");
@@ -10763,8 +10765,16 @@ void MainWindow::runEditorSmokeE2E() {
 					"base block e2e-main-block-inserted / track e2e-main");
 				if (dependencyBlock.isEmpty() || dependencyDependsOn.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "dependency selectors did not expose catalog choices");
-				if (!addInfrastructureRow("single_track_restrictions"))
+				if (!addInfrastructureRow("single_track_restrictions")) {
 					facetFailure(facetOk, "stations/signalling", "restriction row could not be added");
+				} else {
+					acceptConfirmation();
+					infrastructureDelete->click();
+					QApplication::processEvents();
+					if (!m_sceneModel.singleTrackRestrictions.empty()
+							|| !addInfrastructureRow("single_track_restrictions"))
+						facetFailure(facetOk, "stations/signalling", "incomplete restriction row could not be deleted");
+				}
 				const QString restrictionStart = selectSectionCell("single_track_restrictions", 0, 0,
 					"base block e2e-main-block-inserted / track e2e-main");
 				const QString restrictionEnd = selectSectionCell("single_track_restrictions", 0, 1,
@@ -10775,8 +10785,16 @@ void MainWindow::runEditorSmokeE2E() {
 					"base block e2e-yard-block-2 / track e2e-yard");
 				if (restrictionStart.isEmpty() || restrictionEnd.isEmpty() || restrictionProtectedStart.isEmpty() || restrictionProtectedEnd.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "restriction selectors did not expose catalog choices");
-				if (!addInfrastructureRow("station_boundaries"))
+				if (!addInfrastructureRow("station_boundaries")) {
 					facetFailure(facetOk, "stations/signalling", "boundary row could not be added");
+				} else {
+					acceptConfirmation();
+					infrastructureDelete->click();
+					QApplication::processEvents();
+					if (!m_sceneModel.stationBoundaries.empty()
+							|| !addInfrastructureRow("station_boundaries"))
+						facetFailure(facetOk, "stations/signalling", "incomplete boundary row could not be deleted");
+				}
 				const QString boundaryEntrance = selectSectionCell("station_boundaries", 0, 0,
 					"base block e2e-main-block-inserted / track e2e-main");
 				const QString boundaryExit = selectSectionCell("station_boundaries", 0, 1,
