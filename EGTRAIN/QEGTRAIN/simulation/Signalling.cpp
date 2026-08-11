@@ -1987,7 +1987,7 @@ void Route::identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<Inf
 	}
 }
 
-void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds) {
+void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds, int direction) {
 	// Reset scalar/list state in place. Assigning a temporary Route here would
 	// materialize its 600 large Section members on the stack.
 	ID = "None";
@@ -2025,7 +2025,9 @@ void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds) {
 	final = BlockList.end();
 	final--;
 
-	if (BlockList.size() == 1 || start->start_node.X < final->start_node.X) {
+	const bool forward = direction > 0
+			|| (direction == 0 && (BlockList.size() == 1 || start->start_node.X < final->start_node.X));
+	if (forward) {
 		list<Section>::iterator it = BlockList.begin();
 
 		if (BlockList.empty() != 1) {
@@ -2136,14 +2138,15 @@ void Route::adjustRouteAcrossDiffRegions() {
 
 std::vector<Route> train_route;
 
-void setUpRoutesFromScene(const SceneModel& scene) {
+void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& routeDirections) {
 	N_Routes = (int)scene.routes.size();
 	train_route.clear();
 	train_route.resize(N_Routes);
 
 	for (int i = 0; i < N_Routes; i++) {
 		std::cout << "\rCreating Scene Route : " << i << " " << scene.routes[i].id;
-		train_route[i].createRouteFromBlockIds(scene.routes[i].blocks);
+		const int direction = i < static_cast<int>(routeDirections.size()) ? routeDirections[i] : 0;
+		train_route[i].createRouteFromBlockIds(scene.routes[i].blocks, direction);
 		train_route[i].adjustRouteAcrossDiffRegions();
 		train_route[i].ID = scene.routes[i].id;
 		if (scene.routes[i].hasCorridor)
@@ -2560,6 +2563,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
 			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
+	std::vector<int> routeDirections(scene.routes.size(), 0);
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		const SceneRoute& route = scene.routes[index];
 		std::vector<const SceneSectionDescriptor*> routeSections;
@@ -2601,6 +2605,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			if (forward && reverse)
 				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
 						"signalling.json", "route", route.id, "routes.blocks");
+			else if (forward != reverse)
+				routeDirections[index] = forward ? 1 : -1;
 		}
 	}
 	std::unordered_set<std::string> routeIds;
@@ -3075,7 +3081,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 					"signalling.json", "route", route.id, "routes.blocks", token);
 	if (nativeHasErrors(diagnostics))
 		return diagnostics;
-	setUpRoutesFromScene(scene);
+	setUpRoutesFromScene(scene, routeDirections);
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		if (index >= train_route.size()
 				|| train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {

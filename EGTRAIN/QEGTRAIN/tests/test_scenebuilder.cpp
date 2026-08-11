@@ -330,6 +330,17 @@ static bool runTinyBuilderChecks() {
 			"descending canonical block order retains the runtime reverse direction");
 	diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
+	SceneModel regionalDirection = stableConnectionScene();
+	regionalDirection.nodes[2].xKm = 0.0;
+	regionalDirection.nodes[3].xKm = 1.0;
+	regionalDirection.routes.push_back(
+			{"route.regional", {"alpha.block", "beta.block"}, false, {}, false});
+	diagnostics = buildInfrastructureAndSignallingFromScene(regionalDirection);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
+			&& !train_route.front().reversed_direction
+			&& train_route.front().sequence_of_block_sections[0].ID == "@alpha.block@"
+			&& train_route.front().sequence_of_block_sections[1].ID == "@beta.block@",
+			"declared route topology controls direction across regional coordinate references");
 
 	const int blocksBeforeInvalid = Blocks;
 	SceneModel invalidReference = scene;

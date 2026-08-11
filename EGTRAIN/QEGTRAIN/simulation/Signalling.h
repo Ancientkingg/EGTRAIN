@@ -334,7 +334,7 @@ public:
 	void identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<InfraElement>& RouteInfrastructureElements);
 
 	// Build route from canonical scene block ids.
-	void createRouteFromBlockIds(const std::vector<std::string>& blockIds);
+	void createRouteFromBlockIds(const std::vector<std::string>& blockIds, int direction = 0);
 
 	// Adjust route across different regions (different km references)
 	void adjustRouteAcrossDiffRegions();
@@ -343,7 +343,7 @@ public:
 extern std::vector<Route> train_route;
 
 // Set up all routes from canonical scene model.
-void setUpRoutesFromScene(const SceneModel& scene);
+void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& routeDirections = {});
 
 // Print block sections of a route with start/end nodes (for verification)
 void printRoutesBlocks(const Route& R, string FolderName, int IndexOfRoute);

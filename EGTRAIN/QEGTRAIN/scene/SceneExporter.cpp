@@ -1160,7 +1160,17 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
 					if (signal != scene.signals.end() && !signal->protectedSection.empty())
 						target = signal->protectedSection;
-					if (routeBlockTokens.find(target) == routeBlockTokens.end())
+					if (isSwitchTransitionRouteEntry(target)) {
+						addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+								"Signal failure " + inc.id + " was skipped because legacy incidents cannot target a connection-derived section",
+								inc.id);
+						continue;
+					}
+					if (target.size() > 2 && target.front() == '@' && target.back() == '@')
+						target = target.substr(1, target.size() - 2);
+					const bool routeContainsTarget = routeBlockTokens.find(target) != routeBlockTokens.end()
+							|| routeBlockTokens.find("@" + target + "@") != routeBlockTokens.end();
+					if (!routeContainsTarget)
 						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
 								"Signal failure target " + target + " matches no route block so the failure will have no effect", inc.id);
 					target = mapLegacyBlockReference(target, legacyBlockIds);

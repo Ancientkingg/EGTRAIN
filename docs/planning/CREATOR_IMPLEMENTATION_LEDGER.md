@@ -106,6 +106,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   `test_sceneexporter` passed 3 of 3 in 1.36 seconds. The regressions cover a coordinate-reversed
   switch fork, a connection-derived U-turn rejected before native mutation, and legacy export of a
   signal failure through its protected-section binding.
+- After the third corrected-diff review, `test_scenevalidator`, `test_scenebuilder`,
+  `test_operationsbuilder`, `test_scenewriter`, `test_scenebundle`, and `test_sceneexporter`
+  passed 6 of 6 in 2.90 seconds. The new regressions prove that declared topology, rather than
+  regional coordinate values, controls native route direction and that legacy export unwraps an
+  exact base-section identity while reporting an unrepresentable connection-derived target.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -137,6 +142,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - Assignment smoke passed its canonical timetable check;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`;
   - all six committed scenes validated with no errors and only their previously recorded warnings.
+  - after the third corrected-diff fixes, the full build passed and CTest passed 43 of 43 in 119.95 seconds;
+  - the editor smoke passed after its 7 scene tests;
+  - the incident smoke passed both breakdown and bound-signal hold/release checks;
+  - all six committed scenes validated with no errors and only their previously recorded warnings;
+  - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
+  - Assignment smoke passed its canonical timetable assertion;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
 
 ### Exact results
 
@@ -164,6 +176,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   output-parity tuning and no case-name exception.
 - `graphify update .` completed after the second corrected-diff fixes with 4872 nodes, 10910 edges,
   and 239 communities.
+- `graphify update .` completed after the third corrected-diff fixes with 4872 nodes, 10911 edges,
+  and 236 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -185,7 +199,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
      traverse A/B, B/C, then A/B without a direction error or native preflight failure;
   3. legacy incident export wrote a signal ID instead of its protected section, so the exported failure
      had no legacy runtime effect.
-- A third fresh corrected-diff review remains required before Ponytail review.
+- The third fresh corrected-diff review found no P0 issue and two remaining P1 findings:
+  1. `Route::createRouteFromBlockIds` still derived native direction from regional X coordinates, so a
+     route that validation accepted as forward could be reversed when its track coordinate systems had
+     equal or descending values;
+  2. the public signal editor stores exact section identities such as `@block@`, but legacy incident export
+     passed that wrapper to a loader that adds another wrapper. Connection-derived exact identities are not
+     representable in the legacy four-column incident grammar.
+- A fourth fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -207,6 +228,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Resolved signal IDs through `protected_section` before writing legacy `Incidents.txt`, using the existing
   block-reference mapper and leaving direct block targets compatible.
 - Added coordinate-reversed fork, connection-derived U-turn, no-native-mutation, and legacy-export regressions.
+- Passed the topology direction established by shared native preflight into route construction. The old
+  coordinate heuristic remains only as the compatibility fallback for callers without canonical direction data.
+- Unwrapped exact base-section identities before legacy incident export. Connection-derived targets are skipped
+  with `scene.export.compatibility` because the preserved legacy loader cannot encode them without changing the
+  legacy file grammar.
+- Added regional-coordinate route-direction and exact-section legacy-export regressions.
 
 ### Ponytail findings
 
@@ -224,10 +251,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. A third independent correctness review and Ponytail review remain
+- PR 1 has no known test or parity blocker. A fourth independent correctness review and Ponytail review remain
   before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the second corrected-diff fixes, then run a third fresh review of PR #290. When no merge blocker
+Commit and push the third corrected-diff fixes, then run a fourth fresh review of PR #290. When no merge blocker
 remains, run the fresh Ponytail simplicity review before final verification and merge.
