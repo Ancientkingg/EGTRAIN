@@ -7380,15 +7380,6 @@ SceneEntranceDelay* MainWindow::selectedEntranceDelay() {
 		? &scenario->entranceDelays[static_cast<std::size_t>(row)] : nullptr;
 }
 
-const SceneEntranceDelay* MainWindow::selectedEntranceDelay() const {
-	if (!m_entranceDelayListWidget)
-		return nullptr;
-	const SceneScenario* scenario = selectedScenario();
-	const int row = m_entranceDelayListWidget->currentRow();
-	return scenario && row >= 0 && row < static_cast<int>(scenario->entranceDelays.size())
-		? &scenario->entranceDelays[static_cast<std::size_t>(row)] : nullptr;
-}
-
 QString MainWindow::scenarioContext() const {
 	if (!m_appliedScenarioId.empty())
 		return QString::fromStdString(m_appliedScenarioId);
@@ -7720,7 +7711,7 @@ void MainWindow::addEntranceDelay() {
 	scenario->entranceDelays.push_back(std::move(delay));
 	markScenarioModified();
 	refreshValidationPanel();
-	refreshIncidentPanel();
+	refreshEntranceDelayPanel();
 	if (m_entranceDelayListWidget)
 		m_entranceDelayListWidget->setCurrentRow(static_cast<int>(scenario->entranceDelays.size()) - 1);
 }
@@ -7736,7 +7727,7 @@ void MainWindow::duplicateEntranceDelay() {
 		scenario->entranceDelays[static_cast<std::size_t>(row)]);
 	markScenarioModified();
 	refreshValidationPanel();
-	refreshIncidentPanel();
+	refreshEntranceDelayPanel();
 	if (m_entranceDelayListWidget)
 		m_entranceDelayListWidget->setCurrentRow(row + 1);
 }
@@ -7755,7 +7746,7 @@ void MainWindow::deleteEntranceDelay() {
 		return;
 	scenario->entranceDelays.erase(scenario->entranceDelays.begin() + row);
 	markScenarioModified();
-	refreshIncidentPanel();
+	refreshEntranceDelayPanel();
 	refreshValidationPanel();
 }
 
@@ -12627,16 +12618,15 @@ void MainWindow::runEditorSmokeE2E() {
 					entranceDelayStationId = m_entranceDelayStationCombo->itemData(stationIndex).toString().toStdString();
 					m_entranceDelayStationCombo->setCurrentIndex(stationIndex);
 					m_entranceDelayOccurrenceEdit->setValue(2);
-					commitEntranceDelayOccurrence();
+					QMetaObject::invokeMethod(m_entranceDelayOccurrenceEdit, "editingFinished", Qt::DirectConnection);
 					m_entranceDelaySecondsEdit->setValue(entranceDelaySeconds);
-					commitEntranceDelaySeconds();
+					QMetaObject::invokeMethod(m_entranceDelaySecondsEdit, "editingFinished", Qt::DirectConnection);
 					const SceneEntranceDelay* delay = selectedEntranceDelay();
-					const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-						[&](const SceneService& candidate) { return candidate.id == entranceDelayServiceId; });
 					const bool editedDelay = delay && delay->serviceId == entranceDelayServiceId
 						&& delay->occurrence == 2 && delay->stationId == entranceDelayStationId
-						&& delay->delaySeconds == entranceDelaySeconds && service != m_sceneModel.services.end()
-						&& service->hasRepeat && sceneServiceOccurrenceCount(*service, serviceOccurrenceDuration()) >= 2
+						&& delay->delaySeconds == entranceDelaySeconds && editedService != m_sceneModel.services.end()
+						&& editedService->hasRepeat
+						&& sceneServiceOccurrenceCount(*editedService, serviceOccurrenceDuration()) >= 2
 						&& m_entranceDelayOccurrenceContextLabel
 						&& m_entranceDelayOccurrenceContextLabel->text().contains("1725");
 					if (!editedDelay)

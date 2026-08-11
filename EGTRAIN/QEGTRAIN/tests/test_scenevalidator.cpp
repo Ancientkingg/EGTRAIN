@@ -24,15 +24,6 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 static bool hasCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
 		const std::string& path) {
 	for (const auto& diagnostic : diagnostics) {
-		if (diagnostic.code == code && diagnostic.path == path)
-			return true;
-	}
-	return false;
-}
-
-static bool hasErrorCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics,
-		const std::string& code, const std::string& path) {
-	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.severity == SceneSeverity::Error
 				&& diagnostic.code == code && diagnostic.path == path)
 			return true;
@@ -520,16 +511,6 @@ int main(int argc, char** argv) {
 			passed = passed && hasCodeAndPath(diagnostics, test.code, test.path);
 		ok &= expect(passed, test.name);
 	}
-	SceneModel outOfPatternDelay = clean;
-	outOfPatternDelay.services[0].hasRepeat = true;
-	outOfPatternDelay.services[0].headwaySeconds = 30.0;
-	outOfPatternDelay.services[0].hasRepeatCount = true;
-	outOfPatternDelay.services[0].repeatCount = 1;
-	outOfPatternDelay.scenarios[0].entranceDelays[0].occurrence = 2;
-	ok &= expect(hasErrorCodeAndPath(validateScene(outOfPatternDelay),
-			"scene.entrance.occurrence.out_of_horizon",
-			"scenarios[0].entrance_delays[0].occurrence"),
-			"out-of-pattern entrance delay blocks Run instead of remaining a warning");
 	SceneModel reservedBlockId = clean;
 	reservedBlockId.blocks[0].id = "Depot/1";
 	reservedBlockId.routes[0].blocks[0] = "Depot/1";

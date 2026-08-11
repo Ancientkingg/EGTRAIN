@@ -403,6 +403,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   trajectory, non-sentinel, and served-station check; six-case round-trip ended with `ROUNDTRIP PASS`.
   Assignment, incident, and DPR 1/DPR 2 visual-polish smokes passed.
 - The corrected `graphify update .` rebuilt 6,079 nodes, 9,711 edges, and 1,692 communities.
+- After the PR 4 Ponytail reductions, the full incremental build passed, the focused validator/writer/native
+  gate passed 3 of 3 in 2.11 seconds, and editor smoke passed after all 7 scene tests.
+- The post-Ponytail `graphify update .` rebuilt 6,078 nodes, 9,704 edges, and 1,695 communities.
 
 ## Review record
 
@@ -618,6 +621,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The PR 3 Ponytail review found no simpler production design and five localized reductions: reuse occurrence
   pruning and unique-service-ID helpers, remove two redundant refresh/commit calls, and fold the pending train-unit
   source check into the existing save/reopen round trip.
+- The PR 4 Ponytail review identified four local reductions: remove an unused const delay-selection overload,
+  make the existing code/path test helper assert error severity, avoid rebuilding unchanged incident controls for
+  delay-only mutations, and reuse the already-resolved service iterator in the repeated-stop smoke.
 
 ### Simplifications made
 
@@ -628,6 +634,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 3 now uses `pruneExcludedServiceOccurrences` and `uniqueServiceId` instead of local loops, removes a service
   refresh that cannot depend on train-unit IDs, lets Run rely on validation's pending commit, and saves/reopens
   once for the final focused-source persistence check.
+- PR 4 removes the unused overload and duplicate out-of-pattern fixture, refreshes only the delay panel after
+  delay CRUD, and reuses the existing service lookup. The authoring smoke now emits the public spin-box
+  `editingFinished` signals instead of calling the two commit slots directly.
 
 ## Blockers
 

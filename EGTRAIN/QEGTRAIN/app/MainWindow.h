@@ -750,7 +750,6 @@ private:
 	void commitEntranceDelayStation(int index);
 	void commitEntranceDelaySeconds();
 	SceneEntranceDelay* selectedEntranceDelay();
-	const SceneEntranceDelay* selectedEntranceDelay() const;
 	std::string uniqueIncidentId(const std::string& baseId) const;
 	std::string uniqueScenarioId(const std::string& baseId) const;
 	SceneScenario* selectedScenario();
