@@ -136,7 +136,8 @@ base operating code. A base `1723` with step `2` therefore exposes `1723`,
 `1725`, `1727`; without a step, a repeat exposes a readable base-plus-
 occurrence code. The canonical service ID never advances. A non-empty
 `SceneRunSelection` builds only the listed service/occurrence identities and
-skips excluded delays and passenger legs; an empty selection builds all.
+skips excluded delays and any passenger journey that is not fully covered;
+an empty selection builds all.
 Selections must refer to occurrences inside the service horizon.
 
 The legacy importer retains the first token of each `Trains` definition here
@@ -239,6 +240,11 @@ first direct time/location, and destination termination outcome.
 `legs`. Each window contains `start_seconds` and `end_seconds` as absolute
 seconds from midnight. Each leg has `id`, `origin`, `destination`, `service`,
 and optional `occurrence` (default `1`).
+
+For each leg, the destination must occur after the origin in the referenced
+service's ordered stop pattern. Repeated stations are resolved as the first
+ordered pair that satisfies that rule. Legacy-import scenes retain an invalid
+historical leg as a warning, but native staging omits that whole journey.
 
 Journey and leg IDs are scene-wide stable IDs. An empty `legs` array preserves
 a DAS journey for which the legacy route-choice input has no matching row; the

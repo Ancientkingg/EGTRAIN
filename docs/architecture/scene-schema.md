@@ -300,6 +300,13 @@ and `journeys`. A journey has `id`, `origin`, `destination`, optional
 `base_time`. Each leg has `id`, `origin`, `destination`, `service`, and an
 optional integer `occurrence` that defaults to `1`.
 
+A leg's destination must follow its origin in the referenced service's stop
+order. Repeated stations use the first ordered matching pair. A non-empty run
+selection stages a passenger journey only when all of its legs are selected;
+it never constructs a partial journey. Legacy-import provenance downgrades a
+historical reverse leg to an actionable warning and native staging omits the
+whole affected journey.
+
 Journey and leg IDs are stable across the scene. A journey may have an empty
 `legs` array when the active legacy route-choice file has no row for it; this
 is reported as a warning rather than inventing a route.

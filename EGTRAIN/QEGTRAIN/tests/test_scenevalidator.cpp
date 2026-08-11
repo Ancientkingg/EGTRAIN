@@ -21,6 +21,15 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 	return false;
 }
 
+static bool hasCodeAndSeverity(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
+		SceneSeverity severity) {
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.code == code && diagnostic.severity == severity)
+			return true;
+	}
+	return false;
+}
+
 static bool hasCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
 		const std::string& path) {
 	for (const auto& diagnostic : diagnostics) {
@@ -151,6 +160,32 @@ int main(int argc, char** argv) {
 	ok &= expect(hasCodeAndPath(passengerStopDiagnostics, "scene.passenger.leg.stop",
 			"passengers[0].journeys[0].legs[0].destination"),
 			"passenger leg destination must be a stop of its service");
+	SceneModel reversePassengerLeg = clean;
+	reversePassengerLeg.passengers[0].journeys[0].originStationId = "station-2";
+	reversePassengerLeg.passengers[0].journeys[0].destinationStationId = "station-1";
+	reversePassengerLeg.passengers[0].journeys[0].legs[0].originStationId = "station-2";
+	reversePassengerLeg.passengers[0].journeys[0].legs[0].destinationStationId = "station-1";
+	ok &= expect(hasCodeAndPath(validateScene(reversePassengerLeg), "scene.passenger.leg.order",
+			"passengers[0].journeys[0].legs[0].destination"),
+			"passenger leg rejects a reverse ordered service pair");
+	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
+	legacyReversePassengerLeg.importReport.push_back({"legacy_root"});
+	const auto legacyReverseDiagnostics = validateScene(legacyReversePassengerLeg);
+	ok &= expect(hasCodeAndSeverity(legacyReverseDiagnostics, "scene.passenger.leg.order", SceneSeverity::Warning)
+				&& !hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
+					"passengers[0].journeys[0].legs[0].destination"),
+			"legacy reverse passenger legs remain loadable with an actionable warning");
+	SceneModel repeatedPassengerStops = clean;
+	repeatedPassengerStops.services[0].stops = {
+		{"station-2", "platform-2", true, true, 100.0, 110.0, 0.0},
+		{"station-1", "platform-1", true, true, 120.0, 130.0, 0.0},
+		{"station-2", "platform-2", true, true, 140.0, 150.0, 0.0}};
+	SceneServiceStopPair repeatedPair;
+	ok &= expect(resolveScenePassengerLegStops(repeatedPassengerStops.services[0],
+				 repeatedPassengerStops.passengers[0].journeys[0].legs[0], repeatedPair)
+				&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
+				&& !hasCode(validateScene(repeatedPassengerStops), "scene.passenger.leg.order"),
+				"repeated service stations resolve to an ordered stop pair");
 	const SceneSectionInventory inventory = buildSceneSectionInventory(clean);
 	ok &= expect(inventory.sections.size() == 4
 				&& inventory.sections[0].id == "@block-1@"

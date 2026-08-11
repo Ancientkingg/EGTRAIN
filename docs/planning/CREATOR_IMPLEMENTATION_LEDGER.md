@@ -11,7 +11,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Current milestone: PR 5, passenger authoring and explicit platform geometry
 - Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/passenger-authoring`
 - Current branch: `feature/passenger-authoring`
-- Current PR: none
+- Current PR: #294, `Add passenger and platform authoring` (draft)
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
@@ -109,6 +109,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The unchanged native capacity formula stores an integer. Effective platform geometry must therefore produce at
   least one passenger and fit that integer field; semantic and direct-native validation reject unsafe dimensions
   before the capacity conversion or runtime-state publication.
+- Passenger leg stop order is resolved once by a shared `SceneModel` helper. It finds an origin followed by a
+  destination and therefore handles repeated stations without validator/native disagreement. Native staging uses
+  the exact resolved stop indices rather than independent first-name matches.
+- A selected-occurrence run stages a passenger journey only when every leg is selected and resolvable. It omits
+  the whole journey instead of constructing a disconnected partial journey from the original endpoints.
 
 ## Compatibility decisions
 
@@ -124,6 +129,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   out-of-pattern or otherwise ineffective entrance delays will load and save but must be corrected before Run.
 - PR 5 keeps schema version 1 and adds only optional `length_m` and `width_m` platform keys. Missing keys retain
   the exact existing 100 m by 2.5 m behavior and remain omitted on save until explicitly authored.
+- New canonical scenes reject a passenger leg whose destination does not follow its origin. A scene carrying
+  `legacy_root` provenance retains such historical data with an actionable warning, and native staging omits the
+  affected journey instead of stranding the passenger. No committed case data is changed or guessed.
 
 ## GitHub issue state
 
@@ -237,6 +245,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 5 focused build passed for `test_scenevalidator`, `test_sceneimporter`, `test_scenewriter`,
   `test_scenebundle`, `test_operationsbuilder`, and `QEGTRAIN`. The five-test focused CTest gate passed 5 of 5
   in 2.44 seconds. The editor smoke passed after its seven scene tests.
+- After correcting the first PR 5 review findings, the validator, importer, writer, bundle, and native operations
+  gate passed 5 of 5 in 2.43 seconds. Editor smoke passed after all seven scene tests. All six committed scene
+  directories validated with exit 0; Paimpol's one historical reverse passenger leg is now a warning and is
+  omitted as a whole journey by native staging.
 
 ### Full tests and smokes run
 
@@ -463,6 +475,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Independent correctness findings
 
+- The first fresh PR 5 review found no P0 issue and four merge blockers:
+  1. malformed or non-finite DAS time tokens were silently converted to midnight and reported as accepted;
+  2. passenger-leg validation checked service-stop membership but not that the destination follows the origin;
+  3. selected-occurrence staging could retain only a later leg while preserving the journey's earlier origin;
+  4. passenger import reported known-service stop-pattern and direction mismatches as resolved rows.
+  The reviewer independently passed the build, focused five-test gate, full CTest 43 of 43, and editor smoke,
+  then reproduced each defect with a direct importer, validator, or native-staging probe. Its additional headless
+  run was interrupted after the evidence was complete; the pre-review six-case headless gate remains green.
+
 - The PR 3 lead diff review found one stale-widget lifecycle defect before commit: deleting a non-final train
   unit, composition, service, or incident refreshed validation before the corresponding detail panel, allowing
   pending-commit logic to overwrite the item shifted into the deleted row. The panel refresh now precedes
@@ -661,6 +682,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   occurrences. The station selector records the first stop for each station before deciding whether it has a
   planned departure, matching validator and runtime resolution. Focused native and public editor regressions
   cover both corrections.
+- PR 5 now rejects malformed or non-finite DAS time tokens instead of silently converting them to midnight,
+  classifies service stop-pattern and order mismatches as unresolved import rows, validates passenger stop order
+  through one repeated-stop-aware helper, and omits occurrence-filtered or otherwise incomplete journeys whole.
+  Legacy-import provenance preserves one committed invalid Paimpol row as a warning without guessing corrected
+  railway data; native staging omits that journey instead of creating an impossible trip.
 
 ### Ponytail findings
 
@@ -705,5 +731,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Freeze the PR 5 diff, run fresh independent correctness review and Ponytail review for #164 and #288, fix every
-verified finding, rerun the affected gate, then open and merge the milestone PR.
+Obtain a fresh corrected-diff review for PR #294, fix any verified finding, then run the Ponytail review and merge
+only after the affected local gate and GitHub checks are clean.

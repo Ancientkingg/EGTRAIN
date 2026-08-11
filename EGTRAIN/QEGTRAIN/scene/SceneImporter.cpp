@@ -363,23 +363,20 @@ static std::string baseTimeForCase(const std::string& sceneName, const fs::path&
 	return {};
 }
 
-static std::pair<double, double> passengerTimeWindow(const std::string& token) {
+static bool passengerTimeWindow(const std::string& token, std::pair<double, double>& result) {
 	double value = 0.0;
-	if (!parseDoubleToken(token, value) || value < 0.0)
-		return {0.0, 0.0};
-	const int hour = static_cast<int>(value);
+	if (!parseDoubleToken(token, value) || !std::isfinite(value) || value < 0.0)
+		return false;
+	const double hour = std::floor(value);
 	const double fraction = value - hour;
 	if (std::fabs(fraction - 0.25) < 1e-9)
-		return {hour * 3600.0, hour * 3600.0 + 1799.0};
-	if (std::fabs(fraction - 0.75) < 1e-9)
-		return {hour * 3600.0 + 1800.0, hour * 3600.0 + 3599.0};
-	return {hour * 3600.0, hour * 3600.0};
+		result = {hour * 3600.0, hour * 3600.0 + 1799.0};
+	else if (std::fabs(fraction - 0.75) < 1e-9)
+		result = {hour * 3600.0 + 1800.0, hour * 3600.0 + 3599.0};
+	else
+		result = {hour * 3600.0, hour * 3600.0};
+	return std::isfinite(result.first) && std::isfinite(result.second);
 }
-
-struct LegacyPassengerServiceReference {
-	std::string id;
-	std::string operatingCode;
-};
 
 struct LegacyPassengerStationReference {
 	std::string id;
@@ -453,7 +450,7 @@ static std::string passengerStationIdFor(const std::vector<LegacyPassengerStatio
 
 static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRootOrPassengerDir,
 		const std::vector<LegacyPassengerStationReference>& stations,
-		const std::vector<LegacyPassengerServiceReference>& services) {
+		const std::vector<SceneService>& services) {
 	LegacyPassengerParseResult result;
 	result.sources = locateLegacyPassengerSources(legacyRootOrPassengerDir);
 	const std::string dasSource = result.sources.das.string();
@@ -545,6 +542,17 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 					result.sources.das, rowNo, "passengers.das", true);
 			continue;
 		}
+		std::pair<double, double> departure;
+		std::pair<double, double> arrival;
+		if (!passengerTimeWindow(fields[14], departure) || !passengerTimeWindow(fields[10], arrival)) {
+			result.report.skipped("passengers.das", dasSource);
+			record(result.sources.das, rowNo, personId, false, false,
+				"Invalid passenger DAS arrival/departure time");
+			addDiag(SceneSeverity::Warning, "scene.import.parse",
+					"Invalid passenger DAS arrival/departure time for passenger " + personId,
+					result.sources.das, rowNo);
+			continue;
+		}
 		std::size_t pIndex = 0;
 		const auto foundPassenger = passengerIndex.find(personId);
 		if (foundPassenger == passengerIndex.end()) {
@@ -581,8 +589,6 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			addDiag(SceneSeverity::Warning, "scene.import.ref",
 					"Passenger journey has an unresolved station reference", result.sources.das,
 					rowNo, "passengers.das", true);
-		const auto departure = passengerTimeWindow(fields[14]);
-		const auto arrival = passengerTimeWindow(fields[10]);
 		json journey = {{"id", journeyId}, {"activity", fields[5]}, {"origin", origin}, {"destination", destination},
 			{"planned_departure", {{"start_seconds", departure.first}, {"end_seconds", departure.second}}},
 			{"planned_arrival", {{"start_seconds", arrival.first}, {"end_seconds", arrival.second}}}, {"legs", json::array()}};
@@ -728,12 +734,32 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 				break;
 			const std::string origin = passengerStationIdFor(stations, legStations[i], originAmbiguous);
 			const std::string destinationStation = passengerStationIdFor(stations, legStations[i + 1], destinationAmbiguous);
+			const auto serviceIt = std::find_if(services.begin(), services.end(), [&serviceId](const SceneService& service) {
+				return service.id == serviceId;
+			});
 			if (serviceId.empty() || serviceAmbiguous || originAmbiguous || destinationAmbiguous
 					|| !knownStation(origin) || !knownStation(destinationStation)) {
 				unresolved = true;
 				addDiag(SceneSeverity::Warning, "scene.import.ref",
 						"Passenger route-choice service or station reference is ambiguous",
 						result.sources.routeChoice, routeRow, "passengers.route_choice", true);
+			} else if (serviceIt == services.end()) {
+				unresolved = true;
+				addDiag(SceneSeverity::Warning, "scene.import.ref",
+						"Passenger route-choice service is unresolved",
+						result.sources.routeChoice, routeRow, "passengers.route_choice", true);
+			} else {
+				ScenePassengerLeg leg;
+				leg.originStationId = origin;
+				leg.destinationStationId = destinationStation;
+				leg.serviceId = serviceId;
+				SceneServiceStopPair stopPair;
+				if (!resolveScenePassengerLegStops(*serviceIt, leg, stopPair)) {
+					unresolved = true;
+					addDiag(SceneSeverity::Warning, "scene.import.ref",
+							"Passenger route-choice stations are missing or out of service stop order",
+							result.sources.routeChoice, routeRow, "passengers.route_choice", true);
+				}
 			}
 			result.passengers[target.first]["journeys"][target.second]["legs"].push_back({
 				{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>()
@@ -1824,10 +1850,18 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	for (const auto& station : stations)
 		passengerStations.push_back({station["id"].get<std::string>(),
 				station.value("name", station["id"].get<std::string>())});
-	std::vector<LegacyPassengerServiceReference> passengerServices;
-	for (const auto& service : services)
-		passengerServices.push_back({service["id"].get<std::string>(),
-				service.value("operating_code", service["id"].get<std::string>())});
+	std::vector<SceneService> passengerServices;
+	for (const auto& value : services) {
+		SceneService service;
+		service.id = value.value("id", "");
+		service.operatingCode = value.value("operating_code", service.id);
+		for (const auto& stopValue : value.value("stops", json::array())) {
+			SceneStop stop;
+			stop.stationId = stopValue.value("station", "");
+			service.stops.push_back(std::move(stop));
+		}
+		passengerServices.push_back(std::move(service));
+	}
 	const LegacyPassengerParseResult passengerImport = parseLegacyPassengers(legacyPath,
 			passengerStations, passengerServices);
 	passengers = passengerImport.passengers;
@@ -2031,11 +2065,8 @@ ScenePassengerImportResult importLegacyPassengers(const std::string& legacyRootO
 	std::vector<LegacyPassengerStationReference> stations;
 	for (const auto& station : scene.stations)
 		stations.push_back({station.id, station.name});
-	std::vector<LegacyPassengerServiceReference> services;
-	for (const auto& service : scene.services)
-		services.push_back({service.id, service.operatingCode.empty() ? service.id : service.operatingCode});
 	const LegacyPassengerParseResult parsed = parseLegacyPassengers(legacyRootOrPassengerDir,
-			stations, services);
+			stations, scene.services);
 	result.passengers = scenePassengersFromJson(parsed.passengers);
 	result.rows = parsed.rows;
 	result.report = parsed.report.rows;

@@ -30,6 +30,13 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 	});
 }
 
+static bool hasCodeAndSeverity(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
+		SceneSeverity severity) {
+	return std::any_of(diagnostics.begin(), diagnostics.end(), [&code, severity](const SceneDiagnostic& diagnostic) {
+		return diagnostic.code == code && diagnostic.severity == severity;
+	});
+}
+
 static SceneTrainUnit unit(const std::string& id, double tractionMass, double wagonMass,
 		double wagons, double maxSpeed, double deceleration, double area, double resistance,
 		double jerk, double length, const std::string& dataFile, const std::string& tractionFile,
@@ -403,24 +410,90 @@ int main() {
 		leg.occurrence = 1;
 	}
 	selectedScene.passengers[0].journeys.push_back(excludedJourney);
+	ScenePassengerJourney mixedJourney = selectedScene.passengers[0].journeys[0];
+	mixedJourney.id = "journey.mixed";
+	mixedJourney.legs[0].id += ".mixed";
+	mixedJourney.legs[0].occurrence = 1;
+	mixedJourney.legs[1].id += ".mixed";
+	mixedJourney.legs[1].occurrence = 2;
+	selectedScene.passengers[0].journeys.push_back(mixedJourney);
 	const SceneRunSelection onlySecond{{"service.native", 2}};
 	const auto selectedInfrastructure = buildInfrastructureAndSignallingFromScene(selectedScene);
 	const auto selectedOperations = buildOperationsFromScene(selectedScene, "scenario.selected", onlySecond);
 	bool selectedJourneyHasTrips = false;
-	bool excludedJourneyHasNoTrips = false;
+	bool excludedJourneyOmitted = true;
+	bool mixedJourneyOmitted = true;
 	if (!AllDailyPassengers.empty()) {
 		for (const Journey& journey : AllDailyPassengers.front().Journeys) {
 			if (journey.ID == "journey.1")
 				selectedJourneyHasTrips = journey.N_Trips == 2;
 			if (journey.ID == "journey.excluded")
-				excludedJourneyHasNoTrips = journey.N_Trips == 0;
+				excludedJourneyOmitted = false;
+			if (journey.ID == "journey.mixed")
+				mixedJourneyOmitted = false;
 		}
 	}
 	ok &= expect(!hasErrors(selectedInfrastructure) && !hasErrors(selectedOperations)
 				&& numRegions == 1 && regional_train[0].trainDescription == "service.native-2"
 				&& regional_train[0].EntranceDelay == 5.0
-				&& selectedJourneyHasTrips && excludedJourneyHasNoTrips,
-				"occurrence selection builds one train and skips excluded delays and passenger legs");
+				&& selectedJourneyHasTrips && excludedJourneyOmitted && mixedJourneyOmitted,
+				"occurrence selection omits journeys with excluded passenger legs");
+	SceneModel reversePassengerLeg = completeScene();
+	reversePassengerLeg.passengers[0].journeys[0].originStationId = "station.2";
+	reversePassengerLeg.passengers[0].journeys[0].destinationStationId = "station.1";
+	reversePassengerLeg.passengers[0].journeys[0].legs = {
+		{"leg.reverse", "station.2", "station.1", "service.native", 2}};
+	const int previousReverseRegions = numRegions;
+	const std::string previousReverseName = initial_variables.name;
+	const std::size_t previousReversePassengerCount = AllDailyPassengers.size();
+	const auto reversePassengerInfrastructure = buildInfrastructureAndSignallingFromScene(reversePassengerLeg);
+	const auto reversePassengerDiagnostics = buildOperationsFromScene(reversePassengerLeg, "scenario.base", onlySecond);
+	ok &= expect(!hasErrors(reversePassengerInfrastructure)
+				&& hasCode(reversePassengerDiagnostics, "scene.native.passenger.order")
+				&& numRegions == previousReverseRegions
+				&& initial_variables.name == previousReverseName
+				&& AllDailyPassengers.size() == previousReversePassengerCount,
+				"native preflight rejects reverse passenger legs before state publication");
+	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
+	legacyReversePassengerLeg.importReport.push_back({"legacy_root"});
+	const auto legacyReverseInfrastructure = buildInfrastructureAndSignallingFromScene(legacyReversePassengerLeg);
+	const auto legacyReverseDiagnostics = buildOperationsFromScene(
+			legacyReversePassengerLeg, "scenario.base", onlySecond);
+	bool legacyReverseJourneyOmitted = !AllDailyPassengers.empty();
+	if (!AllDailyPassengers.empty()) {
+		for (const Journey& journey : AllDailyPassengers.front().Journeys)
+			legacyReverseJourneyOmitted = legacyReverseJourneyOmitted && journey.ID != "journey.1";
+	}
+	ok &= expect(!hasErrors(legacyReverseInfrastructure) && !hasErrors(legacyReverseDiagnostics)
+				&& hasCodeAndSeverity(legacyReverseDiagnostics, "scene.native.passenger.order", SceneSeverity::Warning)
+				&& legacyReverseJourneyOmitted,
+			"legacy reverse passenger legs are warned and omitted as a whole journey");
+	SceneModel repeatedPassengerStops = completeScene();
+	repeatedPassengerStops.services[0].stops = {
+		{"station.2", "platform.2", true, true, 100.0, 110.0, 0.0},
+		{"station.1", "platform.1", true, true, 120.0, 130.0, 0.0},
+		{"station.2", "platform.2", true, true, 140.0, 150.0, 0.0}};
+	ScenePassengerJourney& repeatedJourney = repeatedPassengerStops.passengers[0].journeys[0];
+	repeatedJourney.originStationId = "station.1";
+	repeatedJourney.destinationStationId = "station.2";
+	repeatedJourney.legs = {{"leg.repeated", "station.1", "station.2", "service.native", 2}};
+	SceneServiceStopPair repeatedPair;
+	const auto repeatedInfrastructure = buildInfrastructureAndSignallingFromScene(repeatedPassengerStops);
+	const auto repeatedOperations = buildOperationsFromScene(repeatedPassengerStops, "scenario.base", onlySecond);
+	bool repeatedJourneyStaged = false;
+	if (!AllDailyPassengers.empty()) {
+		for (const Journey& journey : AllDailyPassengers.front().Journeys) {
+			if (journey.ID == "journey.1")
+				repeatedJourneyStaged = journey.N_Trips == 1 && !journey.Trips.empty()
+						&& journey.Trips.front().Dep_Station_Platform_ID == "platform.1"
+						&& journey.Trips.front().Arr_Station_Platform_ID == "platform.2";
+		}
+	}
+	ok &= expect(!hasErrors(repeatedInfrastructure) && !hasErrors(repeatedOperations)
+				&& resolveScenePassengerLegStops(repeatedPassengerStops.services[0], repeatedJourney.legs[0], repeatedPair)
+				&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
+				&& repeatedJourneyStaged,
+				"native passenger staging follows the repeated-stop ordered pair");
 	SceneModel invalidUnselectedPassenger = completeScene();
 	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].serviceId = "service.missing";
 	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].occurrence = 1;
@@ -553,8 +626,11 @@ int main() {
 	const auto shortInfrastructure = buildInfrastructureAndSignallingFromScene(shortHorizon);
 	const auto shortOperations = buildOperationsFromScene(shortHorizon, "scenario.base");
 	ok &= expect(!hasErrors(shortInfrastructure) && !hasErrors(shortOperations)
-			&& numRegions == 1 && AllDailyPassengers.front().Journeys.front().N_Trips == 0,
-			"passenger legs beyond a shortened run horizon are reported and skipped");
+				&& numRegions == 1 && AllDailyPassengers.size() == 1
+				&& AllDailyPassengers.front().Journeys.size() == 1
+				&& AllDailyPassengers.front().Journeys.front().ID == "journey.unrouted"
+				&& AllDailyPassengers.front().Journeys.front().N_Trips == 0,
+				"passenger journeys beyond a shortened run horizon are omitted whole");
 
 	initial_variables.times = 120.0;
 	initial_variables.durationOverride = true;

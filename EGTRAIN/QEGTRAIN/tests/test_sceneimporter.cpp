@@ -203,7 +203,8 @@ int main() {
 				"x,p1,x,x,j1,work,Destination,x,x,x,8.25,x,Origin,x,8.00\n"
 				"malformed\n"
 				"x,p2,x,x,j2,work,Destination,x,x,x,8.25,x,Unknown,x,8.00\n"
-				"x,p3,x,x,j3,work,destination,x,x,x,8.25,x,origin,x,8.00\n";
+				"x,p3,x,x,j3,work,destination,x,x,x,8.25,x,origin,x,8.50\n"
+				"x,p4,x,x,j4,work,Destination,x,x,x,nan,x,Origin,x,8.00\n";
 		const std::string routes = "person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1\n"
 				"p1,Destination,0,,svc-2\n"
 				"short\n"
@@ -215,6 +216,7 @@ int main() {
 		scene.stations = {{"origin", "Origin", false, 0.0, {}}, {"destination", "Destination", false, 1.0, {}}};
 		scene.services.push_back({"service", "svc", {}, {}, 100.0, false, 0.0, false, false, 0.0,
 			false, 0.0, false, 0, false, 0, {}});
+		scene.services[0].stops = {{"origin"}, {"destination"}};
 		const ScenePassengerImportResult imported = importLegacyPassengers(root.dir, scene);
 		ok &= expect(imported.success() && imported.passengers.size() == 3
 				&& imported.passengers[0].journeys[0].legs.size() == 1
@@ -223,8 +225,10 @@ int main() {
 		ok &= expect(imported.passengers[0].journeys[0].originStationId == "origin"
 				&& imported.passengers[0].journeys[0].destinationStationId == "destination"
 				&& imported.passengers[2].journeys[0].originStationId == "origin"
-				&& imported.passengers[2].journeys[0].destinationStationId == "destination",
-				"Passenger station resolution accepts display names and canonical IDs");
+				&& imported.passengers[2].journeys[0].destinationStationId == "destination"
+				&& imported.passengers[2].journeys[0].plannedDepartureStartSeconds == 8.0 * 3600.0
+				&& imported.passengers[2].journeys[0].plannedDepartureEndSeconds == 8.0 * 3600.0,
+				"Passenger station and finite non-quarter time resolution preserve legacy buckets");
 		SceneModel ambiguousScene = scene;
 		ambiguousScene.stations.push_back({"destination-alt", "Destination", false, 1.0, {}});
 		const ScenePassengerImportResult ambiguous = importLegacyPassengers(root.dir, ambiguousScene);
@@ -244,6 +248,14 @@ int main() {
 		}
 		ok &= expect(sawRejected && sawUnresolved && rowsIdentifyPassengers,
 				"Passenger-only import reports row outcomes, subjects, and context");
+		bool sawInvalidTimeRow = false;
+		for (const auto& row : imported.rows) {
+			if (row.passengerId == "p4" && row.row == 5 && !row.accepted
+					&& row.context == "Invalid passenger DAS arrival/departure time"
+					&& row.sourceFile.find("DAS_FrenchCaseStudy.csv") != std::string::npos)
+				sawInvalidTimeRow = true;
+		}
+		ok &= expect(sawInvalidTimeRow, "Malformed DAS time is rejected with row and passenger context");
 		bool sawDasRowPath = false, sawRouteChoiceRowPath = false;
 		for (const auto& diagnostic : imported.diagnostics) {
 			if (diagnostic.file.find("DAS_FrenchCaseStudy.csv") != std::string::npos
@@ -255,6 +267,24 @@ int main() {
 		}
 		ok &= expect(sawDasRowPath && sawRouteChoiceRowPath,
 				"Passenger-only import diagnostics retain CSV source paths");
+		SceneModel orderMismatchScene = scene;
+		orderMismatchScene.services[0].stops = {{"destination"}, {"origin"}};
+		const ScenePassengerImportResult orderMismatch = importLegacyPassengers(root.dir, orderMismatchScene);
+		bool knownServiceMarkedUnresolved = false;
+		bool knownServiceRowDiagnostic = false;
+		for (const auto& row : orderMismatch.rows) {
+			if (row.passengerId == "p1" && row.row == 1 && row.accepted && row.unresolvedReferences)
+				knownServiceMarkedUnresolved = true;
+		}
+		for (const auto& diagnostic : orderMismatch.diagnostics) {
+			if (diagnostic.code == "scene.import.ref"
+					&& diagnostic.path == "passengers.route_choice.rows[1]")
+				knownServiceRowDiagnostic = true;
+		}
+		orderMismatchScene.passengers = orderMismatch.passengers;
+		ok &= expect(knownServiceMarkedUnresolved && knownServiceRowDiagnostic
+					&& hasDiag(validateScene(orderMismatchScene), "scene.passenger.leg.order", SceneSeverity::Error),
+				"Known service stop/order mismatch stays canonical unresolved and validates as an order error");
 		const ScenePassengerImportResult direct = importLegacyPassengers(passengerDir.string(), scene);
 		ok &= expect(direct.passengers.size() == imported.passengers.size()
 				&& direct.rows.size() == imported.rows.size(),

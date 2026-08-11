@@ -280,6 +280,7 @@ Regional P, PD; /*This train is a Proof Train to measure the simulated Headway f
 namespace {
 
 struct NativeStopPlan {
+	std::size_t sourceStopIndex = 0;
 	std::string stationId;
 	std::string stationName;
 	std::string platformId;
@@ -385,9 +386,9 @@ const SceneStop* nativeStopForStation(const SceneService& service, const std::st
 	return nullptr;
 }
 
-const NativeStopPlan* nativeStopForStation(const NativeTrainPlan& train, const std::string& stationId) {
+const NativeStopPlan* nativeStopAtSourceIndex(const NativeTrainPlan& train, std::size_t sourceStopIndex) {
 	for (const NativeStopPlan& stop : train.stops)
-		if (stop.stationId == stationId)
+		if (stop.sourceStopIndex == sourceStopIndex)
 			return &stop;
 	return nullptr;
 }
@@ -534,6 +535,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	const auto stationById = nativeIndexById(scene.stations, diagnostics, "stations.json", "station");
 	const auto routes = nativeIndexById(scene.routes, diagnostics, "signalling.json", "route");
 	const auto serviceById = nativeIndexById(scene.services, diagnostics, "services.json", "service");
+	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
+			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
 	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
 		const SceneStation& station = scene.stations[stationIndex];
 		for (std::size_t platformIndex = 0; platformIndex < station.platforms.size(); ++platformIndex) {
@@ -850,6 +853,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				addNativeDiagnostic(diagnostics, "scene.native.timetable.order", "Planned departure precedes planned arrival",
 						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]");
 			NativeStopPlan stopPlan;
+			stopPlan.sourceStopIndex = stopIndex;
 			stopPlan.stationId = stop.stationId;
 			stopPlan.stationName = stationName;
 			stopPlan.platformId = resolvedPlatformId;
@@ -1152,16 +1156,29 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.service", "Passenger leg refers to an unknown service",
 							"passengers.json", "leg", sourceLeg.id, legPath + ".service", sourceLeg.serviceId);
 				} else {
-					if (nativeStopForStation(*serviceIt->second, sourceLeg.originStationId) == nullptr)
+					const bool hasOriginStop = std::any_of(serviceIt->second->stops.begin(), serviceIt->second->stops.end(),
+							[&sourceLeg](const SceneStop& stop) { return stop.stationId == sourceLeg.originStationId; });
+					const bool hasDestinationStop = std::any_of(serviceIt->second->stops.begin(), serviceIt->second->stops.end(),
+							[&sourceLeg](const SceneStop& stop) { return stop.stationId == sourceLeg.destinationStationId; });
+					if (!hasOriginStop)
 						addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
 								"Passenger leg origin is not a stop of the referenced service",
 								"passengers.json", "leg", sourceLeg.id, legPath + ".origin", sourceLeg.serviceId,
 								"Choose an origin station from the service stop pattern");
-					if (nativeStopForStation(*serviceIt->second, sourceLeg.destinationStationId) == nullptr)
+					if (!hasDestinationStop)
 						addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
 								"Passenger leg destination is not a stop of the referenced service",
 								"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
 								"Choose a destination station from the service stop pattern");
+					if (hasOriginStop && hasDestinationStop) {
+						SceneServiceStopPair stopPair;
+						if (!resolveScenePassengerLegStops(*serviceIt->second, sourceLeg, stopPair))
+							addNativeDiagnostic(diagnostics, "scene.native.passenger.order",
+									"Passenger leg destination must follow its origin in the service stop pattern",
+									"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
+									"Choose an ordered origin/destination pair from the service stop pattern",
+									hasLegacyImport ? SceneSeverity::Warning : SceneSeverity::Error);
+					}
 				}
 				if (sourceLeg.occurrence <= 0)
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
@@ -1263,10 +1280,13 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			journey.Arr_Station_ID = destination->name.empty() ? destination->id : destination->name;
 			journey.Planned_Departure_Time = sourceJourney.plannedDepartureStartSeconds;
 			journey.Planned_Arrival_Time = sourceJourney.plannedArrivalStartSeconds;
+			bool omitJourney = false;
 			for (const ScenePassengerLeg& sourceLeg : sourceJourney.legs) {
 				const SceneServiceOccurrence key{sourceLeg.serviceId, sourceLeg.occurrence};
-				if (!selectedOccurrences.empty() && !occurrenceSelected(sourceLeg.serviceId, sourceLeg.occurrence))
-					continue;
+				if (!selectedOccurrences.empty() && !occurrenceSelected(sourceLeg.serviceId, sourceLeg.occurrence)) {
+					omitJourney = true;
+					break;
+				}
 				const auto trainIt = occurrenceIndex.find(key);
 				if (trainIt == occurrenceIndex.end() && serviceById.count(sourceLeg.serviceId) != 0) {
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
@@ -1274,16 +1294,23 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 							"passengers.json", "leg", sourceLeg.id,
 							"passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs",
 							sourceLeg.serviceId + "-" + std::to_string(sourceLeg.occurrence), {}, SceneSeverity::Warning);
-					continue;
+					omitJourney = true;
+					break;
 				}
-				const auto originStop = trainIt == occurrenceIndex.end() ? nullptr
-						: nativeStopForStation(trains[trainIt->second], sourceLeg.originStationId);
-				const auto destinationStop = trainIt == occurrenceIndex.end() ? nullptr
-						: nativeStopForStation(trains[trainIt->second], sourceLeg.destinationStationId);
-				if (trainIt == occurrenceIndex.end() || originStop == nullptr || destinationStop == nullptr) {
+				SceneServiceStopPair stopPair;
+				const auto serviceIt = serviceById.find(sourceLeg.serviceId);
+				if (serviceIt == serviceById.end()
+						|| !resolveScenePassengerLegStops(*serviceIt->second, sourceLeg, stopPair)) {
+					omitJourney = true;
+					break;
+				}
+				const auto originStop = nativeStopAtSourceIndex(trains[trainIt->second], stopPair.originIndex);
+				const auto destinationStop = nativeStopAtSourceIndex(trains[trainIt->second], stopPair.destinationIndex);
+				if (originStop == nullptr || destinationStop == nullptr) {
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.leg", "Passenger leg does not resolve to one train occurrence and two stops",
 							"passengers.json", "leg", sourceLeg.id, "passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs", sourceLeg.serviceId);
-					continue;
+					omitJourney = true;
+					break;
 				}
 				Trip trip;
 				trip.TripID = sourceLeg.id;
@@ -1296,6 +1323,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				trip.TrainServiceDescription = trains[trainIt->second].trainDescription;
 				journey.Trips.push_back(std::move(trip));
 			}
+			if (omitJourney)
+				continue;
 			journey.N_Trips = static_cast<int>(journey.Trips.size());
 			passenger.Journeys.push_back(std::move(journey));
 		}
@@ -1307,10 +1336,16 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	const auto sampleWindow = [](double minimum, double maximum) {
 		return minimum + static_cast<double>(std::rand()) / RAND_MAX * (maximum - minimum);
 	};
-	auto stagedPassenger = stagedPassengers.begin();
 	for (const ScenePassenger& sourcePassenger : scene.passengers) {
-		auto stagedJourney = stagedPassenger->Journeys.begin();
+		const auto stagedPassenger = std::find_if(stagedPassengers.begin(), stagedPassengers.end(),
+				[&sourcePassenger](const Passenger& candidate) { return candidate.ID == sourcePassenger.id; });
+		if (stagedPassenger == stagedPassengers.end())
+			continue;
 		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
+			auto stagedJourney = std::find_if(stagedPassenger->Journeys.begin(), stagedPassenger->Journeys.end(),
+				[&sourceJourney](const Journey& candidate) { return candidate.ID == sourceJourney.id; });
+			if (stagedJourney == stagedPassenger->Journeys.end())
+				continue;
 			stagedJourney->Actual_Planned_Departure_Time = sampleWindow(
 					sourceJourney.plannedDepartureStartSeconds, sourceJourney.plannedDepartureEndSeconds);
 			stagedJourney->Actual_Planned_Arrival_Time = sampleWindow(
@@ -1321,9 +1356,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				stagedJourney->Trips.back().Planned_Arrival_Time =
 						static_cast<int>(stagedJourney->Actual_Planned_Arrival_Time);
 			}
-			++stagedJourney;
 		}
-		++stagedPassenger;
 	}
 
 	initial_variables = stagedParameters;

@@ -1097,6 +1097,16 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 								"Passenger leg destination is not a stop of the referenced service", "passengers.json",
 								"leg", leg.id, legPath + ".destination", leg.serviceId,
 								"Choose a destination station from the service stop pattern");
+					if (hasOriginStop && hasDestinationStop) {
+						SceneServiceStopPair stopPair;
+						if (!resolveScenePassengerLegStops(*service->second, leg, stopPair)) {
+							diagnostics.add(hasLegacyImport ? SceneSeverity::Warning : SceneSeverity::Error,
+									"scene.passenger.leg.order",
+									"Passenger leg destination must follow its origin in the service stop pattern",
+									"passengers.json", "leg", leg.id, legPath + ".destination", leg.serviceId,
+									"Choose an ordered origin/destination pair from the service stop pattern");
+						}
+					}
 				}
 				if (leg.occurrence <= 0)
 					diagnostics.error("scene.occurrence.invalid", "Passenger leg occurrence must be positive",

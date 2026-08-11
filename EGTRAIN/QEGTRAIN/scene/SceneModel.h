@@ -3,6 +3,7 @@
 
 #include "scene/SceneDiagnostic.h"
 #include <array>
+#include <cstddef>
 #include <set>
 #include <string>
 #include <vector>
@@ -245,6 +246,11 @@ struct ScenePassenger {
 	std::vector<ScenePassengerJourney> journeys;
 };
 
+struct SceneServiceStopPair {
+	std::size_t originIndex = 0;
+	std::size_t destinationIndex = 0;
+};
+
 struct SceneLoadedData {
 	std::string category;
 	std::string sourceFile;
@@ -297,6 +303,8 @@ SceneModel makeNewSceneModel();
 
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds);
 std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence);
+bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
+		SceneServiceStopPair& result);
 
 // Resolve ordered (and repeated) unit references and apply the legacy
 // multi-unit physical/tractive-effort aggregation rules.

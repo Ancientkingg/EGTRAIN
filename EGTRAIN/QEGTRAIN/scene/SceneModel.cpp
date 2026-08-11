@@ -105,6 +105,23 @@ std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int
 	return base;
 }
 
+bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
+		SceneServiceStopPair& result) {
+	for (std::size_t originIndex = 0; originIndex < service.stops.size(); ++originIndex) {
+		if (service.stops[originIndex].stationId != leg.originStationId)
+			continue;
+		for (std::size_t destinationIndex = originIndex + 1; destinationIndex < service.stops.size();
+				++destinationIndex) {
+			if (service.stops[destinationIndex].stationId == leg.destinationStationId) {
+				result.originIndex = originIndex;
+				result.destinationIndex = destinationIndex;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
 	scene.schemaVersion = 1;
