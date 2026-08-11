@@ -404,7 +404,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   Assignment, incident, and DPR 1/DPR 2 visual-polish smokes passed.
 - The corrected `graphify update .` rebuilt 6,079 nodes, 9,711 edges, and 1,692 communities.
 - After the PR 4 Ponytail reductions, the full incremental build passed, the focused validator/writer/native
-  gate passed 3 of 3 in 2.11 seconds, and editor smoke passed after all 7 scene tests.
+  gate passed 3 of 3 in 2.11 seconds, editor smoke passed after all 7 scene tests, and the full CTest suite
+  passed 43 of 43 in 123.76 seconds.
 - The post-Ponytail `graphify update .` rebuilt 6,078 nodes, 9,704 edges, and 1,695 communities.
 
 ## Review record
@@ -516,6 +517,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   through native preflight before selected-occurrence application, verified no global runtime state is published
   on error, and confirmed first-stop selector parity. It independently passed the focused gate, editor smoke,
   full CTest 43 of 43, and `git diff --check`.
+- The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `849bf33`. It independently passed
+  the validator, writer, bundle, and native focused gate 4 of 4, editor smoke, and `git diff --check` after tracing
+  the reduced refresh scope and public spin-box signal path.
 
 ### Corrections made
 
@@ -646,9 +650,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 3 are complete. PR 4 is implemented and awaiting independent review. PRs 5 and 6 remain open.
+- PRs 1 through 3 are complete. PR 4 is technically clean and awaiting final CI and merge. PRs 5 and 6 remain open.
 
 ## Next action
 
-Run the fresh independent correctness review on PR #293, correct every supported finding, then run the separate
-Ponytail simplicity review before merge.
+Wait for PR #293 CI, mark the draft ready, merge when both jobs pass, update the ledger, reread the execution
+prompt and ledger, remove the clean worktree, and begin PR 5 from the merged `origin/main`.
