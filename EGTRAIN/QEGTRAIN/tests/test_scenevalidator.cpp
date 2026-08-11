@@ -232,6 +232,11 @@ int main(int argc, char** argv) {
 	ok &= expect(!regionalAToB.empty() && !regionalBToC.empty()
 			&& hasCode(validateScene(regionalSwitchDirectionChange), "scene.route.direction"),
 			"legacy regional bridges cannot suppress both directions of a derived U-turn");
+	SceneModel mixedRegionalDirectionChange = regionalSwitchDirectionChange;
+	mixedRegionalDirectionChange.routes = {{"mixed-regional-switch-u-turn",
+		{"b.left", regionalBToC, regionalAToB}, false, "", false}};
+	ok &= expect(hasCode(validateScene(mixedRegionalDirectionChange), "scene.route.direction"),
+			"an ordinary transition cannot hide an opposing legacy derived-section direction");
 	SceneModel regionJump = clean;
 	regionJump.tracks.push_back({"region-track"});
 	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});
@@ -245,6 +250,15 @@ int main(int argc, char** argv) {
 	ok &= expect(hasCode(regionJumpDiagnostics, "scene.route.region_jump")
 				&& !hasCode(regionJumpDiagnostics, "scene.route.disconnected"),
 				"legacy cross-region coordinate discontinuities remain visible and compatible");
+	SceneModel segmentedRegionJump = regionJump;
+	segmentedRegionJump.blocks.back().lengthKm = 0.5;
+	segmentedRegionJump.blocks.push_back({"region-block-2", "region-track", 0.5});
+	segmentedRegionJump.routes = {{"segmented-region-route",
+		{"block-1", "block-2", "region-block-2", "region-block"}, false, "", false}};
+	const auto segmentedRegionDiagnostics = validateScene(segmentedRegionJump);
+	ok &= expect(hasCode(segmentedRegionDiagnostics, "scene.route.region_jump")
+			&& !hasCode(segmentedRegionDiagnostics, "scene.route.direction"),
+			"legacy route direction is checked independently on each connected regional segment");
 	regionJump.importReport.clear();
 	ok &= expect(hasCode(validateScene(regionJump), "scene.route.disconnected"),
 			"new canonical scenes reject undeclared cross-region route jumps");

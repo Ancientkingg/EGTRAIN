@@ -122,6 +122,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After the sixth corrected-diff review, the same six-test gate passed 6 of 6 in 3.46 seconds.
   The regression distinguishes a joined derived-section boundary from an unrelated regional
   outer boundary, rejects the resulting legacy derived U-turn, and preserves committed regional routes.
+- After the seventh corrected-diff review, the same six-test gate passed 6 of 6 in 3.46 seconds.
+  Focused validator and direct-builder regressions reject mixed ordinary and derived U-turn evidence
+  before native mutation, while a separate regression preserves direction across a warned legacy
+  regional segment boundary.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -158,6 +162,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - the incident smoke passed both breakdown and bound-signal hold/release checks;
   - all six committed scenes validated with no errors and only their previously recorded warnings;
   - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
+  - Assignment smoke passed its canonical timetable assertion;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
+  - after the seventh corrected-diff fixes, the full configure and build passed and CTest passed 43 of 43
+    in 119.44 seconds;
+  - editor smoke passed after its 7 scene tests;
+  - incident smoke passed both breakdown and protected-signal hold/release checks;
+  - all six committed scenes validated with no errors and their recorded warning groups unchanged;
+  - the six-case native headless smoke passed every case, changing-trajectory, non-sentinel, and
+    served-station assertion;
   - Assignment smoke passed its canonical timetable assertion;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
   - after the fifth corrected-diff fixes, the full build passed and CTest passed 43 of 43 in 118.81 seconds;
@@ -218,6 +231,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   and 231 communities.
 - `graphify update .` completed after the sixth corrected-diff fixes with 4872 nodes, 10911 edges,
   and 234 communities.
+- `graphify update .` completed after the seventh corrected-diff fixes with 4871 nodes, 10910 edges,
+  and 233 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -261,7 +276,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   derived-section pair was treated as direction-neutral merely because its unused reverse boundary
   crossed coordinate regions. A legacy route containing that pair in both directions passed validator
   and direct native preflight and then mutated runtime state.
-- A seventh fresh corrected-diff review remains required before Ponytail review.
+- The seventh fresh corrected-diff review found no additional issue but confirmed one remaining P1
+  route-direction blocker: once any ordinary transition established a direction, the validator and
+  direct native preflight discarded all opposing deferred derived evidence. A monotonic legacy route
+  containing a forward base-to-derived transition followed by a reverse derived transition passed and
+  mutated runtime state. Existing regressions covered only routes whose evidence was entirely deferred.
+- An eighth fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -310,6 +330,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   unambiguous transitions.
 - Added validator and direct-builder regressions for the regional derived U-turn and verified rejection
   occurs before native runtime mutation.
+- Removed the derived-direction ambiguity flag and its route-wide deferral. Direction is now checked
+  independently within each connected route segment. A warned legacy regional discontinuity closes one
+  segment before the next starts because their coordinate directions have no declared topological relation.
+  The native builder retains the first connected segment's direction for its compatibility fallback.
+- Added mixed-evidence U-turn and segmented-regional-route regressions in both semantic validation and
+  direct native preflight. The mixed route is rejected before allocation; the segmented route retains
+  the expected first-segment direction.
 
 ### Ponytail findings
 
@@ -327,10 +354,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. A seventh independent correctness review and Ponytail review remain
+- PR 1 has no known test or parity blocker. An eighth independent correctness review and Ponytail review remain
   before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the sixth corrected-diff fixes, then run a seventh fresh review of PR #290. When no merge blocker
+Commit and push the seventh corrected-diff fixes, then run an eighth fresh review of PR #290. When no merge blocker
 remains, run the fresh Ponytail simplicity review before final verification and merge.

@@ -2587,35 +2587,36 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
 			bool forward = false;
 			bool reverse = false;
-			bool deferredForward = false;
-			bool deferredReverse = false;
+			bool directionError = false;
+			int preferredDirection = 0;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
 						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
-				if (hasLegacyImport && transition.regionalDirectionAmbiguous) {
-					deferredForward = deferredForward || transition.joinsForward;
-					deferredReverse = deferredReverse || transition.joinsReverse;
-				} else {
-					forward = forward || transition.joinsForward;
-					reverse = reverse || transition.joinsReverse;
-				}
-				if (transition.joinsForward || transition.joinsReverse
-						|| (transition.regionJump && hasLegacyImport))
+				forward = forward || transition.joinsForward;
+				reverse = reverse || transition.joinsReverse;
+				directionError = directionError || (forward && reverse);
+				if (transition.joinsForward || transition.joinsReverse)
 					continue;
+				if (transition.regionJump && hasLegacyImport) {
+					if (preferredDirection == 0 && forward != reverse)
+						preferredDirection = forward ? 1 : -1;
+					forward = false;
+					reverse = false;
+					continue;
+				}
 				add(SceneSeverity::Error, "scene.route.disconnected",
 						"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
 						"routes.blocks[" + std::to_string(sectionIndex) + "]",
 						route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
 			}
-			if (!forward && !reverse) {
-				forward = forward || deferredForward;
-				reverse = reverse || deferredReverse;
-			}
-			if (forward && reverse)
+			if (directionError)
 				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
 						"signalling.json", "route", route.id, "routes.blocks");
-			else if (forward != reverse)
-				routeDirections[index] = forward ? 1 : -1;
+			else {
+				if (preferredDirection == 0 && forward != reverse)
+					preferredDirection = forward ? 1 : -1;
+				routeDirections[index] = preferredDirection;
+			}
 		}
 	}
 	std::unordered_set<std::string> routeIds;

@@ -208,14 +208,9 @@ SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 	};
 	const bool sharesSourceBlock = rightUsesBlock(left.sourceBlockId)
 			|| rightUsesBlock(left.firstBlockId) || rightUsesBlock(left.secondBlockId);
-	const bool forwardRegionJump = sectionBoundaryIsRegionJump(left, right, true);
-	const bool reverseRegionJump = sectionBoundaryIsRegionJump(left, right, false);
 	transition.regionJump = !sharesSourceBlock && !transition.joinsForward && !transition.joinsReverse
-			&& (forwardRegionJump || reverseRegionJump);
-	transition.regionalDirectionAmbiguous = !sharesSourceBlock
-			&& left.connectionDerived && right.connectionDerived
-			&& ((transition.joinsForward && reverseRegionJump)
-			|| (transition.joinsReverse && forwardRegionJump));
+			&& (sectionBoundaryIsRegionJump(left, right, true)
+			|| sectionBoundaryIsRegionJump(left, right, false));
 	return transition;
 }
 

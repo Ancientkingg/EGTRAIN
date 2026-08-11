@@ -162,6 +162,22 @@ static bool runTinyBuilderChecks() {
 			&& stationBoundarySections.front().exit->ID == "@block.b@",
 			"station boundary references resolve to runtime sections");
 
+	SceneModel segmentedRegionRoute = tinyScene();
+	segmentedRegionRoute.tracks.push_back({"region.track"});
+	segmentedRegionRoute.nodes.push_back({"region.0", "region.track", 100.0, 0.0});
+	segmentedRegionRoute.nodes.push_back({"region.1", "region.track", 101.0, 0.0});
+	segmentedRegionRoute.arcs.push_back(
+			{"region.arc", "region.track", "region.0", "region.1", 0.0, 0.0, 20.0});
+	segmentedRegionRoute.blocks.push_back({"region.block.1", "region.track", 0.5});
+	segmentedRegionRoute.blocks.push_back({"region.block.2", "region.track", 0.5});
+	segmentedRegionRoute.routes[0].blocks = {
+		"block.a", "block.b", "region.block.2", "region.block.1"};
+	segmentedRegionRoute.importReport.push_back({"legacy_root"});
+	diagnostics = buildInfrastructureAndSignallingFromScene(segmentedRegionRoute);
+	ok &= expect(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
+			&& N_Routes == 1 && train_route.size() == 1 && !train_route[0].reversed_direction,
+			"native route direction follows the first connected legacy regional segment");
+
 	diagnostics = buildInfrastructureAndSignallingFromScene(stableConnectionScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3, "stable-ID connection scene builds one switch section");
 	if (!hasErrors(diagnostics) && Blocks == 3) {
@@ -217,6 +233,13 @@ static bool runTinyBuilderChecks() {
 			&& Blocks == blocksBeforeDerivedUTurn
 			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
 			"legacy provenance cannot hide a connection-derived U-turn from native preflight");
+	SceneModel mixedDerivedUTurn = derivedUTurn;
+	mixedDerivedUTurn.routes = {{"mixed-switch-u-turn", {"b.left", bToC, aToB}, false, {}, false}};
+	diagnostics = buildInfrastructureAndSignallingFromScene(mixedDerivedUTurn);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
+			&& Blocks == blocksBeforeDerivedUTurn
+			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
+			"mixed route evidence cannot hide a legacy derived U-turn before native mutation");
 	SceneModel legacyFork = switchChainScene();
 	legacyFork.connections.push_back({"a-to-c", "a.1", "c.0", false, 0.0});
 	legacyFork.nodes[0].xKm = 100.0;
