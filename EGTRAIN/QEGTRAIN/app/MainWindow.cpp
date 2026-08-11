@@ -18,6 +18,7 @@
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
+#include "scene/SectionInventory.h"
 #include "scene/TrackPreview.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
@@ -1323,9 +1324,6 @@ std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
 		add(signal.id);
 	for (const auto& block : sceneModel.blocks)
 		add(block.id);
-	for (const auto& route : sceneModel.routes)
-		for (const auto& blockToken : route.blocks)
-			add(blockToken);
 	return targets;
 }
 } // namespace
@@ -3646,7 +3644,7 @@ void MainWindow::refreshInfrastructureTable() {
 	else if (facet == "platforms")
 		headers << "Station ID" << "ID" << "Nodes";
 	else if (facet == "signals")
-		headers << "ID";
+		headers << "ID" << "Protected section";
 	else if (facet == "signalling_areas")
 		headers << "ID" << "Start km" << "End km" << "Level" << "Track ID";
 	else if (facet == "routes")
@@ -3734,9 +3732,58 @@ void MainWindow::refreshInfrastructureTable() {
 		}
 	} else if (facet == "signals") {
 		const auto& signalsList = sceneSignals(m_sceneModel);
+		const SceneSectionInventory inventory = buildSceneSectionInventory(m_sceneModel);
 		m_infrastructureTable->setRowCount(static_cast<int>(signalsList.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row)
-			setCell(row, 0, QString::fromStdString(signalsList[static_cast<std::size_t>(row)].id));
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			const SceneSignal& signal = signalsList[static_cast<std::size_t>(row)];
+			setCell(row, 0, QString::fromStdString(signal.id));
+			QComboBox* combo = new QComboBox(m_infrastructureTable);
+			combo->setObjectName(QStringLiteral("protectedSectionCombo"));
+			combo->setAccessibleName(QStringLiteral("Protected section for %1")
+					.arg(QString::fromStdString(signal.id)));
+			combo->setToolTip(QStringLiteral("Choose the block or switch section protected by this signal"));
+			const QSignalBlocker comboBlocker(combo);
+			combo->addItem(QStringLiteral("(unbound)"), QString());
+			for (const auto& section : inventory.sections) {
+				QString label;
+				if (section.connectionDerived) {
+					label = QStringLiteral("connection %1 / %2 -> %3")
+							.arg(QString::fromStdString(section.sourceConnectionId),
+									QString::fromStdString(section.firstBlockId),
+									QString::fromStdString(section.secondBlockId));
+				} else {
+					label = QStringLiteral("base block %1 / track %2")
+							.arg(QString::fromStdString(section.sourceBlockId),
+									QString::fromStdString(section.firstTrackId));
+				}
+				combo->addItem(label, QString::fromStdString(section.id));
+			}
+			const QString current = QString::fromStdString(signal.protectedSection);
+			int selected = combo->findData(current);
+			if (selected < 0 && !current.isEmpty()) {
+				if (const auto* resolved = inventory.resolve(signal.protectedSection))
+					selected = combo->findData(QString::fromStdString(resolved->id));
+			}
+			if (selected < 0 && !current.isEmpty()) {
+				combo->addItem(QStringLiteral("Invalid: %1").arg(current), current);
+				selected = combo->count() - 1;
+			}
+			combo->setCurrentIndex(selected < 0 ? 0 : selected);
+			connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+					[this, row, combo](int) {
+						const auto& currentSignals = sceneSignals(m_sceneModel);
+						if (row < 0 || row >= static_cast<int>(currentSignals.size()))
+							return;
+						auto& editableSignals = sceneSignals(m_sceneModel);
+						const std::string protectedSection = combo->currentData().toString().toStdString();
+						if (editableSignals[static_cast<std::size_t>(row)].protectedSection == protectedSection)
+							return;
+						editableSignals[static_cast<std::size_t>(row)].protectedSection = protectedSection;
+						markSceneDirty();
+						refreshValidationPanel();
+					});
+			m_infrastructureTable->setCellWidget(row, 1, combo);
+		}
 	} else if (facet == "signalling_areas") {
 		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.signallingAreas.size()));
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
@@ -4021,6 +4068,9 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 				for (auto& incident : scenario.incidents)
 					if (incident.type == "signal_failure")
 						rewrite(incident.target);
+			for (auto& signal : sceneSignals(m_sceneModel))
+				if (!signal.protectedSection.empty())
+					rewrite(signal.protectedSection);
 			m_infrastructureSelectionId = value;
 			changed = true;
 		} else if (column == 1 && block.trackId != value.toStdString()) {
@@ -9746,7 +9796,7 @@ void MainWindow::runEditorSmokeE2E() {
 		if (left.size() != right.size())
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneSignal& a, const SceneSignal& b) {
-			return a.id == b.id;
+			return a.id == b.id && a.protectedSection == b.protectedSection;
 		});
 	};
 	auto sameSignallingAreas = [](const std::vector<SceneSignallingArea>& left,
@@ -9968,6 +10018,21 @@ void MainWindow::runEditorSmokeE2E() {
 					facetFailure(facetOk, "stations/signalling", "platform table authoring or station move did not apply");
 				if (!addInfrastructureRow("signals") || !setInfrastructureCell("signals", 0, 0, "e2e-signal"))
 					facetFailure(facetOk, "stations/signalling", "signal table authoring did not apply");
+				if (!chooseInfrastructureFacet("signals")) {
+					facetFailure(facetOk, "stations/signalling", "signal section choices were unavailable");
+				} else {
+					auto* protectedSection = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 1));
+					const int blockChoice = protectedSection ? protectedSection->findText(
+							QStringLiteral("base block e2e-main-block-0 / track e2e-main")) : -1;
+					if (blockChoice < 0) {
+						facetFailure(facetOk, "stations/signalling", "creator-facing signal section choice was missing");
+					} else {
+						protectedSection->setCurrentIndex(blockChoice);
+						QApplication::processEvents();
+						if (sceneSignals(m_sceneModel).front().protectedSection != "@e2e-main-block-0@")
+							facetFailure(facetOk, "stations/signalling", "signal section choice did not commit");
+					}
+				}
 				if (!addInfrastructureRow("signalling_areas"))
 					facetFailure(facetOk, "stations/signalling", "signalling area row could not be added");
 				const bool signallingAreaStartsInvalid = m_sceneModel.signallingAreas.size() == 1
@@ -10008,7 +10073,7 @@ void MainWindow::runEditorSmokeE2E() {
 				const std::string renamedBlockId = "e2e-main-block-renamed";
 				const bool blockRenamed = setInfrastructureCell("blocks", 0, 0,
 																QString::fromStdString(renamedBlockId));
-				const bool blockReferencesUpdated = blockRenamed && m_sceneModel.blocks.size() >= 2 && m_sceneModel.blocks[0].id == renamedBlockId && m_sceneModel.routes.size() == 1 && m_sceneModel.routes[0].blocks[0] == "@e2e-main-block-renamed@-0.25/@e2e-main-block-1@-0.50" && m_sceneModel.blockDependencies.size() == 1 && m_sceneModel.blockDependencies[0].block == "@e2e-main-block-renamed@-1.0" && m_sceneModel.singleTrackRestrictions.size() == 1 && m_sceneModel.singleTrackRestrictions[0].protectedStartBlock == "@e2e-main-block-renamed@-1.0/@e2e-main-block-1@-2.0" && m_sceneModel.stationBoundaries.size() == 1 && m_sceneModel.stationBoundaries[0].entranceBlock == "@e2e-main-block-renamed@-3.0";
+				const bool blockReferencesUpdated = blockRenamed && m_sceneModel.blocks.size() >= 2 && m_sceneModel.blocks[0].id == renamedBlockId && m_sceneModel.routes.size() == 1 && m_sceneModel.routes[0].blocks[0] == "@e2e-main-block-renamed@-0.25/@e2e-main-block-1@-0.50" && m_sceneModel.blockDependencies.size() == 1 && m_sceneModel.blockDependencies[0].block == "@e2e-main-block-renamed@-1.0" && m_sceneModel.singleTrackRestrictions.size() == 1 && m_sceneModel.singleTrackRestrictions[0].protectedStartBlock == "@e2e-main-block-renamed@-1.0/@e2e-main-block-1@-2.0" && m_sceneModel.stationBoundaries.size() == 1 && m_sceneModel.stationBoundaries[0].entranceBlock == "@e2e-main-block-renamed@-3.0" && !sceneSignals(m_sceneModel).empty() && sceneSignals(m_sceneModel).front().protectedSection == "@e2e-main-block-renamed@";
 				if (!blockReferencesUpdated)
 					facetFailure(facetOk, "infrastructure", "block ID rename did not update decorated/composite references");
 				if (!addInfrastructureRow("connections") || !setInfrastructureCell("connections", 0, 0, "e2e-switch") || !setInfrastructureCell("connections", 0, 1, mainNodeIds[2]) || !setInfrastructureCell("connections", 0, 2, yardNodeIds[0]) || !setInfrastructureCell("connections", 0, 3, "true") || !setInfrastructureCell("connections", 0, 4, "9.25"))
@@ -10064,14 +10129,17 @@ void MainWindow::runEditorSmokeE2E() {
 							commitIncidentStartSeconds();
 							commitIncidentEndSeconds();
 						}
+						const SceneIncident* signalIncident = selectedIncident();
+						if (!signalIncident || signalIncident->target != "e2e-signal")
+							facetFailure(facetOk, "stations/signalling",
+									"bound signal_failure target did not persist canonically");
 					}
-					const std::vector<SceneSignal> savedSignals = sceneSignals(m_sceneModel);
-					sceneSignals(m_sceneModel).clear();
-					refreshIncidentPanel();
+					m_addIncidentButton->click();
+					QApplication::processEvents();
 					const bool blockTargetOffered = m_incidentTargetCombo
 						&& m_incidentTargetCombo->findText(QString::fromStdString(renamedBlockId)) >= 0;
 					if (!blockTargetOffered) {
-						facetFailure(facetOk, "stations/signalling", "block target was not offered with an empty signal list");
+						facetFailure(facetOk, "stations/signalling", "block signal_failure target was not offered");
 					} else {
 						m_incidentTargetCombo->setCurrentText(QString::fromStdString(renamedBlockId));
 						commitIncidentTarget(QString::fromStdString(renamedBlockId));
@@ -10079,8 +10147,6 @@ void MainWindow::runEditorSmokeE2E() {
 						if (!blockIncident || blockIncident->target != renamedBlockId)
 							facetFailure(facetOk, "stations/signalling", "block signal_failure target did not persist canonically");
 					}
-					sceneSignals(m_sceneModel) = savedSignals;
-					refreshIncidentPanel();
 					refreshValidationPanel();
 				} else {
 					facetFailure(facetOk, "stations/signalling", "incident controls unavailable for signal coverage");
@@ -11183,7 +11249,9 @@ void MainWindow::runTrackPreviewE2E() {
 		}))
 			return false;
 		if (!std::equal(left.signals.begin(), left.signals.end(), right.signals.begin(),
-			[](const auto& a, const auto& b) { return a.id == b.id; }))
+			[](const auto& a, const auto& b) {
+				return a.id == b.id && a.protectedSection == b.protectedSection;
+			}))
 			return false;
 		if (!std::equal(left.routes.begin(), left.routes.end(), right.routes.begin(), [](const auto& a, const auto& b) {
 			return a.id == b.id && a.blocks == b.blocks;

@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include "scene/SceneValidator.h"
 
 #include <iostream>
@@ -57,7 +58,7 @@ static SceneModel completeScene() {
 	destination.platforms.push_back({"platform-2", {"node-3"}});
 	scene.stations.push_back(destination);
 
-	scene.signals.push_back({"signal-1"});
+	scene.signals.push_back({"signal-1", "block-1"});
 	scene.routes.push_back({"route-1", {"block-1", "block-2"}, false, "", false});
 
 	SceneTrainUnit unit;
@@ -121,6 +122,70 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	const SceneSectionInventory inventory = buildSceneSectionInventory(clean);
+	ok &= expect(inventory.sections.size() == 4
+				&& inventory.sections[0].id == "@block-1@"
+				&& inventory.sections[1].id == "@block-2@"
+				&& inventory.sections[2].id == "@block-1@-0.000000/@block-1@-1.000000"
+				&& inventory.sections[3].id == "@block-1@-0.000000/@block-2@-1.000000",
+				"section inventory derives canonical base and connection section IDs");
+	ok &= expect(inventory.resolve("block-1") != nullptr
+				&& inventory.resolve("block-1")->id == "@block-1@"
+				&& inventory.resolve("@block-1@-0.000000/@block-2@-1.000000") != nullptr
+				&& inventory.resolve("@block-1@-10/@block-2@-20") == nullptr,
+				"section resolver accepts base aliases but rejects unknown compound tokens");
+	SceneModel duplicateSection = clean;
+	duplicateSection.blocks.push_back({"block-1", "track-1", 0.5});
+	const SceneSectionInventory duplicateInventory = buildSceneSectionInventory(duplicateSection);
+	ok &= expect(duplicateInventory.ambiguous("block-1")
+				&& duplicateInventory.resolve("block-1") == nullptr,
+				"duplicate base IDs are not resolved ambiguously");
+	SceneModel disconnectedRoute = clean;
+	disconnectedRoute.routes[0].blocks = {"block-1", "block-1"};
+	ok &= expect(hasCode(validateScene(disconnectedRoute), "scene.route.disconnected"),
+				"authored disconnected route order is rejected");
+	SceneModel reverseRoute = clean;
+	reverseRoute.routes[0].blocks = {"block-2", "block-1"};
+	ok &= expect(!hasCode(validateScene(reverseRoute), "scene.route.disconnected"),
+				"coherent reverse route order remains valid");
+	SceneModel directionChange = clean;
+	directionChange.routes[0].blocks = {"block-1", "block-2", "block-1"};
+	ok &= expect(hasCode(validateScene(directionChange), "scene.route.direction"),
+				"a route cannot change direction between connected sections");
+	SceneModel switchChain = clean;
+	switchChain.routes[0].blocks = {inventory.sections[2].id, inventory.sections[3].id};
+	const auto switchChainDiagnostics = validateScene(switchChain);
+	ok &= expect(!hasCode(switchChainDiagnostics, "scene.route.disconnected")
+				&& !hasCode(switchChainDiagnostics, "scene.route.direction"),
+				"adjacent connection-derived sections retain switch-chain compatibility");
+	SceneModel regionJump = clean;
+	regionJump.tracks.push_back({"region-track"});
+	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});
+	regionJump.nodes.push_back({"region-node-2", "region-track", 101.0, 0.0});
+	regionJump.arcs.push_back({"region-arc", "region-track", "region-node-1", "region-node-2",
+			0.0, 0.0, 20.0});
+	regionJump.blocks.push_back({"region-block", "region-track", 1.0});
+	regionJump.routes.push_back({"region-route", {"block-2", "region-block"}, false, "", false});
+	regionJump.importReport.push_back({"legacy_root"});
+	const auto regionJumpDiagnostics = validateScene(regionJump);
+	ok &= expect(hasCode(regionJumpDiagnostics, "scene.route.region_jump")
+				&& !hasCode(regionJumpDiagnostics, "scene.route.disconnected"),
+				"legacy cross-region coordinate discontinuities remain visible and compatible");
+	regionJump.importReport.clear();
+	ok &= expect(hasCode(validateScene(regionJump), "scene.route.disconnected"),
+			"new canonical scenes reject undeclared cross-region route jumps");
+	SceneModel unboundSignal = clean;
+	unboundSignal.signals[0].protectedSection.clear();
+	ok &= expect(hasCode(validateScene(unboundSignal), "scene.signal.binding.missing"),
+				"unbound signals produce an actionable binding diagnostic");
+	SceneModel invalidSignalBinding = clean;
+	invalidSignalBinding.signals[0].protectedSection = "@block-1@-10/@block-2@-20";
+	ok &= expect(hasCode(validateScene(invalidSignalBinding), "scene.signal.binding.unresolved"),
+				"malformed signal section bindings are rejected");
+	SceneModel directBlockIncident = clean;
+	directBlockIncident.scenarios[0].incidents[0].target = "block-2";
+	ok &= expect(validateScene(directBlockIncident).empty(),
+				"direct base-block signal-failure targets remain compatible");
 	SceneModel validAreas = clean;
 	validAreas.signallingAreas = {
 		{"network-area", 0.0, 2.0, 2, {}},
@@ -415,6 +480,10 @@ int main(int argc, char** argv) {
 	overflowingBlocks.blocks[0].lengthKm = 2.1;
 	ok &= expect(hasCode(validateRunnableScene(overflowingBlocks), "scene.capacity.runtime"),
 			"block layout overflow is rejected");
+	SceneModel clippedFinalBlock = clean;
+	clippedFinalBlock.blocks[1].lengthKm = 1.5;
+	ok &= expect(hasCode(validateRunnableScene(clippedFinalBlock), "scene.native.block.clipped"),
+			"an overlong final block retains its compatibility clipping warning");
 
 	SceneModel twentyOneArcBlock = clean;
 	std::string previousNode = twentyOneArcBlock.nodes.back().id;
@@ -478,11 +547,11 @@ int main(int argc, char** argv) {
 
 	// Composite route entries resolve each basic block after stripping @...@ positions.
 	SceneModel composite = clean;
-	composite.routes[0].blocks = {"@block-1@-10/@block-2@-20"};
-	composite.blockDependencies.push_back({"@block-1@-10/@block-2@-20", "@block-1@-10"});
-	composite.singleTrackRestrictions.push_back({"@block-1@-10", "@block-2@-20",
-			"@block-1@-10", "@block-2@-20"});
-	composite.stationBoundaries.push_back({"@block-1@-10", true, "@block-2@-20", false});
+	composite.routes[0].blocks = {"@block-1@-0.000000/@block-2@-1.000000"};
+	composite.blockDependencies.push_back({"@block-1@-0.000000/@block-2@-1.000000", "block-1"});
+	composite.singleTrackRestrictions.push_back({"block-1", "block-2",
+			"block-1", "block-2"});
+	composite.stationBoundaries.push_back({"block-1", true, "block-2", false});
 	ok &= expect(validateScene(composite).empty(), "composite route block components validate");
 	composite.scenarios[0].incidents[0].target = "block-2";
 	ok &= expect(validateScene(composite).empty(), "signal failure accepts a basic block target");

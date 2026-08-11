@@ -68,20 +68,24 @@ static SceneModel signallingAreasScene() {
 	return scene;
 }
 
-static SceneModel twoRegionRouteScene() {
+static SceneModel multiRegionRouteScene() {
 	SceneModel scene;
-	scene.tracks = {{"region.a"}, {"region.b"}};
+	scene.tracks = {{"region.a"}, {"region.b"}, {"region.c"}};
 	scene.nodes = {{"a.0", "region.a", 0.0, 0.0}, {"a.1", "region.a", 1.0, 0.0},
 		{"b.0", "region.b", 1000.0, 0.0}, {"b.1", "region.b", 1001.0, 0.0},
-		{"b.2", "region.b", 1002.0, 0.0}};
+		{"b.2", "region.b", 1002.0, 0.0}, {"c.0", "region.c", 500.0, 0.0},
+		{"c.1", "region.c", 501.0, 0.0}};
 	scene.arcs = {{"a.arc", "region.a", "a.0", "a.1", 0.0, 0.0, 10.0},
 		{"b.arc.0", "region.b", "b.0", "b.1", 0.0, 0.0, 10.0},
-		{"b.arc.1", "region.b", "b.1", "b.2", 0.0, 0.0, 10.0}};
-	scene.blocks = {{"a.block", "region.a", 1.0}, {"b.block", "region.b", 2.0}};
+		{"b.arc.1", "region.b", "b.1", "b.2", 0.0, 0.0, 10.0},
+		{"c.arc", "region.c", "c.0", "c.1", 0.0, 0.0, 10.0}};
+	scene.blocks = {{"a.block", "region.a", 1.0}, {"b.block", "region.b", 2.0},
+		{"c.block", "region.c", 1.0}};
 	scene.connections.push_back({"region.jump", "a.1", "b.0", true, 10.0});
+	scene.connections.push_back({"region.jump.2", "b.2", "c.0", true, 10.0});
 	SceneRoute route;
 	route.id = "route.regions";
-	route.blocks = {"a.block", "b.block"};
+	route.blocks = {"a.block", "b.block", "c.block"};
 	scene.routes.push_back(route);
 	return scene;
 }
@@ -203,6 +207,30 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 			"duplicate switch sections are rejected before fixed-capacity runtime mutation");
+	SceneModel oversizedSwitchSection;
+	oversizedSwitchSection.tracks = {{"long.alpha"}, {"long.beta"}};
+	for (int index = 0; index <= 10; ++index) {
+		oversizedSwitchSection.nodes.push_back({"alpha." + std::to_string(index), "long.alpha",
+				static_cast<double>(index), 0.0});
+		oversizedSwitchSection.nodes.push_back({"beta." + std::to_string(index), "long.beta",
+				static_cast<double>(index + 11), 0.0});
+		if (index == 0)
+			continue;
+		oversizedSwitchSection.arcs.push_back({"alpha.arc." + std::to_string(index), "long.alpha",
+				"alpha." + std::to_string(index - 1), "alpha." + std::to_string(index),
+				0.0, 0.0, 10.0});
+		oversizedSwitchSection.arcs.push_back({"beta.arc." + std::to_string(index), "long.beta",
+				"beta." + std::to_string(index - 1), "beta." + std::to_string(index),
+				0.0, 0.0, 10.0});
+	}
+	oversizedSwitchSection.blocks = {{"long.alpha.block", "long.alpha", 10.0},
+		{"long.beta.block", "long.beta", 10.0}};
+	oversizedSwitchSection.connections.push_back(
+			{"long.switch", "alpha.10", "beta.0", false, 0.0});
+	diagnostics = buildInfrastructureAndSignallingFromScene(oversizedSwitchSection);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "capacity")
+			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
+			"derived switch arc capacity is rejected before runtime mutation");
 	SceneModel runtimeBlockIdCollision = scene;
 	runtimeBlockIdCollision.blocks[1].id = "@block.a@";
 	runtimeBlockIdCollision.routes.front().blocks[1] = "@block.a@";
@@ -271,10 +299,14 @@ static bool runTinyBuilderChecks() {
 			&& train_route.front().N_Block_Sections == routeBlocksBeforeMalformed,
 			"malformed decorated route references are rejected before replacing the existing runtime");
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(twoRegionRouteScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && N_Routes == 1 && train_route.size() == 1,
-			"two-region route builds with a multi-arc later block");
-	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 2) {
+			"multi-region route builds with a multi-arc middle block");
+	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3) {
+		ok &= expect(train_route.front().sequence_of_block_sections[0].ID == "@a.block@"
+				&& train_route.front().sequence_of_block_sections[1].ID == "@b.block@"
+				&& train_route.front().sequence_of_block_sections[2].ID == "@c.block@",
+				"native route construction retains authored order across coordinate regions");
 		const Section& later = train_route.front().sequence_of_block_sections[1];
 		const bool kilometerEndpoints = later.total_arcs == 2
 				&& std::fabs(later.arcs_in_signalling_block_section[0].startNode.X - 1.0) < 1e-9

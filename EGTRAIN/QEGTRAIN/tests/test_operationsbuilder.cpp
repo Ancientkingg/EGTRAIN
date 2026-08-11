@@ -14,6 +14,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <vector>
 
 Logger owl;
 
@@ -62,7 +63,7 @@ static SceneModel completeScene() {
 		{"arc.2", "track.native", "node.2", "node.3", 0.0, 0.0, 20.0}};
 	scene.blocks = {{"signal.0", "track.native", 1.0}, {"block.1", "track.native", 1.0},
 		{"block.2", "track.native", 1.0}};
-	scene.signals = {{"signal.0"}};
+	scene.signals = {{"signal.0", "block.1"}};
 
 	scene.stations = {
 		{"station.0", "Zero", false, 0.0, {{"platform.0", {"node.0"}}}},
@@ -192,7 +193,24 @@ int main() {
 			&& !simulationIncidents[1].hasReducedSpeed,
 			"legacy breakdown incidents retain full-hold runtime defaults");
 	if (!simulationIncidents.empty())
-		ok &= expect(!simulationIncidents.front().resolvedSectionIDs.empty(), "signal failure resolves its exact runtime section");
+		ok &= expect(simulationIncidents.front().resolvedSectionIDs
+				== std::vector<std::string>{"@block.1@"},
+				"signal failure resolves its protected section to the exact runtime ID");
+	SceneModel directBlockIncident = completeScene();
+	directBlockIncident.signals.front().protectedSection.clear();
+	directBlockIncident.scenarios[1].incidents[0].target = "block.1";
+	const auto directInfrastructure = buildInfrastructureAndSignallingFromScene(directBlockIncident);
+	const auto directOperations = buildOperationsFromScene(directBlockIncident, "scenario.selected");
+	ok &= expect(!hasErrors(directInfrastructure) && !hasErrors(directOperations)
+				&& !simulationIncidents.empty()
+				&& simulationIncidents.front().resolvedSectionIDs == std::vector<std::string>{"@block.1@"},
+				"direct base-block signal failures remain compatible without signal binding");
+	SceneModel unboundSignal = completeScene();
+	unboundSignal.signals.front().protectedSection.clear();
+	const auto unboundInfrastructure = buildInfrastructureAndSignallingFromScene(unboundSignal);
+	const auto unboundOperations = buildOperationsFromScene(unboundSignal, "scenario.selected");
+	ok &= expect(!hasErrors(unboundInfrastructure) && hasErrors(unboundOperations),
+				"targeting an unbound signal fails operations staging instead of guessing");
 	SceneModel occurrenceSpecific = completeScene();
 	SceneIncident& occurrenceBreakdown = occurrenceSpecific.scenarios[1].incidents[1];
 	occurrenceBreakdown.hasOccurrence = true;

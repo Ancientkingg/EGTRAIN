@@ -81,7 +81,11 @@ optional numeric `position_km`, and optional `platforms`. A platform has an
 
 Required root arrays are `signals` and `routes`.
 
-- `signals[]`: `{ "id": string }`.
+- `signals[]`: required string `id` and optional string `protected_section`.
+  `protected_section` names one exact derived runtime section (a base block
+  alias is accepted for V1 compatibility); it is omitted when empty. Signal
+  failures resolve through this binding, while direct base-block incident
+  targets remain supported.
 - `routes[]`: required `id` and string-array `blocks`; optional string
   `corridor` and boolean `reversed`.
 - `signalling_areas[]`: required `id`, numeric `start_km`, numeric `end_km`,
@@ -102,6 +106,16 @@ the same precedence tier that cover one section are invalid. The builder
 applies areas after base and switch sections exist and before routes copy them.
 A section with no matching area retains the unset signalling value. The loader
 and writer never create a default level.
+
+Section references are resolved from the transient section inventory derived
+from the authored tracks, blocks, arcs, and connections. Route order is
+authored order. Adjacent sections must remain contiguous and keep one direction
+inside a connected region. Scenes carrying legacy-import provenance retain
+their historical jumps between different regional coordinate systems with a
+validation warning; newly authored scenes require a declared connection.
+Unknown or malformed
+compound section tokens are invalid. The inventory is not persisted as a
+second topology model.
 
 ## `rolling_stock.json`
 

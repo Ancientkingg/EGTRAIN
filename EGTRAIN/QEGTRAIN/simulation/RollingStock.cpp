@@ -1,5 +1,6 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
 
@@ -421,32 +422,13 @@ bool nativeRuntimePlatformExists(const std::string& platformId, const std::strin
 	return false;
 }
 
-int nativeResolveRuntimeSection(const std::string& target,
-		const std::unordered_set<std::string>& canonicalBlocks,
-		const std::unordered_set<std::string>& canonicalSignals) {
-	const bool isBlock = canonicalBlocks.count(target) != 0;
-	const bool isSignal = canonicalSignals.count(target) != 0;
-	if (!isBlock && !isSignal)
+
+int nativeResolveRuntimeSection(const std::string& runtimeSectionId) {
+	if (runtimeSectionId.empty())
 		return -1;
-	const std::string signalToken = "@" + target + "@";
-	for (int index = 0; index < Blocks; ++index) {
-		const std::string runtimeId = signalling_block_sections[index].ID;
-		if (isBlock && (runtimeId == target
-				|| (runtimeId.size() > 2 && runtimeId.front() == '@' && runtimeId.back() == '@'
-						&& runtimeId.substr(1, runtimeId.size() - 2) == target)))
+	for (int index = 0; index < Blocks; ++index)
+		if (signalling_block_sections[index].ID == runtimeSectionId)
 			return index;
-		if (isSignal && (runtimeId == target || runtimeId.find(signalToken) != std::string::npos))
-			return index;
-	}
-	for (const Route& route : train_route) {
-		for (const InfraElement& element : route.InfrastructureElements) {
-			if (isSignal && element.ID == target) {
-				for (int index = 0; index < Blocks; ++index)
-					if (signalling_block_sections[index].ID == element.SectionID)
-						return index;
-			}
-		}
-	}
 	return -1;
 }
 
@@ -900,16 +882,11 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	std::vector<SimulationIncident> stagedIncidents;
 	std::map<SceneServiceOccurrence, double> occurrenceDelay;
 	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
+	SceneSectionInventory sectionInventory;
+	if (scenario != nullptr && std::any_of(scenario->incidents.begin(), scenario->incidents.end(),
+			[](const SceneIncident& incident) { return incident.type == "signal_failure"; }))
+		sectionInventory = buildSceneSectionInventory(scene);
 	if (scenario != nullptr) {
-		std::unordered_set<std::string> canonicalBlocks;
-		std::unordered_set<std::string> canonicalSignals;
-		for (const SceneBlock& block : scene.blocks)
-			canonicalBlocks.insert(block.id);
-		for (const SceneRoute& route : scene.routes)
-			for (const std::string& block : route.blocks)
-				canonicalBlocks.insert(block);
-		for (const SceneSignal& signal : scene.signals)
-			canonicalSignals.insert(signal.id);
 		for (const SceneIncident& incident : scenario->incidents) {
 			bool valid = true;
 			if (incident.type != "signal_failure" && incident.type != "train_breakdown") {
@@ -983,7 +960,17 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			runtimeIncident.startSeconds = incident.startSeconds;
 			runtimeIncident.endSeconds = incident.endSeconds;
 			if (incident.type == "signal_failure") {
-				const int sectionIndex = nativeResolveRuntimeSection(incident.target, canonicalBlocks, canonicalSignals);
+				const SceneSectionDescriptor* targetSection = nullptr;
+				const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
+						[&incident](const SceneSignal& candidate) { return candidate.id == incident.target; });
+				if (signal != scene.signals.end()) {
+					if (!signal->protectedSection.empty())
+						targetSection = sectionInventory.resolve(signal->protectedSection);
+				} else {
+					targetSection = sectionInventory.resolve(incident.target);
+				}
+				const int sectionIndex = targetSection == nullptr ? -1
+						: nativeResolveRuntimeSection(targetSection->id);
 				if (sectionIndex >= 0)
 					runtimeIncident.resolvedSectionIDs.push_back(signalling_block_sections[sectionIndex].ID);
 				else {

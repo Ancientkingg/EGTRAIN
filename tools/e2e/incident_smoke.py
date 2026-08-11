@@ -145,13 +145,18 @@ def main() -> None:
                      f"{BLOCK_ENTRY_M:.0f} m during [{SF_WINDOW_START},{SF_WINDOW_END}] in the base scene")
         print(f"PASS control: {TARGET_TRAIN} passes {BLOCK_ENTRY_M:.0f} m during the failure window in the base scene")
 
-        # Incident: same scene plus a signal_failure on a block ahead of the train.
+        # Incident: same scene plus a named signal bound to a block ahead of the train.
         sf_scene = tmp_dir / "scene_signal_failure"
         shutil.copytree(SCENE_DIR, sf_scene)
+        signal_id = "smoke_signal"
+        signalling_path = sf_scene / "signalling.json"
+        signalling = json.loads(signalling_path.read_text(encoding="utf-8"))
+        signalling["signals"].append({"id": signal_id, "protected_section": FAILED_BLOCK})
+        signalling_path.write_text(json.dumps(signalling, indent=2), encoding="utf-8")
         sf_incidents = {"incidents": [{
             "id": "smoke_signal_failure",
             "type": "signal_failure",
-            "target": FAILED_BLOCK,
+            "target": signal_id,
             "start_seconds": SF_WINDOW_START,
             "end_seconds": SF_WINDOW_END,
         }]}

@@ -50,9 +50,17 @@ array of node IDs.
 
 ## Signalling
 
-`signalling.json` requires `signals` and `routes` arrays. A signal has `id`.
-A route has `id`, a string-array `blocks`, and optional `corridor` and
-`reversed`.
+`signalling.json` requires `signals` and `routes` arrays. A signal has `id`
+and may have `protected_section`, an exact section-catalog reference used to
+resolve signal-failure incidents. Empty bindings are omitted by the writer;
+an unbound signal is actionable validation output when used by an incident.
+A direct base-block incident target remains compatible. A route has `id`, a
+string-array `blocks`, and optional `corridor` and `reversed`; its block tokens
+are authored in forward or reverse order and are never silently sorted.
+Continuity is required inside one connected region. A scene with legacy-import
+provenance retains historical cross-region coordinate jumps with a warning;
+newly authored scenes require a declared connection. Compound tokens must be
+exact derived section IDs.
 
 Use these optional arrays for explicit signalling relationships:
 

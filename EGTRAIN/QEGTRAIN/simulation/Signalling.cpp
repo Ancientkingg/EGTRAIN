@@ -1,5 +1,6 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include <algorithm>
 #include <cmath>
 #include <unordered_map>
@@ -2026,9 +2027,7 @@ void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds) {
 	final = BlockList.end();
 	final--;
 
-	if (start->start_node.X < final->start_node.X) {
-		BlockList.sort(orderBlocks);
-
+	if (BlockList.size() == 1 || start->start_node.X < final->start_node.X) {
 		list<Section>::iterator it = BlockList.begin();
 
 		if (BlockList.empty() != 1) {
@@ -2052,7 +2051,6 @@ void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds) {
 		}
 	} else {
 		reversed_direction = true;
-		BlockList.sort(reverseOrderBlocks);
 		list<Section> TEMPBlockList;
 		list<Section>::iterator q = BlockList.begin();
 		OriginalRefReversedRoute = q->end_node.X * 1000;
@@ -2468,90 +2466,68 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 	if (nativeHasErrors(diagnostics))
 		return diagnostics;
+	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	std::vector<NativeBlockPlan> blockPlans;
 	blockPlans.reserve(scene.blocks.size());
-	for (std::size_t slot = 0; slot < nativeTracks.size(); ++slot) {
-		NativeTrack& track = nativeTracks[slot];
-		std::vector<const SceneBlock*> trackBlocks;
-		for (const auto& block : scene.blocks)
-			if (block.trackId == track.id)
-				trackBlocks.push_back(&block);
-		if (trackBlocks.empty()) {
+	std::unordered_map<std::string, int> trackSlots;
+	for (std::size_t slot = 0; slot < nativeTracks.size(); ++slot)
+		trackSlots[nativeTracks[slot].id] = static_cast<int>(slot);
+	for (const auto& track : nativeTracks) {
+		bool hasBlock = false;
+		for (const auto& section : sectionInventory.sections)
+			if (!section.connectionDerived && section.firstTrackId == track.id)
+				hasBlock = true;
+		if (!hasBlock)
 			add(SceneSeverity::Error, "scene.native.topology.blocks", "Track has no block sections",
-				"infrastructure.json", "track", track.id);
+					"infrastructure.json", "track", track.id);
+	}
+	for (const auto& section : sectionInventory.sections) {
+		if (section.connectionDerived)
 			continue;
-		}
-		if (track.chainNodes.empty())
+		const auto block = std::find_if(scene.blocks.begin(), scene.blocks.end(),
+				[&section](const SceneBlock& candidate) { return candidate.id == section.sourceBlockId; });
+		const auto slot = trackSlots.find(section.firstTrackId);
+		if (block == scene.blocks.end() || slot == trackSlots.end())
 			continue;
-		const double trackEnd = track.chainNodes.back()->xKm;
-		double cursor = track.chainNodes.front()->xKm;
-		for (std::size_t blockIndex = 0; blockIndex < trackBlocks.size(); ++blockIndex) {
-			const SceneBlock* block = trackBlocks[blockIndex];
-			double end = cursor + block->lengthKm;
-			if (end > trackEnd + kNativeCoordinateTolerance) {
-				if (blockIndex + 1 == trackBlocks.size() && cursor < trackEnd - kNativeCoordinateTolerance) {
-					add(SceneSeverity::Warning, "scene.native.block.clipped",
-						"Final block length exceeds its track and is clipped at the final node",
-						"infrastructure.json", "block", block->id, "blocks.length_km", track.id);
-					end = trackEnd;
-				} else {
-					add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section extends beyond its track",
-						"infrastructure.json", "block", block->id, "blocks.length_km", track.id);
-				}
-			}
-			if (end <= cursor + kNativeCoordinateTolerance)
-				add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section has no positive runtime span",
+		if (section.endKm <= section.startKm + kNativeCoordinateTolerance)
+			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section has no positive runtime span",
 					"infrastructure.json", "block", block->id);
-			int arcCount = 0;
-			for (const SceneArc* arc : track.chainArcs) {
-				const double beginX = nodesById[arc->fromNodeId]->xKm;
-				const double finishX = nodesById[arc->toNodeId]->xKm;
-				if (finishX > cursor + kNativeCoordinateTolerance
-						&& beginX < end - kNativeCoordinateTolerance)
-					++arcCount;
-			}
-			if (arcCount > kNativeMaxSectionArcs)
-				add(SceneSeverity::Error, "scene.native.capacity", "Block section exceeds the runtime arc capacity",
-					"infrastructure.json", "block", block->id, "blocks", std::to_string(kNativeMaxSectionArcs));
-			blockPlans.push_back({block, static_cast<int>(slot), cursor, std::min(end, trackEnd)});
-			cursor = end;
-		}
-		if (cursor < trackEnd - kNativeCoordinateTolerance) {
-			if (!blockPlans.empty() && blockPlans.back().trackSlot == static_cast<int>(slot)) {
-				add(SceneSeverity::Warning, "scene.native.block.extended",
+		if (section.layoutOverflow)
+			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section extends beyond its track",
+					"infrastructure.json", "block", block->id);
+		if (section.clippedToTrackEnd)
+			add(SceneSeverity::Warning, "scene.native.block.clipped",
+					"Final block length exceeds its track and is clipped at the final node",
+					"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
+		if (section.trackCoverageGap)
+			add(SceneSeverity::Warning, "scene.native.block.extended",
 					"Final block section is extended to cover the imported track endpoint",
-					"infrastructure.json", "block", blockPlans.back().source->id, "blocks.length_km", track.id);
-				blockPlans.back().endX = trackEnd;
-				cursor = trackEnd;
-			} else {
-				add(SceneSeverity::Error, "scene.native.topology.blocks", "Block sections do not cover the complete track",
-					"infrastructure.json", "track", track.id, "tracks.blocks");
-			}
-		}
+					"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
+		blockPlans.push_back({&*block, slot->second, section.startKm, section.endKm});
 	}
 	std::unordered_set<std::string> plannedSectionIds;
 	std::vector<NativeSectionPlan> signallingSectionPlans;
-	signallingSectionPlans.reserve(blockPlans.size() + scene.connections.size());
-	for (const auto& plan : blockPlans) {
-		const std::string runtimeId = nativeRuntimeBlockId(plan.source->id);
-		if (!plannedSectionIds.insert(runtimeId).second) {
+	signallingSectionPlans.reserve(sectionInventory.sections.size());
+	for (const auto& section : sectionInventory.sections) {
+		if (section.arcCount > kNativeMaxSectionArcs)
+			add(SceneSeverity::Error, "scene.native.capacity", "Section exceeds the runtime arc capacity",
+					"infrastructure.json", section.connectionDerived ? "connection" : "block",
+					section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
+					"sections", std::to_string(kNativeMaxSectionArcs));
+		if (!plannedSectionIds.insert(section.id).second) {
 			add(SceneSeverity::Error, "scene.native.id.duplicate",
-				"Blocks produce the same runtime section ID", "infrastructure.json",
-				"block", plan.source->id, "blocks", runtimeId);
-		} else {
-			signallingSectionPlans.push_back(
-					{runtimeId, plan.startX, plan.endX, plan.source->trackId, {}});
+					"Sections produce the same runtime section ID", "infrastructure.json",
+					section.connectionDerived ? "connection" : "block",
+					section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
+					"sections", section.id);
+			continue;
 		}
+		signallingSectionPlans.push_back({section.id, section.startKm, section.endKm,
+				section.firstTrackId, section.secondTrackId});
 	}
 	auto plannedRuntimeId = [&](const std::string& reference) {
-		if (plannedSectionIds.find(reference) != plannedSectionIds.end())
-			return reference;
-		if (reference.find('/') == std::string::npos) {
-			const std::string wrapped = nativeRuntimeBlockId(reference);
-			if (plannedSectionIds.find(wrapped) != plannedSectionIds.end())
-				return wrapped;
-		}
-		return std::string();
+		const auto* section = sectionInventory.resolve(reference);
+		return section == nullptr ? std::string() : section->id;
 	};
 	auto validatePlannedReference = [&](const std::string& reference, const std::string& type,
 			const std::string& id, const std::string& path) {
@@ -2559,59 +2535,6 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			add(SceneSeverity::Error, "scene.native.ref.unresolved",
 				"Reference does not identify a planned runtime section", "signalling.json", type, id, path, reference);
 	};
-	for (const auto& connection : scene.connections) {
-		const auto from = nodesById.find(connection.fromNodeId);
-		const auto to = nodesById.find(connection.toNodeId);
-		if (from == nodesById.end() || to == nodesById.end())
-			continue;
-		const SceneNode* first = from->second;
-		const SceneNode* second = to->second;
-		if (first->xKm > second->xKm)
-			std::swap(first, second);
-		if (first->xKm + kNativeCoordinateTolerance >= second->xKm)
-			continue;
-		char firstX[32], secondX[32];
-		sprintf_s(firstX, "%f", first->xKm);
-		sprintf_s(secondX, "%f", second->xKm);
-		for (const auto& firstPlan : blockPlans) {
-			if (firstPlan.source->trackId != first->trackId
-					|| first->xKm < firstPlan.startX - kNativeCoordinateTolerance
-					|| first->xKm > firstPlan.endX + kNativeCoordinateTolerance)
-				continue;
-			for (const auto& secondPlan : blockPlans) {
-				if (secondPlan.source->trackId == second->trackId
-						&& second->xKm >= secondPlan.startX - kNativeCoordinateTolerance
-						&& second->xKm <= secondPlan.endX + kNativeCoordinateTolerance) {
-					const std::string derivedId = nativeRuntimeBlockId(firstPlan.source->id) + "-" + firstX
-							+ "/" + nativeRuntimeBlockId(secondPlan.source->id) + "-" + secondX;
-					if (!plannedSectionIds.insert(derivedId).second) {
-						add(SceneSeverity::Error, "scene.native.id.duplicate",
-							"Connections produce the same runtime switch section",
-							"infrastructure.json", "connection", connection.id, "connections", derivedId);
-					} else {
-						signallingSectionPlans.push_back({derivedId, firstPlan.startX, secondPlan.endX,
-							firstPlan.source->trackId, secondPlan.source->trackId});
-					}
-					int derivedArcCount = 1;
-					for (const SceneArc* arc : nativeTracks[firstPlan.trackSlot].chainArcs) {
-						const double beginX = std::max(firstPlan.startX, nodesById[arc->fromNodeId]->xKm);
-						const double endX = std::min(firstPlan.endX, nodesById[arc->toNodeId]->xKm);
-						if (endX > beginX + kNativeCoordinateTolerance && endX <= first->xKm + kNativeCoordinateTolerance)
-							++derivedArcCount;
-					}
-					for (const SceneArc* arc : nativeTracks[secondPlan.trackSlot].chainArcs) {
-						const double beginX = std::max(secondPlan.startX, nodesById[arc->fromNodeId]->xKm);
-						const double endX = std::min(secondPlan.endX, nodesById[arc->toNodeId]->xKm);
-						if (endX > beginX + kNativeCoordinateTolerance && endX > second->xKm + kNativeCoordinateTolerance)
-							++derivedArcCount;
-					}
-					if (derivedArcCount > kNativeMaxSectionArcs)
-						add(SceneSeverity::Error, "scene.native.capacity", "Derived switch section exceeds the runtime arc capacity",
-							"infrastructure.json", "connection", connection.id, "connections", std::to_string(kNativeMaxSectionArcs));
-				}
-			}
-		}
-	}
 	if (plannedSectionIds.size() > static_cast<std::size_t>(kNativeMaxBlocks))
 		add(SceneSeverity::Error, "scene.native.capacity", "Base blocks and derived switch sections exceed runtime capacity",
 			"infrastructure.json", "block", "", "blocks", std::to_string(kNativeMaxBlocks));
@@ -3002,6 +2925,22 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 
 	setAllConnections();
+	std::unordered_map<std::string, int> sectionAliases;
+	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex)
+		sectionAliases[signalling_block_sections[sectionIndex].ID] = sectionIndex;
+	const bool sectionMismatch = sectionAliases.size() != static_cast<std::size_t>(Blocks)
+			|| sectionAliases.size() != plannedSectionIds.size()
+			|| std::any_of(plannedSectionIds.begin(), plannedSectionIds.end(),
+					[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
+	if (sectionMismatch) {
+		add(SceneSeverity::Error, "scene.native.sections.mismatch",
+				"Legacy connection construction produced section IDs different from the planned inventory",
+				"infrastructure.json", "section", "", "sections",
+				"planned=" + std::to_string(plannedSectionIds.size())
+						+ ", actual=" + std::to_string(sectionAliases.size()),
+				"Fix topology or block placement so native section identities match the section catalog");
+		return diagnostics;
+	}
 	if (Blocks > kNativeMaxBlocks) {
 		add(SceneSeverity::Error, "scene.native.capacity", "Derived switch sections exceed the runtime capacity",
 			"infrastructure.json", "block", "", "connections", std::to_string(kNativeMaxBlocks));
@@ -3016,17 +2955,11 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		return diagnostics;
 	setDependenciesBetweenBlocksInternal(false);
 
-	std::unordered_map<std::string, int> sectionAliases;
-	for (int index = 0; index < Blocks; ++index)
-		sectionAliases[signalling_block_sections[index].ID] = index;
-	for (int index = 0; index < Blocks; ++index) {
-		const std::string& runtimeId = signalling_block_sections[index].ID;
-		if (runtimeId.size() > 2 && runtimeId.front() == '@' && runtimeId.back() == '@'
-				&& runtimeId.find('/') == std::string::npos)
-			sectionAliases.emplace(runtimeId.substr(1, runtimeId.size() - 2), index);
-	}
 	auto resolveSection = [&](const std::string& reference) -> int {
-		const auto section = sectionAliases.find(reference);
+		const auto* planned = sectionInventory.resolve(reference);
+		if (planned == nullptr)
+			return -1;
+		const auto section = sectionAliases.find(planned->id);
 		return section == sectionAliases.end() ? -1 : section->second;
 	};
 	auto addSectionDependency = [&](const std::string& sourceRef, const std::string& targetRef,
@@ -3117,10 +3050,24 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	if (nativeHasErrors(diagnostics))
 		return diagnostics;
 	setUpRoutesFromScene(scene);
-	for (std::size_t index = 0; index < scene.routes.size(); ++index)
-		if (index >= train_route.size() || train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size()))
+	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
+		if (index >= train_route.size()
+				|| train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
 			add(SceneSeverity::Error, "scene.native.route.truncated", "Route did not retain every canonical block token",
-				"signalling.json", "route", scene.routes[index].id, "routes.blocks");
+					"signalling.json", "route", scene.routes[index].id, "routes.blocks");
+			continue;
+		}
+		for (std::size_t blockIndex = 0; blockIndex < scene.routes[index].blocks.size(); ++blockIndex) {
+			const auto* planned = sectionInventory.resolve(scene.routes[index].blocks[blockIndex]);
+			if (planned == nullptr || train_route[index].sequence_of_block_sections[blockIndex].ID != planned->id)
+				add(SceneSeverity::Error, "scene.native.route.order",
+						"Native route order does not retain the authored section IDs",
+						"signalling.json", "route", scene.routes[index].id,
+						"routes.blocks[" + std::to_string(blockIndex) + "]",
+						planned == nullptr ? scene.routes[index].blocks[blockIndex] : planned->id,
+						"Keep route tokens in authored order and use exact catalog IDs");
+		}
+	}
 	setRouteVirtualSignals();
 	setListAllInfrastructureElementsFromRoutes(train_route, N_Routes);
 	return diagnostics;
