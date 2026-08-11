@@ -598,8 +598,7 @@ private:
 	void commitInfrastructureCell(int row, int column);
 	void addInfrastructureEntity();
 	void insertBlock();
-	void moveBlockUp();
-	void moveBlockDown();
+	void moveBlock(int offset);
 	void addRouteSection();
 	void removeRouteSection();
 	void moveRouteSectionUp();

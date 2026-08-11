@@ -301,6 +301,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The final fresh correctness reviewer passed the build, CTest 43 of 43, editor smoke, and visual-polish smoke
   before reporting the stale route-pane visibility defect. After that correction, the build passed, the same
   five-test gate passed 5 of 5 in 2.20 seconds, and editor smoke passed after all 7 scene tests.
+- The fresh PR 2 closeout review found no P0, P1, or P2 issue at `49c0d74`. It independently passed the full
+  build, CTest 43 of 43 in 120.38 seconds, editor smoke, and visual-polish smoke.
+- After applying the PR 2 Ponytail simplifications, the full build passed, the five-test topology/persistence
+  gate passed 5 of 5 in 2.16 seconds, and editor smoke passed after all 7 scene tests.
 - `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
@@ -377,6 +381,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The final fresh PR 2 review found no P0 or P1 issue at `42b883a` but found one P2 UI-state blocker. The route
   section detail pane was created visible and refreshed only while the Routes facet was active, so it remained
   visible with stale content after switching to Blocks, Signals, or another facet.
+- The fresh PR 2 closeout review found no P0, P1, or P2 issue at `49c0d74` after tracing the complete public
+  editor, model, persistence, validation, and native route path.
 
 ### Corrections made
 
@@ -465,11 +471,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The reviewer suggested deleting this tracked ledger because it does not affect product behavior. That
   suggestion was not applied because the execution brief explicitly requires this file to persist through
   all milestones and remain as a final deliverable.
+- The PR 2 Ponytail review identified three practical reductions: use the existing filtered block-row map for
+  neighbor moves, remove text-cell commit branches made unreachable by section combos, and share the repeated
+  anonymous-row add/delete smoke sequence.
 
 ### Simplifications made
 
 - The implementation uses one transient derived inventory rather than a second persisted topology model.
   No further production simplification was justified after the clean correctness review.
+- PR 2 now uses one direction-parameterized block-move path, deletes the two unreachable linked-topology text
+  commit paths, and uses one local smoke helper for dependency, restriction, and boundary row deletion checks.
 
 ## Blockers
 
@@ -483,5 +494,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Run a fresh independent correctness review over PR #291. Fix every verified blocker, rerun the affected gates,
-then run the Ponytail simplicity review over the corrected diff.
+Run a fresh correctness closeout over the PR 2 simplification diff, rerun the affected gates, confirm current CI,
+then merge PR #291 if clean.
