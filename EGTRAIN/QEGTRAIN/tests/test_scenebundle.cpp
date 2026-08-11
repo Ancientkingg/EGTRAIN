@@ -206,9 +206,21 @@ int main(int argc, char** argv) {
 			&& readBytes(firstBundle) == originalBundleBytes
 			&& readBytes(saveAsBundle) != originalBundleBytes,
 			"Save As writes a second bundle without changing the original bytes");
+	SceneModel boundScene = source.scene;
+	if (!boundScene.signals.empty())
+		boundScene.signals.front().protectedSection = "@sig.section@";
+	const fs::path boundBundle = temp.path / "bound.egscene";
+	ok &= expect(saveSceneBundle(boundScene, boundBundle.string()).success(),
+				"bundle with a protected-section binding saves");
+	const SceneLoadResult boundLoad = loadScenePath(boundBundle.string());
+	ok &= expect(!hasErrors(boundLoad.diagnostics) && !boundLoad.scene.signals.empty()
+				&& boundLoad.scene.signals.front().protectedSection == "@sig.section@",
+				"bundle preserves a present protected-section binding");
 
 	const SceneLoadResult bundled = loadScenePath(firstBundle.string());
 	ok &= expect(!hasErrors(bundled.diagnostics), "bundle loads through shared path dispatch");
+	ok &= expect(!bundled.scene.signals.empty() && bundled.scene.signals.front().protectedSection.empty(),
+				"ID-only signals remain unbound after bundle round-trip");
 	ok &= expect(sameCanonicalFiles(source.scene, bundled.scene, temp.path / "model-compare"),
 			"bundle model matches directory model");
 
