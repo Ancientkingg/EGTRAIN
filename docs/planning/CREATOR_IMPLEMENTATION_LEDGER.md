@@ -351,6 +351,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After correcting the first PR 3 review findings, the full build passed, all 7 scene tests passed in 0.69
   seconds, `tools/e2e/editor_smoke.sh` passed, and `git diff --check` passed.
 - The post-correction `graphify update .` rebuilt 6,053 nodes, 9,943 edges, and 1,633 communities.
+- The clean post-correction CTest run passed all 43 tests in 120.31 seconds. The sequential visual-polish smoke
+  passed DPR 1 and DPR 2 visuals, station overlays, scene rendering, and legacy import.
+- After applying the PR 3 Ponytail reductions, the full build passed, all 7 scene tests passed in 0.70 seconds,
+  editor smoke passed, and `git diff --check` passed.
+- The post-simplification graph update rebuilt 6,053 nodes, 9,943 edges, and 1,628 communities.
 
 ## Review record
 
@@ -369,6 +374,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   3. a focused breakdown end-time edit was skipped when the optional end-time checkbox was initially clear.
   The same review independently passed the build, 43 of 43 CTest cases, the focused scene gate, editor smoke, and
   `git diff --check`.
+- The fresh corrected-diff review found no P0, P1, or P2 issue at `8c1a957`. It independently passed the full
+  build, CTest 43 of 43, editor smoke with every required marker, and `git diff --check`.
 
 - The first fresh review of PR #290 found no P0 issue and four merge blockers:
   1. overlapping connection-derived sections could be accepted through a shared block without matching the
@@ -540,6 +547,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The PR 2 Ponytail review identified three practical reductions: use the existing filtered block-row map for
   neighbor moves, remove text-cell commit branches made unreachable by section combos, and share the repeated
   anonymous-row add/delete smoke sequence.
+- The PR 3 Ponytail review found no simpler production design and five localized reductions: reuse occurrence
+  pruning and unique-service-ID helpers, remove two redundant refresh/commit calls, and fold the pending train-unit
+  source check into the existing save/reopen round trip.
 
 ### Simplifications made
 
@@ -547,6 +557,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   No further production simplification was justified after the clean correctness review.
 - PR 2 now uses one direction-parameterized block-move path, deletes the two unreachable linked-topology text
   commit paths, and uses one local smoke helper for dependency, restriction, and boundary row deletion checks.
+- PR 3 now uses `pruneExcludedServiceOccurrences` and `uniqueServiceId` instead of local loops, removes a service
+  refresh that cannot depend on train-unit IDs, lets Run rely on validation's pending commit, and saves/reopens
+  once for the final focused-source persistence check.
 
 ## Blockers
 

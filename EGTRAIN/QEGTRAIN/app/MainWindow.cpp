@@ -5423,7 +5423,6 @@ void MainWindow::commitTrainUnitIdEdit() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshCompositionPanel();
-	updateServiceDetailPanel();
 	refreshValidationPanel();
 }
 
@@ -6374,12 +6373,7 @@ void MainWindow::deleteService() {
 		return;
 
 	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
-	for (auto it = m_excludedSceneOccurrences.begin(); it != m_excludedSceneOccurrences.end();) {
-		if (it->serviceId == id)
-			it = m_excludedSceneOccurrences.erase(it);
-		else
-			++it;
-	}
+	pruneExcludedServiceOccurrences();
 
 	markSceneDirty();
 	updateSceneWindowTitle();
@@ -6406,13 +6400,11 @@ void MainWindow::commitServiceIdEdit() {
 	}
 	if (newId == oldId)
 		return;
-	for (int index = 0; index < static_cast<int>(m_sceneModel.services.size()); ++index) {
-		if (index != row && m_sceneModel.services[static_cast<std::size_t>(index)].id == newId) {
-			const QSignalBlocker blocker(m_serviceIdEdit);
-			m_serviceIdEdit->setText(QString::fromStdString(oldId));
-			showBlockingError(this, "Service ID already exists", "Choose a unique service ID.", true);
-			return;
-		}
+	if (uniqueServiceId(newId) != newId) {
+		const QSignalBlocker blocker(m_serviceIdEdit);
+		m_serviceIdEdit->setText(QString::fromStdString(oldId));
+		showBlockingError(this, "Service ID already exists", "Choose a unique service ID.", true);
+		return;
 	}
 	for (auto& scenario : m_sceneModel.scenarios) {
 		for (auto& delay : scenario.entranceDelays)
@@ -12232,7 +12224,8 @@ void MainWindow::runEditorSmokeE2E() {
 				const int compositionRow = modelRowFor(m_sceneModel.compositions, editedCompositionId);
 				const int serviceRow = modelRowFor(m_sceneModel.services, editedServiceId);
 				if (trainUnitRow < 0 || compositionRow < 0 || serviceRow < 0
-						|| !m_compositionIdEdit || !m_trainUnitPhysicalEdits[0]
+						|| !m_compositionIdEdit || !m_trainUnitSourceDataEdit
+						|| !m_trainUnitPhysicalEdits[0]
 						|| !spinTextEdit(m_trainUnitPhysicalEdits[0])) {
 					facetFailure(facetOk, "save/reload", "pending editor controls were unavailable after reload");
 				} else {
@@ -12364,19 +12357,30 @@ void MainWindow::runEditorSmokeE2E() {
 								m_sceneModel.routes.front().blocks = validRoute;
 								refreshValidationPanel();
 							}
+							}
 						}
-					}
-					expectedTrainUnits = m_sceneModel.trainUnits;
-					expectedCompositions = m_sceneModel.compositions;
-					expectedServices = m_sceneModel.services;
-					expectedIncidents = selectedScenarioIncidents();
-					if (!saveSceneToCurrentDir() || !openSceneDirectory(outScenePath)
-							|| !sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)
-							|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
-							|| !sameServices(expectedServices, m_sceneModel.services)
-							|| !sameIncidents(expectedIncidents, selectedScenarioIncidents()))
-						facetFailure(facetOk, "save/reload", "pending editor values did not survive Save and reopen");
-					bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
+						const std::string pendingSource = "e2e/source-data-pending-save.txt";
+						m_trainUnitListWidget->setCurrentRow(trainUnitRow);
+						m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
+						m_trainUnitSourceDataEdit->setFocus();
+						if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
+								== pendingSource) {
+							facetFailure(facetOk, "save/reload", "pending source edit committed before Save");
+						} else if (!saveSceneToCurrentDir()) {
+							facetFailure(facetOk, "save/reload", "pending editor values were not saved");
+						} else {
+							expectedTrainUnits = m_sceneModel.trainUnits;
+							expectedCompositions = m_sceneModel.compositions;
+							expectedServices = m_sceneModel.services;
+							expectedIncidents = selectedScenarioIncidents();
+							if (!openSceneDirectory(outScenePath)
+									|| !sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)
+									|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
+									|| !sameServices(expectedServices, m_sceneModel.services)
+									|| !sameIncidents(expectedIncidents, selectedScenarioIncidents()))
+								facetFailure(facetOk, "save/reload", "pending editor values did not survive Save and reopen");
+						}
+						bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
 					if (m_serviceOccurrenceTable) {
 						for (int row = 0; row < m_serviceOccurrenceTable->rowCount(); ++row) {
 							QTableWidgetItem* include = m_serviceOccurrenceTable->item(row, 0);
@@ -12385,31 +12389,7 @@ void MainWindow::runEditorSmokeE2E() {
 					}
 					if (!selectionRoundtripOk)
 						facetFailure(facetOk, "save/reload", "temporary occurrence selection was serialized or not reset on reopen");
-
-					const auto editedUnit = std::find_if(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
-														 [&editedTrainUnitId](const SceneTrainUnit& unit) { return unit.id == editedTrainUnitId; });
-					if (editedUnit == m_sceneModel.trainUnits.end() || !m_trainUnitSourceDataEdit) {
-						facetFailure(facetOk, "save/reload", "edited train unit or source editor unavailable");
-					} else {
-						const int trainUnitRow = static_cast<int>(std::distance(m_sceneModel.trainUnits.begin(), editedUnit));
-						m_trainUnitListWidget->setCurrentRow(trainUnitRow);
-						const std::string pendingSource = "e2e/source-data-pending-save.txt";
-						m_trainUnitSourceDataEdit->setFocus();
-						m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
-						if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile == pendingSource) {
-							facetFailure(facetOk, "save/reload", "pending source edit committed before the save path");
-						} else if (!saveSceneToCurrentDir()) {
-							facetFailure(facetOk, "save/reload", "save path rejected a pending source edit");
-						} else if (!openSceneDirectory(outScenePath)) {
-							facetFailure(facetOk, "save/reload", "scene with a pending source edit did not reload");
-						} else {
-							const auto reloadedUnit = std::find_if(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
-																   [&editedTrainUnitId](const SceneTrainUnit& unit) { return unit.id == editedTrainUnitId; });
-							if (reloadedUnit == m_sceneModel.trainUnits.end() || reloadedUnit->sourceDataFile != pendingSource)
-								facetFailure(facetOk, "save/reload", "pending source edit was not saved and reloaded");
-						}
 					}
-				}
 			}
 			if (facetOk)
 				std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
@@ -13826,7 +13806,6 @@ void MainWindow::runScene() {
 	if (!m_sceneLoaded)
 		return;
 
-	commitPendingEditorValues();
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
