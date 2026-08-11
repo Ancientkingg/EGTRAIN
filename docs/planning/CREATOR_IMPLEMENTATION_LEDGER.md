@@ -62,6 +62,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - `/` remains the reserved delimiter for connection-derived section identities. Canonical block IDs containing
   `/` still load and round-trip, but validation and direct native preflight reject them actionably before runtime
   mutation. Supporting them natively would require replacing the established section grammar and runtime parsers.
+- PR 2 keeps `SceneModel::blocks` vector order as the persisted placement contract. The editor filters blocks by
+  track, maps visible rows back to vector indices, and derives displayed placement from `SceneSectionInventory`.
+- PR 2 uses the existing section inventory for route, dependency, restriction, and boundary choices. Route order
+  is edited through one small ordered list; no schema field, second topology model, or generic editor framework is
+  added. Invalid legacy references remain visible and unchanged until the creator replaces or removes them.
 
 ## Compatibility decisions
 
@@ -91,6 +96,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Updated the existing infrastructure signal table with a creator-facing protected-section selector.
 - Added focused validator, native builder, operations, folder, bundle, and public editor-smoke coverage.
 - Updated the V1 schema/property documentation. No source data or committed case-study JSON was changed.
+- PR 2 changes only `MainWindow.{h,cpp}` and this ledger. It keeps block vector order as the canonical
+  per-track placement, adds a per-track block view with Insert and Move Up/Down, and displays derived order,
+  start, end, and coverage values from `SceneSectionInventory`.
+- PR 2 replaces normal raw route, dependency, restriction, and boundary section entry with catalog-backed
+  controls. Legacy and invalid references stay visible until the creator replaces or removes them. No model,
+  schema, validator, native builder, or case-study data changed.
+- The existing editor smoke now creates two track chains, six blocks, a connection, and a three-section switched
+  route entirely through public widgets. It exercises block insertion and reordering, route add/remove/reorder,
+  typed linked references, folder and bundle round trips, a reference-preserving block rename, and direct native
+  construction retaining the exact authored route order. The smoke never types a generated section identity.
 
 ## Verification record
 
@@ -262,6 +277,20 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   The sanitizer job completed in 15 minutes 46 seconds.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - PR 1 merge commit: `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`.
+- PR 2 baseline configure and full build passed after adding the Homebrew Qt 5 prefix. Its focused
+  `scenevalidator`, `scenewriter`, `scenebundle`, `scenebuilder`, and `operationsbuilder` gate passed 5 of 5 in
+  3.43 seconds. The baseline editor smoke then passed after all 7 scene tests passed.
+- PR 2 implementation configured and built successfully. The full CTest suite passed 43 of 43 in 124.93 seconds.
+- PR 2 six-case native headless smoke passed every case, changing-trajectory, non-sentinel, and served-station
+  assertion. Six-case round-trip smoke ended with `ROUNDTRIP PASS`. Assignment smoke passed its canonical
+  timetable check. Visual-polish smoke passed DPR 1 and DPR 2 visual, station-overlay, scene-render, and
+  legacy-import checks.
+- After removing two redundant route-panel refreshes, the full build passed, the focused
+  `scenevalidator`, `scenewriter`, `scenebundle`, `scenebuilder`, and `operationsbuilder` gate passed 5 of 5 in
+  2.21 seconds, and `tools/e2e/editor_smoke.sh` passed after all 7 scene tests.
+- The Assignment smoke file is not executable in this checkout. Direct invocation failed with permission denied;
+  rerunning it as `python3 tools/e2e/assignment_smoke.py` passed. No file mode was changed.
+- `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
 
@@ -419,5 +448,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Read current issues #57 and #286 and inspect the PR 1 editor/inventory delta on merged `main`. Obtain narrow
-topology and editor specialist handoffs, fix the smallest PR 2 design, then delegate bounded implementation.
+Commit and push the verified PR 2 diff, open the pull request for #57 and #286, then run a fresh independent
+correctness review over the actual PR before the Ponytail simplicity gate.
