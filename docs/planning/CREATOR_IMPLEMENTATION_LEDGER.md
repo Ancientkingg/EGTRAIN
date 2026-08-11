@@ -399,6 +399,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The first post-review focused run exposed an outdated test fixture that expected an invalid unselected delay
   to be ignored. After replacing it with a valid excluded delay, `test_scenevalidator`, `test_scenewriter`, and
   `test_operationsbuilder` passed 3 of 3 in 1.99 seconds. The editor smoke then passed after all 7 scene tests.
+- The corrected full CTest suite passed 43 of 43 in 123.65 seconds. Six-case headless smoke passed every exit,
+  trajectory, non-sentinel, and served-station check; six-case round-trip ended with `ROUNDTRIP PASS`.
+  Assignment, incident, and DPR 1/DPR 2 visual-polish smokes passed.
+- The corrected `graphify update .` rebuilt 6,079 nodes, 9,711 edges, and 1,692 communities.
 
 ## Review record
 
@@ -505,6 +509,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
      staging resolve the first stop with that station ID.
   The reviewer independently passed the focused three-test gate, editor smoke, and `git diff --check` before
   reporting the two reproductions.
+- The fresh corrected-diff review found no P0, P1, or P2 issue at `9c542a2`. It traced every entrance-delay row
+  through native preflight before selected-occurrence application, verified no global runtime state is published
+  on error, and confirmed first-stop selector parity. It independently passed the focused gate, editor smoke,
+  full CTest 43 of 43, and `git diff --check`.
 
 ### Corrections made
 
