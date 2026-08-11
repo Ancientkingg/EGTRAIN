@@ -126,6 +126,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   Focused validator and direct-builder regressions reject mixed ordinary and derived U-turn evidence
   before native mutation, while a separate regression preserves direction across a warned legacy
   regional segment boundary.
+- After the eighth corrected-diff review, the same six-test gate passed 6 of 6 in 2.53 seconds.
+  The exporter regression proves that a selector-produced binding to an ordinary slash-containing
+  base block maps to its representable legacy block ID instead of being dropped as a compound section.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -163,6 +166,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - all six committed scenes validated with no errors and only their previously recorded warnings;
   - the six-case headless smoke passed every case, changing-trajectory, non-sentinel, and served-station assertion;
   - Assignment smoke passed its canonical timetable assertion;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
+  - after the eighth corrected-diff fix, the full build passed and CTest passed 43 of 43 in 118.19 seconds;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
   - after the seventh corrected-diff fixes, the full configure and build passed and CTest passed 43 of 43
     in 119.44 seconds;
@@ -233,6 +238,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   and 234 communities.
 - `graphify update .` completed after the seventh corrected-diff fixes with 4871 nodes, 10910 edges,
   and 233 communities.
+- `graphify update .` completed after the eighth corrected-diff fix with 4871 nodes, 10910 edges,
+  and 233 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -281,7 +288,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   direct native preflight discarded all opposing deferred derived evidence. A monotonic legacy route
   containing a forward base-to-derived transition followed by a reverse derived transition passed and
   mutated runtime state. Existing regressions covered only routes whose evidence was entirely deferred.
-- An eighth fresh corrected-diff review remains required before Ponytail review.
+- The eighth fresh corrected-diff review found no route, binding, runtime, persistence, or case-name
+  blocker after direct probes, but found one P1 legacy-export data-loss defect. The signal-failure
+  exporter rejected every slash-containing protected-section target as compound even though canonical
+  base block IDs may contain slashes and already have direct legacy mappings. A valid `Depot/1` binding
+  was skipped and produced an empty `Incidents.txt`.
+- A ninth fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -337,6 +349,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Added mixed-evidence U-turn and segmented-regional-route regressions in both semantic validation and
   direct native preflight. The mixed route is rejected before allocation; the segmented route retains
   the expected first-segment direction.
+- Classified a signal-failure target as an exact base block through the existing `legacyBlockIds` map
+  before applying the slash-based compound-section limit. Exact wrapped selector values are unwrapped
+  only when their canonical base key exists; malformed and genuine compound targets remain skipped.
+- Extended the incident-export regression with a public-selector-shaped `@Depot/1@` binding and verified
+  the representable mapped incident row is retained.
 
 ### Ponytail findings
 
@@ -354,10 +371,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. An eighth independent correctness review and Ponytail review remain
+- PR 1 has no known test or parity blocker. A ninth independent correctness review and Ponytail review remain
   before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the seventh corrected-diff fixes, then run an eighth fresh review of PR #290. When no merge blocker
+Commit and push the eighth corrected-diff fix, then run a ninth fresh review of PR #290. When no merge blocker
 remains, run the fresh Ponytail simplicity review before final verification and merge.

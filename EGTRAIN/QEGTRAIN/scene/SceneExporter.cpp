@@ -1161,14 +1161,25 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
 					if (signal != scene.signals.end() && !signal->protectedSection.empty())
 						target = signal->protectedSection;
-					if (target.find('/') != std::string::npos) {
+					const bool wrappedReference = target.size() > 2
+							&& target.front() == '@' && target.back() == '@';
+					const std::string unwrapped = wrappedReference
+							? target.substr(1, target.size() - 2) : std::string();
+					bool exactBaseBlock = legacyBlockIds.find(target) != legacyBlockIds.end();
+					if (!exactBaseBlock && wrappedReference) {
+						if (legacyBlockIds.find(unwrapped) != legacyBlockIds.end()) {
+							target = unwrapped;
+							exactBaseBlock = true;
+						}
+					}
+					if (!exactBaseBlock && target.find('/') != std::string::npos) {
 						addDiag(SceneSeverity::Warning, "scene.export.compatibility",
 								"Signal failure " + inc.id + " was skipped because legacy incidents cannot target compound sections",
 								inc.id);
 						continue;
 					}
-					if (target.size() > 2 && target.front() == '@' && target.back() == '@')
-						target = target.substr(1, target.size() - 2);
+					if (!exactBaseBlock && wrappedReference)
+						target = unwrapped;
 					const bool routeContainsTarget = routeBlockTokens.find(target) != routeBlockTokens.end()
 							|| routeBlockTokens.find("@" + target + "@") != routeBlockTokens.end();
 					if (!routeContainsTarget)
