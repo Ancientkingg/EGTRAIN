@@ -577,12 +577,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 		const std::string origin = passengerStationIdFor(stations, fields[12], ambiguousOrigin);
 		const std::string destination = passengerStationIdFor(stations, fields[6], ambiguousDestination);
 		const bool unresolved = ambiguousOrigin || ambiguousDestination
-				|| std::none_of(stations.begin(), stations.end(), [&](const LegacyPassengerStationReference& value) {
-					return value.id == origin;
-				})
-				|| std::none_of(stations.begin(), stations.end(), [&](const LegacyPassengerStationReference& value) {
-					return value.id == destination;
-				});
+				|| !knownStation(origin) || !knownStation(destination);
 		const std::string context = unresolved
 				? "Accepted with unresolved station reference" : "Accepted";
 		if (unresolved)

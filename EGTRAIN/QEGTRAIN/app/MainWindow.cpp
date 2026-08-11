@@ -2988,8 +2988,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_passengerLegServiceCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitPassengerLegService);
 	connect(m_passengerLegOccurrenceEdit, QOverload<int>::of(&QSpinBox::valueChanged), this,
 		[this](int) { commitPassengerLegOccurrence(); });
-	connect(m_passengerLegOccurrenceEdit, &QAbstractSpinBox::editingFinished, this,
-		&MainWindow::commitPassengerLegOccurrence);
 
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages

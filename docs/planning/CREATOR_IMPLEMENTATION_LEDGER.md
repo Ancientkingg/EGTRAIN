@@ -255,6 +255,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After correcting same-valued geometry on focus loss, the same five-test gate passed 5 of 5 in 2.12 seconds.
   Editor smoke passed after all seven scene tests. It sends real numeric key input for an implicit 2.5 m width,
   changes focus, and verifies that the value becomes explicit while an untouched focused length remains absent.
+- After the PR 5 Ponytail reductions, the full affected target build passed, the five-test gate passed 5 of 5 in
+  2.70 seconds, and editor smoke passed after all seven scene tests.
 
 ### Full tests and smokes run
 
@@ -482,6 +484,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   writer, bundle, and operations-builder gate passed 5 of 5 in 2.73 seconds. `git diff --check` passed.
 - The PR 5 untouched-default correction graph update completed with 5034 nodes, 11497 edges, and 235 communities.
 - The final PR 5 geometry correction graph update completed with 5034 nodes, 11496 edges, and 242 communities.
+- The PR 5 post-Ponytail graph update completed with 5034 nodes, 11496 edges, and 243 communities.
 
 ## Review record
 
@@ -496,6 +499,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   ignored the now-unfocused editor. Qt normalization can also clear `QLineEdit::isModified`, so that flag could not
   recover all same-valued edits after focus loss. The reviewer passed the focused gate, editor smoke, and all six
   committed scene validations and found no other passenger, persistence, or native-staging defect.
+- The fresh review after that correction found no P0, P1, or P2 issue at `82e36ee`. It independently passed the
+  affected build, focused gate 5 of 5 in 2.06 seconds, editor smoke, all six committed scene validations, and
+  `git diff --check`. It confirmed the dynamic geometry marker, flat-row E2E mapping, importer behavior, native
+  preflight, occurrence filtering, and Paimpol compatibility warning/omission.
 - The first fresh PR 5 review found no P0 issue and four merge blockers:
   1. malformed or non-finite DAS time tokens were silently converted to midnight and reported as accepted;
   2. passenger-leg validation checked service-stop membership but not that the destination follows the origin;
@@ -730,6 +737,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The PR 4 Ponytail review identified four local reductions: remove an unused const delay-selection overload,
   make the existing code/path test helper assert error severity, avoid rebuilding unchanged incident controls for
   delay-only mutations, and reuse the already-resolved service iterator in the repeated-stop smoke.
+- The PR 5 Ponytail review identified one worthwhile native-staging reduction and three smaller candidates:
+  remove station/window checks made unreachable by the preflight error return, reuse the existing importer station
+  predicate, remove the duplicate occurrence `editingFinished` connection, and remove repeated passenger refreshes.
+  The refresh suggestion was rejected because pending Save suppresses nested validation, making those explicit
+  refreshes the only UI update for ID and related focused commits.
 
 ### Simplifications made
 
@@ -743,6 +755,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 4 removes the unused overload and duplicate out-of-pattern fixture, refreshes only the delay panel after
   delay CRUD, and reuses the existing service lookup. The authoring smoke now emits the public spin-box
   `editingFinished` signals instead of calling the two commit slots directly.
+- PR 5 removes post-preflight station/window checks from native passenger publication, uses `knownStation` for
+  importer resolution, and relies on `valueChanged` plus the pending Save flush for passenger occurrence edits.
+  These reductions remove 25 net lines without changing diagnostics or public behavior.
 
 ## Blockers
 
@@ -756,5 +771,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Commit and push the same-valued platform correction, obtain a fresh corrected-diff review for PR #294, then run the
-Ponytail review and merge only after the affected local gate and GitHub checks are clean.
+Commit and push the Ponytail reductions, obtain a fresh post-simplification correctness review, then run the final
+local gate and merge only after GitHub checks are clean.

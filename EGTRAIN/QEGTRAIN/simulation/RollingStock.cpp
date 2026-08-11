@@ -1256,26 +1256,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			Journey journey;
 			journey.ID = sourceJourney.id;
 			journey.Journey_Activity_Type = sourceJourney.activity;
-			const SceneStation* origin = nativeStationForId(stationById, sourceJourney.originStationId);
-			const SceneStation* destination = nativeStationForId(stationById, sourceJourney.destinationStationId);
-			if (origin == nullptr || destination == nullptr) {
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger journey station is unknown",
-					"passengers.json", "journey", sourceJourney.id, "passengers[" + sourcePassenger.id + "].journeys",
-						origin == nullptr ? sourceJourney.originStationId : sourceJourney.destinationStationId);
-				continue;
-			}
-			if (!nativeFinite(sourceJourney.plannedDepartureStartSeconds)
-					|| !nativeFinite(sourceJourney.plannedDepartureEndSeconds)
-					|| !nativeFinite(sourceJourney.plannedArrivalStartSeconds)
-					|| !nativeFinite(sourceJourney.plannedArrivalEndSeconds)
-					|| sourceJourney.plannedDepartureStartSeconds < 0.0
-					|| sourceJourney.plannedDepartureEndSeconds < sourceJourney.plannedDepartureStartSeconds
-					|| sourceJourney.plannedArrivalStartSeconds < 0.0
-					|| sourceJourney.plannedArrivalEndSeconds < sourceJourney.plannedArrivalStartSeconds) {
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger journey windows are invalid",
-						"passengers.json", "journey", sourceJourney.id, "passengers[" + sourcePassenger.id + "].journeys");
-				continue;
-			}
+			const SceneStation* origin = stationById.at(sourceJourney.originStationId);
+			const SceneStation* destination = stationById.at(sourceJourney.destinationStationId);
 			journey.Dep_Station_ID = origin->name.empty() ? origin->id : origin->name;
 			journey.Arr_Station_ID = destination->name.empty() ? destination->id : destination->name;
 			journey.Planned_Departure_Time = sourceJourney.plannedDepartureStartSeconds;
