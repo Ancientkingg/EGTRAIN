@@ -4222,8 +4222,7 @@ void MainWindow::updateInfrastructureSelection() {
 		if (m_moveBlockDownButton)
 			m_moveBlockDownButton->setEnabled(m_sceneLoaded && !m_worker && next >= 0);
 	}
-	if (facet == QStringLiteral("routes"))
-		refreshRouteSectionPanel();
+	refreshRouteSectionPanel();
 }
 
 void MainWindow::commitInfrastructureCell(int row, int column) {
@@ -10480,18 +10479,21 @@ void MainWindow::runEditorSmokeE2E() {
 			auto* infrastructureFacet = findChild<QComboBox*>("infrastructureFacetCombo");
 			auto* infrastructureTable = findChild<QTableWidget*>("infrastructureTable");
 			auto* infrastructureAdd = findChild<QPushButton*>("infrastructureAddButton");
-			auto* infrastructureDelete = findChild<QPushButton*>("infrastructureDeleteButton");
-			auto* blockTrackFilter = findChild<QComboBox*>("blockTrackFilterCombo");
+				auto* infrastructureDelete = findChild<QPushButton*>("infrastructureDeleteButton");
+				auto* routeSectionDetail = findChild<QWidget*>("routeSectionDetailWidget");
+				auto* blockTrackFilter = findChild<QComboBox*>("blockTrackFilterCombo");
 			auto* blockInsert = findChild<QPushButton*>("blockInsertButton");
 			auto* blockMoveUp = findChild<QPushButton*>("blockMoveUpButton");
 			auto* blockMoveDown = findChild<QPushButton*>("blockMoveDownButton");
 			if (!infrastructureDock || !infrastructureFacet || !infrastructureTable
-				|| !infrastructureAdd || !infrastructureDelete
+					|| !infrastructureAdd || !infrastructureDelete || !routeSectionDetail
 				|| !blockTrackFilter || !blockInsert || !blockMoveUp || !blockMoveDown) {
 				facetFailure(facetOk, "infrastructure", "infrastructure controls or dock are unavailable");
 			} else {
 				infrastructureDock->show();
 				infrastructureDock->raise();
+				if (routeSectionDetail->isVisible())
+					facetFailure(facetOk, "infrastructure", "route section editor was visible outside Routes");
 				auto chooseInfrastructureFacet = [&](const char* facet) {
 					const int index = infrastructureFacet->findData(QString::fromLatin1(facet));
 					if (index < 0)
@@ -10727,6 +10729,10 @@ void MainWindow::runEditorSmokeE2E() {
 									!= std::vector<std::string>(expectedNativeRoute.begin(), expectedNativeRoute.end()))
 							facetFailure(facetOk, "stations/signalling",
 								"ordered route section controls did not retain the switched path");
+						if (!routeSectionDetail->isVisible() || !chooseInfrastructureFacet("blocks")
+								|| routeSectionDetail->isVisible())
+							facetFailure(facetOk, "stations/signalling",
+								"route section editor did not follow the selected infrastructure facet");
 					}
 				}
 				const auto selectSectionCell = [&](const char* facet, int row, int column,

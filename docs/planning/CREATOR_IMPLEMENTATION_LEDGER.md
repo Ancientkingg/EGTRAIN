@@ -298,6 +298,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   and visual-polish smoke before reporting the two remaining P2 boundary/test gaps.
 - After the second PR 2 correction, the build passed, the five-test topology/persistence gate passed 5 of 5 in
   2.19 seconds, and the editor smoke passed after all 7 scene tests.
+- The final fresh correctness reviewer passed the build, CTest 43 of 43, editor smoke, and visual-polish smoke
+  before reporting the stale route-pane visibility defect. After that correction, the build passed, the same
+  five-test gate passed 5 of 5 in 2.20 seconds, and editor smoke passed after all 7 scene tests.
 - `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
@@ -371,6 +374,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   `SceneTrack` with an empty ID still counted as a valid Add target even though validation rejects it. The negative
   Add regression checked only the disabled button, not the handler guard, and the incomplete-row regression
   exercised only dependencies rather than all three anonymous row types.
+- The final fresh PR 2 review found no P0 or P1 issue at `42b883a` but found one P2 UI-state blocker. The route
+  section detail pane was created visible and refreshed only while the Routes facet was active, so it remained
+  visible with stale content after switching to Blocks, Signals, or another facet.
 
 ### Corrections made
 
@@ -447,6 +453,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The final correction requires a non-empty selected track ID in both button enablement and the mutation slot.
   The smoke exercises the disabled public action and then the slot's defensive check, and it creates, confirms,
   deletes, and recreates incomplete dependency, restriction, and boundary rows through the existing controls.
+- Route-detail refresh now runs once at the common infrastructure-selection boundary. The existing helper hides
+  the pane on every non-Route facet, and the smoke asserts both its initial hidden state and the Routes-to-Blocks
+  transition so stale route controls cannot remain visible.
 
 ### Ponytail findings
 
