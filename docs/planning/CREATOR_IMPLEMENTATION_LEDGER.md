@@ -19,7 +19,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
     `14b242cc8829c06358f74be8c2717e85f9238b05`.
 - Open milestone dependencies: PR 3 depends on merged PR #291. Issues #85 and #86 remain parity gates.
 
-## Confirmed creator gaps
+## Planning-baseline creator gaps
 
 1. Switch routes and linked signalling structures expose generated section strings.
 2. Block placement follows hidden vector order without insert, reorder, or placement inspection.
@@ -30,7 +30,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 7. Passenger journeys and legs lack public import, inspection, and CRUD.
 8. Passenger platform geometry uses hidden fixed values.
 9. General result exports lack a saved-input snapshot and complete run provenance.
-10. The current creator smoke bypasses public operations and does not prove a seventh case.
+10. The current creator smoke does not prove a complete UI-only seventh-case workflow.
 
 ## Disproven or outdated findings
 
@@ -77,8 +77,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 3 uses one MainWindow-local direct-consumer query for infrastructure, rolling-stock, composition, route,
   and service deletes. Referenced deletes are rejected. No remap, cascade, database-style index, or command
   framework is needed. An accepted service delete prunes only its transient occurrence-selection entries.
-- The PR 2 selector refresh boundary already rebuilds route and incident choices after block mutations. The
-  selector-refresh sentence in #287 is outdated and will not be implemented again in PR 3.
+- PR 2 already refreshes route and incident choices after block mutations. PR 3 adds refreshes for composition
+  and service mutations.
 
 ## Compatibility decisions
 
@@ -356,6 +356,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After applying the PR 3 Ponytail reductions, the full build passed, all 7 scene tests passed in 0.70 seconds,
   editor smoke passed, and `git diff --check` passed.
 - The post-simplification graph update rebuilt 6,053 nodes, 9,943 edges, and 1,628 communities.
+- The fresh post-simplification correctness reviewer passed the focused five-test scene gate, the editor smoke
+  with every required marker, and `git diff --check` at `4a5daa3`.
 
 ## Review record
 
@@ -376,6 +378,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   `git diff --check`.
 - The fresh corrected-diff review found no P0, P1, or P2 issue at `8c1a957`. It independently passed the full
   build, CTest 43 of 43, editor smoke with every required marker, and `git diff --check`.
+- The fresh post-simplification review found no P0, P1, or P2 issue at `4a5daa3`. It rechecked the simplified
+  pending-Run, service-ID, occurrence-pruning, selector-refresh, unchecked incident end-time, and final
+  save/reopen paths against the complete diff.
 
 - The first fresh review of PR #290 found no P0 issue and four merge blockers:
   1. overlapping connection-derived sections could be accepted through a shared block without matching the
@@ -573,5 +578,4 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Run the fresh correctness review against PR #292's complete diff, correct every confirmed finding, rerun the
-affected gates, and then run the independent Ponytail simplicity review.
+Wait for PR #292's required build and sanitizer checks, then record the merge decision.
