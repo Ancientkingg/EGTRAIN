@@ -7,29 +7,27 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current milestone: PR 1, section resolution and signal binding
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-section-resolution`
-- Current branch: `feature/creator-section-resolution`
-- Current PR: #290, `Bind signals to canonical track sections`
-- Completed milestones and PRs: none
-- Open milestone dependencies: PR 1 has no implementation dependency. Issues #85 and #86 are parity gates.
+- Current `origin/main`: `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
+- Current milestone: PR 2, structured topology authoring and explicit block order
+- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/structured-topology-authoring`
+- Current branch: `feature/structured-topology-authoring`
+- Current PR: #291, `Add structured topology authoring`
+- Completed milestones and PRs: PR #290, `Bind signals to canonical track sections`, merged as
+  `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
+- Open milestone dependencies: PR 2 depends on merged PR #290. Issues #85 and #86 remain parity gates.
 
 ## Confirmed creator gaps
 
 1. Switch routes and linked signalling structures expose generated section strings.
-2. Signals have no explicit protected-section binding.
-3. Signal and compound-target validation is broader than native resolution.
-4. Route adjacency is not validated and native construction can reorder sections.
-5. Block placement follows hidden vector order without insert, reorder, or placement inspection.
-6. Save, Save As, close, and Run can omit focused editor values.
-7. Service rename can migrate references to an empty or duplicate ID.
-8. Referenced deletes can leave dangling references and dependent selectors can remain stale.
-9. Entrance delays and non-default scenario deletion are not publicly authorable.
-10. Passenger journeys and legs lack public import, inspection, and CRUD.
-11. Passenger platform geometry uses hidden fixed values.
-12. General result exports lack a saved-input snapshot and complete run provenance.
-13. The current creator smoke bypasses public operations and does not prove a seventh case.
+2. Block placement follows hidden vector order without insert, reorder, or placement inspection.
+3. Save, Save As, close, and Run can omit focused editor values.
+4. Service rename can migrate references to an empty or duplicate ID.
+5. Referenced deletes can leave dangling references and dependent selectors can remain stale.
+6. Entrance delays and non-default scenario deletion are not publicly authorable.
+7. Passenger journeys and legs lack public import, inspection, and CRUD.
+8. Passenger platform geometry uses hidden fixed values.
+9. General result exports lack a saved-input snapshot and complete run provenance.
+10. The current creator smoke bypasses public operations and does not prove a seventh case.
 
 ## Disproven or outdated findings
 
@@ -40,7 +38,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Architecture and schema decisions
 
 - Use the current `SceneModel` and native runtime. Do not create a second topology model or validator.
-- PR 1 will add one small plain-C++ derived section inventory under `scene/`. It contains current runtime ID,
+- PR 1 added one small plain-C++ derived section inventory under `scene/`. It contains current runtime ID,
   source block/connection IDs, block placement, endpoints, node membership, and exact reference resolution.
   It is transient and derived from `SceneModel`; it is not persisted and is not a second topology model.
 - Add one optional string protected-section reference to `SceneSignal`. The value is the exact current V1
@@ -64,6 +62,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - `/` remains the reserved delimiter for connection-derived section identities. Canonical block IDs containing
   `/` still load and round-trip, but validation and direct native preflight reject them actionably before runtime
   mutation. Supporting them natively would require replacing the established section grammar and runtime parsers.
+- PR 2 keeps `SceneModel::blocks` vector order as the persisted placement contract. The editor filters blocks by
+  track, maps visible rows back to vector indices, and derives displayed placement from `SceneSectionInventory`.
+- PR 2 uses the existing section inventory for route, dependency, restriction, and boundary choices. Route order
+  is edited through one small ordered list; no schema field, second topology model, or generic editor framework is
+  added. Invalid legacy references remain visible and unchanged until the creator replaces or removes them.
 
 ## Compatibility decisions
 
@@ -76,7 +79,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## GitHub issue state
 
-- Reopened and reused: #50, #57, #58.
+- Closed by PR #290: #50 and #58.
+- Reopened and reused for current work: #57.
 - Updated and reused: #126.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
@@ -92,6 +96,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Updated the existing infrastructure signal table with a creator-facing protected-section selector.
 - Added focused validator, native builder, operations, folder, bundle, and public editor-smoke coverage.
 - Updated the V1 schema/property documentation. No source data or committed case-study JSON was changed.
+- PR 2 changes only `MainWindow.{h,cpp}` and this ledger. It keeps block vector order as the canonical
+  per-track placement, adds a per-track block view with Insert and Move Up/Down, and displays derived order,
+  start, end, and coverage values from `SceneSectionInventory`.
+- PR 2 replaces normal raw route, dependency, restriction, and boundary section entry with catalog-backed
+  controls. Legacy and invalid references stay visible until the creator replaces or removes them. No model,
+  schema, validator, native builder, or case-study data changed.
+- The existing editor smoke now creates two track chains, six blocks, a connection, and a three-section switched
+  route entirely through public widgets. It exercises block insertion and reordering, route add/remove/reorder,
+  typed linked references, folder and bundle round trips, a reference-preserving block rename, and direct native
+  construction retaining the exact authored route order. The smoke never types a generated section identity.
 
 ## Verification record
 
@@ -258,8 +272,42 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - `graphify update .` completed after the eighth corrected-diff fix with 4871 nodes, 10910 edges,
   and 233 communities.
 - The final PR 1 `graphify update .` completed with 4871 nodes, 10912 edges, and 236 communities.
+- PR #290 current-head CI passed both jobs. The build job completed in 21 minutes 13 seconds and included
+  CTest, headless, editor, round-trip, bundle, Assignment, incident, render, track-preview, and visual smokes.
+  The sanitizer job completed in 15 minutes 46 seconds.
 - `git diff --check` passed after the final rebuild and graph refresh.
-- Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
+- PR 1 merge commit: `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`.
+- PR 2 baseline configure and full build passed after adding the Homebrew Qt 5 prefix. Its focused
+  `scenevalidator`, `scenewriter`, `scenebundle`, `scenebuilder`, and `operationsbuilder` gate passed 5 of 5 in
+  3.43 seconds. The baseline editor smoke then passed after all 7 scene tests passed.
+- PR 2 implementation configured and built successfully. The full CTest suite passed 43 of 43 in 124.93 seconds.
+- PR 2 six-case native headless smoke passed every case, changing-trajectory, non-sentinel, and served-station
+  assertion. Six-case round-trip smoke ended with `ROUNDTRIP PASS`. Assignment smoke passed its canonical
+  timetable check. Visual-polish smoke passed DPR 1 and DPR 2 visual, station-overlay, scene-render, and
+  legacy-import checks.
+- After removing two redundant route-panel refreshes, the full build passed, the focused
+  `scenevalidator`, `scenewriter`, `scenebundle`, `scenebuilder`, and `operationsbuilder` gate passed 5 of 5 in
+  2.21 seconds, and `tools/e2e/editor_smoke.sh` passed after all 7 scene tests.
+- The Assignment smoke file is not executable in this checkout. Direct invocation failed with permission denied;
+  rerunning it as `python3 tools/e2e/assignment_smoke.py` passed. No file mode was changed.
+- After correcting the two PR 2 review findings, the full build passed and the five-test topology/persistence
+  gate passed 5 of 5 in 2.19 seconds. The first editor-smoke run reached every feature marker except the focused
+  New Case Save marker because the newly exercised modal confirmation left the offscreen window inactive. After
+  explicitly reactivating the window in that test path, the editor smoke passed after all 7 scene tests.
+- The fresh corrected-diff reviewer independently passed the build, CTest 43 of 43 in 120.15 seconds, editor smoke,
+  and visual-polish smoke before reporting the two remaining P2 boundary/test gaps.
+- After the second PR 2 correction, the build passed, the five-test topology/persistence gate passed 5 of 5 in
+  2.19 seconds, and the editor smoke passed after all 7 scene tests.
+- The final fresh correctness reviewer passed the build, CTest 43 of 43, editor smoke, and visual-polish smoke
+  before reporting the stale route-pane visibility defect. After that correction, the build passed, the same
+  five-test gate passed 5 of 5 in 2.20 seconds, and editor smoke passed after all 7 scene tests.
+- The fresh PR 2 closeout review found no P0, P1, or P2 issue at `49c0d74`. It independently passed the full
+  build, CTest 43 of 43 in 120.38 seconds, editor smoke, and visual-polish smoke.
+- After applying the PR 2 Ponytail simplifications, the full build passed, the five-test topology/persistence
+  gate passed 5 of 5 in 2.16 seconds, and editor smoke passed after all 7 scene tests.
+- The fresh post-simplification correctness review found no P0, P1, or P2 issue at `5f1599a`. The root full
+  CTest suite passed 43 of 43 in 120.70 seconds; the reviewer independently passed 43 of 43 in 120.24 seconds.
+- `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
 
@@ -323,6 +371,23 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The eleventh fresh corrected-diff review found no P0, P1, or P2 issue at `64ce206`. It independently
   traced public signal binding, folder and bundle persistence, shared resolution, validation, native
   infrastructure and operations staging, runtime incident behavior, and legacy export.
+- The fresh PR 2 review found no P0 or P1 issue at `a608b6e`. It traced public block and section controls
+  through model mutation, invalidation, validation, folder and bundle persistence, reload, and exact native route
+  construction. It found two P2 boundary defects: an incomplete dependency, restriction, or boundary row could
+  not be deleted while its first required selector was empty, and Add silently used the first valid track when
+  the block filter selected an orphan empty-track bucket.
+- The fresh corrected PR 2 review found no P0 or P1 issue at `e686f5a` but blocked on two remaining P2s. A loaded
+  `SceneTrack` with an empty ID still counted as a valid Add target even though validation rejects it. The negative
+  Add regression checked only the disabled button, not the handler guard, and the incomplete-row regression
+  exercised only dependencies rather than all three anonymous row types.
+- The final fresh PR 2 review found no P0 or P1 issue at `42b883a` but found one P2 UI-state blocker. The route
+  section detail pane was created visible and refreshed only while the Routes facet was active, so it remained
+  visible with stale content after switching to Blocks, Signals, or another facet.
+- The fresh PR 2 closeout review found no P0, P1, or P2 issue at `49c0d74` after tracing the complete public
+  editor, model, persistence, validation, and native route path.
+- The fresh post-simplification review found no P0, P1, or P2 issue at `5f1599a`. It verified that the filtered
+  row map preserves block move semantics, the removed text commit paths were unreachable, and the shared smoke
+  helper retains every add, confirmed delete, empty-model, and re-add assertion.
 
 ### Corrections made
 
@@ -390,6 +455,18 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   export regression so it is not cited as canonical runtime support.
 - Made legacy incident export use the shared section inventory before resolving a matching signal. An
   ambiguous target now produces `scene.ref.ambiguous` and no incident row, matching validation and native staging.
+- PR 2 now allows its three anonymous linked-topology row types to be deleted while incomplete, while retaining
+  the existing confirmation. Block Add is disabled unless the selected filter value names a real track, and the
+  mutation slot independently rejects an invalid selection rather than silently choosing another track.
+- The public editor smoke now proves both corrections. Its first post-review run exposed an offscreen focus loss
+  after the new confirmation dialog, so the existing focused-Save check now explicitly reactivates the main
+  window before requesting focus. The rebuilt smoke then passed without weakening the focused-value assertion.
+- The final correction requires a non-empty selected track ID in both button enablement and the mutation slot.
+  The smoke exercises the disabled public action and then the slot's defensive check, and it creates, confirms,
+  deletes, and recreates incomplete dependency, restriction, and boundary rows through the existing controls.
+- Route-detail refresh now runs once at the common infrastructure-selection boundary. The existing helper hides
+  the pane on every non-Route facet, and the smoke asserts both its initial hidden state and the Routes-to-Blocks
+  transition so stale route controls cannot remain visible.
 
 ### Ponytail findings
 
@@ -399,11 +476,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The reviewer suggested deleting this tracked ledger because it does not affect product behavior. That
   suggestion was not applied because the execution brief explicitly requires this file to persist through
   all milestones and remain as a final deliverable.
+- The PR 2 Ponytail review identified three practical reductions: use the existing filtered block-row map for
+  neighbor moves, remove text-cell commit branches made unreachable by section combos, and share the repeated
+  anonymous-row add/delete smoke sequence.
 
 ### Simplifications made
 
 - The implementation uses one transient derived inventory rather than a second persisted topology model.
   No further production simplification was justified after the clean correctness review.
+- PR 2 now uses one direction-parameterized block-move path, deletes the two unreachable linked-topology text
+  commit paths, and uses one local smoke helper for dependency, restriction, and boundary row deletion checks.
 
 ## Blockers
 
@@ -413,10 +495,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known correctness, simplicity, test, or parity blocker. Final CI and merge remain.
-  PRs 2 through 6 remain open.
+- PR 1 is complete. PRs 2 through 6 remain open.
 
 ## Next action
 
-Complete final PR #290 verification, update its public summary and issue state, merge after CI is green, then
-update the ledger from merged `origin/main` and begin PR 2 in a fresh worktree.
+Monitor PR #291 CI, then merge if both build and sanitizer checks pass.
