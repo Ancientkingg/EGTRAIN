@@ -384,6 +384,7 @@ private:
 	bool m_sceneLoaded = false;
 	bool m_sceneIsBundle = false;
 	bool m_sceneDirty = false;
+	bool m_committingPendingEditorValues = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
@@ -589,6 +590,7 @@ private:
 	void updateSceneWindowTitle();
 	void updateCaseLayersPanel();
 	void refreshCaseSettingsPanel();
+	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
 	void refreshInfrastructurePanel();
@@ -606,6 +608,8 @@ private:
 	void deleteInfrastructureEntity();
 	void updateInfrastructureSelection();
 	std::string uniqueInfrastructureId(const std::string& baseId, const QString& facet) const;
+	QStringList directDeleteConsumers(const QString& facet, const std::string& id,
+		const std::string& scope = {}) const;
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
