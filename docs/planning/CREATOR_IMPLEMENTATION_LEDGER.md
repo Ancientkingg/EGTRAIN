@@ -208,6 +208,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - after the tenth corrected-diff fix, the full build passed and CTest passed 43 of 43 in 118.23 seconds.
   - the eleventh independent reviewer passed CTest 43 of 43 in 117.44 seconds and passed the live
     breakdown and protected-signal incident smoke.
+  - the final post-review six-case round-trip smoke ended with `ROUNDTRIP PASS`.
   - after the sixth corrected-diff fixes, the full configure and build passed and CTest passed 43 of 43
     in 118.89 seconds;
   - editor smoke passed after its 7 scene tests;
