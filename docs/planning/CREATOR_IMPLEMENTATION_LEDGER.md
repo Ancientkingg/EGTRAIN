@@ -61,6 +61,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The native runtime already supports discontinuities between regional coordinate systems. PR 1 preserves that
   generic contract with `scene.route.region_jump` warnings. It still rejects gaps on one track, undeclared
   same-coordinate track hops, and direction changes. No case name or bundled-case exception is used.
+- `/` remains the reserved delimiter for connection-derived section identities. Canonical block IDs containing
+  `/` still load and round-trip, but validation and direct native preflight reject them actionably before runtime
+  mutation. Supporting them natively would require replacing the established section grammar and runtime parsers.
 
 ## Compatibility decisions
 
@@ -68,6 +71,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Do not infer a missing signal binding.
 - Existing route strings must round-trip unchanged.
 - Invalid or ambiguous legacy targets must receive actionable diagnostics before native allocation.
+- The legacy exporter retains its exact block-map handling for slash-bearing stored references as a recovery and
+  conversion path. That exporter behavior does not make `/` a valid canonical runtime block-ID character.
 
 ## GitHub issue state
 
@@ -127,8 +132,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   before native mutation, while a separate regression preserves direction across a warned legacy
   regional segment boundary.
 - After the eighth corrected-diff review, the same six-test gate passed 6 of 6 in 2.53 seconds.
-  The exporter regression proves that a selector-produced binding to an ordinary slash-containing
-  base block maps to its representable legacy block ID instead of being dropped as a compound section.
+  The exporter regression proves that an exact stored slash-bearing block reference can map to its
+  representable legacy block ID instead of being dropped as a compound section.
+- After the ninth corrected-diff review, `test_scenevalidator`, `test_scenebuilder`,
+  `test_operationsbuilder`, `test_scenewriter`, `test_scenebundle`, and `test_sceneexporter`
+  passed 6 of 6 in 2.54 seconds. The new regressions prove that `/` receives one
+  actionable canonical validation error, direct native preflight rejects it before runtime mutation,
+  and legacy export can still map an exact stored slash-bearing reference for recovery.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -293,7 +303,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   exporter rejected every slash-containing protected-section target as compound even though canonical
   base block IDs may contain slashes and already have direct legacy mappings. A valid `Depot/1` binding
   was skipped and produced an empty `Incidents.txt`.
-- A ninth fresh corrected-diff review remains required before Ponytail review.
+- The ninth fresh corrected-diff review found one P1 identity-contract blocker. A slash-bearing source
+  block could appear as an exact section in the inventory and legacy exporter, while route component
+  checks split it and direct native staging interpreted `/` as the connection-section delimiter. The
+  runtime also uses the delimiter in switch occupancy, GUI state, rendering, and signal-output paths, so
+  accepting the ID would require a new escaped identity grammar rather than a local parser exception.
+- A tenth fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -352,8 +367,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Classified a signal-failure target as an exact base block through the existing `legacyBlockIds` map
   before applying the slash-based compound-section limit. Exact wrapped selector values are unwrapped
   only when their canonical base key exists; malformed and genuine compound targets remain skipped.
-- Extended the incident-export regression with a public-selector-shaped `@Depot/1@` binding and verified
-  the representable mapped incident row is retained.
+- Extended the incident-export regression with an exact `Depot/1` block reference and verified the
+  representable mapped incident row is retained as a legacy recovery path.
+- Reserved `/` in canonical block IDs through matching semantic and direct-native diagnostics. Existing
+  files still load, write, bundle, and legacy-export; they cannot reach allocation with an identity that
+  the established runtime section grammar cannot distinguish safely.
+- Made exact block-ID precedence suppress misleading route-component errors, and qualified the legacy
+  export regression so it is not cited as canonical runtime support.
 
 ### Ponytail findings
 
@@ -371,10 +391,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. A ninth independent correctness review and Ponytail review remain
+- PR 1 has no known test or parity blocker. A tenth independent correctness review and Ponytail review remain
   before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the eighth corrected-diff fix, then run a ninth fresh review of PR #290. When no merge blocker
-remains, run the fresh Ponytail simplicity review before final verification and merge.
+Run the six focused PR 1 tests, commit and push the ninth corrected-diff fix, then run a tenth fresh review of
+PR #290. When no merge blocker remains, run the fresh Ponytail simplicity review before final verification and merge.

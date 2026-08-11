@@ -48,6 +48,10 @@ may be empty or omitted on input. A station has `id`, `name`, optional
 `position_km`, and optional `platforms`; each platform has `id` and a `nodes`
 array of node IDs.
 
+Block IDs cannot contain `/`. The section catalog reserves that character for
+connection-derived section identities and reports existing conflicting IDs as
+validation errors without preventing the scene from loading.
+
 ## Signalling
 
 `signalling.json` requires `signals` and `routes` arrays. A signal has `id`

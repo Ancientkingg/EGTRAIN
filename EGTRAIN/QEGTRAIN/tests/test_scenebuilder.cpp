@@ -161,6 +161,20 @@ static bool runTinyBuilderChecks() {
 			&& stationBoundarySections.front().entrance->ID == "@block.a@"
 			&& stationBoundarySections.front().exit->ID == "@block.b@",
 			"station boundary references resolve to runtime sections");
+	const int blocksBeforeReservedId = Blocks;
+	const std::string firstSectionBeforeReservedId = signalling_block_sections[0].ID;
+	SceneModel reservedBlockId = tinyScene();
+	reservedBlockId.blocks[0].id = "Depot/1";
+	reservedBlockId.routes[0].blocks[0] = "Depot/1";
+	reservedBlockId.blockDependencies[0].block = "Depot/1";
+	reservedBlockId.singleTrackRestrictions[0].startBlock = "Depot/1";
+	reservedBlockId.singleTrackRestrictions[0].protectedStartBlock = "Depot/1";
+	reservedBlockId.stationBoundaries[0].entranceBlock = "Depot/1";
+	diagnostics = buildInfrastructureAndSignallingFromScene(reservedBlockId);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.reserved")
+			&& Blocks == blocksBeforeReservedId
+			&& signalling_block_sections[0].ID == firstSectionBeforeReservedId,
+			"reserved block-id delimiters are rejected before native mutation");
 
 	SceneModel segmentedRegionRoute = tinyScene();
 	segmentedRegionRoute.tracks.push_back({"region.track"});

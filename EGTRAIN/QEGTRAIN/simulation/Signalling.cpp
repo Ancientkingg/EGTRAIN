@@ -2352,6 +2352,11 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	for (const auto& block : scene.blocks) {
 		if (block.id.empty())
 			add(SceneSeverity::Error, "scene.native.id.empty", "Block id is empty", "infrastructure.json", "block");
+		if (block.id.find('/') != std::string::npos)
+			add(SceneSeverity::Error, "scene.native.id.reserved",
+				"Block id cannot contain '/' because it separates connection-derived section identities",
+				"infrastructure.json", "block", block.id, "blocks.id", "/",
+				"Rename the block without '/' characters");
 		if (!blockIds.insert(block.id).second)
 			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate block id", "infrastructure.json", "block", block.id);
 		if (tracksById.find(block.trackId) == tracksById.end())

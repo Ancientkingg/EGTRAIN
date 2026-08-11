@@ -57,7 +57,7 @@ int main() {
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
 	}
 
-	// 7. Ordinary slash-containing block ids are still wrapped.
+	// 7. Legacy export preserves a slash-containing stored route token as one block reference.
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -377,7 +377,7 @@ int main() {
 			<< R"({"tracks":[{"id":"B0"},{"id":"B1"}],"nodes":[{"id":"n0","track":"B0","x_km":-2,"y_km":0},{"id":"n1","track":"B0","x_km":-1,"y_km":0},{"id":"m0","track":"B1","x_km":0,"y_km":0},{"id":"m1","track":"B1","x_km":1,"y_km":0}],"arcs":[{"id":"a0","track":"B0","from":"n0","to":"n1","curvature_radius_m":0,"gradient_percent":0,"speed_limit_ms":20},{"id":"a1","track":"B1","from":"m0","to":"m1","curvature_radius_m":0,"gradient_percent":0,"speed_limit_ms":20}],"blocks":[{"id":"canonical-block","track":"B0","length_km":1},{"id":"Depot/1","track":"B0","length_km":1},{"id":"canonical-other","track":"B1","length_km":1}],"connections":[{"id":"switch","from":"n1","to":"m0"}]})"
 			<< "\n";
 		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
-		std::ofstream(scene / "signalling.json") << R"({"signals":[{"id":"sig-x","protected_section":"@canonical-block@"},{"id":"sig-slash","protected_section":"@Depot/1@"},{"id":"sig-switch","protected_section":"@canonical-block@--1.000000/@canonical-other@-0.000000"},{"id":"sig-malformed","protected_section":"0-B0/1-B0"}],"routes":[{"id":"route0","blocks":["canonical-block","Depot/1","@canonical-block@--1.000000/@canonical-other@-0.000000"]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[{"id":"sig-x","protected_section":"@canonical-block@"},{"id":"sig-slash","protected_section":"Depot/1"},{"id":"sig-switch","protected_section":"@canonical-block@--1.000000/@canonical-other@-0.000000"},{"id":"sig-malformed","protected_section":"0-B0/1-B0"}],"routes":[{"id":"route0","blocks":["canonical-block","Depot/1","@canonical-block@--1.000000/@canonical-other@-0.000000"]}]})" << "\n";
 		std::ofstream(scene / "rolling_stock.json")
 			<< R"({"train_units":[{"id":"u1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[0,90,1,0,0]]}],"compositions":[{"id":"c1","units":["u1"]}]})"
 			<< "\n";
@@ -406,7 +406,7 @@ int main() {
 			ok &= expect(l2 == "signal_failure\t0-B0\t301\t302",
 					("Direct canonical block target remains supported: " + l2).c_str());
 			ok &= expect(l3 == "signal_failure\t1-B0\t303\t304",
-					("Slash-containing base block remains representable: " + l3).c_str());
+					("Legacy export maps the exact slash-containing block reference: " + l3).c_str());
 			ok &= expect(l4 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l4).c_str());
 			ok &= expect(l5 == "train_breakdown\tlegacy-svc\t25\t35",
 					("Breakdown uses the active operating code: " + l5).c_str());

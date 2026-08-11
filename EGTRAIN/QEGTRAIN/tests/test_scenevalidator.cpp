@@ -496,6 +496,14 @@ int main(int argc, char** argv) {
 			passed = passed && hasCodeAndPath(diagnostics, test.code, test.path);
 		ok &= expect(passed, test.name);
 	}
+	SceneModel reservedBlockId = clean;
+	reservedBlockId.blocks[0].id = "Depot/1";
+	reservedBlockId.routes[0].blocks[0] = "Depot/1";
+	reservedBlockId.signals[0].protectedSection = "Depot/1";
+	const auto reservedBlockIdDiagnostics = validateRunnableScene(reservedBlockId);
+	ok &= expect(reservedBlockIdDiagnostics.size() == 1
+			&& hasCodeAndPath(reservedBlockIdDiagnostics, "scene.id.reserved", "blocks[0].id"),
+			"reserved slash in block id reports one actionable validation error");
 	SceneModel reducedBreakdown = clean;
 	SceneIncident& reducedIncident = reducedBreakdown.scenarios[0].incidents[0];
 	reducedIncident.type = "train_breakdown";

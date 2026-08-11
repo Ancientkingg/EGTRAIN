@@ -234,6 +234,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	for (std::size_t index = 0; index < scene.blocks.size(); ++index) {
 		const SceneBlock& block = scene.blocks[index];
 		const std::string path = "blocks[" + std::to_string(index) + "]";
+		if (block.id.find('/') != std::string::npos)
+			diagnostics.error("scene.id.reserved",
+				"Block id cannot contain '/' because it separates connection-derived section identities",
+				"infrastructure.json", "block", block.id, path + ".id", "/",
+				"Rename the block without '/' characters");
 		if (!std::isfinite(block.lengthKm) || block.lengthKm <= 0.0)
 			diagnostics.error("scene.block.length.invalid", "Block length_km must be positive and finite",
 				"infrastructure.json", "block", block.id, path + ".length_km");
@@ -608,6 +613,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!blockIds.empty()) {
 			for (std::size_t blockIndex = 0; blockIndex < route.blocks.size(); ++blockIndex) {
 				const std::string blockPath = path + ".blocks[" + std::to_string(blockIndex) + "]";
+				if (hasId(blockIds, route.blocks[blockIndex]))
+					continue;
 				for (const auto& component : routeComponents(route.blocks[blockIndex])) {
 					if (!hasId(blockIds, component)) {
 						diagnostics.error("scene.ref.unresolved", "Route refers to unknown block",

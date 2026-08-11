@@ -68,7 +68,8 @@ empty or omitted on input and are emitted by the writer.
 - `nodes[]`: `id`, `track`, numeric `x_km`, numeric `y_km`.
 - `arcs[]`: `id`, `track`, `from`, `to`, numeric `curvature_radius_m`,
   `gradient_percent`, and `speed_limit_ms`.
-- `blocks[]`: `id`, `track`, numeric `length_km`.
+- `blocks[]`: `id`, `track`, numeric `length_km`. Block IDs cannot contain `/`,
+  which is reserved as the separator in connection-derived section identities.
 - `connections[]`: `id`, `from`, `to`, and optional numeric `speed_limit_ms`.
 
 ## `stations.json`
