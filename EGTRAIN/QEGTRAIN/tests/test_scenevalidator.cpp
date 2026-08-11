@@ -30,6 +30,16 @@ static bool hasCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics, cons
 	return false;
 }
 
+static bool hasErrorCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics,
+		const std::string& code, const std::string& path) {
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.severity == SceneSeverity::Error
+				&& diagnostic.code == code && diagnostic.path == path)
+			return true;
+	}
+	return false;
+}
+
 static SceneModel completeScene() {
 	SceneModel scene;
 	scene.schemaVersion = 1;
@@ -412,6 +422,20 @@ int main(int argc, char** argv) {
 				scene.services[0].repeatCount = 1;
 				scene.scenarios[0].entranceDelays[0].occurrence = 2;
 			}, "scene.entrance.occurrence.out_of_horizon", "scenarios[0].entrance_delays[0].occurrence"},
+		{"non-finite entrance delay", [](SceneModel& scene) {
+				scene.scenarios[0].entranceDelays[0].delaySeconds
+						= std::numeric_limits<double>::quiet_NaN();
+			}, "scene.delay.invalid", "scenarios[0].entrance_delays[0].delay_seconds"},
+		{"entrance delay station outside service stops", [](SceneModel& scene) {
+				scene.stations.push_back({"station-3", "Unused", false, 0.0, {}});
+				scene.scenarios[0].entranceDelays[0].stationId = "station-3";
+			}, "scene.entrance.station", "scenarios[0].entrance_delays[0].station"},
+		{"entrance delay stop without departure", [](SceneModel& scene) {
+				scene.scenarios[0].entranceDelays[0].stationId = "station-2";
+			}, "scene.entrance.timetable", "scenarios[0].entrance_delays[0].station"},
+		{"conflicting entrance delays", [](SceneModel& scene) {
+				scene.scenarios[0].entranceDelays.push_back({"service-1", 1, "station-1", 20.0});
+			}, "scene.entrance.conflict", "scenarios[0].entrance_delays[1].delay_seconds"},
 		{"non-finite node coordinate", [](SceneModel& scene) {
 				scene.nodes[0].xKm = std::numeric_limits<double>::quiet_NaN();
 			}, "scene.node.coordinate.invalid", "nodes[0].x_km"},
@@ -496,6 +520,16 @@ int main(int argc, char** argv) {
 			passed = passed && hasCodeAndPath(diagnostics, test.code, test.path);
 		ok &= expect(passed, test.name);
 	}
+	SceneModel outOfPatternDelay = clean;
+	outOfPatternDelay.services[0].hasRepeat = true;
+	outOfPatternDelay.services[0].headwaySeconds = 30.0;
+	outOfPatternDelay.services[0].hasRepeatCount = true;
+	outOfPatternDelay.services[0].repeatCount = 1;
+	outOfPatternDelay.scenarios[0].entranceDelays[0].occurrence = 2;
+	ok &= expect(hasErrorCodeAndPath(validateScene(outOfPatternDelay),
+			"scene.entrance.occurrence.out_of_horizon",
+			"scenarios[0].entrance_delays[0].occurrence"),
+			"out-of-pattern entrance delay blocks Run instead of remaining a warning");
 	SceneModel reservedBlockId = clean;
 	reservedBlockId.blocks[0].id = "Depot/1";
 	reservedBlockId.routes[0].blocks[0] = "Depot/1";

@@ -1004,8 +1004,15 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				continue;
 			}
 			const bool outsidePattern = delay.occurrence > countIt->second;
-			if (outsidePattern || (!selectedOccurrences.empty()
-					&& !occurrenceSelected(delay.serviceId, delay.occurrence)))
+			if (outsidePattern) {
+				addNativeDiagnostic(diagnostics, "scene.native.entrance.occurrence",
+						"Entrance delay occurrence is outside the configured service pattern",
+						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays",
+						delay.serviceId + "-" + std::to_string(delay.occurrence));
+				continue;
+			}
+			if (!selectedOccurrences.empty()
+					&& !occurrenceSelected(delay.serviceId, delay.occurrence))
 				continue;
 			if (!nativeFinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
 				addNativeDiagnostic(diagnostics, "scene.native.entrance.value", "Entrance delay must be finite and non-negative",

@@ -83,6 +83,7 @@
 #include <QCheckBox>
 #include <QIntValidator>
 #include <QDoubleSpinBox>
+#include <QSpinBox>
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
@@ -519,6 +520,7 @@ private:
 	QLineEdit* m_scenarioDescriptionEdit = nullptr;
 	QPushButton* m_blankScenarioButton = nullptr;
 	QPushButton* m_duplicateScenarioButton = nullptr;
+	QPushButton* m_deleteScenarioButton = nullptr;
 	QPushButton* m_importScenarioButton = nullptr;
 	QPushButton* m_exportScenarioButton = nullptr;
 	QListWidget* m_incidentListWidget = nullptr;	 // one row per SceneIncident
@@ -536,6 +538,16 @@ private:
 	QPushButton* m_addIncidentButton = nullptr;
 	QPushButton* m_duplicateIncidentButton = nullptr;
 	QPushButton* m_deleteIncidentButton = nullptr;
+	// entrance-delay editor: rows belong to the selected scenario
+	QListWidget* m_entranceDelayListWidget = nullptr;
+	QComboBox* m_entranceDelayServiceCombo = nullptr;
+	QSpinBox* m_entranceDelayOccurrenceEdit = nullptr;
+	QLabel* m_entranceDelayOccurrenceContextLabel = nullptr;
+	QComboBox* m_entranceDelayStationCombo = nullptr;
+	QDoubleSpinBox* m_entranceDelaySecondsEdit = nullptr;
+	QPushButton* m_addEntranceDelayButton = nullptr;
+	QPushButton* m_duplicateEntranceDelayButton = nullptr;
+	QPushButton* m_deleteEntranceDelayButton = nullptr;
 
 	// Compact shell state. These pointers observe scene-owned items without
 	// taking ownership; teardownGUI clears them after scene->clear().
@@ -706,6 +718,7 @@ private:
 	void selectScenario(int row);
 	void addBlankScenario();
 	void duplicateScenario();
+	void deleteScenario();
 	void importScenario();
 	void exportScenario();
 	void commitScenarioIdEdit();
@@ -727,6 +740,17 @@ private:
 	void commitIncidentHasReducedSpeed(bool checked);
 	void commitIncidentHasEndSeconds(bool checked);
 	void commitIncidentTerminateAtDestination(bool checked);
+	void refreshEntranceDelayPanel();
+	void updateEntranceDelayDetailPanel();
+	void addEntranceDelay();
+	void duplicateEntranceDelay();
+	void deleteEntranceDelay();
+	void commitEntranceDelayService(int index);
+	void commitEntranceDelayOccurrence();
+	void commitEntranceDelayStation(int index);
+	void commitEntranceDelaySeconds();
+	SceneEntranceDelay* selectedEntranceDelay();
+	const SceneEntranceDelay* selectedEntranceDelay() const;
 	std::string uniqueIncidentId(const std::string& baseId) const;
 	std::string uniqueScenarioId(const std::string& baseId) const;
 	SceneScenario* selectedScenario();
@@ -736,6 +760,7 @@ private:
 	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
 	void markScenarioModified();
 	QString scenarioContext() const;
+	QString runReviewText() const;
 	bool showRunReview();
 	void setDelayBaseline();
 	void showDelayComparison();

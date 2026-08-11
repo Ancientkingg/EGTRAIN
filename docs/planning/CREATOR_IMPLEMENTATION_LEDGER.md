@@ -7,17 +7,19 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `14b242cc8829c06358f74be8c2717e85f9238b05`
-- Current milestone: PR 3, safe editor commits, IDs, references, rename, and deletion
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/editor-reference-integrity`
-- Current branch: `fix/editor-reference-integrity`
-- Current PR: #292, `Make editor mutations reference-safe`
+- Current `origin/main`: `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`
+- Current milestone: PR 4, entrance-delay and complete scenario authoring
+- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/scenario-authoring`
+- Current branch: `feature/scenario-authoring`
+- Current PR: not opened
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
   - PR #291, `Add structured topology authoring`, merged as
-    `14b242cc8829c06358f74be8c2717e85f9238b05`.
-- Open milestone dependencies: PR 3 depends on merged PR #291. Issues #85 and #86 remain parity gates.
+    `14b242cc8829c06358f74be8c2717e85f9238b05`;
+  - PR #292, `Make editor mutations reference-safe`, merged as
+    `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`.
+- Open milestone dependencies: PR 4 depends on merged PR #292. Issues #85 and #86 remain parity gates.
 
 ## Planning-baseline creator gaps
 
@@ -79,6 +81,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   framework is needed. An accepted service delete prunes only its transient occurrence-selection entries.
 - PR 2 already refreshes route and incident choices after block mutations. PR 3 adds refreshes for composition
   and service mutations.
+- PR 4 keeps the existing `SceneEntranceDelay` shape and scenario persistence. It extends the current Incidents
+  dock instead of adding another scenario browser, model, or validation layer.
+- A scenario's persisted default cannot be deleted. Deleting a selected non-default scenario returns selection
+  to the default and uses the existing dirty-state path to invalidate applied scenario and result state.
+- Entrance-delay choices reuse `sceneServiceOccurrenceCount` and service stops with planned departures. Imported
+  invalid rows remain visible until corrected or deleted.
+- Validation and native staging will both reject non-finite or negative delay values, missing service stops,
+  stops without planned departures, out-of-pattern occurrences, and unequal delay values for one service
+  occurrence. Equal delays at distinct stations remain compatible with current native semantics.
 
 ## Compatibility decisions
 
@@ -90,13 +101,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   conversion path. That exporter behavior does not make `/` a valid canonical runtime block-ID character.
 - PR 3 changes no schema, reader, writer, bundle, or native runtime behavior. Existing invalid scenes remain
   loadable and saveable; normal public deletes stop creating new dangling references.
+- PR 4 changes no schema, folder writer, standalone scenario JSON, or bundle format. Previously accepted
+  out-of-pattern or otherwise ineffective entrance delays will load and save but must be corrected before Run.
 
 ## GitHub issue state
 
 - Closed by PR #290: #50 and #58.
 - Closed by PR #291: #57 and #286.
-- Current milestone: #287.
-- Updated and reused: #126.
+- Closed by PR #292: #287.
+- Current milestone: #126.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
 - Authoritative-data dependencies only: #181, #182, #228.
@@ -128,6 +141,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The editor smoke covers focused train-unit, composition, stop, scenario, and incident values through public
   Save or Run actions, persistence after reopen, rejected empty and duplicate service renames, referenced-delete
   refusal, accepted unreferenced deletes, and transient occurrence-selection cleanup.
+- PR 4 extends the existing Incidents dock with an Entrance Delays tab and non-default scenario deletion. The
+  delay editor uses typed service and station choices, a bounded occurrence control, visible generated operating
+  code context, and the existing scenario dirty/result invalidation path. No new scene or bundle schema is added.
+- Validator and native operations staging now agree on non-finite or negative delay values, service-stop and
+  planned-departure requirements, occurrence horizon, and conflicting values for one service occurrence.
+- The public editor smoke creates, edits, duplicates, and deletes an entrance delay for occurrence 2, proves its
+  native effect, reviews every incident and delay field, commits a focused delay on Save, and preserves the row
+  through directory and `.egscene` reopen. Standalone scenario JSON retains all four delay fields.
 
 ## Verification record
 
@@ -358,6 +379,23 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The post-simplification graph update rebuilt 6,053 nodes, 9,943 edges, and 1,628 communities.
 - The fresh post-simplification correctness reviewer passed the focused five-test scene gate, the editor smoke
   with every required marker, and `git diff --check` at `4a5daa3`.
+- PR #292 current-head CI passed both jobs at final head `8a40fd1`. The build job completed in 16 minutes
+  51 seconds and included CTest plus the headless, editor, round-trip, bundle, Assignment, incident, render,
+  track-preview, and visual smokes. The sanitizer job completed in 12 minutes 55 seconds.
+- PR #292 merged as `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`; issue #287 closed with the merge.
+- PR 4 baseline configured with Homebrew Qt 5 and the full build passed. The focused `scenevalidator`,
+  `scenewriter`, `scenebundle`, and `operationsbuilder` gate passed 4 of 4 in 2.70 seconds. The baseline editor
+  smoke passed after all 7 scene tests passed.
+- After PR 4 implementation, `test_scenevalidator`, `test_scenewriter`, and `test_operationsbuilder` passed
+  3 of 3 in 2.45 seconds. The editor smoke passed after all 7 scene tests and emitted the new
+  `E2E_EDITOR_ENTRANCE_DELAY_OK` marker.
+- The complete incremental build passed and CTest passed 43 of 43 in 128.88 seconds. All six committed scene
+  directories passed `scene_tool validate` with their existing warning groups only.
+- Six-case native headless smoke passed every exit, changing-trajectory, non-sentinel, and served-station check.
+  Six-case round-trip smoke ended with `ROUNDTRIP PASS`. Assignment smoke passed its canonical timetable check.
+  Incident smoke passed breakdown hold/release and protected-signal hold/release behavior. Visual-polish smoke
+  passed DPR 1 and DPR 2, station overlays, scene rendering, and legacy import.
+- `graphify update .` rebuilt 6,079 nodes, 9,711 edges, and 1,689 communities after the PR 4 code changes.
 
 ## Review record
 
@@ -540,6 +578,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   after every accepted service mutation. Pending incident end-time text commits when the editor has focus even if
   its checkbox was previously clear. Focused smoke checks cover both selector add/delete paths and the unchecked
   end-time Run handoff.
+- PR 4 refreshes the delay list and detail widgets before validating after a deletion, preventing focused stale
+  widgets from overwriting the row shifted into the deleted index. Scenario deletion requires the exact persisted
+  `defaultScenarioId`; it does not use the model's legacy first-scenario fallback to authorize deletion.
 
 ### Ponytail findings
 
@@ -574,8 +615,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 and 2 are complete. PRs 3 through 6 remain open.
+- PRs 1 through 3 are complete. PR 4 is implemented and awaiting independent review. PRs 5 and 6 remain open.
 
 ## Next action
 
-Wait for PR #292's required build and sanitizer checks, then record the merge decision.
+Commit and open PR 4, run the fresh independent correctness review on the actual diff, correct every supported
+finding, then run the separate Ponytail simplicity review before merge.
