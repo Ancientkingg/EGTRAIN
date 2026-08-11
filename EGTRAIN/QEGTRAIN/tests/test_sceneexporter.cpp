@@ -57,7 +57,7 @@ int main() {
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
 	}
 
-	// 7. Ordinary slash-containing block ids are still wrapped.
+	// 7. Legacy export preserves a slash-containing stored route token as one block reference.
 	{
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
@@ -373,9 +373,11 @@ int main() {
 		TempDir sceneDir, outDir;
 		fs::path scene(sceneDir.dir);
 		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Incidents"})" << "\n";
-		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "infrastructure.json")
+			<< R"({"tracks":[{"id":"B0"},{"id":"B1"}],"nodes":[{"id":"n0","track":"B0","x_km":-2,"y_km":0},{"id":"n1","track":"B0","x_km":-1,"y_km":0},{"id":"m0","track":"B1","x_km":0,"y_km":0},{"id":"m1","track":"B1","x_km":1,"y_km":0}],"arcs":[{"id":"a0","track":"B0","from":"n0","to":"n1","curvature_radius_m":0,"gradient_percent":0,"speed_limit_ms":20},{"id":"a1","track":"B1","from":"m0","to":"m1","curvature_radius_m":0,"gradient_percent":0,"speed_limit_ms":20}],"blocks":[{"id":"canonical-block","track":"B0","length_km":1},{"id":"Depot/1","track":"B0","length_km":1},{"id":"canonical-other","track":"B1","length_km":1}],"connections":[{"id":"switch","from":"n1","to":"m0"}]})"
+			<< "\n";
 		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
-		std::ofstream(scene / "signalling.json") << R"({"signals":[{"id":"12-B0"}],"routes":[{"id":"route0","blocks":["12-B0"]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[{"id":"sig-x","protected_section":"@canonical-block@"},{"id":"sig-slash","protected_section":"Depot/1"},{"id":"sig-switch","protected_section":"@canonical-block@--1.000000/@canonical-other@-0.000000"},{"id":"sig-malformed","protected_section":"0-B0/1-B0"}],"routes":[{"id":"route0","blocks":["canonical-block","Depot/1","@canonical-block@--1.000000/@canonical-other@-0.000000"]}]})" << "\n";
 		std::ofstream(scene / "rolling_stock.json")
 			<< R"({"train_units":[{"id":"u1","physical":{"mass_of_traction_unit_kg":100,"mass_of_a_wagon_kg":50,"number_of_wagons":2,"max_speed_ms":80,"max_deceleration_ms2":1,"frontal_area_m2":10,"resistance_coefficient":0.01,"jerk_ms3":0.5,"length_m":50},"traction_curve":[[0,90,1,0,0]]}],"compositions":[{"id":"c1","units":["u1"]}]})"
 			<< "\n";
@@ -383,7 +385,7 @@ int main() {
 			<< R"({"services":[{"id":"svc1","operating_code":"legacy-svc","composition":"c1","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
 			<< "\n";
 		std::ofstream(scene / "scenarios.json")
-			<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc1","type":"signal_failure","target":"12-B0","start_seconds":100,"end_seconds":300},{"id":"inc3","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2},{"id":"inc4","type":"train_breakdown","target":"svc1","start_seconds":25,"end_seconds":35}]},{"id":"alternate","name":"Alternate","incidents":[{"id":"inc2","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150}]}]})"
+			<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc1","type":"signal_failure","target":"sig-x","start_seconds":100,"end_seconds":300},{"id":"inc2","type":"signal_failure","target":"canonical-block","start_seconds":301,"end_seconds":302},{"id":"inc-slash","type":"signal_failure","target":"sig-slash","start_seconds":303,"end_seconds":304},{"id":"inc3","type":"signal_failure","target":"sig-switch","start_seconds":400,"end_seconds":500},{"id":"inc4","type":"signal_failure","target":"sig-malformed","start_seconds":501,"end_seconds":600},{"id":"inc5","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2},{"id":"inc6","type":"train_breakdown","target":"svc1","start_seconds":25,"end_seconds":35}]},{"id":"alternate","name":"Alternate","incidents":[{"id":"inc7","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150}]}]})"
 			<< "\n";
 
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
@@ -392,18 +394,43 @@ int main() {
 
 		std::ifstream inf(fs::path(outDir.dir) / "Incidents.txt");
 		if (expect(inf.good(), "Incidents.txt exists")) {
-			std::string l1, l2, l3, l4;
+			std::string l1, l2, l3, l4, l5, l6;
 			std::getline(inf, l1);
 			std::getline(inf, l2);
 			std::getline(inf, l3);
 			std::getline(inf, l4);
-			ok &= expect(l1 == "signal_failure\t12-B0\t100\t300", ("Signal failure line correct: " + l1).c_str());
-			ok &= expect(l2 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l2).c_str());
-			ok &= expect(l3 == "train_breakdown\tlegacy-svc\t25\t35",
-					("Breakdown uses the active operating code: " + l3).c_str());
-			ok &= expect(l4.empty(), "Non-default scenario incident is not exported");
+			std::getline(inf, l5);
+			std::getline(inf, l6);
+			ok &= expect(l1 == "signal_failure\t0-B0\t100\t300",
+					("Bound signal exports its protected legacy block: " + l1).c_str());
+			ok &= expect(l2 == "signal_failure\t0-B0\t301\t302",
+					("Direct canonical block target remains supported: " + l2).c_str());
+			ok &= expect(l3 == "signal_failure\t1-B0\t303\t304",
+					("Legacy export maps the exact slash-containing block reference: " + l3).c_str());
+			ok &= expect(l4 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l4).c_str());
+			ok &= expect(l5 == "train_breakdown\tlegacy-svc\t25\t35",
+					("Breakdown uses the active operating code: " + l5).c_str());
+			ok &= expect(l6.empty(), "Non-default scenario incident is not exported");
 		}
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
+		ok &= expect(hasDiag(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning),
+				"Connection-derived signal target reports the legacy format limit");
+
+		std::ofstream(scene / "signalling.json")
+			<< R"({"signals":[{"id":"canonical-block","protected_section":"canonical-other"}],"routes":[{"id":"route0","blocks":["canonical-block","canonical-other"]}]})"
+			<< "\n";
+		std::ofstream(scene / "scenarios.json")
+			<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc-ambiguous","type":"signal_failure","target":"canonical-block","start_seconds":1,"end_seconds":2}]}]})"
+			<< "\n";
+		TempDir ambiguousOut;
+		auto ambiguous = exportLegacyScene(sceneDir.dir, ambiguousOut.dir);
+		ok &= expect(!ambiguous.success(), "Ambiguous incident export fails");
+		ok &= expect(hasDiag(ambiguous.diagnostics, "scene.ref.ambiguous"),
+				"Ambiguous signal and section target is diagnosed during export");
+		std::ifstream ambiguousIncidents(fs::path(ambiguousOut.dir) / "Incidents.txt");
+		std::string ambiguousLine;
+		std::getline(ambiguousIncidents, ambiguousLine);
+		ok &= expect(ambiguousLine.empty(), "Ambiguous signal failure is not silently retargeted");
 	}
 
 	// 18. Scene without incidents writes no Incidents.txt

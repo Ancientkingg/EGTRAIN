@@ -120,6 +120,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/util/TimeFormat.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
+	${SRC_DIR}/scene/SectionInventory.cpp
 	${SRC_DIR}/scene/SceneBundle.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
@@ -178,6 +179,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/TimeFormat.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
+	${SRC_DIR}/scene/SectionInventory.h
 	${SRC_DIR}/scene/SceneBundle.h
 	${SRC_DIR}/scene/SceneValidator.h
 	${SRC_DIR}/scene/SceneImporter.h
@@ -320,6 +322,7 @@ add_executable(scene_tool
 	${SRC_DIR}/scene/SceneTool.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
+	${SRC_DIR}/scene/SectionInventory.cpp
 	${SRC_DIR}/scene/SceneBundle.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
@@ -371,7 +374,8 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/Logger.cpp
         ${SRC_DIR}/util/TrajectoryUtil.cpp
         ${SRC_DIR}/scene/SceneDiagnostic.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp)
+        ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SectionInventory.cpp)
     target_include_directories(test_runresults PRIVATE ${SRC_DIR})
     target_link_libraries(test_runresults PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
     if(EGTRAIN_OPENMP_INCLUDE)
@@ -551,6 +555,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_scenevalidator.cpp
         ${SRC_DIR}/scene/SceneDiagnostic.cpp
         ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SectionInventory.cpp
         ${SRC_DIR}/scene/SceneValidator.cpp)
     target_link_libraries(test_scenevalidator PRIVATE nlohmann_json::nlohmann_json)
     add_test(NAME test_scenevalidator
@@ -560,6 +565,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_sceneimporter.cpp
         ${SRC_DIR}/scene/SceneDiagnostic.cpp
         ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SectionInventory.cpp
         ${SRC_DIR}/scene/SceneValidator.cpp
         ${SRC_DIR}/scene/SceneImporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE nlohmann_json::nlohmann_json)
@@ -578,6 +584,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_sceneexporter.cpp
         ${SRC_DIR}/scene/SceneDiagnostic.cpp
         ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SectionInventory.cpp
         ${SRC_DIR}/scene/SceneBundle.cpp
         ${SRC_DIR}/scene/SceneWriter.cpp
         ${SRC_DIR}/scene/SceneValidator.cpp
@@ -603,7 +610,8 @@ if(EGTRAIN_BUILD_TESTS)
 		${SRC_DIR}/util/Logger.cpp
 		${SRC_DIR}/simulation/Signalling.cpp
 		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp)
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SectionInventory.cpp)
 	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
 	if(EGTRAIN_OPENMP_INCLUDE)
@@ -632,7 +640,8 @@ if(EGTRAIN_BUILD_TESTS)
 		${SRC_DIR}/util/Logger.cpp
 		${SRC_DIR}/util/TrajectoryUtil.cpp
 		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp)
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SectionInventory.cpp)
 	target_include_directories(test_operationsbuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_operationsbuilder PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
 	if(EGTRAIN_OPENMP_INCLUDE)

@@ -1,8 +1,8 @@
 #include "scene/SceneValidator.h"
+#include "scene/SectionInventory.h"
 
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <regex>
 #include <unordered_map>
 #include <unordered_set>
@@ -86,12 +86,6 @@ std::string nativeRuntimeBlockId(const std::string& id) {
 	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)
 		return id;
 	return "@" + id + "@";
-}
-
-std::string nativeFormattedCoordinate(double coordinate) {
-	char buffer[32];
-	std::snprintf(buffer, sizeof(buffer), "%f", coordinate);
-	return buffer;
 }
 
 bool hasId(const std::unordered_set<std::string>& ids, const std::string& id) {
@@ -240,6 +234,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	for (std::size_t index = 0; index < scene.blocks.size(); ++index) {
 		const SceneBlock& block = scene.blocks[index];
 		const std::string path = "blocks[" + std::to_string(index) + "]";
+		if (block.id.find('/') != std::string::npos)
+			diagnostics.error("scene.id.reserved",
+				"Block id cannot contain '/' because it separates connection-derived section identities",
+				"infrastructure.json", "block", block.id, path + ".id", "/",
+				"Rename the block without '/' characters");
 		if (!std::isfinite(block.lengthKm) || block.lengthKm <= 0.0)
 			diagnostics.error("scene.block.length.invalid", "Block length_km must be positive and finite",
 				"infrastructure.json", "block", block.id, path + ".length_km");
@@ -272,7 +271,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!scene.arcs[index].id.empty())
 			arcPaths.emplace(scene.arcs[index].id, "arcs[" + std::to_string(index) + "]");
 	std::unordered_map<std::string, std::vector<const SceneNode*>> nativeChainNodes;
-	std::unordered_map<std::string, std::vector<const SceneArc*>> nativeChainArcs;
 	for (std::size_t trackIndex = 0; trackIndex < scene.tracks.size(); ++trackIndex) {
 		const SceneTrack& track = scene.tracks[trackIndex];
 		if (track.id.empty())
@@ -410,102 +408,20 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					track.id, trackPath + ".arcs", track.id, "Connect every declared node and arc exactly once");
 		else {
 			nativeChainNodes.emplace(track.id, std::move(chainNodes));
-			nativeChainArcs.emplace(track.id, std::move(chainArcs));
 		}
 	}
 	const bool infrastructureUsableForRuntimeChecks = !scene.tracks.empty()
 			&& errorCount() == errorsBeforeInfrastructure
 			&& nativeChainNodes.size() == scene.tracks.size();
-	std::unordered_map<std::string, std::unordered_set<std::string>> blockNodeIds;
-	if (infrastructureUsableForRuntimeChecks) {
-		for (const auto& track : scene.tracks) {
-			const auto chain = nativeChainNodes.find(track.id);
-			if (chain == nativeChainNodes.end() || chain->second.empty())
-				continue;
-			std::vector<const SceneBlock*> trackBlocks;
-			for (const auto& block : scene.blocks)
-				if (block.trackId == track.id)
-					trackBlocks.push_back(&block);
-			if (trackBlocks.empty())
-				continue;
-
-			struct BlockSpan {
-				const SceneBlock* block = nullptr;
-				double start = 0.0;
-				double end = 0.0;
-			};
-			std::vector<BlockSpan> spans;
-			const double trackEnd = chain->second.back()->xKm;
-			double cursor = chain->second.front()->xKm;
-			bool spansValid = true;
-			for (std::size_t index = 0; index < trackBlocks.size(); ++index) {
-				const SceneBlock* block = trackBlocks[index];
-				double end = cursor + block->lengthKm;
-				if (end > trackEnd + kNativeCoordinateTolerance) {
-					if (index + 1 == trackBlocks.size()
-							&& cursor < trackEnd - kNativeCoordinateTolerance)
-						end = trackEnd;
-					else
-						spansValid = false;
-				}
-				spans.push_back({block, cursor, std::min(end, trackEnd)});
-				cursor = end;
-			}
-			if (cursor < trackEnd - kNativeCoordinateTolerance && !spans.empty())
-				spans.back().end = trackEnd;
-			if (!spansValid)
-				continue;
-			for (const BlockSpan& span : spans) {
-				auto& ids = blockNodeIds[span.block->id];
-				for (const SceneNode* node : chain->second)
-					if (node->xKm >= span.start - kNativeCoordinateTolerance
-							&& node->xKm <= span.end + kNativeCoordinateTolerance)
-						ids.insert(node->id);
-			}
-		}
-	}
-	std::unordered_map<std::string, std::unordered_set<std::string>> sectionNodeIds = blockNodeIds;
-	for (const auto& entry : blockNodeIds)
-		sectionNodeIds[nativeRuntimeBlockId(entry.first)] = entry.second;
-	if (infrastructureUsableForRuntimeChecks) {
-		for (const auto& connection : scene.connections) {
-			const auto from = nodesById.find(connection.fromNodeId);
-			const auto to = nodesById.find(connection.toNodeId);
-			if (from == nodesById.end() || to == nodesById.end())
-				continue;
-			const SceneNode* first = from->second;
-			const SceneNode* second = to->second;
-			if (first->xKm > second->xKm)
-				std::swap(first, second);
-			if (first->xKm + kNativeCoordinateTolerance >= second->xKm)
-				continue;
-			for (const auto& firstBlock : blockNodeIds) {
-				if (firstBlock.second.count(first->id) == 0)
-					continue;
-				for (const auto& secondBlock : blockNodeIds) {
-					if (secondBlock.second.count(second->id) == 0)
-						continue;
-					const std::string id = nativeRuntimeBlockId(firstBlock.first) + "-"
-							+ nativeFormattedCoordinate(first->xKm) + "/"
-							+ nativeRuntimeBlockId(secondBlock.first) + "-"
-							+ nativeFormattedCoordinate(second->xKm);
-					auto& ids = sectionNodeIds[id];
-					for (const auto& nodeId : firstBlock.second) {
-						const auto node = nodesById.find(nodeId);
-						if (node != nodesById.end()
-								&& node->second->xKm <= first->xKm + kNativeCoordinateTolerance)
-							ids.insert(nodeId);
-					}
-					ids.insert(second->id);
-					for (const auto& nodeId : secondBlock.second) {
-						const auto node = nodesById.find(nodeId);
-						if (node != nodesById.end()
-								&& node->second->xKm > second->xKm + kNativeCoordinateTolerance)
-							ids.insert(nodeId);
-					}
-				}
-			}
-		}
+	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
+			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
+	std::unordered_map<std::string, std::unordered_set<std::string>> sectionNodeIds;
+	for (const auto& section : sectionInventory.sections) {
+		std::unordered_set<std::string> ids(section.nodeIds.begin(), section.nodeIds.end());
+		sectionNodeIds[section.id] = ids;
+		if (!section.sourceBlockId.empty())
+			sectionNodeIds[section.sourceBlockId] = ids;
 	}
 
 	std::unordered_set<std::string> stationIds;
@@ -563,6 +479,32 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 
 	std::unordered_set<std::string> signalIds;
 	collectIds(scene.signals, "signalling.json", "signal", "signals", diagnostics, signalIds);
+	for (std::size_t signalIndex = 0; signalIndex < scene.signals.size(); ++signalIndex) {
+		const SceneSignal& signal = scene.signals[signalIndex];
+		const std::string bindingPath = "signals[" + std::to_string(signalIndex) + "].protected_section";
+		bool targeted = false;
+		for (const auto& scenario : scene.scenarios)
+			for (const auto& incident : scenario.incidents)
+				if (incident.type == "signal_failure" && incident.target == signal.id)
+					targeted = true;
+		if (signal.protectedSection.empty()) {
+			if (targeted)
+				diagnostics.error("scene.signal.binding.missing",
+						"Signal failure targets a signal without a protected-section binding",
+						"signalling.json", "signal", signal.id, bindingPath, signal.id,
+						"Choose an exact base or connection-derived section for protected_section");
+			else
+				diagnostics.warning("scene.signal.binding.missing",
+						"Signal has no protected-section binding yet", "signalling.json", "signal", signal.id,
+						bindingPath, signal.id,
+						"Choose an exact base or connection-derived section for protected_section");
+		} else if (sectionInventory.resolve(signal.protectedSection) == nullptr) {
+			diagnostics.error("scene.signal.binding.unresolved",
+					"Signal protected_section does not identify an exact runtime section",
+					"signalling.json", "signal", signal.id, bindingPath, signal.protectedSection,
+						"Choose an exact section from the section catalog");
+		}
+	}
 	std::unordered_set<std::string> signallingAreaIds;
 	collectIds(scene.signallingAreas, "signalling.json", "signalling area", "signalling_areas",
 			diagnostics, signallingAreaIds);
@@ -586,7 +528,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 	std::unordered_set<std::string> routeIds;
 	collectIds(scene.routes, "signalling.json", "route", "routes", diagnostics, routeIds);
-	std::unordered_set<std::string> routeBlockIds;
 	std::unordered_map<std::string, std::unordered_set<std::string>> routeNodeIds;
 	std::unordered_set<std::string> routesWithCompleteNodeMembership;
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
@@ -596,10 +537,18 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.route.empty", "Route has no blocks", "signalling.json", "route", route.id,
 					path + ".blocks", "", "List the block ids the route runs through");
 		}
-		bool nodeMembershipComplete = !route.blocks.empty() && !blockNodeIds.empty();
+		bool nodeMembershipComplete = !route.blocks.empty() && !sectionNodeIds.empty();
+		std::vector<const SceneSectionDescriptor*> routeSections;
+		routeSections.reserve(route.blocks.size());
 		for (const auto& token : route.blocks) {
-			for (const auto& component : routeComponents(token)) {
-				routeBlockIds.insert(component);
+			const SceneSectionDescriptor* section = sectionInventory.resolve(token);
+			if (section == nullptr) {
+				nodeMembershipComplete = false;
+				diagnostics.error("scene.ref.unresolved", "Route refers to an unknown runtime section",
+						"signalling.json", "route", route.id, path + ".blocks", token,
+						"Choose a base block or an exact connection-derived section from the section catalog");
+			} else {
+				routeSections.push_back(section);
 			}
 			const auto nodes = sectionNodeIds.find(token);
 			if (nodes == sectionNodeIds.end())
@@ -609,9 +558,63 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		}
 		if (nodeMembershipComplete)
 			routesWithCompleteNodeMembership.insert(route.id);
+		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
+			bool forward = false;
+			bool reverse = false;
+			bool directionReported = false;
+			std::string firstForwardTransition;
+			std::string firstReverseTransition;
+			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
+				const SceneSectionTransition sectionTransition = classifySceneSectionTransition(scene,
+						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
+				const bool joinsForward = sectionTransition.joinsForward;
+				const bool joinsReverse = sectionTransition.joinsReverse;
+				const std::string transition = route.blocks[sectionIndex - 1] + " -> "
+						+ route.blocks[sectionIndex];
+				if (joinsForward) {
+					forward = true;
+					if (firstForwardTransition.empty())
+						firstForwardTransition = transition;
+				}
+				if (joinsReverse) {
+					reverse = true;
+					if (firstReverseTransition.empty())
+						firstReverseTransition = transition;
+				}
+				if (!directionReported && forward && reverse) {
+					diagnostics.error("scene.route.direction",
+							"Route changes direction between " + firstForwardTransition
+									+ " and " + firstReverseTransition,
+							"signalling.json", "route", route.id, path + ".blocks",
+							"forward: " + firstForwardTransition + "; reverse: " + firstReverseTransition,
+							"Keep each connected route segment in one forward or one reverse order");
+					directionReported = true;
+				}
+				if (joinsForward || joinsReverse)
+					continue;
+				if (sectionTransition.regionJump && hasLegacyImport) {
+					forward = false;
+					reverse = false;
+					firstForwardTransition.clear();
+					firstReverseTransition.clear();
+					diagnostics.warning("scene.route.region_jump",
+							"Route crosses an undeclared regional coordinate discontinuity",
+							"signalling.json", "route", route.id,
+							path + ".blocks[" + std::to_string(sectionIndex) + "]", transition,
+							"Add a declared connection when these sections belong to one connected network");
+					continue;
+				}
+				diagnostics.error("scene.route.disconnected", "Adjacent route sections are disconnected",
+						"signalling.json", "route", route.id,
+						path + ".blocks[" + std::to_string(sectionIndex) + "]", transition,
+						"Choose contiguous sections or add the missing declared connection");
+			}
+		}
 		if (!blockIds.empty()) {
 			for (std::size_t blockIndex = 0; blockIndex < route.blocks.size(); ++blockIndex) {
 				const std::string blockPath = path + ".blocks[" + std::to_string(blockIndex) + "]";
+				if (hasId(blockIds, route.blocks[blockIndex]))
+					continue;
 				for (const auto& component : routeComponents(route.blocks[blockIndex])) {
 					if (!hasId(blockIds, component)) {
 						diagnostics.error("scene.ref.unresolved", "Route refers to unknown block",
@@ -623,16 +626,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		}
 	}
 	auto blockReferenceKnown = [&](const std::string& reference) {
-		const std::vector<std::string> components = routeComponents(reference);
-		if (components.empty())
-			return false;
-		for (const auto& component : components) {
-			const bool found = blockIds.empty() ? hasId(routeBlockIds, component)
-					: hasId(blockIds, component);
-			if (!found)
-				return false;
-		}
-		return true;
+		return sectionInventory.resolve(reference) != nullptr;
 	};
 	for (std::size_t index = 0; index < scene.blockDependencies.size(); ++index) {
 		const SceneBlockDependency& dependency = scene.blockDependencies[index];
@@ -876,12 +870,26 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.id.duplicate", "Duplicate incident id", "scenarios.json", "incident",
 						incident.id, path + ".id", incident.id);
 			if (incident.type == "signal_failure") {
-				bool targetFound = hasId(signalIds, incident.target);
-				if (!targetFound)
-					targetFound = blockReferenceKnown(incident.target);
-				if (!targetFound)
+				const bool signalTarget = hasId(signalIds, incident.target);
+				const SceneSectionDescriptor* directSection = sectionInventory.resolve(incident.target);
+				if (signalTarget && directSection != nullptr) {
+					diagnostics.error("scene.ref.ambiguous",
+							"Signal failure target matches both a signal and a section",
+							"scenarios.json", "incident", incident.id, path + ".target", incident.target,
+							"Rename the signal or section so the target identifies one entity");
+				} else if (signalTarget) {
+					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
+							[&incident](const SceneSignal& candidate) { return candidate.id == incident.target; });
+					if (signal == scene.signals.end() || signal->protectedSection.empty()
+							|| sectionInventory.resolve(signal->protectedSection) == nullptr)
+						diagnostics.error("scene.signal.binding.unresolved",
+								"Signal failure requires a signal with an exact protected-section binding",
+								"scenarios.json", "incident", incident.id, path + ".target", incident.target,
+								"Bind the signal to an exact section before targeting it");
+				} else if (directSection == nullptr) {
 					diagnostics.error("scene.ref.unresolved", "Signal failure refers to unknown signal or block",
 							"scenarios.json", "incident", incident.id, path + ".target", incident.target);
+				}
 			} else if (incident.type == "train_breakdown") {
 				if (!hasId(serviceIds, incident.target))
 					diagnostics.error("scene.ref.unresolved", "Train breakdown refers to unknown service",
@@ -1122,12 +1130,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				runtimeCapacity("Scene has more than " + std::to_string(kNativeMaxStations)
 						+ " stations for the native runtime", "stations.json", "station", "", "stations",
 						std::to_string(scene.stations.size()), "Reduce the number of stations");
-			struct NativeBlockPlan {
-				const SceneBlock* source = nullptr;
-				std::string trackId;
-				double startX = 0.0;
-				double endX = 0.0;
-			};
 			struct PlannedSignallingSection {
 				std::string id;
 				double startX = 0.0;
@@ -1135,162 +1137,37 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				std::string firstTrackId;
 				std::string secondTrackId;
 			};
-			std::vector<NativeBlockPlan> blockPlans;
 			std::vector<PlannedSignallingSection> plannedSignallingSections;
-			std::vector<const SceneTrack*> orderedTracks;
-			orderedTracks.reserve(scene.tracks.size());
-			for (const auto& track : scene.tracks)
-				orderedTracks.push_back(&track);
-			std::sort(orderedTracks.begin(), orderedTracks.end(), [](const SceneTrack* left,
-					const SceneTrack* right) { return left->id < right->id; });
-
-			for (const SceneTrack* track : orderedTracks) {
-				const auto chainNodes = nativeChainNodes.find(track->id);
-				const auto chainArcs = nativeChainArcs.find(track->id);
-				if (chainNodes == nativeChainNodes.end() || chainArcs == nativeChainArcs.end()
-						|| chainNodes->second.empty())
-					continue;
-				std::vector<const SceneBlock*> trackBlocks;
-				for (const auto& block : scene.blocks)
-					if (block.trackId == track->id)
-						trackBlocks.push_back(&block);
-				if (trackBlocks.empty())
-					continue;
-
-				const double trackEnd = chainNodes->second.back()->xKm;
-				double cursor = chainNodes->second.front()->xKm;
-				for (std::size_t blockIndex = 0; blockIndex < trackBlocks.size(); ++blockIndex) {
-					const SceneBlock* block = trackBlocks[blockIndex];
-					double end = cursor + block->lengthKm;
-					if (end > trackEnd + kNativeCoordinateTolerance) {
-						if (blockIndex + 1 == trackBlocks.size()
-								&& cursor < trackEnd - kNativeCoordinateTolerance) {
-							end = trackEnd;
-						} else {
-							runtimeCapacity("Block section extends beyond its track", "infrastructure.json",
-									"block", block->id,
-									"blocks[" + std::to_string(
-											static_cast<std::size_t>(block - scene.blocks.data())) + "].length_km",
-									track->id, "Reduce block lengths to fit the track");
-						}
-					}
-					if (end <= cursor + kNativeCoordinateTolerance)
-						runtimeCapacity("Block section has no positive runtime span", "infrastructure.json",
-								"block", block->id,
-								"blocks[" + std::to_string(
-										static_cast<std::size_t>(block - scene.blocks.data())) + "].length_km",
-								track->id, "Use positive block lengths larger than the native coordinate tolerance");
-					int arcCount = 0;
-					for (const SceneArc* arc : chainArcs->second) {
-						const auto from = nodesById.find(arc->fromNodeId);
-						const auto to = nodesById.find(arc->toNodeId);
-						if (from != nodesById.end() && to != nodesById.end()
-								&& to->second->xKm > cursor + kNativeCoordinateTolerance
-								&& from->second->xKm < end - kNativeCoordinateTolerance)
-							++arcCount;
-					}
-					if (arcCount > static_cast<int>(kNativeMaxSectionArcs))
-						runtimeCapacity("Block section exceeds the runtime arc capacity", "infrastructure.json",
-								"block", block->id,
-								"blocks[" + std::to_string(
-										static_cast<std::size_t>(block - scene.blocks.data())) + "].arcs",
-								std::to_string(kNativeMaxSectionArcs), "Split the block section");
-					blockPlans.push_back({block, track->id, cursor, std::min(end, trackEnd)});
-					cursor = end;
-				}
-				if (cursor < trackEnd - kNativeCoordinateTolerance && !blockPlans.empty()
-						&& blockPlans.back().trackId == track->id) {
-					blockPlans.back().endX = trackEnd;
-				} else if (cursor < trackEnd - kNativeCoordinateTolerance) {
-					runtimeCapacity("Block sections do not cover the complete track", "infrastructure.json",
-							"track", track->id, "tracks[" + std::to_string(
-							static_cast<std::size_t>(track - scene.tracks.data())) + "].blocks", track->id,
-							"Extend the final block to the track endpoint");
-				}
-			}
-
 			std::unordered_set<std::string> plannedSectionIds;
-			for (const NativeBlockPlan& plan : blockPlans) {
-				const std::string runtimeId = nativeRuntimeBlockId(plan.source->id);
-				if (!plannedSectionIds.insert(runtimeId).second)
-					runtimeCapacity("Canonical block IDs normalize to the same native runtime section ID",
-							"infrastructure.json", "block", plan.source->id, "blocks", runtimeId,
-							"Give each block a distinct native runtime section ID");
-				plannedSignallingSections.push_back(
-						{runtimeId, plan.startX, plan.endX, plan.trackId, {}});
+			for (const auto& section : sectionInventory.sections) {
+				if (!plannedSectionIds.insert(section.id).second) {
+					runtimeCapacity("Section descriptors produce the same native runtime section ID",
+							"infrastructure.json", section.connectionDerived ? "connection" : "block",
+							section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
+							"sections", section.id, "Give each section a distinct runtime section ID");
+					continue;
+				}
+				if (section.layoutOverflow)
+					runtimeCapacity("Block section extends beyond its track", "infrastructure.json",
+							"block", section.sourceBlockId, "blocks", section.id,
+							"Reduce the block length or split the track layout");
+				if (section.clippedToTrackEnd)
+					diagnostics.warning("scene.native.block.clipped",
+							"Final block length exceeds its track and is clipped at the final node",
+							"infrastructure.json", "block", section.sourceBlockId,
+							"blocks.length_km", section.firstTrackId);
+				if (section.arcCount > kNativeMaxSectionArcs)
+					runtimeCapacity("Section exceeds the runtime arc capacity", "infrastructure.json",
+							section.connectionDerived ? "connection" : "block",
+							section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
+							"sections", std::to_string(kNativeMaxSectionArcs), "Split the section");
+				plannedSignallingSections.push_back({section.id, section.startKm, section.endKm,
+						section.firstTrackId, section.secondTrackId});
 			}
 			auto plannedRuntimeId = [&](const std::string& reference) {
-				if (plannedSectionIds.find(reference) != plannedSectionIds.end())
-					return reference;
-				if (reference.find('/') == std::string::npos) {
-					const std::string wrapped = nativeRuntimeBlockId(reference);
-					if (plannedSectionIds.find(wrapped) != plannedSectionIds.end())
-						return wrapped;
-				}
-				return std::string();
+				const auto* section = sectionInventory.resolve(reference);
+				return section == nullptr ? std::string() : section->id;
 			};
-
-			for (const auto& connection : scene.connections) {
-				const auto from = nodesById.find(connection.fromNodeId);
-				const auto to = nodesById.find(connection.toNodeId);
-				if (from == nodesById.end() || to == nodesById.end())
-					continue;
-				const SceneNode* first = from->second;
-				const SceneNode* second = to->second;
-				if (first->xKm > second->xKm)
-					std::swap(first, second);
-				if (first->xKm + kNativeCoordinateTolerance >= second->xKm)
-					continue;
-				const std::string firstX = nativeFormattedCoordinate(first->xKm);
-				const std::string secondX = nativeFormattedCoordinate(second->xKm);
-				for (const NativeBlockPlan& firstPlan : blockPlans) {
-					if (firstPlan.trackId != first->trackId
-							|| first->xKm < firstPlan.startX - kNativeCoordinateTolerance
-							|| first->xKm > firstPlan.endX + kNativeCoordinateTolerance)
-						continue;
-					for (const NativeBlockPlan& secondPlan : blockPlans) {
-						if (secondPlan.trackId != second->trackId
-								|| second->xKm < secondPlan.startX - kNativeCoordinateTolerance
-								|| second->xKm > secondPlan.endX + kNativeCoordinateTolerance)
-							continue;
-						const std::string derivedId = nativeRuntimeBlockId(firstPlan.source->id) + "-" + firstX
-								+ "/" + nativeRuntimeBlockId(secondPlan.source->id) + "-" + secondX;
-						if (!plannedSectionIds.insert(derivedId).second)
-							runtimeCapacity("Connections produce the same native runtime switch section ID",
-									"infrastructure.json", "connection", connection.id, "connections", derivedId,
-									"Give each switch connection a distinct runtime section ID");
-						plannedSignallingSections.push_back({derivedId, firstPlan.startX, secondPlan.endX,
-								firstPlan.trackId, secondPlan.trackId});
-						int derivedArcCount = 1;
-						for (const SceneArc* arc : nativeChainArcs[firstPlan.trackId]) {
-							const auto fromNode = nodesById.find(arc->fromNodeId);
-							const auto toNode = nodesById.find(arc->toNodeId);
-							if (fromNode == nodesById.end() || toNode == nodesById.end())
-								continue;
-							const double beginX = std::max(firstPlan.startX, fromNode->second->xKm);
-							const double endX = std::min(firstPlan.endX, toNode->second->xKm);
-							if (endX > beginX + kNativeCoordinateTolerance
-									&& endX <= first->xKm + kNativeCoordinateTolerance)
-								++derivedArcCount;
-						}
-						for (const SceneArc* arc : nativeChainArcs[secondPlan.trackId]) {
-							const auto fromNode = nodesById.find(arc->fromNodeId);
-							const auto toNode = nodesById.find(arc->toNodeId);
-							if (fromNode == nodesById.end() || toNode == nodesById.end())
-								continue;
-							const double beginX = std::max(secondPlan.startX, fromNode->second->xKm);
-							const double endX = std::min(secondPlan.endX, toNode->second->xKm);
-							if (endX > beginX + kNativeCoordinateTolerance
-									&& endX > second->xKm + kNativeCoordinateTolerance)
-								++derivedArcCount;
-						}
-						if (derivedArcCount > static_cast<int>(kNativeMaxSectionArcs))
-							runtimeCapacity("Derived switch section exceeds the runtime arc capacity",
-									"infrastructure.json", "connection", connection.id, "connections",
-									std::to_string(kNativeMaxSectionArcs), "Reduce the connected block spans");
-					}
-				}
-			}
 			for (const PlannedSignallingSection& section : plannedSignallingSections) {
 				for (const bool trackScoped : {false, true}) {
 					const SceneSignallingArea* matched = nullptr;
