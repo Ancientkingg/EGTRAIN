@@ -152,12 +152,41 @@ int main(int argc, char** argv) {
 	directionChange.routes[0].blocks = {"block-1", "block-2", "block-1"};
 	ok &= expect(hasCode(validateScene(directionChange), "scene.route.direction"),
 				"a route cannot change direction between connected sections");
-	SceneModel switchChain = clean;
-	switchChain.routes[0].blocks = {inventory.sections[2].id, inventory.sections[3].id};
+	SceneModel switchTopology;
+	switchTopology.tracks = {{"switch-a"}, {"switch-b"}, {"switch-c"}};
+	switchTopology.nodes = {{"a.0", "switch-a", 0.0, 0.0}, {"a.1", "switch-a", 1.0, 0.0},
+		{"b.0", "switch-b", 2.0, 0.0}, {"b.1", "switch-b", 4.0, 0.0},
+		{"c.0", "switch-c", 5.0, 0.0}, {"c.1", "switch-c", 6.0, 0.0}};
+	switchTopology.arcs = {{"a.arc", "switch-a", "a.0", "a.1", 0.0, 0.0, 20.0},
+		{"b.arc", "switch-b", "b.0", "b.1", 0.0, 0.0, 20.0},
+		{"c.arc", "switch-c", "c.0", "c.1", 0.0, 0.0, 20.0}};
+	switchTopology.blocks = {{"a.block", "switch-a", 1.0}, {"b.block", "switch-b", 2.0},
+		{"c.block", "switch-c", 1.0}};
+	switchTopology.connections = {{"a-to-b", "a.1", "b.0", false, 0.0},
+		{"b-to-c", "b.1", "c.0", false, 0.0}, {"a-to-c", "a.1", "c.0", false, 0.0}};
+	const SceneSectionInventory switchInventory = buildSceneSectionInventory(switchTopology);
+	std::string aToB;
+	std::string bToC;
+	std::string aToC;
+	for (const auto& section : switchInventory.sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			aToB = section.id;
+		else if (section.sourceConnectionId == "b-to-c")
+			bToC = section.id;
+		else if (section.sourceConnectionId == "a-to-c")
+			aToC = section.id;
+	}
+	SceneModel switchChain = switchTopology;
+	switchChain.routes.push_back({"switch-route", {aToB, bToC}, false, "", false});
 	const auto switchChainDiagnostics = validateScene(switchChain);
-	ok &= expect(!hasCode(switchChainDiagnostics, "scene.route.disconnected")
+	ok &= expect(!aToB.empty() && !bToC.empty()
+				&& !hasCode(switchChainDiagnostics, "scene.route.disconnected")
 				&& !hasCode(switchChainDiagnostics, "scene.route.direction"),
-				"adjacent connection-derived sections retain switch-chain compatibility");
+				"connection-derived sections join through the shared exit and entry block");
+	SceneModel forkedSwitchChain = switchTopology;
+	forkedSwitchChain.routes.push_back({"forked-route", {aToB, aToC}, false, "", false});
+	ok &= expect(!aToC.empty() && hasCode(validateScene(forkedSwitchChain), "scene.route.disconnected"),
+				"overlapping switch sections on the wrong branch are rejected");
 	SceneModel regionJump = clean;
 	regionJump.tracks.push_back({"region-track"});
 	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});
@@ -186,6 +215,11 @@ int main(int argc, char** argv) {
 	directBlockIncident.scenarios[0].incidents[0].target = "block-2";
 	ok &= expect(validateScene(directBlockIncident).empty(),
 				"direct base-block signal-failure targets remain compatible");
+	SceneModel ambiguousSignalTarget = clean;
+	ambiguousSignalTarget.signals[0].id = "block-1";
+	ambiguousSignalTarget.scenarios[0].incidents[0].target = "block-1";
+	ok &= expect(hasCode(validateScene(ambiguousSignalTarget), "scene.ref.ambiguous"),
+				"signal failures reject an ID that identifies both a signal and section");
 	SceneModel validAreas = clean;
 	validAreas.signallingAreas = {
 		{"network-area", 0.0, 2.0, 2, {}},

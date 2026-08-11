@@ -85,7 +85,8 @@ Required root arrays are `signals` and `routes`.
   `protected_section` names one exact derived runtime section (a base block
   alias is accepted for V1 compatibility); it is omitted when empty. Signal
   failures resolve through this binding, while direct base-block incident
-  targets remain supported.
+  targets remain supported. A signal-failure target that matches both a signal
+  ID and a section reference is ambiguous and invalid.
 - `routes[]`: required `id` and string-array `blocks`; optional string
   `corridor` and boolean `reversed`.
 - `signalling_areas[]`: required `id`, numeric `start_km`, numeric `end_km`,

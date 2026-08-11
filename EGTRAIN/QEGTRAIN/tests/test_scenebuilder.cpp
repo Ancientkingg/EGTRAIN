@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
 
 #include <cmath>
@@ -161,6 +162,24 @@ static bool runTinyBuilderChecks() {
 					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
 		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
 	}
+	const int blocksBeforeDisconnectedRoute = Blocks;
+	const std::string firstSectionBeforeDisconnectedRoute = signalling_block_sections[0].ID;
+	SceneModel disconnectedRoute = tinyScene();
+	disconnectedRoute.routes.front().blocks = {"block.a", "block.a"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(disconnectedRoute);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
+			&& Blocks == blocksBeforeDisconnectedRoute
+			&& signalling_block_sections[0].ID == firstSectionBeforeDisconnectedRoute,
+			"direct native-builder callers reject disconnected routes before runtime mutation");
+	SceneModel epsilonConnection = stableConnectionScene();
+	epsilonConnection.nodes[2].xKm = 1.0 + 5e-9;
+	epsilonConnection.nodes[3].xKm = 2.0 + 5e-9;
+	const SceneSectionInventory epsilonInventory = buildSceneSectionInventory(epsilonConnection);
+	diagnostics = buildInfrastructureAndSignallingFromScene(epsilonConnection);
+	ok &= expect(!hasErrors(diagnostics) && Blocks == 3
+			&& epsilonInventory.sections.size() == 3
+			&& signalling_block_sections[2].ID == epsilonInventory.sections[2].id,
+			"sub-tolerance connection spacing retains inventory and native section-ID parity");
 	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
 			"signalling areas apply before route construction");

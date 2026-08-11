@@ -15,12 +15,6 @@ std::string runtimeBlockId(const std::string& id) {
 	return "@" + id + "@";
 }
 
-std::string formattedCoordinate(double coordinate) {
-	char buffer[32];
-	std::snprintf(buffer, sizeof(buffer), "%f", coordinate);
-	return buffer;
-}
-
 struct TrackChain {
 	std::vector<const SceneNode*> nodes;
 	std::vector<const SceneArc*> arcs;
@@ -93,7 +87,58 @@ std::string nodeAt(const TrackChain& chain, double coordinate) {
 	return {};
 }
 
+std::string sectionStartTrack(const SceneSectionDescriptor& section) {
+	return section.firstTrackId;
+}
+
+std::string sectionEndTrack(const SceneSectionDescriptor& section) {
+	return section.secondTrackId.empty() ? section.firstTrackId : section.secondTrackId;
+}
+
+std::string sectionBoundaryNode(const SceneSectionDescriptor& section, bool forward, bool exit) {
+	return exit == forward ? section.endNodeId : section.startNodeId;
+}
+
+bool sectionBoundaryJoins(const SceneModel& scene, const SceneSectionDescriptor& left,
+		const SceneSectionDescriptor& right, bool forward) {
+	const double leftCoordinate = forward ? left.endKm : left.startKm;
+	const double rightCoordinate = forward ? right.startKm : right.endKm;
+	const std::string leftTrack = forward ? sectionEndTrack(left) : sectionStartTrack(left);
+	const std::string rightTrack = forward ? sectionStartTrack(right) : sectionEndTrack(right);
+	if (leftTrack == rightTrack && std::fabs(leftCoordinate - rightCoordinate) <= kCoordinateTolerance)
+		return true;
+	const std::string leftNode = sectionBoundaryNode(left, forward, true);
+	const std::string rightNode = sectionBoundaryNode(right, forward, false);
+	if (leftTrack == rightTrack || leftNode.empty() || rightNode.empty())
+		return false;
+	for (const auto& connection : scene.connections)
+		if ((connection.fromNodeId == leftNode && connection.toNodeId == rightNode)
+				|| (connection.toNodeId == leftNode && connection.fromNodeId == rightNode))
+			return true;
+	return false;
+}
+
+bool sectionBoundaryIsRegionJump(const SceneSectionDescriptor& left,
+		const SceneSectionDescriptor& right, bool forward) {
+	const double leftCoordinate = forward ? left.endKm : left.startKm;
+	const double rightCoordinate = forward ? right.startKm : right.endKm;
+	const std::string leftTrack = forward ? sectionEndTrack(left) : sectionStartTrack(left);
+	const std::string rightTrack = forward ? sectionStartTrack(right) : sectionEndTrack(right);
+	return leftTrack != rightTrack
+			&& std::fabs(leftCoordinate - rightCoordinate) > kCoordinateTolerance;
+}
+
 } // namespace
+
+std::string formatSceneSectionCoordinate(double coordinate) {
+	const int length = std::snprintf(nullptr, 0, "%f", coordinate);
+	if (length <= 0)
+		return {};
+	std::string result(static_cast<std::size_t>(length) + 1, '\0');
+	std::snprintf(result.data(), result.size(), "%f", coordinate);
+	result.resize(static_cast<std::size_t>(length));
+	return result;
+}
 
 const SceneSectionDescriptor* SceneSectionInventory::exact(const std::string& runtimeId) const {
 	const SceneSectionDescriptor* result = nullptr;
@@ -137,6 +182,27 @@ const SceneSectionDescriptor* SceneSectionInventory::resolve(const std::string& 
 		}
 	}
 	return result;
+}
+
+SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
+		const SceneSectionDescriptor& left, const SceneSectionDescriptor& right) {
+	SceneSectionTransition transition;
+	transition.joinsForward = sectionBoundaryJoins(scene, left, right, true);
+	transition.joinsReverse = sectionBoundaryJoins(scene, left, right, false);
+	if (left.connectionDerived && right.connectionDerived) {
+		const bool switchForward = left.secondBlockId == right.firstBlockId
+						&& left.secondTrackId == right.firstTrackId
+						&& left.secondConnectionKm <= right.firstConnectionKm + kCoordinateTolerance;
+		const bool switchReverse = left.firstBlockId == right.secondBlockId
+						&& left.firstTrackId == right.secondTrackId
+						&& right.secondConnectionKm <= left.firstConnectionKm + kCoordinateTolerance;
+		transition.joinsForward = transition.joinsForward || switchForward;
+		transition.joinsReverse = transition.joinsReverse || switchReverse;
+		transition.switchChain = transition.joinsForward || transition.joinsReverse;
+	}
+	transition.regionJump = sectionBoundaryIsRegionJump(left, right, true)
+			|| sectionBoundaryIsRegionJump(left, right, false);
+	return transition;
 }
 
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
@@ -230,10 +296,10 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 		const SceneNode* second = to->second;
 		if (first->xKm > second->xKm)
 			std::swap(first, second);
-		if (first->xKm + kCoordinateTolerance >= second->xKm)
+		if (first->xKm >= second->xKm)
 			continue;
-		const std::string firstX = formattedCoordinate(first->xKm);
-		const std::string secondX = formattedCoordinate(second->xKm);
+		const std::string firstX = formatSceneSectionCoordinate(first->xKm);
+		const std::string secondX = formatSceneSectionCoordinate(second->xKm);
 		for (const BlockPlan& firstPlan : plans) {
 			if (firstPlan.source->trackId != first->trackId
 					|| first->xKm < firstPlan.startKm - kCoordinateTolerance
@@ -254,6 +320,8 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 				section.secondTrackId = secondPlan.source->trackId;
 				section.startKm = firstPlan.startKm;
 				section.endKm = secondPlan.endKm;
+				section.firstConnectionKm = first->xKm;
+				section.secondConnectionKm = second->xKm;
 				section.startNodeId = nodeAt(*firstPlan.chain, firstPlan.startKm);
 				section.endNodeId = nodeAt(*secondPlan.chain, secondPlan.endKm);
 				for (const SceneNode* node : firstPlan.chain->nodes)

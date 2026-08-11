@@ -101,6 +101,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - After implementation:
   `ctest --test-dir build -R 'test_(scenevalidator|scenebuilder|operationsbuilder|scenewriter|scenebundle)' --output-on-failure`
   passed 5 of 5 in 3.26 seconds. The clean pre-review rebuild passed the same 5 of 5 in 2.68 seconds.
+- After correctness-review fixes, the same focused gate passed 5 of 5 in 3.39 seconds.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -114,6 +115,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - full configure and build passed;
   - the first complete CTest pass was 43 of 43 in 124.39 seconds;
   - the clean pre-review CTest pass was 43 of 43 in 117.81 seconds;
+  - the post-correctness CTest pass was 43 of 43 in 118.76 seconds;
   - editor smoke passed;
   - six-case native headless smoke passed;
   - six-case round-trip smoke passed;
@@ -122,6 +124,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - visual-polish smoke passed at device-pixel ratios 1 and 2;
   - all six committed scenes saved and reopened as `.egscene` bundles successfully;
   - all six committed scene directories passed `scene_tool validate` after the final rebuild.
+  - after the correctness fixes, six-case native headless smoke, six-case round-trip smoke, Assignment smoke,
+    editor smoke, and incident smoke all passed again.
 
 ### Exact results
 
@@ -155,7 +159,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Independent correctness findings
 
-- Not run for PR 1 yet.
+- The first fresh review of PR #290 found no P0 issue and four merge blockers:
+  1. overlapping connection-derived sections could be accepted through a shared block without matching the
+     first section's exit to the second section's entry;
+  2. an incident target matching both a signal ID and a block ID silently selected the signal;
+  3. the inventory and legacy connection builder disagreed for positive endpoint deltas at or below `1e-8`;
+  4. direct native-builder callers did not enforce route adjacency before mutating runtime state.
+- The review also noted that inventory and legacy section-ID formatting used different fixed buffer sizes.
+- A fresh corrected-diff re-review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -163,6 +174,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Kept switch-chain pairs direction-neutral so legacy double-switch routes do not conflict with route direction.
 - Preserved the native final-block clipping warning and derived-section arc-capacity preflight after extraction.
 - Restored lexical track ordering in the shared inventory to match the preexisting native contract.
+- Classified switch chains by the actual exit block and next entry block. Wrong-branch overlaps now fail, while
+  valid derived-to-derived transitions remain neutral to regional coordinate direction.
+- Rejected signal-failure targets that identify both a signal and a section in validation and native operations.
+- Matched legacy connection generation's exact positive-delta rule and made inventory/native ID formatting use
+  one dynamically sized formatter.
+- Applied the shared transition classifier in the native infrastructure builder before runtime reset/allocation.
+- Added focused negative-switch, ambiguous-target, epsilon-endpoint, and direct-builder regressions.
 
 ### Ponytail findings
 
@@ -185,5 +203,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Run a fresh independent correctness review of PR #290. Resolve every verified finding, rerun affected gates, then
-run the fresh Ponytail simplicity review before final verification and merge.
+Commit and push the correctness fixes, then run a fresh corrected-diff review of PR #290. When no merge blocker
+remains, run the fresh Ponytail simplicity review before final verification and merge.

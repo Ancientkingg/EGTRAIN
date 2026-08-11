@@ -21,6 +21,8 @@ struct SceneSectionDescriptor {
 	std::string endNodeId;
 	double startKm = 0.0;
 	double endKm = 0.0;
+	double firstConnectionKm = 0.0;
+	double secondConnectionKm = 0.0;
 	std::vector<std::string> nodeIds;
 	std::size_t arcCount = 0;
 	bool layoutOverflow = false;
@@ -39,6 +41,16 @@ struct SceneSectionInventory {
 	bool ambiguous(const std::string& reference) const;
 };
 
+struct SceneSectionTransition {
+	bool joinsForward = false;
+	bool joinsReverse = false;
+	bool switchChain = false;
+	bool regionJump = false;
+};
+
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene);
+SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
+		const SceneSectionDescriptor& left, const SceneSectionDescriptor& right);
+std::string formatSceneSectionCoordinate(double coordinate);
 
 #endif // SCENE_SECTION_INVENTORY_H

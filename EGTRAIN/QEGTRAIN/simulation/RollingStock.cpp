@@ -963,17 +963,25 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				const SceneSectionDescriptor* targetSection = nullptr;
 				const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
 						[&incident](const SceneSignal& candidate) { return candidate.id == incident.target; });
-				if (signal != scene.signals.end()) {
+				const SceneSectionDescriptor* directSection = sectionInventory.resolve(incident.target);
+				const bool ambiguousTarget = signal != scene.signals.end() && directSection != nullptr;
+				if (ambiguousTarget) {
+					addNativeDiagnostic(diagnostics, "scene.native.incident.target.ambiguous",
+							"Signal failure target matches both a signal and a section",
+							"scenarios.json", "incident", incident.id,
+							"incidents[" + incident.id + "].target", incident.target);
+					valid = false;
+				} else if (signal != scene.signals.end()) {
 					if (!signal->protectedSection.empty())
 						targetSection = sectionInventory.resolve(signal->protectedSection);
 				} else {
-					targetSection = sectionInventory.resolve(incident.target);
+					targetSection = directSection;
 				}
 				const int sectionIndex = targetSection == nullptr ? -1
 						: nativeResolveRuntimeSection(targetSection->id);
 				if (sectionIndex >= 0)
 					runtimeIncident.resolvedSectionIDs.push_back(signalling_block_sections[sectionIndex].ID);
-				else {
+				else if (!ambiguousTarget) {
 					addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Signal failure target does not resolve to an exact runtime section",
 							"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].target", incident.target);
 					valid = false;

@@ -92,62 +92,6 @@ bool hasId(const std::unordered_set<std::string>& ids, const std::string& id) {
 	return !id.empty() && ids.find(id) != ids.end();
 }
 
-std::string sectionStartTrack(const SceneSectionDescriptor& section) {
-	return section.firstTrackId;
-}
-
-std::string sectionEndTrack(const SceneSectionDescriptor& section) {
-	return section.secondTrackId.empty() ? section.firstTrackId : section.secondTrackId;
-}
-
-std::string sectionBoundaryNode(const SceneSectionDescriptor& section, bool forward, bool exit) {
-	return exit == forward ? section.endNodeId : section.startNodeId;
-}
-
-bool switchSectionsJoin(const SceneSectionDescriptor& left,
-		const SceneSectionDescriptor& right) {
-	if (!left.connectionDerived || !right.connectionDerived)
-		return false;
-	const bool sharesBlock = left.firstBlockId == right.firstBlockId
-			|| left.firstBlockId == right.secondBlockId
-			|| left.secondBlockId == right.firstBlockId
-			|| left.secondBlockId == right.secondBlockId;
-	if (!sharesBlock)
-		return false;
-	return std::max(left.startKm, right.startKm)
-			<= std::min(left.endKm, right.endKm) + kNativeCoordinateTolerance;
-}
-
-bool sectionBoundaryJoins(const SceneModel& scene, const SceneSectionDescriptor& left,
-		const SceneSectionDescriptor& right, bool forward) {
-	const double leftCoordinate = forward ? left.endKm : left.startKm;
-	const double rightCoordinate = forward ? right.startKm : right.endKm;
-	const std::string leftTrack = forward ? sectionEndTrack(left) : sectionStartTrack(left);
-	const std::string rightTrack = forward ? sectionStartTrack(right) : sectionEndTrack(right);
-	if (leftTrack == rightTrack && std::fabs(leftCoordinate - rightCoordinate) <= kNativeCoordinateTolerance)
-		return true;
-	const std::string leftNode = sectionBoundaryNode(left, forward, true);
-	const std::string rightNode = sectionBoundaryNode(right, forward, false);
-	if (leftTrack == rightTrack || leftNode.empty() || rightNode.empty())
-		return false;
-	for (const auto& connection : scene.connections) {
-		if ((connection.fromNodeId == leftNode && connection.toNodeId == rightNode)
-				|| (connection.toNodeId == leftNode && connection.fromNodeId == rightNode))
-			return true;
-	}
-	return false;
-}
-
-bool sectionBoundaryIsRegionJump(const SceneSectionDescriptor& left,
-		const SceneSectionDescriptor& right, bool forward) {
-	const double leftCoordinate = forward ? left.endKm : left.startKm;
-	const double rightCoordinate = forward ? right.startKm : right.endKm;
-	const std::string leftTrack = forward ? sectionEndTrack(left) : sectionStartTrack(left);
-	const std::string rightTrack = forward ? sectionStartTrack(right) : sectionEndTrack(right);
-	return leftTrack != rightTrack
-			&& std::fabs(leftCoordinate - rightCoordinate) > kNativeCoordinateTolerance;
-}
-
 template <typename T>
 bool idsAreUnique(const std::vector<T>& items) {
 	std::unordered_set<std::string> ids;
@@ -615,34 +559,25 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			std::string firstForwardTransition;
 			std::string firstReverseTransition;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
-				const bool joinsForward = sectionBoundaryJoins(scene, *routeSections[sectionIndex - 1],
-						*routeSections[sectionIndex], true);
-				const bool joinsReverse = sectionBoundaryJoins(scene, *routeSections[sectionIndex - 1],
-						*routeSections[sectionIndex], false);
-				if (routeSections[sectionIndex - 1]->connectionDerived
-						&& routeSections[sectionIndex]->connectionDerived
-						&& (joinsForward || joinsReverse || switchSectionsJoin(
-								*routeSections[sectionIndex - 1], *routeSections[sectionIndex])))
-					continue;
+				const SceneSectionTransition sectionTransition = classifySceneSectionTransition(scene,
+						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
+				const bool joinsForward = sectionTransition.joinsForward;
+				const bool joinsReverse = sectionTransition.joinsReverse;
 				const std::string transition = route.blocks[sectionIndex - 1] + " -> "
 						+ route.blocks[sectionIndex];
-				if (joinsForward) {
+				if (joinsForward && !sectionTransition.switchChain) {
 					forward = true;
 					if (firstForwardTransition.empty())
 						firstForwardTransition = transition;
 				}
-				if (joinsReverse) {
+				if (joinsReverse && !sectionTransition.switchChain) {
 					reverse = true;
 					if (firstReverseTransition.empty())
 						firstReverseTransition = transition;
 				}
 				if (joinsForward || joinsReverse)
 					continue;
-				const bool regionJump = sectionBoundaryIsRegionJump(*routeSections[sectionIndex - 1],
-						*routeSections[sectionIndex], true)
-						|| sectionBoundaryIsRegionJump(*routeSections[sectionIndex - 1],
-								*routeSections[sectionIndex], false);
-				if (regionJump && hasLegacyImport) {
+				if (sectionTransition.regionJump && hasLegacyImport) {
 					diagnostics.warning("scene.route.region_jump",
 							"Route crosses an undeclared regional coordinate discontinuity",
 							"signalling.json", "route", route.id,
@@ -921,7 +856,14 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.id.duplicate", "Duplicate incident id", "scenarios.json", "incident",
 						incident.id, path + ".id", incident.id);
 			if (incident.type == "signal_failure") {
-				if (hasId(signalIds, incident.target)) {
+				const bool signalTarget = hasId(signalIds, incident.target);
+				const SceneSectionDescriptor* directSection = sectionInventory.resolve(incident.target);
+				if (signalTarget && directSection != nullptr) {
+					diagnostics.error("scene.ref.ambiguous",
+							"Signal failure target matches both a signal and a section",
+							"scenarios.json", "incident", incident.id, path + ".target", incident.target,
+							"Rename the signal or section so the target identifies one entity");
+				} else if (signalTarget) {
 					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
 							[&incident](const SceneSignal& candidate) { return candidate.id == incident.target; });
 					if (signal == scene.signals.end() || signal->protectedSection.empty()
@@ -930,7 +872,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 								"Signal failure requires a signal with an exact protected-section binding",
 								"scenarios.json", "incident", incident.id, path + ".target", incident.target,
 								"Bind the signal to an exact section before targeting it");
-				} else if (!blockReferenceKnown(incident.target)) {
+				} else if (directSection == nullptr) {
 					diagnostics.error("scene.ref.unresolved", "Signal failure refers to unknown signal or block",
 							"scenarios.json", "incident", incident.id, path + ".target", incident.target);
 				}

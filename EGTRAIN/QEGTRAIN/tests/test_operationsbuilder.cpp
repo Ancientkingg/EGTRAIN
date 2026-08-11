@@ -61,7 +61,7 @@ static SceneModel completeScene() {
 	scene.arcs = {{"arc.0", "track.native", "node.0", "node.1", 0.0, 0.0, 20.0},
 		{"arc.1", "track.native", "node.1", "node.2", 0.0, 0.0, 20.0},
 		{"arc.2", "track.native", "node.2", "node.3", 0.0, 0.0, 20.0}};
-	scene.blocks = {{"signal.0", "track.native", 1.0}, {"block.1", "track.native", 1.0},
+	scene.blocks = {{"block.0", "track.native", 1.0}, {"block.1", "track.native", 1.0},
 		{"block.2", "track.native", 1.0}};
 	scene.signals = {{"signal.0", "block.1"}};
 
@@ -69,7 +69,7 @@ static SceneModel completeScene() {
 		{"station.0", "Zero", false, 0.0, {{"platform.0", {"node.0"}}}},
 		{"station.1", "One", false, 0.0, {{"platform.1", {"node.1"}}}},
 		{"station.2", "Two", false, 0.0, {{"platform.2", {"node.2"}}}}};
-	scene.routes = {{"route.native", {"signal.0", "block.1", "block.2"}, false, {}, false}};
+	scene.routes = {{"route.native", {"block.0", "block.1", "block.2"}, false, {}, false}};
 	scene.trainUnits = {
 		unit("unit.1", 100.0, 40.0, 2.0, 30.0, 1.0, 2.0, 0.1, 1.0, 20.0,
 				"/missing/unit-data", "weird:unit-traction", 1.0, 2.0),
@@ -211,6 +211,13 @@ int main() {
 	const auto unboundOperations = buildOperationsFromScene(unboundSignal, "scenario.selected");
 	ok &= expect(!hasErrors(unboundInfrastructure) && hasErrors(unboundOperations),
 				"targeting an unbound signal fails operations staging instead of guessing");
+	SceneModel ambiguousSignalTarget = completeScene();
+	ambiguousSignalTarget.blocks.front().id = "signal.0";
+	ambiguousSignalTarget.routes.front().blocks.front() = "signal.0";
+	const auto ambiguousInfrastructure = buildInfrastructureAndSignallingFromScene(ambiguousSignalTarget);
+	const auto ambiguousOperations = buildOperationsFromScene(ambiguousSignalTarget, "scenario.selected");
+	ok &= expect(!hasErrors(ambiguousInfrastructure) && hasErrors(ambiguousOperations),
+				"a signal failure target matching both a signal and block is rejected as ambiguous");
 	SceneModel occurrenceSpecific = completeScene();
 	SceneIncident& occurrenceBreakdown = occurrenceSpecific.scenarios[1].incidents[1];
 	occurrenceBreakdown.hasOccurrence = true;
@@ -430,7 +437,7 @@ int main() {
 			&& initial_variables.name == previousName, "invalid operations build preserves prior runtime state");
 
 	SceneModel reversed = completeScene();
-	reversed.routes[0].blocks = {"block.2", "block.1", "signal.0"};
+	reversed.routes[0].blocks = {"block.2", "block.1", "block.0"};
 	std::reverse(reversed.services[0].stops.begin(), reversed.services[0].stops.end());
 	reversed.passengers.clear();
 	const auto reversedInfrastructure = buildInfrastructureAndSignallingFromScene(reversed);
@@ -439,7 +446,7 @@ int main() {
 			"reversed routes resolve stop nodes without legacy node-list storage");
 
 	SceneModel routeExternal = completeScene();
-	routeExternal.routes[0].blocks = {"signal.0", "block.1"};
+	routeExternal.routes[0].blocks = {"block.0", "block.1"};
 	routeExternal.stations.push_back(
 			{"station.3", "Three", true, 3.0, {{"platform.3", {"node.3"}}}});
 	routeExternal.services[0].stops.push_back(

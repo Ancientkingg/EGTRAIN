@@ -781,13 +781,11 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 			BS3.arcs_in_signalling_block_section[i] = *it;
 			it++;
 		}
-		char N1X[20], N2X[20];
-		sprintf_s(N1X, "%f", N1.X);
-		sprintf_s(N2X, "%f", N2.X);
 		BS3.withSwitchDiv = true; // This block contains a switch in a diverged position
 		BS3.XStartSwitch = N1.X;  // The begin of the switch is the abscissa N1.X
 		BS3.XEndSwitch = N2.X;	  // The end of the switch is in the abscissa N2.X
-		BS3.ID = BS3.ID + BS1.ID + "-" + N1X + "/" + BS2.ID + "-" + N2X;
+		BS3.ID = BS3.ID + BS1.ID + "-" + formatSceneSectionCoordinate(N1.X)
+				+ "/" + BS2.ID + "-" + formatSceneSectionCoordinate(N2.X);
 		BS3.length = BS3.end_node.X - BS3.start_node.X;
 	}
 
@@ -860,9 +858,9 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 				for (int j = 0; j < signalling_block_sections[i].total_nodes; j++) { // Search for the connected Node
 					if (signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X == Nb.connectXNode[n_conn]) {
 						string BSID, OppBSID;
-						char N1ID[20], N2ID[20];
-						sprintf_s(N1ID, "%f", Nb.X);
-						sprintf_s(N2ID, "%f", signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X);
+						const std::string N1ID = formatSceneSectionCoordinate(Nb.X);
+						const std::string N2ID = formatSceneSectionCoordinate(
+								signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X);
 						BSID = BSID + BS1.ID + "-" + N1ID + "/" + signalling_block_sections[i].ID + "-" + N2ID;
 						OppBSID = OppBSID + signalling_block_sections[i].ID + "-" + N2ID + "/" + BS1.ID + "-" + N1ID;
 
@@ -2560,8 +2558,12 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		}
 	}
 
+	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
+			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		const SceneRoute& route = scene.routes[index];
+		std::vector<const SceneSectionDescriptor*> routeSections;
+		routeSections.reserve(route.blocks.size());
 		if (route.id.empty())
 			add(SceneSeverity::Error, "scene.native.id.empty", "Route id is empty", "signalling.json", "route", route.id);
 		if (route.blocks.empty())
@@ -2575,6 +2577,30 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 					add(SceneSeverity::Error, "scene.native.ref.unresolved", "Route refers to an unknown block",
 						"signalling.json", "route", route.id, "routes.blocks", component);
 			validatePlannedReference(token, "route", route.id, "routes.blocks");
+			if (const auto* section = sectionInventory.resolve(token))
+				routeSections.push_back(section);
+		}
+		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
+			bool forward = false;
+			bool reverse = false;
+			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
+				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
+						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
+				if (!transition.switchChain) {
+					forward = forward || transition.joinsForward;
+					reverse = reverse || transition.joinsReverse;
+				}
+				if (transition.joinsForward || transition.joinsReverse
+						|| (transition.regionJump && hasLegacyImport))
+					continue;
+				add(SceneSeverity::Error, "scene.route.disconnected",
+						"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
+						"routes.blocks[" + std::to_string(sectionIndex) + "]",
+						route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
+			}
+			if (forward && reverse)
+				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
+						"signalling.json", "route", route.id, "routes.blocks");
 		}
 	}
 	std::unordered_set<std::string> routeIds;
