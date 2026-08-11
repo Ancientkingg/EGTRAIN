@@ -305,6 +305,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   build, CTest 43 of 43 in 120.38 seconds, editor smoke, and visual-polish smoke.
 - After applying the PR 2 Ponytail simplifications, the full build passed, the five-test topology/persistence
   gate passed 5 of 5 in 2.16 seconds, and editor smoke passed after all 7 scene tests.
+- The fresh post-simplification correctness review found no P0, P1, or P2 issue at `5f1599a`. The root full
+  CTest suite passed 43 of 43 in 120.70 seconds; the reviewer independently passed 43 of 43 in 120.24 seconds.
 - `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
@@ -383,6 +385,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   visible with stale content after switching to Blocks, Signals, or another facet.
 - The fresh PR 2 closeout review found no P0, P1, or P2 issue at `49c0d74` after tracing the complete public
   editor, model, persistence, validation, and native route path.
+- The fresh post-simplification review found no P0, P1, or P2 issue at `5f1599a`. It verified that the filtered
+  row map preserves block move semantics, the removed text commit paths were unreachable, and the shared smoke
+  helper retains every add, confirmed delete, empty-model, and re-add assertion.
 
 ### Corrections made
 
@@ -494,5 +499,4 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Run a fresh correctness closeout over the PR 2 simplification diff, rerun the affected gates, confirm current CI,
-then merge PR #291 if clean.
+Monitor PR #291 CI, then merge if both build and sanitizer checks pass.
