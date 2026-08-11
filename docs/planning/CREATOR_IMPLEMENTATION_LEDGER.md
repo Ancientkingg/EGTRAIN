@@ -11,7 +11,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Current milestone: PR 2, structured topology authoring and explicit block order
 - Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/structured-topology-authoring`
 - Current branch: `feature/structured-topology-authoring`
-- Current PR: not opened
+- Current PR: #291, `Add structured topology authoring`
 - Completed milestones and PRs: PR #290, `Bind signals to canonical track sections`, merged as
   `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
 - Open milestone dependencies: PR 2 depends on merged PR #290. Issues #85 and #86 remain parity gates.
@@ -448,5 +448,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Commit and push the verified PR 2 diff, open the pull request for #57 and #286, then run a fresh independent
-correctness review over the actual PR before the Ponytail simplicity gate.
+Run a fresh independent correctness review over PR #291. Fix every verified blocker, rerun the affected gates,
+then run the Ponytail simplicity review over the corrected diff.
