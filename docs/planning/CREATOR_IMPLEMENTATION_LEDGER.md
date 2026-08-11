@@ -256,8 +256,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   and 233 communities.
 - `graphify update .` completed after the eighth corrected-diff fix with 4871 nodes, 10910 edges,
   and 233 communities.
-- `graphify update .` completed after the tenth corrected-diff fix with 4871 nodes, 10912 edges,
-  and 237 communities.
+- The final PR 1 `graphify update .` completed with 4871 nodes, 10912 edges, and 236 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -393,11 +392,17 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Ponytail findings
 
-- Not run for PR 1 yet.
+- The fresh PR 1 review found no practical production-code simplification. `SectionInventory` replaces
+  former duplicate derivations, while the validator and native transition loops retain distinct diagnostic
+  and mutation-boundary responsibilities.
+- The reviewer suggested deleting this tracked ledger because it does not affect product behavior. That
+  suggestion was not applied because the execution brief explicitly requires this file to persist through
+  all milestones and remain as a final deliverable.
 
 ### Simplifications made
 
-- The planned design rejects a second topology model and retains existing section identities unless the source trace proves that impossible.
+- The implementation uses one transient derived inventory rather than a second persisted topology model.
+  No further production simplification was justified after the clean correctness review.
 
 ## Blockers
 
@@ -407,10 +412,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known correctness, test, or parity blocker. Ponytail review remains before merge.
+- PR 1 has no known correctness, simplicity, test, or parity blocker. Final CI and merge remain.
   PRs 2 through 6 remain open.
 
 ## Next action
 
-Run the fresh Ponytail simplicity review of PR #290, apply any practical simplifications, then complete final
-verification and merge.
+Complete final PR #290 verification, update its public summary and issue state, merge after CI is green, then
+update the ledger from merged `origin/main` and begin PR 2 in a fresh worktree.
