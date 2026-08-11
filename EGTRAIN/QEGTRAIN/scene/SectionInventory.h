@@ -45,6 +45,7 @@ struct SceneSectionTransition {
 	bool joinsForward = false;
 	bool joinsReverse = false;
 	bool regionJump = false;
+	bool regionalDirectionAmbiguous = false;
 };
 
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene);

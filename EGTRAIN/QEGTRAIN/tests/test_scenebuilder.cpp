@@ -197,6 +197,8 @@ static bool runTinyBuilderChecks() {
 			&& signalling_block_sections[2].ID == epsilonInventory.sections[2].id,
 			"sub-tolerance connection spacing retains inventory and native section-ID parity");
 	SceneModel derivedUTurn = switchChainScene();
+	derivedUTurn.blocks = {{"a.block", "switch-a", 1.0}, {"b.left", "switch-b", 1.0},
+		{"b.right", "switch-b", 1.0}, {"c.block", "switch-c", 1.0}};
 	std::string aToB;
 	std::string bToC;
 	for (const auto& section : buildSceneSectionInventory(derivedUTurn).sections) {

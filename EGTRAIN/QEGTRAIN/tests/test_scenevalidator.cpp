@@ -214,6 +214,24 @@ int main(int argc, char** argv) {
 			{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});
 	ok &= expect(hasCode(validateScene(switchDirectionChange), "scene.route.direction"),
 			"legacy provenance cannot hide a connection-derived route reversal");
+	SceneModel regionalSwitchDirectionChange = switchTopology;
+	regionalSwitchDirectionChange.blocks = {{"a.block", "switch-a", 1.0},
+		{"b.left", "switch-b", 1.0}, {"b.right", "switch-b", 1.0},
+		{"c.block", "switch-c", 1.0}};
+	std::string regionalAToB;
+	std::string regionalBToC;
+	for (const auto& section : buildSceneSectionInventory(regionalSwitchDirectionChange).sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			regionalAToB = section.id;
+		else if (section.sourceConnectionId == "b-to-c")
+			regionalBToC = section.id;
+	}
+	regionalSwitchDirectionChange.importReport.push_back({"legacy_root"});
+	regionalSwitchDirectionChange.routes.push_back(
+			{"regional-switch-u-turn", {regionalAToB, regionalBToC, regionalAToB}, false, "", false});
+	ok &= expect(!regionalAToB.empty() && !regionalBToC.empty()
+			&& hasCode(validateScene(regionalSwitchDirectionChange), "scene.route.direction"),
+			"legacy regional bridges cannot suppress both directions of a derived U-turn");
 	SceneModel regionJump = clean;
 	regionJump.tracks.push_back({"region-track"});
 	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});

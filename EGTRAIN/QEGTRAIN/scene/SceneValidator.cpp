@@ -556,8 +556,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
 			bool forward = false;
 			bool reverse = false;
+			bool deferredForward = false;
+			bool deferredReverse = false;
 			std::string firstForwardTransition;
 			std::string firstReverseTransition;
+			std::string firstDeferredForwardTransition;
+			std::string firstDeferredReverseTransition;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition sectionTransition = classifySceneSectionTransition(scene,
 						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
@@ -565,19 +569,29 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				const bool joinsReverse = sectionTransition.joinsReverse;
 				const std::string transition = route.blocks[sectionIndex - 1] + " -> "
 						+ route.blocks[sectionIndex];
-				const bool legacyRegionalDerivedJoin = hasLegacyImport
-						&& routeSections[sectionIndex - 1]->connectionDerived
-						&& routeSections[sectionIndex]->connectionDerived
-						&& sectionTransition.regionJump;
-				if (joinsForward && !legacyRegionalDerivedJoin) {
-					forward = true;
-					if (firstForwardTransition.empty())
-						firstForwardTransition = transition;
+				const bool deferDirection = hasLegacyImport
+						&& sectionTransition.regionalDirectionAmbiguous;
+				if (joinsForward) {
+					if (deferDirection) {
+						deferredForward = true;
+						if (firstDeferredForwardTransition.empty())
+							firstDeferredForwardTransition = transition;
+					} else {
+						forward = true;
+						if (firstForwardTransition.empty())
+							firstForwardTransition = transition;
+					}
 				}
-				if (joinsReverse && !legacyRegionalDerivedJoin) {
-					reverse = true;
-					if (firstReverseTransition.empty())
-						firstReverseTransition = transition;
+				if (joinsReverse) {
+					if (deferDirection) {
+						deferredReverse = true;
+						if (firstDeferredReverseTransition.empty())
+							firstDeferredReverseTransition = transition;
+					} else {
+						reverse = true;
+						if (firstReverseTransition.empty())
+							firstReverseTransition = transition;
+					}
 				}
 				if (joinsForward || joinsReverse)
 					continue;
@@ -593,6 +607,18 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						"signalling.json", "route", route.id,
 						path + ".blocks[" + std::to_string(sectionIndex) + "]", transition,
 						"Choose contiguous sections or add the missing declared connection");
+			}
+			if (!forward && !reverse) {
+				if (deferredForward) {
+					forward = true;
+					if (firstForwardTransition.empty())
+						firstForwardTransition = firstDeferredForwardTransition;
+				}
+				if (deferredReverse) {
+					reverse = true;
+					if (firstReverseTransition.empty())
+						firstReverseTransition = firstDeferredReverseTransition;
+				}
 			}
 			if (forward && reverse)
 				diagnostics.error("scene.route.direction",

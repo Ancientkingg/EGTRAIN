@@ -2587,14 +2587,15 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
 			bool forward = false;
 			bool reverse = false;
+			bool deferredForward = false;
+			bool deferredReverse = false;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
 						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
-				const bool legacyRegionalDerivedJoin = hasLegacyImport
-						&& routeSections[sectionIndex - 1]->connectionDerived
-						&& routeSections[sectionIndex]->connectionDerived
-						&& transition.regionJump;
-				if (!legacyRegionalDerivedJoin) {
+				if (hasLegacyImport && transition.regionalDirectionAmbiguous) {
+					deferredForward = deferredForward || transition.joinsForward;
+					deferredReverse = deferredReverse || transition.joinsReverse;
+				} else {
 					forward = forward || transition.joinsForward;
 					reverse = reverse || transition.joinsReverse;
 				}
@@ -2605,6 +2606,10 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 						"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
 						"routes.blocks[" + std::to_string(sectionIndex) + "]",
 						route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
+			}
+			if (!forward && !reverse) {
+				forward = forward || deferredForward;
+				reverse = reverse || deferredReverse;
 			}
 			if (forward && reverse)
 				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
