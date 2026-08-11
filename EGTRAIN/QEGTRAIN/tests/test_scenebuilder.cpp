@@ -59,6 +59,22 @@ static SceneModel stableConnectionScene() {
 	return scene;
 }
 
+static SceneModel switchChainScene() {
+	SceneModel scene;
+	scene.tracks = {{"switch-a"}, {"switch-b"}, {"switch-c"}};
+	scene.nodes = {{"a.0", "switch-a", 0.0, 0.0}, {"a.1", "switch-a", 1.0, 0.0},
+		{"b.0", "switch-b", 2.0, 0.0}, {"b.1", "switch-b", 4.0, 0.0},
+		{"c.0", "switch-c", 5.0, 0.0}, {"c.1", "switch-c", 6.0, 0.0}};
+	scene.arcs = {{"a.arc", "switch-a", "a.0", "a.1", 0.0, 0.0, 20.0},
+		{"b.arc", "switch-b", "b.0", "b.1", 0.0, 0.0, 20.0},
+		{"c.arc", "switch-c", "c.0", "c.1", 0.0, 0.0, 20.0}};
+	scene.blocks = {{"a.block", "switch-a", 1.0}, {"b.block", "switch-b", 2.0},
+		{"c.block", "switch-c", 1.0}};
+	scene.connections = {{"a-to-b", "a.1", "b.0", false, 0.0},
+		{"b-to-c", "b.1", "c.0", false, 0.0}};
+	return scene;
+}
+
 static SceneModel signallingAreasScene() {
 	SceneModel scene = stableConnectionScene();
 	scene.routes.push_back({"route.switch", {"@alpha.block@-1.000000/@beta.block@-2.000000"}, false, {}, false});
@@ -180,6 +196,24 @@ static bool runTinyBuilderChecks() {
 			&& epsilonInventory.sections.size() == 3
 			&& signalling_block_sections[2].ID == epsilonInventory.sections[2].id,
 			"sub-tolerance connection spacing retains inventory and native section-ID parity");
+	SceneModel derivedUTurn = switchChainScene();
+	std::string aToB;
+	std::string bToC;
+	for (const auto& section : buildSceneSectionInventory(derivedUTurn).sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			aToB = section.id;
+		else if (section.sourceConnectionId == "b-to-c")
+			bToC = section.id;
+	}
+	derivedUTurn.routes.push_back({"switch-u-turn", {aToB, bToC, aToB}, false, {}, false});
+	const int blocksBeforeDerivedUTurn = Blocks;
+	const std::string firstSectionBeforeDerivedUTurn = signalling_block_sections[0].ID;
+	diagnostics = buildInfrastructureAndSignallingFromScene(derivedUTurn);
+	ok &= expect(!aToB.empty() && !bToC.empty()
+			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
+			&& Blocks == blocksBeforeDerivedUTurn
+			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
+			"direct native-builder callers reject a connection-derived U-turn before runtime mutation");
 	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
 			"signalling areas apply before route construction");

@@ -102,6 +102,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   `ctest --test-dir build -R 'test_(scenevalidator|scenebuilder|operationsbuilder|scenewriter|scenebundle)' --output-on-failure`
   passed 5 of 5 in 3.26 seconds. The clean pre-review rebuild passed the same 5 of 5 in 2.68 seconds.
 - After correctness-review fixes, the same focused gate passed 5 of 5 in 3.39 seconds.
+- After the second corrected-diff review, `test_scenevalidator`, `test_scenebuilder`, and
+  `test_sceneexporter` passed 3 of 3 in 1.36 seconds. The regressions cover a coordinate-reversed
+  switch fork, a connection-derived U-turn rejected before native mutation, and legacy export of a
+  signal failure through its protected-section binding.
 - `tools/e2e/editor_smoke.sh` passed after all 7 scene tests passed. The smoke selected a protected base block
   through the visible combo, renamed the block, saved a folder and bundle, and reopened the binding.
 - `build/scene_tool validate` returned exit 0 with zero errors for all six committed scenes. Copenhagen reports
@@ -126,6 +130,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - all six committed scene directories passed `scene_tool validate` after the final rebuild.
   - after the correctness fixes, six-case native headless smoke, six-case round-trip smoke, Assignment smoke,
     editor smoke, and incident smoke all passed again.
+  - after the second corrected-diff fixes, the full build passed and CTest passed 43 of 43 in 120.46 seconds;
+  - the editor smoke passed after its 7 scene tests;
+  - the incident smoke passed both breakdown and bound-signal hold/release checks;
+  - the six-case headless smoke passed every case, trajectory, and served-station assertion;
+  - Assignment smoke passed its canonical timetable check;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS`;
+  - all six committed scenes validated with no errors and only their previously recorded warnings.
 
 ### Exact results
 
@@ -151,7 +162,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   records structural, runtime, six-case, and authored-order parity rather than claiming byte-identical output.
 - Temporary diagnostic instrumentation and random-seed source changes were removed. The source diff contains no
   output-parity tuning and no case-name exception.
-- `graphify update .` completed after the final source changes with 4864 nodes, 10893 edges, and 232 communities.
+- `graphify update .` completed after the second corrected-diff fixes with 4872 nodes, 10910 edges,
+  and 239 communities.
 - `git diff --check` passed after the final rebuild and graph refresh.
 - Milestone implementation commit: `987488f`, `Add canonical section resolution and signal binding`.
 
@@ -166,7 +178,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   3. the inventory and legacy connection builder disagreed for positive endpoint deltas at or below `1e-8`;
   4. direct native-builder callers did not enforce route adjacency before mutating runtime state.
 - The review also noted that inventory and legacy section-ID formatting used different fixed buffer sizes.
-- A fresh corrected-diff re-review remains required before Ponytail review.
+- The second fresh corrected-diff review found no P0 issue and three remaining findings:
+  1. a coordinate-reversed switch fork could reuse one section's internal connection as the external
+     boundary to another branch;
+  2. all connection-derived transitions were direction-neutral, allowing a new canonical route to
+     traverse A/B, B/C, then A/B without a direction error or native preflight failure;
+  3. legacy incident export wrote a signal ID instead of its protected section, so the exported failure
+     had no legacy runtime effect.
+- A third fresh corrected-diff review remains required before Ponytail review.
 
 ### Corrections made
 
@@ -181,6 +200,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   one dynamically sized formatter.
 - Applied the shared transition classifier in the native infrastructure builder before runtime reset/allocation.
 - Added focused negative-switch, ambiguous-target, epsilon-endpoint, and direct-builder regressions.
+- Excluded each derived section's own source connection from external boundary joins, including when
+  regional coordinates reverse the generated section orientation.
+- Counted connection-derived transition direction for new canonical scenes while retaining the recorded
+  `legacy_root` compatibility behavior needed by existing imported routes.
+- Resolved signal IDs through `protected_section` before writing legacy `Incidents.txt`, using the existing
+  block-reference mapper and leaving direct block targets compatible.
+- Added coordinate-reversed fork, connection-derived U-turn, no-native-mutation, and legacy-export regressions.
 
 ### Ponytail findings
 
@@ -198,10 +224,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 has no known test or parity blocker. A final clean rebuild, independent correctness review, and Ponytail
-  review remain before merge. PRs 2 through 6 remain open.
+- PR 1 has no known test or parity blocker. A third independent correctness review and Ponytail review remain
+  before merge. PRs 2 through 6 remain open.
 
 ## Next action
 
-Commit and push the correctness fixes, then run a fresh corrected-diff review of PR #290. When no merge blocker
+Commit and push the second corrected-diff fixes, then run a third fresh review of PR #290. When no merge blocker
 remains, run the fresh Ponytail simplicity review before final verification and merge.

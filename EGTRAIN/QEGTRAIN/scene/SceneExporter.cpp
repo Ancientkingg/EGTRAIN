@@ -1154,12 +1154,15 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 							inc.id);
 					continue;
 				}
-				if (inc.type == "signal_failure" && routeBlockTokens.find(inc.target) == routeBlockTokens.end()) {
-					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-							"Signal id " + inc.target + " matches no route block so the failure will have no effect", inc.id);
-				}
 				std::string target = inc.target;
 				if (inc.type == "signal_failure") {
+					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
+							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
+					if (signal != scene.signals.end() && !signal->protectedSection.empty())
+						target = signal->protectedSection;
+					if (routeBlockTokens.find(target) == routeBlockTokens.end())
+						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
+								"Signal failure target " + target + " matches no route block so the failure will have no effect", inc.id);
 					target = mapLegacyBlockReference(target, legacyBlockIds);
 				} else if (inc.type == "train_breakdown") {
 					const auto service = serviceOperatingCodes.find(inc.target);

@@ -111,10 +111,13 @@ bool sectionBoundaryJoins(const SceneModel& scene, const SceneSectionDescriptor&
 	const std::string rightNode = sectionBoundaryNode(right, forward, false);
 	if (leftTrack == rightTrack || leftNode.empty() || rightNode.empty())
 		return false;
-	for (const auto& connection : scene.connections)
+	for (const auto& connection : scene.connections) {
+		if (connection.id == left.sourceConnectionId || connection.id == right.sourceConnectionId)
+			continue;
 		if ((connection.fromNodeId == leftNode && connection.toNodeId == rightNode)
 				|| (connection.toNodeId == leftNode && connection.fromNodeId == rightNode))
 			return true;
+	}
 	return false;
 }
 

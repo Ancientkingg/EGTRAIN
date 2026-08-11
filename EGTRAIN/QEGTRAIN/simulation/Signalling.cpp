@@ -2586,7 +2586,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
 						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
-				if (!transition.switchChain) {
+				if (!transition.switchChain || !hasLegacyImport) {
 					forward = forward || transition.joinsForward;
 					reverse = reverse || transition.joinsReverse;
 				}

@@ -187,6 +187,31 @@ int main(int argc, char** argv) {
 	forkedSwitchChain.routes.push_back({"forked-route", {aToB, aToC}, false, "", false});
 	ok &= expect(!aToC.empty() && hasCode(validateScene(forkedSwitchChain), "scene.route.disconnected"),
 				"overlapping switch sections on the wrong branch are rejected");
+	SceneModel reversedFork = switchTopology;
+	reversedFork.nodes[0].xKm = 100.0;
+	reversedFork.nodes[1].xKm = 101.0;
+	reversedFork.nodes[2].xKm = 0.0;
+	reversedFork.nodes[3].xKm = 1.0;
+	reversedFork.nodes[4].xKm = 2.0;
+	reversedFork.nodes[5].xKm = 3.0;
+	const SceneSectionInventory reversedInventory = buildSceneSectionInventory(reversedFork);
+	std::string bToA;
+	std::string cToA;
+	for (const auto& section : reversedInventory.sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			bToA = section.id;
+		else if (section.sourceConnectionId == "a-to-c")
+			cToA = section.id;
+	}
+	reversedFork.routes.push_back({"reversed-fork", {bToA, cToA}, false, "", false});
+	ok &= expect(!bToA.empty() && !cToA.empty()
+				&& hasCode(validateScene(reversedFork), "scene.route.disconnected"),
+			"a switch section's internal connection cannot join it to another branch");
+	SceneModel switchDirectionChange = switchTopology;
+	switchDirectionChange.routes.push_back(
+			{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});
+	ok &= expect(hasCode(validateScene(switchDirectionChange), "scene.route.direction"),
+			"a connection-derived route cannot reverse through the same switch section");
 	SceneModel regionJump = clean;
 	regionJump.tracks.push_back({"region-track"});
 	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});

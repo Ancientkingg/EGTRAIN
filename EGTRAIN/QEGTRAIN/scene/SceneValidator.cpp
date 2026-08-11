@@ -565,12 +565,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				const bool joinsReverse = sectionTransition.joinsReverse;
 				const std::string transition = route.blocks[sectionIndex - 1] + " -> "
 						+ route.blocks[sectionIndex];
-				if (joinsForward && !sectionTransition.switchChain) {
+				if (joinsForward && (!sectionTransition.switchChain || !hasLegacyImport)) {
 					forward = true;
 					if (firstForwardTransition.empty())
 						firstForwardTransition = transition;
 				}
-				if (joinsReverse && !sectionTransition.switchChain) {
+				if (joinsReverse && (!sectionTransition.switchChain || !hasLegacyImport)) {
 					reverse = true;
 					if (firstReverseTransition.empty())
 						firstReverseTransition = transition;
