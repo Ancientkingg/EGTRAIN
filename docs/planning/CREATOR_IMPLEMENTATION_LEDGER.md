@@ -11,7 +11,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Current milestone: PR 3, safe editor commits, IDs, references, rename, and deletion
 - Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/editor-reference-integrity`
 - Current branch: `fix/editor-reference-integrity`
-- Current PR: not opened
+- Current PR: #292, `Make editor mutations reference-safe`
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
@@ -547,5 +547,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Commit and open PR 3 from the verified `fix/editor-reference-integrity` worktree, then run the fresh correctness
-and Ponytail reviews against the complete PR diff before merge.
+Run the fresh correctness review against PR #292's complete diff, correct every confirmed finding, rerun the
+affected gates, and then run the independent Ponytail simplicity review.
