@@ -290,6 +290,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   2.21 seconds, and `tools/e2e/editor_smoke.sh` passed after all 7 scene tests.
 - The Assignment smoke file is not executable in this checkout. Direct invocation failed with permission denied;
   rerunning it as `python3 tools/e2e/assignment_smoke.py` passed. No file mode was changed.
+- After correcting the two PR 2 review findings, the full build passed and the five-test topology/persistence
+  gate passed 5 of 5 in 2.19 seconds. The first editor-smoke run reached every feature marker except the focused
+  New Case Save marker because the newly exercised modal confirmation left the offscreen window inactive. After
+  explicitly reactivating the window in that test path, the editor smoke passed after all 7 scene tests.
 - `git diff --check` passed after the final PR 2 source change.
 
 ## Review record
@@ -354,6 +358,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The eleventh fresh corrected-diff review found no P0, P1, or P2 issue at `64ce206`. It independently
   traced public signal binding, folder and bundle persistence, shared resolution, validation, native
   infrastructure and operations staging, runtime incident behavior, and legacy export.
+- The fresh PR 2 review found no P0 or P1 issue at `a608b6e`. It traced public block and section controls
+  through model mutation, invalidation, validation, folder and bundle persistence, reload, and exact native route
+  construction. It found two P2 boundary defects: an incomplete dependency, restriction, or boundary row could
+  not be deleted while its first required selector was empty, and Add silently used the first valid track when
+  the block filter selected an orphan empty-track bucket.
 
 ### Corrections made
 
@@ -421,6 +430,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   export regression so it is not cited as canonical runtime support.
 - Made legacy incident export use the shared section inventory before resolving a matching signal. An
   ambiguous target now produces `scene.ref.ambiguous` and no incident row, matching validation and native staging.
+- PR 2 now allows its three anonymous linked-topology row types to be deleted while incomplete, while retaining
+  the existing confirmation. Block Add is disabled unless the selected filter value names a real track, and the
+  mutation slot independently rejects an invalid selection rather than silently choosing another track.
+- The public editor smoke now proves both corrections. Its first post-review run exposed an offscreen focus loss
+  after the new confirmation dialog, so the existing focused-Save check now explicitly reactivates the main
+  window before requesting focus. The rebuilt smoke then passed without weakening the focused-value assertion.
 
 ### Ponytail findings
 

@@ -4163,9 +4163,15 @@ void MainWindow::refreshInfrastructureTable() {
 		m_moveBlockUpButton->setVisible(isBlocks);
 	if (m_moveBlockDownButton)
 		m_moveBlockDownButton->setVisible(isBlocks);
+	bool canAdd = m_sceneLoaded && !m_worker;
+	if (isBlocks) {
+		const std::string selectedTrack = m_blockTrackFilterCombo
+			? m_blockTrackFilterCombo->currentData().toString().toStdString() : std::string();
+		canAdd = canAdd && std::any_of(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
+			[&selectedTrack](const SceneTrack& track) { return track.id == selectedTrack; });
+	}
 	if (m_addInfrastructureButton)
-		m_addInfrastructureButton->setEnabled(m_sceneLoaded && !m_worker
-			&& (!isBlocks || (m_blockTrackFilterCombo && m_blockTrackFilterCombo->currentIndex() >= 0)));
+		m_addInfrastructureButton->setEnabled(canAdd);
 	if (m_deleteInfrastructureButton)
 		m_deleteInfrastructureButton->setEnabled(m_sceneLoaded && !m_worker && rowToSelect >= 0);
 	if (m_insertBlockButton)
@@ -4719,9 +4725,13 @@ void MainWindow::addInfrastructureEntity() {
 		id = uniqueInfrastructureId("block", facet);
 		const std::string selectedTrack = m_blockTrackFilterCombo
 			? m_blockTrackFilterCombo->currentData().toString().toStdString() : std::string();
-		const std::string trackId = !selectedTrack.empty()
-			? selectedTrack : (m_sceneModel.tracks.empty() ? std::string() : m_sceneModel.tracks.front().id);
-		m_sceneModel.blocks.push_back({id, trackId, 1.0});
+		const auto track = std::find_if(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
+			[&selectedTrack](const SceneTrack& candidate) { return candidate.id == selectedTrack; });
+		if (track == m_sceneModel.tracks.end()) {
+			statusBar()->showMessage("Select a valid track before adding a block", 4000);
+			return;
+		}
+		m_sceneModel.blocks.push_back({id, track->id, 1.0});
 		newRow = static_cast<int>(m_sceneModel.blocks.size()) - 1;
 	} else if (facet == "connections") {
 		id = uniqueInfrastructureId("connection", facet);
@@ -4958,8 +4968,12 @@ void MainWindow::deleteInfrastructureEntity() {
 		id = item->text();
 	else if (auto* combo = qobject_cast<QComboBox*>(m_infrastructureTable->cellWidget(row, idColumn)))
 		id = combo->currentData().toString();
-	if (id.isEmpty())
+	const bool anonymousRow = facet == QStringLiteral("block_dependencies")
+		|| facet == QStringLiteral("single_track_restrictions")
+		|| facet == QStringLiteral("station_boundaries");
+	if (id.isEmpty() && !anonymousRow)
 		return;
+	const QString displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
 	int stationIndex = -1;
 	int platformIndex = -1;
 	if (facet == "platforms") {
@@ -5024,9 +5038,10 @@ void MainWindow::deleteInfrastructureEntity() {
 		referenceSummary = refs.isEmpty() ? QStringLiteral("No dependent signal-failure incidents")
 										  : QStringLiteral("Dependent incidents: %1").arg(refs.join(", "));
 	}
-	const QMessageBox::StandardButton answer = QMessageBox::question(this, "Delete infrastructure entity",
-																	 QString("Delete %1 '%2'? %3 Referenced entities will remain and validation will show any fallout.")
-																		 .arg(m_infrastructureFacetCombo->currentText().toLower(), id, referenceSummary),
+	const QMessageBox::StandardButton answer = QMessageBox::question(
+		this, "Delete infrastructure entity",
+		QString("Delete %1 '%2'? %3 Referenced entities will remain and validation will show any fallout.")
+			.arg(m_infrastructureFacetCombo->currentText().toLower(), displayId, referenceSummary),
 		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 	if (answer != QMessageBox::Yes)
 		return;
@@ -10464,11 +10479,13 @@ void MainWindow::runEditorSmokeE2E() {
 			auto* infrastructureFacet = findChild<QComboBox*>("infrastructureFacetCombo");
 			auto* infrastructureTable = findChild<QTableWidget*>("infrastructureTable");
 			auto* infrastructureAdd = findChild<QPushButton*>("infrastructureAddButton");
+			auto* infrastructureDelete = findChild<QPushButton*>("infrastructureDeleteButton");
 			auto* blockTrackFilter = findChild<QComboBox*>("blockTrackFilterCombo");
 			auto* blockInsert = findChild<QPushButton*>("blockInsertButton");
 			auto* blockMoveUp = findChild<QPushButton*>("blockMoveUpButton");
 			auto* blockMoveDown = findChild<QPushButton*>("blockMoveDownButton");
-			if (!infrastructureDock || !infrastructureFacet || !infrastructureTable || !infrastructureAdd
+			if (!infrastructureDock || !infrastructureFacet || !infrastructureTable
+				|| !infrastructureAdd || !infrastructureDelete
 				|| !blockTrackFilter || !blockInsert || !blockMoveUp || !blockMoveDown) {
 				facetFailure(facetOk, "infrastructure", "infrastructure controls or dock are unavailable");
 			} else {
@@ -10597,6 +10614,15 @@ void MainWindow::runEditorSmokeE2E() {
 							facetFailure(facetOk, "infrastructure", "block placement columns were not visible after reorder");
 					}
 				}
+				const std::size_t blocksBeforeInvalidAdd = m_sceneModel.blocks.size();
+				const bool orphanTrackAddDisabled = setInfrastructureCell("blocks", 1, 1, QString())
+					&& !infrastructureAdd->isEnabled();
+				infrastructureAdd->click();
+				QApplication::processEvents();
+				if (!orphanTrackAddDisabled || m_sceneModel.blocks.size() != blocksBeforeInvalidAdd)
+					facetFailure(facetOk, "infrastructure", "Add accepted an invalid selected block track");
+				if (!setInfrastructureCell("blocks", 0, 1, "e2e-main") || !infrastructureAdd->isEnabled())
+					facetFailure(facetOk, "infrastructure", "orphan block could not be restored to a valid track");
 				if (!addInfrastructureRow("stations") || !setInfrastructureCell("stations", 0, 0, "e2e-station-a") || !setInfrastructureCell("stations", 0, 1, "E2E A") || !setInfrastructureCell("stations", 0, 2, "true") || !setInfrastructureCell("stations", 0, 3, "0.5") || !addInfrastructureRow("stations") || !setInfrastructureCell("stations", 1, 0, "e2e-station-b") || !setInfrastructureCell("stations", 1, 1, "E2E B") || !setInfrastructureCell("stations", 1, 2, "true") || !setInfrastructureCell("stations", 1, 3, "1.5"))
 					facetFailure(facetOk, "stations/signalling", "station table authoring did not apply");
 				if (!addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 0, 0, "e2e-station-a") || !setInfrastructureCell("platforms", 0, 1, "e2e-platform-a") || !setInfrastructureCell("platforms", 0, 2, mainNodeIds[0]) || !addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 1, 0, "e2e-station-b") || !setInfrastructureCell("platforms", 1, 1, "e2e-platform-b") || !setInfrastructureCell("platforms", 1, 2, mainNodeIds[2]))
@@ -10722,8 +10748,15 @@ void MainWindow::runEditorSmokeE2E() {
 					QApplication::processEvents();
 					return combo->itemData(choice).toString();
 				};
-				if (!addInfrastructureRow("block_dependencies"))
+				if (!addInfrastructureRow("block_dependencies")) {
 					facetFailure(facetOk, "stations/signalling", "dependency row could not be added");
+				} else {
+					acceptConfirmation();
+					infrastructureDelete->click();
+					QApplication::processEvents();
+					if (!m_sceneModel.blockDependencies.empty() || !addInfrastructureRow("block_dependencies"))
+						facetFailure(facetOk, "stations/signalling", "incomplete dependency row could not be deleted");
+				}
 				const QString dependencyBlock = selectSectionCell("block_dependencies", 0, 0,
 					"connection e2e-switch /");
 				const QString dependencyDependsOn = selectSectionCell("block_dependencies", 0, 1,
@@ -10929,6 +10962,7 @@ void MainWindow::runEditorSmokeE2E() {
 			const QString savedName = QStringLiteral("E2E New Case Saved");
 			const QString savedDescription = QStringLiteral("new case editor smoke saved");
 			if (nameEdit && descriptionEdit && m_caseSettingsDock) {
+				activateWindow();
 				m_caseSettingsDock->show();
 				m_caseSettingsDock->raise();
 				descriptionEdit->setText(savedDescription);
