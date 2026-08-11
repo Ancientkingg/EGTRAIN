@@ -72,7 +72,7 @@ static SceneModel completeScene() {
 	second.platforms.push_back({"platform-2", {"node-2"}});
 	scene.stations.push_back(second);
 
-	scene.signals.push_back({"signal-1"});
+	scene.signals.push_back({"signal-1", "@block-1@"});
 	scene.signallingAreas.push_back({"area-1", 0.25, 0.75, 4, "track-1"});
 	SceneRoute route;
 	route.id = "route-1";
@@ -195,8 +195,13 @@ int main() {
 			&& signalling["signalling_areas"][0]["level"] == 4
 			&& signalling["signalling_areas"][0]["track"] == "track-1",
 			"writer emits signalling area fields");
+	ok &= expect(signalling["signals"].size() == 1
+				&& signalling["signals"][0]["id"] == "signal-1"
+				&& signalling["signals"][0]["protected_section"] == "@block-1@",
+				"writer emits an explicitly bound signal section");
 	SceneModel absentAreas = completeScene();
 	absentAreas.signallingAreas.clear();
+	absentAreas.signals[0].protectedSection.clear();
 	const fs::path absentAreasPath = temp.path / "absent-signalling-areas";
 	ok &= expect(saveScene(absentAreas, absentAreasPath.string()).success(),
 			"scene without signalling areas saves");
@@ -207,10 +212,15 @@ int main() {
 	}
 	ok &= expect(!absentSignalling.contains("signalling_areas"),
 			"writer preserves an absent signalling area array");
+	ok &= expect(!absentSignalling["signals"][0].contains("protected_section"),
+			"writer omits an empty protected-section binding");
 	SceneModel absentAreasReloaded;
 	ok &= expect(loadHasNoErrors(absentAreasPath, absentAreasReloaded)
 			&& absentAreasReloaded.signallingAreas.empty(),
 			"scene without signalling areas reloads with no inferred defaults");
+	ok &= expect(absentAreasReloaded.signals.size() == 1
+				&& absentAreasReloaded.signals[0].protectedSection.empty(),
+				"ID-only signal input round-trips without inventing a binding");
 
 	json services;
 	{
@@ -310,6 +320,9 @@ int main() {
 			&& reloaded.signallingAreas[0].level == 4
 			&& reloaded.signallingAreas[0].trackId == "track-1",
 			"signalling area fields round-trip");
+	ok &= expect(reloaded.signals.size() == 1
+				&& reloaded.signals[0].protectedSection == "@block-1@",
+				"protected-section binding round-trips through folder JSON");
 	ok &= expect(reloaded.services[0].stops[0].hasPlannedDeparture
 				&& reloaded.services[0].stops[0].plannedDepartureSeconds == 100.0,
 			"planned departure round-trips");

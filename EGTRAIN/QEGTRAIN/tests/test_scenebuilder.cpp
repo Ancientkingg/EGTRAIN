@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
 
 #include <cmath>
@@ -58,6 +59,22 @@ static SceneModel stableConnectionScene() {
 	return scene;
 }
 
+static SceneModel switchChainScene() {
+	SceneModel scene;
+	scene.tracks = {{"switch-a"}, {"switch-b"}, {"switch-c"}};
+	scene.nodes = {{"a.0", "switch-a", 0.0, 0.0}, {"a.1", "switch-a", 1.0, 0.0},
+		{"b.0", "switch-b", 2.0, 0.0}, {"b.1", "switch-b", 4.0, 0.0},
+		{"c.0", "switch-c", 5.0, 0.0}, {"c.1", "switch-c", 6.0, 0.0}};
+	scene.arcs = {{"a.arc", "switch-a", "a.0", "a.1", 0.0, 0.0, 20.0},
+		{"b.arc", "switch-b", "b.0", "b.1", 0.0, 0.0, 20.0},
+		{"c.arc", "switch-c", "c.0", "c.1", 0.0, 0.0, 20.0}};
+	scene.blocks = {{"a.block", "switch-a", 1.0}, {"b.block", "switch-b", 2.0},
+		{"c.block", "switch-c", 1.0}};
+	scene.connections = {{"a-to-b", "a.1", "b.0", false, 0.0},
+		{"b-to-c", "b.1", "c.0", false, 0.0}};
+	return scene;
+}
+
 static SceneModel signallingAreasScene() {
 	SceneModel scene = stableConnectionScene();
 	scene.routes.push_back({"route.switch", {"@alpha.block@-1.000000/@beta.block@-2.000000"}, false, {}, false});
@@ -68,20 +85,24 @@ static SceneModel signallingAreasScene() {
 	return scene;
 }
 
-static SceneModel twoRegionRouteScene() {
+static SceneModel multiRegionRouteScene() {
 	SceneModel scene;
-	scene.tracks = {{"region.a"}, {"region.b"}};
+	scene.tracks = {{"region.a"}, {"region.b"}, {"region.c"}};
 	scene.nodes = {{"a.0", "region.a", 0.0, 0.0}, {"a.1", "region.a", 1.0, 0.0},
 		{"b.0", "region.b", 1000.0, 0.0}, {"b.1", "region.b", 1001.0, 0.0},
-		{"b.2", "region.b", 1002.0, 0.0}};
+		{"b.2", "region.b", 1002.0, 0.0}, {"c.0", "region.c", 500.0, 0.0},
+		{"c.1", "region.c", 501.0, 0.0}};
 	scene.arcs = {{"a.arc", "region.a", "a.0", "a.1", 0.0, 0.0, 10.0},
 		{"b.arc.0", "region.b", "b.0", "b.1", 0.0, 0.0, 10.0},
-		{"b.arc.1", "region.b", "b.1", "b.2", 0.0, 0.0, 10.0}};
-	scene.blocks = {{"a.block", "region.a", 1.0}, {"b.block", "region.b", 2.0}};
+		{"b.arc.1", "region.b", "b.1", "b.2", 0.0, 0.0, 10.0},
+		{"c.arc", "region.c", "c.0", "c.1", 0.0, 0.0, 10.0}};
+	scene.blocks = {{"a.block", "region.a", 1.0}, {"b.block", "region.b", 2.0},
+		{"c.block", "region.c", 1.0}};
 	scene.connections.push_back({"region.jump", "a.1", "b.0", true, 10.0});
+	scene.connections.push_back({"region.jump.2", "b.2", "c.0", true, 10.0});
 	SceneRoute route;
 	route.id = "route.regions";
-	route.blocks = {"a.block", "b.block"};
+	route.blocks = {"a.block", "b.block", "c.block"};
 	scene.routes.push_back(route);
 	return scene;
 }
@@ -140,6 +161,36 @@ static bool runTinyBuilderChecks() {
 			&& stationBoundarySections.front().entrance->ID == "@block.a@"
 			&& stationBoundarySections.front().exit->ID == "@block.b@",
 			"station boundary references resolve to runtime sections");
+	const int blocksBeforeReservedId = Blocks;
+	const std::string firstSectionBeforeReservedId = signalling_block_sections[0].ID;
+	SceneModel reservedBlockId = tinyScene();
+	reservedBlockId.blocks[0].id = "Depot/1";
+	reservedBlockId.routes[0].blocks[0] = "Depot/1";
+	reservedBlockId.blockDependencies[0].block = "Depot/1";
+	reservedBlockId.singleTrackRestrictions[0].startBlock = "Depot/1";
+	reservedBlockId.singleTrackRestrictions[0].protectedStartBlock = "Depot/1";
+	reservedBlockId.stationBoundaries[0].entranceBlock = "Depot/1";
+	diagnostics = buildInfrastructureAndSignallingFromScene(reservedBlockId);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.reserved")
+			&& Blocks == blocksBeforeReservedId
+			&& signalling_block_sections[0].ID == firstSectionBeforeReservedId,
+			"reserved block-id delimiters are rejected before native mutation");
+
+	SceneModel segmentedRegionRoute = tinyScene();
+	segmentedRegionRoute.tracks.push_back({"region.track"});
+	segmentedRegionRoute.nodes.push_back({"region.0", "region.track", 100.0, 0.0});
+	segmentedRegionRoute.nodes.push_back({"region.1", "region.track", 101.0, 0.0});
+	segmentedRegionRoute.arcs.push_back(
+			{"region.arc", "region.track", "region.0", "region.1", 0.0, 0.0, 20.0});
+	segmentedRegionRoute.blocks.push_back({"region.block.1", "region.track", 0.5});
+	segmentedRegionRoute.blocks.push_back({"region.block.2", "region.track", 0.5});
+	segmentedRegionRoute.routes[0].blocks = {
+		"block.a", "block.b", "region.block.2", "region.block.1"};
+	segmentedRegionRoute.importReport.push_back({"legacy_root"});
+	diagnostics = buildInfrastructureAndSignallingFromScene(segmentedRegionRoute);
+	ok &= expect(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
+			&& N_Routes == 1 && train_route.size() == 1 && !train_route[0].reversed_direction,
+			"native route direction follows the first connected legacy regional segment");
 
 	diagnostics = buildInfrastructureAndSignallingFromScene(stableConnectionScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3, "stable-ID connection scene builds one switch section");
@@ -157,6 +208,76 @@ static bool runTinyBuilderChecks() {
 					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
 		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
 	}
+	const int blocksBeforeDisconnectedRoute = Blocks;
+	const std::string firstSectionBeforeDisconnectedRoute = signalling_block_sections[0].ID;
+	SceneModel disconnectedRoute = tinyScene();
+	disconnectedRoute.routes.front().blocks = {"block.a", "block.a"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(disconnectedRoute);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
+			&& Blocks == blocksBeforeDisconnectedRoute
+			&& signalling_block_sections[0].ID == firstSectionBeforeDisconnectedRoute,
+			"direct native-builder callers reject disconnected routes before runtime mutation");
+	SceneModel epsilonConnection = stableConnectionScene();
+	epsilonConnection.nodes[2].xKm = 1.0 + 5e-9;
+	epsilonConnection.nodes[3].xKm = 2.0 + 5e-9;
+	const SceneSectionInventory epsilonInventory = buildSceneSectionInventory(epsilonConnection);
+	diagnostics = buildInfrastructureAndSignallingFromScene(epsilonConnection);
+	ok &= expect(!hasErrors(diagnostics) && Blocks == 3
+			&& epsilonInventory.sections.size() == 3
+			&& signalling_block_sections[2].ID == epsilonInventory.sections[2].id,
+			"sub-tolerance connection spacing retains inventory and native section-ID parity");
+	SceneModel derivedUTurn = switchChainScene();
+	derivedUTurn.blocks = {{"a.block", "switch-a", 1.0}, {"b.left", "switch-b", 1.0},
+		{"b.right", "switch-b", 1.0}, {"c.block", "switch-c", 1.0}};
+	std::string aToB;
+	std::string bToC;
+	for (const auto& section : buildSceneSectionInventory(derivedUTurn).sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			aToB = section.id;
+		else if (section.sourceConnectionId == "b-to-c")
+			bToC = section.id;
+	}
+	derivedUTurn.importReport.push_back({"legacy_root"});
+	derivedUTurn.routes.push_back({"switch-u-turn", {aToB, bToC, aToB}, false, {}, false});
+	const int blocksBeforeDerivedUTurn = Blocks;
+	const std::string firstSectionBeforeDerivedUTurn = signalling_block_sections[0].ID;
+	diagnostics = buildInfrastructureAndSignallingFromScene(derivedUTurn);
+	ok &= expect(!aToB.empty() && !bToC.empty()
+			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
+			&& Blocks == blocksBeforeDerivedUTurn
+			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
+			"legacy provenance cannot hide a connection-derived U-turn from native preflight");
+	SceneModel mixedDerivedUTurn = derivedUTurn;
+	mixedDerivedUTurn.routes = {{"mixed-switch-u-turn", {"b.left", bToC, aToB}, false, {}, false}};
+	diagnostics = buildInfrastructureAndSignallingFromScene(mixedDerivedUTurn);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
+			&& Blocks == blocksBeforeDerivedUTurn
+			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
+			"mixed route evidence cannot hide a legacy derived U-turn before native mutation");
+	SceneModel legacyFork = switchChainScene();
+	legacyFork.connections.push_back({"a-to-c", "a.1", "c.0", false, 0.0});
+	legacyFork.nodes[0].xKm = 100.0;
+	legacyFork.nodes[1].xKm = 101.0;
+	legacyFork.nodes[2].xKm = 0.0;
+	legacyFork.nodes[3].xKm = 1.0;
+	legacyFork.nodes[4].xKm = 2.0;
+	legacyFork.nodes[5].xKm = 3.0;
+	std::string bToA;
+	std::string cToA;
+	for (const auto& section : buildSceneSectionInventory(legacyFork).sections) {
+		if (section.sourceConnectionId == "a-to-b")
+			bToA = section.id;
+		else if (section.sourceConnectionId == "a-to-c")
+			cToA = section.id;
+	}
+	legacyFork.importReport.push_back({"legacy_root"});
+	legacyFork.routes.push_back({"legacy-fork", {bToA, cToA}, false, {}, false});
+	const int blocksBeforeLegacyFork = Blocks;
+	diagnostics = buildInfrastructureAndSignallingFromScene(legacyFork);
+	ok &= expect(!bToA.empty() && !cToA.empty()
+			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
+			&& Blocks == blocksBeforeLegacyFork,
+			"legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation");
 	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
 			"signalling areas apply before route construction");
@@ -203,6 +324,30 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 			"duplicate switch sections are rejected before fixed-capacity runtime mutation");
+	SceneModel oversizedSwitchSection;
+	oversizedSwitchSection.tracks = {{"long.alpha"}, {"long.beta"}};
+	for (int index = 0; index <= 10; ++index) {
+		oversizedSwitchSection.nodes.push_back({"alpha." + std::to_string(index), "long.alpha",
+				static_cast<double>(index), 0.0});
+		oversizedSwitchSection.nodes.push_back({"beta." + std::to_string(index), "long.beta",
+				static_cast<double>(index + 11), 0.0});
+		if (index == 0)
+			continue;
+		oversizedSwitchSection.arcs.push_back({"alpha.arc." + std::to_string(index), "long.alpha",
+				"alpha." + std::to_string(index - 1), "alpha." + std::to_string(index),
+				0.0, 0.0, 10.0});
+		oversizedSwitchSection.arcs.push_back({"beta.arc." + std::to_string(index), "long.beta",
+				"beta." + std::to_string(index - 1), "beta." + std::to_string(index),
+				0.0, 0.0, 10.0});
+	}
+	oversizedSwitchSection.blocks = {{"long.alpha.block", "long.alpha", 10.0},
+		{"long.beta.block", "long.beta", 10.0}};
+	oversizedSwitchSection.connections.push_back(
+			{"long.switch", "alpha.10", "beta.0", false, 0.0});
+	diagnostics = buildInfrastructureAndSignallingFromScene(oversizedSwitchSection);
+	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "capacity")
+			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
+			"derived switch arc capacity is rejected before runtime mutation");
 	SceneModel runtimeBlockIdCollision = scene;
 	runtimeBlockIdCollision.blocks[1].id = "@block.a@";
 	runtimeBlockIdCollision.routes.front().blocks[1] = "@block.a@";
@@ -249,6 +394,17 @@ static bool runTinyBuilderChecks() {
 			"descending canonical block order retains the runtime reverse direction");
 	diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
+	SceneModel regionalDirection = stableConnectionScene();
+	regionalDirection.nodes[2].xKm = 0.0;
+	regionalDirection.nodes[3].xKm = 1.0;
+	regionalDirection.routes.push_back(
+			{"route.regional", {"alpha.block", "beta.block"}, false, {}, false});
+	diagnostics = buildInfrastructureAndSignallingFromScene(regionalDirection);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
+			&& !train_route.front().reversed_direction
+			&& train_route.front().sequence_of_block_sections[0].ID == "@alpha.block@"
+			&& train_route.front().sequence_of_block_sections[1].ID == "@beta.block@",
+			"declared route topology controls direction across regional coordinate references");
 
 	const int blocksBeforeInvalid = Blocks;
 	SceneModel invalidReference = scene;
@@ -271,10 +427,14 @@ static bool runTinyBuilderChecks() {
 			&& train_route.front().N_Block_Sections == routeBlocksBeforeMalformed,
 			"malformed decorated route references are rejected before replacing the existing runtime");
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(twoRegionRouteScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && N_Routes == 1 && train_route.size() == 1,
-			"two-region route builds with a multi-arc later block");
-	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 2) {
+			"multi-region route builds with a multi-arc middle block");
+	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3) {
+		ok &= expect(train_route.front().sequence_of_block_sections[0].ID == "@a.block@"
+				&& train_route.front().sequence_of_block_sections[1].ID == "@b.block@"
+				&& train_route.front().sequence_of_block_sections[2].ID == "@c.block@",
+				"native route construction retains authored order across coordinate regions");
 		const Section& later = train_route.front().sequence_of_block_sections[1];
 		const bool kilometerEndpoints = later.total_arcs == 2
 				&& std::fabs(later.arcs_in_signalling_block_section[0].startNode.X - 1.0) < 1e-9

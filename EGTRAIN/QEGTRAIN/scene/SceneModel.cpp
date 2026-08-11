@@ -863,6 +863,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				const std::string path = "signals[" + std::to_string(index) + "]";
 				SceneSignal signal;
 				stringField(signallingJson["signals"][index], "id", "signalling.json", path, signal.id);
+				stringField(signallingJson["signals"][index], "protected_section", "signalling.json", path,
+						signal.protectedSection, false);
 				result.scene.signals.push_back(signal);
 			}
 		}

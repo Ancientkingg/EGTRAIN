@@ -48,11 +48,24 @@ may be empty or omitted on input. A station has `id`, `name`, optional
 `position_km`, and optional `platforms`; each platform has `id` and a `nodes`
 array of node IDs.
 
+Block IDs cannot contain `/`. The section catalog reserves that character for
+connection-derived section identities and reports existing conflicting IDs as
+validation errors without preventing the scene from loading.
+
 ## Signalling
 
-`signalling.json` requires `signals` and `routes` arrays. A signal has `id`.
-A route has `id`, a string-array `blocks`, and optional `corridor` and
-`reversed`.
+`signalling.json` requires `signals` and `routes` arrays. A signal has `id`
+and may have `protected_section`, an exact section-catalog reference used to
+resolve signal-failure incidents. Empty bindings are omitted by the writer;
+an unbound signal is actionable validation output when used by an incident.
+A direct base-block incident target remains compatible; a target matching both
+a signal and section is rejected as ambiguous. A route has `id`, a
+string-array `blocks`, and optional `corridor` and `reversed`; its block tokens
+are authored in forward or reverse order and are never silently sorted.
+Continuity is required inside one connected region. A scene with legacy-import
+provenance retains historical cross-region coordinate jumps with a warning;
+newly authored scenes require a declared connection. Compound tokens must be
+exact derived section IDs.
 
 Use these optional arrays for explicit signalling relationships:
 

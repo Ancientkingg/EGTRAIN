@@ -1,6 +1,7 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -34,9 +35,10 @@ static std::string sanitizeFilename(const std::string& name) {
 static bool isPositionedRouteEndpoint(const std::string& token) {
 	size_t first = token.find('@');
 	size_t last = token.rfind('@');
-	if (first != 0 || last == std::string::npos || first == last || last + 1 >= token.length())
+	if (first != 0 || last == std::string::npos || first == last
+			|| last + 2 >= token.length() || token[last + 1] != '-')
 		return false;
-	std::string position = token.substr(last + 1);
+	std::string position = token.substr(last + 2);
 	size_t i = 0;
 	if (position[i] == '+' || position[i] == '-')
 		i++;
@@ -902,6 +904,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	}
 
 	const SceneModel& scene = loadRes.scene;
+	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	const auto legacyTrackIds = buildLegacyTrackIds(scene);
 	const auto legacyBlockIds = buildLegacyBlockIds(scene, legacyTrackIds);
 
@@ -1154,12 +1157,41 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 							inc.id);
 					continue;
 				}
-				if (inc.type == "signal_failure" && routeBlockTokens.find(inc.target) == routeBlockTokens.end()) {
-					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-							"Signal id " + inc.target + " matches no route block so the failure will have no effect", inc.id);
-				}
 				std::string target = inc.target;
 				if (inc.type == "signal_failure") {
+					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
+							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
+					if (signal != scene.signals.end() && sectionInventory.resolve(inc.target) != nullptr) {
+						addDiag(SceneSeverity::Error, "scene.ref.ambiguous",
+								"Signal failure target matches both a signal and a section", inc.id);
+						continue;
+					}
+					if (signal != scene.signals.end() && !signal->protectedSection.empty())
+						target = signal->protectedSection;
+					const bool wrappedReference = target.size() > 2
+							&& target.front() == '@' && target.back() == '@';
+					const std::string unwrapped = wrappedReference
+							? target.substr(1, target.size() - 2) : std::string();
+					bool exactBaseBlock = legacyBlockIds.find(target) != legacyBlockIds.end();
+					if (!exactBaseBlock && wrappedReference) {
+						if (legacyBlockIds.find(unwrapped) != legacyBlockIds.end()) {
+							target = unwrapped;
+							exactBaseBlock = true;
+						}
+					}
+					if (!exactBaseBlock && target.find('/') != std::string::npos) {
+						addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+								"Signal failure " + inc.id + " was skipped because legacy incidents cannot target compound sections",
+								inc.id);
+						continue;
+					}
+					if (!exactBaseBlock && wrappedReference)
+						target = unwrapped;
+					const bool routeContainsTarget = routeBlockTokens.find(target) != routeBlockTokens.end()
+							|| routeBlockTokens.find("@" + target + "@") != routeBlockTokens.end();
+					if (!routeContainsTarget)
+						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
+								"Signal failure target " + target + " matches no route block so the failure will have no effect", inc.id);
 					target = mapLegacyBlockReference(target, legacyBlockIds);
 				} else if (inc.type == "train_breakdown") {
 					const auto service = serviceOperatingCodes.find(inc.target);

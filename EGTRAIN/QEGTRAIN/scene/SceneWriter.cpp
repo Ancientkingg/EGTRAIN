@@ -516,8 +516,12 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		{"single_track_restrictions", json::array()},
 		{"station_boundaries", json::array()},
 	};
-	for (const auto& signal : scene.signals)
-		signalling["signals"].push_back({{"id", signal.id}});
+	for (const auto& signal : scene.signals) {
+		json value = {{"id", signal.id}};
+		if (!signal.protectedSection.empty())
+			value["protected_section"] = signal.protectedSection;
+		signalling["signals"].push_back(std::move(value));
+	}
 	if (!scene.signallingAreas.empty()) {
 		signalling["signalling_areas"] = json::array();
 		for (const auto& area : scene.signallingAreas) {

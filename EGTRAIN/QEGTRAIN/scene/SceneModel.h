@@ -62,7 +62,10 @@ struct SceneStation {
 	std::vector<ScenePlatform> platforms;
 };
 
-struct SceneSignal { std::string id; };
+struct SceneSignal {
+	std::string id;
+	std::string protectedSection;
+};
 
 struct SceneSignallingArea {
 	std::string id;
