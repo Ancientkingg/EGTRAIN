@@ -2786,12 +2786,12 @@ void MainWindow::newScene() {
 	updateSceneActions();
 	statusBar()->showMessage("New case study created; save it to choose a location");
 	refreshCaseSettingsPanel();
-	refreshValidationPanel();
 	refreshCompositionPanel();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
+	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	if (m_caseSettingsDock) {
 		m_caseSettingsDock->show();
@@ -2873,12 +2873,12 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 								 .arg(QString::fromStdString(m_sceneModel.name))
 								 .arg(static_cast<int>(m_sceneModel.services.size()))
 								 .arg(static_cast<int>(m_sceneModel.routes.size())));
-	refreshValidationPanel();
 	refreshCompositionPanel();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
+	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	if (m_loadedDataDock) {
 		m_loadedDataDock->show();
@@ -3180,9 +3180,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 bool MainWindow::saveSceneToCurrentDir() {
 	if (!m_sceneLoaded)
 		return false;
-	commitPendingCaseSettings();
-	commitPendingServiceSettings();
-	commitTrainUnitSources();
+	commitPendingEditorValues();
 	if (m_sceneDir.isEmpty())
 		return saveSceneAsToBundle();
 
@@ -3199,9 +3197,7 @@ void MainWindow::saveSceneAs() {
 bool MainWindow::saveSceneAsToBundle() {
 	if (!m_sceneLoaded)
 		return false;
-	commitPendingCaseSettings();
-	commitPendingServiceSettings();
-	commitTrainUnitSources();
+	commitPendingEditorValues();
 
 	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
@@ -3226,9 +3222,7 @@ bool MainWindow::saveSceneAsToBundle() {
 bool MainWindow::saveSceneAsToDirectory() {
 	if (!m_sceneLoaded)
 		return false;
-	commitPendingCaseSettings();
-	commitPendingServiceSettings();
-	commitTrainUnitSources();
+	commitPendingEditorValues();
 
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
 		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
@@ -3303,9 +3297,7 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 }
 
 bool MainWindow::maybeSaveScene() {
-	commitPendingCaseSettings();
-	commitPendingServiceSettings();
-	commitTrainUnitSources();
+	commitPendingEditorValues();
 	if (!m_sceneDirty)
 		return true;
 
@@ -3323,7 +3315,7 @@ bool MainWindow::maybeSaveScene() {
 
 void MainWindow::updateSceneActions() {
 	if (m_saveSceneAction)
-		m_saveSceneAction->setEnabled(m_sceneLoaded && m_sceneDirty);
+		m_saveSceneAction->setEnabled(m_sceneLoaded);
 	if (m_saveSceneAsAction)
 		m_saveSceneAsAction->setEnabled(m_sceneLoaded);
 	if (m_saveSceneAsFolderAction)
@@ -3345,6 +3337,9 @@ void MainWindow::updateSceneActions() {
 }
 
 void MainWindow::refreshValidationPanel() {
+	if (m_committingPendingEditorValues)
+		return;
+	commitPendingEditorValues();
 	if (!m_sceneLoaded) {
 		m_sceneDiagnostics.clear();
 		if (m_validationTable)
@@ -3615,6 +3610,64 @@ void MainWindow::refreshCaseSettingsPanel() {
 	}
 }
 
+void MainWindow::commitPendingEditorValues() {
+	if (m_committingPendingEditorValues)
+		return;
+	m_committingPendingEditorValues = true;
+	const auto hasEditorFocus = [](QWidget* editor) {
+		QWidget* focus = QApplication::focusWidget();
+		return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
+	};
+
+	commitPendingCaseSettings();
+	commitTrainUnitIdEdit();
+	for (std::size_t index = 0; index < m_trainUnitPhysicalEdits.size(); ++index) {
+		QDoubleSpinBox* edit = m_trainUnitPhysicalEdits[index];
+		if (hasEditorFocus(edit)) {
+			edit->interpretText();
+			commitTrainUnitPhysical(static_cast<int>(index));
+		}
+	}
+	if (m_trainUnitTractionTable) {
+		for (int row = 0; row < m_trainUnitTractionTable->rowCount(); ++row) {
+			for (int column = 0; column < m_trainUnitTractionTable->columnCount(); ++column) {
+				auto* edit = qobject_cast<QDoubleSpinBox*>(m_trainUnitTractionTable->cellWidget(row, column));
+				if (hasEditorFocus(edit)) {
+					edit->interpretText();
+					commitTrainUnitTractionCell(row, column, edit->value());
+				}
+			}
+		}
+	}
+	commitTrainUnitSources();
+	commitCompositionIdEdit();
+	commitPendingServiceSettings();
+	if (m_stopArrivalSecondsEdit && m_stopArrivalSecondsEdit->isEnabled())
+		commitStopArrivalSeconds();
+	if (m_stopDepartureSecondsEdit && m_stopDepartureSecondsEdit->isEnabled())
+		commitStopDepartureSeconds();
+	if (m_stopDwellSecondsEdit && m_stopDwellSecondsEdit->isEnabled())
+		commitStopDwellSeconds();
+	commitScenarioIdEdit();
+	commitScenarioNameEdit();
+	commitScenarioDescriptionEdit();
+	commitIncidentIdEdit();
+	commitIncidentStartSeconds();
+	if (m_incidentEndSecondsEdit && ((m_incidentHasEndSecondsCheck
+			&& m_incidentHasEndSecondsCheck->isChecked())
+			|| hasEditorFocus(m_incidentEndSecondsEdit)))
+		commitIncidentEndSeconds();
+	if (m_incidentHasOccurrenceCheck && m_incidentHasOccurrenceCheck->isChecked())
+		commitIncidentOccurrence();
+	if (m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked()
+			&& m_incidentReducedSpeedKmhEdit) {
+		m_incidentReducedSpeedKmhEdit->interpretText();
+		commitIncidentReducedSpeed();
+	}
+
+	m_committingPendingEditorValues = false;
+}
+
 void MainWindow::commitPendingCaseSettings() {
 	if (m_caseDurationSecondsEdit)
 		m_caseDurationSecondsEdit->interpretText();
@@ -3705,6 +3758,153 @@ std::string MainWindow::uniqueInfrastructureId(const std::string& baseId, const 
 	while (exists(candidate))
 		candidate = baseId + "_" + std::to_string(suffix++);
 	return candidate;
+}
+
+QStringList MainWindow::directDeleteConsumers(const QString& facet, const std::string& id,
+		const std::string& scope) const {
+	QStringList consumers;
+	const auto add = [&consumers](const QString& description) {
+		if (!description.isEmpty() && !consumers.contains(description))
+			consumers << description;
+	};
+	const auto sectionUsesBlock = [&id](const SceneSectionInventory& inventory,
+			const std::string& reference) {
+		const std::vector<std::string> components = previewRouteComponents(reference);
+		if (std::find(components.begin(), components.end(), id) != components.end())
+			return true;
+		const SceneSectionDescriptor* section = inventory.resolve(reference);
+		return section && (section->sourceBlockId == id || section->firstBlockId == id
+			|| section->secondBlockId == id);
+	};
+	const auto sectionUsesConnection = [](const SceneSectionInventory& inventory,
+			const std::string& connectionId, const std::string& reference) {
+		const SceneSectionDescriptor* section = inventory.resolve(reference);
+		return section && section->sourceConnectionId == connectionId;
+	};
+
+	if (facet == "tracks") {
+		for (const auto& node : m_sceneModel.nodes)
+			if (node.trackId == id)
+				add(QString("node '%1'").arg(QString::fromStdString(node.id)));
+		for (const auto& arc : m_sceneModel.arcs)
+			if (arc.trackId == id)
+				add(QString("arc '%1'").arg(QString::fromStdString(arc.id)));
+		for (const auto& block : m_sceneModel.blocks)
+			if (block.trackId == id)
+				add(QString("block '%1'").arg(QString::fromStdString(block.id)));
+		for (const auto& area : m_sceneModel.signallingAreas)
+			if (area.trackId == id)
+				add(QString("signalling area '%1'").arg(QString::fromStdString(area.id)));
+	} else if (facet == "nodes") {
+		for (const auto& arc : m_sceneModel.arcs)
+			if (arc.fromNodeId == id || arc.toNodeId == id)
+				add(QString("arc '%1' endpoint").arg(QString::fromStdString(arc.id)));
+		for (const auto& connection : m_sceneModel.connections)
+			if (connection.fromNodeId == id || connection.toNodeId == id)
+				add(QString("connection '%1' endpoint").arg(QString::fromStdString(connection.id)));
+		for (const auto& station : m_sceneModel.stations)
+			for (const auto& platform : station.platforms)
+				if (std::find(platform.nodeIds.begin(), platform.nodeIds.end(), id) != platform.nodeIds.end())
+					add(QString("platform '%1' at station '%2'")
+						.arg(QString::fromStdString(platform.id), QString::fromStdString(station.id)));
+	} else if (facet == "blocks" || facet == "connections") {
+		const SceneSectionInventory inventory = buildSceneSectionInventory(m_sceneModel);
+		const auto usesSection = [&](const std::string& reference) {
+			return facet == "blocks" ? sectionUsesBlock(inventory, reference)
+				: sectionUsesConnection(inventory, id, reference);
+		};
+		for (const auto& route : m_sceneModel.routes)
+			for (const auto& token : route.blocks)
+				if (usesSection(token)) {
+					add(QString("route '%1' section '%2'")
+						.arg(QString::fromStdString(route.id), QString::fromStdString(token)));
+					break;
+				}
+		for (const auto& signal : sceneSignals(m_sceneModel))
+			if (usesSection(signal.protectedSection))
+				add(QString("signal '%1' protected section '%2'")
+					.arg(QString::fromStdString(signal.id), QString::fromStdString(signal.protectedSection)));
+		for (const auto& scenario : m_sceneModel.scenarios)
+			for (const auto& incident : scenario.incidents)
+				if (incident.type == "signal_failure" && usesSection(incident.target))
+					add(QString("signal-failure incident '%1' in scenario '%2'")
+						.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
+		for (const auto& dependency : m_sceneModel.blockDependencies)
+			if (usesSection(dependency.block) || usesSection(dependency.dependsOn))
+				add(QString("block dependency '%1' -> '%2'")
+					.arg(QString::fromStdString(dependency.block), QString::fromStdString(dependency.dependsOn)));
+		for (const auto& restriction : m_sceneModel.singleTrackRestrictions)
+			if (usesSection(restriction.startBlock) || usesSection(restriction.endBlock)
+				|| usesSection(restriction.protectedStartBlock) || usesSection(restriction.protectedEndBlock))
+				add(QString("single-track restriction '%1' -> '%2'")
+					.arg(QString::fromStdString(restriction.startBlock), QString::fromStdString(restriction.endBlock)));
+		for (const auto& boundary : m_sceneModel.stationBoundaries)
+			if (usesSection(boundary.entranceBlock)
+				|| (boundary.hasExitBlock && usesSection(boundary.exitBlock)))
+				add(QString("station boundary '%1' -> '%2'")
+					.arg(QString::fromStdString(boundary.entranceBlock), QString::fromStdString(boundary.exitBlock)));
+	} else if (facet == "stations") {
+		for (const auto& service : m_sceneModel.services)
+			for (const auto& stop : service.stops)
+				if (stop.stationId == id)
+					add(QString("service '%1' stop").arg(QString::fromStdString(service.id)));
+		for (const auto& scenario : m_sceneModel.scenarios)
+			for (const auto& delay : scenario.entranceDelays)
+				if (delay.stationId == id)
+					add(QString("entrance delay for service '%1' in scenario '%2'")
+						.arg(QString::fromStdString(delay.serviceId), QString::fromStdString(scenario.id)));
+		for (const auto& passenger : m_sceneModel.passengers)
+			for (const auto& journey : passenger.journeys) {
+				if (journey.originStationId == id || journey.destinationStationId == id)
+					add(QString("passenger '%1' journey '%2'")
+						.arg(QString::fromStdString(passenger.id), QString::fromStdString(journey.id)));
+				for (const auto& leg : journey.legs)
+					if (leg.originStationId == id || leg.destinationStationId == id)
+						add(QString("passenger '%1' leg '%2'")
+							.arg(QString::fromStdString(passenger.id), QString::fromStdString(leg.id)));
+			}
+	} else if (facet == "platforms") {
+		for (const auto& service : m_sceneModel.services)
+			for (const auto& stop : service.stops)
+				if (stop.stationId == scope && stop.platformId == id)
+					add(QString("service '%1' stop at station '%2'")
+						.arg(QString::fromStdString(service.id), QString::fromStdString(scope)));
+	} else if (facet == "signals") {
+		for (const auto& scenario : m_sceneModel.scenarios)
+			for (const auto& incident : scenario.incidents)
+				if (incident.type == "signal_failure" && incident.target == id)
+					add(QString("signal-failure incident '%1' in scenario '%2'")
+						.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
+	} else if (facet == "routes") {
+		for (const auto& service : m_sceneModel.services)
+			if (service.route == id)
+				add(QString("service '%1'").arg(QString::fromStdString(service.id)));
+	} else if (facet == "train_unit") {
+		for (const auto& composition : m_sceneModel.compositions)
+			if (std::find(composition.units.begin(), composition.units.end(), id) != composition.units.end())
+				add(QString("composition '%1'").arg(QString::fromStdString(composition.id)));
+	} else if (facet == "composition") {
+		for (const auto& service : m_sceneModel.services)
+			if (service.composition == id)
+				add(QString("service '%1'").arg(QString::fromStdString(service.id)));
+	} else if (facet == "service") {
+		for (const auto& scenario : m_sceneModel.scenarios) {
+			for (const auto& incident : scenario.incidents)
+				if (incident.type == "train_breakdown" && incident.target == id)
+					add(QString("breakdown incident '%1' in scenario '%2'")
+						.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
+			for (const auto& delay : scenario.entranceDelays)
+				if (delay.serviceId == id)
+					add(QString("entrance delay in scenario '%1'").arg(QString::fromStdString(scenario.id)));
+		}
+		for (const auto& passenger : m_sceneModel.passengers)
+			for (const auto& journey : passenger.journeys)
+				for (const auto& leg : journey.legs)
+					if (leg.serviceId == id)
+						add(QString("passenger '%1' leg '%2'")
+							.arg(QString::fromStdString(passenger.id), QString::fromStdString(leg.id)));
+	}
+	return consumers;
 }
 
 void MainWindow::refreshBlockTrackFilter() {
@@ -4903,7 +5103,7 @@ void MainWindow::deleteInfrastructureEntity() {
 		|| facet == QStringLiteral("station_boundaries");
 	if (id.isEmpty() && !anonymousRow)
 		return;
-	const QString displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
+	QString displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
 	int stationIndex = -1;
 	int platformIndex = -1;
 	if (facet == "platforms") {
@@ -4918,60 +5118,41 @@ void MainWindow::deleteInfrastructureEntity() {
 			flattened += static_cast<int>(platforms.size());
 		}
 	}
-	QString referenceSummary;
-	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size())) {
-		const std::string trackId = m_sceneModel.tracks[static_cast<std::size_t>(row)].id;
-		int areaCount = 0;
-		for (const auto& area : m_sceneModel.signallingAreas)
-			if (area.trackId == trackId)
-				++areaCount;
-		referenceSummary = areaCount == 0
-			? QStringLiteral("No signalling-area references")
-			: QStringLiteral("Referencing signalling areas: %1").arg(areaCount);
-	} else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size())) {
-		const std::string stationId = m_sceneModel.stations[static_cast<std::size_t>(row)].id;
-		QMap<QString, int> serviceCounts;
-		for (const auto& service : m_sceneModel.services)
-			for (const auto& stop : service.stops)
-				if (stop.stationId == stationId)
-					++serviceCounts[QString::fromStdString(service.id)];
-		QStringList refs;
-		for (auto it = serviceCounts.cbegin(); it != serviceCounts.cend(); ++it)
-			refs << QString("%1 (%2 stop(s))").arg(it.key()).arg(it.value());
-		referenceSummary = refs.isEmpty() ? QStringLiteral("No service references")
-										  : QStringLiteral("Referencing services: %1").arg(refs.join(", "));
-	} else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0) {
-		const std::string stationId = m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].id;
-		QMap<QString, int> serviceCounts;
-		for (const auto& service : m_sceneModel.services)
-			for (const auto& stop : service.stops)
-				if (stop.stationId == stationId && stop.platformId == id.toStdString())
-					++serviceCounts[QString::fromStdString(service.id)];
-		QStringList refs;
-		for (auto it = serviceCounts.cbegin(); it != serviceCounts.cend(); ++it)
-			refs << QString("%1 (%2 stop(s))").arg(it.key()).arg(it.value());
-		referenceSummary = refs.isEmpty() ? QStringLiteral("No service references")
-										  : QStringLiteral("Referencing services: %1").arg(refs.join(", "));
-	} else if (facet == "routes") {
-		QStringList refs;
-		for (const auto& service : m_sceneModel.services)
-			if (service.route == id.toStdString())
-				refs << QString::fromStdString(service.id);
-		referenceSummary = refs.isEmpty() ? QStringLiteral("No dependent services")
-										  : QStringLiteral("Dependent services: %1").arg(refs.join(", "));
-	} else if (facet == "signals") {
-		QStringList refs;
-		for (const auto& scenario : m_sceneModel.scenarios)
-			for (const auto& incident : scenario.incidents)
-				if (incident.type == "signal_failure" && incident.target == id.toStdString())
-					refs << QString::fromStdString(incident.id);
-		referenceSummary = refs.isEmpty() ? QStringLiteral("No dependent signal-failure incidents")
-										  : QStringLiteral("Dependent incidents: %1").arg(refs.join(", "));
+	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size()))
+		id = QString::fromStdString(m_sceneModel.tracks[static_cast<std::size_t>(row)].id);
+	else if (facet == "nodes" && row < static_cast<int>(m_sceneModel.nodes.size()))
+		id = QString::fromStdString(m_sceneModel.nodes[static_cast<std::size_t>(row)].id);
+	else if (facet == "arcs" && row < static_cast<int>(m_sceneModel.arcs.size()))
+		id = QString::fromStdString(m_sceneModel.arcs[static_cast<std::size_t>(row)].id);
+	else if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
+		id = QString::fromStdString(m_sceneModel.blocks[static_cast<std::size_t>(modelRow)].id);
+	else if (facet == "connections" && row < static_cast<int>(m_sceneModel.connections.size()))
+		id = QString::fromStdString(m_sceneModel.connections[static_cast<std::size_t>(row)].id);
+	else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
+		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(row)].id);
+	else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0)
+		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(stationIndex)]
+			.platforms[static_cast<std::size_t>(platformIndex)].id);
+	else if (facet == "signals" && row < static_cast<int>(sceneSignals(m_sceneModel).size()))
+		id = QString::fromStdString(sceneSignals(m_sceneModel)[static_cast<std::size_t>(row)].id);
+	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
+		id = QString::fromStdString(m_sceneModel.signallingAreas[static_cast<std::size_t>(row)].id);
+	else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size()))
+		id = QString::fromStdString(m_sceneModel.routes[static_cast<std::size_t>(row)].id);
+	displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
+	const std::string platformScope = stationIndex >= 0
+		? m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].id : std::string();
+	const QStringList consumers = directDeleteConsumers(facet, id.toStdString(), platformScope);
+	if (!consumers.isEmpty()) {
+		showBlockingError(this, "Cannot Delete Infrastructure Entity",
+			QString("Cannot delete %1 '%2' because it is still referenced by:\n• %3\nRemove or rebind those consumers first.")
+				.arg(m_infrastructureFacetCombo->currentText().toLower(), displayId, consumers.join("\n• ")),
+			true);
+		return;
 	}
 	const QMessageBox::StandardButton answer = QMessageBox::question(
 		this, "Delete infrastructure entity",
-		QString("Delete %1 '%2'? %3 Referenced entities will remain and validation will show any fallout.")
-			.arg(m_infrastructureFacetCombo->currentText().toLower(), displayId, referenceSummary),
+		QString("Delete %1 '%2'?").arg(m_infrastructureFacetCombo->currentText().toLower(), displayId),
 		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 	if (answer != QMessageBox::Yes)
 		return;
@@ -5185,26 +5366,24 @@ void MainWindow::deleteTrainUnit() {
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
 		return;
 	const std::string id = m_sceneModel.trainUnits[row].id;
-	bool referenced = false;
-	for (const auto& composition : m_sceneModel.compositions) {
-		if (std::find(composition.units.begin(), composition.units.end(), id) != composition.units.end()) {
-			referenced = true;
-			break;
-		}
+	const QStringList consumers = directDeleteConsumers(QStringLiteral("train_unit"), id);
+	if (!consumers.isEmpty()) {
+		showBlockingError(this, "Cannot Delete Train Unit",
+			QString("Cannot delete train unit '%1' because it is still referenced by:\n• %2\nRemove it from those compositions first.")
+				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
+		return;
 	}
-	const QString message = referenced
-		? QString("Train unit '%1' is referenced by a composition. Delete it and leave the reference for validation to diagnose?").arg(QString::fromStdString(id))
-		: QString("Delete train unit '%1'?").arg(QString::fromStdString(id));
-	if (QMessageBox::question(this, "Delete Train Unit", message,
+	if (QMessageBox::question(this, "Delete Train Unit",
+			QString("Delete train unit '%1'?").arg(QString::fromStdString(id)),
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 		return;
 	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshTrainUnitPanel();
 	refreshCompositionPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitTrainUnitIdEdit() {
@@ -5243,8 +5422,8 @@ void MainWindow::commitTrainUnitIdEdit() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitTrainUnitSources() {
@@ -5523,8 +5702,9 @@ void MainWindow::addComposition() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
+	refreshValidationPanel();
 
 	if (m_compositionListWidget)
 		m_compositionListWidget->setCurrentRow(static_cast<int>(m_sceneModel.compositions.size()) - 1);
@@ -5544,8 +5724,9 @@ void MainWindow::duplicateComposition() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
+	refreshValidationPanel();
 
 	if (m_compositionListWidget)
 		m_compositionListWidget->setCurrentRow(row + 1);
@@ -5558,10 +5739,17 @@ void MainWindow::deleteComposition() {
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
 		return;
 
-	QString id = QString::fromStdString(m_sceneModel.compositions[row].id);
+	const std::string id = m_sceneModel.compositions[row].id;
+	const QStringList consumers = directDeleteConsumers(QStringLiteral("composition"), id);
+	if (!consumers.isEmpty()) {
+		showBlockingError(this, "Cannot Delete Composition",
+			QString("Cannot delete composition '%1' because it is still referenced by:\n• %2\nReassign those services first.")
+				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
+		return;
+	}
 	auto response = QMessageBox::question(this,
-										  "Delete Composition",
-										  QString("Delete composition '%1'?").arg(id),
+											  "Delete Composition",
+											  QString("Delete composition '%1'?").arg(QString::fromStdString(id)),
 										  QMessageBox::Yes | QMessageBox::No,
 										  QMessageBox::No);
 	if (response != QMessageBox::Yes)
@@ -5572,8 +5760,9 @@ void MainWindow::deleteComposition() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshCompositionPanel();
+	updateServiceDetailPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitCompositionIdEdit() {
@@ -6130,8 +6319,9 @@ void MainWindow::addService() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshServicePanel();
+	refreshIncidentTargetCombo();
+	refreshValidationPanel();
 
 	if (m_serviceListWidget)
 		m_serviceListWidget->setCurrentRow(static_cast<int>(m_sceneModel.services.size()) - 1);
@@ -6151,8 +6341,9 @@ void MainWindow::duplicateService() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshServicePanel();
+	refreshIncidentTargetCombo();
+	refreshValidationPanel();
 
 	if (m_serviceListWidget)
 		m_serviceListWidget->setCurrentRow(row + 1);
@@ -6165,22 +6356,31 @@ void MainWindow::deleteService() {
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
 		return;
 
-	QString id = QString::fromStdString(m_sceneModel.services[row].id);
+	const std::string id = m_sceneModel.services[row].id;
+	const QStringList consumers = directDeleteConsumers(QStringLiteral("service"), id);
+	if (!consumers.isEmpty()) {
+		showBlockingError(this, "Cannot Delete Service",
+			QString("Cannot delete service '%1' because it is still referenced by:\n• %2\nRemove those operation references first.")
+				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
+		return;
+	}
 	auto response = QMessageBox::question(this,
-										  "Delete Service",
-										  QString("Delete service '%1'?").arg(id),
+											  "Delete Service",
+											  QString("Delete service '%1'?").arg(QString::fromStdString(id)),
 										  QMessageBox::Yes | QMessageBox::No,
 										  QMessageBox::No);
 	if (response != QMessageBox::Yes)
 		return;
 
 	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
+	pruneExcludedServiceOccurrences();
 
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshServicePanel();
+	refreshIncidentTargetCombo();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitServiceIdEdit() {
@@ -6190,11 +6390,22 @@ void MainWindow::commitServiceIdEdit() {
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
 		return;
 
-	std::string newId = m_serviceIdEdit->text().trimmed().toStdString();
-	if (newId == m_sceneModel.services[row].id)
-		return;
-
 	const std::string oldId = m_sceneModel.services[row].id;
+	const std::string newId = m_serviceIdEdit->text().trimmed().toStdString();
+	if (newId.empty()) {
+		const QSignalBlocker blocker(m_serviceIdEdit);
+		m_serviceIdEdit->setText(QString::fromStdString(oldId));
+		showBlockingError(this, "Invalid Service ID", "Service IDs must not be empty.", true);
+		return;
+	}
+	if (newId == oldId)
+		return;
+	if (uniqueServiceId(newId) != newId) {
+		const QSignalBlocker blocker(m_serviceIdEdit);
+		m_serviceIdEdit->setText(QString::fromStdString(oldId));
+		showBlockingError(this, "Service ID already exists", "Choose a unique service ID.", true);
+		return;
+	}
 	for (auto& scenario : m_sceneModel.scenarios) {
 		for (auto& delay : scenario.entranceDelays)
 			if (delay.serviceId == oldId)
@@ -6223,6 +6434,7 @@ void MainWindow::commitServiceIdEdit() {
 	updateSceneActions();
 	refreshValidationPanel();
 	refreshServiceOccurrencePreview();
+	updateIncidentDetailPanel();
 }
 
 void MainWindow::commitServiceOperatingCode() {
@@ -6727,11 +6939,11 @@ void MainWindow::addStop() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshStopList();
 
 	if (m_stopListWidget)
 		m_stopListWidget->setCurrentRow(static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) - 1);
+	refreshValidationPanel();
 }
 
 void MainWindow::removeStop() {
@@ -6751,7 +6963,6 @@ void MainWindow::removeStop() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshStopList();
 
 	if (m_stopListWidget) {
@@ -6759,6 +6970,7 @@ void MainWindow::removeStop() {
 		if (remaining > 0)
 			m_stopListWidget->setCurrentRow(stopRow < remaining ? stopRow : remaining - 1);
 	}
+	refreshValidationPanel();
 }
 
 void MainWindow::moveStopUp() {
@@ -6780,11 +6992,11 @@ void MainWindow::moveStopUp() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshStopList();
 
 	if (m_stopListWidget)
 		m_stopListWidget->setCurrentRow(stopRow - 1);
+	refreshValidationPanel();
 }
 
 void MainWindow::moveStopDown() {
@@ -6806,11 +7018,11 @@ void MainWindow::moveStopDown() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
-	refreshValidationPanel();
 	refreshStopList();
 
 	if (m_stopListWidget)
 		m_stopListWidget->setCurrentRow(stopRow + 1);
+	refreshValidationPanel();
 }
 
 void MainWindow::commitStopStation(const QString& text) {
@@ -7254,8 +7466,8 @@ void MainWindow::addBlankScenario() {
 	m_sceneModel.scenarios.push_back(std::move(scenario));
 	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
 	markScenarioModified();
-	refreshValidationPanel();
 	refreshIncidentPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::duplicateScenario() {
@@ -7270,8 +7482,8 @@ void MainWindow::duplicateScenario() {
 	m_sceneModel.scenarios.push_back(std::move(copy));
 	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
 	markScenarioModified();
-	refreshValidationPanel();
 	refreshIncidentPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::exportScenario() {
@@ -7335,8 +7547,8 @@ void MainWindow::importScenario() {
 	m_sceneModel.scenarios.push_back(std::move(imported));
 	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
 	markScenarioModified();
-	refreshValidationPanel();
 	refreshIncidentPanel();
+	refreshValidationPanel();
 	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_selectedScenarioId));
 	if (scenarioConflict)
 		message += QString(" (ID %1 already existed; imported as %2)")
@@ -7354,9 +7566,10 @@ void MainWindow::commitScenarioIdEdit() {
 	if (!scenario || !m_scenarioIdEdit)
 		return;
 	const std::string newId = m_scenarioIdEdit->text().trimmed().toStdString();
-	if (newId.empty() || newId == scenario->id) {
-		if (newId.empty())
-			showBlockingError(this, "Invalid Scenario ID", "Scenario IDs must not be empty.", true);
+	if (newId == scenario->id)
+		return;
+	if (newId.empty()) {
+		showBlockingError(this, "Invalid Scenario ID", "Scenario IDs must not be empty.", true);
 		updateScenarioDetailPanel();
 		return;
 	}
@@ -7604,8 +7817,8 @@ void MainWindow::deleteIncident() {
 	incidents.erase(incidents.begin() + row);
 
 	markScenarioModified();
-	refreshValidationPanel();
 	refreshIncidentPanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::commitIncidentIdEdit() {
@@ -7617,9 +7830,10 @@ void MainWindow::commitIncidentIdEdit() {
 		return;
 
 	std::string newId = m_incidentIdEdit->text().trimmed().toStdString();
-	if (newId.empty() || newId == incidents[row].id) {
-		if (newId.empty())
-			showBlockingError(this, "Invalid Incident ID", "Incident IDs must not be empty.", true);
+	if (newId == incidents[row].id)
+		return;
+	if (newId.empty()) {
+		showBlockingError(this, "Invalid Incident ID", "Incident IDs must not be empty.", true);
 		updateIncidentDetailPanel();
 		return;
 	}
@@ -10174,6 +10388,20 @@ void MainWindow::runEditorSmokeE2E() {
 			}
 		});
 	};
+	auto discardConfirmation = [this]() {
+		QTimer::singleShot(25, this, []() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QMessageBox*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				if (auto* button = dialog->button(QMessageBox::Discard))
+					button->click();
+				else
+					dialog->done(QMessageBox::Discard);
+				break;
+			}
+		});
+	};
 	auto acceptUnitChoice = [this](const QString& unitId) {
 		QTimer::singleShot(25, this, [unitId]() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
@@ -10378,6 +10606,7 @@ void MainWindow::runEditorSmokeE2E() {
 		if (!m_sceneLoaded || originalScenePath.isEmpty()) {
 			facetFailure(facetOk, "new case", "the original scene was not available to restore");
 		} else {
+			discardConfirmation();
 			newScene();
 			QApplication::processEvents();
 			if (!m_sceneLoaded || !m_sceneDirty || !m_sceneDir.isEmpty() || m_sceneIsBundle || !m_saveSceneAction || !m_saveSceneAction->isEnabled() || !m_saveSceneAsAction || !m_saveSceneAsAction->isEnabled() || !m_saveSceneAsFolderAction || !m_saveSceneAsFolderAction->isEnabled())
@@ -10857,6 +11086,47 @@ void MainWindow::runEditorSmokeE2E() {
 				} else {
 					facetFailure(facetOk, "stations/signalling", "incident controls unavailable for signal coverage");
 				}
+					auto refuseInfrastructureDelete = [&](const char* facet, int row, int column,
+						std::size_t expectedSize, const char* label) {
+					if (!chooseInfrastructureFacet(facet) || row < 0 || row >= infrastructureTable->rowCount()) {
+						facetFailure(facetOk, "delete integrity", QString("%1 facet row unavailable").arg(label));
+						return;
+					}
+					infrastructureTable->setCurrentCell(row, column);
+					QApplication::processEvents();
+					infrastructureDelete->click();
+					QApplication::processEvents();
+					const QString facetName = QString::fromLatin1(facet);
+					std::size_t actualSize = expectedSize;
+					if (facetName == "tracks") actualSize = m_sceneModel.tracks.size();
+					else if (facetName == "nodes") actualSize = m_sceneModel.nodes.size();
+					else if (facetName == "arcs") actualSize = m_sceneModel.arcs.size();
+					else if (facetName == "blocks") actualSize = m_sceneModel.blocks.size();
+					else if (facetName == "connections") actualSize = m_sceneModel.connections.size();
+					else if (facetName == "stations") actualSize = m_sceneModel.stations.size();
+					else if (facetName == "platforms") {
+						actualSize = 0;
+						for (const auto& station : m_sceneModel.stations)
+							actualSize += station.platforms.size();
+					} else if (facetName == "signals") actualSize = sceneSignals(m_sceneModel).size();
+					else if (facetName == "routes") actualSize = m_sceneModel.routes.size();
+					if (actualSize != expectedSize)
+						facetFailure(facetOk, "delete integrity", QString("referenced %1 delete was not refused").arg(label));
+				};
+				refuseInfrastructureDelete("tracks", 0, 0, m_sceneModel.tracks.size(), "track");
+				refuseInfrastructureDelete("nodes", 0, 0, m_sceneModel.nodes.size(), "node");
+				if (chooseBlockTrack("e2e-main"))
+					refuseInfrastructureDelete("blocks", 0, 0, m_sceneModel.blocks.size(), "block");
+				else
+					facetFailure(facetOk, "delete integrity", "block facet filter unavailable");
+				refuseInfrastructureDelete("connections", 0, 0, m_sceneModel.connections.size(), "connection");
+				refuseInfrastructureDelete("stations", 0, 0, m_sceneModel.stations.size(), "station");
+				std::size_t platformCount = 0;
+				for (const auto& station : m_sceneModel.stations)
+					platformCount += station.platforms.size();
+				refuseInfrastructureDelete("platforms", 0, 1, platformCount, "platform");
+				refuseInfrastructureDelete("signals", 0, 0, sceneSignals(m_sceneModel).size(), "signal");
+				refuseInfrastructureDelete("routes", 0, 0, m_sceneModel.routes.size(), "route");
 				expectedTracks = m_sceneModel.tracks;
 				expectedNodes = m_sceneModel.nodes;
 				expectedArcs = m_sceneModel.arcs;
@@ -11284,18 +11554,12 @@ void MainWindow::runEditorSmokeE2E() {
 				acceptUnitChoice(QString::fromStdString(duplicateId));
 				addUnitToComposition();
 				QApplication::processEvents();
-				acceptConfirmation();
+				const int referencedCount = m_trainUnitListWidget->count();
 				deleteTrainUnit();
-				if (m_trainUnitListWidget->count() != originalCount + 1)
-					facetFailure(facetOk, "train unit", "delete did not apply");
-				refreshValidationPanel();
-				bool danglingReference = false;
-				for (const auto& diagnostic : m_sceneDiagnostics) {
-					if (diagnostic.code == "scene.ref.unresolved" && diagnostic.relatedId == duplicateId)
-						danglingReference = true;
-				}
-				if (!danglingReference)
-					facetFailure(facetOk, "train unit", "referenced-unit delete did not leave a validator reference diagnostic");
+				const bool duplicateStillPresent = std::any_of(m_sceneModel.trainUnits.begin(),
+					m_sceneModel.trainUnits.end(), [&](const SceneTrainUnit& unit) { return unit.id == duplicateId; });
+				if (m_trainUnitListWidget->count() != referencedCount || !duplicateStillPresent)
+					facetFailure(facetOk, "train unit", "referenced-unit delete was not refused");
 				m_compositionListWidget->setCurrentRow(0);
 				for (int unitRow = 0; unitRow < m_compositionUnitsListWidget->count(); ++unitRow) {
 					if (m_compositionUnitsListWidget->item(unitRow)->text().toStdString() == duplicateId) {
@@ -11304,6 +11568,12 @@ void MainWindow::runEditorSmokeE2E() {
 						break;
 					}
 				}
+				acceptConfirmation();
+				deleteTrainUnit();
+				if (m_trainUnitListWidget->count() != originalCount + 1
+						|| std::any_of(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
+							[&](const SceneTrainUnit& unit) { return unit.id == duplicateId; }))
+					facetFailure(facetOk, "train unit", "unreferenced-unit delete did not apply");
 			}
 		}
 		if (!m_sceneModel.trainUnits.empty()) {
@@ -11400,14 +11670,29 @@ void MainWindow::runEditorSmokeE2E() {
 						facetFailure(facetOk, "composition", "id edit did not apply");
 				}
 			}
+			const int referencedCompositionCount = m_compositionListWidget->count();
+			m_compositionListWidget->setCurrentRow(assignedCompositionRow);
+			deleteComposition();
+			if (m_compositionListWidget->count() != referencedCompositionCount
+					|| !std::any_of(m_sceneModel.compositions.begin(), m_sceneModel.compositions.end(),
+						[&](const SceneComposition& composition) {
+							return composition.id == editedCompositionId;
+						}))
+				facetFailure(facetOk, "composition", "service-referenced composition delete was not refused");
 			addComposition();
-			if (m_compositionListWidget->count() != originalCount + 2) {
-				facetFailure(facetOk, "composition", "add did not apply");
+			const std::string temporaryCompositionId = m_sceneModel.compositions.back().id;
+			if (m_compositionListWidget->count() != originalCount + 2
+					|| !m_serviceCompositionCombo
+					|| m_serviceCompositionCombo->findText(
+						QString::fromStdString(temporaryCompositionId)) < 0) {
+				facetFailure(facetOk, "composition", "add did not refresh the service selector");
 			} else {
 				acceptConfirmation();
 				deleteComposition();
-				if (m_compositionListWidget->count() != originalCount + 1)
-					facetFailure(facetOk, "composition", "delete did not apply");
+				if (m_compositionListWidget->count() != originalCount + 1
+						|| m_serviceCompositionCombo->findText(
+							QString::fromStdString(temporaryCompositionId)) >= 0)
+					facetFailure(facetOk, "composition", "delete did not refresh the service selector");
 			}
 			int editedRow = -1;
 			for (int row = 0; row < static_cast<int>(m_sceneModel.compositions.size()); ++row) {
@@ -11471,6 +11756,31 @@ void MainWindow::runEditorSmokeE2E() {
 			if (!m_serviceIdEdit) {
 				facetFailure(facetOk, "service", "id editor unavailable");
 			} else {
+				const std::string duplicateServiceId = m_sceneModel.services.front().id;
+				const auto referencesStillOld = [&]() {
+					if (referenceScenarioRow < 0)
+						return true;
+					const SceneScenario& scenario = m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+					const bool delayStillOld = temporaryDelayCount == 0 || (!scenario.entranceDelays.empty()
+						&& scenario.entranceDelays.back().serviceId == oldServiceId);
+					const bool incidentStillOld = temporaryIncidentCount == 0 || (!scenario.incidents.empty()
+						&& scenario.incidents.back().target == oldServiceId);
+					return delayStillOld && incidentStillOld
+						&& m_excludedSceneOccurrences.find(SceneServiceOccurrence{oldServiceId, 1})
+							!= m_excludedSceneOccurrences.end();
+				};
+				m_serviceIdEdit->setText(QString());
+				commitServiceIdEdit();
+				const bool emptyRejected = m_sceneModel.services[1].id == oldServiceId
+					&& m_serviceIdEdit->text() == QString::fromStdString(oldServiceId)
+					&& referencesStillOld();
+				m_serviceIdEdit->setText(QString::fromStdString(duplicateServiceId));
+				commitServiceIdEdit();
+				const bool duplicateRejected = m_sceneModel.services[1].id == oldServiceId
+					&& m_serviceIdEdit->text() == QString::fromStdString(oldServiceId)
+					&& referencesStillOld();
+				if (!emptyRejected || !duplicateRejected)
+					facetFailure(facetOk, "service", "empty or duplicate ID rename changed canonical references");
 				m_serviceIdEdit->setText(QString::fromStdString(editedServiceId));
 				commitServiceIdEdit();
 				if (m_sceneModel.services.size() <= 1 || m_sceneModel.services[1].id != editedServiceId)
@@ -11491,6 +11801,13 @@ void MainWindow::runEditorSmokeE2E() {
 				referencesUpdated = false;
 			if (!referencesUpdated)
 				facetFailure(facetOk, "service", "service ID rename did not update canonical references or occurrence exclusions");
+			m_serviceListWidget->setCurrentRow(1);
+			const int referencedServiceCount = m_serviceListWidget->count();
+			deleteService();
+			if (m_serviceListWidget->count() != referencedServiceCount
+					|| !std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+						[&](const SceneService& service) { return service.id == editedServiceId; }))
+				facetFailure(facetOk, "service", "operation-referenced service delete was not refused");
 			if (referenceScenarioRow >= 0) {
 				SceneScenario& referenceScenario = m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
 				if (temporaryDelayCount > 0 && !referenceScenario.entranceDelays.empty())
@@ -11591,10 +11908,21 @@ void MainWindow::runEditorSmokeE2E() {
 		if (m_serviceListWidget->count() != originalCount + 2) {
 			facetFailure(facetOk, "service", "add did not apply");
 		} else {
+			const std::string unreferencedServiceId = m_sceneModel.services.back().id;
+			if (m_selectNoneOccurrencesButton) {
+				m_selectNoneOccurrencesButton->click();
+				QApplication::processEvents();
+			}
+			const bool occurrenceExclusionCreated = m_excludedSceneOccurrences.find(
+				SceneServiceOccurrence{unreferencedServiceId, 1}) != m_excludedSceneOccurrences.end();
 			acceptConfirmation();
 			deleteService();
-			if (m_serviceListWidget->count() != originalCount + 1)
-				facetFailure(facetOk, "service", "delete did not apply");
+			if (m_serviceListWidget->count() != originalCount + 1
+					|| std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+						[&](const SceneService& service) { return service.id == unreferencedServiceId; })
+					|| (occurrenceExclusionCreated && m_excludedSceneOccurrences.find(
+						SceneServiceOccurrence{unreferencedServiceId, 1}) != m_excludedSceneOccurrences.end()))
+				facetFailure(facetOk, "service", "unreferenced service delete did not prune occurrence exclusions");
 		}
 		int editedRow = -1;
 		for (int row = 0; row < static_cast<int>(m_sceneModel.services.size()); ++row) {
@@ -11804,6 +12132,20 @@ void MainWindow::runEditorSmokeE2E() {
 				|| incidents[editedRow].hasEndSeconds
 				|| !incidents[editedRow].terminateAtDestination)
 			facetFailure(facetOk, "incident", "edited incident was not retained");
+		if (!m_serviceListWidget || !m_incidentTargetCombo) {
+			facetFailure(facetOk, "incident", "service target controls unavailable");
+		} else {
+			const int serviceCount = m_serviceListWidget->count();
+			addService();
+			const std::string temporaryServiceId = m_sceneModel.services.back().id;
+			if (m_incidentTargetCombo->findText(QString::fromStdString(temporaryServiceId)) < 0)
+				facetFailure(facetOk, "incident", "service add did not refresh breakdown targets");
+			acceptConfirmation();
+			deleteService();
+			if (m_serviceListWidget->count() != serviceCount
+					|| m_incidentTargetCombo->findText(QString::fromStdString(temporaryServiceId)) >= 0)
+				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
+		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
 	}
@@ -11862,44 +12204,196 @@ void MainWindow::runEditorSmokeE2E() {
 			} else if (m_sceneDirty || hasErrors(m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
 			} else {
-				bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
-				if (m_serviceOccurrenceTable) {
-					for (int row = 0; row < m_serviceOccurrenceTable->rowCount(); ++row) {
-						QTableWidgetItem* include = m_serviceOccurrenceTable->item(row, 0);
-						selectionRoundtripOk = selectionRoundtripOk && include
-							&& include->checkState() == Qt::Checked;
-					}
-				}
-				if (!selectionRoundtripOk)
-					facetFailure(facetOk, "save/reload", "temporary occurrence selection was serialized or not reset on reopen");
-
-				const auto editedUnit = std::find_if(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
-					[&editedTrainUnitId](const SceneTrainUnit& unit) { return unit.id == editedTrainUnitId; });
-				if (editedUnit == m_sceneModel.trainUnits.end() || !m_trainUnitSourceDataEdit) {
-					facetFailure(facetOk, "save/reload", "edited train unit or source editor unavailable");
+				const auto triggerPendingSave = [&]() {
+					if (!m_saveSceneAction || !m_saveSceneAction->isEnabled())
+						return false;
+					m_saveSceneAction->trigger();
+					QApplication::processEvents();
+					return !m_sceneDirty;
+				};
+				const auto spinTextEdit = [](QDoubleSpinBox* spin) {
+					return spin ? spin->findChild<QLineEdit*>() : nullptr;
+				};
+				const auto modelRowFor = [](const auto& values, const std::string& id) {
+					for (int row = 0; row < static_cast<int>(values.size()); ++row)
+						if (values[static_cast<std::size_t>(row)].id == id)
+							return row;
+					return -1;
+				};
+				const int trainUnitRow = modelRowFor(m_sceneModel.trainUnits, editedTrainUnitId);
+				const int compositionRow = modelRowFor(m_sceneModel.compositions, editedCompositionId);
+				const int serviceRow = modelRowFor(m_sceneModel.services, editedServiceId);
+				if (trainUnitRow < 0 || compositionRow < 0 || serviceRow < 0
+						|| !m_compositionIdEdit || !m_trainUnitSourceDataEdit
+						|| !m_trainUnitPhysicalEdits[0]
+						|| !spinTextEdit(m_trainUnitPhysicalEdits[0])) {
+					facetFailure(facetOk, "save/reload", "pending editor controls were unavailable after reload");
 				} else {
-					const int trainUnitRow = static_cast<int>(std::distance(m_sceneModel.trainUnits.begin(), editedUnit));
-					m_trainUnitListWidget->setCurrentRow(trainUnitRow);
-					const std::string pendingSource = "e2e/source-data-pending-save.txt";
-					m_trainUnitSourceDataEdit->setFocus();
-					m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
-					if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile == pendingSource) {
-						facetFailure(facetOk, "save/reload", "pending source edit committed before the save path");
-					} else if (!saveSceneToCurrentDir()) {
-						facetFailure(facetOk, "save/reload", "save path rejected a pending source edit");
-					} else if (!openSceneDirectory(outScenePath)) {
-						facetFailure(facetOk, "save/reload", "scene with a pending source edit did not reload");
-					} else {
-						const auto reloadedUnit = std::find_if(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
-							[&editedTrainUnitId](const SceneTrainUnit& unit) { return unit.id == editedTrainUnitId; });
-						if (reloadedUnit == m_sceneModel.trainUnits.end() || reloadedUnit->sourceDataFile != pendingSource)
-							facetFailure(facetOk, "save/reload", "pending source edit was not saved and reloaded");
+					activateWindow();
+					if (m_trainUnitDock) {
+						m_trainUnitDock->show();
+						m_trainUnitDock->raise();
 					}
-				}
+					QApplication::processEvents();
+					m_trainUnitListWidget->setCurrentRow(trainUnitRow);
+					m_serviceListWidget->setCurrentRow(serviceRow);
+					const double pendingPhysicalMass = std::max(
+						123.0, m_trainUnitPhysicalEdits[0]->value() + 1.25);
+					QLineEdit* pendingPhysicalEdit = spinTextEdit(m_trainUnitPhysicalEdits[0]);
+					pendingPhysicalEdit->setText(QString::number(pendingPhysicalMass, 'g', 16));
+					pendingPhysicalEdit->setFocus();
+					QApplication::processEvents();
+					if (!triggerPendingSave()) {
+						facetFailure(facetOk, "save/reload", "Save action did not flush focused train-unit text");
+					} else {
+						const int committedTrainRow = modelRowFor(m_sceneModel.trainUnits, editedTrainUnitId);
+						if (committedTrainRow < 0
+								|| !m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)].hasPhysical
+								|| m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)]
+									   .physical.mass_of_traction_unit_kg != pendingPhysicalMass)
+							facetFailure(facetOk, "save/reload", "focused train-unit text was not committed before Save");
+					}
+
+					const std::string pendingCompositionId = uniqueCompositionId("e2e_pending_composition");
+					if (m_compositionDock) {
+						m_compositionDock->show();
+						m_compositionDock->raise();
+					}
+					m_compositionListWidget->setCurrentRow(compositionRow);
+					m_serviceListWidget->setCurrentRow(serviceRow);
+					m_compositionIdEdit->setText(QString::fromStdString(pendingCompositionId));
+					m_compositionIdEdit->setFocus();
+					if (!triggerPendingSave()) {
+						facetFailure(facetOk, "save/reload", "Save action did not flush focused composition text");
+					} else {
+						const int committedCompositionRow = modelRowFor(m_sceneModel.compositions, pendingCompositionId);
+						if (committedCompositionRow < 0
+								|| !std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+									[&](const SceneService& service) {
+										return service.composition == pendingCompositionId;
+									}))
+							facetFailure(facetOk, "save/reload", "focused composition text was not committed before Save");
+						else
+							editedCompositionId = pendingCompositionId;
+					}
+
+					const int pendingServiceRow = modelRowFor(m_sceneModel.services, editedServiceId);
+					int pendingStopRow = -1;
+					if (pendingServiceRow >= 0) {
+						const auto& stops = m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)].stops;
+						for (int row = 0; row < static_cast<int>(stops.size()); ++row) {
+							if (stops[static_cast<std::size_t>(row)].hasPlannedArrival && stops[static_cast<std::size_t>(row)].hasPlannedDeparture) {
+								pendingStopRow = row;
+								break;
+							}
+						}
+						if (pendingStopRow < 0 && !stops.empty())
+							pendingStopRow = 0;
+					}
+					const int scenarioRow = [&]() {
+						for (int row = 0; row < static_cast<int>(m_sceneModel.scenarios.size()); ++row)
+							if (m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == m_selectedScenarioId)
+								return row;
+						return -1;
+					}();
+					if (pendingServiceRow < 0 || pendingStopRow < 0 || scenarioRow < 0
+							|| !m_stopListWidget || !m_stopDwellSecondsEdit
+							|| !m_scenarioListWidget || !m_scenarioDescriptionEdit
+							|| !m_incidentListWidget || !m_incidentEndSecondsEdit
+							|| !m_incidentHasEndSecondsCheck) {
+						facetFailure(facetOk, "save/reload", "pending stop, scenario, or incident controls were unavailable");
+					} else {
+						m_serviceListWidget->setCurrentRow(pendingServiceRow);
+						m_stopListWidget->setCurrentRow(pendingStopRow);
+						QApplication::processEvents();
+						const int pendingDwell = static_cast<int>(m_sceneModel.services[
+							static_cast<std::size_t>(pendingServiceRow)]
+							.stops[static_cast<std::size_t>(pendingStopRow)].dwellSeconds) + 1;
+						m_stopDwellSecondsEdit->setText(QString::number(pendingDwell));
+						m_stopDwellSecondsEdit->setFocus();
+						if (!triggerPendingSave() || m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)]
+															 .stops[static_cast<std::size_t>(pendingStopRow)]
+															 .dwellSeconds != pendingDwell)
+							facetFailure(facetOk, "save/reload", "focused stop dwell text was not committed before Save");
+
+						if (m_incidentDock) {
+							m_incidentDock->show();
+							m_incidentDock->raise();
+						}
+						m_scenarioListWidget->setCurrentRow(scenarioRow);
+						QApplication::processEvents();
+						m_scenarioDescriptionEdit->setText("pending scenario values");
+						m_scenarioDescriptionEdit->setFocus();
+						QApplication::processEvents();
+						if (!triggerPendingSave() || !selectedScenario() || selectedScenario()->description != "pending scenario values")
+							facetFailure(facetOk, "save/reload", "focused scenario description was not committed before Save");
+
+						const auto& incidents = selectedScenarioIncidents();
+						const auto pendingIncident = std::find_if(incidents.begin(), incidents.end(),
+							[&](const SceneIncident& incident) { return incident.id == editedIncidentId; });
+						if (pendingIncident == incidents.end()) {
+							facetFailure(facetOk, "save/reload", "edited incident was unavailable for pending Save coverage");
+						} else {
+							const int incidentRow = static_cast<int>(std::distance(incidents.begin(), pendingIncident));
+							m_incidentListWidget->setCurrentRow(incidentRow);
+							QApplication::processEvents();
+							if (m_incidentHasEndSecondsCheck->isChecked())
+								m_incidentHasEndSecondsCheck->setChecked(false);
+							const int pendingIncidentEnd = static_cast<int>(pendingIncident->endSeconds) + 200;
+							m_incidentEndSecondsEdit->setText(QString::number(pendingIncidentEnd));
+							m_incidentEndSecondsEdit->setFocus();
+							QApplication::processEvents();
+							if (m_sceneModel.routes.empty()) {
+								facetFailure(facetOk, "save/reload", "route unavailable for blocked Run coverage");
+							} else {
+								const std::vector<std::string> validRoute = m_sceneModel.routes.front().blocks;
+								m_sceneModel.routes.front().blocks.clear();
+								m_runSceneAction->trigger();
+								QApplication::processEvents();
+								if (m_worker || !selectedIncident()
+										|| !selectedIncident()->hasEndSeconds
+										|| selectedIncident()->endSeconds != pendingIncidentEnd)
+									facetFailure(facetOk, "save/reload", "Run did not flush focused incident text before validation");
+								m_sceneModel.routes.front().blocks = validRoute;
+								refreshValidationPanel();
+							}
+							}
+						}
+						const std::string pendingSource = "e2e/source-data-pending-save.txt";
+						m_trainUnitListWidget->setCurrentRow(trainUnitRow);
+						m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
+						m_trainUnitSourceDataEdit->setFocus();
+						if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
+								== pendingSource) {
+							facetFailure(facetOk, "save/reload", "pending source edit committed before Save");
+						} else if (!saveSceneToCurrentDir()) {
+							facetFailure(facetOk, "save/reload", "pending editor values were not saved");
+						} else {
+							expectedTrainUnits = m_sceneModel.trainUnits;
+							expectedCompositions = m_sceneModel.compositions;
+							expectedServices = m_sceneModel.services;
+							expectedIncidents = selectedScenarioIncidents();
+							if (!openSceneDirectory(outScenePath)
+									|| !sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)
+									|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
+									|| !sameServices(expectedServices, m_sceneModel.services)
+									|| !sameIncidents(expectedIncidents, selectedScenarioIncidents()))
+								facetFailure(facetOk, "save/reload", "pending editor values did not survive Save and reopen");
+						}
+						bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
+					if (m_serviceOccurrenceTable) {
+						for (int row = 0; row < m_serviceOccurrenceTable->rowCount(); ++row) {
+							QTableWidgetItem* include = m_serviceOccurrenceTable->item(row, 0);
+							selectionRoundtripOk = selectionRoundtripOk && include && include->checkState() == Qt::Checked;
+						}
+					}
+					if (!selectionRoundtripOk)
+						facetFailure(facetOk, "save/reload", "temporary occurrence selection was serialized or not reset on reopen");
+					}
 			}
+			if (facetOk)
+				std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
 		}
-		if (facetOk)
-			std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
 	}
 
 	if (ok) {
@@ -13312,9 +13806,6 @@ void MainWindow::runScene() {
 	if (!m_sceneLoaded)
 		return;
 
-	commitPendingCaseSettings();
-	commitPendingServiceSettings();
-	commitTrainUnitSources();
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;

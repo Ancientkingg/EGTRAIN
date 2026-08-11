@@ -7,16 +7,19 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
-- Current milestone: PR 2, structured topology authoring and explicit block order
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/structured-topology-authoring`
-- Current branch: `feature/structured-topology-authoring`
-- Current PR: #291, `Add structured topology authoring`
-- Completed milestones and PRs: PR #290, `Bind signals to canonical track sections`, merged as
-  `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`
-- Open milestone dependencies: PR 2 depends on merged PR #290. Issues #85 and #86 remain parity gates.
+- Current `origin/main`: `14b242cc8829c06358f74be8c2717e85f9238b05`
+- Current milestone: PR 3, safe editor commits, IDs, references, rename, and deletion
+- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/editor-reference-integrity`
+- Current branch: `fix/editor-reference-integrity`
+- Current PR: #292, `Make editor mutations reference-safe`
+- Completed milestones and PRs:
+  - PR #290, `Bind signals to canonical track sections`, merged as
+    `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
+  - PR #291, `Add structured topology authoring`, merged as
+    `14b242cc8829c06358f74be8c2717e85f9238b05`.
+- Open milestone dependencies: PR 3 depends on merged PR #291. Issues #85 and #86 remain parity gates.
 
-## Confirmed creator gaps
+## Planning-baseline creator gaps
 
 1. Switch routes and linked signalling structures expose generated section strings.
 2. Block placement follows hidden vector order without insert, reorder, or placement inspection.
@@ -27,7 +30,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 7. Passenger journeys and legs lack public import, inspection, and CRUD.
 8. Passenger platform geometry uses hidden fixed values.
 9. General result exports lack a saved-input snapshot and complete run provenance.
-10. The current creator smoke bypasses public operations and does not prove a seventh case.
+10. The current creator smoke does not prove a complete UI-only seventh-case workflow.
 
 ## Disproven or outdated findings
 
@@ -67,6 +70,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 2 uses the existing section inventory for route, dependency, restriction, and boundary choices. Route order
   is edited through one small ordered list; no schema field, second topology model, or generic editor framework is
   added. Invalid legacy references remain visible and unchanged until the creator replaces or removes them.
+- PR 3 remains local to `MainWindow.{h,cpp}` and the existing editor smoke. One guarded
+  `commitPendingEditorValues` path calls current commit slots before validation, Save, Save As, close/new/open
+  handoff, and Run. It interprets only focused deferred spin-box text so an untouched unit does not acquire
+  physical data merely because it was saved.
+- PR 3 uses one MainWindow-local direct-consumer query for infrastructure, rolling-stock, composition, route,
+  and service deletes. Referenced deletes are rejected. No remap, cascade, database-style index, or command
+  framework is needed. An accepted service delete prunes only its transient occurrence-selection entries.
+- PR 2 already refreshes route and incident choices after block mutations. PR 3 adds refreshes for composition
+  and service mutations.
 
 ## Compatibility decisions
 
@@ -76,11 +88,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Invalid or ambiguous legacy targets must receive actionable diagnostics before native allocation.
 - The legacy exporter retains its exact block-map handling for slash-bearing stored references as a recovery and
   conversion path. That exporter behavior does not make `/` a valid canonical runtime block-ID character.
+- PR 3 changes no schema, reader, writer, bundle, or native runtime behavior. Existing invalid scenes remain
+  loadable and saveable; normal public deletes stop creating new dangling references.
 
 ## GitHub issue state
 
 - Closed by PR #290: #50 and #58.
-- Reopened and reused for current work: #57.
+- Closed by PR #291: #57 and #286.
+- Current milestone: #287.
 - Updated and reused: #126.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
@@ -106,6 +121,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   route entirely through public widgets. It exercises block insertion and reordering, route add/remove/reorder,
   typed linked references, folder and bundle round trips, a reference-preserving block rename, and direct native
   construction retaining the exact authored route order. The smoke never types a generated section identity.
+- PR 3 adds one guarded pending-editor commit path before validation, persistence, close/new/open handoff, and
+  Run. It blocks referenced infrastructure, train-unit, composition, and service deletes; validates service IDs
+  before reference migration; prunes transient run exclusions after an accepted service delete; and refreshes
+  shifted detail panels before validation can read them.
+- The editor smoke covers focused train-unit, composition, stop, scenario, and incident values through public
+  Save or Run actions, persistence after reopen, rejected empty and duplicate service renames, referenced-delete
+  refusal, accepted unreferenced deletes, and transient occurrence-selection cleanup.
 
 ## Verification record
 
@@ -308,10 +330,57 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The fresh post-simplification correctness review found no P0, P1, or P2 issue at `5f1599a`. The root full
   CTest suite passed 43 of 43 in 120.70 seconds; the reviewer independently passed 43 of 43 in 120.24 seconds.
 - `git diff --check` passed after the final PR 2 source change.
+- PR #291 CI passed both jobs at final head `1531614`. The build job completed in 16 minutes 17 seconds and
+  included CTest plus the headless, editor, round-trip, bundle, Assignment, incident, render, track-preview, and
+  visual smokes. The sanitizer job completed in 14 minutes 51 seconds.
+- PR #291 merged as `14b242cc8829c06358f74be8c2717e85f9238b05`; issues #57 and #286 closed with the merge.
+- PR 3 baseline configured and built successfully from merged main `14b242c`. The baseline editor smoke passed
+  after all 7 scene tests passed in 2.40 seconds.
+- After the bounded PR 3 implementation and lead simplification, the full build passed and
+  `tools/e2e/editor_smoke.sh` passed after all 7 scene tests. The smoke exercises still-focused Save and blocked
+  Run handoffs without first changing focus.
+- `tools/e2e/visual_polish_smoke.sh` passed its DPR 1 and DPR 2 visual, station-overlay, scene-render, and
+  legacy-import checks.
+- A first full CTest run executed alongside visual smoke passed 42 of 43 tests; `test_gui_autostart_smoke` saw a
+  shared-output train-row mismatch. The failed test passed alone in 78.87 seconds. A clean sequential rerun then
+  passed all 43 tests in 119.89 seconds.
+- `git diff --check` passed after the final pre-review source changes.
+- `graphify update .` ran against the PR 3 worktree through the canonical checkout's maintained graph directory.
+  It rebuilt 6,053 nodes, 9,936 edges, and 1,633 communities, retaining 46 fail-closed nodes whose source files
+  still exist but left the current scan corpus.
+- After correcting the first PR 3 review findings, the full build passed, all 7 scene tests passed in 0.69
+  seconds, `tools/e2e/editor_smoke.sh` passed, and `git diff --check` passed.
+- The post-correction `graphify update .` rebuilt 6,053 nodes, 9,943 edges, and 1,633 communities.
+- The clean post-correction CTest run passed all 43 tests in 120.31 seconds. The sequential visual-polish smoke
+  passed DPR 1 and DPR 2 visuals, station overlays, scene rendering, and legacy import.
+- After applying the PR 3 Ponytail reductions, the full build passed, all 7 scene tests passed in 0.70 seconds,
+  editor smoke passed, and `git diff --check` passed.
+- The post-simplification graph update rebuilt 6,053 nodes, 9,943 edges, and 1,628 communities.
+- The fresh post-simplification correctness reviewer passed the focused five-test scene gate, the editor smoke
+  with every required marker, and `git diff --check` at `4a5daa3`.
 
 ## Review record
 
 ### Independent correctness findings
+
+- The PR 3 lead diff review found one stale-widget lifecycle defect before commit: deleting a non-final train
+  unit, composition, service, or incident refreshed validation before the corresponding detail panel, allowing
+  pending-commit logic to overwrite the item shifted into the deleted row. The panel refresh now precedes
+  validation for those destructive paths. Scenario add, duplicate, and import use the same safe order after
+  changing the selected scenario.
+- A separate read-only pre-commit trace found no remaining P0, P1, or P2 issue in the pending-commit, save/run,
+  delete-consumer, service-rename, or public-smoke paths.
+- The first fresh review of PR #292 found no P0 or P1 issue and three P2 gaps:
+  1. composition add, duplicate, and delete did not rebuild the service composition selector;
+  2. service add, duplicate, and delete did not rebuild train-breakdown target choices;
+  3. a focused breakdown end-time edit was skipped when the optional end-time checkbox was initially clear.
+  The same review independently passed the build, 43 of 43 CTest cases, the focused scene gate, editor smoke, and
+  `git diff --check`.
+- The fresh corrected-diff review found no P0, P1, or P2 issue at `8c1a957`. It independently passed the full
+  build, CTest 43 of 43, editor smoke with every required marker, and `git diff --check`.
+- The fresh post-simplification review found no P0, P1, or P2 issue at `4a5daa3`. It rechecked the simplified
+  pending-Run, service-ID, occurrence-pruning, selector-refresh, unchecked incident end-time, and final
+  save/reopen paths against the complete diff.
 
 - The first fresh review of PR #290 found no P0 issue and four merge blockers:
   1. overlapping connection-derived sections could be accepted through a shared block without matching the
@@ -467,6 +536,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Route-detail refresh now runs once at the common infrastructure-selection boundary. The existing helper hides
   the pane on every non-Route facet, and the smoke asserts both its initial hidden state and the Routes-to-Blocks
   transition so stale route controls cannot remain visible.
+- PR 3 now refreshes service composition choices after every accepted composition mutation and breakdown targets
+  after every accepted service mutation. Pending incident end-time text commits when the editor has focus even if
+  its checkbox was previously clear. Focused smoke checks cover both selector add/delete paths and the unchecked
+  end-time Run handoff.
 
 ### Ponytail findings
 
@@ -479,6 +552,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The PR 2 Ponytail review identified three practical reductions: use the existing filtered block-row map for
   neighbor moves, remove text-cell commit branches made unreachable by section combos, and share the repeated
   anonymous-row add/delete smoke sequence.
+- The PR 3 Ponytail review found no simpler production design and five localized reductions: reuse occurrence
+  pruning and unique-service-ID helpers, remove two redundant refresh/commit calls, and fold the pending train-unit
+  source check into the existing save/reopen round trip.
 
 ### Simplifications made
 
@@ -486,6 +562,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   No further production simplification was justified after the clean correctness review.
 - PR 2 now uses one direction-parameterized block-move path, deletes the two unreachable linked-topology text
   commit paths, and uses one local smoke helper for dependency, restriction, and boundary row deletion checks.
+- PR 3 now uses `pruneExcludedServiceOccurrences` and `uniqueServiceId` instead of local loops, removes a service
+  refresh that cannot depend on train-unit IDs, lets Run rely on validation's pending commit, and saves/reopens
+  once for the final focused-source persistence check.
 
 ## Blockers
 
@@ -495,8 +574,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PR 1 is complete. PRs 2 through 6 remain open.
+- PRs 1 and 2 are complete. PRs 3 through 6 remain open.
 
 ## Next action
 
-Monitor PR #291 CI, then merge if both build and sanitizer checks pass.
+Wait for PR #292's required build and sanitizer checks, then record the merge decision.
