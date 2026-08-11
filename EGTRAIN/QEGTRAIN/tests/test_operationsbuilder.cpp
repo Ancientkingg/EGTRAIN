@@ -361,7 +361,7 @@ int main() {
 
 	SceneModel selectedScene = completeScene();
 	selectedScene.scenarios[1].entranceDelays.push_back(
-			{"service.native", 1, "missing-station", -100.0});
+			{"service.native", 1, "station.0", 7.0});
 	ScenePassengerJourney excludedJourney = selectedScene.passengers[0].journeys[0];
 	excludedJourney.id = "journey.excluded";
 	for (ScenePassengerLeg& leg : excludedJourney.legs)
@@ -411,11 +411,14 @@ int main() {
 				&& hasCode(excludedOutOfPatternOperations, "scene.native.entrance.occurrence"),
 				"out-of-pattern entrance delays are rejected for all and selected runs");
 
-	auto rejectsEntranceDelay = [&ok](SceneModel invalid, const std::string& code,
+	auto rejectsEntranceDelay = [&ok, &firstOccurrence](SceneModel invalid, const std::string& code,
 			const std::string& message) {
 		const auto infrastructure = buildInfrastructureAndSignallingFromScene(invalid);
 		const auto operations = buildOperationsFromScene(invalid, "scenario.selected");
-		ok &= expect(!hasErrors(infrastructure) && hasCode(operations, code), message);
+		const auto selectedOperations = buildOperationsFromScene(
+				invalid, "scenario.selected", firstOccurrence);
+		ok &= expect(!hasErrors(infrastructure) && hasCode(operations, code)
+				&& hasCode(selectedOperations, code), message);
 	};
 	SceneModel nonFiniteDelay = completeScene();
 	nonFiniteDelay.scenarios[1].entranceDelays[0].delaySeconds

@@ -1011,9 +1011,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 						delay.serviceId + "-" + std::to_string(delay.occurrence));
 				continue;
 			}
-			if (!selectedOccurrences.empty()
-					&& !occurrenceSelected(delay.serviceId, delay.occurrence))
-				continue;
 			if (!nativeFinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
 				addNativeDiagnostic(diagnostics, "scene.native.entrance.value", "Entrance delay must be finite and non-negative",
 						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
@@ -1037,6 +1034,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				continue;
 			}
 			occurrenceDelay[key] = delay.delaySeconds;
+			if (!selectedOccurrences.empty()
+					&& !occurrenceSelected(delay.serviceId, delay.occurrence))
+				continue;
 			if (!appliedDelayStations.insert({key, delay.stationId}).second)
 				continue;
 			const auto trainIt = occurrenceIndex.find(key);

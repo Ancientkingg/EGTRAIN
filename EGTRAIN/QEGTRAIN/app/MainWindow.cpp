@@ -7667,7 +7667,7 @@ void MainWindow::updateEntranceDelayDetailPanel() {
 		std::set<std::string> eligibleStations;
 		if (service) {
 			for (const SceneStop& stop : service->stops) {
-				if (stop.hasPlannedDeparture && eligibleStations.insert(stop.stationId).second)
+				if (eligibleStations.insert(stop.stationId).second && stop.hasPlannedDeparture)
 					m_entranceDelayStationCombo->addItem(QString::fromStdString(stop.stationId),
 						QString::fromStdString(stop.stationId));
 			}
@@ -12458,7 +12458,7 @@ void MainWindow::runEditorSmokeE2E() {
 			} else {
 				std::string stationId;
 				if (!m_sceneModel.stations.empty())
-					stationId = m_sceneModel.stations.size() > 1 ? m_sceneModel.stations[1].id : m_sceneModel.stations.front().id;
+					stationId = m_sceneModel.stations.back().id;
 				if (stationId.empty()) {
 					facetFailure(facetOk, "timetable", "no station available for edited stop");
 				} else {
@@ -12573,6 +12573,47 @@ void MainWindow::runEditorSmokeE2E() {
 			} else {
 				m_entranceDelayServiceCombo->setCurrentIndex(serviceIndex);
 				QApplication::processEvents();
+				const auto editedService = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+					[&](const SceneService& candidate) { return candidate.id == entranceDelayServiceId; });
+				int repeatedDepartureRow = -1;
+				std::string repeatedStationId;
+				if (editedService != m_sceneModel.services.end()) {
+					const auto repeated = std::adjacent_find(editedService->stops.begin(), editedService->stops.end(),
+						[](const SceneStop& first, const SceneStop& second) {
+							return first.stationId == second.stationId && first.hasPlannedDeparture
+								&& !second.hasPlannedDeparture;
+						});
+					if (repeated != editedService->stops.end()) {
+						repeatedDepartureRow = static_cast<int>(std::distance(editedService->stops.begin(), repeated));
+						repeatedStationId = repeated->stationId;
+					}
+				}
+				if (repeatedDepartureRow < 0 || !m_serviceListWidget || !m_stopListWidget
+						|| !m_moveStopDownButton || !m_moveStopUpButton) {
+					facetFailure(facetOk, "entrance delay", "repeated-stop selector fixture unavailable");
+				} else {
+					if (m_serviceDock) {
+						m_serviceDock->show();
+						m_serviceDock->raise();
+					}
+					m_serviceListWidget->setCurrentRow(static_cast<int>(
+						std::distance(m_sceneModel.services.begin(), editedService)));
+					m_stopListWidget->setCurrentRow(repeatedDepartureRow);
+					m_moveStopDownButton->click();
+					QApplication::processEvents();
+					const bool laterDepartureExcluded = m_entranceDelayStationCombo->findData(
+						QString::fromStdString(repeatedStationId)) < 0;
+					m_moveStopUpButton->click();
+					QApplication::processEvents();
+					if (!laterDepartureExcluded || m_entranceDelayStationCombo->findData(
+							QString::fromStdString(repeatedStationId)) < 0)
+						facetFailure(facetOk, "entrance delay",
+							"station choices did not follow the first repeated stop");
+					if (m_incidentDock) {
+						m_incidentDock->show();
+						m_incidentDock->raise();
+					}
+				}
 				int stationIndex = -1;
 				for (int index = 0; index < m_entranceDelayStationCombo->count(); ++index) {
 					if (!m_entranceDelayStationCombo->itemData(index).toString().isEmpty()) {

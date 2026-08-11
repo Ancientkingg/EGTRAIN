@@ -396,6 +396,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   Incident smoke passed breakdown hold/release and protected-signal hold/release behavior. Visual-polish smoke
   passed DPR 1 and DPR 2, station overlays, scene rendering, and legacy import.
 - `graphify update .` rebuilt 6,079 nodes, 9,711 edges, and 1,689 communities after the PR 4 code changes.
+- The first post-review focused run exposed an outdated test fixture that expected an invalid unselected delay
+  to be ignored. After replacing it with a valid excluded delay, `test_scenevalidator`, `test_scenewriter`, and
+  `test_operationsbuilder` passed 3 of 3 in 1.99 seconds. The editor smoke then passed after all 7 scene tests.
 
 ## Review record
 
@@ -495,6 +498,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The fresh post-simplification review found no P0, P1, or P2 issue at `5f1599a`. It verified that the filtered
   row map preserves block move semantics, the removed text commit paths were unreachable, and the shared smoke
   helper retains every add, confirmed delete, empty-model, and re-add assertion.
+- The first fresh PR 4 review found no P0 or P1 issue and two P2 parity defects:
+  1. selected-occurrence native staging skipped unselected delay rows before validating their value, stop,
+     timetable, and conflict semantics;
+  2. the station selector admitted a later repeated stop with a departure even though validator and native
+     staging resolve the first stop with that station ID.
+  The reviewer independently passed the focused three-test gate, editor smoke, and `git diff --check` before
+  reporting the two reproductions.
 
 ### Corrections made
 
@@ -581,6 +591,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 4 refreshes the delay list and detail widgets before validating after a deletion, preventing focused stale
   widgets from overwriting the row shifted into the deleted index. Scenario deletion requires the exact persisted
   `defaultScenarioId`; it does not use the model's legacy first-scenario fallback to authorize deletion.
+- Native staging now validates every canonical entrance-delay row before filtering application to selected
+  occurrences. The station selector records the first stop for each station before deciding whether it has a
+  planned departure, matching validator and runtime resolution. Focused native and public editor regressions
+  cover both corrections.
 
 ### Ponytail findings
 
