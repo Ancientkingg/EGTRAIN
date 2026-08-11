@@ -24,6 +24,12 @@ static bool expect(bool condition, const std::string& message) {
 	return condition;
 }
 
+static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code) {
+	return std::any_of(diagnostics.begin(), diagnostics.end(), [&code](const SceneDiagnostic& diagnostic) {
+		return diagnostic.code == code;
+	});
+}
+
 static SceneTrainUnit unit(const std::string& id, double tractionMass, double wagonMass,
 		double wagons, double maxSpeed, double deceleration, double area, double resistance,
 		double jerk, double length, const std::string& dataFile, const std::string& tractionFile,
@@ -355,7 +361,7 @@ int main() {
 
 	SceneModel selectedScene = completeScene();
 	selectedScene.scenarios[1].entranceDelays.push_back(
-			{"service.native", 1, "missing-station", -100.0});
+			{"service.native", 1, "station.0", 7.0});
 	ScenePassengerJourney excludedJourney = selectedScene.passengers[0].journeys[0];
 	excludedJourney.id = "journey.excluded";
 	for (ScenePassengerLeg& leg : excludedJourney.legs)
@@ -400,11 +406,39 @@ int main() {
 	const SceneRunSelection firstOccurrence{{"service.native", 1}};
 	const auto excludedOutOfPatternOperations = buildOperationsFromScene(
 			outOfPattern, "scenario.selected", firstOccurrence);
-	ok &= expect(!hasErrors(outOfPatternInfrastructure) && !hasErrors(outOfPatternOperations)
-				&& !hasErrors(excludedOutOfPatternOperations)
-				&& numRegions == 1 && regional_train[0].trainDescription == "service.native-1"
-				&& regional_train[0].EntranceDelay == 0.0,
-				"out-of-pattern entrance delays are skipped for all and selected runs");
+	ok &= expect(!hasErrors(outOfPatternInfrastructure)
+				&& hasCode(outOfPatternOperations, "scene.native.entrance.occurrence")
+				&& hasCode(excludedOutOfPatternOperations, "scene.native.entrance.occurrence"),
+				"out-of-pattern entrance delays are rejected for all and selected runs");
+
+	auto rejectsEntranceDelay = [&ok, &firstOccurrence](SceneModel invalid, const std::string& code,
+			const std::string& message) {
+		const auto infrastructure = buildInfrastructureAndSignallingFromScene(invalid);
+		const auto operations = buildOperationsFromScene(invalid, "scenario.selected");
+		const auto selectedOperations = buildOperationsFromScene(
+				invalid, "scenario.selected", firstOccurrence);
+		ok &= expect(!hasErrors(infrastructure) && hasCode(operations, code)
+				&& hasCode(selectedOperations, code), message);
+	};
+	SceneModel nonFiniteDelay = completeScene();
+	nonFiniteDelay.scenarios[1].entranceDelays[0].delaySeconds
+			= std::numeric_limits<double>::quiet_NaN();
+	rejectsEntranceDelay(nonFiniteDelay, "scene.native.entrance.value",
+			"native staging rejects a non-finite entrance delay");
+	SceneModel nonStopDelay = completeScene();
+	nonStopDelay.stations.push_back({"station.other", "Other", true, 3.0, {}});
+	nonStopDelay.scenarios[1].entranceDelays[0].stationId = "station.other";
+	rejectsEntranceDelay(nonStopDelay, "scene.native.entrance.station",
+			"native staging rejects an entrance-delay station outside the service stops");
+	SceneModel missingDepartureDelay = completeScene();
+	missingDepartureDelay.scenarios[1].entranceDelays[0].stationId = "station.2";
+	rejectsEntranceDelay(missingDepartureDelay, "scene.native.entrance.timetable",
+			"native staging rejects an entrance-delay stop without a planned departure");
+	SceneModel conflictingDelay = completeScene();
+	conflictingDelay.scenarios[1].entranceDelays.push_back(
+			{"service.native", 2, "station.0", 10.0});
+	rejectsEntranceDelay(conflictingDelay, "scene.native.entrance.conflict",
+			"native staging rejects conflicting delays for one service occurrence");
 
 	TrainEvent finiteLate;
 	finiteLate.Time = 2.0;

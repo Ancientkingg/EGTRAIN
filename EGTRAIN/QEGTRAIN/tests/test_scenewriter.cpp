@@ -276,6 +276,9 @@ int main() {
 			&& standaloneLoad.scenario.description == source.scenarios[0].description
 			&& standaloneLoad.scenario.incidents.size() == source.scenarios[0].incidents.size()
 			&& standaloneLoad.scenario.entranceDelays.size() == 1
+			&& standaloneLoad.scenario.entranceDelays[0].serviceId == "service-1"
+			&& standaloneLoad.scenario.entranceDelays[0].occurrence == 1
+			&& standaloneLoad.scenario.entranceDelays[0].stationId == "station-1"
 			&& standaloneLoad.scenario.entranceDelays[0].delaySeconds == 30.0,
 			"standalone scenario JSON round-trips incidents and entrance delays");
 	SceneScenario duplicateScenario = source.scenarios[0];
