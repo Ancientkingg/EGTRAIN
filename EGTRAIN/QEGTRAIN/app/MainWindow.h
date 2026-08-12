@@ -84,6 +84,7 @@
 #include <QIntValidator>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
+#include <QTabWidget>
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
@@ -610,6 +611,7 @@ private:
 	void refreshBlockTrackFilter();
 	void refreshRouteSectionPanel();
 	void commitInfrastructureCell(int row, int column);
+	void commitPlatformGeometryCell(int row, int column, double value);
 	void addInfrastructureEntity();
 	void insertBlock();
 	void moveBlock(int offset);
@@ -627,6 +629,62 @@ private:
 	void activateLoadedDataItem(QTreeWidgetItem* item);
 	void markSceneDirty();
 	void invalidateRunResults();
+
+	// passenger editor: canonical passengers, journeys, and ordered legs
+	QDockWidget* m_passengerDock = nullptr;
+	QListWidget* m_passengerListWidget = nullptr;
+	QLineEdit* m_passengerIdEdit = nullptr;
+	QPushButton* m_addPassengerButton = nullptr;
+	QPushButton* m_deletePassengerButton = nullptr;
+	QPushButton* m_importPassengerButton = nullptr;
+	QTableWidget* m_passengerImportResultTable = nullptr;
+	QLabel* m_passengerDiagnosticLabel = nullptr;
+	QTabWidget* m_passengerTabs = nullptr;
+	QListWidget* m_passengerJourneyListWidget = nullptr;
+	QPushButton* m_addPassengerJourneyButton = nullptr;
+	QPushButton* m_deletePassengerJourneyButton = nullptr;
+	QLineEdit* m_passengerJourneyIdEdit = nullptr;
+	QLineEdit* m_passengerJourneyActivityEdit = nullptr;
+	QComboBox* m_passengerJourneyOriginCombo = nullptr;
+	QComboBox* m_passengerJourneyDestinationCombo = nullptr;
+	std::array<QDoubleSpinBox*, 4> m_passengerJourneyWindowEdits{};
+	QListWidget* m_passengerLegListWidget = nullptr;
+	QPushButton* m_addPassengerLegButton = nullptr;
+	QPushButton* m_deletePassengerLegButton = nullptr;
+	QPushButton* m_movePassengerLegUpButton = nullptr;
+	QPushButton* m_movePassengerLegDownButton = nullptr;
+	QLineEdit* m_passengerLegIdEdit = nullptr;
+	QComboBox* m_passengerLegOriginCombo = nullptr;
+	QComboBox* m_passengerLegDestinationCombo = nullptr;
+	QComboBox* m_passengerLegServiceCombo = nullptr;
+	QSpinBox* m_passengerLegOccurrenceEdit = nullptr;
+	void refreshPassengerPanel();
+	void updatePassengerDetailPanel();
+	void updatePassengerJourneyPanel();
+	void updatePassengerLegPanel();
+	void addPassenger();
+	void deletePassenger();
+	void addPassengerJourney();
+	void deletePassengerJourney();
+	void addPassengerLeg();
+	void deletePassengerLeg();
+	void movePassengerLeg(int offset);
+	void importPassengers();
+	void commitPassengerIdEdit();
+	void commitPassengerJourneyIdEdit();
+	void commitPassengerJourneyActivity();
+	void commitPassengerJourneyStation(bool origin, const QString& text);
+	void commitPassengerJourneyWindow(int index);
+	void commitPassengerLegIdEdit();
+	void commitPassengerLegStation(bool origin, const QString& text);
+	void commitPassengerLegService(const QString& text);
+	void commitPassengerLegOccurrence();
+	ScenePassenger* selectedPassenger();
+	ScenePassengerJourney* selectedPassengerJourney();
+	ScenePassengerLeg* selectedPassengerLeg();
+	std::string uniquePassengerId(const std::string& baseId) const;
+	std::string uniquePassengerJourneyId(const std::string& baseId) const;
+	std::string uniquePassengerLegId(const std::string& baseId) const;
 
 	// composition editor
 	void refreshCompositionPanel();

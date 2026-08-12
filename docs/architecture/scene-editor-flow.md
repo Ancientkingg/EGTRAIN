@@ -84,15 +84,15 @@ surface.
 | Pane | Editable in V1 | Derived or read-only |
 |---|---|---|
 | Case settings | Name, description, base time, duration, buffer, recovery | Schema version, units, scene path, validation summary |
-| Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
+| Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
 | Train units | ID, nine native physical fields, traction rows, parameter source reference, traction source reference | Static traction plot; composition usage |
 | Compositions | ID and ordered train-unit membership | Selected-unit source references and traction plot |
 | Services and timetable | ID, operating code, composition, route, through state, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stops, platforms, planned arrival/departure, dwell | Generated occurrence identities and offsets |
-| Incidents | Scenario metadata; signal failures and train breakdowns; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, and services |
+| Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
+| Passengers | Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair | Row-specific import outcomes and validation diagnostics |
 
-Canonical entrance delays can be loaded and run but do not yet have an editor;
-issue #126 tracks that optional scenario extension. The assignment workflow uses
-signal-failure and train-breakdown incidents.
+The scenario editor can create and delete non-default scenarios and edit the
+canonical entrance-delay rows used by native staging.
 
 ## Explicit out-of-scope list
 
