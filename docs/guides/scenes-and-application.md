@@ -14,7 +14,7 @@ review what was found before choosing `Run Scene`. Use
 accepts the same bundle or directory path.
 
 The application loads the six required JSON files, accepts optional scenarios,
-passengers, a recognized but unsupported `views.json`, and historical
+passengers, display metadata in `views.json`, and historical
 compatibility aliases, and validates before a run. Infrastructure, signalling,
 rolling stock, services, the selected
 scenario, and passengers are built directly from `SceneModel` in memory.
@@ -52,7 +52,7 @@ runtime and displays speed in km/h and effort in kN.
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
-| `views.json` | recognized optional file; currently unsupported | preserved for directory saves but not consumed by `SceneModel` or bundled |
+| `views.json` | optional display metadata | authored track levels/regions and station display geometry; preserved in folders and bundles |
 
 The writer emits preferred V1 keys. Stop plans use independently optional
 `planned_arrival_seconds` and `planned_departure_seconds` on any stop, plus
@@ -132,7 +132,9 @@ operating_code entry_time_seconds headway_seconds route_index data_file traction
 The importer preserves those explicit physical, traction, and timetable
 relationships, retains the operating code separately from the unique canonical
 service ID, maps numeric `Routes/Route<N>.txt` files to routes, and reads
-stations from the track-line station file. It reports missing references,
+stations from the track-line station file. It also preserves legacy
+`GUI/caseStudyTrackData.txt` and `GUI/StationsCoord.txt` layout in `views.json`.
+It reports missing references,
 malformed rows, and preserved source anomalies in `scene.json.import_report`.
 In particular, a timetable
 sentinel of `-1` means the corresponding planned arrival or departure is

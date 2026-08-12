@@ -20,6 +20,12 @@ struct SceneSimulationSettings {
 
 struct SceneTrack { std::string id; };
 
+struct SceneTrackView {
+	std::string trackId;
+	int level = 0;
+	int region = 0;
+};
+
 struct SceneNode {
 	std::string id;
 	std::string trackId;
@@ -66,6 +72,14 @@ struct SceneStation {
 	bool hasPosition = false;
 	double positionKm = 0.0;
 	std::vector<ScenePlatform> platforms;
+};
+
+struct SceneStationView {
+	std::string stationId;
+	double latitude = 0.0;
+	double longitude = 0.0;
+	std::vector<std::pair<int, double>> regions;
+	std::vector<std::string> corridors;
 };
 
 struct SceneSignal {
@@ -281,11 +295,13 @@ struct SceneModel {
 	std::set<std::string> sourceFiles;
 	std::vector<SceneImportReportRow> importReport;
 	std::vector<SceneTrack> tracks;
+	std::vector<SceneTrackView> trackViews;
 	std::vector<SceneNode> nodes;
 	std::vector<SceneArc> arcs;
 	std::vector<SceneBlock> blocks;
 	std::vector<SceneConnection> connections;
 	std::vector<SceneStation> stations;
+	std::vector<SceneStationView> stationViews;
 	std::vector<SceneSignal> signals;
 	std::vector<SceneSignallingArea> signallingAreas;
 	std::vector<SceneRoute> routes;

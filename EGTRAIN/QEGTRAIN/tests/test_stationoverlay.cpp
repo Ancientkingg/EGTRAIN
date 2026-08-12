@@ -99,6 +99,10 @@ int main(int argc, char* argv[]) {
 		overlay.preferredViewportPlacement(QPointF(2.0, 2.0), inset);
 	ok &= expect(edgePlacement.fits, "edge placement clamps the complete overlay into the viewport");
 	ok &= expect(inset.contains(edgePlacement.combinedRect), "clamped overlay stays inside the viewport inset");
+	const StationOverlayItem::ViewportPlacement offscreenPlacement =
+		overlay.preferredViewportPlacement(QPointF(80.0, -500.0), inset);
+	ok &= expect(offscreenPlacement.offset.isNull() && !offscreenPlacement.fits,
+		"far-offscreen station overlays are not pinned to the viewport edge");
 
 	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), platform);
 	multiNode.setNetworkDegree(3, true, true);

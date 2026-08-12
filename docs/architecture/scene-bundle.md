@@ -10,7 +10,7 @@ The archive is a transport container only: it loads into the existing V1
 ## Root layout
 
 Entries are files at the archive root. Bundle version 1 contains exactly these
-seven required files, plus the optional passenger file:
+seven required files, plus optional passenger and display metadata:
 
 ```text
 scene.json
@@ -21,12 +21,13 @@ rolling_stock.json
 services.json
 scenarios.json
 passengers.json       (optional)
+views.json            (optional)
 ```
 
 Entry names are case-sensitive and must match these names exactly. Unknown,
 nested, duplicate (including case-insensitive duplicates), and directory
-entries are rejected. `views.json`, `legacy/`, assets, results, and other
-generated or passthrough files are not part of bundle version 1.
+entries are rejected. `legacy/`, assets, results, and other generated or
+passthrough files are not part of bundle version 1.
 
 ## Manifest
 

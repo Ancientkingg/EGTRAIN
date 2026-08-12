@@ -300,7 +300,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			addDiagnostic(diagnostics, "scene.bundle.duplicate", "Case-insensitive duplicate ZIP entry", name);
 			return false;
 		}
-		if (name != "passengers.json"
+		if (name != "passengers.json" && name != "views.json"
 				&& std::none_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&name](const char* required) {
 					return name == required;
 				})) {
@@ -519,6 +519,9 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	std::error_code ec;
 	if (fs::is_regular_file(temp.path / "passengers.json", ec))
 		names.emplace_back("passengers.json");
+	ec.clear();
+	if (fs::is_regular_file(temp.path / "views.json", ec))
+		names.emplace_back("views.json");
 	std::sort(names.begin(), names.end());
 
 	fs::path parent = target.parent_path().empty() ? fs::path(".") : target.parent_path();

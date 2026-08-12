@@ -1,0 +1,176 @@
+{
+    "stations": [
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.0,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 0.0
+                }
+            ],
+            "station": "Guingamp"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.0252,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 2.52
+                }
+            ],
+            "station": "Gourland"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.09989,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 9.989
+                }
+            ],
+            "station": "Tregonneau_Squiffiec"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.15339,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 15.339
+                }
+            ],
+            "station": "Brelidy-Plouec"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.20535,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 20.535
+                }
+            ],
+            "station": "Pontrieaux_Halte"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.21584,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 21.584
+                }
+            ],
+            "station": "Pontrieaux"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.25505,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 25.505
+                }
+            ],
+            "station": "Frynaudour"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.2888,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 28.88
+                }
+            ],
+            "station": "Traou_Nez"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.3095,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 30.95
+                }
+            ],
+            "station": "Lancerf"
+        },
+        {
+            "corridors": [
+                "A"
+            ],
+            "latitude": 52.172928,
+            "longitude": 0.36847,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 36.847
+                }
+            ],
+            "station": "Paimpol"
+        }
+    ],
+    "tracks": [
+        {
+            "level": 0,
+            "region": 0,
+            "track": "B0"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B1"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B2"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B3"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B4"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B5"
+        }
+    ]
+}

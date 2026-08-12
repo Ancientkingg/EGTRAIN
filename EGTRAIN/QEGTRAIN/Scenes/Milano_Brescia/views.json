@@ -1,0 +1,645 @@
+{
+    "stations": [
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.298285,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 9.9
+                }
+            ],
+            "station": "Segrate"
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.327333,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 12.152
+                }
+            ],
+            "station": "PioltelloLim.1Tr"
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.329083,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 12.31
+                }
+            ],
+            "station": "PioltelloLim."
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.3755262,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 16.09
+                }
+            ],
+            "station": "Vignate"
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.415771,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 18.642
+                }
+            ],
+            "station": "MelzoScalo3-5"
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.417572,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 18.75
+                }
+            ],
+            "station": "MelzoScalo"
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.4212123,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 19.6
+                }
+            ],
+            "station": "Melzo"
+        },
+        {
+            "corridors": [
+                "A",
+                "B"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.4563775,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 22.61
+                }
+            ],
+            "station": "PozzuoloMartesana"
+        },
+        {
+            "corridors": [
+                "A",
+                "B"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.4810263,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 24.585
+                }
+            ],
+            "station": "Trecella"
+        },
+        {
+            "corridors": [
+                "A",
+                "B"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.5118441,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 27.152
+                }
+            ],
+            "station": "CassanoD'Adda"
+        },
+        {
+            "corridors": [
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.515964,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 27.425
+                }
+            ],
+            "station": "BivioCasirate"
+        },
+        {
+            "corridors": [
+                "A",
+                "B",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.540049,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 29.25
+                }
+            ],
+            "station": "PMBivioAdda"
+        },
+        {
+            "corridors": [
+                "B"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.580309,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 32.932
+                }
+            ],
+            "station": "TreviglioOvest"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.58519,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 32.97
+                }
+            ],
+            "station": "TreviglioTr"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.588689,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 33.143
+                }
+            ],
+            "station": "Treviglio"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.640231,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 37.146
+                }
+            ],
+            "station": "Vidalengo"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.655739,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 38.176
+                }
+            ],
+            "station": "Caravaggio"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.703162,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 42.117
+                }
+            ],
+            "station": "MorengoBariano"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.745902,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 45.27
+                }
+            ],
+            "station": "Romano1p"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.753431,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 46.052
+                }
+            ],
+            "station": "Romano"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.841284,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 53.018
+                }
+            ],
+            "station": "Calcio"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.926482,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 59.778
+                }
+            ],
+            "station": "Chiari"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 9.977641,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 63.693
+                }
+            ],
+            "station": "Coccaglio"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 10.000905,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 65.827
+                }
+            ],
+            "station": "Rovato"
+        },
+        {
+            "corridors": [
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 10.004123,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 66.997
+                }
+            ],
+            "station": "PMBresciaOvest"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 10.071723,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 71.36
+                }
+            ],
+            "station": "OspitalettoT.W"
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 10.073974,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 71.653
+                }
+            ],
+            "station": "OspitalettoT."
+        },
+        {
+            "corridors": [
+                "A",
+                "C"
+            ],
+            "latitude": 52.172928,
+            "longitude": 10.076162,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 71.86
+                }
+            ],
+            "station": "OspitalettoT.1E"
+        },
+        {
+            "corridors": [
+                "A",
+                "C",
+                "D"
+            ],
+            "latitude": 52.172928,
+            "longitude": 10.12037,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 78.508
+                }
+            ],
+            "station": "BivioRoncadelle"
+        }
+    ],
+    "tracks": [
+        {
+            "level": 20,
+            "region": 0,
+            "track": "B0"
+        },
+        {
+            "level": 19,
+            "region": 0,
+            "track": "B1"
+        },
+        {
+            "level": 4,
+            "region": 0,
+            "track": "B2"
+        },
+        {
+            "level": 21,
+            "region": 0,
+            "track": "B3"
+        },
+        {
+            "level": 3,
+            "region": 0,
+            "track": "B4"
+        },
+        {
+            "level": 2,
+            "region": 0,
+            "track": "B5"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B6"
+        },
+        {
+            "level": 2,
+            "region": 0,
+            "track": "B7"
+        },
+        {
+            "level": 1,
+            "region": 0,
+            "track": "B8"
+        },
+        {
+            "level": 0,
+            "region": 0,
+            "track": "B9"
+        },
+        {
+            "level": 18,
+            "region": 0,
+            "track": "B10"
+        },
+        {
+            "level": 11,
+            "region": 0,
+            "track": "B11"
+        },
+        {
+            "level": 10,
+            "region": 0,
+            "track": "B12"
+        },
+        {
+            "level": 14,
+            "region": 0,
+            "track": "B13"
+        },
+        {
+            "level": 12,
+            "region": 0,
+            "track": "B14"
+        },
+        {
+            "level": 14,
+            "region": 0,
+            "track": "B15"
+        },
+        {
+            "level": 9,
+            "region": 0,
+            "track": "B16"
+        },
+        {
+            "level": 8,
+            "region": 0,
+            "track": "B17"
+        },
+        {
+            "level": 7,
+            "region": 0,
+            "track": "B18"
+        },
+        {
+            "level": 15,
+            "region": 0,
+            "track": "B19"
+        },
+        {
+            "level": 11,
+            "region": 0,
+            "track": "B20"
+        },
+        {
+            "level": 13,
+            "region": 0,
+            "track": "B21"
+        },
+        {
+            "level": 13,
+            "region": 0,
+            "track": "B22"
+        },
+        {
+            "level": 18,
+            "region": 0,
+            "track": "B23"
+        },
+        {
+            "level": 17,
+            "region": 0,
+            "track": "B24"
+        },
+        {
+            "level": 16,
+            "region": 0,
+            "track": "B25"
+        },
+        {
+            "level": 15,
+            "region": 0,
+            "track": "B26"
+        },
+        {
+            "level": 15,
+            "region": 0,
+            "track": "B27"
+        },
+        {
+            "level": 11,
+            "region": 0,
+            "track": "B28"
+        },
+        {
+            "level": 10,
+            "region": 0,
+            "track": "B29"
+        },
+        {
+            "level": 9,
+            "region": 0,
+            "track": "B30"
+        },
+        {
+            "level": 8,
+            "region": 0,
+            "track": "B31"
+        },
+        {
+            "level": 7,
+            "region": 0,
+            "track": "B32"
+        },
+        {
+            "level": 6,
+            "region": 0,
+            "track": "B33"
+        },
+        {
+            "level": 5,
+            "region": 0,
+            "track": "B34"
+        },
+        {
+            "level": 16,
+            "region": 0,
+            "track": "B35"
+        },
+        {
+            "level": 15,
+            "region": 0,
+            "track": "B36"
+        },
+        {
+            "level": 11,
+            "region": 0,
+            "track": "B37"
+        }
+    ]
+}

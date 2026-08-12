@@ -82,6 +82,8 @@ StationOverlayItem::ViewportPlacement StationOverlayItem::placementForSide(
 	const QRectF rawSymbol = m_symbolRect.translated(deviceAnchor);
 	const QRectF rawLabel = labelRectForSide(side).translated(deviceAnchor);
 	const QRectF rawCombined = rawSymbol.united(rawLabel);
+	const QRectF clampReach = viewportInset.adjusted(-rawCombined.width(), -rawCombined.height(),
+		rawCombined.width(), rawCombined.height());
 	const auto overflowFor = [&viewportInset](const QRectF& rect) {
 		return std::max<qreal>(0.0, viewportInset.left() - rect.left())
 			+ std::max<qreal>(0.0, rect.right() - viewportInset.right())
@@ -89,14 +91,16 @@ StationOverlayItem::ViewportPlacement StationOverlayItem::placementForSide(
 			+ std::max<qreal>(0.0, rect.bottom() - viewportInset.bottom());
 	};
 	QPointF offset;
-	if (rawCombined.left() < viewportInset.left())
-		offset.rx() += viewportInset.left() - rawCombined.left();
-	else if (rawCombined.right() > viewportInset.right())
-		offset.rx() += viewportInset.right() - rawCombined.right();
-	if (rawCombined.top() < viewportInset.top())
-		offset.ry() += viewportInset.top() - rawCombined.top();
-	else if (rawCombined.bottom() > viewportInset.bottom())
-		offset.ry() += viewportInset.bottom() - rawCombined.bottom();
+	if (clampReach.contains(deviceAnchor)) {
+		if (rawCombined.left() < viewportInset.left())
+			offset.rx() += viewportInset.left() - rawCombined.left();
+		else if (rawCombined.right() > viewportInset.right())
+			offset.rx() += viewportInset.right() - rawCombined.right();
+		if (rawCombined.top() < viewportInset.top())
+			offset.ry() += viewportInset.top() - rawCombined.top();
+		else if (rawCombined.bottom() > viewportInset.bottom())
+			offset.ry() += viewportInset.bottom() - rawCombined.bottom();
+	}
 	ViewportPlacement placement;
 	placement.side = side;
 	placement.offset = offset;

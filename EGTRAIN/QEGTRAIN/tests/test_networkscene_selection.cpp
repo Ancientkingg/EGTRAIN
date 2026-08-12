@@ -170,6 +170,8 @@ int main(int argc, char* argv[]) {
 			&& signal.trackID == 3 && signal.sectionAheadId == "protected"
 			&& signal.sectionAheadLength == 125.0 && signal.sectionAheadTrackId == 4,
 			"signal marker keeps scene bounds and inspector metadata");
+		ok &= expect(signal.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+			"signal marker remains readable across view zoom levels");
 		signal.setPos(40.0, -80.0);
 		TrainBodyItem train(QPolygonF() << QPointF(-10.0, -6.0) << QPointF(10.0, -6.0)
 			<< QPointF(10.0, 6.0) << QPointF(-10.0, 6.0));

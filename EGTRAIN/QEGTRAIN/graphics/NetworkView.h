@@ -35,12 +35,14 @@ public:
 	void fitToBounds(const QRectF& bounds);
 	bool zoomBy(qreal factor, const QPointF& viewportAnchor = QPointF(-1.0, -1.0));
 	qreal zoomRatio() const;
+	static constexpr qreal maximumZoomRatio() { return 64.0; }
 	qreal fittedScale() const;
 	QRectF topologyBounds() const;
 	QString zoomLabel() const;
 
 protected:
 	void wheelEvent(QWheelEvent* event) override;
+	void drawBackground(QPainter* painter, const QRectF& rect) override;
 	void resizeEvent(QResizeEvent* event) override;
 	void scrollContentsBy(int dx, int dy) override;
 

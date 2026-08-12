@@ -25,6 +25,7 @@ static SceneModel tinyScene() {
 	scene.arcs = {{"arc.0", "track.z", "node.0", "node.1", 0.0, 1.0, 20.0},
 		{"arc.1", "track.z", "node.1", "node.2", 30.0, -1.0, 18.0}};
 	scene.blocks = {{"block.a", "track.z", 1.0}, {"block.b", "track.z", 1.0}};
+	scene.trackViews.push_back({"track.z", -1, 2});
 	SceneStation station;
 	station.id = "station.tiny";
 	station.name = "Tiny";
@@ -35,6 +36,10 @@ static SceneModel tinyScene() {
 	destination.name = "End";
 	destination.platforms.push_back({"platform.2", {"node.2"}});
 	scene.stations.push_back(destination);
+	scene.stationViews = {
+		{"station.tiny", 1.0, 0.1, {{2, 1.0}}, {"corridor.tiny"}},
+		{"station.end", 1.0, 0.2, {{2, 2.0}}, {"corridor.tiny"}},
+	};
 	scene.signals.push_back({"block.a"});
 	SceneRoute route;
 	route.id = "route.tiny";
@@ -124,11 +129,19 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(!hasErrors(diagnostics), "complete scene builds without errors");
 	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == 3 && blockSets[0].arcs == 2,
 			"track nodes and arcs retain canonical topology");
+	ok &= expect(blockSets[0].hasGraphLayout && blockSets[0].graphID == -1
+			&& blockSets[0].region == 2,
+			"authored track layout retains a valid negative display level");
 	ok &= expect(Blocks == 2, "two canonical blocks become two straight runtime sections");
 	ok &= expect(signalling_block_sections[0].ID == "@block.a@"
 			&& signalling_block_sections[1].ID == "@block.b@", "block IDs use the runtime boundary form");
 	ok &= expect(numStations == 2 && numAllStationPlatforms == 2, "station and platform counts are bound");
 	ok &= expect(StationArray[0].X == 1.0, "platform node anchors a station without a separate position");
+	ok &= expect(StationArray[0].latitude == 1.0 && StationArray[0].longitude == 0.1
+			&& StationArray[0].regions == std::vector<int>({2})
+			&& StationArray[0].regionX[2] == 1.0
+			&& StationArray[0].corridors == std::vector<std::string>({"corridor.tiny"}),
+			"authored station layout reaches the runtime station model");
 	if (!AllStationPlatforms.empty()) {
 		const auto& platform = AllStationPlatforms.front();
 		ok &= expect(platform.ID == "platform.1" && platform.StationID == "station.tiny",

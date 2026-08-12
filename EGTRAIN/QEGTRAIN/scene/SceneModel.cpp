@@ -9,6 +9,7 @@
 #include <cmath>
 #include <limits>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 using json = nlohmann::json;
@@ -27,7 +28,8 @@ bool readFile(const fs::path& path, std::string& content) {
 bool canonicalSnapshotFile(const std::string& file) {
 	return file == "scene.json" || file == "infrastructure.json" || file == "stations.json"
 			|| file == "signalling.json" || file == "rolling_stock.json" || file == "services.json"
-			|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json";
+			|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json"
+			|| file == "views.json";
 }
 
 std::string joinPath(const std::string& parent, const std::string& key) {
@@ -138,6 +140,9 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	bool passengersPresent = false;
 	if (!exists("passengers.json", passengersPresent)
 			|| (passengersPresent && !read("passengers.json", true)))
+		return result;
+	bool viewsPresent = false;
+	if (!exists("views.json", viewsPresent) || (viewsPresent && !read("views.json", true)))
 		return result;
 
 	result.bytes = buildSceneDirectorySnapshot(files);
@@ -606,6 +611,10 @@ void refreshSavedSceneMetadata(SceneModel& scene) {
 		scene.sourceFiles.erase("passengers.json");
 	else
 		scene.sourceFiles.insert("passengers.json");
+	if (scene.trackViews.empty() && scene.stationViews.empty())
+		scene.sourceFiles.erase("views.json");
+	else
+		scene.sourceFiles.insert("views.json");
 	refreshLoadedDataSummary(scene);
 }
 
@@ -775,7 +784,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	const bool incidentsOk = parseObject("incidents.json", incidentsJson, incidentsPresent, !scenariosPresent);
 	const bool passengersOk = parseObject("passengers.json", passengersJson,
 			fs::exists(fs::path(sceneDir) / "passengers.json"));
-	parseObject("views.json", viewsJson, false);
+	const bool viewsOk = parseObject("views.json", viewsJson, false);
 
 	if (sceneOk) {
 		if (!sceneJson.contains("schema_version")) {
@@ -961,6 +970,146 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				}
 			}
 			result.scene.stations.push_back(station);
+		}
+	}
+
+	if (viewsOk) {
+		const auto viewWarning = [&](const std::string& path, const std::string& message) {
+			addWarning("scene.views.row", "views.json", message, path);
+		};
+		std::unordered_set<std::string> trackIds;
+		for (const auto& track : result.scene.tracks)
+			trackIds.insert(track.id);
+		std::unordered_set<std::string> stationIds;
+		for (const auto& station : result.scene.stations)
+			stationIds.insert(station.id);
+
+		if (viewsJson.contains("tracks")) {
+			if (!viewsJson["tracks"].is_array()) {
+				viewWarning("tracks", "views.tracks must be an array; display rows skipped");
+			} else {
+				for (std::size_t index = 0; index < viewsJson["tracks"].size(); ++index) {
+					const std::string path = "tracks[" + std::to_string(index) + "]";
+					const json& value = viewsJson["tracks"][index];
+					if (!value.is_object() || !value.contains("track") || !value["track"].is_string()
+							|| value["track"].get<std::string>().empty()
+							|| !value.contains("level") || !value["level"].is_number_integer()
+							|| !value.contains("region") || !value["region"].is_number_integer()) {
+						viewWarning(path, "Invalid track display row; row skipped");
+						continue;
+					}
+					SceneTrackView view;
+					view.trackId = value["track"].get<std::string>();
+					try {
+						view.level = value["level"].get<int>();
+						view.region = value["region"].get<int>();
+					} catch (const json::exception&) {
+						viewWarning(path, "Invalid track display row; row skipped");
+						continue;
+					}
+					if (view.region < 0) {
+						viewWarning(path, "Track display row has a negative region; row skipped");
+						continue;
+					}
+					if (trackIds.count(view.trackId) == 0) {
+						viewWarning(path, "Track display row refers to an unknown track; row skipped");
+						continue;
+					}
+					const auto duplicate = std::find_if(result.scene.trackViews.begin(),
+							result.scene.trackViews.end(), [&view](const SceneTrackView& candidate) {
+								return candidate.trackId == view.trackId;
+							});
+					if (duplicate != result.scene.trackViews.end()) {
+						viewWarning(path, "Duplicate track display row; row skipped");
+						continue;
+					}
+					result.scene.trackViews.push_back(std::move(view));
+				}
+			}
+		}
+
+		if (viewsJson.contains("stations")) {
+			if (!viewsJson["stations"].is_array()) {
+				viewWarning("stations", "views.stations must be an array; display rows skipped");
+			} else {
+				for (std::size_t index = 0; index < viewsJson["stations"].size(); ++index) {
+					const std::string path = "stations[" + std::to_string(index) + "]";
+					const json& value = viewsJson["stations"][index];
+					if (!value.is_object() || !value.contains("station") || !value["station"].is_string()
+							|| value["station"].get<std::string>().empty()
+							|| !value.contains("latitude") || !value["latitude"].is_number()
+							|| !value.contains("longitude") || !value["longitude"].is_number()
+							|| !value.contains("regions") || !value["regions"].is_array()) {
+						viewWarning(path, "Invalid station display row; row skipped");
+						continue;
+					}
+					SceneStationView view;
+					view.stationId = value["station"].get<std::string>();
+					view.latitude = value["latitude"].get<double>();
+					view.longitude = value["longitude"].get<double>();
+					if (!std::isfinite(view.latitude) || !std::isfinite(view.longitude)
+							|| stationIds.count(view.stationId) == 0) {
+						viewWarning(path, stationIds.count(view.stationId) == 0
+								? "Station display row refers to an unknown station; row skipped"
+								: "Station display row has non-finite coordinates; row skipped");
+						continue;
+					}
+					bool validRegions = !value["regions"].empty();
+					std::unordered_set<int> regionIds;
+					for (std::size_t regionIndex = 0; regionIndex < value["regions"].size(); ++regionIndex) {
+						const json& regionValue = value["regions"][regionIndex];
+						if (!regionValue.is_object() || !regionValue.contains("id")
+								|| !regionValue["id"].is_number_integer()
+								|| !regionValue.contains("position_km")
+								|| !regionValue["position_km"].is_number()) {
+							validRegions = false;
+							break;
+						}
+						try {
+							const int regionId = regionValue["id"].get<int>();
+							const double positionKm = regionValue["position_km"].get<double>();
+							if (regionId < 0 || !std::isfinite(positionKm) || !regionIds.insert(regionId).second) {
+								validRegions = false;
+								break;
+							}
+							view.regions.emplace_back(regionId, positionKm);
+						} catch (const json::exception&) {
+							validRegions = false;
+							break;
+						}
+					}
+					if (!validRegions) {
+						viewWarning(path, "Invalid station display region row; row skipped");
+						continue;
+					}
+					if (value.contains("corridors")) {
+						if (!value["corridors"].is_array()) {
+							viewWarning(path, "Invalid station display corridors; row skipped");
+							continue;
+						}
+						for (const auto& corridor : value["corridors"]) {
+							if (!corridor.is_string()) {
+								validRegions = false;
+								break;
+							}
+							view.corridors.push_back(corridor.get<std::string>());
+						}
+						if (!validRegions) {
+							viewWarning(path, "Invalid station display corridor row; row skipped");
+							continue;
+						}
+					}
+					const auto duplicate = std::find_if(result.scene.stationViews.begin(),
+							result.scene.stationViews.end(), [&view](const SceneStationView& candidate) {
+								return candidate.stationId == view.stationId;
+							});
+					if (duplicate != result.scene.stationViews.end()) {
+						viewWarning(path, "Duplicate station display row; row skipped");
+						continue;
+					}
+					result.scene.stationViews.push_back(std::move(view));
+				}
+			}
 		}
 	}
 
