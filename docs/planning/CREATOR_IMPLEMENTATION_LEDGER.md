@@ -570,6 +570,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   `test_csv_export_smoke`, and `test_creator_acceptance_smoke` passed 7 of 7 in 12.45 seconds.
   A follow-up `test_runresults` rebuild and run passed 1 of 1 in 0.51 seconds after covering a non-file optional
   canonical input. `git diff --check` passed.
+- After the scenario-less compatibility correction, the same affected targets built and the seven-test gate
+  passed 7 of 7 in 12.40 seconds. Its direct `test_runresults` regression passed 1 of 1 in 0.52 seconds.
+- The complete PR 6 configure and build passed, and CTest passed 44 of 44 in 145.38 seconds at `3baa718` before
+  the subsequent scenario-less compatibility correction.
 
 ## Review record
 
@@ -594,6 +598,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
      leave a provenance-free result.
   The reviewer independently passed the five-test provenance, diagram, scene-builder, CSV, and creator gate
   before reproducing the boundaries.
+- The repository-configured adversarial review found no P0, P1, or P2 issue at `3baa718` after tracing the exact
+  snapshot, bundle, paired-export, double-switch, and public creator paths. The requested second fresh review
+  found one P2 compatibility regression: `readSceneDirectorySnapshot` required a scenario file even though
+  `loadScene` accepts neither file and synthesizes the baseline scenario. The reviewer reproduced a clean
+  Paimpol-derived directory being labeled non-reproducible after removing only `scenarios.json`.
 
 - The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `538ac72`. It traced native
   passenger preflight and no-mutation behavior, importer station resolution, occurrence filtering, passenger
@@ -741,6 +750,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   all four base branches resolve before either function mutates the global occupied or connected lists.
 - Replaced standalone sidecar writes with one paired artifact writer. Every result CSV and PNG remains staged
   until its normal or delay provenance sidecar commits; failure leaves no newly published artifact.
+- Matched current-snapshot reconstruction to loader compatibility: `scenarios.json` and legacy `incidents.json`
+  are hashed when present, but neither is required. A scenario-less saved directory can retain reproducible
+  provenance, while an existing unreadable optional file still fails closed.
 - Strengthened the seventh-case wrapper to compare every run sidecar hash with the exact `.egscene` bytes.
 
 - Corrected connection-derived adjacency to use actual section boundaries instead of internal switch endpoints.
@@ -891,11 +903,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ### Unresolved application blockers
 
 - PRs 1 through 5 are complete. PR 6 provenance and the public UI-only seventh-case implementation pass their
-  focused gates. Both correctness-review rounds are corrected and pass focused regressions. A fresh review of
-  the exact corrected commit, Ponytail review, the full local regression gate, CI, and the final merged-main
+  focused gates. The scenario-less compatibility finding is corrected and passes focused regressions. One fresh
+  review of the exact corrected commit, Ponytail review, the final local regression gate, CI, and the merged-main
   completeness review remain before the verdict can change.
 
 ## Next action
 
-Commit and push the second PR 6 correctness corrections, run a fresh independent review of the exact corrected
+Commit and push the scenario-less provenance correction, run a fresh independent review of the exact corrected
 diff, fix every confirmed finding, then run the Ponytail review and complete regression gate before merge.
