@@ -21,7 +21,7 @@ struct ConnectedSectionIdentity {
 bool parseConnectedSectionPart(const std::string& part, std::string& blockId, double& coordinate) {
 	if (part.empty() || part.front() != '@')
 		return false;
-	const std::size_t blockEnd = part.find('@', 1);
+	const std::size_t blockEnd = part.rfind('@');
 	if (blockEnd == std::string::npos || blockEnd + 2 > part.size() || part[blockEnd + 1] != '-')
 		return false;
 	const std::string coordinateText = part.substr(blockEnd + 2);

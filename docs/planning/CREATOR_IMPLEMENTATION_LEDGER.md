@@ -552,6 +552,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   instead of assuming the runtime occurrence-ID format. It also checks exact authored curvature, gradient, and
   speed-limit values after both persistence forms. The direct smoke passed, and the focused two-test gate passed
   2 of 2 in 4.43 seconds.
+- After the lead's parser-boundary trace, the affected build passed and the scene-builder plus creator-acceptance
+  gate passed 2 of 2 in 6.00 seconds.
 
 ## Review record
 
@@ -791,6 +793,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   is consumed on focus loss or pending Save. Merely focusing a displayed compatibility default leaves the optional
   field absent, while same-valued, changed, and spin-button edits become explicit through existing commit paths.
   The public editor smoke covers untouched focus, same-value focus loss, and a changed still-focused Save.
+- The connected-section parser now finds the final `@` wrapper marker. Canonical block IDs containing `@` remain
+  resolvable while hyphens and signed coordinates retain their exact meaning; the focused native regression covers
+  both legal block-ID characters without mutating the compound section identity.
 
 ### Ponytail findings
 
