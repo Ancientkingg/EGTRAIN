@@ -27,7 +27,7 @@ or consults an `Input/` tree.
 | `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
 | `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
 | `passengers.json` | passenger journeys and legs | optional |
-| `views.json` | reserved display preferences; recognized but not consumed by the current model/runtime | optional and unsupported |
+| `views.json` | optional track levels and station display geometry; consumed only by preview/runtime layout | optional |
 
 The six required files are the files needed for structural loading. A scene
 may therefore load without scenarios or passengers; the writer creates a
@@ -161,7 +161,9 @@ applied maximum-speed provenance. `RunResults` copies that provenance to train
 rows and operating code/service identity to timetable rows. `TrackPreview`
 resolves connections and station markers through the same canonical node IDs.
 GUI Run, `--scene`, and the numeric case shortcuts all enter this shared native
-path; there is no legacy-runtime fallback.
+path; there is no legacy-runtime fallback. When `views.json` is present, the
+builder applies authored track levels/regions and station coordinates before
+`setupGUI`; scenes without it use the automatic layout fallback.
 
 Canonical signalling areas assign levels to the base and derived switch
 sections before route construction copies those sections. An area has a

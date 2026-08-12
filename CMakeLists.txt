@@ -346,7 +346,8 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_trackpreview
 		${SRC_DIR}/tests/test_trackpreview.cpp
-		${SRC_DIR}/scene/TrackPreview.cpp)
+		${SRC_DIR}/scene/TrackPreview.cpp
+		${SRC_DIR}/scene/SectionInventory.cpp)
 	target_link_libraries(test_trackpreview PRIVATE nlohmann_json::nlohmann_json)
 	add_test(NAME test_trackpreview COMMAND test_trackpreview)
 

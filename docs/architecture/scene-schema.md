@@ -24,9 +24,9 @@ for compatibility and are listed in [Historical compatibility aliases](#historic
 legacy case directory, and the exporter may write one when explicitly asked,
 but normal loading and simulation use only the canonical files above.
 
-For a V2 `.egscene` bundle, `scenarios.json` is required and `passengers.json`
-is the only optional entry. `views.json`, `legacy/`, assets, results, and
-unknown or nested ZIP entries are excluded; see
+For a V2 `.egscene` bundle, `scenarios.json` is required; `passengers.json` and
+`views.json` are optional entries. `legacy/`, assets, results, and unknown or
+nested ZIP entries are excluded; see
 [V2 Transparent Scene Bundle](scene-bundle.md).
 
 ## `scene.json`
@@ -321,10 +321,34 @@ accepted, unresolved, malformed, and ID-collision rows before the scene is saved
 
 ## `views.json` and runtime metadata
 
-`views.json` is optional JSON for display defaults. It is not interpreted as
-simulation input. `loaded_data` and `sourceFiles` are derived in-memory
-metadata; they are recomputed when a scene is loaded and are not the source of
-canonical values.
+`views.json` is optional display metadata in directories and bundles. It does not change
+topology, signalling, services, or simulation results:
+
+```json
+{
+  "tracks": [
+    { "track": "B0", "level": 0, "region": 0 }
+  ],
+  "stations": [
+    {
+      "station": "Frederikssund",
+      "latitude": 1.0,
+      "longitude": 0.0017,
+      "regions": [{ "id": 0, "position_km": 0.17 }],
+      "corridors": []
+    }
+  ]
+}
+```
+
+Track and station references must identify canonical objects. Levels are
+integers; region IDs are unique non-negative integers; coordinates and region
+positions are finite. Invalid rows are skipped with load warnings. The legacy
+importer creates this file from `GUI/caseStudyTrackData.txt` and
+`GUI/StationsCoord.txt`. Directory saves and V2 bundles preserve it when present.
+
+`loaded_data` and `sourceFiles` are derived in-memory metadata; they are
+recomputed when a scene is loaded and are not the source of canonical values.
 
 ## Historical compatibility aliases
 

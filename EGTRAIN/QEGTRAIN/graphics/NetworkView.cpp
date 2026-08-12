@@ -9,6 +9,8 @@
 
 namespace {
 constexpr qreal kFitPadding = 24.0;
+const QColor kCanvasColor("#101a22");
+const QColor kGridColor("#182832");
 }
 
 NetworkView::NetworkView(QWidget* parent)
@@ -21,7 +23,7 @@ NetworkView::NetworkView(QWidget* parent)
 
 	setMouseTracking(true);
 	setSceneRect(QRectF(0, 0, 0, 0));
-	setBackgroundBrush(Qt::black);
+	setBackgroundBrush(kCanvasColor);
 	setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
@@ -106,8 +108,10 @@ qreal NetworkView::calculateFittedScale() const {
 		return 1.0;
 	const qreal availableWidth = qMax<qreal>(1.0, viewport()->width() - 2.0 * kFitPadding);
 	const qreal availableHeight = qMax<qreal>(1.0, viewport()->height() - 2.0 * kFitPadding);
-	const qreal topologyWidth = qMax<qreal>(1.0, m_topologyBounds.width());
-	const qreal topologyHeight = qMax<qreal>(1.0, m_topologyBounds.height());
+	const qreal topologyWidth = qMax<qreal>(
+		std::numeric_limits<qreal>::epsilon(), m_topologyBounds.width());
+	const qreal topologyHeight = qMax<qreal>(
+		std::numeric_limits<qreal>::epsilon(), m_topologyBounds.height());
 	return qMax<qreal>(std::numeric_limits<qreal>::epsilon(),
 		qMin(availableWidth / topologyWidth, availableHeight / topologyHeight));
 }
@@ -115,7 +119,7 @@ qreal NetworkView::calculateFittedScale() const {
 qreal NetworkView::zoomRatio() const {
 	if (m_fittedScale <= 0.0)
 		return 1.0;
-	return qBound<qreal>(1.0, qAbs(transform().m11()) / m_fittedScale, 12.0);
+	return qBound<qreal>(1.0, qAbs(transform().m11()) / m_fittedScale, maximumZoomRatio());
 }
 
 qreal NetworkView::fittedScale() const {
@@ -181,7 +185,7 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 	if (!std::isfinite(factor) || factor <= 0.0 || m_fittedScale <= 0.0)
 		return false;
 	const qreal currentRatio = zoomRatio();
-	const qreal targetRatio = qBound<qreal>(1.0, currentRatio * factor, 12.0);
+	const qreal targetRatio = qBound<qreal>(1.0, currentRatio * factor, maximumZoomRatio());
 	if (qAbs(targetRatio - currentRatio) <= 1e-9)
 		return false;
 
@@ -223,6 +227,31 @@ void NetworkView::wheelEvent(QWheelEvent* event) {
 	}
 }
 
+void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
+	painter->fillRect(rect, kCanvasColor);
+
+	const qreal viewScale = qAbs(transform().m11());
+	if (viewScale <= 0.0)
+		return;
+
+	qreal spacing = 80.0;
+	while (spacing * viewScale < 24.0)
+		spacing *= 2.0;
+	while (spacing * viewScale > 96.0)
+		spacing /= 2.0;
+
+	QPen gridPen(kGridColor);
+	gridPen.setCosmetic(true);
+	gridPen.setWidth(0);
+	painter->setPen(gridPen);
+	const qreal left = std::floor(rect.left() / spacing) * spacing;
+	const qreal top = std::floor(rect.top() / spacing) * spacing;
+	for (qreal x = left; x <= rect.right(); x += spacing)
+		painter->drawLine(QLineF(x, rect.top(), x, rect.bottom()));
+	for (qreal y = top; y <= rect.bottom(); y += spacing)
+		painter->drawLine(QLineF(rect.left(), y, rect.right(), y));
+}
+
 void NetworkView::resizeEvent(QResizeEvent* event) {
 	const bool preserveFit = atFit();
 	const qreal previousRatio = zoomRatio();
@@ -233,7 +262,7 @@ void NetworkView::resizeEvent(QResizeEvent* event) {
 	QGraphicsView::resizeEvent(event);
 	if (m_hasTopologyBounds) {
 		m_fittedScale = calculateFittedScale();
-		const qreal ratio = preserveFit ? 1.0 : qBound<qreal>(1.0, previousRatio, 12.0);
+		const qreal ratio = preserveFit ? 1.0 : qBound<qreal>(1.0, previousRatio, maximumZoomRatio());
 		if (preserveFit) {
 			setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 			setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

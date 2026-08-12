@@ -198,6 +198,7 @@ public:
 	Node N[1500];                    // Runtime nodes populated from the scene model
 	Arc member[maxsize];             // Member arcs of the track line
 	int graphID;                     // Graphical display level
+	bool hasGraphLayout;             // Whether graphID/region came from authored view data
 	int region;                      // Geographical region
 	double firstSwitchX, lastSwitchX; // X coordinates of first and last switch
 

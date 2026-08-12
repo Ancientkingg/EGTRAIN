@@ -37,6 +37,64 @@ protected:
 			return;
 		}
 
+		if (m_entry.kind == NetworkLegendEntryKind::Train) {
+			const QRectF body(2.0, 2.0, 42.0, 14.0);
+			painter.setPen(QPen(m_entry.outlineColor, 1.2));
+			painter.setBrush(QColor("#26313B"));
+			const qreal radius = trainBadgeCornerRadius(m_entry.trainShape);
+			painter.drawRoundedRect(body, radius, radius);
+
+			QPolygonF direction;
+			direction << QPointF(body.right() - 3.0, body.center().y())
+					  << QPointF(body.right() - 8.0, body.center().y() - 3.0)
+					  << QPointF(body.right() - 8.0, body.center().y() + 3.0);
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(QColor("#F2F5F7"));
+			painter.drawPolygon(direction);
+
+			const QRectF plate(5.0, 3.0, 12.0, 12.0);
+			painter.setPen(QPen(m_entry.outlineColor, 0.8));
+			painter.setBrush(m_entry.color);
+			painter.drawRoundedRect(plate, 2.0, 2.0);
+			const QPixmap icon(m_entry.iconResource);
+			if (!icon.isNull())
+				painter.drawPixmap(plate.adjusted(1.0, 1.0, -1.0, -1.0).toRect(), icon);
+			return;
+		}
+
+		if (m_entry.kind == NetworkLegendEntryKind::Station) {
+			const QColor markerColor(210, 215, 220);
+			const QRectF symbol(15.0, 1.0, 16.0, 16.0);
+			painter.setPen(QPen(markerColor, 1.0));
+			if (m_entry.stationKind == StationVisualKind::StopMarker) {
+				painter.setBrush(markerColor);
+				painter.drawEllipse(symbol.adjusted(5.0, 5.0, -5.0, -5.0));
+			} else {
+				painter.setBrush(Qt::NoBrush);
+				const QRectF platform = symbol.adjusted(3.0, 5.0, -3.0, -5.0);
+				painter.drawRect(platform);
+				if (m_entry.stationKind == StationVisualKind::Interchange)
+					painter.drawRect(platform.adjusted(-2.0, -2.0, 2.0, 2.0));
+			}
+			return;
+		}
+
+		if (m_entry.kind == NetworkLegendEntryKind::Signal) {
+			const QColor outline("#0D131A");
+			const QRectF lamp(17.0, 3.0, 12.0, 12.0);
+			painter.setPen(QPen(outline, 1.0));
+			painter.setBrush(m_entry.color);
+			painter.drawEllipse(lamp);
+			const QPointF center = lamp.center();
+			QPolygonF direction;
+			direction << center + QPointF(0.3 * lamp.width(), 0.0)
+					  << center + QPointF(-0.1 * lamp.width(), -0.25 * lamp.height())
+					  << center + QPointF(-0.1 * lamp.width(), 0.25 * lamp.height());
+			painter.setBrush(outline);
+			painter.drawPolygon(direction);
+			return;
+		}
+
 		if (!m_entry.iconResource.isEmpty()) {
 			const QPixmap icon(m_entry.iconResource);
 			if (!icon.isNull()) {
@@ -48,14 +106,7 @@ protected:
 		QPen outline(m_entry.color.darker(150), 1.0);
 		painter.setPen(outline);
 		painter.setBrush(m_entry.color);
-		if (m_entry.kind == NetworkLegendEntryKind::Train) {
-			const qreal radius = trainBadgeCornerRadius(m_entry.trainShape);
-			painter.drawRoundedRect(cueRect, radius, radius);
-		} else if (m_entry.kind == NetworkLegendEntryKind::Signal) {
-			painter.drawEllipse(QRectF(9.0, 3.0, 12.0, 12.0));
-		} else {
-			painter.drawRect(cueRect);
-		}
+		painter.drawRect(cueRect);
 	}
 
 private:
@@ -114,6 +165,7 @@ NetworkLegendEntry trainEntry(const TrainVisual& visual) {
 	entry.kind = NetworkLegendEntryKind::Train;
 	entry.label = trainLabel(visual.kind);
 	entry.color = visual.fill;
+	entry.outlineColor = visual.outline;
 	entry.trainKind = visual.kind;
 	entry.trainShape = visual.shape;
 	entry.iconResource = visual.iconResource;
@@ -177,10 +229,20 @@ NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
 void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	m_entries.clear();
 	if (content.hasTracks) {
-		m_entries << trackEntry("Free track", TrackOperationalState::Free)
-				  << trackEntry("Prepared route", TrackOperationalState::Prepared)
-				  << trackEntry("Occupied section", TrackOperationalState::Occupied)
-				  << trackEntry("Blocked section", TrackOperationalState::Blocked);
+		if (content.showOperationalTrackStates) {
+			m_entries << trackEntry("Free track", TrackOperationalState::Free)
+					  << trackEntry("Prepared route", TrackOperationalState::Prepared)
+					  << trackEntry("Occupied section", TrackOperationalState::Occupied)
+					  << trackEntry("Blocked section", TrackOperationalState::Blocked);
+		} else {
+			m_entries << trackEntry("Track", TrackOperationalState::Free);
+			if (content.hasSelectedTrack) {
+				NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
+				selected.color = QColor(242, 170, 70);
+				selected.lineWidth = 4;
+				m_entries << selected;
+			}
+		}
 	}
 
 	std::set<int> trainKinds;
@@ -196,9 +258,9 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	}
 
 	if (content.hasSignals) {
-		m_entries << signalEntry("Stop signal", 0)
-				  << signalEntry("Caution signal", 75)
-				  << signalEntry("Proceed signal", 180);
+		if (content.showOperationalTrackStates)
+			m_entries << signalEntry("Stop signal", 0) << signalEntry("Caution signal", 75);
+		m_entries << signalEntry("Proceed signal", 180);
 	}
 	if (content.hasPassengers) {
 		NetworkLegendEntry entry;

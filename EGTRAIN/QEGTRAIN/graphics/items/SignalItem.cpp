@@ -5,6 +5,7 @@
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_lampColor(QColor(128, 128, 128)) {
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
+	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 
 	// initialize parameters
 	trackID = -1;

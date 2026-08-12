@@ -43,13 +43,13 @@ int main(int argc, char** argv) {
 		QPainter painter(&background);
 		backgroundView.drawBackground(&painter, QRectF(0.0, 0.0, 160.0, 160.0));
 	}
-	bool uniformBackground = true;
-	for (int y = 0; y < background.height() && uniformBackground; ++y) {
+	bool hasCanvas = false;
+	bool hasGrid = false;
+	for (int y = 0; y < background.height(); ++y) {
 		for (int x = 0; x < background.width(); ++x) {
-			if (background.pixelColor(x, y) != QColor(Qt::black)) {
-				uniformBackground = false;
-				break;
-			}
+			const QColor pixel = background.pixelColor(x, y);
+			hasCanvas |= pixel == QColor("#101a22");
+			hasGrid |= pixel == QColor("#182832");
 		}
 	}
 	NetworkView view;
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 	farOverlay->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 
 	bool ok = true;
-	ok &= expect(uniformBackground, "operational canvas has one semantic background color and no grid");
+	ok &= expect(hasCanvas && hasGrid, "operational canvas uses the restrained signal-box grid");
 	view.fitToTopology();
 	const QRectF topology = view.topologyBounds();
 	const qreal fittedScale = view.fittedScale();
@@ -98,6 +98,11 @@ int main(int argc, char** argv) {
 	view.fitToBounds(previewBounds);
 	ok &= expect(near(view.zoomRatio(), 1.0) && view.topologyBounds() == previewBounds,
 		"explicit fit restores the preview baseline");
+	const QRectF normalizedPreviewBounds(0.0, 0.0, 0.7, 0.15);
+	view.fitToBounds(normalizedPreviewBounds);
+	ok &= expect(view.fittedScale() > 500.0,
+		"Fit expands normalized preview coordinates instead of treating them as one-unit geometry");
+	view.fitToBounds(previewBounds);
 
 	int updates = 0;
 	QObject::connect(&view, &NetworkView::viewportChanged, [&updates]() { ++updates; });
@@ -150,9 +155,10 @@ int main(int argc, char** argv) {
 		"resize preserves a programmatic scene center");
 	view.resize(640, 480);
 	QApplication::processEvents();
-	checkProgrammaticZoom(100.0, true, "zoom-in clamps at 12x");
-	ok &= expect(near(view.zoomRatio(), 12.0, 1e-5) && view.zoomLabel() == "12x",
-		"zoom-in clamps at 12x");
+	checkProgrammaticZoom(100.0, true, "zoom-in clamps at the station-detail maximum");
+	ok &= expect(near(view.zoomRatio(), NetworkView::maximumZoomRatio(), 1e-5)
+			&& view.zoomLabel() == "64x",
+		"zoom-in reaches the 64x station-detail maximum");
 	checkProgrammaticZoom(1.15, false, "zoom-in at maximum is a no-op");
 	checkProgrammaticZoom(1.0 / 100.0, true, "zoom-out clamps at Fit");
 	ok &= expect(near(view.zoomRatio(), 1.0, 1e-5) && view.zoomLabel() == "Fit",
@@ -180,8 +186,8 @@ int main(int argc, char** argv) {
 	view.fitToTopology();
 	view.zoomBy(2.0);
 	ok &= expect(view.zoomLabel() == "2x", "integral zoom labels use map notation");
-	view.zoomBy(6.0);
-	ok &= expect(view.zoomLabel() == "12x", "maximum zoom label uses map notation");
+	view.zoomBy(NetworkView::maximumZoomRatio());
+	ok &= expect(view.zoomLabel() == "64x", "maximum zoom label uses map notation");
 
 	Q_UNUSED(fittedScale);
 	return ok ? 0 : 1;

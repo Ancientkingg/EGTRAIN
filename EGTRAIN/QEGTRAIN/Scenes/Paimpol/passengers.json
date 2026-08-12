@@ -1932,29 +1932,7 @@
           "activity": "Work",
           "destination": "Traou_Nez",
           "id": "53:1",
-          "legs": [
-            {
-              "destination": "Pontrieaux",
-              "id": "53:1.leg.1",
-              "occurrence": 2,
-              "origin": "Guingamp",
-              "service": "Guin-Paim-EXPRESS-1"
-            },
-            {
-              "destination": "Pontrieaux_Halte",
-              "id": "53:1.leg.2",
-              "occurrence": 1,
-              "origin": "Pontrieaux",
-              "service": "Guin-Paim-ALL-STOPS-1"
-            },
-            {
-              "destination": "Traou_Nez",
-              "id": "53:1.leg.3",
-              "occurrence": 1,
-              "origin": "Pontrieaux_Halte",
-              "service": "Guin-Paim-ALL-STOPS-1"
-            }
-          ],
+          "legs": [],
           "origin": "Guingamp",
           "planned_arrival": {
             "end_seconds": 30599.0,

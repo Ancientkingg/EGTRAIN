@@ -2807,6 +2807,13 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		runtimeTrack.numNodes = static_cast<int>(track.chainNodes.size());
 		runtimeTrack.arcs = static_cast<int>(track.chainArcs.size());
 		runtimeTrack.len = static_cast<int>(track.chainArcs.size());
+		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
+				[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
+		if (view != scene.trackViews.end()) {
+			runtimeTrack.graphID = view->level;
+			runtimeTrack.region = view->region;
+			runtimeTrack.hasGraphLayout = true;
+		}
 		for (std::size_t index = 0; index < track.chainNodes.size(); ++index) {
 			Node node;
 			node.ID = static_cast<double>(slot * 1000000 + index + 1);
@@ -2998,6 +3005,17 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		station.N_StationPlatforms = static_cast<int>(source.platforms.size());
 		for (const auto& platform : source.platforms)
 			station.StationPlatformIDs.push_back(platform.id);
+		const auto view = std::find_if(scene.stationViews.begin(), scene.stationViews.end(),
+				[&source](const SceneStationView& candidate) { return candidate.stationId == source.id; });
+		if (view != scene.stationViews.end()) {
+			station.latitude = view->latitude;
+			station.longitude = view->longitude;
+			for (const auto& region : view->regions) {
+				station.regions.push_back(region.first);
+				station.regionX[region.first] = region.second;
+			}
+			station.corridors = view->corridors;
+		}
 	}
 	numStations = static_cast<int>(scene.stations.size());
 	for (const NativeStationBinding& binding : stationBindings) {

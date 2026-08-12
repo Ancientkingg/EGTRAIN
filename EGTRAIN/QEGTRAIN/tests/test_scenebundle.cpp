@@ -138,7 +138,7 @@ static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second
 	if (!firstSave.success() || !secondSave.success())
 		return false;
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json"}) {
+			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"}) {
 		const fs::path firstPath = firstDir / name;
 		const fs::path secondPath = secondDir / name;
 		const bool firstExists = fs::exists(firstPath);
@@ -155,6 +155,8 @@ static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second
 
 static bool testNewSceneRoundTrip(const fs::path& root) {
 	SceneModel expected = makeNewSceneModel();
+	expected.tracks.push_back({"bundle-track"});
+	expected.trackViews.push_back({"bundle-track", 3, 0});
 	SceneStation station;
 	station.id = "bundle-station";
 	station.name = "Bundle station";
@@ -167,6 +169,12 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 	station.platforms.push_back(explicitPlatform);
 	station.platforms.push_back({"bundle-platform-default", {}});
 	expected.stations.push_back(station);
+	SceneStationView stationView;
+	stationView.stationId = "bundle-station";
+	stationView.latitude = 1.5;
+	stationView.longitude = 2.5;
+	stationView.regions = {{0, 4.5}};
+	expected.stationViews.push_back(stationView);
 	const fs::path folder = root / "new-scene";
 	const fs::path bundle = root / "new-scene.egscene";
 	bool ok = true;
@@ -176,6 +184,9 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 	const SceneLoadResult bundleLoad = loadScenePath(bundle.string());
 	ok &= expect(!hasErrors(folderLoad.diagnostics), "new scene folder has no structural diagnostics");
 	ok &= expect(!hasErrors(bundleLoad.diagnostics), "new scene bundle has no structural diagnostics");
+	ok &= expect(bundleLoad.scene.trackViews.size() == 1
+			&& bundleLoad.scene.stationViews.size() == 1,
+			"bundle preserves authored display layout");
 	ok &= expect(folderLoad.scene.stations.size() == 1
 			&& folderLoad.scene.stations[0].platforms[0].hasLength
 			&& folderLoad.scene.stations[0].platforms[0].lengthM == 135.0
@@ -267,7 +278,7 @@ int main(int argc, char** argv) {
 			"rolling_stock.json", "services.json", "scenarios.json"})
 		ok &= expect(fs::is_regular_file(unpacked / name), "unpacked canonical entry exists");
 	ok &= expect(!fs::exists(unpacked / "views.json") && !fs::exists(unpacked / "legacy"),
-			"bundle excludes views and legacy outputs");
+			"bundle omits absent views and legacy outputs");
 	const SceneLoadResult unpackedLoad = loadScene(unpacked.string());
 	ok &= expect(!hasErrors(unpackedLoad.diagnostics)
 			&& sameCanonicalFiles(source.scene, unpackedLoad.scene, temp.path / "unpacked-compare"),
@@ -293,7 +304,7 @@ int main(int argc, char** argv) {
 		{"entry limit", "scene.bundle.entries", rawArchive(std::vector<RawEntry>(17, {"x", "x", 0, 0, 20}))},
 		{"entry size limit", "scene.bundle.entry.size", rawArchive({{"scene.json", "x", 16U * 1024U * 1024U + 1U, 0, 20, 8}})},
 		{"ratio limit", "scene.bundle.ratio", rawArchive({{"scene.json", "x", 1001U, 0, 20, 8}})},
-		{"unknown entry", "scene.bundle.entry", rawArchive({{"views.json", "x"}})},
+		{"unknown entry", "scene.bundle.entry", rawArchive({{"assets.json", "x"}})},
 		{"missing required entry", "scene.bundle.required", rawArchive({{"scene.json", "x"}})},
 	};
 	for (const auto& test : malformed) {

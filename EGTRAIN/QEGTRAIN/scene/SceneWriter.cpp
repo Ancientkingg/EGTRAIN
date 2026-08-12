@@ -413,6 +413,29 @@ static json writePassengers(const SceneModel& scene) {
 	return {{"passengers", passengers}};
 }
 
+static json writeViews(const SceneModel& scene) {
+	json tracks = json::array();
+	for (const auto& view : scene.trackViews)
+		tracks.push_back({{"track", view.trackId}, {"level", view.level}, {"region", view.region}});
+
+	json stations = json::array();
+	for (const auto& view : scene.stationViews) {
+		json regions = json::array();
+		for (const auto& region : view.regions)
+			regions.push_back({{"id", region.first}, {"position_km", region.second}});
+		json value = {
+			{"station", view.stationId},
+			{"latitude", view.latitude},
+			{"longitude", view.longitude},
+			{"regions", std::move(regions)},
+		};
+		if (!view.corridors.empty())
+			value["corridors"] = view.corridors;
+		stations.push_back(std::move(value));
+	}
+	return {{"tracks", tracks}, {"stations", stations}};
+}
+
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
 	SceneSaveResult result;
 	const fs::path scenePath(sceneDir);
@@ -590,6 +613,9 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 			{{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}}) && wroteAll;
 	wroteAll = writeCanonical("services.json", {{"services", writeServices(scene)}}) && wroteAll;
 	wroteAll = writeCanonical("scenarios.json", writeScenarios(scene)) && wroteAll;
+	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
+	if (hasViews)
+		wroteAll = writeCanonical("views.json", writeViews(scene)) && wroteAll;
 	if (!scene.passengers.empty()) {
 		wroteAll = writeCanonical("passengers.json", writePassengers(scene)) && wroteAll;
 	}
@@ -608,6 +634,14 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 			if (ec) {
 				addWriteError(result, "passengers.json",
 						"Cannot remove passengers.json: " + ec.message());
+				wroteAll = false;
+			}
+		}
+		if (!hasViews) {
+			ec.clear();
+			fs::remove(scenePath / "views.json", ec);
+			if (ec) {
+				addWriteError(result, "views.json", "Cannot remove views.json: " + ec.message());
 				wroteAll = false;
 			}
 		}

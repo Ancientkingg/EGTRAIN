@@ -84,13 +84,20 @@ int main() {
 		writeText(legacy / "TrackLines/B0/ArchiCumPari.txt", "7 1 2 100 2 30\n");
 		writeText(legacy / "TrackLines/B1/ArchiCumPari.txt", "7 1 2 200 3 40\n");
 		writeText(legacy / "TrackLines/B0/BlockCumPari.txt", "99 0.5\n");
-		writeUtf16Le(legacy / "TrackLines/B1/BlockCumPari.txt", "88 0.6\r\n");
+		writeUtf16Le(legacy / "TrackLines/B1/BlockCumPari.txt", "88 -0.6\r\n");
+		writeText(legacy / "TrackLines/B4/NodiCumPari.txt", "1 0 4\n2 1 4\n3 2 4\n4 3 4\n5 4 4\n6 5 4\n7 6 4\n8 7 4\n9 8 4\n10 9 4\n");
+		writeText(legacy / "TrackLines/B4/ArchiCumPari.txt", "108 1 10 10000 0 20\n");
+		writeText(legacy / "TrackLines/B4/BlockCumPari.txt", "1 1\n");
 		writeText(legacy / "TrackLines/Connections.txt", "0 0 1 0 7\n0 9 1 9 8\n");
 		writeText(legacy / "TrackLines/Stations.txt", "0\tGuingamp\n1\tPaimpol\n");
 		writeText(legacy / "Routes/Route0.txt", "@0-B0@\n");
 		writeText(legacy / "Routes/Route2.txt", "@0-B1@\n");
 		writeText(legacy / "RoutesToWrite/RoutesToJoin.txt", "0 2 Reverse\n");
 		writeText(legacy / "GUI/caseStudyRouteCorridors.txt", "0\tfixture-corridor\n");
+		writeText(legacy / "GUI/caseStudyTrackData.txt", "0\t\t2\n1\t3\t2\n");
+		writeText(legacy / "GUI/StationsCoord.txt",
+				"Guingamp full name\t1\t0.1\t2\t0.0\tfixture-corridor\n"
+				"Paimpol full name\t1\t0.2\t2\t1.0\tfixture-corridor\n");
 		writeText(legacy / "GUI/singleTrackLimits.txt", "@0-B0@\t@0-B1@\t@0-B0@\t@0-B1@\n");
 		writeText(legacy / "GUI/stationBoundarySections.txt", "@0-B0@\t@0-B1@\t1\n");
 		writeText(legacy / "trainNames.txt", "fixture.txt\nfixture-duplicate.txt\n");
@@ -99,8 +106,10 @@ int main() {
 		writeText(legacy / "Trains/fixture-duplicate.txt",
 				"FixtureService 0 99999999 2 /vehicle.dat /effort-curve.dat /TimeTable/fixture.txt\n");
 		writeText(legacy / "vehicle.dat", "1 2 3 4 5 6 7 8 9\n");
-		writeText(legacy / "effort-curve.dat", "0 1 2 3 4\n");
-		writeText(legacy / "TimeTable/fixture.txt", "Guingamp 2 -1 10\nPaimpol 3 20 -1\n");
+		writeText(legacy / "effort-curve.dat",
+				"0 1 2 3 4\n1 2 3 4 5\n2 3 4 5 6\n"
+				"0 6 7 8 9\n1 7 8 9 10\n2 8 9 10 11\n");
+		writeText(legacy / "TimeTable/fixture.txt", "Guingamp 2 -1 10\nPaimpol 3 20 10\n");
 		writeText(legacy / "Passengers/DAS_FrenchCaseStudy.csv",
 				"h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14\n"
 				"x,p1,x,x,j1,work,Paimpol,x,x,x,8.25,x,Guingamp,x,8.00\n");
@@ -114,34 +123,56 @@ int main() {
 		const auto result = importLegacyScene(legacyDir.dir, output.dir, "Paimpol");
 		ok &= expect(result.success(), "Complete synthetic fixture imports");
 		if (result.wroteScene) {
-			json scene, infrastructure, rolling, services, signalling, scenarios;
+			json scene, infrastructure, rolling, services, signalling, scenarios, views;
 			ok &= expect(readJson(fs::path(output.dir) / "scene.json", scene), "Synthetic scene readable");
 			ok &= expect(readJson(fs::path(output.dir) / "infrastructure.json", infrastructure), "Synthetic infrastructure readable");
 			ok &= expect(readJson(fs::path(output.dir) / "rolling_stock.json", rolling), "Synthetic rolling stock readable");
 			ok &= expect(readJson(fs::path(output.dir) / "services.json", services), "Synthetic services readable");
 			ok &= expect(readJson(fs::path(output.dir) / "signalling.json", signalling), "Synthetic signalling readable");
 			ok &= expect(readJson(fs::path(output.dir) / "scenarios.json", scenarios), "Synthetic scenarios readable");
+			ok &= expect(readJson(fs::path(output.dir) / "views.json", views), "Synthetic views readable");
 			ok &= expect(scene["base_time"] == "07:10:40"
 					&& scene["simulation_settings"]["duration_seconds"] == 9000.0, "Known settings imported");
-			bool rootReport = false, coordinateReport = false;
+			bool rootReport = false, coordinateReport = false, trackViewReport = false, stationViewReport = false;
 			for (const auto& row : scene["import_report"]) {
 				if (row["category"] == "legacy_root")
 					rootReport = row["source_count"] == 1 && row["converted_count"] == 1;
 				if (row["category"] == "infrastructure.connections")
 					coordinateReport = row["source_count"] == 2 && row["converted_count"] == 1
 							&& row["skipped_count"] == 1 && row["unresolved_references"] == 1;
+				if (row["category"] == "views.tracks")
+					trackViewReport = row["source_count"] == 2 && row["converted_count"] == 2;
+				if (row["category"] == "views.stations")
+					stationViewReport = row["source_count"] == 2 && row["converted_count"] == 2;
 			}
 			ok &= expect(rootReport, "Synthetic root provenance report");
 			ok &= expect(coordinateReport, "Synthetic unresolved coordinate report");
+			ok &= expect(trackViewReport && stationViewReport, "Synthetic display metadata provenance report");
+			ok &= expect(views["tracks"].size() == 2 && views["tracks"][0]["track"] == "B0"
+					&& views["tracks"][0]["level"] == 0 && views["tracks"][0]["region"] == 2
+					&& views["stations"].size() == 2 && views["stations"][0]["station"] == "Guingamp"
+					&& views["stations"][0]["regions"][0]["position_km"] == 0.0,
+					"Legacy GUI layout is preserved as native display metadata");
+			ok &= expect(!fs::exists(fs::path(output.dir) / "legacy"),
+					"Canonical import does not emit a legacy passthrough subtree");
 			ok &= expect(infrastructure["nodes"][0]["id"] == "B0.node.1", "Stable node id");
 			ok &= expect(infrastructure["arcs"][0]["from"] == "B0.node.1"
 					&& infrastructure["arcs"][0]["to"] == "B0.node.2", "Arc node references");
 			ok &= expect(infrastructure["blocks"][0]["id"] == "0-B0"
 					&& infrastructure["blocks"][0]["length_km"] == 0.5, "Row-position block id");
-			ok &= expect(infrastructure["blocks"].size() == 2
+			ok &= expect(infrastructure["blocks"].size() >= 2
 					&& infrastructure["blocks"][1]["id"] == "0-B1"
 					&& infrastructure["blocks"][1]["length_km"] == 0.6,
-					"UTF-16LE block data is imported");
+					"UTF-16LE block data is imported with negative length normalized");
+			ok &= expect(infrastructure["arcs"].back()["id"] == "B4.arc.108"
+					&& infrastructure["arcs"].back()["from"] == "B4.node.9"
+					&& infrastructure["arcs"].back()["to"] == "B4.node.10"
+					&& hasDiag(result.diagnostics, "scene.import.adjusted", SceneSeverity::Warning),
+					"Known Paimpol B4 source arc is repaired narrowly");
+			ok &= expect(rolling["train_units"][0]["traction_curve"].size() == 3
+					&& rolling["train_units"][0]["traction_curve"][0][1] == 6.0
+					&& hasDiag(result.diagnostics, "scene.import.adjusted", SceneSeverity::Warning),
+					"Repeated traction alternatives retain the final monotonic band");
 			ok &= expect(infrastructure["connections"].size() == 1
 					&& infrastructure["connections"][0]["from"] == "B0.node.1", "Resolved connection ref");
 			ok &= expect(rolling["train_units"].size() == 1
@@ -154,9 +185,10 @@ int main() {
 			ok &= expect(stops[0].contains("planned_departure_seconds")
 					&& !stops[0].contains("planned_arrival_seconds")
 					&& !stops[0].contains("departure_seconds"), "Missing arrival stays absent");
-			ok &= expect(stops[1].contains("planned_arrival_seconds")
-					&& !stops[1].contains("planned_departure_seconds")
-					&& !stops[1].contains("arrival_seconds"), "Missing departure stays absent");
+			ok &= expect(stops[1]["planned_arrival_seconds"] == 20.0
+					&& stops[1]["planned_departure_seconds"] == 20.0
+					&& hasDiag(result.diagnostics, "scene.import.adjusted", SceneSeverity::Warning),
+					"Departure before arrival is clamped at the conversion boundary");
 			ok &= expect(signalling["routes"][0]["corridor"] == "fixture-corridor"
 					&& signalling["single_track_restrictions"][0]["start_block"] == "0-B0"
 					&& signalling["station_boundaries"][0]["entrance_block"] == "0-B0", "Signalling roles imported");
@@ -206,22 +238,24 @@ int main() {
 				"x,p3,x,x,j3,work,destination,x,x,x,8.25,x,origin,x,8.50\n"
 				"x,p4,x,x,j4,work,Destination,x,x,x,nan,x,Origin,x,8.00\n";
 		const std::string routes = "person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1\n"
-				"p1,Destination,0,,svc-2\n"
+				"p1,Destination,0,,Guin-Paim_EXPRESS-1-1\n"
 				"short\n"
 				"p2,Destination,0,,unknown-3\n"
-				"p3,destination,0,,svc-2\n";
+				"p3,destination,0,,Guin-Paim_EXPRESS-1-1\n";
 		writeText(passengerDir / "DAS_FrenchCaseStudy.csv", das);
 		writeText(passengerDir / "RouteChoiceFC_EQ1.csv", routes);
 		SceneModel scene;
 		scene.stations = {{"origin", "Origin", false, 0.0, {}}, {"destination", "Destination", false, 1.0, {}}};
-		scene.services.push_back({"service", "svc", {}, {}, 100.0, false, 0.0, false, false, 0.0,
+		scene.services.push_back({"Guin-Paim-EXPRESS-1", "Guin-Paim-EXPRESS-1", {}, {}, 100.0, false, 0.0, false, false, 0.0,
 			false, 0.0, false, 0, false, 0, {}});
 		scene.services[0].stops = {{"origin"}, {"destination"}};
 		const ScenePassengerImportResult imported = importLegacyPassengers(root.dir, scene);
 		ok &= expect(imported.success() && imported.passengers.size() == 3
 				&& imported.passengers[0].journeys[0].legs.size() == 1
-				&& imported.passengers[1].journeys[0].legs.size() == 1,
-				"Passenger-only import accepts a complete pair and unresolved references");
+				&& imported.passengers[1].journeys[0].legs.empty()
+				&& imported.passengers[0].journeys[0].legs[0].serviceId == "Guin-Paim-EXPRESS-1"
+				&& imported.passengers[0].journeys[0].legs[0].occurrence == 1,
+				"Passenger tokens normalize separators and omit unresolved dangling legs");
 		ok &= expect(imported.passengers[0].journeys[0].originStationId == "origin"
 				&& imported.passengers[0].journeys[0].destinationStationId == "destination"
 				&& imported.passengers[2].journeys[0].originStationId == "origin"
@@ -283,12 +317,29 @@ int main() {
 		}
 		orderMismatchScene.passengers = orderMismatch.passengers;
 		ok &= expect(knownServiceMarkedUnresolved && knownServiceRowDiagnostic
-					&& hasDiag(validateScene(orderMismatchScene), "scene.passenger.leg.order", SceneSeverity::Error),
-				"Known service stop/order mismatch stays canonical unresolved and validates as an order error");
+				&& orderMismatch.passengers[0].journeys[0].legs.empty()
+				&& !hasDiag(validateScene(orderMismatchScene), "scene.passenger.leg.order", SceneSeverity::Error),
+				"Known service stop/order mismatch is reported without a dangling leg");
 		const ScenePassengerImportResult direct = importLegacyPassengers(passengerDir.string(), scene);
 		ok &= expect(direct.passengers.size() == imported.passengers.size()
 				&& direct.rows.size() == imported.rows.size(),
 				"Passenger-only import accepts the passenger directory shape");
+		TempDir aliasRoot;
+		writeText(fs::path(aliasRoot.dir) / "Passengers/DAS_FrenchCaseStudy.csv",
+				"h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14\n"
+				"x,alias,x,x,j5,work,Tregonnau Squiffiec,x,x,x,8.25,x,Origin,x,8.00\n");
+		writeText(fs::path(aliasRoot.dir) / "Passengers/RouteChoiceFC_EQ1.csv",
+				"person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1\n"
+				"alias,Tregonnau Squiffiec,0,,Guin-Paim_EXPRESS-1-1\n");
+		SceneModel aliasScene = scene;
+		aliasScene.stations.push_back({"Tregonneau_Squiffiec", "Tregonneau_Squiffiec", false, 2.0, {}});
+		aliasScene.services[0].stops = {{"origin"}, {"Tregonneau_Squiffiec"}};
+		const ScenePassengerImportResult spellingAlias = importLegacyPassengers(aliasRoot.dir, aliasScene);
+		ok &= expect(spellingAlias.success() && spellingAlias.passengers.size() == 1
+				&& spellingAlias.passengers[0].journeys[0].legs.size() == 1
+				&& spellingAlias.passengers[0].journeys[0].destinationStationId == "Tregonneau_Squiffiec"
+				&& spellingAlias.passengers[0].journeys[0].legs[0].destinationStationId == "Tregonneau_Squiffiec",
+				"Known Tregonnau station spelling maps through the explicit alias");
 		const ScenePassengerImportResult missing = importLegacyPassengers(
 			(fs::path(root.dir) / "missing").string(), scene);
 		ok &= expect(!missing.success()

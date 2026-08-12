@@ -430,6 +430,10 @@ private:
 	QString m_infrastructureSelectionId;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 	QString m_runtimeStatus = QStringLiteral("Not built");
+	QRectF m_previewFitBounds;
+	QPointF m_previewZoomFocus;
+	bool m_previewHasSelectedTrack = false;
+	bool m_previewHasSignals = false;
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
 	bool m_resultsAvailable = false;
 	bool m_sceneChangedDuringRun = false;

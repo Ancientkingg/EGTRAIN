@@ -954,6 +954,22 @@
       "unresolved_references": 0
     },
     {
+      "category": "views.tracks",
+      "converted_count": 38,
+      "skipped_count": 0,
+      "source_count": 38,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/GUI/caseStudyTrackData.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "views.stations",
+      "converted_count": 29,
+      "skipped_count": 0,
+      "source_count": 29,
+      "source_file": "Input/Input_EGTRAIN_Milano_Brescia/GUI/StationsCoord.txt",
+      "unresolved_references": 0
+    },
+    {
       "category": "rolling_stock.manifest",
       "converted_count": 62,
       "skipped_count": 0,

@@ -94,6 +94,7 @@ BlockSet::BlockSet() {
 	ID = len = arcs = numNodes = 0;
 	region = 0;
 	graphID = -1;
+	hasGraphLayout = false;
 	firstSwitchX = -1;
 	lastSwitchX = DBL_MAX;
 }

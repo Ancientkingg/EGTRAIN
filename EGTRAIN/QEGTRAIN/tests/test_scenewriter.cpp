@@ -65,6 +65,7 @@ static SceneModel completeScene() {
 	scene.blocks.push_back({"block-1", "track-1", 0.5});
 	scene.blocks.push_back({"block-2", "track-1", 0.5});
 	scene.connections.push_back({"connection-1", "node-1", "node-2", true, 30.0});
+	scene.trackViews.push_back({"track-1", -2, 1});
 
 	SceneStation first;
 	first.id = "station-1";
@@ -76,6 +77,13 @@ static SceneModel completeScene() {
 	second.name = "Destination";
 	second.platforms.push_back({"platform-2", {"node-2"}});
 	scene.stations.push_back(second);
+	SceneStationView stationView;
+	stationView.stationId = "station-1";
+	stationView.latitude = 55.6761;
+	stationView.longitude = 12.5683;
+	stationView.regions = {{1, 0.25}, {2, 0.75}};
+	stationView.corridors = {"main", "branch"};
+	scene.stationViews.push_back(stationView);
 
 	scene.signals.push_back({"signal-1", "@block-1@"});
 	scene.signallingAreas.push_back({"area-1", 0.25, 0.75, 4, "track-1"});
@@ -189,7 +197,7 @@ int main() {
 	printErrors(saved.diagnostics, "save");
 	ok &= expect(saved.success(), "complete canonical scene saves");
 	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json"})
+			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"})
 		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
 	const std::string savedSnapshot = saved.inputSnapshot;
 	const SceneInputSnapshot onDiskSnapshot = readSceneDirectorySnapshot(temp.path.string());
@@ -352,6 +360,15 @@ int main() {
 			"external canonical-file changes do not mutate retained snapshots");
 	ok &= expect(reloaded.tracks.size() == 1 && reloaded.nodes.size() == 2 && reloaded.blocks.size() == 2,
 			"topology round-trips");
+	ok &= expect(reloaded.trackViews.size() == 1
+			&& reloaded.trackViews[0].trackId == "track-1"
+			&& reloaded.trackViews[0].level == -2
+			&& reloaded.trackViews[0].region == 1
+			&& reloaded.stationViews.size() == 1
+			&& reloaded.stationViews[0].stationId == "station-1"
+			&& reloaded.stationViews[0].regions == std::vector<std::pair<int, double>>({{1, 0.25}, {2, 0.75}})
+			&& reloaded.stationViews[0].corridors == std::vector<std::string>({"main", "branch"}),
+			"authored display layout round-trips");
 	ok &= expect(reloaded.routes[0].corridor == "corridor-1" && reloaded.routes[0].reversed,
 			"route corridor and direction round-trip");
 	ok &= expect(reloaded.signallingAreas.size() == 1

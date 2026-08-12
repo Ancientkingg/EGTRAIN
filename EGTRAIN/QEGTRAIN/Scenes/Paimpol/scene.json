@@ -186,6 +186,22 @@
       "unresolved_references": 0
     },
     {
+      "category": "views.tracks",
+      "converted_count": 6,
+      "skipped_count": 0,
+      "source_count": 6,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/GUI/caseStudyTrackData.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "views.stations",
+      "converted_count": 10,
+      "skipped_count": 0,
+      "source_count": 10,
+      "source_file": "Input/Input_EGTRAIN_Paimpol/GUI/StationsCoord.txt",
+      "unresolved_references": 0
+    },
+    {
       "category": "rolling_stock.manifest",
       "converted_count": 2,
       "skipped_count": 0,
