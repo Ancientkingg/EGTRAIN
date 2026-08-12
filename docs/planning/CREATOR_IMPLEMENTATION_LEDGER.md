@@ -257,6 +257,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   changes focus, and verifies that the value becomes explicit while an untouched focused length remains absent.
 - After the PR 5 Ponytail reductions, the full affected target build passed, the five-test gate passed 5 of 5 in
   2.70 seconds, and editor smoke passed after all seven scene tests.
+- The fresh post-Ponytail correctness reviewer independently rebuilt the affected targets, passed the same
+  five-test gate 5 of 5, passed editor smoke, and found no P0, P1, or P2 issue at `538ac72`.
 
 ### Full tests and smokes run
 
@@ -341,6 +343,18 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
     served-station assertion;
   - Assignment smoke passed its canonical timetable assertion;
   - six-case round-trip smoke ended with `ROUNDTRIP PASS`.
+- PR 5 final post-Ponytail gate at `538ac72`:
+  - configure and full build passed;
+  - CTest passed 43 of 43 in 129.54 seconds;
+  - editor smoke passed after all seven scene tests, including passenger/platform authoring and focused-value
+    persistence markers;
+  - visual-polish smoke passed DPR 1 and DPR 2, station overlay, scene render, and legacy import;
+  - six-case native headless smoke passed every case, changing-trajectory, non-sentinel, and served-station check;
+  - six-case round-trip smoke ended with `ROUNDTRIP PASS`;
+  - Assignment smoke printed `PASS assignment canonical timetable`;
+  - `scene_tool validate` returned exit 0 for Netherlands, Paimpol, Copenhagen, Milano_Brescia,
+    Assignment_Gvc_Gdg_Ut, and Lebanon with only their recorded compatibility warnings;
+  - `git diff --check` passed and the worktree was clean before this ledger update.
 
 ### Exact results
 
@@ -489,6 +503,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Review record
 
 ### Independent correctness findings
+
+- The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `538ac72`. It traced native
+  passenger preflight and no-mutation behavior, importer station resolution, occurrence filtering, passenger
+  editor commits, and platform geometry presence markers. It independently passed the affected build, focused
+  gate 5 of 5, full CTest 43 of 43, editor smoke, and `git diff --check`.
 
 - The fresh corrected-diff review found no P0 or P1 issue and one P2 compatibility defect: focusing an untouched
   displayed platform default and pressing Save set the optional geometry presence flag, wrote the default value,
@@ -771,5 +790,6 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Commit and push the Ponytail reductions, obtain a fresh post-simplification correctness review, then run the final
-local gate and merge only after GitHub checks are clean.
+Commit and push this final PR 5 ledger update, wait for GitHub build and sanitizer checks on that exact head,
+mark PR #294 ready, and merge when clean. Then record the merge in the PR 6 worktree and begin provenance work
+from the new `origin/main`.
