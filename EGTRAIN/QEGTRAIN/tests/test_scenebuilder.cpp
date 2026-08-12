@@ -2,6 +2,7 @@
 #include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -207,6 +208,22 @@ static bool runTinyBuilderChecks() {
 			hasCanonicalSwitchSpeed = hasCanonicalSwitchSpeed
 					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
 		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
+		Section creatorNamedSwitch = signalling_block_sections[2];
+		creatorNamedSwitch.ID = "@creator-main-block@-1.000000/@creator-yard-block@-2.000000";
+		creatorNamedSwitch.FirstConnectedTrackLineID = 0;
+		creatorNamedSwitch.SecondConnectedTrackLineID = 1;
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
+		activateBlocksWithSwitchesDivFixedBlock(creatorNamedSwitch, 0, -1.0);
+		ok &= expect(creatorNamedSwitch.ID
+				== "@creator-main-block@-1.000000/@creator-yard-block@-2.000000"
+				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator-main-block@")
+						!= BlocksOccupied.end()
+				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator-yard-block@")
+						!= BlocksOccupied.end(),
+			"switch occupation preserves and resolves hyphenated creator section IDs");
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
 	}
 	const int blocksBeforeDisconnectedRoute = Blocks;
 	const std::string firstSectionBeforeDisconnectedRoute = signalling_block_sections[0].ID;
