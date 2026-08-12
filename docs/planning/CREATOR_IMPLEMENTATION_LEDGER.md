@@ -7,12 +7,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `1f095b2bfe7c95bc6b68940349a9357c43c49468`
-- Current milestone: PR 6, reproducible exports and UI-only seventh-case proof
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-acceptance`
-- Current branch: `feature/result-provenance-creator-acceptance`
-- Current branch head: `095bfa554d43576d1eea52d5cc4d5d1f7c6e86ba`
-- Current PR: draft PR #295, `Add reproducible creator acceptance`
+- Reviewed product `origin/main`: `cfa2bcc73b8fc1031888cbb9a71c7057a17a7f46`
+- Final milestone: complete
+- Ledger closeout worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-final-review`
+- Ledger closeout branch: `docs/final-creator-ledger`
+- Current implementation PR: none
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
@@ -23,8 +22,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - PR #293, `Add entrance delay scenario authoring`, merged as
     `10f15b5ba6f52715adcc390519204de4169ba77c`;
   - PR #294, `Add passenger and platform authoring`, merged as
-    `1f095b2bfe7c95bc6b68940349a9357c43c49468`.
-- Open milestone dependencies: PR 6 depends on merged PRs #290 through #294. Issues #85 and #86 remain parity gates.
+    `1f095b2bfe7c95bc6b68940349a9357c43c49468`;
+  - PR #295, `Add reproducible creator acceptance`, merged as
+    `cfa2bcc73b8fc1031888cbb9a71c7057a17a7f46`.
+- Open follow-up work: #85 and #86 retain historical original-case parity evidence; #296 tracks one optional
+  route-choice sharing defect. None blocks the demonstrated native seventh-case workflow.
 
 ## Planning-baseline creator gaps
 
@@ -168,9 +170,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Closed by PR #292: #287.
 - Closed by PR #293: #126.
 - Closed by PR #294: #164 and #288.
-- Current milestone: #129 and #289.
+- Closed by PR #295: #129 and #289.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
+- Created after the merged-main review: #296, optional route-choice sharing uses hard-coded Paimpol data.
 - Authoritative-data dependencies only: #181, #182, #228.
 - No issue comments or open PRs newer than the planning review changed PR 1 scope.
 
@@ -594,6 +597,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   portions of #85 and #86 passed. Those two issues remain open because their separate historical acceptance also
   asks for retained pre-cutover artifact comparisons and explicit expanded-train baselines; this execution does
   not invent or silently claim that missing historical evidence.
+- PR #295 exact-head CI passed both jobs. The sanitizer job completed in 13 minutes 51 seconds. The build job
+  completed in 19 minutes 50 seconds and passed CTest plus the headless, editor, round-trip, bundle, Assignment,
+  incident, render, track-preview, and visual smokes.
+- PR #295 merged as `cfa2bcc73b8fc1031888cbb9a71c7057a17a7f46`; issues #129 and #289 closed with the merge. The merge tree is
+  identical to reviewed branch head `1f4789281674bd925c5ad80d5753d830a93a368d`.
 
 ## Review record
 
@@ -630,6 +638,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   simplified state machine cannot emit its final marker early, that the wrapper still parses all 15 result
   artifacts and sidecars, and that no provenance or double-switch production path was weakened. Its seven-test
   focused gate, direct creator smoke, and both diff checks passed.
+- The independent final merged-main review at `cfa2bcc` found no P0 or P1 application issue and returned
+  `Creator complete with minor gaps`. It independently configured and built Qt 5, passed the direct creator
+  acceptance smoke, passed 9 of 9 focused scene/result/operations tests, passed the editor smoke after its seven
+  scene tests, and found the worktree clean. It traced public authoring, pending commits, reference integrity,
+  validation, folder and bundle persistence, native staging, scenario and passenger effects, result inspection,
+  paired provenance exports, and stale-result invalidation.
+- The same review found one P2 outside the required native acceptance path: `-RC 1` still publishes random
+  passengers from ten hard-coded Paimpol stations instead of the active scene. The standard native creator path
+  runs with this optional ZeroMQ integration disabled. Issue #296 records the defect and a synthetic acceptance.
 
 - The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `538ac72`. It traced native
   passenger preflight and no-mutation behavior, importer station resolution, occurrence filtering, passenger
@@ -937,10 +954,16 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 5 are complete. PR 6 implementation, local regression, correctness, and Ponytail gates are clean.
-  Current-head CI, merge, and the independent merged-main completeness review remain before the verdict can change.
+- None for the required native creator workflow. The final verdict is `Creator complete with minor gaps` because
+  optional route-choice sharing remains case-specific under #296.
+
+### Historical verification debt
+
+- #85 and #86 remain open. Current native structure, movement, station, round-trip, and bundle checks pass, but
+  the issues separately require named pre-cutover artifacts, explicit expanded-train counts, and historical
+  result comparisons. They do not block a newly authored seventh case.
 
 ## Next action
 
-Commit and push this final verification record, wait for exact-head CI, merge PR #295, then run the independent
-creator-completeness review against merged `origin/main` and finalize the ledger.
+No application implementation milestone remains. Follow-up work is #296, historical parity evidence under
+#85/#86, and authoritative Assignment data under #181/#182/#228.
