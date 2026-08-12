@@ -1,14 +1,49 @@
 # EGTRAIN
 
+![EGTRAIN application overview](docs/images/application-overview.png)
+
+![EGTRAIN Copenhagen network view](docs/images/application-network-view.png)
+
 EGTRAIN is a desktop application for microscopic railway simulation. It
 combines railway infrastructure, signalling, rolling stock, services,
 timetables, and passenger demand in an interactive Qt interface.
 
-The application is built for students and railway researchers who want to
-create and study operating scenarios without editing collections of legacy
-text files by hand. A complete workflow stays inside EGTRAIN: open a case
-study, inspect or edit its trains and services, run the simulation, examine
-the diagrams, and export data for reports or further analysis.
+## Start here
+
+### Download and run existing scenes
+
+Download a platform package and one or more `.egscene` case studies from the
+[EGTRAIN releases page](https://github.com/Ancientkingg/EGTRAIN/releases).
+Unpack the application for your platform, launch `QEGTRAIN`, then choose
+**File > Open Case Study...** and **Run Scene**. The release page provides
+macOS, Windows, and Linux application packages plus the six canonical scenes.
+
+For a source checkout, launch without arguments to open the Netherlands scene,
+or use `-n 1` through `-n 6` to select another included case study. See
+[Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) for the
+downloaded-bundle workflow.
+
+### Create or edit scenes
+
+Use **File > Open Scene Folder...** for an editable canonical V1 scene
+directory, or **File > Open Case Study...** for an `.egscene` bundle. Save a
+new bundle with **File > Save Case Study As...**. V1 directories remain the
+editable source of truth; V2 bundles package the same JSON for transport.
+
+Legacy input is a compatibility boundary, not the normal runtime path. Use
+**File > Load Legacy Case...** or `scene_tool import` to create a canonical
+scene, and use `scene_tool export` only when an external legacy tool needs
+interoperability files. The importer does not modify its source.
+
+- [Using EGTRAIN and authoring V1 scenes](docs/guides/scenes-and-application.md)
+- [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md)
+- [V1 scene property reference](docs/guides/v1-scene-properties.md)
+
+### Develop or contribute
+
+Start with the [build and test guide](docs/development/build-and-test.md),
+then read the [scene model architecture](docs/architecture/scene-model.md)
+before changing scene loading, conversion, simulation setup, or persistence.
 
 ## What EGTRAIN does
 
@@ -48,7 +83,7 @@ EGTRAIN includes six canonical railway scenes:
 - Assignment Gvc-Gdg-Ut
 - Lebanon teaching baseline
 
-They can be selected with the `-n` command-line option:
+Select them with the `-n` command-line option:
 
 - `-n 1`: Netherlands
 - `-n 2`: Paimpol
@@ -57,24 +92,25 @@ They can be selected with the `-n` command-line option:
 - `-n 5`: Assignment Gvc-Gdg-Ut
 - `-n 6`: Lebanon
 
-## Build
+## Build from source
 
 Requirements:
 
 - CMake 3.16 or newer
 - C++17 compiler
-- Qt 5 Core, Gui, Widgets, and Charts
+- Qt 5 Core, Gui, Widgets, Charts, and Svg
 - OpenMP runtime
 - ZeroMQ, cppzmq, and nlohmann-json
 
-Configure and build:
+Configure and build from the repository root:
 
 ```bash
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
 cmake --build build
 ```
 
-On macOS with Homebrew Qt 5:
+On macOS with Homebrew Qt 5, install the dependencies if they are not already
+available:
 
 ```bash
 brew install qt@5 libomp zeromq cppzmq nlohmann-json
@@ -82,29 +118,42 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/o
 cmake --build build
 ```
 
-## Run
+## Run a local build
 
-Run the built application from the repository root or from its installed
-package:
+Run the application from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
+After a successful build, use the executable for your platform:
 
-```bash
-./build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+```text
+# macOS
+../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+
+# Windows PowerShell, multi-config generator
+..\..\build\Release\QEGTRAIN.exe
+
+# Linux
+../../build/QEGTRAIN
 ```
 
-Launching without arguments opens the graphical application with the
-Netherlands case study. Command-line options can select another case or
-configure an automated run. For example:
+A single-config Windows build may place the executable at
+`..\..\build\QEGTRAIN.exe` instead. These are local build paths, not a claim
+that a package has been installed.
 
-```bash
-./build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \
-  -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
+Useful options include:
+
+```text
+-n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
+--scene path/to/case.egscene
+--interactive
 ```
 
-Use `--scene path/to/case.egscene` to open a portable case-study bundle, or pass
-a canonical V1 scene directory while authoring. See
-[Opening an `.egscene` case study](docs/guides/opening-a-case-study.md).
+By default, runtime output is written to
+`<Qt AppDataLocation>/Output/<scene>`, not necessarily to a repository
+directory. Set `QEGTRAIN_OUTPUT_DIR` to choose the base directory; EGTRAIN
+then writes `<that-directory>/Output/<scene>`:
 
-Add `--interactive` to use the legacy terminal questionnaire.
+```bash
+QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
+```
 
 ## Test
 
@@ -116,18 +165,18 @@ tools/e2e/headless_smoke.py
 tools/e2e/visual_polish_smoke.sh
 ```
 
-The smoke tests cover all six scenes and check application startup,
-train movement, trajectory samples, served-station output, and the graphical
-interface.
+The smoke tests cover all six scenes and check application startup, train
+movement, trajectory samples, served-station output, and the graphical
+interface. See the [build and test guide](docs/development/build-and-test.md)
+for focused labels, round-trip checks, CI branch roles, and failure artifacts.
 
 ## Documentation
 
-- [Application and scene guide](docs/guides/scenes-and-application.md)
-- [Scene property reference](docs/guides/v1-scene-properties.md)
+- [Scene schema reference](docs/architecture/scene-schema.md)
+- [Scene bundle format](docs/architecture/scene-bundle.md)
+- [Release testing checklist](docs/development/release-testing-checklist.md)
 - [Assignment corridor](docs/product/assignment-corridor.md)
 - [Assignment workflow](docs/product/assignment-workflow.md)
-- [Scene model architecture](docs/architecture/scene-model.md)
-- [Build and test guide](docs/development/build-and-test.md)
 
 ## Repository layout
 
@@ -139,5 +188,3 @@ tools/e2e/               End-to-end smoke tests
 tools/golden_master/     Output comparison helpers
 docs/                    User, architecture, and development documentation
 ```
-
-Runtime output is written under `EGTRAIN/QEGTRAIN/Output/` and is ignored by git.
