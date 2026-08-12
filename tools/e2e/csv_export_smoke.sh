@@ -31,10 +31,16 @@ for name in trajectory timetable run_summary; do
 		echo "missing or empty export: $OUTDIR/$name.csv" >&2
 		exit 1
 	fi
+	if [[ ! -s "$OUTDIR/$name.csv.provenance.json" ]]; then
+		echo "missing or empty provenance sidecar: $OUTDIR/$name.csv.provenance.json" >&2
+		exit 1
+	fi
 done
 
 # The blocking-time export also carries the visible planned reference layer.
 if [[ -s "$OUTDIR/blocking_time.csv" ]]; then
+	[[ -s "$OUTDIR/blocking_time.csv.provenance.json" ]] \
+		|| { echo "missing blocking_time.csv provenance sidecar" >&2; exit 1; }
 	head -n1 "$OUTDIR/blocking_time.csv" | grep -q "^Train,Block,Occupation start\[s\]" \
 		|| { echo "blocking_time.csv header mismatch" >&2; exit 1; }
 	grep -q ",planned reference," "$OUTDIR/blocking_time.csv" \
@@ -49,6 +55,8 @@ head -n1 "$OUTDIR/timetable.csv" | grep -q "^Train,Station,Journey order,Operati
 head -n1 "$OUTDIR/run_summary.csv" | grep -q "^Train,Operating code,Performance \[%\],Applied maximum speed \[km/h\],Start\[s\],End\[s\],Travel time\[s\]" \
 	|| { echo "run_summary.csv header mismatch" >&2; exit 1; }
 if [[ -s "$OUTDIR/capacity_analysis.csv" ]]; then
+	[[ -s "$OUTDIR/capacity_analysis.csv.provenance.json" ]] \
+		|| { echo "missing capacity_analysis.csv provenance sidecar" >&2; exit 1; }
 	head -n1 "$OUTDIR/capacity_analysis.csv" | grep -q "^Record type,Leader,Follower,Identity,Operating code,Original reference\[s\].*Cycle time\[s\],Period\[s\],Cycle / period \[%\],Section,Reference label,Reference source" \
 		|| { echo "capacity_analysis.csv header mismatch" >&2; exit 1; }
 	for record in summary pair compression critical; do
@@ -71,6 +79,44 @@ else
 	grep -q "E2E_CAPACITY_EXPORT_UNAVAILABLE" "$LOG" \
 		|| { echo "capacity export was skipped without an explicit unavailable marker" >&2; exit 1; }
 fi
+
+python3 - "$SCENE" "$OUTDIR" <<'PY'
+import json
+import os
+import re
+import sys
+
+scene, output = map(os.path.abspath, sys.argv[1:])
+artifacts = ["trajectory.csv", "timetable.csv", "run_summary.csv"]
+artifacts += [name for name in ("blocking_time.csv", "capacity_analysis.csv")
+              if os.path.exists(os.path.join(output, name))]
+for name in artifacts:
+    with open(os.path.join(output, name + ".provenance.json"), encoding="utf-8") as stream:
+        document = json.load(stream)
+    assert document["schema_version"] == 1
+    assert document["artifact"] == {"kind": "csv", "file_name": name}
+    run = document["run"]
+    assert run["case_name"] == "Paimpol"
+    assert run["scene_schema_version"] == 1
+    assert run["applied_scenario"] == "baseline"
+    assert run["base_time_seconds"] == 7 * 3600 + 10 * 60 + 40
+    assert run["duration_seconds"] == 8000
+    assert run["timestep_seconds"] == 1
+    assert run["buffer_seconds"] == 0
+    assert run["recovery_percent"] == 0
+    assert run["pax_mode"] == run["tsm_mode"] == run["route_choice_mode"] == 0
+    snapshot = run["input"]
+    assert snapshot["kind"] == "directory"
+    assert snapshot["path"] == scene
+    assert snapshot["dirty"] is False
+    assert snapshot["reproducible"] is True
+    assert snapshot["status"] == "reproducible"
+    assert snapshot["reason"] == ""
+    assert re.fullmatch(r"[0-9a-f]{64}", snapshot["sha256"])
+    occurrences = run["selected_occurrences"]
+    assert occurrences
+    assert all(item["service_id"] and item["occurrence"] >= 1 for item in occurrences)
+PY
 
 # Trajectory and timetable must carry data rows, not just a header.
 traj_rows=$(($(wc -l < "$OUTDIR/trajectory.csv") - 1))

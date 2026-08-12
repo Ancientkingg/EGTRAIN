@@ -203,6 +203,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Station and service rename/delete integrity now includes passenger journey and leg references. The public
   smoke covers passenger/journey/leg add, edit, move, delete, import, focused Save, folder/bundle reopen, and
   native passenger/platform staging without private model mutation for the claimed authoring operations.
+- PR 6 captures immutable case, schema, saved-input hash/status, scenario, effective settings, modes, and exact
+  staged service occurrences after native preparation. Existing CSV schemas remain unchanged; CSV and PNG
+  exports receive atomic `.provenance.json` sidecars, and delay comparison sidecars retain both runs.
 
 ## Verification record
 
@@ -519,6 +522,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   six-case round-trip (`ROUNDTRIP PASS`), Assignment, and DPR 1/DPR 2 visual-polish smokes passed. All six
   committed scenes validated with exit 0. GitHub build and sanitizer jobs passed at the exact final head.
 - PR #294 merged as `1f095b2bfe7c95bc6b68940349a9357c43c49468`; issues #164 and #288 closed with the merge.
+- PR 6 baseline configured and built successfully from merged main `1f095b2`. `test_runresults` and
+  `test_csv_export_smoke` passed 2 of 2 in 7.27 seconds. The baseline editor smoke passed after all 7
+  scene tests passed.
+- After the provenance implementation and removal of a test-only DiagramWindow compile branch, the focused
+  `test_runresults`, `test_diagramwindow`, and `test_csv_export_smoke` gate passed 3 of 3 in 7.18 seconds.
+  The strengthened CSV smoke then passed alone in 6.40 seconds and verified Paimpol's exact case/schema,
+  directory snapshot path and SHA-256, clean reproducible status, baseline scenario, effective run settings,
+  modes, and selected occurrence records for every emitted artifact.
 
 ## Review record
 
@@ -806,10 +817,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 5 are complete. PR 6 remains open: immutable export provenance and the public UI-only
-  seventh-case acceptance proof.
+- PRs 1 through 5 are complete. PR 6 export provenance is implemented and focused tests pass. The remaining
+  blocker is the public UI-only seventh-case acceptance proof and its complete regression gate.
 
 ## Next action
 
-Configure and build the clean PR 6 worktree at `1f095b2`, run the focused results/export baseline, then implement
-immutable run provenance and additive CSV/PNG sidecars before adding the public seventh-case creator smoke.
+Commit the verified provenance checkpoint, then add the public seventh-case creator smoke from a blank process
+through New Case, public folder/bundle persistence, native runs, result exports, and stale-result invalidation.

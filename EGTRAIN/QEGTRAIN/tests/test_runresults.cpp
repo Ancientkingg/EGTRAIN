@@ -4,6 +4,14 @@
 #include "simulation/Simulation.h"
 #include "util/Logger.hpp"
 
+#include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QTemporaryDir>
+
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -21,6 +29,18 @@ static bool expect(bool condition, const char* message) {
 
 static bool closeTo(double actual, double expected) {
 	return std::fabs(actual - expected) < 1e-9;
+}
+
+static bool writeBytes(const QString& path, const QByteArray& bytes) {
+	QFile file(path);
+	return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+}
+
+static QJsonObject readJsonObject(const QString& path) {
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return {};
+	return QJsonDocument::fromJson(file.readAll()).object();
 }
 
 static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
@@ -595,6 +615,101 @@ int main() {
 		const DelayComparisonResult incompleteResult = compareDelayRuns(incompleteBaseline, incompleteScenario);
 		ok &= expect(!incompleteResult.valid,
 				"delay comparison rejects an unavailable final destination arrival");
+	}
+
+	{
+		QTemporaryDir temp;
+		ok &= expect(temp.isValid(), "temporary directory for provenance tests is available");
+		const QString sceneDir = temp.filePath("scene");
+		QDir().mkpath(sceneDir);
+		const std::vector<QString> sceneFiles = {
+			"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			"rolling_stock.json", "services.json", "scenarios.json", "incidents.json", "passengers.json"};
+		for (const QString& file : sceneFiles)
+			ok &= expect(writeBytes(QDir(sceneDir).filePath(file), ("{" + file + "}").toUtf8()),
+				"accepted scene input is written");
+		const std::string directoryHash = hashSceneDirectory(sceneDir.toStdString());
+		ok &= expect(!directoryHash.empty() && directoryHash == hashSceneDirectory(sceneDir.toStdString()),
+				"directory hash is deterministic");
+		ok &= expect(writeBytes(QDir(sceneDir).filePath("services.json"), "{services changed}"),
+				"directory input can be changed");
+		ok &= expect(directoryHash != hashSceneDirectory(sceneDir.toStdString()),
+				"directory hash changes when an accepted file changes");
+
+		const QString bundlePath = temp.filePath("case.egscene");
+		ok &= expect(writeBytes(bundlePath, "bundle bytes\n"), "bundle input is written");
+		const std::string bundleHash = hashSceneBundle(bundlePath.toStdString());
+		ok &= expect(!bundleHash.empty() && bundleHash == hashSceneBundle(bundlePath.toStdString()),
+				"bundle hash is deterministic");
+		ok &= expect(writeBytes(bundlePath, "bundle bytes changed\n"), "bundle input can be changed");
+		ok &= expect(bundleHash != hashSceneBundle(bundlePath.toStdString()),
+				"bundle hash changes when exact bytes change");
+
+		const RunInputProvenance clean = captureSavedInput(sceneDir.toStdString(), "directory", false);
+		ok &= expect(clean.reproducible && clean.status == "reproducible"
+				&& clean.path == QFileInfo(sceneDir).absoluteFilePath().toStdString()
+				&& !clean.sha256.empty(), "clean saved directory is reproducible with an absolute path");
+		const RunInputProvenance dirty = captureSavedInput(sceneDir.toStdString(), "directory", true);
+		ok &= expect(!dirty.reproducible && dirty.dirty && dirty.status == "non-reproducible"
+				&& dirty.reason.find("dirty") != std::string::npos,
+				"dirty saved input is marked non-reproducible with a reason");
+		const RunInputProvenance unsaved = captureSavedInput({}, "directory", false);
+		ok &= expect(unsaved.kind == "unsaved" && !unsaved.reproducible
+				&& unsaved.reason.find("unsaved") != std::string::npos,
+				"unsaved input is marked non-reproducible with a reason");
+		const RunInputProvenance unreadable = captureSavedInput(temp.filePath("missing").toStdString(),
+			"directory", false);
+		ok &= expect(!unreadable.reproducible
+				&& unreadable.reason.find("missing or unreadable") != std::string::npos,
+				"unreadable saved input is marked non-reproducible with a reason");
+
+		RunProvenance provenance;
+		provenance.caseName = "Case \"quoted\" \\ path";
+		provenance.sceneSchemaVersion = 1;
+		provenance.input = clean;
+		provenance.appliedScenario = "scenario/\\quoted";
+		provenance.baseTimeSeconds = 3600.0;
+		provenance.durationSeconds = 7200.0;
+		provenance.timestepSeconds = 0.5;
+		provenance.bufferSeconds = 7.0;
+		provenance.recoveryPercent = 12.5;
+		provenance.paxMode = 1;
+		provenance.tsmMode = 2;
+		provenance.routeChoiceMode = 3;
+		provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
+		const QString artifactPath = temp.filePath("result.csv");
+		ok &= expect(writeBytes(artifactPath, "header\nrow\n"), "normal artifact is written");
+		ok &= expect(writeRunProvenanceSidecar(artifactPath.toStdString(), "csv", provenance),
+				"normal provenance sidecar is written atomically");
+		const QJsonObject sidecar = readJsonObject(artifactPath + ".provenance.json");
+		const QJsonObject run = sidecar.value("run").toObject();
+		const QJsonObject input = run.value("input").toObject();
+		const QJsonArray occurrences = run.value("selected_occurrences").toArray();
+		ok &= expect(sidecar.value("schema_version").toInt() == 1
+				&& sidecar.value("artifact").toObject().value("kind").toString() == "csv"
+				&& sidecar.value("artifact").toObject().value("file_name").toString() == "result.csv",
+				"normal sidecar has schema and artifact fields");
+		ok &= expect(run.value("case_name").toString() == QString::fromStdString(provenance.caseName)
+				&& run.value("applied_scenario").toString() == QString::fromStdString(provenance.appliedScenario)
+				&& input.value("path").toString() == QString::fromStdString(clean.path)
+				&& input.value("sha256").toString() == QString::fromStdString(clean.sha256),
+				"sidecar preserves escaped JSON fields and saved-input fields");
+		ok &= expect(occurrences.size() == 2
+				&& occurrences.at(0).toObject().value("service_id").toString() == "service-A"
+				&& occurrences.at(0).toObject().value("occurrence").toInt() == 2
+				&& occurrences.at(0).toObject().value("operating_code").toString() == "A\\\"2",
+				"sidecar preserves exact selected occurrence identities");
+
+		RunProvenance scenario = provenance;
+		scenario.appliedScenario = "incident";
+		const QString delayArtifact = temp.filePath("delay.csv");
+		ok &= expect(writeBytes(delayArtifact, "header\n"), "delay artifact is written");
+		ok &= expect(writeDelayProvenanceSidecar(delayArtifact.toStdString(), "csv", provenance, scenario),
+				"delay sidecar is written with two runs");
+		const QJsonObject delaySidecar = readJsonObject(delayArtifact + ".provenance.json");
+		ok &= expect(delaySidecar.value("baseline_run").toObject().value("applied_scenario").toString() == "scenario/\\quoted"
+				&& delaySidecar.value("scenario_run").toObject().value("applied_scenario").toString() == "incident",
+				"delay sidecar keeps baseline and scenario provenance distinct");
 	}
 
 	if (!ok)

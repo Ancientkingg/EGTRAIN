@@ -104,6 +104,23 @@ QString sceneSectionDisplayLabel(const SceneSectionDescriptor& section) {
 			QString::fromStdString(section.firstTrackId));
 }
 
+QString completedRunContext(const RunProvenance& provenance) {
+	const QString caseName = QString::fromStdString(provenance.caseName);
+	const QString scenario = QString::fromStdString(provenance.appliedScenario);
+	if (caseName.isEmpty())
+		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
+	if (scenario.isEmpty())
+		return caseName;
+	return QStringLiteral("%1 / %2").arg(caseName, scenario);
+}
+
+void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
+	window->setProvenanceWriter([provenance = std::move(provenance)](
+			const QString& path, const char* kind) {
+		return writeRunProvenanceSidecar(path.toStdString(), kind, provenance);
+	});
+}
+
 void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,
 		const std::string& current, bool allowNone, const QString& noneLabel) {
 	if (!combo)
@@ -1093,9 +1110,16 @@ bool writeCsvFile(const QString& path, const std::string& content) {
 	return file.write(bytes) == bytes.size() && file.commit();
 }
 
+bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
+		const RunProvenance& provenance) {
+	return writeCsvFile(path, content)
+		&& writeRunProvenanceSidecar(path.toStdString(), "csv", provenance);
+}
+
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
 // failure never leaves a partial file behind.
-void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content) {
+void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content,
+		const std::function<bool(const QString&)>& sidecarWriter = {}) {
 	if (content.empty()) {
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
@@ -1115,6 +1139,10 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std
 	if (file.write(bytes) != bytes.size() || !file.commit()) {
 		QMessageBox::warning(parent, "Export failed",
 							 QString("Could not write the data to:\n%1").arg(path));
+	} else if (sidecarWriter && !sidecarWriter(path)) {
+		QMessageBox::warning(parent, "Export warning",
+							 QString("The CSV was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+								.arg(path));
 	}
 }
 
@@ -3875,6 +3903,8 @@ void MainWindow::invalidateRunResults() {
 	m_appliedScenarioId.clear();
 	m_completedRunResults = RunResults();
 	m_completedTimetableResults.clear();
+	m_pendingRunProvenance = RunProvenance();
+	m_completedRunProvenance = RunProvenance();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)
@@ -15776,6 +15806,30 @@ bool MainWindow::showRunReview() {
 	return false;
 }
 
+RunProvenance MainWindow::captureRunProvenance() const {
+	RunProvenance provenance;
+	provenance.caseName = m_sceneModel.name;
+	provenance.sceneSchemaVersion = m_sceneModel.schemaVersion;
+	provenance.input = captureSavedInput(m_sceneDir.toStdString(),
+		m_sceneIsBundle ? "bundle" : "directory", m_sceneDirty);
+	provenance.appliedScenario = m_appliedScenarioId;
+	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
+	provenance.durationSeconds = initial_variables.times;
+	provenance.timestepSeconds = timestep;
+	provenance.bufferSeconds = bufferTime;
+	provenance.recoveryPercent = recoveryTimePercentage;
+	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
+	provenance.tsmMode = initial_variables.TSM;
+	provenance.routeChoiceMode = initial_variables.RChoice;
+	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	for (int index = 0; index < numRegions; ++index) {
+		const Train& train = regional_train[index];
+		provenance.selectedOccurrences.push_back({train.serviceId, train.serviceOccurrence,
+			train.operatingCode});
+	}
+	return provenance;
+}
+
 DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 	DelayRunSnapshot snapshot;
 	if (!m_resultsAvailable || m_completedRunResults.trains.empty())
@@ -15793,6 +15847,7 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
 		break;
 	}
+	snapshot.provenance = m_completedRunProvenance;
 	snapshot.run = m_completedRunResults;
 	snapshot.timetable = m_completedTimetableResults;
 	return snapshot;
@@ -15832,7 +15887,7 @@ void MainWindow::showDelayComparison() {
 	dialog.resize(1180, 520);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
 	QLabel* context = new QLabel(QString("Baseline: %1 | Scenario: %2 | Total positive arrival delay: %3 s")
-		.arg(QString::fromStdString(m_delayBaseline->scenarioId), QString::fromStdString(scenario.scenarioId))
+		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance))
 		.arg(comparison.totalArrivalDelay.available ? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-")), &dialog);
 	context->setWordWrap(true);
 	layout->addWidget(context);
@@ -15871,8 +15926,15 @@ void MainWindow::showDelayComparison() {
 	QHBoxLayout* actions = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export CSV...", &dialog);
 	exportButton->setObjectName("delayComparisonExportCsvButton");
-	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison]() {
-		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison));
+	const RunProvenance baselineProvenance = m_delayBaseline->provenance;
+	const RunProvenance scenarioProvenance = scenario.provenance;
+	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison,
+			baselineProvenance, scenarioProvenance]() {
+		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison),
+			[baselineProvenance, scenarioProvenance](const QString& path) {
+				return writeDelayProvenanceSidecar(path.toStdString(), "csv", baselineProvenance,
+					scenarioProvenance);
+			});
 	});
 	actions->addWidget(exportButton);
 	actions->addStretch();
@@ -15923,10 +15985,13 @@ void MainWindow::onSimulationFinished() {
 	if (m_resultsAvailable) {
 		const auto trains = runResultTrainPointers();
 		// Freeze result values before a subsequent run replaces the runtime trains.
+		m_completedRunProvenance = m_pendingRunProvenance;
 		m_completedRunResults = buildRunResults(trains, timestep);
 		m_completedTimetableResults = buildTimetableResults(trains);
 		refreshRunResults();
 	} else {
+		m_pendingRunProvenance = RunProvenance();
+		m_completedRunProvenance = RunProvenance();
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
@@ -15938,6 +16003,7 @@ void MainWindow::onSimulationFinished() {
 			m_runResultsDock->hide();
 		}
 	}
+	m_pendingRunProvenance = RunProvenance();
 	refreshLoadedDataTree();
 
 	// verification hook: write every CSV export from the completed run, then exit
@@ -15945,8 +16011,14 @@ void MainWindow::onSimulationFinished() {
 		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_EXPORT_DIR");
 		const QStringList ids = allTrainIds();
 		// Skip an export with no rows, matching the interactive "nothing to export".
-		const auto dump = [&dir](const QString& file, const std::string& content) {
-			return content.empty() ? true : writeCsvFile(dir + "/" + file, content);
+		const auto dump = [&dir, this](const QString& file, const std::string& content) {
+			if (content.empty())
+				return true;
+			const QString path = dir + "/" + file;
+			if (writeCsvFileWithProvenance(path, content, m_completedRunProvenance))
+				return true;
+			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
+			return false;
 		};
 		bool ok = m_resultsAvailable;
 		if (ok) {
@@ -16131,6 +16203,7 @@ void MainWindow::runScene() {
 	refreshLoadedDataTree();
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
+	m_pendingRunProvenance = captureRunProvenance();
 
 	setupGUI();
 	fitView();
@@ -16825,7 +16898,11 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
-		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults));
+		const RunProvenance provenance = m_completedRunProvenance;
+		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults),
+			[provenance](const QString& path) {
+				return writeRunProvenanceSidecar(path.toStdString(), "csv", provenance);
+			});
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
 	exportPngBtn->setObjectName("resultView_ExportPNG");
@@ -16838,7 +16915,11 @@ void MainWindow::setupRunResultsDock() {
 			path += ".png";
 		if (!m_runResultsTable->grab().save(path, "PNG"))
 			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
-	});
+		else if (!writeRunProvenanceSidecar(path.toStdString(), "png", m_completedRunProvenance))
+			QMessageBox::warning(this, "Export warning",
+				QString("The image was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+					.arg(path));
+		});
 	QHBoxLayout* toolRow = new QHBoxLayout();
 	toolRow->addWidget(exportCsvBtn);
 	toolRow->addWidget(exportPngBtn);
@@ -16872,15 +16953,15 @@ void MainWindow::refreshRunResults() {
 			++destinationTerminationCount;
 	}
 	if (m_runResultsSummaryLabel) {
-		QString summary = QString("Case: %1 | Scenario: %2 | Occurrences: %3/%4 selected | Status: Completed | Direct incident evidence: %5 | Destination terminations: %6")
-			.arg(QString::fromStdString(m_sceneModel.name), scenarioContext())
+		QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed | Direct incident evidence: %4 | Destination terminations: %5")
+			.arg(completedRunContext(m_completedRunProvenance))
 			.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences)
 			.arg(directEvidenceCount).arg(destinationTerminationCount);
 		if (m_delayBaseline)
-			summary += QString(" | Delay baseline: %1").arg(QString::fromStdString(m_delayBaseline->scenarioId));
+			summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
 		m_runResultsSummaryLabel->setText(summary);
 	}
-	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(scenarioContext()));
+	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(completedRunContext(m_completedRunProvenance)));
 
 	const RunResults& results = m_completedRunResults;
 	const int totalColumns = 11;
@@ -18458,7 +18539,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 
 	QString title = "Train paths (time vs distance), corridor ";
 	title.append(QString::fromStdString(corridor));
-	title += QString(" [%1]").arg(scenarioContext());
+	title += QString(" [%1]").arg(completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 
 	for (int i = 0; i < numRegions; i++) {
@@ -18559,6 +18640,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "train_path.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18682,7 +18764,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	}
 
 	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
-	const QString title = QString("%1 [%2]").arg(titles[mode], scenarioContext());
+	const QString title = QString("%1 [%2]").arg(titles[mode], completedRunContext(m_completedRunProvenance));
 	QChart* chart = new QChart();
 	chart->setTitle(title);
 
@@ -18724,6 +18806,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "trajectory.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(mode == 1 || mode == 2, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18752,7 +18835,8 @@ void MainWindow::showTimetableTable() {
 
 	auto* window = new TimetableTableWindow(m_completedTimetableResults,
 									m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
-	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(scenarioContext()));
+	window->setRunProvenance(m_completedRunProvenance);
+	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(m_completedRunProvenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }
@@ -18764,7 +18848,7 @@ void MainWindow::showDelayDiagram() {
 	}
 
 	QChart* chart = new QChart();
-	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(scenarioContext());
+	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 	const auto& rows = m_completedTimetableResults;
 
@@ -18797,6 +18881,7 @@ void MainWindow::showDelayDiagram() {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(false, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18811,7 +18896,7 @@ void MainWindow::showTimetableGraph() {
 
 	QChart* chart = new QChart();
 	const QString title = QString("Train graph: planned vs simulated arrival/departure [%1]")
-		.arg(scenarioContext());
+		.arg(completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 	const auto rows = buildTimetableResults(runResultTrainPointers());
 
@@ -18879,6 +18964,7 @@ void MainWindow::showTimetableGraph() {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18923,7 +19009,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		.arg(routeScope,
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
-			scenarioContext());
+			completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 
 	addBlockingTimeSeries(chart, segments, false);
@@ -18982,6 +19068,7 @@ void MainWindow::showBlockingTimeDiagram() {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences);
 		};
 	win->setCsvProvider(snapshotCsv(scopedCsv), "blocking_time.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -19028,9 +19115,11 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 
+	const RunProvenance provenance = m_completedRunProvenance;
 	QDialog* dialog = new QDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
-	dialog->setWindowTitle(QString("Capacity analysis | %1").arg(sectionLabel));
+	dialog->setWindowTitle(QString("Capacity analysis | %1 [%2]").arg(sectionLabel,
+		completedRunContext(provenance)));
 	dialog->setModal(false);
 	dialog->resize(1050, 650);
 	auto* layout = new QVBoxLayout(dialog);
@@ -19124,12 +19213,15 @@ void MainWindow::showCapacityAnalysis() {
 
 	auto* buttons = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export capacity CSV...", dialog);
-	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel]() {
-		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel));
+	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
+		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel),
+			[provenance](const QString& path) {
+				return writeRunProvenanceSidecar(path.toStdString(), "csv", provenance);
+			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
-	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel]() {
-		showCompressedBlockingTimeDiagram(result, sectionLabel);
+	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
+		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance);
 	});
 	QPushButton* closeButton = new QPushButton("Close", dialog);
 	connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
@@ -19142,7 +19234,7 @@ void MainWindow::showCapacityAnalysis() {
 }
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
-	const QString& sectionLabel) {
+	const QString& sectionLabel, RunProvenance provenance) {
 	const std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(
 		result.compressedOccupations, result.trainIdentities);
 	if (segments.empty()) {
@@ -19150,9 +19242,9 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		return;
 	}
 	QChart* chart = new QChart();
-	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3")
+	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3 [%4]")
 		.arg(sectionLabel, QString::fromStdString(result.firstIdentity),
-			QString::fromStdString(result.cycleEndIdentity)));
+			QString::fromStdString(result.cycleEndIdentity), completedRunContext(provenance)));
 	addBlockingTimeSeries(chart, segments, true);
 	auto addKey = [chart](const QString& name, const QColor& color) {
 		auto* series = new QLineSeries();
@@ -19174,8 +19266,9 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
-		};
+	};
 	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv");
+	attachRunProvenance(window, std::move(provenance));
 	connect(window, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	window->setTimeAxisX(true, m_startOffsetSeconds);
 	window->setAttribute(Qt::WA_DeleteOnClose);
