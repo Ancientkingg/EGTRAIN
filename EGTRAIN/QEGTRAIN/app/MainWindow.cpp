@@ -20,6 +20,7 @@
 #include "scene/SceneImporter.h"
 #include "scene/SectionInventory.h"
 #include "scene/TrackPreview.h"
+#include "simulation/Passengers.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
@@ -72,6 +73,7 @@ constexpr int kSignalDecorationRole = 0;
 constexpr int kSignalTrackRole = 1;
 constexpr int kSignalBaseVisibleRole = 2;
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
+constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
@@ -128,6 +130,47 @@ void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& in
 		selected = combo->count() - 1;
 	}
 	combo->setCurrentIndex(selected >= 0 ? selected : (combo->count() > 0 ? 0 : -1));
+}
+
+void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneModel,
+		const std::string& current, const std::set<std::string>* allowed = nullptr) {
+	if (!combo)
+		return;
+	combo->clear();
+	for (const auto& station : sceneModel.stations) {
+		if (allowed && allowed->find(station.id) == allowed->end())
+			continue;
+		const QString label = station.name.empty()
+			? QString::fromStdString(station.id)
+			: QStringLiteral("%1 | %2").arg(QString::fromStdString(station.id),
+				QString::fromStdString(station.name));
+		combo->addItem(label, QString::fromStdString(station.id));
+	}
+	int selected = combo->findData(QString::fromStdString(current));
+	if (selected < 0) {
+		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
+			: QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
+			QString::fromStdString(current));
+		selected = combo->count() - 1;
+	}
+	combo->setCurrentIndex(selected);
+}
+
+void populatePassengerServiceCombo(QComboBox* combo, const SceneModel& sceneModel,
+		const std::string& current) {
+	if (!combo)
+		return;
+	combo->clear();
+	for (const auto& service : sceneModel.services)
+		combo->addItem(QString::fromStdString(service.id), QString::fromStdString(service.id));
+	int selected = combo->findData(QString::fromStdString(current));
+	if (selected < 0) {
+		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
+			: QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
+			QString::fromStdString(current));
+		selected = combo->count() - 1;
+	}
+	combo->setCurrentIndex(selected);
 }
 
 std::vector<const Train*> runResultTrainPointers() {
@@ -2755,6 +2798,197 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_entranceDelaySecondsEdit, &QAbstractSpinBox::editingFinished, this,
 		&MainWindow::commitEntranceDelaySeconds);
 
+	// Passenger authoring: a deliberately direct list/detail editor over the
+	// canonical SceneModel.  Journeys and legs remain nested under the selected
+	// passenger; no second tree model or transient copy is needed.
+	m_passengerDock = new QDockWidget("Passengers", this);
+	m_passengerDock->setObjectName("passengerDock");
+	QWidget* passengerWidget = new QWidget(m_passengerDock);
+	QHBoxLayout* passengerLayout = new QHBoxLayout(passengerWidget);
+	QWidget* passengerListPane = new QWidget(passengerWidget);
+	QVBoxLayout* passengerListLayout = new QVBoxLayout(passengerListPane);
+	passengerListLayout->addWidget(new QLabel("Passengers", passengerListPane));
+	m_passengerListWidget = new QListWidget(passengerListPane);
+	m_passengerListWidget->setObjectName("passengerListWidget");
+	m_passengerListWidget->setAccessibleName("Passengers");
+	passengerListLayout->addWidget(m_passengerListWidget, 1);
+	QHBoxLayout* passengerButtonLayout = new QHBoxLayout();
+	m_addPassengerButton = new QPushButton("Add", passengerListPane);
+	m_addPassengerButton->setObjectName("passengerAddButton");
+	m_deletePassengerButton = new QPushButton("Delete", passengerListPane);
+	m_deletePassengerButton->setObjectName("passengerDeleteButton");
+	passengerButtonLayout->addWidget(m_addPassengerButton);
+	passengerButtonLayout->addWidget(m_deletePassengerButton);
+	passengerListLayout->addLayout(passengerButtonLayout);
+	m_importPassengerButton = new QPushButton("Import...", passengerListPane);
+	m_importPassengerButton->setObjectName("passengerImportButton");
+	m_importPassengerButton->setToolTip("Import the exact legacy DAS and RouteChoice passenger pair; imported records are appended.");
+	passengerListLayout->addWidget(m_importPassengerButton);
+	passengerLayout->addWidget(passengerListPane);
+
+	QWidget* passengerDetailPane = new QWidget(passengerWidget);
+	QVBoxLayout* passengerDetailLayout = new QVBoxLayout(passengerDetailPane);
+	QFormLayout* passengerForm = new QFormLayout();
+	m_passengerIdEdit = new QLineEdit(passengerDetailPane);
+	m_passengerIdEdit->setObjectName("passengerIdEdit");
+	passengerForm->addRow("Passenger ID", m_passengerIdEdit);
+	passengerDetailLayout->addLayout(passengerForm);
+	m_passengerDiagnosticLabel = new QLabel(passengerDetailPane);
+	m_passengerDiagnosticLabel->setObjectName("passengerDiagnosticLabel");
+	m_passengerDiagnosticLabel->setWordWrap(true);
+	m_passengerDiagnosticLabel->setStyleSheet("color: #d9822b;");
+	passengerDetailLayout->addWidget(m_passengerDiagnosticLabel);
+
+	m_passengerTabs = new QTabWidget(passengerDetailPane);
+	m_passengerTabs->setObjectName("passengerEditorTabs");
+
+	QWidget* journeysPane = new QWidget(m_passengerTabs);
+	QHBoxLayout* journeysLayout = new QHBoxLayout(journeysPane);
+	QWidget* journeyListPane = new QWidget(journeysPane);
+	QVBoxLayout* journeyListLayout = new QVBoxLayout(journeyListPane);
+	journeyListLayout->addWidget(new QLabel("Journeys", journeyListPane));
+	m_passengerJourneyListWidget = new QListWidget(journeyListPane);
+	m_passengerJourneyListWidget->setObjectName("passengerJourneyListWidget");
+	journeyListLayout->addWidget(m_passengerJourneyListWidget, 1);
+	QHBoxLayout* journeyButtons = new QHBoxLayout();
+	m_addPassengerJourneyButton = new QPushButton("Add", journeyListPane);
+	m_addPassengerJourneyButton->setObjectName("passengerJourneyAddButton");
+	m_deletePassengerJourneyButton = new QPushButton("Delete", journeyListPane);
+	m_deletePassengerJourneyButton->setObjectName("passengerJourneyDeleteButton");
+	journeyButtons->addWidget(m_addPassengerJourneyButton);
+	journeyButtons->addWidget(m_deletePassengerJourneyButton);
+	journeyListLayout->addLayout(journeyButtons);
+	journeysLayout->addWidget(journeyListPane);
+
+	QWidget* journeyDetailPane = new QWidget(journeysPane);
+	QFormLayout* journeyForm = new QFormLayout(journeyDetailPane);
+	m_passengerJourneyIdEdit = new QLineEdit(journeyDetailPane);
+	m_passengerJourneyIdEdit->setObjectName("passengerJourneyIdEdit");
+	journeyForm->addRow("Journey ID", m_passengerJourneyIdEdit);
+	m_passengerJourneyActivityEdit = new QLineEdit(journeyDetailPane);
+	m_passengerJourneyActivityEdit->setObjectName("passengerJourneyActivityEdit");
+	journeyForm->addRow("Activity", m_passengerJourneyActivityEdit);
+	m_passengerJourneyOriginCombo = new QComboBox(journeyDetailPane);
+	m_passengerJourneyOriginCombo->setObjectName("passengerJourneyOriginCombo");
+	journeyForm->addRow("Origin station", m_passengerJourneyOriginCombo);
+	m_passengerJourneyDestinationCombo = new QComboBox(journeyDetailPane);
+	m_passengerJourneyDestinationCombo->setObjectName("passengerJourneyDestinationCombo");
+	journeyForm->addRow("Destination station", m_passengerJourneyDestinationCombo);
+	const std::array<std::pair<const char*, const char*>, 4> passengerWindowFields = {
+		std::make_pair("Departure start (s)", "passengerDepartureStartSecondsEdit"),
+		std::make_pair("Departure end (s)", "passengerDepartureEndSecondsEdit"),
+		std::make_pair("Arrival start (s)", "passengerArrivalStartSecondsEdit"),
+		std::make_pair("Arrival end (s)", "passengerArrivalEndSecondsEdit")};
+	for (std::size_t index = 0; index < passengerWindowFields.size(); ++index) {
+		auto* edit = new CompactDoubleSpinBox(journeyDetailPane);
+		edit->setObjectName(passengerWindowFields[index].second);
+		edit->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+		edit->setDecimals(std::numeric_limits<double>::max_digits10);
+		edit->setSingleStep(1.0);
+		edit->setKeyboardTracking(false);
+		m_passengerJourneyWindowEdits[index] = edit;
+		journeyForm->addRow(passengerWindowFields[index].first, edit);
+	}
+	journeysLayout->addWidget(journeyDetailPane, 1);
+	m_passengerTabs->addTab(journeysPane, "Journeys");
+
+	QWidget* legsPane = new QWidget(m_passengerTabs);
+	QHBoxLayout* legsLayout = new QHBoxLayout(legsPane);
+	QWidget* legListPane = new QWidget(legsPane);
+	QVBoxLayout* legListLayout = new QVBoxLayout(legListPane);
+	legListLayout->addWidget(new QLabel("Legs", legListPane));
+	m_passengerLegListWidget = new QListWidget(legListPane);
+	m_passengerLegListWidget->setObjectName("passengerLegListWidget");
+	legListLayout->addWidget(m_passengerLegListWidget, 1);
+	QGridLayout* legButtons = new QGridLayout();
+	m_addPassengerLegButton = new QPushButton("Add", legListPane);
+	m_addPassengerLegButton->setObjectName("passengerLegAddButton");
+	m_deletePassengerLegButton = new QPushButton("Delete", legListPane);
+	m_deletePassengerLegButton->setObjectName("passengerLegDeleteButton");
+	m_movePassengerLegUpButton = new QPushButton("Move Up", legListPane);
+	m_movePassengerLegUpButton->setObjectName("passengerLegMoveUpButton");
+	m_movePassengerLegDownButton = new QPushButton("Move Down", legListPane);
+	m_movePassengerLegDownButton->setObjectName("passengerLegMoveDownButton");
+	legButtons->addWidget(m_addPassengerLegButton, 0, 0);
+	legButtons->addWidget(m_deletePassengerLegButton, 0, 1);
+	legButtons->addWidget(m_movePassengerLegUpButton, 1, 0);
+	legButtons->addWidget(m_movePassengerLegDownButton, 1, 1);
+	legListLayout->addLayout(legButtons);
+	legsLayout->addWidget(legListPane);
+
+	QWidget* legDetailPane = new QWidget(legsPane);
+	QFormLayout* legForm = new QFormLayout(legDetailPane);
+	m_passengerLegIdEdit = new QLineEdit(legDetailPane);
+	m_passengerLegIdEdit->setObjectName("passengerLegIdEdit");
+	legForm->addRow("Leg ID", m_passengerLegIdEdit);
+	m_passengerLegOriginCombo = new QComboBox(legDetailPane);
+	m_passengerLegOriginCombo->setObjectName("passengerLegOriginCombo");
+	legForm->addRow("Origin station", m_passengerLegOriginCombo);
+	m_passengerLegDestinationCombo = new QComboBox(legDetailPane);
+	m_passengerLegDestinationCombo->setObjectName("passengerLegDestinationCombo");
+	legForm->addRow("Destination station", m_passengerLegDestinationCombo);
+	m_passengerLegServiceCombo = new QComboBox(legDetailPane);
+	m_passengerLegServiceCombo->setObjectName("passengerLegServiceCombo");
+	legForm->addRow("Service", m_passengerLegServiceCombo);
+	m_passengerLegOccurrenceEdit = new QSpinBox(legDetailPane);
+	m_passengerLegOccurrenceEdit->setObjectName("passengerLegOccurrenceSpin");
+	m_passengerLegOccurrenceEdit->setKeyboardTracking(false);
+	legForm->addRow("Occurrence", m_passengerLegOccurrenceEdit);
+	legsLayout->addWidget(legDetailPane, 1);
+	m_passengerTabs->addTab(legsPane, "Legs");
+	passengerDetailLayout->addWidget(m_passengerTabs, 1);
+
+	m_passengerImportResultTable = new QTableWidget(0, 4, passengerDetailPane);
+	m_passengerImportResultTable->setObjectName("passengerImportResultTable");
+	m_passengerImportResultTable->setHorizontalHeaderLabels({"Source", "Row", "Status", "Detail"});
+	m_passengerImportResultTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_passengerImportResultTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_passengerImportResultTable->setMaximumHeight(130);
+	m_passengerImportResultTable->horizontalHeader()->setStretchLastSection(true);
+	m_passengerImportResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");
+	passengerDetailLayout->addWidget(m_passengerImportResultTable);
+	passengerLayout->addWidget(passengerDetailPane, 2);
+	m_passengerDock->setWidget(passengerWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
+	m_passengerDock->hide();
+	tabifyDockWidget(m_serviceDock, m_passengerDock);
+	editorsMenu()->addAction(m_passengerDock->toggleViewAction());
+
+	connect(m_passengerListWidget, &QListWidget::currentRowChanged, this,
+		[this](int) { updatePassengerDetailPanel(); });
+	connect(m_passengerJourneyListWidget, &QListWidget::currentRowChanged, this,
+		[this](int) { updatePassengerJourneyPanel(); });
+	connect(m_passengerLegListWidget, &QListWidget::currentRowChanged, this,
+		[this](int) { updatePassengerLegPanel(); });
+	connect(m_addPassengerButton, &QPushButton::clicked, this, &MainWindow::addPassenger);
+	connect(m_deletePassengerButton, &QPushButton::clicked, this, &MainWindow::deletePassenger);
+	connect(m_importPassengerButton, &QPushButton::clicked, this, &MainWindow::importPassengers);
+	connect(m_addPassengerJourneyButton, &QPushButton::clicked, this, &MainWindow::addPassengerJourney);
+	connect(m_deletePassengerJourneyButton, &QPushButton::clicked, this, &MainWindow::deletePassengerJourney);
+	connect(m_addPassengerLegButton, &QPushButton::clicked, this, &MainWindow::addPassengerLeg);
+	connect(m_deletePassengerLegButton, &QPushButton::clicked, this, &MainWindow::deletePassengerLeg);
+	connect(m_movePassengerLegUpButton, &QPushButton::clicked, this, [this]() { movePassengerLeg(-1); });
+	connect(m_movePassengerLegDownButton, &QPushButton::clicked, this, [this]() { movePassengerLeg(1); });
+	connect(m_passengerIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerIdEdit);
+	connect(m_passengerJourneyIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerJourneyIdEdit);
+	connect(m_passengerJourneyActivityEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerJourneyActivity);
+	connect(m_passengerJourneyOriginCombo, &QComboBox::currentTextChanged, this,
+		[this](const QString& text) { commitPassengerJourneyStation(true, text); });
+	connect(m_passengerJourneyDestinationCombo, &QComboBox::currentTextChanged, this,
+		[this](const QString& text) { commitPassengerJourneyStation(false, text); });
+	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
+		connect(m_passengerJourneyWindowEdits[index], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+			this, [this, index](double) { commitPassengerJourneyWindow(static_cast<int>(index)); });
+	}
+	connect(m_passengerLegIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerLegIdEdit);
+	connect(m_passengerLegOriginCombo, &QComboBox::currentTextChanged, this,
+		[this](const QString& text) { commitPassengerLegStation(true, text); });
+	connect(m_passengerLegDestinationCombo, &QComboBox::currentTextChanged, this,
+		[this](const QString& text) { commitPassengerLegStation(false, text); });
+	connect(m_passengerLegServiceCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitPassengerLegService);
+	connect(m_passengerLegOccurrenceEdit, QOverload<int>::of(&QSpinBox::valueChanged), this,
+		[this](int) { commitPassengerLegOccurrence(); });
+
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
 	m_validationStatusLabel = new QLabel(this);
@@ -2808,6 +3042,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
+	refreshPassengerPanel();
 	// Dock/editor construction above can rebuild the top-level focus chain;
 	// restore the command-bar sequence after every child widget exists.
 	setCommandBarTabOrder();
@@ -2846,6 +3081,8 @@ void MainWindow::newScene() {
 	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
 	m_modifiedScenarioIds.clear();
 	m_sceneDiagnostics.clear();
+	if (m_passengerImportResultTable)
+		m_passengerImportResultTable->setRowCount(0);
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	invalidateRunResults();
 	updateSceneWindowTitle();
@@ -2858,6 +3095,7 @@ void MainWindow::newScene() {
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
+	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	if (m_caseSettingsDock) {
@@ -2928,6 +3166,8 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	}
 	m_modifiedScenarioIds.clear();
 	m_sceneDiagnostics.clear();
+	if (m_passengerImportResultTable)
+		m_passengerImportResultTable->setRowCount(0);
 	invalidateRunResults();
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	refreshCaseSettingsPanel();
@@ -2945,6 +3185,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
+	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	if (m_loadedDataDock) {
@@ -3241,6 +3482,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
+	refreshPassengerPanel();
 	return true;
 }
 
@@ -3396,6 +3638,8 @@ void MainWindow::updateSceneActions() {
 	}
 	if (m_serviceDock)
 		m_serviceDock->setEnabled(m_sceneLoaded && !m_worker);
+	if (m_passengerDock)
+		m_passengerDock->setEnabled(m_sceneLoaded && !m_worker);
 	updateDiagramActions();
 	if (m_recentScenesMenu) {
 		QSettings settings;
@@ -3415,6 +3659,7 @@ void MainWindow::refreshValidationPanel() {
 			m_validationStatusLabel->clear();
 		refreshLoadedDataTree();
 		refreshScenarioList();
+		refreshPassengerPanel();
 		updateSceneActions();
 		updateCaseLayersPanel();
 		return;
@@ -3450,6 +3695,7 @@ void MainWindow::refreshValidationPanel() {
 		m_validationStatusLabel->setText(message);
 	refreshLoadedDataTree();
 	refreshScenarioList();
+	refreshPassengerPanel();
 	updateSceneActions();
 	updateCaseLayersPanel();
 }
@@ -3705,6 +3951,38 @@ void MainWindow::commitPendingEditorValues() {
 				}
 			}
 		}
+	}
+	if (m_infrastructureFacetCombo && m_infrastructureTable
+			&& m_infrastructureFacetCombo->currentData().toString() == QStringLiteral("platforms")) {
+		std::vector<std::tuple<int, int, double>> pendingGeometry;
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			for (int column : {3, 4}) {
+				auto* edit = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(row, column));
+				if (!hasEditorFocus(edit)
+						|| !edit->property(kPlatformGeometryEditedProperty).toBool())
+					continue;
+				edit->setProperty(kPlatformGeometryEditedProperty, false);
+				edit->interpretText();
+				pendingGeometry.emplace_back(row, column, edit->value());
+			}
+		}
+		for (const auto& pending : pendingGeometry)
+			commitPlatformGeometryCell(std::get<0>(pending), std::get<1>(pending), std::get<2>(pending));
+	}
+	commitPassengerIdEdit();
+	commitPassengerJourneyIdEdit();
+	commitPassengerJourneyActivity();
+	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
+		QDoubleSpinBox* edit = m_passengerJourneyWindowEdits[index];
+		if (hasEditorFocus(edit)) {
+			edit->interpretText();
+			commitPassengerJourneyWindow(static_cast<int>(index));
+		}
+	}
+	commitPassengerLegIdEdit();
+	if (m_passengerLegOccurrenceEdit && hasEditorFocus(m_passengerLegOccurrenceEdit)) {
+		m_passengerLegOccurrenceEdit->interpretText();
+		commitPassengerLegOccurrence();
 	}
 	commitTrainUnitSources();
 	commitCompositionIdEdit();
@@ -4116,7 +4394,7 @@ void MainWindow::refreshInfrastructureTable() {
 	else if (facet == "stations")
 		headers << "ID" << "Name" << "Has position" << "Position km";
 	else if (facet == "platforms")
-		headers << "Station ID" << "ID" << "Nodes";
+		headers << "Station ID" << "ID" << "Nodes" << "Length (m)" << "Width (m)";
 	else if (facet == "signals")
 		headers << "ID" << "Protected section";
 	else if (facet == "signalling_areas")
@@ -4246,6 +4524,45 @@ void MainWindow::refreshInfrastructureTable() {
 				setCell(row, 0, QString::fromStdString(station.id));
 				setCell(row, 1, QString::fromStdString(platform.id));
 				setCell(row, 2, joinCommaList(platform.nodeIds));
+				const auto makeGeometrySpin = [this, row](double value, const char* objectName,
+						int column, const QString& tooltip) {
+					auto* edit = new CompactDoubleSpinBox(m_infrastructureTable);
+					edit->setObjectName(objectName);
+					edit->setAccessibleName(tooltip);
+					edit->setToolTip(tooltip);
+					edit->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+					edit->setDecimals(std::numeric_limits<double>::max_digits10);
+					edit->setSingleStep(1.0);
+					edit->setKeyboardTracking(false);
+					{
+						const QSignalBlocker spinBlocker(edit);
+						edit->setValue(value);
+					}
+					connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+						[this, row, column](double next) {
+							commitPlatformGeometryCell(row, column, next);
+						});
+					if (QLineEdit* textEdit = edit->findChild<QLineEdit*>()) {
+						connect(textEdit, &QLineEdit::textEdited, edit, [edit]() {
+							edit->setProperty(kPlatformGeometryEditedProperty, edit->hasAcceptableInput());
+						});
+					}
+					connect(edit, &QAbstractSpinBox::editingFinished, this, [this, edit, row, column]() {
+						if (!edit->property(kPlatformGeometryEditedProperty).toBool())
+							return;
+						edit->setProperty(kPlatformGeometryEditedProperty, false);
+						commitPlatformGeometryCell(row, column, edit->value());
+					});
+					return edit;
+				};
+				auto* lengthEdit = makeGeometrySpin(platform.hasLength ? platform.lengthM : 100.0,
+					"platformLengthEdit", 3,
+					QStringLiteral("Platform length in metres; default is 100 m when absent. Capacity derives from platform geometry."));
+				auto* widthEdit = makeGeometrySpin(platform.hasWidth ? platform.widthM : 2.5,
+					"platformWidthEdit", 4,
+					QStringLiteral("Platform width in metres; default is 2.5 m when absent. Capacity derives from platform geometry."));
+				m_infrastructureTable->setCellWidget(row, 3, lengthEdit);
+				m_infrastructureTable->setCellWidget(row, 4, widthEdit);
 				++row;
 			}
 		}
@@ -4916,6 +5233,724 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 	if (facet == "signals" || facet == "blocks")
 		refreshIncidentPanel();
 	refreshInfrastructureTable();
+}
+
+void MainWindow::commitPlatformGeometryCell(int row, int column, double value) {
+	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo
+		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("platforms")
+		|| !std::isfinite(value) || (column != 3 && column != 4))
+		return;
+	int rowIndex = 0;
+	for (auto& station : m_sceneModel.stations) {
+		if (row >= rowIndex && row < rowIndex + static_cast<int>(station.platforms.size())) {
+			ScenePlatform& platform = station.platforms[static_cast<std::size_t>(row - rowIndex)];
+			bool changed = false;
+			if (column == 3) {
+				changed = !platform.hasLength || platform.lengthM != value;
+				platform.hasLength = true;
+				platform.lengthM = value;
+			} else {
+				changed = !platform.hasWidth || platform.widthM != value;
+				platform.hasWidth = true;
+				platform.widthM = value;
+			}
+			if (!changed)
+				return;
+			markSceneDirty();
+			refreshValidationPanel();
+			return;
+		}
+		rowIndex += static_cast<int>(station.platforms.size());
+	}
+}
+
+ScenePassenger* MainWindow::selectedPassenger() {
+	const int row = m_passengerListWidget ? m_passengerListWidget->currentRow() : -1;
+	return m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.passengers.size())
+		? &m_sceneModel.passengers[static_cast<std::size_t>(row)] : nullptr;
+}
+
+ScenePassengerJourney* MainWindow::selectedPassengerJourney() {
+	ScenePassenger* passenger = selectedPassenger();
+	const int row = m_passengerJourneyListWidget ? m_passengerJourneyListWidget->currentRow() : -1;
+	return passenger && row >= 0 && row < static_cast<int>(passenger->journeys.size())
+		? &passenger->journeys[static_cast<std::size_t>(row)] : nullptr;
+}
+
+ScenePassengerLeg* MainWindow::selectedPassengerLeg() {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const int row = m_passengerLegListWidget ? m_passengerLegListWidget->currentRow() : -1;
+	return journey && row >= 0 && row < static_cast<int>(journey->legs.size())
+		? &journey->legs[static_cast<std::size_t>(row)] : nullptr;
+}
+
+std::string MainWindow::uniquePassengerId(const std::string& baseId) const {
+	const std::string base = baseId.empty() ? "new_passenger" : baseId;
+	std::string candidate = base;
+	int suffix = 2;
+	while (std::any_of(m_sceneModel.passengers.begin(), m_sceneModel.passengers.end(),
+			[&candidate](const ScenePassenger& value) { return value.id == candidate; }))
+		candidate = base + "_" + std::to_string(suffix++);
+	return candidate;
+}
+
+std::string MainWindow::uniquePassengerJourneyId(const std::string& baseId) const {
+	const std::string base = baseId.empty() ? "new_journey" : baseId;
+	std::string candidate = base;
+	int suffix = 2;
+	for (;;) {
+		bool exists = false;
+		for (const auto& passenger : m_sceneModel.passengers)
+			for (const auto& journey : passenger.journeys)
+				if (journey.id == candidate)
+					exists = true;
+		if (!exists)
+			return candidate;
+		candidate = base + "_" + std::to_string(suffix++);
+	}
+}
+
+std::string MainWindow::uniquePassengerLegId(const std::string& baseId) const {
+	const std::string base = baseId.empty() ? "new_leg" : baseId;
+	std::string candidate = base;
+	int suffix = 2;
+	for (;;) {
+		bool exists = false;
+		for (const auto& passenger : m_sceneModel.passengers)
+			for (const auto& journey : passenger.journeys)
+				for (const auto& leg : journey.legs)
+					if (leg.id == candidate)
+						exists = true;
+		if (!exists)
+			return candidate;
+		candidate = base + "_" + std::to_string(suffix++);
+	}
+}
+
+void MainWindow::refreshPassengerPanel() {
+	const bool editable = m_sceneLoaded && !m_worker;
+	if (m_passengerDock)
+		m_passengerDock->setEnabled(editable);
+	if (m_passengerListWidget) {
+		const int previousRow = m_passengerListWidget->currentRow();
+		const QSignalBlocker blocker(m_passengerListWidget);
+		m_passengerListWidget->clear();
+		if (m_sceneLoaded) {
+			for (const auto& passenger : m_sceneModel.passengers)
+				m_passengerListWidget->addItem(QString::fromStdString(passenger.id));
+		}
+		const int count = m_passengerListWidget->count();
+		const int selected = count == 0 ? -1
+			: (previousRow < 0 ? 0 : std::min(previousRow, count - 1));
+		m_passengerListWidget->setCurrentRow(selected);
+		m_passengerListWidget->setEnabled(editable);
+	}
+	if (m_passengerImportResultTable && !m_sceneLoaded)
+		m_passengerImportResultTable->setRowCount(0);
+	if (m_addPassengerButton)
+		m_addPassengerButton->setEnabled(editable);
+	if (m_importPassengerButton)
+		m_importPassengerButton->setEnabled(editable);
+	updatePassengerDetailPanel();
+}
+
+void MainWindow::updatePassengerDetailPanel() {
+	const int passengerRow = m_passengerListWidget ? m_passengerListWidget->currentRow() : -1;
+	ScenePassenger* passenger = selectedPassenger();
+	const bool enabled = passenger && m_sceneLoaded && !m_worker;
+	if (m_passengerIdEdit) {
+		const QSignalBlocker blocker(m_passengerIdEdit);
+		m_passengerIdEdit->setText(passenger ? QString::fromStdString(passenger->id) : QString());
+		m_passengerIdEdit->setEnabled(enabled);
+	}
+	if (m_passengerJourneyListWidget) {
+		const int previousRow = m_passengerJourneyListWidget->currentRow();
+		const QSignalBlocker blocker(m_passengerJourneyListWidget);
+		m_passengerJourneyListWidget->clear();
+		if (passenger) {
+			for (const auto& journey : passenger->journeys) {
+				QString label = QString::fromStdString(journey.id);
+				if (!journey.activity.empty())
+					label += QStringLiteral(" | ") + QString::fromStdString(journey.activity);
+				m_passengerJourneyListWidget->addItem(label);
+			}
+		}
+		const int count = m_passengerJourneyListWidget->count();
+		m_passengerJourneyListWidget->setCurrentRow(count == 0 ? -1
+			: (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
+		m_passengerJourneyListWidget->setEnabled(enabled);
+	}
+	if (m_addPassengerJourneyButton)
+		m_addPassengerJourneyButton->setEnabled(enabled);
+	if (m_deletePassengerButton)
+		m_deletePassengerButton->setEnabled(enabled);
+	if (m_deletePassengerJourneyButton)
+		m_deletePassengerJourneyButton->setEnabled(enabled && !m_passengerJourneyListWidget->selectedItems().isEmpty());
+	updatePassengerJourneyPanel();
+
+	QStringList messages;
+	if (passenger) {
+		const QString passengerPrefix = QStringLiteral("passengers[%1]").arg(passengerRow);
+		const int journeyRow = m_passengerJourneyListWidget ? m_passengerJourneyListWidget->currentRow() : -1;
+		const int legRow = m_passengerLegListWidget ? m_passengerLegListWidget->currentRow() : -1;
+		const ScenePassengerJourney* journey = selectedPassengerJourney();
+		const ScenePassengerLeg* leg = selectedPassengerLeg();
+		const QString journeyPrefix = journeyRow >= 0
+			? passengerPrefix + QStringLiteral(".journeys[%1]").arg(journeyRow) : QString();
+		const QString legPrefix = journey && legRow >= 0
+			? journeyPrefix + QStringLiteral(".legs[%1]").arg(legRow) : QString();
+		const QString passengerId = QString::fromStdString(passenger->id);
+		const QString journeyId = journey ? QString::fromStdString(journey->id) : QString();
+		const QString legId = leg ? QString::fromStdString(leg->id) : QString();
+		for (const auto& diagnostic : m_sceneDiagnostics) {
+			const QString path = QString::fromStdString(diagnostic.path);
+			const QString itemId = QString::fromStdString(diagnostic.itemId);
+			const QString relatedId = QString::fromStdString(diagnostic.relatedId);
+			const bool match = (!legPrefix.isEmpty() && path.startsWith(legPrefix))
+				|| (!journeyPrefix.isEmpty() && path.startsWith(journeyPrefix))
+				|| path.startsWith(passengerPrefix)
+				|| itemId == passengerId || itemId == journeyId || itemId == legId
+				|| relatedId == passengerId || relatedId == journeyId || relatedId == legId;
+			if (match)
+				messages << QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
+					+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
+		}
+	}
+	if (m_passengerDiagnosticLabel)
+		m_passengerDiagnosticLabel->setText(messages.isEmpty()
+			? QStringLiteral("No validation messages for this passenger selection.")
+			: messages.join(QStringLiteral("\n")));
+}
+
+void MainWindow::updatePassengerJourneyPanel() {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const bool enabled = journey && m_sceneLoaded && !m_worker;
+	if (m_passengerLegListWidget) {
+		const int previousRow = m_passengerLegListWidget->currentRow();
+		const QSignalBlocker blocker(m_passengerLegListWidget);
+		m_passengerLegListWidget->clear();
+		if (journey) {
+			for (const auto& leg : journey->legs)
+				m_passengerLegListWidget->addItem(QString::fromStdString(leg.id));
+		}
+		const int count = m_passengerLegListWidget->count();
+		m_passengerLegListWidget->setCurrentRow(count == 0 ? -1
+			: (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
+		m_passengerLegListWidget->setEnabled(enabled);
+	}
+	if (m_passengerJourneyIdEdit) {
+		const QSignalBlocker blocker(m_passengerJourneyIdEdit);
+		m_passengerJourneyIdEdit->setText(journey ? QString::fromStdString(journey->id) : QString());
+		m_passengerJourneyIdEdit->setEnabled(enabled);
+	}
+	if (m_passengerJourneyActivityEdit) {
+		const QSignalBlocker blocker(m_passengerJourneyActivityEdit);
+		m_passengerJourneyActivityEdit->setText(journey ? QString::fromStdString(journey->activity) : QString());
+		m_passengerJourneyActivityEdit->setEnabled(enabled);
+	}
+	if (m_passengerJourneyOriginCombo) {
+		const QSignalBlocker blocker(m_passengerJourneyOriginCombo);
+		populatePassengerStationCombo(m_passengerJourneyOriginCombo, m_sceneModel,
+			journey ? journey->originStationId : std::string());
+		m_passengerJourneyOriginCombo->setEnabled(enabled);
+	}
+	if (m_passengerJourneyDestinationCombo) {
+		const QSignalBlocker blocker(m_passengerJourneyDestinationCombo);
+		populatePassengerStationCombo(m_passengerJourneyDestinationCombo, m_sceneModel,
+			journey ? journey->destinationStationId : std::string());
+		m_passengerJourneyDestinationCombo->setEnabled(enabled);
+	}
+	const std::array<double, 4> values = journey
+		? std::array<double, 4>{journey->plannedDepartureStartSeconds, journey->plannedDepartureEndSeconds,
+			journey->plannedArrivalStartSeconds, journey->plannedArrivalEndSeconds}
+		: std::array<double, 4>{0.0, 0.0, 0.0, 0.0};
+	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
+		if (!m_passengerJourneyWindowEdits[index])
+			continue;
+		const QSignalBlocker blocker(m_passengerJourneyWindowEdits[index]);
+		m_passengerJourneyWindowEdits[index]->setValue(values[index]);
+		m_passengerJourneyWindowEdits[index]->setEnabled(enabled);
+	}
+	if (m_deletePassengerJourneyButton)
+		m_deletePassengerJourneyButton->setEnabled(enabled);
+	updatePassengerLegPanel();
+}
+
+void MainWindow::updatePassengerLegPanel() {
+	ScenePassengerLeg* leg = selectedPassengerLeg();
+	const bool enabled = leg && m_sceneLoaded && !m_worker;
+	if (m_passengerLegIdEdit) {
+		const QSignalBlocker blocker(m_passengerLegIdEdit);
+		m_passengerLegIdEdit->setText(leg ? QString::fromStdString(leg->id) : QString());
+		m_passengerLegIdEdit->setEnabled(enabled);
+	}
+	if (m_passengerLegServiceCombo) {
+		const QSignalBlocker blocker(m_passengerLegServiceCombo);
+		populatePassengerServiceCombo(m_passengerLegServiceCombo, m_sceneModel,
+			leg ? leg->serviceId : std::string());
+		m_passengerLegServiceCombo->setEnabled(enabled);
+	}
+	std::set<std::string> stopStations;
+	if (leg) {
+		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+			[leg](const SceneService& value) { return value.id == leg->serviceId; });
+		if (service != m_sceneModel.services.end())
+			for (const auto& stop : service->stops)
+				stopStations.insert(stop.stationId);
+	}
+	const std::set<std::string>* allowed = &stopStations;
+	if (m_passengerLegOriginCombo) {
+		const QSignalBlocker blocker(m_passengerLegOriginCombo);
+		populatePassengerStationCombo(m_passengerLegOriginCombo, m_sceneModel,
+			leg ? leg->originStationId : std::string(), allowed);
+		m_passengerLegOriginCombo->setEnabled(enabled);
+	}
+	if (m_passengerLegDestinationCombo) {
+		const QSignalBlocker blocker(m_passengerLegDestinationCombo);
+		populatePassengerStationCombo(m_passengerLegDestinationCombo, m_sceneModel,
+			leg ? leg->destinationStationId : std::string(), allowed);
+		m_passengerLegDestinationCombo->setEnabled(enabled);
+	}
+	if (m_passengerLegOccurrenceEdit) {
+		const int current = leg ? leg->occurrence : 1;
+		int count = 1;
+		if (leg) {
+			const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+				[leg](const SceneService& value) { return value.id == leg->serviceId; });
+			if (service != m_sceneModel.services.end())
+				count = std::max(1, sceneServiceOccurrenceCount(*service, serviceOccurrenceDuration()));
+		}
+		const QSignalBlocker blocker(m_passengerLegOccurrenceEdit);
+		m_passengerLegOccurrenceEdit->setRange(std::min(0, current), std::max({1, current, count}));
+		m_passengerLegOccurrenceEdit->setValue(current);
+		m_passengerLegOccurrenceEdit->setEnabled(enabled);
+	}
+	if (m_deletePassengerLegButton)
+		m_deletePassengerLegButton->setEnabled(enabled);
+	if (m_movePassengerLegUpButton)
+		m_movePassengerLegUpButton->setEnabled(enabled && m_passengerLegListWidget->currentRow() > 0);
+	if (m_movePassengerLegDownButton)
+		m_movePassengerLegDownButton->setEnabled(enabled
+			&& m_passengerLegListWidget->currentRow() + 1 < m_passengerLegListWidget->count());
+	if (m_addPassengerLegButton)
+		m_addPassengerLegButton->setEnabled(selectedPassengerJourney() && m_sceneLoaded && !m_worker);
+}
+
+void MainWindow::addPassenger() {
+	if (!m_sceneLoaded || m_worker)
+		return;
+	ScenePassenger passenger;
+	passenger.id = uniquePassengerId("new_passenger");
+	m_sceneModel.passengers.push_back(std::move(passenger));
+	markSceneDirty();
+	refreshPassengerPanel();
+	if (m_passengerListWidget)
+		m_passengerListWidget->setCurrentRow(static_cast<int>(m_sceneModel.passengers.size()) - 1);
+	refreshValidationPanel();
+}
+
+void MainWindow::deletePassenger() {
+	if (!m_sceneLoaded || m_worker || !m_passengerListWidget)
+		return;
+	const int row = m_passengerListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.passengers.size()))
+		return;
+	const std::string id = m_sceneModel.passengers[static_cast<std::size_t>(row)].id;
+	if (QMessageBox::question(this, "Delete Passenger",
+			QString("Delete passenger '%1' and its journeys?").arg(QString::fromStdString(id)),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+		return;
+	m_sceneModel.passengers.erase(m_sceneModel.passengers.begin() + row);
+	markSceneDirty();
+	// Refresh widgets before validation so a shifted row cannot write stale
+	// detail values back into the newly selected passenger.
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::addPassengerJourney() {
+	ScenePassenger* passenger = selectedPassenger();
+	if (!passenger || m_worker)
+		return;
+	ScenePassengerJourney journey;
+	journey.id = uniquePassengerJourneyId(passenger->id + ".journey");
+	if (!m_sceneModel.stations.empty()) {
+		journey.originStationId = m_sceneModel.stations.front().id;
+		journey.destinationStationId = m_sceneModel.stations.front().id;
+	}
+	passenger->journeys.push_back(std::move(journey));
+	markSceneDirty();
+	refreshPassengerPanel();
+	if (m_passengerJourneyListWidget)
+		m_passengerJourneyListWidget->setCurrentRow(static_cast<int>(passenger->journeys.size()) - 1);
+	refreshValidationPanel();
+}
+
+void MainWindow::deletePassengerJourney() {
+	ScenePassenger* passenger = selectedPassenger();
+	if (!passenger || m_worker || !m_passengerJourneyListWidget)
+		return;
+	const int row = m_passengerJourneyListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(passenger->journeys.size()))
+		return;
+	const std::string id = passenger->journeys[static_cast<std::size_t>(row)].id;
+	if (QMessageBox::question(this, "Delete Journey",
+			QString("Delete journey '%1' and its legs?").arg(QString::fromStdString(id)),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+		return;
+	passenger->journeys.erase(passenger->journeys.begin() + row);
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::addPassengerLeg() {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	if (!journey || m_worker)
+		return;
+	ScenePassengerLeg leg;
+	leg.id = uniquePassengerLegId(journey->id + ".leg");
+	if (!m_sceneModel.services.empty()) {
+		const SceneService& service = m_sceneModel.services.front();
+		leg.serviceId = service.id;
+		if (!service.stops.empty()) {
+			leg.originStationId = service.stops.front().stationId;
+			leg.destinationStationId = service.stops.size() > 1
+				? service.stops[1].stationId : service.stops.front().stationId;
+		}
+	}
+	if (leg.originStationId.empty() && !m_sceneModel.stations.empty()) {
+		leg.originStationId = m_sceneModel.stations.front().id;
+		leg.destinationStationId = m_sceneModel.stations.front().id;
+	}
+	journey->legs.push_back(std::move(leg));
+	markSceneDirty();
+	refreshPassengerPanel();
+	if (m_passengerLegListWidget)
+		m_passengerLegListWidget->setCurrentRow(static_cast<int>(journey->legs.size()) - 1);
+	if (m_passengerTabs)
+		m_passengerTabs->setCurrentIndex(1);
+	refreshValidationPanel();
+}
+
+void MainWindow::deletePassengerLeg() {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	if (!journey || m_worker || !m_passengerLegListWidget)
+		return;
+	const int row = m_passengerLegListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(journey->legs.size()))
+		return;
+	const std::string id = journey->legs[static_cast<std::size_t>(row)].id;
+	if (QMessageBox::question(this, "Delete Leg",
+			QString("Delete passenger leg '%1'?").arg(QString::fromStdString(id)),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+		return;
+	journey->legs.erase(journey->legs.begin() + row);
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::movePassengerLeg(int offset) {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	if (!journey || m_worker || !m_passengerLegListWidget)
+		return;
+	const int row = m_passengerLegListWidget->currentRow();
+	const int target = row + offset;
+	if (row < 0 || target < 0 || target >= static_cast<int>(journey->legs.size()))
+		return;
+	std::swap(journey->legs[static_cast<std::size_t>(row)], journey->legs[static_cast<std::size_t>(target)]);
+	markSceneDirty();
+	refreshPassengerPanel();
+	if (m_passengerLegListWidget)
+		m_passengerLegListWidget->setCurrentRow(target);
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerIdEdit() {
+	if (!m_sceneLoaded || m_worker || !m_passengerListWidget || !m_passengerIdEdit)
+		return;
+	const int row = m_passengerListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.passengers.size()))
+		return;
+	const std::string oldId = m_sceneModel.passengers[static_cast<std::size_t>(row)].id;
+	const std::string newId = m_passengerIdEdit->text().trimmed().toStdString();
+	bool duplicate = false;
+	for (int index = 0; index < static_cast<int>(m_sceneModel.passengers.size()); ++index)
+		if (index != row && m_sceneModel.passengers[static_cast<std::size_t>(index)].id == newId)
+			duplicate = true;
+	if (newId.empty() || (newId != oldId && duplicate)) {
+		const QSignalBlocker blocker(m_passengerIdEdit);
+		m_passengerIdEdit->setText(QString::fromStdString(oldId));
+		showBlockingError(this, newId.empty() ? "Invalid Passenger ID" : "Passenger ID already exists",
+			newId.empty() ? "Passenger IDs must not be empty." : "Choose a unique passenger ID.", true);
+		return;
+	}
+	if (newId == oldId)
+		return;
+	m_sceneModel.passengers[static_cast<std::size_t>(row)].id = newId;
+	if (auto* item = m_passengerListWidget->item(row)) {
+		const QSignalBlocker blocker(m_passengerListWidget);
+		item->setText(QString::fromStdString(newId));
+	}
+	markSceneDirty();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerJourneyIdEdit() {
+	ScenePassenger* passenger = selectedPassenger();
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	if (!passenger || !journey || m_worker || !m_passengerJourneyIdEdit)
+		return;
+	const std::string oldId = journey->id;
+	const std::string newId = m_passengerJourneyIdEdit->text().trimmed().toStdString();
+	bool duplicate = false;
+	for (const auto& owner : m_sceneModel.passengers)
+		for (const auto& candidate : owner.journeys)
+			if (&candidate != journey && candidate.id == newId)
+				duplicate = true;
+	if (newId.empty() || (newId != oldId && duplicate)) {
+			const QSignalBlocker blocker(m_passengerJourneyIdEdit);
+			m_passengerJourneyIdEdit->setText(QString::fromStdString(oldId));
+			showBlockingError(this, newId.empty() ? "Invalid Journey ID" : "Journey ID already exists",
+				newId.empty() ? "Journey IDs must not be empty." : "Choose a unique journey ID.", true);
+			return;
+	}
+	if (newId == oldId)
+		return;
+	journey->id = newId;
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerJourneyActivity() {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	if (!journey || m_worker || !m_passengerJourneyActivityEdit)
+		return;
+	const std::string value = m_passengerJourneyActivityEdit->text().toStdString();
+	if (value == journey->activity)
+		return;
+	journey->activity = value;
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerJourneyStation(bool origin, const QString& text) {
+	Q_UNUSED(text);
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	QComboBox* combo = origin ? m_passengerJourneyOriginCombo : m_passengerJourneyDestinationCombo;
+	if (!journey || m_worker || !combo)
+		return;
+	const std::string value = combo->currentData().toString().toStdString();
+	std::string& target = origin ? journey->originStationId : journey->destinationStationId;
+	if (target == value)
+		return;
+	target = value;
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerJourneyWindow(int index) {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	if (!journey || m_worker || index < 0 || index >= static_cast<int>(m_passengerJourneyWindowEdits.size())
+		|| !m_passengerJourneyWindowEdits[static_cast<std::size_t>(index)])
+		return;
+	const double value = m_passengerJourneyWindowEdits[static_cast<std::size_t>(index)]->value();
+	double* target = index == 0 ? &journey->plannedDepartureStartSeconds
+		: (index == 1 ? &journey->plannedDepartureEndSeconds
+		: (index == 2 ? &journey->plannedArrivalStartSeconds : &journey->plannedArrivalEndSeconds));
+	if (*target == value)
+		return;
+	*target = value;
+	markSceneDirty();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerLegIdEdit() {
+	ScenePassengerJourney* journey = selectedPassengerJourney();
+	ScenePassengerLeg* leg = selectedPassengerLeg();
+	if (!journey || !leg || m_worker || !m_passengerLegIdEdit)
+		return;
+	const std::string oldId = leg->id;
+	const std::string newId = m_passengerLegIdEdit->text().trimmed().toStdString();
+	bool duplicate = false;
+	for (const auto& passenger : m_sceneModel.passengers)
+		for (const auto& owner : passenger.journeys)
+			for (const auto& candidate : owner.legs)
+				if (&candidate != leg && candidate.id == newId)
+					duplicate = true;
+	if (newId.empty() || (newId != oldId && duplicate)) {
+			const QSignalBlocker blocker(m_passengerLegIdEdit);
+			m_passengerLegIdEdit->setText(QString::fromStdString(oldId));
+			showBlockingError(this, newId.empty() ? "Invalid Leg ID" : "Leg ID already exists",
+				newId.empty() ? "Leg IDs must not be empty." : "Choose a unique leg ID.", true);
+			return;
+	}
+	if (newId == oldId)
+		return;
+	leg->id = newId;
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerLegStation(bool origin, const QString& text) {
+	Q_UNUSED(text);
+	ScenePassengerLeg* leg = selectedPassengerLeg();
+	QComboBox* combo = origin ? m_passengerLegOriginCombo : m_passengerLegDestinationCombo;
+	if (!leg || m_worker || !combo)
+		return;
+	const std::string value = combo->currentData().toString().toStdString();
+	std::string& target = origin ? leg->originStationId : leg->destinationStationId;
+	if (target == value)
+		return;
+	target = value;
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerLegService(const QString& text) {
+	Q_UNUSED(text);
+	ScenePassengerLeg* leg = selectedPassengerLeg();
+	if (!leg || m_worker || !m_passengerLegServiceCombo)
+		return;
+	const std::string value = m_passengerLegServiceCombo->currentData().toString().toStdString();
+	if (leg->serviceId == value)
+		return;
+	leg->serviceId = value;
+	markSceneDirty();
+	refreshPassengerPanel();
+	refreshValidationPanel();
+}
+
+void MainWindow::commitPassengerLegOccurrence() {
+	ScenePassengerLeg* leg = selectedPassengerLeg();
+	if (!leg || m_worker || !m_passengerLegOccurrenceEdit)
+		return;
+	m_passengerLegOccurrenceEdit->interpretText();
+	const int value = m_passengerLegOccurrenceEdit->value();
+	if (leg->occurrence == value)
+		return;
+	leg->occurrence = value;
+	markSceneDirty();
+	refreshValidationPanel();
+}
+
+void MainWindow::importPassengers() {
+	if (!m_sceneLoaded || m_worker)
+		return;
+	QString sourcePath = qEnvironmentVariable("QEGTRAIN_E2E_PASSENGER_SOURCE");
+	if (sourcePath.isEmpty()) {
+		const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
+		sourcePath = QFileDialog::getExistingDirectory(this, "Select Legacy Passenger Folder", startDir);
+	}
+	if (sourcePath.isEmpty())
+		return;
+	const ScenePassengerImportResult imported = importLegacyPassengers(sourcePath.toStdString(), m_sceneModel);
+	if (m_passengerImportResultTable)
+		m_passengerImportResultTable->setRowCount(0);
+	const auto addResultRow = [this](const QString& source, int row, const QString& status, const QString& detail) {
+		if (!m_passengerImportResultTable)
+			return;
+		const int target = m_passengerImportResultTable->rowCount();
+		m_passengerImportResultTable->insertRow(target);
+		m_passengerImportResultTable->setItem(target, 0, new QTableWidgetItem(source));
+		m_passengerImportResultTable->setItem(target, 1, new QTableWidgetItem(row > 0 ? QString::number(row) : QStringLiteral("-")));
+		m_passengerImportResultTable->setItem(target, 2, new QTableWidgetItem(status));
+		m_passengerImportResultTable->setItem(target, 3, new QTableWidgetItem(detail));
+	};
+	if (!imported.success()) {
+		for (const auto& row : imported.rows)
+			addResultRow(QFileInfo(QString::fromStdString(row.sourceFile)).fileName(), row.row,
+				QStringLiteral("Rejected"), QString::fromStdString(row.context));
+		if (imported.rows.empty())
+			addResultRow(QFileInfo(sourcePath).fileName(), 0, QStringLiteral("Rejected"),
+				QStringLiteral("The exact DAS and RouteChoice passenger pair could not be read"));
+		QString message = firstDiagnosticMessage(imported.diagnostics);
+		if (message.isEmpty())
+			message = QStringLiteral("Passenger import reported errors.");
+		showBlockingError(this, "Passenger Import Diagnostics", message, true);
+		if (m_passengerImportResultTable)
+			m_passengerImportResultTable->resizeColumnsToContents();
+		statusBar()->showMessage(QStringLiteral("Passenger import rejected; the scene was not changed"), 7000);
+		return;
+	}
+
+	std::set<std::string> passengerIds;
+	std::set<std::string> journeyIds;
+	std::set<std::string> legIds;
+	for (const auto& passenger : m_sceneModel.passengers) {
+		passengerIds.insert(passenger.id);
+		for (const auto& journey : passenger.journeys) {
+			journeyIds.insert(journey.id);
+			for (const auto& leg : journey.legs)
+				legIds.insert(leg.id);
+		}
+	}
+	int acceptedPassengers = 0;
+	int rejectedPassengers = 0;
+	std::set<std::string> rejectedPassengerIds;
+	for (const auto& passenger : imported.passengers) {
+		bool collision = passenger.id.empty() || passengerIds.count(passenger.id) > 0;
+		std::set<std::string> candidateJourneyIds;
+		std::set<std::string> candidateLegIds;
+		for (const auto& journey : passenger.journeys) {
+			if (journey.id.empty() || journeyIds.count(journey.id) > 0
+					|| !candidateJourneyIds.insert(journey.id).second)
+				collision = true;
+			for (const auto& leg : journey.legs) {
+				if (leg.id.empty() || legIds.count(leg.id) > 0
+						|| !candidateLegIds.insert(leg.id).second)
+					collision = true;
+			}
+		}
+		if (collision) {
+			++rejectedPassengers;
+			if (!passenger.id.empty())
+				rejectedPassengerIds.insert(passenger.id);
+			addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), 0,
+				QStringLiteral("Rejected"),
+				QStringLiteral("Passenger, journey, or leg ID collides with existing or earlier imported data"));
+			continue;
+		}
+		passengerIds.insert(passenger.id);
+		journeyIds.insert(candidateJourneyIds.begin(), candidateJourneyIds.end());
+		legIds.insert(candidateLegIds.begin(), candidateLegIds.end());
+		m_sceneModel.passengers.push_back(passenger);
+		++acceptedPassengers;
+	}
+	for (const auto& row : imported.rows) {
+		const QString source = QFileInfo(QString::fromStdString(row.sourceFile)).fileName();
+		const bool rejectedByBatch = rejectedPassengerIds.count(row.passengerId) > 0;
+		const QString status = !row.accepted || rejectedByBatch ? QStringLiteral("Rejected")
+			: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
+		const QString detail = rejectedByBatch
+			? QStringLiteral("Passenger ID collides with existing or earlier imported data")
+			: QString::fromStdString(row.context);
+		addResultRow(source, row.row, status, detail);
+	}
+	if (imported.rows.empty() && imported.diagnostics.empty())
+		addResultRow(QFileInfo(sourcePath).fileName(), 0, QStringLiteral("Rejected"),
+			QStringLiteral("No passenger source rows were found"));
+	for (const auto& report : imported.report)
+		m_sceneModel.importReport.push_back(report);
+	if (rejectedPassengers > 0) {
+		m_sceneModel.importReport.push_back({"passengers.editor", sourcePath.toStdString(),
+			acceptedPassengers + rejectedPassengers, acceptedPassengers, rejectedPassengers, 0});
+	}
+	if (acceptedPassengers > 0 || rejectedPassengers > 0 || !imported.report.empty()) {
+		markSceneDirty();
+		refreshPassengerPanel();
+		refreshValidationPanel();
+	}
+	if (m_passengerImportResultTable)
+		m_passengerImportResultTable->resizeColumnsToContents();
+	statusBar()->showMessage(QString("Passenger import: %1 accepted, %2 rejected; unresolved rows remain visible")
+		.arg(acceptedPassengers).arg(rejectedPassengers), 7000);
 }
 
 void MainWindow::addInfrastructureEntity() {
@@ -9808,7 +10843,7 @@ void MainWindow::runVisualPolishE2E() {
 		return std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
 			[](QGraphicsItem* item) {
 				return item && !qgraphicsitem_cast<SignalItem*>(item) && item->isVisible();
-			});
+				});
 	};
 	if (networkView) {
 		networkView->fitToTopology();
@@ -10756,6 +11791,10 @@ void MainWindow::runEditorSmokeE2E() {
 	std::vector<SceneSignallingArea> expectedSignallingAreas;
 	std::vector<SceneStation> expectedStations;
 	std::vector<SceneSignal> expectedSignals;
+	std::vector<ScenePassenger> expectedPassengers;
+	std::string e2ePassengerId;
+	std::string e2eJourneyId;
+	std::string e2eLegId;
 	std::vector<SceneService> expectedNewCaseServices;
 	std::vector<SceneIncident> expectedNewCaseIncidents;
 	std::vector<SceneEntranceDelay> expectedEntranceDelays;
@@ -10883,8 +11922,37 @@ void MainWindow::runEditorSmokeE2E() {
 				return false;
 			return std::equal(a.platforms.begin(), a.platforms.end(), b.platforms.begin(),
 							  [](const ScenePlatform& x, const ScenePlatform& y) {
-								  return x.id == y.id && x.nodeIds == y.nodeIds;
+								  return x.id == y.id && x.nodeIds == y.nodeIds
+									  && x.hasLength == y.hasLength && x.lengthM == y.lengthM
+									  && x.hasWidth == y.hasWidth && x.widthM == y.widthM;
 							  });
+		});
+	};
+	auto samePassengers = [](const std::vector<ScenePassenger>& left,
+			const std::vector<ScenePassenger>& right) {
+		if (left.size() != right.size())
+			return false;
+		return std::equal(left.begin(), left.end(), right.begin(), [](const ScenePassenger& a,
+				const ScenePassenger& b) {
+			if (a.id != b.id || a.journeys.size() != b.journeys.size())
+				return false;
+			return std::equal(a.journeys.begin(), a.journeys.end(), b.journeys.begin(),
+				[](const ScenePassengerJourney& x, const ScenePassengerJourney& y) {
+				if (x.id != y.id || x.activity != y.activity || x.originStationId != y.originStationId
+						|| x.destinationStationId != y.destinationStationId
+						|| x.plannedDepartureStartSeconds != y.plannedDepartureStartSeconds
+						|| x.plannedDepartureEndSeconds != y.plannedDepartureEndSeconds
+						|| x.plannedArrivalStartSeconds != y.plannedArrivalStartSeconds
+						|| x.plannedArrivalEndSeconds != y.plannedArrivalEndSeconds
+						|| x.legs.size() != y.legs.size())
+					return false;
+				return std::equal(x.legs.begin(), x.legs.end(), y.legs.begin(),
+					[](const ScenePassengerLeg& u, const ScenePassengerLeg& v) {
+						return u.id == v.id && u.originStationId == v.originStationId
+							&& u.destinationStationId == v.destinationStationId
+							&& u.serviceId == v.serviceId && u.occurrence == v.occurrence;
+					});
+				});
 		});
 	};
 	auto sameSignals = [](const std::vector<SceneSignal>& left, const std::vector<SceneSignal>& right) {
@@ -11384,9 +12452,26 @@ void MainWindow::runEditorSmokeE2E() {
 							facetFailure(facetOk, "stations/signalling", "boundary (none) did not clear exit atomically");
 					}
 				}
-				const bool m3TablesAuthored = m_sceneModel.stations.size() == 2 && m_sceneModel.stations[0].platforms.size() == 1 && m_sceneModel.stations[1].platforms.size() == 1 && sceneSignals(m_sceneModel).size() == 1 && m_sceneModel.routes.size() == 1 && m_sceneModel.blockDependencies.size() == 1 && m_sceneModel.singleTrackRestrictions.size() == 1 && m_sceneModel.stationBoundaries.size() == 1;
+		const bool m3TablesAuthored = m_sceneModel.stations.size() == 2 && m_sceneModel.stations[0].platforms.size() == 1 && m_sceneModel.stations[1].platforms.size() == 1 && sceneSignals(m_sceneModel).size() == 1 && m_sceneModel.routes.size() == 1 && m_sceneModel.blockDependencies.size() == 1 && m_sceneModel.singleTrackRestrictions.size() == 1 && m_sceneModel.stationBoundaries.size() == 1;
 				if (!m3TablesAuthored)
 					facetFailure(facetOk, "stations/signalling", "canonical M3 rows were not created through the table controls");
+				if (chooseInfrastructureFacet("platforms")) {
+					auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(infrastructureTable->cellWidget(0, 3));
+					auto* widthEdit = qobject_cast<QDoubleSpinBox*>(infrastructureTable->cellWidget(0, 4));
+					if (!lengthEdit || !widthEdit) {
+						facetFailure(facetOk, "platform geometry", "length/width editors were unavailable");
+					} else {
+						lengthEdit->setValue(123.75);
+						widthEdit->setValue(4.25);
+						QApplication::processEvents();
+						const ScenePlatform& platform = m_sceneModel.stations.front().platforms.front();
+						if (!platform.hasLength || platform.lengthM != 123.75
+								|| !platform.hasWidth || platform.widthM != 4.25)
+							facetFailure(facetOk, "platform geometry", "public geometry edits did not set presence/value");
+					}
+				} else {
+					facetFailure(facetOk, "platform geometry", "platform facet was unavailable");
+				}
 				const std::vector<SceneDiagnostic> nativeDiagnostics =
 					buildInfrastructureAndSignallingFromScene(m_sceneModel);
 				bool nativeRouteMatches = !hasErrors(nativeDiagnostics) && N_Routes == 1
@@ -11684,6 +12769,319 @@ void MainWindow::runEditorSmokeE2E() {
 		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_NEW_CASE_OK\n");
+	}
+
+	// step c: exercise the passenger authoring surface, legacy import seam, and
+	// native passenger/platform staging entirely through public controls.
+	if (m_sceneLoaded) {
+		bool facetOk = true;
+		auto* passengerDock = findChild<QDockWidget*>("passengerDock");
+		auto* passengerList = findChild<QListWidget*>("passengerListWidget");
+		auto* passengerAdd = findChild<QPushButton*>("passengerAddButton");
+		auto* passengerDelete = findChild<QPushButton*>("passengerDeleteButton");
+		auto* passengerImport = findChild<QPushButton*>("passengerImportButton");
+		auto* passengerId = findChild<QLineEdit*>("passengerIdEdit");
+		auto* passengerTabs = findChild<QTabWidget*>("passengerEditorTabs");
+		auto* journeyList = findChild<QListWidget*>("passengerJourneyListWidget");
+		auto* journeyAdd = findChild<QPushButton*>("passengerJourneyAddButton");
+		auto* journeyDelete = findChild<QPushButton*>("passengerJourneyDeleteButton");
+		auto* journeyId = findChild<QLineEdit*>("passengerJourneyIdEdit");
+		auto* journeyActivity = findChild<QLineEdit*>("passengerJourneyActivityEdit");
+		auto* journeyOrigin = findChild<QComboBox*>("passengerJourneyOriginCombo");
+		auto* journeyDestination = findChild<QComboBox*>("passengerJourneyDestinationCombo");
+		auto* legList = findChild<QListWidget*>("passengerLegListWidget");
+		auto* legAdd = findChild<QPushButton*>("passengerLegAddButton");
+		auto* legDelete = findChild<QPushButton*>("passengerLegDeleteButton");
+		auto* legMoveUp = findChild<QPushButton*>("passengerLegMoveUpButton");
+		auto* legMoveDown = findChild<QPushButton*>("passengerLegMoveDownButton");
+		auto* legId = findChild<QLineEdit*>("passengerLegIdEdit");
+		auto* legOrigin = findChild<QComboBox*>("passengerLegOriginCombo");
+		auto* legDestination = findChild<QComboBox*>("passengerLegDestinationCombo");
+		auto* legService = findChild<QComboBox*>("passengerLegServiceCombo");
+		auto* legOccurrence = findChild<QSpinBox*>("passengerLegOccurrenceSpin");
+		auto* importResults = findChild<QTableWidget*>("passengerImportResultTable");
+		const auto commitLineEdit = [](QLineEdit* edit) {
+			return edit && QMetaObject::invokeMethod(edit, "editingFinished", Qt::DirectConnection);
+		};
+		const auto selectData = [](QComboBox* combo, const QString& value) {
+			if (!combo)
+				return false;
+			const int index = combo->findData(value);
+			if (index < 0)
+				return false;
+			combo->setCurrentIndex(index);
+			QApplication::processEvents();
+			return combo->currentData().toString() == value;
+		};
+		if (!passengerDock || !passengerList || !passengerAdd || !passengerDelete
+				|| !passengerImport || !passengerId || !passengerTabs || !journeyList
+				|| !journeyAdd || !journeyDelete || !journeyId || !journeyActivity
+				|| !journeyOrigin || !journeyDestination || !legList || !legAdd
+				|| !legDelete || !legMoveUp || !legMoveDown || !legId || !legOrigin
+				|| !legDestination || !legService || !legOccurrence || !importResults) {
+			facetFailure(facetOk, "passenger", "public passenger controls were unavailable");
+		} else {
+			passengerDock->show();
+			passengerDock->raise();
+			QApplication::processEvents();
+			const SceneService* passengerService = nullptr;
+			std::string originStationId;
+			std::string destinationStationId;
+			for (const auto& service : m_sceneModel.services) {
+				for (std::size_t first = 0; first < service.stops.size() && !passengerService; ++first) {
+					for (std::size_t last = first + 1; last < service.stops.size(); ++last) {
+						if (service.stops[first].stationId == service.stops[last].stationId)
+							continue;
+						const bool knownOrigin = std::any_of(m_sceneModel.stations.begin(),
+							m_sceneModel.stations.end(), [&](const SceneStation& station) {
+								return station.id == service.stops[first].stationId;
+							});
+						const bool knownDestination = std::any_of(m_sceneModel.stations.begin(),
+							m_sceneModel.stations.end(), [&](const SceneStation& station) {
+								return station.id == service.stops[last].stationId;
+							});
+						if (!knownOrigin || !knownDestination)
+							continue;
+						passengerService = &service;
+						originStationId = service.stops[first].stationId;
+						destinationStationId = service.stops[last].stationId;
+						break;
+					}
+				}
+				if (passengerService)
+					break;
+			}
+			if (!passengerService) {
+				facetFailure(facetOk, "passenger", "no service with two canonical station stops was available");
+			} else {
+				e2ePassengerId = uniquePassengerId("e2e_passenger");
+				const int passengerCountBefore = passengerList->count();
+				passengerAdd->click();
+				QApplication::processEvents();
+				if (passengerList->count() != passengerCountBefore + 1) {
+					facetFailure(facetOk, "passenger", "Add did not create a passenger row");
+				} else {
+					passengerId->setText(QString::fromStdString(e2ePassengerId));
+					if (!commitLineEdit(passengerId))
+						facetFailure(facetOk, "passenger", "passenger ID edit did not commit");
+					e2eJourneyId = uniquePassengerJourneyId("e2e_journey");
+					journeyAdd->click();
+					QApplication::processEvents();
+					ScenePassenger* authoredPassenger = selectedPassenger();
+					if (!authoredPassenger || authoredPassenger->journeys.empty()) {
+						facetFailure(facetOk, "passenger", "Journey Add did not create a selected journey");
+					} else {
+						journeyId->setText(QString::fromStdString(e2eJourneyId));
+						journeyActivity->setText("e2e commute");
+						if (!commitLineEdit(journeyId) || !commitLineEdit(journeyActivity)
+								|| !selectData(journeyOrigin, QString::fromStdString(originStationId))
+								|| !selectData(journeyDestination, QString::fromStdString(destinationStationId)))
+							facetFailure(facetOk, "passenger", "journey fields or typed station references did not commit");
+						const std::array<double, 4> windows = {100.0, 200.0, 300.0, 400.0};
+						for (std::size_t index = 0; index < windows.size(); ++index)
+							if (m_passengerJourneyWindowEdits[index])
+								m_passengerJourneyWindowEdits[index]->setValue(windows[index]);
+						passengerTabs->setCurrentIndex(1);
+						legAdd->click();
+						QApplication::processEvents();
+						e2eLegId = uniquePassengerLegId("e2e_leg");
+						const auto configureLeg = [&](const std::string& id) {
+							legId->setText(QString::fromStdString(id));
+							const bool idOk = commitLineEdit(legId);
+							const bool serviceOk = selectData(legService,
+								QString::fromStdString(passengerService->id));
+							const bool originOk = selectData(legOrigin,
+								QString::fromStdString(originStationId));
+							const bool destinationOk = selectData(legDestination,
+								QString::fromStdString(destinationStationId));
+							legOccurrence->setValue(1);
+							QApplication::processEvents();
+							return idOk && serviceOk && originOk && destinationOk
+								&& selectedPassengerLeg() && selectedPassengerLeg()->id == id
+								&& selectedPassengerLeg()->serviceId == passengerService->id
+								&& selectedPassengerLeg()->occurrence == 1;
+						};
+						if (!configureLeg(e2eLegId))
+							facetFailure(facetOk, "passenger", "leg ID, typed stops, service, or occurrence did not commit");
+						const std::string secondLegId = uniquePassengerLegId("e2e_leg_second");
+						legAdd->click();
+						QApplication::processEvents();
+						if (!configureLeg(secondLegId))
+							facetFailure(facetOk, "passenger", "second leg authoring did not commit");
+						legMoveUp->click();
+						QApplication::processEvents();
+						const bool movedUp = selectedPassengerJourney() && selectedPassengerJourney()->legs.size() >= 2
+							&& selectedPassengerJourney()->legs[0].id == secondLegId;
+						legMoveDown->click();
+						QApplication::processEvents();
+						const bool movedDown = selectedPassengerJourney() && selectedPassengerJourney()->legs.size() >= 2
+							&& selectedPassengerJourney()->legs[0].id == e2eLegId;
+						if (!movedUp || !movedDown)
+							facetFailure(facetOk, "passenger", "leg Move Up/Down did not retain order");
+						acceptConfirmation();
+						legDelete->click();
+						QApplication::processEvents();
+						if (!selectedPassengerJourney() || selectedPassengerJourney()->legs.size() != 1
+								|| selectedPassengerJourney()->legs.front().id != e2eLegId)
+							facetFailure(facetOk, "passenger", "leg Delete did not remove only the temporary leg");
+
+						const std::size_t journeyCountBefore = selectedPassenger()
+							? selectedPassenger()->journeys.size() : 0;
+						journeyAdd->click();
+						QApplication::processEvents();
+						const std::string temporaryJourneyId = uniquePassengerJourneyId("e2e_temp_journey");
+						journeyId->setText(QString::fromStdString(temporaryJourneyId));
+						commitLineEdit(journeyId);
+						acceptConfirmation();
+						journeyDelete->click();
+						QApplication::processEvents();
+						if (!selectedPassenger() || selectedPassenger()->journeys.size() != journeyCountBefore)
+							facetFailure(facetOk, "passenger", "Journey Delete did not remove the temporary journey");
+						const int passengerCountWithAuthor = passengerList->count();
+						passengerAdd->click();
+						QApplication::processEvents();
+						const std::string temporaryPassengerId = uniquePassengerId("e2e_temp_passenger");
+						passengerId->setText(QString::fromStdString(temporaryPassengerId));
+						commitLineEdit(passengerId);
+						acceptConfirmation();
+						passengerDelete->click();
+						QApplication::processEvents();
+						if (passengerList->count() != passengerCountWithAuthor)
+							facetFailure(facetOk, "passenger", "Passenger Delete did not remove the temporary passenger");
+
+						QTemporaryDir passengerFixture;
+						const QString passengerDir = passengerFixture.isValid()
+							? QDir(passengerFixture.path()).filePath("Passengers") : QString();
+						const bool fixtureReady = !passengerDir.isEmpty() && QDir().mkpath(passengerDir)
+							&& writeCsvFile(QDir(passengerDir).filePath("DAS_FrenchCaseStudy.csv"),
+								"c0,person_id,c2,c3,journey_no,activity,destination,c7,c8,c9,arrival,c11,origin,c13,departure\n"
+								+ std::string("x,e2e_imported,x,x,1,import,") + destinationStationId
+								+ ",x,x,x,8.25,x," + originStationId + ",x,7.25\n"
+								+ "x," + e2ePassengerId + ",x,x,1,collision," + destinationStationId
+								+ ",x,x,x,8.25,x," + originStationId + ",x,7.25\n"
+								+ "x,e2e_unresolved,x,x,1,unresolved," + destinationStationId
+								+ ",x,x,x,8.25,x,missing-origin,x,7.25\n"
+								+ "malformed,row\n")
+							&& writeCsvFile(QDir(passengerDir).filePath("RouteChoiceFC_EQ1.csv"),
+								"person_id,destination,nb_transfers,r_service_lines_id_1\n"
+								+ std::string("e2e_imported,") + destinationStationId + ",0,"
+								+ (passengerService->operatingCode.empty() ? passengerService->id
+									: passengerService->operatingCode) + "-1\n"
+								+ e2ePassengerId + "," + destinationStationId + ",0,"
+								+ (passengerService->operatingCode.empty() ? passengerService->id
+									: passengerService->operatingCode) + "-1\n"
+								+ "e2e_unresolved," + destinationStationId + ",0,missing-service-1\n"
+								+ "bad\n");
+						if (!fixtureReady) {
+							facetFailure(facetOk, "passenger import", "could not create the exact legacy passenger fixture");
+						} else {
+							qputenv("QEGTRAIN_E2E_PASSENGER_SOURCE", passengerFixture.path().toUtf8());
+							passengerImport->click();
+							QApplication::processEvents();
+							qunsetenv("QEGTRAIN_E2E_PASSENGER_SOURCE");
+							bool sawAccepted = false;
+							bool sawRejected = false;
+							bool sawUnresolved = false;
+							int rejectedCollisionRows = 0;
+							for (int row = 0; row < importResults->rowCount(); ++row) {
+								const QTableWidgetItem* statusItem = importResults->item(row, 2);
+								if (!statusItem)
+									continue;
+								sawAccepted = sawAccepted || statusItem->text() == "Accepted";
+								sawRejected = sawRejected || statusItem->text() == "Rejected";
+								sawUnresolved = sawUnresolved || statusItem->text() == "Unresolved";
+								if (statusItem->text() == "Rejected" && importResults->item(row, 1)
+										&& importResults->item(row, 1)->text() == "2")
+									++rejectedCollisionRows;
+							}
+							if (!sawAccepted || !sawRejected || !sawUnresolved || rejectedCollisionRows < 2)
+								facetFailure(facetOk, "passenger import", "result table did not expose accepted, rejected, and unresolved rows");
+							const auto findPassengerRow = [&](const std::string& id) {
+								const auto matches = passengerList->findItems(QString::fromStdString(id), Qt::MatchExactly);
+								return matches.isEmpty() ? -1 : passengerList->row(matches.front());
+							};
+							const int unresolvedRow = findPassengerRow("e2e_unresolved");
+							if (unresolvedRow < 0) {
+								facetFailure(facetOk, "passenger import", "unresolved passenger was not appended for correction");
+							} else {
+								passengerList->setCurrentRow(unresolvedRow);
+								passengerTabs->setCurrentIndex(1);
+								QApplication::processEvents();
+								const bool invalidServiceVisible = legService->currentText().startsWith("Invalid:")
+									&& legOrigin->currentText().startsWith("Invalid:");
+								if (!invalidServiceVisible)
+									facetFailure(facetOk, "passenger import", "unresolved service/station values were not visible as invalid");
+								passengerTabs->setCurrentIndex(0);
+								acceptConfirmation();
+								passengerDelete->click();
+								QApplication::processEvents();
+								if (findPassengerRow("e2e_unresolved") >= 0)
+									facetFailure(facetOk, "passenger import", "invalid imported passenger was not deletable through the public control");
+							}
+							const auto passengersBeforeFailedImport = m_sceneModel.passengers;
+							QTemporaryDir partialFixture;
+							const QString partialPassengerDir = QDir(partialFixture.path()).filePath("Passengers");
+							const bool partialReady = partialFixture.isValid()
+								&& QDir().mkpath(partialPassengerDir)
+								&& writeCsvFile(QDir(partialPassengerDir).filePath("DAS_FrenchCaseStudy.csv"),
+									"c0,person_id,c2,c3,journey_no,activity,destination,c7,c8,c9,arrival,c11,origin,c13,departure\n");
+							if (!partialReady) {
+								facetFailure(facetOk, "passenger import", "could not create the partial import fixture");
+							} else {
+								qputenv("QEGTRAIN_E2E_PASSENGER_SOURCE", partialFixture.path().toUtf8());
+								passengerImport->click();
+								QApplication::processEvents();
+								qunsetenv("QEGTRAIN_E2E_PASSENGER_SOURCE");
+								if (!samePassengers(passengersBeforeFailedImport, m_sceneModel.passengers)
+										|| importResults->rowCount() != 1 || !importResults->item(0, 2)
+										|| importResults->item(0, 2)->text() != "Rejected")
+									facetFailure(facetOk, "passenger import", "a failed import changed the scene or hid its rejection");
+							}
+						}
+
+						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(m_sceneModel);
+						const auto operationsDiagnostics = buildOperationsFromScene(
+							m_sceneModel, m_selectedScenarioId, SceneRunSelection());
+						const auto stagedPassenger = std::find_if(AllDailyPassengers.begin(), AllDailyPassengers.end(),
+							[&](const Passenger& passenger) { return passenger.ID == e2ePassengerId; });
+						bool nativePassengerOk = !hasErrors(infrastructureDiagnostics)
+							&& !hasErrors(operationsDiagnostics) && stagedPassenger != AllDailyPassengers.end();
+						if (nativePassengerOk) {
+							const auto stagedJourney = std::find_if(stagedPassenger->Journeys.begin(),
+								stagedPassenger->Journeys.end(), [&](const Journey& journey) {
+									return journey.ID == e2eJourneyId;
+								});
+							nativePassengerOk = stagedJourney != stagedPassenger->Journeys.end();
+							if (nativePassengerOk) {
+								const auto stagedLeg = std::find_if(stagedJourney->Trips.begin(),
+									stagedJourney->Trips.end(), [&](const Trip& trip) {
+										return trip.TripID == e2eLegId;
+									});
+								nativePassengerOk = stagedLeg != stagedJourney->Trips.end();
+							}
+						}
+						bool nativePlatformOk = false;
+						if (!m_sceneModel.stations.empty() && !m_sceneModel.stations.front().platforms.empty()) {
+							const ScenePlatform& sourcePlatform = m_sceneModel.stations.front().platforms.front();
+							const double expectedLength = sourcePlatform.hasLength ? sourcePlatform.lengthM : 100.0;
+							const double expectedWidth = sourcePlatform.hasWidth ? sourcePlatform.widthM : 2.5;
+							const int expectedCapacity = static_cast<int>((expectedLength * expectedWidth)
+								/ (3.14159 * std::pow(0.8, 2)) * 0.8);
+							const auto stagedPlatform = std::find_if(AllStationPlatforms.begin(), AllStationPlatforms.end(),
+								[&](const StationPlatform& platform) { return platform.ID == sourcePlatform.id; });
+							if (stagedPlatform != AllStationPlatforms.end())
+								nativePlatformOk = stagedPlatform->length == expectedLength
+									&& stagedPlatform->width == expectedWidth
+									&& stagedPlatform->Max_Passenger_Volume == expectedCapacity;
+					}
+						if (!nativePassengerOk || !nativePlatformOk)
+							facetFailure(facetOk, "passenger native staging", "passenger leg or platform geometry did not reach native staging");
+					}
+				}
+			}
+		}
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_PASSENGER_OK\n");
 	}
 
 	// step b: validation assertions
@@ -12799,6 +14197,8 @@ void MainWindow::runEditorSmokeE2E() {
 			expectedTrainUnits = m_sceneModel.trainUnits;
 			expectedCompositions = m_sceneModel.compositions;
 			expectedServices = m_sceneModel.services;
+			expectedStations = m_sceneModel.stations;
+			expectedPassengers = m_sceneModel.passengers;
 			expectedIncidents = selectedScenarioIncidents();
 			if (const SceneScenario* scenario = selectedScenario())
 				expectedEntranceDelays = scenario->entranceDelays;
@@ -12811,9 +14211,13 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "save/reload", "train-unit facet changed after reload");
 			} else if (!sameCompositions(expectedCompositions, m_sceneModel.compositions)) {
 				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
-			} else if (!sameServices(expectedServices, m_sceneModel.services)) {
-				facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
-			} else if (!sameIncidents(expectedIncidents, selectedScenarioIncidents())) {
+				} else if (!sameServices(expectedServices, m_sceneModel.services)) {
+					facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
+				} else if (!sameStations(expectedStations, m_sceneModel.stations)) {
+					facetFailure(facetOk, "save/reload", "platform geometry changed after reload");
+				} else if (!samePassengers(expectedPassengers, m_sceneModel.passengers)) {
+					facetFailure(facetOk, "save/reload", "passenger hierarchy changed after reload");
+				} else if (!sameIncidents(expectedIncidents, selectedScenarioIncidents())) {
 				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
 			} else if (!selectedScenario()
 					|| !sameEntranceDelays(expectedEntranceDelays, selectedScenario()->entranceDelays)) {
@@ -12828,7 +14232,7 @@ void MainWindow::runEditorSmokeE2E() {
 					QApplication::processEvents();
 					return !m_sceneDirty;
 				};
-				const auto spinTextEdit = [](QDoubleSpinBox* spin) {
+				const auto spinTextEdit = [](QAbstractSpinBox* spin) {
 					return spin ? spin->findChild<QLineEdit*>() : nullptr;
 				};
 				const auto modelRowFor = [](const auto& values, const std::string& id) {
@@ -12840,6 +14244,172 @@ void MainWindow::runEditorSmokeE2E() {
 				const int trainUnitRow = modelRowFor(m_sceneModel.trainUnits, editedTrainUnitId);
 				const int compositionRow = modelRowFor(m_sceneModel.compositions, editedCompositionId);
 				const int serviceRow = modelRowFor(m_sceneModel.services, editedServiceId);
+				const int passengerRow = modelRowFor(m_sceneModel.passengers, e2ePassengerId);
+				if (passengerRow < 0 || e2eJourneyId.empty() || e2eLegId.empty()
+						|| !m_passengerDock || !m_passengerListWidget || !m_passengerIdEdit
+						|| !m_passengerJourneyListWidget || !m_passengerJourneyIdEdit
+						|| !m_passengerJourneyActivityEdit || !m_passengerLegListWidget
+						|| !m_passengerLegIdEdit || !m_passengerLegOccurrenceEdit) {
+					facetFailure(facetOk, "save/reload", "passenger pending-editor controls were unavailable after reload");
+				} else {
+					activateWindow();
+					m_passengerDock->show();
+					m_passengerDock->raise();
+					m_passengerListWidget->setCurrentRow(passengerRow);
+					if (m_passengerTabs)
+						m_passengerTabs->setCurrentIndex(0);
+					QApplication::processEvents();
+					const std::string pendingPassengerId = e2ePassengerId + "_focused";
+					m_passengerIdEdit->setText(QString::fromStdString(pendingPassengerId));
+					m_passengerIdEdit->setFocus();
+					if (!triggerPendingSave() || m_sceneModel.passengers[static_cast<std::size_t>(passengerRow)].id != pendingPassengerId)
+						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger ID");
+					else
+						e2ePassengerId = pendingPassengerId;
+					m_passengerJourneyListWidget->setCurrentRow(0);
+					QApplication::processEvents();
+					const std::string pendingJourneyId = e2eJourneyId + "_focused";
+					m_passengerJourneyIdEdit->setText(QString::fromStdString(pendingJourneyId));
+					m_passengerJourneyIdEdit->setFocus();
+					if (!triggerPendingSave() || !selectedPassengerJourney()
+							|| selectedPassengerJourney()->id != pendingJourneyId)
+						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger journey ID");
+					else
+						e2eJourneyId = pendingJourneyId;
+					const std::string pendingActivity = "e2e focused activity";
+					m_passengerJourneyActivityEdit->setText(QString::fromStdString(pendingActivity));
+					m_passengerJourneyActivityEdit->setFocus();
+					if (!triggerPendingSave() || !selectedPassengerJourney()
+							|| selectedPassengerJourney()->activity != pendingActivity)
+						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger activity");
+					if (m_passengerJourneyWindowEdits[0]) {
+						QLineEdit* pendingWindow = spinTextEdit(m_passengerJourneyWindowEdits[0]);
+						const double pendingWindowValue = 111.25;
+						if (!pendingWindow) {
+							facetFailure(facetOk, "save/reload", "passenger planned-window editor was unavailable");
+						} else {
+							pendingWindow->setText(QString::number(pendingWindowValue, 'g', 16));
+							pendingWindow->setFocus();
+							if (!triggerPendingSave() || !selectedPassengerJourney()
+									|| selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
+								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger planned window");
+						}
+					}
+					if (m_passengerTabs)
+						m_passengerTabs->setCurrentIndex(1);
+					m_passengerLegListWidget->setCurrentRow(0);
+					QApplication::processEvents();
+					const std::string pendingLegId = e2eLegId + "_focused";
+					m_passengerLegIdEdit->setText(QString::fromStdString(pendingLegId));
+					m_passengerLegIdEdit->setFocus();
+					if (!triggerPendingSave() || !selectedPassengerLeg()
+							|| selectedPassengerLeg()->id != pendingLegId)
+						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger leg ID");
+					else
+						e2eLegId = pendingLegId;
+					QLineEdit* pendingOccurrence = spinTextEdit(m_passengerLegOccurrenceEdit);
+					const int repeatedServiceIndex = m_passengerLegServiceCombo
+						? m_passengerLegServiceCombo->findData(QString::fromStdString(editedServiceId)) : -1;
+					if (!pendingOccurrence || repeatedServiceIndex < 0) {
+						facetFailure(facetOk, "save/reload", "passenger occurrence editor was unavailable");
+					} else {
+						activateWindow();
+						m_passengerDock->show();
+						m_passengerDock->raise();
+						m_passengerLegServiceCombo->setCurrentIndex(repeatedServiceIndex);
+						QApplication::processEvents();
+						pendingOccurrence->setText("2");
+						pendingOccurrence->setFocus();
+						QApplication::processEvents();
+						const bool savedOccurrence = triggerPendingSave();
+						if (!savedOccurrence || !selectedPassengerLeg()
+								|| selectedPassengerLeg()->occurrence != 2) {
+							facetFailure(facetOk, "save/reload",
+								QString("Save did not commit the still-focused passenger occurrence "
+									"(range %1..%2, editor %3, model %4, saved %5)")
+									.arg(m_passengerLegOccurrenceEdit->minimum())
+									.arg(m_passengerLegOccurrenceEdit->maximum())
+									.arg(m_passengerLegOccurrenceEdit->value())
+									.arg(selectedPassengerLeg() ? selectedPassengerLeg()->occurrence : -1)
+									.arg(savedOccurrence));
+						}
+					}
+					if (!m_infrastructureFacetCombo || !m_infrastructureTable
+							|| m_infrastructureFacetCombo->findData("platforms") < 0) {
+						facetFailure(facetOk, "save/reload", "platform geometry controls were unavailable for focused Save");
+					} else {
+						activateWindow();
+						if (m_infrastructureDock) {
+							m_infrastructureDock->show();
+							m_infrastructureDock->raise();
+						}
+						m_infrastructureFacetCombo->setCurrentIndex(
+							m_infrastructureFacetCombo->findData("platforms"));
+						QApplication::processEvents();
+						const auto enterSpinText = [](QLineEdit* editor, const QString& text) {
+							editor->selectAll();
+							for (const QChar character : text) {
+								QKeyEvent keyPress(QEvent::KeyPress, character.unicode(), Qt::NoModifier,
+									QString(character));
+								QApplication::sendEvent(editor, &keyPress);
+							}
+						};
+						int implicitPlatformRow = -1;
+						ScenePlatform* implicitPlatform = nullptr;
+						int platformRow = 0;
+						for (auto& station : m_sceneModel.stations) {
+							for (auto& platform : station.platforms) {
+								if (!implicitPlatform && !platform.hasLength && !platform.hasWidth) {
+									implicitPlatformRow = platformRow;
+									implicitPlatform = &platform;
+								}
+								++platformRow;
+							}
+						}
+						auto* implicitLengthEdit = implicitPlatformRow >= 0
+							? qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(implicitPlatformRow, 3))
+							: nullptr;
+						auto* implicitWidthEdit = implicitPlatformRow >= 0
+							? qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(implicitPlatformRow, 4))
+							: nullptr;
+						QLineEdit* implicitLength = spinTextEdit(implicitLengthEdit);
+						QLineEdit* implicitWidth = spinTextEdit(implicitWidthEdit);
+						if (!implicitPlatform || !implicitLength || !implicitWidth) {
+							facetFailure(facetOk, "save/reload", "implicit platform geometry was unavailable");
+						} else {
+							implicitWidth->setFocus();
+							QApplication::processEvents();
+							if (!implicitWidth->hasFocus())
+								facetFailure(facetOk, "save/reload", "implicit platform width could not receive focus");
+							enterSpinText(implicitWidth, QStringLiteral("2.5"));
+							implicitLength->setFocus();
+							QApplication::processEvents();
+							if (!implicitLength->hasFocus()) {
+								facetFailure(facetOk, "save/reload", "implicit platform length could not receive focus");
+							} else if (!implicitPlatform->hasWidth || implicitPlatform->widthM != 2.5) {
+								facetFailure(facetOk, "save/reload",
+									"same-value platform geometry was not committed on focus loss");
+							} else if (!triggerPendingSave()
+									|| implicitPlatform->hasLength)
+								facetFailure(facetOk, "save/reload",
+									"Save materialized an untouched compatibility platform length");
+						}
+						auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(0, 3));
+						QLineEdit* pendingLength = spinTextEdit(lengthEdit);
+						if (!pendingLength) {
+							facetFailure(facetOk, "save/reload", "focused platform length editor was unavailable");
+						} else {
+							const double pendingLengthValue = 234.5;
+							pendingLength->setFocus();
+							enterSpinText(pendingLength, QString::number(pendingLengthValue, 'g', 16));
+							if (!triggerPendingSave() || m_sceneModel.stations.empty()
+									|| m_sceneModel.stations.front().platforms.empty()
+									|| !m_sceneModel.stations.front().platforms.front().hasLength
+									|| m_sceneModel.stations.front().platforms.front().lengthM != pendingLengthValue)
+								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused platform length");
+						}
+					}
+				}
 				int entranceDelayRow = -1;
 				if (const SceneScenario* scenario = selectedScenario()) {
 					for (int row = 0; row < static_cast<int>(scenario->entranceDelays.size()); ++row) {
@@ -13026,17 +14596,21 @@ void MainWindow::runEditorSmokeE2E() {
 						} else if (!saveSceneToCurrentDir()) {
 							facetFailure(facetOk, "save/reload", "pending editor values were not saved");
 						} else {
-							expectedTrainUnits = m_sceneModel.trainUnits;
-							expectedCompositions = m_sceneModel.compositions;
-							expectedServices = m_sceneModel.services;
-							expectedIncidents = selectedScenarioIncidents();
+						expectedTrainUnits = m_sceneModel.trainUnits;
+						expectedCompositions = m_sceneModel.compositions;
+						expectedServices = m_sceneModel.services;
+						expectedStations = m_sceneModel.stations;
+						expectedPassengers = m_sceneModel.passengers;
+						expectedIncidents = selectedScenarioIncidents();
 							if (const SceneScenario* scenario = selectedScenario())
 								expectedEntranceDelays = scenario->entranceDelays;
 							if (!openSceneDirectory(outScenePath)
 									|| !sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)
-									|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
-									|| !sameServices(expectedServices, m_sceneModel.services)
-									|| !sameIncidents(expectedIncidents, selectedScenarioIncidents())
+								|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
+								|| !sameServices(expectedServices, m_sceneModel.services)
+								|| !sameStations(expectedStations, m_sceneModel.stations)
+								|| !samePassengers(expectedPassengers, m_sceneModel.passengers)
+								|| !sameIncidents(expectedIncidents, selectedScenarioIncidents())
 									|| !selectedScenario()
 									|| !sameEntranceDelays(expectedEntranceDelays,
 										selectedScenario()->entranceDelays))
@@ -13055,6 +14629,8 @@ void MainWindow::runEditorSmokeE2E() {
 					QFile::remove(bundlePath);
 					const SceneSaveResult bundleSave = saveSceneBundle(m_sceneModel, bundlePath.toStdString());
 					if (!bundleSave.success() || !openSceneDirectory(bundlePath) || !selectedScenario()
+							|| !sameStations(expectedStations, m_sceneModel.stations)
+							|| !samePassengers(expectedPassengers, m_sceneModel.passengers)
 							|| !sameEntranceDelays(expectedEntranceDelays,
 								selectedScenario()->entranceDelays))
 						facetFailure(facetOk, "save/reload", "entrance delays changed after bundle save and reopen");

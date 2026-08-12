@@ -154,7 +154,19 @@ static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second
 }
 
 static bool testNewSceneRoundTrip(const fs::path& root) {
-	const SceneModel expected = makeNewSceneModel();
+	SceneModel expected = makeNewSceneModel();
+	SceneStation station;
+	station.id = "bundle-station";
+	station.name = "Bundle station";
+	ScenePlatform explicitPlatform;
+	explicitPlatform.id = "bundle-platform-explicit";
+	explicitPlatform.hasLength = true;
+	explicitPlatform.lengthM = 135.0;
+	explicitPlatform.hasWidth = true;
+	explicitPlatform.widthM = 3.25;
+	station.platforms.push_back(explicitPlatform);
+	station.platforms.push_back({"bundle-platform-default", {}});
+	expected.stations.push_back(station);
 	const fs::path folder = root / "new-scene";
 	const fs::path bundle = root / "new-scene.egscene";
 	bool ok = true;
@@ -164,6 +176,16 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 	const SceneLoadResult bundleLoad = loadScenePath(bundle.string());
 	ok &= expect(!hasErrors(folderLoad.diagnostics), "new scene folder has no structural diagnostics");
 	ok &= expect(!hasErrors(bundleLoad.diagnostics), "new scene bundle has no structural diagnostics");
+	ok &= expect(folderLoad.scene.stations.size() == 1
+			&& folderLoad.scene.stations[0].platforms[0].hasLength
+			&& folderLoad.scene.stations[0].platforms[0].lengthM == 135.0
+			&& folderLoad.scene.stations[0].platforms[0].hasWidth
+			&& folderLoad.scene.stations[0].platforms[0].widthM == 3.25
+			&& !folderLoad.scene.stations[0].platforms[1].hasLength
+			&& folderLoad.scene.stations[0].platforms[1].lengthM == 100.0
+			&& !folderLoad.scene.stations[0].platforms[1].hasWidth
+			&& folderLoad.scene.stations[0].platforms[1].widthM == 2.5,
+			"bundle preserves explicit platform geometry and absent defaults");
 	ok &= expect(sameCanonicalFiles(expected, folderLoad.scene, root / "folder-semantics"),
 			"new scene folder preserves canonical case data");
 	ok &= expect(sameCanonicalFiles(expected, bundleLoad.scene, root / "bundle-semantics"),

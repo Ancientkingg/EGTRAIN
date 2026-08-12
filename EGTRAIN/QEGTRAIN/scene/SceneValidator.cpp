@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <regex>
 #include <unordered_map>
 #include <unordered_set>
@@ -455,6 +456,28 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			else if (!platformIds.insert(platform.id).second)
 				diagnostics.error("scene.id.duplicate", "Duplicate platform id on station", "stations.json",
 						"platform", platform.id, platformPath + ".id", station.id);
+			if (platform.hasLength && (!std::isfinite(platform.lengthM) || platform.lengthM <= 0.0))
+				diagnostics.error("scene.platform.length.invalid",
+						"Platform length_m must be positive and finite", "stations.json", "platform",
+						platform.id, platformPath + ".length_m", "",
+						"Use a platform length greater than 0 metres");
+			if (platform.hasWidth && (!std::isfinite(platform.widthM) || platform.widthM <= 0.0))
+				diagnostics.error("scene.platform.width.invalid",
+						"Platform width_m must be positive and finite", "stations.json", "platform",
+						platform.id, platformPath + ".width_m", "",
+						"Use a platform width greater than 0 metres");
+			const double effectiveLength = platform.hasLength ? platform.lengthM : 100.0;
+			const double effectiveWidth = platform.hasWidth ? platform.widthM : 2.5;
+			const double capacity = effectiveLength * effectiveWidth
+					/ (3.14159 * std::pow(0.8, 2)) * 0.8;
+			if (std::isfinite(effectiveLength) && effectiveLength > 0.0
+					&& std::isfinite(effectiveWidth) && effectiveWidth > 0.0
+					&& (!std::isfinite(capacity) || capacity < 1.0
+							|| capacity > static_cast<double>(std::numeric_limits<int>::max())))
+				diagnostics.error("scene.platform.capacity.invalid",
+						"Platform geometry produces an unsupported passenger capacity", "stations.json",
+						"platform", platform.id, platformPath, "",
+						"Use dimensions that produce at least one passenger and fit the runtime capacity field");
 			if (platform.nodeIds.empty())
 				diagnostics.error("scene.platform.nodes.none", "Platform has no bound nodes", "stations.json",
 						"platform", platform.id, platformPath + ".nodes", "", "Bind the platform to at least one node");
@@ -1027,11 +1050,15 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.ref.unresolved", "Journey refers to unknown destination station",
 						"passengers.json", "journey", journey.id, journeyPath + ".destination",
 						journey.destinationStationId);
-			if (journey.plannedDepartureStartSeconds < 0.0
+			if (!std::isfinite(journey.plannedDepartureStartSeconds)
+					|| !std::isfinite(journey.plannedDepartureEndSeconds)
+					|| journey.plannedDepartureStartSeconds < 0.0
 					|| journey.plannedDepartureEndSeconds < journey.plannedDepartureStartSeconds)
 				diagnostics.error("scene.passenger.window", "Invalid planned departure window", "passengers.json",
 						"journey", journey.id, journeyPath + ".planned_departure");
-			if (journey.plannedArrivalStartSeconds < 0.0
+			if (!std::isfinite(journey.plannedArrivalStartSeconds)
+					|| !std::isfinite(journey.plannedArrivalEndSeconds)
+					|| journey.plannedArrivalStartSeconds < 0.0
 					|| journey.plannedArrivalEndSeconds < journey.plannedArrivalStartSeconds)
 				diagnostics.error("scene.passenger.window", "Invalid planned arrival window", "passengers.json",
 						"journey", journey.id, journeyPath + ".planned_arrival");
@@ -1054,6 +1081,33 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				if (!hasId(serviceIds, leg.serviceId))
 					diagnostics.error("scene.ref.unresolved", "Passenger leg refers to unknown service",
 							"passengers.json", "leg", leg.id, legPath + ".service", leg.serviceId);
+				const auto service = services.find(leg.serviceId);
+				if (service != services.end()) {
+					const bool hasOriginStop = std::any_of(service->second->stops.begin(), service->second->stops.end(),
+							[&leg](const SceneStop& stop) { return stop.stationId == leg.originStationId; });
+					const bool hasDestinationStop = std::any_of(service->second->stops.begin(), service->second->stops.end(),
+							[&leg](const SceneStop& stop) { return stop.stationId == leg.destinationStationId; });
+					if (!hasOriginStop)
+						diagnostics.error("scene.passenger.leg.stop",
+								"Passenger leg origin is not a stop of the referenced service", "passengers.json",
+								"leg", leg.id, legPath + ".origin", leg.serviceId,
+								"Choose an origin station from the service stop pattern");
+					if (!hasDestinationStop)
+						diagnostics.error("scene.passenger.leg.stop",
+								"Passenger leg destination is not a stop of the referenced service", "passengers.json",
+								"leg", leg.id, legPath + ".destination", leg.serviceId,
+								"Choose a destination station from the service stop pattern");
+					if (hasOriginStop && hasDestinationStop) {
+						SceneServiceStopPair stopPair;
+						if (!resolveScenePassengerLegStops(*service->second, leg, stopPair)) {
+							diagnostics.add(hasLegacyImport ? SceneSeverity::Warning : SceneSeverity::Error,
+									"scene.passenger.leg.order",
+									"Passenger leg destination must follow its origin in the service stop pattern",
+									"passengers.json", "leg", leg.id, legPath + ".destination", leg.serviceId,
+									"Choose an ordered origin/destination pair from the service stop pattern");
+						}
+					}
+				}
 				if (leg.occurrence <= 0)
 					diagnostics.error("scene.occurrence.invalid", "Passenger leg occurrence must be positive",
 							"passengers.json", "leg", leg.id, legPath + ".occurrence");

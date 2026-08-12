@@ -167,6 +167,10 @@ int main() {
 	bool ok = true;
 	TempDir temp;
 	SceneModel source = completeScene();
+	source.stations[0].platforms[0].hasLength = true;
+	source.stations[0].platforms[0].lengthM = 125.0;
+	source.stations[0].platforms[0].hasWidth = true;
+	source.stations[0].platforms[0].widthM = 3.75;
 	source.services[0].performancePercent = 87.5;
 	source.services[0].hasMaximumSpeed = true;
 	source.services[0].maximumSpeedKmh = 120.0;
@@ -183,6 +187,17 @@ int main() {
 			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json"})
 		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
 	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
+	json stations;
+	{
+		std::ifstream input(temp.path / "stations.json");
+		input >> stations;
+	}
+	ok &= expect(stations["stations"][0]["platforms"][0]["length_m"] == 125.0
+			&& stations["stations"][0]["platforms"][0]["width_m"] == 3.75,
+			"writer emits explicitly authored platform geometry");
+	ok &= expect(!stations["stations"][1]["platforms"][0].contains("length_m")
+			&& !stations["stations"][1]["platforms"][0].contains("width_m"),
+			"writer omits absent platform geometry");
 	json signalling;
 	{
 		std::ifstream input(temp.path / "signalling.json");
@@ -330,6 +345,15 @@ int main() {
 				&& reloaded.services[0].stops[0].plannedDepartureSeconds == 100.0,
 			"planned departure round-trips");
 	ok &= expect(reloaded.services[0].operatingCode == "R100", "service operating code round-trips");
+	ok &= expect(reloaded.stations[0].platforms[0].hasLength
+			&& reloaded.stations[0].platforms[0].lengthM == 125.0
+			&& reloaded.stations[0].platforms[0].hasWidth
+			&& reloaded.stations[0].platforms[0].widthM == 3.75
+			&& !reloaded.stations[1].platforms[0].hasLength
+			&& reloaded.stations[1].platforms[0].lengthM == 100.0
+			&& !reloaded.stations[1].platforms[0].hasWidth
+			&& reloaded.stations[1].platforms[0].widthM == 2.5,
+			"platform geometry presence and effective defaults round-trip");
 	ok &= expect(reloaded.services[0].performancePercent == 87.5
 				&& reloaded.services[0].hasMaximumSpeed
 				&& reloaded.services[0].maximumSpeedKmh == 120.0

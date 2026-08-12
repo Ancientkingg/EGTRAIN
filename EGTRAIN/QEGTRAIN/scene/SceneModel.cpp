@@ -105,6 +105,23 @@ std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int
 	return base;
 }
 
+bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
+		SceneServiceStopPair& result) {
+	for (std::size_t originIndex = 0; originIndex < service.stops.size(); ++originIndex) {
+		if (service.stops[originIndex].stationId != leg.originStationId)
+			continue;
+		for (std::size_t destinationIndex = originIndex + 1; destinationIndex < service.stops.size();
+				++destinationIndex) {
+			if (service.stops[destinationIndex].stationId == leg.destinationStationId) {
+				result.originIndex = originIndex;
+				result.destinationIndex = destinationIndex;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
 	scene.schemaVersion = 1;
@@ -831,6 +848,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						const json& platformValue = value["platforms"][platformIndex];
 						ScenePlatform platform;
 						stringField(platformValue, "id", "stations.json", platformPath, platform.id);
+						platform.hasLength = numberField(platformValue, "length_m", "stations.json",
+								platformPath, platform.lengthM, false);
+						platform.hasWidth = numberField(platformValue, "width_m", "stations.json",
+								platformPath, platform.widthM, false);
 						if (platformValue.contains("nodes")) {
 							if (!platformValue["nodes"].is_array()) {
 								addError("scene.field.missing", "stations.json",
