@@ -1,6 +1,7 @@
 #include "widgets/NetworkLegendWidget.h"
 
 #include <QApplication>
+#include <QImage>
 #include <QLabel>
 #include <QRegularExpression>
 #include <QToolButton>
@@ -12,6 +13,14 @@ static bool expect(bool condition, const char* message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";
 	return condition;
+}
+
+static bool containsColor(const QImage& image, const QColor& color) {
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (image.pixelColor(x, y).rgb() == color.rgb())
+				return true;
+	return false;
 }
 
 int main(int argc, char* argv[]) {
@@ -62,6 +71,12 @@ int main(int argc, char* argv[]) {
 	ok &= expect(entries.at(3).label == "Blocked section"
 		&& entries.at(3).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
 		"blocked track entry keeps its non-color cue");
+	auto* preparedSwatch = legend.findChild<QWidget*>("mapKeySwatch1");
+	const QImage preparedImage = preparedSwatch ? preparedSwatch->grab().toImage() : QImage();
+	ok &= expect(preparedSwatch && preparedSwatch->width() == 46
+		&& containsColor(preparedImage, classifyTrackState(TrackOperationalState::Prepared).color)
+		&& containsColor(preparedImage, freeTrackVisual().color),
+		"prepared track swatch mirrors the renderer state underlay and base rail");
 
 	int intercityCount = 0;
 	int interchangeCount = 0;
