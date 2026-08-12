@@ -2,6 +2,7 @@
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
+#include <QBuffer>
 #include <QColor>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -31,6 +32,14 @@ QPen mutedPen(const QPen& base) {
 	color.setAlpha(60);
 	pen.setColor(color);
 	return pen;
+}
+
+bool writeArtifact(const QString& path, const std::string& bytes) {
+	QSaveFile file(path);
+	if (!file.open(QIODevice::WriteOnly))
+		return false;
+	const QByteArray data = QByteArray::fromStdString(bytes);
+	return file.write(data) == data.size() && file.commit();
 }
 
 // Emphasised pen for the pinned train.
@@ -128,7 +137,7 @@ void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)
 }
 
 void DiagramWindow::setProvenanceWriter(
-		std::function<bool(const QString&, const char*)> writer) {
+		std::function<bool(const QString&, const char*, const std::string&)> writer) {
 	m_provenanceWriter = std::move(writer);
 }
 
@@ -367,14 +376,20 @@ void DiagramWindow::exportPng() {
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 		path += ".png";
 	QPixmap pix = m_view->grab();
-	if (!pix.save(path, "PNG")) {
+	QByteArray data;
+	QBuffer buffer(&data);
+	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
-	} else if (m_provenanceWriter && !m_provenanceWriter(path, "png")) {
-		QMessageBox::warning(this, "Export failed",
-							 QString("The image was removed because its provenance sidecar could not be written:\n%1.provenance.json")
-								.arg(path));
+		return;
 	}
+	const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+	const bool written = m_provenanceWriter
+		? m_provenanceWriter(path, "png", bytes)
+		: writeArtifact(path, bytes);
+	if (!written)
+		QMessageBox::warning(this, "Export failed",
+			QString("Could not export the image and provenance to:\n%1").arg(path));
 }
 
 void DiagramWindow::exportCsv() {
@@ -392,23 +407,12 @@ void DiagramWindow::exportCsv() {
 		return;  // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
 		path += ".csv";
-	// QSaveFile writes to a temporary file and renames on commit, so a failure or
-	// cancellation never leaves a partial file in place.
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
+	const bool written = m_provenanceWriter
+		? m_provenanceWriter(path, "csv", content)
+		: writeArtifact(path, content);
+	if (!written)
 		QMessageBox::warning(this, "Export failed",
-							 QString("Could not open the file for writing:\n%1").arg(path));
-		return;
-	}
-	const QByteArray bytes = QByteArray::fromStdString(content);
-	if (file.write(bytes) != bytes.size() || !file.commit()) {
-		QMessageBox::warning(this, "Export failed",
-							 QString("Could not write the data to:\n%1").arg(path));
-	} else if (m_provenanceWriter && !m_provenanceWriter(path, "csv")) {
-		QMessageBox::warning(this, "Export failed",
-							 QString("The CSV was removed because its provenance sidecar could not be written:\n%1.provenance.json")
-								.arg(path));
-	}
+			QString("Could not export the data and provenance to:\n%1").arg(path));
 }
 
 bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {

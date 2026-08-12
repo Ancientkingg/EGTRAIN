@@ -17,11 +17,17 @@ namespace fs = std::filesystem;
 namespace {
 
 bool readFile(const fs::path& path, std::string& content) {
-	std::ifstream input(path);
+	std::ifstream input(path, std::ios::binary);
 	if (!input)
 		return false;
 	content.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
 	return true;
+}
+
+bool canonicalSnapshotFile(const std::string& file) {
+	return file == "scene.json" || file == "infrastructure.json" || file == "stations.json"
+			|| file == "signalling.json" || file == "rolling_stock.json" || file == "services.json"
+			|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json";
 }
 
 std::string joinPath(const std::string& parent, const std::string& key) {
@@ -61,6 +67,86 @@ std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDia
 }
 
 } // namespace
+
+std::string buildSceneDirectorySnapshot(
+		const std::vector<std::pair<std::string, std::string>>& files) {
+	std::vector<std::pair<std::string, std::string>> sorted = files;
+	std::sort(sorted.begin(), sorted.end(), [](const auto& first, const auto& second) {
+		return first.first < second.first;
+	});
+
+	std::string snapshot;
+	for (const auto& file : sorted) {
+		snapshot += std::to_string(file.first.size());
+		snapshot += ':';
+		snapshot += file.first;
+		snapshot += ':';
+		snapshot += std::to_string(file.second.size());
+		snapshot += ':';
+		snapshot += file.second;
+	}
+	return snapshot;
+}
+
+SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
+	SceneInputSnapshot result;
+	std::error_code ec;
+	if (!fs::is_directory(sceneDir, ec) || ec) {
+		result.reason = "scene directory is missing or unreadable";
+		return result;
+	}
+
+	std::vector<std::pair<std::string, std::string>> files;
+	const auto read = [&](const char* name, bool required) {
+		const fs::path path = fs::path(sceneDir) / name;
+		ec.clear();
+		if (!fs::is_regular_file(path, ec) || ec) {
+			if (required)
+				result.reason = std::string("required scene input is missing or unreadable: ") + name;
+			return !required;
+		}
+		std::string content;
+		if (!readFile(path, content)) {
+			result.reason = std::string("scene input is missing or unreadable: ") + name;
+			return false;
+		}
+		files.emplace_back(name, std::move(content));
+		return true;
+	};
+	const auto exists = [&](const char* name, bool& present) {
+		ec.clear();
+		present = fs::exists(fs::path(sceneDir) / name, ec);
+		if (!ec)
+			return true;
+		result.reason = std::string("scene input is missing or unreadable: ") + name;
+		return false;
+	};
+
+	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			"rolling_stock.json", "services.json"}) {
+		if (!read(name, true))
+			return result;
+	}
+	bool scenariosPresent = false;
+	bool incidentsPresent = false;
+	if (!exists("scenarios.json", scenariosPresent) || !exists("incidents.json", incidentsPresent))
+		return result;
+	if (!scenariosPresent && !incidentsPresent) {
+		result.reason = "required scene input is missing or unreadable: scenarios.json or incidents.json";
+		return result;
+	}
+	if (scenariosPresent && !read("scenarios.json", true))
+		return result;
+	if (incidentsPresent && !read("incidents.json", true))
+		return result;
+	bool passengersPresent = false;
+	if (!exists("passengers.json", passengersPresent)
+			|| (passengersPresent && !read("passengers.json", true)))
+		return result;
+
+	result.bytes = buildSceneDirectorySnapshot(files);
+	return result;
+}
 
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds) {
 	if (!service.hasRepeat)
@@ -553,13 +639,18 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		return result;
 	}
 
-	auto parseObject = [&](const std::string& file, json& value, bool required) {
+	std::vector<std::pair<std::string, std::string>> inputFiles;
+	auto parseObject = [&](const std::string& file, json& value, bool required, bool parseValue = true) {
 		std::string content;
 		if (!readFile(fs::path(sceneDir) / file, content)) {
 			if (required)
 				addError("scene.file.missing", file, "Required file is missing");
 			return false;
 		}
+		if (canonicalSnapshotFile(file))
+			inputFiles.emplace_back(file, content);
+		if (!parseValue)
+			return true;
 		try {
 			value = json::parse(content);
 		} catch (const json::parse_error& error) {
@@ -685,8 +776,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	const bool scenariosPresent = fs::exists(fs::path(sceneDir) / "scenarios.json");
 	const bool incidentsPresent = fs::exists(fs::path(sceneDir) / "incidents.json");
 	const bool scenariosOk = parseObject("scenarios.json", scenariosJson, scenariosPresent);
-	const bool incidentsOk = !scenariosPresent
-			&& parseObject("incidents.json", incidentsJson, incidentsPresent);
+	const bool incidentsOk = parseObject("incidents.json", incidentsJson, incidentsPresent, !scenariosPresent);
 	const bool passengersOk = parseObject("passengers.json", passengersJson,
 			fs::exists(fs::path(sceneDir) / "passengers.json"));
 	parseObject("views.json", viewsJson, false);
@@ -1308,5 +1398,6 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	}
 
 	refreshLoadedDataSummary(result.scene);
+	result.inputSnapshot = buildSceneDirectorySnapshot(inputFiles);
 	return result;
 }

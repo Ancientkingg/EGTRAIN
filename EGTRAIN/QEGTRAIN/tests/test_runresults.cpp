@@ -1,5 +1,6 @@
 #include "diagrams/RunResults.h"
 
+#include "scene/SceneModel.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Simulation.h"
 #include "util/Logger.hpp"
@@ -34,6 +35,14 @@ static bool closeTo(double actual, double expected) {
 static bool writeBytes(const QString& path, const QByteArray& bytes) {
 	QFile file(path);
 	return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+}
+
+static bool readBytes(const QString& path, QByteArray& bytes) {
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return false;
+	bytes = file.readAll();
+	return file.error() == QFile::NoError;
 }
 
 static QJsonObject readJsonObject(const QString& path) {
@@ -631,6 +640,17 @@ int main() {
 		const std::string directoryHash = hashSceneDirectory(sceneDir.toStdString());
 		ok &= expect(!directoryHash.empty() && directoryHash == hashSceneDirectory(sceneDir.toStdString()),
 				"directory hash is deterministic");
+		const SceneInputSnapshot directorySnapshot = readSceneDirectorySnapshot(sceneDir.toStdString());
+		ok &= expect(directorySnapshot.reason.empty()
+				&& hashSceneInputSnapshot(directorySnapshot.bytes) == directoryHash,
+				"directory snapshot hash uses the shared exact-byte framing");
+		const QString passengerPath = QDir(sceneDir).filePath("passengers.json");
+		ok &= expect(QFile::remove(passengerPath) && QDir().mkpath(passengerPath)
+				&& hashSceneDirectory(sceneDir.toStdString()).empty(),
+				"an unreadable optional canonical input cannot be ignored");
+		ok &= expect(QDir(passengerPath).removeRecursively()
+				&& writeBytes(passengerPath, "{passengers.json}"),
+				"optional-input failure fixture is restored");
 		ok &= expect(writeBytes(QDir(sceneDir).filePath("services.json"), "{services changed}"),
 				"directory input can be changed");
 		ok &= expect(directoryHash != hashSceneDirectory(sceneDir.toStdString()),
@@ -647,6 +667,10 @@ int main() {
 		const std::string bundleHash = hashSceneBundle(bundlePath.toStdString());
 		ok &= expect(!bundleHash.empty() && bundleHash == hashSceneBundle(bundlePath.toStdString()),
 				"bundle hash is deterministic");
+		QFile bundleFile(bundlePath);
+		ok &= expect(bundleFile.open(QIODevice::ReadOnly)
+				&& hashSceneInputSnapshot(bundleFile.readAll().toStdString()) == bundleHash,
+				"bundle snapshot hash uses the exact archive bytes");
 		ok &= expect(writeBytes(bundlePath, "bundle bytes changed\n"), "bundle input can be changed");
 		ok &= expect(bundleHash != hashSceneBundle(bundlePath.toStdString()),
 				"bundle hash changes when exact bytes change");
@@ -698,9 +722,12 @@ int main() {
 		provenance.routeChoiceMode = 3;
 		provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
 		const QString artifactPath = temp.filePath("result.csv");
-		ok &= expect(writeBytes(artifactPath, "header\nrow\n"), "normal artifact is written");
-		ok &= expect(writeRunProvenanceSidecar(artifactPath.toStdString(), "csv", provenance),
-				"normal provenance sidecar is written atomically");
+		ok &= expect(writeRunArtifactWithProvenance(
+				artifactPath.toStdString(), "csv", "header\nrow\n", provenance),
+				"normal artifact and provenance sidecar are written together");
+		QByteArray artifactBytes;
+		ok &= expect(readBytes(artifactPath, artifactBytes) && artifactBytes == "header\nrow\n",
+				"paired export preserves exact artifact bytes");
 		const QJsonObject sidecar = readJsonObject(artifactPath + ".provenance.json");
 		const QJsonObject run = sidecar.value("run").toObject();
 		const QJsonObject input = run.value("input").toObject();
@@ -720,32 +747,30 @@ int main() {
 				&& occurrences.at(0).toObject().value("operating_code").toString() == "A\\\"2",
 				"sidecar preserves exact selected occurrence identities");
 		const QString failedArtifact = temp.filePath("failed.csv");
-		ok &= expect(writeBytes(failedArtifact, "header\n"), "failed-sidecar artifact is written");
 		ok &= expect(QDir().mkpath(failedArtifact + ".provenance.json"),
 				"sidecar failure path is occupied by a directory");
-		ok &= expect(!writeRunProvenanceSidecar(failedArtifact.toStdString(), "csv", provenance)
+		ok &= expect(!writeRunArtifactWithProvenance(
+				failedArtifact.toStdString(), "csv", "header\n", provenance)
 				&& !QFileInfo::exists(failedArtifact),
-				"a result artifact is removed when its required provenance sidecar fails");
+				"sidecar failure does not publish the artifact");
 
 		RunProvenance scenario = provenance;
 		scenario.appliedScenario = "incident";
 		const QString delayArtifact = temp.filePath("delay.csv");
-		ok &= expect(writeBytes(delayArtifact, "header\n"), "delay artifact is written");
-		ok &= expect(writeDelayProvenanceSidecar(delayArtifact.toStdString(), "csv", provenance, scenario),
-				"delay sidecar is written with two runs");
+		ok &= expect(writeDelayArtifactWithProvenance(
+				delayArtifact.toStdString(), "csv", "header\n", provenance, scenario),
+				"delay artifact and sidecar are written with two runs");
 		const QJsonObject delaySidecar = readJsonObject(delayArtifact + ".provenance.json");
 		ok &= expect(delaySidecar.value("baseline_run").toObject().value("applied_scenario").toString() == "scenario/\\quoted"
 				&& delaySidecar.value("scenario_run").toObject().value("applied_scenario").toString() == "incident",
 				"delay sidecar keeps baseline and scenario provenance distinct");
 		const QString failedDelayArtifact = temp.filePath("failed-delay.csv");
-		ok &= expect(writeBytes(failedDelayArtifact, "header\n"),
-				"failed delay-sidecar artifact is written");
 		ok &= expect(QDir().mkpath(failedDelayArtifact + ".provenance.json"),
 				"delay sidecar failure path is occupied by a directory");
-		ok &= expect(!writeDelayProvenanceSidecar(
-				failedDelayArtifact.toStdString(), "csv", provenance, scenario)
+		ok &= expect(!writeDelayArtifactWithProvenance(
+				failedDelayArtifact.toStdString(), "csv", "header\n", provenance, scenario)
 				&& !QFileInfo::exists(failedDelayArtifact),
-				"a delay artifact is removed when its required provenance sidecar fails");
+				"delay sidecar failure does not publish the artifact");
 	}
 
 	if (!ok)

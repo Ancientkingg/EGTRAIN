@@ -2,6 +2,7 @@
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
+#include <QBuffer>
 #include <QBrush>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -22,6 +23,14 @@
 namespace {
 
 constexpr int kSortRole = Qt::UserRole + 1;
+
+bool writeArtifact(const QString& path, const std::string& bytes) {
+	QSaveFile file(path);
+	if (!file.open(QIODevice::WriteOnly))
+		return false;
+	const QByteArray data = QByteArray::fromStdString(bytes);
+	return file.write(data) == data.size() && file.commit();
+}
 
 // Table item that sorts by a numeric key instead of its display text, so time
 // and delay columns order correctly.
@@ -200,21 +209,12 @@ void TimetableTableWindow::exportCsv() {
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
 		path += ".csv";
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
+	const bool written = m_hasRunProvenance
+		? writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_runProvenance)
+		: writeArtifact(path, content);
+	if (!written)
 		QMessageBox::warning(this, "Export failed",
-							 QString("Could not open the file for writing:\n%1").arg(path));
-		return;
-	}
-	const QByteArray bytes = QByteArray::fromStdString(content);
-	if (file.write(bytes) != bytes.size() || !file.commit()) {
-		QMessageBox::warning(this, "Export failed",
-							 QString("Could not write the data to:\n%1").arg(path));
-	} else if (m_hasRunProvenance && !writeRunProvenanceSidecar(path.toStdString(), "csv", m_runProvenance)) {
-		QMessageBox::warning(this, "Export failed",
-							 QString("The CSV was removed because its provenance sidecar could not be written:\n%1.provenance.json")
-								.arg(path));
-	}
+			QString("Could not export the data and provenance to:\n%1").arg(path));
 }
 
 void TimetableTableWindow::exportPng() {
@@ -224,12 +224,18 @@ void TimetableTableWindow::exportPng() {
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 		path += ".png";
 	QPixmap pix = m_table->grab();
-	if (!pix.save(path, "PNG")) {
+	QByteArray data;
+	QBuffer buffer(&data);
+	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
-	} else if (m_hasRunProvenance && !writeRunProvenanceSidecar(path.toStdString(), "png", m_runProvenance)) {
-		QMessageBox::warning(this, "Export failed",
-							 QString("The image was removed because its provenance sidecar could not be written:\n%1.provenance.json")
-								.arg(path));
+		return;
 	}
+	const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+	const bool written = m_hasRunProvenance
+		? writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_runProvenance)
+		: writeArtifact(path, bytes);
+	if (!written)
+		QMessageBox::warning(this, "Export failed",
+			QString("Could not export the image and provenance to:\n%1").arg(path));
 }

@@ -200,7 +200,7 @@ static bool readBoundedFile(const fs::path& path, std::string& contents,
 	return true;
 }
 
-static bool inspectBundle(const fs::path& path, ZipReader& reader, std::vector<ArchiveEntry>& entries,
+static bool readArchiveFile(const fs::path& path, std::string& contents,
 		std::vector<SceneDiagnostic>& diagnostics) {
 	std::error_code ec;
 	const auto status = fs::symlink_status(path, ec);
@@ -209,18 +209,37 @@ static bool inspectBundle(const fs::path& path, ZipReader& reader, std::vector<A
 				path.string());
 		return false;
 	}
-	const std::uintmax_t archiveSize = fs::file_size(path, ec);
+	const std::uintmax_t size = fs::file_size(path, ec);
 	if (ec) {
 		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot determine bundle size", path.string());
 		return false;
 	}
-	if (archiveSize > kMaxBundleFileSize) {
+	if (size > kMaxBundleFileSize) {
 		addDiagnostic(diagnostics, "scene.bundle.size", "Bundle file exceeds the 32 MiB compressed limit",
 				path.string());
 		return false;
 	}
+	std::ifstream input(path, std::ios::binary);
+	if (!input) {
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open bundle file", path.string());
+		return false;
+	}
+	contents.resize(static_cast<std::size_t>(size));
+	if (size != 0) {
+		input.read(contents.data(), static_cast<std::streamsize>(size));
+		if (!input || static_cast<std::uintmax_t>(input.gcount()) != size) {
+			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read bundle file", path.string());
+			return false;
+		}
+	}
+	return true;
+}
 
-	if (!mz_zip_reader_init_file(&reader.zip, path.string().c_str(), 0)) {
+static bool inspectBundle(const fs::path& path, const std::string& archiveBytes, ZipReader& reader,
+		std::vector<ArchiveEntry>& entries,
+		std::vector<SceneDiagnostic>& diagnostics) {
+	const mz_uint64 archiveSize = archiveBytes.size();
+	if (!mz_zip_reader_init_mem(&reader.zip, archiveBytes.data(), archiveBytes.size(), 0)) {
 		addDiagnostic(diagnostics, "scene.bundle.archive", "Cannot open ZIP bundle: " + zipError(reader.zip),
 				path.string());
 		return false;
@@ -417,9 +436,12 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 
 SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 	SceneLoadResult result;
+	std::string archiveBytes;
+	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+		return result;
 	ZipReader reader;
 	std::vector<ArchiveEntry> entries;
-	if (!inspectBundle(fs::path(bundlePath), reader, entries, result.diagnostics))
+	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, result.diagnostics))
 		return result;
 
 	TempDirectory temp;
@@ -427,7 +449,9 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	if (!extractEntries(reader, entries, temp.path, result.diagnostics))
 		return result;
-	return loadScene(temp.path.string());
+	SceneLoadResult loaded = loadScene(temp.path.string());
+	loaded.inputSnapshot = std::move(archiveBytes);
+	return loaded;
 }
 
 SceneLoadResult loadScenePath(const std::string& path) {
@@ -563,15 +587,20 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		return result;
 	}
 
+	std::string archiveBytes;
+	if (!readArchiveFile(staging, archiveBytes, result.diagnostics))
+		return result;
 	{
 		ZipReader checkReader;
 		std::vector<ArchiveEntry> checkEntries;
-		if (!inspectBundle(staging, checkReader, checkEntries, result.diagnostics))
+		if (!inspectBundle(staging, archiveBytes, checkReader, checkEntries, result.diagnostics))
 			return result;
 	}
 	if (!publishPath(staging, target, result.diagnostics, "bundle", true))
 		return result;
 	result.wroteAll = !hasErrors(result.diagnostics);
+	if (result.wroteAll)
+		result.inputSnapshot = std::move(archiveBytes);
 	return result;
 }
 
@@ -593,8 +622,11 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	}
 
 	ZipReader reader;
+	std::string archiveBytes;
+	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+		return result;
 	std::vector<ArchiveEntry> entries;
-	if (!inspectBundle(fs::path(bundlePath), reader, entries, result.diagnostics))
+	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, result.diagnostics))
 		return result;
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".") : destination.parent_path();
 	std::error_code ec;
