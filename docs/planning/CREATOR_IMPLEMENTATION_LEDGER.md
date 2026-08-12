@@ -7,11 +7,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `10f15b5ba6f52715adcc390519204de4169ba77c`
-- Current milestone: PR 5, passenger authoring and explicit platform geometry
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/passenger-authoring`
-- Current branch: `feature/passenger-authoring`
-- Current PR: #294, `Add passenger and platform authoring` (draft)
+- Current `origin/main`: `1f095b2bfe7c95bc6b68940349a9357c43c49468`
+- Current milestone: PR 6, reproducible exports and UI-only seventh-case proof
+- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-acceptance`
+- Current branch: `feature/result-provenance-creator-acceptance`
+- Current PR: none yet
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
     `d90eb24de0f6f72e33b5206d1ffecec7ab64f7a2`;
@@ -20,8 +20,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   - PR #292, `Make editor mutations reference-safe`, merged as
     `3a3ec8d5eb1ff0c21ba4d2aa31235e058f5fe128`;
   - PR #293, `Add entrance delay scenario authoring`, merged as
-    `10f15b5ba6f52715adcc390519204de4169ba77c`.
-- Open milestone dependencies: PR 5 depends on merged PR #293. Issues #85 and #86 remain parity gates.
+    `10f15b5ba6f52715adcc390519204de4169ba77c`;
+  - PR #294, `Add passenger and platform authoring`, merged as
+    `1f095b2bfe7c95bc6b68940349a9357c43c49468`.
+- Open milestone dependencies: PR 6 depends on merged PRs #290 through #294. Issues #85 and #86 remain parity gates.
 
 ## Planning-baseline creator gaps
 
@@ -114,6 +116,17 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   the exact resolved stop indices rather than independent first-name matches.
 - A selected-occurrence run stages a passenger journey only when every leg is selected and resolvable. It omits
   the whole journey instead of constructing a disconnected partial journey from the original endpoints.
+- PR 6 will capture one immutable run-provenance value after successful native preparation and preserve it by
+  value with completed results and already-open result windows. It records the case, schema version, saved input,
+  SHA-256 snapshot, dirty/reproducible status, applied scenario, effective runtime settings, passenger/TSM/route-
+  choice modes, and expanded selected service occurrences.
+- PR 6 will use additive `*.provenance.json` sidecars for current CSV and PNG artifacts. Directory snapshots hash
+  the sorted canonical scene files; `.egscene` snapshots hash the bundle bytes. Dirty, unsaved, missing, or
+  unreadable inputs remain runnable but are marked non-reproducible. Delay comparison records both runs.
+- PR 6 will add one adjacent public-widget creator smoke, not a second automation framework. Its startup path
+  begins without loading a bundled default, triggers New Case, and authors through existing actions and widgets.
+  Private model reads may support assertions; private model writes, direct writers, runtime tokens, Cumpari input,
+  hidden case data, and magic case names are prohibited.
 
 ## Compatibility decisions
 
@@ -132,6 +145,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - New canonical scenes reject a passenger leg whose destination does not follow its origin. A scene carrying
   `legacy_root` provenance retains such historical data with an actionable warning, and native staging omits the
   affected journey instead of stranding the passenger. No committed case data is changed or guessed.
+- PR 6 changes neither scene schema version nor existing CSV columns. Provenance sidecars are additive and use
+  Qt's existing JSON, atomic-file, and SHA-256 support. No results-project format or new dependency is introduced.
 
 ## GitHub issue state
 
@@ -139,7 +154,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Closed by PR #291: #57 and #286.
 - Closed by PR #292: #287.
 - Closed by PR #293: #126.
-- Current milestone: #164 and #288.
+- Closed by PR #294: #164 and #288.
+- Current milestone: #129 and #289.
 - Reused: #85, #86, #129, #164.
 - Created during planning: #286, #287, #288, #289.
 - Authoritative-data dependencies only: #181, #182, #228.
@@ -499,6 +515,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The PR 5 untouched-default correction graph update completed with 5034 nodes, 11497 edges, and 235 communities.
 - The final PR 5 geometry correction graph update completed with 5034 nodes, 11496 edges, and 242 communities.
 - The PR 5 post-Ponytail graph update completed with 5034 nodes, 11496 edges, and 243 communities.
+- The final PR 5 build passed. CTest passed 43 of 43 in 129.54 seconds; editor smoke, six-case headless,
+  six-case round-trip (`ROUNDTRIP PASS`), Assignment, and DPR 1/DPR 2 visual-polish smokes passed. All six
+  committed scenes validated with exit 0. GitHub build and sanitizer jobs passed at the exact final head.
+- PR #294 merged as `1f095b2bfe7c95bc6b68940349a9357c43c49468`; issues #164 and #288 closed with the merge.
 
 ## Review record
 
@@ -786,10 +806,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 4 are complete. PRs 5 and 6 remain open.
+- PRs 1 through 5 are complete. PR 6 remains open: immutable export provenance and the public UI-only
+  seventh-case acceptance proof.
 
 ## Next action
 
-Commit and push this final PR 5 ledger update, wait for GitHub build and sanitizer checks on that exact head,
-mark PR #294 ready, and merge when clean. Then record the merge in the PR 6 worktree and begin provenance work
-from the new `origin/main`.
+Configure and build the clean PR 6 worktree at `1f095b2`, run the focused results/export baseline, then implement
+immutable run provenance and additive CSV/PNG sidecars before adding the public seventh-case creator smoke.
