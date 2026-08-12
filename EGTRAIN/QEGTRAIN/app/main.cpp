@@ -40,6 +40,7 @@ bool interactivePromptModeEnabled(int argc, char* argv[]) {
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
 	const bool promptForMissingOptions = interactivePromptModeEnabled(argc, argv);
+	const bool creatorAcceptance = qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE");
 
 	// no options entered
 	if (argc < 2) {
@@ -47,7 +48,9 @@ void parseCmdOptions(int argc, char* argv[]) {
 	}
 
 	// select case study
-	if (cmdOptionEntered(argv, argv + argc, "-n")) {
+	if (creatorAcceptance) {
+		initial_variables.name.clear();
+	} else if (cmdOptionEntered(argv, argv + argc, "-n")) {
 		char* argument = getCmdOption(argv, argv + argc, "-n");
 		if (argument) {
 			initial_variables.set_case(std::atoi(argument));
@@ -191,7 +194,8 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	const std::string defaultName = initial_variables.name;
-	if (defaultName.empty()) {
+	const bool creatorAcceptance = qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE");
+	if (!creatorAcceptance && defaultName.empty()) {
 		std::cerr << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut, 6 Lebanon.\n";
 		return 1;
 	}
@@ -206,6 +210,23 @@ int main(int argc, char* argv[]) {
 
 	if (gui) {
 		QApplication application(argc, argv);
+		if (creatorAcceptance) {
+			const QString output = QFileInfo(qEnvironmentVariable("QEGTRAIN_E2E_OUT")).absoluteFilePath();
+			if (output.isEmpty() || output == QFileInfo(QString()).absoluteFilePath()) {
+				std::cerr << "ERROR: QEGTRAIN_E2E_OUT is required for creator acceptance.\n";
+				return 1;
+			}
+			if (!QDir().mkpath(output)) {
+				std::cerr << "ERROR: Could not create QEGTRAIN_E2E_OUT.\n";
+				return 1;
+			}
+			initial_variables.OutputMainFolder = output.toStdString();
+			InputMainFolder.clear();
+			initial_variables.InputMainFolder.clear();
+			MainWindow window;
+			window.openGUI();
+			return application.exec();
+		}
 		const QString scenePath = resolveScenePath(
 			sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
 		SceneLoadResult loaded = loadScenePath(scenePath.toStdString());

@@ -10,6 +10,7 @@
 struct SceneSaveResult {
 	bool wroteAll = false;
 	std::vector<SceneDiagnostic> diagnostics;
+	std::string inputSnapshot;
 	bool success() const;
 };
 

@@ -2,6 +2,7 @@
 #include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -207,6 +208,52 @@ static bool runTinyBuilderChecks() {
 			hasCanonicalSwitchSpeed = hasCanonicalSwitchSpeed
 					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
 		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
+		Section creatorNamedSwitch = signalling_block_sections[2];
+		creatorNamedSwitch.ID = "@creator@main-block@-1.000000/@creator-yard@block@-2.000000";
+		creatorNamedSwitch.FirstConnectedTrackLineID = 0;
+		creatorNamedSwitch.SecondConnectedTrackLineID = 1;
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
+		activateBlocksWithSwitchesDivFixedBlock(creatorNamedSwitch, 0, -1.0);
+		ok &= expect(creatorNamedSwitch.ID
+				== "@creator@main-block@-1.000000/@creator-yard@block@-2.000000"
+				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator@main-block@")
+						!= BlocksOccupied.end()
+				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator-yard@block@")
+						!= BlocksOccupied.end(),
+			"switch occupation preserves creator section IDs containing hyphens and wrapper characters");
+		BlocksOccupied = {"occupied.before"};
+		BlocksConnected = {"connected.before"};
+		const auto occupiedBefore = BlocksOccupied;
+		const auto connectedBefore = BlocksConnected;
+		Section malformedSwitch;
+		malformedSwitch.ID = "malformed/switch";
+		Section malformedPrevious;
+		malformedPrevious.ID = "also-malformed/switch";
+		occupyDoubleSwitch(malformedSwitch, malformedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"malformed double-switch identities are rejected before occupancy mutation");
+		releaseDoubleSwitch(malformedSwitch, malformedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"malformed double-switch identities are rejected before release mutation");
+		occupyDoubleSwitch(signalling_block_sections[2], malformedPrevious);
+		releaseDoubleSwitch(signalling_block_sections[2], malformedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"a valid first switch half cannot mutate before a malformed second half is rejected");
+		Section unresolvedSwitch;
+		unresolvedSwitch.ID = "@missing.a@-1.000000/@missing.b@-2.000000";
+		unresolvedSwitch.withSwitchDiv = true;
+		Section unresolvedPrevious;
+		unresolvedPrevious.ID = "@missing.c@-3.000000/@missing.d@-4.000000";
+		unresolvedPrevious.withSwitchDiv = true;
+		occupyDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"unresolved double-switch branches are rejected before occupancy mutation");
+		releaseDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"unresolved double-switch branches are rejected before release mutation");
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
 	}
 	const int blocksBeforeDisconnectedRoute = Blocks;
 	const std::string firstSectionBeforeDisconnectedRoute = signalling_block_sections[0].ID;

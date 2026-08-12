@@ -22,6 +22,7 @@ public:
 						 long long startOffsetSeconds,
 						 std::function<std::string(const QStringList&)> csvProvider,
 						 QWidget* parent = nullptr);
+	void setRunProvenance(RunProvenance provenance);
 
 private slots:
 	void applyTrainVisibility();
@@ -36,6 +37,8 @@ private:
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QPointer<QTableWidget> m_table;
 	QPointer<TrainFilterButton> m_trainsButton;
+	RunProvenance m_runProvenance;
+	bool m_hasRunProvenance = false;
 };
 
 #endif // TIMETABLETABLEWINDOW_H
