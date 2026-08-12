@@ -74,28 +74,40 @@ def main() -> None:
         missing.append("main pull request validation trigger")
     if "paths:" in validation_trigger:
         missing.append("unfiltered main validation triggers")
-    release_paths = "\n".join(
-        (
-            "    paths:",
-            "      - '.github/workflows/release.yml'",
-            "      - 'CMakeLists.txt'",
-            "      - 'Info.plist.in'",
-            "      - 'EGTRAIN/QEGTRAIN/**'",
-        )
-    )
-    if release_paths not in release_workflow:
-        missing.append("release application path filter")
     release_trigger = release_workflow.split("\njobs:", 1)[0]
     if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production release trigger")
+    if "paths:" in release_trigger:
+        missing.append("unfiltered production release trigger")
     if "      - main\n" in release_trigger or "ci/release-pipeline" in release_trigger:
         missing.append("stale non-production release trigger")
     if "      - 'v*'" not in release_trigger:
         missing.append("version tag release trigger")
     if "  workflow_dispatch:\n" not in release_trigger:
         missing.append("manual release trigger")
+    if "\n  validation:\n" not in release_workflow or release_workflow.count(
+        "ctest --test-dir build --output-on-failure"
+    ) != 2:
+        missing.append("production validation and sanitizer CTest jobs")
+    if any(smoke not in release_workflow for smoke in standalone_smokes):
+        missing.append("production standalone smoke steps")
+    if "\n  sanitizer:\n" not in release_workflow or "EGTRAIN_ENABLE_SANITIZERS=ON" not in release_workflow:
+        missing.append("production sanitizer job")
+    if any(
+        option not in release_workflow
+        for option in (
+            "UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1",
+            "ASAN_OPTIONS: abort_on_error=1:halt_on_error=1",
+            'QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"',
+            'QEGTRAIN_GUI_SMOKE_SECONDS: "30"',
+            "$RUNNER_TEMP/ctest-sanitizer.log",
+        )
+    ):
+        missing.append("production sanitizer diagnostics and time budgets")
     publish_job = release_workflow.split("\n  release:\n", 1)[1]
     publish_condition = publish_job.split("\n    runs-on:", 1)[0]
+    if "needs: [validation, sanitizer, package-macos, package-windows, package-linux]" not in publish_condition:
+        missing.append("release publication validation gates")
     if "refs/heads/production" not in publish_condition or "refs/heads/main" in publish_condition:
         missing.append("production release publish condition")
     if 'tag="main-' in release_workflow or 'name="EGTRAIN main build' in release_workflow:
