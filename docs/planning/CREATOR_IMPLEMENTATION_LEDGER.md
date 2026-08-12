@@ -123,12 +123,13 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 6 will use additive `*.provenance.json` sidecars for current CSV and PNG artifacts. Directory snapshots hash
   the sorted canonical scene files; `.egscene` snapshots hash the bundle bytes. Dirty, unsaved, missing, or
   unreadable inputs remain runnable but are marked non-reproducible. Delay comparison records both runs.
-- The application retains the exact saved-input hash captured before load or after successful Save. Run compares the
-  current disk bytes with that value, so external source replacement cannot be mislabeled as the input used by
-  the in-memory simulation. A mismatch remains runnable but is explicitly non-reproducible and retains the
-  loaded/saved hash.
-- A result artifact and its provenance sidecar form one usable export. If the atomic sidecar write fails, the
-  just-written artifact is removed rather than leaving a result that cannot identify its run input.
+- Scene load retains the exact directory-file buffers or bundle bytes it parsed. Save retains the exact serialized
+  directory buffers or archive bytes it published. Run compares the current path with that retained hash, so an
+  external replacement cannot be mislabeled as the input used by the in-memory simulation. A mismatch remains
+  runnable but is explicitly non-reproducible and retains the loaded/saved hash.
+- A result artifact and its provenance sidecar form one usable export. The artifact remains in `QSaveFile` staging
+  until the atomic sidecar commit succeeds, then the artifact is published. A sidecar failure cannot leave a new
+  provenance-free result, and an artifact publish failure removes the staged sidecar.
 - PR 6 will add one adjacent public-widget creator smoke, not a second automation framework. Its startup path
   begins without loading a bundled default, triggers New Case, and authors through existing actions and widgets.
   Private model reads may support assertions; private model writes, direct writers, runtime tokens, Cumpari input,
@@ -564,6 +565,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   `test_creator_acceptance_smoke` passed 3 of 3 in 5.22 seconds on the final correction. The regressions cover directory and bundle drift,
   artifact cleanup after normal and delay sidecar failure, malformed and unresolved double-switch preflight,
   and an exact match between exported provenance and the saved bundle bytes.
+- After the second correctness corrections, the affected targets built and `test_runresults`,
+  `test_diagramwindow`, `test_scenewriter`, `test_scenebundle`, `test_scenebuilder`,
+  `test_csv_export_smoke`, and `test_creator_acceptance_smoke` passed 7 of 7 in 12.45 seconds.
+  A follow-up `test_runresults` rebuild and run passed 1 of 1 in 0.51 seconds after covering a non-file optional
+  canonical input. `git diff --check` passed.
 
 ## Review record
 
@@ -579,6 +585,15 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
      when the sidecar failed.
   The reviewer independently passed the focused provenance and scene-builder tests, the seventh-case creator
   smoke, and the CSV export smoke before reproducing each boundary defect.
+- The fresh review of the first correction found two remaining P1 defects and one P2 defect:
+  1. hashing a scene path separately before load or after Save retained a different snapshot if the path was
+     replaced between the I/O operation and the hash;
+  2. `releaseDoubleSwitch` could mutate `BlocksConnected` for the first valid half before rejecting a malformed
+     second half, and could default-construct missing branches;
+  3. deleting an already-published artifact after sidecar failure was best effort, so a deletion failure could
+     leave a provenance-free result.
+  The reviewer independently passed the five-test provenance, diagram, scene-builder, CSV, and creator gate
+  before reproducing the boundaries.
 
 - The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `538ac72`. It traced native
   passenger preflight and no-mutation behavior, importer station resolution, occurrence filtering, passenger
@@ -718,12 +733,14 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Corrections made
 
-- Captured the exact directory or bundle hash on load and successful Save, compared it with the current disk
-  snapshot at Run, and marked drift non-reproducible while retaining the hash of the loaded/saved input.
-- Preflighted both double-switch identities and all four base branches before mutating the global occupied or
-  connected lists. Malformed and unresolved direct calls now return without mutation or dereference.
-- Removed a just-written result when its required normal or delay provenance sidecar cannot be committed, and
-  changed the interactive failure messages to describe that behavior.
+- Returned the exact directory buffers or archive bytes from scene load and Save, hashed those retained bytes,
+  and reused the same directory framing for later drift checks. There is no second path read between parsing or
+  publishing and retaining the input identity. Optional canonical inputs that exist but are not readable files
+  also make the current snapshot unverifiable.
+- Reused one all-or-nothing resolver in both double-switch occupation and release. Both compound identities and
+  all four base branches resolve before either function mutates the global occupied or connected lists.
+- Replaced standalone sidecar writes with one paired artifact writer. Every result CSV and PNG remains staged
+  until its normal or delay provenance sidecar commits; failure leaves no newly published artifact.
 - Strengthened the seventh-case wrapper to compare every run sidecar hash with the exact `.egscene` bytes.
 
 - Corrected connection-derived adjacency to use actual section boundaries instead of internal switch endpoints.
@@ -874,11 +891,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ### Unresolved application blockers
 
 - PRs 1 through 5 are complete. PR 6 provenance and the public UI-only seventh-case implementation pass their
-  focused gates. The first correctness review's three findings are corrected and pass focused regressions. A
-  fresh corrected-diff review, Ponytail review, the full local regression gate, CI, and the final merged-main
+  focused gates. Both correctness-review rounds are corrected and pass focused regressions. A fresh review of
+  the exact corrected commit, Ponytail review, the full local regression gate, CI, and the final merged-main
   completeness review remain before the verdict can change.
 
 ## Next action
 
-Commit and push the first PR 6 correctness corrections, run a fresh independent review of the exact corrected
+Commit and push the second PR 6 correctness corrections, run a fresh independent review of the exact corrected
 diff, fix every confirmed finding, then run the Ponytail review and complete regression gate before merge.

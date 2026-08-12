@@ -28,17 +28,20 @@ static void addWriteError(SceneSaveResult& result, const std::string& file,
 }
 
 static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
-		const std::string& filename, const json& value) {
-	std::ofstream output(scenePath / filename);
+		const std::string& filename, const json& value, std::string* writtenBytes = nullptr) {
+	const std::string bytes = value.dump(4) + "\n";
+	std::ofstream output(scenePath / filename, std::ios::binary);
 	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
 		return false;
 	}
-	output << value.dump(4) << "\n";
+	output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
 	if (!output) {
 		addWriteError(result, filename, "Cannot write " + filename);
 		return false;
 	}
+	if (writtenBytes)
+		*writtenBytes = bytes;
 	return true;
 }
 
@@ -570,17 +573,25 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		signalling["station_boundaries"].push_back(value);
 	}
 
+	std::vector<std::pair<std::string, std::string>> inputFiles;
+	const auto writeCanonical = [&](const std::string& filename, const json& value) {
+		std::string bytes;
+		const bool written = writeJsonFile(result, scenePath, filename, value, &bytes);
+		if (written)
+			inputFiles.emplace_back(filename, std::move(bytes));
+		return written;
+	};
 	bool wroteAll = true;
-	wroteAll = writeJsonFile(result, scenePath, "scene.json", sceneJson) && wroteAll;
-	wroteAll = writeJsonFile(result, scenePath, "infrastructure.json", infrastructure) && wroteAll;
-	wroteAll = writeJsonFile(result, scenePath, "stations.json", {{"stations", stations}}) && wroteAll;
-	wroteAll = writeJsonFile(result, scenePath, "signalling.json", signalling) && wroteAll;
-	wroteAll = writeJsonFile(result, scenePath, "rolling_stock.json",
+	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
+	wroteAll = writeCanonical("infrastructure.json", infrastructure) && wroteAll;
+	wroteAll = writeCanonical("stations.json", {{"stations", stations}}) && wroteAll;
+	wroteAll = writeCanonical("signalling.json", signalling) && wroteAll;
+	wroteAll = writeCanonical("rolling_stock.json",
 			{{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}}) && wroteAll;
-	wroteAll = writeJsonFile(result, scenePath, "services.json", {{"services", writeServices(scene)}}) && wroteAll;
-	wroteAll = writeJsonFile(result, scenePath, "scenarios.json", writeScenarios(scene)) && wroteAll;
+	wroteAll = writeCanonical("services.json", {{"services", writeServices(scene)}}) && wroteAll;
+	wroteAll = writeCanonical("scenarios.json", writeScenarios(scene)) && wroteAll;
 	if (!scene.passengers.empty()) {
-		wroteAll = writeJsonFile(result, scenePath, "passengers.json", writePassengers(scene)) && wroteAll;
+		wroteAll = writeCanonical("passengers.json", writePassengers(scene)) && wroteAll;
 	}
 
 	// Keep the old flat file until every new canonical file was persisted.
@@ -603,5 +614,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	}
 
 	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);
+	if (result.wroteAll)
+		result.inputSnapshot = buildSceneDirectorySnapshot(inputFiles);
 	return result;
 }

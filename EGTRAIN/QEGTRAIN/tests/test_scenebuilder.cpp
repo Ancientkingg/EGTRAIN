@@ -233,13 +233,25 @@ static bool runTinyBuilderChecks() {
 		occupyDoubleSwitch(malformedSwitch, malformedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"malformed double-switch identities are rejected before occupancy mutation");
+		releaseDoubleSwitch(malformedSwitch, malformedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"malformed double-switch identities are rejected before release mutation");
+		occupyDoubleSwitch(signalling_block_sections[2], malformedPrevious);
+		releaseDoubleSwitch(signalling_block_sections[2], malformedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"a valid first switch half cannot mutate before a malformed second half is rejected");
 		Section unresolvedSwitch;
 		unresolvedSwitch.ID = "@missing.a@-1.000000/@missing.b@-2.000000";
+		unresolvedSwitch.withSwitchDiv = true;
 		Section unresolvedPrevious;
 		unresolvedPrevious.ID = "@missing.c@-3.000000/@missing.d@-4.000000";
+		unresolvedPrevious.withSwitchDiv = true;
 		occupyDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"unresolved double-switch branches are rejected before occupancy mutation");
+		releaseDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"unresolved double-switch branches are rejected before release mutation");
 		BlocksOccupied.clear();
 		BlocksConnected.clear();
 	}

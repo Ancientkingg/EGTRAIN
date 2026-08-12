@@ -24,6 +24,7 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
+#include <QBuffer>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -118,8 +119,8 @@ QString completedRunContext(const RunProvenance& provenance) {
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 	window->setProvenanceWriter([provenance = std::move(provenance)](
-			const QString& path, const char* kind) {
-		return writeRunProvenanceSidecar(path.toStdString(), kind, provenance);
+			const QString& path, const char* kind, const std::string& bytes) {
+		return writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance);
 	});
 }
 
@@ -1114,14 +1115,13 @@ bool writeCsvFile(const QString& path, const std::string& content) {
 
 bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
 		const RunProvenance& provenance) {
-	return writeCsvFile(path, content)
-		&& writeRunProvenanceSidecar(path.toStdString(), "csv", provenance);
+	return writeRunArtifactWithProvenance(path.toStdString(), "csv", content, provenance);
 }
 
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
 // failure never leaves a partial file behind.
 void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content,
-		const std::function<bool(const QString&)>& sidecarWriter = {}) {
+		const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
 	if (content.empty()) {
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
@@ -1131,20 +1131,9 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
 		path += ".csv";
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
+	if (!artifactWriter(path, content)) {
 		QMessageBox::warning(parent, "Export failed",
-							 QString("Could not open the file for writing:\n%1").arg(path));
-		return;
-	}
-	const QByteArray bytes = QByteArray::fromStdString(content);
-	if (file.write(bytes) != bytes.size() || !file.commit()) {
-		QMessageBox::warning(parent, "Export failed",
-							 QString("Could not write the data to:\n%1").arg(path));
-	} else if (sidecarWriter && !sidecarWriter(path)) {
-		QMessageBox::warning(parent, "Export failed",
-							 QString("The CSV was removed because its provenance sidecar could not be written:\n%1.provenance.json")
-								.arg(path));
+			QString("Could not export the data and provenance to:\n%1").arg(path));
 	}
 }
 
@@ -3172,9 +3161,6 @@ void MainWindow::openSceneFolderDialog() {
 bool MainWindow::openSceneDirectory(const QString& dir) {
 	const QString scenePath = QFileInfo(dir).absoluteFilePath();
 	const bool sceneIsBundle = QFileInfo(scenePath).isFile();
-	const std::string savedSceneSha256 = sceneIsBundle
-		? hashSceneBundle(scenePath.toStdString())
-		: hashSceneDirectory(scenePath.toStdString());
 	const bool reloadingSameScene = m_sceneLoaded
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	auto result = loadScenePath(scenePath.toStdString());
@@ -3200,7 +3186,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = sceneIsBundle;
-	m_savedSceneSha256 = savedSceneSha256;
+	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_sceneDirty = false;
 	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
 	if (m_selectedScenarioId.empty() && !m_sceneModel.scenarios.empty()) {
@@ -3514,9 +3500,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	}
 
 	refreshSavedSceneMetadata(m_sceneModel);
-	m_savedSceneSha256 = m_sceneIsBundle
-		? hashSceneBundle(m_sceneDir.toStdString())
-		: hashSceneDirectory(m_sceneDir.toStdString());
+	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_sceneDirty = false;
 	m_modifiedScenarioIds.clear();
 	updateSceneWindowTitle();
@@ -17518,9 +17502,9 @@ void MainWindow::showDelayComparison() {
 	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison,
 			baselineProvenance, scenarioProvenance]() {
 		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison),
-			[baselineProvenance, scenarioProvenance](const QString& path) {
-				return writeDelayProvenanceSidecar(path.toStdString(), "csv", baselineProvenance,
-					scenarioProvenance);
+			[baselineProvenance, scenarioProvenance](const QString& path, const std::string& bytes) {
+				return writeDelayArtifactWithProvenance(path.toStdString(), "csv", bytes,
+					baselineProvenance, scenarioProvenance);
 			});
 	});
 	actions->addWidget(exportButton);
@@ -18487,8 +18471,8 @@ void MainWindow::setupRunResultsDock() {
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
 		const RunProvenance provenance = m_completedRunProvenance;
 		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults),
-			[provenance](const QString& path) {
-				return writeRunProvenanceSidecar(path.toStdString(), "csv", provenance);
+			[provenance](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
@@ -18500,12 +18484,16 @@ void MainWindow::setupRunResultsDock() {
 			return;
 		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 			path += ".png";
-		if (!m_runResultsTable->grab().save(path, "PNG"))
+		QByteArray data;
+		QBuffer buffer(&data);
+		if (!buffer.open(QIODevice::WriteOnly) || !m_runResultsTable->grab().save(&buffer, "PNG")) {
 			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
-		else if (!writeRunProvenanceSidecar(path.toStdString(), "png", m_completedRunProvenance))
+			return;
+		}
+		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+		if (!writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_completedRunProvenance))
 			QMessageBox::warning(this, "Export failed",
-				QString("The image was removed because its provenance sidecar could not be written:\n%1.provenance.json")
-					.arg(path));
+				QString("Could not export the image and provenance to:\n%1").arg(path));
 		});
 	QHBoxLayout* toolRow = new QHBoxLayout();
 	toolRow->addWidget(exportCsvBtn);
@@ -20803,8 +20791,8 @@ void MainWindow::showCapacityAnalysis() {
 	QPushButton* exportButton = new QPushButton("Export capacity CSV...", dialog);
 	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
 		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel),
-			[provenance](const QString& path) {
-				return writeRunProvenanceSidecar(path.toStdString(), "csv", provenance);
+			[provenance](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
