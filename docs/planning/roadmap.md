@@ -60,9 +60,6 @@ GUI.
 - #37: add the course-defined timetable rounding workflow.
 - #51: add reduced-speed and recovery behavior for train breakdowns. Basic
   target and incident-window editing already exists.
-- #164: add passenger record inspection, interactive import, edit/delete,
-  row-context validation, and persistence. Canonical passenger storage and
-  native simulation are already implemented.
 
 ## P1: Assignment analysis and disruption outputs
 

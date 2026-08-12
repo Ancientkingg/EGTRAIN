@@ -77,7 +77,7 @@ int main() {
 	// One small fixture exercises the new fields together, including explicit
 	// Trains provenance and a coordinate that must remain unresolved.
 	{
-		TempDir legacyDir, output;
+		TempDir legacyDir, output, partialOutput, noPassengerOutput;
 		const fs::path legacy(legacyDir.dir);
 		writeText(legacy / "TrackLines/B0/NodiCumPari.txt", "1 0 0\n2 1 0\n");
 		writeText(legacy / "TrackLines/B1/NodiCumPari.txt", "1 0 1\n2 1 1\n");
@@ -101,6 +101,12 @@ int main() {
 		writeText(legacy / "vehicle.dat", "1 2 3 4 5 6 7 8 9\n");
 		writeText(legacy / "effort-curve.dat", "0 1 2 3 4\n");
 		writeText(legacy / "TimeTable/fixture.txt", "Guingamp 2 -1 10\nPaimpol 3 20 -1\n");
+		writeText(legacy / "Passengers/DAS_FrenchCaseStudy.csv",
+				"h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14\n"
+				"x,p1,x,x,j1,work,Paimpol,x,x,x,8.25,x,Guingamp,x,8.00\n");
+		writeText(legacy / "Passengers/RouteChoiceFC_EQ1.csv",
+				"person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1\n"
+				"p1,Paimpol,0,,FixtureService-1\n");
 		writeText(legacy / "Incidents.txt",
 				"signal_failure\t0-B0\t10\t20\ntrain_breakdown\tFixtureService\t30\t40\n");
 		writeText(legacy / "TimeTable/Scenarios_Entrance_Delays/Rollout_1.txt", "15\n20\n");
@@ -169,7 +175,138 @@ int main() {
 					&& scenarios["scenarios"][0]["incidents"][2]["target"] == "FixtureService_2"
 					&& hasDiag(result.diagnostics, "scene.import.expanded", SceneSeverity::Warning),
 					"Duplicate operating-code incident expands to every matching canonical service");
+			json passengers;
+			ok &= expect(readJson(fs::path(output.dir) / "passengers.json", passengers)
+					&& passengers["passengers"].size() == 1
+					&& passengers["passengers"][0]["journeys"][0]["legs"].size() == 1,
+					"Full legacy import reuses the passenger conversion seam");
 		}
+		fs::remove(legacy / "Passengers/RouteChoiceFC_EQ1.csv");
+		const auto partialResult = importLegacyScene(legacyDir.dir, partialOutput.dir, "Paimpol");
+		ok &= expect(partialResult.success()
+				&& hasDiag(partialResult.diagnostics, "scene.import.passengers", SceneSeverity::Warning)
+				&& !fs::exists(fs::path(partialOutput.dir) / "passengers.json"),
+				"Whole legacy import treats a one-file passenger pair as optional with a warning");
+		fs::remove(legacy / "Passengers/DAS_FrenchCaseStudy.csv");
+		const auto noPassengerResult = importLegacyScene(legacyDir.dir, noPassengerOutput.dir, "Paimpol");
+		ok &= expect(noPassengerResult.success()
+				&& !fs::exists(fs::path(noPassengerOutput.dir) / "passengers.json"),
+				"Whole legacy import keeps absent passenger files optional");
+	}
+
+	// Passenger-only import accepts either case-root or passenger-directory input,
+	// keeps parseable unresolved rows, and records malformed source rows.
+	{
+		TempDir root;
+		const fs::path passengerDir = fs::path(root.dir) / "Passengers";
+		const std::string das = "header0,header1,header2,header3,header4,header5,header6,header7,header8,header9,header10,header11,header12,header13,header14\n"
+				"x,p1,x,x,j1,work,Destination,x,x,x,8.25,x,Origin,x,8.00\n"
+				"malformed\n"
+				"x,p2,x,x,j2,work,Destination,x,x,x,8.25,x,Unknown,x,8.00\n"
+				"x,p3,x,x,j3,work,destination,x,x,x,8.25,x,origin,x,8.50\n"
+				"x,p4,x,x,j4,work,Destination,x,x,x,nan,x,Origin,x,8.00\n";
+		const std::string routes = "person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1\n"
+				"p1,Destination,0,,svc-2\n"
+				"short\n"
+				"p2,Destination,0,,unknown-3\n"
+				"p3,destination,0,,svc-2\n";
+		writeText(passengerDir / "DAS_FrenchCaseStudy.csv", das);
+		writeText(passengerDir / "RouteChoiceFC_EQ1.csv", routes);
+		SceneModel scene;
+		scene.stations = {{"origin", "Origin", false, 0.0, {}}, {"destination", "Destination", false, 1.0, {}}};
+		scene.services.push_back({"service", "svc", {}, {}, 100.0, false, 0.0, false, false, 0.0,
+			false, 0.0, false, 0, false, 0, {}});
+		scene.services[0].stops = {{"origin"}, {"destination"}};
+		const ScenePassengerImportResult imported = importLegacyPassengers(root.dir, scene);
+		ok &= expect(imported.success() && imported.passengers.size() == 3
+				&& imported.passengers[0].journeys[0].legs.size() == 1
+				&& imported.passengers[1].journeys[0].legs.size() == 1,
+				"Passenger-only import accepts a complete pair and unresolved references");
+		ok &= expect(imported.passengers[0].journeys[0].originStationId == "origin"
+				&& imported.passengers[0].journeys[0].destinationStationId == "destination"
+				&& imported.passengers[2].journeys[0].originStationId == "origin"
+				&& imported.passengers[2].journeys[0].destinationStationId == "destination"
+				&& imported.passengers[2].journeys[0].plannedDepartureStartSeconds == 8.0 * 3600.0
+				&& imported.passengers[2].journeys[0].plannedDepartureEndSeconds == 8.0 * 3600.0,
+				"Passenger station and finite non-quarter time resolution preserve legacy buckets");
+		SceneModel ambiguousScene = scene;
+		ambiguousScene.stations.push_back({"destination-alt", "Destination", false, 1.0, {}});
+		const ScenePassengerImportResult ambiguous = importLegacyPassengers(root.dir, ambiguousScene);
+		ok &= expect(ambiguous.success()
+				&& ambiguous.passengers[0].journeys[0].destinationStationId == "Destination"
+				&& ambiguous.rows[0].unresolvedReferences,
+				"Ambiguous display-name station matches remain unresolved");
+		bool sawRejected = false, sawUnresolved = false;
+		bool rowsIdentifyPassengers = false;
+		for (const auto& row : imported.rows) {
+			if (!row.accepted)
+				sawRejected = true;
+			if (row.accepted && row.unresolvedReferences)
+				sawUnresolved = true;
+			if (row.accepted && row.passengerId == "p1")
+				rowsIdentifyPassengers = true;
+		}
+		ok &= expect(sawRejected && sawUnresolved && rowsIdentifyPassengers,
+				"Passenger-only import reports row outcomes, subjects, and context");
+		bool sawInvalidTimeRow = false;
+		for (const auto& row : imported.rows) {
+			if (row.passengerId == "p4" && row.row == 5 && !row.accepted
+					&& row.context == "Invalid passenger DAS arrival/departure time"
+					&& row.sourceFile.find("DAS_FrenchCaseStudy.csv") != std::string::npos)
+				sawInvalidTimeRow = true;
+		}
+		ok &= expect(sawInvalidTimeRow, "Malformed DAS time is rejected with row and passenger context");
+		bool sawDasRowPath = false, sawRouteChoiceRowPath = false;
+		for (const auto& diagnostic : imported.diagnostics) {
+			if (diagnostic.file.find("DAS_FrenchCaseStudy.csv") != std::string::npos
+					&& diagnostic.path.find("passengers.das.rows[") == 0)
+				sawDasRowPath = true;
+			if (diagnostic.file.find("RouteChoiceFC_EQ1.csv") != std::string::npos
+					&& diagnostic.path.find("passengers.route_choice.rows[") == 0)
+				sawRouteChoiceRowPath = true;
+		}
+		ok &= expect(sawDasRowPath && sawRouteChoiceRowPath,
+				"Passenger-only import diagnostics retain CSV source paths");
+		SceneModel orderMismatchScene = scene;
+		orderMismatchScene.services[0].stops = {{"destination"}, {"origin"}};
+		const ScenePassengerImportResult orderMismatch = importLegacyPassengers(root.dir, orderMismatchScene);
+		bool knownServiceMarkedUnresolved = false;
+		bool knownServiceRowDiagnostic = false;
+		for (const auto& row : orderMismatch.rows) {
+			if (row.passengerId == "p1" && row.row == 1 && row.accepted && row.unresolvedReferences)
+				knownServiceMarkedUnresolved = true;
+		}
+		for (const auto& diagnostic : orderMismatch.diagnostics) {
+			if (diagnostic.code == "scene.import.ref"
+					&& diagnostic.path == "passengers.route_choice.rows[1]")
+				knownServiceRowDiagnostic = true;
+		}
+		orderMismatchScene.passengers = orderMismatch.passengers;
+		ok &= expect(knownServiceMarkedUnresolved && knownServiceRowDiagnostic
+					&& hasDiag(validateScene(orderMismatchScene), "scene.passenger.leg.order", SceneSeverity::Error),
+				"Known service stop/order mismatch stays canonical unresolved and validates as an order error");
+		const ScenePassengerImportResult direct = importLegacyPassengers(passengerDir.string(), scene);
+		ok &= expect(direct.passengers.size() == imported.passengers.size()
+				&& direct.rows.size() == imported.rows.size(),
+				"Passenger-only import accepts the passenger directory shape");
+		const ScenePassengerImportResult missing = importLegacyPassengers(
+			(fs::path(root.dir) / "missing").string(), scene);
+		ok &= expect(!missing.success()
+				&& hasDiag(missing.diagnostics, "scene.import.passengers.missing", SceneSeverity::Error),
+				"Passenger-only import rejects a missing exact file pair");
+		TempDir partial;
+		writeText(fs::path(partial.dir) / "DAS_FrenchCaseStudy.csv", das);
+		const ScenePassengerImportResult partialOnly = importLegacyPassengers(partial.dir, scene);
+		ok &= expect(!partialOnly.success()
+				&& hasDiag(partialOnly.diagnostics, "scene.import.passengers.missing", SceneSeverity::Error),
+				"Passenger-only import rejects a partial exact file pair");
+		TempDir aliases;
+		writeText(fs::path(aliases.dir) / "Passengers/PassengersDAS.csv", das);
+		writeText(fs::path(aliases.dir) / "Passengers/PassengersRouteChoice.csv", routes);
+		const ScenePassengerImportResult aliasResult = importLegacyPassengers(aliases.dir, scene);
+		ok &= expect(!aliasResult.success()
+				&& hasDiag(aliasResult.diagnostics, "scene.import.passengers.missing", SceneSeverity::Error),
+				"Passenger-only import does not accept speculative passenger filename aliases");
 	}
 
 	// Atomic path safety: reject overlap, and preserve an existing destination

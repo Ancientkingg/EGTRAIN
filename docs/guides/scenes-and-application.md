@@ -166,10 +166,11 @@ stop.platform       -> platform on that station
 scenario incident   -> signal/block or service target as appropriate
 ```
 
-`passengers.json` is optional canonical input. The explicit importer can map the
-supported DAS/RouteChoice CSV pair, but the native runtime does not reopen those
-files. Random passenger draws and simulation results are excluded from scene
-input. Likewise, legacy OL, TDS,
+`passengers.json` is optional canonical input. The Passengers dock edits its
+journeys and ordered legs and can append the supported DAS/RouteChoice CSV pair.
+The import result table identifies malformed, unresolved, accepted, and
+ID-collision rows. The native runtime does not reopen those files. Random
+passenger draws and simulation results are excluded from scene input. Likewise, legacy OL, TDS,
 Rescheduling, and GUI files have their own active/inert/output classifications;
 see the [migration matrix](v1-scene-migration-matrix.md) instead of inferring
 behavior from a filename.
