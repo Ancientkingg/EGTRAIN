@@ -432,6 +432,8 @@ private:
 	std::set<std::string> m_modifiedScenarioIds;
 	RunResults m_completedRunResults;
 	std::vector<TimetableResultRow> m_completedTimetableResults;
+	RunProvenance m_pendingRunProvenance;
+	RunProvenance m_completedRunProvenance;
 	std::optional<DelayRunSnapshot> m_delayBaseline;
 	quint64 m_sceneRevision = 0;
 	QLabel* m_runResultsSummaryLabel = nullptr;
@@ -822,6 +824,7 @@ private:
 	void setDelayBaseline();
 	void showDelayComparison();
 	DelayRunSnapshot completedDelaySnapshot() const;
+	RunProvenance captureRunProvenance() const;
 
 	void runVisualPolishE2E();
 	void runStationOverlayE2E();
@@ -888,7 +891,8 @@ private slots:
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
 	void showCapacityAnalysis();
-	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel);
+	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
+		RunProvenance provenance);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
 };

@@ -22,7 +22,6 @@
 #include <QtCharts/QXYSeries>
 
 #include <cmath>
-
 namespace {
 
 // Reduced-opacity pen for lines that are not the pinned train.
@@ -126,6 +125,11 @@ void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)
 	m_csvSuggestedName = suggestedFileName;
 	if (m_csvButton)
 		m_csvButton->setEnabled(static_cast<bool>(m_csvProvider));
+}
+
+void DiagramWindow::setProvenanceWriter(
+		std::function<bool(const QString&, const char*)> writer) {
+	m_provenanceWriter = std::move(writer);
 }
 
 // Shared look for every diagram: quiet grid, readable title, line weight that
@@ -366,6 +370,10 @@ void DiagramWindow::exportPng() {
 	if (!pix.save(path, "PNG")) {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
+	} else if (m_provenanceWriter && !m_provenanceWriter(path, "png")) {
+		QMessageBox::warning(this, "Export warning",
+							 QString("The image was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+								.arg(path));
 	}
 }
 
@@ -396,6 +404,10 @@ void DiagramWindow::exportCsv() {
 	if (file.write(bytes) != bytes.size() || !file.commit()) {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the data to:\n%1").arg(path));
+	} else if (m_provenanceWriter && !m_provenanceWriter(path, "csv")) {
+		QMessageBox::warning(this, "Export warning",
+							 QString("The CSV was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+								.arg(path));
 	}
 }
 

@@ -40,6 +40,8 @@ public:
 	// An empty return means there is nothing to export. Enables the CSV button.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 						const QString& suggestedFileName);
+	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
+		const char* artifactKind)> writer);
 
 signals:
 	void trainSelected(const QString& trainId);  // scene linkage on click
@@ -83,6 +85,7 @@ private:
 	QString m_pinnedTrainId;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QString m_csvSuggestedName;
+	std::function<bool(const QString&, const char*)> m_provenanceWriter;
 };
 
 #endif // DIAGRAMWINDOW_H

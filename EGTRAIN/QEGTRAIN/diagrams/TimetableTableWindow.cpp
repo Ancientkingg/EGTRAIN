@@ -17,6 +17,7 @@
 #include <QVBoxLayout>
 
 #include <limits>
+#include <utility>
 
 namespace {
 
@@ -101,6 +102,11 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	m_trainsButton->setTrains(trains);
 
 	fillTable();
+}
+
+void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
+	m_runProvenance = std::move(provenance);
+	m_hasRunProvenance = true;
 }
 
 void TimetableTableWindow::fillTable() {
@@ -204,6 +210,10 @@ void TimetableTableWindow::exportCsv() {
 	if (file.write(bytes) != bytes.size() || !file.commit()) {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the data to:\n%1").arg(path));
+	} else if (m_hasRunProvenance && !writeRunProvenanceSidecar(path.toStdString(), "csv", m_runProvenance)) {
+		QMessageBox::warning(this, "Export warning",
+							 QString("The CSV was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+								.arg(path));
 	}
 }
 
@@ -217,5 +227,9 @@ void TimetableTableWindow::exportPng() {
 	if (!pix.save(path, "PNG")) {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
+	} else if (m_hasRunProvenance && !writeRunProvenanceSidecar(path.toStdString(), "png", m_runProvenance)) {
+		QMessageBox::warning(this, "Export warning",
+							 QString("The image was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+								.arg(path));
 	}
 }

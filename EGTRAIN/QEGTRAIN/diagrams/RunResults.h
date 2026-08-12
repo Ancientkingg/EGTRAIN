@@ -1,10 +1,51 @@
 #ifndef RUNRESULTS_H
 #define RUNRESULTS_H
 
-#include "simulation/RollingStock.h"
-
 #include <string>
 #include <vector>
+
+class Train;
+
+struct RunOccurrenceProvenance {
+	std::string serviceId;
+	int occurrence = 1;
+	std::string operatingCode;
+};
+
+struct RunInputProvenance {
+	std::string kind;
+	std::string path;
+	std::string sha256;
+	bool dirty = false;
+	bool reproducible = false;
+	std::string status;
+	std::string reason;
+};
+
+struct RunProvenance {
+	std::string caseName;
+	int sceneSchemaVersion = 0;
+	RunInputProvenance input;
+	std::string appliedScenario;
+	double baseTimeSeconds = 0.0;
+	double durationSeconds = 0.0;
+	double timestepSeconds = 0.0;
+	double bufferSeconds = 0.0;
+	double recoveryPercent = 0.0;
+	int paxMode = 0;
+	int tsmMode = 0;
+	int routeChoiceMode = 0;
+	std::vector<RunOccurrenceProvenance> selectedOccurrences;
+};
+
+std::string hashSceneBundle(const std::string& bundlePath);
+std::string hashSceneDirectory(const std::string& sceneDirectory);
+RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
+		bool dirty);
+bool writeRunProvenanceSidecar(const std::string& artifactPath, const std::string& artifactKind,
+		const RunProvenance& run);
+bool writeDelayProvenanceSidecar(const std::string& artifactPath, const std::string& artifactKind,
+		const RunProvenance& baselineRun, const RunProvenance& scenarioRun);
 
 struct RunResultValue {
 	bool available = false;
@@ -73,6 +114,7 @@ struct DelayRunSnapshot {
 	double timestep = 0.0;
 	bool hasIncidents = false;
 	bool hasEntranceDelays = false;
+	RunProvenance provenance;
 	RunResults run;
 	std::vector<TimetableResultRow> timetable;
 };
