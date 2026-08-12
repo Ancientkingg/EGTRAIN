@@ -10658,6 +10658,11 @@ void MainWindow::runVisualPolishE2E() {
 			"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton", "speedSlowerLabel", "speedSlider",
 			"speedFasterLabel", "actionFollowButton", "followTrainCombo",
 			"actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
+		if (m_toolBar->height() < 44) {
+			ok = false;
+			failures << QString("command bar is too short at %1x%2: %3px").arg(width).arg(height).arg(m_toolBar->height());
+		}
+		const int toolbarCenterY = m_toolBar->rect().center().y();
 		QList<QWidget*> controls;
 		for (const QString& name : requiredWidgetNames) {
 			QWidget* widget = findChild<QWidget*>(name);
@@ -10673,6 +10678,11 @@ void MainWindow::runVisualPolishE2E() {
 				failures << QString("command-bar control %1 escapes toolbar bounds at %2x%3 (%4x%5+%6+%7)")
 						.arg(name).arg(width).arg(height).arg(geometry.width()).arg(geometry.height())
 						.arg(geometry.x()).arg(geometry.y());
+			}
+			if (qAbs(geometry.center().y() - toolbarCenterY) > 1) {
+				ok = false;
+				failures << QString("command-bar control %1 is not vertically centered at %2x%3")
+					.arg(name).arg(width).arg(height);
 			}
 			if (name == "followTrainCombo" && geometry.width() != 180) {
 				ok = false;
