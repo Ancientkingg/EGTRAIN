@@ -371,8 +371,8 @@ void DiagramWindow::exportPng() {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
 	} else if (m_provenanceWriter && !m_provenanceWriter(path, "png")) {
-		QMessageBox::warning(this, "Export warning",
-							 QString("The image was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+		QMessageBox::warning(this, "Export failed",
+							 QString("The image was removed because its provenance sidecar could not be written:\n%1.provenance.json")
 								.arg(path));
 	}
 }
@@ -405,8 +405,8 @@ void DiagramWindow::exportCsv() {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the data to:\n%1").arg(path));
 	} else if (m_provenanceWriter && !m_provenanceWriter(path, "csv")) {
-		QMessageBox::warning(this, "Export warning",
-							 QString("The CSV was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+		QMessageBox::warning(this, "Export failed",
+							 QString("The CSV was removed because its provenance sidecar could not be written:\n%1.provenance.json")
 								.arg(path));
 	}
 }

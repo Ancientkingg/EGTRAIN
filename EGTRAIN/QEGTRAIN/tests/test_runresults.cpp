@@ -635,6 +635,12 @@ int main() {
 				"directory input can be changed");
 		ok &= expect(directoryHash != hashSceneDirectory(sceneDir.toStdString()),
 				"directory hash changes when an accepted file changes");
+		const RunInputProvenance changedDirectory = captureSavedInput(
+			sceneDir.toStdString(), "directory", false, directoryHash);
+		ok &= expect(!changedDirectory.reproducible
+				&& changedDirectory.sha256 == directoryHash
+				&& changedDirectory.reason.find("changed since") != std::string::npos,
+				"externally changed directory is tied to the loaded hash and marked non-reproducible");
 
 		const QString bundlePath = temp.filePath("case.egscene");
 		ok &= expect(writeBytes(bundlePath, "bundle bytes\n"), "bundle input is written");
@@ -644,21 +650,35 @@ int main() {
 		ok &= expect(writeBytes(bundlePath, "bundle bytes changed\n"), "bundle input can be changed");
 		ok &= expect(bundleHash != hashSceneBundle(bundlePath.toStdString()),
 				"bundle hash changes when exact bytes change");
+		const RunInputProvenance changedBundle = captureSavedInput(
+			bundlePath.toStdString(), "bundle", false, bundleHash);
+		ok &= expect(!changedBundle.reproducible
+				&& changedBundle.sha256 == bundleHash
+				&& changedBundle.reason.find("changed since") != std::string::npos,
+				"externally changed bundle is tied to the loaded hash and marked non-reproducible");
 
-		const RunInputProvenance clean = captureSavedInput(sceneDir.toStdString(), "directory", false);
+		const std::string currentDirectoryHash = hashSceneDirectory(sceneDir.toStdString());
+		const RunInputProvenance clean = captureSavedInput(
+			sceneDir.toStdString(), "directory", false, currentDirectoryHash);
 		ok &= expect(clean.reproducible && clean.status == "reproducible"
 				&& clean.path == QFileInfo(sceneDir).absoluteFilePath().toStdString()
 				&& !clean.sha256.empty(), "clean saved directory is reproducible with an absolute path");
-		const RunInputProvenance dirty = captureSavedInput(sceneDir.toStdString(), "directory", true);
+		const RunInputProvenance unverified = captureSavedInput(
+			sceneDir.toStdString(), "directory", false, {});
+		ok &= expect(!unverified.reproducible
+				&& unverified.reason.find("could not be verified") != std::string::npos,
+				"saved input without a load/save hash is not labeled reproducible");
+		const RunInputProvenance dirty = captureSavedInput(
+			sceneDir.toStdString(), "directory", true, currentDirectoryHash);
 		ok &= expect(!dirty.reproducible && dirty.dirty && dirty.status == "non-reproducible"
 				&& dirty.reason.find("dirty") != std::string::npos,
 				"dirty saved input is marked non-reproducible with a reason");
-		const RunInputProvenance unsaved = captureSavedInput({}, "directory", false);
+		const RunInputProvenance unsaved = captureSavedInput({}, "directory", false, {});
 		ok &= expect(unsaved.kind == "unsaved" && !unsaved.reproducible
 				&& unsaved.reason.find("unsaved") != std::string::npos,
 				"unsaved input is marked non-reproducible with a reason");
 		const RunInputProvenance unreadable = captureSavedInput(temp.filePath("missing").toStdString(),
-			"directory", false);
+			"directory", false, {});
 		ok &= expect(!unreadable.reproducible
 				&& unreadable.reason.find("missing or unreadable") != std::string::npos,
 				"unreadable saved input is marked non-reproducible with a reason");
@@ -699,6 +719,13 @@ int main() {
 				&& occurrences.at(0).toObject().value("occurrence").toInt() == 2
 				&& occurrences.at(0).toObject().value("operating_code").toString() == "A\\\"2",
 				"sidecar preserves exact selected occurrence identities");
+		const QString failedArtifact = temp.filePath("failed.csv");
+		ok &= expect(writeBytes(failedArtifact, "header\n"), "failed-sidecar artifact is written");
+		ok &= expect(QDir().mkpath(failedArtifact + ".provenance.json"),
+				"sidecar failure path is occupied by a directory");
+		ok &= expect(!writeRunProvenanceSidecar(failedArtifact.toStdString(), "csv", provenance)
+				&& !QFileInfo::exists(failedArtifact),
+				"a result artifact is removed when its required provenance sidecar fails");
 
 		RunProvenance scenario = provenance;
 		scenario.appliedScenario = "incident";
@@ -710,6 +737,15 @@ int main() {
 		ok &= expect(delaySidecar.value("baseline_run").toObject().value("applied_scenario").toString() == "scenario/\\quoted"
 				&& delaySidecar.value("scenario_run").toObject().value("applied_scenario").toString() == "incident",
 				"delay sidecar keeps baseline and scenario provenance distinct");
+		const QString failedDelayArtifact = temp.filePath("failed-delay.csv");
+		ok &= expect(writeBytes(failedDelayArtifact, "header\n"),
+				"failed delay-sidecar artifact is written");
+		ok &= expect(QDir().mkpath(failedDelayArtifact + ".provenance.json"),
+				"delay sidecar failure path is occupied by a directory");
+		ok &= expect(!writeDelayProvenanceSidecar(
+				failedDelayArtifact.toStdString(), "csv", provenance, scenario)
+				&& !QFileInfo::exists(failedDelayArtifact),
+				"a delay artifact is removed when its required provenance sidecar fails");
 	}
 
 	if (!ok)

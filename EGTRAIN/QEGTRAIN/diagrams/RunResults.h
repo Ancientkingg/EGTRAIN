@@ -41,7 +41,7 @@ struct RunProvenance {
 std::string hashSceneBundle(const std::string& bundlePath);
 std::string hashSceneDirectory(const std::string& sceneDirectory);
 RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
-		bool dirty);
+		bool dirty, const std::string& savedSha256);
 bool writeRunProvenanceSidecar(const std::string& artifactPath, const std::string& artifactKind,
 		const RunProvenance& run);
 bool writeDelayProvenanceSidecar(const std::string& artifactPath, const std::string& artifactKind,

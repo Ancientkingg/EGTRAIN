@@ -1142,8 +1142,8 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std
 		QMessageBox::warning(parent, "Export failed",
 							 QString("Could not write the data to:\n%1").arg(path));
 	} else if (sidecarWriter && !sidecarWriter(path)) {
-		QMessageBox::warning(parent, "Export warning",
-							 QString("The CSV was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+		QMessageBox::warning(parent, "Export failed",
+							 QString("The CSV was removed because its provenance sidecar could not be written:\n%1.provenance.json")
 								.arg(path));
 	}
 }
@@ -3109,6 +3109,7 @@ void MainWindow::newScene() {
 	teardownGUI();
 	simulation.resetState();
 	m_sceneDir.clear();
+	m_savedSceneSha256.clear();
 	m_sceneModel = makeNewSceneModel();
 	++m_sceneRevision;
 	m_delayBaseline.reset();
@@ -3170,6 +3171,10 @@ void MainWindow::openSceneFolderDialog() {
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
 	const QString scenePath = QFileInfo(dir).absoluteFilePath();
+	const bool sceneIsBundle = QFileInfo(scenePath).isFile();
+	const std::string savedSceneSha256 = sceneIsBundle
+		? hashSceneBundle(scenePath.toStdString())
+		: hashSceneDirectory(scenePath.toStdString());
 	const bool reloadingSameScene = m_sceneLoaded
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	auto result = loadScenePath(scenePath.toStdString());
@@ -3194,7 +3199,8 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	++m_sceneRevision;
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
-	m_sceneIsBundle = QFileInfo(scenePath).isFile();
+	m_sceneIsBundle = sceneIsBundle;
+	m_savedSceneSha256 = savedSceneSha256;
 	m_sceneDirty = false;
 	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
 	if (m_selectedScenarioId.empty() && !m_sceneModel.scenarios.empty()) {
@@ -3508,6 +3514,9 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	}
 
 	refreshSavedSceneMetadata(m_sceneModel);
+	m_savedSceneSha256 = m_sceneIsBundle
+		? hashSceneBundle(m_sceneDir.toStdString())
+		: hashSceneDirectory(m_sceneDir.toStdString());
 	m_sceneDirty = false;
 	m_modifiedScenarioIds.clear();
 	updateSceneWindowTitle();
@@ -17389,7 +17398,7 @@ RunProvenance MainWindow::captureRunProvenance() const {
 	provenance.caseName = m_sceneModel.name;
 	provenance.sceneSchemaVersion = m_sceneModel.schemaVersion;
 	provenance.input = captureSavedInput(m_sceneDir.toStdString(),
-		m_sceneIsBundle ? "bundle" : "directory", m_sceneDirty);
+		m_sceneIsBundle ? "bundle" : "directory", m_sceneDirty, m_savedSceneSha256);
 	provenance.appliedScenario = m_appliedScenarioId;
 	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
 	provenance.durationSeconds = initial_variables.times;
@@ -18494,8 +18503,8 @@ void MainWindow::setupRunResultsDock() {
 		if (!m_runResultsTable->grab().save(path, "PNG"))
 			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
 		else if (!writeRunProvenanceSidecar(path.toStdString(), "png", m_completedRunProvenance))
-			QMessageBox::warning(this, "Export warning",
-				QString("The image was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+			QMessageBox::warning(this, "Export failed",
+				QString("The image was removed because its provenance sidecar could not be written:\n%1.provenance.json")
 					.arg(path));
 		});
 	QHBoxLayout* toolRow = new QHBoxLayout();

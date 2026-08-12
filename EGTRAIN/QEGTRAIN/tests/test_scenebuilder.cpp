@@ -222,6 +222,24 @@ static bool runTinyBuilderChecks() {
 				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator-yard@block@")
 						!= BlocksOccupied.end(),
 			"switch occupation preserves creator section IDs containing hyphens and wrapper characters");
+		BlocksOccupied = {"occupied.before"};
+		BlocksConnected = {"connected.before"};
+		const auto occupiedBefore = BlocksOccupied;
+		const auto connectedBefore = BlocksConnected;
+		Section malformedSwitch;
+		malformedSwitch.ID = "malformed/switch";
+		Section malformedPrevious;
+		malformedPrevious.ID = "also-malformed/switch";
+		occupyDoubleSwitch(malformedSwitch, malformedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"malformed double-switch identities are rejected before occupancy mutation");
+		Section unresolvedSwitch;
+		unresolvedSwitch.ID = "@missing.a@-1.000000/@missing.b@-2.000000";
+		Section unresolvedPrevious;
+		unresolvedPrevious.ID = "@missing.c@-3.000000/@missing.d@-4.000000";
+		occupyDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
+		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
+			"unresolved double-switch branches are rejected before occupancy mutation");
 		BlocksOccupied.clear();
 		BlocksConnected.clear();
 	}

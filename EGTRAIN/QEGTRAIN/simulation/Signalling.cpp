@@ -3404,9 +3404,24 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 		return;
 	}
 
-	std::list<const Section*> doubleSwitchBS = {&BLS, &BLSPrev};
-	for (auto itBS = doubleSwitchBS.begin(); itBS != doubleSwitchBS.end(); ++itBS) {
-		const auto& BLS = **itBS;
+	const Section* doubleSwitchBS[2] = {&BLS, &BLSPrev};
+	ConnectedSectionIdentity identities[2];
+	Section* branchSections[2][2] = {};
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		if (!parseConnectedSectionIdentity(doubleSwitchBS[switchIndex]->ID, identities[switchIndex]))
+			return;
+		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
+			if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].firstBlockId)
+				branchSections[switchIndex][0] = &::signalling_block_sections[blockIndex];
+			else if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].secondBlockId)
+				branchSections[switchIndex][1] = &::signalling_block_sections[blockIndex];
+		}
+		if (!branchSections[switchIndex][0] || !branchSections[switchIndex][1])
+			return;
+	}
+
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		const auto& BLS = *doubleSwitchBS[switchIndex];
 
 		// occupy compound signalling_block_sections
 		{
@@ -3437,9 +3452,7 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 
 		{
 			// occupy connected single signalling_block_sections
-			ConnectedSectionIdentity identity;
-			if (!parseConnectedSectionIdentity(BLS.ID, identity))
-				continue;
+			const ConnectedSectionIdentity& identity = identities[switchIndex];
 			const string& BlockID1 = identity.firstBlockId;
 			const string& BlockID2 = identity.secondBlockId;
 
@@ -3472,25 +3485,9 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 					BlocksConnected.push_back(IDToAdd[h]);
 			}
 
-			// find signalling_block_sections from other branches
-			Section *branchBS1 = nullptr, *branchBS2 = nullptr;
-			bool branch1 = false, branch2 = false;
-			for (int b = 0; b < Blocks; b++) {
-				if (::signalling_block_sections[b].ID == BlockID1) {
-					branchBS1 = &::signalling_block_sections[b];
-					branch1 = true;
-				} else if (::signalling_block_sections[b].ID == BlockID2) {
-					branchBS2 = &::signalling_block_sections[b];
-					branch2 = true;
-				}
-				// found both signalling_block_sections
-				if (branch1 && branch2) {
-					break;
-				}
-			}
-
 			// occupy compound signalling_block_sections connected to single signalling_block_sections (other branches of double switch)
-			std::list<Section*> branchBS = {branchBS1, branchBS2};
+			std::list<Section*> branchBS = {
+				branchSections[switchIndex][0], branchSections[switchIndex][1]};
 			for (auto itb = branchBS.begin(); itb != branchBS.end(); ++itb) {
 				const auto& BLS = **itb;
 

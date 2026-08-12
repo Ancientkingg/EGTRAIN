@@ -211,8 +211,8 @@ void TimetableTableWindow::exportCsv() {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the data to:\n%1").arg(path));
 	} else if (m_hasRunProvenance && !writeRunProvenanceSidecar(path.toStdString(), "csv", m_runProvenance)) {
-		QMessageBox::warning(this, "Export warning",
-							 QString("The CSV was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+		QMessageBox::warning(this, "Export failed",
+							 QString("The CSV was removed because its provenance sidecar could not be written:\n%1.provenance.json")
 								.arg(path));
 	}
 }
@@ -228,8 +228,8 @@ void TimetableTableWindow::exportPng() {
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
 	} else if (m_hasRunProvenance && !writeRunProvenanceSidecar(path.toStdString(), "png", m_runProvenance)) {
-		QMessageBox::warning(this, "Export warning",
-							 QString("The image was written, but its provenance sidecar could not be written:\n%1.provenance.json")
+		QMessageBox::warning(this, "Export failed",
+							 QString("The image was removed because its provenance sidecar could not be written:\n%1.provenance.json")
 								.arg(path));
 	}
 }
