@@ -14,7 +14,7 @@ class LegendSwatch : public QWidget {
 public:
 	explicit LegendSwatch(const NetworkLegendEntry& entry, QWidget* parent = nullptr)
 		: QWidget(parent), m_entry(entry) {
-		setFixedSize(30, 18);
+		setFixedSize(46, 18);
 		setAttribute(Qt::WA_TransparentForMouseEvents);
 	}
 
@@ -22,12 +22,18 @@ protected:
 	void paintEvent(QPaintEvent*) override {
 		QPainter painter(this);
 		painter.setRenderHint(QPainter::Antialiasing);
-		const QRectF cueRect(3.0, 3.0, 24.0, 12.0);
+		const QRectF cueRect(11.0, 3.0, 24.0, 12.0);
 		if (m_entry.kind == NetworkLegendEntryKind::Track) {
 			QPen pen(m_entry.color, qMax(2, m_entry.lineWidth));
 			pen.setStyle(m_entry.penStyle);
 			painter.setPen(pen);
-			painter.drawLine(QLineF(3.0, 9.0, 27.0, 9.0));
+			const QLineF line(3.0, 9.0, 43.0, 9.0);
+			painter.drawLine(line);
+			if (m_entry.trackState != TrackOperationalState::Free) {
+				const TrackVisual base = freeTrackVisual();
+				painter.setPen(QPen(base.color, base.width));
+				painter.drawLine(line);
+			}
 			return;
 		}
 
@@ -237,7 +243,9 @@ void NetworkLegendWidget::rebuildRows() {
 		auto* rowLayout = new QHBoxLayout(row);
 		rowLayout->setContentsMargins(2, 1, 2, 1);
 		rowLayout->setSpacing(5);
-		rowLayout->addWidget(new LegendSwatch(entry, row));
+		auto* swatch = new LegendSwatch(entry, row);
+		swatch->setObjectName(QString("mapKeySwatch%1").arg(i));
+		rowLayout->addWidget(swatch);
 		auto* label = new QLabel(entry.label, row);
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
