@@ -131,10 +131,6 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	bool incidentsPresent = false;
 	if (!exists("scenarios.json", scenariosPresent) || !exists("incidents.json", incidentsPresent))
 		return result;
-	if (!scenariosPresent && !incidentsPresent) {
-		result.reason = "required scene input is missing or unreadable: scenarios.json or incidents.json";
-		return result;
-	}
 	if (scenariosPresent && !read("scenarios.json", true))
 		return result;
 	if (incidentsPresent && !read("incidents.json", true))
