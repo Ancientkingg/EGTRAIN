@@ -644,6 +644,14 @@ int main() {
 		ok &= expect(directorySnapshot.reason.empty()
 				&& hashSceneInputSnapshot(directorySnapshot.bytes) == directoryHash,
 				"directory snapshot hash uses the shared exact-byte framing");
+		const QString scenariosPath = QDir(sceneDir).filePath("scenarios.json");
+		const QString incidentsPath = QDir(sceneDir).filePath("incidents.json");
+		ok &= expect(QFile::remove(scenariosPath) && QFile::remove(incidentsPath)
+				&& !hashSceneDirectory(sceneDir.toStdString()).empty(),
+				"a compatible scene without scenario files remains reproducible");
+		ok &= expect(writeBytes(scenariosPath, "{scenarios.json}")
+				&& writeBytes(incidentsPath, "{incidents.json}"),
+				"scenario compatibility fixture is restored");
 		const QString passengerPath = QDir(sceneDir).filePath("passengers.json");
 		ok &= expect(QFile::remove(passengerPath) && QDir().mkpath(passengerPath)
 				&& hashSceneDirectory(sceneDir.toStdString()).empty(),
