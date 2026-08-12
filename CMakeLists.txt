@@ -689,6 +689,9 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_lebanon_scene_smoke
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
 	set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)
+	add_test(NAME test_creator_acceptance_smoke
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh)
+	set_tests_properties(test_creator_acceptance_smoke PROPERTIES TIMEOUT 240)
 	if(APPLE)
 		add_test(NAME test_package_contents_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh)
