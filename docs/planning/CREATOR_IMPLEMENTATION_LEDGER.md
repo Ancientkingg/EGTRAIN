@@ -11,6 +11,7 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - Current milestone: PR 6, reproducible exports and UI-only seventh-case proof
 - Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-acceptance`
 - Current branch: `feature/result-provenance-creator-acceptance`
+- Current branch head: `095bfa554d43576d1eea52d5cc4d5d1f7c6e86ba`
 - Current PR: draft PR #295, `Add reproducible creator acceptance`
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
@@ -576,6 +577,23 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   the subsequent scenario-less compatibility correction.
 - After the PR 6 Ponytail reductions, the affected target built and the public creator smoke passed in 5.20
   seconds. The full seven-test focused gate then passed 7 of 7 in 11.24 seconds, and `git diff --check` passed.
+- The final PR 6 gate at `095bfa554d43576d1eea52d5cc4d5d1f7c6e86ba` passed:
+  - configure and full build;
+  - CTest 44 of 44 in 141.13 seconds, including CSV provenance and the creator acceptance smoke;
+  - editor smoke after all seven scene tests;
+  - six-case native headless smoke with every movement, non-sentinel, and served-station assertion;
+  - six-case validate, export, reimport, and count parity with `ROUNDTRIP PASS`;
+  - Assignment canonical timetable smoke;
+  - breakdown and protected-signal incident hold/release smoke;
+  - DPR 1 and DPR 2 visual-polish, station-overlay, scene-render, and legacy-import smoke;
+  - packing and validation of all six `.egscene` bundles plus a native headless Assignment bundle run;
+  - `git diff --check` from merged PR 5 main to the exact PR 6 head.
+- The final graph update scanned the PR 6 worktree and wrote only to the canonical maintained graph. It rebuilt
+  6,298 nodes, 10,749 edges, and 1,619 communities.
+- The current native structural, movement, station-service, round-trip, and bundle checks required as the live
+  portions of #85 and #86 passed. Those two issues remain open because their separate historical acceptance also
+  asks for retained pre-cutover artifact comparisons and explicit expanded-train baselines; this execution does
+  not invent or silently claim that missing historical evidence.
 
 ## Review record
 
@@ -608,6 +626,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - The final fresh correctness review found no P0, P1, or P2 issue at `08c9830`. It independently passed the four
   snapshot/writer/bundle/builder tests and both public CSV/creator smokes, accepted a direct six-file
   scenario-less directory, rejected a present directory-valued passenger input, and approved the diff.
+- The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `095bfa5`. It verified that the
+  simplified state machine cannot emit its final marker early, that the wrapper still parses all 15 result
+  artifacts and sidecars, and that no provenance or double-switch production path was weakened. Its seven-test
+  focused gate, direct creator smoke, and both diff checks passed.
 
 - The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `538ac72`. It traced native
   passenger preflight and no-mutation behavior, importer station resolution, occurrence filtering, passenger
@@ -915,11 +937,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 5 are complete. PR 6 correctness and Ponytail gates are clean, and the simplified creator path
-  passes the focused regressions. The final complete local regression gate, CI, merge, and merged-main
-  completeness review remain before the verdict can change.
+- PRs 1 through 5 are complete. PR 6 implementation, local regression, correctness, and Ponytail gates are clean.
+  Current-head CI, merge, and the independent merged-main completeness review remain before the verdict can change.
 
 ## Next action
 
-Commit and push the PR 6 Ponytail reductions, run a fresh correctness check of the simplified diff, then complete
-the final regression, CI, merge, and merged-main completeness gates.
+Commit and push this final verification record, wait for exact-head CI, merge PR #295, then run the independent
+creator-completeness review against merged `origin/main` and finalize the ledger.
