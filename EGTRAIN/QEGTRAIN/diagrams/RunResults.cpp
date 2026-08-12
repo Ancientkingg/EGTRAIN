@@ -1,6 +1,16 @@
 #include "diagrams/RunResults.h"
 
+#include "scene/SceneModel.h"
+#include "simulation/RollingStock.h"
 #include "util/TrajectoryUtil.h"
+
+#include <QCryptographicHash>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSaveFile>
 
 #include <algorithm>
 #include <cmath>
@@ -11,6 +21,122 @@
 #include <utility>
 
 namespace {
+
+struct SceneHashResult {
+	std::string hash;
+	std::string reason;
+};
+
+QString absolutePath(const std::string& path) {
+	return QFileInfo(QString::fromStdString(path)).absoluteFilePath();
+}
+
+bool readFile(const QString& path, QByteArray& bytes) {
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return false;
+	bytes = file.readAll();
+	return file.error() == QFile::NoError;
+}
+
+std::string hexDigest(const QByteArray& bytes) {
+	return QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex().toStdString();
+}
+
+SceneHashResult hashBundle(const QString& path) {
+	QByteArray bytes;
+	if (!readFile(path, bytes))
+		return {{}, "saved bundle is missing or unreadable"};
+	return {hexDigest(bytes), {}};
+}
+
+SceneHashResult hashDirectory(const QString& path) {
+	const SceneInputSnapshot snapshot = readSceneDirectorySnapshot(path.toStdString());
+	return snapshot.bytes.empty()
+		? SceneHashResult{{}, snapshot.reason}
+		: SceneHashResult{hexDigest(QByteArray::fromStdString(snapshot.bytes)), {}};
+}
+
+QJsonValue finiteJsonNumber(double value) {
+	return std::isfinite(value) ? QJsonValue(value) : QJsonValue();
+}
+
+QJsonObject runJson(const RunProvenance& run) {
+	QJsonObject input;
+	input.insert(QStringLiteral("kind"), QString::fromStdString(run.input.kind));
+	input.insert(QStringLiteral("path"), QString::fromStdString(run.input.path));
+	input.insert(QStringLiteral("sha256"), QString::fromStdString(run.input.sha256));
+	input.insert(QStringLiteral("dirty"), run.input.dirty);
+	input.insert(QStringLiteral("reproducible"), run.input.reproducible);
+	input.insert(QStringLiteral("status"), QString::fromStdString(run.input.status));
+	input.insert(QStringLiteral("reason"), QString::fromStdString(run.input.reason));
+
+	QJsonArray selected;
+	for (const RunOccurrenceProvenance& occurrence : run.selectedOccurrences) {
+		QJsonObject item;
+		item.insert(QStringLiteral("service_id"), QString::fromStdString(occurrence.serviceId));
+		item.insert(QStringLiteral("occurrence"), occurrence.occurrence);
+		item.insert(QStringLiteral("operating_code"), QString::fromStdString(occurrence.operatingCode));
+		selected.append(item);
+	}
+
+	QJsonObject result;
+	result.insert(QStringLiteral("case_name"), QString::fromStdString(run.caseName));
+	result.insert(QStringLiteral("scene_schema_version"), run.sceneSchemaVersion);
+	result.insert(QStringLiteral("input"), input);
+	result.insert(QStringLiteral("applied_scenario"), QString::fromStdString(run.appliedScenario));
+	result.insert(QStringLiteral("base_time_seconds"), finiteJsonNumber(run.baseTimeSeconds));
+	result.insert(QStringLiteral("duration_seconds"), finiteJsonNumber(run.durationSeconds));
+	result.insert(QStringLiteral("timestep_seconds"), finiteJsonNumber(run.timestepSeconds));
+	result.insert(QStringLiteral("buffer_seconds"), finiteJsonNumber(run.bufferSeconds));
+	result.insert(QStringLiteral("recovery_percent"), finiteJsonNumber(run.recoveryPercent));
+	result.insert(QStringLiteral("pax_mode"), run.paxMode);
+	result.insert(QStringLiteral("tsm_mode"), run.tsmMode);
+	result.insert(QStringLiteral("route_choice_mode"), run.routeChoiceMode);
+	result.insert(QStringLiteral("selected_occurrences"), selected);
+	return result;
+}
+
+bool writeSidecar(const std::string& artifactPath, const std::string& artifactKind,
+		const QJsonObject& runObject, const QJsonObject* baselineObject = nullptr,
+		const QJsonObject* scenarioObject = nullptr) {
+	const QString path = QString::fromStdString(artifactPath);
+	QFileInfo artifactInfo(path);
+	QJsonObject artifact;
+	artifact.insert(QStringLiteral("kind"), QString::fromStdString(artifactKind));
+	artifact.insert(QStringLiteral("file_name"), artifactInfo.fileName());
+	QJsonObject root;
+	root.insert(QStringLiteral("schema_version"), 1);
+	root.insert(QStringLiteral("artifact"), artifact);
+	if (baselineObject && scenarioObject) {
+		root.insert(QStringLiteral("baseline_run"), *baselineObject);
+		root.insert(QStringLiteral("scenario_run"), *scenarioObject);
+	} else {
+		root.insert(QStringLiteral("run"), runObject);
+	}
+
+	const QByteArray bytes = QJsonDocument(root).toJson(QJsonDocument::Indented);
+	QSaveFile file(path + QStringLiteral(".provenance.json"));
+	if (!file.open(QIODevice::WriteOnly))
+		return false;
+	return file.write(bytes) == bytes.size() && file.commit();
+}
+
+template <typename SidecarWriter>
+bool writeArtifactWithSidecar(const std::string& artifactPath,
+		const std::string& artifactBytes, SidecarWriter writeProvenance) {
+	const QString path = QString::fromStdString(artifactPath);
+	QSaveFile artifact(path);
+	if (!artifact.open(QIODevice::WriteOnly))
+		return false;
+	const QByteArray bytes = QByteArray::fromStdString(artifactBytes);
+	if (artifact.write(bytes) != bytes.size() || !writeProvenance())
+		return false;
+	if (artifact.commit())
+		return true;
+	QFile::remove(path + QStringLiteral(".provenance.json"));
+	return false;
+}
 
 RunResultValue availableValue(double value) {
 	return std::isfinite(value) ? RunResultValue{true, value} : RunResultValue{};
@@ -95,6 +221,84 @@ void addTotal(const RunResultValue& value, double& sum, bool& complete) {
 }
 
 } // namespace
+
+std::string hashSceneBundle(const std::string& bundlePath) {
+	return hashBundle(absolutePath(bundlePath)).hash;
+}
+
+std::string hashSceneDirectory(const std::string& sceneDirectory) {
+	return hashDirectory(absolutePath(sceneDirectory)).hash;
+}
+
+std::string hashSceneInputSnapshot(const std::string& snapshot) {
+	return snapshot.empty() ? std::string() : hexDigest(QByteArray::fromStdString(snapshot));
+}
+
+RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
+		bool dirty, const std::string& savedSha256) {
+	RunInputProvenance result;
+	result.kind = savedPath.empty() ? "unsaved" : inputKind;
+	result.path = savedPath.empty() ? std::string() : absolutePath(savedPath).toStdString();
+	result.dirty = dirty;
+	if (savedPath.empty()) {
+		result.status = "non-reproducible";
+		result.reason = "input is unsaved";
+		return result;
+	}
+
+	const SceneHashResult hash = inputKind == "bundle"
+		? hashBundle(QString::fromStdString(result.path))
+		: hashDirectory(QString::fromStdString(result.path));
+	const bool changedOnDisk = !savedSha256.empty() && hash.hash != savedSha256;
+	result.sha256 = changedOnDisk ? savedSha256 : hash.hash;
+	if (dirty) {
+		result.status = "non-reproducible";
+		result.reason = "input is dirty";
+		if (changedOnDisk)
+			result.reason += "; saved input changed since it was loaded or saved";
+		else if (!hash.reason.empty())
+			result.reason += "; " + hash.reason;
+		return result;
+	}
+	if (changedOnDisk) {
+		result.status = "non-reproducible";
+		result.reason = hash.hash.empty()
+			? hash.reason
+			: "saved input changed since it was loaded or saved";
+		return result;
+	}
+	if (hash.hash.empty()) {
+		result.status = "non-reproducible";
+		result.reason = hash.reason.empty() ? "saved input is missing or unreadable" : hash.reason;
+		return result;
+	}
+	if (savedSha256.empty()) {
+		result.status = "non-reproducible";
+		result.reason = "loaded input snapshot could not be verified";
+		return result;
+	}
+	result.reproducible = true;
+	result.status = "reproducible";
+	return result;
+}
+
+bool writeRunArtifactWithProvenance(const std::string& artifactPath,
+		const std::string& artifactKind, const std::string& artifactBytes,
+		const RunProvenance& run) {
+	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
+		return writeSidecar(artifactPath, artifactKind, runJson(run));
+	});
+}
+
+bool writeDelayArtifactWithProvenance(const std::string& artifactPath,
+		const std::string& artifactKind, const std::string& artifactBytes,
+		const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
+	const QJsonObject baseline = runJson(baselineRun);
+	const QJsonObject scenario = runJson(scenarioRun);
+	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
+		return writeSidecar(artifactPath, artifactKind, {}, &baseline, &scenario);
+	});
+}
 
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains) {
 	std::vector<TimetableResultRow> results;

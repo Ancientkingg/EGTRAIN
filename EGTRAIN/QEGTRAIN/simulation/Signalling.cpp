@@ -3,10 +3,67 @@
 #include "scene/SectionInventory.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 extern Logger owl;
+
+namespace {
+
+struct ConnectedSectionIdentity {
+	std::string firstBlockId;
+	std::string secondBlockId;
+	double firstCoordinate = 0.0;
+	double secondCoordinate = 0.0;
+};
+
+bool parseConnectedSectionPart(const std::string& part, std::string& blockId, double& coordinate) {
+	if (part.empty() || part.front() != '@')
+		return false;
+	const std::size_t blockEnd = part.rfind('@');
+	if (blockEnd == std::string::npos || blockEnd + 2 > part.size() || part[blockEnd + 1] != '-')
+		return false;
+	const std::string coordinateText = part.substr(blockEnd + 2);
+	char* end = nullptr;
+	coordinate = std::strtod(coordinateText.c_str(), &end);
+	if (end == coordinateText.c_str() || *end != '\0' || !std::isfinite(coordinate))
+		return false;
+	blockId = part.substr(0, blockEnd + 1);
+	return true;
+}
+
+bool parseConnectedSectionIdentity(const std::string& id, ConnectedSectionIdentity& result) {
+	const std::size_t separator = id.find('/');
+	return separator != std::string::npos
+			&& id.find('/', separator + 1) == std::string::npos
+			&& parseConnectedSectionPart(id.substr(0, separator), result.firstBlockId,
+				result.firstCoordinate)
+			&& parseConnectedSectionPart(id.substr(separator + 1), result.secondBlockId,
+				result.secondCoordinate);
+}
+
+bool resolveDoubleSwitchSections(const Section& current, const Section& previous,
+		const Section* sections[2], ConnectedSectionIdentity identities[2],
+		Section* branches[2][2]) {
+	sections[0] = &current;
+	sections[1] = &previous;
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		if (!parseConnectedSectionIdentity(sections[switchIndex]->ID, identities[switchIndex]))
+			return false;
+		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
+			if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].firstBlockId)
+				branches[switchIndex][0] = &::signalling_block_sections[blockIndex];
+			else if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].secondBlockId)
+				branches[switchIndex][1] = &::signalling_block_sections[blockIndex];
+		}
+		if (!branches[switchIndex][0] || !branches[switchIndex][1])
+			return false;
+	}
+	return true;
+}
+
+} // namespace
 
 
 TrainEvent::TrainEvent() {
@@ -3343,12 +3400,6 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 					BlocksConnected.push_back(IDToFree[i]);
 			}
 		}
-		// only for the Copenhagen case where double switches are used for the rail crossings X
-
-		if (BLS.ID == "@5-B6@")
-			; // BlocksOccupied.push_back("@1-B30@-4.592000/@5-B7@-4.620000");
-			  // if (BLS.ID == "@1-B30@-4.592000/@5-B7@-4.620000")
-		//	BlocksOccupied.push_back("@5-B6@");
 	}
 	// fill only with previous signalling_block_sections
 	/*else {
@@ -3368,14 +3419,14 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 
 // Function to occupy a double switch
 void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
-	// prevent cases not crossing the full double switch (e.g. region jumps)
-	if (BLS.ID.find('/') == std::string::npos || BLSPrev.ID.find('/') == std::string::npos) {
+	const Section* doubleSwitchBS[2] = {};
+	ConnectedSectionIdentity identities[2];
+	Section* branchSections[2][2] = {};
+	if (!resolveDoubleSwitchSections(BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
 		return;
-	}
 
-	std::list<const Section*> doubleSwitchBS = {&BLS, &BLSPrev};
-	for (auto itBS = doubleSwitchBS.begin(); itBS != doubleSwitchBS.end(); ++itBS) {
-		const auto& BLS = **itBS;
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		const auto& BLS = *doubleSwitchBS[switchIndex];
 
 		// occupy compound signalling_block_sections
 		{
@@ -3406,31 +3457,9 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 
 		{
 			// occupy connected single signalling_block_sections
-
-			// Defining the token of this connected Block the first token is the ID of the first block section, the second token is instead the ID of the second block section
-			string tok1[10];
-			int N_tok1 = 0;
-			string BlockID1, BlockID2;
-			char* p = strtok((char*)BLS.ID.c_str(), "/-");
-			while (p != NULL) {
-				tok1[N_tok1] = p;
-				p = strtok(NULL, "/-");
-				N_tok1++;
-			}
-			BlockID1 = tok1[0] + "-" + tok1[1];
-			BlockID2 = tok1[3] + "-" + tok1[4];
-			// Identify the TrackLine ID of BlockID1 and BlockID2;
-			int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-			TrackLineIDBlock1 = atoi(strtok((char*)tok1[1].c_str(), "B@"));
-			TrackLineIDBlock2 = atoi(strtok((char*)tok1[4].c_str(), "B@"));
-
-			/*//if TrackLineIDPrevBS is -1 or is equal to the trackLineId of the previous block section leave everything as it is otherwise
-			if (TrackLineIDBlock2 == TrackLineIDPrevBS) {//if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
-				string TEMPBlockID;
-				TEMPBlockID = BlockID2;
-				BlockID2 = BlockID1;
-				BlockID1 = TEMPBlockID;
-			}*/
+			const ConnectedSectionIdentity& identity = identities[switchIndex];
+			const string& BlockID1 = identity.firstBlockId;
+			const string& BlockID2 = identity.secondBlockId;
 
 			// Adding ID of Connected Block Sections to the lists BlocksOccupied and BlocksConnected
 			string IDToAdd[2];
@@ -3461,25 +3490,9 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 					BlocksConnected.push_back(IDToAdd[h]);
 			}
 
-			// find signalling_block_sections from other branches
-			Section *branchBS1 = nullptr, *branchBS2 = nullptr;
-			bool branch1 = false, branch2 = false;
-			for (int b = 0; b < Blocks; b++) {
-				if (::signalling_block_sections[b].ID == BlockID1) {
-					branchBS1 = &::signalling_block_sections[b];
-					branch1 = true;
-				} else if (::signalling_block_sections[b].ID == BlockID2) {
-					branchBS2 = &::signalling_block_sections[b];
-					branch2 = true;
-				}
-				// found both signalling_block_sections
-				if (branch1 && branch2) {
-					break;
-				}
-			}
-
 			// occupy compound signalling_block_sections connected to single signalling_block_sections (other branches of double switch)
-			std::list<Section*> branchBS = {branchBS1, branchBS2};
+			std::list<Section*> branchBS = {
+				branchSections[switchIndex][0], branchSections[switchIndex][1]};
 			for (auto itb = branchBS.begin(); itb != branchBS.end(); ++itb) {
 				const auto& BLS = **itb;
 
@@ -3514,14 +3527,14 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 
 // Function to release a double switch
 void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
-	// prevent cases not crossing the full double switch (e.g. region jumps)
-	if (BLS.ID.find('/') == std::string::npos || BLSPrev.ID.find('/') == std::string::npos) {
+	const Section* doubleSwitchBS[2] = {};
+	ConnectedSectionIdentity identities[2];
+	Section* branchSections[2][2] = {};
+	if (!resolveDoubleSwitchSections(BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
 		return;
-	}
 
-	std::list<const Section*> doubleSwitchBS = {&BLS, &BLSPrev};
-	for (auto it = doubleSwitchBS.begin(); it != doubleSwitchBS.end(); ++it) {
-		const auto& BLS = **it;
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		const auto& BLS = *doubleSwitchBS[switchIndex];
 
 		string* IDToAdd;
 		// Load the BLS ID and the ones of the connected Blocks in the BlocksConnected list when the former has not a diverging switch
@@ -3553,22 +3566,11 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 			bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
 			IDToAdd[0] = BLS.ID;
 			IsInBlocksConnected[0] = false; // The first element of the array is the ID of BLS
-											// Defining the token of this connected Block the first token is the ID of the first block section, the second token is instead the ID of the second block section
-			string tok1[10];
-			int N_tok1 = 0;
-			string BlockID1, BlockID2;
-			char* p = strtok((char*)BLS.ID.c_str(), "/-");
-			while (p != NULL) {
-				tok1[N_tok1] = p;
-				p = strtok(NULL, "/-");
-				N_tok1++;
-			}
-			BlockID1 = tok1[0] + "-" + tok1[1];
-			BlockID2 = tok1[3] + "-" + tok1[4];
+			const ConnectedSectionIdentity& identity = identities[switchIndex];
 			// Adding ID of Connected Block Sections to the lists BlocksOccupied and BlocksConnected
-			IDToAdd[1] = BlockID1;
+			IDToAdd[1] = identity.firstBlockId;
 			IsInBlocksConnected[1] = false;
-			IDToAdd[2] = BlockID2;
+			IDToAdd[2] = identity.secondBlockId;
 			IsInBlocksConnected[2] = false;
 			for (int i = 0; i < BLS.N_ConnectedBS; i++) {
 				IDToAdd[i + 3] = BLS.IDConnectedBS[i];
@@ -3584,26 +3586,9 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 					BlocksConnected.push_back(IDToAdd[i]);
 			}
 
-			// find signalling_block_sections from other branches
-			Section branchBS1, branchBS2;
-			bool branch1 = false, branch2 = false;
-			for (int b = 0; b < Blocks; b++) {
-				if (::signalling_block_sections[b].ID == BlockID1) {
-					branchBS1 = ::signalling_block_sections[b];
-					branch1 = true;
-				} else if (::signalling_block_sections[b].ID == BlockID2) {
-					branchBS2 = ::signalling_block_sections[b];
-					branch2 = true;
-				}
-				// found both signalling_block_sections
-				if (branch1 && branch2) {
-					break;
-				}
-			}
-
 			// release compound signalling_block_sections connected to single signalling_block_sections (other branches of double switch)
-			releaseLastBlockAndConnected(branchBS1);
-			releaseLastBlockAndConnected(branchBS2);
+			releaseLastBlockAndConnected(*branchSections[switchIndex][0]);
+			releaseLastBlockAndConnected(*branchSections[switchIndex][1]);
 		}
 		delete[] IDToAdd;
 	}
@@ -3642,31 +3627,14 @@ void unlockDoubleSwitches() {
 
 // Function to Activate blocks connected with block sections having switches in diverging position
 void activateBlocksWithSwitchesDiv(const Section& BS, int TrackLineIDPrevBS, double S) {
-	// Defining the token of this connected Block the first token is the ID of the first block section, the second token is instead the ID of the second block section
-	string tok1[10];
-	int N_tok1 = 0;
-	string BlockID1, BlockID2;
-	char* p = strtok((char*)BS.ID.c_str(), "/-");
-	while (p != NULL) {
-		tok1[N_tok1] = p;
-		p = strtok(NULL, "/-");
-		N_tok1++;
-	}
-	BlockID1 = tok1[0] + "-" + tok1[1];
-	BlockID2 = tok1[3] + "-" + tok1[4];
-	// Identify the TrackLine ID of BlockID1 and BlockID2;
-	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
-	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
-	{
-		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
-		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
-		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
-		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
-	}
+	ConnectedSectionIdentity identity;
+	if (!parseConnectedSectionIdentity(BS.ID, identity))
+		return;
+	string BlockID1 = identity.firstBlockId;
+	string BlockID2 = identity.secondBlockId;
 
 	// if TrackLineIDPrevBS is -1 or is equal to the trackLineId of the previous block section leave everything as it is otherwise
-	if (TrackLineIDBlock2 == TrackLineIDPrevBS) { // if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
+	if (BS.SecondConnectedTrackLineID == TrackLineIDPrevBS) { // if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
 		string TEMPBlockID;
 		TEMPBlockID = BlockID2;
 		BlockID2 = BlockID1;
@@ -3725,31 +3693,14 @@ void activateBlocksWithSwitchesDiv(const Section& BS, int TrackLineIDPrevBS, dou
 
 // Function to Activate blocks connected with block sections having switches in diverging position
 void activateBlocksWithSwitchesDivFixedBlock(const Section& BS, int TrackLineIDPrevBS, double S) {
-	// Defining the token of this connected Block the first token is the ID of the first block section, the second token is instead the ID of the second block section
-	string tok1[10];
-	int N_tok1 = 0;
-	string BlockID1, BlockID2;
-	char* p = strtok((char*)BS.ID.c_str(), "/-");
-	while (p != NULL) {
-		tok1[N_tok1] = p;
-		p = strtok(NULL, "/-");
-		N_tok1++;
-	}
-	BlockID1 = tok1[0] + "-" + tok1[1];
-	BlockID2 = tok1[3] + "-" + tok1[4];
-	// Identify the TrackLine ID of BlockID1 and BlockID2;
-	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
-	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
-	{
-		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
-		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
-		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
-		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
-	}
+	ConnectedSectionIdentity identity;
+	if (!parseConnectedSectionIdentity(BS.ID, identity))
+		return;
+	string BlockID1 = identity.firstBlockId;
+	string BlockID2 = identity.secondBlockId;
 
 	// if TrackLineIDPrevBS is -1 or is equal to the trackLineId of the previous block section leave everything as it is otherwise
-	if (TrackLineIDBlock2 == TrackLineIDPrevBS) { // if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
+	if (BS.SecondConnectedTrackLineID == TrackLineIDPrevBS) { // if the trackLineId of the second block section is equal to the one of the previous block section then invert BlockID1 and BlockID2
 		string TEMPBlockID;
 		TEMPBlockID = BlockID2;
 		BlockID2 = BlockID1;
@@ -3818,22 +3769,15 @@ void releaseLastBlockAndConnected(const Section& BLS) {
 		bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
 		IDToAdd[0] = BLS.ID;
 		IsInBlocksConnected[0] = false; // The first element of the array is the ID of BLS
-										// Defining the token of this connected Block the first token is the ID of the first block section, the second token is instead the ID of the second block section
-		string tok1[10];
-		int N_tok1 = 0;
-		string BlockID1, BlockID2;
-		char* p = strtok((char*)BLS.ID.c_str(), "/-");
-		while (p != NULL) {
-			tok1[N_tok1] = p;
-			p = strtok(NULL, "/-");
-			N_tok1++;
+		ConnectedSectionIdentity identity;
+		if (!parseConnectedSectionIdentity(BLS.ID, identity)) {
+			delete[] IDToAdd;
+			return;
 		}
-		BlockID1 = tok1[0] + "-" + tok1[1];
-		BlockID2 = tok1[3] + "-" + tok1[4];
 		// Adding ID of Connected Block Sections to the lists BlocksOccupied and BlocksConnected
-		IDToAdd[1] = BlockID1;
+		IDToAdd[1] = identity.firstBlockId;
 		IsInBlocksConnected[1] = false;
-		IDToAdd[2] = BlockID2;
+		IDToAdd[2] = identity.secondBlockId;
 		IsInBlocksConnected[2] = false;
 		for (int i = 0; i < BLS.N_ConnectedBS; i++) {
 			IDToAdd[i + 3] = BLS.IDConnectedBS[i];
@@ -3893,21 +3837,14 @@ void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, d
 		if (ListBlocksConnected.size() > 0) {
 			for (list<string>::iterator h = ListBlocksConnected.begin(); h != ListBlocksConnected.end(); h++) {
 				MovementAuthority MA1, MA2, MA3;
-				string tok1[10];
-				int N_tok1 = 0;
-				string BlockID1, BlockID2; // The ID of the first and the second blocks connected by the switch
-				double SwitchStartPos, SwitchEndPos;
 				string ConnectedBlockName = *h;
-				char* p = strtok((char*)ConnectedBlockName.c_str(), "/-");
-				while (p != NULL) {
-					tok1[N_tok1] = p;
-					p = strtok(NULL, "/-");
-					N_tok1++;
-				}
-				BlockID1 = tok1[0] + "-" + tok1[1];
-				BlockID2 = tok1[3] + "-" + tok1[4];
-				SwitchStartPos = atof((char*)tok1[2].c_str());
-				SwitchEndPos = atof((char*)tok1[5].c_str());
+				ConnectedSectionIdentity identity;
+				if (!parseConnectedSectionIdentity(ConnectedBlockName, identity))
+					continue;
+				const string& BlockID1 = identity.firstBlockId;
+				const string& BlockID2 = identity.secondBlockId;
+				const double SwitchStartPos = identity.firstCoordinate;
+				const double SwitchEndPos = identity.secondCoordinate;
 				// We do not need to block the switch edge connected to a non-diverging block connected with Block signalling_block_sections, but just the switch edge on Block signalling_block_sections and the switch edges on the connected Blocks with Switch Div=true. In this way we allow trains on non-diverging block connected with signalling_block_sections to go ahead flawlessly
 				string RightSectionToConsider;
 				double RightSwitchEdgeToConsider = 0.0;
@@ -4049,29 +3986,11 @@ void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, c
 void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
 	// the string of the next block section ID
 	string NextSectionID;
-	// Defining the token of this connected Block the first token is the ID of the first block section, the second token is instead the ID of the second block section
-	string tok1[10];
-	int N_tok1 = 0;
-	string BlockID1, BlockID2; // The ID of the first and the second blocks connected by the switch
-	string BSID = BS.ID;
-	char* p = strtok((char*)BSID.c_str(), "/-");
-	while (p != NULL) {
-		tok1[N_tok1] = p;
-		p = strtok(NULL, "/-");
-		N_tok1++;
-	}
-	BlockID1 = tok1[0] + "-" + tok1[1];
-	BlockID2 = tok1[3] + "-" + tok1[4];
-	// Identify the TrackLine ID of BlockID1 and BlockID2;
-	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
-	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
-	{
-		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
-		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
-		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
-		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
-	}
+	ConnectedSectionIdentity identity;
+	if (!parseConnectedSectionIdentity(BS.ID, identity))
+		return;
+	string BlockID1 = identity.firstBlockId;
+	string BlockID2 = identity.secondBlockId;
 
 	// Identifying the next section ID
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
@@ -4131,29 +4050,11 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
 	// Defining the next block section ID on the route of the train after BLS
 	string NextSectionID;
-
-	string tok1[10];
-	int N_tok1 = 0;
-	string BlockID1, BlockID2; // The ID of the first and the second blocks connected by the switch
-	string BSID = BLS.ID;
-	char* p = strtok((char*)BSID.c_str(), "/-");
-	while (p != NULL) {
-		tok1[N_tok1] = p;
-		p = strtok(NULL, "/-");
-		N_tok1++;
-	}
-	BlockID1 = tok1[0] + "-" + tok1[1];
-	BlockID2 = tok1[3] + "-" + tok1[4];
-	// Identify the TrackLine ID of BlockID1 and BlockID2;
-	int TrackLineIDBlock1 = -1, TrackLineIDBlock2 = -1;
-	// A simple (non switch-transition) block ID has only two tokens, so tok1[4]
-	// is empty and strtok returns NULL; guard against atoi(NULL) dereferencing.
-	{
-		char* trackTok1 = strtok((char*)tok1[1].c_str(), "B@");
-		char* trackTok2 = strtok((char*)tok1[4].c_str(), "B@");
-		TrackLineIDBlock1 = trackTok1 ? atoi(trackTok1) : -1;
-		TrackLineIDBlock2 = trackTok2 ? atoi(trackTok2) : -1;
-	}
+	ConnectedSectionIdentity identity;
+	if (!parseConnectedSectionIdentity(BLS.ID, identity))
+		return;
+	string BlockID1 = identity.firstBlockId;
+	string BlockID2 = identity.secondBlockId;
 
 	// Identifying the next section ID
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {

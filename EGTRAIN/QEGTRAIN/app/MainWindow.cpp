@@ -24,6 +24,7 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
+#include <QBuffer>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -59,6 +60,8 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <functional>
+#include <memory>
 
 // utilization of GUI
 // bool GUI = true; // GUI used by default
@@ -102,6 +105,23 @@ QString sceneSectionDisplayLabel(const SceneSectionDescriptor& section) {
 	return QStringLiteral("base block %1 / track %2")
 		.arg(QString::fromStdString(section.sourceBlockId),
 			QString::fromStdString(section.firstTrackId));
+}
+
+QString completedRunContext(const RunProvenance& provenance) {
+	const QString caseName = QString::fromStdString(provenance.caseName);
+	const QString scenario = QString::fromStdString(provenance.appliedScenario);
+	if (caseName.isEmpty())
+		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
+	if (scenario.isEmpty())
+		return caseName;
+	return QStringLiteral("%1 / %2").arg(caseName, scenario);
+}
+
+void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
+	window->setProvenanceWriter([provenance = std::move(provenance)](
+			const QString& path, const char* kind, const std::string& bytes) {
+		return writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance);
+	});
 }
 
 void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,
@@ -1093,9 +1113,15 @@ bool writeCsvFile(const QString& path, const std::string& content) {
 	return file.write(bytes) == bytes.size() && file.commit();
 }
 
+bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
+		const RunProvenance& provenance) {
+	return writeRunArtifactWithProvenance(path.toStdString(), "csv", content, provenance);
+}
+
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
 // failure never leaves a partial file behind.
-void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content) {
+void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content,
+		const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
 	if (content.empty()) {
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
@@ -1105,16 +1131,9 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
 		path += ".csv";
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
+	if (!artifactWriter(path, content)) {
 		QMessageBox::warning(parent, "Export failed",
-							 QString("Could not open the file for writing:\n%1").arg(path));
-		return;
-	}
-	const QByteArray bytes = QByteArray::fromStdString(content);
-	if (file.write(bytes) != bytes.size() || !file.commit()) {
-		QMessageBox::warning(parent, "Export failed",
-							 QString("Could not write the data to:\n%1").arg(path));
+			QString("Could not export the data and provenance to:\n%1").arg(path));
 	}
 }
 
@@ -1155,6 +1174,7 @@ bool e2eDialogsSuppressed() {
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR");
@@ -1514,13 +1534,19 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_newSceneAction->setObjectName("actionNewCaseStudy");
 	m_newSceneAction->setShortcut(QKeySequence::New);
 	QAction* openSceneAction = new QAction("Open Case Study...", this);
+	openSceneAction->setObjectName("actionOpenCaseStudyBundle");
 	openSceneAction->setShortcut(QKeySequence::Open);
 	QAction* openSceneFolderAction = new QAction("Open Scene Folder...", this);
+	openSceneFolderAction->setObjectName("actionOpenSceneFolder");
 	m_saveSceneAction = new QAction("Save Scene", this);
+	m_saveSceneAction->setObjectName("actionSaveScene");
 	m_saveSceneAction->setShortcut(QKeySequence::Save);
 	m_saveSceneAsAction = new QAction("Save Case Study As...", this);
+	m_saveSceneAsAction->setObjectName("actionSaveCaseStudyBundle");
 	m_saveSceneAsFolderAction = new QAction("Save Scene As Folder...", this);
+	m_saveSceneAsFolderAction->setObjectName("actionSaveSceneFolder");
 	m_runSceneAction = new QAction("Run Scene", this);
+	m_runSceneAction->setObjectName("actionRunScene");
 	m_recentScenesMenu = new QMenu("Recent Scenes", this);
 	connect(m_newSceneAction, &QAction::triggered, this, &MainWindow::newScene);
 	connect(openSceneAction, &QAction::triggered, this, &MainWindow::openSceneDialog);
@@ -3072,6 +3098,7 @@ void MainWindow::newScene() {
 	teardownGUI();
 	simulation.resetState();
 	m_sceneDir.clear();
+	m_savedSceneSha256.clear();
 	m_sceneModel = makeNewSceneModel();
 	++m_sceneRevision;
 	m_delayBaseline.reset();
@@ -3133,6 +3160,7 @@ void MainWindow::openSceneFolderDialog() {
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
 	const QString scenePath = QFileInfo(dir).absoluteFilePath();
+	const bool sceneIsBundle = QFileInfo(scenePath).isFile();
 	const bool reloadingSameScene = m_sceneLoaded
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	auto result = loadScenePath(scenePath.toStdString());
@@ -3157,7 +3185,8 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	++m_sceneRevision;
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
-	m_sceneIsBundle = QFileInfo(scenePath).isFile();
+	m_sceneIsBundle = sceneIsBundle;
+	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_sceneDirty = false;
 	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
 	if (m_selectedScenarioId.empty() && !m_sceneModel.scenarios.empty()) {
@@ -3471,6 +3500,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	}
 
 	refreshSavedSceneMetadata(m_sceneModel);
+	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_sceneDirty = false;
 	m_modifiedScenarioIds.clear();
 	updateSceneWindowTitle();
@@ -3875,6 +3905,8 @@ void MainWindow::invalidateRunResults() {
 	m_appliedScenarioId.clear();
 	m_completedRunResults = RunResults();
 	m_completedTimetableResults.clear();
+	m_pendingRunProvenance = RunProvenance();
+	m_completedRunProvenance = RunProvenance();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)
@@ -11853,7 +11885,7 @@ void MainWindow::runEditorSmokeE2E() {
 				if (!dialog || !dialog->isVisible())
 					continue;
 				dialog->setTextValue(unitId);
-				dialog->accept();
+				QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
 				break;
 			}
 		});
@@ -15083,6 +15115,1487 @@ void MainWindow::runLegacyImportE2E() {
 	QCoreApplication::exit(2);
 }
 
+void MainWindow::runCreatorAcceptanceE2E() {
+	if (m_creatorAcceptanceFinished)
+		return;
+
+	auto marker = [](const char* name) {
+		std::fprintf(stdout, "%s\n", name);
+		std::fflush(stdout);
+	};
+	auto fail = [this](const QString& message) {
+		if (m_creatorAcceptanceFinished)
+			return;
+		m_creatorAcceptanceFinished = true;
+		std::fprintf(stderr, "E2E_CREATOR_ACCEPTANCE_FAIL: %s\n", message.toStdString().c_str());
+		std::fflush(stderr);
+		QCoreApplication::exit(2);
+	};
+	auto next = [this]() {
+		++m_creatorAcceptancePhase;
+		QTimer::singleShot(75, this, &MainWindow::runCreatorAcceptanceE2E);
+	};
+	auto process = []() { QApplication::processEvents(); };
+	auto editLine = [process](QLineEdit* edit, const QString& value) {
+		if (!edit)
+			return false;
+		edit->setFocus(Qt::OtherFocusReason);
+		edit->setText(value);
+		QMetaObject::invokeMethod(edit, "editingFinished", Qt::DirectConnection);
+		edit->clearFocus();
+		process();
+		return edit->text() == value;
+	};
+	auto choose = [process](QComboBox* combo, const QString& value) {
+		if (!combo)
+			return false;
+		int index = combo->findData(value);
+		if (index < 0)
+			index = combo->findText(value);
+		if (index < 0)
+			return false;
+		combo->setCurrentIndex(index);
+		process();
+		return combo->currentIndex() == index;
+	};
+	auto acceptFileDialog = [this, fail](const QString& path, bool directory) {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		auto seen = std::make_shared<bool>(false);
+		*poll = [this, path, directory, poll, attempts, seen, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("file dialog did not appear for ") + path);
+				return;
+			}
+			QFileDialog* fileDialog = nullptr;
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QFileDialog*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				fileDialog = dialog;
+				break;
+			}
+			if (!fileDialog) {
+				if (*seen)
+					return;
+				QTimer::singleShot(25, this, [poll]() { (*poll)(); });
+				return;
+			}
+			*seen = true;
+			if (directory) {
+				fileDialog->setDirectory(path);
+				static_cast<QDialog*>(fileDialog)->done(QDialog::Accepted);
+			} else {
+				const QFileInfo target(path);
+				fileDialog->setDirectory(target.absolutePath());
+				fileDialog->selectFile(target.fileName());
+				if (QLineEdit* fileName = fileDialog->findChild<QLineEdit*>(QStringLiteral("fileNameEdit")))
+					fileName->setText(target.fileName());
+				QMetaObject::invokeMethod(fileDialog, "accept", Qt::DirectConnection);
+			}
+			QTimer::singleShot(25, this, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, this, [poll]() { (*poll)(); });
+	};
+	auto acceptInputDialog = [this, fail](const QString& value) {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		*poll = [this, value, poll, attempts, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("input dialog did not appear"));
+				return;
+			}
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QInputDialog*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				dialog->setTextValue(value);
+				dialog->accept();
+				return;
+			}
+			QTimer::singleShot(25, this, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, this, [poll]() { (*poll)(); });
+	};
+	auto acceptMessageBox = [this, fail](QMessageBox::StandardButton desired = QMessageBox::Ok) {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		*poll = [this, desired, poll, attempts, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("message box did not appear"));
+				return;
+			}
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QMessageBox*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				if (QAbstractButton* button = dialog->button(desired))
+					button->click();
+				else
+					dialog->accept();
+				return;
+			}
+			QTimer::singleShot(25, this, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, this, [poll]() { (*poll)(); });
+	};
+	auto acceptCapacityScope = [this, fail]() {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		*poll = [this, poll, attempts, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("capacity scope dialog did not appear"));
+				return;
+			}
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				if (auto* message = qobject_cast<QMessageBox*>(widget); message && message->isVisible()) {
+					const QString detail = message->text();
+					message->accept();
+					fail(QStringLiteral("capacity analysis rejected the creator run: ") + detail);
+					return;
+				}
+				auto* dialog = qobject_cast<QDialog*>(widget);
+				if (!dialog || !dialog->isVisible() || !dialog->isModal()
+						|| dialog->windowTitle() != QStringLiteral("Capacity analysis"))
+					continue;
+				QComboBox* cycleEnd = nullptr;
+				for (QComboBox* combo : dialog->findChildren<QComboBox*>())
+					if (combo->count() >= 3
+							&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
+						cycleEnd = combo;
+				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
+				if (!cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+					fail(QStringLiteral("capacity scope controls are incomplete"));
+					return;
+				}
+				cycleEnd->setCurrentIndex(2);
+				buttons->button(QDialogButtonBox::Ok)->click();
+				return;
+			}
+			QTimer::singleShot(25, this, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, this, [poll]() { (*poll)(); });
+	};
+	auto emitPath = [](const QString& value) { return QFileInfo(value).absoluteFilePath(); };
+	auto facet = [&](const char* name) {
+		const int index = m_infrastructureFacetCombo->findData(QString::fromLatin1(name));
+		if (index < 0)
+			return false;
+		m_infrastructureFacetCombo->setCurrentIndex(index);
+		process();
+		return m_infrastructureFacetCombo->currentData().toString() == QString::fromLatin1(name);
+	};
+	auto addRow = [&](const char* name) {
+		if (!facet(name) || !m_addInfrastructureButton->isEnabled())
+			return false;
+		m_addInfrastructureButton->click();
+		process();
+		return m_infrastructureTable->rowCount() > 0;
+	};
+	auto rowFor = [&](const QString& id) {
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row)
+			if (m_infrastructureTable->item(row, 0)
+					&& m_infrastructureTable->item(row, 0)->text() == id)
+				return row;
+		return -1;
+	};
+	auto setCell = [&](const char* name, const QString& id, int column, const QString& value) {
+		if (!facet(name))
+			return false;
+		const int row = rowFor(id);
+		if (row < 0 || !m_infrastructureTable->item(row, column))
+			return false;
+		m_infrastructureTable->setCurrentCell(row, column);
+		m_infrastructureTable->item(row, column)->setText(value);
+		process();
+		return true;
+	};
+	auto setSection = [&](const char* name, int row, int column, const QString& prefix) {
+		if (!facet(name))
+			return QString();
+		auto* combo = qobject_cast<QComboBox*>(m_infrastructureTable->cellWidget(row, column));
+		if (!combo)
+			return QString();
+		for (int index = 0; index < combo->count(); ++index) {
+			if (combo->itemData(index).toString().isEmpty()
+					|| (!prefix.isEmpty() && !combo->itemText(index).startsWith(prefix)))
+				continue;
+			combo->setCurrentIndex(index);
+			process();
+			return combo->itemData(index).toString();
+		}
+		return QString();
+	};
+
+	if (m_creatorAcceptancePhase == 0) {
+		// The first observable operation in this mode is the public New action.
+		if (!m_newSceneAction) {
+			fail(QStringLiteral("actionNewCaseStudy is unavailable"));
+			return;
+		}
+		m_newSceneAction->trigger();
+		marker("E2E_CREATOR_NEW_CASE_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 1) {
+		if (!m_sceneLoaded || !m_infrastructureFacetCombo || !m_infrastructureTable
+				|| !m_addInfrastructureButton || !m_caseSettingsDock) {
+			fail(QStringLiteral("blank case or creator controls did not load"));
+			return;
+		}
+		m_caseSettingsDock->show();
+		m_caseSettingsDock->raise();
+		if (!editLine(m_caseNameEdit, QStringLiteral("creator_acceptance_case"))
+			|| !editLine(m_caseDescriptionEdit, QStringLiteral("synthetic creator acceptance"))
+			|| !editLine(m_caseBaseTimeEdit, QStringLiteral("09:15:30"))) {
+			fail(QStringLiteral("case metadata editing did not commit"));
+			return;
+		}
+		m_caseDurationSecondsEdit->setValue(900.0);
+		m_caseBufferSecondsEdit->setValue(30.0);
+		m_caseRecoveryPercentEdit->setValue(5.0);
+		process();
+
+		if (!addRow("tracks")) {
+			fail(QStringLiteral("track add 1 failed"));
+			return;
+		}
+		if (!facet("tracks") || m_infrastructureTable->rowCount() < 1
+				|| !m_infrastructureTable->item(0, 0)) {
+			fail(QStringLiteral("track row 1 unavailable"));
+			return;
+		}
+		m_infrastructureTable->item(0, 0)->setText("creator-main");
+		process();
+		if (m_infrastructureTable->item(0, 0)->text() != "creator-main") {
+			fail(QStringLiteral("track rename 1 failed"));
+			return;
+		}
+		if (!addRow("tracks")) {
+			fail(QStringLiteral("track add 2 failed"));
+			return;
+		}
+		if (!facet("tracks") || m_infrastructureTable->rowCount() < 2
+				|| !m_infrastructureTable->item(1, 0)) {
+			fail(QStringLiteral("track row 2 unavailable"));
+			return;
+		}
+		m_infrastructureTable->item(1, 0)->setText("creator-yard");
+		process();
+		if (m_infrastructureTable->item(1, 0)->text() != "creator-yard") {
+			fail(QStringLiteral("track rename 2 failed"));
+			return;
+		}
+		const std::array<QString, 6> nodeIds = {QStringLiteral("creator-main-node-0"), QStringLiteral("creator-main-node-1"), QStringLiteral("creator-main-node-2"), QStringLiteral("creator-yard-node-0"), QStringLiteral("creator-yard-node-1"), QStringLiteral("creator-yard-node-2")};
+		const std::array<double, 6> nodeX = {0.0, 1.0, 2.0, 0.0, 1.5, 2.0};
+		const std::array<double, 6> nodeY = {0.0, 0.25, 0.0, 1.0, 1.0, 1.0};
+		for (int row = 0; row < 6; ++row) {
+			if (!addRow("nodes")) {
+				fail(QStringLiteral("node row add failed"));
+				return;
+			}
+			const int createdRow = m_infrastructureTable->rowCount() - 1;
+			const QString generated = m_infrastructureTable->item(createdRow, 0)
+				? m_infrastructureTable->item(createdRow, 0)->text() : QString();
+			const QString track = row < 3 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
+			if (!setCell("nodes", generated, 0, nodeIds[static_cast<std::size_t>(row)])
+				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 1, track)
+				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 2, QString::number(nodeX[static_cast<std::size_t>(row)]))
+				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 3, QString::number(nodeY[static_cast<std::size_t>(row)]))) {
+				fail(QStringLiteral("node geometry editing failed"));
+				return;
+			}
+		}
+		const std::array<QString, 4> arcIds = {QStringLiteral("creator-main-arc-0"), QStringLiteral("creator-main-arc-1"), QStringLiteral("creator-yard-arc-0"), QStringLiteral("creator-yard-arc-1")};
+		for (int row = 0; row < 4; ++row) {
+			if (!addRow("arcs")) {
+				fail(QStringLiteral("arc row add failed"));
+				return;
+			}
+			const int createdRow = m_infrastructureTable->rowCount() - 1;
+			const QString generated = m_infrastructureTable->item(createdRow, 0)
+				? m_infrastructureTable->item(createdRow, 0)->text() : QString();
+			const QString track = row < 2 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
+			const int nodeOffset = row < 2 ? 0 : 3;
+			const int localRow = row % 2;
+			const QString from = nodeIds[static_cast<std::size_t>(nodeOffset + localRow)];
+			const QString to = nodeIds[static_cast<std::size_t>(nodeOffset + localRow + 1)];
+			QString arcFailure;
+			if (!setCell("arcs", generated, 0, arcIds[static_cast<std::size_t>(row)]))
+				arcFailure = QStringLiteral("id");
+			else if (!setCell("arcs", arcIds[static_cast<std::size_t>(row)], 1, track))
+				arcFailure = QStringLiteral("track");
+			else if (!setCell("arcs", arcIds[static_cast<std::size_t>(row)], 2, from))
+				arcFailure = QStringLiteral("from");
+			else if (!setCell("arcs", arcIds[static_cast<std::size_t>(row)], 3, to))
+				arcFailure = QStringLiteral("to");
+			else if (!setCell("arcs", arcIds[static_cast<std::size_t>(row)], 4, row == 1 ? QStringLiteral("1250.5") : QStringLiteral("0")))
+				arcFailure = QStringLiteral("curvature");
+			else if (!setCell("arcs", arcIds[static_cast<std::size_t>(row)], 5, row == 0 ? QStringLiteral("-0.001953125") : (row == 1 ? QStringLiteral("0.00390625") : QStringLiteral("0.0009765625"))))
+				arcFailure = QStringLiteral("gradient");
+			else if (!setCell("arcs", arcIds[static_cast<std::size_t>(row)], 6, row < 2 ? QStringLiteral("22.5") : QStringLiteral("18")))
+				arcFailure = QStringLiteral("speed");
+			if (!arcFailure.isEmpty()) {
+				fail(QStringLiteral("arc geometry editing failed (%1 row %2)").arg(arcFailure).arg(row));
+				return;
+			}
+		}
+		if (!facet("blocks")) {
+			fail(QStringLiteral("block facet unavailable"));
+			return;
+		}
+		for (const QString& track : {QStringLiteral("creator-main"), QStringLiteral("creator-yard")}) {
+			const int filterIndex = m_blockTrackFilterCombo->findData(track);
+			if (filterIndex < 0) {
+				fail(QStringLiteral("block track selector unavailable"));
+				return;
+			}
+			m_blockTrackFilterCombo->setCurrentIndex(filterIndex);
+			process();
+			for (int count = 0; count < 2; ++count) {
+				m_addInfrastructureButton->click();
+				process();
+			}
+			if (m_infrastructureTable->rowCount() != 2) {
+				fail(QStringLiteral("base block rows did not add"));
+				return;
+			}
+			const QString firstGenerated = m_infrastructureTable->item(0, 0)
+				? m_infrastructureTable->item(0, 0)->text() : QString();
+			const QString secondGenerated = m_infrastructureTable->item(1, 0)
+				? m_infrastructureTable->item(1, 0)->text() : QString();
+			const bool yard = track == QStringLiteral("creator-yard");
+			QString blockFailure;
+			if (!setCell("blocks", firstGenerated, 0, track + QStringLiteral("-block-0")))
+				blockFailure = QStringLiteral("first id");
+			else if (!setCell("blocks", secondGenerated, 0, track + QStringLiteral("-block-2")))
+				blockFailure = QStringLiteral("second id");
+			else if (!setCell("blocks", track + QStringLiteral("-block-0"), 2,
+					yard ? QStringLiteral("0.5") : QStringLiteral("0.75")))
+				blockFailure = QStringLiteral("first length");
+			else if (!setCell("blocks", track + QStringLiteral("-block-2"), 2,
+					yard ? QStringLiteral("0.25") : QStringLiteral("0.75")))
+				blockFailure = QStringLiteral("second length");
+			if (!blockFailure.isEmpty()) {
+				fail(QStringLiteral("base block fields did not commit (%1, %2)")
+					.arg(track, blockFailure));
+				return;
+			}
+			m_infrastructureTable->setCurrentCell(1, 0);
+			m_insertBlockButton->click();
+			process();
+			if (m_infrastructureTable->rowCount() != 3) {
+				fail(QStringLiteral("block insert did not create the third visible block"));
+				return;
+			}
+			const QString insertedGenerated = m_infrastructureTable->item(1, 0)
+				? m_infrastructureTable->item(1, 0)->text() : QString();
+			if (!setCell("blocks", insertedGenerated, 0, track + QStringLiteral("-block-1"))
+				|| !setCell("blocks", track + QStringLiteral("-block-1"), 2,
+					yard ? QStringLiteral("1.25") : QStringLiteral("0.5"))) {
+				fail(QStringLiteral("inserted block fields did not commit"));
+				return;
+			}
+			m_infrastructureTable->setCurrentCell(1, 0);
+			m_moveBlockDownButton->click();
+			process();
+			m_moveBlockUpButton->click();
+			process();
+		}
+		marker("E2E_CREATOR_INFRASTRUCTURE_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 2) {
+		if (!m_sceneLoaded || !m_infrastructureFacetCombo || !m_infrastructureTable
+				|| !m_addInfrastructureButton || !m_deleteInfrastructureButton) {
+			fail(QStringLiteral("infrastructure controls disappeared before signalling authoring"));
+			return;
+		}
+		if (!addRow("stations") || !setCell("stations", "station", 0, "creator-station-a")
+			|| !setCell("stations", "creator-station-a", 1, "Creator A")
+			|| !setCell("stations", "creator-station-a", 2, "true")
+			|| !setCell("stations", "creator-station-a", 3, "1.0")
+			|| !addRow("stations") || !setCell("stations", "station", 0, "creator-station-b")
+			|| !setCell("stations", "creator-station-b", 1, "Creator B")
+			|| !setCell("stations", "creator-station-b", 2, "true")
+			|| !setCell("stations", "creator-station-b", 3, "1.5")) {
+			fail(QStringLiteral("station geometry authoring failed"));
+			return;
+		}
+		if (!addRow("platforms") || !addRow("platforms")
+				|| m_infrastructureTable->rowCount() != 2) {
+			fail(QStringLiteral("platform rows did not add"));
+			return;
+		}
+		auto setPlatformCell = [&](int row, int column, const QString& value) {
+			if (!facet("platforms") || row < 0 || row >= m_infrastructureTable->rowCount()
+					|| !m_infrastructureTable->item(row, column))
+				return false;
+			m_infrastructureTable->setCurrentCell(row, column);
+			m_infrastructureTable->item(row, column)->setText(value);
+			process();
+			return true;
+		};
+		if (!setPlatformCell(0, 0, "creator-station-a")
+				|| !setPlatformCell(0, 1, "creator-platform-a")
+				|| !setPlatformCell(0, 2, "creator-main-node-1")
+				|| !setPlatformCell(1, 0, "creator-station-b")
+				|| !setPlatformCell(1, 1, "creator-platform-b")
+				|| !setPlatformCell(1, 2, "creator-yard-node-1")) {
+			fail(QStringLiteral("platform station/node references did not commit"));
+			return;
+		}
+		if (!facet("platforms")) {
+			fail(QStringLiteral("platform facet unavailable for geometry"));
+			return;
+		}
+		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
+			if (auto* length = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(row, 3)))
+				length->setValue(123.75);
+			if (auto* width = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(row, 4)))
+				width->setValue(4.25);
+			process();
+		}
+		if (!addRow("connections")
+				|| !setCell("connections", "connection", 0, "creator-switch")
+				|| !setCell("connections", "creator-switch", 1, "creator-main-node-1")
+				|| !setCell("connections", "creator-switch", 2, "creator-yard-node-1")
+				|| !setCell("connections", "creator-switch", 3, "true")
+				|| !setCell("connections", "creator-switch", 4, "9.25")) {
+			fail(QStringLiteral("connection authoring failed"));
+			return;
+		}
+		if (!addRow("signals") || !setCell("signals", "signal", 0, "creator-signal")) {
+			fail(QStringLiteral("signal row did not add"));
+			return;
+		}
+		const QString mainSection = setSection("signals", 0, 1,
+			QStringLiteral("base block creator-main-block-0 /"));
+		if (mainSection.isEmpty()) {
+			fail(QStringLiteral("signal protected-section selector lacked the authored block"));
+			return;
+		}
+		if (!addRow("signalling_areas")
+				|| !setCell("signalling_areas", "signalling-area", 0, "creator-signalling-area")
+				|| !setCell("signalling_areas", "creator-signalling-area", 1, "0")
+				|| !setCell("signalling_areas", "creator-signalling-area", 2, "2")
+				|| !setCell("signalling_areas", "creator-signalling-area", 3, "0")) {
+			fail(QStringLiteral("signalling area authoring failed"));
+			return;
+		}
+		if (!addRow("routes")
+				|| !setCell("routes", "route", 0, "creator-route")
+				|| !setCell("routes", "creator-route", 2, "true")
+				|| !setCell("routes", "creator-route", 3, "creator-corridor")
+				|| !setCell("routes", "creator-route", 4, "false")) {
+			fail(QStringLiteral("route metadata authoring failed"));
+			return;
+		}
+		if (!facet("routes") || !m_routeSectionCatalogCombo || !m_addRouteSectionButton
+				|| !m_routeSectionListWidget) {
+			fail(QStringLiteral("route section controls unavailable"));
+			return;
+		}
+		const std::array<QString, 3> routePrefixes = {
+			QStringLiteral("base block creator-main-block-0 /"),
+			QStringLiteral("connection creator-switch /"),
+			QStringLiteral("base block creator-yard-block-2 /")};
+		for (const QString& prefix : routePrefixes) {
+			QString raw;
+			for (int index = 0; index < m_routeSectionCatalogCombo->count(); ++index) {
+				if (m_routeSectionCatalogCombo->itemText(index).startsWith(prefix)) {
+					m_routeSectionCatalogCombo->setCurrentIndex(index);
+					raw = m_routeSectionCatalogCombo->itemData(index).toString();
+					break;
+				}
+			}
+			if (raw.isEmpty()) {
+				fail(QStringLiteral("route catalog lacked creator-facing section: ") + prefix);
+				return;
+			}
+			m_addRouteSectionButton->click();
+			process();
+		}
+		if (m_routeSectionListWidget->count() != 3) {
+			fail(QStringLiteral("route section order was not authored"));
+			return;
+		}
+		if (!addRow("block_dependencies")) {
+			fail(QStringLiteral("dependency row did not add"));
+			return;
+		}
+		if (setSection("block_dependencies", 0, 0,
+				QStringLiteral("base block creator-main-block-0 /")).isEmpty()
+			|| setSection("block_dependencies", 0, 1,
+				QStringLiteral("base block creator-yard-block-2 /")).isEmpty()) {
+			fail(QStringLiteral("dependency typed selectors lacked safe sections"));
+			return;
+		}
+		if (!addRow("single_track_restrictions")) {
+			fail(QStringLiteral("restriction row did not add"));
+			return;
+		}
+		const std::array<QString, 4> restrictionPrefixes = {
+			QStringLiteral("base block creator-main-block-0 /"),
+			QStringLiteral("base block creator-yard-block-2 /"),
+			QStringLiteral("connection creator-switch /"),
+			QStringLiteral("base block creator-yard-block-2 /")};
+		for (int column = 0; column < 4; ++column)
+			if (setSection("single_track_restrictions", 0, column,
+					restrictionPrefixes[static_cast<std::size_t>(column)]).isEmpty()) {
+				fail(QStringLiteral("restriction typed selector lacked a safe section"));
+				return;
+			}
+		if (!addRow("station_boundaries")
+				|| setSection("station_boundaries", 0, 0,
+					QStringLiteral("base block creator-main-block-0 /")).isEmpty()
+				|| setSection("station_boundaries", 0, 1,
+					QStringLiteral("base block creator-yard-block-2 /")).isEmpty()) {
+			fail(QStringLiteral("station boundary typed selectors lacked safe sections"));
+			return;
+		}
+		const QString renamedBlock = QStringLiteral("creator-main-block-renamed");
+		if (!facet("blocks")) {
+			fail(QStringLiteral("block facet unavailable for reference rename"));
+			return;
+		}
+		const int mainTrackIndex = m_blockTrackFilterCombo->findData("creator-main");
+		if (mainTrackIndex < 0) {
+			fail(QStringLiteral("main block filter disappeared"));
+			return;
+		}
+		m_blockTrackFilterCombo->setCurrentIndex(mainTrackIndex);
+		process();
+		const int mainBlockRow = rowFor(QStringLiteral("creator-main-block-0"));
+		if (mainBlockRow < 0 || !m_infrastructureTable->item(mainBlockRow, 0)) {
+			fail(QStringLiteral("referenced block row was not visible"));
+			return;
+		}
+		m_infrastructureTable->item(mainBlockRow, 0)->setText(renamedBlock);
+		process();
+		bool referenceStillValid = false;
+		if (m_sceneModel.routes.size() == 1 && m_sceneModel.routes.front().blocks.size() == 3
+				&& m_sceneModel.blockDependencies.size() == 1
+				&& m_sceneModel.singleTrackRestrictions.size() == 1
+				&& m_sceneModel.stationBoundaries.size() == 1
+					&& !sceneSignals(m_sceneModel).empty()) {
+			const auto mentions = [&renamedBlock](const std::string& value) {
+				return value.find(renamedBlock.toStdString()) != std::string::npos;
+			};
+			const auto& route = m_sceneModel.routes.front();
+			const auto& dependency = m_sceneModel.blockDependencies.front();
+			const auto& restriction = m_sceneModel.singleTrackRestrictions.front();
+			const auto& boundary = m_sceneModel.stationBoundaries.front();
+			referenceStillValid = mentions(route.blocks.front()) && mentions(dependency.block)
+				&& mentions(restriction.startBlock) && mentions(boundary.entranceBlock)
+				&& mentions(sceneSignals(m_sceneModel).front().protectedSection);
+		}
+		if (!referenceStillValid) {
+			fail(QStringLiteral("public block rename did not retain all references"));
+			return;
+		}
+		const std::size_t blockCount = m_sceneModel.blocks.size();
+		const int renamedRow = rowFor(renamedBlock);
+		if (renamedRow < 0) {
+			fail(QStringLiteral("renamed block could not be selected for delete check"));
+			return;
+		}
+		m_infrastructureTable->setCurrentCell(renamedRow, 0);
+		m_deleteInfrastructureButton->click();
+		process();
+		if (m_sceneModel.blocks.size() != blockCount) {
+			fail(QStringLiteral("referenced delete changed canonical data"));
+			return;
+		}
+		marker("E2E_CREATOR_STATIONS_SIGNALLING_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 3) {
+		if (!m_sceneLoaded || !m_trainUnitDock || !m_trainUnitListWidget
+				|| !m_addTrainUnitButton || !m_trainUnitIdEdit || !m_compositionDock
+				|| !m_addCompositionButton || !m_addUnitButton || !m_addTrainUnitTractionButton) {
+			fail(QStringLiteral("rolling-stock creator controls are unavailable"));
+			return;
+		}
+		m_trainUnitDock->show();
+		m_trainUnitDock->raise();
+		auto setUnit = [&](int row, const QString& id, double seed) {
+			m_trainUnitListWidget->setCurrentRow(row);
+			process();
+			if (!editLine(m_trainUnitIdEdit, id))
+				return false;
+			const std::array<double, 9> values = {90000.0 + seed, 22000.0 + seed,
+				2.0, 30.0, 0.8, 9.0, 0.002, 0.4, 80.0};
+			for (std::size_t index = 0; index < values.size(); ++index) {
+				if (!m_trainUnitPhysicalEdits[index])
+					return false;
+				m_trainUnitPhysicalEdits[index]->setValue(values[index]);
+			}
+			if (!editLine(m_trainUnitSourceDataEdit, QStringLiteral("creator-parameters.csv"))
+				|| !editLine(m_trainUnitSourceTractionEdit, QStringLiteral("creator-traction.csv")))
+				return false;
+			m_addTrainUnitTractionButton->click();
+			process();
+			if (!m_trainUnitTractionTable || m_trainUnitTractionTable->rowCount() < 1)
+				return false;
+			const std::array<double, 5> traction = {0.0, 30.0, 220000.0, -3500.0, 0.0};
+			for (int column = 0; column < 5; ++column)
+				if (auto* edit = qobject_cast<QDoubleSpinBox*>(m_trainUnitTractionTable->cellWidget(0, column)))
+					edit->setValue(traction[static_cast<std::size_t>(column)]);
+				else
+					return false;
+			process();
+			return true;
+		};
+		m_addTrainUnitButton->click();
+		process();
+		if (m_trainUnitListWidget->count() != 1 || !setUnit(0, QStringLiteral("creator-unit-a"), 0.0)) {
+			fail(QStringLiteral("first train unit did not author through controls"));
+			return;
+		}
+		m_addTrainUnitButton->click();
+		process();
+		if (m_trainUnitListWidget->count() != 2 || !setUnit(1, QStringLiteral("creator-unit-b"), 5000.0)) {
+			fail(QStringLiteral("second train unit did not author through controls"));
+			return;
+		}
+		m_compositionDock->show();
+		m_compositionDock->raise();
+		m_addCompositionButton->click();
+		process();
+		if (m_compositionListWidget->count() != 1
+				|| !editLine(m_compositionIdEdit, QStringLiteral("creator-composition"))) {
+			fail(QStringLiteral("composition row did not author through controls"));
+			return;
+		}
+		acceptInputDialog(QStringLiteral("creator-unit-a"));
+		m_addUnitButton->click();
+		process();
+		acceptInputDialog(QStringLiteral("creator-unit-b"));
+		m_addUnitButton->click();
+		process();
+		if (m_compositionUnitsListWidget->count() != 2
+				|| m_sceneModel.compositions.empty()
+				|| m_sceneModel.compositions.front().units.size() != 2
+				|| m_sceneModel.compositions.front().units.front() != "creator-unit-a"
+				|| m_sceneModel.compositions.front().units.back() != "creator-unit-b") {
+			fail(QStringLiteral("composition membership did not retain both units in order"));
+			return;
+		}
+		marker("E2E_CREATOR_ROLLING_STOCK_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 4) {
+		if (!m_sceneLoaded || !m_serviceDock || !m_serviceListWidget || !m_addServiceButton
+				|| !m_serviceIdEdit || !m_serviceOperatingCodeEdit || !m_serviceCompositionCombo
+				|| !m_serviceRouteCombo || !m_addStopButton || !m_stopListWidget
+				|| !m_stopStationCombo || !m_stopPlatformCombo) {
+			fail(QStringLiteral("service creator controls are unavailable"));
+			return;
+		}
+		m_serviceDock->show();
+		m_serviceDock->raise();
+		m_addServiceButton->click();
+		process();
+		if (m_serviceListWidget->count() != 1
+				|| !editLine(m_serviceIdEdit, QStringLiteral("creator-service"))
+				|| !editLine(m_serviceOperatingCodeEdit, QStringLiteral("1701"))
+				|| !choose(m_serviceCompositionCombo, QStringLiteral("creator-composition"))
+				|| !choose(m_serviceRouteCombo, QStringLiteral("creator-route"))) {
+			fail(QStringLiteral("service identity or typed references did not commit"));
+			return;
+		}
+		m_serviceThroughCheck->setChecked(false);
+		m_serviceHasEntryTimeCheck->setChecked(true);
+		if (!editLine(m_serviceEntryTimeSecondsEdit, QStringLiteral("60"))) {
+			fail(QStringLiteral("service entry time did not commit"));
+			return;
+		}
+		m_serviceHasRepeatCheck->setChecked(true);
+		if (!editLine(m_serviceHeadwaySecondsEdit, QStringLiteral("300"))) {
+			fail(QStringLiteral("service headway did not commit"));
+			return;
+		}
+		m_serviceHasRepeatCountCheck->setChecked(true);
+		if (!editLine(m_serviceRepeatCountEdit, QStringLiteral("3"))) {
+			fail(QStringLiteral("service repeat count did not commit"));
+			return;
+		}
+		m_servicePerformancePercentEdit->setValue(92.0);
+		m_serviceHasMaximumSpeedCheck->setChecked(true);
+		m_serviceMaximumSpeedKmhEdit->setValue(100.0);
+		m_serviceHasOperatingCodeStepCheck->setChecked(true);
+		if (!editLine(m_serviceOperatingCodeStepEdit, QStringLiteral("1"))) {
+			fail(QStringLiteral("service operating-code increment did not commit"));
+			return;
+		}
+		const auto configureStop = [&](const QString& station, const QString& platform,
+				double arrival, double departure, double dwell) {
+			if (!choose(m_stopStationCombo, station) || !choose(m_stopPlatformCombo, platform))
+				return false;
+			m_stopHasArrivalCheck->setChecked(true);
+			m_stopHasDepartureCheck->setChecked(true);
+			if (!editLine(m_stopArrivalSecondsEdit, QString::number(arrival))
+					|| !editLine(m_stopDepartureSecondsEdit, QString::number(departure))
+					|| !editLine(m_stopDwellSecondsEdit, QString::number(dwell)))
+				return false;
+			QMetaObject::invokeMethod(m_stopArrivalSecondsEdit, "editingFinished", Qt::DirectConnection);
+			QMetaObject::invokeMethod(m_stopDepartureSecondsEdit, "editingFinished", Qt::DirectConnection);
+			QMetaObject::invokeMethod(m_stopDwellSecondsEdit, "editingFinished", Qt::DirectConnection);
+			process();
+			return true;
+		};
+		m_addStopButton->click();
+		process();
+		if (!configureStop(QStringLiteral("creator-station-a"), QStringLiteral("creator-platform-a"),
+				180.0, 240.0, 60.0)) {
+			fail(QStringLiteral("first service stop did not commit station/platform timetable"));
+			return;
+		}
+		m_addStopButton->click();
+		process();
+		if (!configureStop(QStringLiteral("creator-station-b"), QStringLiteral("creator-platform-b"),
+				480.0, 540.0, 60.0)) {
+			fail(QStringLiteral("second service stop did not commit station/platform timetable"));
+			return;
+		}
+		if (m_sceneModel.services.empty() || m_sceneModel.services.front().stops.size() != 2
+				|| !m_sceneModel.services.front().hasRepeat
+				|| !m_sceneModel.services.front().hasRepeatCount
+				|| m_sceneModel.services.front().repeatCount != 3
+				|| m_sceneModel.services.front().headwaySeconds != 300.0
+				|| m_sceneModel.services.front().stops.front().stationId != "creator-station-a"
+				|| m_sceneModel.services.front().stops.back().stationId != "creator-station-b"
+				|| !m_sceneModel.services.front().stops.front().hasPlannedArrival
+				|| !m_sceneModel.services.front().stops.front().hasPlannedDeparture
+				|| m_sceneModel.services.front().stops.front().plannedArrivalSeconds != 180.0
+				|| m_sceneModel.services.front().stops.front().plannedDepartureSeconds != 240.0
+				|| m_sceneModel.services.front().stops.front().dwellSeconds != 60.0
+				|| m_sceneModel.services.front().stops.back().plannedArrivalSeconds != 480.0
+				|| m_sceneModel.services.front().stops.back().plannedDepartureSeconds != 540.0
+				|| m_sceneModel.services.front().stops.back().dwellSeconds != 60.0) {
+			const SceneService* service = m_sceneModel.services.empty()
+				? nullptr : &m_sceneModel.services.front();
+			fail(QStringLiteral("service repeat or ordered stop values were not retained: stops=%1 repeat=%2 count-flag=%3 count=%4 headway=%5 first=%6 last=%7 arrival=%8 departure=%9 dwell=%10")
+				.arg(service ? static_cast<int>(service->stops.size()) : -1)
+				.arg(service && service->hasRepeat)
+				.arg(service && service->hasRepeatCount)
+				.arg(service ? service->repeatCount : -1)
+				.arg(service ? service->headwaySeconds : -1.0)
+				.arg(service && !service->stops.empty() ? QString::fromStdString(service->stops.front().stationId) : QStringLiteral("-"))
+				.arg(service && !service->stops.empty() ? QString::fromStdString(service->stops.back().stationId) : QStringLiteral("-"))
+				.arg(service && !service->stops.empty() && service->stops.front().hasPlannedArrival)
+				.arg(service && !service->stops.empty() && service->stops.front().hasPlannedDeparture)
+				.arg(service && !service->stops.empty() ? service->stops.front().dwellSeconds : -1.0));
+			return;
+		}
+		if (m_serviceOccurrenceTable->rowCount() != 3 || hasErrors(m_sceneDiagnostics)) {
+			QString detail;
+			for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics)
+				if (diagnostic.severity == SceneSeverity::Error) {
+					detail = QString::fromStdString(toDisplayText(diagnostic));
+					break;
+				}
+			fail(QStringLiteral("service occurrence preview or validation is not runnable: rows=%1 %2")
+				.arg(m_serviceOccurrenceTable->rowCount()).arg(detail));
+			return;
+		}
+		marker("E2E_CREATOR_SERVICE_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 5) {
+		if (!m_sceneLoaded || !m_incidentDock || !m_scenarioListWidget
+				|| !m_blankScenarioButton || !m_addIncidentButton || !m_addEntranceDelayButton
+				|| !m_incidentHasReducedSpeedCheck || !m_incidentReducedSpeedKmhEdit) {
+			fail(QStringLiteral("scenario creator controls are unavailable"));
+			return;
+		}
+		m_incidentDock->show();
+		m_incidentDock->raise();
+		m_blankScenarioButton->click();
+		process();
+		if (!editLine(m_scenarioIdEdit, QStringLiteral("incident"))
+				|| !editLine(m_scenarioNameEdit, QStringLiteral("Incident scenario"))
+				|| !editLine(m_scenarioDescriptionEdit, QStringLiteral("signal and breakdown evidence"))) {
+			fail(QStringLiteral("incident scenario metadata did not commit"));
+			return;
+		}
+		m_addIncidentButton->click();
+		process();
+		if (!editLine(m_incidentIdEdit, QStringLiteral("creator-signal-failure"))
+				|| !choose(m_incidentTargetCombo, QStringLiteral("creator-signal"))
+				|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("350"))
+				|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("500"))) {
+			fail(QStringLiteral("signal failure incident did not bind through controls"));
+			return;
+		}
+		m_addIncidentButton->click();
+		process();
+		m_incidentTypeCombo->setCurrentText(QStringLiteral("train_breakdown"));
+		process();
+		if (!editLine(m_incidentIdEdit, QStringLiteral("creator-breakdown"))
+				|| !choose(m_incidentTargetCombo, QStringLiteral("creator-service"))
+				|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("60"))
+				|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("100"))) {
+			fail(QStringLiteral("breakdown incident target or finite interval did not commit"));
+			return;
+		}
+		m_incidentHasOccurrenceCheck->setChecked(true);
+		if (!editLine(m_incidentOccurrenceEdit, QStringLiteral("1"))) {
+			fail(QStringLiteral("breakdown occurrence did not commit"));
+			return;
+		}
+		m_incidentHasReducedSpeedCheck->setChecked(true);
+		m_incidentReducedSpeedKmhEdit->setValue(10.0);
+		QMetaObject::invokeMethod(m_incidentReducedSpeedKmhEdit, "editingFinished", Qt::DirectConnection);
+		process();
+		m_blankScenarioButton->click();
+		process();
+		if (!editLine(m_scenarioIdEdit, QStringLiteral("entrance"))
+				|| !editLine(m_scenarioNameEdit, QStringLiteral("Entrance delay"))
+				|| !editLine(m_scenarioDescriptionEdit, QStringLiteral("positive entrance delay at station A"))) {
+			fail(QStringLiteral("entrance scenario metadata did not commit"));
+			return;
+		}
+		m_addEntranceDelayButton->click();
+		process();
+		if (!choose(m_entranceDelayServiceCombo, QStringLiteral("creator-service"))) {
+			fail(QStringLiteral("entrance delay service selector lacked authored service"));
+			return;
+		}
+		m_entranceDelayOccurrenceEdit->setValue(2);
+		QMetaObject::invokeMethod(m_entranceDelayOccurrenceEdit, "editingFinished", Qt::DirectConnection);
+		process();
+		if (!choose(m_entranceDelayStationCombo, QStringLiteral("creator-station-a"))) {
+			fail(QStringLiteral("entrance delay station selector lacked station A"));
+			return;
+		}
+		m_entranceDelaySecondsEdit->setValue(90.0);
+		QMetaObject::invokeMethod(m_entranceDelaySecondsEdit, "editingFinished", Qt::DirectConnection);
+		process();
+		if (m_sceneModel.scenarios.size() != 3
+				|| m_sceneModel.scenarios[1].incidents.size() != 2
+				|| m_sceneModel.scenarios[2].entranceDelays.size() != 1
+				|| m_sceneModel.scenarios[2].entranceDelays.front().occurrence != 2
+				|| m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds <= 0.0
+				|| hasErrors(m_sceneDiagnostics)) {
+			QString detail;
+			for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics)
+				if (diagnostic.severity == SceneSeverity::Error) {
+					detail = QString::fromStdString(toDisplayText(diagnostic));
+					break;
+				}
+			fail(QStringLiteral("scenario library or validation did not retain all three scenarios: scenarios=%1 incident-count=%2 delay-count=%3 occurrence=%4 seconds=%5 %6")
+				.arg(static_cast<int>(m_sceneModel.scenarios.size()))
+				.arg(m_sceneModel.scenarios.size() > 1 ? static_cast<int>(m_sceneModel.scenarios[1].incidents.size()) : -1)
+				.arg(m_sceneModel.scenarios.size() > 2 ? static_cast<int>(m_sceneModel.scenarios[2].entranceDelays.size()) : -1)
+				.arg(m_sceneModel.scenarios.size() > 2 && !m_sceneModel.scenarios[2].entranceDelays.empty() ? m_sceneModel.scenarios[2].entranceDelays.front().occurrence : -1)
+				.arg(m_sceneModel.scenarios.size() > 2 && !m_sceneModel.scenarios[2].entranceDelays.empty() ? m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds : -1.0)
+				.arg(detail));
+			return;
+		}
+		marker("E2E_CREATOR_SCENARIOS_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 6) {
+		if (!m_sceneLoaded || !m_passengerDock || !m_passengerListWidget
+				|| !m_addPassengerButton || !m_addPassengerJourneyButton
+				|| !m_addPassengerLegButton || !m_passengerTabs) {
+			fail(QStringLiteral("passenger creator controls are unavailable"));
+			return;
+		}
+		m_passengerDock->show();
+		m_passengerDock->raise();
+		m_addPassengerButton->click();
+		process();
+		if (m_passengerListWidget->count() != 1
+				|| !editLine(m_passengerIdEdit, QStringLiteral("creator-passenger"))) {
+			fail(QStringLiteral("passenger ID did not commit"));
+			return;
+		}
+		m_addPassengerJourneyButton->click();
+		process();
+		if (!editLine(m_passengerJourneyIdEdit, QStringLiteral("creator-journey"))
+				|| !editLine(m_passengerJourneyActivityEdit, QStringLiteral("creator commute"))
+				|| !choose(m_passengerJourneyOriginCombo, QStringLiteral("creator-station-a"))
+				|| !choose(m_passengerJourneyDestinationCombo, QStringLiteral("creator-station-b"))) {
+			fail(QStringLiteral("journey station or metadata controls did not commit"));
+			return;
+		}
+		const std::array<double, 4> windows = {120.0, 420.0, 300.0, 720.0};
+		for (std::size_t index = 0; index < windows.size(); ++index)
+			m_passengerJourneyWindowEdits[index]->setValue(windows[index]);
+		process();
+		m_passengerTabs->setCurrentIndex(1);
+		m_addPassengerLegButton->click();
+		process();
+		if (!editLine(m_passengerLegIdEdit, QStringLiteral("creator-leg"))
+				|| !choose(m_passengerLegOriginCombo, QStringLiteral("creator-station-a"))
+				|| !choose(m_passengerLegDestinationCombo, QStringLiteral("creator-station-b"))
+				|| !choose(m_passengerLegServiceCombo, QStringLiteral("creator-service"))) {
+			fail(QStringLiteral("passenger leg public CRUD did not commit references"));
+			return;
+		}
+		m_passengerLegOccurrenceEdit->setFocus(Qt::OtherFocusReason);
+		m_passengerLegOccurrenceEdit->setValue(1);
+		m_passengerLegOccurrenceEdit->clearFocus();
+		process();
+		if (m_sceneModel.passengers.size() != 1
+				|| m_sceneModel.passengers.front().journeys.size() != 1
+				|| m_sceneModel.passengers.front().journeys.front().legs.size() != 1
+				|| m_sceneModel.passengers.front().journeys.front().legs.front().occurrence != 1
+				|| hasErrors(m_sceneDiagnostics)) {
+			fail(QStringLiteral("passenger journey/leg or validation did not retain authored values"));
+			return;
+		}
+		marker("E2E_CREATOR_PASSENGER_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 7) {
+		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
+		if (!m_sceneLoaded || folder.isEmpty() || !m_saveSceneAsFolderAction
+				|| !m_newSceneAction || !m_trainUnitListWidget) {
+			fail(QStringLiteral("folder persistence controls or target are unavailable"));
+			return;
+		}
+		activateWindow();
+		m_trainUnitDock->show();
+		m_trainUnitDock->raise();
+		process();
+		m_trainUnitListWidget->setCurrentRow(0);
+		process();
+		QLineEdit* pendingMass = m_trainUnitPhysicalEdits[0]
+			? m_trainUnitPhysicalEdits[0]->findChild<QLineEdit*>() : nullptr;
+		if (!pendingMass) {
+			fail(QStringLiteral("focused train-unit mass editor is unavailable"));
+			return;
+		}
+		pendingMass->setFocus(Qt::OtherFocusReason);
+		pendingMass->setText(QStringLiteral("91000"));
+		process();
+		if (!pendingMass->hasFocus()) {
+			fail(QStringLiteral("focused train-unit mass editor did not retain focus before Save As"));
+			return;
+		}
+		acceptFileDialog(folder, true);
+		m_saveSceneAsFolderAction->trigger();
+		process();
+		if (QFileInfo(m_sceneDir).absoluteFilePath() != folder || m_sceneIsBundle
+				|| m_sceneDirty || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
+			fail(QStringLiteral("public Save Scene As Folder did not persist the focused physical value"));
+			return;
+		}
+		m_newSceneAction->trigger();
+		process();
+		QAction* openFolder = findChild<QAction*>("actionOpenSceneFolder");
+		if (!openFolder) {
+			fail(QStringLiteral("public Open Scene Folder action is unavailable"));
+			return;
+		}
+		acceptFileDialog(folder, true);
+		acceptMessageBox(QMessageBox::Discard);
+		openFolder->trigger();
+		process();
+		if (QFileInfo(m_sceneDir).absoluteFilePath() != folder || m_sceneIsBundle
+				|| m_sceneModel.name != "creator_acceptance_case"
+				|| m_sceneModel.tracks.size() != 2 || m_sceneModel.nodes.size() != 6
+				|| m_sceneModel.arcs.size() != 4 || m_sceneModel.blocks.size() != 6
+				|| m_sceneModel.connections.size() != 1 || m_sceneModel.stations.size() != 2
+				|| m_sceneModel.trainUnits.size() != 2 || m_sceneModel.compositions.size() != 1
+				|| m_sceneModel.services.size() != 1 || m_sceneModel.scenarios.size() != 3
+				|| m_sceneModel.passengers.size() != 1
+				|| m_sceneModel.trainUnits.front().physical.mass_of_traction_unit_kg != 91000.0
+				|| m_sceneModel.passengers.front().id != "creator-passenger"
+				|| m_sceneModel.passengers.front().journeys.size() != 1
+				|| m_sceneModel.passengers.front().journeys.front().id != "creator-journey"
+				|| hasErrors(m_sceneDiagnostics)) {
+			fail(QStringLiteral("folder reopen did not retain complete creator rows"));
+			return;
+		}
+		marker("E2E_CREATOR_FOLDER_ROUNDTRIP_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 8) {
+		const QString bundle = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"));
+		if (!m_sceneLoaded || bundle.isEmpty() || !m_saveSceneAsAction || !m_newSceneAction) {
+			fail(QStringLiteral("bundle persistence controls or target are unavailable"));
+			return;
+		}
+		acceptFileDialog(bundle, false);
+		m_saveSceneAsAction->trigger();
+		process();
+		if (QFileInfo(m_sceneDir).absoluteFilePath() != bundle || !m_sceneIsBundle
+				|| m_sceneDirty || !QFileInfo(bundle).exists()) {
+			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
+			return;
+		}
+		m_newSceneAction->trigger();
+		process();
+		QAction* openBundle = findChild<QAction*>("actionOpenCaseStudyBundle");
+		if (!openBundle) {
+			fail(QStringLiteral("public Open Case Study bundle action is unavailable"));
+			return;
+		}
+		acceptFileDialog(bundle, false);
+		acceptMessageBox(QMessageBox::Discard);
+		openBundle->trigger();
+		process();
+		if (QFileInfo(m_sceneDir).absoluteFilePath() != bundle || !m_sceneIsBundle
+				|| m_sceneModel.name != "creator_acceptance_case"
+				|| m_sceneModel.blocks.size() != 6 || m_sceneModel.trainUnits.size() != 2
+				|| m_sceneModel.compositions.size() != 1 || m_sceneModel.services.size() != 1
+				|| m_sceneModel.scenarios.size() != 3 || m_sceneModel.passengers.size() != 1
+				|| m_sceneModel.services.front().repeatCount != 3
+				|| m_sceneModel.services.front().stops.size() != 2 || hasErrors(m_sceneDiagnostics)) {
+			fail(QStringLiteral("bundle reopen did not retain complete creator IDs and values: path=%1 bundle=%2 name=%3 blocks=%4 units=%5 compositions=%6 services=%7 scenarios=%8 passengers=%9 repeat=%10 stops=%11 errors=%12")
+				.arg(m_sceneDir).arg(m_sceneIsBundle).arg(QString::fromStdString(m_sceneModel.name))
+				.arg(static_cast<int>(m_sceneModel.blocks.size()))
+				.arg(static_cast<int>(m_sceneModel.trainUnits.size()))
+				.arg(static_cast<int>(m_sceneModel.compositions.size()))
+				.arg(static_cast<int>(m_sceneModel.services.size()))
+				.arg(static_cast<int>(m_sceneModel.scenarios.size()))
+				.arg(static_cast<int>(m_sceneModel.passengers.size()))
+				.arg(m_sceneModel.services.empty() ? -1 : m_sceneModel.services.front().repeatCount)
+				.arg(m_sceneModel.services.empty() ? -1 : static_cast<int>(m_sceneModel.services.front().stops.size()))
+				.arg(hasErrors(m_sceneDiagnostics)));
+			return;
+		}
+		if (!m_loadedDataDock || !m_loadedDataTree) {
+			fail(QStringLiteral("Loaded Data review is unavailable after bundle reopen"));
+			return;
+		}
+		if (!m_loadedDataDock->isVisible())
+			m_loadedDataDock->toggleViewAction()->trigger();
+		m_loadedDataDock->raise();
+		process();
+		QTreeWidgetItem* caseRoot = m_loadedDataTree->topLevelItemCount() > 0
+			? m_loadedDataTree->topLevelItem(0) : nullptr;
+		bool loadedDataOk = caseRoot && caseRoot->text(0) == "Case Study"
+			&& QFileInfo(caseRoot->text(1)).absoluteFilePath() == bundle;
+		for (const QString& label : {QStringLiteral("Infrastructure"), QStringLiteral("Scenarios"),
+				QStringLiteral("Passengers"), QStringLiteral("Canonical schema version"),
+				QStringLiteral("Bundle format version")}) {
+			const QList<QTreeWidgetItem*> rows = m_loadedDataTree->findItems(
+				label, Qt::MatchExactly | Qt::MatchRecursive, 0);
+			loadedDataOk = loadedDataOk && !rows.isEmpty()
+				&& rows.front()->text(3) != "Invalid" && rows.front()->text(3) != "Failed";
+		}
+		if (!m_loadedDataDock->isVisible() || !loadedDataOk) {
+			fail(QStringLiteral("Loaded Data did not expose the reopened bundle inputs"));
+			return;
+		}
+		marker("E2E_CREATOR_BUNDLE_ROUNDTRIP_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 9) {
+		if (!m_sceneLoaded || !m_runSceneAction || !m_serviceOccurrenceTable
+				|| !m_scenarioListWidget || !m_setDelayBaselineButton) {
+			fail(QStringLiteral("run and occurrence controls are unavailable"));
+			return;
+		}
+		int baselineRow = -1;
+		for (int row = 0; row < m_sceneModel.scenarios.size(); ++row)
+			if (m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == "baseline")
+				baselineRow = row;
+		if (baselineRow < 0) {
+			fail(QStringLiteral("baseline scenario was not retained after bundle reopen"));
+			return;
+		}
+		m_scenarioListWidget->setCurrentRow(baselineRow);
+		process();
+		if (m_serviceOccurrenceTable->rowCount() != 3) {
+			fail(QStringLiteral("three service occurrences were not exposed after reopen"));
+			return;
+		}
+		for (int row = 0; row < m_serviceOccurrenceTable->rowCount(); ++row) {
+			if (auto* item = m_serviceOccurrenceTable->item(row, 0))
+				item->setCheckState(row == 2 ? Qt::Unchecked : Qt::Checked);
+		}
+		process();
+		m_creatorAcceptancePolls = 0;
+		m_runSceneAction->trigger();
+		marker("E2E_CREATOR_BASELINE_RUN_STARTED");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 10) {
+		if (m_worker || !m_resultsAvailable) {
+			if (++m_creatorAcceptancePolls > 600) {
+				fail(QStringLiteral("baseline simulation did not complete"));
+				return;
+			}
+			QTimer::singleShot(100, this, &MainWindow::runCreatorAcceptanceE2E);
+			return;
+		}
+		m_creatorAcceptancePolls = 0;
+		if (m_completedRunProvenance.appliedScenario != "baseline"
+				|| m_completedRunProvenance.selectedOccurrences.size() != 2) {
+			fail(QStringLiteral("baseline provenance did not retain scenario and selected occurrences 1+2"));
+			return;
+		}
+		QPushButton* timeDistance = nullptr;
+		for (QPushButton* button : findChildren<QPushButton*>())
+			if (button->text() == QStringLiteral("Time / distance"))
+				timeDistance = button;
+		if (!timeDistance) {
+			fail(QStringLiteral("public Time / distance result control is unavailable"));
+			return;
+		}
+		timeDistance->click();
+		process();
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			if (auto* diagram = qobject_cast<DiagramWindow*>(widget))
+				if (diagram->windowTitle().contains(QStringLiteral("Time vs Distance")))
+					m_creatorBaselineDiagram = diagram;
+		}
+		if (!m_creatorBaselineDiagram) {
+			fail(QStringLiteral("baseline result diagram did not open"));
+			return;
+		}
+		m_setDelayBaselineButton->click();
+		if (!m_delayBaseline) {
+			fail(QStringLiteral("public delay baseline control did not freeze baseline"));
+			return;
+		}
+		marker("E2E_CREATOR_BASELINE_RUN_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 11) {
+		int entranceRow = -1;
+		for (int row = 0; row < m_sceneModel.scenarios.size(); ++row)
+			if (m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == "entrance")
+				entranceRow = row;
+		if (entranceRow < 0 || !m_scenarioListWidget || !m_runSceneAction) {
+			fail(QStringLiteral("entrance scenario was not available for public run"));
+			return;
+		}
+		m_scenarioListWidget->setCurrentRow(entranceRow);
+		process();
+		m_creatorAcceptancePolls = 0;
+		m_runSceneAction->trigger();
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 12) {
+		if (m_worker || !m_resultsAvailable) {
+			if (++m_creatorAcceptancePolls > 600) {
+				fail(QStringLiteral("entrance-delay simulation did not complete"));
+				return;
+			}
+			QTimer::singleShot(100, this, &MainWindow::runCreatorAcceptanceE2E);
+			return;
+		}
+		m_creatorAcceptancePolls = 0;
+		if (m_completedRunProvenance.appliedScenario != "entrance") {
+			fail(QStringLiteral("entrance run did not stage the entrance scenario"));
+			return;
+		}
+		const auto stationADeparture = [](const std::vector<TimetableResultRow>& rows)
+				-> const TimetableResultRow* {
+			for (const TimetableResultRow& row : rows)
+				if (row.serviceId == "creator-service" && row.occurrence == 2
+						&& row.stationId == "Creator A")
+					return &row;
+			return nullptr;
+		};
+		const TimetableResultRow* baselineDeparture = m_delayBaseline
+			? stationADeparture(m_delayBaseline->timetable) : nullptr;
+		const TimetableResultRow* delayedDeparture = stationADeparture(m_completedTimetableResults);
+		if (!baselineDeparture || !delayedDeparture
+				|| !baselineDeparture->plannedDepartureSeconds.available
+				|| !delayedDeparture->plannedDepartureSeconds.available
+				|| !baselineDeparture->departureDelaySeconds.available
+				|| !delayedDeparture->departureDelaySeconds.available
+				|| delayedDeparture->plannedDepartureSeconds.value
+					- baselineDeparture->plannedDepartureSeconds.value < 89.0
+				|| std::abs(delayedDeparture->departureDelaySeconds.value
+					- baselineDeparture->departureDelaySeconds.value) < 1.0) {
+			fail(QStringLiteral("entrance delay did not shift occurrence 2 station-A plan by 90 seconds and change its reported delay: baseline=%1/%2 delayed=%3/%4 rows=%5/%6")
+				.arg(baselineDeparture && baselineDeparture->plannedDepartureSeconds.available
+					? baselineDeparture->plannedDepartureSeconds.value : -1.0)
+				.arg(baselineDeparture && baselineDeparture->departureDelaySeconds.available
+					? baselineDeparture->departureDelaySeconds.value : -1.0)
+				.arg(delayedDeparture && delayedDeparture->plannedDepartureSeconds.available
+					? delayedDeparture->plannedDepartureSeconds.value : -1.0)
+				.arg(delayedDeparture && delayedDeparture->departureDelaySeconds.available
+					? delayedDeparture->departureDelaySeconds.value : -1.0)
+				.arg(m_delayBaseline ? static_cast<int>(m_delayBaseline->timetable.size()) : -1)
+				.arg(static_cast<int>(m_completedTimetableResults.size())));
+			return;
+		}
+		marker("E2E_CREATOR_ENTRANCE_RUN_OK");
+		int incidentRow = -1;
+		for (int row = 0; row < m_sceneModel.scenarios.size(); ++row)
+			if (m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == "incident")
+				incidentRow = row;
+		if (incidentRow < 0 || !m_scenarioListWidget || !m_runSceneAction) {
+			fail(QStringLiteral("incident scenario was not available for final public run"));
+			return;
+		}
+		m_scenarioListWidget->setCurrentRow(incidentRow);
+		process();
+		m_creatorAcceptancePolls = 0;
+		m_runSceneAction->trigger();
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 13) {
+		if (m_worker || !m_resultsAvailable) {
+			if (++m_creatorAcceptancePolls > 600) {
+				fail(QStringLiteral("incident simulation did not complete"));
+				return;
+			}
+			QTimer::singleShot(100, this, &MainWindow::runCreatorAcceptanceE2E);
+			return;
+		}
+		m_creatorAcceptancePolls = 0;
+		bool directEvidence = false;
+		for (const auto& train : m_completedRunResults.trains)
+			if (!train.directIncidentIds.empty())
+				directEvidence = true;
+		if (m_completedRunProvenance.appliedScenario != "incident" || !directEvidence) {
+			fail(QStringLiteral("final incident run lacked direct incident evidence"));
+			return;
+		}
+		marker("E2E_CREATOR_INCIDENT_RUN_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 14) {
+		const QString exportDir = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_EXPORT_DIR"));
+		if (!m_resultsAvailable || exportDir.isEmpty() || !m_runResultsDock) {
+			fail(QStringLiteral("public result controls or export target are unavailable"));
+			return;
+		}
+		QDir().mkpath(exportDir);
+		auto path = [&](const char* name) { return QDir(exportDir).filePath(QString::fromLatin1(name)); };
+		auto exportButton = [&](QWidget* window, const QString& text, const QString& target) {
+			if (!window)
+				return false;
+			QPushButton* button = nullptr;
+			for (QPushButton* candidate : window->findChildren<QPushButton*>())
+				if (candidate->text() == text) {
+					button = candidate;
+					break;
+				}
+			if (!button)
+				return false;
+			acceptFileDialog(target, false);
+			button->click();
+			process();
+			return true;
+		};
+		auto findDiagram = [&](const QString& titlePart) -> DiagramWindow* {
+			for (QWidget* widget : QApplication::topLevelWidgets())
+				if (auto* diagram = qobject_cast<DiagramWindow*>(widget))
+					if (diagram->windowTitle().contains(titlePart))
+						return diagram;
+			return nullptr;
+		};
+		auto findResultButton = [&](const QString& text) -> QPushButton* {
+			for (QPushButton* button : findChildren<QPushButton*>())
+				if (button->text() == text)
+					return button;
+			return nullptr;
+		};
+
+		if (!m_creatorBaselineDiagram
+				|| !exportButton(m_creatorBaselineDiagram, QStringLiteral("Export CSV..."),
+					path("baseline_time_distance.csv"))) {
+			fail(QStringLiteral("baseline diagram CSV export was not driven through its public button"));
+			return;
+		}
+		QPushButton* speedButton = findResultButton(QStringLiteral("Speed / distance"));
+		if (!speedButton) {
+			fail(QStringLiteral("speed/distance result control is unavailable"));
+			return;
+		}
+		speedButton->click();
+		process();
+		DiagramWindow* speedDiagram = findDiagram(QStringLiteral("Speed vs Distance"));
+		if (!speedDiagram
+				|| !exportButton(speedDiagram, QStringLiteral("Export CSV..."), path("trajectory.csv"))
+				|| !exportButton(speedDiagram, QStringLiteral("Export PNG..."), path("trajectory.png"))) {
+			fail(QStringLiteral("current trajectory/speed exports were not driven through the diagram"));
+			return;
+		}
+		QPushButton* tractiveButton = findResultButton(QStringLiteral("Tractive effort / distance"));
+		if (!tractiveButton) {
+			fail(QStringLiteral("tractive-effort result control is unavailable"));
+			return;
+		}
+		tractiveButton->click();
+		process();
+		DiagramWindow* tractiveDiagram = findDiagram(QStringLiteral("Simulated Tractive Effort vs Distance"));
+		if (!tractiveDiagram
+				|| !exportButton(tractiveDiagram, QStringLiteral("Export CSV..."), path("tractive_effort.csv"))
+				|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
+			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
+			return;
+		}
+		QPushButton* timetableButton = findResultButton(QStringLiteral("Timetable"));
+		if (!timetableButton) {
+			fail(QStringLiteral("timetable result control is unavailable"));
+			return;
+		}
+		timetableButton->click();
+		process();
+		TimetableTableWindow* timetable = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* candidate = qobject_cast<TimetableTableWindow*>(widget))
+				timetable = candidate;
+		if (!timetable
+				|| !exportButton(timetable, QStringLiteral("Export CSV..."), path("timetable.csv"))
+				|| !exportButton(timetable, QStringLiteral("Export PNG..."), path("timetable.png"))) {
+			fail(QStringLiteral("timetable exports were not driven through the public table"));
+			return;
+		}
+		QPushButton* blockingButton = findResultButton(QStringLiteral("Blocking time"));
+		if (!blockingButton) {
+			fail(QStringLiteral("blocking-time result control is unavailable"));
+			return;
+		}
+		acceptMessageBox();
+		blockingButton->click();
+		process();
+		DiagramWindow* blocking = findDiagram(QStringLiteral("Blocking time:"));
+		if (!blocking
+				|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
+				|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
+			fail(QStringLiteral("blocking-time exports were not driven through the public diagram"));
+			return;
+		}
+		QPushButton* summaryCsv = findChild<QPushButton*>("resultView_ExportCSV");
+		QPushButton* summaryPng = findChild<QPushButton*>("resultView_ExportPNG");
+		if (!summaryCsv || !summaryPng) {
+			fail(QStringLiteral("run-summary result controls are unavailable"));
+			return;
+		}
+		acceptFileDialog(path("run_summary.csv"), false);
+		summaryCsv->click();
+		process();
+		acceptFileDialog(path("run_summary.png"), false);
+		summaryPng->click();
+		process();
+
+		QPushButton* capacityButton = findResultButton(QStringLiteral("Capacity"));
+		if (!capacityButton) {
+			fail(QStringLiteral("capacity result control is unavailable"));
+			return;
+		}
+		acceptCapacityScope();
+		capacityButton->click();
+		process();
+		QDialog* capacity = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QDialog*>(widget))
+				if (!dialog->isModal() && dialog->windowTitle().contains(QStringLiteral("Capacity analysis")))
+					capacity = dialog;
+		if (!capacity
+				|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
+			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
+			return;
+		}
+		QPushButton* compressedButton = nullptr;
+		for (QPushButton* candidate : capacity->findChildren<QPushButton*>())
+			if (candidate->text().contains(QStringLiteral("compressed blocking-time")))
+				compressedButton = candidate;
+		if (!compressedButton) {
+			fail(QStringLiteral("compressed blocking-time control is unavailable"));
+			return;
+		}
+		compressedButton->click();
+		process();
+		DiagramWindow* compressed = findDiagram(QStringLiteral("Compressed blocking-time diagram"));
+		if (!compressed
+				|| !exportButton(compressed, QStringLiteral("Export CSV..."), path("capacity_compressed_blocking_time.csv"))
+				|| !exportButton(compressed, QStringLiteral("Export PNG..."), path("capacity_compressed_blocking_time.png"))) {
+			fail(QStringLiteral("compressed capacity diagram did not export"));
+			return;
+		}
+		capacity->close();
+		QPushButton* compareButton = findChild<QPushButton*>("compareDelayButton");
+		if (!compareButton) {
+			fail(QStringLiteral("delay comparison result control is unavailable"));
+			return;
+		}
+		acceptFileDialog(path("delay_comparison.csv"), false);
+		QTimer::singleShot(75, this, [this]() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QDialog*>(widget);
+				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
+					continue;
+				for (QPushButton* button : dialog->findChildren<QPushButton*>())
+					if (button->text() == QStringLiteral("Export CSV...")) {
+						button->click();
+						dialog->accept();
+						return;
+					}
+			}
+		});
+		compareButton->click();
+		process();
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QDialog*>(widget))
+				if (dialog->windowTitle() == QStringLiteral("Incident delay comparison"))
+					dialog->close();
+		marker("E2E_CREATOR_EXPORTS_OK");
+		next();
+		return;
+	}
+
+	if (m_creatorAcceptancePhase == 15) {
+		if (!m_caseSettingsDock || !m_caseDescriptionEdit || !m_runResultsDock) {
+			fail(QStringLiteral("stale-result invalidation controls are unavailable"));
+			return;
+		}
+		m_caseSettingsDock->show();
+		m_caseSettingsDock->raise();
+		if (!editLine(m_caseDescriptionEdit,
+				QStringLiteral("creator acceptance edited after incident exports"))) {
+			fail(QStringLiteral("description editing did not commit through editingFinished"));
+			return;
+		}
+		process();
+		bool resultButtonsDisabled = true;
+		for (QPushButton* button : findChildren<QPushButton*>())
+			if (button->objectName().startsWith(QStringLiteral("resultView_")))
+				resultButtonsDisabled = resultButtonsDisabled && !button->isEnabled();
+		if (m_resultsAvailable || m_runResultsDock->isVisible() || !resultButtonsDisabled) {
+			fail(QStringLiteral("editing case description did not invalidate stale result views"));
+			return;
+		}
+		m_creatorAcceptanceFinished = true;
+		marker("E2E_CREATOR_ACCEPTANCE_OK");
+		QCoreApplication::exit(0);
+		return;
+	}
+}
+
 void MainWindow::clearSimulationWorker(bool requestStop) {
 	if (m_worker && requestStop)
 		m_worker->requestStop();
@@ -15496,6 +17009,10 @@ void MainWindow::showEvent(QShowEvent* e) {
 		return;
 	m_promptedLoad = true;
 	extern InitialParameters initial_variables;
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE")) {
+		QTimer::singleShot(0, this, &MainWindow::runCreatorAcceptanceE2E);
+		return;
+	}
 	// skip the chooser when -n was given so scripted runs load directly
 	if (!initial_variables.nArgProvided)
 		QTimer::singleShot(0, this, &MainWindow::showStartupChooser);
@@ -15776,6 +17293,30 @@ bool MainWindow::showRunReview() {
 	return false;
 }
 
+RunProvenance MainWindow::captureRunProvenance() const {
+	RunProvenance provenance;
+	provenance.caseName = m_sceneModel.name;
+	provenance.sceneSchemaVersion = m_sceneModel.schemaVersion;
+	provenance.input = captureSavedInput(m_sceneDir.toStdString(),
+		m_sceneIsBundle ? "bundle" : "directory", m_sceneDirty, m_savedSceneSha256);
+	provenance.appliedScenario = m_appliedScenarioId;
+	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
+	provenance.durationSeconds = initial_variables.times;
+	provenance.timestepSeconds = timestep;
+	provenance.bufferSeconds = bufferTime;
+	provenance.recoveryPercent = recoveryTimePercentage;
+	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
+	provenance.tsmMode = initial_variables.TSM;
+	provenance.routeChoiceMode = initial_variables.RChoice;
+	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	for (int index = 0; index < numRegions; ++index) {
+		const Train& train = regional_train[index];
+		provenance.selectedOccurrences.push_back({train.serviceId, train.serviceOccurrence,
+			train.operatingCode});
+	}
+	return provenance;
+}
+
 DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 	DelayRunSnapshot snapshot;
 	if (!m_resultsAvailable || m_completedRunResults.trains.empty())
@@ -15793,6 +17334,7 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
 		break;
 	}
+	snapshot.provenance = m_completedRunProvenance;
 	snapshot.run = m_completedRunResults;
 	snapshot.timetable = m_completedTimetableResults;
 	return snapshot;
@@ -15832,7 +17374,7 @@ void MainWindow::showDelayComparison() {
 	dialog.resize(1180, 520);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
 	QLabel* context = new QLabel(QString("Baseline: %1 | Scenario: %2 | Total positive arrival delay: %3 s")
-		.arg(QString::fromStdString(m_delayBaseline->scenarioId), QString::fromStdString(scenario.scenarioId))
+		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance))
 		.arg(comparison.totalArrivalDelay.available ? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-")), &dialog);
 	context->setWordWrap(true);
 	layout->addWidget(context);
@@ -15871,8 +17413,15 @@ void MainWindow::showDelayComparison() {
 	QHBoxLayout* actions = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export CSV...", &dialog);
 	exportButton->setObjectName("delayComparisonExportCsvButton");
-	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison]() {
-		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison));
+	const RunProvenance baselineProvenance = m_delayBaseline->provenance;
+	const RunProvenance scenarioProvenance = scenario.provenance;
+	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison,
+			baselineProvenance, scenarioProvenance]() {
+		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison),
+			[baselineProvenance, scenarioProvenance](const QString& path, const std::string& bytes) {
+				return writeDelayArtifactWithProvenance(path.toStdString(), "csv", bytes,
+					baselineProvenance, scenarioProvenance);
+			});
 	});
 	actions->addWidget(exportButton);
 	actions->addStretch();
@@ -15923,10 +17472,13 @@ void MainWindow::onSimulationFinished() {
 	if (m_resultsAvailable) {
 		const auto trains = runResultTrainPointers();
 		// Freeze result values before a subsequent run replaces the runtime trains.
+		m_completedRunProvenance = m_pendingRunProvenance;
 		m_completedRunResults = buildRunResults(trains, timestep);
 		m_completedTimetableResults = buildTimetableResults(trains);
 		refreshRunResults();
 	} else {
+		m_pendingRunProvenance = RunProvenance();
+		m_completedRunProvenance = RunProvenance();
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
@@ -15938,6 +17490,7 @@ void MainWindow::onSimulationFinished() {
 			m_runResultsDock->hide();
 		}
 	}
+	m_pendingRunProvenance = RunProvenance();
 	refreshLoadedDataTree();
 
 	// verification hook: write every CSV export from the completed run, then exit
@@ -15945,8 +17498,14 @@ void MainWindow::onSimulationFinished() {
 		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_EXPORT_DIR");
 		const QStringList ids = allTrainIds();
 		// Skip an export with no rows, matching the interactive "nothing to export".
-		const auto dump = [&dir](const QString& file, const std::string& content) {
-			return content.empty() ? true : writeCsvFile(dir + "/" + file, content);
+		const auto dump = [&dir, this](const QString& file, const std::string& content) {
+			if (content.empty())
+				return true;
+			const QString path = dir + "/" + file;
+			if (writeCsvFileWithProvenance(path, content, m_completedRunProvenance))
+				return true;
+			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
+			return false;
 		};
 		bool ok = m_resultsAvailable;
 		if (ok) {
@@ -16131,6 +17690,7 @@ void MainWindow::runScene() {
 	refreshLoadedDataTree();
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_sceneModel.baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
+	m_pendingRunProvenance = captureRunProvenance();
 
 	setupGUI();
 	fitView();
@@ -16825,7 +18385,11 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
-		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults));
+		const RunProvenance provenance = m_completedRunProvenance;
+		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults),
+			[provenance](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
+			});
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
 	exportPngBtn->setObjectName("resultView_ExportPNG");
@@ -16836,9 +18400,17 @@ void MainWindow::setupRunResultsDock() {
 			return;
 		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 			path += ".png";
-		if (!m_runResultsTable->grab().save(path, "PNG"))
+		QByteArray data;
+		QBuffer buffer(&data);
+		if (!buffer.open(QIODevice::WriteOnly) || !m_runResultsTable->grab().save(&buffer, "PNG")) {
 			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
-	});
+			return;
+		}
+		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+		if (!writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_completedRunProvenance))
+			QMessageBox::warning(this, "Export failed",
+				QString("Could not export the image and provenance to:\n%1").arg(path));
+		});
 	QHBoxLayout* toolRow = new QHBoxLayout();
 	toolRow->addWidget(exportCsvBtn);
 	toolRow->addWidget(exportPngBtn);
@@ -16872,15 +18444,15 @@ void MainWindow::refreshRunResults() {
 			++destinationTerminationCount;
 	}
 	if (m_runResultsSummaryLabel) {
-		QString summary = QString("Case: %1 | Scenario: %2 | Occurrences: %3/%4 selected | Status: Completed | Direct incident evidence: %5 | Destination terminations: %6")
-			.arg(QString::fromStdString(m_sceneModel.name), scenarioContext())
+		QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed | Direct incident evidence: %4 | Destination terminations: %5")
+			.arg(completedRunContext(m_completedRunProvenance))
 			.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences)
 			.arg(directEvidenceCount).arg(destinationTerminationCount);
 		if (m_delayBaseline)
-			summary += QString(" | Delay baseline: %1").arg(QString::fromStdString(m_delayBaseline->scenarioId));
+			summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
 		m_runResultsSummaryLabel->setText(summary);
 	}
-	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(scenarioContext()));
+	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(completedRunContext(m_completedRunProvenance)));
 
 	const RunResults& results = m_completedRunResults;
 	const int totalColumns = 11;
@@ -18458,7 +20030,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 
 	QString title = "Train paths (time vs distance), corridor ";
 	title.append(QString::fromStdString(corridor));
-	title += QString(" [%1]").arg(scenarioContext());
+	title += QString(" [%1]").arg(completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 
 	for (int i = 0; i < numRegions; i++) {
@@ -18559,6 +20131,7 @@ void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "train_path.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18682,7 +20255,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	}
 
 	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
-	const QString title = QString("%1 [%2]").arg(titles[mode], scenarioContext());
+	const QString title = QString("%1 [%2]").arg(titles[mode], completedRunContext(m_completedRunProvenance));
 	QChart* chart = new QChart();
 	chart->setTitle(title);
 
@@ -18724,6 +20297,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "trajectory.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(mode == 1 || mode == 2, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18752,7 +20326,8 @@ void MainWindow::showTimetableTable() {
 
 	auto* window = new TimetableTableWindow(m_completedTimetableResults,
 									m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
-	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(scenarioContext()));
+	window->setRunProvenance(m_completedRunProvenance);
+	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(m_completedRunProvenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }
@@ -18764,7 +20339,7 @@ void MainWindow::showDelayDiagram() {
 	}
 
 	QChart* chart = new QChart();
-	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(scenarioContext());
+	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 	const auto& rows = m_completedTimetableResults;
 
@@ -18797,6 +20372,7 @@ void MainWindow::showDelayDiagram() {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(false, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18811,7 +20387,7 @@ void MainWindow::showTimetableGraph() {
 
 	QChart* chart = new QChart();
 	const QString title = QString("Train graph: planned vs simulated arrival/departure [%1]")
-		.arg(scenarioContext());
+		.arg(completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 	const auto rows = buildTimetableResults(runResultTrainPointers());
 
@@ -18879,6 +20455,7 @@ void MainWindow::showTimetableGraph() {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -18923,7 +20500,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		.arg(routeScope,
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
-			scenarioContext());
+			completedRunContext(m_completedRunProvenance));
 	chart->setTitle(title);
 
 	addBlockingTimeSeries(chart, segments, false);
@@ -18982,6 +20559,7 @@ void MainWindow::showBlockingTimeDiagram() {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences);
 		};
 	win->setCsvProvider(snapshotCsv(scopedCsv), "blocking_time.csv");
+	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisX(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
@@ -19001,7 +20579,8 @@ void MainWindow::showCapacityAnalysis() {
 			"Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.");
 		return;
 	}
-	if (!e2eDialogsSuppressed() && !chooseCapacityAnalysisScope(this, scope))
+	if ((!e2eDialogsSuppressed() || qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE"))
+			&& !chooseCapacityAnalysisScope(this, scope))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
 		QMessageBox::information(this, "Capacity analysis",
@@ -19028,9 +20607,11 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 
+	const RunProvenance provenance = m_completedRunProvenance;
 	QDialog* dialog = new QDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
-	dialog->setWindowTitle(QString("Capacity analysis | %1").arg(sectionLabel));
+	dialog->setWindowTitle(QString("Capacity analysis | %1 [%2]").arg(sectionLabel,
+		completedRunContext(provenance)));
 	dialog->setModal(false);
 	dialog->resize(1050, 650);
 	auto* layout = new QVBoxLayout(dialog);
@@ -19124,12 +20705,15 @@ void MainWindow::showCapacityAnalysis() {
 
 	auto* buttons = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export capacity CSV...", dialog);
-	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel]() {
-		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel));
+	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
+		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel),
+			[provenance](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
+			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
-	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel]() {
-		showCompressedBlockingTimeDiagram(result, sectionLabel);
+	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
+		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance);
 	});
 	QPushButton* closeButton = new QPushButton("Close", dialog);
 	connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
@@ -19142,7 +20726,7 @@ void MainWindow::showCapacityAnalysis() {
 }
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
-	const QString& sectionLabel) {
+	const QString& sectionLabel, RunProvenance provenance) {
 	const std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(
 		result.compressedOccupations, result.trainIdentities);
 	if (segments.empty()) {
@@ -19150,9 +20734,9 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		return;
 	}
 	QChart* chart = new QChart();
-	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3")
+	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3 [%4]")
 		.arg(sectionLabel, QString::fromStdString(result.firstIdentity),
-			QString::fromStdString(result.cycleEndIdentity)));
+			QString::fromStdString(result.cycleEndIdentity), completedRunContext(provenance)));
 	addBlockingTimeSeries(chart, segments, true);
 	auto addKey = [chart](const QString& name, const QColor& color) {
 		auto* series = new QLineSeries();
@@ -19174,8 +20758,9 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
-		};
+	};
 	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv");
+	attachRunProvenance(window, std::move(provenance));
 	connect(window, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	window->setTimeAxisX(true, m_startOffsetSeconds);
 	window->setAttribute(Qt::WA_DeleteOnClose);

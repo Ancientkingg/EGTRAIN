@@ -213,6 +213,20 @@ int main(int argc, char** argv) {
 	const fs::path secondBundle = temp.path / "second.egscene";
 	const SceneSaveResult firstSave = saveSceneBundle(source.scene, firstBundle.string());
 	ok &= expect(firstSave.success(), "canonical directory packs");
+	const std::string firstBundleBytes = readBytes(firstBundle);
+	ok &= expect(!firstSave.inputSnapshot.empty() && firstSave.inputSnapshot == firstBundleBytes,
+			"successful bundle save retains the exact staged archive bytes");
+	const SceneLoadResult firstLoad = loadScenePath(firstBundle.string());
+	ok &= expect(!hasErrors(firstLoad.diagnostics) && firstLoad.inputSnapshot == firstBundleBytes,
+			"bundle load retains the exact archive bytes it parsed");
+	ok &= expect(writeBytes(firstBundle, "external replacement"),
+			"external bundle replacement writes");
+	ok &= expect(firstSave.inputSnapshot == firstBundleBytes
+			&& firstLoad.inputSnapshot == firstBundleBytes
+			&& readBytes(firstBundle) != firstBundleBytes,
+			"external bundle replacement does not mutate retained snapshots");
+	ok &= expect(saveSceneBundle(source.scene, firstBundle.string()).success(),
+			"bundle replacement restores the external test fixture");
 	const SceneSaveResult secondSave = saveSceneBundle(source.scene, secondBundle.string());
 	ok &= expect(secondSave.success(), "canonical directory packs twice");
 	ok &= expect(readBytes(firstBundle) == readBytes(secondBundle), "bundle bytes are deterministic");

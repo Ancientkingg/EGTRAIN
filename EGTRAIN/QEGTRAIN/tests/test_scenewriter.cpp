@@ -16,6 +16,11 @@ static bool expect(bool condition, const char* message) {
 	return condition;
 }
 
+static std::string readBytes(const fs::path& path) {
+	std::ifstream input(path, std::ios::binary);
+	return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
+
 static void printErrors(const std::vector<SceneDiagnostic>& diagnostics, const char* label) {
 	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.severity == SceneSeverity::Error)
@@ -186,6 +191,11 @@ int main() {
 	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
 			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json"})
 		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
+	const std::string savedSnapshot = saved.inputSnapshot;
+	const SceneInputSnapshot onDiskSnapshot = readSceneDirectorySnapshot(temp.path.string());
+	ok &= expect(!savedSnapshot.empty() && onDiskSnapshot.reason.empty()
+			&& savedSnapshot == onDiskSnapshot.bytes,
+			"successful save retains the exact framed canonical input snapshot");
 	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
 	json stations;
 	{
@@ -327,6 +337,19 @@ int main() {
 
 	SceneModel reloaded;
 	ok &= expect(loadHasNoErrors(temp.path, reloaded), "canonical scene reloads without structural errors");
+	const SceneLoadResult loadedSnapshot = loadScene(temp.path.string());
+	ok &= expect(!loadedSnapshot.inputSnapshot.empty()
+			&& loadedSnapshot.inputSnapshot == savedSnapshot,
+			"load retains the exact framed snapshot emitted by save");
+	{
+		std::ofstream output(temp.path / "services.json", std::ios::binary | std::ios::app);
+		output << ' ';
+	}
+	const SceneInputSnapshot changedOnDisk = readSceneDirectorySnapshot(temp.path.string());
+	ok &= expect(changedOnDisk.reason.empty() && changedOnDisk.bytes != savedSnapshot
+			&& saved.inputSnapshot == savedSnapshot
+			&& loadedSnapshot.inputSnapshot == savedSnapshot,
+			"external canonical-file changes do not mutate retained snapshots");
 	ok &= expect(reloaded.tracks.size() == 1 && reloaded.nodes.size() == 2 && reloaded.blocks.size() == 2,
 			"topology round-trips");
 	ok &= expect(reloaded.routes[0].corridor == "corridor-1" && reloaded.routes[0].reversed,
