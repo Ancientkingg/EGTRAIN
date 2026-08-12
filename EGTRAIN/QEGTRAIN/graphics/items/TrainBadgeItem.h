@@ -27,6 +27,14 @@ public:
 		return QRectF(left, body.center().y() - 7.0, 14.0, 14.0);
 	}
 
+	static QRectF iconPlateRect(const QRectF& body, bool reversed) {
+		return iconRect(body, reversed).adjusted(-1.0, -1.0, 1.0, 1.0);
+	}
+
+	static QColor badgeSurfaceColor() { return QColor("#26313B"); }
+	static QColor badgePrimaryTextColor() { return QColor("#F2F5F7"); }
+	static QColor badgeSecondaryTextColor() { return QColor("#C5D0D6"); }
+
 	static QRectF speedTextRect(const QRectF& body, bool compact, bool reversed,
 		const QFontMetricsF& metrics, const QString& speedText) {
 		if (compact || speedText.isEmpty())
@@ -59,6 +67,7 @@ public:
 
 private:
 	QRectF badgeRect() const;
+	void updateToolTip();
 
 	QString m_identifier;
 	QString m_speedText;

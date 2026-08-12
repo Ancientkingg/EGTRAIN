@@ -1,13 +1,12 @@
 name: Release
 
 # Builds downloadable applications for macOS, Windows, and Linux.
-# Main pushes publish the three platform packages and six case-study bundles.
+# Production pushes publish the three platform packages and six case-study bundles.
 # v* tags publish releases using the tag name. Manual runs test packaging jobs.
 on:
   push:
     branches:
-      - main
-      - ci/release-pipeline
+      - production
     tags:
       - 'v*'
     paths:
@@ -370,7 +369,7 @@ jobs:
   release:
     name: Publish GitHub Release
     needs: [package-macos, package-windows, package-linux]
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/production') || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -400,8 +399,8 @@ jobs:
             fi
           else
             short_sha="${GITHUB_SHA::7}"
-            tag="main-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
-            name="EGTRAIN main build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT} (${short_sha})"
+            tag="production-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
+            name="EGTRAIN production build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT} (${short_sha})"
             prerelease=true
             make_latest=false
           fi

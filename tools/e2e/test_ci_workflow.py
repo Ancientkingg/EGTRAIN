@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from pathlib import Path
 
 
@@ -12,16 +13,8 @@ def main() -> None:
     release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
     required = {
+        "Build": "cmake --build build",
         "Test": "ctest --test-dir build",
-        "Run headless canonical scene smokes": "tools/e2e/headless_smoke.py 1 2 3 4 5 6",
-        "Run editor smoke": "tools/e2e/editor_smoke.sh",
-        "Run scene roundtrip smoke": "tools/e2e/roundtrip_smoke.py",
-        "Run bundle smoke": "tools/e2e/bundle_smoke.py",
-        "Run assignment smoke": "tools/e2e/assignment_smoke.py",
-        "Run incident smoke": "tools/e2e/incident_smoke.py",
-        "Run scene render smoke": "tools/e2e/scene_render_smoke.sh",
-        "Run visual smoke": "tools/e2e/visual_polish_smoke.sh",
-        "Configure": "EGTRAIN_ENABLE_SANITIZERS=ON",
     }
     missing = [
         name
@@ -29,32 +22,26 @@ def main() -> None:
         if not any(block.startswith(f"name: {name}\n") and command in block for block in blocks)
     ]
     test_steps = [block for block in blocks if block.startswith("name: Test\n")]
-    if len(test_steps) != 2 or any(
+    if len(test_steps) != 1 or any(
         "ctest --test-dir build" not in block or "--output-log" not in block
         for block in test_steps
     ):
         missing.append("ctest output logs")
-    sanitizer_test = next(
-        block
-        for block in workflow.split("\n  sanitizer:\n", 1)[1].split("\n      - ")
-        if block.startswith("name: Test\n")
+    standalone_smokes = (
+        "headless_smoke.py",
+        "editor_smoke.sh",
+        "roundtrip_smoke.py",
+        "bundle_smoke.py",
+        "assignment_smoke.py",
+        "incident_smoke.py",
+        "scene_render_smoke.sh",
+        "track_preview_smoke.sh",
+        "visual_polish_smoke.sh",
     )
-    if any(
-        option not in sanitizer_test
-        for option in (
-            "UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1",
-            "ASAN_OPTIONS: abort_on_error=1:halt_on_error=1",
-        )
-    ):
-        missing.append("sanitizer failure options")
-    if any(
-        budget not in sanitizer_test
-        for budget in (
-            'QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"',
-            'QEGTRAIN_GUI_SMOKE_SECONDS: "30"',
-        )
-    ):
-        missing.append("sanitizer GUI smoke time budgets")
+    if any(smoke in workflow for smoke in standalone_smokes):
+        missing.append("standalone smoke steps")
+    if "\n  sanitizer:" in workflow or "EGTRAIN_ENABLE_SANITIZERS=ON" in workflow:
+        missing.append("sanitizer job")
     if "set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)" not in cmake:
         missing.append("GUI smoke CTest timeout")
     if "set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)" not in cmake:
@@ -65,10 +52,10 @@ def main() -> None:
         missing.append("bounded GUI smoke horizon")
     if "DEFAULT_MARKER_SECONDS = 300" not in gui_smoke:
         missing.append("hosted-runner GUI startup budget")
-    if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 2:
-        missing.append("TMPDIR routing steps for smoke logs")
+    if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 1:
+        missing.append("TMPDIR routing step for CTest logs")
     uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
-    if len(uploads) != 2 or any(
+    if len(uploads) != 1 or any(
         "if: failure()" not in block
         or "actions/upload-artifact@v4" not in block
         or "runner.temp" not in block
@@ -77,31 +64,44 @@ def main() -> None:
         missing.append("failure artifact steps")
     if not uploads or any(
         path not in uploads[0]
-        for path in ("qegtrain-incident-*.log", "/ctest.log", "qegtrain-gui-autostart-smoke.log")
+        for path in ("/ctest.log", "qegtrain-gui-autostart-smoke.log")
     ):
         missing.append("build job failure logs")
-    if len(uploads) < 2 or any(
-        path not in uploads[1]
-        for path in ("ctest-sanitizer.log", "qegtrain-gui-autostart-smoke.log")
-    ):
-        missing.append("sanitizer job failure logs")
-    application_paths = "\n".join(
+    validation_trigger = workflow.split("\njobs:", 1)[0]
+    if "  push:\n    branches: [main]\n" not in validation_trigger:
+        missing.append("main validation trigger")
+    if "  pull_request:\n    branches: [main]\n" not in validation_trigger:
+        missing.append("main pull request validation trigger")
+    if "paths:" in validation_trigger:
+        missing.append("unfiltered main validation triggers")
+    release_paths = "\n".join(
         (
             "    paths:",
-            "      - '.github/workflows/cmake.yml'",
+            "      - '.github/workflows/release.yml'",
             "      - 'CMakeLists.txt'",
             "      - 'Info.plist.in'",
             "      - 'EGTRAIN/QEGTRAIN/**'",
-            "      - 'tools/**'",
         )
-    )
-    if workflow.count(application_paths) != 2:
-        missing.append("application path filters for pushes and pull requests")
-    release_paths = application_paths.replace("cmake.yml", "release.yml").replace(
-        "\n      - 'tools/**'", ""
     )
     if release_paths not in release_workflow:
         missing.append("release application path filter")
+    release_trigger = release_workflow.split("\njobs:", 1)[0]
+    if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
+        missing.append("production release trigger")
+    if "      - main\n" in release_trigger or "ci/release-pipeline" in release_trigger:
+        missing.append("stale non-production release trigger")
+    if "      - 'v*'" not in release_trigger:
+        missing.append("version tag release trigger")
+    if "  workflow_dispatch:\n" not in release_trigger:
+        missing.append("manual release trigger")
+    publish_job = release_workflow.split("\n  release:\n", 1)[1]
+    publish_condition = publish_job.split("\n    runs-on:", 1)[0]
+    if "refs/heads/production" not in publish_condition or "refs/heads/main" in publish_condition:
+        missing.append("production release publish condition")
+    if 'tag="main-' in release_workflow or 'name="EGTRAIN main build' in release_workflow:
+        missing.append("stale main release metadata")
+    if 'tag="production-' not in release_workflow or 'name="EGTRAIN production build' not in release_workflow:
+        missing.append("production release metadata")
     macos_package_verification = release_workflow.split(
         "      - name: Verify the presentation package\n", 1
     )[1].split("\n      - ", 1)[0]

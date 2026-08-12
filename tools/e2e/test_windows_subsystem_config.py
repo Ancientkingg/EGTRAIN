@@ -24,6 +24,15 @@ def _has_direct_entry_label_equality(text: str) -> bool:
     )
 
 
+def _has_direct_preview_code_equality(text: str) -> bool:
+    normalized = re.sub(r"[\s()]", "", text)
+    return any(
+        re.search(rf"(?:previewCodes{operator}{other}|{other}{operator}previewCodes)", normalized)
+        for other in (r"QStringList(?:\{.*\})?", "expectedPreviewCodes")
+        for operator in ("==", "!=")
+    )
+
+
 def test_preview_snapshot_comparator() -> None:
     for sample in (
         "( ( left . items ) ) == ( right.items )",
@@ -39,6 +48,13 @@ def test_preview_snapshot_comparator() -> None:
         if not _has_direct_entry_label_equality(sample):
             raise SystemExit("entryLabels comparison detector misses reversed or parenthesized operands")
 
+    for sample in (
+        'previewCodes == QStringList({"1723"})',
+        'QStringList({"1723"}) != previewCodes',
+    ):
+        if not _has_direct_preview_code_equality(sample):
+            raise SystemExit("previewCodes comparison detector misses direct QList equality")
+
     source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
     test_source = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_networklegend.cpp").read_text(encoding="utf-8")
     for path, text in (
@@ -47,6 +63,15 @@ def test_preview_snapshot_comparator() -> None:
     ):
         if _has_direct_entry_label_equality(text):
             raise SystemExit(f"{path} still compares entryLabels directly")
+    if _has_direct_preview_code_equality(source):
+        raise SystemExit("MainWindow.cpp still compares previewCodes directly")
+    if not re.search(
+        r"previewCodes\.size\(\)\s*!=\s*expectedPreviewCodes\.size\(\)\s*"
+        r"\|\|\s*!std::equal\(previewCodes\.cbegin\(\),\s*previewCodes\.cend\(\),\s*"
+        r"expectedPreviewCodes\.cbegin\(\)\)",
+        source,
+    ):
+        raise SystemExit("previewCodes comparison must size-check before std::equal")
     if not re.search(
         r"if\s*\(\s*actual\.size\(\)\s*!=\s*expected\.size\(\)\s*"
         r"\|\|\s*!std::equal\(actual\.begin\(\),\s*actual\.end\(\),\s*expected\.begin\(\)\)\s*\)",

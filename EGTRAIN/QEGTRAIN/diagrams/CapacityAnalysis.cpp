@@ -6,12 +6,12 @@
 
 namespace {
 
-bool finite(double value) {
+bool isFiniteValue(double value) {
 	return std::isfinite(value);
 }
 
 bool availableTime(double value) {
-	return finite(value) && value >= 0.0;
+	return isFiniteValue(value) && value >= 0.0;
 }
 
 double scheduledReference(const CapacityAnalysisTrain& train, double profile) {
@@ -46,7 +46,7 @@ CapacityPairRow pairConstraint(const CapacityAnalysisTrain& leader,
 			const double leaderOffset = leaderOccupation.endOccTime - leaderProfile;
 			const double followerOffset = followerOccupation.startOccTime - followerProfile;
 			const double candidate = leaderOffset - followerOffset;
-			if (!finite(candidate))
+			if (!isFiniteValue(candidate))
 				continue;
 			if (!row.hasSharedConstraint || candidate > maximumCandidate + kBlockingTimeToleranceSeconds) {
 				row.governingEvidence.clear();
@@ -62,7 +62,7 @@ CapacityPairRow pairConstraint(const CapacityAnalysisTrain& leader,
 	}
 	if (row.hasSharedConstraint) {
 		row.minimumHeadway = std::max(0.0, maximumCandidate);
-		if (finite(row.scheduledHeadway))
+		if (isFiniteValue(row.scheduledHeadway))
 			row.buffer = row.scheduledHeadway - row.minimumHeadway;
 	}
 	return row;
@@ -147,9 +147,9 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 				if (!pair.hasSharedConstraint)
 					continue;
 				const double candidate = compressedReferences[predecessor] + pair.minimumHeadway;
-				if (!finite(candidate))
+				if (!isFiniteValue(candidate))
 					continue;
-				if (!finite(best) || candidate > best + kBlockingTimeToleranceSeconds) {
+				if (!isFiniteValue(best) || candidate > best + kBlockingTimeToleranceSeconds) {
 					best = candidate;
 					row.governingPredecessors.clear();
 				} else if (std::abs(candidate - best) > kBlockingTimeToleranceSeconds) {
@@ -162,7 +162,7 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 			compressed = best;
 		}
 		row.compressedReference = compressed;
-		row.shift = finite(compressed) && finite(row.scheduledReference)
+		row.shift = isFiniteValue(compressed) && isFiniteValue(row.scheduledReference)
 			? compressed - row.scheduledReference : 0.0;
 		compressedReferences[index] = compressed;
 		result.compression.push_back(std::move(row));
@@ -224,9 +224,9 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 	if (cycleEnd == result.compression.end() || cycleEnd == result.compression.begin())
 		return result;
 	result.cycleEndIdentity = cycleEnd->identity;
-	if (finite(result.compression.front().compressedReference) && finite(cycleEnd->compressedReference)) {
+	if (isFiniteValue(result.compression.front().compressedReference) && isFiniteValue(cycleEnd->compressedReference)) {
 		result.cycleTime = cycleEnd->compressedReference - result.compression.front().compressedReference;
-		if (finite(result.periodSeconds) && result.periodSeconds > 0.0)
+		if (isFiniteValue(result.periodSeconds) && result.periodSeconds > 0.0)
 			result.cyclePercentage = result.cycleTime / result.periodSeconds * 100.0;
 	}
 	return result;

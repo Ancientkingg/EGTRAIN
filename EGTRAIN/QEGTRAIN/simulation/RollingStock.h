@@ -1,13 +1,16 @@
 #ifndef Rolling_Stock_hpp
 #define Rolling_Stock_hpp
+#ifdef signals
+#define EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#undef signals
+#endif
+#include "scene/SceneModel.h"
+#ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#endif
 #include "simulation/Signalling.h"
 #include "util/TrajectoryUtil.h"
-
-#include <set>
-
-struct SceneModel;
-struct SceneServiceOccurrence;
-using SceneRunSelection = std::set<SceneServiceOccurrence>;
 
 // GUI - Virtual Coupling notifications
 #include <vector>
