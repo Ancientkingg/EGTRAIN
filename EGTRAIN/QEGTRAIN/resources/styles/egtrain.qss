@@ -9,6 +9,7 @@ QToolBar {
     border-bottom: 1px solid #c8ced2;
     spacing: 4px;
     padding: 1px 8px;
+    min-height: 44px;
 }
 
 QToolBar::separator {
