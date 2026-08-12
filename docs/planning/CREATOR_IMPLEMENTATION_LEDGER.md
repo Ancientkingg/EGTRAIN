@@ -7,11 +7,10 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 ## Current state
 
 - Planning baseline: `59128cea7a50b2fbc83e147f2e6d9dd6f451c2cf`
-- Current `origin/main`: `cfa2bcc73b8fc1031888cbb9a71c7057a17a7f46`
-- Current milestone: final merged-main review and ledger closeout
-- Current worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-final-review`
-- Current branch: `docs/final-creator-ledger`
-- Current reviewed head: `cfa2bcc73b8fc1031888cbb9a71c7057a17a7f46`
+- Reviewed product `origin/main`: `cfa2bcc73b8fc1031888cbb9a71c7057a17a7f46`
+- Final milestone: complete
+- Ledger closeout worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/creator-final-review`
+- Ledger closeout branch: `docs/final-creator-ledger`
 - Current implementation PR: none
 - Completed milestones and PRs:
   - PR #290, `Bind signals to canonical track sections`, merged as
@@ -966,5 +965,5 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ## Next action
 
-Merge this documentation-only ledger closeout. No application implementation milestone remains. Follow-up work is
-#296, historical parity evidence under #85/#86, and authoritative Assignment data under #181/#182/#228.
+No application implementation milestone remains. Follow-up work is #296, historical parity evidence under
+#85/#86, and authoritative Assignment data under #181/#182/#228.
