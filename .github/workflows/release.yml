@@ -1,23 +1,129 @@
 name: Release
 
 # Builds downloadable applications for macOS, Windows, and Linux.
-# Main pushes publish the three platform packages and six case-study bundles.
-# v* tags publish releases using the tag name. Manual runs test packaging jobs.
+# Production pushes publish the three platform packages and six case-study bundles.
+# v* tags publish releases using the tag name. Manual runs test the full pipeline.
 on:
   push:
     branches:
-      - main
-      - ci/release-pipeline
+      - production
     tags:
       - 'v*'
-    paths:
-      - '.github/workflows/release.yml'
-      - 'CMakeLists.txt'
-      - 'Info.plist.in'
-      - 'EGTRAIN/QEGTRAIN/**'
   workflow_dispatch:
 
 jobs:
+  validation:
+    name: Full validation
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Route temp files to runner.temp
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Install Qt
+        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
+
+      - name: Configure
+        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
+
+      - name: Run headless canonical scene smokes
+        run: python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6
+
+      - name: Run editor smoke
+        run: tools/e2e/editor_smoke.sh
+
+      - name: Run scene roundtrip smoke
+        run: python3 tools/e2e/roundtrip_smoke.py
+
+      - name: Run bundle smoke
+        run: python3 tools/e2e/bundle_smoke.py build/scene_tool build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+
+      - name: Run assignment smoke
+        run: python3 tools/e2e/assignment_smoke.py
+
+      - name: Run incident smoke
+        run: python3 tools/e2e/incident_smoke.py
+
+      - name: Run scene render smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: tools/e2e/scene_render_smoke.sh
+
+      - name: Run track preview smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: tools/e2e/track_preview_smoke.sh
+
+      - name: Run visual smoke
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: tools/e2e/visual_polish_smoke.sh
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-diagnostics
+          path: |
+            tools/e2e/headless_case_*.log
+            ${{ runner.temp }}/ctest.log
+            ${{ runner.temp }}/qegtrain-editor-smoke-e2e.log
+            ${{ runner.temp }}/qegtrain-incident-*.log
+            ${{ runner.temp }}/qegtrain-scene-render-e2e.log
+            ${{ runner.temp }}/qegtrain-scene-render-e2e.png
+            ${{ runner.temp }}/qegtrain-visual-polish-e2e.log
+            ${{ runner.temp }}/qegtrain-visual-polish-e2e.png
+            ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+          if-no-files-found: ignore
+
+  sanitizer:
+    name: Sanitizers
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Route temp files to runner.temp
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Install Qt
+        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DEGTRAIN_BUILD_TESTS=ON
+          -DEGTRAIN_ENABLE_SANITIZERS=ON
+          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        env:
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+          ASAN_OPTIONS: abort_on_error=1:halt_on_error=1
+          QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"
+          QEGTRAIN_GUI_SMOKE_SECONDS: "30"
+        run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-diagnostics
+          path: |
+            ${{ runner.temp }}/ctest-sanitizer.log
+            ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+          if-no-files-found: ignore
+
   package-macos:
     name: Package macOS
     runs-on: macos-latest
@@ -369,8 +475,8 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    needs: [package-macos, package-windows, package-linux]
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')
+    needs: [validation, sanitizer, package-macos, package-windows, package-linux]
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/production') || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -400,8 +506,8 @@ jobs:
             fi
           else
             short_sha="${GITHUB_SHA::7}"
-            tag="main-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
-            name="EGTRAIN main build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT} (${short_sha})"
+            tag="production-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
+            name="EGTRAIN production build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT} (${short_sha})"
             prerelease=true
             make_latest=false
           fi

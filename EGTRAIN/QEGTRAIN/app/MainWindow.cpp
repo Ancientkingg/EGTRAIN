@@ -13769,9 +13769,12 @@ void MainWindow::runEditorSmokeE2E() {
 					if (include->checkState() != Qt::Checked)
 						occurrencePreviewOk = false;
 				}
+				const QStringList expectedPreviewCodes({"1723", "1725", "1727"});
+				if (previewCodes.size() != expectedPreviewCodes.size()
+					|| !std::equal(previewCodes.cbegin(), previewCodes.cend(), expectedPreviewCodes.cbegin()))
+					occurrencePreviewOk = false;
 			}
 			occurrencePreviewOk = occurrencePreviewOk && serviceOccurrences == 3
-				&& previewCodes == QStringList({"1723", "1725", "1727"})
 				&& m_sceneModel.services[1].operatingCode == "1723"
 				&& m_sceneModel.services[1].performancePercent == 95.5
 				&& m_sceneModel.services[1].hasRepeat && m_sceneModel.services[1].headwaySeconds == 1800.0
