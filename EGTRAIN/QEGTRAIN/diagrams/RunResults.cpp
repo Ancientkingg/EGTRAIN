@@ -256,7 +256,7 @@ std::string hashSceneDirectory(const std::string& sceneDirectory) {
 }
 
 RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
-		bool dirty) {
+		bool dirty, const std::string& savedSha256) {
 	RunInputProvenance result;
 	result.kind = savedPath.empty() ? "unsaved" : inputKind;
 	result.path = savedPath.empty() ? std::string() : absolutePath(savedPath).toStdString();
@@ -270,17 +270,32 @@ RunInputProvenance captureSavedInput(const std::string& savedPath, const std::st
 	const SceneHashResult hash = inputKind == "bundle"
 		? hashBundle(QString::fromStdString(result.path))
 		: hashDirectory(QString::fromStdString(result.path));
-	result.sha256 = hash.hash;
+	const bool changedOnDisk = !savedSha256.empty() && hash.hash != savedSha256;
+	result.sha256 = changedOnDisk ? savedSha256 : hash.hash;
 	if (dirty) {
 		result.status = "non-reproducible";
-		result.reason = hash.reason.empty()
-			? "input is dirty"
-			: "input is dirty; " + hash.reason;
+		result.reason = "input is dirty";
+		if (changedOnDisk)
+			result.reason += "; saved input changed since it was loaded or saved";
+		else if (!hash.reason.empty())
+			result.reason += "; " + hash.reason;
+		return result;
+	}
+	if (changedOnDisk) {
+		result.status = "non-reproducible";
+		result.reason = hash.hash.empty()
+			? hash.reason
+			: "saved input changed since it was loaded or saved";
 		return result;
 	}
 	if (hash.hash.empty()) {
 		result.status = "non-reproducible";
 		result.reason = hash.reason.empty() ? "saved input is missing or unreadable" : hash.reason;
+		return result;
+	}
+	if (savedSha256.empty()) {
+		result.status = "non-reproducible";
+		result.reason = "loaded input snapshot could not be verified";
 		return result;
 	}
 	result.reproducible = true;
@@ -290,14 +305,20 @@ RunInputProvenance captureSavedInput(const std::string& savedPath, const std::st
 
 bool writeRunProvenanceSidecar(const std::string& artifactPath, const std::string& artifactKind,
 		const RunProvenance& run) {
-	return writeSidecar(artifactPath, artifactKind, runJson(run));
+	if (writeSidecar(artifactPath, artifactKind, runJson(run)))
+		return true;
+	QFile::remove(QString::fromStdString(artifactPath));
+	return false;
 }
 
 bool writeDelayProvenanceSidecar(const std::string& artifactPath, const std::string& artifactKind,
 		const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
 	const QJsonObject baseline = runJson(baselineRun);
 	const QJsonObject scenario = runJson(scenarioRun);
-	return writeSidecar(artifactPath, artifactKind, {}, &baseline, &scenario);
+	if (writeSidecar(artifactPath, artifactKind, {}, &baseline, &scenario))
+		return true;
+	QFile::remove(QString::fromStdString(artifactPath));
+	return false;
 }
 
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains) {
