@@ -127,6 +127,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   begins without loading a bundled default, triggers New Case, and authors through existing actions and widgets.
   Private model reads may support assertions; private model writes, direct writers, runtime tokens, Cumpari input,
   hidden case data, and magic case names are prohibited.
+- The seventh-case run exposed undefined legacy switch parsing that called `strtok` on live
+  `std::string::c_str()` storage. Hyphens and the compound separator were replaced with NUL bytes in runtime
+  section IDs and result CSVs. PR 6 replaces every such parser in signalling with one non-mutating parser for
+  the established `@block@-coordinate/@block@-coordinate` grammar and uses existing connected-track metadata
+  for direction. It does not add a new identity or sanitize exports.
 
 ## Compatibility decisions
 
@@ -206,6 +211,12 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 6 captures immutable case, schema, saved-input hash/status, scenario, effective settings, modes, and exact
   staged service occurrences after native preparation. Existing CSV schemas remain unchanged; CSV and PNG
   exports receive atomic `.provenance.json` sidecars, and delay comparison sidecars retain both runs.
+- PR 6 adds one CTest-registered `creator_acceptance_smoke.sh` around an in-application public-widget workflow.
+  It starts with New Case, authors and corrects an independent switched case, saves and reopens both persistence
+  forms, runs baseline/entrance-delay/incident scenarios, selects individual occurrences, opens and exports
+  trajectory, timetable, blocking-time, capacity, and compressed results, verifies provenance, and proves a
+  later visible edit invalidates prior results. The wrapper validates both saved forms and parses the resulting
+  canonical data and exports, including complete block occupations for both selected occurrences.
 
 ## Verification record
 
@@ -530,6 +541,17 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   The strengthened CSV smoke then passed alone in 6.40 seconds and verified Paimpol's exact case/schema,
   directory snapshot path and SHA-256, clean reproducible status, baseline scenario, effective run settings,
   modes, and selected occurrence records for every emitted artifact.
+- The first complete seventh-case run passed every in-application marker and all folder, bundle, native-run,
+  result, capacity, and stale-result assertions. Its strict wrapper then exposed embedded NUL bytes in exported
+  connection-derived section IDs instead of accepting or stripping them.
+- After the shared signalling parser correction, `test_scenebuilder` and
+  `test_creator_acceptance_smoke` passed 2 of 2 in 5.99 seconds. A direct rerun of
+  `tools/e2e/creator_acceptance_smoke.sh` also passed. The wrapper's standard CSV parser now reads blocking and
+  capacity exports without NUL handling and proves complete actual occupations for occurrences 1 and 2.
+- The final pre-review acceptance wrapper derives selected train IDs from trajectory service/occurrence columns
+  instead of assuming the runtime occurrence-ID format. It also checks exact authored curvature, gradient, and
+  speed-limit values after both persistence forms. The direct smoke passed, and the focused two-test gate passed
+  2 of 2 in 4.43 seconds.
 
 ## Review record
 
@@ -817,10 +839,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 5 are complete. PR 6 export provenance is implemented and focused tests pass. The remaining
-  blocker is the public UI-only seventh-case acceptance proof and its complete regression gate.
+- PRs 1 through 5 are complete. PR 6 provenance and the public UI-only seventh-case implementation pass their
+  focused gates. Independent correctness review, Ponytail review, the full local regression gate, CI, and the
+  final merged-main completeness review remain before the verdict can change.
 
 ## Next action
 
-Commit the verified provenance checkpoint, then add the public seventh-case creator smoke from a blank process
-through New Case, public folder/bundle persistence, native runs, result exports, and stale-result invalidation.
+Commit the verified seventh-case implementation, run a fresh independent correctness review of the actual diff,
+fix every confirmed finding, then run the fresh Ponytail review and complete regression gate before publishing.
