@@ -128,6 +128,7 @@ fi
 
 python3 - "$FOLDER" "$UNPACKED" "$BUNDLE" "$EXPORTS" <<'PY'
 import csv
+import hashlib
 import json
 import math
 import re
@@ -421,6 +422,8 @@ def check_input(run, scenario, bundle_path):
            "provenance input is not reproducible")
     expect(re.fullmatch(r"[0-9a-f]{64}", input_data["sha256"] or "") is not None,
            "provenance input hash is not a 64-character lowercase SHA-256")
+    expect(input_data["sha256"] == hashlib.sha256(bundle_path.read_bytes()).hexdigest(),
+           "provenance input hash does not match the exact saved bundle bytes")
     occurrences = {(item["service_id"], item["occurrence"])
                    for item in run["selected_occurrences"]}
     expect(occurrences == EXPECTED_OCCURRENCES,
