@@ -43,6 +43,26 @@ bool parseConnectedSectionIdentity(const std::string& id, ConnectedSectionIdenti
 				result.secondCoordinate);
 }
 
+bool resolveDoubleSwitchSections(const Section& current, const Section& previous,
+		const Section* sections[2], ConnectedSectionIdentity identities[2],
+		Section* branches[2][2]) {
+	sections[0] = &current;
+	sections[1] = &previous;
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		if (!parseConnectedSectionIdentity(sections[switchIndex]->ID, identities[switchIndex]))
+			return false;
+		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
+			if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].firstBlockId)
+				branches[switchIndex][0] = &::signalling_block_sections[blockIndex];
+			else if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].secondBlockId)
+				branches[switchIndex][1] = &::signalling_block_sections[blockIndex];
+		}
+		if (!branches[switchIndex][0] || !branches[switchIndex][1])
+			return false;
+	}
+	return true;
+}
+
 } // namespace
 
 
@@ -3399,26 +3419,11 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 
 // Function to occupy a double switch
 void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
-	// prevent cases not crossing the full double switch (e.g. region jumps)
-	if (BLS.ID.find('/') == std::string::npos || BLSPrev.ID.find('/') == std::string::npos) {
-		return;
-	}
-
-	const Section* doubleSwitchBS[2] = {&BLS, &BLSPrev};
+	const Section* doubleSwitchBS[2] = {};
 	ConnectedSectionIdentity identities[2];
 	Section* branchSections[2][2] = {};
-	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
-		if (!parseConnectedSectionIdentity(doubleSwitchBS[switchIndex]->ID, identities[switchIndex]))
-			return;
-		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
-			if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].firstBlockId)
-				branchSections[switchIndex][0] = &::signalling_block_sections[blockIndex];
-			else if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].secondBlockId)
-				branchSections[switchIndex][1] = &::signalling_block_sections[blockIndex];
-		}
-		if (!branchSections[switchIndex][0] || !branchSections[switchIndex][1])
-			return;
-	}
+	if (!resolveDoubleSwitchSections(BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
+		return;
 
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
 		const auto& BLS = *doubleSwitchBS[switchIndex];
@@ -3522,14 +3527,14 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 
 // Function to release a double switch
 void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
-	// prevent cases not crossing the full double switch (e.g. region jumps)
-	if (BLS.ID.find('/') == std::string::npos || BLSPrev.ID.find('/') == std::string::npos) {
+	const Section* doubleSwitchBS[2] = {};
+	ConnectedSectionIdentity identities[2];
+	Section* branchSections[2][2] = {};
+	if (!resolveDoubleSwitchSections(BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
 		return;
-	}
 
-	std::list<const Section*> doubleSwitchBS = {&BLS, &BLSPrev};
-	for (auto it = doubleSwitchBS.begin(); it != doubleSwitchBS.end(); ++it) {
-		const auto& BLS = **it;
+	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
+		const auto& BLS = *doubleSwitchBS[switchIndex];
 
 		string* IDToAdd;
 		// Load the BLS ID and the ones of the connected Blocks in the BlocksConnected list when the former has not a diverging switch
@@ -3561,11 +3566,7 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 			bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
 			IDToAdd[0] = BLS.ID;
 			IsInBlocksConnected[0] = false; // The first element of the array is the ID of BLS
-			ConnectedSectionIdentity identity;
-			if (!parseConnectedSectionIdentity(BLS.ID, identity)) {
-				delete[] IDToAdd;
-				continue;
-			}
+			const ConnectedSectionIdentity& identity = identities[switchIndex];
 			// Adding ID of Connected Block Sections to the lists BlocksOccupied and BlocksConnected
 			IDToAdd[1] = identity.firstBlockId;
 			IsInBlocksConnected[1] = false;
@@ -3585,26 +3586,9 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 					BlocksConnected.push_back(IDToAdd[i]);
 			}
 
-			// find signalling_block_sections from other branches
-			Section branchBS1, branchBS2;
-			bool branch1 = false, branch2 = false;
-			for (int b = 0; b < Blocks; b++) {
-				if (::signalling_block_sections[b].ID == identity.firstBlockId) {
-					branchBS1 = ::signalling_block_sections[b];
-					branch1 = true;
-				} else if (::signalling_block_sections[b].ID == identity.secondBlockId) {
-					branchBS2 = ::signalling_block_sections[b];
-					branch2 = true;
-				}
-				// found both signalling_block_sections
-				if (branch1 && branch2) {
-					break;
-				}
-			}
-
 			// release compound signalling_block_sections connected to single signalling_block_sections (other branches of double switch)
-			releaseLastBlockAndConnected(branchBS1);
-			releaseLastBlockAndConnected(branchBS2);
+			releaseLastBlockAndConnected(*branchSections[switchIndex][0]);
+			releaseLastBlockAndConnected(*branchSections[switchIndex][1]);
 		}
 		delete[] IDToAdd;
 	}

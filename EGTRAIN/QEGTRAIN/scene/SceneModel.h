@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 struct SceneSimulationSettings {
@@ -321,7 +322,17 @@ const std::vector<SceneIncident>& defaultScenarioIncidents(const SceneModel& sce
 struct SceneLoadResult {
 	SceneModel scene; // partial on structural failure
 	std::vector<SceneDiagnostic> diagnostics;
+	std::string inputSnapshot;
 };
+
+struct SceneInputSnapshot {
+	std::string bytes;
+	std::string reason;
+};
+
+std::string buildSceneDirectorySnapshot(
+		const std::vector<std::pair<std::string, std::string>>& files);
+SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir);
 
 SceneLoadResult loadScene(const std::string& sceneDir);
 void refreshLoadedDataSummary(SceneModel& scene);
