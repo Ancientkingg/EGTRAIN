@@ -135,8 +135,8 @@ The visual and render smoke artifacts include:
 - `main` is the validation branch. Every push and pull request builds the
   project and runs CTest, including documentation-only changes.
 - `production` is the release branch. Its full pipeline packages macOS,
-  Windows, and Linux applications, validates the scene bundles, and publishes
-  release assets.
+  Windows, and Linux applications, runs CTest, sanitizers, and the complete
+  smoke suite, validates the scene bundles, and publishes release assets.
 - `v*` tags still publish versioned releases, and `workflow_dispatch` remains
   available for a manual release run.
 
