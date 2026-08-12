@@ -96,6 +96,7 @@
 QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
+class DiagramWindow;
 
 // custom GUI files
 #include "graphics/NetworkView.h"
@@ -361,6 +362,10 @@ private:
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
 	bool m_editorE2eFinished = false;
+	bool m_creatorAcceptanceFinished = false;
+	int m_creatorAcceptancePhase = 0;
+	int m_creatorAcceptancePolls = 0;
+	QPointer<DiagramWindow> m_creatorBaselineDiagram;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, QGraphicsSimpleTextItem*> m_trainSpeedLabels; // per-train speed overlay
 	QMap<int, TrainBadgeItem*> m_trainBadges;
@@ -829,6 +834,7 @@ private:
 	void runVisualPolishE2E();
 	void runStationOverlayE2E();
 	void runEditorSmokeE2E();
+	void runCreatorAcceptanceE2E();
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
 	void runLegacyImportE2E();
