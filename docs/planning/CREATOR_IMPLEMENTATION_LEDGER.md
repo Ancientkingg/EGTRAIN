@@ -574,6 +574,8 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   passed 7 of 7 in 12.40 seconds. Its direct `test_runresults` regression passed 1 of 1 in 0.52 seconds.
 - The complete PR 6 configure and build passed, and CTest passed 44 of 44 in 145.38 seconds at `3baa718` before
   the subsequent scenario-less compatibility correction.
+- After the PR 6 Ponytail reductions, the affected target built and the public creator smoke passed in 5.20
+  seconds. The full seven-test focused gate then passed 7 of 7 in 11.24 seconds, and `git diff --check` passed.
 
 ## Review record
 
@@ -603,6 +605,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   found one P2 compatibility regression: `readSceneDirectorySnapshot` required a scenario file even though
   `loadScene` accepts neither file and synthesizes the baseline scenario. The reviewer reproduced a clean
   Paimpol-derived directory being labeled non-reproducible after removing only `scenarios.json`.
+- The final fresh correctness review found no P0, P1, or P2 issue at `08c9830`. It independently passed the four
+  snapshot/writer/bundle/builder tests and both public CSV/creator smokes, accepted a direct six-file
+  scenario-less directory, rejected a present directory-valued passenger input, and approved the diff.
 
 - The fresh post-Ponytail correctness review found no P0, P1, or P2 issue at `538ac72`. It traced native
   passenger preflight and no-mutation behavior, importer station resolution, occurrence filtering, passenger
@@ -877,6 +882,9 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
   predicate, remove the duplicate occurrence `editingFinished` connection, and remove repeated passenger refreshes.
   The refresh suggestion was rejected because pending Save suppresses nested validation, making those explicit
   refreshes the only UI update for ID and related focused commits.
+- The PR 6 Ponytail review identified four possible reductions: share duplicate infrastructure-driving helpers,
+  keep only the final sequential acceptance marker in the shell gate, let the shell wrapper be the sole export
+  artifact verifier, and replace DiagramWindow's injected paired writer with stored provenance.
 
 ### Simplifications made
 
@@ -893,6 +901,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 - PR 5 removes post-preflight station/window checks from native passenger publication, uses `knownStation` for
   importer resolution, and relies on `valueChanged` plus the pending Save flush for passenger occurrence edits.
   These reductions remove 25 net lines without changing diagnostics or public behavior.
+- PR 6 now shares one infrastructure editor helper set across its adjacent creator phases, checks one final marker
+  after the sequential state machine, and verifies artifacts and sidecars once in the wrapper that also parses
+  their contents. This removes 109 net lines while retaining public control driving and exact serialized/output
+  assertions. DiagramWindow keeps its injected paired writer because storing provenance directly would pull
+  `RunResults.cpp` and its simulation dependencies into the lightweight diagram unit target.
 
 ## Blockers
 
@@ -902,12 +915,11 @@ Make EGTRAIN creator-complete for an independent seventh network. A user with au
 
 ### Unresolved application blockers
 
-- PRs 1 through 5 are complete. PR 6 provenance and the public UI-only seventh-case implementation pass their
-  focused gates. The scenario-less compatibility finding is corrected and passes focused regressions. One fresh
-  review of the exact corrected commit, Ponytail review, the final local regression gate, CI, and the merged-main
+- PRs 1 through 5 are complete. PR 6 correctness and Ponytail gates are clean, and the simplified creator path
+  passes the focused regressions. The final complete local regression gate, CI, merge, and merged-main
   completeness review remain before the verdict can change.
 
 ## Next action
 
-Commit and push the scenario-less provenance correction, run a fresh independent review of the exact corrected
-diff, fix every confirmed finding, then run the Ponytail review and complete regression gate before merge.
+Commit and push the PR 6 Ponytail reductions, run a fresh correctness check of the simplified diff, then complete
+the final regression, CI, merge, and merged-main completeness gates.

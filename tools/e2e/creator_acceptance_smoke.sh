@@ -89,33 +89,8 @@ PY
 APP_EXIT=$?
 set -e
 
-required_markers=(
-	E2E_CREATOR_NEW_CASE_OK
-	E2E_CREATOR_INFRASTRUCTURE_OK
-	E2E_CREATOR_STATIONS_SIGNALLING_OK
-	E2E_CREATOR_ROLLING_STOCK_OK
-	E2E_CREATOR_SERVICE_OK
-	E2E_CREATOR_SCENARIOS_OK
-	E2E_CREATOR_PASSENGER_OK
-	E2E_CREATOR_FOLDER_ROUNDTRIP_OK
-	E2E_CREATOR_BUNDLE_ROUNDTRIP_OK
-	E2E_CREATOR_BASELINE_RUN_OK
-	E2E_CREATOR_ENTRANCE_RUN_OK
-	E2E_CREATOR_INCIDENT_RUN_OK
-	E2E_CREATOR_EXPORTS_OK
-	E2E_CREATOR_ACCEPTANCE_OK
-)
-missing_markers=()
-for marker in "${required_markers[@]}"; do
-	if ! grep -Fqx "$marker" "$LOG"; then
-		missing_markers+=("$marker")
-	fi
-done
-if [[ "$APP_EXIT" -ne 0 || "${#missing_markers[@]}" -ne 0 ]]; then
+if [[ "$APP_EXIT" -ne 0 ]] || ! grep -Fqx E2E_CREATOR_ACCEPTANCE_OK "$LOG"; then
 	echo "creator acceptance smoke failed (app exit $APP_EXIT)" >&2
-	if [[ "${#missing_markers[@]}" -gt 0 ]]; then
-		echo "missing markers: ${missing_markers[*]}" >&2
-	fi
 	echo "--- log tail ---" >&2
 	tail -40 "$LOG" >&2 || true
 	exit 1
