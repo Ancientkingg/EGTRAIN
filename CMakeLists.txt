@@ -690,6 +690,9 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_runtime_memory_safety PROPERTIES
 		ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 		TIMEOUT 240)
+	add_test(NAME test_simulation_determinism
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/simulation_determinism_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_simulation_determinism PROPERTIES TIMEOUT 300)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	# Release completes in seconds; the ceiling exists for the instrumented
