@@ -6,7 +6,7 @@
 
 | Milestone | Findings | Status | Issue | Pull request | Merge |
 |---|---|---|---|---|---|
-| 1. Runtime memory safety | G-01, G-05, G-06; P-03 | In progress | [#306](https://github.com/Ancientkingg/EGTRAIN/issues/306) | Pending | Pending |
+| 1. Runtime memory safety | G-01, G-05, G-06; P-03 | In review | [#306](https://github.com/Ancientkingg/EGTRAIN/issues/306) | [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307) | Pending |
 | 2. Deterministic simulation state | G-02; P-04 | Blocked on milestone 1 | Pending | Pending | Pending |
 | 3. External communication lifecycle | G-03, G-07; P-05 | Blocked on milestone 2 | Pending | Pending | Pending |
 | 4. Result integrity | G-04; P-02 | Blocked on milestone 3 | Pending | Pending | Pending |
@@ -28,7 +28,7 @@
 - Ponytail findings: accepted the `std::find` replacement for a manual membership loop and the single guarded station-delay log expression; rejected replacing the required bounded +1/+2 loop with duplicated comparisons because P-03 explicitly requires the loop
 - Simplifications made: consolidated duplicated +1/+2 station-area lookahead into one bounded loop, removed the manual occupancy flag/scan, and emitted the guarded station-delay log through one expression
 - Commit SHA: `f1a7e581f9ae618d98818210756276c4a423a155`
-- PR number and URL: pending
+- PR number and URL: [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307)
 - CI status: pending
 - Merge SHA: pending
 - Remaining blockers: milestone 1 remains unmerged; G-02 continues to block release after this milestone
@@ -48,3 +48,4 @@
 - 2026-08-19: Final independent re-review found no remaining issues. Final full CTest passed 46/46; six-case native headless and six-case roundtrip both passed.
 - 2026-08-19: Refreshed the local code knowledge graph after the code and ledger changes.
 - 2026-08-19: Committed the verified implementation as `f1a7e581f9ae618d98818210756276c4a423a155`.
+- 2026-08-19: Pushed `fix/runtime-memory-safety` and opened pull request [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307); required CI is pending.
