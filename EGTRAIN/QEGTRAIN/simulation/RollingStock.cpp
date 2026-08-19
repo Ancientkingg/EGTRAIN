@@ -2195,6 +2195,9 @@ void Set_RespectOrder_And_Index_OrderList_Upgraded_Improved_With_JunctionType() 
 
 // check train arrival/departure at/from destination/origin
 void Train::checkTrainArrDep(int trainIdx, int t) {
+	if (numStations <= 0 || Stations == nullptr)
+		return;
+
 	// add X to last station if needed (initialized as 0 in the beginning)
 	if (Stations[numStations - 1].X == 0) {
 		// find station position
@@ -2538,99 +2541,93 @@ void protectStationAreas(int i) {
 		// cout << ">>>>>>>>>" << regional_train[k].trainDescription << "is OutOfSimulation" << regional_train[k].OutOfSimulation << endl;
 		if (!regional_train[k].OutOfSimulation) {
 			if ((i >= regional_train[k].departure_time) && regional_train[k].CanEnter) {
+				if (timestep <= 0 || i < 0 || i >= static_cast<int>(regional_train[k].instant_spatial_position.size()) ||
+					regional_train[k].indexOfRoute < 0 || regional_train[k].indexOfRoute >= static_cast<int>(train_route.size()))
+					continue;
+				const int delayedIndex = i - static_cast<int>(S_delay / timestep);
+				if (delayedIndex < 0 || delayedIndex >= static_cast<int>(regional_train[k].instant_spatial_position.size()))
+					continue;
+				const Route& route = train_route[regional_train[k].indexOfRoute];
+				if (route.N_Block_Sections <= 0)
+					continue;
+
 				// find signalling_block_sections occupied by head of train
-				int hHead = 0; // hTail = 0;
-				for (int h = 0; h < train_route[regional_train[k].indexOfRoute].N_Block_Sections; h++) {
-					if ((regional_train[k].instant_spatial_position[i - (int)(S_delay / timestep)] < train_route[regional_train[k].indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000) && (regional_train[k].instant_spatial_position[i - (int)(S_delay / timestep)] >= train_route[regional_train[k].indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
+				int hHead = -1;
+				for (int h = 0; h < route.N_Block_Sections; h++) {
+					if ((regional_train[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000) &&
+						(regional_train[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
 						hHead = h;
 						break;
 					}
 				}
+				if (hHead < 0)
+					continue;
+
+				const std::string stationName = regional_train[k].numStations > 0 && regional_train[k].Stations != nullptr
+					? regional_train[k].Stations[regional_train[k].numStations - 1].stationName
+					: std::string();
+				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
+					if (stationName != "Alm" && stationName != "Asd" && stationName != "Asdz")
+						return false;
+					if (boundary.exit)
+						return false;
+					for (int tr = 0; tr < numRegions; tr++) {
+						if (regional_train[tr].ID == regional_train[k].ID && regional_train[tr].type == regional_train[k].type)
+							continue;
+						if (regional_train[tr].numStations <= 0 || regional_train[tr].Stations == nullptr)
+							continue;
+						if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == stationName &&
+							regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform)
+							return true;
+
+						// wait for trains leaving the station to prevent deadlocks
+						if (regional_train[tr].Stations[0].stationName != stationName ||
+							regional_train[tr].indexOfRoute < 0 ||
+							regional_train[tr].indexOfRoute >= static_cast<int>(train_route.size()) ||
+							i >= static_cast<int>(regional_train[tr].instant_spatial_position.size()))
+							continue;
+						if (train_route[regional_train[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
+							// if the other train is not booking a platform, it is not at the platform - enough to check position
+							if (!route.reversed_direction && regional_train[tr].numStations > 1 &&
+								regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i))
+								return true;
+							if (route.reversed_direction && regional_train[tr].numStations > 1 &&
+								regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i))
+								return true;
+						}
+					}
+					return false;
+				};
 
 				// occupy station interlocking area
 				for (int s = 0; s < stationBoundarySections.size(); s++) {
-					// check if section ahead of train is entrance of station
-					if (stationBoundarySections[s].entrance->ID == train_route[regional_train[k].indexOfRoute].sequence_of_block_sections[hHead + 1].ID) {
-						// check if plaform is booked or train leaving
-						bool platformBooked = false;
-						std::vector<std::string> stationsToProtect = {"Alm", "Asd", "Asdz"};
-						if (std::find(stationsToProtect.begin(), stationsToProtect.end(), regional_train[k].Stations[regional_train[k].numStations - 1].stationName) != stationsToProtect.end()) {
-							if (!stationBoundarySections[s].exit) {
-								for (int tr = 0; tr < numRegions; tr++) {
-									if (regional_train[tr].ID == regional_train[k].ID && regional_train[tr].type == regional_train[k].type) {
-										continue;
-									}
-									if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == regional_train[k].Stations[regional_train[k].numStations - 1].stationName && regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform) {
-										platformBooked = true;
-										break;
-									}
-									// wait for trains leaving the station to prevent deadlocks
-									if (regional_train[tr].Stations[0].stationName == regional_train[k].Stations[regional_train[k].numStations - 1].stationName) {
-										if (train_route[regional_train[tr].indexOfRoute].reversed_direction != train_route[regional_train[k].indexOfRoute].reversed_direction) {
-											// if the other train is not booking a platform, it is not at the platform - enough to check position
-											if (train_route[regional_train[k].indexOfRoute].reversed_direction == false && regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i) && regional_train[tr].numStations > 1) {
-												platformBooked = true;
-												break;
-											} else if (train_route[regional_train[k].indexOfRoute].reversed_direction == true && regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i) && regional_train[tr].numStations > 1) {
-												platformBooked = true;
-												break;
-											}
-										}
-									}
-								}
+					if (!stationBoundarySections[s].entrance)
+						continue;
+					bool stationAreaHandled = false;
+					for (int offset : {1, 2}) {
+						if (hHead + offset >= route.N_Block_Sections ||
+							stationBoundarySections[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
+							continue;
+
+						if (offset == 2) {
+							// do not protect if section before entrance is occupied by another train, otherwise it will be blocked
+							if (std::find(BlocksOccupied.begin(), BlocksOccupied.end(),
+									route.sequence_of_block_sections[hHead + 1].ID) != BlocksOccupied.end()) {
+								stationAreaHandled = true;
+								break; // preserve the occupied-intermediate-section exception
 							}
 						}
 
-						stationBoundarySections[s].protectEntrance(hHead + 1, regional_train[k].indexOfRoute, platformBooked);
-						break; // train occupies at most one station area
+						stationBoundarySections[s].protectEntrance(hHead + offset, regional_train[k].indexOfRoute,
+							platformBookedFor(stationBoundarySections[s]));
+						stationAreaHandled = true;
+						break;
 					}
-					// check if section ahead of train is section before entrance of station
-					else if (stationBoundarySections[s].entrance->ID == train_route[regional_train[k].indexOfRoute].sequence_of_block_sections[hHead + 2].ID) {
-						// do not protect if section before entrance is occupied by another train, otherwise it will be blocked
-						bool needToBlock = true;
-						for (auto occ = BlocksOccupied.begin(); occ != BlocksOccupied.end(); ++occ) {
-							if (train_route[regional_train[k].indexOfRoute].sequence_of_block_sections[hHead + 1].ID == *occ) {
-								needToBlock = false;
-								break;
-							}
-						}
-						if (needToBlock) {
-							// check if plaform is booked
-							bool platformBooked = false;
-							std::vector<std::string> stationsToProtect = {"Alm", "Asd", "Asdz"};
-							if (std::find(stationsToProtect.begin(), stationsToProtect.end(), regional_train[k].Stations[regional_train[k].numStations - 1].stationName) != stationsToProtect.end()) {
-								if (!stationBoundarySections[s].exit) {
-									for (int tr = 0; tr < numRegions; tr++) {
-										if (regional_train[tr].ID == regional_train[k].ID && regional_train[tr].type == regional_train[k].type) {
-											continue;
-										}
-										if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == regional_train[k].Stations[regional_train[k].numStations - 1].stationName && regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform) {
-											platformBooked = true;
-											break;
-										}
-										// wait for trains leaving the station to prevent deadlocks
-										if (regional_train[tr].Stations[0].stationName == regional_train[k].Stations[regional_train[k].numStations - 1].stationName) {
-											if (train_route[regional_train[tr].indexOfRoute].reversed_direction != train_route[regional_train[k].indexOfRoute].reversed_direction) {
-												// if the other train is not booking a platform, it is not at the platform - enough to check position
-												if (train_route[regional_train[k].indexOfRoute].reversed_direction == false && regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i) && regional_train[tr].numStations > 1) {
-													platformBooked = true;
-													break;
-												} else if (train_route[regional_train[k].indexOfRoute].reversed_direction == true && regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i) && regional_train[tr].numStations > 1) {
-													platformBooked = true;
-													break;
-												}
-											}
-										}
-									}
-								}
-							}
+					if (stationAreaHandled)
+						break; // train occupies at most one station area
 
-							stationBoundarySections[s].protectEntrance(hHead + 2, regional_train[k].indexOfRoute, platformBooked);
-						}
-						break; // train occupies at most one station area
-					}
 					// check if train entered station area
-					else if (stationBoundarySections[s].entrance->ID == train_route[regional_train[k].indexOfRoute].sequence_of_block_sections[hHead].ID) {
+					if (stationBoundarySections[s].entrance->ID == route.sequence_of_block_sections[hHead].ID) {
 						// FOR NOW, IGNORE AREAS WITH EXIT SECTION
 						if (stationBoundarySections[s].exit) {
 							continue;
