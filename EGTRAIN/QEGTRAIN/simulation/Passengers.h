@@ -3,6 +3,7 @@
 
 #include "simulation/Infrastructure.h"
 #include "simulation/RollingStock.h"
+#include <nlohmann/json.hpp>
 
 using namespace std;
 
@@ -90,5 +91,7 @@ extern int numAllDailyPassengers;		   // This the overall number of passengers w
 void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger> ALLPAX, string MainFolder);
 
 void printPassengerTotalJourneyDelay(list<Passenger> ALLPAX, string MainFolder);
+
+nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timestep);
 
 #endif
