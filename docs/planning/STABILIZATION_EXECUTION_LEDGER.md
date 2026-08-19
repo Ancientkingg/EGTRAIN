@@ -64,7 +64,7 @@
 - Fixes made from review: none required
 - Ponytail findings: accepted removal of redundant CMake environment setup, an unnecessary nested working directory, and vestigial commented OpenMP scaffolding; declined P-04 because the only existing matching record belongs to the GUI layer and a new shared type would add an abstraction after serialization removed the practical need
 - Simplifications made: removed the live OpenMP directive, its redundant critical section, stale multithreading comments, duplicate offscreen environment setup, and one unnecessary test-directory level
-- Commit SHA: pending
+- Commit SHA: `61b0fc3313fbd72cddba0a9d71c2610751840672`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
@@ -84,3 +84,4 @@
 - 2026-08-19: Focused ASan/UBSan CTest passed 3/3 and all six committed scene roundtrips passed.
 - 2026-08-19: Six-case native headless smoke passed, including the canonical Copenhagen and Milano-Brescia runtime baselines.
 - 2026-08-19: Refreshed the local code knowledge graph after the code and ledger changes.
+- 2026-08-19: Committed the verified implementation as `61b0fc3313fbd72cddba0a9d71c2610751840672`.
