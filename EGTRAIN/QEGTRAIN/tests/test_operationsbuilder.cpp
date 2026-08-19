@@ -688,5 +688,70 @@ int main() {
 	}
 	ok &= expect(fullPerformanceEnd >= 0 && reducedPerformanceEnd > fullPerformanceEnd,
 			"reduced performance delays native route completion");
+
+	const auto safetyInfrastructure = buildInfrastructureAndSignallingFromScene(trajectoryPerformance);
+	const auto safetyOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
+	ok &= expect(!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1,
+			"runtime safety fixture builds one zero-stop through service");
+	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1) {
+		Train& through = regional_train[0];
+		through.departure_time = 0.0;
+		through.checkTrainArrDep(0, 0);
+		Stations finalProbe;
+		finalProbe.stationName = "Final_Station";
+		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
+		calculateDelayStatsAtStation(finalProbe);
+		const bool delayUnavailable = finalProbe.N_Stopped_Trains == 0
+				&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
+				&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
+				&& finalProbe.Max_Cons_Delay == -1.0;
+		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
+		calculatePosAndNegDelayStatsAtStation(finalProbe);
+		ok &= expect(through.numStations == 0 && delayUnavailable && finalProbe.N_Stopped_Trains == 0
+				&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
+				&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
+				&& finalProbe.Max_Cons_Delay == -1.0,
+				"zero-stop through service has unavailable final-station statistics");
+
+		through.trajectoryComputationIncludingMovingBlock(0, signalCode1, signalCode2, signalCode3);
+		ok &= expect(!through.CanEnter && through.instant_train_speed[0] == 0.0
+				&& through.instant_spatial_position[0] == through.Start_Node_X * 1000,
+				"time zero initializes the live trajectory without entering or advancing");
+
+		Route& route = train_route[through.indexOfRoute];
+		S_delay = 0.0;
+		through.CanEnter = true;
+		through.OutOfSimulation = false;
+		const int nextHead = route.N_Block_Sections - 2;
+		const Section& nextSection = route.sequence_of_block_sections[nextHead];
+		through.instant_spatial_position[1] =
+				(nextSection.start_node.X + nextSection.end_node.X) * 500.0;
+		stationBoundarySections.clear();
+		stationBoundarySections.emplace_back(&route.sequence_of_block_sections[nextHead + 1],
+				route.reversed_direction, nullptr);
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
+		protectStationAreas(1);
+		ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(),
+				route.sequence_of_block_sections[nextHead + 1].ID) != BlocksConnected.end(),
+				"zero-stop train keeps station-boundary route protection without stop indexing");
+
+		const int routeCapacity = static_cast<int>(std::size(route.sequence_of_block_sections));
+		ok &= expect(route.N_Block_Sections < routeCapacity, "route-tail fixture has an unused array slot");
+		if (route.N_Block_Sections < routeCapacity) {
+			Section& outOfRoute = route.sequence_of_block_sections[route.N_Block_Sections];
+			outOfRoute.ID = "out.of.route";
+			const Section& tail = route.sequence_of_block_sections[route.N_Block_Sections - 1];
+			through.instant_spatial_position[1] = (tail.start_node.X + tail.end_node.X) * 500.0;
+			stationBoundarySections.clear();
+			stationBoundarySections.emplace_back(&outOfRoute, route.reversed_direction, nullptr);
+			BlocksOccupied.clear();
+			BlocksConnected.clear();
+			protectStationAreas(1);
+			ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(), outOfRoute.ID)
+					== BlocksConnected.end(),
+					"station lookahead ignores sections beyond the actual route tail");
+		}
+	}
 	return ok ? 0 : 1;
 }

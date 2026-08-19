@@ -98,6 +98,8 @@ void calculateDelayStatsAtStation(Stations& S) {
 		}
 	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
 		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
+			if (regional_train[j].numStations <= 0)
+				continue;
 			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
 				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
 				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
@@ -111,6 +113,13 @@ void calculateDelayStatsAtStation(Stations& S) {
 				S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
 			}
 		}
+	}
+	if (TrainDelay.empty()) {
+		S.Av_Arrival_Delay = S.Std_Arrival_Delay = S.Tot_Consec_Delay = -1;
+		S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = -1;
+		S.Max_TotalDelay = S.Max_Cons_Delay = -1;
+		S.totalArrivalDelay = 0;
+		return;
 	}
 	// Calculate the Total and the Average Arrival Delay at station instant_spatial_position
 	for (int r = 0; r < S.N_Stopped_Trains; r++) {
@@ -176,6 +185,8 @@ void calculatePosAndNegDelayStatsAtStation(Stations& S) {
 		}
 	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
 		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
+			if (regional_train[j].numStations <= 0)
+				continue;
 			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
 				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
 				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
@@ -189,6 +200,13 @@ void calculatePosAndNegDelayStatsAtStation(Stations& S) {
 				S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
 			}
 		}
+	}
+	if (TrainDelay.empty()) {
+		S.Av_Arrival_Delay = S.Std_Arrival_Delay = S.Tot_Consec_Delay = -1;
+		S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = -1;
+		S.Max_TotalDelay = S.Max_Cons_Delay = -1;
+		S.totalArrivalDelay = 0;
+		return;
 	}
 	// Calculate the Total and the Average Arrival Delay at station instant_spatial_position
 	for (int r = 0; r < S.N_Stopped_Trains; r++) {

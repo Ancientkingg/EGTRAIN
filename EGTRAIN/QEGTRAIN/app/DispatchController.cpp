@@ -339,7 +339,11 @@ void DispatchController::runSimulation() {
 	printPassengerTotalJourneyDelay(AllDailyPassengers, initial_variables.OutputMainFolder + "/PassengerStatus");
 
 	for (int j = 0; j < numRegions; j++) {
-		eglogger << "Station delay: " << std::to_string(regional_train[j].StationDelay[regional_train[j].numStations - 1]) << std::endl;
+		eglogger << "Station delay: "
+				 << (regional_train[j].numStations > 0
+						 ? std::to_string(regional_train[j].StationDelay[regional_train[j].numStations - 1])
+						 : "unavailable (no stops)")
+				 << std::endl;
 	}
 
 	// Calculating positive and negative Train Delays to debug the program
@@ -503,7 +507,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 			int Previous_Block_Index = 0;
 			Section SBs;
-			if (t >= regional_train[n].departure_time) {
+			if (t > 0 && t >= regional_train[n].departure_time) {
 				for (int h = 0; h < train_route[regional_train[n].indexOfRoute].N_Block_Sections; h++) {
 					if ((regional_train[n].instant_spatial_position[t - 1] < train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000) &&
 						(regional_train[n].instant_spatial_position[t - 1] >= train_route[regional_train[n].indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
