@@ -403,10 +403,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		std::cout << "\r Time of simulation is " << t;
 		// logger.Log(" clock at" + to_string(t));
 
-		/*#pragma omp parallel
-		{
-		#pragma omp for*/
-
 		// you can comment it if you are simulating something different
 		/*if (t < 430)
 			regional_train[0].max_train_speed = 16;
@@ -423,8 +419,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		}
 
 		// Simulate train movement at each simulation step
-		//  MULTI-THREAD
-#pragma omp parallel for
 		for (int j = 0; j < numRegions; j++) {
 			// cout << j << "++++----/n";
 
@@ -435,15 +429,10 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 			regional_train[j].recordStationPassagesAtTime(t);
 
-			// only one thread writing to file at a time
-#pragma omp critical(arrdepwrite)
-			{
-				// check if train arrived at destination or departed from origin
-				regional_train[j].checkTrainArrDep(j, t);
-			}
+			// check if train arrived at destination or departed from origin
+			regional_train[j].checkTrainArrDep(j, t);
 		}
 
-		//}
 		// cout << "Time is : " << t << endl;
 		// for (int n = 0; n < numRegions; n++) {
 
