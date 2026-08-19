@@ -666,6 +666,12 @@ if(EGTRAIN_BUILD_TESTS)
 	target_include_directories(test_railmlparser PRIVATE ${SRC_DIR})
 	target_link_libraries(test_railmlparser PRIVATE cppzmq nlohmann_json::nlohmann_json)
 	add_test(NAME test_railmlparser COMMAND test_railmlparser)
+	add_test(NAME test_route_choice_missing_data
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
+			-g 0 -h 1 -TSM 0 -RC 1)
+	set_tests_properties(test_route_choice_missing_data PROPERTIES
+		PASS_REGULAR_EXPRESSION "scene.route_choice.passengers.none"
+		TIMEOUT 30)
 
 	add_test(NAME test_headless_smoke_decode
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)

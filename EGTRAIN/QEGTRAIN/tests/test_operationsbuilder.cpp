@@ -338,6 +338,21 @@ int main() {
 		ok &= expect(unrouted != AllDailyPassengers.front().Journeys.end() && unrouted->N_Trips == 0,
 				"legless canonical journeys remain present");
 	}
+	auto routeChoicePassengers = AllDailyPassengers;
+	Passenger& active = routeChoicePassengers.front();
+	active.IsIntheNetwork = true;
+	active.current_JourneyID = active.Journeys.front().ID;
+	Passenger inactive = active;
+	inactive.ID = "inactive.passenger";
+	inactive.IsIntheNetwork = false;
+	routeChoicePassengers.push_back(inactive);
+	const nlohmann::json routeChoice = routeChoicePayload(routeChoicePassengers, 17);
+	ok &= expect(routeChoice == routeChoicePayload(routeChoicePassengers, 17)
+			&& routeChoice["time"] == 17 && routeChoice["passengers"].size() == 1
+			&& routeChoice["passengers"]["passenger.1--1.0"]["origin"] == "Zero"
+			&& routeChoice["passengers"]["passenger.1--1.0"]["destination"] == "Two"
+			&& routeChoicePayload({}, 17)["passengers"].empty(),
+			"route-choice sharing is deterministic and uses only active canonical passenger state");
 	ok &= expect(initial_variables.name == "native-operations-fixture"
 			&& initial_variables.startingSimulationTime == 23400
 			&& initial_variables.times == 90.0

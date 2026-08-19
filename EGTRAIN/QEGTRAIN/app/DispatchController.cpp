@@ -184,6 +184,21 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		resetState();
 		return diagnostics;
 	}
+	if (initial_variables.RChoice) {
+		const bool hasUsablePassengerJourney = std::any_of(AllDailyPassengers.begin(), AllDailyPassengers.end(),
+			[](const Passenger& passenger) {
+				return std::any_of(passenger.Journeys.begin(), passenger.Journeys.end(),
+					[](const Journey& journey) { return journey.N_Trips > 0; });
+			});
+		if (!hasUsablePassengerJourney) {
+			diagnostics.push_back({SceneSeverity::Error, "scene.route_choice.passengers.none",
+				"Route choice requires at least one usable passenger journey in the prepared run",
+				"passengers.json", "passenger", {}, "passengers", {},
+				"Add a passenger journey with at least one selected route leg"});
+			resetState();
+			return diagnostics;
+		}
+	}
 
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
@@ -368,7 +383,7 @@ void DispatchController::runSimulation() {
 }
 
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
-	nlohmann::json jsmsg, route_choice_json;
+	nlohmann::json jsmsg;
 
 	for (int t = 0; t < initial_variables.times; t++) {
 		// pause/stop/speed from GUI
@@ -516,18 +531,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 		jsmsg["time"] = t;
 
-		// Here we prepare the Route choice data
-		for (int n = 0; n < 100; n++) { // for all ACTIVE passengers
-			std::string station_names[10] = {"Guingamp", "Gourland", "Tregonnau_Squiffiec", "Brelidy_Plouec",
-											 "Pontrieux_halte", "Pontrieux", "Frynaudour", "Traou_Nez", "Lancerf", "Paimpol"};
-			int random_station = rand() % 10;
-			int random_passenger = rand() % 1000;
-
-			route_choice_json["passengers"][std::to_string(random_passenger) + "--1.0"]["origin"] = station_names[random_station];
-			route_choice_json["passengers"][std::to_string(random_passenger) + "--1.0"]["destination"] = station_names[rand() % 10];
-			route_choice_json["passengers"][std::to_string(random_passenger) + "--1.0"]["departure_time"] = t + random_passenger;
-		}
-		route_choice_json["time"] = t;
 		// for the ZeroMQbroker
 		if (initial_variables.TSM) {
 			std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
@@ -536,6 +539,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		}
 
 		if (initial_variables.RChoice) {
+			const nlohmann::json route_choice_json = routeChoicePayload(AllDailyPassengers, t);
 			std::cout << "\n\n Sending the following Route Choice XML file" << std::endl;
 			std::cout << routeChoice_xml(route_choice_json) << std::flush;
 			std::thread(send_traffic_state5556, route_choice_json, routeChoice_xml(route_choice_json)).detach();
