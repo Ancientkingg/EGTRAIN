@@ -7,7 +7,7 @@
 | Milestone | Findings | Status | Issue | Pull request | Merge |
 |---|---|---|---|---|---|
 | 1. Runtime memory safety | G-01, G-05, G-06; P-03 | Complete | [#306](https://github.com/Ancientkingg/EGTRAIN/issues/306) | [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307) | `743fe85798aef38a6862b989434650dc87106b2b` |
-| 2. Deterministic simulation state | G-02; P-04 | In progress | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | Pending | Pending |
+| 2. Deterministic simulation state | G-02; P-04 | In review | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309) | Pending |
 | 3. External communication lifecycle | G-03, G-07; P-05 | Blocked on milestone 2 | Pending | Pending | Pending |
 | 4. Result integrity | G-04; P-02 | Blocked on milestone 3 | Pending | Pending | Pending |
 | 5. Persistence and validation hardening | G-08, G-09, G-10 | Blocked on milestone 4 | Pending | Pending | Pending |
@@ -65,7 +65,7 @@
 - Ponytail findings: accepted removal of redundant CMake environment setup, an unnecessary nested working directory, and vestigial commented OpenMP scaffolding; declined P-04 because the only existing matching record belongs to the GUI layer and a new shared type would add an abstraction after serialization removed the practical need
 - Simplifications made: removed the live OpenMP directive, its redundant critical section, stale multithreading comments, duplicate offscreen environment setup, and one unnecessary test-directory level
 - Commit SHA: `61b0fc3313fbd72cddba0a9d71c2610751840672`
-- PR number and URL: pending
+- PR number and URL: [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309)
 - CI status: pending
 - Merge SHA: pending
 - Remaining blockers: G-02 remains unresolved until this verified change is merged
@@ -85,3 +85,4 @@
 - 2026-08-19: Six-case native headless smoke passed, including the canonical Copenhagen and Milano-Brescia runtime baselines.
 - 2026-08-19: Refreshed the local code knowledge graph after the code and ledger changes.
 - 2026-08-19: Committed the verified implementation as `61b0fc3313fbd72cddba0a9d71c2610751840672`.
+- 2026-08-19: Pushed `fix/serialize-train-runtime` and opened pull request [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309); required CI is pending.
