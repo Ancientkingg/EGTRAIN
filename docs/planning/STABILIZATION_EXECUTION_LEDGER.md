@@ -298,8 +298,8 @@
 - Simplifications made: none at the final gate; the final stabilization range is already lean and no safety or correctness check was removed
 - Commit SHA: `827c0e6dcba61931a07dcc937c0d82e8ce3a9fc1`
 - PR number and URL: [#325](https://github.com/Ancientkingg/EGTRAIN/pull/325)
-- CI status: required `build` check running
-- Merge SHA: pending
+- CI status: required `build` check passed in 10m31s ([run 32404136245](https://github.com/Ancientkingg/EGTRAIN/actions/runs/32404136245))
+- Merge SHA: `2968ae01a8f8fd345b959a68fdfbd062157d1f92`
 - Remaining blockers: none; no P0/P1 release blocker remains and the stabilization gate is clear
 
 ### Execution log
@@ -324,6 +324,7 @@
 - 2026-08-20: Refreshed the repository knowledge graph, then moved the worktree-local generated graph and 894 MB alternate sanitizer build to Trash. `git diff --check` passed.
 - 2026-08-20: Committed the clear final-gate record as `827c0e6dcba61931a07dcc937c0d82e8ce3a9fc1`.
 - 2026-08-20: Pushed `chore/stabilization-release-gate` and opened PR [#325](https://github.com/Ancientkingg/EGTRAIN/pull/325); required CI is running.
+- 2026-08-20: Required CI passed in 10m31s. Squash-merged the final gate record in PR #325 as `2968ae01a8f8fd345b959a68fdfbd062157d1f92` and deleted the gate branch. This closure update records the final CI and merge metadata; the stabilization decision remains clear.
 
 ## Corrective milestone: duration-override capacity alignment
 
