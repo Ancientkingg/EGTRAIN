@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | 1. Runtime memory safety | G-01, G-05, G-06; P-03 | Complete | [#306](https://github.com/Ancientkingg/EGTRAIN/issues/306) | [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307) | `743fe85798aef38a6862b989434650dc87106b2b` |
 | 2. Deterministic simulation state | G-02; P-04 | Complete | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309) | `d029582fcb230c8419e9332bfdb608c792974384` |
-| 3. External communication lifecycle | G-03, G-07; P-05 | In progress | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | Pending | Pending |
+| 3. External communication lifecycle | G-03, G-07; P-05 | In review | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | Pending |
 | 4. Result integrity | G-04; P-02 | Blocked on milestone 3 | Pending | Pending | Pending |
 | 5. Persistence and validation hardening | G-08, G-09, G-10 | Blocked on milestone 4 | Pending | Pending | Pending |
 | 6. Station platform-booking verification | G-NV-01 | Blocked on release fixes | Pending | Pending | Pending |
@@ -102,7 +102,7 @@
 - Ponytail findings: accepted consolidation of identical exception handlers, replacement of an unnecessary post-join atomic flag with `bool`, and removal of unnecessary CTest `RUN_SERIAL`
 - Simplifications made: replaced the two detached port-specific senders with one shared sender, deleted the duplicated hard-coded XML example bodies, computed each XML document once, and applied the three accepted Ponytail reductions for a further five-line reduction
 - Commit SHA: `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`
-- PR number and URL: pending
+- PR number and URL: [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311)
 - CI status: pending
 - Merge SHA: pending
 - Remaining blockers: G-03 and G-07 remain unresolved until the verified change is merged
@@ -123,3 +123,4 @@
 - 2026-08-20: Final independent correctness re-review confirmed that thread join synchronizes the test flag, the generic exception handler covers ZeroMQ errors, test serialization is unnecessary, and the legless payload matches the current external contract; no findings remain.
 - 2026-08-20: Refreshed the local code knowledge graph after the code and ledger changes.
 - 2026-08-20: Committed the verified implementation as `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`.
+- 2026-08-20: Pushed `fix/external-sharing-lifecycle` and opened pull request [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311); required CI is pending.
