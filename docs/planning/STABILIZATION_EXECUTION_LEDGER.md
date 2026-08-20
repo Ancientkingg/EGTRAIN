@@ -187,7 +187,7 @@
 - Fixes made from review: copy unmanaged existing contents into staging before replacing writer-managed files, test both file and nested-directory preservation, and pass the selected occurrence set into runnable validation so its train-count check matches the native builder. Added invalid and unknown selected-row coverage across validation and native diagnostics.
 - Ponytail findings: accepted removal of an unused JSON-write out-parameter and the redundant nonpositive occurrence guard
 - Simplifications made: removed obsolete serialized-byte plumbing and relied directly on the occurrence-count helper's positive-result contract
-- Commit SHA: pending
+- Commit SHA: `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
@@ -212,3 +212,4 @@
 - 2026-08-20: Standalone creator acceptance passed 1/1. All six committed scenes passed folder export, compatibility reimport, and validation roundtrip, including the reimported Assignment runtime check. Six-case native headless smoke passed clean exit and finite-statistics checks for every case plus all applicable structure, movement, runtime-observable, and served-station baselines.
 - 2026-08-20: Refreshed the code knowledge graph after the code and ledger changes. Graphify completed with 4,941 nodes and 11,663 edges, retaining its existing parser and zero-node warnings; removed the generated worktree-local graph copy afterward.
 - 2026-08-20: Final mechanical audit confirmed every folder and bundle caller uses the shared transactional writer, dispatch is the only runnable-validation caller with a selected occurrence set and now forwards it, the two native capacities have one source of truth, the only scene-controlled output-directory construction uses the safe component helper, and the focused tests cover failure rollback, successful sidecar preservation, exact/over/sparse/invalid capacity cases, native parity, and traversal. No dead new symbol or missing production call site was found; final diff checks passed.
+- 2026-08-20: Committed the verified milestone implementation as `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`.
