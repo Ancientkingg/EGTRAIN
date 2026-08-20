@@ -253,6 +253,21 @@ def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
     print(f"PASS case {case_id} has {rows} served station rows")
 
 
+def check_finite_station_statistics(case_id: int, out_base: Path = RUN_DIR) -> None:
+    output = scene_output_dir(case_id, out_base) / "TrainTrajectories"
+    for name in ("Stats_Stations.txt", "Pos&Neg_Stats_Stations.txt"):
+        path = output / name
+        for line_number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            for token in line.split():
+                try:
+                    value = float(token)
+                except ValueError:
+                    continue
+                if not math.isfinite(value):
+                    raise SystemExit(f"case {case_id} has non-finite station statistics at {path}:{line_number}")
+    print(f"PASS case {case_id} station statistics are finite")
+
+
 def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     expected = ORIGINAL_CASE_PARITY[case_id]
     output_dir = scene_output_dir(case_id, out_base)
@@ -313,6 +328,7 @@ def main() -> None:
         if case_id in ORIGINAL_CASE_PARITY:
             check_scene_structure(case_id)
         run_case(case_id)
+        check_finite_station_statistics(case_id)
         if case_id in ASSERT_MOVEMENT:
             check_movement(case_id)
         if case_id in ORIGINAL_CASE_PARITY:

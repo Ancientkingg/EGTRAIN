@@ -1,15 +1,15 @@
 # Stabilization execution ledger
 
 - Initial `origin/main`: `935d94227fa3ebc61de371a52d663e711a3e4805`
-- Release status: P0 blockers cleared; blocked by remaining P1 findings G-03, G-04, G-07, and G-08
-- Active milestone: 3, external communication lifecycle
+- Release status: P0 blockers cleared; blocked by remaining P1 findings G-04 and G-08
+- Active milestone: 4, result integrity
 
 | Milestone | Findings | Status | Issue | Pull request | Merge |
 |---|---|---|---|---|---|
 | 1. Runtime memory safety | G-01, G-05, G-06; P-03 | Complete | [#306](https://github.com/Ancientkingg/EGTRAIN/issues/306) | [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307) | `743fe85798aef38a6862b989434650dc87106b2b` |
 | 2. Deterministic simulation state | G-02; P-04 | Complete | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309) | `d029582fcb230c8419e9332bfdb608c792974384` |
-| 3. External communication lifecycle | G-03, G-07; P-05 | In review | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | Pending |
-| 4. Result integrity | G-04; P-02 | Blocked on milestone 3 | Pending | Pending | Pending |
+| 3. External communication lifecycle | G-03, G-07; P-05 | Complete | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a` |
+| 4. Result integrity | G-04; P-02 | In progress | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | Pending | Pending |
 | 5. Persistence and validation hardening | G-08, G-09, G-10 | Blocked on milestone 4 | Pending | Pending | Pending |
 | 6. Station platform-booking verification | G-NV-01 | Blocked on release fixes | Pending | Pending | Pending |
 | 7. Dead-code cleanup | P-01, P-06 | Blocked on correctness work | Pending | Pending | Pending |
@@ -103,9 +103,9 @@
 - Simplifications made: replaced the two detached port-specific senders with one shared sender, deleted the duplicated hard-coded XML example bodies, computed each XML document once, and applied the three accepted Ponytail reductions for a further five-line reduction
 - Commit SHA: implementation `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`; CI correction `b60af2da27f8587291d1667f498f775ea0db96e4`
 - PR number and URL: [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311)
-- CI status: initial run 32351657448 failed only `test_railmlparser`; the failure was reproduced and corrected, and a replacement run is pending
-- Merge SHA: pending
-- Remaining blockers: G-03 and G-07 remain unresolved until the verified change is merged
+- CI status: replacement run 32353585680 passed in 10m53s after the initial flaky test-harness failure was corrected
+- Merge SHA: `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a`
+- Remaining blockers: G-04 and G-08
 
 ### Execution log
 
@@ -128,3 +128,45 @@
 - 2026-08-20: Removed the mock server's zero-linger shutdown and added an explicit client-completion handshake so the server remains alive until the request/reply call returns. Retained the 100 ms production transport bound. The corrected test passed 100 consecutive runs, and the focused milestone set passed 4/4.
 - 2026-08-20: Focused independent review of the CI correction found no issue and confirmed all failure paths remain bounded. Full normal CTest then passed 48/48 in 149.02 seconds. The existing Ponytail reductions remain intact; the completion handshake is the minimum synchronization needed for a reliable request/reply test.
 - 2026-08-20: Committed the verified CI correction as `b60af2da27f8587291d1667f498f775ea0db96e4`; replacement CI is pending.
+- 2026-08-20: Replacement CI run 32353585680 passed in 10m53s. Squash-merged pull request #311 as `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a`, deleted the feature branch, and removed the clean milestone worktree.
+
+## Milestone 4: result integrity
+
+- Finding IDs: G-04, P-02
+- Branch: `fix/finite-delay-statistics`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/finite-delay-statistics`
+- Base SHA: `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a`
+- Scope: finite station-delay statistics for zero, one, and multiple samples, with shared aggregation where scientifically equivalent
+- Files changed: `EGTRAIN/QEGTRAIN/simulation/Infrastructure.cpp`; `EGTRAIN/QEGTRAIN/simulation/Simulation.cpp`; `EGTRAIN/QEGTRAIN/tests/test_operationsbuilder.cpp`; `tools/e2e/headless_smoke.py`; `tools/memory/test_raii_contract.py`; this ledger
+- Test results: focused operations and RAII contract tests passed 2/2; Python export-scan syntax check passed; full build and post-simplification application rebuild passed; focused Paimpol and Milano native headless runs passed their existing runtime baselines and both finite-statistics export scans; full CTest passed 48/48; six-case native headless smoke passed with finite station-statistics exports; six-case roundtrip passed
+- Adversarial-review findings: one medium sentinel collision in signed statistics: a valid one-second early arrival had `StationDelay == -1` and was mistaken for the positive-mode unavailable marker
+- Fixes made from review: signed-mode collection now derives availability from the actual-arrival array while positive-only mode retains its delay sentinel; an exact `-1` signed-delay regression passes
+- Ponytail findings: accepted inlining the one-caller station sample collector and reusing one input vector sequentially instead of allocating three
+- Simplifications made: collapsed roughly 270 duplicated calculation lines into one private path, then removed the one-use sample record/helper and two input-vector allocations for a further ten-line reduction
+- Commit SHA: pending
+- PR number and URL: pending
+- CI status: pending
+- Merge SHA: pending
+- Remaining blockers: G-04 remains unresolved until the verified change is merged
+
+### Execution log
+
+- 2026-08-20: Confirmed no existing issue owns G-04; opened issue [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312).
+- 2026-08-20: Fetched `origin`, created the clean isolated milestone worktree from the latest merged `origin/main`, and recorded the exact base SHA.
+- 2026-08-20: Traced the complete result path. Both station modes duplicate collection and calculation, while `Compute_Input_Delays()` repeats the same unsafe positive-delay mean and sample-deviation logic for three input populations; all six values flow directly into `Print_Station_Delay_Stats()` and its totals.
+- 2026-08-20: Fixed the semantics before implementation: no recorded arrivals retain the existing unavailable marker; a non-empty all-punctual positive-only population reports zero mean and deviation; singleton statistical populations report zero deviation; larger populations retain the sample denominator. Positive-only means remain based on positive delays, while positive/negative means include every recorded arrival.
+- 2026-08-20: Replaced the duplicated station bodies and three input calculations with one private collection/calculation path. Added direct zero, singleton, multi-sample, positive, negative, and input-population assertions plus a canonical output scan that rejects non-finite numeric tokens in both station-statistics files.
+- 2026-08-20: Configured a clean Qt 5 test build. The focused `test_operationsbuilder` regression passed 1/1 in 2.86 seconds, and the Python export-scan syntax check passed.
+- 2026-08-20: Completed the full application build. Native Paimpol and Milano-Brescia headless checks passed their structure, movement, served-arrival, and pre-cutover runtime baselines; both generated station-statistics files contained only finite numeric values.
+- 2026-08-20: Root review found the exported `TOTALS` row could still divide by `numStations - 1` when no reportable station followed the excluded first station. Totals now aggregate only rows with recorded samples and use the established unavailable marker when none exist. A one-station export regression passed with no non-finite numeric token; focused CTest passed again 1/1.
+- 2026-08-20: Independent correctness review found that signed delay `-1` is a valid one-second early arrival but collided with the positive-mode unavailable marker. Signed collection now checks the actual-arrival sentinel instead; positive-only collection retains the legacy delay sentinel. Added an exact `-1` regression, and focused CTest passed 1/1 in 2.71 seconds.
+- 2026-08-20: Fresh correctness re-review found no remaining issue. Separate Ponytail review identified two local reductions: inlined the one-caller station collector and reused one vector across the three input populations, removing ten lines and two allocations. Focused CTest passed 1/1 after simplification in 2.63 seconds.
+- 2026-08-20: Rebuilt the complete `QEGTRAIN` target after the accepted simplifications; compilation and linking passed.
+- 2026-08-20: Re-ran the canonical Paimpol and Milano-Brescia native headless cases against the final executable. Both passed clean exit, structure, movement, served-station, runtime-observable, and finite-statistics checks.
+- 2026-08-20: Final independent correctness review of the simplified diff found no issue. The reviewer traced current callers and delay producers; residual risk is limited to legacy paths that bypass native validation and supply non-finite inputs.
+- 2026-08-20: The first full CTest run passed 47/48. The only failure was the source-level RAII contract, whose literal checks still expected the four duplicated `TrainDelay`/`TrainConsDelay` append sites removed by consolidation. Updated that contract to verify the shared `arrivals` and `consecutive` vectors grow together and that the one reusable input vector remains RAII-managed. The contract and focused operations regression then passed 2/2.
+- 2026-08-20: Re-ran full CTest after correcting the stale source contract; all 48 tests passed in 147.67 seconds.
+- 2026-08-20: Six-case native headless smoke passed. Every case exited cleanly and produced finite station-statistics exports; all applicable structure, movement, runtime-observable, and served-station baselines also passed.
+- 2026-08-20: Six-case folder export, compatibility reimport, and validation roundtrip passed, including the reimported Assignment scene runtime check. Existing scene diagnostics remained warnings or informational messages.
+- 2026-08-20: Refreshed the repository knowledge graph after the code and guidance changes. Graphify reported its existing parser warnings for four files and zero-node warnings for data files; the graph rebuild completed with 4,923 nodes and 11,600 edges.
+- 2026-08-20: Final mechanical audit confirmed both public station-statistics entry points and input aggregation retain their production callers, the duplicated formulas are gone, every sample-variance division is guarded by a population larger than one, both station export variants are scanned, and the zero/singleton/multiple plus exact signed `-1` cases remain covered. Final diff checks passed.

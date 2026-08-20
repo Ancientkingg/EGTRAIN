@@ -1,7 +1,9 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <numeric>
 #include <vector>
 
 double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
@@ -46,6 +48,84 @@ bool canComputeTrainEnergy(Train& train) {
 									 train.earliestActiveTrajectoryIndex, train.End_Time)
 			.empty();
 }
+
+void calculateDelayStatistics(Stations& result, const std::vector<double>& delays,
+		const std::vector<double>& consecutive, bool includeNonPositive) {
+	result.N_Stopped_Trains = static_cast<int>(delays.size());
+	result.N_Delayed_Arr = result.N_Delayed_Arr_3min = result.N_Delayed_Arr_5min = 0;
+	result.Av_Arrival_Delay = result.Std_Arrival_Delay = 0;
+	result.Perc_Delayed_T = result.Perc_Delayed_T_3min = result.Perc_Delayed_T_5min = 0;
+	result.totalArrivalDelay = result.Tot_Consec_Delay = 0;
+	result.Max_TotalDelay = result.Max_Cons_Delay = -1;
+	if (delays.empty()) {
+		result.Av_Arrival_Delay = result.Std_Arrival_Delay = result.Tot_Consec_Delay = -1;
+		result.Perc_Delayed_T = result.Perc_Delayed_T_3min = result.Perc_Delayed_T_5min = -1;
+		return;
+	}
+
+	std::vector<double> population;
+	population.reserve(delays.size());
+	for (double delay : delays) {
+		if (delay > 0) {
+			++result.N_Delayed_Arr;
+			if (delay > 3 * 60 / timestep)
+				++result.N_Delayed_Arr_3min;
+			if (delay > 5 * 60 / timestep)
+				++result.N_Delayed_Arr_5min;
+		}
+		if (includeNonPositive || delay > 0)
+			population.push_back(delay);
+	}
+
+	result.totalArrivalDelay = std::accumulate(delays.begin(), delays.end(), 0.0);
+	if (!population.empty()) {
+		result.Av_Arrival_Delay =
+			std::accumulate(population.begin(), population.end(), 0.0) / population.size();
+		if (population.size() > 1) {
+			double squaredDifference = 0;
+			for (double delay : population)
+				squaredDifference += std::pow(delay - result.Av_Arrival_Delay, 2);
+			result.Std_Arrival_Delay = std::sqrt(squaredDifference / (population.size() - 1));
+		}
+	}
+
+	result.Perc_Delayed_T = static_cast<double>(result.N_Delayed_Arr) / delays.size() * 100;
+	result.Perc_Delayed_T_3min = static_cast<double>(result.N_Delayed_Arr_3min) / delays.size() * 100;
+	result.Perc_Delayed_T_5min = static_cast<double>(result.N_Delayed_Arr_5min) / delays.size() * 100;
+	result.Max_TotalDelay = *std::max_element(delays.begin(), delays.end());
+	if (!consecutive.empty()) {
+		result.Tot_Consec_Delay = std::accumulate(consecutive.begin(), consecutive.end(), 0.0);
+		result.Max_Cons_Delay = *std::max_element(consecutive.begin(), consecutive.end());
+	}
+}
+
+void calculateStationDelayStatistics(Stations& station, bool includeNonPositive) {
+	std::vector<double> arrivals;
+	std::vector<double> consecutive;
+	const auto append = [&arrivals, &consecutive, includeNonPositive](const Train& train, int index) {
+		const bool recorded = includeNonPositive
+			? train.StationArrivals[index] != -1
+			: train.StationDelay[index] != -1;
+		if (!recorded)
+			return;
+		arrivals.push_back(train.StationDelay[index]);
+		consecutive.push_back(train.StationConsecDelay[index]);
+	};
+
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
+		const Train& train = regional_train[trainIndex];
+		if (station.stationName == "Final_Station") {
+			if (train.numStations > 0)
+				append(train, train.numStations - 1);
+			continue;
+		}
+		for (int stationIndex = 0; stationIndex < train.numStations; ++stationIndex) {
+			if (train.stationNameForArrivalStats(stationIndex) == station.stationName)
+				append(train, stationIndex);
+		}
+	}
+	calculateDelayStatistics(station, arrivals, consecutive, includeNonPositive);
+}
 } // namespace
 
 // Function to Calculate the arrival delay at each station for each train
@@ -69,288 +149,27 @@ void calculateArrivalDelayAllTrains() {
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
 void calculateDelayStatsAtStation(Stations& S) {
-	std::vector<double> TrainDelay;
-	std::vector<double> TrainConsDelay;
-	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
-	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
-	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = 0;
-	S.Tot_Consec_Delay = 0;
-
-	if (S.stationName != "Final_Station") {
-		for (int j = 0; j < numRegions; j++) {															  // looping over the total number of trains
-			for (int s = 0; s < regional_train[j].numStations; s++) {									  // looping over their stations
-				if (regional_train[j].stationNameForArrivalStats(s) == S.stationName) {					  // if the train has a stop at station instant_spatial_position
-					if (regional_train[j].StationDelay[s] != -1) {									  // and the train has actually crossed that station within the simulation time
-						TrainDelay.push_back(regional_train[j].StationDelay[s]);			  // register its arrival delay
-						TrainConsDelay.push_back(regional_train[j].StationConsecDelay[s]); // register its consecutive delay
-						if (TrainDelay[S.N_Stopped_Trains] > 0)
-							S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-						if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-							S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-						if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-							S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-						S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-					}
-				}
-			}
-		}
-	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
-		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
-			if (regional_train[j].numStations <= 0)
-				continue;
-			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
-				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
-				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
-				if (TrainDelay[S.N_Stopped_Trains] > 0)
-					S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-				if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-					S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-				if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-					S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-				S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-			}
-		}
-	}
-	if (TrainDelay.empty()) {
-		S.Av_Arrival_Delay = S.Std_Arrival_Delay = S.Tot_Consec_Delay = -1;
-		S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = -1;
-		S.Max_TotalDelay = S.Max_Cons_Delay = -1;
-		S.totalArrivalDelay = 0;
-		return;
-	}
-	// Calculate the Total and the Average Arrival Delay at station instant_spatial_position
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Av_Arrival_Delay = S.Av_Arrival_Delay + TrainDelay[r];
-	}
-	S.totalArrivalDelay = S.Av_Arrival_Delay;				   // Calculating the total arrival delay (sum of train delays over all trains stopping at station instant_spatial_position)
-	S.Av_Arrival_Delay = S.Av_Arrival_Delay / S.N_Delayed_Arr; // Calculating the average arrival delay over the delayed trains
-
-	// Calculate the Standard Deviation of Delay at station instant_spatial_position over the delayed trains
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		if (TrainDelay[r] != 0) {
-			S.Std_Arrival_Delay = S.Std_Arrival_Delay + pow((TrainDelay[r] - S.Av_Arrival_Delay), 2);
-		}
-	}
-	S.Std_Arrival_Delay = sqrt(S.Std_Arrival_Delay / (S.N_Delayed_Arr - 1));
-
-	// Calculate the Percentages of Delayed trains and Total Consecutive delay at that station
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Perc_Delayed_T = (double)S.N_Delayed_Arr / S.N_Stopped_Trains * 100;			 // Percentage of delayed trains
-		S.Perc_Delayed_T_3min = (double)S.N_Delayed_Arr_3min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		S.Perc_Delayed_T_5min = (double)S.N_Delayed_Arr_5min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-		S.Tot_Consec_Delay = S.Tot_Consec_Delay + TrainConsDelay[r];					 // Calculate Total consecutive delay
-	}
-
-	// Calculate the MaxConsecutive Delay and the Max Total Delay
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		if (TrainDelay[r] > S.Max_TotalDelay)
-			S.Max_TotalDelay = TrainDelay[r];
-		if (TrainConsDelay[r] > S.Max_Cons_Delay)
-			S.Max_Cons_Delay = TrainConsDelay[r];
-	}
-
+	calculateStationDelayStatistics(S, false);
 }
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
 void calculatePosAndNegDelayStatsAtStation(Stations& S) {
-	std::vector<double> TrainDelay;
-	std::vector<double> TrainConsDelay;
-	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
-	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
-	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = 0;
-	S.Tot_Consec_Delay = 0;
-
-	if (S.stationName != "Final_Station") {
-		for (int j = 0; j < numRegions; j++) {															  // looping over the total number of trains
-			for (int s = 0; s < regional_train[j].numStations; s++) {									  // looping over their stations
-				if (regional_train[j].stationNameForArrivalStats(s) == S.stationName) {					  // if the train has a stop at station instant_spatial_position
-					if (regional_train[j].StationDelay[s] != -1) {									  // and the train has actually crossed that station within the simulation time
-						TrainDelay.push_back(regional_train[j].StationDelay[s]);			  // register its arrival delay
-						TrainConsDelay.push_back(regional_train[j].StationConsecDelay[s]); // register its consecutive delay
-						if (TrainDelay[S.N_Stopped_Trains] > 0)
-							S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-						if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-							S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-						if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-							S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-						S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-					}
-				}
-			}
-		}
-	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
-		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
-			if (regional_train[j].numStations <= 0)
-				continue;
-			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
-				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
-				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
-				if (TrainDelay[S.N_Stopped_Trains] > 0)
-					S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-				if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-					S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-				if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-					S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-				S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-			}
-		}
-	}
-	if (TrainDelay.empty()) {
-		S.Av_Arrival_Delay = S.Std_Arrival_Delay = S.Tot_Consec_Delay = -1;
-		S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = -1;
-		S.Max_TotalDelay = S.Max_Cons_Delay = -1;
-		S.totalArrivalDelay = 0;
-		return;
-	}
-	// Calculate the Total and the Average Arrival Delay at station instant_spatial_position
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Av_Arrival_Delay = S.Av_Arrival_Delay + TrainDelay[r];
-	}
-	S.totalArrivalDelay = S.Av_Arrival_Delay;					  // Calculating the total arrival delay (sum of train delays over all trains stopping at station instant_spatial_position)
-	S.Av_Arrival_Delay = S.Av_Arrival_Delay / S.N_Stopped_Trains; // Calculating the average arrival delay over the delayed trains
-
-	// Calculate the Standard Deviation of Delay at station instant_spatial_position over the delayed trains
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Std_Arrival_Delay = S.Std_Arrival_Delay + pow((TrainDelay[r] - S.Av_Arrival_Delay), 2);
-	}
-	S.Std_Arrival_Delay = sqrt(S.Std_Arrival_Delay / (S.N_Stopped_Trains - 1));
-
-	// Calculate the Percentages of Delayed trains and Total Consecutive delay at that station
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Perc_Delayed_T = (double)S.N_Delayed_Arr / S.N_Stopped_Trains * 100;			 // Percentage of delayed trains
-		S.Perc_Delayed_T_3min = (double)S.N_Delayed_Arr_3min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		S.Perc_Delayed_T_5min = (double)S.N_Delayed_Arr_5min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-		S.Tot_Consec_Delay = S.Tot_Consec_Delay + TrainConsDelay[r];					 // Calculate Total consecutive delay
-	}
-
-	// Calculate the MaxConsecutive Delay and the Max Total Delay
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		if (TrainDelay[r] > S.Max_TotalDelay)
-			S.Max_TotalDelay = TrainDelay[r];
-		if (TrainConsDelay[r] > S.Max_Cons_Delay)
-			S.Max_Cons_Delay = TrainConsDelay[r];
-	}
-
+	calculateStationDelayStatistics(S, true);
 }
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
 void Compute_Input_Delays() {
-	std::vector<double> TrainDelay(numRegions);
-	std::vector<double> TrainEntDelay(numRegions);
-	std::vector<double> Disturb(numRegions);
-										 // Initializing parameters for Total input delays
-	TotalInputDelays.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
-	TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Std_Arrival_Delay = 0;
-	TotalInputDelays.N_Delayed_Arr = TotalInputDelays.N_Delayed_Arr_3min = TotalInputDelays.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	TotalInputDelays.Perc_Delayed_T = TotalInputDelays.Perc_Delayed_T_3min = TotalInputDelays.Perc_Delayed_T_5min = 0;
-	TotalInputDelays.Tot_Consec_Delay = 0;
-
-	// Initializing parameters for Entrance input delays
-	EntranceInputDelays.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
-	EntranceInputDelays.Av_Arrival_Delay = EntranceInputDelays.Std_Arrival_Delay = 0;
-	EntranceInputDelays.N_Delayed_Arr = EntranceInputDelays.N_Delayed_Arr_3min = EntranceInputDelays.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	EntranceInputDelays.Perc_Delayed_T = EntranceInputDelays.Perc_Delayed_T_3min = EntranceInputDelays.Perc_Delayed_T_5min = 0;
-	EntranceInputDelays.Tot_Consec_Delay = 0;
-
-	// Initializing parameters for Disturbances to dwell times input delays
-	DisturbanceInput.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
-	DisturbanceInput.Av_Arrival_Delay = DisturbanceInput.Std_Arrival_Delay = 0;
-	DisturbanceInput.N_Delayed_Arr = DisturbanceInput.N_Delayed_Arr_3min = DisturbanceInput.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	DisturbanceInput.Perc_Delayed_T = DisturbanceInput.Perc_Delayed_T_3min = DisturbanceInput.Perc_Delayed_T_5min = 0;
-	DisturbanceInput.Tot_Consec_Delay = 0;
-
-	for (int j = 0; j < numRegions; j++) {													   // looping over the total number of trains
-		TrainDelay[j] = regional_train[j].TotalInputDelays;								   // recording the total delay in input: Entrance + Disturbances to dwell times
-		TrainEntDelay[j] = regional_train[j].EntranceDelay;								   // recording the delay at the entrance set in input
-		Disturb[j] = regional_train[j].TotalInputDelays - regional_train[j].EntranceDelay; // recording the disturbances to dwell times cumulated over all stations
-
-		// Setting the Number of trains that are delayed because they have total input delay positive:Entrance delays+disturbances to dwell times
-		if (TrainDelay[j] > 0)
-			TotalInputDelays.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-		if (TrainDelay[j] > 3 * 60 / timestep)
-			TotalInputDelays.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-		if (TrainDelay[j] > 5 * 60 / timestep)
-			TotalInputDelays.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-		// Setting the Number of trains that are delayed because they have entrance input delay positive
-		if (TrainEntDelay[j] > 0)
-			EntranceInputDelays.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-		if (TrainEntDelay[j] > 3 * 60 / timestep)
-			EntranceInputDelays.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-		if (TrainEntDelay[j] > 5 * 60 / timestep)
-			EntranceInputDelays.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-		// Setting the Number of trains that are delayed because they have disturbances to dwell times positive
-		if (Disturb[j] > 0)
-			DisturbanceInput.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-		if (Disturb[j] > 3 * 60 / timestep)
-			DisturbanceInput.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-		if (Disturb[j] > 5 * 60 / timestep)
-			DisturbanceInput.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-	}
-
-	// Calculate the Total and the Average Input Delays
-	for (int r = 0; r < numRegions; r++) {
-		TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Av_Arrival_Delay + TrainDelay[r];			// Calculating the sum of total input delays
-		EntranceInputDelays.Av_Arrival_Delay = EntranceInputDelays.Av_Arrival_Delay + TrainEntDelay[r]; // Calculating the sum of entrance input delays
-		DisturbanceInput.Av_Arrival_Delay = DisturbanceInput.Av_Arrival_Delay + Disturb[r];				// Calculating the sum of disturbances to dwell times
-	}
-	TotalInputDelays.totalArrivalDelay = TotalInputDelays.Av_Arrival_Delay;		// Calculating the total input delay
-	EntranceInputDelays.totalArrivalDelay = EntranceInputDelays.Av_Arrival_Delay; // Calculating the total entrance delay in input
-	DisturbanceInput.totalArrivalDelay = DisturbanceInput.Av_Arrival_Delay;		// Calculating the total entrance delay in input
-
-	TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Av_Arrival_Delay / TotalInputDelays.N_Delayed_Arr;			 // Calculating the average total delay in input
-	EntranceInputDelays.Av_Arrival_Delay = EntranceInputDelays.Av_Arrival_Delay / EntranceInputDelays.N_Delayed_Arr; // Calculating the average entrance delay in input
-	DisturbanceInput.Av_Arrival_Delay = DisturbanceInput.Av_Arrival_Delay / DisturbanceInput.N_Delayed_Arr;			 // Calculating the average disturbance in input
-
-	// Calculate the Standard Deviation of Entrance delays and disturbances in input
-	for (int r = 0; r < numRegions; r++) {
-		if (TrainDelay[r] != 0) { // Std for Total delays in input
-			TotalInputDelays.Std_Arrival_Delay = TotalInputDelays.Std_Arrival_Delay + pow((TrainDelay[r] - TotalInputDelays.Av_Arrival_Delay), 2);
-		}
-		if (TrainEntDelay[r] != 0) { // Std for entrance delays in input
-			EntranceInputDelays.Std_Arrival_Delay = EntranceInputDelays.Std_Arrival_Delay + pow((TrainEntDelay[r] - EntranceInputDelays.Av_Arrival_Delay), 2);
-		}
-		if (Disturb[r] != 0) { // Std for disturbances to dwell time in input
-			DisturbanceInput.Std_Arrival_Delay = DisturbanceInput.Std_Arrival_Delay + pow((Disturb[r] - DisturbanceInput.Av_Arrival_Delay), 2);
-		}
-	}
-	TotalInputDelays.Std_Arrival_Delay = sqrt(TotalInputDelays.Std_Arrival_Delay / (TotalInputDelays.N_Delayed_Arr - 1));
-	EntranceInputDelays.Std_Arrival_Delay = sqrt(EntranceInputDelays.Std_Arrival_Delay / (EntranceInputDelays.N_Delayed_Arr - 1));
-	DisturbanceInput.Std_Arrival_Delay = sqrt(DisturbanceInput.Std_Arrival_Delay / (DisturbanceInput.N_Delayed_Arr - 1));
-
-	// Calculate the Percentages of Delayed trains in input
-	for (int r = 0; r < numRegions; r++) {
-		// For Total Delay in input
-		TotalInputDelays.Perc_Delayed_T = (double)TotalInputDelays.N_Delayed_Arr / TotalInputDelays.N_Stopped_Trains * 100;			  // Percentage of delayed trains
-		TotalInputDelays.Perc_Delayed_T_3min = (double)TotalInputDelays.N_Delayed_Arr_3min / TotalInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		TotalInputDelays.Perc_Delayed_T_5min = (double)TotalInputDelays.N_Delayed_Arr_5min / TotalInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-																																	  // For Entrance Delay in input
-		EntranceInputDelays.Perc_Delayed_T = (double)EntranceInputDelays.N_Delayed_Arr / EntranceInputDelays.N_Stopped_Trains * 100;		   // Percentage of delayed trains
-		EntranceInputDelays.Perc_Delayed_T_3min = (double)EntranceInputDelays.N_Delayed_Arr_3min / EntranceInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		EntranceInputDelays.Perc_Delayed_T_5min = (double)EntranceInputDelays.N_Delayed_Arr_5min / EntranceInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-																																			   // For Disturbances in input
-		DisturbanceInput.Perc_Delayed_T = (double)DisturbanceInput.N_Delayed_Arr / DisturbanceInput.N_Stopped_Trains * 100;			  // Percentage of delayed trains
-		DisturbanceInput.Perc_Delayed_T_3min = (double)DisturbanceInput.N_Delayed_Arr_3min / DisturbanceInput.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		DisturbanceInput.Perc_Delayed_T_5min = (double)DisturbanceInput.N_Delayed_Arr_5min / DisturbanceInput.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-	}
-
-	// Calculate the Max Total, Entrance and Disturbance Delay in input
-	for (int r = 0; r < numRegions; r++) {
-		if (TrainDelay[r] > TotalInputDelays.Max_TotalDelay)
-			TotalInputDelays.Max_TotalDelay = TrainDelay[r]; // Max Total Delay in input
-		if (TrainEntDelay[r] > EntranceInputDelays.Max_TotalDelay)
-			EntranceInputDelays.Max_TotalDelay = TrainEntDelay[r]; // Max Entrance Delay in input
-		if (Disturb[r] > DisturbanceInput.Max_TotalDelay)
-			DisturbanceInput.Max_TotalDelay = Disturb[r]; // Max Disturbance in input
-	}
-
+	std::vector<double> delays(numRegions);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
+		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays;
+	calculateDelayStatistics(TotalInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
+		delays[trainIndex] = regional_train[trainIndex].EntranceDelay;
+	calculateDelayStatistics(EntranceInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
+		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays
+			- regional_train[trainIndex].EntranceDelay;
+	calculateDelayStatistics(DisturbanceInput, delays, {}, false);
 }
 
 // Function to calculate the train delay statistics for all the station considered in the network
