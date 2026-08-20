@@ -11,7 +11,7 @@
 | 3. External communication lifecycle | G-03, G-07; P-05 | Complete | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a` |
 | 4. Result integrity | G-04; P-02 | Complete | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313) | `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd` |
 | 5. Persistence and validation hardening | G-08, G-09, G-10 | Complete | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315) | `73dd9947496011df21145c234b27fe95e5065d46` |
-| 6. Station platform-booking verification | G-NV-01 | In progress | [#316](https://github.com/Ancientkingg/EGTRAIN/issues/316) | Pending | Pending |
+| 6. Station platform-booking verification | G-NV-01 | In progress | [#316](https://github.com/Ancientkingg/EGTRAIN/issues/316) | [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317) | Pending |
 | 7. Dead-code cleanup | P-01, P-06 | Blocked on correctness work | Pending | Pending | Pending |
 
 ## Milestone 1: runtime memory safety
@@ -230,8 +230,8 @@
 - Ponytail findings: no finding; the one-line comment and evidence ledger are already the minimum useful change
 - Simplifications made: no behavioral code added; retained the existing narrow case-specific gate
 - Commit SHA: `85b2f90d92ce3dd4082fb2c13e6bea69b0bf38e3`
-- PR number and URL: pending
-- CI status: pending
+- PR number and URL: [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317)
+- CI status: running
 - Merge SHA: pending
 - Remaining blockers: documentation PR and required CI
 
@@ -246,3 +246,4 @@
 - 2026-08-20: Refreshed the code knowledge graph after the comment and ledger changes. Graphify completed with 4,943 nodes and 11,665 edges, retaining its existing parser and zero-node warnings; removed the generated worktree-local graph copy afterward.
 - 2026-08-20: Recorded the evidence-backed case-specific conclusion on issue #316; no behavior change or generic platform-allocation rewrite is warranted.
 - 2026-08-20: Committed the verified conclusion and provenance comment as `85b2f90d92ce3dd4082fb2c13e6bea69b0bf38e3`.
+- 2026-08-20: Pushed `docs/verify-platform-booking-rules` and opened pull request [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317); required CI is running.
