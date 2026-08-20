@@ -286,21 +286,21 @@
 ## Final stabilization gate
 
 - Finding IDs: final release gate for G-01 through G-10, G-NV-01, and P-01 through P-06
-- Branch: `chore/final-stabilization-gate`
+- Branch: `chore/stabilization-release-gate`
 - Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/final-stabilization-gate`
-- Base SHA: initial attempt `e41b3c3621ff3d943454f62f2e211c964a9678b5`; repeated gate `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`
+- Base SHA: initial attempt `e41b3c3621ff3d943454f62f2e211c964a9678b5`; second attempt `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`; final run `e8efb1662f61c5e33777d0c1a4323832c4f47105`
 - Scope: run the complete stabilization verification matrix from current `main`, perform fresh correctness and Ponytail reviews, record the release decision, and make no unrelated product changes
 - Files changed: this ledger; pending gate results
-- Test results: both pre-correction normal smoke matrices passed; pre-correction full ASan/UBSan CTest passed; the first post-`2dccabc5` CTest run had one output-file interference failure because GUI autostart and the six-case smoke ran concurrently, while all other tests and smokes passed; final serial rerun pending after accepted review fixes
-- Adversarial-review findings: accepted G-09-R1 (P2 capacity and P1 occurrence-horizon mismatch), G-09-R2 (P2 GUI validation ignores the runtime duration override), and G-10-R1 (P2 Windows-invalid output components remain accepted)
-- Fixes made from review: G-09-R1 merged in corrective PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); corrective issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323) opened for G-09-R2 and G-10-R1
-- Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
-- Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
-- Commit SHA: `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`
-- PR number and URL: [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324)
-- CI status: required `build` check running
+- Test results: fresh final Qt 5 configure and full build passed; full normal CTest passed 48/48 in 155.34 seconds; six-case headless, six-case roundtrip, six-case bundle, Assignment, incident, editor, visual/render, creator, and no-listener checks passed; full ASan/UBSan CTest passed 48/48 in 310.09 seconds; sanitizer-backed Paimpol and Milano headless runs passed; final supported-output scan found no `nan` or infinity tokens
+- Adversarial-review findings: accepted and corrected G-09-R1 (P2 capacity and P1 occurrence-horizon mismatch), G-09-R2 (P2 GUI validation ignores the runtime duration override), and G-10-R1 (P2 Windows-invalid output components); fresh final correctness review found no P0/P1/P2 issue
+- Fixes made from review: G-09-R1 merged in corrective PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); G-09-R2 and G-10-R1 merged in corrective PR [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324)
+- Ponytail findings: none (`Lean already. Ship.`); the fresh final review inspected the complete `935d9422..e8efb166` stabilization diff and current changed areas
+- Simplifications made: none at the final gate; the final stabilization range is already lean and no safety or correctness check was removed
+- Commit SHA: pending ledger commit
+- PR number and URL: pending final gate record
+- CI status: pending final gate record
 - Merge SHA: pending
-- Remaining blockers: correct and merge G-09-R2/G-10-R1, then repeat the complete final gate and fresh reviews from the resulting `origin/main`
+- Remaining blockers: none; no P0/P1 release blocker remains and the stabilization gate is clear
 
 ### Execution log
 
@@ -314,6 +314,14 @@
 - 2026-08-20: The pre-correction ASan/UBSan build and full instrumented CTest completed successfully (48/48 in 317.39s). This is retained as diagnostic evidence only; the sanitizer and complete release gate will be repeated after G-09-R1 merges.
 - 2026-08-20: Restarted the final gate from corrective merge `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`. Fresh configure/build passed; six-case headless, roundtrip, bundle, Assignment, incident, editor, and visual smokes passed. The concurrent full CTest run had one GUI-autostart energy-row mismatch caused by another smoke writing the same output directory; 47/48 tests passed and the isolated final rerun remains pending.
 - 2026-08-20: Fresh post-correction correctness review found two P2 gaps. `MainWindow::refreshValidationPanel` still uses the saved duration and can disable GUI Run after startup accepted a shorter `-h`; Windows reserved device basenames and other invalid output components still pass the cross-platform output-name boundary. Root call-flow verification accepted both findings, and the official Windows naming contract confirmed reserved names, invalid characters, and trailing period/space rules. Opened corrective issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323). The separate Ponytail review reported `Lean already. Ship.`
+- 2026-08-20: Corrective PR #324 passed required CI and squash-merged as `e8efb1662f61c5e33777d0c1a4323832c4f47105`. Fetched and pruned `origin`, removed the clean corrective worktree, and created clean branch `chore/stabilization-release-gate` in the dedicated final-gate worktree from the merge.
+- 2026-08-20: Fresh Qt 5 configure and full build passed from final base `e8efb1662f61c5e33777d0c1a4323832c4f47105`; only the existing Qt deprecation warnings remained.
+- 2026-08-20: Full normal CTest passed 48/48 in 155.34 seconds. A fresh independent correctness review of the complete stabilization range found no P0/P1/P2 defect or missing-test finding. The separate fresh Ponytail review inspected the same range and reported `Lean already. Ship.`
+- 2026-08-20: The final six-case native headless smoke passed. All cases exited cleanly, station statistics were finite, and the four historical baseline cases retained their expected train and trajectory observables. The mechanical audit found no symbol or call-site discrepancy across G-01 through G-10, G-NV-01, or P-01 through P-06.
+- 2026-08-20: The final six-scene folder/export/reimport roundtrip and six-scene bundle validation passed; the packed Assignment scene ran headlessly and the canonical Assignment timetable matched. Breakdown and signal-failure incident controls passed. Editor, visual polish, DPR2, station overlay, scene render, and legacy import smokes passed. Full CTest already covered creator acceptance and the route-choice/traffic-state no-listener paths.
+- 2026-08-20: Full ASan/UBSan CTest passed 48/48 in 310.09 seconds. Sanitizer-backed full canonical Paimpol and Milano headless runs exited cleanly with finite station statistics and expected train, trajectory, and served-station observables. A final token-aware scan of supported text, CSV, and JSON outputs found no `nan` or infinity values.
+- 2026-08-20: Final decision: no P0/P1 release blocker remains. The complete stabilization gate is clear; remaining work is publication of this ledger result only.
+- 2026-08-20: Refreshed the repository knowledge graph, then moved the worktree-local generated graph and 894 MB alternate sanitizer build to Trash. `git diff --check` passed.
 
 ## Corrective milestone: duration-override capacity alignment
 
@@ -360,11 +368,11 @@
 - Fixes made from review: require the reported output directory to equal the smoke's fresh isolated `output/Output/Copenhagen` path before inspecting results; focused live GUI re-test passed in 79.23 seconds; final correctness re-review found no remaining issues
 - Ponytail findings: consolidate duplicated filename-invalidity checks and lowercase the basename in place; remove output modification-time state made redundant by per-run temporary output isolation
 - Simplifications made: consolidated filename-invalidity checks and lowercase the basename in place; replaced timestamp state with an exact isolated-output-path assertion plus existing file-existence checks
-- Commit SHA: pending
-- PR number and URL: pending
-- CI status: pending
-- Merge SHA: pending
-- Remaining blockers: pass required CI and merge both accepted P2 fixes; then repeat the final stabilization gate
+- Commit SHA: `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`
+- PR number and URL: [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324)
+- CI status: required `build` check passed in 11m56s ([run 32381411721](https://github.com/Ancientkingg/EGTRAIN/actions/runs/32381411721))
+- Merge SHA: `e8efb1662f61c5e33777d0c1a4323832c4f47105`
+- Remaining blockers: none for G-09-R2 or G-10-R1; repeat the final stabilization gate from the corrective merge
 
 ### Execution log
 
@@ -379,3 +387,4 @@
 - 2026-08-20: Final correctness re-review found no remaining issues in the duration override, Windows output boundary, temporary-output lifetime, or output-provenance checks.
 - 2026-08-20: Committed the reviewed corrective implementation and regressions as `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`.
 - 2026-08-20: Pushed `fix/final-validation-boundaries` and opened PR [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324); required CI is running.
+- 2026-08-20: Required CI passed in 11m56s. Squash-merged PR #324 as `e8efb1662f61c5e33777d0c1a4323832c4f47105`, deleted the feature branch, removed the clean corrective worktree, and created the final-gate worktree from the new `origin/main`.
