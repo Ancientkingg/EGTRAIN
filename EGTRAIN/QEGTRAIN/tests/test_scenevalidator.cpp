@@ -179,6 +179,14 @@ int main(int argc, char** argv) {
 	tooManyTrains.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
 	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyTrains), "scene.capacity.runtime", "services"),
 			"runnable validation rejects one expanded train above the limit");
+	SceneModel horizonTrainLimit = clean;
+	horizonTrainLimit.services[0].hasRepeat = true;
+	horizonTrainLimit.services[0].headwaySeconds = 1.0;
+	ok &= expect(hasCode(validateRunnableScene(horizonTrainLimit), "scene.capacity.runtime"),
+			"runnable validation rejects saved-horizon train expansion above the limit");
+	ok &= expect(!hasCode(validateRunnableScene(horizonTrainLimit, {}, std::optional<double>(1.0)),
+				"scene.capacity.runtime"),
+			"runnable validation uses an effective duration override for train capacity");
 	const SceneRunSelection sparseSelection{{tooManyTrains.services[0].id,
 		RuntimeLimits::kMaxExpandedTrains + 1}};
 	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, sparseSelection), "scene.capacity.runtime"),
@@ -650,6 +658,21 @@ int main(int argc, char** argv) {
 	reducedIncident.occurrence = 1;
 	ok &= expect(validateRunnableScene(reducedBreakdown).empty(),
 			"reduced-speed breakdown may omit recovery end");
+	SceneModel extendedOccurrence = reducedBreakdown;
+	extendedOccurrence.settings.durationSeconds = 1.0;
+	extendedOccurrence.services[0].hasRepeat = true;
+	extendedOccurrence.services[0].headwaySeconds = 10.0;
+	extendedOccurrence.scenarios[0].incidents[0].occurrence = 2;
+	extendedOccurrence.scenarios[0].entranceDelays[0].occurrence = 2;
+	const auto savedHorizonDiagnostics = validateRunnableScene(extendedOccurrence);
+	ok &= expect(hasCode(savedHorizonDiagnostics, "scene.occurrence.invalid")
+			&& hasCode(savedHorizonDiagnostics, "scene.entrance.occurrence.out_of_horizon"),
+			"saved horizon rejects occurrence-specific rows outside its repeat pattern");
+	const auto extendedHorizonDiagnostics = validateRunnableScene(
+			extendedOccurrence, {}, std::optional<double>(20.0));
+	ok &= expect(!hasCode(extendedHorizonDiagnostics, "scene.occurrence.invalid")
+			&& !hasCode(extendedHorizonDiagnostics, "scene.entrance.occurrence.out_of_horizon"),
+			"duration override applies to breakdown and entrance-delay occurrences");
 
 	SceneModel fullHoldWithoutEnd = reducedBreakdown;
 	fullHoldWithoutEnd.scenarios[0].incidents[0].hasReducedSpeed = false;

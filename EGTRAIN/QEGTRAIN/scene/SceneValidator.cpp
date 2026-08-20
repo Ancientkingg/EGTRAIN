@@ -124,9 +124,12 @@ void collectIds(const std::vector<T>& items, const std::string& file, const std:
 }
 
 std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable,
-		const SceneRunSelection& selectedOccurrences = {}) {
+		const SceneRunSelection& selectedOccurrences = {},
+		std::optional<double> effectiveDurationOverride = std::nullopt) {
 	std::vector<SceneDiagnostic> result;
 	DiagnosticBuilder diagnostics{result};
+	const double effectiveDurationSeconds = effectiveDurationOverride.value_or(
+			scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0);
 
 	if (!scene.baseTime.empty()) {
 		static const std::regex timePattern("^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$");
@@ -797,8 +800,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"repeat.operating_code_step must be nonzero and use a decimal operating code base",
 					"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
 					"Use a nonzero step with a decimal operating_code");
-		const int occurrences = sceneServiceOccurrenceCount(service,
-				scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0);
+		const int occurrences = sceneServiceOccurrenceCount(service, effectiveDurationSeconds);
 		if (service.hasRepeat && service.hasOperatingCodeStep
 				&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
 				&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
@@ -1201,7 +1203,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		};
 		std::size_t expandedServiceOccurrences = 0;
 		const std::size_t maxExpandedTrains = static_cast<std::size_t>(RuntimeLimits::kMaxExpandedTrains);
-		const double durationSeconds = scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0;
 		for (const SceneService& service : scene.services) {
 			const std::string servicePath = "services[" + service.id + "]";
 			if (service.stops.size() > static_cast<std::size_t>(RuntimeLimits::kMaxTimetableStops))
@@ -1210,7 +1211,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						servicePath + ".stops", std::to_string(service.stops.size()),
 						"Reduce this service to " + std::to_string(RuntimeLimits::kMaxTimetableStops)
 								+ " or fewer stops");
-			const int occurrences = sceneServiceOccurrenceCount(service, durationSeconds);
+			const int occurrences = sceneServiceOccurrenceCount(service, effectiveDurationSeconds);
 			const std::size_t occurrenceCount = selectedOccurrences.empty()
 					? static_cast<std::size_t>(occurrences)
 					: static_cast<std::size_t>(std::count_if(selectedOccurrences.begin(), selectedOccurrences.end(),
@@ -1400,8 +1401,8 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 }
 
 std::vector<SceneDiagnostic> validateRunnableScene(const SceneModel& scene,
-		const SceneRunSelection& selectedOccurrences) {
-	return validateCore(scene, true, selectedOccurrences);
+		const SceneRunSelection& selectedOccurrences, std::optional<double> effectiveDurationOverride) {
+	return validateCore(scene, true, selectedOccurrences, effectiveDurationOverride);
 }
 
 std::vector<SceneDiagnostic> validateSceneDirectory(const std::string& sceneDir) {

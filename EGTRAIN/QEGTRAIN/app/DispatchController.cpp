@@ -12,6 +12,7 @@
 #include <chrono>
 #include <memory>
 #include <map>
+#include <optional>
 
 namespace {
 void ensureDirectory(const string& path) {
@@ -165,7 +166,10 @@ DispatchController simulation;
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
 	resetState();
-	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene, selectedOccurrences);
+	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
+			? std::optional<double>(initial_variables.times) : std::nullopt;
+	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene, selectedOccurrences,
+			effectiveDurationOverride);
 	if (hasErrors(diagnostics))
 		return diagnostics;
 
