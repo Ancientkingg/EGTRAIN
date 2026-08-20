@@ -128,15 +128,6 @@ void calculateStationDelayStatistics(Stations& station, bool includeNonPositive)
 }
 } // namespace
 
-// Function to Calculate the arrival delay at each station for each train
-void calculateArrivalDelayAllTrainsOldVersion() {
-	for (int j = 0; j < numRegions; j++) {
-		// regional_train[j].Actual_Arrivals();
-		regional_train[j].Actual_Arrivals_NewVersion();
-		regional_train[j].computeArrivalDelaysAtStations();
-	}
-}
-
 // Updated Function to Calculate the arrival delay at each station for each train
 void calculateArrivalDelayAllTrains() {
 	for (int j = 0; j < numRegions; j++) {
@@ -248,106 +239,6 @@ void ComputeHwMatrixForAllTrains(Train* T, int numTrains, string MainFolder) {
 			T[i].ComputeHwMatrix(T, numTrains);
 			T[i].PrintHeadwayMatrix(MainFolder);
 		}
-	}
-}
-
-// Function to compute the headways of all the trains with the following according to a train order given
-void ComputeHwMatrixForAllTrainsWithGivenOrder(Train* T, int numTrains, string MainFolder, OrderList OrderedTrainArray) {
-
-	// Once the TrainArray has been sort out compute the Headway Matrix
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int i = 0; i < numTrains; i++) {
-			T[i].SetLocationNames();
-			T[i].ComputeHwMatrixForGivenOrder(T, numTrains, OrderedTrainArray);
-			T[i].PrintHeadwayMatrix(MainFolder);
-		}
-	}
-}
-
-// Function to compute the HW matrix of all the trains solving the conflicts among all the trains
-void ComputeHwMatrixWithGivenOrderSolvingAllConflicts(Train* T, int numTrains, string MainFolder, OrderList OrderedTrainArray) {
-	int IndexOfTrains[1000]; // this vector connects the vector of OrderedTrainArray with the Array of Trains, since they are orderedi n a different way
-	int N_IndexOfTrains = 0; // The size of the vector
-							 // Define the array containing the indices of all the trains
-	for (int q = 0; q < OrderedTrainArray.numTeList; q++) {
-		for (int i = 0; i < numTrains; i++) {
-			if (T[i].trainDescription == OrderedTrainArray.TE[q].trainDescription) {
-				IndexOfTrains[q] = i;
-				N_IndexOfTrains++; // Increase the number of trains
-				break;
-			}
-		}
-	}
-	// Create a temporary folder for printing out the shifted train trajectories
-	string TrajectorySubFolder;
-	TrajectorySubFolder = TrajectorySubFolder + MainFolder + "/" + "TEMP_Shifted_Trajectories";
-	_mkdir((char*)TrajectorySubFolder.c_str());
-
-	// Create a temporary folder for printing out the ongoing timetable assignments
-	string TTAssignmentSubFolder;
-	TTAssignmentSubFolder = TTAssignmentSubFolder + MainFolder + "/OnGoing_TT_Assignment";
-	_mkdir((char*)TTAssignmentSubFolder.c_str());
-
-	// Create a file for plotting all the conflicts detected in the Timetable
-	ofstream ConflictOutput;
-	string ConflOutputName;
-	ConflOutputName = ConflOutputName + MainFolder + "/" + "AllTrainConflicts.txt";
-	ConflictOutput.open((char*)ConflOutputName.c_str(), ios::app);
-	ConflictOutput << "\n\n*****************New Conflict Detection*******************\n";
-
-	// Create a File for plotting the blocking times and timetable points when the train has been assigned to a path in the timetable
-	ofstream OnGoingBlockingTimeFile;
-	string BlockingTimeFileName;
-	BlockingTimeFileName = BlockingTimeFileName + TTAssignmentSubFolder + "/BlockingTimes.txt";
-	OnGoingBlockingTimeFile.open((char*)BlockingTimeFileName.c_str(), ios::app);
-
-	// Create a File to plot the timetable points
-	ofstream OnGoingTTPoints;
-	string TTPointsFileName;
-	TTPointsFileName = TTPointsFileName + TTAssignmentSubFolder + "/TimetablePoints.txt";
-	OnGoingTTPoints.open((char*)TTPointsFileName.c_str(), ios::app);
-
-	for (int i = 0; i < N_IndexOfTrains; i++) {
-		T[i].SetLocationNames();
-		int Index = IndexOfTrains[i]; // temporary variable equal to IndexOfTrains[i]
-
-		if (i > 0) { // Compute the headways and the shift only for trains different from the first one
-			// Put a dummy overlap to activate the while loop
-			T[Index].numOverlaps = 1;
-			while (T[Index].numOverlaps > 0) {
-				cout << "Resetting Train " << T[Index].trainDescription << "\n";
-				T[Index].ResetConflictingTrainsAndHwMatrix();
-				cout << "Computing HW for train " << T[Index].trainDescription << "\n";
-				// regional_train[Index].SetLocationNames();
-				T[Index].DepartureMatrixToSolveConflictsForGivenOrderImproved3(T, numTrains, i, IndexOfTrains); // Compute the MAtrix of the departure times that solve conflicts among all trains
-
-				cout << "Shifting Train " << T[Index].trainDescription << "\n";
-				T[Index].ShiftTrain();
-				cout << "Detecting Conflicts for Train " << T[Index].trainDescription << "\n";
-				T[Index].DetectConflictsWithPreviousDepartingTrains(T, numTrains);
-			}
-			// regional_train[Index].DepartureMatrixToSolveConflictsForGivenOrder(regional_train, numTrains,i,IndexOfTrains);
-			// regional_train[Index].ShiftTrainToCompressTT(regional_train,numTrains,TrajectorySubFolder,MainFolder);    //Shift the train to compress the timetable according the UIC code 406
-		} else { // For the first train of the timetable which has i==0 then we need to shift it to 0 and we must simply apply the ShiftTrainCompressTT
-			T[Index].ShiftTrainToCompressTT(T, numTrains, TrajectorySubFolder, MainFolder);
-		}
-
-		if (T[Index].numOverlaps == 0) {
-			T[Index].PrintTrainBlockingTimesForThisTrain(BlockingTimeFileName);
-			OnGoingBlockingTimeFile.close();
-			// Now must print the Timetable points as well
-			T[Index].PrintTimetablePointsForThisTrain(TTPointsFileName);
-			OnGoingTTPoints.close();
-		}
-	}
-
-	// Close the ConflictOutput file
-	ConflictOutput.close();
-	// Printing train Hw Matrices
-	for (int i = 0; i < numTrains; i++) {
-		T[i].PrintHeadwayMatrix(MainFolder);
 	}
 }
 
@@ -537,25 +428,6 @@ void Implement_ROMA_Solution(string InstanceName, int Instant_Sol_Returned, doub
 	Set_OL0_as_OL1();
 }
 
-// Fast way of computing free-flow trajectories for HW and capacity computation
-void ImprovedTrainSimulationForComputingHW(double v1, double v2, double v3) {
-	for (int i = 0; i < numRegions; i++) {
-		if (regional_train[i].ID == 1) {
-			activateSignallingSystem(); // Activate the signalling system
-			for (int t = 0; t < initial_variables.times; t++) {
-				regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
-				regional_train[i].recordEarliestActiveTrajectoryIndex(t);
-			}
-		} else {
-			for (int j = 0; j < numRegions; j++) {
-				if ((regional_train[j].type == regional_train[i].type) && (regional_train[j].ID == 1)) { // if the train selected is the first one of that type
-					regional_train[i].ReplicateTrainTrajectory(regional_train[j]);						 // Than replicate this train
-					break;																				 // after having replicated it break the for loop
-				}
-			}
-		}
-	}
-}
 
 // Function to Initialize all the Locations in the Network, i.e. the Location list AllLocations
 void InitializeAndComputeMaxHwForAllLocations(Train* T, int N_Train, string MainFolder) {
@@ -642,73 +514,6 @@ void Load_Entrance_Delay_Disturbed_Scenario(string Folder, string stationName, i
 	Load_Departure_Delay_At_Station((char*)Name_Of_File.c_str(), stationName);
 }
 
-void PrintCompressedTrainPathDiagramTrial(Train* S, int N_S, string FolderName) {
-
-	int StartPrintingTime = 999999999; // this is the time the first train departs
-
-	for (int i = 0; i < N_S; i++) {
-		if (S[i].departure_time < StartPrintingTime) {
-			StartPrintingTime = S[i].departure_time; // finding in this way the minimum train departing time as result from the blocking time compression process
-		}
-	}
-
-	string FileName;
-	string FileSpeedsName;
-	FileName = FolderName + "/CompressedTrainPathDiagram.txt";
-	FileSpeedsName = FolderName + "/CompressedSpeedsDiagram.txt";
-	ofstream FileOutput;
-	ofstream FileSpeedsOutput;
-	// Opening the file of the speeds
-	FileSpeedsOutput.open((char*)FileSpeedsName.c_str(), ios::binary);
-	// Opening the file of the train positions
-	FileOutput.open((char*)FileName.c_str(), ios::binary);
-	// witing on the file of the speeds
-	FileSpeedsOutput << "Train/Time ";
-	// writing on the file of the train positions
-	FileOutput << "Train/Time ";
-
-	for (int t = StartPrintingTime; t <= StartPrintingTime + initial_variables.times; t++) {
-		FileOutput << t * timestep << " ";
-		// writing on the file of the speeds
-		FileSpeedsOutput << t * timestep << " ";
-	}
-	FileOutput << "\n";
-	FileSpeedsOutput << "\n";
-
-	for (int i = 0; i < N_S; i++) {
-		FileOutput << S[i].trainDescription << " ";
-		FileSpeedsOutput << S[i].trainDescription << " ";
-
-		const int departureTime = static_cast<int>(S[i].departure_time);
-		const int outputLast = StartPrintingTime + initial_variables.times;
-		const auto positions = shiftedTrajectoryExportCells(
-				S[i].instant_spatial_position, S[i].earliestActiveTrajectoryIndex,
-				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
-		const auto speeds = shiftedTrajectoryExportCells(
-				S[i].instant_train_speed, S[i].earliestActiveTrajectoryIndex,
-				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
-		for (std::size_t column = 0; column < positions.size(); ++column) {
-			const double position = positions[column];
-			if (position == -9999) {
-				FileOutput << -9999 << " ";
-			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-				FileOutput << position << " ";
-			} else {
-				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
-			}
-
-			const double speed = column < speeds.size() ? speeds[column] : -9999;
-			FileSpeedsOutput << (position == -9999 || speed == -9999 ? -9999 : speed) << " ";
-		}
-		FileOutput << "\n";
-		FileSpeedsOutput << "\n";
-	}
-	// Close the output file	of positions
-	FileOutput.close();
-	// Close the output file	of speeds
-	FileSpeedsOutput.close();
-}
-
 // Function to print out all the Results of a network Location
 void PrintLocationHeadways(string MainFolder) {
 	string FileName;
@@ -749,39 +554,6 @@ void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
 			} else {
 				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
 			}
-		}
-		FileOutput << "\n";
-	}
-
-	FileOutput.close();
-}
-
-// Function to Print all the trajectories
-void PrintTrainPathDiagramToDebug(Train* S, int N_S, string FolderName) {
-	bool NoPrint[300]; // This array has for each train the boolean variable that becomes 1 only if the train has finished its run (i.e. the value -9999 to the instant_spatial_position[i] has been reached)
-	for (int k = 0; k < 300; k++) {
-		NoPrint[k] = false;
-	} // Initializing the NoPrint
-	string FileName;
-	FileName = FolderName + "/TrainPathDiagram.txt";
-	ofstream FileOutput;
-	FileOutput.open((char*)FileName.c_str(), ios::binary);
-	FileOutput << "Train/Time ";
-	for (int t = 0; t < initial_variables.times; t++) {
-		FileOutput << t * timestep << " ";
-	}
-	FileOutput << "\n";
-	for (int i = 0; i < N_S; i++) {
-		FileOutput << S[i].trainDescription << " ";
-		for (int t = 0; t < initial_variables.times; t++) {
-			if ((S[i].instant_spatial_position[t] != -9999) && (NoPrint[i] == 0)) {
-				if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-					FileOutput << S[i].instant_spatial_position[t] << " ";
-				} else {
-					FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - S[i].instant_spatial_position[t] << " ";
-				}
-			} else
-				break;
 		}
 		FileOutput << "\n";
 	}
@@ -897,204 +669,14 @@ void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceO
 
 // Function to simulate the trains in free flow to be used for computing the Headways
 void TrainSimulationForComputingHW(double v1, double v2, double v3) {
-	/*#pragma omp parallel
-	{
-	#pragma omp for*/
 	for (int i = 0; i < numRegions; i++) {
 		activateSignallingSystem();
 		for (int t = 0; t < initial_variables.times; t++) {
-			// if (t==2200)
-			// cout<<"Pites";
 			regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
 			regional_train[i].recordEarliestActiveTrajectoryIndex(t);
 		}
 	}
-	//}
 }
-
-// Function to Simulate EGTRAIN within a dynamic Interaction with the ROMA tool
-void Train_Simulation_Integration_With_ROMA(double v1, double v2, double v3) {
-	int Instant_Sol_Returned = 0, Instant_Sol_Implemented = 0;
-	for (int t = 0; t <= initial_variables.times; t++) {
-		clock_t startEGTRAIN = clock(); // variable that sets the time in which EGTRAIN starts
-#pragma omp parallel
-		{
-#pragma omp for
-			// Upload for each simulation step: train characteristics
-			for (int j = 0; j < numRegions; j++) {
-				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
-				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			}
-		}
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		for (const auto& inc : simulationIncidents) {
-			if (inc.type == "signal_failure" && t >= inc.startSeconds && t <= inc.endSeconds) {
-				for (const auto& secID : inc.resolvedSectionIDs) {
-					bool found = false;
-					for (const auto& occ : BlocksOccupied) {
-						if (occ == secID) { found = true; break; }
-					}
-					if (!found) {
-						BlocksOccupied.push_back(secID);
-					}
-				}
-			}
-		}
-		releaseBlockConnections();	   // Release Blocks connected with the one really occupied by a train
-		activateSignallingSystem();	   // Apply the rules of the signalling system for all the Blocks contained
-		BlocksOccupied.clear();			   // Clear the list BlocksOccupied
-		BlocksConnected.clear();		   // Clear the list BlocksConnected
-
-		Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
-		clock_t endEGTRAIN = clock();		   // variable that sets the time in which EGTRAIN ends
-
-		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
-
-		if (Time_To_Collect_Info == Resched_Interval) { // If the Time instant is equal to the interval to gather the information
-			char Resch_Int[20];
-			snprintf(Resch_Int, sizeof(Resch_Int), "%d", Resched_Interval);
-			string NameOutputFolder;
-			NameOutputFolder = NameOutputFolder + Name_Of_Integ_Folder + initial_variables.OutputMainFolder + "/" + "instance_" + InstanceName + "/" + Resch_Int + "-" + Pred_Hor + "/"; // This is the string in which the outputs of EGTRAIN are saved
-			Print_Trajectories_Of_All_Trains_At_Instant(t, NameOutputFolder);
-			Time_To_Collect_Info = 0;
-
-			// CALL the ROMA tool and compute new rescheduling solution
-			clock_t startROMA = clock();
-			callRoma(InstanceName, t, PH);
-			clock_t endROMA = clock();
-			Comp_Time_ROMA = Comp_Time_ROMA + double(endROMA - startROMA) / CLOCKS_PER_SEC; // computing the cumulated computation time of ROMA
-
-			if (DelayDispatcherImpl > Resched_Interval) // If the DelayDispatcherImpl is larger than the reshceduling interval then the instantSol Returned must be the one calculated at the DelayDispatcher/Resched_Interval Rescheduling intervals ago.
-				Instant_Sol_Returned = t - (int)(DelayDispatcherImpl / Resched_Interval) * Resched_Interval;
-			else
-				Instant_Sol_Returned = t;
-			Instant_Sol_Implemented = Instant_Sol_Returned + DelayDispatcherImpl;
-		}
-
-		// Implement the new rescheduling solution (list OL for each of the Checkpoints) in EGTRAIN
-		if (t == Instant_Sol_Implemented) { // If you suppress these two lines you calculate the ROMA Solution but you will not implement it
-			Implement_ROMA_Solution(InstanceName, Instant_Sol_Returned, PH);
-			// Printing unfeasible orders on a txt file
-			char Resch_Int[20];
-			snprintf(Resch_Int, sizeof(Resch_Int), "%d", Resched_Interval); // Char variables to take the values of the rescheduling interval and the prediction horizon
-			string NameOutputFolder;
-			NameOutputFolder = NameOutputFolder + Name_Of_Integ_Folder + initial_variables.OutputMainFolder + "/" + "instance_" + InstanceName + "/" + Resch_Int + "-" + Pred_Hor + "/";
-			compareImplementedOrderWithRomaSolutionForAllOl(NameOutputFolder, t);
-			/*//Print OL lists on the screen
-			cout<<"time"<<t<<"\n";
-			for(int i=0;i<N_OrderLists;i++){
-			cout<<"OL "<<i<<"\n";
-			for (int j=0;j<OL[i].numTeList;j++){
-			cout<<OL[i].TE[j].trainDescription<<"\n";
-			}
-			}
-			system("pause");*/
-		} // This is the parenthesis that closes the if statement above
-
-		/*
-		//Print OL lists on the screen
-		cout<<"time"<<t<<"\n";
-		for(int i=0;i<N_OrderLists;i++){
-		cout<<"OL "<<i<<"\n";
-		for (int j=0;j<OL[i].numTeList;j++){
-		cout<<OL[i].TE[j].trainDescription<<"\n";
-		}
-		}
-		system("pause");*/
-
-		Time_To_Collect_Info++; // increase Time_To_Collect_Info;
-	}
-}
-
-// Function to Simulate traffic within the observation period and without interactions wth the traffic management system
-void trainSimulation(double v1, double v2, double v3) {
-	for (int t = 0; t < initial_variables.times; t++) {
-		std::cout << "times = " << t << std::endl;
-		clock_t startEGTRAIN = clock(); // variable that sets the time in which EGTRAIN starts
-#pragma omp parallel
-		{
-#pragma omp for
-			// Upload for each simulation step: train characteristics
-			for (int j = 0; j < numRegions; j++) {
-				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
-				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			}
-		}
-
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		for (const auto& inc : simulationIncidents) {
-			if (inc.type == "signal_failure" && t >= inc.startSeconds && t <= inc.endSeconds) {
-				for (const auto& secID : inc.resolvedSectionIDs) {
-					bool found = false;
-					for (const auto& occ : BlocksOccupied) {
-						if (occ == secID) { found = true; break; }
-					}
-					if (!found) {
-						BlocksOccupied.push_back(secID);
-					}
-				}
-			}
-		}
-		releaseBlockConnections();	   // Release Blocks connected with the one really occupied by a train
-		activateSignallingSystem();	   // Apply the rules of the signalling system for all the Blocks contained
-		/*showElement(t,BlocksOccupied);*/
-		BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-		BlocksConnected.clear(); // Clear the list BlocksConnected
-		/*debugFunctionBlockCodes(t,"@2-B2@-1.314000/@3-B0@-1.339000",Route[0]);*/
-
-		Detect_Implemented_Order_For_All_OL();														// Detect The order Implemented for all the OLs in the network
-		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
-		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
-	}
-}
-
-////Function to simulate traffic in networks with a mixed signalling system (e.g. conventional, mixed to ETCS L1, L2 and or L3)
-////Function to Simulate traffic within the observation period and without interactions wth the traffic management system
-// void Train_Simulation_Mixed_Signalling(double v1, double v2, double v3) {
-//	for (int t = 0; t < times; t++) {
-//		clock_t startEGTRAIN = clock();    //variable that sets the time in which EGTRAIN starts
-// #pragma omp parallel
-//		{
-// #pragma omp for
-//			//Upload for each simulation step: train characteristics
-//
-//			for (int j = 0; j < numRegions; j++) {
-//
-//				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);  //originally we shall call the function Trajectory_Block_Section_Free_Flow
-//			}
-//		}
-//
-//		/**********************************************************************************************
-//		*                        Update configuration of the network elements at instant t
-//		*
-//		************************************************************************************************/
-//		ETCS_MA.clear();                        //Clear the list containing all the Movement Authorities given to the trains at the previous instant
-//
-//		Occupy_Block_Sections_Of_Route(t);     //Fill in the lists Blocks_Occupied and BlocksConnected
-//		//ReportAllTrainPositionsToRBC(t, 50);    //Reporting the positions of the trains to the RBC considering a safety Margin of 50 metres
-//		//Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(t);  // Predict and check the Predict_MA_To_DecoupleAt for all trains which are in following mode
-//		releaseMixedSignallingSystem();          //Release Blocks connected with the one really occupied by a train
-//
-//		activateMixedSignallingSystem();          //Apply the rules of the signalling system for all the Blocks contained
-//
-//		//showElementInEtcsMa(t);   //Printing the MAs
-//												  /*showElement(t,BlocksOccupied);*/
-//		BlocksOccupied.clear();                 //Clear the list BlocksOccupied
-//		BlocksConnected.clear();                //Clear the list BlocksConnected
-//
-//												/*debugFunctionBlockCodes(t,"@2-B2@-1.314000/@3-B0@-1.339000",Route[0]);*/
-//
-//		Detect_Implemented_Order_For_All_OL();   //Detect The order Implemented for all the OLs in the network
-//		clock_t endEGTRAIN = clock();              //variable that sets the time in which EGTRAIN ends
-//		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC;     //computing the cumulated computation time of EGTRAIN
-//
-//	}
-// }
-
 
 // Function to initialise all StationPlatforms for the simulation of passenger flows
 // The function takes as input all the Array and number of all block sections, the array and number of all trains, the array of all defined rutes, as well as the length and width of the platforms (to be expressed in meters)

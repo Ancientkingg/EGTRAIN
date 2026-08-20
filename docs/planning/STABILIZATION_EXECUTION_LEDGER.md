@@ -1,8 +1,8 @@
 # Stabilization execution ledger
 
 - Initial `origin/main`: `935d94227fa3ebc61de371a52d663e711a3e4805`
-- Release status: all confirmed P0/P1 blockers cleared; G-NV-01 verification, cleanup, and the final gate remain
-- Active milestone: 6, station platform-booking verification
+- Release status: all confirmed P0/P1 blockers cleared; dead-code cleanup and the final gate remain
+- Active milestone: 7, dead simulation-code cleanup
 
 | Milestone | Findings | Status | Issue | Pull request | Merge |
 |---|---|---|---|---|---|
@@ -11,8 +11,8 @@
 | 3. External communication lifecycle | G-03, G-07; P-05 | Complete | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a` |
 | 4. Result integrity | G-04; P-02 | Complete | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313) | `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd` |
 | 5. Persistence and validation hardening | G-08, G-09, G-10 | Complete | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315) | `73dd9947496011df21145c234b27fe95e5065d46` |
-| 6. Station platform-booking verification | G-NV-01 | In progress | [#316](https://github.com/Ancientkingg/EGTRAIN/issues/316) | [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317) | Pending |
-| 7. Dead-code cleanup | P-01, P-06 | Blocked on correctness work | Pending | Pending | Pending |
+| 6. Station platform-booking verification | G-NV-01 | Complete | [#316](https://github.com/Ancientkingg/EGTRAIN/issues/316) | [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317) | `e4d7434de2c4c039f000851ea69fe3cf63702a18` |
+| 7. Dead-code cleanup | P-01, P-06 | In progress | [#318](https://github.com/Ancientkingg/EGTRAIN/issues/318) | Pending | Pending |
 
 ## Milestone 1: runtime memory safety
 
@@ -224,16 +224,16 @@
 - Base SHA: `73dd9947496011df21145c234b27fe95e5065d46`
 - Scope: determine whether platform-booking rules gated by `Alm`, `Asd`, and `Asdz` are intentional Netherlands-specific behavior or generic behavior that should derive from canonical data
 - Files changed: `EGTRAIN/QEGTRAIN/simulation/RollingStock.cpp`; this ledger
-- Test results: final diff check passed; source audit confirmed the executable diff is one comment, current native code has no `arrivalPlatform` assignment, and current Netherlands services have none of the three stations as endpoints; hosted build pending
+- Test results: final diff check passed; source audit confirmed the executable diff is one comment, current native code has no `arrivalPlatform` assignment, and current Netherlands services have none of the three stations as endpoints; hosted full build and test job passed
 - Adversarial-review findings: independent semantic review agreed the gate belongs to the retired Netherlands dispatcher contract and found no basis for genericizing it; native integer platform state remains `-1`, so generic comparison would create false conflicts
 - Fixes made from review: none; added one provenance comment to prevent the legacy integer booking state from being confused with canonical string platform IDs
 - Ponytail findings: no finding; the one-line comment and evidence ledger are already the minimum useful change
 - Simplifications made: no behavioral code added; retained the existing narrow case-specific gate
 - Commit SHA: `85b2f90d92ce3dd4082fb2c13e6bea69b0bf38e3`
 - PR number and URL: [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317)
-- CI status: running
-- Merge SHA: pending
-- Remaining blockers: documentation PR and required CI
+- CI status: passed in 9m28s
+- Merge SHA: `e4d7434de2c4c039f000851ea69fe3cf63702a18`
+- Remaining blockers: none; conclusion is case-specific by design and behavior remains unchanged
 
 ### Execution log
 
@@ -247,3 +247,37 @@
 - 2026-08-20: Recorded the evidence-backed case-specific conclusion on issue #316; no behavior change or generic platform-allocation rewrite is warranted.
 - 2026-08-20: Committed the verified conclusion and provenance comment as `85b2f90d92ce3dd4082fb2c13e6bea69b0bf38e3`.
 - 2026-08-20: Pushed `docs/verify-platform-booking-rules` and opened pull request [#317](https://github.com/Ancientkingg/EGTRAIN/pull/317); required CI is running.
+- 2026-08-20: Required CI passed in 9m28s. Squash-merged pull request #317 as `e4d7434de2c4c039f000851ea69fe3cf63702a18`, deleted the feature branch, and removed the clean milestone worktree.
+
+## Milestone 7: dead simulation-code cleanup
+
+- Finding IDs: P-01, P-06
+- Branch: `chore/remove-dead-simulation-code`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/remove-dead-simulation-code`
+- Base SHA: `e4d7434de2c4c039f000851ea69fe3cf63702a18`
+- Scope: re-confirm and delete only unreachable alternate simulation/headway/debug paths and obsolete commented experiments remaining on current `main`
+- Files changed: `EGTRAIN/QEGTRAIN/simulation/Simulation.cpp`, `Simulation.h`, `EGTRAIN/QEGTRAIN/app/DispatchController.cpp`, and this ledger
+- Test results: fresh Qt 5 configure and full build passed; focused `test_operationsbuilder` passed (1/1); full CTest passed (48/48); six-case native headless smoke passed
+- Adversarial-review findings: none; independent review verified the retained free-flow headway path and confirmed the removed executable debug residue had no side effects
+- Fixes made from review: none required
+- Ponytail findings: none (`Lean already. Ship.`)
+- Simplifications made: removed eight unreachable alternate runtime/headway/debug implementations and declarations, the embedded commented compressed-diagram implementation, obsolete commented experiments, and two executable debug-support residues; retained the tested free-flow headway path and supported APIs
+- Commit SHA: `4d4db065e4e1c226ddcec35141df418d328c4879`
+- PR number and URL: [#319](https://github.com/Ancientkingg/EGTRAIN/pull/319)
+- CI status: pending
+- Merge SHA: pending
+- Remaining blockers: required CI and merge
+
+### Execution log
+
+- 2026-08-20: Confirmed no existing issue owns the remaining P-01/P-06 work; opened issue [#318](https://github.com/Ancientkingg/EGTRAIN/issues/318).
+- 2026-08-20: Fetched `origin`, created the clean isolated milestone branch and worktree from the latest merged `origin/main`, and recorded merge SHA `e4d7434de2c4c039f000851ea69fe3cf63702a18`.
+- 2026-08-20: Re-ran repository-wide exact symbol searches on current `main`. The eight P-01 candidates occur only as definitions, declarations, or commented calls. `TrainSimulationForComputingHW()` remains live in `test_operationsbuilder` and is excluded from deletion. The cleanup boundary remains deletion-only; supported RollingStock APIs are out of scope.
+- 2026-08-20: Independent mechanical audit confirmed the same eight functions have no live repository callers and found no CMake, tool, product-documentation, or test references. It also confirmed the P-06 comment blocks and two small executable debug-support residues in `DispatchController` have no effect on supported runtime behavior. The tested `TrainSimulationForComputingHW()` path, timing output, RollingStock APIs, and trajectory utilities remain out of scope.
+- 2026-08-20: Deleted the confirmed P-01/P-06 surface: 642 product lines removed and no product lines added across `Simulation.cpp`, `Simulation.h`, and `DispatchController.cpp`. A post-edit exact symbol audit found none of the eight dead candidates and retained the live `TrainSimulationForComputingHW()` definition, declaration, and both regression-test callers. `git diff --check` passed.
+- 2026-08-20: Fresh Qt 5 configure and full build passed. The focused `test_operationsbuilder` regression, including both live `TrainSimulationForComputingHW()` calls, passed (1/1).
+- 2026-08-20: Full CTest passed (48/48). The six-case native headless smoke passed for Netherlands, Paimpol, Copenhagen, Brescia, Assignment, and Lebanon; all cases exited cleanly, produced finite station statistics, and retained their expected trajectory/runtime observables.
+- 2026-08-20: Independent correctness review reported no findings. It rechecked the retained `TrainSimulationForComputingHW()` declaration, definition, native setup, free-flow call, and both regression callers, and confirmed the removed local debug-support construction had no external side effects. No fixes or re-review were required.
+- 2026-08-20: Separate Ponytail review reported `Lean already. Ship.` No further simplification was accepted.
+- 2026-08-20: Refreshed the repository knowledge graph after the code change, removed the worktree-local generated graph artifacts, and committed the reviewed milestone as `4d4db065e4e1c226ddcec35141df418d328c4879`.
+- 2026-08-20: Pushed `chore/remove-dead-simulation-code` and opened PR [#319](https://github.com/Ancientkingg/EGTRAIN/pull/319).

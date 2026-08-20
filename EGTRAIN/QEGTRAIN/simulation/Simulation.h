@@ -43,9 +43,6 @@ void Print_Implemented_Order_For_All_OL(string FolderName);
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
 void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains);
 
-// Function to Calculate the arrival delay at each station for each train
-void calculateArrivalDelayAllTrainsOldVersion();
-
 // Updated Function to Calculate the arrival delay at each station for each train
 void calculateArrivalDelayAllTrains();
 
@@ -76,18 +73,8 @@ void Print_Trajectories_As_Image(string InstanceName, char* Resch_Int, char* Pre
 
 extern double Comp_Time_EGTRAIN, Comp_Time_ROMA; // variable to measure the computation times of EGTRAIN and ROMA
 
-// Function to Simulate traffic within the observation period and without interactions wth the traffic management system
-void trainSimulation(double v1, double v2, double v3);
-
-////Function to simulate traffic in networks with a mixed signalling system (e.g. conventional, mixed to ETCS L1, L2 and or L3)
-////Function to Simulate traffic within the observation period and without interactions wth the traffic management system
-// void Train_Simulation_Mixed_Signalling(double v1, double v2, double v3);
-
 // Function to simulate the trains in free flow to be used for computing the Headways
 void TrainSimulationForComputingHW(double v1, double v2, double v3);
-
-// Fast way of computing free-flow trajectories for HW and capacity computation
-void ImprovedTrainSimulationForComputingHW(double v1, double v2, double v3);
 
 extern int Resched_Interval;	 // Variable that set the time to gather train information from EGTRAIN to ROMA
 extern int Time_To_Collect_Info; // Variable to measure the time passed from the last information update
@@ -108,21 +95,12 @@ void callRoma(string instancename, double inittime, double PH);
 // Function to Implement the ROMA Solution in EGTRAIN
 void Implement_ROMA_Solution(string InstanceName, int Instant_Sol_Returned, double PH);
 
-// Function to Simulate EGTRAIN within a dynamic Interaction with the ROMA tool
-void Train_Simulation_Integration_With_ROMA(double v1, double v2, double v3);
-
 extern OrderList TrainEntranceOrder;
 
 void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceOrder);
 
 // Function to compute the headways of all the trains
 void ComputeHwMatrixForAllTrains(Train* T, int numTrains, string MainFolder);
-
-// Function to compute the headways of all the trains with the following according to a train order given
-void ComputeHwMatrixForAllTrainsWithGivenOrder(Train* T, int numTrains, string MainFolder, OrderList OrderedTrainArray);
-
-// Function to compute the HW matrix of all the trains solving the conflicts among all the trains
-void ComputeHwMatrixWithGivenOrderSolvingAllConflicts(Train* T, int numTrains, string MainFolder, OrderList OrderedTrainArray);
 
 // Function to compute the critical headways for all the trains
 void ComputeCriticalHeadwaysForLocationsForAllTrains(Train* T, int numTrains);
@@ -141,78 +119,6 @@ void InitializeAndComputeMaxHwForAllLocations(Train* T, int N_Train, string Main
 
 // Function to Print all the trajectories
 void PrintTrainPathDiagram(Train* S, int N_S, string FolderName);
-
-// Function to Print all the trajectories
-void PrintTrainPathDiagramToDebug(Train* S, int N_S, string FolderName);
-
-/*
-//Function to Print all the trajectories
-void PrintCompressedTrainPathDiagram(Train *instant_spatial_position, int N_S, string FolderName) {
-
-	int StartPrintingTime = 999999999; // this is the time the first train departs
-	int EndPrintingTime = -10000000;
-	for (int i = 0; i < N_S; i++) {
-		if (instant_spatial_position[i].departure_time < StartPrintingTime) {
-			StartPrintingTime = instant_spatial_position[i].departure_time;  // finding in this way the minimum train departing time as result from the blocking time compression process
-		}
-		if (instant_spatial_position[i].End_Time > EndPrintingTime) {  //finding the latest train exit time from simulation as result from the blocking time compression process
-			EndPrintingTime = instant_spatial_position[i].End_Time+1+instant_spatial_position[i].departure_time-instant_spatial_position[i].RunStartTime;
-		}
-	}
-
-	string FileName;
-	FileName = FolderName + "/CompressedTrainPathDiagram.txt";
-	ofstream FileOutput;
-	FileOutput.open((char*)FileName.c_str(), ios::binary);
-	FileOutput << "Train/Time ";
-	for (int t = StartPrintingTime; t<=EndPrintingTime; t++) {
-		FileOutput << t * timestep << " ";
-	}
-	FileOutput << "\n";
-
-	//Shifting train trajectories
-	for (int i = 0; i < N_S; i++) {
-		//Printing out the names of trains
-		FileOutput << instant_spatial_position[i].trainDescription << " ";
-		int TrainShift = (int) instant_spatial_position[i].departure_time - (int) instant_spatial_position[i].RunStartTime;
-		list<int> ShiftedTimes;
-		list<double> TrainPositions;
-		for (int t = 0; t <= times; t++) {
-			ShiftedTimes.push_back(t + instant_spatial_position[i].departure_time);
-			TrainPositions.push_back(instant_spatial_position[i].instant_spatial_position[t]);
-		}
-
-		bool StopPrinting = false;
-		list<int>::iterator shiftTime = ShiftedTimes.begin();
-		list<double>::iterator pos = TrainPositions.begin();
-		for (int k = StartPrintingTime; k <= EndPrintingTime; k++) {
-			if (ShiftedTimes.size() > 0) {
-				if ((*shiftTime == k)&&(StopPrinting==0)) {
-					if (train_route[instant_spatial_position[i].indexOfRoute].reversed_direction == 0) {
-						FileOutput << *pos << " ";
-					}
-					else {
-						FileOutput << train_route[instant_spatial_position[i].indexOfRoute].OriginalRefReversedRoute - *pos << " ";
-					}
-					shiftTime++;  //advancing the pointers to the lists
-					pos++;
-				}
-				else {
-					FileOutput << " ";
-				}
-				if (shiftTime == ShiftedTimes.end()) {
-					StopPrinting = true; //break the for loop when the cicle reaches the end of the list
-				}
-
-			}
-		}
-		FileOutput << "\n";
-	}
-//Close the output file
-	FileOutput.close();
-}
-*/
-void PrintCompressedTrainPathDiagramTrial(Train* S, int N_S, string FolderName);
 
 // Function to compute Energy consumption for all the trains in the network
 void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
