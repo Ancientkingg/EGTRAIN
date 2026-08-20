@@ -101,7 +101,7 @@
 - Fixes made from review: none required; the retained per-endpoint socket already preserves connection progress for a peer that appears later
 - Ponytail findings: accepted consolidation of identical exception handlers, replacement of an unnecessary post-join atomic flag with `bool`, and removal of unnecessary CTest `RUN_SERIAL`
 - Simplifications made: replaced the two detached port-specific senders with one shared sender, deleted the duplicated hard-coded XML example bodies, computed each XML document once, and applied the three accepted Ponytail reductions for a further five-line reduction
-- Commit SHA: pending
+- Commit SHA: `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
@@ -122,3 +122,4 @@
 - 2026-08-20: Six-case native headless smoke passed in ordinary `-TSM 0 -RC 0` mode, preserving the existing runtime structure and observables.
 - 2026-08-20: Final independent correctness re-review confirmed that thread join synchronizes the test flag, the generic exception handler covers ZeroMQ errors, test serialization is unnecessary, and the legless payload matches the current external contract; no findings remain.
 - 2026-08-20: Refreshed the local code knowledge graph after the code and ledger changes.
+- 2026-08-20: Committed the verified implementation as `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`.
