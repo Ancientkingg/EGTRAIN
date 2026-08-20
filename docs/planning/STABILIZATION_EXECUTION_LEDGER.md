@@ -288,19 +288,19 @@
 - Finding IDs: final release gate for G-01 through G-10, G-NV-01, and P-01 through P-06
 - Branch: `chore/final-stabilization-gate`
 - Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/final-stabilization-gate`
-- Base SHA: `e41b3c3621ff3d943454f62f2e211c964a9678b5`
+- Base SHA: initial attempt `e41b3c3621ff3d943454f62f2e211c964a9678b5`; repeated gate `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`
 - Scope: run the complete stabilization verification matrix from current `main`, perform fresh correctness and Ponytail reviews, record the release decision, and make no unrelated product changes
 - Files changed: this ledger; pending gate results
-- Test results: fresh normal Qt 5 configure and full build passed; full normal CTest passed (48/48); six-case headless, six-scene roundtrip, bundle, Assignment acceptance, incident, editor, and visual/render smokes passed; generated supported outputs contain no `nan`/`inf`; sanitizer checks pending
-- Adversarial-review findings: one P2 validator/runtime mismatch: runnable capacity validation uses the saved scene duration while native operation building honors a shorter command-line duration override, so validation can reject a run that stays within native capacity
-- Fixes made from review: corrective issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321) opened; fix and repeated final gate pending
+- Test results: both pre-correction normal smoke matrices passed; pre-correction full ASan/UBSan CTest passed; the first post-`2dccabc5` CTest run had one output-file interference failure because GUI autostart and the six-case smoke ran concurrently, while all other tests and smokes passed; final serial rerun pending after accepted review fixes
+- Adversarial-review findings: accepted G-09-R1 (P2 capacity and P1 occurrence-horizon mismatch), G-09-R2 (P2 GUI validation ignores the runtime duration override), and G-10-R1 (P2 Windows-invalid output components remain accepted)
+- Fixes made from review: G-09-R1 merged in corrective PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); corrective issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323) opened for G-09-R2 and G-10-R1
 - Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
 - Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
-- Commit SHA: `d132c2442430609f57589f12eb14e031da8fea2a`
-- PR number and URL: [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322)
+- Commit SHA: `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`
+- PR number and URL: [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324)
 - CI status: required `build` check running
 - Merge SHA: pending
-- Remaining blockers: correct the accepted P2 duration-override capacity mismatch, merge it, and repeat the final gate from the resulting `origin/main`
+- Remaining blockers: correct and merge G-09-R2/G-10-R1, then repeat the complete final gate and fresh reviews from the resulting `origin/main`
 
 ### Execution log
 
@@ -312,6 +312,8 @@
 - 2026-08-20: The fresh separate Ponytail review inspected the complete 26-file stabilization diff and current tracked state and reported `Lean already. Ship.` No further simplification was accepted.
 - 2026-08-20: Fresh independent correctness review found one P2 regression in G-09. Both startup and `DispatchController::prepareScene` validate expanded trains from the saved scene duration, while `buildOperationsFromScene` uses a shorter `-h` override. Root call-flow verification accepted the finding because this can reject a run that would remain below the 700-train native limit. Opened corrective issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321); release-gate completion is paused until the fix is merged and the gate is repeated.
 - 2026-08-20: The pre-correction ASan/UBSan build and full instrumented CTest completed successfully (48/48 in 317.39s). This is retained as diagnostic evidence only; the sanitizer and complete release gate will be repeated after G-09-R1 merges.
+- 2026-08-20: Restarted the final gate from corrective merge `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`. Fresh configure/build passed; six-case headless, roundtrip, bundle, Assignment, incident, editor, and visual smokes passed. The concurrent full CTest run had one GUI-autostart energy-row mismatch caused by another smoke writing the same output directory; 47/48 tests passed and the isolated final rerun remains pending.
+- 2026-08-20: Fresh post-correction correctness review found two P2 gaps. `MainWindow::refreshValidationPanel` still uses the saved duration and can disable GUI Run after startup accepted a shorter `-h`; Windows reserved device basenames and other invalid output components still pass the cross-platform output-name boundary. Root call-flow verification accepted both findings, and the official Windows naming contract confirmed reserved names, invalid characters, and trailing period/space rules. Opened corrective issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323). The separate Ponytail review reported `Lean already. Ship.`
 
 ## Corrective milestone: duration-override capacity alignment
 
@@ -326,11 +328,11 @@
 - Fixes made from review: compute one effective duration at runnable-validator entry and use it for the shared service-occurrence map and expanded-train capacity; added focused saved/extended-horizon checks for both occurrence-specific row types; fresh correctness re-review reported no findings
 - Ponytail findings: none (`Lean already. Ship.`) after the final corrected seven-file diff
 - Simplifications made: one shared effective-duration value replaces separate saved/override duration calculations; no further simplification accepted
-- Commit SHA: pending
-- PR number and URL: pending
-- CI status: pending
-- Merge SHA: pending
-- Remaining blockers: commit, push, pass required CI, and merge the corrective fix; then repeat the final stabilization gate
+- Commit SHA: `d132c2442430609f57589f12eb14e031da8fea2a`
+- PR number and URL: [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322)
+- CI status: required `build` check passed in 10m53s ([run 32375722036](https://github.com/Ancientkingg/EGTRAIN/actions/runs/32375722036))
+- Merge SHA: `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`
+- Remaining blockers: none for G-09-R1; repeat the final stabilization gate from the corrective merge
 
 ### Execution log
 
@@ -343,3 +345,37 @@
 - 2026-08-20: Rebuilt the final corrected diff. Full normal CTest passed (48/48), including the live high-repeat short-override path; the six-case native headless matrix passed with finite statistics and expected train/trajectory observables. Focused ASan/UBSan `test_scenevalidator` and `test_runtime_memory_safety` passed (2/2). Refreshed the repository knowledge graph and removed the worktree-local generated graph and alternate sanitizer build artifacts.
 - 2026-08-20: Committed the reviewed corrective implementation and regressions as `d132c2442430609f57589f12eb14e031da8fea2a`.
 - 2026-08-20: Pushed `fix/duration-override-capacity-validation` and opened PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); required CI is running.
+- 2026-08-20: Required CI passed in 10m53s. Squash-merged PR #322 as `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`, deleted the feature branch, removed the clean corrective worktree, and recreated the clean final-gate worktree from the new `origin/main`.
+
+## Corrective milestone: GUI duration and Windows output boundaries
+
+- Finding IDs: G-09-R2, G-10-R1 (P2 final-review findings)
+- Branch: `fix/final-validation-boundaries`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/final-validation-boundaries`
+- Base SHA: `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`
+- Scope: align GUI runnable validation with the active duration override and make generated output components safe on supported Windows builds without restricting ordinary readable names
+- Files changed: `EGTRAIN/QEGTRAIN/app/MainWindow.cpp`, `EGTRAIN/QEGTRAIN/scene/SceneModel.cpp`, `EGTRAIN/QEGTRAIN/tests/test_scenevalidator.cpp`, `tools/e2e/gui_autostart_smoke.py`, and this ledger
+- Test results: fresh Qt 5 configure and full build passed; focused `test_scenevalidator` and isolated live GUI override smoke passed; full CTest passed 48/48 in 158.88 seconds; after simplification the focused validator and GUI smoke passed again 2/2; six-case native headless passed; fresh focused ASan/UBSan validator and GUI smoke passed 2/2
+- Adversarial-review findings: initial review found none and confirmed the saved 40,000-second scene expands beyond native capacity while the active 200-second GUI override remains within capacity; post-simplification re-review found one medium test-integrity gap because the GUI smoke trusted the app-reported output path after removing the timestamp heuristic
+- Fixes made from review: require the reported output directory to equal the smoke's fresh isolated `output/Output/Copenhagen` path before inspecting results; focused live GUI re-test passed in 79.23 seconds; final correctness re-review found no remaining issues
+- Ponytail findings: consolidate duplicated filename-invalidity checks and lowercase the basename in place; remove output modification-time state made redundant by per-run temporary output isolation
+- Simplifications made: consolidated filename-invalidity checks and lowercase the basename in place; replaced timestamp state with an exact isolated-output-path assertion plus existing file-existence checks
+- Commit SHA: pending
+- PR number and URL: pending
+- CI status: pending
+- Merge SHA: pending
+- Remaining blockers: pass required CI and merge both accepted P2 fixes; then repeat the final stabilization gate
+
+### Execution log
+
+- 2026-08-20: Confirmed no existing issue owns both final boundary gaps and opened issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323).
+- 2026-08-20: Verified the GUI load, validation-panel, Run-action, and runtime-preparation call graph. Startup and `DispatchController` pass the override, but GUI panel validation does not. Verified the output component against Microsoft's supported Windows naming rules and fixed the scope to reserved device basenames, invalid filename characters/control bytes, and trailing period/space handling while preserving normal readable and dot-prefixed names.
+- 2026-08-20: Fetched `origin`, created the clean isolated `fix/final-validation-boundaries` branch and worktree from merged `origin/main`, and recorded base SHA `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`. Split implementation into exclusive GUI/test-isolation and output-component/test files.
+- 2026-08-20: Passed the active duration override into GUI panel validation without mutating the scene. The existing GUI autostart smoke now copies Copenhagen to a temporary scene, raises only its saved duration above native capacity, runs the normal 200-second override workload, and isolates output under the same temporary root. Extended the shared output-component boundary for Windows-invalid characters/control bytes, trailing period/space, and reserved device basenames/extensions, including superscript COM/LPT variants, while retaining readable Unicode and documented near-misses. Fresh full build, focused validator CTest, and the isolated live GUI override smoke passed.
+- 2026-08-20: Full CTest passed 48/48 in 158.88 seconds. Independent correctness review found no defects. Ponytail review found two local simplifications: merge filename-invalidity checks/lowercase the basename in place, and remove redundant output modification-time state now that each GUI smoke owns a fresh temporary output root. Both were accepted; the focused validator and GUI smoke passed again 2/2 after the trim.
+- 2026-08-20: The final six-case native headless matrix passed with finite station statistics and expected train/trajectory observables. A fresh ASan/UBSan build passed the focused validator and live GUI override smoke 2/2 in 86.91 seconds.
+- 2026-08-20: Refreshed the repository knowledge graph after the final code changes, then moved the worktree-local generated graph and alternate sanitizer build to Trash. `git diff --check` passed.
+- 2026-08-20: Post-simplification correctness re-review found one medium test-integrity gap: without a timestamp or expected-path check, the GUI smoke could trust a stale default output directory reported by a regressed resolver. Accepted and fixed it with an exact assertion against the fresh temporary output path; the focused live GUI smoke passed in 79.23 seconds and final re-review is pending.
+- 2026-08-20: Final correctness re-review found no remaining issues in the duration override, Windows output boundary, temporary-output lifetime, or output-provenance checks.
+- 2026-08-20: Committed the reviewed corrective implementation and regressions as `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`.
+- 2026-08-20: Pushed `fix/final-validation-boundaries` and opened PR [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324); required CI is running.

@@ -150,11 +150,30 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 }
 
 std::string sceneOutputDirectoryComponent(const std::string& sceneName) {
-	const bool driveQualified = sceneName.size() >= 2
-			&& std::isalpha(static_cast<unsigned char>(sceneName[0]))
-			&& sceneName[1] == ':';
-	if (sceneName.empty() || sceneName == "." || sceneName == ".."
-			|| sceneName.find_first_of("/\\") != std::string::npos || driveQualified)
+	if (sceneName.empty() || sceneName.find_first_of("<>:\"/\\|?*") != std::string::npos
+			|| std::any_of(sceneName.begin(), sceneName.end(), [](unsigned char value) {
+				return value <= 31;
+			})
+			|| sceneName.back() == ' ' || sceneName.back() == '.')
+		return "scene";
+	const auto asciiLower = [](unsigned char value) {
+		return value >= 'A' && value <= 'Z'
+				? static_cast<unsigned char>(value + ('a' - 'A')) : value;
+	};
+	std::string basename = sceneName.substr(0, sceneName.find('.'));
+	std::transform(basename.begin(), basename.end(), basename.begin(), asciiLower);
+	const bool comOrLpt = basename.compare(0, 3, "com") == 0
+			|| basename.compare(0, 3, "lpt") == 0;
+	if (basename == "con" || basename == "prn" || basename == "aux" || basename == "nul"
+			|| (comOrLpt && basename.size() == 4
+					&& ((basename[3] >= '1' && basename[3] <= '9')
+							|| static_cast<unsigned char>(basename[3]) == 0xB2
+							|| static_cast<unsigned char>(basename[3]) == 0xB3
+							|| static_cast<unsigned char>(basename[3]) == 0xB9))
+			|| (comOrLpt && basename.size() == 5
+					&& (basename.compare(3, 2, "\xC2\xB2") == 0
+							|| basename.compare(3, 2, "\xC2\xB3") == 0
+							|| basename.compare(3, 2, "\xC2\xB9") == 0)))
 		return "scene";
 	return sceneName;
 }

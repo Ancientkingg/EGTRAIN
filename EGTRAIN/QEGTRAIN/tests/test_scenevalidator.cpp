@@ -137,6 +137,11 @@ int main(int argc, char** argv) {
 	const std::filesystem::path outputRoot = "scene-output-root";
 	const std::vector<std::pair<std::string, std::string>> outputNameCases = {
 		{"Readable Scene", "Readable Scene"},
+		{"M\xC3\xBCnchen", "M\xC3\xBCnchen"},
+		{".temp", ".temp"},
+		{"COM10", "COM10"},
+		{"LPT0", "LPT0"},
+		{"auxiliary", "auxiliary"},
 		{"", "scene"},
 		{"../outside", "scene"},
 		{"..\\outside", "scene"},
@@ -148,6 +153,30 @@ int main(int argc, char** argv) {
 		{"\\\\server\\share", "scene"},
 		{"C:", "scene"},
 		{"C:\\outside", "scene"},
+		{"CON", "scene"},
+		{"cOn.txt", "scene"},
+		{"PRN.log", "scene"},
+		{"aUx.cfg", "scene"},
+		{"NUL.json", "scene"},
+		{"COM1", "scene"},
+		{"com9.txt", "scene"},
+		{"LPT1", "scene"},
+		{"lpt9.csv", "scene"},
+		{std::string("COM") + "\xC2\xB9.txt", "scene"},
+		{std::string("lpt") + "\xC2\xB2", "scene"},
+		{std::string("COM") + "\xB3", "scene"},
+		{"bad<name", "scene"},
+		{"bad>name", "scene"},
+		{"bad:name", "scene"},
+		{"bad\"name", "scene"},
+		{"bad/name", "scene"},
+		{"bad\\name", "scene"},
+		{"bad|name", "scene"},
+		{"bad?name", "scene"},
+		{"bad*name", "scene"},
+		{std::string("control") + '\x01', "scene"},
+		{"trailing ", "scene"},
+		{"trailing.", "scene"},
 	};
 	for (const auto& outputName : outputNameCases) {
 		const std::string component = sceneOutputDirectoryComponent(outputName.first);
@@ -159,6 +188,10 @@ int main(int argc, char** argv) {
 	unsafeSceneName.name = "../outside";
 	ok &= expect(hasCodeAndPath(validateRunnableScene(unsafeSceneName), "scene.name.path", "name"),
 			"runnable validation rejects unsafe scene output names");
+	SceneModel reservedSceneName = clean;
+	reservedSceneName.name = "CON.txt";
+	ok &= expect(hasCodeAndPath(validateRunnableScene(reservedSceneName), "scene.name.path", "name"),
+			"runnable validation rejects reserved scene output names");
 	SceneModel stopLimit = clean;
 	while (stopLimit.services[0].stops.size() < static_cast<std::size_t>(RuntimeLimits::kMaxTimetableStops))
 		stopLimit.services[0].stops.push_back(stopLimit.services[0].stops.back());
