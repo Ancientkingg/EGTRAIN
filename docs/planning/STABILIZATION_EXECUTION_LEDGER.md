@@ -101,7 +101,7 @@
 - Fixes made from review: none required; the retained per-endpoint socket already preserves connection progress for a peer that appears later
 - Ponytail findings: accepted consolidation of identical exception handlers, replacement of an unnecessary post-join atomic flag with `bool`, and removal of unnecessary CTest `RUN_SERIAL`
 - Simplifications made: replaced the two detached port-specific senders with one shared sender, deleted the duplicated hard-coded XML example bodies, computed each XML document once, and applied the three accepted Ponytail reductions for a further five-line reduction
-- Commit SHA: implementation `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`; CI correction pending
+- Commit SHA: implementation `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`; CI correction `b60af2da27f8587291d1667f498f775ea0db96e4`
 - PR number and URL: [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311)
 - CI status: initial run 32351657448 failed only `test_railmlparser`; the failure was reproduced and corrected, and a replacement run is pending
 - Merge SHA: pending
@@ -127,3 +127,4 @@
 - 2026-08-20: Initial CI run 32351657448 passed 47/48 tests but failed `test_railmlparser`. Added failure-state diagnostics and reproduced the same state locally: the mock REP server received the envelope while the client missed its queued reply.
 - 2026-08-20: Removed the mock server's zero-linger shutdown and added an explicit client-completion handshake so the server remains alive until the request/reply call returns. Retained the 100 ms production transport bound. The corrected test passed 100 consecutive runs, and the focused milestone set passed 4/4.
 - 2026-08-20: Focused independent review of the CI correction found no issue and confirmed all failure paths remain bounded. Full normal CTest then passed 48/48 in 149.02 seconds. The existing Ponytail reductions remain intact; the completion handshake is the minimum synchronization needed for a reliable request/reply test.
+- 2026-08-20: Committed the verified CI correction as `b60af2da27f8587291d1667f498f775ea0db96e4`; replacement CI is pending.
