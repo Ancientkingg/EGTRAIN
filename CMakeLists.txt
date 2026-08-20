@@ -672,6 +672,12 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_route_choice_missing_data PROPERTIES
 		PASS_REGULAR_EXPRESSION "scene.route_choice.passengers.none"
 		TIMEOUT 30)
+	add_test(NAME test_external_sharing_no_listener
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol
+			-g 0 -h 1 -TSM 1 -RC 1)
+	set_tests_properties(test_external_sharing_no_listener PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/external-sharing-test"
+		TIMEOUT 30)
 
 	add_test(NAME test_headless_smoke_decode
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)

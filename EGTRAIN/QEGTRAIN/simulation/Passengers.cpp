@@ -11,7 +11,7 @@ nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timeste
 			continue;
 		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
 				[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
-		if (journey == passenger.Journeys.end() || journey->N_Trips <= 0)
+		if (journey == passenger.Journeys.end())
 			continue;
 		payload["passengers"][passenger.ID + "--1.0"] = {
 			{"origin", journey->Dep_Station_ID},

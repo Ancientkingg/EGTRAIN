@@ -186,15 +186,12 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	}
 	if (initial_variables.RChoice) {
 		const bool hasUsablePassengerJourney = std::any_of(AllDailyPassengers.begin(), AllDailyPassengers.end(),
-			[](const Passenger& passenger) {
-				return std::any_of(passenger.Journeys.begin(), passenger.Journeys.end(),
-					[](const Journey& journey) { return journey.N_Trips > 0; });
-			});
+			[](const Passenger& passenger) { return !passenger.Journeys.empty(); });
 		if (!hasUsablePassengerJourney) {
 			diagnostics.push_back({SceneSeverity::Error, "scene.route_choice.passengers.none",
 				"Route choice requires at least one usable passenger journey in the prepared run",
 				"passengers.json", "passenger", {}, "passengers", {},
-				"Add a passenger journey with at least one selected route leg"});
+				"Add a passenger journey within the selected run"});
 			resetState();
 			return diagnostics;
 		}
@@ -526,16 +523,18 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 		// for the ZeroMQbroker
 		if (initial_variables.TSM) {
+			const std::string xml = trafficStateMonitoring_xml(jsmsg);
 			std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
-					  << trafficStateMonitoring_xml(jsmsg) << std::flush;
-			std::thread(send_traffic_state5555, jsmsg, trafficStateMonitoring_xml(jsmsg)).detach();
+					  << xml << std::flush;
+			send_external_state(jsmsg, xml, "tcp://127.0.0.1:5555");
 		}
 
 		if (initial_variables.RChoice) {
 			const nlohmann::json route_choice_json = routeChoicePayload(AllDailyPassengers, t);
+			const std::string xml = routeChoice_xml(route_choice_json);
 			std::cout << "\n\n Sending the following Route Choice XML file" << std::endl;
-			std::cout << routeChoice_xml(route_choice_json) << std::flush;
-			std::thread(send_traffic_state5556, route_choice_json, routeChoice_xml(route_choice_json)).detach();
+			std::cout << xml << std::flush;
+			send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
 		}
 
 		ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
