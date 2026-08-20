@@ -2567,6 +2567,7 @@ void protectStationAreas(int i) {
 					? regional_train[k].Stations[regional_train[k].numStations - 1].stationName
 					: std::string();
 				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
+					// Legacy Netherlands dispatcher terminals with integer arrival-platform assignments.
 					if (stationName != "Alm" && stationName != "Asd" && stationName != "Asdz")
 						return false;
 					if (boundary.exit)
