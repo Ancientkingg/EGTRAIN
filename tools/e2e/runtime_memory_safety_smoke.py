@@ -42,6 +42,7 @@ def main() -> None:
         services_path = paimpol / "services.json"
         services = json.loads(services_path.read_text(encoding="utf-8"))
         services["services"][1]["entry_time_seconds"] = 0.0
+        services["services"][1]["repeat"]["headway_seconds"] = 1.0
         services_path.write_text(json.dumps(services, indent=2) + "\n", encoding="utf-8")
         run(app, paimpol, temp / "paimpol-output", "Paimpol time-zero runtime")
 
