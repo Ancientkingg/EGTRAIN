@@ -297,8 +297,8 @@
 - Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
 - Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
 - Commit SHA: `d132c2442430609f57589f12eb14e031da8fea2a`
-- PR number and URL: pending
-- CI status: pending
+- PR number and URL: [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322)
+- CI status: required `build` check running
 - Merge SHA: pending
 - Remaining blockers: correct the accepted P2 duration-override capacity mismatch, merge it, and repeat the final gate from the resulting `origin/main`
 
@@ -342,3 +342,4 @@
 - 2026-08-20: Fresh correctness re-review of all effective-duration consumers and runtime call sites reported no findings. The separate final Ponytail re-review inspected all seven changed files and reported `Lean already. Ship.`
 - 2026-08-20: Rebuilt the final corrected diff. Full normal CTest passed (48/48), including the live high-repeat short-override path; the six-case native headless matrix passed with finite statistics and expected train/trajectory observables. Focused ASan/UBSan `test_scenevalidator` and `test_runtime_memory_safety` passed (2/2). Refreshed the repository knowledge graph and removed the worktree-local generated graph and alternate sanitizer build artifacts.
 - 2026-08-20: Committed the reviewed corrective implementation and regressions as `d132c2442430609f57589f12eb14e031da8fea2a`.
+- 2026-08-20: Pushed `fix/duration-override-capacity-validation` and opened PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); required CI is running.
