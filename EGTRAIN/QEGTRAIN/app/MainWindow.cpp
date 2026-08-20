@@ -3793,7 +3793,9 @@ void MainWindow::refreshValidationPanel() {
 		return;
 	}
 
-	m_sceneDiagnostics = validateRunnableScene(m_sceneModel);
+	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
+			? std::optional<double>(initial_variables.times) : std::nullopt;
+	m_sceneDiagnostics = validateRunnableScene(m_sceneModel, {}, effectiveDurationOverride);
 
 	std::vector<SceneDiagnostic> ordered = m_sceneDiagnostics;
 	std::stable_sort(ordered.begin(), ordered.end(), [](const SceneDiagnostic& a, const SceneDiagnostic& b) {
