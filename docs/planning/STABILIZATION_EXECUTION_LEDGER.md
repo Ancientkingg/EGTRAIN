@@ -262,11 +262,11 @@
 - Fixes made from review: none required
 - Ponytail findings: none (`Lean already. Ship.`)
 - Simplifications made: removed eight unreachable alternate runtime/headway/debug implementations and declarations, the embedded commented compressed-diagram implementation, obsolete commented experiments, and two executable debug-support residues; retained the tested free-flow headway path and supported APIs
-- Commit SHA: pending
+- Commit SHA: `4d4db065e4e1c226ddcec35141df418d328c4879`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
-- Remaining blockers: graph refresh, commit, PR, CI, and merge
+- Remaining blockers: PR, CI, and merge
 
 ### Execution log
 
@@ -279,3 +279,4 @@
 - 2026-08-20: Full CTest passed (48/48). The six-case native headless smoke passed for Netherlands, Paimpol, Copenhagen, Brescia, Assignment, and Lebanon; all cases exited cleanly, produced finite station statistics, and retained their expected trajectory/runtime observables.
 - 2026-08-20: Independent correctness review reported no findings. It rechecked the retained `TrainSimulationForComputingHW()` declaration, definition, native setup, free-flow call, and both regression callers, and confirmed the removed local debug-support construction had no external side effects. No fixes or re-review were required.
 - 2026-08-20: Separate Ponytail review reported `Lean already. Ship.` No further simplification was accepted.
+- 2026-08-20: Refreshed the repository knowledge graph after the code change, removed the worktree-local generated graph artifacts, and committed the reviewed milestone as `4d4db065e4e1c226ddcec35141df418d328c4879`.
