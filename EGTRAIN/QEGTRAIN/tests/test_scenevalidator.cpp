@@ -1,7 +1,9 @@
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
 #include "scene/SceneValidator.h"
+#include "simulation/RuntimeLimits.h"
 
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -132,6 +134,59 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	const std::filesystem::path outputRoot = "scene-output-root";
+	const std::vector<std::pair<std::string, std::string>> outputNameCases = {
+		{"Readable Scene", "Readable Scene"},
+		{"", "scene"},
+		{"../outside", "scene"},
+		{"..\\outside", "scene"},
+		{".", "scene"},
+		{"..", "scene"},
+		{"/absolute", "scene"},
+		{"\\absolute", "scene"},
+		{"//server/share", "scene"},
+		{"\\\\server\\share", "scene"},
+		{"C:", "scene"},
+		{"C:\\outside", "scene"},
+	};
+	for (const auto& outputName : outputNameCases) {
+		const std::string component = sceneOutputDirectoryComponent(outputName.first);
+		const std::filesystem::path joined = outputRoot / component;
+		ok &= expect(component == outputName.second && joined.lexically_normal().parent_path() == outputRoot,
+				("scene output component is safe for " + outputName.first).c_str());
+	}
+	SceneModel unsafeSceneName = clean;
+	unsafeSceneName.name = "../outside";
+	ok &= expect(hasCodeAndPath(validateRunnableScene(unsafeSceneName), "scene.name.path", "name"),
+			"runnable validation rejects unsafe scene output names");
+	SceneModel stopLimit = clean;
+	while (stopLimit.services[0].stops.size() < static_cast<std::size_t>(RuntimeLimits::kMaxTimetableStops))
+		stopLimit.services[0].stops.push_back(stopLimit.services[0].stops.back());
+	ok &= expect(!hasCode(validateRunnableScene(stopLimit), "scene.capacity.runtime"),
+			"runnable validation accepts the exact timetable stop limit");
+	SceneModel tooManyStops = stopLimit;
+	tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
+	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyStops), "scene.capacity.runtime",
+				"services[service-1].stops"), "runnable validation rejects one stop above the limit");
+	SceneModel trainLimit = clean;
+	trainLimit.services[0].hasRepeat = true;
+	trainLimit.services[0].headwaySeconds = 1.0;
+	trainLimit.services[0].hasRepeatCount = true;
+	trainLimit.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains;
+	ok &= expect(!hasCode(validateRunnableScene(trainLimit), "scene.capacity.runtime"),
+			"runnable validation accepts the exact expanded train limit");
+	SceneModel tooManyTrains = trainLimit;
+	tooManyTrains.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
+	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyTrains), "scene.capacity.runtime", "services"),
+			"runnable validation rejects one expanded train above the limit");
+	const SceneRunSelection sparseSelection{{tooManyTrains.services[0].id,
+		RuntimeLimits::kMaxExpandedTrains + 1}};
+	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, sparseSelection), "scene.capacity.runtime"),
+			"runnable validation applies train capacity to a sparse selected run");
+	const SceneRunSelection invalidSelections{{tooManyTrains.services[0].id,
+		RuntimeLimits::kMaxExpandedTrains + 2}, {"service-missing", 1}};
+	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, invalidSelections), "scene.capacity.runtime"),
+			"invalid selected rows do not fall back to all-scene train capacity");
 	SceneModel invalidPlatformLength = clean;
 	invalidPlatformLength.stations[0].platforms[0].hasLength = true;
 	invalidPlatformLength.stations[0].platforms[0].lengthM = std::numeric_limits<double>::infinity();

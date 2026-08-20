@@ -165,7 +165,7 @@ DispatchController simulation;
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
 	resetState();
-	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene);
+	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene, selectedOccurrences);
 	if (hasErrors(diagnostics))
 		return diagnostics;
 

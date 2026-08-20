@@ -156,6 +156,18 @@ int main() {
 
 	const auto diagnostics = buildOperationsFromScene(scene, "scenario.selected");
 	ok &= expect(!hasErrors(diagnostics), "M3 operations builder accepts the complete fixture");
+	SceneModel tooManyStops = completeScene();
+	while (tooManyStops.services[0].stops.size() <= static_cast<std::size_t>(Train::kMaxTimetableStations))
+		tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
+	const auto tooManyStopsDiagnostics = buildOperationsFromScene(tooManyStops, "scenario.base");
+	ok &= expect(hasCode(tooManyStopsDiagnostics, "scene.native.capacity.stops"),
+			"native operations rejects one stop above the timetable limit");
+	SceneModel tooManyTrains = completeScene();
+	tooManyTrains.services[0].hasRepeatCount = true;
+	tooManyTrains.services[0].repeatCount = Max_N_Reg + 1;
+	const auto tooManyTrainsDiagnostics = buildOperationsFromScene(tooManyTrains, "scenario.base");
+	ok &= expect(hasCode(tooManyTrainsDiagnostics, "scene.native.capacity.trains"),
+			"native operations rejects one expanded train above the limit");
 	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__"
 			&& InputMainFolder == initial_variables.InputMainFolder,
 			"native builders do not access or rewrite the legacy input folder");
@@ -551,6 +563,12 @@ int main() {
 				&& numRegions == 1
 				&& regional_train[0].trainDescription == "service.native-999999999",
 				"a sparse selection does not expand every occurrence in a large pattern");
+	const SceneRunSelection invalidSelections{{"service.native", 1000000001}, {"service.missing", 1}};
+	const auto invalidSelectionOperations = buildOperationsFromScene(
+			sparsePattern, "scenario.selected", invalidSelections);
+	ok &= expect(hasCode(invalidSelectionOperations, "scene.native.selection.occurrence")
+				&& hasCode(invalidSelectionOperations, "scene.native.selection.service"),
+				"invalid sparse selections retain native selection diagnostics");
 
 	SceneModel outOfPattern = completeScene();
 	outOfPattern.services[0].hasRepeatCount = true;
