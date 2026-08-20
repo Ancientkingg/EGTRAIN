@@ -297,8 +297,8 @@
 - Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
 - Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
 - Commit SHA: `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`
-- PR number and URL: pending
-- CI status: pending
+- PR number and URL: [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324)
+- CI status: required `build` check running
 - Merge SHA: pending
 - Remaining blockers: correct and merge G-09-R2/G-10-R1, then repeat the complete final gate and fresh reviews from the resulting `origin/main`
 
@@ -378,3 +378,4 @@
 - 2026-08-20: Post-simplification correctness re-review found one medium test-integrity gap: without a timestamp or expected-path check, the GUI smoke could trust a stale default output directory reported by a regressed resolver. Accepted and fixed it with an exact assertion against the fresh temporary output path; the focused live GUI smoke passed in 79.23 seconds and final re-review is pending.
 - 2026-08-20: Final correctness re-review found no remaining issues in the duration override, Windows output boundary, temporary-output lifetime, or output-provenance checks.
 - 2026-08-20: Committed the reviewed corrective implementation and regressions as `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`.
+- 2026-08-20: Pushed `fix/final-validation-boundaries` and opened PR [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324); required CI is running.
