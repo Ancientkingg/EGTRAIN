@@ -296,7 +296,7 @@
 - Fixes made from review: corrective issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321) opened; fix and repeated final gate pending
 - Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
 - Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
-- Commit SHA: pending
+- Commit SHA: `d132c2442430609f57589f12eb14e031da8fea2a`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
@@ -311,3 +311,34 @@
 - 2026-08-20: The full six-case native headless smoke passed. All cases exited cleanly; station statistics remained finite; Netherlands, Paimpol, Copenhagen, and Milano retained their pre-cutover train-count and trajectory observables. A token-aware scan of generated supported text, CSV, and JSON outputs found no `nan` or infinity values.
 - 2026-08-20: The fresh separate Ponytail review inspected the complete 26-file stabilization diff and current tracked state and reported `Lean already. Ship.` No further simplification was accepted.
 - 2026-08-20: Fresh independent correctness review found one P2 regression in G-09. Both startup and `DispatchController::prepareScene` validate expanded trains from the saved scene duration, while `buildOperationsFromScene` uses a shorter `-h` override. Root call-flow verification accepted the finding because this can reject a run that would remain below the 700-train native limit. Opened corrective issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321); release-gate completion is paused until the fix is merged and the gate is repeated.
+- 2026-08-20: The pre-correction ASan/UBSan build and full instrumented CTest completed successfully (48/48 in 317.39s). This is retained as diagnostic evidence only; the sanitizer and complete release gate will be repeated after G-09-R1 merges.
+
+## Corrective milestone: duration-override capacity alignment
+
+- Finding IDs: G-09-R1 (P2 final-review regression)
+- Branch: `fix/duration-override-capacity-validation`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/duration-override-capacity-validation`
+- Base SHA: `e41b3c3621ff3d943454f62f2e211c964a9678b5`
+- Scope: make runnable expanded-train capacity validation use the same effective command-line duration override as native operation building, without mutating the loaded scene
+- Files changed: `EGTRAIN/QEGTRAIN/scene/SceneValidator.h`, `SceneValidator.cpp`, `EGTRAIN/QEGTRAIN/app/main.cpp`, `DispatchController.cpp`, `EGTRAIN/QEGTRAIN/tests/test_scenevalidator.cpp`, `tools/e2e/runtime_memory_safety_smoke.py`, and this ledger
+- Test results: fresh Qt 5 configure and full build passed; focused normal tests passed (2/2); full CTest passed (48/48); six-case native headless passed; focused ASan/UBSan `test_scenevalidator` and live `test_runtime_memory_safety` passed (2/2)
+- Adversarial-review findings: accepted P1 extension of the original mismatch: occurrence-specific breakdown and entrance-delay validation still used the saved duration when `-h` extended the runnable horizon
+- Fixes made from review: compute one effective duration at runnable-validator entry and use it for the shared service-occurrence map and expanded-train capacity; added focused saved/extended-horizon checks for both occurrence-specific row types; fresh correctness re-review reported no findings
+- Ponytail findings: none (`Lean already. Ship.`) after the final corrected seven-file diff
+- Simplifications made: one shared effective-duration value replaces separate saved/override duration calculations; no further simplification accepted
+- Commit SHA: pending
+- PR number and URL: pending
+- CI status: pending
+- Merge SHA: pending
+- Remaining blockers: commit, push, pass required CI, and merge the corrective fix; then repeat the final stabilization gate
+
+### Execution log
+
+- 2026-08-20: Confirmed no existing issue owns the duration-override validation mismatch and opened issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321).
+- 2026-08-20: Fetched `origin`, created the clean isolated corrective branch and worktree from merged `origin/main`, and recorded base SHA `e41b3c3621ff3d943454f62f2e211c964a9678b5`.
+- 2026-08-20: Traced the startup, controller, validator, and native-builder call flow. The saved duration is used at both runnable-validation boundaries, but native expansion switches to `initial_variables.times` when `durationOverride` is true. Accepted the P2 finding and fixed the scope to explicit effective-duration propagation plus one validator regression and one live `-h` path.
+- 2026-08-20: Added one optional effective-duration input to pure runnable validation and passed the command-line override through both startup prevalidation paths and `DispatchController::prepareScene`; the loaded scene remains unchanged. Added a saved-horizon/short-override validator assertion and made the existing Paimpol time-zero live smoke exceed capacity only over its saved horizon. Fresh configure/build and the two focused tests passed (2/2); `git diff --check` passed.
+- 2026-08-20: Independent correctness review found a P1 extension: the shared occurrence map used by breakdown and entrance-delay validation still used the saved horizon when `-h` extended it. Accepted and fixed the finding at the root by computing one effective duration at validator entry and reusing it for both the occurrence map and capacity loop. Added saved-horizon rejection and extended-horizon acceptance checks for both row types; focused `test_scenevalidator` passed. Fresh correctness and Ponytail re-reviews are running.
+- 2026-08-20: Fresh correctness re-review of all effective-duration consumers and runtime call sites reported no findings. The separate final Ponytail re-review inspected all seven changed files and reported `Lean already. Ship.`
+- 2026-08-20: Rebuilt the final corrected diff. Full normal CTest passed (48/48), including the live high-repeat short-override path; the six-case native headless matrix passed with finite statistics and expected train/trajectory observables. Focused ASan/UBSan `test_scenevalidator` and `test_runtime_memory_safety` passed (2/2). Refreshed the repository knowledge graph and removed the worktree-local generated graph and alternate sanitizer build artifacts.
+- 2026-08-20: Committed the reviewed corrective implementation and regressions as `d132c2442430609f57589f12eb14e031da8fea2a`.
