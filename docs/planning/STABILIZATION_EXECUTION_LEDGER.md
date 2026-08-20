@@ -1,8 +1,8 @@
 # Stabilization execution ledger
 
 - Initial `origin/main`: `935d94227fa3ebc61de371a52d663e711a3e4805`
-- Release status: P0 blockers cleared; blocked by remaining P1 finding G-08
-- Active milestone: 5, persistence and validation hardening
+- Release status: all confirmed P0/P1 blockers cleared; G-NV-01 verification, cleanup, and the final gate remain
+- Active milestone: 6, station platform-booking verification
 
 | Milestone | Findings | Status | Issue | Pull request | Merge |
 |---|---|---|---|---|---|
@@ -10,8 +10,8 @@
 | 2. Deterministic simulation state | G-02; P-04 | Complete | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309) | `d029582fcb230c8419e9332bfdb608c792974384` |
 | 3. External communication lifecycle | G-03, G-07; P-05 | Complete | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a` |
 | 4. Result integrity | G-04; P-02 | Complete | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313) | `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd` |
-| 5. Persistence and validation hardening | G-08, G-09, G-10 | In progress | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315) | Pending |
-| 6. Station platform-booking verification | G-NV-01 | Blocked on release fixes | Pending | Pending | Pending |
+| 5. Persistence and validation hardening | G-08, G-09, G-10 | Complete | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315) | `73dd9947496011df21145c234b27fe95e5065d46` |
+| 6. Station platform-booking verification | G-NV-01 | In progress | [#316](https://github.com/Ancientkingg/EGTRAIN/issues/316) | Pending | Pending |
 | 7. Dead-code cleanup | P-01, P-06 | Blocked on correctness work | Pending | Pending | Pending |
 
 ## Milestone 1: runtime memory safety
@@ -189,9 +189,9 @@
 - Simplifications made: removed obsolete serialized-byte plumbing and relied directly on the occurrence-count helper's positive-result contract
 - Commit SHA: `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`
 - PR number and URL: [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315)
-- CI status: running
-- Merge SHA: pending
-- Remaining blockers: G-08, G-09, and G-10
+- CI status: passed in 11m42s
+- Merge SHA: `73dd9947496011df21145c234b27fe95e5065d46`
+- Remaining blockers: none from the confirmed P0/P1/P2 set; G-NV-01 verification remains before cleanup and the final gate
 
 ### Execution log
 
@@ -214,3 +214,34 @@
 - 2026-08-20: Final mechanical audit confirmed every folder and bundle caller uses the shared transactional writer, dispatch is the only runnable-validation caller with a selected occurrence set and now forwards it, the two native capacities have one source of truth, the only scene-controlled output-directory construction uses the safe component helper, and the focused tests cover failure rollback, successful sidecar preservation, exact/over/sparse/invalid capacity cases, native parity, and traversal. No dead new symbol or missing production call site was found; final diff checks passed.
 - 2026-08-20: Committed the verified milestone implementation as `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`.
 - 2026-08-20: Pushed `fix/scene-integrity-boundaries` and opened pull request [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315); required CI is running.
+- 2026-08-20: Required CI passed in 11m42s. Squash-merged pull request #315 as `73dd9947496011df21145c234b27fe95e5065d46`, deleted the feature branch, and removed the clean milestone worktree. All confirmed P0/P1 release blockers are resolved.
+
+## Milestone 6: station platform-booking verification
+
+- Finding IDs: G-NV-01
+- Branch: `docs/verify-platform-booking-rules`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/verify-platform-booking-rules`
+- Base SHA: `73dd9947496011df21145c234b27fe95e5065d46`
+- Scope: determine whether platform-booking rules gated by `Alm`, `Asd`, and `Asdz` are intentional Netherlands-specific behavior or generic behavior that should derive from canonical data
+- Files changed: `EGTRAIN/QEGTRAIN/simulation/RollingStock.cpp`; this ledger
+- Test results: final diff check passed; source audit confirmed the executable diff is one comment, current native code has no `arrivalPlatform` assignment, and current Netherlands services have none of the three stations as endpoints; hosted build pending
+- Adversarial-review findings: independent semantic review agreed the gate belongs to the retired Netherlands dispatcher contract and found no basis for genericizing it; native integer platform state remains `-1`, so generic comparison would create false conflicts
+- Fixes made from review: none; added one provenance comment to prevent the legacy integer booking state from being confused with canonical string platform IDs
+- Ponytail findings: no finding; the one-line comment and evidence ledger are already the minimum useful change
+- Simplifications made: no behavioral code added; retained the existing narrow case-specific gate
+- Commit SHA: pending
+- PR number and URL: pending
+- CI status: pending
+- Merge SHA: pending
+- Remaining blockers: documentation PR and required CI
+
+### Execution log
+
+- 2026-08-20: Confirmed no existing issue owns G-NV-01; opened issue [#316](https://github.com/Ancientkingg/EGTRAIN/issues/316).
+- 2026-08-20: Fetched `origin`, created the clean isolated milestone branch and worktree from the latest merged `origin/main`, and recorded merge SHA `73dd9947496011df21145c234b27fe95e5065d46`.
+- 2026-08-20: Traced the sole name gate to `protectStationAreas()`. The associated `arrivalPlatform` value was assigned only by the historical online rescheduling/dispatch path removed as dormant in PR #254; current native operations never assign it, and current Netherlands services do not terminate at `Alm`, `Asd`, or `Asdz`.
+- 2026-08-20: Inspected the initial Netherlands case data. The three IDs exactly match terminals marked `NoBreak` with selectable platform lists; the other terminals are either `Break` locations or have no selectable platform. Historical rescheduling routes and timetables actively used all three as origins and destinations, tying the gate to that case-study dispatch contract rather than generic station-boundary behavior.
+- 2026-08-20: Independent semantic review confirmed the gate is legacy Netherlands dispatcher behavior. Genericizing it would be incorrect because current canonical platforms use string IDs while the retained dispatcher-era integer fields remain unassigned at `-1`, causing false booking conflicts. Left behavior unchanged and added only a one-line provenance comment.
+- 2026-08-20: Separate Ponytail review found no simplification. Final diff checks passed; the executable source diff is one comment, the current native tree has no assignment to `arrivalPlatform`, and the current Netherlands service endpoints exclude all three gated stations.
+- 2026-08-20: Refreshed the code knowledge graph after the comment and ledger changes. Graphify completed with 4,943 nodes and 11,665 edges, retaining its existing parser and zero-node warnings; removed the generated worktree-local graph copy afterward.
+- 2026-08-20: Recorded the evidence-backed case-specific conclusion on issue #316; no behavior change or generic platform-allocation rewrite is warranted.
