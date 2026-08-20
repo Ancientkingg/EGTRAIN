@@ -296,7 +296,7 @@
 - Fixes made from review: G-09-R1 merged in corrective PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); corrective issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323) opened for G-09-R2 and G-10-R1
 - Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
 - Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
-- Commit SHA: pending
+- Commit SHA: `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
@@ -354,19 +354,27 @@
 - Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/final-validation-boundaries`
 - Base SHA: `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`
 - Scope: align GUI runnable validation with the active duration override and make generated output components safe on supported Windows builds without restricting ordinary readable names
-- Files changed: pending implementation; this ledger
-- Test results: pending
-- Adversarial-review findings: pending
-- Fixes made from review: pending
-- Ponytail findings: pending
-- Simplifications made: pending
+- Files changed: `EGTRAIN/QEGTRAIN/app/MainWindow.cpp`, `EGTRAIN/QEGTRAIN/scene/SceneModel.cpp`, `EGTRAIN/QEGTRAIN/tests/test_scenevalidator.cpp`, `tools/e2e/gui_autostart_smoke.py`, and this ledger
+- Test results: fresh Qt 5 configure and full build passed; focused `test_scenevalidator` and isolated live GUI override smoke passed; full CTest passed 48/48 in 158.88 seconds; after simplification the focused validator and GUI smoke passed again 2/2; six-case native headless passed; fresh focused ASan/UBSan validator and GUI smoke passed 2/2
+- Adversarial-review findings: initial review found none and confirmed the saved 40,000-second scene expands beyond native capacity while the active 200-second GUI override remains within capacity; post-simplification re-review found one medium test-integrity gap because the GUI smoke trusted the app-reported output path after removing the timestamp heuristic
+- Fixes made from review: require the reported output directory to equal the smoke's fresh isolated `output/Output/Copenhagen` path before inspecting results; focused live GUI re-test passed in 79.23 seconds; final correctness re-review found no remaining issues
+- Ponytail findings: consolidate duplicated filename-invalidity checks and lowercase the basename in place; remove output modification-time state made redundant by per-run temporary output isolation
+- Simplifications made: consolidated filename-invalidity checks and lowercase the basename in place; replaced timestamp state with an exact isolated-output-path assertion plus existing file-existence checks
 - Commit SHA: pending
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
-- Remaining blockers: implement, verify, independently review, and merge both accepted P2 fixes; then repeat the final stabilization gate
+- Remaining blockers: pass required CI and merge both accepted P2 fixes; then repeat the final stabilization gate
 
 ### Execution log
 
 - 2026-08-20: Confirmed no existing issue owns both final boundary gaps and opened issue [#323](https://github.com/Ancientkingg/EGTRAIN/issues/323).
 - 2026-08-20: Verified the GUI load, validation-panel, Run-action, and runtime-preparation call graph. Startup and `DispatchController` pass the override, but GUI panel validation does not. Verified the output component against Microsoft's supported Windows naming rules and fixed the scope to reserved device basenames, invalid filename characters/control bytes, and trailing period/space handling while preserving normal readable and dot-prefixed names.
+- 2026-08-20: Fetched `origin`, created the clean isolated `fix/final-validation-boundaries` branch and worktree from merged `origin/main`, and recorded base SHA `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`. Split implementation into exclusive GUI/test-isolation and output-component/test files.
+- 2026-08-20: Passed the active duration override into GUI panel validation without mutating the scene. The existing GUI autostart smoke now copies Copenhagen to a temporary scene, raises only its saved duration above native capacity, runs the normal 200-second override workload, and isolates output under the same temporary root. Extended the shared output-component boundary for Windows-invalid characters/control bytes, trailing period/space, and reserved device basenames/extensions, including superscript COM/LPT variants, while retaining readable Unicode and documented near-misses. Fresh full build, focused validator CTest, and the isolated live GUI override smoke passed.
+- 2026-08-20: Full CTest passed 48/48 in 158.88 seconds. Independent correctness review found no defects. Ponytail review found two local simplifications: merge filename-invalidity checks/lowercase the basename in place, and remove redundant output modification-time state now that each GUI smoke owns a fresh temporary output root. Both were accepted; the focused validator and GUI smoke passed again 2/2 after the trim.
+- 2026-08-20: The final six-case native headless matrix passed with finite station statistics and expected train/trajectory observables. A fresh ASan/UBSan build passed the focused validator and live GUI override smoke 2/2 in 86.91 seconds.
+- 2026-08-20: Refreshed the repository knowledge graph after the final code changes, then moved the worktree-local generated graph and alternate sanitizer build to Trash. `git diff --check` passed.
+- 2026-08-20: Post-simplification correctness re-review found one medium test-integrity gap: without a timestamp or expected-path check, the GUI smoke could trust a stale default output directory reported by a regressed resolver. Accepted and fixed it with an exact assertion against the fresh temporary output path; the focused live GUI smoke passed in 79.23 seconds and final re-review is pending.
+- 2026-08-20: Final correctness re-review found no remaining issues in the duration override, Windows output boundary, temporary-output lifetime, or output-provenance checks.
+- 2026-08-20: Committed the reviewed corrective implementation and regressions as `a1aef5b0252ae3a55eb1e67be38483cd6ee16888`.
