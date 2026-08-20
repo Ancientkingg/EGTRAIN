@@ -264,9 +264,9 @@
 - Simplifications made: removed eight unreachable alternate runtime/headway/debug implementations and declarations, the embedded commented compressed-diagram implementation, obsolete commented experiments, and two executable debug-support residues; retained the tested free-flow headway path and supported APIs
 - Commit SHA: `4d4db065e4e1c226ddcec35141df418d328c4879`
 - PR number and URL: [#319](https://github.com/Ancientkingg/EGTRAIN/pull/319)
-- CI status: pending
-- Merge SHA: pending
-- Remaining blockers: required CI and merge
+- CI status: required `build` check passed in 12m42s ([run 32370063529](https://github.com/Ancientkingg/EGTRAIN/actions/runs/32370063529))
+- Merge SHA: `e41b3c3621ff3d943454f62f2e211c964a9678b5`
+- Remaining blockers: none for Milestone 7
 
 ### Execution log
 
@@ -281,3 +281,33 @@
 - 2026-08-20: Separate Ponytail review reported `Lean already. Ship.` No further simplification was accepted.
 - 2026-08-20: Refreshed the repository knowledge graph after the code change, removed the worktree-local generated graph artifacts, and committed the reviewed milestone as `4d4db065e4e1c226ddcec35141df418d328c4879`.
 - 2026-08-20: Pushed `chore/remove-dead-simulation-code` and opened PR [#319](https://github.com/Ancientkingg/EGTRAIN/pull/319).
+- 2026-08-20: Required CI passed in 12m42s. Squash-merged PR #319 as `e41b3c3621ff3d943454f62f2e211c964a9678b5`, deleted the feature branch, and removed the clean milestone worktree.
+
+## Final stabilization gate
+
+- Finding IDs: final release gate for G-01 through G-10, G-NV-01, and P-01 through P-06
+- Branch: `chore/final-stabilization-gate`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/final-stabilization-gate`
+- Base SHA: `e41b3c3621ff3d943454f62f2e211c964a9678b5`
+- Scope: run the complete stabilization verification matrix from current `main`, perform fresh correctness and Ponytail reviews, record the release decision, and make no unrelated product changes
+- Files changed: this ledger; pending gate results
+- Test results: fresh normal Qt 5 configure and full build passed; full normal CTest passed (48/48); six-case headless, six-scene roundtrip, bundle, Assignment acceptance, incident, editor, and visual/render smokes passed; generated supported outputs contain no `nan`/`inf`; sanitizer checks pending
+- Adversarial-review findings: one P2 validator/runtime mismatch: runnable capacity validation uses the saved scene duration while native operation building honors a shorter command-line duration override, so validation can reject a run that stays within native capacity
+- Fixes made from review: corrective issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321) opened; fix and repeated final gate pending
+- Ponytail findings: none (`Lean already. Ship.`); the separate review inspected the full 26-file stabilization diff and current tracked state
+- Simplifications made: none at the final gate; the reviewed stabilization range was already lean and no safety or correctness check was removed
+- Commit SHA: pending
+- PR number and URL: pending
+- CI status: pending
+- Merge SHA: pending
+- Remaining blockers: correct the accepted P2 duration-override capacity mismatch, merge it, and repeat the final gate from the resulting `origin/main`
+
+### Execution log
+
+- 2026-08-20: Confirmed no existing issue owns the final release gate; opened issue [#320](https://github.com/Ancientkingg/EGTRAIN/issues/320).
+- 2026-08-20: Fetched and pruned `origin`, created the clean isolated final-gate branch and worktree from merged `origin/main`, and recorded base SHA `e41b3c3621ff3d943454f62f2e211c964a9678b5`.
+- 2026-08-20: Fresh normal Qt 5 configure and full build passed. Full normal CTest passed (48/48), including runtime-memory, determinism, route-choice, no-listener external sharing, creator acceptance, GUI autostart, scene, ownership, and platform/configuration checks.
+- 2026-08-20: The six-scene folder roundtrip, all six bundle validations, packed Assignment headless run, canonical Assignment timetable check, breakdown and signal-failure incident checks, editor smoke, and visual/render smoke group all passed.
+- 2026-08-20: The full six-case native headless smoke passed. All cases exited cleanly; station statistics remained finite; Netherlands, Paimpol, Copenhagen, and Milano retained their pre-cutover train-count and trajectory observables. A token-aware scan of generated supported text, CSV, and JSON outputs found no `nan` or infinity values.
+- 2026-08-20: The fresh separate Ponytail review inspected the complete 26-file stabilization diff and current tracked state and reported `Lean already. Ship.` No further simplification was accepted.
+- 2026-08-20: Fresh independent correctness review found one P2 regression in G-09. Both startup and `DispatchController::prepareScene` validate expanded trains from the saved scene duration, while `buildOperationsFromScene` uses a shorter `-h` override. Root call-flow verification accepted the finding because this can reject a run that would remain below the 700-train native limit. Opened corrective issue [#321](https://github.com/Ancientkingg/EGTRAIN/issues/321); release-gate completion is paused until the fix is merged and the gate is repeated.
