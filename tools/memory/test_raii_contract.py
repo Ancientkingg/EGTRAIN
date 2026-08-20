@@ -11,21 +11,16 @@ def main() -> None:
 
     delay_functions = simulation[: simulation.index("void calculateDelayStatsForAllStations")]
     station_delay_functions = simulation[
-        simulation.index("void calculateDelayStatsAtStation") : simulation.index("void Compute_Input_Delays")
+        simulation.index("void calculateStationDelayStatistics") : simulation.index("} // namespace")
     ]
-    for name in ("TrainDelay", "TrainConsDelay"):
-        if station_delay_functions.count(f"{name}.push_back(") != 4:
-            raise SystemExit(f"{name} must grow at every matching stop")
+    for name in ("arrivals", "consecutive"):
+        if station_delay_functions.count(f"{name}.push_back(") != 1:
+            raise SystemExit(f"{name} must grow at every recorded stop")
     if re.search(r"new\s+double\s*\[\s*numRegions\s*\]", delay_functions):
         raise SystemExit("delay statistics still use owning raw arrays")
     if re.search(r"delete\s*\[\s*\]\s*(?:TrainDelay|TrainConsDelay|TrainEntDelay|Disturb)", delay_functions):
         raise SystemExit("delay statistics still delete raw arrays")
-    expected_vectors = {
-        "TrainDelay": 1,
-        "TrainConsDelay": 0,
-        "TrainEntDelay": 1,
-        "Disturb": 1,
-    }
+    expected_vectors = {"delays": 1}
     for name, count in expected_vectors.items():
         pattern = rf"std::vector<double>\s+{name}\s*\(\s*numRegions\s*\)"
         if len(re.findall(pattern, delay_functions)) != count:

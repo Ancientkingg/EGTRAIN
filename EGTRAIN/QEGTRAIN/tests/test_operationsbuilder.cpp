@@ -8,9 +8,12 @@
 #undef signals
 #endif
 
+#include <QTemporaryDir>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -763,6 +766,119 @@ int main() {
 					== BlocksConnected.end(),
 					"station lookahead ignores sections beyond the actual route tail");
 		}
+	}
+
+	SceneModel statisticsScene = completeScene();
+	statisticsScene.services[0].hasRepeatCount = true;
+	statisticsScene.services[0].repeatCount = 3;
+	const auto statisticsInfrastructure = buildInfrastructureAndSignallingFromScene(statisticsScene);
+	const auto statisticsOperations = buildOperationsFromScene(statisticsScene, "scenario.base");
+	ok &= expect(!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations)
+			&& numRegions == 3, "station statistics fixture builds three trains");
+	if (!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations) && numRegions == 3) {
+		Stations statistics;
+		statistics.stationName = "Final_Station";
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
+			regional_train[trainIndex].numStations = 1;
+			regional_train[trainIndex].StationArrivals[0] = -1;
+			regional_train[trainIndex].StationDelay[0] = -1;
+			regional_train[trainIndex].StationConsecDelay[0] = -1;
+		}
+
+		numRegions = 0;
+		calculateDelayStatsAtStation(statistics);
+		Compute_Input_Delays();
+		ok &= expect(statistics.N_Stopped_Trains == 0 && statistics.Av_Arrival_Delay == -1
+				&& statistics.Std_Arrival_Delay == -1 && statistics.totalArrivalDelay == 0
+				&& TotalInputDelays.Av_Arrival_Delay == -1
+				&& EntranceInputDelays.Std_Arrival_Delay == -1
+				&& DisturbanceInput.Perc_Delayed_T == -1,
+				"empty delay populations keep the unavailable representation");
+
+		numRegions = 1;
+		regional_train[0].StationArrivals[0] = 100;
+		regional_train[0].StationDelay[0] = 12;
+		regional_train[0].StationConsecDelay[0] = 3;
+		calculateDelayStatsAtStation(statistics);
+		ok &= expect(statistics.Av_Arrival_Delay == 12 && statistics.Std_Arrival_Delay == 0
+				&& statistics.totalArrivalDelay == 12 && statistics.Max_TotalDelay == 12
+				&& std::isfinite(statistics.Perc_Delayed_T),
+				"one positive station-delay sample has zero deviation");
+
+		regional_train[0].StationDelay[0] = -1;
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(statistics.N_Stopped_Trains == 1 && statistics.Av_Arrival_Delay == -1
+				&& statistics.Std_Arrival_Delay == 0 && statistics.totalArrivalDelay == -1,
+				"a one-second early arrival is not confused with the delay sentinel");
+
+		regional_train[0].StationDelay[0] = -12;
+		regional_train[0].StationConsecDelay[0] = -3;
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(statistics.Av_Arrival_Delay == -12 && statistics.Std_Arrival_Delay == 0
+				&& statistics.Max_TotalDelay == -12 && statistics.Max_Cons_Delay == -3,
+				"one negative station-delay sample remains valid with zero deviation");
+
+		const double positiveDelays[] = {10, 20, 0};
+		const double mixedDelays[] = {-10, 0, 20};
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
+			regional_train[trainIndex].StationArrivals[0] = 100;
+			regional_train[trainIndex].StationDelay[0] = positiveDelays[trainIndex];
+			regional_train[trainIndex].StationConsecDelay[0] = trainIndex;
+		}
+		numRegions = 3;
+		calculateDelayStatsAtStation(statistics);
+		ok &= expect(std::abs(statistics.Av_Arrival_Delay - 15) < 1e-9
+				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
+				&& statistics.N_Stopped_Trains == 3 && statistics.N_Delayed_Arr == 2
+				&& std::isfinite(statistics.Perc_Delayed_T),
+				"multiple positive delays retain the delayed-train sample denominator");
+
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex)
+			regional_train[trainIndex].StationDelay[0] = mixedDelays[trainIndex];
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(std::abs(statistics.Av_Arrival_Delay - (10.0 / 3.0)) < 1e-9
+				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(700.0 / 3.0)) < 1e-9
+				&& statistics.Max_TotalDelay == 20 && std::isfinite(statistics.totalArrivalDelay),
+				"mixed early and late arrivals use the all-sample denominator");
+
+		const double totalInputs[] = {0, 10, 20};
+		const double entranceInputs[] = {0, 4, 8};
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
+			regional_train[trainIndex].TotalInputDelays = totalInputs[trainIndex];
+			regional_train[trainIndex].EntranceDelay = entranceInputs[trainIndex];
+		}
+		Compute_Input_Delays();
+		ok &= expect(std::abs(TotalInputDelays.Av_Arrival_Delay - 15) < 1e-9
+				&& std::abs(TotalInputDelays.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
+				&& std::abs(EntranceInputDelays.Av_Arrival_Delay - 6) < 1e-9
+				&& std::abs(DisturbanceInput.Av_Arrival_Delay - 9) < 1e-9
+				&& std::isfinite(EntranceInputDelays.Std_Arrival_Delay)
+				&& std::isfinite(DisturbanceInput.Std_Arrival_Delay),
+				"multiple input-delay populations remain finite");
+
+		numRegions = 1;
+		regional_train[0].TotalInputDelays = 0;
+		regional_train[0].EntranceDelay = 0;
+		Compute_Input_Delays();
+		ok &= expect(TotalInputDelays.Av_Arrival_Delay == 0
+				&& TotalInputDelays.Std_Arrival_Delay == 0
+				&& EntranceInputDelays.Std_Arrival_Delay == 0
+				&& DisturbanceInput.Std_Arrival_Delay == 0,
+				"one all-punctual input population reports finite zeros");
+
+		QTemporaryDir statisticsOutput;
+		numStations = 1;
+		Final_Station = statistics;
+		Print_Station_Delay_Stats(statisticsOutput.path().toStdString(), "pos");
+		std::ifstream exported(statisticsOutput.filePath("Stats_Stations.txt").toStdString());
+		bool finiteExport = exported.good();
+		for (std::string token; exported >> token;) {
+			char* end = nullptr;
+			const double value = std::strtod(token.c_str(), &end);
+			if (end != token.c_str() && *end == '\0' && !std::isfinite(value))
+				finiteExport = false;
+		}
+		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
 	}
 	return ok ? 0 : 1;
 }
