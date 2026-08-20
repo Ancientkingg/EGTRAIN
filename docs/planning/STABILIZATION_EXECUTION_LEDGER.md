@@ -96,14 +96,14 @@
 - Base SHA: `d029582fcb230c8419e9332bfdb608c792974384`
 - Scope: bounded ZeroMQ sending and shutdown, a shared sender path for both channels, and explicit preservation of supported active legless route-choice demand
 - Files changed: `CMakeLists.txt`; `EGTRAIN/QEGTRAIN/app/DispatchController.cpp`; `EGTRAIN/QEGTRAIN/io/RailMLParser.cpp`; `EGTRAIN/QEGTRAIN/io/RailMLParser.h`; `EGTRAIN/QEGTRAIN/simulation/Passengers.cpp`; `EGTRAIN/QEGTRAIN/tests/test_operationsbuilder.cpp`; `EGTRAIN/QEGTRAIN/tests/test_railmlparser.cpp`; this ledger
-- Test results: focused normal CTest 4/4 passed, covering bounded no-listener return, a real loopback request/reply, fixed-seed mixed routed and legless active payloads, empty-demand setup rejection, and a one-step live Paimpol run with both sharing modes enabled; full normal CTest 48/48 passed; six-case ordinary-mode headless passed
-- Adversarial-review findings: independent correctness review found no actionable finding; it noted only that absent and present peers are covered separately rather than an absent-to-late-peer transition; final post-simplification re-review also found no issue
+- Test results: focused normal CTest 4/4 passed, covering bounded no-listener return, a real loopback request/reply, fixed-seed mixed routed and legless active payloads, empty-demand setup rejection, and a one-step live Paimpol run with both sharing modes enabled; full normal CTest passed 48/48 before and after the CI correction; six-case ordinary-mode headless passed; the corrected loopback lifecycle test passed 100 consecutive runs after reproducing the CI-only failure locally
+- Adversarial-review findings: independent correctness review found no actionable finding; it noted only that absent and present peers are covered separately rather than an absent-to-late-peer transition; final post-simplification re-review also found no issue; focused review of the CI correction found no deadlock, data race, weakened production timeout, or other finding
 - Fixes made from review: none required; the retained per-endpoint socket already preserves connection progress for a peer that appears later
 - Ponytail findings: accepted consolidation of identical exception handlers, replacement of an unnecessary post-join atomic flag with `bool`, and removal of unnecessary CTest `RUN_SERIAL`
 - Simplifications made: replaced the two detached port-specific senders with one shared sender, deleted the duplicated hard-coded XML example bodies, computed each XML document once, and applied the three accepted Ponytail reductions for a further five-line reduction
-- Commit SHA: `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`
+- Commit SHA: implementation `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`; CI correction pending
 - PR number and URL: [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311)
-- CI status: pending
+- CI status: initial run 32351657448 failed only `test_railmlparser`; the failure was reproduced and corrected, and a replacement run is pending
 - Merge SHA: pending
 - Remaining blockers: G-03 and G-07 remain unresolved until the verified change is merged
 
@@ -124,3 +124,6 @@
 - 2026-08-20: Refreshed the local code knowledge graph after the code and ledger changes.
 - 2026-08-20: Committed the verified implementation as `1d94c3c62126535d4826d0f2674aa57fbdd9fe44`.
 - 2026-08-20: Pushed `fix/external-sharing-lifecycle` and opened pull request [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311); required CI is pending.
+- 2026-08-20: Initial CI run 32351657448 passed 47/48 tests but failed `test_railmlparser`. Added failure-state diagnostics and reproduced the same state locally: the mock REP server received the envelope while the client missed its queued reply.
+- 2026-08-20: Removed the mock server's zero-linger shutdown and added an explicit client-completion handshake so the server remains alive until the request/reply call returns. Retained the 100 ms production transport bound. The corrected test passed 100 consecutive runs, and the focused milestone set passed 4/4.
+- 2026-08-20: Focused independent review of the CI correction found no issue and confirmed all failure paths remain bounded. Full normal CTest then passed 48/48 in 149.02 seconds. The existing Ponytail reductions remain intact; the completion handshake is the minimum synchronization needed for a reliable request/reply test.
