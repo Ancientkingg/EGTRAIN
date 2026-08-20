@@ -143,7 +143,7 @@
 - Fixes made from review: signed-mode collection now derives availability from the actual-arrival array while positive-only mode retains its delay sentinel; an exact `-1` signed-delay regression passes
 - Ponytail findings: accepted inlining the one-caller station sample collector and reusing one input vector sequentially instead of allocating three
 - Simplifications made: collapsed roughly 270 duplicated calculation lines into one private path, then removed the one-use sample record/helper and two input-vector allocations for a further ten-line reduction
-- Commit SHA: pending
+- Commit SHA: `cabb787588c2bf28308931c62cb4749f7716be4e`
 - PR number and URL: pending
 - CI status: pending
 - Merge SHA: pending
@@ -170,3 +170,4 @@
 - 2026-08-20: Six-case folder export, compatibility reimport, and validation roundtrip passed, including the reimported Assignment scene runtime check. Existing scene diagnostics remained warnings or informational messages.
 - 2026-08-20: Refreshed the repository knowledge graph after the code and guidance changes. Graphify reported its existing parser warnings for four files and zero-node warnings for data files; the graph rebuild completed with 4,923 nodes and 11,600 edges.
 - 2026-08-20: Final mechanical audit confirmed both public station-statistics entry points and input aggregation retain their production callers, the duplicated formulas are gone, every sample-variance division is guarded by a population larger than one, both station export variants are scanned, and the zero/singleton/multiple plus exact signed `-1` cases remain covered. Final diff checks passed.
+- 2026-08-20: Committed the verified milestone implementation as `cabb787588c2bf28308931c62cb4749f7716be4e`.
