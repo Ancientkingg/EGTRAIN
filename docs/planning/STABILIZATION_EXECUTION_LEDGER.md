@@ -297,8 +297,8 @@
 - Ponytail findings: none (`Lean already. Ship.`); the fresh final review inspected the complete `935d9422..e8efb166` stabilization diff and current changed areas
 - Simplifications made: none at the final gate; the final stabilization range is already lean and no safety or correctness check was removed
 - Commit SHA: `827c0e6dcba61931a07dcc937c0d82e8ce3a9fc1`
-- PR number and URL: pending final gate record
-- CI status: pending final gate record
+- PR number and URL: [#325](https://github.com/Ancientkingg/EGTRAIN/pull/325)
+- CI status: required `build` check running
 - Merge SHA: pending
 - Remaining blockers: none; no P0/P1 release blocker remains and the stabilization gate is clear
 
@@ -323,6 +323,7 @@
 - 2026-08-20: Final decision: no P0/P1 release blocker remains. The complete stabilization gate is clear; remaining work is publication of this ledger result only.
 - 2026-08-20: Refreshed the repository knowledge graph, then moved the worktree-local generated graph and 894 MB alternate sanitizer build to Trash. `git diff --check` passed.
 - 2026-08-20: Committed the clear final-gate record as `827c0e6dcba61931a07dcc937c0d82e8ce3a9fc1`.
+- 2026-08-20: Pushed `chore/stabilization-release-gate` and opened PR [#325](https://github.com/Ancientkingg/EGTRAIN/pull/325); required CI is running.
 
 ## Corrective milestone: duration-override capacity alignment
 
