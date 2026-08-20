@@ -290,7 +290,7 @@
 - Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/final-stabilization-gate`
 - Base SHA: initial attempt `e41b3c3621ff3d943454f62f2e211c964a9678b5`; second attempt `2dccabc5d06bf9d592101a66f296e7b87ffa3fd0`; final run `e8efb1662f61c5e33777d0c1a4323832c4f47105`
 - Scope: run the complete stabilization verification matrix from current `main`, perform fresh correctness and Ponytail reviews, record the release decision, and make no unrelated product changes
-- Files changed: this ledger; pending gate results
+- Files changed: this ledger
 - Test results: fresh final Qt 5 configure and full build passed; full normal CTest passed 48/48 in 155.34 seconds; six-case headless, six-case roundtrip, six-case bundle, Assignment, incident, editor, visual/render, creator, and no-listener checks passed; full ASan/UBSan CTest passed 48/48 in 310.09 seconds; sanitizer-backed Paimpol and Milano headless runs passed; final supported-output scan found no `nan` or infinity tokens
 - Adversarial-review findings: accepted and corrected G-09-R1 (P2 capacity and P1 occurrence-horizon mismatch), G-09-R2 (P2 GUI validation ignores the runtime duration override), and G-10-R1 (P2 Windows-invalid output components); fresh final correctness review found no P0/P1/P2 issue
 - Fixes made from review: G-09-R1 merged in corrective PR [#322](https://github.com/Ancientkingg/EGTRAIN/pull/322); G-09-R2 and G-10-R1 merged in corrective PR [#324](https://github.com/Ancientkingg/EGTRAIN/pull/324)
