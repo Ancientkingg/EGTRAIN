@@ -10,7 +10,7 @@
 | 2. Deterministic simulation state | G-02; P-04 | Complete | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309) | `d029582fcb230c8419e9332bfdb608c792974384` |
 | 3. External communication lifecycle | G-03, G-07; P-05 | Complete | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a` |
 | 4. Result integrity | G-04; P-02 | Complete | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313) | `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd` |
-| 5. Persistence and validation hardening | G-08, G-09, G-10 | In progress | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | Pending | Pending |
+| 5. Persistence and validation hardening | G-08, G-09, G-10 | In progress | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315) | Pending |
 | 6. Station platform-booking verification | G-NV-01 | Blocked on release fixes | Pending | Pending | Pending |
 | 7. Dead-code cleanup | P-01, P-06 | Blocked on correctness work | Pending | Pending | Pending |
 
@@ -188,8 +188,8 @@
 - Ponytail findings: accepted removal of an unused JSON-write out-parameter and the redundant nonpositive occurrence guard
 - Simplifications made: removed obsolete serialized-byte plumbing and relied directly on the occurrence-count helper's positive-result contract
 - Commit SHA: `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`
-- PR number and URL: pending
-- CI status: pending
+- PR number and URL: [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315)
+- CI status: running
 - Merge SHA: pending
 - Remaining blockers: G-08, G-09, and G-10
 
@@ -213,3 +213,4 @@
 - 2026-08-20: Refreshed the code knowledge graph after the code and ledger changes. Graphify completed with 4,941 nodes and 11,663 edges, retaining its existing parser and zero-node warnings; removed the generated worktree-local graph copy afterward.
 - 2026-08-20: Final mechanical audit confirmed every folder and bundle caller uses the shared transactional writer, dispatch is the only runnable-validation caller with a selected occurrence set and now forwards it, the two native capacities have one source of truth, the only scene-controlled output-directory construction uses the safe component helper, and the focused tests cover failure rollback, successful sidecar preservation, exact/over/sparse/invalid capacity cases, native parity, and traversal. No dead new symbol or missing production call site was found; final diff checks passed.
 - 2026-08-20: Committed the verified milestone implementation as `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`.
+- 2026-08-20: Pushed `fix/scene-integrity-boundaries` and opened pull request [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315); required CI is running.
