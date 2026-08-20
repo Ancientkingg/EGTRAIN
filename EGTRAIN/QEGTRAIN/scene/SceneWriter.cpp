@@ -1,9 +1,11 @@
 #include "scene/SceneWriter.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <set>
+#include <system_error>
 #include <utility>
 
 using json = nlohmann::json;
@@ -27,9 +29,103 @@ static void addWriteError(SceneSaveResult& result, const std::string& file,
 	result.diagnostics.push_back(diagnostic);
 }
 
+static void addCleanupWarning(SceneSaveResult& result, const fs::path& path,
+		const std::string& message) {
+	SceneDiagnostic diagnostic;
+	diagnostic.severity = SceneSeverity::Warning;
+	diagnostic.code = "scene.save.cleanup";
+	diagnostic.file = path.string();
+	diagnostic.message = message;
+	result.diagnostics.push_back(std::move(diagnostic));
+}
+
+struct StagingDirectory {
+	fs::path path;
+
+	~StagingDirectory() {
+		if (path.empty())
+			return;
+		std::error_code ec;
+		fs::remove_all(path, ec);
+	}
+
+	void release() { path.clear(); }
+};
+
+static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix,
+		fs::path& result) {
+	std::error_code ec;
+	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
+		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
+				+ std::to_string(attempt));
+		ec.clear();
+		if (fs::create_directory(candidate, ec)) {
+			ec.clear();
+			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
+			if (ec) {
+				std::error_code cleanupError;
+				fs::remove_all(candidate, cleanupError);
+				return false;
+			}
+			result = candidate;
+			return true;
+		}
+		if (ec && ec != std::errc::file_exists)
+			return false;
+	}
+	return false;
+}
+
+static bool uniqueSiblingPath(const fs::path& parent, const std::string& prefix,
+		fs::path& result) {
+	std::error_code ec;
+	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
+		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
+				+ std::to_string(attempt));
+		ec.clear();
+		const auto status = fs::symlink_status(candidate, ec);
+		if (!ec && status.type() == fs::file_type::not_found) {
+			result = candidate;
+			return true;
+		}
+		if (ec == std::errc::no_such_file_or_directory) {
+			result = candidate;
+			return true;
+		}
+		if (ec && ec != std::errc::no_such_file_or_directory)
+			return false;
+	}
+	return false;
+}
+
+static bool inspectDestination(const fs::path& destination, bool& exists,
+		SceneSaveResult& result) {
+	std::error_code ec;
+	const auto status = fs::symlink_status(destination, ec);
+	if (ec && ec != std::errc::no_such_file_or_directory) {
+		addWriteError(result, destination.string(), "Cannot inspect scene destination: " + ec.message());
+		return false;
+	}
+	exists = !ec && status.type() != fs::file_type::not_found;
+	if (exists && status.type() != fs::file_type::directory) {
+		addWriteError(result, destination.string(),
+				"Scene destination must be a directory and cannot be a symlink");
+		return false;
+	}
+	return true;
+}
+
 static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
-		const std::string& filename, const json& value, std::string* writtenBytes = nullptr) {
-	const std::string bytes = value.dump(4) + "\n";
+		const std::string& filename, const json& value) {
+	std::string bytes;
+	try {
+		bytes = value.dump(4) + "\n";
+	} catch (const json::exception& error) {
+		addWriteError(result, filename, "Cannot serialize " + filename + ": " + error.what());
+		return false;
+	}
 	std::ofstream output(scenePath / filename, std::ios::binary);
 	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
@@ -40,8 +136,27 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 		addWriteError(result, filename, "Cannot write " + filename);
 		return false;
 	}
-	if (writtenBytes)
-		*writtenBytes = bytes;
+	return true;
+}
+
+static bool copyExistingSceneContents(const fs::path& source, const fs::path& staging,
+		SceneSaveResult& result) {
+	std::error_code ec;
+	fs::copy(source, staging, fs::copy_options::recursive | fs::copy_options::copy_symlinks, ec);
+	if (ec) {
+		addWriteError(result, source.string(), "Cannot stage the previous scene contents: " + ec.message());
+		return false;
+	}
+	for (const char* filename : {"scene.json", "infrastructure.json", "stations.json",
+			"signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
+			"passengers.json", "views.json", "incidents.json"}) {
+		ec.clear();
+		fs::remove_all(staging / filename, ec);
+		if (ec) {
+			addWriteError(result, filename, "Cannot prepare staged scene file: " + ec.message());
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -436,15 +551,8 @@ static json writeViews(const SceneModel& scene) {
 	return {{"tracks", tracks}, {"stations", stations}};
 }
 
-SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
+static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
 	SceneSaveResult result;
-	const fs::path scenePath(sceneDir);
-	std::error_code ec;
-	fs::create_directories(scenePath, ec);
-	if (ec) {
-		addWriteError(result, "", "Cannot create scene directory: " + ec.message());
-		return result;
-	}
 
 	json sceneJson = {
 		{"schema_version", scene.schemaVersion},
@@ -596,13 +704,8 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		signalling["station_boundaries"].push_back(value);
 	}
 
-	std::vector<std::pair<std::string, std::string>> inputFiles;
 	const auto writeCanonical = [&](const std::string& filename, const json& value) {
-		std::string bytes;
-		const bool written = writeJsonFile(result, scenePath, filename, value, &bytes);
-		if (written)
-			inputFiles.emplace_back(filename, std::move(bytes));
-		return written;
+		return writeJsonFile(result, scenePath, filename, value);
 	};
 	bool wroteAll = true;
 	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
@@ -620,35 +723,106 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		wroteAll = writeCanonical("passengers.json", writePassengers(scene)) && wroteAll;
 	}
 
-	// Keep the old flat file until every new canonical file was persisted.
-	if (wroteAll) {
+	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);
+	return result;
+}
+
+SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
+	SceneSaveResult result;
+	const fs::path destination(sceneDir);
+	const std::string destinationName = destination.filename().string();
+	if (destination.empty() || destinationName.empty() || destinationName == "."
+			|| destinationName == "..") {
+		addWriteError(result, sceneDir, "Scene destination must be a named directory");
+		return result;
+	}
+
+	const fs::path parent = destination.parent_path().empty() ? fs::path(".")
+			: destination.parent_path();
+	std::error_code ec;
+	fs::create_directories(parent, ec);
+	if (ec) {
+		addWriteError(result, parent.string(), "Cannot create scene parent directory: " + ec.message());
+		return result;
+	}
+	ec.clear();
+	const auto parentStatus = fs::symlink_status(parent, ec);
+	if (ec || parentStatus.type() != fs::file_type::directory) {
+		addWriteError(result, parent.string(), "Scene destination parent must be a directory");
+		return result;
+	}
+
+	bool hadDestination = false;
+	if (!inspectDestination(destination, hadDestination, result))
+		return result;
+
+	StagingDirectory staging;
+	if (!createUniqueDirectory(parent, destinationName + ".staging-", staging.path)) {
+		addWriteError(result, destination.string(), "Cannot create a private scene staging directory");
+		return result;
+	}
+	if (hadDestination && !copyExistingSceneContents(destination, staging.path, result))
+		return result;
+	result = writeSceneGeneration(scene, staging.path);
+	if (!result.wroteAll || hasErrors(result.diagnostics))
+		return result;
+
+	const SceneLoadResult staged = loadScene(staging.path.string());
+	result.diagnostics.insert(result.diagnostics.end(), staged.diagnostics.begin(), staged.diagnostics.end());
+	if (hasErrors(staged.diagnostics)) {
+		result.wroteAll = false;
+		return result;
+	}
+	const std::string stagedSnapshot = staged.inputSnapshot;
+
+	if (!inspectDestination(destination, hadDestination, result)) {
+		result.wroteAll = false;
+		return result;
+	}
+
+	fs::path backup;
+	if (hadDestination) {
+		if (!uniqueSiblingPath(parent, destinationName + ".backup-", backup)) {
+			addWriteError(result, destination.string(), "Cannot reserve a private scene backup path");
+			result.wroteAll = false;
+			return result;
+		}
 		ec.clear();
-		fs::remove(scenePath / "incidents.json", ec);
+		fs::rename(destination, backup, ec);
 		if (ec) {
-			addWriteError(result, "incidents.json", "Cannot remove incidents.json: " + ec.message());
-			wroteAll = false;
-		}
-		if (scene.passengers.empty()) {
-			ec.clear();
-			fs::remove(scenePath / "passengers.json", ec);
-			if (ec) {
-				addWriteError(result, "passengers.json",
-						"Cannot remove passengers.json: " + ec.message());
-				wroteAll = false;
-			}
-		}
-		if (!hasViews) {
-			ec.clear();
-			fs::remove(scenePath / "views.json", ec);
-			if (ec) {
-				addWriteError(result, "views.json", "Cannot remove views.json: " + ec.message());
-				wroteAll = false;
-			}
+			addWriteError(result, destination.string(), "Cannot move the previous scene generation: "
+					+ ec.message());
+			result.wroteAll = false;
+			return result;
 		}
 	}
 
-	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);
+	ec.clear();
+	fs::rename(staging.path, destination, ec);
+	if (ec) {
+		addWriteError(result, destination.string(), "Cannot publish scene generation: " + ec.message());
+		if (hadDestination) {
+			std::error_code restoreError;
+			fs::rename(backup, destination, restoreError);
+			if (restoreError)
+				addWriteError(result, destination.string(), "Cannot restore the previous scene generation: "
+						+ restoreError.message());
+		}
+		result.wroteAll = false;
+		return result;
+	}
+	staging.release();
+
+	if (hadDestination) {
+		ec.clear();
+		fs::remove_all(backup, ec);
+		if (ec)
+			addCleanupWarning(result, backup,
+					"Cannot remove the previous scene generation: " + ec.message());
+	}
+
+	result.wroteAll = !hasErrors(result.diagnostics);
 	if (result.wroteAll)
-		result.inputSnapshot = buildSceneDirectorySnapshot(inputFiles);
+		result.inputSnapshot = stagedSnapshot;
 	return result;
 }

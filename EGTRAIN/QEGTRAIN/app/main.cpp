@@ -170,7 +170,7 @@ QString resolveOutputDirectory(const std::string& sceneName) {
 		if (base.isEmpty())
 			base = QDir::homePath() + "/EGTRAIN";
 	}
-	const QString suffix = sceneName.empty() ? QStringLiteral("scene") : QString::fromStdString(sceneName);
+	const QString suffix = QString::fromStdString(sceneOutputDirectoryComponent(sceneName));
 	const QString output = QDir(base).filePath("Output/" + suffix);
 	QDir().mkpath(output);
 	return QDir(output).absolutePath();

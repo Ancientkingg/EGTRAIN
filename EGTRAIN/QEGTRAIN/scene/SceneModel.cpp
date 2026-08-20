@@ -149,6 +149,16 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	return result;
 }
 
+std::string sceneOutputDirectoryComponent(const std::string& sceneName) {
+	const bool driveQualified = sceneName.size() >= 2
+			&& std::isalpha(static_cast<unsigned char>(sceneName[0]))
+			&& sceneName[1] == ':';
+	if (sceneName.empty() || sceneName == "." || sceneName == ".."
+			|| sceneName.find_first_of("/\\") != std::string::npos || driveQualified)
+		return "scene";
+	return sceneName;
+}
+
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds) {
 	if (!service.hasRepeat)
 		return 1;

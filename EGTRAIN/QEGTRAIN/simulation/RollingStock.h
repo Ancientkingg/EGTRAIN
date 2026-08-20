@@ -10,6 +10,7 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 #include "simulation/Signalling.h"
+#include "simulation/RuntimeLimits.h"
 #include "util/TrajectoryUtil.h"
 
 // GUI - Virtual Coupling notifications
@@ -554,8 +555,9 @@ extern int numRegions; /*Number of Speed ranges in the characteristic Tractive e
 
 extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
 
-// extern const int Max_N_Reg;
-#define Max_N_Reg 700
+// Keep the historical name for native callers while sharing the limit with
+// scene validation.
+inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
 extern double VirtualQ[Max_N_Reg], VirtualQD[Max_N_Reg];
 
@@ -609,7 +611,7 @@ public:
 	std::vector<double> BX;
 	Node* Stations = nullptr;
 	int numStations;					   // Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
-	static constexpr int kMaxTimetableStations = 40; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
+	static constexpr int kMaxTimetableStations = RuntimeLimits::kMaxTimetableStops; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
 	static int clampStationCount(int requested, const string& trainId); // Clamps a served-station count to kMaxTimetableStations, warning once per train
 	int stationBlockSection[kMaxTimetableStations];		// Cached block section index for each station (avoids full-route scan every timestep)
 	int stationArc[kMaxTimetableStations];				   // Cached Arc index within block section for each station

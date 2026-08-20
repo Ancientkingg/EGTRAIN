@@ -4,6 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
@@ -19,6 +20,26 @@ static bool expect(bool condition, const char* message) {
 static std::string readBytes(const fs::path& path) {
 	std::ifstream input(path, std::ios::binary);
 	return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
+
+static std::map<std::string, std::string> readDirectoryBytes(const fs::path& directory) {
+	std::map<std::string, std::string> files;
+	for (const auto& entry : fs::directory_iterator(directory)) {
+		if (entry.is_regular_file())
+			files.emplace(entry.path().filename().string(), readBytes(entry.path()));
+	}
+	return files;
+}
+
+static bool hasSiblingArtifact(const fs::path& destination, const std::string& kind) {
+	const fs::path parent = destination.parent_path().empty() ? fs::path(".")
+			: destination.parent_path();
+	const std::string prefix = destination.filename().string() + "." + kind + "-";
+	for (const auto& entry : fs::directory_iterator(parent)) {
+		if (entry.path().filename().string().rfind(prefix, 0) == 0)
+			return true;
+	}
+	return false;
 }
 
 static void printErrors(const std::vector<SceneDiagnostic>& diagnostics, const char* label) {
@@ -205,6 +226,31 @@ int main() {
 			&& savedSnapshot == onDiskSnapshot.bytes,
 			"successful save retains the exact framed canonical input snapshot");
 	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
+	{
+		std::ofstream marker(temp.path / "generation-marker.txt", std::ios::binary);
+		marker << "original generation marker\n";
+	}
+	fs::create_directory(temp.path / "notes");
+	{
+		std::ofstream note(temp.path / "notes" / "operator.txt", std::ios::binary);
+		note << "keep with scene\n";
+	}
+	const auto originalGeneration = readDirectoryBytes(temp.path);
+	SceneModel malformed = source;
+	malformed.passengers[0].journeys[0].activity = std::string("\xC3\x28", 2);
+	const SceneSaveResult failedSave = saveScene(malformed, temp.path.string());
+	ok &= expect(!failedSave.success() && hasErrors(failedSave.diagnostics),
+			"malformed UTF-8 fails without publishing a partial generation");
+	ok &= expect(readDirectoryBytes(temp.path) == originalGeneration,
+			"failed save preserves every byte of the previous generation");
+	ok &= expect(!hasSiblingArtifact(temp.path, "staging")
+			&& !hasSiblingArtifact(temp.path, "backup"),
+			"failed save removes sibling staging and backup artifacts");
+	const SceneSaveResult replacementSave = saveScene(source, temp.path.string());
+	ok &= expect(replacementSave.success()
+			&& fs::exists(temp.path / "generation-marker.txt")
+			&& fs::exists(temp.path / "notes" / "operator.txt"),
+			"successful generation replacement preserves unmanaged scene contents");
 	json stations;
 	{
 		std::ifstream input(temp.path / "stations.json");

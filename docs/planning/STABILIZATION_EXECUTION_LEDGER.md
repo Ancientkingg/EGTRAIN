@@ -1,16 +1,16 @@
 # Stabilization execution ledger
 
 - Initial `origin/main`: `935d94227fa3ebc61de371a52d663e711a3e4805`
-- Release status: P0 blockers cleared; blocked by remaining P1 findings G-04 and G-08
-- Active milestone: 4, result integrity
+- Release status: P0 blockers cleared; blocked by remaining P1 finding G-08
+- Active milestone: 5, persistence and validation hardening
 
 | Milestone | Findings | Status | Issue | Pull request | Merge |
 |---|---|---|---|---|---|
 | 1. Runtime memory safety | G-01, G-05, G-06; P-03 | Complete | [#306](https://github.com/Ancientkingg/EGTRAIN/issues/306) | [#307](https://github.com/Ancientkingg/EGTRAIN/pull/307) | `743fe85798aef38a6862b989434650dc87106b2b` |
 | 2. Deterministic simulation state | G-02; P-04 | Complete | [#308](https://github.com/Ancientkingg/EGTRAIN/issues/308) | [#309](https://github.com/Ancientkingg/EGTRAIN/pull/309) | `d029582fcb230c8419e9332bfdb608c792974384` |
 | 3. External communication lifecycle | G-03, G-07; P-05 | Complete | [#310](https://github.com/Ancientkingg/EGTRAIN/issues/310) | [#311](https://github.com/Ancientkingg/EGTRAIN/pull/311) | `d2c8dd761808c45deaa3f44a2348e10c5ba3c37a` |
-| 4. Result integrity | G-04; P-02 | In progress | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | Pending | Pending |
-| 5. Persistence and validation hardening | G-08, G-09, G-10 | Blocked on milestone 4 | Pending | Pending | Pending |
+| 4. Result integrity | G-04; P-02 | Complete | [#312](https://github.com/Ancientkingg/EGTRAIN/issues/312) | [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313) | `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd` |
+| 5. Persistence and validation hardening | G-08, G-09, G-10 | In progress | [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) | [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315) | Pending |
 | 6. Station platform-booking verification | G-NV-01 | Blocked on release fixes | Pending | Pending | Pending |
 | 7. Dead-code cleanup | P-01, P-06 | Blocked on correctness work | Pending | Pending | Pending |
 
@@ -145,9 +145,9 @@
 - Simplifications made: collapsed roughly 270 duplicated calculation lines into one private path, then removed the one-use sample record/helper and two input-vector allocations for a further ten-line reduction
 - Commit SHA: `cabb787588c2bf28308931c62cb4749f7716be4e`
 - PR number and URL: [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313)
-- CI status: required checks running
-- Merge SHA: pending
-- Remaining blockers: G-04 remains unresolved until the verified change is merged
+- CI status: passed in 12m04s
+- Merge SHA: `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd`
+- Remaining blockers: G-08
 
 ### Execution log
 
@@ -172,3 +172,45 @@
 - 2026-08-20: Final mechanical audit confirmed both public station-statistics entry points and input aggregation retain their production callers, the duplicated formulas are gone, every sample-variance division is guarded by a population larger than one, both station export variants are scanned, and the zero/singleton/multiple plus exact signed `-1` cases remain covered. Final diff checks passed.
 - 2026-08-20: Committed the verified milestone implementation as `cabb787588c2bf28308931c62cb4749f7716be4e`.
 - 2026-08-20: Pushed `fix/finite-delay-statistics` and opened PR [#313](https://github.com/Ancientkingg/EGTRAIN/pull/313); required CI is running.
+- 2026-08-20: Required CI passed in 12m04s. Squash-merged PR #313 as `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd`, deleted the feature branch, and removed the clean milestone worktree.
+
+## Milestone 5: persistence and validation hardening
+
+- Finding IDs: G-08, G-09, G-10
+- Branch: `fix/scene-integrity-boundaries`
+- Worktree: `/Users/samuelbruin/Downloads/EGTRAIN/local/worktrees/scene-integrity-boundaries`
+- Base SHA: `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd`
+- Scope: transactional folder publication, validator/native capacity parity, and safe scene-controlled output directory names
+- Files changed: `EGTRAIN/QEGTRAIN/app/DispatchController.cpp`; `EGTRAIN/QEGTRAIN/app/main.cpp`; `EGTRAIN/QEGTRAIN/scene/SceneModel.cpp`; `EGTRAIN/QEGTRAIN/scene/SceneModel.h`; `EGTRAIN/QEGTRAIN/scene/SceneValidator.cpp`; `EGTRAIN/QEGTRAIN/scene/SceneValidator.h`; `EGTRAIN/QEGTRAIN/scene/SceneWriter.cpp`; `EGTRAIN/QEGTRAIN/simulation/RollingStock.h`; `EGTRAIN/QEGTRAIN/simulation/RuntimeLimits.h`; `EGTRAIN/QEGTRAIN/tests/test_operationsbuilder.cpp`; `EGTRAIN/QEGTRAIN/tests/test_scenevalidator.cpp`; `EGTRAIN/QEGTRAIN/tests/test_scenewriter.cpp`; this ledger
+- Test results: focused scene writer, scene bundle, runnable validator, and native operations tests passed 4/4 before review and again after accepted review fixes; full build passed; full CTest passed 48/48; standalone creator acceptance passed; six-case folder/export/reimport roundtrip passed; six-case native headless smoke passed
+- Adversarial-review findings: two high-severity regressions: successful generation replacement discarded unmanaged scene-directory contents, and unconditional expanded-count validation blocked supported sparse selected-occurrence runs; the new shared header was also noted as untracked before commit. Re-review found no implementation defect and one low-severity missing invalid-selection regression.
+- Fixes made from review: copy unmanaged existing contents into staging before replacing writer-managed files, test both file and nested-directory preservation, and pass the selected occurrence set into runnable validation so its train-count check matches the native builder. Added invalid and unknown selected-row coverage across validation and native diagnostics.
+- Ponytail findings: accepted removal of an unused JSON-write out-parameter and the redundant nonpositive occurrence guard
+- Simplifications made: removed obsolete serialized-byte plumbing and relied directly on the occurrence-count helper's positive-result contract
+- Commit SHA: `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`
+- PR number and URL: [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315)
+- CI status: running
+- Merge SHA: pending
+- Remaining blockers: G-08, G-09, and G-10
+
+### Execution log
+
+- 2026-08-20: Fetched `origin`, confirmed PR #313 as the latest merged `origin/main`, removed the clean Milestone 4 worktree, and created the clean isolated milestone branch and worktree from merge SHA `ee59d0fec11ecda65c3acca2acb0e1f76c7723dd`.
+- 2026-08-20: Confirmed no existing issue owns G-08, G-09, and G-10; opened issue [#314](https://github.com/Ancientkingg/EGTRAIN/issues/314) for the PR-sized milestone.
+- 2026-08-20: Read the scene-model and build/test guidance and traced all three boundaries through the knowledge graph and exact source. Folder saves write directly into the live destination while bundle and importer paths already use sibling staging; runtime builders enforce `Train::kMaxTimetableStations` and `Max_N_Reg` while pure runnable validation omits them; `main.cpp` appends the untrusted scene name directly below `Output/`.
+- 2026-08-20: Fixed the implementation scope. Folder saves will stage, structurally reload, and publish through a sibling backup without a test-only hook. The two native capacities will move to one minimal shared constants header consumed by runtime and validation. A pure scene-name component helper will drive both runnable validation and output resolution, falling back safely if validation is bypassed.
+- 2026-08-20: Implemented transactional folder publication with private sibling staging, structural reload, generation backup/restore, and cleanup. A malformed UTF-8 field now produces a normal serialization failure after earlier staged files are written; the focused regression confirms the previous folder remains byte-for-byte intact with no staging or backup artifact. Focused scene-writer and bundle tests passed.
+- 2026-08-20: Added one shared header for the 700-train and 40-stop runtime capacities, and made runnable validation reject the same limit overflows as native operations without expanding the occurrence set. Added a pure single-component output-name helper, runnable diagnostic, and resolver fallback for traversal, separators, drive prefixes, dot names, and empty names. Focused validator and native-operations tests passed.
+- 2026-08-20: Integration review corrected post-publication backup cleanup from a false save failure to a warning and aligned staging-directory permissions with the existing private bundle staging pattern.
+- 2026-08-20: Independent correctness review found that a successful generation replacement discarded unmanaged files and subdirectories, and that unconditional expanded-count validation rejected supported sparse selected-occurrence runs. The new shared header was also identified as an untracked file that must be included in the commit.
+- 2026-08-20: Preserved unmanaged contents by copying the existing directory into private staging before removing and rewriting only writer-managed paths. Extended the regression to cover a top-level marker and nested operator note across a successful replacement.
+- 2026-08-20: Extended runnable validation with the existing selected-occurrence set and passed it from dispatch, retaining all-scene capacity rejection while matching the native builder for sparse runs. Focused CTest passed 4/4 after both corrections.
+- 2026-08-20: Separate Ponytail review found two safe reductions. Removed the unused JSON serialization out-parameter and a redundant guard around the occurrence helper's guaranteed-positive result.
+- 2026-08-20: Fresh correctness re-review found no implementation defect and one low-severity test gap for invalid selections. Added coverage proving invalid and unknown selected rows neither fall back to all-scene capacity nor bypass native selection diagnostics. Fresh Ponytail re-review found no further simplification.
+- 2026-08-20: Rebuilt the complete application and all test targets after the final review fix; compilation and linking passed with only existing deprecation warnings.
+- 2026-08-20: Full normal CTest passed 48/48 in 167.03 seconds, including creator acceptance, folder and bundle coverage, native startup, runtime memory safety, determinism, no-listener sharing, and GUI smokes.
+- 2026-08-20: Standalone creator acceptance passed 1/1. All six committed scenes passed folder export, compatibility reimport, and validation roundtrip, including the reimported Assignment runtime check. Six-case native headless smoke passed clean exit and finite-statistics checks for every case plus all applicable structure, movement, runtime-observable, and served-station baselines.
+- 2026-08-20: Refreshed the code knowledge graph after the code and ledger changes. Graphify completed with 4,941 nodes and 11,663 edges, retaining its existing parser and zero-node warnings; removed the generated worktree-local graph copy afterward.
+- 2026-08-20: Final mechanical audit confirmed every folder and bundle caller uses the shared transactional writer, dispatch is the only runnable-validation caller with a selected occurrence set and now forwards it, the two native capacities have one source of truth, the only scene-controlled output-directory construction uses the safe component helper, and the focused tests cover failure rollback, successful sidecar preservation, exact/over/sparse/invalid capacity cases, native parity, and traversal. No dead new symbol or missing production call site was found; final diff checks passed.
+- 2026-08-20: Committed the verified milestone implementation as `3c93f9df6b6712eaa657b8775e1041bd335fc5ad`.
+- 2026-08-20: Pushed `fix/scene-integrity-boundaries` and opened pull request [#315](https://github.com/Ancientkingg/EGTRAIN/pull/315); required CI is running.
