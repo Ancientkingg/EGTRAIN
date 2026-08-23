@@ -8,7 +8,6 @@
 
 enum class TrainVisualKind { Passenger, Sprinter, Intercity, HighSpeed, Freight };
 enum class TrainBadgeShape { Rounded, Capsule, Square };
-enum class StationVisualKind { StopMarker, Platform, Interchange };
 enum class TrackOperationalState { Free, Prepared, Occupied, Blocked };
 enum class SignalCueKind { Neutral, Stop, Caution, Proceed };
 
@@ -26,7 +25,6 @@ struct TrainVisual {
 };
 
 struct StationVisual {
-	StationVisualKind kind;
 	QColor fill;
 	QColor outline;
 	QString iconResource;
@@ -52,7 +50,7 @@ TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
 int trainBadgeCornerRadius(TrainBadgeShape shape);
 SignalVisual classifySignalAspect(int code);
 SignalCueKind classifySignalCue(int code);
-StationVisual classifyStation(bool hasPlatformId, int connectionCount);
+StationVisual classifyStation();
 QString simulationSpeedLabel(int delayMs);
 QString simulationSpeedMode(int delayMs);
 

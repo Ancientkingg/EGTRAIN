@@ -13,17 +13,12 @@ namespace {
 constexpr qreal kSymbolPixels = 16.0;
 constexpr qreal kLabelPixels = 11.0;
 constexpr qreal kLabelGap = 8.0;
-
-int classPriority(StationVisualKind kind) {
-	return kind == StationVisualKind::Platform ? 1 : 0;
-}
 }
 
 StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
 	const StationVisual& visual, int degree, QGraphicsItem* parent)
 	: QGraphicsItem(parent), m_stationName(stationName), m_stableAnchor(stableAnchor),
-	  m_visual(visual), m_degree(std::max(0, degree)), m_originalVisualKind(visual.kind),
-	  m_interchange(visual.kind == StationVisualKind::Interchange), m_endpoint(degree == 1) {
+	  m_visual(visual), m_degree(std::max(0, degree)), m_endpoint(degree == 1) {
 	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setFlag(QGraphicsItem::ItemIsSelectable);
 	setAcceptHoverEvents(true);
@@ -163,16 +158,8 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	painter->translate(m_viewportOffset);
 	const QColor markerColor(210, 215, 220);
 	painter->setPen(QPen(markerColor, 1.0));
-	if (m_visual.kind == StationVisualKind::StopMarker) {
-		painter->setBrush(markerColor);
-		painter->drawEllipse(m_symbolRect.adjusted(5.0, 5.0, -5.0, -5.0));
-	} else {
-		painter->setBrush(Qt::NoBrush);
-		const QRectF platform = m_symbolRect.adjusted(3.0, 5.0, -3.0, -5.0);
-		painter->drawRect(platform);
-		if (m_visual.kind == StationVisualKind::Interchange)
-			painter->drawRect(platform.adjusted(-2.0, -2.0, 2.0, 2.0));
-	}
+	painter->setBrush(markerColor);
+	painter->drawEllipse(m_symbolRect.adjusted(5.0, 5.0, -5.0, -5.0));
 	if (isLabelVisible()) {
 		painter->setPen(Qt::white);
 		painter->setFont(m_labelFont);
@@ -219,21 +206,18 @@ void StationOverlayItem::setDegree(int degree) {
 
 void StationOverlayItem::setNetworkDegree(int degree, bool interchange, bool endpoint) {
 	degree = std::max(0, degree);
-	const bool nextInterchange = interchange || degree >= 3
-		|| m_originalVisualKind == StationVisualKind::Interchange;
+	const bool nextInterchange = interchange || degree >= 3;
 	const bool nextEndpoint = endpoint || degree == 1;
 	if (m_degree == degree && m_interchange == nextInterchange && m_endpoint == nextEndpoint)
 		return;
 	m_degree = degree;
 	m_interchange = nextInterchange;
 	m_endpoint = nextEndpoint;
-	m_visual = classifyStation(m_originalVisualKind == StationVisualKind::Platform,
-		m_interchange ? 3 : m_degree);
 	update();
 }
 
 bool StationOverlayItem::isInterchange() const {
-	return m_interchange || m_degree >= 3 || m_originalVisualKind == StationVisualKind::Interchange;
+	return m_interchange || m_degree >= 3;
 }
 
 bool StationOverlayItem::isEndpoint() const {
@@ -250,10 +234,6 @@ bool StationOverlayItem::priorityLess(const StationOverlayItem& left, const Stat
 		return left.isInterchange();
 	if (left.isEndpoint() != right.isEndpoint())
 		return left.isEndpoint();
-	const int leftClass = classPriority(left.m_originalVisualKind);
-	const int rightClass = classPriority(right.m_originalVisualKind);
-	if (leftClass != rightClass)
-		return leftClass > rightClass;
 	const QPointF leftDelta = left.m_stableAnchor - viewportCenter;
 	const QPointF rightDelta = right.m_stableAnchor - viewportCenter;
 	const qreal leftDistance = leftDelta.x() * leftDelta.x() + leftDelta.y() * leftDelta.y();

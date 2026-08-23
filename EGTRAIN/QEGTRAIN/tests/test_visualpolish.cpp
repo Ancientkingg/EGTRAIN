@@ -105,12 +105,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(intercity.shape != sprinter.shape && intercity.shape != freight.shape && sprinter.shape != freight.shape,
 		"train category silhouettes");
 
-	ok &= expect(classifyStation(true, 4).kind == StationVisualKind::Interchange, "interchange station classification");
-	ok &= expect(classifyStation(true, 1).kind == StationVisualKind::Platform, "platform station classification");
-	ok &= expect(classifyStation(false, 0).kind == StationVisualKind::StopMarker, "stop marker classification");
-	ok &= expect(classifyStation(false, 0).iconResource == ":/icons/station-stop.svg", "stop station icon");
-	ok &= expect(classifyStation(true, 1).iconResource == ":/icons/station-platform.svg", "platform station icon");
-	ok &= expect(classifyStation(true, 4).iconResource == ":/icons/station-interchange.svg", "interchange station icon");
+	const StationVisual station = classifyStation();
+	ok &= expect(station.iconResource == ":/icons/station.svg", "station uses the uniform station icon");
 
 	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
 	ok &= expect(simulationSpeedLabel(250) == "Speed: 4.0x", "delayed speed label");

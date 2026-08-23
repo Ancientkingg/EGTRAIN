@@ -66,16 +66,8 @@ protected:
 			const QColor markerColor(210, 215, 220);
 			const QRectF symbol(15.0, 1.0, 16.0, 16.0);
 			painter.setPen(QPen(markerColor, 1.0));
-			if (m_entry.stationKind == StationVisualKind::StopMarker) {
-				painter.setBrush(markerColor);
-				painter.drawEllipse(symbol.adjusted(5.0, 5.0, -5.0, -5.0));
-			} else {
-				painter.setBrush(Qt::NoBrush);
-				const QRectF platform = symbol.adjusted(3.0, 5.0, -3.0, -5.0);
-				painter.drawRect(platform);
-				if (m_entry.stationKind == StationVisualKind::Interchange)
-					painter.drawRect(platform.adjusted(-2.0, -2.0, 2.0, 2.0));
-			}
+			painter.setBrush(markerColor);
+			painter.drawEllipse(symbol.adjusted(5.0, 5.0, -5.0, -5.0));
 			return;
 		}
 
@@ -129,16 +121,8 @@ QString trainLabel(TrainVisualKind kind) {
 	}
 }
 
-QString stationLabel(StationVisualKind kind) {
-	switch (kind) {
-	case StationVisualKind::Interchange:
-		return "Interchange";
-	case StationVisualKind::Platform:
-		return "Station platform";
-	case StationVisualKind::StopMarker:
-	default:
-		return "Station stop";
-	}
+QString stationLabel() {
+	return "Station";
 }
 
 NetworkLegendEntry trackEntry(const QString& label, TrackOperationalState state) {
@@ -175,9 +159,8 @@ NetworkLegendEntry trainEntry(const TrainVisual& visual) {
 NetworkLegendEntry stationEntry(const StationVisual& visual) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Station;
-	entry.label = stationLabel(visual.kind);
+	entry.label = stationLabel();
 	entry.color = visual.fill;
-	entry.stationKind = visual.kind;
 	entry.iconResource = visual.iconResource;
 	return entry;
 }
@@ -251,11 +234,8 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 			m_entries << trainEntry(visual);
 	}
 
-	std::set<int> stationKinds;
-	for (const StationVisual& visual : content.stationVisuals) {
-		if (stationKinds.insert(static_cast<int>(visual.kind)).second)
-			m_entries << stationEntry(visual);
-	}
+	if (!content.stationVisuals.isEmpty())
+		m_entries << stationEntry(content.stationVisuals.first());
 
 	if (content.hasSignals) {
 		m_entries << signalEntry("Stop signal", 0)

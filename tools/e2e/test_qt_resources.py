@@ -6,9 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ENTITY_ASSETS = {
-    "icons/station-stop.svg": "resources/icons/station-stop.svg",
-    "icons/station-platform.svg": "resources/icons/station-platform.svg",
-    "icons/station-interchange.svg": "resources/icons/station-interchange.svg",
+    "icons/station.svg": "resources/icons/station.svg",
     "icons/passenger.svg": "resources/icons/passenger.svg",
     "icons/train-passenger.svg": "resources/icons/train-passenger.svg",
     "icons/train-sprinter.svg": "resources/icons/train-sprinter.svg",

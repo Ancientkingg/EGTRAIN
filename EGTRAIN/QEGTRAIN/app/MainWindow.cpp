@@ -3490,7 +3490,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
 					break;
 			}
-			paintStationOverlay(anchor, classifyStation(station.hasPlatform, 0), station.name, 0.75);
+			paintStationOverlay(anchor, classifyStation(), station.name, 0.75);
 			break;
 		}
 	}
@@ -9985,7 +9985,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		const int track = station->track;
 		menu->setTitle("Station");
 		QAction* details = menu->addAction("Show details");
-		details->setIcon(QIcon(classifyStation(!station->node->stationPlatformId.empty() && station->node->stationPlatformId != "None", station->node->numConnections).iconResource));
+		details->setIcon(QIcon(classifyStation().iconResource));
 		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
 			if (auto* current = resolveStationNodeItem(nodeId, track))
 				displayStationNodeInfo(current);
@@ -10229,6 +10229,34 @@ void MainWindow::runStationOverlayE2E() {
 				else
 					marker(QString("E2E_STATION_OVERLAY_SCREENSHOT_%1").arg(path));
 			}
+			const auto signalItem = std::find_if(m_signalDecorations.cbegin(),
+				m_signalDecorations.cend(), [](QGraphicsItem* item) {
+					return item && qgraphicsitem_cast<SignalItem*>(item);
+				});
+			const auto hasVisibleSignal = [this]() {
+				return std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
+					[](QGraphicsItem* item) {
+						return item && qgraphicsitem_cast<SignalItem*>(item) && item->isVisible();
+					});
+			};
+			const QPointF previousCenter = networkView->mapToScene(
+				networkView->viewport()->rect().center());
+			bool centeredOnSignal = false;
+			if (signalItem == m_signalDecorations.cend()) {
+				fail(QString("%1 has no SignalItem").arg(label));
+			} else if (!hasVisibleSignal() && ratio > 1.0) {
+				networkView->centerOn((*signalItem)->scenePos());
+				updateViewportOverlays();
+				QApplication::processEvents();
+				centeredOnSignal = true;
+			}
+			if (!hasVisibleSignal())
+				fail(QString("%1 has no visible SignalItem").arg(label));
+			if (centeredOnSignal) {
+				networkView->centerOn(previousCenter);
+				updateViewportOverlays();
+				QApplication::processEvents();
+			}
 			marker(QString("E2E_STATION_OVERLAY_%1_%2_OK").arg(caseName, label));
 		};
 
@@ -10307,7 +10335,7 @@ void MainWindow::runStationOverlayE2E() {
 		semanticFixtureNode.stationName = "E2ESemanticStation";
 		semanticFixtureNode.stationPlatformId = "E2EPlatform";
 		const QPointF semanticCenter = networkView->mapToScene(networkView->viewport()->rect().center());
-		const StationVisual semanticVisual = classifyStation(true, 0);
+		const StationVisual semanticVisual = classifyStation();
 		auto* stationTarget = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
 		stationTarget->track = -1;
 		stationTarget->node = &semanticFixtureNode;
@@ -17008,7 +17036,7 @@ void MainWindow::setupGUI() {
 		QPointF sharedPoint;
 		if (sharedStationPoint(i, sharedPoint)) {
 			paintStationOverlay(sharedPoint,
-				classifyStation(StationArray[i].N_StationPlatforms > 0, 0),
+				classifyStation(),
 				StationArray[i].stationName, 0.75);
 			continue;
 		}
@@ -17130,7 +17158,7 @@ void MainWindow::setupGUI() {
 		}
 
 		paintStationOverlay(pt,
-			classifyStation(StationArray[i].N_StationPlatforms > 0, 0),
+			classifyStation(),
 			StationArray[i].stationName);
 	}
 
@@ -18156,7 +18184,7 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	pen.setWidth(0);
 	pen.setCosmetic(true);
 
-	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
+	// center the station marker on its network coordinate
 	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(coord);
 
@@ -18174,8 +18202,7 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 
 // draws a station Node
 void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node) {
-	bool hasPlatformId = Node && !Node->stationPlatformId.empty() && Node->stationPlatformId != "None";
-	StationVisual visual = classifyStation(hasPlatformId, Node ? Node->numConnections : 0);
+	StationVisual visual = classifyStation();
 	QPen pen = QPen(visual.outline);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
@@ -18188,7 +18215,7 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 	el->setPen(pen);
 	el->setBrush(visual.fill);
 
-	// add track and Node pointer to rect item
+	// add track and Node pointer to the station item
 	el->track = track;
 	el->node = Node;
 

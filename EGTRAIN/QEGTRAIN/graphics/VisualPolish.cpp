@@ -112,12 +112,8 @@ SignalVisual classifySignalAspect(int code) {
 	return {QColor(128, 128, 128), classifySignalCue(code), ":/icons/signal-neutral.svg"};
 }
 
-StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
-	if (connectionCount >= 3)
-		return {StationVisualKind::Interchange, QColor(80, 120, 210), QColor(30, 60, 130), ":/icons/station-interchange.svg"};
-	if (hasPlatformId)
-		return {StationVisualKind::Platform, QColor(70, 70, 70), QColor(30, 30, 30), ":/icons/station-platform.svg"};
-	return {StationVisualKind::StopMarker, QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station-stop.svg"};
+StationVisual classifyStation() {
+	return {QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station.svg"};
 }
 
 // One simulated second renders every delayMs, so the nominal playback factor

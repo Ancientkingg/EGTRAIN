@@ -86,8 +86,8 @@ test -s "$DPR2_COMMAND_BAR_1200_SHOT"
 test -s "$DPR2_COMMAND_BAR_1440_SHOT"
 echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
 
-SCENE_NAMES=(Netherlands Paimpol Copenhagen Milano_Brescia)
-for case in 1 2 3 4; do
+SCENE_NAMES=(Netherlands Paimpol Copenhagen Milano_Brescia Assignment_Gvc_Gdg_Ut Lebanon)
+for case in 1 2 3 4 5 6; do
 	scene_name="${SCENE_NAMES[$((case - 1))]}"
 	scene_path="$SCENE_ROOT/$scene_name"
 	station_out="${STATION_OUT_BASE}-${case}.log"
@@ -117,7 +117,7 @@ for case in 1 2 3 4; do
 		test -s "${STATION_SHOT_BASE}-dpr1-12x.png"
 	fi
 	done
-echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4}.log"
+echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4,5,6}.log"
 
 rm -f "${STATION_SHOT_BASE}-dpr2-fit.png" "${STATION_SHOT_BASE}-dpr2-3x.png" "${STATION_SHOT_BASE}-dpr2-12x.png"
 QT_QPA_PLATFORM=offscreen \
