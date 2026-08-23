@@ -94,7 +94,8 @@ int main() {
 		writeText(legacy / "Routes/Route2.txt", "@0-B1@\n");
 		writeText(legacy / "RoutesToWrite/RoutesToJoin.txt", "0 2 Reverse\n");
 		writeText(legacy / "GUI/caseStudyRouteCorridors.txt", "0\tfixture-corridor\n");
-		writeText(legacy / "GUI/caseStudyTrackData.txt", "0\t\t2\n1\t3\t2\n");
+		writeText(legacy / "GUI/caseStudyTrackData.txt", "0\t\t2\n");
+		writeText(legacy / "GUI/unusedTracks.txt", "1\n");
 		writeText(legacy / "GUI/StationsCoord.txt",
 				"Guingamp full name\t1\t0.1\t2\t0.0\tfixture-corridor\n"
 				"Paimpol full name\t1\t0.2\t2\t1.0\tfixture-corridor\n");
@@ -133,23 +134,31 @@ int main() {
 			ok &= expect(readJson(fs::path(output.dir) / "views.json", views), "Synthetic views readable");
 			ok &= expect(scene["base_time"] == "07:10:40"
 					&& scene["simulation_settings"]["duration_seconds"] == 9000.0, "Known settings imported");
-			bool rootReport = false, coordinateReport = false, trackViewReport = false, stationViewReport = false;
+			bool rootReport = false, coordinateReport = false, stationViewReport = false;
+			int trackViewSources = 0;
+			int trackViewConversions = 0;
 			for (const auto& row : scene["import_report"]) {
 				if (row["category"] == "legacy_root")
 					rootReport = row["source_count"] == 1 && row["converted_count"] == 1;
 				if (row["category"] == "infrastructure.connections")
 					coordinateReport = row["source_count"] == 2 && row["converted_count"] == 1
 							&& row["skipped_count"] == 1 && row["unresolved_references"] == 1;
-				if (row["category"] == "views.tracks")
-					trackViewReport = row["source_count"] == 2 && row["converted_count"] == 2;
+				if (row["category"] == "views.tracks") {
+					trackViewSources += row["source_count"].get<int>();
+					trackViewConversions += row["converted_count"].get<int>();
+				}
 				if (row["category"] == "views.stations")
 					stationViewReport = row["source_count"] == 2 && row["converted_count"] == 2;
 			}
 			ok &= expect(rootReport, "Synthetic root provenance report");
 			ok &= expect(coordinateReport, "Synthetic unresolved coordinate report");
-			ok &= expect(trackViewReport && stationViewReport, "Synthetic display metadata provenance report");
+			ok &= expect(trackViewSources == 2 && trackViewConversions == 2 && stationViewReport,
+				"Synthetic display metadata provenance report");
 			ok &= expect(views["tracks"].size() == 2 && views["tracks"][0]["track"] == "B0"
 					&& views["tracks"][0]["level"] == 0 && views["tracks"][0]["region"] == 2
+					&& !views["tracks"][0].contains("visible") && views["tracks"][1]["track"] == "B1"
+					&& views["tracks"][1]["level"] == 0 && views["tracks"][1]["region"] == 0
+					&& views["tracks"][1]["visible"] == false
 					&& views["stations"].size() == 2 && views["stations"][0]["station"] == "Guingamp"
 					&& views["stations"][0]["regions"][0]["position_km"] == 0.0,
 					"Legacy GUI layout is preserved as native display metadata");

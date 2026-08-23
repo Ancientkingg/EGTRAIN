@@ -41,6 +41,7 @@ public:
 	QString zoomLabel() const;
 
 protected:
+	bool viewportEvent(QEvent* event) override;
 	void wheelEvent(QWheelEvent* event) override;
 	void drawBackground(QPainter* painter, const QRectF& rect) override;
 	void resizeEvent(QResizeEvent* event) override;

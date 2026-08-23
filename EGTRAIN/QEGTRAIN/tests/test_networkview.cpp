@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QGraphicsRectItem>
 #include <QImage>
+#include <QNativeGestureEvent>
 #include <QPainter>
 #include <QWheelEvent>
 #include <cmath>
@@ -121,6 +122,37 @@ int main(int argc, char** argv) {
 	ok &= expect(QLineF(scenePointBeforeWheel, view.mapToScene(wheelPos)).length() < 0.5,
 		"wheel zoom keeps the scene point under the pointer fixed");
 	ok &= expect(updates == 1, "one wheel zoom emits one viewport update");
+
+	view.fitToTopology();
+	updates = 0;
+	QWheelEvent fineWheel(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(0, 0), QPoint(0, 30),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(view.viewport(), &fineWheel);
+	ok &= expect(near(view.zoomRatio(), std::pow(1.15, 0.25), 1e-5),
+		"high-resolution wheel deltas zoom proportionally");
+	ok &= expect(updates == 1, "one high-resolution wheel event emits one viewport update");
+
+	view.fitToTopology();
+	view.zoomBy(6.0);
+	updates = 0;
+	const QPointF centerBeforeTrackpad = view.mapToScene(view.viewport()->rect().center());
+	QWheelEvent trackpadScroll(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(24, -18), QPoint(24, -18),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(view.viewport(), &trackpadScroll);
+	const QPointF centerAfterTrackpad = view.mapToScene(view.viewport()->rect().center());
+	ok &= expect(near(view.zoomRatio(), 6.0, 1e-5), "two-finger scrolling pans without zooming");
+	ok &= expect(qAbs(centerAfterTrackpad.x() - centerBeforeTrackpad.x()) > 0.1
+		&& qAbs(centerAfterTrackpad.y() - centerBeforeTrackpad.y()) > 0.1,
+		"two-finger scrolling pans in both axes");
+	ok &= expect(updates == 1, "one two-finger scroll event emits one viewport update");
+
+	view.fitToTopology();
+	updates = 0;
+	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, nullptr, wheelPos, wheelPos,
+		view.viewport()->mapToGlobal(wheelPos), 0.05, 1, 0);
+	QApplication::sendEvent(view.viewport(), &pinch);
+	ok &= expect(near(view.zoomRatio(), 1.05, 1e-5), "native trackpad pinch zooms continuously");
+	ok &= expect(updates == 1, "one pinch event emits one viewport update");
 
 	view.fitToTopology();
 	updates = 0;

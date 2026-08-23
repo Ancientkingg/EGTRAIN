@@ -59,6 +59,12 @@ int main(int argc, char* argv[]) {
 	const QRectF right = overlay.labelRect();
 	ok &= expect(qFuzzyCompare(symbol.width(), 16.0) && qFuzzyCompare(symbol.height(), 16.0),
 		"station symbol stays compact");
+	overlay.setLabelScale(2.0);
+	ok &= expect(qFuzzyCompare(overlay.labelScale(), 2.0)
+			&& overlay.labelRect().width() > right.width()
+			&& overlay.symbolRect() == symbol,
+		"station label grows independently from its fixed-size symbol");
+	overlay.setLabelScale(1.0);
 	ok &= expect(qFuzzyCompare(overlay.combinedRect().left(), symbol.left()), "combined bounds include symbol");
 	ok &= expect(qFuzzyCompare(right.left(), symbol.right() + 8.0), "right label gap is eight logical pixels");
 	overlay.setLabelSide(StationOverlayItem::LabelSide::Left);

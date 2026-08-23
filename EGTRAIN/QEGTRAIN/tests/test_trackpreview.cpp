@@ -37,9 +37,9 @@ int main() {
 	scene.connections.push_back({"switch.7", "B0.Ut", "B1.Ut", false, 0.0});
 	scene.trackViews = {{"B0", 0, 0}, {"B1", 1, 1}};
 	scene.stationViews = {
-		{"Gvc", 1.0, 0.0, {{0, 0.0}, {1, 164.0}}, {}},
-		{"Gdg", 1.0, 0.28, {{0, 28.0}, {1, 136.0}}, {}},
-		{"Ut", 1.0, 0.64, {{0, 64.0}, {1, 100.0}}, {}},
+		{"Gvc", 52.0, 0.0, {{0, 0.0}, {1, 164.0}}, {}},
+		{"Gdg", 52.25, 0.28, {{0, 28.0}, {1, 136.0}}, {}},
+		{"Ut", 52.5, 0.64, {{0, 64.0}, {1, 100.0}}, {}},
 	};
 	for (const auto& stationData : {
 			std::pair<const char*, const char*> {"Gvc", "B0.Gvc"},
@@ -70,21 +70,24 @@ int main() {
 					"preview points retain canonical node IDs");
 			ok &= expect(std::fabs(first.points[0].x - 0.0) < 1e-9
 					&& std::fabs(first.points[1].x - 0.28) < 1e-9
-					&& std::fabs(first.points[2].x - 0.64) < 1e-9
-					&& std::fabs(second.points[0].x - 0.64) < 1e-9
-					&& std::fabs(second.points[1].x - 0.28) < 1e-9
-					&& std::fabs(second.points[2].x - 0.0) < 1e-9,
-					"station display anchors map both track directions to one x extent");
+					&& std::fabs(first.points[2].x - 0.64) < 1e-9,
+					"station display anchors map track distance to longitude");
 			ok &= expect(first.points[0].rawX == 0.0 && first.points[2].rawX == 64.0
 					&& second.points[0].rawX == 100.0 && second.points[2].rawX == 164.0
-					&& first.points[0].y == 1.0 && first.points[2].y == 3.0
-					&& second.points[0].y == -1.0 && second.points[2].y == -3.0,
-					"preview keeps raw x and y alongside mapped display x");
+					&& std::fabs(first.points[0].y - (-61.08656629615305)) < 1e-9
+					&& std::fabs(first.points[1].y - (-61.49377304672194)) < 1e-9
+					&& std::fabs(first.points[2].y - (-61.90328104077144)) < 1e-9,
+					"preview maps station latitude to Mercator display y");
+			ok &= expect(std::fabs(std::hypot(first.points[0].x - second.points[2].x,
+					first.points[0].y - second.points[2].y) - 0.0006) < 1e-9
+					&& std::fabs(std::hypot(first.points[1].x - second.points[1].x,
+						first.points[1].y - second.points[1].y) - 0.0006) < 1e-9
+					&& std::fabs(std::hypot(first.points[2].x - second.points[0].x,
+						first.points[2].y - second.points[0].y) - 0.0006) < 1e-9,
+					"authored track levels separate geographic tracks perpendicular to the route");
 		}
-		ok &= expect(first.displayOffset != second.displayOffset
-				&& std::fabs(first.displayOffset - 0.0) < 1e-9
-				&& std::fabs(second.displayOffset - 0.015) < 1e-9,
-				"authored track levels provide separate y offsets");
+		ok &= expect(first.displayOffset == 0.0 && second.displayOffset == 0.0,
+				"geographic track separation is carried by mapped points");
 	}
 	ok &= expect(result.connections.size() == 1, "preview resolves one canonical connection");
 	if (!result.connections.empty()) {
@@ -93,6 +96,20 @@ int main() {
 				&& connection.secondTrackId == "B1" && connection.secondNodeId == "B1.Ut",
 				"connection endpoints resolve through canonical node references");
 	}
+	SceneModel hidden = scene;
+	hidden.trackViews[1].visible = false;
+	hidden.stations.front().platforms.insert(hidden.stations.front().platforms.begin(),
+		{"Gvc.hidden-platform", {"B1.Gvc"}});
+	const TrackPreviewResult hiddenResult = loadTrackPreview(hidden);
+	ok &= expect(hiddenResult.lines.size() == 1 && hiddenResult.lines.front().id == "B0"
+			&& hiddenResult.connections.empty(),
+			"hidden display tracks and their connections stay out of the preview");
+	ok &= expect(!hiddenResult.stations.empty()
+			&& hiddenResult.stations.front().nodeId == "B0.Gvc",
+			"station preview skips hidden platform tracks when choosing its anchor");
+	ok &= expect(hiddenResult.previewSignals.size() == 1
+			&& hiddenResult.previewSignals.front().trackId == "B0",
+			"hidden tracks do not leave orphaned preview signals");
 	ok &= expect(result.stations.size() == 3, "preview renders one station anchor per station");
 	if (!result.stations.empty()) {
 		const auto& stationAnchor = result.stations.front();

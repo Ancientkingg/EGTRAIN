@@ -59,6 +59,20 @@ QString StationOverlayItem::displayName(const std::string& stationName) {
 	return displayName(QString::fromStdString(stationName));
 }
 
+qreal StationOverlayItem::labelScale() const {
+	return static_cast<qreal>(m_labelFont.pixelSize()) / kLabelPixels;
+}
+
+void StationOverlayItem::setLabelScale(qreal scale) {
+	const int pixelSize = qRound(kLabelPixels * std::clamp(scale, 1.0, 3.0));
+	if (m_labelFont.pixelSize() == pixelSize)
+		return;
+	prepareGeometryChange();
+	m_labelFont.setPixelSize(pixelSize);
+	rebuildGeometry();
+	update();
+}
+
 
 void StationOverlayItem::setViewportOffset(const QPointF& offset) {
 	if (m_viewportOffset == offset)

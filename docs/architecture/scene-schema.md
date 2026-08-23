@@ -327,7 +327,7 @@ topology, signalling, services, or simulation results:
 ```json
 {
   "tracks": [
-    { "track": "B0", "level": 0, "region": 0 }
+    { "track": "B0", "level": 0, "region": 0, "visible": false }
   ],
   "stations": [
     {
@@ -341,11 +341,14 @@ topology, signalling, services, or simulation results:
 }
 ```
 
+Track rows are visible by default. Set `visible` to `false` to keep infrastructure
+available to the simulation while omitting an authored inactive track from the preview.
+
 Track and station references must identify canonical objects. Levels are
 integers; region IDs are unique non-negative integers; coordinates and region
 positions are finite. Invalid rows are skipped with load warnings. The legacy
-importer creates this file from `GUI/caseStudyTrackData.txt` and
-`GUI/StationsCoord.txt`. Directory saves and V2 bundles preserve it when present.
+importer creates this file from `GUI/caseStudyTrackData.txt`, `GUI/unusedTracks.txt`,
+and `GUI/StationsCoord.txt`. Directory saves and V2 bundles preserve it when present.
 
 `loaded_data` and `sourceFiles` are derived in-memory metadata; they are
 recomputed when a scene is loaded and are not the source of canonical values.

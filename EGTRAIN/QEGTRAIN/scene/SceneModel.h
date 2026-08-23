@@ -24,6 +24,7 @@ struct SceneTrackView {
 	std::string trackId;
 	int level = 0;
 	int region = 0;
+	bool visible = true;
 };
 
 struct SceneNode {

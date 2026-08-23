@@ -14,6 +14,8 @@ namespace {
 
 constexpr double kVirtualSwitchSpanKm = 0.030;
 constexpr double kVirtualSwitchToleranceKm = 0.0001;
+constexpr double kGeographicTrackSeparation = 0.0006;
+constexpr double kPi = 3.14159265358979323846;
 
 bool mapPreviewX(double rawX, const std::vector<std::pair<double, double>>& anchors,
 		double& displayX) {
@@ -121,8 +123,12 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		if (!node.id.empty() && nodesById.emplace(node.id, &node).second == false)
 			result.warnings.push_back("duplicate node id " + node.id + " is ambiguous in preview");
 
-	for (const auto& track : scene.tracks)
-		addTrackLine(scene, track, nodesById, result);
+	for (const auto& track : scene.tracks) {
+		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
+				[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
+		if (view == scene.trackViews.end() || view->visible)
+			addTrackLine(scene, track, nodesById, result);
+	}
 
 	if (result.lines.size() > 1) {
 		double minX = std::numeric_limits<double>::infinity();
@@ -151,50 +157,97 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		if (view != scene.trackViews.end()) {
 			line.displayOffset = static_cast<double>(view->level) * 0.015;
 
-			std::vector<std::pair<double, double>> anchors;
+			std::vector<std::pair<double, double>> xAnchors;
+			std::vector<std::pair<double, double>> yAnchors;
 			bool valid = true;
 			for (const auto& station : scene.stationViews) {
 				for (const auto& region : station.regions) {
 					if (region.first != view->region)
 						continue;
-					if (!std::isfinite(station.longitude) || !std::isfinite(region.second)) {
+					if (!std::isfinite(station.latitude) || station.latitude <= -90.0
+							|| station.latitude >= 90.0 || !std::isfinite(station.longitude)
+							|| !std::isfinite(region.second)) {
 						valid = false;
 						break;
 					}
-					anchors.emplace_back(region.second, station.longitude);
+					const double displayY = -std::log(std::tan(kPi / 4.0
+							+ station.latitude * kPi / 360.0)) * 180.0 / kPi;
+					if (!std::isfinite(displayY)) {
+						valid = false;
+						break;
+					}
+					xAnchors.emplace_back(region.second, station.longitude);
+					yAnchors.emplace_back(region.second, displayY);
 				}
 				if (!valid)
 					break;
 			}
-			std::sort(anchors.begin(), anchors.end());
-			std::vector<std::pair<double, double>> uniqueAnchors;
-			for (const auto& anchor : anchors) {
-				if (!uniqueAnchors.empty() && anchor.first == uniqueAnchors.back().first) {
-					if (anchor.second != uniqueAnchors.back().second)
+			std::sort(xAnchors.begin(), xAnchors.end());
+			std::sort(yAnchors.begin(), yAnchors.end());
+			std::vector<std::pair<double, double>> uniqueXAnchors;
+			for (const auto& anchor : xAnchors) {
+				if (!uniqueXAnchors.empty() && anchor.first == uniqueXAnchors.back().first) {
+					if (anchor.second != uniqueXAnchors.back().second)
 						valid = false;
 					continue;
 				}
-				uniqueAnchors.push_back(anchor);
+				uniqueXAnchors.push_back(anchor);
 			}
-			if (valid && uniqueAnchors.size() >= 2) {
-				std::vector<double> displayXs;
-				displayXs.reserve(line.points.size());
-				for (auto& point : line.points) {
-					double displayX = 0.0;
-					if (!std::isfinite(point.rawX)
-							|| !mapPreviewX(point.rawX, uniqueAnchors, displayX)) {
+			std::vector<std::pair<double, double>> uniqueYAnchors;
+			for (const auto& anchor : yAnchors) {
+				if (!uniqueYAnchors.empty() && anchor.first == uniqueYAnchors.back().first) {
+					if (anchor.second != uniqueYAnchors.back().second)
+						valid = false;
+					continue;
+				}
+				uniqueYAnchors.push_back(anchor);
+			}
+			if (valid && uniqueXAnchors.size() >= 2 && uniqueYAnchors.size() >= 2) {
+				const double separation = static_cast<double>(view->level)
+						* kGeographicTrackSeparation;
+				for (std::size_t index = 0; index < uniqueXAnchors.size(); ++index) {
+					const std::size_t previous = index == 0 ? 0 : index - 1;
+					const std::size_t next = index + 1 == uniqueXAnchors.size() ? index : index + 1;
+					const double dx = uniqueXAnchors[next].second - uniqueXAnchors[previous].second;
+					const double dy = uniqueYAnchors[next].second - uniqueYAnchors[previous].second;
+					const double length = std::hypot(dx, dy);
+					if (!(length > 0.0)) {
 						valid = false;
 						break;
 					}
-					displayXs.push_back(displayX);
+					uniqueXAnchors[index].second += dy / length * separation;
+					uniqueYAnchors[index].second -= dx / length * separation;
 				}
-				if (valid)
-					for (std::size_t index = 0; index < line.points.size(); ++index)
-						line.points[index].x = displayXs[index];
+				if (!valid)
+					continue;
+				std::vector<std::pair<double, double>> displayPoints;
+				displayPoints.reserve(line.points.size());
+				for (auto& point : line.points) {
+					double displayX = 0.0;
+					double displayY = 0.0;
+					if (!std::isfinite(point.rawX)
+							|| !mapPreviewX(point.rawX, uniqueXAnchors, displayX)
+							|| !mapPreviewX(point.rawX, uniqueYAnchors, displayY)) {
+						valid = false;
+						break;
+					}
+					displayPoints.emplace_back(displayX, displayY);
+				}
+				if (valid) {
+					line.displayOffset = 0.0;
+					for (std::size_t index = 0; index < line.points.size(); ++index) {
+						line.points[index].x = displayPoints[index].first;
+						line.points[index].y = displayPoints[index].second;
+					}
+				}
 			}
 		}
 	}
 
+	const auto visibleTrack = [&result](const std::string& id) {
+		return std::any_of(result.lines.begin(), result.lines.end(),
+				[&id](const TrackPreviewLine& line) { return line.id == id; });
+	};
 	for (const auto& connection : scene.connections) {
 		const auto first = nodesById.find(connection.fromNodeId);
 		const auto second = nodesById.find(connection.toNodeId);
@@ -202,6 +255,8 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 			result.warnings.push_back("connection " + connection.id + " has an unresolved node anchor");
 			continue;
 		}
+		if (!visibleTrack(first->second->trackId) || !visibleTrack(second->second->trackId))
+			continue;
 		TrackPreviewConnection preview;
 		preview.firstTrackId = first->second->trackId;
 		preview.firstNodeId = first->second->id;
@@ -220,7 +275,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					result.warnings.push_back("platform " + platform.id + " has an unresolved node anchor");
 					continue;
 				}
-				if (anchor == nullptr)
+				if (anchor == nullptr && visibleTrack(node->second->trackId))
 					anchor = node->second;
 			}
 		}
@@ -236,6 +291,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	std::unordered_map<std::string, std::pair<double, double>> virtualSwitches;
 	for (const auto& section : sectionInventory.sections) {
 		if (section.connectionDerived || section.firstTrackId.empty()
+				|| !visibleTrack(section.firstTrackId)
 				|| seenTracks.insert(section.firstTrackId).second)
 			continue; // The first base section has no runtime signal.
 

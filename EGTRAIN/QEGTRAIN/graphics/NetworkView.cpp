@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <QNativeGestureEvent>
 
 namespace {
 constexpr qreal kFitPadding = 24.0;
@@ -218,13 +219,38 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 void NetworkView::wheelEvent(QWheelEvent* event) {
 	if (event->modifiers() & Qt::ControlModifier) {
 		QGraphicsView::wheelEvent(event);
+	} else if (!event->pixelDelta().isNull()) {
+		const QPoint viewportCenter = viewport()->rect().center();
+		const QPointF previousCenter = mapToScene(viewportCenter);
+		const bool wasSuppressed = m_suppressViewportChanged;
+		m_suppressViewportChanged = true;
+		horizontalScrollBar()->setValue(horizontalScrollBar()->value() - event->pixelDelta().x());
+		verticalScrollBar()->setValue(verticalScrollBar()->value() - event->pixelDelta().y());
+		m_viewCenter = mapToScene(viewportCenter);
+		m_hasViewCenter = true;
+		m_suppressViewportChanged = wasSuppressed;
+		if (!wasSuppressed && previousCenter != m_viewCenter)
+			emit viewportChanged();
+		event->accept();
 	} else if (event->angleDelta().y() != 0) {
-		const qreal factor = event->angleDelta().y() > 0 ? 1.15 : 1.0 / 1.15;
+		const qreal factor = std::pow(1.15, event->angleDelta().y() / 120.0);
 		zoomBy(factor, event->position());
 		event->accept();
 	} else {
 		QGraphicsView::wheelEvent(event);
 	}
+}
+
+bool NetworkView::viewportEvent(QEvent* event) {
+	if (event->type() == QEvent::NativeGesture) {
+		auto* gesture = static_cast<QNativeGestureEvent*>(event);
+		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
+			zoomBy(1.0 + gesture->value(), gesture->localPos());
+			event->accept();
+			return true;
+		}
+	}
+	return QGraphicsView::viewportEvent(event);
 }
 
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {

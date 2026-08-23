@@ -258,9 +258,9 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	}
 
 	if (content.hasSignals) {
-		if (content.showOperationalTrackStates)
-			m_entries << signalEntry("Stop signal", 0) << signalEntry("Caution signal", 75);
-		m_entries << signalEntry("Proceed signal", 180);
+		m_entries << signalEntry("Stop signal", 0)
+				  << signalEntry("Caution signal", 75)
+				  << signalEntry("Proceed signal", 180);
 	}
 	if (content.hasPassengers) {
 		NetworkLegendEntry entry;

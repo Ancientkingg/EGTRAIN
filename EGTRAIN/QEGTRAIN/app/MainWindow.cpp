@@ -79,7 +79,7 @@ constexpr int kSignalBaseVisibleRole = 2;
 constexpr int kSignalAnchorRole = 3;
 constexpr int kSignalNormalRole = 4;
 constexpr int kSignalDirectionRole = 5;
-constexpr qreal kPreviewSignalOffsetPixels = 10.0;
+constexpr qreal kPreviewSignalOffsetPixels = 6.0;
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
@@ -3370,7 +3370,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		tracks[line.id] = {&line, offset};
 
 		QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : QColor(185, 190, 198));
-		pen.setWidthF(selectedTrackIds.count(line.id) > 0 ? 3.5 : 2.0);
+		pen.setWidthF(selectedTrackIds.count(line.id) > 0 ? 3.0 : 1.25);
 		pen.setCosmetic(true);
 		QPainterPath path(QPointF(line.points.front().x, line.points.front().y + offset));
 		for (std::size_t point = 1; point < line.points.size(); ++point)
@@ -3394,10 +3394,12 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 
 		QPainterPath path(start);
 		path.lineTo(end);
-		QPen pen(QColor(185, 190, 198));
-		pen.setWidthF(2.0);
+		QPen pen(QColor(210, 215, 222));
+		pen.setWidthF(2.25);
 		pen.setCosmetic(true);
+		pen.setCapStyle(Qt::RoundCap);
 		auto* item = scene->addPath(path, pen);
+		item->setZValue(0.5);
 		item->setAcceptedMouseButtons(Qt::NoButton);
 		includePreviewPoint(start);
 		includePreviewPoint(end);
@@ -3495,7 +3497,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
 					break;
 			}
-			paintStationOverlay(anchor, classifyStation(station.hasPlatform, 0), station.name);
+			paintStationOverlay(anchor, classifyStation(station.hasPlatform, 0), station.name, 0.75);
 			break;
 		}
 	}
@@ -3519,7 +3521,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			continue;
 
 		for (const bool reversed : {true, false}) {
-			auto* glyph = new SignalItem(QRectF(-6.0, -6.0, 12.0, 12.0));
+			auto* glyph = new SignalItem(QRectF(-4.0, -4.0, 8.0, 8.0));
 			glyph->setZValue(3.0);
 			glyph->setPos(center);
 			glyph->setPen(QPen(QColor("#0D131A"), 1.0));
@@ -9799,6 +9801,8 @@ void MainWindow::refreshFollowTrainChoices() {
 			label = QString("Train %1").arg(train + 1);
 		m_followTrainCombo->addItem(label, train);
 	}
+	if (m_followTrainCombo->count() == 0)
+		m_followTrainCombo->addItem("No trains to follow", -1);
 
 	int comboIndex = m_followTrainCombo->findData(previousTrainIndex);
 	if (comboIndex < 0 && m_followTrainCombo->count() > 0)
@@ -10171,6 +10175,10 @@ void MainWindow::runStationOverlayE2E() {
 				fail(QString("%1 zoom did not settle").arg(label));
 			if (networkView->topologyBounds() != topologyBounds)
 				fail(QString("%1 changed topology-only fit bounds").arg(label));
+			if (ratio <= 1.0 && m_stationOverlays.first()->labelScale() > 1.01)
+				fail(QString("%1 station labels grew at overview zoom").arg(label));
+			if (ratio >= 12.0 && m_stationOverlays.first()->labelScale() < 1.9)
+				fail(QString("%1 station labels did not grow at detail zoom").arg(label));
 			const QRectF inset = networkView->viewport()->rect().adjusted(kOverlayMargin, kOverlayMargin,
 				-kOverlayMargin, -kOverlayMargin);
 			QList<QRectF> symbols;
@@ -10662,7 +10670,7 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 	if (!m_followAction || !m_followTrainCombo || m_followTrainCombo->minimumWidth() != 180
-		|| m_followTrainCombo->maximumWidth() > 200) {
+			|| m_followTrainCombo->maximumWidth() > 200) {
 		ok = false;
 		failures << "Follow or train selector width contract is missing";
 	}
@@ -14976,6 +14984,8 @@ void MainWindow::runTrackPreviewE2E() {
 			fail("open", "preview geometry did not spread horizontally");
 		if (!visible.intersects(bounds))
 			fail("open", "preview is outside the viewport");
+		if (!m_followTrainCombo || m_followTrainCombo->currentText() != "No trains to follow")
+			fail("follow", "empty train selector does not explain that no trains are available");
 		if (diagnosticsOk && itemCount >= 2 && bounds.width() >= 10.0 && visible.intersects(bounds))
 			marker("E2E_TRACK_PREVIEW_OPEN_OK");
 		const bool previewHasSignalGlyph = std::any_of(m_signalDecorations.cbegin(),
@@ -17497,19 +17507,103 @@ QString MainWindow::runReviewText() const {
 bool MainWindow::showRunReview() {
 	if (e2eDialogsSuppressed())
 		return true;
+
+	QDialog review(this);
+	review.setObjectName("runReviewDialog");
+	review.setWindowTitle("Run simulation");
+	review.setMinimumWidth(520);
+	auto* layout = new QVBoxLayout(&review);
+	layout->setContentsMargins(24, 22, 24, 20);
+	layout->setSpacing(14);
+
+	auto* heading = new QLabel("Run simulation", &review);
+	heading->setObjectName("runReviewHeading");
+	layout->addWidget(heading);
+	auto* context = new QLabel(QString("%1  /  %2")
+		.arg(QString::fromStdString(m_sceneModel.name), scenarioContext()), &review);
+	context->setObjectName("runReviewContext");
+	layout->addWidget(context);
+
+	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
+	auto* facts = new QGridLayout();
+	facts->setHorizontalSpacing(24);
+	facts->setVerticalSpacing(8);
+	const auto addFact = [&](int row, const QString& label, const QString& value) {
+		auto* name = new QLabel(label, &review);
+		name->setObjectName("runReviewFactLabel");
+		auto* fact = new QLabel(value, &review);
+		fact->setObjectName("runReviewFactValue");
+		facts->addWidget(name, row, 0);
+		facts->addWidget(fact, row, 1);
+	};
+	addFact(0, "Services", QString::number(static_cast<int>(m_sceneModel.services.size())));
+	addFact(1, "Occurrences", QString("%1 of %2 selected")
+		.arg(selectedServiceOccurrences()).arg(totalServiceOccurrences()));
+	addFact(2, "Compositions", QString::number(static_cast<int>(m_sceneModel.compositions.size())));
+	addFact(3, "Incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
+	addFact(4, "Validation", QString("%1 errors, %2 warnings").arg(counts.errors).arg(counts.warnings));
+	layout->addLayout(facts);
+
+	auto* status = new QLabel(counts.warnings == 0
+		? QStringLiteral("Ready to run. No validation issues were found.")
+		: QString("Ready to run. Review %1 validation %2 if needed.")
+			.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings"), &review);
+	status->setObjectName("runReviewStatus");
+	status->setProperty("warning", counts.warnings > 0);
+	status->setWordWrap(true);
+	layout->addWidget(status);
+
 	const QString summary = runReviewText();
-	QMessageBox review(QMessageBox::Question, "Review run", summary, QMessageBox::NoButton, this);
-	QAbstractButton* runButton = review.addButton("Run", QMessageBox::AcceptRole);
-	QAbstractButton* loadedButton = review.addButton("Loaded Data", QMessageBox::ActionRole);
-	QAbstractButton* validationButton = review.addButton("Validation", QMessageBox::ActionRole);
-	review.addButton("Cancel", QMessageBox::RejectRole);
+	const int detailsStart = summary.indexOf("\nIncident configuration:");
+	const int delaysStart = summary.indexOf("\nEntrance delay configuration:");
+	const int firstDetail = detailsStart < 0 ? delaysStart
+		: delaysStart < 0 ? detailsStart : std::min(detailsStart, delaysStart);
+	if (firstDetail >= 0) {
+		auto* detailsToggle = new QToolButton(&review);
+		detailsToggle->setText("Configuration details");
+		detailsToggle->setCheckable(true);
+		detailsToggle->setArrowType(Qt::RightArrow);
+		detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+		auto* details = new QLabel(summary.mid(firstDetail + 1), &review);
+		details->setObjectName("runReviewDetails");
+		details->setWordWrap(true);
+		details->setTextInteractionFlags(Qt::TextSelectableByMouse);
+		details->hide();
+		connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
+			detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
+			details->setVisible(shown);
+		});
+		layout->addWidget(detailsToggle);
+		layout->addWidget(details);
+	}
+
+	auto* buttons = new QHBoxLayout();
+	auto* loadedButton = new QPushButton("Loaded Data", &review);
+	auto* validationButton = new QPushButton("Validation", &review);
+	auto* cancelButton = new QPushButton("Cancel", &review);
+	auto* runButton = new QPushButton("Run simulation", &review);
+	runButton->setObjectName("runReviewRunButton");
+	runButton->setDefault(true);
+	buttons->addWidget(loadedButton);
+	buttons->addWidget(validationButton);
+	buttons->addStretch();
+	buttons->addWidget(cancelButton);
+	buttons->addWidget(runButton);
+	layout->addLayout(buttons);
+
+	enum ReviewChoice { CancelRun, StartRun, ShowLoadedData, ShowValidation };
+	ReviewChoice choice = CancelRun;
+	connect(runButton, &QPushButton::clicked, &review, [&]() { choice = StartRun; review.accept(); });
+	connect(loadedButton, &QPushButton::clicked, &review, [&]() { choice = ShowLoadedData; review.accept(); });
+	connect(validationButton, &QPushButton::clicked, &review, [&]() { choice = ShowValidation; review.accept(); });
+	connect(cancelButton, &QPushButton::clicked, &review, &QDialog::reject);
 	review.exec();
-	if (review.clickedButton() == runButton)
+	if (choice == StartRun)
 		return true;
-	if (review.clickedButton() == loadedButton && m_loadedDataDock) {
+	if (choice == ShowLoadedData && m_loadedDataDock) {
 		m_loadedDataDock->show();
 		m_loadedDataDock->raise();
-	} else if (review.clickedButton() == validationButton && m_validationDock) {
+	} else if (choice == ShowValidation && m_validationDock) {
 		m_validationDock->show();
 		m_validationDock->raise();
 	}
@@ -17820,8 +17914,10 @@ void MainWindow::teardownGUI() {
 	m_e2eFinished = false;
 	if (m_followAction)
 		m_followAction->setChecked(false);
-	if (m_followTrainCombo)
+	if (m_followTrainCombo) {
 		m_followTrainCombo->clear();
+		m_followTrainCombo->addItem("No trains to follow", -1);
+	}
 
 	m_snapshot.reset();
 	m_previewFitBounds = QRectF();
@@ -18057,10 +18153,12 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 }
 
 // Draw the fixed-size station symbol and label as one scene-owned item.
-void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname) {
+void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
+		qreal scale) {
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
+	overlay->setScale(scale);
 	scene->addItem(overlay);
 	m_stationOverlays.push_back(overlay);
 	m_stationDecorations.push_back(overlay);
@@ -21129,6 +21227,8 @@ void MainWindow::updateViewportOverlays() {
 		return;
 	const bool dense = networkView->zoomRatio() >= kDenseDetailZoom;
 	const bool signalDetail = networkView->zoomRatio() >= kSignalDetailZoom;
+	const qreal stationLabelScale = qMin<qreal>(3.0,
+		std::sqrt(qMax<qreal>(1.0, networkView->zoomRatio() / kDenseDetailZoom)));
 
 	const QTransform toDevice = networkView->viewportTransform();
 	const QRectF viewport = networkView->viewport()->rect();
@@ -21150,6 +21250,7 @@ void MainWindow::updateViewportOverlays() {
 	for (auto* overlay : m_stationOverlays) {
 		if (!overlay)
 			continue;
+		overlay->setLabelScale(stationLabelScale);
 		overlay->setViewportOffset(QPointF());
 		overlay->setCollisionBlocked(false);
 		overlay->setSelected(!m_selectedStationName.isEmpty()
