@@ -1,12 +1,15 @@
 # EGTRAIN
 
-![EGTRAIN application overview](docs/images/application-overview.png)
+![Milano to Brescia case study preview in EGTRAIN](docs/images/application-overview.png)
 
-![EGTRAIN Copenhagen network view](docs/images/application-network-view.png)
+![Speed versus distance results for the Milano to Brescia case study](docs/images/application-network-view.png)
 
 EGTRAIN is a desktop application for microscopic railway simulation. It
 combines railway infrastructure, signalling, rolling stock, services,
 timetables, and passenger demand in an interactive Qt interface.
+
+The screenshots show the Milano to Brescia corridor before a run and its
+speed-versus-distance results after the baseline simulation completes.
 
 ## Start here
 
