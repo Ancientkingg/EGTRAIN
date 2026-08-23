@@ -826,6 +826,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			result.scene.schemaVersion = sceneJson["schema_version"].get<int>();
 		}
 		stringField(sceneJson, "name", "scene.json", "", result.scene.name);
+		stringField(sceneJson, "saved_with_app_version", "scene.json", "",
+				result.scene.savedWithAppVersion, false);
 		stringField(sceneJson, "description", "scene.json", "", result.scene.description, false);
 		stringField(sceneJson, "base_time", "scene.json", "", result.scene.baseTime, false);
 		if (sceneJson.contains("units")) {
