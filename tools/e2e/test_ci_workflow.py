@@ -77,6 +77,8 @@ def main() -> None:
     release_trigger = release_workflow.split("\njobs:", 1)[0]
     if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production release trigger")
+    if not re.search(r"pull_request:\n\s+branches:\n\s+- production\n", release_trigger):
+        missing.append("production pull request validation trigger")
     if "paths:" in release_trigger:
         missing.append("unfiltered production release trigger")
     if "      - main\n" in release_trigger or "ci/release-pipeline" in release_trigger:

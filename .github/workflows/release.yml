@@ -9,6 +9,9 @@ on:
       - production
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - production
   workflow_dispatch:
 
 jobs:
