@@ -346,7 +346,8 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_trackpreview
 		${SRC_DIR}/tests/test_trackpreview.cpp
-		${SRC_DIR}/scene/TrackPreview.cpp)
+		${SRC_DIR}/scene/TrackPreview.cpp
+		${SRC_DIR}/scene/SectionInventory.cpp)
 	target_link_libraries(test_trackpreview PRIVATE nlohmann_json::nlohmann_json)
 	add_test(NAME test_trackpreview COMMAND test_trackpreview)
 
@@ -665,6 +666,18 @@ if(EGTRAIN_BUILD_TESTS)
 	target_include_directories(test_railmlparser PRIVATE ${SRC_DIR})
 	target_link_libraries(test_railmlparser PRIVATE cppzmq nlohmann_json::nlohmann_json)
 	add_test(NAME test_railmlparser COMMAND test_railmlparser)
+	add_test(NAME test_route_choice_missing_data
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
+			-g 0 -h 1 -TSM 0 -RC 1)
+	set_tests_properties(test_route_choice_missing_data PROPERTIES
+		PASS_REGULAR_EXPRESSION "scene.route_choice.passengers.none"
+		TIMEOUT 30)
+	add_test(NAME test_external_sharing_no_listener
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol
+			-g 0 -h 1 -TSM 1 -RC 1)
+	set_tests_properties(test_external_sharing_no_listener PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/external-sharing-test"
+		TIMEOUT 30)
 
 	add_test(NAME test_headless_smoke_decode
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
@@ -678,6 +691,14 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_native_startup_without_legacy PROPERTIES
 		ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 		TIMEOUT 120)
+	add_test(NAME test_runtime_memory_safety
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/runtime_memory_safety_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_runtime_memory_safety PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+		TIMEOUT 240)
+	add_test(NAME test_simulation_determinism
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/simulation_determinism_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_simulation_determinism PROPERTIES TIMEOUT 300)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	# Release completes in seconds; the ceiling exists for the instrumented

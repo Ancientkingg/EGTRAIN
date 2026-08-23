@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import json
 import math
 import os
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -79,113 +81,121 @@ def main() -> None:
     env["QEGTRAIN_AUTOSTART"] = "1"
     env.setdefault("QT_QPA_PLATFORM", "offscreen")
     env.setdefault("ASAN_OPTIONS", "abort_on_error=1:detect_stack_use_after_return=1")
-    run_started = time.time()
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        scene = temp_root / SCENE.name
+        shutil.copytree(SCENE, scene)
+        scene_json = scene / "scene.json"
+        scene_data = json.loads(scene_json.read_text(encoding="utf-8"))
+        scene_data["simulation_settings"]["duration_seconds"] = 40000.0
+        scene_json.write_text(json.dumps(scene_data, indent=2) + "\n", encoding="utf-8")
 
-    args = [
-        str(app),
-        "--scene",
-        str(SCENE),
-        "-h",
-        horizon,
-        "-g",
-        "1",
-        "-pax",
-        "0",
-        "-TSM",
-        "0",
-        "-RC",
-        "0",
-    ]
+        env["QEGTRAIN_OUTPUT_DIR"] = str(temp_root / "output")
+        args = [
+            str(app),
+            "--scene",
+            str(scene),
+            "-h",
+            horizon,
+            "-g",
+            "1",
+            "-pax",
+            "0",
+            "-TSM",
+            "0",
+            "-RC",
+            "0",
+        ]
 
-    with log_path.open("wb") as output:
-        proc = subprocess.Popen(
-            args,
-            cwd=RUN_DIR,
-            env=env,
-            stdout=output,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
+        with log_path.open("wb") as output:
+            proc = subprocess.Popen(
+                args,
+                cwd=RUN_DIR,
+                env=env,
+                stdout=output,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+
+            # wait for the first simulation tick and completed-run results marker
+            # so crashes or incomplete result wiring fail the run
+            marker_deadline = time.monotonic() + marker_seconds
+            while True:
+                rc = proc.poll()
+                if rc is not None:
+                    fail(f"QEGTRAIN exited during the smoke: rc={rc}", log_path)
+                text = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+                if RESULTS_MARKER in text:
+                    break
+                if time.monotonic() >= marker_deadline:
+                    terminate_process_group(proc)
+                    missing = RESULTS_MARKER if PROGRESS_MARKER in text else PROGRESS_MARKER
+                    fail(f"QEGTRAIN did not report {missing} within {marker_seconds}s", log_path)
+                time.sleep(0.5)
+
+            hold_until = time.monotonic() + seconds
+            while time.monotonic() < hold_until:
+                rc = proc.poll()
+                if rc is not None:
+                    fail(f"QEGTRAIN exited during the {seconds}s liveness window: rc={rc}", log_path)
+                time.sleep(0.5)
+            terminate_process_group(proc)
+
+        text = log_path.read_text(encoding="utf-8", errors="replace")
+        for pattern in BAD_PATTERNS:
+            if pattern in text:
+                fail(f"QEGTRAIN log contains failure marker: {pattern}", log_path)
+        if PROGRESS_MARKER not in text:
+            fail("QEGTRAIN did not report GUI simulation progress", log_path)
+
+        result_match = re.search(
+            rf"^{re.escape(RESULTS_MARKER)} rows=(\d+) trains=(\d+) dock_visible=(\d+) output_dir=(.*)$",
+            text,
+            re.MULTILINE,
         )
+        if not result_match:
+            fail("QEGTRAIN did not report a valid run-results marker", log_path)
+        rows, trains, dock_visible = (int(result_match.group(i)) for i in range(1, 4))
+        output_dir = Path(result_match.group(4).strip())
+        expected_output_dir = temp_root / "output" / "Output" / scene.name
+        if output_dir.resolve() != expected_output_dir.resolve():
+            fail(f"unexpected output directory: {output_dir}", log_path)
+        if rows != trains + 1:
+            fail(f"run-results row count mismatch: rows={rows}, trains={trains}", log_path)
+        if dock_visible != 1:
+            fail("run-results dock is not visible", log_path)
 
-        # wait for the first simulation tick and completed-run results marker
-        # so crashes or incomplete result wiring fail the run
-        marker_deadline = time.monotonic() + marker_seconds
-        while True:
-            rc = proc.poll()
-            if rc is not None:
-                fail(f"QEGTRAIN exited during the smoke: rc={rc}", log_path)
-            text = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
-            if RESULTS_MARKER in text:
-                break
-            if time.monotonic() >= marker_deadline:
-                terminate_process_group(proc)
-                missing = RESULTS_MARKER if PROGRESS_MARKER in text else PROGRESS_MARKER
-                fail(f"QEGTRAIN did not report {missing} within {marker_seconds}s", log_path)
-            time.sleep(0.5)
+        per_train_path = output_dir / "EnergyConsumptionPerTrain.txt"
+        total_path = output_dir / "TotalEnergyConsumption.txt"
+        if not per_train_path.is_file() or not total_path.is_file():
+            fail(f"missing energy output files in {output_dir}", log_path)
+        per_train_lines = per_train_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        if len(per_train_lines) < 2 or len(per_train_lines) - 1 != trains:
+            fail(f"energy train-row count mismatch in {per_train_path}", log_path)
+        energy_values = []
+        for line in per_train_lines[1:]:
+            fields = line.split()
+            if len(fields) != 5:
+                fail(f"malformed energy train row: {line}", log_path)
+            try:
+                energy_values.extend(float(value) for value in fields[1:])
+            except ValueError:
+                fail(f"non-numeric energy train row: {line}", log_path)
 
-        hold_until = time.monotonic() + seconds
-        while time.monotonic() < hold_until:
-            rc = proc.poll()
-            if rc is not None:
-                fail(f"QEGTRAIN exited during the {seconds}s liveness window: rc={rc}", log_path)
-            time.sleep(0.5)
-        terminate_process_group(proc)
-
-    text = log_path.read_text(encoding="utf-8", errors="replace")
-    for pattern in BAD_PATTERNS:
-        if pattern in text:
-            fail(f"QEGTRAIN log contains failure marker: {pattern}", log_path)
-    if PROGRESS_MARKER not in text:
-        fail("QEGTRAIN did not report GUI simulation progress", log_path)
-
-    result_match = re.search(
-        rf"^{re.escape(RESULTS_MARKER)} rows=(\d+) trains=(\d+) dock_visible=(\d+) output_dir=(.*)$",
-        text,
-        re.MULTILINE,
-    )
-    if not result_match:
-        fail("QEGTRAIN did not report a valid run-results marker", log_path)
-    rows, trains, dock_visible = (int(result_match.group(i)) for i in range(1, 4))
-    output_dir = Path(result_match.group(4).strip())
-    if rows != trains + 1:
-        fail(f"run-results row count mismatch: rows={rows}, trains={trains}", log_path)
-    if dock_visible != 1:
-        fail("run-results dock is not visible", log_path)
-
-    per_train_path = output_dir / "EnergyConsumptionPerTrain.txt"
-    total_path = output_dir / "TotalEnergyConsumption.txt"
-    if not per_train_path.is_file() or not total_path.is_file():
-        fail(f"missing energy output files in {output_dir}", log_path)
-    if per_train_path.stat().st_mtime < run_started or total_path.stat().st_mtime < run_started:
-        fail("energy output files were not produced by this run", log_path)
-
-    per_train_lines = per_train_path.read_text(encoding="utf-8", errors="replace").splitlines()
-    if len(per_train_lines) < 2 or len(per_train_lines) - 1 != trains:
-        fail(f"energy train-row count mismatch in {per_train_path}", log_path)
-    energy_values = []
-    for line in per_train_lines[1:]:
-        fields = line.split()
-        if len(fields) != 5:
-            fail(f"malformed energy train row: {line}", log_path)
+        total_lines = total_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        if len(total_lines) < 2:
+            fail(f"missing total energy row in {total_path}", log_path)
         try:
-            energy_values.extend(float(value) for value in fields[1:])
+            total_values = [float(value) for value in total_lines[1].split()]
         except ValueError:
-            fail(f"non-numeric energy train row: {line}", log_path)
+            fail(f"non-numeric total energy row: {total_lines[1]}", log_path)
+        energy_values.extend(total_values)
+        if not energy_values or not all(math.isfinite(value) for value in energy_values):
+            fail("energy outputs contain non-finite values", log_path)
+        if not any(value != 0.0 for value in energy_values):
+            fail("energy outputs contain no nonzero computed value", log_path)
 
-    total_lines = total_path.read_text(encoding="utf-8", errors="replace").splitlines()
-    if len(total_lines) < 2:
-        fail(f"missing total energy row in {total_path}", log_path)
-    try:
-        total_values = [float(value) for value in total_lines[1].split()]
-    except ValueError:
-        fail(f"non-numeric total energy row: {total_lines[1]}", log_path)
-    energy_values.extend(total_values)
-    if not energy_values or not all(math.isfinite(value) for value in energy_values):
-        fail("energy outputs contain non-finite values", log_path)
-    if not any(value != 0.0 for value in energy_values):
-        fail("energy outputs contain no nonzero computed value", log_path)
-
-    print(f"gui autostart smoke passed after {seconds}s of simulation: {log_path}")
+        print(f"gui autostart smoke passed after {seconds}s of simulation: {log_path}")
 
 
 if __name__ == "__main__":

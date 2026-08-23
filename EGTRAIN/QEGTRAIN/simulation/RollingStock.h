@@ -1,13 +1,17 @@
 #ifndef Rolling_Stock_hpp
 #define Rolling_Stock_hpp
+#ifdef signals
+#define EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#undef signals
+#endif
+#include "scene/SceneModel.h"
+#ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#endif
 #include "simulation/Signalling.h"
+#include "simulation/RuntimeLimits.h"
 #include "util/TrajectoryUtil.h"
-
-#include <set>
-
-struct SceneModel;
-struct SceneServiceOccurrence;
-using SceneRunSelection = std::set<SceneServiceOccurrence>;
 
 // GUI - Virtual Coupling notifications
 #include <vector>
@@ -551,8 +555,9 @@ extern int numRegions; /*Number of Speed ranges in the characteristic Tractive e
 
 extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
 
-// extern const int Max_N_Reg;
-#define Max_N_Reg 700
+// Keep the historical name for native callers while sharing the limit with
+// scene validation.
+inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
 extern double VirtualQ[Max_N_Reg], VirtualQD[Max_N_Reg];
 
@@ -606,7 +611,7 @@ public:
 	std::vector<double> BX;
 	Node* Stations = nullptr;
 	int numStations;					   // Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
-	static constexpr int kMaxTimetableStations = 40; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
+	static constexpr int kMaxTimetableStations = RuntimeLimits::kMaxTimetableStops; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
 	static int clampStationCount(int requested, const string& trainId); // Clamps a served-station count to kMaxTimetableStations, warning once per train
 	int stationBlockSection[kMaxTimetableStations];		// Cached block section index for each station (avoids full-route scan every timestep)
 	int stationArc[kMaxTimetableStations];				   // Cached Arc index within block section for each station
@@ -3660,6 +3665,16 @@ public:
 	// Function to Simulate the Train Trajectory
 	virtual void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {
 		if (OutOfSimulation == 0) {
+			if (time_seconds == 0) {
+				CanEnter = false;
+				instant_train_speed[0] = 0.0;
+				instant_spatial_position[0] = Start_Node_X * 1000;
+				instant_block_section_occupied[0] = "-";
+				instant_train_power_consumption[0] = 0.0;
+				instant_train_tractive_effort[0] = 0.0;
+				instant_train_energy_consumption[0] = 0.0;
+				return;
+			}
 			// A broken-down train holds its last state for the whole incident
 			// window; entrance processing is also suspended, so a train whose
 			// window covers its entry time simply enters after the window.
@@ -4448,7 +4463,7 @@ public:
 
 	// Function to compute the arrival and departure of a train from a location with a specific position expressed in [m]
 	void computeArrivalAndDepartureAtLocation(double LocationPosition, TrainEvent& PassingPoint) {
-		int TrainEntryTime = (int)departure_time;
+		const int TrainEntryTime = std::max(1, static_cast<int>(departure_time));
 		double ArrivalTime = -1, DepartureTime = -1;
 		bool IsArrivalFound = false;
 		bool IsDepartureFound = false;
@@ -4539,13 +4554,19 @@ public:
 	virtual void Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks) {
 		if (OutOfSimulation == 0) {
 			if ((i >= departure_time) && (CanEnter == 1)) {
+				if (BS == nullptr || Blocks <= 0 || timestep <= 0)
+					return;
+				const int delayedIndex = i - static_cast<int>(S_delay / timestep);
+				if (delayedIndex < 1 || delayedIndex >= static_cast<int>(instant_spatial_position.size()))
+					return;
+
 				// collect all signalling_block_sections from head to tail
 				int hTail = 0, hHead = 0;
 				for (int h = 0; h < Blocks; h++) {
-					if (((instant_spatial_position[i - (int)(S_delay / timestep)] - train_length) < BS[h].end_node.X * 1000) && ((instant_spatial_position[i - (int)(S_delay / timestep)] - train_length) >= BS[h].start_node.X * 1000)) {
+					if (((instant_spatial_position[delayedIndex] - train_length) < BS[h].end_node.X * 1000) && ((instant_spatial_position[delayedIndex] - train_length) >= BS[h].start_node.X * 1000)) {
 						hTail = h;
 					}
-					if ((instant_spatial_position[i - (int)(S_delay / timestep)] < BS[h].end_node.X * 1000) && (instant_spatial_position[i - (int)(S_delay / timestep)] >= BS[h].start_node.X * 1000)) {
+					if ((instant_spatial_position[delayedIndex] < BS[h].end_node.X * 1000) && (instant_spatial_position[delayedIndex] >= BS[h].start_node.X * 1000)) {
 						hHead = h;
 						break;
 					}
@@ -4576,7 +4597,7 @@ public:
 					int Prev_Block = h - 1;
 					if (h == 0)
 						Prev_Block = 0;
-					occupyBlockAndConnected(BS[h], BS[Prev_Block], (instant_spatial_position[i - (int)(S_delay / timestep)] - train_length), (instant_spatial_position[i - (int)(S_delay / timestep) - 1] - train_length));
+					occupyBlockAndConnected(BS[h], BS[Prev_Block], (instant_spatial_position[delayedIndex] - train_length), (instant_spatial_position[delayedIndex - 1] - train_length));
 					// if the Block Section has a switch in diverging position
 
 					if (BS[h].withSwitchDiv == true) {

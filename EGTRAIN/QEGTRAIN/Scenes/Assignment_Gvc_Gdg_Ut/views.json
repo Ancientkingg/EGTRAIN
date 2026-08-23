@@ -1,0 +1,61 @@
+{
+    "tracks": [
+        {
+            "track": "B0",
+            "level": 0,
+            "region": 0
+        },
+        {
+            "track": "B1",
+            "level": 1,
+            "region": 1
+        }
+    ],
+    "stations": [
+        {
+            "latitude": 1.0,
+            "longitude": 0.0,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 0.0
+                },
+                {
+                    "id": 1,
+                    "position_km": 164.0
+                }
+            ],
+            "station": "Gvc"
+        },
+        {
+            "latitude": 1.0,
+            "longitude": 0.28,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 28.0
+                },
+                {
+                    "id": 1,
+                    "position_km": 136.0
+                }
+            ],
+            "station": "Gdg"
+        },
+        {
+            "latitude": 1.0,
+            "longitude": 0.64,
+            "regions": [
+                {
+                    "id": 0,
+                    "position_km": 64.0
+                },
+                {
+                    "id": 1,
+                    "position_km": 100.0
+                }
+            ],
+            "station": "Ut"
+        }
+    ]
+}

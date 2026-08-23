@@ -59,6 +59,12 @@ int main(int argc, char* argv[]) {
 	const QRectF right = overlay.labelRect();
 	ok &= expect(qFuzzyCompare(symbol.width(), 16.0) && qFuzzyCompare(symbol.height(), 16.0),
 		"station symbol stays compact");
+	overlay.setLabelScale(2.0);
+	ok &= expect(qFuzzyCompare(overlay.labelScale(), 2.0)
+			&& overlay.labelRect().width() > right.width()
+			&& overlay.symbolRect() == symbol,
+		"station label grows independently from its fixed-size symbol");
+	overlay.setLabelScale(1.0);
 	ok &= expect(qFuzzyCompare(overlay.combinedRect().left(), symbol.left()), "combined bounds include symbol");
 	ok &= expect(qFuzzyCompare(right.left(), symbol.right() + 8.0), "right label gap is eight logical pixels");
 	overlay.setLabelSide(StationOverlayItem::LabelSide::Left);
@@ -99,6 +105,10 @@ int main(int argc, char* argv[]) {
 		overlay.preferredViewportPlacement(QPointF(2.0, 2.0), inset);
 	ok &= expect(edgePlacement.fits, "edge placement clamps the complete overlay into the viewport");
 	ok &= expect(inset.contains(edgePlacement.combinedRect), "clamped overlay stays inside the viewport inset");
+	const StationOverlayItem::ViewportPlacement offscreenPlacement =
+		overlay.preferredViewportPlacement(QPointF(80.0, -500.0), inset);
+	ok &= expect(offscreenPlacement.offset.isNull() && !offscreenPlacement.fits,
+		"far-offscreen station overlays are not pinned to the viewport edge");
 
 	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), platform);
 	multiNode.setNetworkDegree(3, true, true);

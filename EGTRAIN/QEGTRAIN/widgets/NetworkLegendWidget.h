@@ -12,6 +12,7 @@ struct NetworkLegendEntry {
 	NetworkLegendEntryKind kind = NetworkLegendEntryKind::Track;
 	QString label;
 	QColor color;
+	QColor outlineColor;
 	int lineWidth = 0;
 	Qt::PenStyle penStyle = Qt::NoPen;
 	TrackOperationalState trackState = TrackOperationalState::Free;
@@ -24,6 +25,8 @@ struct NetworkLegendEntry {
 
 struct NetworkLegendContent {
 	bool hasTracks = false;
+	bool showOperationalTrackStates = true;
+	bool hasSelectedTrack = false;
 	QVector<TrainVisual> trainVisuals;
 	QVector<StationVisual> stationVisuals;
 	bool hasSignals = false;

@@ -1,7 +1,9 @@
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
 #include "scene/SceneValidator.h"
+#include "simulation/RuntimeLimits.h"
 
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -132,6 +134,100 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	const std::filesystem::path outputRoot = "scene-output-root";
+	const std::vector<std::pair<std::string, std::string>> outputNameCases = {
+		{"Readable Scene", "Readable Scene"},
+		{"M\xC3\xBCnchen", "M\xC3\xBCnchen"},
+		{".temp", ".temp"},
+		{"COM10", "COM10"},
+		{"LPT0", "LPT0"},
+		{"auxiliary", "auxiliary"},
+		{"", "scene"},
+		{"../outside", "scene"},
+		{"..\\outside", "scene"},
+		{".", "scene"},
+		{"..", "scene"},
+		{"/absolute", "scene"},
+		{"\\absolute", "scene"},
+		{"//server/share", "scene"},
+		{"\\\\server\\share", "scene"},
+		{"C:", "scene"},
+		{"C:\\outside", "scene"},
+		{"CON", "scene"},
+		{"cOn.txt", "scene"},
+		{"PRN.log", "scene"},
+		{"aUx.cfg", "scene"},
+		{"NUL.json", "scene"},
+		{"COM1", "scene"},
+		{"com9.txt", "scene"},
+		{"LPT1", "scene"},
+		{"lpt9.csv", "scene"},
+		{std::string("COM") + "\xC2\xB9.txt", "scene"},
+		{std::string("lpt") + "\xC2\xB2", "scene"},
+		{std::string("COM") + "\xB3", "scene"},
+		{"bad<name", "scene"},
+		{"bad>name", "scene"},
+		{"bad:name", "scene"},
+		{"bad\"name", "scene"},
+		{"bad/name", "scene"},
+		{"bad\\name", "scene"},
+		{"bad|name", "scene"},
+		{"bad?name", "scene"},
+		{"bad*name", "scene"},
+		{std::string("control") + '\x01', "scene"},
+		{"trailing ", "scene"},
+		{"trailing.", "scene"},
+	};
+	for (const auto& outputName : outputNameCases) {
+		const std::string component = sceneOutputDirectoryComponent(outputName.first);
+		const std::filesystem::path joined = outputRoot / component;
+		ok &= expect(component == outputName.second && joined.lexically_normal().parent_path() == outputRoot,
+				("scene output component is safe for " + outputName.first).c_str());
+	}
+	SceneModel unsafeSceneName = clean;
+	unsafeSceneName.name = "../outside";
+	ok &= expect(hasCodeAndPath(validateRunnableScene(unsafeSceneName), "scene.name.path", "name"),
+			"runnable validation rejects unsafe scene output names");
+	SceneModel reservedSceneName = clean;
+	reservedSceneName.name = "CON.txt";
+	ok &= expect(hasCodeAndPath(validateRunnableScene(reservedSceneName), "scene.name.path", "name"),
+			"runnable validation rejects reserved scene output names");
+	SceneModel stopLimit = clean;
+	while (stopLimit.services[0].stops.size() < static_cast<std::size_t>(RuntimeLimits::kMaxTimetableStops))
+		stopLimit.services[0].stops.push_back(stopLimit.services[0].stops.back());
+	ok &= expect(!hasCode(validateRunnableScene(stopLimit), "scene.capacity.runtime"),
+			"runnable validation accepts the exact timetable stop limit");
+	SceneModel tooManyStops = stopLimit;
+	tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
+	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyStops), "scene.capacity.runtime",
+				"services[service-1].stops"), "runnable validation rejects one stop above the limit");
+	SceneModel trainLimit = clean;
+	trainLimit.services[0].hasRepeat = true;
+	trainLimit.services[0].headwaySeconds = 1.0;
+	trainLimit.services[0].hasRepeatCount = true;
+	trainLimit.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains;
+	ok &= expect(!hasCode(validateRunnableScene(trainLimit), "scene.capacity.runtime"),
+			"runnable validation accepts the exact expanded train limit");
+	SceneModel tooManyTrains = trainLimit;
+	tooManyTrains.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
+	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyTrains), "scene.capacity.runtime", "services"),
+			"runnable validation rejects one expanded train above the limit");
+	SceneModel horizonTrainLimit = clean;
+	horizonTrainLimit.services[0].hasRepeat = true;
+	horizonTrainLimit.services[0].headwaySeconds = 1.0;
+	ok &= expect(hasCode(validateRunnableScene(horizonTrainLimit), "scene.capacity.runtime"),
+			"runnable validation rejects saved-horizon train expansion above the limit");
+	ok &= expect(!hasCode(validateRunnableScene(horizonTrainLimit, {}, std::optional<double>(1.0)),
+				"scene.capacity.runtime"),
+			"runnable validation uses an effective duration override for train capacity");
+	const SceneRunSelection sparseSelection{{tooManyTrains.services[0].id,
+		RuntimeLimits::kMaxExpandedTrains + 1}};
+	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, sparseSelection), "scene.capacity.runtime"),
+			"runnable validation applies train capacity to a sparse selected run");
+	const SceneRunSelection invalidSelections{{tooManyTrains.services[0].id,
+		RuntimeLimits::kMaxExpandedTrains + 2}, {"service-missing", 1}};
+	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, invalidSelections), "scene.capacity.runtime"),
+			"invalid selected rows do not fall back to all-scene train capacity");
 	SceneModel invalidPlatformLength = clean;
 	invalidPlatformLength.stations[0].platforms[0].hasLength = true;
 	invalidPlatformLength.stations[0].platforms[0].lengthM = std::numeric_limits<double>::infinity();
@@ -595,6 +691,21 @@ int main(int argc, char** argv) {
 	reducedIncident.occurrence = 1;
 	ok &= expect(validateRunnableScene(reducedBreakdown).empty(),
 			"reduced-speed breakdown may omit recovery end");
+	SceneModel extendedOccurrence = reducedBreakdown;
+	extendedOccurrence.settings.durationSeconds = 1.0;
+	extendedOccurrence.services[0].hasRepeat = true;
+	extendedOccurrence.services[0].headwaySeconds = 10.0;
+	extendedOccurrence.scenarios[0].incidents[0].occurrence = 2;
+	extendedOccurrence.scenarios[0].entranceDelays[0].occurrence = 2;
+	const auto savedHorizonDiagnostics = validateRunnableScene(extendedOccurrence);
+	ok &= expect(hasCode(savedHorizonDiagnostics, "scene.occurrence.invalid")
+			&& hasCode(savedHorizonDiagnostics, "scene.entrance.occurrence.out_of_horizon"),
+			"saved horizon rejects occurrence-specific rows outside its repeat pattern");
+	const auto extendedHorizonDiagnostics = validateRunnableScene(
+			extendedOccurrence, {}, std::optional<double>(20.0));
+	ok &= expect(!hasCode(extendedHorizonDiagnostics, "scene.occurrence.invalid")
+			&& !hasCode(extendedHorizonDiagnostics, "scene.entrance.occurrence.out_of_horizon"),
+			"duration override applies to breakdown and entrance-delay occurrences");
 
 	SceneModel fullHoldWithoutEnd = reducedBreakdown;
 	fullHoldWithoutEnd.scenarios[0].incidents[0].hasReducedSpeed = false;

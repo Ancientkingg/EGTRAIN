@@ -1,17 +1,40 @@
 #include "widgets/NetworkLegendWidget.h"
 
 #include <QApplication>
+#include <QImage>
 #include <QLabel>
 #include <QRegularExpression>
 #include <QToolButton>
 
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";
 	return condition;
+}
+
+static bool containsColor(const QImage& image, const QColor& color) {
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (image.pixelColor(x, y).rgb() == color.rgb())
+				return true;
+	return false;
+}
+
+static bool containsColorNear(const QImage& image, const QColor& color, int tolerance) {
+	for (int y = 0; y < image.height(); ++y) {
+		for (int x = 0; x < image.width(); ++x) {
+			const QColor pixel = image.pixelColor(x, y);
+			if (std::abs(pixel.red() - color.red()) <= tolerance
+				&& std::abs(pixel.green() - color.green()) <= tolerance
+				&& std::abs(pixel.blue() - color.blue()) <= tolerance)
+				return true;
+		}
+	}
+	return false;
 }
 
 int main(int argc, char* argv[]) {
@@ -62,6 +85,27 @@ int main(int argc, char* argv[]) {
 	ok &= expect(entries.at(3).label == "Blocked section"
 		&& entries.at(3).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
 		"blocked track entry keeps its non-color cue");
+	auto* preparedSwatch = legend.findChild<QWidget*>("mapKeySwatch1");
+	const QImage preparedImage = preparedSwatch ? preparedSwatch->grab().toImage() : QImage();
+	ok &= expect(preparedSwatch && preparedSwatch->width() == 46
+		&& containsColor(preparedImage, classifyTrackState(TrackOperationalState::Prepared).color)
+		&& containsColor(preparedImage, freeTrackVisual().color),
+		"prepared track swatch mirrors the renderer state underlay and base rail");
+	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch4");
+	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
+	ok &= expect(trainSwatch && containsColor(trainImage, QColor("#26313B"))
+			&& containsColor(trainImage, classifyTrainType("IC", "IC 2201").fill),
+		"train swatch mirrors the compact on-track badge and classified plate");
+	auto* platformSwatch = legend.findChild<QWidget*>("mapKeySwatch7");
+	const QImage platformImage = platformSwatch ? platformSwatch->grab().toImage() : QImage();
+	ok &= expect(platformSwatch && containsColorNear(platformImage, QColor(210, 215, 220), 30)
+			&& !containsColor(platformImage, QColor("#5078D2")),
+		"station swatch mirrors the gray on-track platform marker instead of the SVG tile");
+	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
+	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
+	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red))
+			&& containsColor(stopSignalImage, QColor("#0D131A")),
+		"signal swatch mirrors the on-track lamp and direction cue");
 
 	int intercityCount = 0;
 	int interchangeCount = 0;
@@ -107,6 +151,26 @@ int main(int argc, char* argv[]) {
 
 	for (QLabel* row : legend.findChildren<QLabel*>(QRegularExpression("^mapKeyEntry")))
 		ok &= expect(row->maximumWidth() <= 160, "map key row stays within 160 logical pixels");
+
+	NetworkLegendContent previewContent;
+	previewContent.hasTracks = true;
+	previewContent.showOperationalTrackStates = false;
+	previewContent.hasSelectedTrack = true;
+	previewContent.stationVisuals = {classifyStation(true, 1)};
+	previewContent.hasSignals = true;
+	legend.setCaseContent(previewContent);
+	const QVector<NetworkLegendEntry> previewEntries = legend.entries();
+	ok &= expect(previewEntries.size() == 6
+			&& previewEntries.at(0).label == "Track"
+			&& previewEntries.at(1).label == "Selected track"
+			&& previewEntries.at(2).label == "Station platform"
+			&& previewEntries.at(3).label == "Stop signal"
+			&& previewEntries.at(4).label == "Caution signal"
+			&& previewEntries.at(5).label == "Proceed signal",
+		"preview key explains every operational signal aspect");
+	ok &= expect(previewEntries.at(1).color == QColor(242, 170, 70)
+			&& previewEntries.at(1).lineWidth == 4,
+		"preview selected-track key matches the highlighted path");
 
 	return ok ? 0 : 1;
 }

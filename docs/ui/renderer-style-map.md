@@ -33,9 +33,9 @@ Measured against the `#12191F` canvas, the contrast ratios are 7.64:1 for free, 
 
 ## Train categories
 
-Train badges use the following fill and outline pairs:
+Train badges are fixed screen-space overlays: compact badges are 92 by 24 px and detailed badges are 156 by 32 px. Both use the dark neutral surface `#26313B`, bright `#F2F5F7` identifier text, and the existing category outline, shape, and icon cues. The category fill is retained as the small 16 by 16 px icon plate behind each dark train SVG:
 
-| Category | Fill | Outline | Shape |
+| Category | Icon plate | Outline | Shape |
 | --- | --- | --- | --- |
 | Passenger | `#9BA5AA` | `#4A5960` | rounded |
 | Sprinter | `#86AA96` | `#3F6A54` | rounded |
@@ -43,7 +43,9 @@ Train badges use the following fill and outline pairs:
 | High speed | `#86A6B9` | `#3E627A` | rounded |
 | Freight | `#A99787` | `#5D4C3F` | square |
 
-Shape remains a second category cue. The badge keeps its identifier and optional speed text in one `QGraphicsItem` with `ItemIgnoresTransformations`. Long identifiers use middle elision so a distinguishing service suffix remains visible.
+The identifier is semibold/bold at 9 pt in compact mode and 10 pt in detailed mode. Detailed speed text is subordinate at 8 pt in `#C5D0D6`; speed is hidden in compact mode. A bright direction triangle stays on the left for reversed trains and right otherwise, so direction is not conveyed by color. The badge keeps its identifier and optional speed text in one non-interactive `QGraphicsItem` with `ItemIgnoresTransformations`. Long identifiers use middle elision so a distinguishing service suffix remains visible, while the Follow selector retains the full identifier.
+
+The badge tooltip exposes the full unelided identifier and speed where available as a pointer-access fallback. The badge has no focusable or screen-reader presentation; use the full Follow selector for keyboard-oriented train identification.
 
 ## Entity icons
 

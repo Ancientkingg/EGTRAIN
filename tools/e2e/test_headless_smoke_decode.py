@@ -4,10 +4,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from headless_smoke import case_command, route_errors, run_command, scene_output_dir
+from headless_smoke import check_scene_structure, case_command, route_errors, run_command, scene_output_dir
 
 
 def main() -> None:
+    for case_id in range(1, 5):
+        check_scene_structure(case_id)
+
     command = case_command(3)
     expected = ["--scene", str(Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
                 "-g", "0", "-TSM", "0", "-RC", "0"]

@@ -37,6 +37,8 @@ public:
 	QString displayName() const;
 	static QString displayName(const QString& stationName);
 	static QString displayName(const std::string& stationName);
+	qreal labelScale() const;
+	void setLabelScale(qreal scale);
 
 	QPointF stableAnchor() const { return m_stableAnchor; }
 	QPointF viewportOffset() const { return m_viewportOffset; }

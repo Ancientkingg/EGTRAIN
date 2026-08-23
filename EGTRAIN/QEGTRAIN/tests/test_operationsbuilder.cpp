@@ -8,8 +8,12 @@
 #undef signals
 #endif
 
+#include <QTemporaryDir>
+
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -140,6 +144,7 @@ static SceneModel completeScene() {
 }
 
 int main() {
+	std::srand(12345);
 	bool ok = true;
 	SceneModel scene = completeScene();
 	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";
@@ -151,6 +156,18 @@ int main() {
 
 	const auto diagnostics = buildOperationsFromScene(scene, "scenario.selected");
 	ok &= expect(!hasErrors(diagnostics), "M3 operations builder accepts the complete fixture");
+	SceneModel tooManyStops = completeScene();
+	while (tooManyStops.services[0].stops.size() <= static_cast<std::size_t>(Train::kMaxTimetableStations))
+		tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
+	const auto tooManyStopsDiagnostics = buildOperationsFromScene(tooManyStops, "scenario.base");
+	ok &= expect(hasCode(tooManyStopsDiagnostics, "scene.native.capacity.stops"),
+			"native operations rejects one stop above the timetable limit");
+	SceneModel tooManyTrains = completeScene();
+	tooManyTrains.services[0].hasRepeatCount = true;
+	tooManyTrains.services[0].repeatCount = Max_N_Reg + 1;
+	const auto tooManyTrainsDiagnostics = buildOperationsFromScene(tooManyTrains, "scenario.base");
+	ok &= expect(hasCode(tooManyTrainsDiagnostics, "scene.native.capacity.trains"),
+			"native operations rejects one expanded train above the limit");
 	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__"
 			&& InputMainFolder == initial_variables.InputMainFolder,
 			"native builders do not access or rewrite the legacy input folder");
@@ -338,6 +355,30 @@ int main() {
 		ok &= expect(unrouted != AllDailyPassengers.front().Journeys.end() && unrouted->N_Trips == 0,
 				"legless canonical journeys remain present");
 	}
+	auto routeChoicePassengers = AllDailyPassengers;
+	Passenger& active = routeChoicePassengers.front();
+	active.IsIntheNetwork = true;
+	active.current_JourneyID = active.Journeys.front().ID;
+	Passenger inactive = active;
+	inactive.ID = "inactive.passenger";
+	inactive.IsIntheNetwork = false;
+	routeChoicePassengers.push_back(inactive);
+	Passenger activeLegless = active;
+	activeLegless.ID = "legless.passenger";
+	const auto leglessJourney = std::next(activeLegless.Journeys.begin());
+	activeLegless.current_JourneyID = leglessJourney->ID;
+	const int leglessDepartureTime = static_cast<int>(leglessJourney->Actual_Planned_Departure_Time);
+	routeChoicePassengers.push_back(activeLegless);
+	const nlohmann::json routeChoice = routeChoicePayload(routeChoicePassengers, 17);
+	ok &= expect(routeChoice == routeChoicePayload(routeChoicePassengers, 17)
+			&& routeChoice["time"] == 17 && routeChoice["passengers"].size() == 2
+			&& routeChoice["passengers"]["passenger.1--1.0"]["origin"] == "Zero"
+			&& routeChoice["passengers"]["passenger.1--1.0"]["destination"] == "Two"
+			&& routeChoice["passengers"]["legless.passenger--1.0"]["origin"] == "Zero"
+			&& routeChoice["passengers"]["legless.passenger--1.0"]["destination"] == "Two"
+			&& routeChoice["passengers"]["legless.passenger--1.0"]["departure_time"] == leglessDepartureTime
+			&& routeChoicePayload({}, 17)["passengers"].empty(),
+			"route-choice sharing deterministically includes routed and legless active journeys");
 	ok &= expect(initial_variables.name == "native-operations-fixture"
 			&& initial_variables.startingSimulationTime == 23400
 			&& initial_variables.times == 90.0
@@ -522,6 +563,12 @@ int main() {
 				&& numRegions == 1
 				&& regional_train[0].trainDescription == "service.native-999999999",
 				"a sparse selection does not expand every occurrence in a large pattern");
+	const SceneRunSelection invalidSelections{{"service.native", 1000000001}, {"service.missing", 1}};
+	const auto invalidSelectionOperations = buildOperationsFromScene(
+			sparsePattern, "scenario.selected", invalidSelections);
+	ok &= expect(hasCode(invalidSelectionOperations, "scene.native.selection.occurrence")
+				&& hasCode(invalidSelectionOperations, "scene.native.selection.service"),
+				"invalid sparse selections retain native selection diagnostics");
 
 	SceneModel outOfPattern = completeScene();
 	outOfPattern.services[0].hasRepeatCount = true;
@@ -673,5 +720,183 @@ int main() {
 	}
 	ok &= expect(fullPerformanceEnd >= 0 && reducedPerformanceEnd > fullPerformanceEnd,
 			"reduced performance delays native route completion");
+
+	const auto safetyInfrastructure = buildInfrastructureAndSignallingFromScene(trajectoryPerformance);
+	const auto safetyOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
+	ok &= expect(!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1,
+			"runtime safety fixture builds one zero-stop through service");
+	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1) {
+		Train& through = regional_train[0];
+		through.departure_time = 0.0;
+		through.checkTrainArrDep(0, 0);
+		Stations finalProbe;
+		finalProbe.stationName = "Final_Station";
+		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
+		calculateDelayStatsAtStation(finalProbe);
+		const bool delayUnavailable = finalProbe.N_Stopped_Trains == 0
+				&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
+				&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
+				&& finalProbe.Max_Cons_Delay == -1.0;
+		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
+		calculatePosAndNegDelayStatsAtStation(finalProbe);
+		ok &= expect(through.numStations == 0 && delayUnavailable && finalProbe.N_Stopped_Trains == 0
+				&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
+				&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
+				&& finalProbe.Max_Cons_Delay == -1.0,
+				"zero-stop through service has unavailable final-station statistics");
+
+		through.trajectoryComputationIncludingMovingBlock(0, signalCode1, signalCode2, signalCode3);
+		ok &= expect(!through.CanEnter && through.instant_train_speed[0] == 0.0
+				&& through.instant_spatial_position[0] == through.Start_Node_X * 1000,
+				"time zero initializes the live trajectory without entering or advancing");
+
+		Route& route = train_route[through.indexOfRoute];
+		S_delay = 0.0;
+		through.CanEnter = true;
+		through.OutOfSimulation = false;
+		const int nextHead = route.N_Block_Sections - 2;
+		const Section& nextSection = route.sequence_of_block_sections[nextHead];
+		through.instant_spatial_position[1] =
+				(nextSection.start_node.X + nextSection.end_node.X) * 500.0;
+		stationBoundarySections.clear();
+		stationBoundarySections.emplace_back(&route.sequence_of_block_sections[nextHead + 1],
+				route.reversed_direction, nullptr);
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
+		protectStationAreas(1);
+		ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(),
+				route.sequence_of_block_sections[nextHead + 1].ID) != BlocksConnected.end(),
+				"zero-stop train keeps station-boundary route protection without stop indexing");
+
+		const int routeCapacity = static_cast<int>(std::size(route.sequence_of_block_sections));
+		ok &= expect(route.N_Block_Sections < routeCapacity, "route-tail fixture has an unused array slot");
+		if (route.N_Block_Sections < routeCapacity) {
+			Section& outOfRoute = route.sequence_of_block_sections[route.N_Block_Sections];
+			outOfRoute.ID = "out.of.route";
+			const Section& tail = route.sequence_of_block_sections[route.N_Block_Sections - 1];
+			through.instant_spatial_position[1] = (tail.start_node.X + tail.end_node.X) * 500.0;
+			stationBoundarySections.clear();
+			stationBoundarySections.emplace_back(&outOfRoute, route.reversed_direction, nullptr);
+			BlocksOccupied.clear();
+			BlocksConnected.clear();
+			protectStationAreas(1);
+			ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(), outOfRoute.ID)
+					== BlocksConnected.end(),
+					"station lookahead ignores sections beyond the actual route tail");
+		}
+	}
+
+	SceneModel statisticsScene = completeScene();
+	statisticsScene.services[0].hasRepeatCount = true;
+	statisticsScene.services[0].repeatCount = 3;
+	const auto statisticsInfrastructure = buildInfrastructureAndSignallingFromScene(statisticsScene);
+	const auto statisticsOperations = buildOperationsFromScene(statisticsScene, "scenario.base");
+	ok &= expect(!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations)
+			&& numRegions == 3, "station statistics fixture builds three trains");
+	if (!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations) && numRegions == 3) {
+		Stations statistics;
+		statistics.stationName = "Final_Station";
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
+			regional_train[trainIndex].numStations = 1;
+			regional_train[trainIndex].StationArrivals[0] = -1;
+			regional_train[trainIndex].StationDelay[0] = -1;
+			regional_train[trainIndex].StationConsecDelay[0] = -1;
+		}
+
+		numRegions = 0;
+		calculateDelayStatsAtStation(statistics);
+		Compute_Input_Delays();
+		ok &= expect(statistics.N_Stopped_Trains == 0 && statistics.Av_Arrival_Delay == -1
+				&& statistics.Std_Arrival_Delay == -1 && statistics.totalArrivalDelay == 0
+				&& TotalInputDelays.Av_Arrival_Delay == -1
+				&& EntranceInputDelays.Std_Arrival_Delay == -1
+				&& DisturbanceInput.Perc_Delayed_T == -1,
+				"empty delay populations keep the unavailable representation");
+
+		numRegions = 1;
+		regional_train[0].StationArrivals[0] = 100;
+		regional_train[0].StationDelay[0] = 12;
+		regional_train[0].StationConsecDelay[0] = 3;
+		calculateDelayStatsAtStation(statistics);
+		ok &= expect(statistics.Av_Arrival_Delay == 12 && statistics.Std_Arrival_Delay == 0
+				&& statistics.totalArrivalDelay == 12 && statistics.Max_TotalDelay == 12
+				&& std::isfinite(statistics.Perc_Delayed_T),
+				"one positive station-delay sample has zero deviation");
+
+		regional_train[0].StationDelay[0] = -1;
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(statistics.N_Stopped_Trains == 1 && statistics.Av_Arrival_Delay == -1
+				&& statistics.Std_Arrival_Delay == 0 && statistics.totalArrivalDelay == -1,
+				"a one-second early arrival is not confused with the delay sentinel");
+
+		regional_train[0].StationDelay[0] = -12;
+		regional_train[0].StationConsecDelay[0] = -3;
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(statistics.Av_Arrival_Delay == -12 && statistics.Std_Arrival_Delay == 0
+				&& statistics.Max_TotalDelay == -12 && statistics.Max_Cons_Delay == -3,
+				"one negative station-delay sample remains valid with zero deviation");
+
+		const double positiveDelays[] = {10, 20, 0};
+		const double mixedDelays[] = {-10, 0, 20};
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
+			regional_train[trainIndex].StationArrivals[0] = 100;
+			regional_train[trainIndex].StationDelay[0] = positiveDelays[trainIndex];
+			regional_train[trainIndex].StationConsecDelay[0] = trainIndex;
+		}
+		numRegions = 3;
+		calculateDelayStatsAtStation(statistics);
+		ok &= expect(std::abs(statistics.Av_Arrival_Delay - 15) < 1e-9
+				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
+				&& statistics.N_Stopped_Trains == 3 && statistics.N_Delayed_Arr == 2
+				&& std::isfinite(statistics.Perc_Delayed_T),
+				"multiple positive delays retain the delayed-train sample denominator");
+
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex)
+			regional_train[trainIndex].StationDelay[0] = mixedDelays[trainIndex];
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(std::abs(statistics.Av_Arrival_Delay - (10.0 / 3.0)) < 1e-9
+				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(700.0 / 3.0)) < 1e-9
+				&& statistics.Max_TotalDelay == 20 && std::isfinite(statistics.totalArrivalDelay),
+				"mixed early and late arrivals use the all-sample denominator");
+
+		const double totalInputs[] = {0, 10, 20};
+		const double entranceInputs[] = {0, 4, 8};
+		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
+			regional_train[trainIndex].TotalInputDelays = totalInputs[trainIndex];
+			regional_train[trainIndex].EntranceDelay = entranceInputs[trainIndex];
+		}
+		Compute_Input_Delays();
+		ok &= expect(std::abs(TotalInputDelays.Av_Arrival_Delay - 15) < 1e-9
+				&& std::abs(TotalInputDelays.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
+				&& std::abs(EntranceInputDelays.Av_Arrival_Delay - 6) < 1e-9
+				&& std::abs(DisturbanceInput.Av_Arrival_Delay - 9) < 1e-9
+				&& std::isfinite(EntranceInputDelays.Std_Arrival_Delay)
+				&& std::isfinite(DisturbanceInput.Std_Arrival_Delay),
+				"multiple input-delay populations remain finite");
+
+		numRegions = 1;
+		regional_train[0].TotalInputDelays = 0;
+		regional_train[0].EntranceDelay = 0;
+		Compute_Input_Delays();
+		ok &= expect(TotalInputDelays.Av_Arrival_Delay == 0
+				&& TotalInputDelays.Std_Arrival_Delay == 0
+				&& EntranceInputDelays.Std_Arrival_Delay == 0
+				&& DisturbanceInput.Std_Arrival_Delay == 0,
+				"one all-punctual input population reports finite zeros");
+
+		QTemporaryDir statisticsOutput;
+		numStations = 1;
+		Final_Station = statistics;
+		Print_Station_Delay_Stats(statisticsOutput.path().toStdString(), "pos");
+		std::ifstream exported(statisticsOutput.filePath("Stats_Stations.txt").toStdString());
+		bool finiteExport = exported.good();
+		for (std::string token; exported >> token;) {
+			char* end = nullptr;
+			const double value = std::strtod(token.c_str(), &end);
+			if (end != token.c_str() && *end == '\0' && !std::isfinite(value))
+				finiteExport = false;
+		}
+		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
+	}
 	return ok ? 0 : 1;
 }

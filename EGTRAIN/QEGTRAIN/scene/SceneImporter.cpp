@@ -326,6 +326,11 @@ static std::string normaliseStationName(std::string value) {
 	return value;
 }
 
+static std::string normaliseServiceSeparators(std::string value) {
+	std::replace(value.begin(), value.end(), '_', '-');
+	return value;
+}
+
 static std::string baseTimeForCase(const std::string& sceneName, const fs::path& legacyPath,
 		double& duration, bool& known) {
 	const std::string name = lowerCopy(sceneName);
@@ -430,6 +435,11 @@ static std::string passengerStationIdFor(const std::vector<LegacyPassengerStatio
 	if (exactIdCount > 1) {
 		ambiguous = true;
 		return raw;
+	}
+	if (raw == "Tregonnau Squiffiec") {
+		for (const LegacyPassengerStationReference& station : stations)
+			if (station.id == "Tregonneau_Squiffiec")
+				return station.id;
 	}
 	const std::string normalized = normaliseStationName(raw);
 	std::vector<std::string> matches;
@@ -705,43 +715,50 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 					"Passenger route-choice transfer station is unresolved or ambiguous", result.sources.routeChoice,
 					routeRow, "passengers.route_choice", true);
 		bool unresolved = transferUnresolved;
+		json resolvedLegs = json::array();
+		const auto resolveServiceToken = [&services](const std::string& token,
+				std::string& serviceId, int& occurrence) {
+			const std::size_t separator = token.rfind('-');
+			if (separator == std::string::npos || separator == 0 || separator + 1 >= token.size()
+					|| !parseIntegerToken(token.substr(separator + 1), occurrence) || occurrence < 1)
+				return false;
+			const std::string base = normaliseServiceSeparators(token.substr(0, separator));
+			std::vector<const SceneService*> matches;
+			for (const auto& service : services) {
+				if (normaliseServiceSeparators(service.id) == base)
+					matches.push_back(&service);
+			}
+			if (matches.empty()) {
+				for (const auto& service : services)
+					if (!service.operatingCode.empty()
+							&& normaliseServiceSeparators(service.operatingCode) == base)
+						matches.push_back(&service);
+			}
+			if (matches.size() != 1)
+				return false;
+			serviceId = matches.front()->id;
+			return true;
+		};
 		for (std::size_t i = 0; i < legServices.size(); ++i) {
 			const std::string token = legServices[i];
 			std::string serviceId;
 			int occurrence = 1;
-			bool serviceAmbiguous = false;
-			for (const auto& service : services) {
-				const std::string prefix = (service.operatingCode.empty() ? service.id : service.operatingCode) + "-";
-				if (token.rfind(prefix, 0) != 0)
-					continue;
-				int candidateOccurrence = 0;
-				if (!parseIntegerToken(token.substr(prefix.size()), candidateOccurrence) || candidateOccurrence < 1)
-					continue;
-				if (!serviceId.empty())
-					serviceAmbiguous = true;
-				serviceId = service.id;
-				occurrence = candidateOccurrence;
-			}
-			if (serviceAmbiguous)
-				serviceId.clear();
 			bool originAmbiguous = false, destinationAmbiguous = false;
 			if (i >= legStations.size() - 1)
 				break;
 			const std::string origin = passengerStationIdFor(stations, legStations[i], originAmbiguous);
 			const std::string destinationStation = passengerStationIdFor(stations, legStations[i + 1], destinationAmbiguous);
+			const bool serviceResolved = resolveServiceToken(token, serviceId, occurrence);
 			const auto serviceIt = std::find_if(services.begin(), services.end(), [&serviceId](const SceneService& service) {
 				return service.id == serviceId;
 			});
-			if (serviceId.empty() || serviceAmbiguous || originAmbiguous || destinationAmbiguous
-					|| !knownStation(origin) || !knownStation(destinationStation)) {
+			const bool stationsResolved = !originAmbiguous && !destinationAmbiguous
+					&& knownStation(origin) && knownStation(destinationStation);
+			bool legResolved = serviceResolved && stationsResolved;
+			if (!serviceResolved || !stationsResolved) {
 				unresolved = true;
 				addDiag(SceneSeverity::Warning, "scene.import.ref",
-						"Passenger route-choice service or station reference is ambiguous",
-						result.sources.routeChoice, routeRow, "passengers.route_choice", true);
-			} else if (serviceIt == services.end()) {
-				unresolved = true;
-				addDiag(SceneSeverity::Warning, "scene.import.ref",
-						"Passenger route-choice service is unresolved",
+						"Passenger route-choice service or station reference is unresolved",
 						result.sources.routeChoice, routeRow, "passengers.route_choice", true);
 			} else {
 				ScenePassengerLeg leg;
@@ -749,19 +766,24 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 				leg.destinationStationId = destinationStation;
 				leg.serviceId = serviceId;
 				SceneServiceStopPair stopPair;
-				if (!resolveScenePassengerLegStops(*serviceIt, leg, stopPair)) {
+				if (serviceIt == services.end() || !resolveScenePassengerLegStops(*serviceIt, leg, stopPair)) {
+					legResolved = false;
 					unresolved = true;
 					addDiag(SceneSeverity::Warning, "scene.import.ref",
 							"Passenger route-choice stations are missing or out of service stop order",
 							result.sources.routeChoice, routeRow, "passengers.route_choice", true);
 				}
 			}
-			result.passengers[target.first]["journeys"][target.second]["legs"].push_back({
-				{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>()
-						+ ".leg." + std::to_string(i + 1)},
-				{"origin", origin}, {"destination", destinationStation},
-				{"service", serviceId.empty() ? token : serviceId}, {"occurrence", occurrence}});
+			if (legResolved)
+				resolvedLegs.push_back({
+						{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>()
+								+ ".leg." + std::to_string(i + 1)},
+						{"origin", origin}, {"destination", destinationStation},
+						{"service", serviceId}, {"occurrence", occurrence}});
 		}
+		if (!unresolved)
+			for (auto& leg : resolvedLegs)
+				result.passengers[target.first]["journeys"][target.second]["legs"].push_back(std::move(leg));
 		result.report.converted("passengers.route_choice", routeChoiceSource);
 		record(result.sources.routeChoice, routeRow, personId, true, unresolved,
 				unresolved ? "Accepted with unresolved service or station reference" : "Accepted");
@@ -850,6 +872,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	json stationBoundaries = json::array();
 	json scenarios = json::array();
 	json passengers = json::array();
+	json views = {{"tracks", json::array()}, {"stations", json::array()}};
+	bool hasViews = false;
 
 	// InitialParameters is compiled into the current runtime, not stored in
 	// the legacy case directory. Only these known case/name pairs are safe to
@@ -857,6 +881,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	double durationSeconds = 0.0;
 	bool knownSettings = false;
 	const std::string baseTime = baseTimeForCase(sceneName, legacyPath, durationSeconds, knownSettings);
+	const bool paimpolSource = lowerCopy(sceneName) == "paimpol"
+			|| lowerCopy(legacyPath.filename().string()).rfind("input_egtrain_paimpol", 0) == 0;
 	if (knownSettings) {
 		report.source("simulation_settings", "compiled InitialParameters");
 		report.converted("simulation_settings", "compiled InitialParameters");
@@ -981,8 +1007,17 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					++rowIndex;
 					continue;
 				}
-				const std::string fromToken = tokens[1];
+				std::string fromToken = tokens[1];
 				const std::string toToken = tokens[2];
+				if (paimpolSource && trackId == "B4" && tokens[0] == "108"
+						&& fromToken == "1" && toToken == "10") {
+					// Paimpol's source arc 108 restarts the linear B4 chain at node 1.
+					// This exact source correction restores the validated 9 -> 10 link.
+					fromToken = "9";
+					addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+							"Adjusted Paimpol B4 arc 108 to continue the ordered node chain",
+							arcsPath.string());
+				}
 				const std::string fromId = trackId + ".node." + fromToken;
 				const std::string toId = trackId + ".node." + toToken;
 				bool fromKnown = false, toKnown = false;
@@ -1019,11 +1054,18 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				report.source("infrastructure.blocks", blockSource);
 				const auto tokens = readTokens(line);
 				double ignoredIdentity = 0.0, length = 0.0;
-				if (tokens.size() < 2 || !parseDoubleToken(tokens[0], ignoredIdentity) || !parseDoubleToken(tokens[1], length)) {
+				if (tokens.size() < 2 || !parseDoubleToken(tokens[0], ignoredIdentity)
+						|| !parseDoubleToken(tokens[1], length) || !std::isfinite(length)) {
 					report.skipped("infrastructure.blocks", blockSource);
 					addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed block row " + std::to_string(rowIndex), blocksPath.string());
 					++rowIndex;
 					continue;
+				}
+				if (length < 0.0) {
+					length = std::fabs(length);
+					addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+							"Normalized negative legacy block length to its finite magnitude",
+							blocksPath.string());
 				}
 				const std::string blockId = std::to_string(rowIndex) + "-" + trackId;
 				infrastructure["blocks"].push_back({{"id", blockId}, {"track", trackId}, {"length_km", length}});
@@ -1116,7 +1158,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 			const std::string connectionId = "connection." + std::to_string(rowIndex);
 			json value = {{"id", connectionId}, {"from", firstMatches[0].id}, {"to", secondMatches[0].id}};
-			if (tokens.size() == 5) value["speed_limit_ms"] = speed;
+			if (tokens.size() == 5)
+				value["speed_limit_ms"] = speed;
 			infrastructure["connections"].push_back(value);
 			report.converted("infrastructure.connections", connectionsSource);
 			++rowIndex;
@@ -1130,20 +1173,26 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	// exact X equality; every exact node match becomes a platform, while zero or
 	// multiple matches are reported instead of guessed.
 	fs::path stationsPath = findChild(trackRoot, "Stations.txt");
-	if (stationsPath.empty() && trackRoot != legacyPath) stationsPath = findChild(legacyPath, "Stations.txt");
+	if (stationsPath.empty() && trackRoot != legacyPath)
+		stationsPath = findChild(legacyPath, "Stations.txt");
 	const std::string stationsSource = stationsPath.empty()
-		? (trackRoot / "Stations.txt").lexically_normal().string() : stationsPath.string();
+										   ? (trackRoot / "Stations.txt").lexically_normal().string()
+										   : stationsPath.string();
 	std::unordered_map<std::string, std::size_t> stationIndex;
 	auto stationIdFor = [&](const std::string& raw, bool& ambiguous) {
 		ambiguous = false;
 		for (std::size_t i = 0; i < stations.size(); ++i)
-			if (stations[i]["id"] == raw) return raw;
+			if (stations[i]["id"] == raw)
+				return raw;
 		const std::string normalized = normaliseStationName(raw);
 		std::vector<std::size_t> matches;
 		for (std::size_t i = 0; i < stations.size(); ++i)
-			if (normaliseStationName(stations[i]["id"].get<std::string>()) == normalized) matches.push_back(i);
-		if (matches.size() == 1) return stations[matches[0]]["id"].get<std::string>();
-		if (matches.size() > 1) ambiguous = true;
+			if (normaliseStationName(stations[i]["id"].get<std::string>()) == normalized)
+				matches.push_back(i);
+		if (matches.size() == 1)
+			return stations[matches[0]]["id"].get<std::string>();
+		if (matches.size() > 1)
+			ambiguous = true;
 		return raw;
 	};
 	if (!stationsPath.empty()) {
@@ -1153,7 +1202,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		std::string line;
 		int rowIndex = 0;
 		while (std::getline(input, line)) {
-			if (trim(line).empty()) continue;
+			if (trim(line).empty())
+				continue;
 			report.source("stations", stationsSource);
 			std::string positionToken;
 			std::string stationName;
@@ -1192,7 +1242,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			const auto matches = allNodes;
 			int matched = 0;
 			for (const auto& node : matches) {
-				if (node.x != position) continue;
+				if (node.x != position)
+					continue;
 				++matched;
 				const std::string platformId = stationName + ".platform." + std::to_string(stations[index]["platforms"].size() + 1);
 				stations[index]["platforms"].push_back({{"id", platformId}, {"nodes", {node.id}}});
@@ -1208,6 +1259,197 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	} else {
 		report.row("stations", stationsSource).skippedCount++;
 		addDiag(SceneSeverity::Error, "scene.import.missing", "Missing TrackLines/Stations.txt", stationsSource);
+	}
+
+	const fs::path guiDir = findChild(legacyPath, "GUI");
+	const fs::path trackViewPath = guiDir.empty() ? fs::path()
+											  : findChild(guiDir, "caseStudyTrackData.txt");
+	std::unordered_set<std::string> hiddenTrackIds;
+	const fs::path hiddenTracksPath = guiDir.empty() ? fs::path() : findChild(guiDir, "unusedTracks.txt");
+	if (!hiddenTracksPath.empty()) {
+		std::string content;
+		readFile(hiddenTracksPath, content);
+		std::stringstream input(content);
+		int trackNumber = 0;
+		while (input >> trackNumber)
+			hiddenTrackIds.insert("B" + std::to_string(trackNumber));
+	}
+	const std::string trackViewSource = trackViewPath.empty()
+											? (legacyPath / "GUI/caseStudyTrackData.txt").string()
+											: trackViewPath.string();
+	std::unordered_set<std::string> knownTrackIds;
+	for (const auto& track : infrastructure["tracks"])
+		knownTrackIds.insert(track["id"].get<std::string>());
+	std::unordered_set<std::string> importedTrackIds;
+	if (!trackViewPath.empty()) {
+		std::string content;
+		readFile(trackViewPath, content);
+		std::stringstream input(content);
+		std::string line;
+		int rowIndex = 0;
+		while (std::getline(input, line)) {
+			if (trim(line).empty())
+				continue;
+			report.source("views.tracks", trackViewSource);
+			const auto fields = splitTab(line);
+			int trackNumber = 0;
+			int level = 0;
+			int region = 0;
+			const bool levelValid = fields.size() >= 2
+					&& (fields[1].empty() || parseIntegerToken(fields[1], level));
+			if (fields.size() < 3 || !parseIntegerToken(fields[0], trackNumber) || !levelValid
+					|| !parseIntegerToken(fields[2], region) || region < 0) {
+				report.skipped("views.tracks", trackViewSource);
+				addDiag(SceneSeverity::Warning, "scene.import.parse",
+						"Malformed track display row " + std::to_string(rowIndex), trackViewPath.string());
+				++rowIndex;
+				continue;
+			}
+			const std::string trackId = "B" + std::to_string(trackNumber);
+			if (knownTrackIds.count(trackId) == 0 || !importedTrackIds.insert(trackId).second) {
+				report.skipped("views.tracks", trackViewSource);
+				addDiag(SceneSeverity::Warning, "scene.import.ref",
+						"Track display row refers to an unknown or duplicate track " + trackId,
+						trackViewPath.string(), "views.tracks", knownTrackIds.count(trackId) == 0);
+				++rowIndex;
+				continue;
+			}
+			json value = {{"track", trackId}, {"level", level}, {"region", region}};
+			if (hiddenTrackIds.count(trackId) != 0)
+				value["visible"] = false;
+			views["tracks"].push_back(std::move(value));
+			report.converted("views.tracks", trackViewSource);
+			hasViews = true;
+			++rowIndex;
+		}
+	}
+	for (const auto& trackId : hiddenTrackIds) {
+		if (knownTrackIds.count(trackId) == 0 || !importedTrackIds.insert(trackId).second)
+			continue;
+		views["tracks"].push_back({{"track", trackId}, {"level", 0}, {"region", 0}, {"visible", false}});
+		report.source("views.tracks", hiddenTracksPath.string());
+		report.converted("views.tracks", hiddenTracksPath.string());
+		hasViews = true;
+	}
+
+	const fs::path stationViewPath = guiDir.empty() ? fs::path()
+													: findChild(guiDir, "StationsCoord.txt");
+	const std::string stationViewSource = stationViewPath.empty()
+											  ? (legacyPath / "GUI/StationsCoord.txt").string()
+											  : stationViewPath.string();
+	if (!stationViewPath.empty()) {
+		std::string content;
+		readFile(stationViewPath, content);
+		std::stringstream input(content);
+		std::string line;
+		int rowIndex = 0;
+		std::unordered_set<std::string> importedStationIds;
+		auto stationViewIdFor = [&](const std::string& raw,
+			const std::vector<std::pair<int, double>>& regions, bool& ambiguous) {
+			ambiguous = false;
+			std::vector<std::string> exact;
+			for (const auto& station : stations)
+				if (station["id"] == raw)
+					exact.push_back(station["id"].get<std::string>());
+			if (exact.size() == 1)
+				return exact.front();
+			if (exact.size() > 1) {
+				ambiguous = true;
+				return std::string();
+			}
+			const std::string normalized = normaliseStationName(raw);
+			std::set<std::string> matches;
+			for (const auto& station : stations) {
+				if (normaliseStationName(station["id"].get<std::string>()) == normalized || normaliseStationName(station.value("name", station["id"].get<std::string>())) == normalized)
+					matches.insert(station["id"].get<std::string>());
+			}
+			if (matches.size() == 1)
+				return *matches.begin();
+			if (matches.size() > 1) {
+				ambiguous = true;
+				return std::string();
+			}
+			std::set<std::string> positionMatches;
+			constexpr double positionToleranceKm = 1e-6;
+			for (const auto& station : stations) {
+				if (!station.contains("position_km") || !station["position_km"].is_number())
+					continue;
+				const double stationPosition = station["position_km"].get<double>();
+				if (!std::isfinite(stationPosition))
+					continue;
+				for (const auto& region : regions) {
+					if (std::isfinite(region.second)
+							&& std::fabs(stationPosition - region.second) <= positionToleranceKm) {
+						positionMatches.insert(station["id"].get<std::string>());
+						break;
+					}
+				}
+			}
+			if (positionMatches.size() == 1)
+				return *positionMatches.begin();
+			ambiguous = positionMatches.size() > 1;
+			return std::string();
+		};
+		while (std::getline(input, line)) {
+			if (trim(line).empty())
+				continue;
+			report.source("views.stations", stationViewSource);
+			const auto fields = splitTab(line);
+			bool valid = fields.size() >= 5 && fields.size() <= 6;
+			double latitude = 0.0;
+			double longitude = 0.0;
+			if (valid && (!parseDoubleToken(fields[1], latitude) || !parseDoubleToken(fields[2], longitude) || !std::isfinite(latitude) || !std::isfinite(longitude)))
+				valid = false;
+			const auto regionFields = valid ? splitCsvNaive(fields[3]) : std::vector<std::string>();
+			const auto positionFields = valid ? splitCsvNaive(fields[4]) : std::vector<std::string>();
+			if (valid && (regionFields.empty() || regionFields.size() != positionFields.size()))
+				valid = false;
+			std::vector<std::pair<int, double>> regions;
+			std::unordered_set<int> regionIds;
+			if (valid) {
+				for (std::size_t index = 0; index < regionFields.size(); ++index) {
+					int region = 0;
+					double position = 0.0;
+					if (!parseIntegerToken(regionFields[index], region) || region < 0 || !parseDoubleToken(positionFields[index], position) || !std::isfinite(position) || !regionIds.insert(region).second) {
+						valid = false;
+						break;
+					}
+					regions.emplace_back(region, position);
+				}
+			}
+			std::vector<std::string> corridors;
+			if (valid && fields.size() == 6) {
+				for (const auto& corridor : splitCsvNaive(fields[5]))
+					if (!corridor.empty())
+						corridors.push_back(corridor);
+			}
+			const bool parsed = valid;
+			bool ambiguous = false;
+			const std::string stationId = valid ? stationViewIdFor(fields[0], regions, ambiguous) : std::string();
+			if (stationId.empty() || ambiguous || !importedStationIds.insert(stationId).second)
+				valid = false;
+			if (!valid) {
+				report.skipped("views.stations", stationViewSource);
+				const bool unresolved = parsed && (stationId.empty() || ambiguous);
+				const std::string stationLabel = fields.empty() ? "<missing>" : fields[0];
+				addDiag(SceneSeverity::Warning, unresolved ? "scene.import.ref" : "scene.import.parse",
+						unresolved ? "Station display row has an unresolved or ambiguous station " + stationLabel
+								   : "Malformed station display row " + std::to_string(rowIndex),
+						stationViewPath.string(), "views.stations", unresolved);
+				++rowIndex;
+				continue;
+			}
+			json regionsJson = json::array();
+			for (const auto& region : regions)
+				regionsJson.push_back({{"id", region.first}, {"position_km", region.second}});
+			json value = {{"station", stationId}, {"latitude", latitude}, {"longitude", longitude}, {"regions", regionsJson}};
+			if (!corridors.empty())
+				value["corridors"] = corridors;
+			views["stations"].push_back(std::move(value));
+			report.converted("views.stations", stationViewSource);
+			hasViews = true;
+			++rowIndex;
+		}
 	}
 	// Read the explicit train manifest before routes so services can retain
 	// their route references and rolling-stock relationships independently.
@@ -1386,7 +1628,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 	// Route corridor metadata is an active GUI input, unlike generated signal
 	// and TDS caches, so retain it directly on the matching route.
-	const fs::path guiDir = findChild(legacyPath, "GUI");
 	const fs::path corridorPath = guiDir.empty() ? fs::path() : findChild(guiDir, "caseStudyRouteCorridors.txt");
 	const std::string corridorSource = corridorPath.empty() ? (legacyPath / "GUI/caseStudyRouteCorridors.txt").string() : corridorPath.string();
 	if (!corridorPath.empty()) {
@@ -1593,6 +1834,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				addDiag(SceneSeverity::Warning, "scene.import.ref", "Timetable refers to unresolved station " + stationName,
 						timetablePath.string(), "timetable", true);
 			}
+			if (arrival != -1.0 && departure != -1.0 && departure < arrival) {
+				departure = arrival;
+				addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+						"Legacy departure preceded arrival at " + stationName + "; clamped to arrival",
+						timetablePath.string());
+			}
 			json stop = {{"station", stationId}, {"dwell_seconds", dwell}};
 			if (arrival != -1.0) {
 				stop["planned_arrival_seconds"] = arrival;
@@ -1600,8 +1847,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			if (departure != -1.0) {
 				stop["planned_departure_seconds"] = departure;
 			}
-			if (arrival != -1.0 && departure != -1.0 && departure < arrival)
-				addDiag(SceneSeverity::Warning, "scene.import.timetable", "Legacy departure precedes arrival at " + stationName + "; values preserved", timetablePath.string());
 			stops.push_back(stop);
 			report.converted("timetable", timetableSource);
 			++rowIndex;
@@ -1657,6 +1902,11 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			continue;
 		}
 		json curve = json::array();
+		std::vector<json> validTractionRows;
+		std::size_t retainedStart = 0;
+		double previousLowerSpeed = 0.0;
+		bool havePreviousLowerSpeed = false;
+		bool reportedRestart = false;
 		std::stringstream tractionInput(tractionContent);
 		std::string line;
 		int rowIndex = 0;
@@ -1674,17 +1924,36 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			bool valid = true;
 			for (int i = 0; i < 5; ++i) {
 				double value = 0.0;
-				if (!parseDoubleToken(tokens[static_cast<std::size_t>(i)], value)) valid = false;
+				if (!parseDoubleToken(tokens[static_cast<std::size_t>(i)], value) || !std::isfinite(value)) valid = false;
 				row.push_back(value);
 			}
 			if (!valid) {
 				report.skipped("rolling_stock.traction", tractionSource);
 				addDiag(SceneSeverity::Warning, "scene.import.parse", "Invalid traction row " + std::to_string(rowIndex), tractionPath.string());
 			} else {
-				curve.push_back(row);
-				report.converted("rolling_stock.traction", tractionSource);
+				const double lowerSpeed = row[0].get<double>();
+				if (havePreviousLowerSpeed && lowerSpeed <= previousLowerSpeed) {
+					retainedStart = validTractionRows.size();
+					if (!reportedRestart) {
+						addDiag(SceneSeverity::Warning, "scene.import.adjusted",
+								"Traction speed range restarted; retaining the final monotonic band",
+								tractionPath.string());
+						reportedRestart = true;
+					}
+				}
+				validTractionRows.push_back(std::move(row));
+				previousLowerSpeed = lowerSpeed;
+				havePreviousLowerSpeed = true;
 			}
 			++rowIndex;
+		}
+		for (std::size_t index = 0; index < validTractionRows.size(); ++index) {
+			if (index < retainedStart) {
+				report.skipped("rolling_stock.traction", tractionSource);
+				continue;
+			}
+			curve.push_back(std::move(validTractionRows[index]));
+			report.converted("rolling_stock.traction", tractionSource);
 		}
 		if (curve.empty()) {
 			addDiag(SceneSeverity::Error, "scene.import.parse", "Train traction file has no valid rows", tractionPath.string());
@@ -1886,7 +2155,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	json scenariosFile = {{"default_scenario_id", "baseline"}, {"scenarios", scenarios}};
 
 	// Preserve atomic staging/publish semantics: no destination is touched while
-	// parsing, validation, or passthrough copying can still fail.
+	// parsing or validation can still fail.
 	if (hasErrors(result.diagnostics)) return result;
 	std::error_code ec;
 	fs::path sceneParent = scenePath.parent_path();
@@ -1913,13 +2182,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		removeStaging();
 		return result;
 	}
-	fs::path outLegacy = stagingPath / "legacy";
-	fs::create_directories(outLegacy, ec);
-	if (ec) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create legacy passthrough directory: " + ec.message(), (scenePath / "legacy").string());
-		removeStaging();
-		return result;
-	}
 	bool allWritten = true;
 	auto writeJson = [&](const std::string& filename, const json& value) {
 		std::ofstream output(stagingPath / filename);
@@ -1941,71 +2203,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	writeJson("rolling_stock.json", rollingStock);
 	writeJson("services.json", servicesFile);
 	writeJson("scenarios.json", scenariosFile);
+	if (hasViews) writeJson("views.json", views);
 	if (hasDas && hasRouteChoice) writeJson("passengers.json", {{"passengers", passengers}});
 	if (!allWritten) {
 		removeStaging();
 		return result;
 	}
 
-	// Keep the existing passthrough boundary. Canonical files own converted
-	// fields; unconverted runtime support folders remain available to the
-	// directional exporter without serialising generated caches.
-	auto copyInto = [&](const fs::path& from, const fs::path& to) {
-		std::error_code copyEc;
-		fs::path failedPath = from;
-		if (fs::is_directory(from, copyEc)) {
-			fs::create_directories(to, copyEc);
-			if (!copyEc) {
-				for (fs::recursive_directory_iterator it(from, copyEc), end; it != end && !copyEc; it.increment(copyEc)) {
-					failedPath = it->path();
-					const fs::path relative = fs::relative(it->path(), from, copyEc);
-					if (copyEc) break;
-					const fs::path target = to / relative;
-					if (it->is_directory(copyEc)) fs::create_directories(target, copyEc);
-					else if (it->is_regular_file(copyEc)) {
-						fs::create_directories(target.parent_path(), copyEc);
-						if (!copyEc) fs::copy_file(it->path(), target, fs::copy_options::overwrite_existing, copyEc);
-					}
-				}
-			}
-		} else {
-			fs::create_directories(to.parent_path(), copyEc);
-			if (!copyEc) fs::copy_file(from, to, fs::copy_options::overwrite_existing, copyEc);
-		}
-		if (copyEc) addDiag(SceneSeverity::Error, "scene.import.missing", "Could not copy legacy data: " + copyEc.message(), failedPath.string());
-	};
-	std::vector<std::string> passDirs = {"TrackLines", "TMS", "TDS", "GUI", "Rescheduling", "Passengers", "RoutesToWrite"};
-	std::unordered_set<std::string> copiedDirs;
-	for (const auto& directory : passDirs) {
-		const fs::path source = resolvePath(legacyPath, directory);
-		if (!fs::is_directory(source, ec)) continue;
-		const fs::path canonical = fs::weakly_canonical(source, ec);
-		const std::string key = ec ? source.lexically_normal().string() : canonical.string();
-		if (copiedDirs.insert(key).second) copyInto(source, outLegacy / source.filename());
-	}
-	const bool flatInfrastructure = trackRoot == legacyPath;
-	if (flatInfrastructure) {
-		const fs::path flatTracklines = outLegacy / "Tracklines";
-		for (const auto& name : {"Stations.txt", "Connections.txt", "TrackandStations.txt"}) {
-			const fs::path source = resolvePath(legacyPath, name);
-			if (fs::is_regular_file(source, ec)) copyInto(source, flatTracklines / source.filename());
-		}
-		for (const auto& track : trackDirs) copyInto(track.second, flatTracklines / track.second.filename());
-	}
-	if (!timetableRoot.empty() && fs::is_directory(timetableRoot, ec)) {
-		for (const auto& entry : fs::directory_iterator(timetableRoot, ec)) {
-			if (!entry.is_directory(ec)) continue;
-			if (lowerCopy(entry.path().filename().string()).rfind("scenarios_", 0) == 0)
-				copyInto(entry.path(), outLegacy / "Timetable" / entry.path().filename());
-		}
-	}
-	if (!routesDir.empty() && fs::is_directory(routesDir, ec)) {
-		for (const auto& entry : fs::directory_iterator(routesDir, ec)) {
-			if (!entry.is_regular_file(ec)) continue;
-			const std::string name = entry.path().filename().string();
-			if (lowerCopy(name).rfind("route", 0) != 0) copyInto(entry.path(), outLegacy / "Routes" / name);
-		}
-	}
 	if (hasErrors(result.diagnostics)) {
 		removeStaging();
 		return result;

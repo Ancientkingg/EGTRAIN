@@ -94,6 +94,7 @@ BlockSet::BlockSet() {
 	ID = len = arcs = numNodes = 0;
 	region = 0;
 	graphID = -1;
+	hasGraphLayout = false;
 	firstSwitchX = -1;
 	lastSwitchX = DBL_MAX;
 }
@@ -173,14 +174,18 @@ void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 
 	// Computing Totals over the stations
 	double TotalAV = 0, TotalStd = 0, TOTDelay = 0, MAX_TOTDelay = 0, TOTCONSDelay = 0, MAX_CONSDelay = 0, AV_Punct = 0, AV_Punct_3min = 0, AV_Punct_5min = 0;
+	int stationsWithSamples = 0;
 	for (int s = 1; s < numStations; s++) {								// Calculate it for every station but the first, if you want it also for the first station just start the loop with s=0
+		if (StationArray[s].N_Stopped_Trains <= 0)
+			continue;
+		++stationsWithSamples;
 		TotalAV = TotalAV + StationArray[s].Av_Arrival_Delay;			// Calculating the Average Delay over the stations
 		TotalStd = TotalStd + StationArray[s].Std_Arrival_Delay;		// Calculating the Average Std over the stations
 		TOTDelay = TOTDelay + StationArray[s].totalArrivalDelay;		// Calculating the Total Delay over all stations
 		TOTCONSDelay = TOTCONSDelay + StationArray[s].Tot_Consec_Delay; // Calculating the Total consecutive delay over all stations
-		if (StationArray[s].Max_TotalDelay > MAX_TOTDelay)
+		if (stationsWithSamples == 1 || StationArray[s].Max_TotalDelay > MAX_TOTDelay)
 			MAX_TOTDelay = StationArray[s].Max_TotalDelay; // Calculating the MAX TOTAL DELAY
-		if (StationArray[s].Max_Cons_Delay > MAX_CONSDelay)
+		if (stationsWithSamples == 1 || StationArray[s].Max_Cons_Delay > MAX_CONSDelay)
 			MAX_CONSDelay = StationArray[s].Max_Cons_Delay;					 // Calculating the MAX CONSECUTIVE DELAY
 		AV_Punct = AV_Punct + StationArray[s].Perc_Delayed_T;				 // Calculating the  Avergae Punctuality at stations
 		AV_Punct_3min = AV_Punct_3min + StationArray[s].Perc_Delayed_T_3min; // Calculating the  Avergae Punctuality at 3 min at stations
@@ -194,12 +199,17 @@ void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 	AV_Punct_3min=AV_Punct_3min/numStations;          //Calculating the  Average Punctuality at 3 min at stations
 	AV_Punct_5min=AV_Punct_5min/numStations;          //Calculating the  Average Punctuality at 5 min at stations*/
 
-	// Calculating the averages over all stations but the first
-	TotalAV = TotalAV / (numStations - 1);
-	TotalStd = TotalStd / (numStations - 1);
-	AV_Punct = AV_Punct / (numStations - 1);			  // Calculating the  Avergae Punctuality at stations
-	AV_Punct_3min = AV_Punct_3min / (numStations - 1); // Calculating the  Avergae Punctuality at 3 min at stations
-	AV_Punct_5min = AV_Punct_5min / (numStations - 1); // Calculating the  Avergae Punctuality at 5 min at stations
+	if (stationsWithSamples > 0) {
+		TotalAV /= stationsWithSamples;
+		TotalStd /= stationsWithSamples;
+		AV_Punct /= stationsWithSamples;
+		AV_Punct_3min /= stationsWithSamples;
+		AV_Punct_5min /= stationsWithSamples;
+	} else {
+		TotalAV = TotalStd = MAX_TOTDelay = MAX_CONSDelay = -1;
+		AV_Punct = AV_Punct_3min = AV_Punct_5min = -1;
+		TOTCONSDelay = -1;
+	}
 
 	FileOutput << "TOTALS" << " " << TotalAV << " " << TotalStd << " " << TOTDelay << " " << MAX_TOTDelay << " " << TOTCONSDelay << " " << MAX_CONSDelay << " " << AV_Punct << " " << AV_Punct_3min << " " << AV_Punct_5min << "\n";
 	// Printing the Final_Delay fittitious station

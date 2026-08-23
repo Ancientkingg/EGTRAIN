@@ -4,6 +4,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneValidator.h"
 #include <algorithm>
+#include <optional>
 #include "util/portability.h"
 #include <QDir>
 #include <QFileInfo>
@@ -170,7 +171,7 @@ QString resolveOutputDirectory(const std::string& sceneName) {
 		if (base.isEmpty())
 			base = QDir::homePath() + "/EGTRAIN";
 	}
-	const QString suffix = sceneName.empty() ? QStringLiteral("scene") : QString::fromStdString(sceneName);
+	const QString suffix = QString::fromStdString(sceneOutputDirectoryComponent(sceneName));
 	const QString output = QDir(base).filePath("Output/" + suffix);
 	QDir().mkpath(output);
 	return QDir(output).absolutePath();
@@ -203,6 +204,8 @@ int main(int argc, char* argv[]) {
 		initial_variables.nArgProvided = true;
 
 	const bool gui = initial_variables.GUI != 0;
+	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
+			? std::optional<double>(initial_variables.times) : std::nullopt;
 	if (gui)
 		std::cout << "Graphical user interface (GUI): 1\n";
 	else
@@ -231,7 +234,8 @@ int main(int argc, char* argv[]) {
 			sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
 		SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
 		if (!hasErrors(loaded.diagnostics)) {
-			const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
+			const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
+				effectiveDurationOverride);
 			loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
 		}
 		if (hasErrors(loaded.diagnostics)) {
@@ -255,7 +259,8 @@ int main(int argc, char* argv[]) {
 		sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
 	SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
 	if (!hasErrors(loaded.diagnostics)) {
-		const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
+		const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
+			effectiveDurationOverride);
 		loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
 	}
 	if (hasErrors(loaded.diagnostics)) {

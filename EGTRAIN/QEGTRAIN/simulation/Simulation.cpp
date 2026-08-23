@@ -1,7 +1,9 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <numeric>
 #include <vector>
 
 double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
@@ -46,16 +48,85 @@ bool canComputeTrainEnergy(Train& train) {
 									 train.earliestActiveTrajectoryIndex, train.End_Time)
 			.empty();
 }
-} // namespace
 
-// Function to Calculate the arrival delay at each station for each train
-void calculateArrivalDelayAllTrainsOldVersion() {
-	for (int j = 0; j < numRegions; j++) {
-		// regional_train[j].Actual_Arrivals();
-		regional_train[j].Actual_Arrivals_NewVersion();
-		regional_train[j].computeArrivalDelaysAtStations();
+void calculateDelayStatistics(Stations& result, const std::vector<double>& delays,
+		const std::vector<double>& consecutive, bool includeNonPositive) {
+	result.N_Stopped_Trains = static_cast<int>(delays.size());
+	result.N_Delayed_Arr = result.N_Delayed_Arr_3min = result.N_Delayed_Arr_5min = 0;
+	result.Av_Arrival_Delay = result.Std_Arrival_Delay = 0;
+	result.Perc_Delayed_T = result.Perc_Delayed_T_3min = result.Perc_Delayed_T_5min = 0;
+	result.totalArrivalDelay = result.Tot_Consec_Delay = 0;
+	result.Max_TotalDelay = result.Max_Cons_Delay = -1;
+	if (delays.empty()) {
+		result.Av_Arrival_Delay = result.Std_Arrival_Delay = result.Tot_Consec_Delay = -1;
+		result.Perc_Delayed_T = result.Perc_Delayed_T_3min = result.Perc_Delayed_T_5min = -1;
+		return;
+	}
+
+	std::vector<double> population;
+	population.reserve(delays.size());
+	for (double delay : delays) {
+		if (delay > 0) {
+			++result.N_Delayed_Arr;
+			if (delay > 3 * 60 / timestep)
+				++result.N_Delayed_Arr_3min;
+			if (delay > 5 * 60 / timestep)
+				++result.N_Delayed_Arr_5min;
+		}
+		if (includeNonPositive || delay > 0)
+			population.push_back(delay);
+	}
+
+	result.totalArrivalDelay = std::accumulate(delays.begin(), delays.end(), 0.0);
+	if (!population.empty()) {
+		result.Av_Arrival_Delay =
+			std::accumulate(population.begin(), population.end(), 0.0) / population.size();
+		if (population.size() > 1) {
+			double squaredDifference = 0;
+			for (double delay : population)
+				squaredDifference += std::pow(delay - result.Av_Arrival_Delay, 2);
+			result.Std_Arrival_Delay = std::sqrt(squaredDifference / (population.size() - 1));
+		}
+	}
+
+	result.Perc_Delayed_T = static_cast<double>(result.N_Delayed_Arr) / delays.size() * 100;
+	result.Perc_Delayed_T_3min = static_cast<double>(result.N_Delayed_Arr_3min) / delays.size() * 100;
+	result.Perc_Delayed_T_5min = static_cast<double>(result.N_Delayed_Arr_5min) / delays.size() * 100;
+	result.Max_TotalDelay = *std::max_element(delays.begin(), delays.end());
+	if (!consecutive.empty()) {
+		result.Tot_Consec_Delay = std::accumulate(consecutive.begin(), consecutive.end(), 0.0);
+		result.Max_Cons_Delay = *std::max_element(consecutive.begin(), consecutive.end());
 	}
 }
+
+void calculateStationDelayStatistics(Stations& station, bool includeNonPositive) {
+	std::vector<double> arrivals;
+	std::vector<double> consecutive;
+	const auto append = [&arrivals, &consecutive, includeNonPositive](const Train& train, int index) {
+		const bool recorded = includeNonPositive
+			? train.StationArrivals[index] != -1
+			: train.StationDelay[index] != -1;
+		if (!recorded)
+			return;
+		arrivals.push_back(train.StationDelay[index]);
+		consecutive.push_back(train.StationConsecDelay[index]);
+	};
+
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
+		const Train& train = regional_train[trainIndex];
+		if (station.stationName == "Final_Station") {
+			if (train.numStations > 0)
+				append(train, train.numStations - 1);
+			continue;
+		}
+		for (int stationIndex = 0; stationIndex < train.numStations; ++stationIndex) {
+			if (train.stationNameForArrivalStats(stationIndex) == station.stationName)
+				append(train, stationIndex);
+		}
+	}
+	calculateDelayStatistics(station, arrivals, consecutive, includeNonPositive);
+}
+} // namespace
 
 // Updated Function to Calculate the arrival delay at each station for each train
 void calculateArrivalDelayAllTrains() {
@@ -69,270 +140,27 @@ void calculateArrivalDelayAllTrains() {
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
 void calculateDelayStatsAtStation(Stations& S) {
-	std::vector<double> TrainDelay;
-	std::vector<double> TrainConsDelay;
-	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
-	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
-	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = 0;
-	S.Tot_Consec_Delay = 0;
-
-	if (S.stationName != "Final_Station") {
-		for (int j = 0; j < numRegions; j++) {															  // looping over the total number of trains
-			for (int s = 0; s < regional_train[j].numStations; s++) {									  // looping over their stations
-				if (regional_train[j].stationNameForArrivalStats(s) == S.stationName) {					  // if the train has a stop at station instant_spatial_position
-					if (regional_train[j].StationDelay[s] != -1) {									  // and the train has actually crossed that station within the simulation time
-						TrainDelay.push_back(regional_train[j].StationDelay[s]);			  // register its arrival delay
-						TrainConsDelay.push_back(regional_train[j].StationConsecDelay[s]); // register its consecutive delay
-						if (TrainDelay[S.N_Stopped_Trains] > 0)
-							S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-						if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-							S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-						if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-							S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-						S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-					}
-				}
-			}
-		}
-	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
-		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
-			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
-				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
-				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
-				if (TrainDelay[S.N_Stopped_Trains] > 0)
-					S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-				if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-					S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-				if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-					S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-				S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-			}
-		}
-	}
-	// Calculate the Total and the Average Arrival Delay at station instant_spatial_position
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Av_Arrival_Delay = S.Av_Arrival_Delay + TrainDelay[r];
-	}
-	S.totalArrivalDelay = S.Av_Arrival_Delay;				   // Calculating the total arrival delay (sum of train delays over all trains stopping at station instant_spatial_position)
-	S.Av_Arrival_Delay = S.Av_Arrival_Delay / S.N_Delayed_Arr; // Calculating the average arrival delay over the delayed trains
-
-	// Calculate the Standard Deviation of Delay at station instant_spatial_position over the delayed trains
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		if (TrainDelay[r] != 0) {
-			S.Std_Arrival_Delay = S.Std_Arrival_Delay + pow((TrainDelay[r] - S.Av_Arrival_Delay), 2);
-		}
-	}
-	S.Std_Arrival_Delay = sqrt(S.Std_Arrival_Delay / (S.N_Delayed_Arr - 1));
-
-	// Calculate the Percentages of Delayed trains and Total Consecutive delay at that station
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Perc_Delayed_T = (double)S.N_Delayed_Arr / S.N_Stopped_Trains * 100;			 // Percentage of delayed trains
-		S.Perc_Delayed_T_3min = (double)S.N_Delayed_Arr_3min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		S.Perc_Delayed_T_5min = (double)S.N_Delayed_Arr_5min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-		S.Tot_Consec_Delay = S.Tot_Consec_Delay + TrainConsDelay[r];					 // Calculate Total consecutive delay
-	}
-
-	// Calculate the MaxConsecutive Delay and the Max Total Delay
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		if (TrainDelay[r] > S.Max_TotalDelay)
-			S.Max_TotalDelay = TrainDelay[r];
-		if (TrainConsDelay[r] > S.Max_Cons_Delay)
-			S.Max_Cons_Delay = TrainConsDelay[r];
-	}
-
+	calculateStationDelayStatistics(S, false);
 }
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
 void calculatePosAndNegDelayStatsAtStation(Stations& S) {
-	std::vector<double> TrainDelay;
-	std::vector<double> TrainConsDelay;
-	S.N_Stopped_Trains = 0;						// Number of trains that passed station instant_spatial_position during the simulation
-	S.Av_Arrival_Delay = S.Std_Arrival_Delay = 0;
-	S.N_Delayed_Arr = S.N_Delayed_Arr_3min = S.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	S.Perc_Delayed_T = S.Perc_Delayed_T_3min = S.Perc_Delayed_T_5min = 0;
-	S.Tot_Consec_Delay = 0;
-
-	if (S.stationName != "Final_Station") {
-		for (int j = 0; j < numRegions; j++) {															  // looping over the total number of trains
-			for (int s = 0; s < regional_train[j].numStations; s++) {									  // looping over their stations
-				if (regional_train[j].stationNameForArrivalStats(s) == S.stationName) {					  // if the train has a stop at station instant_spatial_position
-					if (regional_train[j].StationDelay[s] != -1) {									  // and the train has actually crossed that station within the simulation time
-						TrainDelay.push_back(regional_train[j].StationDelay[s]);			  // register its arrival delay
-						TrainConsDelay.push_back(regional_train[j].StationConsecDelay[s]); // register its consecutive delay
-						if (TrainDelay[S.N_Stopped_Trains] > 0)
-							S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-						if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-							S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-						if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-							S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-						S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-					}
-				}
-			}
-		}
-	} else {																												// This part is executed only if the station to Analyze is the fittitious one: Final_Delay that describes the statics of the train at their own final station
-		for (int j = 0; j < numRegions; j++) {																					// looping over the total number of trains
-			if (regional_train[j].StationDelay[regional_train[j].numStations - 1] != -1) {									// and the train has actually crossed that station within the simulation time
-				TrainDelay.push_back(regional_train[j].StationDelay[regional_train[j].numStations - 1]);			// register its arrival delay
-				TrainConsDelay.push_back(regional_train[j].StationConsecDelay[regional_train[j].numStations - 1]); // register its consecutive delay
-				if (TrainDelay[S.N_Stopped_Trains] > 0)
-					S.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-				if (TrainDelay[S.N_Stopped_Trains] > 3 * 60 / timestep)
-					S.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-				if (TrainDelay[S.N_Stopped_Trains] > 5 * 60 / timestep)
-					S.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-				S.N_Stopped_Trains++; // increase the number of trains that crossed station instant_spatial_position
-			}
-		}
-	}
-	// Calculate the Total and the Average Arrival Delay at station instant_spatial_position
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Av_Arrival_Delay = S.Av_Arrival_Delay + TrainDelay[r];
-	}
-	S.totalArrivalDelay = S.Av_Arrival_Delay;					  // Calculating the total arrival delay (sum of train delays over all trains stopping at station instant_spatial_position)
-	S.Av_Arrival_Delay = S.Av_Arrival_Delay / S.N_Stopped_Trains; // Calculating the average arrival delay over the delayed trains
-
-	// Calculate the Standard Deviation of Delay at station instant_spatial_position over the delayed trains
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Std_Arrival_Delay = S.Std_Arrival_Delay + pow((TrainDelay[r] - S.Av_Arrival_Delay), 2);
-	}
-	S.Std_Arrival_Delay = sqrt(S.Std_Arrival_Delay / (S.N_Stopped_Trains - 1));
-
-	// Calculate the Percentages of Delayed trains and Total Consecutive delay at that station
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		S.Perc_Delayed_T = (double)S.N_Delayed_Arr / S.N_Stopped_Trains * 100;			 // Percentage of delayed trains
-		S.Perc_Delayed_T_3min = (double)S.N_Delayed_Arr_3min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		S.Perc_Delayed_T_5min = (double)S.N_Delayed_Arr_5min / S.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-		S.Tot_Consec_Delay = S.Tot_Consec_Delay + TrainConsDelay[r];					 // Calculate Total consecutive delay
-	}
-
-	// Calculate the MaxConsecutive Delay and the Max Total Delay
-	for (int r = 0; r < S.N_Stopped_Trains; r++) {
-		if (TrainDelay[r] > S.Max_TotalDelay)
-			S.Max_TotalDelay = TrainDelay[r];
-		if (TrainConsDelay[r] > S.Max_Cons_Delay)
-			S.Max_Cons_Delay = TrainConsDelay[r];
-	}
-
+	calculateStationDelayStatistics(S, true);
 }
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
 void Compute_Input_Delays() {
-	std::vector<double> TrainDelay(numRegions);
-	std::vector<double> TrainEntDelay(numRegions);
-	std::vector<double> Disturb(numRegions);
-										 // Initializing parameters for Total input delays
-	TotalInputDelays.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
-	TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Std_Arrival_Delay = 0;
-	TotalInputDelays.N_Delayed_Arr = TotalInputDelays.N_Delayed_Arr_3min = TotalInputDelays.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	TotalInputDelays.Perc_Delayed_T = TotalInputDelays.Perc_Delayed_T_3min = TotalInputDelays.Perc_Delayed_T_5min = 0;
-	TotalInputDelays.Tot_Consec_Delay = 0;
-
-	// Initializing parameters for Entrance input delays
-	EntranceInputDelays.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
-	EntranceInputDelays.Av_Arrival_Delay = EntranceInputDelays.Std_Arrival_Delay = 0;
-	EntranceInputDelays.N_Delayed_Arr = EntranceInputDelays.N_Delayed_Arr_3min = EntranceInputDelays.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	EntranceInputDelays.Perc_Delayed_T = EntranceInputDelays.Perc_Delayed_T_3min = EntranceInputDelays.Perc_Delayed_T_5min = 0;
-	EntranceInputDelays.Tot_Consec_Delay = 0;
-
-	// Initializing parameters for Disturbances to dwell times input delays
-	DisturbanceInput.N_Stopped_Trains = numRegions; // Initializing the number of trains to consider: in this case they are all the trains considered in the network
-	DisturbanceInput.Av_Arrival_Delay = DisturbanceInput.Std_Arrival_Delay = 0;
-	DisturbanceInput.N_Delayed_Arr = DisturbanceInput.N_Delayed_Arr_3min = DisturbanceInput.N_Delayed_Arr_5min = 0; // Initializing Station parameters to 0 since these values will be calculated for station instant_spatial_position
-	DisturbanceInput.Perc_Delayed_T = DisturbanceInput.Perc_Delayed_T_3min = DisturbanceInput.Perc_Delayed_T_5min = 0;
-	DisturbanceInput.Tot_Consec_Delay = 0;
-
-	for (int j = 0; j < numRegions; j++) {													   // looping over the total number of trains
-		TrainDelay[j] = regional_train[j].TotalInputDelays;								   // recording the total delay in input: Entrance + Disturbances to dwell times
-		TrainEntDelay[j] = regional_train[j].EntranceDelay;								   // recording the delay at the entrance set in input
-		Disturb[j] = regional_train[j].TotalInputDelays - regional_train[j].EntranceDelay; // recording the disturbances to dwell times cumulated over all stations
-
-		// Setting the Number of trains that are delayed because they have total input delay positive:Entrance delays+disturbances to dwell times
-		if (TrainDelay[j] > 0)
-			TotalInputDelays.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-		if (TrainDelay[j] > 3 * 60 / timestep)
-			TotalInputDelays.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-		if (TrainDelay[j] > 5 * 60 / timestep)
-			TotalInputDelays.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-		// Setting the Number of trains that are delayed because they have entrance input delay positive
-		if (TrainEntDelay[j] > 0)
-			EntranceInputDelays.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-		if (TrainEntDelay[j] > 3 * 60 / timestep)
-			EntranceInputDelays.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-		if (TrainEntDelay[j] > 5 * 60 / timestep)
-			EntranceInputDelays.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-
-		// Setting the Number of trains that are delayed because they have disturbances to dwell times positive
-		if (Disturb[j] > 0)
-			DisturbanceInput.N_Delayed_Arr++; // increase the number of delayed trains if it is delayed
-		if (Disturb[j] > 3 * 60 / timestep)
-			DisturbanceInput.N_Delayed_Arr_3min++; // increase this number if its delay>3 min
-		if (Disturb[j] > 5 * 60 / timestep)
-			DisturbanceInput.N_Delayed_Arr_5min++; // increase this number if its delay>5 min
-	}
-
-	// Calculate the Total and the Average Input Delays
-	for (int r = 0; r < numRegions; r++) {
-		TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Av_Arrival_Delay + TrainDelay[r];			// Calculating the sum of total input delays
-		EntranceInputDelays.Av_Arrival_Delay = EntranceInputDelays.Av_Arrival_Delay + TrainEntDelay[r]; // Calculating the sum of entrance input delays
-		DisturbanceInput.Av_Arrival_Delay = DisturbanceInput.Av_Arrival_Delay + Disturb[r];				// Calculating the sum of disturbances to dwell times
-	}
-	TotalInputDelays.totalArrivalDelay = TotalInputDelays.Av_Arrival_Delay;		// Calculating the total input delay
-	EntranceInputDelays.totalArrivalDelay = EntranceInputDelays.Av_Arrival_Delay; // Calculating the total entrance delay in input
-	DisturbanceInput.totalArrivalDelay = DisturbanceInput.Av_Arrival_Delay;		// Calculating the total entrance delay in input
-
-	TotalInputDelays.Av_Arrival_Delay = TotalInputDelays.Av_Arrival_Delay / TotalInputDelays.N_Delayed_Arr;			 // Calculating the average total delay in input
-	EntranceInputDelays.Av_Arrival_Delay = EntranceInputDelays.Av_Arrival_Delay / EntranceInputDelays.N_Delayed_Arr; // Calculating the average entrance delay in input
-	DisturbanceInput.Av_Arrival_Delay = DisturbanceInput.Av_Arrival_Delay / DisturbanceInput.N_Delayed_Arr;			 // Calculating the average disturbance in input
-
-	// Calculate the Standard Deviation of Entrance delays and disturbances in input
-	for (int r = 0; r < numRegions; r++) {
-		if (TrainDelay[r] != 0) { // Std for Total delays in input
-			TotalInputDelays.Std_Arrival_Delay = TotalInputDelays.Std_Arrival_Delay + pow((TrainDelay[r] - TotalInputDelays.Av_Arrival_Delay), 2);
-		}
-		if (TrainEntDelay[r] != 0) { // Std for entrance delays in input
-			EntranceInputDelays.Std_Arrival_Delay = EntranceInputDelays.Std_Arrival_Delay + pow((TrainEntDelay[r] - EntranceInputDelays.Av_Arrival_Delay), 2);
-		}
-		if (Disturb[r] != 0) { // Std for disturbances to dwell time in input
-			DisturbanceInput.Std_Arrival_Delay = DisturbanceInput.Std_Arrival_Delay + pow((Disturb[r] - DisturbanceInput.Av_Arrival_Delay), 2);
-		}
-	}
-	TotalInputDelays.Std_Arrival_Delay = sqrt(TotalInputDelays.Std_Arrival_Delay / (TotalInputDelays.N_Delayed_Arr - 1));
-	EntranceInputDelays.Std_Arrival_Delay = sqrt(EntranceInputDelays.Std_Arrival_Delay / (EntranceInputDelays.N_Delayed_Arr - 1));
-	DisturbanceInput.Std_Arrival_Delay = sqrt(DisturbanceInput.Std_Arrival_Delay / (DisturbanceInput.N_Delayed_Arr - 1));
-
-	// Calculate the Percentages of Delayed trains in input
-	for (int r = 0; r < numRegions; r++) {
-		// For Total Delay in input
-		TotalInputDelays.Perc_Delayed_T = (double)TotalInputDelays.N_Delayed_Arr / TotalInputDelays.N_Stopped_Trains * 100;			  // Percentage of delayed trains
-		TotalInputDelays.Perc_Delayed_T_3min = (double)TotalInputDelays.N_Delayed_Arr_3min / TotalInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		TotalInputDelays.Perc_Delayed_T_5min = (double)TotalInputDelays.N_Delayed_Arr_5min / TotalInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-																																	  // For Entrance Delay in input
-		EntranceInputDelays.Perc_Delayed_T = (double)EntranceInputDelays.N_Delayed_Arr / EntranceInputDelays.N_Stopped_Trains * 100;		   // Percentage of delayed trains
-		EntranceInputDelays.Perc_Delayed_T_3min = (double)EntranceInputDelays.N_Delayed_Arr_3min / EntranceInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		EntranceInputDelays.Perc_Delayed_T_5min = (double)EntranceInputDelays.N_Delayed_Arr_5min / EntranceInputDelays.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-																																			   // For Disturbances in input
-		DisturbanceInput.Perc_Delayed_T = (double)DisturbanceInput.N_Delayed_Arr / DisturbanceInput.N_Stopped_Trains * 100;			  // Percentage of delayed trains
-		DisturbanceInput.Perc_Delayed_T_3min = (double)DisturbanceInput.N_Delayed_Arr_3min / DisturbanceInput.N_Stopped_Trains * 100; // Percentage of delayed trains more than 3 min
-		DisturbanceInput.Perc_Delayed_T_5min = (double)DisturbanceInput.N_Delayed_Arr_5min / DisturbanceInput.N_Stopped_Trains * 100; // Percentage of delayed trains more than 5 min
-	}
-
-	// Calculate the Max Total, Entrance and Disturbance Delay in input
-	for (int r = 0; r < numRegions; r++) {
-		if (TrainDelay[r] > TotalInputDelays.Max_TotalDelay)
-			TotalInputDelays.Max_TotalDelay = TrainDelay[r]; // Max Total Delay in input
-		if (TrainEntDelay[r] > EntranceInputDelays.Max_TotalDelay)
-			EntranceInputDelays.Max_TotalDelay = TrainEntDelay[r]; // Max Entrance Delay in input
-		if (Disturb[r] > DisturbanceInput.Max_TotalDelay)
-			DisturbanceInput.Max_TotalDelay = Disturb[r]; // Max Disturbance in input
-	}
-
+	std::vector<double> delays(numRegions);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
+		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays;
+	calculateDelayStatistics(TotalInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
+		delays[trainIndex] = regional_train[trainIndex].EntranceDelay;
+	calculateDelayStatistics(EntranceInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
+		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays
+			- regional_train[trainIndex].EntranceDelay;
+	calculateDelayStatistics(DisturbanceInput, delays, {}, false);
 }
 
 // Function to calculate the train delay statistics for all the station considered in the network
@@ -411,106 +239,6 @@ void ComputeHwMatrixForAllTrains(Train* T, int numTrains, string MainFolder) {
 			T[i].ComputeHwMatrix(T, numTrains);
 			T[i].PrintHeadwayMatrix(MainFolder);
 		}
-	}
-}
-
-// Function to compute the headways of all the trains with the following according to a train order given
-void ComputeHwMatrixForAllTrainsWithGivenOrder(Train* T, int numTrains, string MainFolder, OrderList OrderedTrainArray) {
-
-	// Once the TrainArray has been sort out compute the Headway Matrix
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int i = 0; i < numTrains; i++) {
-			T[i].SetLocationNames();
-			T[i].ComputeHwMatrixForGivenOrder(T, numTrains, OrderedTrainArray);
-			T[i].PrintHeadwayMatrix(MainFolder);
-		}
-	}
-}
-
-// Function to compute the HW matrix of all the trains solving the conflicts among all the trains
-void ComputeHwMatrixWithGivenOrderSolvingAllConflicts(Train* T, int numTrains, string MainFolder, OrderList OrderedTrainArray) {
-	int IndexOfTrains[1000]; // this vector connects the vector of OrderedTrainArray with the Array of Trains, since they are orderedi n a different way
-	int N_IndexOfTrains = 0; // The size of the vector
-							 // Define the array containing the indices of all the trains
-	for (int q = 0; q < OrderedTrainArray.numTeList; q++) {
-		for (int i = 0; i < numTrains; i++) {
-			if (T[i].trainDescription == OrderedTrainArray.TE[q].trainDescription) {
-				IndexOfTrains[q] = i;
-				N_IndexOfTrains++; // Increase the number of trains
-				break;
-			}
-		}
-	}
-	// Create a temporary folder for printing out the shifted train trajectories
-	string TrajectorySubFolder;
-	TrajectorySubFolder = TrajectorySubFolder + MainFolder + "/" + "TEMP_Shifted_Trajectories";
-	_mkdir((char*)TrajectorySubFolder.c_str());
-
-	// Create a temporary folder for printing out the ongoing timetable assignments
-	string TTAssignmentSubFolder;
-	TTAssignmentSubFolder = TTAssignmentSubFolder + MainFolder + "/OnGoing_TT_Assignment";
-	_mkdir((char*)TTAssignmentSubFolder.c_str());
-
-	// Create a file for plotting all the conflicts detected in the Timetable
-	ofstream ConflictOutput;
-	string ConflOutputName;
-	ConflOutputName = ConflOutputName + MainFolder + "/" + "AllTrainConflicts.txt";
-	ConflictOutput.open((char*)ConflOutputName.c_str(), ios::app);
-	ConflictOutput << "\n\n*****************New Conflict Detection*******************\n";
-
-	// Create a File for plotting the blocking times and timetable points when the train has been assigned to a path in the timetable
-	ofstream OnGoingBlockingTimeFile;
-	string BlockingTimeFileName;
-	BlockingTimeFileName = BlockingTimeFileName + TTAssignmentSubFolder + "/BlockingTimes.txt";
-	OnGoingBlockingTimeFile.open((char*)BlockingTimeFileName.c_str(), ios::app);
-
-	// Create a File to plot the timetable points
-	ofstream OnGoingTTPoints;
-	string TTPointsFileName;
-	TTPointsFileName = TTPointsFileName + TTAssignmentSubFolder + "/TimetablePoints.txt";
-	OnGoingTTPoints.open((char*)TTPointsFileName.c_str(), ios::app);
-
-	for (int i = 0; i < N_IndexOfTrains; i++) {
-		T[i].SetLocationNames();
-		int Index = IndexOfTrains[i]; // temporary variable equal to IndexOfTrains[i]
-
-		if (i > 0) { // Compute the headways and the shift only for trains different from the first one
-			// Put a dummy overlap to activate the while loop
-			T[Index].numOverlaps = 1;
-			while (T[Index].numOverlaps > 0) {
-				cout << "Resetting Train " << T[Index].trainDescription << "\n";
-				T[Index].ResetConflictingTrainsAndHwMatrix();
-				cout << "Computing HW for train " << T[Index].trainDescription << "\n";
-				// regional_train[Index].SetLocationNames();
-				T[Index].DepartureMatrixToSolveConflictsForGivenOrderImproved3(T, numTrains, i, IndexOfTrains); // Compute the MAtrix of the departure times that solve conflicts among all trains
-
-				cout << "Shifting Train " << T[Index].trainDescription << "\n";
-				T[Index].ShiftTrain();
-				cout << "Detecting Conflicts for Train " << T[Index].trainDescription << "\n";
-				T[Index].DetectConflictsWithPreviousDepartingTrains(T, numTrains);
-			}
-			// regional_train[Index].DepartureMatrixToSolveConflictsForGivenOrder(regional_train, numTrains,i,IndexOfTrains);
-			// regional_train[Index].ShiftTrainToCompressTT(regional_train,numTrains,TrajectorySubFolder,MainFolder);    //Shift the train to compress the timetable according the UIC code 406
-		} else { // For the first train of the timetable which has i==0 then we need to shift it to 0 and we must simply apply the ShiftTrainCompressTT
-			T[Index].ShiftTrainToCompressTT(T, numTrains, TrajectorySubFolder, MainFolder);
-		}
-
-		if (T[Index].numOverlaps == 0) {
-			T[Index].PrintTrainBlockingTimesForThisTrain(BlockingTimeFileName);
-			OnGoingBlockingTimeFile.close();
-			// Now must print the Timetable points as well
-			T[Index].PrintTimetablePointsForThisTrain(TTPointsFileName);
-			OnGoingTTPoints.close();
-		}
-	}
-
-	// Close the ConflictOutput file
-	ConflictOutput.close();
-	// Printing train Hw Matrices
-	for (int i = 0; i < numTrains; i++) {
-		T[i].PrintHeadwayMatrix(MainFolder);
 	}
 }
 
@@ -700,25 +428,6 @@ void Implement_ROMA_Solution(string InstanceName, int Instant_Sol_Returned, doub
 	Set_OL0_as_OL1();
 }
 
-// Fast way of computing free-flow trajectories for HW and capacity computation
-void ImprovedTrainSimulationForComputingHW(double v1, double v2, double v3) {
-	for (int i = 0; i < numRegions; i++) {
-		if (regional_train[i].ID == 1) {
-			activateSignallingSystem(); // Activate the signalling system
-			for (int t = 0; t < initial_variables.times; t++) {
-				regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
-				regional_train[i].recordEarliestActiveTrajectoryIndex(t);
-			}
-		} else {
-			for (int j = 0; j < numRegions; j++) {
-				if ((regional_train[j].type == regional_train[i].type) && (regional_train[j].ID == 1)) { // if the train selected is the first one of that type
-					regional_train[i].ReplicateTrainTrajectory(regional_train[j]);						 // Than replicate this train
-					break;																				 // after having replicated it break the for loop
-				}
-			}
-		}
-	}
-}
 
 // Function to Initialize all the Locations in the Network, i.e. the Location list AllLocations
 void InitializeAndComputeMaxHwForAllLocations(Train* T, int N_Train, string MainFolder) {
@@ -805,73 +514,6 @@ void Load_Entrance_Delay_Disturbed_Scenario(string Folder, string stationName, i
 	Load_Departure_Delay_At_Station((char*)Name_Of_File.c_str(), stationName);
 }
 
-void PrintCompressedTrainPathDiagramTrial(Train* S, int N_S, string FolderName) {
-
-	int StartPrintingTime = 999999999; // this is the time the first train departs
-
-	for (int i = 0; i < N_S; i++) {
-		if (S[i].departure_time < StartPrintingTime) {
-			StartPrintingTime = S[i].departure_time; // finding in this way the minimum train departing time as result from the blocking time compression process
-		}
-	}
-
-	string FileName;
-	string FileSpeedsName;
-	FileName = FolderName + "/CompressedTrainPathDiagram.txt";
-	FileSpeedsName = FolderName + "/CompressedSpeedsDiagram.txt";
-	ofstream FileOutput;
-	ofstream FileSpeedsOutput;
-	// Opening the file of the speeds
-	FileSpeedsOutput.open((char*)FileSpeedsName.c_str(), ios::binary);
-	// Opening the file of the train positions
-	FileOutput.open((char*)FileName.c_str(), ios::binary);
-	// witing on the file of the speeds
-	FileSpeedsOutput << "Train/Time ";
-	// writing on the file of the train positions
-	FileOutput << "Train/Time ";
-
-	for (int t = StartPrintingTime; t <= StartPrintingTime + initial_variables.times; t++) {
-		FileOutput << t * timestep << " ";
-		// writing on the file of the speeds
-		FileSpeedsOutput << t * timestep << " ";
-	}
-	FileOutput << "\n";
-	FileSpeedsOutput << "\n";
-
-	for (int i = 0; i < N_S; i++) {
-		FileOutput << S[i].trainDescription << " ";
-		FileSpeedsOutput << S[i].trainDescription << " ";
-
-		const int departureTime = static_cast<int>(S[i].departure_time);
-		const int outputLast = StartPrintingTime + initial_variables.times;
-		const auto positions = shiftedTrajectoryExportCells(
-				S[i].instant_spatial_position, S[i].earliestActiveTrajectoryIndex,
-				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
-		const auto speeds = shiftedTrajectoryExportCells(
-				S[i].instant_train_speed, S[i].earliestActiveTrajectoryIndex,
-				S[i].End_Time, departureTime, StartPrintingTime, outputLast);
-		for (std::size_t column = 0; column < positions.size(); ++column) {
-			const double position = positions[column];
-			if (position == -9999) {
-				FileOutput << -9999 << " ";
-			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-				FileOutput << position << " ";
-			} else {
-				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
-			}
-
-			const double speed = column < speeds.size() ? speeds[column] : -9999;
-			FileSpeedsOutput << (position == -9999 || speed == -9999 ? -9999 : speed) << " ";
-		}
-		FileOutput << "\n";
-		FileSpeedsOutput << "\n";
-	}
-	// Close the output file	of positions
-	FileOutput.close();
-	// Close the output file	of speeds
-	FileSpeedsOutput.close();
-}
-
 // Function to print out all the Results of a network Location
 void PrintLocationHeadways(string MainFolder) {
 	string FileName;
@@ -912,39 +554,6 @@ void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
 			} else {
 				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
 			}
-		}
-		FileOutput << "\n";
-	}
-
-	FileOutput.close();
-}
-
-// Function to Print all the trajectories
-void PrintTrainPathDiagramToDebug(Train* S, int N_S, string FolderName) {
-	bool NoPrint[300]; // This array has for each train the boolean variable that becomes 1 only if the train has finished its run (i.e. the value -9999 to the instant_spatial_position[i] has been reached)
-	for (int k = 0; k < 300; k++) {
-		NoPrint[k] = false;
-	} // Initializing the NoPrint
-	string FileName;
-	FileName = FolderName + "/TrainPathDiagram.txt";
-	ofstream FileOutput;
-	FileOutput.open((char*)FileName.c_str(), ios::binary);
-	FileOutput << "Train/Time ";
-	for (int t = 0; t < initial_variables.times; t++) {
-		FileOutput << t * timestep << " ";
-	}
-	FileOutput << "\n";
-	for (int i = 0; i < N_S; i++) {
-		FileOutput << S[i].trainDescription << " ";
-		for (int t = 0; t < initial_variables.times; t++) {
-			if ((S[i].instant_spatial_position[t] != -9999) && (NoPrint[i] == 0)) {
-				if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
-					FileOutput << S[i].instant_spatial_position[t] << " ";
-				} else {
-					FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - S[i].instant_spatial_position[t] << " ";
-				}
-			} else
-				break;
 		}
 		FileOutput << "\n";
 	}
@@ -1060,204 +669,14 @@ void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceO
 
 // Function to simulate the trains in free flow to be used for computing the Headways
 void TrainSimulationForComputingHW(double v1, double v2, double v3) {
-	/*#pragma omp parallel
-	{
-	#pragma omp for*/
 	for (int i = 0; i < numRegions; i++) {
 		activateSignallingSystem();
 		for (int t = 0; t < initial_variables.times; t++) {
-			// if (t==2200)
-			// cout<<"Pites";
 			regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
 			regional_train[i].recordEarliestActiveTrajectoryIndex(t);
 		}
 	}
-	//}
 }
-
-// Function to Simulate EGTRAIN within a dynamic Interaction with the ROMA tool
-void Train_Simulation_Integration_With_ROMA(double v1, double v2, double v3) {
-	int Instant_Sol_Returned = 0, Instant_Sol_Implemented = 0;
-	for (int t = 0; t <= initial_variables.times; t++) {
-		clock_t startEGTRAIN = clock(); // variable that sets the time in which EGTRAIN starts
-#pragma omp parallel
-		{
-#pragma omp for
-			// Upload for each simulation step: train characteristics
-			for (int j = 0; j < numRegions; j++) {
-				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
-				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			}
-		}
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		for (const auto& inc : simulationIncidents) {
-			if (inc.type == "signal_failure" && t >= inc.startSeconds && t <= inc.endSeconds) {
-				for (const auto& secID : inc.resolvedSectionIDs) {
-					bool found = false;
-					for (const auto& occ : BlocksOccupied) {
-						if (occ == secID) { found = true; break; }
-					}
-					if (!found) {
-						BlocksOccupied.push_back(secID);
-					}
-				}
-			}
-		}
-		releaseBlockConnections();	   // Release Blocks connected with the one really occupied by a train
-		activateSignallingSystem();	   // Apply the rules of the signalling system for all the Blocks contained
-		BlocksOccupied.clear();			   // Clear the list BlocksOccupied
-		BlocksConnected.clear();		   // Clear the list BlocksConnected
-
-		Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
-		clock_t endEGTRAIN = clock();		   // variable that sets the time in which EGTRAIN ends
-
-		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
-
-		if (Time_To_Collect_Info == Resched_Interval) { // If the Time instant is equal to the interval to gather the information
-			char Resch_Int[20];
-			snprintf(Resch_Int, sizeof(Resch_Int), "%d", Resched_Interval);
-			string NameOutputFolder;
-			NameOutputFolder = NameOutputFolder + Name_Of_Integ_Folder + initial_variables.OutputMainFolder + "/" + "instance_" + InstanceName + "/" + Resch_Int + "-" + Pred_Hor + "/"; // This is the string in which the outputs of EGTRAIN are saved
-			Print_Trajectories_Of_All_Trains_At_Instant(t, NameOutputFolder);
-			Time_To_Collect_Info = 0;
-
-			// CALL the ROMA tool and compute new rescheduling solution
-			clock_t startROMA = clock();
-			callRoma(InstanceName, t, PH);
-			clock_t endROMA = clock();
-			Comp_Time_ROMA = Comp_Time_ROMA + double(endROMA - startROMA) / CLOCKS_PER_SEC; // computing the cumulated computation time of ROMA
-
-			if (DelayDispatcherImpl > Resched_Interval) // If the DelayDispatcherImpl is larger than the reshceduling interval then the instantSol Returned must be the one calculated at the DelayDispatcher/Resched_Interval Rescheduling intervals ago.
-				Instant_Sol_Returned = t - (int)(DelayDispatcherImpl / Resched_Interval) * Resched_Interval;
-			else
-				Instant_Sol_Returned = t;
-			Instant_Sol_Implemented = Instant_Sol_Returned + DelayDispatcherImpl;
-		}
-
-		// Implement the new rescheduling solution (list OL for each of the Checkpoints) in EGTRAIN
-		if (t == Instant_Sol_Implemented) { // If you suppress these two lines you calculate the ROMA Solution but you will not implement it
-			Implement_ROMA_Solution(InstanceName, Instant_Sol_Returned, PH);
-			// Printing unfeasible orders on a txt file
-			char Resch_Int[20];
-			snprintf(Resch_Int, sizeof(Resch_Int), "%d", Resched_Interval); // Char variables to take the values of the rescheduling interval and the prediction horizon
-			string NameOutputFolder;
-			NameOutputFolder = NameOutputFolder + Name_Of_Integ_Folder + initial_variables.OutputMainFolder + "/" + "instance_" + InstanceName + "/" + Resch_Int + "-" + Pred_Hor + "/";
-			compareImplementedOrderWithRomaSolutionForAllOl(NameOutputFolder, t);
-			/*//Print OL lists on the screen
-			cout<<"time"<<t<<"\n";
-			for(int i=0;i<N_OrderLists;i++){
-			cout<<"OL "<<i<<"\n";
-			for (int j=0;j<OL[i].numTeList;j++){
-			cout<<OL[i].TE[j].trainDescription<<"\n";
-			}
-			}
-			system("pause");*/
-		} // This is the parenthesis that closes the if statement above
-
-		/*
-		//Print OL lists on the screen
-		cout<<"time"<<t<<"\n";
-		for(int i=0;i<N_OrderLists;i++){
-		cout<<"OL "<<i<<"\n";
-		for (int j=0;j<OL[i].numTeList;j++){
-		cout<<OL[i].TE[j].trainDescription<<"\n";
-		}
-		}
-		system("pause");*/
-
-		Time_To_Collect_Info++; // increase Time_To_Collect_Info;
-	}
-}
-
-// Function to Simulate traffic within the observation period and without interactions wth the traffic management system
-void trainSimulation(double v1, double v2, double v3) {
-	for (int t = 0; t < initial_variables.times; t++) {
-		std::cout << "times = " << t << std::endl;
-		clock_t startEGTRAIN = clock(); // variable that sets the time in which EGTRAIN starts
-#pragma omp parallel
-		{
-#pragma omp for
-			// Upload for each simulation step: train characteristics
-			for (int j = 0; j < numRegions; j++) {
-				regional_train[j].Trajectory_Block_Section(t, v1, v2, v3);
-				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			}
-		}
-
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		for (const auto& inc : simulationIncidents) {
-			if (inc.type == "signal_failure" && t >= inc.startSeconds && t <= inc.endSeconds) {
-				for (const auto& secID : inc.resolvedSectionIDs) {
-					bool found = false;
-					for (const auto& occ : BlocksOccupied) {
-						if (occ == secID) { found = true; break; }
-					}
-					if (!found) {
-						BlocksOccupied.push_back(secID);
-					}
-				}
-			}
-		}
-		releaseBlockConnections();	   // Release Blocks connected with the one really occupied by a train
-		activateSignallingSystem();	   // Apply the rules of the signalling system for all the Blocks contained
-		/*showElement(t,BlocksOccupied);*/
-		BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-		BlocksConnected.clear(); // Clear the list BlocksConnected
-		/*debugFunctionBlockCodes(t,"@2-B2@-1.314000/@3-B0@-1.339000",Route[0]);*/
-
-		Detect_Implemented_Order_For_All_OL();														// Detect The order Implemented for all the OLs in the network
-		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
-		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
-	}
-}
-
-////Function to simulate traffic in networks with a mixed signalling system (e.g. conventional, mixed to ETCS L1, L2 and or L3)
-////Function to Simulate traffic within the observation period and without interactions wth the traffic management system
-// void Train_Simulation_Mixed_Signalling(double v1, double v2, double v3) {
-//	for (int t = 0; t < times; t++) {
-//		clock_t startEGTRAIN = clock();    //variable that sets the time in which EGTRAIN starts
-// #pragma omp parallel
-//		{
-// #pragma omp for
-//			//Upload for each simulation step: train characteristics
-//
-//			for (int j = 0; j < numRegions; j++) {
-//
-//				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);  //originally we shall call the function Trajectory_Block_Section_Free_Flow
-//			}
-//		}
-//
-//		/**********************************************************************************************
-//		*                        Update configuration of the network elements at instant t
-//		*
-//		************************************************************************************************/
-//		ETCS_MA.clear();                        //Clear the list containing all the Movement Authorities given to the trains at the previous instant
-//
-//		Occupy_Block_Sections_Of_Route(t);     //Fill in the lists Blocks_Occupied and BlocksConnected
-//		//ReportAllTrainPositionsToRBC(t, 50);    //Reporting the positions of the trains to the RBC considering a safety Margin of 50 metres
-//		//Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(t);  // Predict and check the Predict_MA_To_DecoupleAt for all trains which are in following mode
-//		releaseMixedSignallingSystem();          //Release Blocks connected with the one really occupied by a train
-//
-//		activateMixedSignallingSystem();          //Apply the rules of the signalling system for all the Blocks contained
-//
-//		//showElementInEtcsMa(t);   //Printing the MAs
-//												  /*showElement(t,BlocksOccupied);*/
-//		BlocksOccupied.clear();                 //Clear the list BlocksOccupied
-//		BlocksConnected.clear();                //Clear the list BlocksConnected
-//
-//												/*debugFunctionBlockCodes(t,"@2-B2@-1.314000/@3-B0@-1.339000",Route[0]);*/
-//
-//		Detect_Implemented_Order_For_All_OL();   //Detect The order Implemented for all the OLs in the network
-//		clock_t endEGTRAIN = clock();              //variable that sets the time in which EGTRAIN ends
-//		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC;     //computing the cumulated computation time of EGTRAIN
-//
-//	}
-// }
-
 
 // Function to initialise all StationPlatforms for the simulation of passenger flows
 // The function takes as input all the Array and number of all block sections, the array and number of all trains, the array of all defined rutes, as well as the length and width of the platforms (to be expressed in meters)

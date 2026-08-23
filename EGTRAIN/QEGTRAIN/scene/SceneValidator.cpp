@@ -1,5 +1,6 @@
 #include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
+#include "simulation/RuntimeLimits.h"
 
 #include <algorithm>
 #include <cmath>
@@ -122,9 +123,13 @@ void collectIds(const std::vector<T>& items, const std::string& file, const std:
 	}
 }
 
-std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable) {
+std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable,
+		const SceneRunSelection& selectedOccurrences = {},
+		std::optional<double> effectiveDurationOverride = std::nullopt) {
 	std::vector<SceneDiagnostic> result;
 	DiagnosticBuilder diagnostics{result};
+	const double effectiveDurationSeconds = effectiveDurationOverride.value_or(
+			scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0);
 
 	if (!scene.baseTime.empty()) {
 		static const std::regex timePattern("^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$");
@@ -795,8 +800,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"repeat.operating_code_step must be nonzero and use a decimal operating code base",
 					"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
 					"Use a nonzero step with a decimal operating_code");
-		const int occurrences = sceneServiceOccurrenceCount(service,
-				scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0);
+		const int occurrences = sceneServiceOccurrenceCount(service, effectiveDurationSeconds);
 		if (service.hasRepeat && service.hasOperatingCodeStep
 				&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
 				&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
@@ -1133,6 +1137,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 
 	if (runnable) {
+		if (!scene.name.empty() && sceneOutputDirectoryComponent(scene.name) != scene.name)
+			diagnostics.error("scene.name.path", "Scene name must be a single safe output-directory component",
+				"scene.json", "scene", scene.name, "name", "",
+				"Use a name without path separators, dot components, or drive-qualified prefixes");
 		if (scene.baseTime.empty())
 			diagnostics.error("scene.basetime.missing", "Runnable scene requires base_time", "scene.json",
 					"scene", "", "base_time", "", "Set scene.json base_time to HH:MM:SS");
@@ -1187,13 +1195,43 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.scenario.default.missing", "Runnable scene requires a default scenario",
 					"scenarios.json", "scene", "", "default_scenario_id");
 
+		auto runtimeCapacity = [&](const std::string& message, const std::string& file,
+				const std::string& itemType, const std::string& itemId, const std::string& path,
+				const std::string& relatedId = "", const std::string& suggestedFix = "") {
+			diagnostics.error("scene.capacity.runtime", message, file, itemType, itemId, path,
+					relatedId, suggestedFix);
+		};
+		std::size_t expandedServiceOccurrences = 0;
+		const std::size_t maxExpandedTrains = static_cast<std::size_t>(RuntimeLimits::kMaxExpandedTrains);
+		for (const SceneService& service : scene.services) {
+			const std::string servicePath = "services[" + service.id + "]";
+			if (service.stops.size() > static_cast<std::size_t>(RuntimeLimits::kMaxTimetableStops))
+				runtimeCapacity("Service stops exceed the native timetable capacity of "
+						+ std::to_string(RuntimeLimits::kMaxTimetableStops), "services.json", "service", service.id,
+						servicePath + ".stops", std::to_string(service.stops.size()),
+						"Reduce this service to " + std::to_string(RuntimeLimits::kMaxTimetableStops)
+								+ " or fewer stops");
+			const int occurrences = sceneServiceOccurrenceCount(service, effectiveDurationSeconds);
+			const std::size_t occurrenceCount = selectedOccurrences.empty()
+					? static_cast<std::size_t>(occurrences)
+					: static_cast<std::size_t>(std::count_if(selectedOccurrences.begin(), selectedOccurrences.end(),
+							[&](const SceneServiceOccurrence& selected) {
+								return selected.serviceId == service.id && selected.occurrence >= 1
+										&& selected.occurrence <= occurrences;
+							}));
+			if (expandedServiceOccurrences > maxExpandedTrains
+					|| occurrenceCount > maxExpandedTrains - expandedServiceOccurrences)
+				expandedServiceOccurrences = maxExpandedTrains + 1;
+			else
+				expandedServiceOccurrences += occurrenceCount;
+		}
+		if (expandedServiceOccurrences > maxExpandedTrains)
+			runtimeCapacity("Expanded service occurrences exceed the native train capacity of "
+					+ std::to_string(RuntimeLimits::kMaxExpandedTrains), "services.json", "scene", scene.name,
+					"services", "", "Reduce repeat counts or headways so total occurrences fit within "
+							+ std::to_string(RuntimeLimits::kMaxExpandedTrains) + " trains");
+
 		if (infrastructureUsableForRuntimeChecks) {
-			auto runtimeCapacity = [&](const std::string& message, const std::string& file,
-					const std::string& itemType, const std::string& itemId, const std::string& path,
-					const std::string& relatedId = "", const std::string& suggestedFix = "") {
-				diagnostics.error("scene.capacity.runtime", message, file, itemType, itemId, path,
-						relatedId, suggestedFix);
-			};
 
 			if (scene.tracks.size() > kNativeMaxTracks)
 				runtimeCapacity("Scene has more than " + std::to_string(kNativeMaxTracks)
@@ -1362,8 +1400,9 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene) {
 	return validateCore(scene, false);
 }
 
-std::vector<SceneDiagnostic> validateRunnableScene(const SceneModel& scene) {
-	return validateCore(scene, true);
+std::vector<SceneDiagnostic> validateRunnableScene(const SceneModel& scene,
+		const SceneRunSelection& selectedOccurrences, std::optional<double> effectiveDurationOverride) {
+	return validateCore(scene, true, selectedOccurrences, effectiveDurationOverride);
 }
 
 std::vector<SceneDiagnostic> validateSceneDirectory(const std::string& sceneDir) {

@@ -6474,6 +6474,22 @@
       "unresolved_references": 6
     },
     {
+      "category": "views.tracks",
+      "converted_count": 268,
+      "skipped_count": 0,
+      "source_count": 268,
+      "source_file": "Input/Input_EGTRAIN_Netherlands/GUI/caseStudyTrackData.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "views.stations",
+      "converted_count": 41,
+      "skipped_count": 0,
+      "source_count": 41,
+      "source_file": "Input/Input_EGTRAIN_Netherlands/GUI/StationsCoord.txt",
+      "unresolved_references": 0
+    },
+    {
       "category": "rolling_stock.manifest",
       "converted_count": 8,
       "skipped_count": 0,

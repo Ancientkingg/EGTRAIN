@@ -4,6 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
@@ -19,6 +20,26 @@ static bool expect(bool condition, const char* message) {
 static std::string readBytes(const fs::path& path) {
 	std::ifstream input(path, std::ios::binary);
 	return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
+
+static std::map<std::string, std::string> readDirectoryBytes(const fs::path& directory) {
+	std::map<std::string, std::string> files;
+	for (const auto& entry : fs::directory_iterator(directory)) {
+		if (entry.is_regular_file())
+			files.emplace(entry.path().filename().string(), readBytes(entry.path()));
+	}
+	return files;
+}
+
+static bool hasSiblingArtifact(const fs::path& destination, const std::string& kind) {
+	const fs::path parent = destination.parent_path().empty() ? fs::path(".")
+			: destination.parent_path();
+	const std::string prefix = destination.filename().string() + "." + kind + "-";
+	for (const auto& entry : fs::directory_iterator(parent)) {
+		if (entry.path().filename().string().rfind(prefix, 0) == 0)
+			return true;
+	}
+	return false;
 }
 
 static void printErrors(const std::vector<SceneDiagnostic>& diagnostics, const char* label) {
@@ -65,6 +86,7 @@ static SceneModel completeScene() {
 	scene.blocks.push_back({"block-1", "track-1", 0.5});
 	scene.blocks.push_back({"block-2", "track-1", 0.5});
 	scene.connections.push_back({"connection-1", "node-1", "node-2", true, 30.0});
+	scene.trackViews.push_back({"track-1", -2, 1, false});
 
 	SceneStation first;
 	first.id = "station-1";
@@ -76,6 +98,13 @@ static SceneModel completeScene() {
 	second.name = "Destination";
 	second.platforms.push_back({"platform-2", {"node-2"}});
 	scene.stations.push_back(second);
+	SceneStationView stationView;
+	stationView.stationId = "station-1";
+	stationView.latitude = 55.6761;
+	stationView.longitude = 12.5683;
+	stationView.regions = {{1, 0.25}, {2, 0.75}};
+	stationView.corridors = {"main", "branch"};
+	scene.stationViews.push_back(stationView);
 
 	scene.signals.push_back({"signal-1", "@block-1@"});
 	scene.signallingAreas.push_back({"area-1", 0.25, 0.75, 4, "track-1"});
@@ -189,7 +218,7 @@ int main() {
 	printErrors(saved.diagnostics, "save");
 	ok &= expect(saved.success(), "complete canonical scene saves");
 	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json"})
+			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"})
 		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
 	const std::string savedSnapshot = saved.inputSnapshot;
 	const SceneInputSnapshot onDiskSnapshot = readSceneDirectorySnapshot(temp.path.string());
@@ -197,6 +226,31 @@ int main() {
 			&& savedSnapshot == onDiskSnapshot.bytes,
 			"successful save retains the exact framed canonical input snapshot");
 	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
+	{
+		std::ofstream marker(temp.path / "generation-marker.txt", std::ios::binary);
+		marker << "original generation marker\n";
+	}
+	fs::create_directory(temp.path / "notes");
+	{
+		std::ofstream note(temp.path / "notes" / "operator.txt", std::ios::binary);
+		note << "keep with scene\n";
+	}
+	const auto originalGeneration = readDirectoryBytes(temp.path);
+	SceneModel malformed = source;
+	malformed.passengers[0].journeys[0].activity = std::string("\xC3\x28", 2);
+	const SceneSaveResult failedSave = saveScene(malformed, temp.path.string());
+	ok &= expect(!failedSave.success() && hasErrors(failedSave.diagnostics),
+			"malformed UTF-8 fails without publishing a partial generation");
+	ok &= expect(readDirectoryBytes(temp.path) == originalGeneration,
+			"failed save preserves every byte of the previous generation");
+	ok &= expect(!hasSiblingArtifact(temp.path, "staging")
+			&& !hasSiblingArtifact(temp.path, "backup"),
+			"failed save removes sibling staging and backup artifacts");
+	const SceneSaveResult replacementSave = saveScene(source, temp.path.string());
+	ok &= expect(replacementSave.success()
+			&& fs::exists(temp.path / "generation-marker.txt")
+			&& fs::exists(temp.path / "notes" / "operator.txt"),
+			"successful generation replacement preserves unmanaged scene contents");
 	json stations;
 	{
 		std::ifstream input(temp.path / "stations.json");
@@ -352,6 +406,16 @@ int main() {
 			"external canonical-file changes do not mutate retained snapshots");
 	ok &= expect(reloaded.tracks.size() == 1 && reloaded.nodes.size() == 2 && reloaded.blocks.size() == 2,
 			"topology round-trips");
+	ok &= expect(reloaded.trackViews.size() == 1
+			&& reloaded.trackViews[0].trackId == "track-1"
+			&& reloaded.trackViews[0].level == -2
+			&& reloaded.trackViews[0].region == 1
+			&& !reloaded.trackViews[0].visible
+			&& reloaded.stationViews.size() == 1
+			&& reloaded.stationViews[0].stationId == "station-1"
+			&& reloaded.stationViews[0].regions == std::vector<std::pair<int, double>>({{1, 0.25}, {2, 0.75}})
+			&& reloaded.stationViews[0].corridors == std::vector<std::string>({"main", "branch"}),
+			"authored display layout round-trips");
 	ok &= expect(reloaded.routes[0].corridor == "corridor-1" && reloaded.routes[0].reversed,
 			"route corridor and direction round-trip");
 	ok &= expect(reloaded.signallingAreas.size() == 1

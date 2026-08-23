@@ -1,7 +1,25 @@
 #include "simulation/Passengers.h"
+#include <algorithm>
 
 list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
 int numAllDailyPassengers = 0;		// This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
+
+nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timestep) {
+	nlohmann::json payload = {{"passengers", nlohmann::json::object()}, {"time", timestep}};
+	for (const Passenger& passenger : passengers) {
+		if (!passenger.IsIntheNetwork)
+			continue;
+		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
+				[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
+		if (journey == passenger.Journeys.end())
+			continue;
+		payload["passengers"][passenger.ID + "--1.0"] = {
+			{"origin", journey->Dep_Station_ID},
+			{"destination", journey->Arr_Station_ID},
+			{"departure_time", static_cast<int>(journey->Actual_Planned_Departure_Time)}};
+	}
+	return payload;
+}
 
 void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger> ALLPAX, string MainFolder) {
 	string FileName;

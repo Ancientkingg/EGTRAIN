@@ -1,5 +1,8 @@
 # Build And Test
 
+Run configure, build, and test commands from the repository root. Run the
+application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
+
 ## Requirements
 
 - CMake 3.16 or newer
@@ -7,6 +10,9 @@
 - Qt 5 Core, Gui, Widgets, Charts, and Svg
 - OpenMP runtime
 - ZeroMQ, cppzmq, and nlohmann-json
+
+`Qt5::Svg` is required by the application and must be available with the
+other Qt 5 modules.
 
 ## Configure
 
@@ -26,6 +32,30 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/o
 ```bash
 cmake --build build
 ```
+
+## Run a local build
+
+From `EGTRAIN/QEGTRAIN`, use the executable produced by the selected generator:
+
+```text
+# macOS
+../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+
+# Windows PowerShell, multi-config generator
+..\..\build\Release\QEGTRAIN.exe
+
+# Linux
+../../build/QEGTRAIN
+```
+
+A single-config Windows build may place the executable at
+`..\..\build\QEGTRAIN.exe`. These are local build paths; downloaded release
+packages are documented in the root [README](../../README.md).
+
+Runtime output defaults to
+`<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use a
+repository `Output/` directory. Set `QEGTRAIN_OUTPUT_DIR` to override the base
+directory; EGTRAIN then writes `<override>/Output/<scene>`.
 
 ## Unit Tests
 
@@ -88,6 +118,27 @@ tools/e2e/visual_polish_smoke.sh
 ```
 
 Run this after UI or rendering changes.
+
+## Smoke artifacts
+
+Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`. GitHub
+Actions routes `TMPDIR` to `$RUNNER_TEMP` (`runner.temp`) for CI diagnostics.
+The visual and render smoke artifacts include:
+
+- `qegtrain-visual-polish-e2e.png` and `qegtrain-visual-polish-e2e.log`
+- `qegtrain-scene-render-e2e.png` and `qegtrain-scene-render-e2e.log`
+- `ctest.log`, `qegtrain-editor-smoke-e2e.log`, and
+  `qegtrain-gui-autostart-smoke.log`
+
+## CI and release branches
+
+- `main` is the validation branch. Every push and pull request builds the
+  project and runs CTest, including documentation-only changes.
+- `production` is the release branch. Its full pipeline packages macOS,
+  Windows, and Linux applications, runs CTest, sanitizers, and the complete
+  smoke suite, validates the scene bundles, and publishes release assets.
+- `v*` tags still publish versioned releases, and `workflow_dispatch` remains
+  available for a manual release run.
 
 ## Verification Gates
 

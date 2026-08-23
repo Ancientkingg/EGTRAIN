@@ -6,7 +6,7 @@
       "converted_count": 1,
       "skipped_count": 0,
       "source_count": 1,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen",
       "unresolved_references": 0
     },
     {
@@ -30,7 +30,7 @@
       "converted_count": 771,
       "skipped_count": 0,
       "source_count": 771,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B0/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B0/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -38,7 +38,7 @@
       "converted_count": 770,
       "skipped_count": 0,
       "source_count": 770,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B0/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B0/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -46,7 +46,7 @@
       "converted_count": 235,
       "skipped_count": 0,
       "source_count": 235,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B0/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B0/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -54,7 +54,7 @@
       "converted_count": 754,
       "skipped_count": 0,
       "source_count": 754,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B1/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B1/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -62,7 +62,7 @@
       "converted_count": 753,
       "skipped_count": 0,
       "source_count": 753,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B1/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B1/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -70,7 +70,7 @@
       "converted_count": 231,
       "skipped_count": 0,
       "source_count": 231,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B1/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B1/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -78,7 +78,7 @@
       "converted_count": 8,
       "skipped_count": 0,
       "source_count": 8,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B2/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B2/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -86,7 +86,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B2/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B2/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -94,7 +94,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B2/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B2/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -102,7 +102,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B3/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B3/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -110,7 +110,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B3/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B3/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -118,7 +118,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B3/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B3/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -126,7 +126,7 @@
       "converted_count": 12,
       "skipped_count": 0,
       "source_count": 12,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B4/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B4/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -134,7 +134,7 @@
       "converted_count": 11,
       "skipped_count": 0,
       "source_count": 11,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B4/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B4/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -142,7 +142,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B4/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B4/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -150,7 +150,7 @@
       "converted_count": 8,
       "skipped_count": 0,
       "source_count": 8,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B5/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B5/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -158,7 +158,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B5/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B5/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -166,7 +166,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B5/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B5/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -174,7 +174,7 @@
       "converted_count": 439,
       "skipped_count": 0,
       "source_count": 439,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B6/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B6/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -182,7 +182,7 @@
       "converted_count": 438,
       "skipped_count": 0,
       "source_count": 438,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B6/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B6/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -190,7 +190,7 @@
       "converted_count": 133,
       "skipped_count": 0,
       "source_count": 133,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B6/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B6/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -198,7 +198,7 @@
       "converted_count": 437,
       "skipped_count": 0,
       "source_count": 437,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B7/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B7/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -206,7 +206,7 @@
       "converted_count": 436,
       "skipped_count": 0,
       "source_count": 436,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B7/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B7/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -214,7 +214,7 @@
       "converted_count": 133,
       "skipped_count": 0,
       "source_count": 133,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B7/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B7/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -222,7 +222,7 @@
       "converted_count": 187,
       "skipped_count": 0,
       "source_count": 187,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B8/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B8/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -230,7 +230,7 @@
       "converted_count": 186,
       "skipped_count": 0,
       "source_count": 186,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B8/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B8/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -238,7 +238,7 @@
       "converted_count": 56,
       "skipped_count": 0,
       "source_count": 56,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B8/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B8/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -246,7 +246,7 @@
       "converted_count": 181,
       "skipped_count": 0,
       "source_count": 181,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B9/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B9/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -254,7 +254,7 @@
       "converted_count": 180,
       "skipped_count": 0,
       "source_count": 180,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B9/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B9/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -262,7 +262,7 @@
       "converted_count": 55,
       "skipped_count": 0,
       "source_count": 55,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B9/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B9/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -270,7 +270,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B10/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B10/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -278,7 +278,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B10/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B10/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -286,7 +286,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B10/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B10/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -294,7 +294,7 @@
       "converted_count": 19,
       "skipped_count": 0,
       "source_count": 19,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B11/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B11/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -302,7 +302,7 @@
       "converted_count": 18,
       "skipped_count": 0,
       "source_count": 18,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B11/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B11/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -310,7 +310,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B11/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B11/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -318,7 +318,7 @@
       "converted_count": 19,
       "skipped_count": 0,
       "source_count": 19,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B12/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B12/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -326,7 +326,7 @@
       "converted_count": 18,
       "skipped_count": 0,
       "source_count": 18,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B12/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B12/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -334,7 +334,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B12/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B12/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -342,7 +342,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B13/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B13/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -350,7 +350,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B13/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B13/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -358,7 +358,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B13/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B13/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -366,7 +366,7 @@
       "converted_count": 349,
       "skipped_count": 0,
       "source_count": 349,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B14/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B14/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -374,7 +374,7 @@
       "converted_count": 348,
       "skipped_count": 0,
       "source_count": 348,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B14/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B14/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -382,7 +382,7 @@
       "converted_count": 108,
       "skipped_count": 0,
       "source_count": 108,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B14/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B14/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -390,7 +390,7 @@
       "converted_count": 348,
       "skipped_count": 0,
       "source_count": 348,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B15/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B15/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -398,7 +398,7 @@
       "converted_count": 347,
       "skipped_count": 0,
       "source_count": 347,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B15/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B15/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -406,7 +406,7 @@
       "converted_count": 107,
       "skipped_count": 0,
       "source_count": 107,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B15/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B15/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -414,7 +414,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B16/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B16/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -422,7 +422,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B16/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B16/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -430,7 +430,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B16/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B16/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -438,7 +438,7 @@
       "converted_count": 13,
       "skipped_count": 0,
       "source_count": 13,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B17/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B17/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -446,7 +446,7 @@
       "converted_count": 12,
       "skipped_count": 0,
       "source_count": 12,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B17/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B17/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -454,7 +454,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B17/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B17/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -462,7 +462,7 @@
       "converted_count": 9,
       "skipped_count": 0,
       "source_count": 9,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B18/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B18/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -470,7 +470,7 @@
       "converted_count": 8,
       "skipped_count": 0,
       "source_count": 8,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B18/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B18/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -478,7 +478,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B18/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B18/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -486,7 +486,7 @@
       "converted_count": 10,
       "skipped_count": 0,
       "source_count": 10,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B19/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B19/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -494,7 +494,7 @@
       "converted_count": 9,
       "skipped_count": 0,
       "source_count": 9,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B19/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B19/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -502,7 +502,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B19/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B19/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -510,7 +510,7 @@
       "converted_count": 12,
       "skipped_count": 0,
       "source_count": 12,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B20/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B20/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -518,7 +518,7 @@
       "converted_count": 11,
       "skipped_count": 0,
       "source_count": 11,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B20/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B20/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -526,7 +526,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B20/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B20/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -534,7 +534,7 @@
       "converted_count": 142,
       "skipped_count": 0,
       "source_count": 142,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B21/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B21/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -542,7 +542,7 @@
       "converted_count": 141,
       "skipped_count": 0,
       "source_count": 141,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B21/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B21/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -550,7 +550,7 @@
       "converted_count": 42,
       "skipped_count": 0,
       "source_count": 42,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B21/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B21/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -558,7 +558,7 @@
       "converted_count": 206,
       "skipped_count": 0,
       "source_count": 206,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B22/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B22/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -566,7 +566,7 @@
       "converted_count": 205,
       "skipped_count": 0,
       "source_count": 205,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B22/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B22/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -574,7 +574,7 @@
       "converted_count": 62,
       "skipped_count": 0,
       "source_count": 62,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B22/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B22/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -582,7 +582,7 @@
       "converted_count": 70,
       "skipped_count": 0,
       "source_count": 70,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B23/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B23/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -590,7 +590,7 @@
       "converted_count": 69,
       "skipped_count": 0,
       "source_count": 69,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B23/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B23/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -598,7 +598,7 @@
       "converted_count": 22,
       "skipped_count": 0,
       "source_count": 22,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B23/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B23/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -606,7 +606,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B24/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B24/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -614,7 +614,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B24/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B24/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -622,7 +622,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B24/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B24/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -630,7 +630,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B25/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B25/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -638,7 +638,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B25/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B25/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -646,7 +646,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B25/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B25/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -654,7 +654,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B26/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B26/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -662,7 +662,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B26/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B26/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -670,7 +670,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B26/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B26/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -678,7 +678,7 @@
       "converted_count": 8,
       "skipped_count": 0,
       "source_count": 8,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B27/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B27/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -686,7 +686,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B27/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B27/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -694,7 +694,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B27/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B27/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -702,7 +702,7 @@
       "converted_count": 7,
       "skipped_count": 0,
       "source_count": 7,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B28/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B28/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -710,7 +710,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B28/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B28/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -718,7 +718,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B28/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B28/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -726,7 +726,7 @@
       "converted_count": 6,
       "skipped_count": 0,
       "source_count": 6,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B29/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B29/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -734,7 +734,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B29/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B29/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -742,7 +742,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B29/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B29/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -750,7 +750,7 @@
       "converted_count": 5,
       "skipped_count": 0,
       "source_count": 5,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B30/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B30/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -758,7 +758,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B30/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B30/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -766,7 +766,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B30/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B30/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -774,7 +774,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B31/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B31/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -782,7 +782,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B31/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B31/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -790,7 +790,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B31/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B31/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -798,7 +798,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B32/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B32/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -806,7 +806,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B32/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B32/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -814,7 +814,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B32/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B32/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -822,7 +822,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B33/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B33/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -830,7 +830,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B33/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B33/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -838,7 +838,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B33/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B33/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -846,7 +846,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B34/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B34/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -854,7 +854,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B34/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B34/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -862,7 +862,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B34/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B34/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -870,7 +870,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B35/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B35/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -878,7 +878,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B35/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B35/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -886,7 +886,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B35/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B35/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -894,7 +894,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B36/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B36/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -902,7 +902,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B36/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B36/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -910,7 +910,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B36/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B36/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -918,7 +918,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B37/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B37/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -926,7 +926,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B37/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B37/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -934,7 +934,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B37/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B37/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -942,7 +942,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B38/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B38/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -950,7 +950,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B38/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B38/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -958,7 +958,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B38/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B38/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -966,7 +966,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B39/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B39/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -974,7 +974,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B39/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B39/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -982,7 +982,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B39/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B39/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -990,7 +990,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B40/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B40/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -998,7 +998,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B40/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B40/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1006,7 +1006,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B40/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B40/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1014,7 +1014,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B41/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B41/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1022,7 +1022,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B41/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B41/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1030,7 +1030,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B41/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B41/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1038,7 +1038,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B42/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B42/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1046,7 +1046,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B42/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B42/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1054,7 +1054,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B42/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B42/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1062,7 +1062,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B43/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B43/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1070,7 +1070,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B43/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B43/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1078,7 +1078,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B43/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B43/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1086,7 +1086,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B44/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B44/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1094,7 +1094,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B44/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B44/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1102,7 +1102,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B44/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B44/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1110,7 +1110,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B45/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B45/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1118,7 +1118,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B45/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B45/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1126,7 +1126,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B45/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B45/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1134,7 +1134,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B46/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B46/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1142,7 +1142,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B46/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B46/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1150,7 +1150,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B46/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B46/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1158,7 +1158,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B47/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B47/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1166,7 +1166,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B47/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B47/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1174,7 +1174,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B47/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B47/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1182,7 +1182,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B48/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B48/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1190,7 +1190,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B48/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B48/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1198,7 +1198,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B48/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B48/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1206,7 +1206,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B49/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B49/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1214,7 +1214,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B49/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B49/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1222,7 +1222,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B49/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B49/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1230,7 +1230,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B50/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B50/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1238,7 +1238,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B50/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B50/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1246,7 +1246,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B50/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B50/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1254,7 +1254,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B51/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B51/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1262,7 +1262,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B51/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B51/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1270,7 +1270,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B51/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B51/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1278,7 +1278,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B52/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B52/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1286,7 +1286,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B52/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B52/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1294,7 +1294,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B52/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B52/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1302,7 +1302,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B53/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B53/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1310,7 +1310,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B53/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B53/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1318,7 +1318,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B53/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B53/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1326,7 +1326,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B54/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B54/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1334,7 +1334,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B54/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B54/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1342,7 +1342,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B54/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B54/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1350,7 +1350,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B55/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B55/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1358,7 +1358,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B55/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B55/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1366,7 +1366,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B55/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B55/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1374,7 +1374,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B56/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B56/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1382,7 +1382,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B56/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B56/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1390,7 +1390,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B56/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B56/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1398,7 +1398,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B57/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B57/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1406,7 +1406,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B57/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B57/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1414,7 +1414,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B57/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B57/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1422,7 +1422,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B58/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B58/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1430,7 +1430,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B58/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B58/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1438,7 +1438,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B58/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B58/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1446,7 +1446,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B59/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B59/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1454,7 +1454,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B59/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B59/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1462,7 +1462,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B59/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B59/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1470,7 +1470,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B60/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B60/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1478,7 +1478,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B60/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B60/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1486,7 +1486,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B60/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B60/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1494,7 +1494,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B61/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B61/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1502,7 +1502,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B61/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B61/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1510,7 +1510,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B61/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B61/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1518,7 +1518,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B62/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B62/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1526,7 +1526,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B62/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B62/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1534,7 +1534,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B62/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B62/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1542,7 +1542,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B63/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B63/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1550,7 +1550,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B63/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B63/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1558,7 +1558,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B63/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B63/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1566,7 +1566,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B64/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B64/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1574,7 +1574,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B64/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B64/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1582,7 +1582,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B64/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B64/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1590,7 +1590,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B65/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B65/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1598,7 +1598,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B65/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B65/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1606,7 +1606,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B65/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B65/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1614,7 +1614,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B66/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B66/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1622,7 +1622,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B66/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B66/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1630,7 +1630,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B66/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B66/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1638,7 +1638,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B67/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B67/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1646,7 +1646,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B67/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B67/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1654,7 +1654,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B67/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B67/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1662,7 +1662,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B68/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B68/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1670,7 +1670,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B68/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B68/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1678,7 +1678,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B68/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B68/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1686,7 +1686,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B69/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B69/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1694,7 +1694,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B69/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B69/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1702,7 +1702,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B69/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B69/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1710,7 +1710,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B70/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B70/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1718,7 +1718,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B70/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B70/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1726,7 +1726,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B70/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B70/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1734,7 +1734,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B71/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B71/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1742,7 +1742,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B71/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B71/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1750,7 +1750,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B71/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B71/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1758,7 +1758,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B72/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B72/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1766,7 +1766,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B72/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B72/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1774,7 +1774,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B72/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B72/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1782,7 +1782,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B73/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B73/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1790,7 +1790,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B73/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B73/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1798,7 +1798,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B73/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B73/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1806,7 +1806,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B74/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B74/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1814,7 +1814,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B74/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B74/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1822,7 +1822,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B74/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B74/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1830,7 +1830,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B75/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B75/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1838,7 +1838,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B75/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B75/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1846,7 +1846,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B75/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B75/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1854,7 +1854,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B76/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B76/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1862,7 +1862,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B76/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B76/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1870,7 +1870,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B76/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B76/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1878,7 +1878,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B77/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B77/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1886,7 +1886,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B77/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B77/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1894,7 +1894,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B77/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B77/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1902,7 +1902,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B78/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B78/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1910,7 +1910,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B78/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B78/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1918,7 +1918,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B78/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B78/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1926,7 +1926,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B79/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B79/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1934,7 +1934,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B79/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B79/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1942,7 +1942,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B79/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B79/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1950,7 +1950,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B80/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B80/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1958,7 +1958,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B80/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B80/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1966,7 +1966,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B80/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B80/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1974,7 +1974,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B81/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B81/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1982,7 +1982,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B81/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B81/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1990,7 +1990,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B81/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B81/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -1998,7 +1998,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B82/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B82/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2006,7 +2006,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B82/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B82/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2014,7 +2014,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B82/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B82/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2022,7 +2022,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B83/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B83/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2030,7 +2030,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B83/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B83/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2038,7 +2038,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B83/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B83/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2046,7 +2046,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B84/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B84/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2054,7 +2054,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B84/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B84/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2062,7 +2062,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B84/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B84/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2070,7 +2070,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B85/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B85/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2078,7 +2078,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B85/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B85/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2086,7 +2086,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B85/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B85/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2094,7 +2094,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B86/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B86/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2102,7 +2102,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B86/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B86/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2110,7 +2110,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B86/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B86/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2118,7 +2118,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B87/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B87/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2126,7 +2126,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B87/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B87/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2134,7 +2134,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B87/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B87/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2142,7 +2142,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B88/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B88/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2150,7 +2150,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B88/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B88/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2158,7 +2158,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B88/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B88/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2166,7 +2166,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B89/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B89/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2174,7 +2174,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B89/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B89/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2182,7 +2182,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B89/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B89/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2190,7 +2190,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B90/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B90/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2198,7 +2198,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B90/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B90/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2206,7 +2206,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B90/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B90/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2214,7 +2214,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B91/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B91/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2222,7 +2222,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B91/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B91/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2230,7 +2230,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B91/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B91/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2238,7 +2238,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B92/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B92/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2246,7 +2246,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B92/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B92/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2254,7 +2254,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B92/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B92/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2262,7 +2262,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B93/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B93/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2270,7 +2270,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B93/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B93/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2278,7 +2278,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B93/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B93/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2286,7 +2286,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B94/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B94/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2294,7 +2294,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B94/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B94/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2302,7 +2302,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B94/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B94/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2310,7 +2310,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B95/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B95/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2318,7 +2318,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B95/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B95/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2326,7 +2326,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B95/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B95/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2334,7 +2334,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B96/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B96/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2342,7 +2342,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B96/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B96/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2350,7 +2350,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B96/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B96/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2358,7 +2358,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B97/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B97/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2366,7 +2366,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B97/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B97/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2374,7 +2374,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B97/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B97/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2382,7 +2382,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B98/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B98/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2390,7 +2390,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B98/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B98/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2398,7 +2398,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B98/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B98/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2406,7 +2406,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B99/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B99/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2414,7 +2414,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B99/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B99/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2422,7 +2422,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B99/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B99/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2430,7 +2430,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B100/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B100/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2438,7 +2438,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B100/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B100/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2446,7 +2446,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B100/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B100/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2454,7 +2454,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B101/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B101/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2462,7 +2462,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B101/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B101/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2470,7 +2470,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B101/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B101/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2478,7 +2478,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B102/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B102/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2486,7 +2486,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B102/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B102/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2494,7 +2494,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B102/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B102/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2502,7 +2502,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B103/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B103/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2510,7 +2510,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B103/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B103/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2518,7 +2518,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B103/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B103/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2526,7 +2526,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B104/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B104/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2534,7 +2534,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B104/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B104/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2542,7 +2542,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B104/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B104/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2550,7 +2550,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B105/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B105/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2558,7 +2558,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B105/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B105/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2566,7 +2566,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B105/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B105/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2574,7 +2574,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B106/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B106/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2582,7 +2582,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B106/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B106/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2590,7 +2590,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B106/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B106/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2598,7 +2598,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B107/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B107/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2606,7 +2606,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B107/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B107/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2614,7 +2614,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B107/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B107/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2622,7 +2622,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B108/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B108/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2630,7 +2630,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B108/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B108/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2638,7 +2638,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B108/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B108/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2646,7 +2646,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B109/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B109/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2654,7 +2654,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B109/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B109/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2662,7 +2662,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B109/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B109/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2670,7 +2670,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B110/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B110/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2678,7 +2678,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B110/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B110/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2686,7 +2686,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B110/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B110/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2694,7 +2694,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B111/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B111/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2702,7 +2702,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B111/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B111/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2710,7 +2710,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B111/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B111/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2718,7 +2718,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B112/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B112/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2726,7 +2726,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B112/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B112/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2734,7 +2734,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B112/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B112/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2742,7 +2742,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B113/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B113/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2750,7 +2750,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B113/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B113/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2758,7 +2758,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B113/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B113/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2766,7 +2766,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B114/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B114/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2774,7 +2774,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B114/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B114/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2782,7 +2782,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B114/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B114/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2790,7 +2790,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B115/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B115/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2798,7 +2798,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B115/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B115/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2806,7 +2806,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B115/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B115/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2814,7 +2814,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B116/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B116/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2822,7 +2822,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B116/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B116/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2830,7 +2830,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B116/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B116/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2838,7 +2838,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B117/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B117/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2846,7 +2846,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B117/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B117/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2854,7 +2854,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B117/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B117/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2862,7 +2862,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B118/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B118/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2870,7 +2870,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B118/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B118/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2878,7 +2878,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B118/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B118/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2886,7 +2886,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B119/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B119/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2894,7 +2894,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B119/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B119/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2902,7 +2902,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B119/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B119/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2910,7 +2910,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B120/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B120/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2918,7 +2918,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B120/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B120/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2926,7 +2926,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B120/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B120/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2934,7 +2934,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B121/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B121/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2942,7 +2942,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B121/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B121/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2950,7 +2950,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B121/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B121/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2958,7 +2958,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B122/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B122/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2966,7 +2966,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B122/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B122/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2974,7 +2974,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B122/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B122/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2982,7 +2982,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B123/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B123/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2990,7 +2990,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B123/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B123/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -2998,7 +2998,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B123/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B123/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3006,7 +3006,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B124/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B124/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3014,7 +3014,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B124/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B124/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3022,7 +3022,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B124/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B124/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3030,7 +3030,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B125/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B125/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3038,7 +3038,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B125/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B125/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3046,7 +3046,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B125/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B125/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3054,7 +3054,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B126/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B126/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3062,7 +3062,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B126/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B126/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3070,7 +3070,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B126/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B126/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3078,7 +3078,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B127/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B127/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3086,7 +3086,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B127/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B127/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3094,7 +3094,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B127/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B127/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3102,7 +3102,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B128/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B128/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3110,7 +3110,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B128/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B128/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3118,7 +3118,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B128/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B128/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3126,7 +3126,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B129/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B129/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3134,7 +3134,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B129/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B129/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3142,7 +3142,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B129/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B129/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3150,7 +3150,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B130/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B130/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3158,7 +3158,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B130/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B130/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3166,7 +3166,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B130/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B130/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3174,7 +3174,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B131/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B131/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3182,7 +3182,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B131/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B131/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3190,7 +3190,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B131/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B131/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3198,7 +3198,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B132/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B132/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3206,7 +3206,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B132/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B132/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3214,7 +3214,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B132/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B132/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3222,7 +3222,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B133/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B133/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3230,7 +3230,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B133/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B133/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3238,7 +3238,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B133/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B133/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3246,7 +3246,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B134/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B134/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3254,7 +3254,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B134/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B134/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3262,7 +3262,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B134/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B134/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3270,7 +3270,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B135/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B135/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3278,7 +3278,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B135/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B135/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3286,7 +3286,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B135/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B135/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3294,7 +3294,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B136/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B136/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3302,7 +3302,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B136/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B136/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3310,7 +3310,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B136/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B136/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3318,7 +3318,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B137/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B137/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3326,7 +3326,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B137/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B137/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3334,7 +3334,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B137/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B137/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3342,7 +3342,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B138/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B138/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3350,7 +3350,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B138/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B138/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3358,7 +3358,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B138/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B138/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3366,7 +3366,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B139/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B139/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3374,7 +3374,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B139/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B139/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3382,7 +3382,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B139/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B139/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3390,7 +3390,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B140/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B140/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3398,7 +3398,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B140/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B140/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3406,7 +3406,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B140/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B140/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3414,7 +3414,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B141/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B141/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3422,7 +3422,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B141/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B141/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3430,7 +3430,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B141/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B141/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3438,7 +3438,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B142/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B142/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3446,7 +3446,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B142/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B142/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3454,7 +3454,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B142/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B142/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3462,7 +3462,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B143/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B143/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3470,7 +3470,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B143/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B143/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3478,7 +3478,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B143/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B143/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3486,7 +3486,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B144/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B144/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3494,7 +3494,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B144/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B144/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3502,7 +3502,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B144/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B144/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3510,7 +3510,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B145/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B145/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3518,7 +3518,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B145/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B145/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3526,7 +3526,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B145/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B145/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3534,7 +3534,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B146/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B146/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3542,7 +3542,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B146/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B146/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3550,7 +3550,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B146/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B146/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3558,7 +3558,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B147/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B147/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3566,7 +3566,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B147/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B147/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3574,7 +3574,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B147/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B147/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3582,7 +3582,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B148/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B148/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3590,7 +3590,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B148/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B148/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3598,7 +3598,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B148/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B148/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3606,7 +3606,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B149/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B149/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3614,7 +3614,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B149/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B149/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3622,7 +3622,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B149/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B149/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3630,7 +3630,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B150/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B150/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3638,7 +3638,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B150/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B150/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3646,7 +3646,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B150/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B150/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3654,7 +3654,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B151/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B151/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3662,7 +3662,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B151/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B151/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3670,7 +3670,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B151/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B151/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3678,7 +3678,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B152/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B152/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3686,7 +3686,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B152/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B152/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3694,7 +3694,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B152/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B152/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3702,7 +3702,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B153/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B153/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3710,7 +3710,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B153/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B153/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3718,7 +3718,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B153/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B153/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3726,7 +3726,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B154/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B154/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3734,7 +3734,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B154/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B154/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3742,7 +3742,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B154/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B154/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3750,7 +3750,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B155/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B155/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3758,7 +3758,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B155/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B155/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3766,7 +3766,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B155/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B155/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3774,7 +3774,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B156/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B156/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3782,7 +3782,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B156/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B156/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3790,7 +3790,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B156/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B156/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3798,7 +3798,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B157/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B157/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3806,7 +3806,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B157/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B157/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3814,7 +3814,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B157/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B157/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3822,7 +3822,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B158/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B158/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3830,7 +3830,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B158/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B158/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3838,7 +3838,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B158/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B158/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3846,7 +3846,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B159/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B159/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3854,7 +3854,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B159/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B159/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3862,7 +3862,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B159/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B159/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3870,7 +3870,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B160/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B160/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3878,7 +3878,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B160/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B160/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3886,7 +3886,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B160/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B160/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3894,7 +3894,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B161/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B161/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3902,7 +3902,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B161/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B161/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3910,7 +3910,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B161/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B161/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3918,7 +3918,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B162/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B162/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3926,7 +3926,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B162/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B162/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3934,7 +3934,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B162/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B162/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3942,7 +3942,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B163/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B163/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3950,7 +3950,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B163/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B163/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3958,7 +3958,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B163/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B163/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3966,7 +3966,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B164/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B164/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3974,7 +3974,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B164/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B164/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3982,7 +3982,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B164/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B164/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3990,7 +3990,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B165/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B165/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -3998,7 +3998,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B165/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B165/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4006,7 +4006,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B165/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B165/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4014,7 +4014,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B166/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B166/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4022,7 +4022,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B166/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B166/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4030,7 +4030,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B166/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B166/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4038,7 +4038,7 @@
       "converted_count": 4,
       "skipped_count": 0,
       "source_count": 4,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B167/NodiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B167/NodiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4046,7 +4046,7 @@
       "converted_count": 3,
       "skipped_count": 0,
       "source_count": 3,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B167/ArchiCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B167/ArchiCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4054,7 +4054,7 @@
       "converted_count": 2,
       "skipped_count": 0,
       "source_count": 2,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/B167/BlockCumPari.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/B167/BlockCumPari.txt",
       "unresolved_references": 0
     },
     {
@@ -4062,7 +4062,7 @@
       "converted_count": 328,
       "skipped_count": 0,
       "source_count": 328,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/Connections.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/Connections.txt",
       "unresolved_references": 0
     },
     {
@@ -4070,7 +4070,23 @@
       "converted_count": 94,
       "skipped_count": 0,
       "source_count": 94,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/TrackLines/Stations.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/TrackLines/Stations.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "views.tracks",
+      "converted_count": 168,
+      "skipped_count": 0,
+      "source_count": 168,
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/GUI/caseStudyTrackData.txt",
+      "unresolved_references": 0
+    },
+    {
+      "category": "views.stations",
+      "converted_count": 94,
+      "skipped_count": 0,
+      "source_count": 94,
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/GUI/StationsCoord.txt",
       "unresolved_references": 0
     },
     {
@@ -4078,7 +4094,7 @@
       "converted_count": 24,
       "skipped_count": 0,
       "source_count": 24,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/trainNames.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/trainNames.txt",
       "unresolved_references": 0
     },
     {
@@ -4086,7 +4102,7 @@
       "converted_count": 161,
       "skipped_count": 0,
       "source_count": 161,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route0.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route0.txt",
       "unresolved_references": 0
     },
     {
@@ -4094,7 +4110,7 @@
       "converted_count": 163,
       "skipped_count": 0,
       "source_count": 163,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route1.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route1.txt",
       "unresolved_references": 0
     },
     {
@@ -4102,7 +4118,7 @@
       "converted_count": 163,
       "skipped_count": 0,
       "source_count": 163,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route2.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route2.txt",
       "unresolved_references": 0
     },
     {
@@ -4110,7 +4126,7 @@
       "converted_count": 165,
       "skipped_count": 0,
       "source_count": 165,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route3.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route3.txt",
       "unresolved_references": 0
     },
     {
@@ -4118,7 +4134,7 @@
       "converted_count": 76,
       "skipped_count": 0,
       "source_count": 76,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route4.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route4.txt",
       "unresolved_references": 0
     },
     {
@@ -4126,7 +4142,7 @@
       "converted_count": 78,
       "skipped_count": 0,
       "source_count": 78,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route5.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route5.txt",
       "unresolved_references": 0
     },
     {
@@ -4134,7 +4150,7 @@
       "converted_count": 196,
       "skipped_count": 0,
       "source_count": 196,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route6.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route6.txt",
       "unresolved_references": 0
     },
     {
@@ -4142,7 +4158,7 @@
       "converted_count": 194,
       "skipped_count": 0,
       "source_count": 194,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route7.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route7.txt",
       "unresolved_references": 0
     },
     {
@@ -4150,7 +4166,7 @@
       "converted_count": 195,
       "skipped_count": 0,
       "source_count": 195,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route8.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route8.txt",
       "unresolved_references": 0
     },
     {
@@ -4158,7 +4174,7 @@
       "converted_count": 193,
       "skipped_count": 0,
       "source_count": 193,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route9.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route9.txt",
       "unresolved_references": 0
     },
     {
@@ -4166,7 +4182,7 @@
       "converted_count": 195,
       "skipped_count": 0,
       "source_count": 195,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route10.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route10.txt",
       "unresolved_references": 0
     },
     {
@@ -4174,7 +4190,7 @@
       "converted_count": 195,
       "skipped_count": 0,
       "source_count": 195,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route11.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route11.txt",
       "unresolved_references": 0
     },
     {
@@ -4182,7 +4198,7 @@
       "converted_count": 194,
       "skipped_count": 0,
       "source_count": 194,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route12.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route12.txt",
       "unresolved_references": 0
     },
     {
@@ -4190,7 +4206,7 @@
       "converted_count": 194,
       "skipped_count": 0,
       "source_count": 194,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route13.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route13.txt",
       "unresolved_references": 0
     },
     {
@@ -4198,7 +4214,7 @@
       "converted_count": 202,
       "skipped_count": 0,
       "source_count": 202,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route14.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route14.txt",
       "unresolved_references": 0
     },
     {
@@ -4206,7 +4222,7 @@
       "converted_count": 203,
       "skipped_count": 0,
       "source_count": 203,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route15.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route15.txt",
       "unresolved_references": 0
     },
     {
@@ -4214,7 +4230,7 @@
       "converted_count": 202,
       "skipped_count": 0,
       "source_count": 202,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route16.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route16.txt",
       "unresolved_references": 0
     },
     {
@@ -4222,7 +4238,7 @@
       "converted_count": 201,
       "skipped_count": 0,
       "source_count": 201,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route17.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route17.txt",
       "unresolved_references": 0
     },
     {
@@ -4230,7 +4246,7 @@
       "converted_count": 45,
       "skipped_count": 0,
       "source_count": 45,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route18.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route18.txt",
       "unresolved_references": 0
     },
     {
@@ -4238,7 +4254,7 @@
       "converted_count": 45,
       "skipped_count": 0,
       "source_count": 45,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route19.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route19.txt",
       "unresolved_references": 0
     },
     {
@@ -4246,7 +4262,7 @@
       "converted_count": 45,
       "skipped_count": 0,
       "source_count": 45,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route20.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route20.txt",
       "unresolved_references": 0
     },
     {
@@ -4254,7 +4270,7 @@
       "converted_count": 45,
       "skipped_count": 0,
       "source_count": 45,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route21.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route21.txt",
       "unresolved_references": 0
     },
     {
@@ -4262,7 +4278,7 @@
       "converted_count": 123,
       "skipped_count": 0,
       "source_count": 123,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route22.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route22.txt",
       "unresolved_references": 0
     },
     {
@@ -4270,7 +4286,7 @@
       "converted_count": 120,
       "skipped_count": 0,
       "source_count": 120,
-      "source_file": "Input/Input_EGTRAIN_Banedanmark/Routes/Route23.txt",
+      "source_file": "Input/Input_EGTRAIN_Copenhagen/Routes/Route23.txt",
       "unresolved_references": 0
     },
     {
