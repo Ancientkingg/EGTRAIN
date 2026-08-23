@@ -54,6 +54,37 @@ int main() {
 
 	const TrackPreviewResult result = loadTrackPreview(scene);
 	bool ok = true;
+	const TrackPreviewResult normalized = normalizeTrackPreview(result);
+	ok &= expect(normalized.lines.size() == result.lines.size(),
+			"normalization retains every projected line");
+	if (normalized.lines.size() == result.lines.size()) {
+		const auto& sourcePoint = result.lines[0].points[1];
+		const auto& normalizedPoint = normalized.lines[0].points[1];
+		ok &= expect(sourcePoint.rawX == normalizedPoint.rawX,
+				"normalization preserves raw chainage");
+		const double scaleX = (normalized.lines[0].points[2].x - normalized.lines[0].points[0].x)
+			/ (result.lines[0].points[2].x - result.lines[0].points[0].x);
+		const double scaleY = (normalized.lines[0].points[2].y - normalized.lines[0].points[0].y)
+			/ (result.lines[0].points[2].y - result.lines[0].points[0].y);
+		ok &= expect(std::fabs(scaleX - scaleY) < 1e-9 && scaleX > 1000.0,
+				"normalization applies one stable uniform projected scale");
+		TrackPreviewPoint nodePoint;
+		ok &= expect(trackPreviewPointAtNode(normalized.lines[0], "B0.Gdg", nodePoint)
+				&& std::fabs(nodePoint.x - normalized.lines[0].points[1].x) < 1e-9
+				&& std::fabs(nodePoint.y - normalized.lines[0].points[1].y) < 1e-9,
+				"point lookup resolves normalized node anchors");
+		TrackPreviewLine duplicateChainage = normalized.lines[0];
+		duplicateChainage.points[2].rawX = duplicateChainage.points[1].rawX;
+		ok &= expect(trackPreviewPointAtNode(duplicateChainage, "B0.Ut", nodePoint)
+				&& nodePoint.nodeId == "B0.Ut",
+				"node identity disambiguates equal-chainage runtime anchors");
+		TrackPreviewPoint interpolated;
+		ok &= expect(trackPreviewPointAtX(normalized.lines[0], 32.0, interpolated)
+				&& interpolated.rawX == 32.0
+				&& std::fabs(interpolated.x - (normalized.lines[0].points[1].x
+					+ (normalized.lines[0].points[2].x - normalized.lines[0].points[1].x) * 4.0 / 36.0)) < 1e-9,
+				"point lookup interpolates by raw chainage");
+	}
 	ok &= expect(result.lines.size() == 2, "preview renders both in-memory tracks without legacy files");
 	if (result.lines.size() == 2) {
 		const auto& first = result.lines[0];
@@ -102,6 +133,7 @@ int main() {
 	for (auto& node : schematic.nodes)
 		node.yKm = 0.0;
 	const TrackPreviewResult schematicResult = loadTrackPreview(schematic);
+	const TrackPreviewResult normalizedSchematic = normalizeTrackPreview(schematicResult);
 	ok &= expect(schematicResult.lines.size() == 2
 			&& std::fabs(schematicResult.lines[0].points[1].x - 0.28) < 1e-9
 			&& schematicResult.lines[0].points[0].y == 0.0
@@ -109,6 +141,14 @@ int main() {
 			&& schematicResult.lines[0].displayOffset == 0.0
 			&& std::fabs(schematicResult.lines[1].displayOffset - 0.0012) < 1e-9,
 			"constant-latitude display anchors scale schematic track levels with mapped x");
+	ok &= expect(normalizedSchematic.lines.size() == 2
+			&& std::fabs(normalizedSchematic.lines[0].points[1].x - 28000.0) < 1e-9
+			&& std::fabs(normalizedSchematic.lines[1].displayOffset - 120.0) < 1e-9,
+			"schematic normalization keeps two-level spacing in runtime units");
+	TrackPreviewPoint schematicStationPoint;
+	ok &= expect(trackPreviewPointAtNode(normalizedSchematic.lines[1], "B1.Ut", schematicStationPoint)
+			&& std::fabs(schematicStationPoint.x - normalizedSchematic.lines[1].points[0].x) < 1e-9,
+			"schematic point lookup resolves the second-level station anchor");
 	SceneModel hidden = scene;
 	hidden.trackViews[1].visible = false;
 	hidden.stations.front().platforms.insert(hidden.stations.front().platforms.begin(),
@@ -127,7 +167,8 @@ int main() {
 	if (!result.stations.empty()) {
 		const auto& stationAnchor = result.stations.front();
 		ok &= expect(stationAnchor.name == "Gvc" && stationAnchor.nodeId == "B0.Gvc"
-				&& stationAnchor.x == 0.0 && stationAnchor.hasPlatform,
+				&& stationAnchor.x == 0.0 && stationAnchor.hasPlatform
+				&& stationAnchor.id == "Gvc",
 				"station preview prefers the platform node anchor");
 	}
 	ok &= expect(result.previewSignals.size() == 2,

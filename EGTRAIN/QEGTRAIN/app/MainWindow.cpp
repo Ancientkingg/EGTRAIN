@@ -1287,36 +1287,18 @@ bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPa
 }
 
 bool previewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId, qreal offset, QPointF& point) {
-	for (const auto& candidate : line.points) {
-		if (candidate.nodeId == nodeId) {
-			point = QPointF(candidate.x, candidate.y + offset);
-			return true;
-		}
-	}
-	return false;
+	TrackPreviewPoint candidate;
+	if (!trackPreviewPointAtNode(line, nodeId, candidate))
+		return false;
+	point = QPointF(candidate.x, candidate.y + offset);
+	return true;
 }
 
 bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point) {
-	if (line.points.empty())
+	TrackPreviewPoint candidate;
+	if (!trackPreviewPointAtX(line, x, candidate))
 		return false;
-
-	for (std::size_t index = 1; index < line.points.size(); ++index) {
-		const auto& first = line.points[index - 1];
-		const auto& second = line.points[index];
-		if (x < std::min(first.rawX, second.rawX) || x > std::max(first.rawX, second.rawX))
-			continue;
-
-		const double span = second.rawX - first.rawX;
-		const double ratio = span == 0.0 ? 0.0 : (x - first.rawX) / span;
-		point = QPointF(first.x + ratio * (second.x - first.x),
-			first.y + ratio * (second.y - first.y) + offset);
-		return true;
-	}
-
-	const auto closest = std::min_element(line.points.begin(), line.points.end(), [x](const auto& left, const auto& right) {
-		return std::abs(left.rawX - x) < std::abs(right.rawX - x);
-	});
-	point = QPointF(closest->x, closest->y + offset);
+	point = QPointF(candidate.x, candidate.y + offset);
 	return true;
 }
 
@@ -3247,6 +3229,16 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	return true;
 }
 
+const TrackPreviewLine* MainWindow::cachedTrackLine(int track) const {
+	if (track < 0 || track >= numTrackLines || blockSets[track].sceneTrackId.empty())
+		return nullptr;
+	const auto line = std::find_if(m_cachedTrackPreview.lines.begin(),
+			m_cachedTrackPreview.lines.end(), [track](const TrackPreviewLine& candidate) {
+				return candidate.id == blockSets[track].sceneTrackId;
+			});
+	return line == m_cachedTrackPreview.lines.end() ? nullptr : &*line;
+}
+
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	m_previewFitBounds = QRectF();
 	m_previewHasSelectedTrack = false;
@@ -3338,7 +3330,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		}
 	}
 	m_previewHasSelectedTrack = !selectedTrackIds.empty();
-	const TrackPreviewResult preview = loadTrackPreview(sceneModel);
+	m_cachedTrackPreview = normalizeTrackPreview(loadTrackPreview(sceneModel));
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
 	if (preview.lines.empty()) {
 		if (scene)
 			scene->setSceneRect(QRectF());
@@ -10166,7 +10159,7 @@ void MainWindow::runStationOverlayE2E() {
 		QApplication::processEvents();
 		const QRectF topologyBounds = networkView->topologyBounds();
 		const auto checkZoom = [&](qreal ratio, const char* label) {
-			networkView->fitToTopology();
+			fitView();
 			if (ratio > 1.0)
 				networkView->zoomBy(ratio);
 			updateViewportOverlays();
@@ -16973,11 +16966,50 @@ void MainWindow::setupGUI() {
 
 	// calculate screen coordinates and shifts for each station (graphical levels)
 	calculateStationCoordAndShift(geo_scale);
+	const bool hasSharedPreview = !m_cachedTrackPreview.lines.empty();
+	const auto sharedStationPoint = [this, hasSharedPreview](int stationIndex, QPointF& point) {
+		if (!hasSharedPreview || stationIndex < 0
+				|| stationIndex >= static_cast<int>(m_sceneModel.stations.size()))
+			return false;
+		const auto& source = m_sceneModel.stations[static_cast<std::size_t>(stationIndex)];
+		const auto station = std::find_if(m_cachedTrackPreview.stations.begin(),
+				m_cachedTrackPreview.stations.end(), [&source](const TrackPreviewStation& candidate) {
+					return (!source.id.empty() && candidate.id == source.id)
+						|| (source.id.empty() && candidate.name == source.name);
+				});
+		if (station == m_cachedTrackPreview.stations.end())
+			return false;
+		for (const auto& line : m_cachedTrackPreview.lines) {
+			if (!station->nodeId.empty()) {
+				if (previewPointAtNode(line, station->nodeId,
+						static_cast<qreal>(line.displayOffset), point))
+					return true;
+				continue;
+			}
+			if (line.points.empty())
+				continue;
+			const double minX = std::min(line.points.front().rawX, line.points.back().rawX);
+			const double maxX = std::max(line.points.front().rawX, line.points.back().rawX);
+			if (station->x < minX || station->x > maxX)
+				continue;
+			if (previewPointAtX(line, station->x,
+					static_cast<qreal>(line.displayOffset), point))
+				return true;
+		}
+		return false;
+	};
 
 	// draw station icons and print names
 	for (int i = 0; i < numStations; i++) {
 		// ignore virtual stations (name contains "virtual")
 		if (StationArray[i].stationName.find("virtual") != std::string::npos) {
+			continue;
+		}
+		QPointF sharedPoint;
+		if (sharedStationPoint(i, sharedPoint)) {
+			paintStationOverlay(sharedPoint,
+				classifyStation(StationArray[i].N_StationPlatforms > 0, 0),
+				StationArray[i].stationName, 0.75);
 			continue;
 		}
 
@@ -17107,6 +17139,9 @@ void MainWindow::setupGUI() {
 	int st_index;
 	QPointF ptc1, ptc2;
 	for (int c = 0; c < numConnections; c++) {
+		if (hasSharedPreview && (!cachedTrackLine(connections[c].idFirstTrackLine)
+				|| !cachedTrackLine(connections[c].idSecondTrackLine)))
+			continue;
 		// get shifted connections
 		egtrainPoint2Screen(&connections[c], connections[c].idFirstTrackLine, connections[c].idSecondTrackLine, track_separation);
 		ptc1.setX(connections[c].graphXFirstNode);
@@ -17119,6 +17154,8 @@ void MainWindow::setupGUI() {
 
 	// draw tracklines
 	for (int track = 0; track < numTrackLines; track++) {
+		if (hasSharedPreview && !cachedTrackLine(track))
+			continue;
 		// run over all arcs
 		for (int i = 0; i < blockSets[track].len; i++) {
 			// get shifted nodes
@@ -17184,6 +17221,8 @@ void MainWindow::setupGUI() {
 	for (int i = 0; i < Blocks; i++) {
 		// draw signal
 		if (signalling_block_sections[i].trackLineId != -1) { // compound signalling_block_sections are not drawn
+			if (hasSharedPreview && !cachedTrackLine(signalling_block_sections[i].trackLineId))
+				continue;
 
 			// -----------------------------------------------------------------------
 			// London Waterloo manual drawing
@@ -17208,7 +17247,8 @@ void MainWindow::setupGUI() {
 	buildSignalIndex();
 	buildTrackIndexes();
 
-	updateStationOverlayDegrees();
+	if (!hasSharedPreview)
+		updateStationOverlayDegrees();
 	updateViewportOverlays();
 
 	refreshFollowTrainChoices();
@@ -17985,7 +18025,11 @@ void MainWindow::runScene() {
 	statusBar()->showMessage("Preparing scene simulation...");
 	QApplication::processEvents();
 
+	const QRectF previewFitBounds = m_previewFitBounds;
+	const QPointF previewZoomFocus = m_previewZoomFocus;
 	teardownGUI();
+	m_previewFitBounds = previewFitBounds;
+	m_previewZoomFocus = previewZoomFocus;
 	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
 	if (outputPath.isEmpty() || QDir(outputPath).isRelative()) {
 		QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -18424,9 +18468,9 @@ void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Conn
 
 // draws trackside signals (X is the beginning of the block section - except for the last signal of each trackline)
 void MainWindow::paintSignal(double X, int size, int pen_width, int track, int track_separation, int sectionIndex) {
-	if (!hasTrackGeometry(track))
+	const TrackPreviewLine* previewLine = cachedTrackLine(track);
+	if (!previewLine && !hasTrackGeometry(track))
 		return;
-	int graphID = blockSets[track].graphID;
 
 	// positions
 	double postStartX, postStartY;
@@ -18442,20 +18486,31 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	egtrainPoint2Screen(X - 0.008, track, track_separation, postEndX, postEndY);
 
 	// place signal on trackside (with signal deltas)
-	// last segment
-	int stationIdx[2];
-	neighbourStations(X, track, stationIdx);
-	int index = stationIdx[1];
+	double signalDeltaX = 0.0;
+	double signalDeltaY = 0.0;
+	if (previewLine) {
+		QPointF normal;
+		if (!previewSignalNormal(*previewLine, X, normal))
+			return;
+		signalDeltaX = normal.x();
+		signalDeltaY = normal.y();
+	} else {
+		int stationIdx[2];
+		neighbourStations(X, track, stationIdx);
+		const int index = stationIdx[1];
+		signalDeltaX = StationArray[index].signalDeltaX[blockSets[track].region];
+		signalDeltaY = StationArray[index].signalDeltaY[blockSets[track].region];
+	}
 
-	basisStartX -= StationArray[index].signalDeltaX[blockSets[track].region] * 0.10 * track_separation;
-	basisStartY -= StationArray[index].signalDeltaY[blockSets[track].region] * 0.10 * track_separation;
-	basisEndX = basisStartX - StationArray[index].signalDeltaX[blockSets[track].region] * 0.20 * track_separation;
-	basisEndY = basisStartY - StationArray[index].signalDeltaY[blockSets[track].region] * 0.20 * track_separation;
+	basisStartX -= signalDeltaX * 0.10 * track_separation;
+	basisStartY -= signalDeltaY * 0.10 * track_separation;
+	basisEndX = basisStartX - signalDeltaX * 0.20 * track_separation;
+	basisEndY = basisStartY - signalDeltaY * 0.20 * track_separation;
 
-	postStartX -= StationArray[index].signalDeltaX[blockSets[track].region] * 0.20 * track_separation;
-	postStartY -= StationArray[index].signalDeltaY[blockSets[track].region] * 0.20 * track_separation;
-	postEndX -= StationArray[index].signalDeltaX[blockSets[track].region] * 0.20 * track_separation;
-	postEndY -= StationArray[index].signalDeltaY[blockSets[track].region] * 0.20 * track_separation;
+	postStartX -= signalDeltaX * 0.20 * track_separation;
+	postStartY -= signalDeltaY * 0.20 * track_separation;
+	postEndX -= signalDeltaX * 0.20 * track_separation;
+	postEndY -= signalDeltaY * 0.20 * track_separation;
 
 	// post/basis
 	QPen penPost = QPen(Qt::white);
@@ -18512,17 +18567,17 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	basis1->setPen(penPost);
 
 	// basis #2
-	basisStartX += 2 * StationArray[index].signalDeltaX[blockSets[track].region] * 0.10 * track_separation;
-	basisStartY += 2 * StationArray[index].signalDeltaY[blockSets[track].region] * 0.10 * track_separation;
-	basisEndX = basisStartX + StationArray[index].signalDeltaX[blockSets[track].region] * 0.20 * track_separation;
-	basisEndY = basisStartY + StationArray[index].signalDeltaY[blockSets[track].region] * 0.20 * track_separation;
+	basisStartX += 2 * signalDeltaX * 0.10 * track_separation;
+	basisStartY += 2 * signalDeltaY * 0.10 * track_separation;
+	basisEndX = basisStartX + signalDeltaX * 0.20 * track_separation;
+	basisEndY = basisStartY + signalDeltaY * 0.20 * track_separation;
 
 	// post #2
 	egtrainPoint2Screen(X + 0.008, track, track_separation, postEndX, postEndY);
-	postStartX += 2 * StationArray[index].signalDeltaX[blockSets[track].region] * 0.20 * track_separation;
-	postStartY += 2 * StationArray[index].signalDeltaY[blockSets[track].region] * 0.20 * track_separation;
-	postEndX += StationArray[index].signalDeltaX[blockSets[track].region] * 0.20 * track_separation;
-	postEndY += StationArray[index].signalDeltaY[blockSets[track].region] * 0.20 * track_separation;
+	postStartX += 2 * signalDeltaX * 0.20 * track_separation;
+	postStartY += 2 * signalDeltaY * 0.20 * track_separation;
+	postEndX += signalDeltaX * 0.20 * track_separation;
+	postEndY += signalDeltaY * 0.20 * track_separation;
 
 	QGraphicsLineItem* post2 = new QGraphicsLineItem(QLineF(postStartX, postStartY, postEndX, postEndY));
 	post2->setPen(penPost);
@@ -18616,6 +18671,10 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 		// add item to list
 		trainPolygonItemList->push_back(trainItem);
 	}
+	const bool hasVisibleGeometry = std::any_of(trainPolygonItemList->cbegin(),
+			trainPolygonItemList->cend(), [](const TrainBodyItem* item) {
+				return item && !item->polygon().isEmpty();
+			});
 
 	// add train pointer and index to the item
 	trainPolygonGroup->index = train.index;
@@ -18631,7 +18690,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 
 	// add train to scene
 	scene->addItem(trainPolygonGroup);
-	trainPolygonGroup->setVisible(m_trainLayerVisible && !train.outOfSimulation);
+	trainPolygonGroup->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
 
 	// add train to allTrains list
 	allTrains.push_back(trainPolygonGroup);
@@ -18645,7 +18704,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	badge->setCompact(!networkView || networkView->zoomRatio() < kDenseDetailZoom);
 	badge->setAcceptedMouseButtons(Qt::NoButton);
 	scene->addItem(badge);
-	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation);
+	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
 	badge->setPos(trainPolygonGroup->sceneBoundingRect().center() + QPointF(8.0, -24.0));
 	m_trainBadges[train.index] = badge;
 }
@@ -19538,6 +19597,14 @@ void MainWindow::neighbourStations(double X, int tracklineID, int* stationIdx) {
 
 // get shifted screen coordinates of a point (given 1D X coordinate)
 void MainWindow::egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) {
+	if (const auto* line = cachedTrackLine(track)) {
+		TrackPreviewPoint point;
+		if (trackPreviewPointAtX(*line, X, point)) {
+			graphX = point.x;
+			graphY = point.y + line->displayOffset;
+			return;
+		}
+	}
 	if (!hasTrackGeometry(track)) {
 		graphX = X * 1000.0;
 		graphY = static_cast<double>(blockSets[track].graphID) * separation;
@@ -19564,6 +19631,16 @@ void MainWindow::egtrainPoint2Screen(double X, int track, double separation, dou
 
 // get shifted screen coordinates of a Node
 void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
+	if (const auto* line = cachedTrackLine(track)) {
+		TrackPreviewPoint point;
+		if ((!Node->sceneNodeId.empty()
+				&& trackPreviewPointAtNode(*line, Node->sceneNodeId, point))
+				|| trackPreviewPointAtX(*line, Node->X, point)) {
+			Node->graphX = point.x;
+			Node->graphY = point.y + line->displayOffset;
+			return;
+		}
+	}
 	if (!hasTrackGeometry(track)) {
 		Node->graphX = Node->X * 1000.0;
 		Node->graphY = Node->Y * 1000.0 + static_cast<double>(blockSets[track].graphID) * separation;
@@ -19588,6 +19665,25 @@ void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
 
 // get shifted screen coordinates of a Node
 void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int track2, double separation) {
+	if (const auto* firstLine = cachedTrackLine(track1)) {
+		if (const auto* secondLine = cachedTrackLine(track2)) {
+			TrackPreviewPoint first;
+			TrackPreviewPoint second;
+			const bool hasFirst = (!connections->sceneFirstNodeId.empty()
+					&& trackPreviewPointAtNode(*firstLine, connections->sceneFirstNodeId, first))
+				|| trackPreviewPointAtX(*firstLine, connections->xFirstNode, first);
+			const bool hasSecond = (!connections->sceneSecondNodeId.empty()
+					&& trackPreviewPointAtNode(*secondLine, connections->sceneSecondNodeId, second))
+				|| trackPreviewPointAtX(*secondLine, connections->xSecondNode, second);
+			if (hasFirst && hasSecond) {
+				connections->graphXFirstNode = first.x;
+				connections->graphYFirstNode = first.y + firstLine->displayOffset;
+				connections->graphXSecondNode = second.x;
+				connections->graphYSecondNode = second.y + secondLine->displayOffset;
+				return;
+			}
+		}
+	}
 	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2)) {
 		connections->graphXFirstNode = connections->xFirstNode * 1000.0;
 		connections->graphYFirstNode = static_cast<double>(blockSets[track1].graphID) * separation;
@@ -19890,7 +19986,9 @@ void MainWindow::updateTrainPosition(int t) {
 				else
 					oldCenter = trainItem->sceneBoundingRect().center();
 
-				getTrainPolygonItemList(trainItem->trainPolygonItemList, state);
+				const bool hasVisibleGeometry = getTrainPolygonItemList(
+					trainItem->trainPolygonItemList, state);
+				trainItem->setVisible(m_trainLayerVisible && hasVisibleGeometry);
 				checkVCouplingMsg(trainItem, state, t);
 
 				// animate smooth transition from old position to new position
@@ -19903,7 +20001,7 @@ void MainWindow::updateTrainPosition(int t) {
 					badge->setSpeedVisible(m_trainSpeedLabelsVisible);
 					badge->setTrainVisual(classifyTrainType(state.type, state.description));
 					badge->setReversed(state.reversedDirection);
-					badge->setVisible(m_trainLayerVisible);
+					badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
 				}
 				m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
@@ -19937,7 +20035,8 @@ void MainWindow::updateTrainPosition(int t) {
 					if (badge)
 						badge->setPos(badgeBase);
 				}
-				if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train)
+				if (hasVisibleGeometry && m_followAction && m_followAction->isChecked()
+						&& m_followTrainIndex == train)
 					networkView->centerOn(newCenter);
 			}
 			// hide train whose simulation is finished
@@ -19957,9 +20056,10 @@ void MainWindow::updateTrainPosition(int t) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
 			legendNeedsUpdate = true;
-			if (firstTrain && !allTrains.isEmpty())
+			if (firstTrain && !allTrains.isEmpty() && allTrains.last()->isVisible())
 				networkView->centerOn(allTrains.last()->sceneBoundingRect().center());
-			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train && !allTrains.isEmpty())
+			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train
+					&& !allTrains.isEmpty() && allTrains.last()->isVisible())
 				networkView->centerOn(allTrains.last());
 		}
 	}
@@ -19972,17 +20072,20 @@ void MainWindow::updateTrainPosition(int t) {
 }
 
 // returns the full train shape (list of polygons)
-void MainWindow::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train) {
+bool MainWindow::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train) {
 	if (!trainPolygonItemList)
-		return;
+		return false;
+	bool hasVisibleGeometry = false;
 	// get the polygon of each wagon
 	for (int wagon = 0; wagon <= train.wagonCount; wagon++) {
 		if (wagon >= trainPolygonItemList->size())
-			return;
+			return hasVisibleGeometry;
 		QPolygonF trainPolygon;
 		getTrainPolygon(&trainPolygon, wagon, train);
 		trainPolygonItemList->at(wagon)->setPolygon(trainPolygon);
+		hasVisibleGeometry = hasVisibleGeometry || !trainPolygon.isEmpty();
 	}
+	return hasVisibleGeometry;
 }
 
 // returns the shape of an one-wagon train (polygon)
@@ -20069,7 +20172,8 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 
 				// get station index to extract shifts
 				int stationIdx[2];
-				if (!hasTrackGeometry(currBS->trackLineId)) {
+				if ((!m_cachedTrackPreview.lines.empty() && !cachedTrackLine(currBS->trackLineId))
+						|| !hasTrackGeometry(currBS->trackLineId)) {
 					continue;
 				}
 				neighbourStations(posX[j], currBS->trackLineId, stationIdx);
@@ -20112,7 +20216,9 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					}
 					if (!BS1 || !BS2)
 						continue;
-					if (!hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))
+					if ((!m_cachedTrackPreview.lines.empty()
+							&& (!cachedTrackLine(BS1->trackLineId) || !cachedTrackLine(BS2->trackLineId)))
+							|| !hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))
 						continue;
 
 					// get beginning and end of connection to interpolate
