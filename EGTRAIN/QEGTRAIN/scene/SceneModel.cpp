@@ -1032,6 +1032,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					try {
 						view.level = value["level"].get<int>();
 						view.region = value["region"].get<int>();
+						if (value.contains("visible"))
+							view.visible = value["visible"].get<bool>();
 					} catch (const json::exception&) {
 						viewWarning(path, "Invalid track display row; row skipped");
 						continue;

@@ -167,6 +167,60 @@ QPushButton:pressed {
     background: #d8e1e5;
 }
 
+QDialog#runReviewDialog {
+    background: #f8fafb;
+}
+
+QLabel#runReviewHeading {
+    background: transparent;
+    color: #24313a;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+QLabel#runReviewContext, QLabel#runReviewFactLabel {
+    background: transparent;
+    color: #5b6871;
+}
+
+QLabel#runReviewFactValue {
+    background: transparent;
+    font-weight: 600;
+}
+
+QLabel#runReviewStatus {
+    background: #e7edf1;
+    border: 1px solid #c5d0d7;
+    border-radius: 2px;
+    color: #3f4d56;
+    padding: 9px;
+}
+
+QLabel#runReviewStatus[warning="true"] {
+    background: #f5eadc;
+    border: 1px solid #d8b98e;
+    color: #74451c;
+}
+
+QLabel#runReviewDetails {
+    background: #eef2f5;
+    border: 1px solid #c9d3db;
+    padding: 8px;
+}
+
+QPushButton#runReviewRunButton {
+    background: #315a70;
+    border-color: #315a70;
+    color: #ffffff;
+    font-weight: 600;
+    min-width: 110px;
+}
+
+QPushButton#runReviewRunButton:hover, QPushButton#runReviewRunButton:focus {
+    background: #26495c;
+    border-color: #26495c;
+}
+
 QTabWidget::pane {
     border: 1px solid #c9d3db;
     background: #f8fafb;

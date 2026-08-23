@@ -171,7 +171,8 @@ public:
 	// painting
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
-	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname);
+	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
+		qreal scale = 1.0);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);

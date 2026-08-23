@@ -160,12 +160,14 @@ int main(int argc, char* argv[]) {
 	previewContent.hasSignals = true;
 	legend.setCaseContent(previewContent);
 	const QVector<NetworkLegendEntry> previewEntries = legend.entries();
-	ok &= expect(previewEntries.size() == 4
+	ok &= expect(previewEntries.size() == 6
 			&& previewEntries.at(0).label == "Track"
 			&& previewEntries.at(1).label == "Selected track"
 			&& previewEntries.at(2).label == "Station platform"
-			&& previewEntries.at(3).label == "Proceed signal",
-		"preview key lists only symbols rendered in the preview");
+			&& previewEntries.at(3).label == "Stop signal"
+			&& previewEntries.at(4).label == "Caution signal"
+			&& previewEntries.at(5).label == "Proceed signal",
+		"preview key explains every operational signal aspect");
 	ok &= expect(previewEntries.at(1).color == QColor(242, 170, 70)
 			&& previewEntries.at(1).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");

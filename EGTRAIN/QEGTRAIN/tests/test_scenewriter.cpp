@@ -86,7 +86,7 @@ static SceneModel completeScene() {
 	scene.blocks.push_back({"block-1", "track-1", 0.5});
 	scene.blocks.push_back({"block-2", "track-1", 0.5});
 	scene.connections.push_back({"connection-1", "node-1", "node-2", true, 30.0});
-	scene.trackViews.push_back({"track-1", -2, 1});
+	scene.trackViews.push_back({"track-1", -2, 1, false});
 
 	SceneStation first;
 	first.id = "station-1";
@@ -410,6 +410,7 @@ int main() {
 			&& reloaded.trackViews[0].trackId == "track-1"
 			&& reloaded.trackViews[0].level == -2
 			&& reloaded.trackViews[0].region == 1
+			&& !reloaded.trackViews[0].visible
 			&& reloaded.stationViews.size() == 1
 			&& reloaded.stationViews[0].stationId == "station-1"
 			&& reloaded.stationViews[0].regions == std::vector<std::pair<int, double>>({{1, 0.25}, {2, 0.75}})

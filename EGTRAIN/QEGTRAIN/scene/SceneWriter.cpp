@@ -530,8 +530,12 @@ static json writePassengers(const SceneModel& scene) {
 
 static json writeViews(const SceneModel& scene) {
 	json tracks = json::array();
-	for (const auto& view : scene.trackViews)
-		tracks.push_back({{"track", view.trackId}, {"level", view.level}, {"region", view.region}});
+	for (const auto& view : scene.trackViews) {
+		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
+		if (!view.visible)
+			value["visible"] = false;
+		tracks.push_back(std::move(value));
+	}
 
 	json stations = json::array();
 	for (const auto& view : scene.stationViews) {

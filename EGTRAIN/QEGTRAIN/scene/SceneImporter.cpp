@@ -1263,15 +1263,25 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 	const fs::path guiDir = findChild(legacyPath, "GUI");
 	const fs::path trackViewPath = guiDir.empty() ? fs::path()
-												  : findChild(guiDir, "caseStudyTrackData.txt");
+											  : findChild(guiDir, "caseStudyTrackData.txt");
+	std::unordered_set<std::string> hiddenTrackIds;
+	const fs::path hiddenTracksPath = guiDir.empty() ? fs::path() : findChild(guiDir, "unusedTracks.txt");
+	if (!hiddenTracksPath.empty()) {
+		std::string content;
+		readFile(hiddenTracksPath, content);
+		std::stringstream input(content);
+		int trackNumber = 0;
+		while (input >> trackNumber)
+			hiddenTrackIds.insert("B" + std::to_string(trackNumber));
+	}
 	const std::string trackViewSource = trackViewPath.empty()
 											? (legacyPath / "GUI/caseStudyTrackData.txt").string()
 											: trackViewPath.string();
+	std::unordered_set<std::string> knownTrackIds;
+	for (const auto& track : infrastructure["tracks"])
+		knownTrackIds.insert(track["id"].get<std::string>());
+	std::unordered_set<std::string> importedTrackIds;
 	if (!trackViewPath.empty()) {
-		std::unordered_set<std::string> knownTrackIds;
-		for (const auto& track : infrastructure["tracks"])
-			knownTrackIds.insert(track["id"].get<std::string>());
-		std::unordered_set<std::string> importedTrackIds;
 		std::string content;
 		readFile(trackViewPath, content);
 		std::stringstream input(content);
@@ -1304,11 +1314,22 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			views["tracks"].push_back({{"track", trackId}, {"level", level}, {"region", region}});
+			json value = {{"track", trackId}, {"level", level}, {"region", region}};
+			if (hiddenTrackIds.count(trackId) != 0)
+				value["visible"] = false;
+			views["tracks"].push_back(std::move(value));
 			report.converted("views.tracks", trackViewSource);
 			hasViews = true;
 			++rowIndex;
 		}
+	}
+	for (const auto& trackId : hiddenTrackIds) {
+		if (knownTrackIds.count(trackId) == 0 || !importedTrackIds.insert(trackId).second)
+			continue;
+		views["tracks"].push_back({{"track", trackId}, {"level", 0}, {"region", 0}, {"visible", false}});
+		report.source("views.tracks", hiddenTracksPath.string());
+		report.converted("views.tracks", hiddenTracksPath.string());
+		hasViews = true;
 	}
 
 	const fs::path stationViewPath = guiDir.empty() ? fs::path()
