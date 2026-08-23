@@ -8,7 +8,9 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
+#include <QImage>
 #include <QMouseEvent>
+#include <QPainter>
 
 #include <cmath>
 #include <iostream>
@@ -48,9 +50,21 @@ int main(int argc, char* argv[]) {
 	QApplication app(argc, argv);
 	bool ok = true;
 
-	StationVisual platform = classifyStation(true, 1);
-	StationVisual stopVisual = classifyStation(false, 0);
-	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), platform);
+	StationVisual stationVisual = classifyStation();
+	QImage stationImage(24, 24, QImage::Format_ARGB32_Premultiplied);
+	stationImage.fill(Qt::transparent);
+	{
+		QPainter painter(&stationImage);
+		painter.translate(12.0, 12.0);
+		StationNodeItem station(QRectF(-8.0, -8.0, 16.0, 16.0));
+		station.setPen(QPen(stationVisual.outline));
+		station.setBrush(stationVisual.fill);
+		station.paint(&painter, nullptr, nullptr);
+	}
+	ok &= expect(stationImage.pixelColor(12, 12).alpha() > 0
+			&& stationImage.pixelColor(4, 4).alpha() == 0,
+		"station node paints a circle instead of a rectangle");
+	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), stationVisual);
 	ok &= expect(overlay.zValue() > 3.0 && overlay.zValue() < 5.0,
 		"station text paints above signals and below train badges");
 	ok &= expect(overlay.flags().testFlag(QGraphicsItem::ItemIsSelectable),
@@ -110,23 +124,16 @@ int main(int argc, char* argv[]) {
 	ok &= expect(offscreenPlacement.offset.isNull() && !offscreenPlacement.fits,
 		"far-offscreen station overlays are not pinned to the viewport edge");
 
-	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), platform);
+	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), stationVisual);
 	multiNode.setNetworkDegree(3, true, true);
 	ok &= expect(multiNode.isInterchange(), "multi-node station keeps interchange flag");
 	ok &= expect(multiNode.isEndpoint(), "multi-node station keeps endpoint flag");
-	StationOverlayItem platformAfterDegree("PlatformAfterDegree", QPointF(12.0, 12.0), platform);
-	platformAfterDegree.setDegree(3);
-	StationOverlayItem stopAfterDegree("StopAfterDegree", QPointF(12.0, 12.0), stopVisual);
-	stopAfterDegree.setDegree(3);
-	ok &= expect(StationOverlayItem::priorityLess(platformAfterDegree, stopAfterDegree, QPointF()),
-		"platform class remains ahead of stop marker after interchange classification");
-
 	QList<StationOverlayItem*> candidates;
-	StationOverlayItem selected("Zulu", QPointF(0.0, 0.0), platform);
-	StationOverlayItem followed("Alpha", QPointF(1.0, 1.0), platform);
-	StationOverlayItem interchange("Beta", QPointF(2.0, 2.0), classifyStation(true, 3));
-	StationOverlayItem endpoint("Gamma", QPointF(3.0, 3.0), platform);
-	StationOverlayItem stop("Delta", QPointF(4.0, 4.0), stopVisual);
+	StationOverlayItem selected("Zulu", QPointF(0.0, 0.0), stationVisual);
+	StationOverlayItem followed("Alpha", QPointF(1.0, 1.0), stationVisual);
+	StationOverlayItem interchange("Beta", QPointF(2.0, 2.0), stationVisual);
+	StationOverlayItem endpoint("Gamma", QPointF(3.0, 3.0), stationVisual);
+	StationOverlayItem stop("Delta", QPointF(4.0, 4.0), stationVisual);
 	selected.setSelected(true);
 	followed.setFollowed(true);
 	interchange.setDegree(3);
@@ -139,19 +146,15 @@ int main(int argc, char* argv[]) {
 	ok &= expect(candidates.at(1) == &followed, "followed station has second priority");
 	ok &= expect(candidates.at(2) == &interchange, "interchange has third priority");
 	ok &= expect(candidates.at(3) == &endpoint, "endpoint has fourth priority");
-	ok &= expect(candidates.at(4) == &stop, "stop marker has remaining priority");
-	StationOverlayItem platformPriority("ZuluPlatform", QPointF(30.0, 0.0), platform);
-	StationOverlayItem stopPriority("AlphaStop", QPointF(30.0, 0.0), stop.visual());
-	ok &= expect(StationOverlayItem::priorityLess(platformPriority, stopPriority, QPointF()),
-		"platform precedes stop marker at equal distance");
-	StationOverlayItem nameZulu("ZuluTie", QPointF(40.0, 0.0), platform);
-	StationOverlayItem nameAlpha("AlphaTie", QPointF(-40.0, 0.0), platform);
+	ok &= expect(candidates.at(4) == &stop, "ordinary station has remaining priority");
+	StationOverlayItem nameZulu("ZuluTie", QPointF(40.0, 0.0), stationVisual);
+	StationOverlayItem nameAlpha("AlphaTie", QPointF(-40.0, 0.0), stationVisual);
 	ok &= expect(StationOverlayItem::priorityLess(nameAlpha, nameZulu, QPointF()),
 		"station name breaks equal-distance priority ties");
 
 	{
 		QGraphicsScene hoverScene;
-		auto* hovered = new StationOverlayItem("Hovered", QPointF(0.0, 0.0), platform);
+		auto* hovered = new StationOverlayItem("Hovered", QPointF(0.0, 0.0), stationVisual);
 		hovered->setLayoutVisible(false);
 		hovered->setCollisionBlocked(true);
 		hoverScene.addItem(hovered);
@@ -176,7 +179,7 @@ int main(int argc, char* argv[]) {
 		view.resize(240, 180);
 		StationNodeItem station(QRectF(-10.0, -10.0, 20.0, 20.0));
 		station.setPos(0.0, 0.0);
-		StationOverlayItem decoration("Koge", QPointF(0.0, 0.0), platform);
+		StationOverlayItem decoration("Koge", QPointF(0.0, 0.0), stationVisual);
 		decoration.setZValue(3.0);
 		scene.addItem(&station);
 		scene.addItem(&decoration);

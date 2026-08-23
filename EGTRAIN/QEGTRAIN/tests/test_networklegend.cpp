@@ -49,9 +49,9 @@ int main(int argc, char* argv[]) {
 		classifyTrainType("", "sprinter 301"),
 		classifyTrainType("IC", "IC 2202")};
 	content.stationVisuals = {
-		classifyStation(true, 4),
-		classifyStation(true, 1),
-		classifyStation(true, 4)};
+		classifyStation(),
+		classifyStation(),
+		classifyStation()};
 	content.hasSignals = true;
 	content.hasPassengers = true;
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 12, "case content produces stable deduplicated entries");
+	ok &= expect(entries.size() == 11, "case content produces stable deduplicated entries");
 	ok &= expect(entries.at(0).label == "Free track"
 		&& entries.at(0).trackState == TrackOperationalState::Free
 		&& entries.at(0).color == freeTrackVisual().color
@@ -96,19 +96,19 @@ int main(int argc, char* argv[]) {
 	ok &= expect(trainSwatch && containsColor(trainImage, QColor("#26313B"))
 			&& containsColor(trainImage, classifyTrainType("IC", "IC 2201").fill),
 		"train swatch mirrors the compact on-track badge and classified plate");
-	auto* platformSwatch = legend.findChild<QWidget*>("mapKeySwatch7");
-	const QImage platformImage = platformSwatch ? platformSwatch->grab().toImage() : QImage();
-	ok &= expect(platformSwatch && containsColorNear(platformImage, QColor(210, 215, 220), 30)
-			&& !containsColor(platformImage, QColor("#5078D2")),
-		"station swatch mirrors the gray on-track platform marker instead of the SVG tile");
-	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
+	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
+	const QImage stationImage = stationSwatch ? stationSwatch->grab().toImage() : QImage();
+	ok &= expect(stationSwatch && containsColorNear(stationImage, QColor(210, 215, 220), 30)
+			&& !containsColor(stationImage, QColor("#5078D2")),
+		"station swatch mirrors the gray on-track circular marker instead of the SVG tile");
+	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch7");
 	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
 	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red))
 			&& containsColor(stopSignalImage, QColor("#0D131A")),
 		"signal swatch mirrors the on-track lamp and direction cue");
 
 	int intercityCount = 0;
-	int interchangeCount = 0;
+	int stationCount = 0;
 	bool stopSignalFound = false;
 	bool passengerFound = false;
 	for (const NetworkLegendEntry& entry : entries) {
@@ -117,10 +117,10 @@ int main(int argc, char* argv[]) {
 			ok &= expect(entry.color == classifyTrainType("IC", "IC 2201").fill,
 				"train entry uses renderer classification");
 		}
-		if (entry.stationKind == StationVisualKind::Interchange) {
-			++interchangeCount;
-			ok &= expect(entry.iconResource == classifyStation(true, 4).iconResource,
-				"station entry uses renderer classification");
+		if (entry.kind == NetworkLegendEntryKind::Station) {
+			++stationCount;
+			ok &= expect(entry.iconResource == classifyStation().iconResource,
+				"station entry uses the uniform renderer classification");
 		}
 		if (entry.signalCue == SignalCueKind::Stop) {
 			stopSignalFound = true;
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	ok &= expect(intercityCount == 1, "duplicate train categories are removed");
-	ok &= expect(interchangeCount == 1, "duplicate station roles are removed");
+	ok &= expect(stationCount == 1, "duplicate station markers are removed");
 	ok &= expect(stopSignalFound, "signal cues are included");
 	ok &= expect(passengerFound, "passenger-load cue is included");
 
@@ -156,14 +156,14 @@ int main(int argc, char* argv[]) {
 	previewContent.hasTracks = true;
 	previewContent.showOperationalTrackStates = false;
 	previewContent.hasSelectedTrack = true;
-	previewContent.stationVisuals = {classifyStation(true, 1)};
+	previewContent.stationVisuals = {classifyStation()};
 	previewContent.hasSignals = true;
 	legend.setCaseContent(previewContent);
 	const QVector<NetworkLegendEntry> previewEntries = legend.entries();
 	ok &= expect(previewEntries.size() == 6
 			&& previewEntries.at(0).label == "Track"
 			&& previewEntries.at(1).label == "Selected track"
-			&& previewEntries.at(2).label == "Station platform"
+			&& previewEntries.at(2).label == "Station"
 			&& previewEntries.at(3).label == "Stop signal"
 			&& previewEntries.at(4).label == "Caution signal"
 			&& previewEntries.at(5).label == "Proceed signal",

@@ -70,7 +70,6 @@ public:
 	int degree() const { return m_degree; }
 	void setDegree(int degree);
 	void setNetworkDegree(int degree, bool interchange, bool endpoint);
-	StationVisualKind visualKind() const { return m_visual.kind; }
 	const StationVisual& visual() const { return m_visual; }
 	bool isInterchange() const;
 	bool isEndpoint() const;
@@ -102,7 +101,6 @@ private:
 	bool m_hovered = false;
 	bool m_followed = false;
 	int m_degree = 0;
-	StationVisualKind m_originalVisualKind = StationVisualKind::StopMarker;
 	bool m_interchange = false;
 	bool m_endpoint = false;
 };
