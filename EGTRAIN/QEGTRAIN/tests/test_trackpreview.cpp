@@ -107,8 +107,8 @@ int main() {
 			&& schematicResult.lines[0].points[0].y == 0.0
 			&& schematicResult.lines[1].points[0].y == 0.0
 			&& schematicResult.lines[0].displayOffset == 0.0
-			&& std::fabs(schematicResult.lines[1].displayOffset - 0.015) < 1e-9,
-			"constant-latitude display anchors retain schematic track levels");
+			&& std::fabs(schematicResult.lines[1].displayOffset - 0.0012) < 1e-9,
+			"constant-latitude display anchors scale schematic track levels with mapped x");
 	SceneModel hidden = scene;
 	hidden.trackViews[1].visible = false;
 	hidden.stations.front().platforms.insert(hidden.stations.front().platforms.begin(),

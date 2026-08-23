@@ -219,9 +219,13 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					}
 					displayXs.push_back(displayX);
 				}
-				if (valid)
+				if (valid) {
 					for (std::size_t index = 0; index < line.points.size(); ++index)
 						line.points[index].x = displayXs[index];
+					line.displayOffset *= 8.0 * std::fabs((uniqueXAnchors.back().second
+							- uniqueXAnchors.front().second) / (uniqueXAnchors.back().first
+							- uniqueXAnchors.front().first));
+				}
 				continue;
 			}
 			if (valid && uniqueXAnchors.size() >= 2 && uniqueYAnchors.size() >= 2) {
