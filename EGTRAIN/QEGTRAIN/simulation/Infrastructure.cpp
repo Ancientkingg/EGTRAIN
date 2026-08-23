@@ -34,6 +34,7 @@ InfraElement::InfraElement() {
 
 // Node Default Values
 Node::Node() {
+	sceneNodeId.clear();
 	X = Y = dwellTime = 0;
 	ID = 0;
 	isSignalled = virtualCouplingNode = false;
@@ -92,6 +93,7 @@ void Arc::arcLength() {
 
 BlockSet::BlockSet() {
 	ID = len = arcs = numNodes = 0;
+	sceneTrackId.clear();
 	region = 0;
 	graphID = -1;
 	hasGraphLayout = false;
@@ -104,6 +106,8 @@ BlockSet blockSets[268];
 int numConnections = 0;
 
 Connections::Connections() {
+	sceneFirstNodeId.clear();
+	sceneSecondNodeId.clear();
 	idFirstTrackLine = idSecondTrackLine = 0;
 	xFirstNode = xSecondNode = 0;
 	speedlimit = 16.667; // by default the speedlimit on a switch is set to 16.667 m /s; i.e. 60 km/h

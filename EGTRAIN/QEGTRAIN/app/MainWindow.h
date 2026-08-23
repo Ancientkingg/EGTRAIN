@@ -88,6 +88,7 @@
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
+#include "scene/TrackPreview.h"
 
 // charts
 #include <QtCharts/QChartView>
@@ -212,7 +213,7 @@ public:
 	void updateSignalAspect(const std::string& ID, double code, bool reversed);
 
 	// get train polygon (list)
-	void getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
+	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
@@ -390,6 +391,7 @@ private:
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
 	SceneModel m_sceneModel;
+	TrackPreviewResult m_cachedTrackPreview;
 	bool m_sceneLoaded = false;
 	bool m_sceneIsBundle = false;
 	bool m_sceneDirty = false;
@@ -607,6 +609,7 @@ private:
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
 	bool maybeSaveScene();
+	const TrackPreviewLine* cachedTrackLine(int track) const;
 	void renderTrackPreview(const SceneModel& sceneModel);
 	bool finishSceneSave(const SceneSaveResult& result);
 	bool saveSceneToCurrentDir();

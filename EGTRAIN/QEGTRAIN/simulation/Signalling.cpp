@@ -2804,6 +2804,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		NativeTrack& track = nativeTracks[slot];
 		BlockSet& runtimeTrack = blockSets[slot];
 		runtimeTrack.ID = static_cast<int>(slot);
+		runtimeTrack.sceneTrackId = track.id;
 		runtimeTrack.numNodes = static_cast<int>(track.chainNodes.size());
 		runtimeTrack.arcs = static_cast<int>(track.chainArcs.size());
 		runtimeTrack.len = static_cast<int>(track.chainArcs.size());
@@ -2816,6 +2817,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		}
 		for (std::size_t index = 0; index < track.chainNodes.size(); ++index) {
 			Node node;
+			node.sceneNodeId = track.chainNodes[index]->id;
 			node.ID = static_cast<double>(slot * 1000000 + index + 1);
 			node.X = track.chainNodes[index]->xKm;
 			node.Y = track.chainNodes[index]->yKm;
@@ -2874,6 +2876,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		const bool fromFirst = fromNode.X <= toNode.X;
 		connection.idFirstTrackLine = fromFirst ? firstSlot : secondSlot;
 		connection.idSecondTrackLine = fromFirst ? secondSlot : firstSlot;
+		connection.sceneFirstNodeId = fromFirst ? source.fromNodeId : source.toNodeId;
+		connection.sceneSecondNodeId = fromFirst ? source.toNodeId : source.fromNodeId;
 		connection.xFirstNode = fromFirst ? fromNode.X : toNode.X;
 		connection.xSecondNode = fromFirst ? toNode.X : fromNode.X;
 		connection.speedlimit = source.hasSpeedLimit ? source.speedLimitMs : 16.667;

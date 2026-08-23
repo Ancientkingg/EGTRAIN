@@ -306,9 +306,9 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 			}
 		}
 		if (anchor != nullptr)
-			result.stations.push_back({name, anchor->id, anchor->xKm, true});
+			result.stations.push_back({name, anchor->id, anchor->xKm, true, station.id});
 		else if (station.hasPosition && std::isfinite(station.positionKm)) {
-			result.stations.push_back({name, {}, station.positionKm, false});
+			result.stations.push_back({name, {}, station.positionKm, false, station.id});
 		}
 	}
 
@@ -344,4 +344,84 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	if (result.lines.empty())
 		result.warnings.push_back("no valid scene track preview is available");
 	return result;
+}
+
+bool trackPreviewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
+		TrackPreviewPoint& point) {
+	for (const auto& candidate : line.points) {
+		if (candidate.nodeId == nodeId) {
+			point = candidate;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
+		TrackPreviewPoint& point) {
+	if (line.points.empty() || !std::isfinite(rawX))
+		return false;
+
+	for (std::size_t index = 1; index < line.points.size(); ++index) {
+		const auto& first = line.points[index - 1];
+		const auto& second = line.points[index];
+		if (rawX < std::min(first.rawX, second.rawX)
+				|| rawX > std::max(first.rawX, second.rawX))
+			continue;
+		const double span = second.rawX - first.rawX;
+		const double ratio = span == 0.0 ? 0.0 : (rawX - first.rawX) / span;
+		point = first;
+		point.nodeId.clear();
+		point.rawX = rawX;
+		point.x = first.x + ratio * (second.x - first.x);
+		point.y = first.y + ratio * (second.y - first.y);
+		return std::isfinite(point.x) && std::isfinite(point.y);
+	}
+
+	const auto closest = std::min_element(line.points.begin(), line.points.end(),
+			[rawX](const auto& left, const auto& right) {
+				return std::abs(left.rawX - rawX) < std::abs(right.rawX - rawX);
+			});
+	point = *closest;
+	return std::isfinite(point.x) && std::isfinite(point.y);
+}
+
+TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
+	TrackPreviewResult normalized = preview;
+	double rawChainageSpan = 0.0;
+	double minX = std::numeric_limits<double>::infinity();
+	double maxX = -std::numeric_limits<double>::infinity();
+	double minY = std::numeric_limits<double>::infinity();
+	double maxY = -std::numeric_limits<double>::infinity();
+	for (const auto& line : preview.lines) {
+		double lineMinRawX = std::numeric_limits<double>::infinity();
+		double lineMaxRawX = -std::numeric_limits<double>::infinity();
+		for (const auto& point : line.points) {
+			if (!std::isfinite(point.rawX) || !std::isfinite(point.x)
+					|| !std::isfinite(point.y))
+				continue;
+			lineMinRawX = std::min(lineMinRawX, point.rawX);
+			lineMaxRawX = std::max(lineMaxRawX, point.rawX);
+			minX = std::min(minX, point.x);
+			maxX = std::max(maxX, point.x);
+			minY = std::min(minY, point.y + line.displayOffset);
+			maxY = std::max(maxY, point.y + line.displayOffset);
+		}
+		if (std::isfinite(lineMinRawX) && std::isfinite(lineMaxRawX))
+			rawChainageSpan = std::max(rawChainageSpan, lineMaxRawX - lineMinRawX);
+	}
+	const double projectedSpan = std::max(maxX - minX, maxY - minY);
+	const double scale = rawChainageSpan > 0.0 && projectedSpan > 0.0
+		? rawChainageSpan * 1000.0 / projectedSpan
+		: 1000.0;
+	if (!std::isfinite(scale) || scale <= 0.0)
+		return normalized;
+	for (auto& line : normalized.lines) {
+		line.displayOffset *= scale;
+		for (auto& point : line.points) {
+			point.x *= scale;
+			point.y *= scale;
+		}
+	}
+	return normalized;
 }
