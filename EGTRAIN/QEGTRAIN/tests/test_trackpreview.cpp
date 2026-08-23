@@ -96,6 +96,19 @@ int main() {
 				&& connection.secondTrackId == "B1" && connection.secondNodeId == "B1.Ut",
 				"connection endpoints resolve through canonical node references");
 	}
+	SceneModel schematic = scene;
+	for (auto& station : schematic.stationViews)
+		station.latitude = 1.0;
+	for (auto& node : schematic.nodes)
+		node.yKm = 0.0;
+	const TrackPreviewResult schematicResult = loadTrackPreview(schematic);
+	ok &= expect(schematicResult.lines.size() == 2
+			&& std::fabs(schematicResult.lines[0].points[1].x - 0.28) < 1e-9
+			&& schematicResult.lines[0].points[0].y == 0.0
+			&& schematicResult.lines[1].points[0].y == 0.0
+			&& schematicResult.lines[0].displayOffset == 0.0
+			&& std::fabs(schematicResult.lines[1].displayOffset - 0.015) < 1e-9,
+			"constant-latitude display anchors retain schematic track levels");
 	SceneModel hidden = scene;
 	hidden.trackViews[1].visible = false;
 	hidden.stations.front().platforms.insert(hidden.stations.front().platforms.begin(),

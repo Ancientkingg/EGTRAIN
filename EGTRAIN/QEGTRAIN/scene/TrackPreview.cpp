@@ -202,6 +202,28 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				}
 				uniqueYAnchors.push_back(anchor);
 			}
+			const bool schematicLayout = valid && uniqueYAnchors.size() >= 2
+					&& std::all_of(uniqueYAnchors.begin() + 1, uniqueYAnchors.end(),
+							[&uniqueYAnchors](const auto& anchor) {
+								return std::fabs(anchor.second - uniqueYAnchors.front().second) <= 1e-9;
+							});
+			if (schematicLayout && uniqueXAnchors.size() >= 2) {
+				std::vector<double> displayXs;
+				displayXs.reserve(line.points.size());
+				for (const auto& point : line.points) {
+					double displayX = 0.0;
+					if (!std::isfinite(point.rawX)
+							|| !mapPreviewX(point.rawX, uniqueXAnchors, displayX)) {
+						valid = false;
+						break;
+					}
+					displayXs.push_back(displayX);
+				}
+				if (valid)
+					for (std::size_t index = 0; index < line.points.size(); ++index)
+						line.points[index].x = displayXs[index];
+				continue;
+			}
 			if (valid && uniqueXAnchors.size() >= 2 && uniqueYAnchors.size() >= 2) {
 				const double separation = static_cast<double>(view->level)
 						* kGeographicTrackSeparation;
