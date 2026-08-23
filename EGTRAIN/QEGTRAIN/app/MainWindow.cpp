@@ -20096,7 +20096,6 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 	double headX, tailX, connectionX1, connectionX2, x0, x1, x2, x3, y0, y1, y2, y3;
 	double dot, det, beta, alpha, gamma;
 	std::vector<double> posX, routeX;
-	int prevIndex, index, revPrevIndex;
 	QPointF ptTrainEdge, ptConnection1, ptConnection2, ptBegin1, ptEnd2;
 	std::string ID1, ID2, connection1, connection2;
 	const Section* currBS = nullptr;
@@ -20106,6 +20105,39 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 	QVector<int> trainPointsStIndex, trainPointsStRegion, trainPointsGraphID;
 	int revStIndex;												  // used to add station points to the polygon (needed for reversed routes)
 	double total_nW = train.wagonCount + 1;
+	const auto addPreviewPoint = [&](const TrackPreviewLine* line, double rawX,
+			const QPointF& point) {
+		QPointF normal;
+		if (!line || !previewSignalNormal(*line, rawX, normal))
+			return false;
+		const QPointF offset = normal * (0.10 * track_separation);
+		trainPointsUp.push_back(point - offset);
+		trainPointsDown.push_front(point + offset);
+		trainPointsStIndex.push_back(-1);
+		trainPointsStRegion.push_back(-1);
+		trainPointsGraphID.push_back(INT_MIN);
+		return true;
+	};
+	const auto addTrackPoint = [&](const QPointF& point, int track, double rawX) {
+		if (const auto* line = cachedTrackLine(track))
+			return addPreviewPoint(line, rawX, point);
+		int stationIdx[2];
+		neighbourStations(rawX, track, stationIdx);
+		const int prevIndex = stationIdx[0];
+		const int index = stationIdx[1];
+		const int revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex;
+		const int region = blockSets[track].region;
+		trainPointsUp.push_back(QPointF(point.x()
+				- StationArray[index].signalDeltaX[region] * 0.10 * track_separation,
+				point.y() - StationArray[index].signalDeltaY[region] * 0.10 * track_separation));
+		trainPointsDown.push_front(QPointF(point.x()
+				+ StationArray[index].signalDeltaX[region] * 0.10 * track_separation,
+				point.y() + StationArray[index].signalDeltaY[region] * 0.10 * track_separation));
+		trainPointsStIndex.push_back(revPrevIndex);
+		trainPointsStRegion.push_back(region);
+		trainPointsGraphID.push_back(blockSets[track].graphID);
+		return true;
+	};
 
 	// train position on X axis
 	// reversed route
@@ -20170,26 +20202,16 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					continue;
 				} // single section in between (no relevant points)
 
-				// get station index to extract shifts
-				int stationIdx[2];
-				if ((!m_cachedTrackPreview.lines.empty() && !cachedTrackLine(currBS->trackLineId))
-						|| !hasTrackGeometry(currBS->trackLineId)) {
+				const TrackPreviewLine* previewLine = cachedTrackLine(currBS->trackLineId);
+				if ((!m_cachedTrackPreview.lines.empty() && !previewLine)
+						|| (!previewLine && !hasTrackGeometry(currBS->trackLineId))) {
 					continue;
 				}
-				neighbourStations(posX[j], currBS->trackLineId, stationIdx);
-				prevIndex = stationIdx[0];
-				index = stationIdx[1];
-				revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex; // if reversed route, gives previous station
 
 				// get point
 				egtrainPoint2Screen(posX[j], currBS->trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
-
-				// add points to vectors
-				trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[currBS->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[currBS->trackLineId].region] * 0.10 * track_separation));
-				trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[currBS->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[currBS->trackLineId].region] * 0.10 * track_separation));
-				trainPointsStIndex.push_back(revPrevIndex);
-				trainPointsStRegion.push_back(blockSets[currBS->trackLineId].region);
-				trainPointsGraphID.push_back(blockSets[currBS->trackLineId].graphID);
+				if (!addTrackPoint(ptTrainEdge, currBS->trackLineId, posX[j]))
+					return;
 			}
 			// compound signalling_block_sections -> get connection points and/or tail or head
 			else {
@@ -20216,9 +20238,12 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					}
 					if (!BS1 || !BS2)
 						continue;
-					if ((!m_cachedTrackPreview.lines.empty()
-							&& (!cachedTrackLine(BS1->trackLineId) || !cachedTrackLine(BS2->trackLineId)))
-							|| !hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))
+					const TrackPreviewLine* previewLine1 = cachedTrackLine(BS1->trackLineId);
+					const TrackPreviewLine* previewLine2 = cachedTrackLine(BS2->trackLineId);
+					const bool hasPreview = !m_cachedTrackPreview.lines.empty();
+					if ((hasPreview && (!previewLine1 || !previewLine2))
+							|| (!hasPreview && (!hasTrackGeometry(BS1->trackLineId)
+									|| !hasTrackGeometry(BS2->trackLineId))))
 						continue;
 
 					// get beginning and end of connection to interpolate
@@ -20229,16 +20254,16 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					egtrainPoint2Screen(BS1->start_node.X, BS1->trackLineId, track_separation, ptBegin1.rx(), ptBegin1.ry());
 					egtrainPoint2Screen(BS2->end_node.X, BS2->trackLineId, track_separation, ptEnd2.rx(), ptEnd2.ry());
 
-					// get station indexes (used to add station points)
-					int stationIdx[2];
-					neighbourStations(connectionX1, BS1->trackLineId, stationIdx);
-					int prevIndexConnection1 = stationIdx[0];
-					int indexConnection1 = stationIdx[1];
-					int revPrevIndexConnection1 = indexConnection1 * (1 - revStIndex) + prevIndexConnection1 * revStIndex; // if reversed route, gives previous sation
-					neighbourStations(connectionX2, BS2->trackLineId, stationIdx);
-					int prevIndexConnection2 = stationIdx[0];
-					int indexConnection2 = stationIdx[1];
-					int revPrevIndexConnection2 = indexConnection2 * (1 - revStIndex) + prevIndexConnection2 * revStIndex; // if reversed route, gives previous sation
+					int revPrevIndexConnection1 = -1;
+					int revPrevIndexConnection2 = -1;
+					if (!hasPreview) {
+						// get station indexes (used to add station points)
+						int stationIdx[2];
+						neighbourStations(connectionX1, BS1->trackLineId, stationIdx);
+						revPrevIndexConnection1 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
+						neighbourStations(connectionX2, BS2->trackLineId, stationIdx);
+						revPrevIndexConnection2 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
+					}
 
 					// linear interpolation of geodetic coordinates using known coordinates of closest stations
 					x0 = ptBegin1.x();
@@ -20273,6 +20298,17 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					gamma = alpha / 2 - beta;
 					double connectionEndShiftX = cos(gamma);
 					double connectionEndShiftY = sin(gamma);
+					if (hasPreview) {
+						QPointF normal;
+						if (!previewSignalNormal(*previewLine1, connectionX1, normal))
+							return;
+						connectionStartShiftX = normal.x();
+						connectionStartShiftY = normal.y();
+						if (!previewSignalNormal(*previewLine2, connectionX2, normal))
+							return;
+						connectionEndShiftX = normal.x();
+						connectionEndShiftY = normal.y();
+					}
 
 					// calculate connection deltas (inside connection)
 					beta = atan2(-(y1 - y2), (x1 - x2));
@@ -20320,19 +20356,9 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 
 					// head/tail in the 1st track and before connection
 					if (routeX[j] >= currBS->start_node.X && posX[j] <= connectionX1) {
-						// get station index to extract shifts
-						int stationIdx[2];
-						neighbourStations(posX[j], BS1->trackLineId, stationIdx);
-						prevIndex = stationIdx[0];
-						index = stationIdx[1];
-						revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex; // if reversed route, gives previous station
-
 						egtrainPoint2Screen(posX[j], BS1->trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[BS1->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[BS1->trackLineId].region] * 0.10 * track_separation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[BS1->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[BS1->trackLineId].region] * 0.10 * track_separation));
-						trainPointsStIndex.push_back(revPrevIndex);
-						trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
-						trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
+						if (!addTrackPoint(ptTrainEdge, BS1->trackLineId, posX[j]))
+							return;
 					}
 					// head/tail inside the connection
 					else if (posX[j] > connectionX1 && posX[j] < connectionX2) {
@@ -20348,19 +20374,9 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					}
 					// head/tail in the 2nd track and after connection
 					else if (posX[j] >= connectionX2 && routeX[j] < currBS->end_node.X) {
-						// get station index to extract shifts
-						int stationIdx[2];
-						neighbourStations(posX[j], BS2->trackLineId, stationIdx);
-						prevIndex = stationIdx[0];
-						index = stationIdx[1];
-						revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex; // if reversed route, gives previous station
-
 						egtrainPoint2Screen(posX[j], BS2->trackLineId, track_separation, ptTrainEdge.rx(), ptTrainEdge.ry());
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - StationArray[index].signalDeltaX[blockSets[BS2->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() - StationArray[index].signalDeltaY[blockSets[BS2->trackLineId].region] * 0.10 * track_separation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + StationArray[index].signalDeltaX[blockSets[BS2->trackLineId].region] * 0.10 * track_separation, ptTrainEdge.y() + StationArray[index].signalDeltaY[blockSets[BS2->trackLineId].region] * 0.10 * track_separation));
-						trainPointsStIndex.push_back(revPrevIndex);
-						trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
-						trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
+						if (!addTrackPoint(ptTrainEdge, BS2->trackLineId, posX[j]))
+							return;
 					}
 
 					// add connection points if it is head section and tail is in another signalling_block_sections
