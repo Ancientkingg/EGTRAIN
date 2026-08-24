@@ -24,6 +24,7 @@
 #include "update/ReleaseInfo.h"
 #include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
+#include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
@@ -47,6 +48,7 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QDialogButtonBox>
+#include <QProgressDialog>
 #include <QInputDialog>
 #include <QCoreApplication>
 #include <QStandardPaths>
@@ -3797,6 +3799,7 @@ void MainWindow::setupUpdateActions() {
 	ui->menuHelp->addAction(m_automaticUpdateChecksAction);
 
 	m_updateChecker = new UpdateChecker(this);
+	m_selfUpdater = new SelfUpdater(this);
 	connect(m_checkForUpdatesAction, &QAction::triggered, this,
 		[this]() { startUpdateCheck(true); });
 	connect(m_automaticUpdateChecksAction, &QAction::toggled, this, [this](bool checked) {
@@ -3806,6 +3809,26 @@ void MainWindow::setupUpdateActions() {
 		preferences.sync();
 	});
 	connect(m_updateChecker, &UpdateChecker::finished, this, &MainWindow::handleUpdateCheckFinished);
+	connect(m_selfUpdater, &SelfUpdater::progress, this, [this](qint64 received, qint64 total) {
+		if (!m_updateProgress)
+			return;
+		if (total > 0) {
+			const qint64 maxValue = std::numeric_limits<int>::max();
+			m_updateProgress->setRange(0, total > maxValue ? static_cast<int>(maxValue) : static_cast<int>(total));
+			m_updateProgress->setValue(received > maxValue ? static_cast<int>(maxValue) : static_cast<int>(received));
+		} else {
+			m_updateProgress->setRange(0, 0);
+		}
+	});
+	connect(m_selfUpdater, &SelfUpdater::finished, this, &MainWindow::handleSelfUpdateFinished);
+	connect(m_selfUpdater, &SelfUpdater::preparing, this, [this](const QString& version) {
+		if (!m_updateProgress)
+			return;
+		m_updateProgress->setLabelText(QStringLiteral("Verifying and preparing EGTRAIN %1...")
+			.arg(version));
+		m_updateProgress->setCancelButton(nullptr);
+		m_updateProgress->setRange(0, 0);
+	});
 }
 
 void MainWindow::maybePromptForUpdateChecks() {
@@ -3884,19 +3907,32 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 	}
 
 	const StableRelease& release = *result.release;
+	QString availability;
+	if (m_selfUpdater && !m_selfUpdater->canSelfUpdate(release)) {
+		const SelfUpdateCapability capability = m_selfUpdater->capability();
+		availability = capability.supported
+			? QStringLiteral("\n\nNo automatic update package is available for this platform. Use the release page to update manually.")
+			: QStringLiteral("\n\n%1 Use the release page to update manually.").arg(capability.reason);
+	}
 	QMessageBox dialog(QMessageBox::Information,
 		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
 		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
 		QMessageBox::NoButton, this);
-	dialog.setInformativeText(release.notes.isEmpty()
-		? QStringLiteral("No release notes were provided.") : release.notes);
+	dialog.setInformativeText((release.notes.isEmpty()
+		? QStringLiteral("No release notes were provided.") : release.notes) + availability);
+	QPushButton* updateButton = nullptr;
+	if (m_selfUpdater && m_selfUpdater->canSelfUpdate(release))
+		updateButton = dialog.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);
 	QPushButton* openButton = dialog.addButton(QStringLiteral("Open Release Page"),
 		QMessageBox::AcceptRole);
 	dialog.addButton(QStringLiteral("Later"), QMessageBox::RejectRole);
 	QPushButton* stopButton = dialog.addButton(QStringLiteral("Stop Checking"),
 		QMessageBox::DestructiveRole);
 	dialog.exec();
-	if (dialog.clickedButton() == stopButton) {
+	QAbstractButton* clickedButton = dialog.clickedButton();
+	if (updateButton && clickedButton == updateButton) {
+		startSelfUpdate(release);
+	} else if (clickedButton == stopButton) {
 		QSettings settings;
 		writeUpdateCheckState(settings, UpdateCheckState::Disabled);
 		settings.sync();
@@ -3904,11 +3940,59 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 			const QSignalBlocker blocker(m_automaticUpdateChecksAction);
 			m_automaticUpdateChecksAction->setChecked(false);
 		}
-	} else if (dialog.clickedButton() == openButton
+	} else if (clickedButton == openButton
 		&& !QDesktopServices::openUrl(release.releasePage)) {
 		QMessageBox::warning(this, QStringLiteral("Open Release Page"),
 			QStringLiteral("Could not open the release page:\n%1").arg(release.releasePage.toString()));
 	}
+}
+
+void MainWindow::startSelfUpdate(const StableRelease& release) {
+	if (!m_selfUpdater || m_selfUpdater->isBusy() || !maybeSaveScene())
+		return;
+	m_updateProgress = new QProgressDialog(QStringLiteral("Downloading EGTRAIN %1...")
+		.arg(formatSemanticVersion(release.version)),
+		QStringLiteral("Cancel"), 0, 0, this);
+	m_updateProgress->setWindowTitle(QStringLiteral("EGTRAIN Update"));
+	m_updateProgress->setWindowModality(Qt::WindowModal);
+	m_updateProgress->setAutoClose(false);
+	m_updateProgress->setAutoReset(false);
+	m_updateProgress->setMinimumDuration(0);
+	connect(m_updateProgress, &QProgressDialog::canceled, this, [this]() {
+		if (!m_selfUpdater)
+			return;
+		if (m_selfUpdater->isPreparing()) {
+			// Preparation cannot be interrupted safely; Esc or a stray cancel
+			// must not hide the dialog while the update is still progressing.
+			if (m_updateProgress && !m_updateProgress->isVisible())
+				m_updateProgress->show();
+			return;
+		}
+		m_selfUpdater->cancel();
+	});
+	m_updateProgress->show();
+	m_selfUpdater->start(release);
+}
+
+void MainWindow::handleSelfUpdateFinished(bool success, const QString& error) {
+	if (m_updateProgress) {
+		m_updateProgress->close();
+		m_updateProgress->deleteLater();
+		m_updateProgress = nullptr;
+	}
+	if (!success) {
+		QMessageBox::warning(this, QStringLiteral("EGTRAIN Update"),
+			error.isEmpty() ? QStringLiteral("The update was not installed. EGTRAIN is unchanged.") : error);
+		return;
+	}
+	QMessageBox::information(this, QStringLiteral("EGTRAIN Update"),
+		QStringLiteral("The update is ready. EGTRAIN will restart now."));
+	if (!m_selfUpdater || !m_selfUpdater->restart()) {
+		QMessageBox::warning(this, QStringLiteral("EGTRAIN Update"),
+			QStringLiteral("Could not start the update installer. EGTRAIN is unchanged."));
+		return;
+	}
+	QCoreApplication::quit();
 }
 
 void MainWindow::refreshValidationPanel() {
