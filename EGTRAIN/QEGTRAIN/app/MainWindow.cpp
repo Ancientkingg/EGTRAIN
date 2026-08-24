@@ -1698,7 +1698,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainSpeedLabelsCheck->setObjectName("layerTrainSpeedLabels");
 	m_trainSpeedLabelsCheck->setProperty("secondaryLayerToggle", true);
 	m_trainSpeedLabelsCheck->setChecked(true);
-	m_trainSpeedLabelsCheck->setToolTip("Show train speeds without changing train symbols");
+	m_trainSpeedLabelsCheck->setToolTip("Show live speed in detailed train labels; overview markers stay compact.");
 	m_signalLayerCheck = new QCheckBox("Signals", caseLayersWidget);
 	m_signalLayerCheck->setObjectName("layerSignals");
 	m_signalLayerCheck->setChecked(true);
@@ -1761,27 +1761,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
 			it.value()->setVisible(checked && trainIt != allTrains.cend() && !(*trainIt)->outOfSimulation);
 		}
-		for (auto it = m_trainSpeedLabels.cbegin(); it != m_trainSpeedLabels.cend(); ++it)
-			if (it.value()) {
-				auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
-					[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
-				it.value()->setVisible(checked && m_trainSpeedLabelsVisible && trainIt != allTrains.cend()
-					&& !(*trainIt)->outOfSimulation);
-			}
 	});
 	connect(m_trainSpeedLabelsCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_trainSpeedLabelsVisible = checked;
 		for (auto* badge : m_trainBadges)
 			if (badge)
 				badge->setSpeedVisible(checked);
-		for (auto it = m_trainSpeedLabels.cbegin(); it != m_trainSpeedLabels.cend(); ++it) {
-			if (!it.value())
-				continue;
-			auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
-				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
-			it.value()->setVisible(checked && m_trainLayerVisible && trainIt != allTrains.cend()
-				&& !(*trainIt)->outOfSimulation);
-		}
 	});
 	connect(m_signalLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_signalLayerVisible = checked;
@@ -11358,6 +11343,8 @@ void MainWindow::runVisualPolishE2E() {
 				return item && !qgraphicsitem_cast<SignalItem*>(item) && item->isVisible();
 				});
 	};
+	setFollowTrain(-1);
+	handleCloseInfoDockWidget();
 	if (networkView) {
 		networkView->fitToTopology();
 		updateViewportOverlays();
@@ -11597,7 +11584,32 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 	captureScreenshot("QEGTRAIN_E2E_SCREENSHOT", "default");
+	if (networkView) {
+		const bool fitMarkers = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[](const TrainBadgeItem* badge) {
+				return !badge || badge->presentation() == TrainBadgeItem::Presentation::Overview
+					&& !badge->showsIdentifier() && !badge->showsSpeed();
+			});
+		if (!fitMarkers) {
+			ok = false;
+			failures << "Fit did not reduce ordinary train overlays to markers";
+		}
+		networkView->zoomBy(TrainBadgeItem::identityZoomThreshold());
+		updateViewportOverlays();
+		QApplication::processEvents();
+		const bool identityChips = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[](const TrainBadgeItem* badge) {
+				return !badge || badge->presentation() == TrainBadgeItem::Presentation::Identity
+					&& badge->showsIdentifier() && !badge->showsSpeed();
+			});
+		if (!identityChips) {
+			ok = false;
+			failures << "1.8x did not show identity chips without speed";
+		}
+	}
+	captureScreenshot("QEGTRAIN_E2E_MEDIUM_SCREENSHOT", "medium");
 	if (networkView && !allTrains.isEmpty()) {
+		networkView->fitToTopology();
 		networkView->centerOn(allTrains.first()->sceneBoundingRect().center());
 		networkView->zoomBy(3.0);
 		if (qAbs(networkView->zoomRatio() - 3.0) > 1e-5) {
@@ -11605,11 +11617,56 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "dense capture did not restore the 3x zoom state";
 		}
 		QApplication::processEvents();
+		const bool detailedLabels = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[](const TrainBadgeItem* badge) {
+				return !badge || badge->presentation() == TrainBadgeItem::Presentation::Detailed
+					&& badge->showsIdentifier() && badge->showsSpeed();
+			});
+		if (!detailedLabels) {
+			ok = false;
+			failures << "3x did not show detailed train labels with speed";
+		}
+		m_trainSpeedLabelsCheck->setChecked(false);
+		QApplication::processEvents();
+		if (std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+				[](const TrainBadgeItem* badge) { return badge && badge->showsSpeed(); })) {
+			ok = false;
+			failures << "disabled train speed labels left detailed speed text visible";
+		}
+		m_trainSpeedLabelsCheck->setChecked(true);
+		QApplication::processEvents();
 	} else {
 		ok = false;
 		failures << "cannot create dense view without a train";
 	}
 	captureScreenshot("QEGTRAIN_E2E_DENSE_SCREENSHOT", "dense");
+	if (networkView && selectedTrain && selectedTrainBody) {
+		networkView->fitToTopology();
+		displayTrainDetails(selectedTrainBody, false);
+		QApplication::processEvents();
+		TrainBadgeItem* selectedBadge = m_trainBadges.value(selectedTrain->index, nullptr);
+		const bool ordinaryMarkers = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[this](const TrainBadgeItem* badge) {
+				return !badge || badge->isPromoted()
+					|| badge->presentation() == TrainBadgeItem::Presentation::Overview;
+			});
+		if (!selectedBadge || !selectedBadge->isPromoted()
+				|| selectedBadge->presentation() != TrainBadgeItem::Presentation::Detailed
+				|| !ordinaryMarkers) {
+			ok = false;
+			failures << "selected train was not promoted over Fit markers";
+		}
+	} else {
+		ok = false;
+		failures << "cannot create selected-train Fit capture";
+	}
+	captureScreenshot("QEGTRAIN_E2E_SELECTED_SCREENSHOT", "selected Fit");
+	if (networkView) {
+		networkView->fitToTopology();
+		networkView->zoomBy(TrainBadgeItem::detailedZoomThreshold());
+		updateViewportOverlays();
+		QApplication::processEvents();
+	}
 
 	SignalItem* visibleSignal = nullptr;
 	QGraphicsItem* signalHit = nullptr;
@@ -12125,6 +12182,23 @@ void MainWindow::runVisualPolishE2E() {
 	} else {
 		ok = false;
 		failures << "follow mode controls disappeared";
+	}
+	if (networkView) {
+		networkView->fitToTopology();
+		updateViewportOverlays();
+		QApplication::processEvents();
+		TrainBadgeItem* followedBadge = m_trainBadges.value(m_followTrainIndex, nullptr);
+		const bool ordinaryMarkers = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
+			[](const TrainBadgeItem* badge) {
+				return !badge || badge->isPromoted()
+					|| badge->presentation() == TrainBadgeItem::Presentation::Overview;
+			});
+		if (!followedBadge || !followedBadge->isPromoted()
+				|| followedBadge->presentation() != TrainBadgeItem::Presentation::Detailed
+				|| !ordinaryMarkers) {
+			ok = false;
+			failures << "followed train was not promoted over Fit markers";
+		}
 	}
 	captureScreenshot("QEGTRAIN_E2E_FOLLOW_SCREENSHOT", "follow");
 	if (scene && networkView && selectedTrainBody) {
@@ -18295,7 +18369,6 @@ void MainWindow::teardownGUI() {
 	scene->clear();
 
 	// Clear list pointers - the items were owned by the scene and are now deleted.
-	m_trainSpeedLabels.clear(); // items deleted by scene->clear() above
 	m_trainBadges.clear(); // items deleted by scene->clear() above
 	m_prevTrainPositions.clear();
 	allTrains.clear();
@@ -18322,6 +18395,7 @@ void MainWindow::teardownGUI() {
 
 	regionStations.clear();
 	m_followTrainIndex = -1;
+	m_selectedTrainIndex = -1;
 	m_e2eAttempts = 0;
 	m_e2eFinished = false;
 	if (m_followAction)
@@ -19067,16 +19141,20 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	allTrains.push_back(trainPolygonGroup);
 
 	TrainBadgeItem* badge = new TrainBadgeItem();
-	badge->setIdentifier(QString::fromStdString(train.description));
+	badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(train)));
+	badge->setTooltipDetails(QString::fromStdString(train.description),
+		QString::fromStdString(train.operatingCode), QString::fromStdString(train.type));
 	badge->setSpeedText(QString::fromStdString(formatSpeedLabel(train.speedKmh)));
 	badge->setSpeedVisible(m_trainSpeedLabelsVisible);
 	badge->setTrainVisual(visual);
 	badge->setReversed(train.reversedDirection);
-	badge->setCompact(!networkView || networkView->zoomRatio() < kDenseDetailZoom);
-	badge->setAcceptedMouseButtons(Qt::NoButton);
+	const bool promoted = isTrainOverlayPromoted(train.index);
+	badge->setPromoted(promoted);
+	badge->setPresentation(TrainBadgeItem::presentationForZoom(
+			networkView ? networkView->zoomRatio() : 1.0, promoted));
 	scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
-	badge->setPos(trainPolygonGroup->sceneBoundingRect().center() + QPointF(8.0, -24.0));
+	badge->setPos(trainPolygonGroup->sceneBoundingRect().center());
 	m_trainBadges[train.index] = badge;
 }
 
@@ -19424,6 +19502,7 @@ void MainWindow::handleHelpAbout() {
 // removes highlight from last clicked item
 void MainWindow::handleCloseInfoDockWidget() {
 	m_selectedStationName.clear();
+	m_selectedTrainIndex = -1;
 	for (auto* overlay : m_stationOverlays)
 		if (overlay)
 			overlay->setSelected(false);
@@ -19712,6 +19791,7 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 	if (!groupItem)
 		return;
 	handleCloseInfoDockWidget();
+	m_selectedTrainIndex = trainItem->index;
 	trainIDText->setText(QString::fromStdString(to_string_precision(groupItem->trainId, 0)));
 	trainTypeText->setText(QString::fromStdString(groupItem->trainType));
 	trainLengthText->setText(QString::fromStdString(to_string_precision(groupItem->trainLength, 0)));
@@ -19738,6 +19818,7 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 		setFollowTrain(trainItem->index);
 		centerSceneItem(groupItem);
 	}
+	updateViewportOverlays();
 
 	// effect on clicked item
 	if (!effect) {
@@ -20367,32 +20448,38 @@ void MainWindow::updateTrainPosition(int t) {
 
 				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
 				if (badge) {
-					badge->setIdentifier(QString::fromStdString(state.description));
+					badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(state)));
+					badge->setTooltipDetails(QString::fromStdString(state.description),
+						QString::fromStdString(state.operatingCode), QString::fromStdString(state.type));
 					badge->setSpeedText(QString::fromStdString(formatSpeedLabel(state.speedKmh)));
 					badge->setSpeedVisible(m_trainSpeedLabelsVisible);
 					badge->setTrainVisual(classifyTrainType(state.type, state.description));
 					badge->setReversed(state.reversedDirection);
+					const bool promoted = isTrainOverlayPromoted(train);
+					badge->setPromoted(promoted);
+					badge->setPresentation(TrainBadgeItem::presentationForZoom(
+						networkView ? networkView->zoomRatio() : 1.0, promoted));
 					badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
 				}
 				m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
-				const QPointF badgeBase = newCenter + QPointF(8.0, -24.0);
+				const QPointF badgeCenter = newCenter;
 				if (delta.manhattanLength() > 0.5) {
 					stopTrainAnimation(train);
 					trainItem->setPos(delta);
 					if (badge)
-						badge->setPos(badgeBase + delta);
+						badge->setPos(badgeCenter + delta);
 					QVariantAnimation* interp = new QVariantAnimation(this);
 					m_trainAnimations[train] = interp;
 					interp->setDuration(120);
 					interp->setStartValue(QVariant::fromValue(delta));
 					interp->setEndValue(QVariant::fromValue(QPointF(0, 0)));
 					interp->setEasingCurve(QEasingCurve::Linear);
-					connect(interp, &QVariantAnimation::valueChanged, this, [trainItem, badge, badgeBase](const QVariant& val) {
+					connect(interp, &QVariantAnimation::valueChanged, this, [trainItem, badge, badgeCenter](const QVariant& val) {
 						QPointF offset = val.toPointF();
 						trainItem->setPos(offset);
 						if (badge)
-							badge->setPos(badgeBase + offset);
+							badge->setPos(badgeCenter + offset);
 					});
 					connect(interp, &QVariantAnimation::finished, this, [this, train, interp]() {
 						if (m_trainAnimations.value(train, nullptr) == interp)
@@ -20404,7 +20491,7 @@ void MainWindow::updateTrainPosition(int t) {
 					stopTrainAnimation(train);
 					trainItem->setPos(QPointF(0, 0));
 					if (badge)
-						badge->setPos(badgeBase);
+						badge->setPos(badgeCenter);
 				}
 				if (hasVisibleGeometry && m_followAction && m_followAction->isChecked()
 						&& m_followTrainIndex == train)
@@ -20416,8 +20503,6 @@ void MainWindow::updateTrainPosition(int t) {
 				trainItem->hide();
 				if (m_trainBadges.contains(train))
 					m_trainBadges[train]->setVisible(false);
-				if (m_trainSpeedLabels.contains(train))
-					m_trainSpeedLabels[train]->setVisible(false);
 			}
 		}
 		// new train starting; >= not == because the frame throttle may drop
@@ -21715,6 +21800,11 @@ bool MainWindow::paxTextVisible() const {
 	return networkView->zoomRatio() >= kDenseDetailZoom;
 }
 
+bool MainWindow::isTrainOverlayPromoted(int trainIndex) const {
+	return trainIndex == m_selectedTrainIndex
+		|| (m_followAction && m_followAction->isChecked() && m_followTrainIndex == trainIndex);
+}
+
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
@@ -21935,8 +22025,12 @@ void MainWindow::updateViewportOverlays() {
 	}
 
 	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
-		if (it.value())
-			it.value()->setCompact(!dense);
+		if (!it.value())
+			continue;
+		const bool promoted = isTrainOverlayPromoted(it.key());
+		it.value()->setPromoted(promoted);
+		it.value()->setPresentation(
+			TrainBadgeItem::presentationForZoom(networkView->zoomRatio(), promoted));
 	}
 }
 

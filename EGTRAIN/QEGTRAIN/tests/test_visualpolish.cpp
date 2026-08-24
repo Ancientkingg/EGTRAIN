@@ -121,76 +121,86 @@ int main(int argc, char* argv[]) {
 	ok &= expect(badgeText.lightness() - badgeSurface.lightness() >= 100,
 		"train badge surface and primary text have strong luminance contrast");
 
-	TrainBadgeItem geometryBadge;
-	ok &= expect(geometryBadge.boundingRect() == QRectF(0.0, 0.0, 156.0, 32.0),
-		"detailed train badge uses the fixed 156 by 32 geometry");
-	geometryBadge.setCompact(true);
-	ok &= expect(geometryBadge.boundingRect() == QRectF(0.0, 0.0, 92.0, 24.0),
-		"compact train badge uses the fixed 92 by 24 geometry");
-	ok &= expect(geometryBadge.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
-		"train badge ignores view transformations");
-	ok &= expect(geometryBadge.acceptedMouseButtons() == Qt::NoButton,
-		"train badge remains non-interactive");
+	TrainBadgeItem badge;
+	badge.setIdentifier("1725");
+	badge.setTooltipDetails("Intercity 1725 northbound", "1725", "Intercity");
+	badge.setSpeedText("102 km/h");
+	using Presentation = TrainBadgeItem::Presentation;
+	ok &= expect(TrainBadgeItem::presentationForZoom(1.0, false) == Presentation::Overview,
+		"zoom below the identity threshold uses the overview marker");
+	ok &= expect(TrainBadgeItem::presentationForZoom(
+		TrainBadgeItem::identityZoomThreshold() - 0.01, false) == Presentation::Overview,
+		"zoom just below the identity threshold stays overview");
+	ok &= expect(TrainBadgeItem::presentationForZoom(
+		TrainBadgeItem::identityZoomThreshold(), false) == Presentation::Identity,
+		"the identity threshold itself enters identity mode");
+	ok &= expect(TrainBadgeItem::presentationForZoom(2.4, false) == Presentation::Identity,
+		"mid-range zoom keeps the identity chip");
+	ok &= expect(TrainBadgeItem::presentationForZoom(
+		TrainBadgeItem::detailedZoomThreshold() - 0.01, false) == Presentation::Identity,
+		"zoom just below the detailed threshold keeps identity");
+	ok &= expect(TrainBadgeItem::presentationForZoom(
+		TrainBadgeItem::detailedZoomThreshold(), false) == Presentation::Detailed,
+		"the detailed threshold itself enters detailed mode");
+	ok &= expect(TrainBadgeItem::presentationForZoom(6.0, false) == Presentation::Detailed,
+		"high zoom keeps the detailed label");
+	ok &= expect(TrainBadgeItem::presentationForZoom(0.8, true) == Presentation::Detailed
+		&& TrainBadgeItem::presentationForZoom(0.8, true)
+			== TrainBadgeItem::presentationForZoom(6.0, true),
+		"selected or followed trains are promoted to detailed at any zoom");
+	const QRectF overview = badge.badgeRect();
+	ok &= expect(overview.size() == TrainBadgeItem::markerSize(),
+		"overview train overlay is an 18 by 16 marker");
+	ok &= expect(!badge.showsIdentifier() && !badge.showsSpeed(),
+		"overview marker hides identifier and speed");
+	ok &= expect(badge.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+		"train overlay ignores view transformations");
+	ok &= expect(badge.acceptedMouseButtons() == Qt::NoButton,
+		"train overlay remains non-interactive");
 
-	QFont badgeFont;
-	badgeFont.setPointSize(10);
-	badgeFont.setBold(true);
-	const QFontMetricsF badgeMetrics(badgeFont);
-	QFont compactBadgeFont;
-	compactBadgeFont.setPointSize(9);
-	compactBadgeFont.setBold(true);
-	const QFontMetricsF compactBadgeMetrics(compactBadgeFont);
-	const QRectF denseBody(1.0, 1.0, 154.0, 30.0);
-	const QRectF compactBody(1.0, 1.0, 90.0, 22.0);
-	const QString longIdentifier = "Intercity 2201 Northbound";
-	const QString speedText = "0 km/h";
-	const QRectF identifierRegion = TrainBadgeItem::identifierTextRect(
-		denseBody, false, false, badgeMetrics, speedText);
-	const QRectF speedRegion = TrainBadgeItem::speedTextRect(
-		denseBody, false, false, badgeMetrics, speedText);
-	const QRectF categoryIcon = TrainBadgeItem::iconRect(denseBody, false);
-	const QRectF categoryIconPlate = TrainBadgeItem::iconPlateRect(denseBody, false);
-	const QRectF compactIdentifierRegion = TrainBadgeItem::identifierTextRect(
-		compactBody, true, false, compactBadgeMetrics, speedText);
-	const QRectF compactSpeedRegion = TrainBadgeItem::speedTextRect(
-		compactBody, true, false, compactBadgeMetrics, speedText);
-	const QRectF reversedIdentifierRegion = TrainBadgeItem::identifierTextRect(
-		denseBody, false, true, badgeMetrics, speedText);
-	const QRectF reversedSpeedRegion = TrainBadgeItem::speedTextRect(
-		denseBody, false, true, badgeMetrics, speedText);
-	const QRectF reversedIconPlate = TrainBadgeItem::iconPlateRect(denseBody, true);
-	const QString displayedIdentifier = TrainBadgeItem::elidedIdentifier(
-		longIdentifier, badgeMetrics, identifierRegion);
-	const QString serviceOne = TrainBadgeItem::elidedIdentifier(
-		"H-Ballerup-Osterport-1", compactBadgeMetrics, compactIdentifierRegion);
-	const QString serviceTwo = TrainBadgeItem::elidedIdentifier(
-		"H-Ballerup-Osterport-2", compactBadgeMetrics, compactIdentifierRegion);
-	TrainBadgeItem speedBadge;
-	speedBadge.setIdentifier(longIdentifier);
-	speedBadge.setSpeedText(speedText);
-	ok &= expect(speedBadge.toolTip().contains(longIdentifier),
-		"train badge tooltip keeps the full unelided identifier");
-	ok &= expect(speedBadge.toolTip().contains(speedText),
-		"train badge tooltip includes speed when available");
-	speedBadge.setSpeedVisible(false);
-	ok &= expect(!speedBadge.isSpeedVisible(), "train speed label can hide independently");
-	speedBadge.setSpeedVisible(true);
-	ok &= expect(speedBadge.isSpeedVisible(), "train speed label can restore independently");
-	ok &= expect(badgeMetrics.horizontalAdvance(longIdentifier) > identifierRegion.width(),
-		"long identifier needs elision");
-	ok &= expect(badgeMetrics.horizontalAdvance(displayedIdentifier) <= identifierRegion.width(),
-		"elided identifier fits its region");
-	ok &= expect(serviceOne != serviceTwo && serviceOne.endsWith('1') && serviceTwo.endsWith('2'),
-		"middle elision preserves distinguishing service suffixes");
-	ok &= expect(identifierRegion.right() <= speedRegion.left(),
-		"identifier and speed regions do not overlap");
-	ok &= expect(reversedIdentifierRegion.right() <= reversedSpeedRegion.left(),
-		"reversed identifier and speed regions do not overlap");
-	ok &= expect(categoryIcon.right() <= identifierRegion.left()
-		&& categoryIconPlate.right() <= identifierRegion.left()
-		&& reversedIconPlate.right() <= reversedIdentifierRegion.left(),
-		"train icon plates and identifier do not overlap");
-	ok &= expect(compactSpeedRegion.isEmpty(), "compact train badge hides speed text");
+	badge.setPresentation(TrainBadgeItem::Presentation::Identity);
+	const QRectF identity = badge.badgeRect();
+	ok &= expect(identity.height() == 22.0 && identity.width() < TrainBadgeItem::maximumWidth(
+		TrainBadgeItem::Presentation::Identity), "short identity chip is content-sized");
+	ok &= expect(badge.showsIdentifier() && !badge.showsSpeed() && badge.speedTextRect().isEmpty(),
+		"identity chip shows identity without speed");
+
+	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
+	const QRectF detailed = badge.badgeRect();
+	ok &= expect(detailed.height() == 26.0 && detailed.width() <= TrainBadgeItem::maximumWidth(
+		TrainBadgeItem::Presentation::Detailed), "detailed train label stays within 132 pixels");
+	ok &= expect(badge.showsIdentifier() && badge.showsSpeed(),
+		"detailed train label shows enabled speed");
+	ok &= expect(badge.identifierTextRect().right() <= badge.speedTextRect().left(),
+		"detailed identity and speed do not overlap");
+	ok &= expect(overview.bottom() == identity.bottom() && identity.bottom() == detailed.bottom(),
+		"all train overlay modes expand from one anchor");
+	const qreal detailedWidthWithSpeed = detailed.width();
+	badge.setSpeedVisible(false);
+	ok &= expect(!badge.showsSpeed() && badge.badgeRect().width() < detailedWidthWithSpeed,
+		"speed toggle removes detailed speed text and unused width");
+	badge.setSpeedVisible(true);
+	badge.setPromoted(true);
+	ok &= expect(badge.isPromoted() && badge.zValue() > 5.0
+		&& TrainBadgeItem::promotedBorderColor() == QColor("#315A70"),
+		"promoted train label uses the application accent above ordinary overlays");
+
+	const QPolygonF forwardNose = badge.directionNose();
+	badge.setReversed(true);
+	const QPolygonF reversedNose = badge.directionNose();
+	ok &= expect(forwardNose.first().x() > forwardNose.at(1).x()
+		&& reversedNose.first().x() < reversedNose.at(1).x(),
+		"integrated train nose follows runtime direction");
+	ok &= expect(badge.toolTip().contains("Intercity 1725 northbound")
+		&& badge.toolTip().contains("Operating code: 1725")
+		&& badge.toolTip().contains("Speed: 102 km/h")
+		&& badge.toolTip().contains("Type: Intercity"),
+		"train tooltip retains full operational details");
+
+	badge.setIdentifier("H-Ballerup-Osterport-1");
+	const QString elided = badge.displayedIdentifier();
+	ok &= expect(elided != "H-Ballerup-Osterport-1" && elided.endsWith('1'),
+		"long train identifiers use middle elision and preserve the suffix");
 
 	if (!ok)
 		return 1;

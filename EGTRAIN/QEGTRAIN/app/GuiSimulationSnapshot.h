@@ -16,6 +16,7 @@ struct GuiTrainState {
 	double id = 0.0;
 	std::string type;
 	std::string description;
+	std::string operatingCode;
 	int routeIndex = -1;
 	bool reversedDirection = false;
 	int wagonCount = 0;
@@ -30,6 +31,10 @@ struct GuiTrainState {
 	std::vector<double> wagonTailPositions;
 	std::vector<GuiOccupiedArc> occupiedArcs;
 };
+
+inline const std::string& guiTrainDisplayIdentifier(const GuiTrainState& train) {
+	return train.operatingCode.empty() ? train.description : train.operatingCode;
+}
 
 inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
 	return !train.outOfSimulation;

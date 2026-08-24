@@ -34,6 +34,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		state.id = train.ID;
 		state.type = train.type;
 		state.description = train.trainDescription;
+		state.operatingCode = train.operatingCode;
 		state.routeIndex = train.indexOfRoute;
 		const bool validRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(train_route.size());
 		state.reversedDirection = validRoute ? train_route[train.indexOfRoute].reversed_direction : false;
