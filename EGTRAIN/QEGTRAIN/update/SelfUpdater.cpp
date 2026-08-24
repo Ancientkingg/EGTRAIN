@@ -1,5 +1,7 @@
 #include "update/SelfUpdater.h"
 
+#include "update/WindowsStaging.h"
+
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
@@ -40,53 +42,6 @@ bool writableParent(const QString& path) {
 	const QFileInfo info(path);
 	const QFileInfo parent(info.absolutePath());
 	return parent.exists() && parent.isDir() && parent.isWritable();
-}
-
-bool copyTree(const QString& sourcePath, const QString& destinationPath) {
-	const QFileInfo source(sourcePath);
-	if (!source.isDir() || source.isSymLink())
-		return false;
-	if (!QDir().mkpath(destinationPath))
-		return false;
-	const QDir sourceDir(sourcePath);
-	const QFileInfoList entries = sourceDir.entryInfoList(
-		QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System,
-		QDir::DirsFirst | QDir::Name);
-	for (const QFileInfo& entry : entries) {
-		if (entry.isSymLink())
-			return false;
-		const QString destination = QDir(destinationPath).filePath(entry.fileName());
-		if (entry.isDir()) {
-			if (!copyTree(entry.absoluteFilePath(), destination))
-				return false;
-			continue;
-		}
-		if (!entry.isFile())
-			return false;
-		QFile::remove(destination);
-		if (!QFile::copy(entry.absoluteFilePath(), destination))
-			return false;
-	}
-	return true;
-}
-
-bool cleanWindowsRuntime(const QString& directory) {
-	QDir root(directory);
-	for (const QFileInfo& dll : root.entryInfoList({QStringLiteral("*.dll")}, QDir::Files))
-		if (!QFile::remove(dll.absoluteFilePath()))
-			return false;
-	for (const QString& executable : {QStringLiteral("QEGTRAIN.exe"),
-		QStringLiteral("scene_tool.exe"), QStringLiteral("egtrain_update_helper.exe")})
-		if (QFileInfo::exists(root.filePath(executable)) && !QFile::remove(root.filePath(executable)))
-			return false;
-	for (const QString& pluginDirectory : {QStringLiteral("platforms"), QStringLiteral("imageformats"),
-		QStringLiteral("iconengines"), QStringLiteral("styles"), QStringLiteral("tls"),
-		QStringLiteral("bearer")}) {
-		const QString path = root.filePath(pluginDirectory);
-		if (QFileInfo::exists(path) && !QDir(path).removeRecursively())
-			return false;
-	}
-	return true;
 }
 
 bool runProcess(const QString& program, const QStringList& arguments, int timeoutMs,
@@ -526,42 +481,8 @@ bool SelfUpdater::stageWindowsPackage(const QString& packagePath, QString* error
 		{QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"), QStringLiteral("-Command"), script},
 		60000, error, &environment))
 		return false;
-	if (!QFileInfo(QDir(extract).filePath(executableName())).isFile()) {
-		if (error)
-			*error = QStringLiteral("The Windows update package does not contain QEGTRAIN.exe.");
-		return false;
-	}
 	m_stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
-	if (!copyTree(m_currentPath, m_stagedPath) || !cleanWindowsRuntime(m_stagedPath)) {
-		if (error)
-			*error = QStringLiteral("Could not stage the Windows update without touching user files.");
-		return false;
-	}
-	// Keep any case studies stored beside the portable application. Application
-	// binaries and runtime plugins still come exclusively from the new package.
-	if (QFileInfo(QDir(m_currentPath).filePath(QStringLiteral("Scenes"))).isDir()) {
-		const QString packagedScenes = QDir(extract).filePath(QStringLiteral("Scenes"));
-		const QFileInfo packagedScenesInfo(packagedScenes);
-		if (packagedScenesInfo.isSymLink()
-			|| (packagedScenesInfo.exists() && !QDir(packagedScenes).removeRecursively())) {
-			if (error)
-				*error = QStringLiteral("Could not preserve portable case studies while staging the update.");
-			return false;
-		}
-	}
-	if (!copyTree(extract, m_stagedPath)) {
-		if (error)
-			*error = QStringLiteral("Could not finish staging the Windows update.");
-		return false;
-	}
-	if (!QFileInfo(QDir(m_stagedPath).filePath(executableName())).isFile()
-		|| !QFileInfo(QDir(m_stagedPath).filePath(QStringLiteral("Qt5Network.dll"))).isFile()
-		|| !QFileInfo(QDir(m_stagedPath).filePath(QStringLiteral("platforms/qwindows.dll"))).isFile()) {
-		if (error)
-			*error = QStringLiteral("The Windows update package is missing required runtime files.");
-		return false;
-	}
-	return true;
+	return WindowsStaging::buildStage(extract, m_stagedPath, error);
 }
 
 bool SelfUpdater::stageLinuxPackage(const QString& packagePath, QString* error) {

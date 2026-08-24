@@ -390,6 +390,11 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_updatechecker PRIVATE Qt5::Core Qt5::Network)
     add_test(NAME test_updatechecker COMMAND test_updatechecker)
 
+    add_executable(test_updatestaging
+        ${SRC_DIR}/tests/test_updatestaging.cpp)
+    target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
+    add_test(NAME test_updatestaging COMMAND test_updatestaging)
+
     if(NOT TARGET test_updatehelper)
         add_executable(test_updatehelper
             ${SRC_DIR}/tests/test_updatehelper.cpp)
