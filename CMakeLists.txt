@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(EGTRAIN VERSION 1.0 LANGUAGES C CXX)
+project(EGTRAIN VERSION 1.0.0 LANGUAGES C CXX)
+
+# The project version is the single application-version source for every
+# target and package surface.
+add_compile_definitions(EGTRAIN_APP_VERSION=\"${PROJECT_VERSION}\")
+file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/EGTRAIN_VERSION" CONTENT "${PROJECT_VERSION}\n")
 
 if(WIN32)
     enable_language(RC)
@@ -118,6 +123,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp
     ${SRC_DIR}/util/TimeFormat.cpp
+	${SRC_DIR}/util/Version.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
 	${SRC_DIR}/scene/SectionInventory.cpp
@@ -177,6 +183,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Simulation.h
     ${SRC_DIR}/simulation/SimulationWorker.h
     ${SRC_DIR}/util/TimeFormat.h
+    ${SRC_DIR}/util/Version.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
@@ -338,6 +345,11 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_timeformat.cpp
         ${SRC_DIR}/util/TimeFormat.cpp)
     add_test(NAME test_timeformat COMMAND test_timeformat)
+
+    add_executable(test_version
+        ${SRC_DIR}/tests/test_version.cpp
+        ${SRC_DIR}/util/Version.cpp)
+    add_test(NAME test_version COMMAND test_version)
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)

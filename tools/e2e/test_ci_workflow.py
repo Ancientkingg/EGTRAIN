@@ -11,6 +11,8 @@ def main() -> None:
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
     release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    main_cpp = (ROOT / "EGTRAIN/QEGTRAIN/app/main.cpp").read_text(encoding="utf-8")
+    windows_resource = (ROOT / "EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
     required = {
         "Build": "cmake --build build",
@@ -87,6 +89,20 @@ def main() -> None:
         missing.append("version tag release trigger")
     if "  workflow_dispatch:\n" not in release_trigger:
         missing.append("manual release trigger")
+    if not re.search(r"project\(EGTRAIN VERSION \d+\.\d+\.\d+ LANGUAGES", cmake):
+        missing.append("three-component CMake application version")
+    if any(
+        marker not in content
+        for marker, content in (
+            ('add_compile_definitions(EGTRAIN_APP_VERSION=\\"${PROJECT_VERSION}\\")', cmake),
+            ('file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/EGTRAIN_VERSION"', cmake),
+            ("setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION))", main_cpp),
+            ('VALUE "ProductVersion", "@PROJECT_VERSION@\\0"', windows_resource),
+            ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', release_workflow),
+            ('if [[ "${tag#v}" != "$cmake_version" ]]', release_workflow),
+        )
+    ):
+        missing.append("single-source application version propagation")
     if "\n  validation:\n" not in release_workflow or release_workflow.count(
         "ctest --test-dir build --output-on-failure"
     ) != 2:

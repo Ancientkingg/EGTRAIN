@@ -186,6 +186,7 @@ Logger owl;
 int main(int argc, char* argv[]) {
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
+	QCoreApplication::setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION));
 	parseCmdOptions(argc, argv);
 
 	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");

@@ -3593,6 +3593,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 	}
 
 	refreshSavedSceneMetadata(m_sceneModel);
+	m_sceneModel.savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_sceneDirty = false;
 	m_modifiedScenarioIds.clear();
@@ -3860,6 +3861,9 @@ void MainWindow::refreshLoadedDataTree() {
 		? QStringLiteral("(none)") : QString::fromStdString(m_sceneModel.description), "1", "Parsed");
 	addRow(caseRoot, "Source path", m_sceneDir, "1", "Loaded");
 	addRow(caseRoot, "Canonical schema version", QString::number(m_sceneModel.schemaVersion), "1", "Parsed");
+	addRow(caseRoot, "Saved with app version", m_sceneModel.savedWithAppVersion.empty()
+		? QStringLiteral("(not recorded)") : QString::fromStdString(m_sceneModel.savedWithAppVersion), "1",
+		m_sceneModel.savedWithAppVersion.empty() ? QStringLiteral("Missing optional") : QStringLiteral("Loaded"));
 	if (m_sceneIsBundle)
 		addRow(caseRoot, "Bundle format version", "1", "1", "Loaded");
 
@@ -19073,7 +19077,7 @@ void MainWindow::handleHelpAbout() {
 	QMessageBox::information(
 		this,
 		tr("About"),
-		tr("Made at TU Delft"));
+		tr("EGTRAIN %1\n\nMade at TU Delft").arg(QCoreApplication::applicationVersion()));
 }
 
 // hides all widgets from the dock widget

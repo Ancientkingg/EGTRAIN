@@ -561,6 +561,7 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	json sceneJson = {
 		{"schema_version", scene.schemaVersion},
 		{"name", scene.name},
+		{"saved_with_app_version", EGTRAIN_APP_VERSION},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
 	};
 	if (!scene.description.empty())

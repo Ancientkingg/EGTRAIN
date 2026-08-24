@@ -435,9 +435,11 @@ jobs:
       - name: Build AppImage
         env:
           APPIMAGE_EXTRACT_AND_RUN: "1"
-          VERSION: "1.0"
         run: |
           set -euxo pipefail
+          VERSION="$(tr -d '\r\n' < build/EGTRAIN_VERSION)"
+          test -n "$VERSION"
+          export VERSION
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
@@ -484,6 +486,28 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate stable release tag
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-')
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Stable release tags must match vX.Y.Z: $tag"
+            exit 1
+          fi
+          cmake_version="$(sed -nE 's/^project\(EGTRAIN VERSION ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' CMakeLists.txt | head -n 1)"
+          if [[ -z "$cmake_version" ]]; then
+            echo "Could not read the EGTRAIN project version from CMakeLists.txt"
+            exit 1
+          fi
+          if [[ "${tag#v}" != "$cmake_version" ]]; then
+            echo "Stable tag $tag does not match CMake version $cmake_version"
+            exit 1
+          fi
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
