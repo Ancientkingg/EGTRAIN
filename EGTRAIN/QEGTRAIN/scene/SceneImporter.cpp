@@ -2136,6 +2136,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const bool hasRouteChoice = passengerImport.sources.hasRouteChoice;
 
 	json sceneJson = {{"schema_version", kCurrentSceneSchemaVersion}, {"name", sceneName},
+		{"saved_with_app_version", EGTRAIN_APP_VERSION},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}}};
 	if (knownSettings) {
 		sceneJson["base_time"] = baseTime;
