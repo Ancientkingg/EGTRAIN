@@ -45,6 +45,11 @@ independently from the data schema. Both fields are required in a bundle;
 directory scenes may omit them. A reader rejects another marker, bundle
 version, or schema version before extracting files.
 
+Compatibility probing reads the bounded `scene.json` manifest after generic ZIP
+safety checks. It can classify a newer layout without extracting unknown
+entries; the v1 allowlist is enforced only when interpreting or extracting a
+v1 bundle.
+
 ## Safety limits
 
 The reader checks archive metadata before allocating or extracting entry data:
@@ -59,9 +64,10 @@ The reader checks archive metadata before allocating or extracting entry data:
 Absolute, drive-qualified, backslash, dot, and dot-dot paths are rejected.
 Encrypted or unsupported methods, malformed/truncated archives, invalid
 central-directory metadata, symlinks, and special files identified by ZIP
-attributes are rejected. Extraction uses only predetermined allowlisted names
-inside a private RAII temporary directory, which is removed on success and
-failure.
+attributes are rejected. Normal v1 loading extracts only allowlisted names.
+An explicitly registered migration may inspect other generically safe entries
+from an older layout, always inside a private temporary directory that is
+removed on success and failure.
 
 ## Read, write, and unpack behavior
 

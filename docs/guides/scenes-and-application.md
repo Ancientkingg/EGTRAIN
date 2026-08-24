@@ -19,6 +19,21 @@ compatibility aliases, and validates before a run. Infrastructure, signalling,
 rolling stock, services, the selected
 scenario, and passengers are built directly from `SceneModel` in memory.
 
+### Application updates
+
+At first launch EGTRAIN asks whether to check for releases automatically. You
+can disable or re-enable automatic checks from **Help**. **Check for Updates...**
+always performs a manual check, even when automatic checks are disabled. An
+available update is downloaded only after consent; **Update and Restart**
+installs it and relaunches the application. If the install location is not
+writable, download the release and install it with the platform's normal
+permissions instead.
+
+Application version, scene schema version, and bundle version are independent.
+The saved-with application version is provenance and does not by itself prompt
+for an upgrade. Older scenes can be upgraded to a copy; the original directory
+or ZIP remains unchanged. Newer schema or bundle versions require a newer app.
+
 ## Review what loaded
 
 The **Loaded Data** dock keeps opening separate from running. Its case-study

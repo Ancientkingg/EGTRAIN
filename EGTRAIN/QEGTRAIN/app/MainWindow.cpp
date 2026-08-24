@@ -15,6 +15,8 @@
 #include "diagrams/TractionCurve.h"
 #include "graphics/VisualPolish.h"
 #include "scene/SceneBundle.h"
+#include "scene/SceneCompatibility.h"
+#include "scene/SceneMigration.h"
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
@@ -3116,6 +3118,7 @@ void MainWindow::newScene() {
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = false;
+	m_sceneBundleVersion.reset();
 	m_sceneDirty = true;
 	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
 	m_modifiedScenarioIds.clear();
@@ -3172,7 +3175,105 @@ void MainWindow::openSceneFolderDialog() {
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
 	const QString scenePath = QFileInfo(dir).absoluteFilePath();
-	const bool sceneIsBundle = QFileInfo(scenePath).isFile();
+	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(scenePath.toStdString());
+	const auto compatibilityMessage = [&compatibility]() {
+		if (!compatibility.diagnostics.empty())
+			return QString::fromStdString(toDisplayText(compatibility.diagnostics.front()));
+		return QStringLiteral("The scene format could not be identified.");
+	};
+	// Scene compatibility prompts are suppressed only for unattended app/E2E
+	// runs. The update-only disable setting must not hide scene safety prompts.
+	const bool noCompatibilityDialogs = e2eDialogsSuppressed();
+	if (compatibility.classification == SceneCompatibilityClass::OlderMigratable) {
+		if (noCompatibilityDialogs) {
+			statusBar()->showMessage("Older scene requires an interactive upgrade copy");
+			return false;
+		}
+		QMessageBox dialog(this);
+		dialog.setIcon(QMessageBox::Question);
+		dialog.setWindowTitle("Older Scene");
+		QString ageDetails;
+		if (compatibility.schemaVersion < kCurrentSceneSchemaVersion)
+			ageDetails = QString("schema %1 (this application uses schema %2)")
+				.arg(compatibility.schemaVersion).arg(kCurrentSceneSchemaVersion);
+		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion
+				&& *compatibility.bundleVersion < kCurrentSceneBundleVersion) {
+			if (!ageDetails.isEmpty())
+				ageDetails += "; ";
+			ageDetails += QString("bundle layout %1 (this application uses bundle layout %2)")
+				.arg(*compatibility.bundleVersion).arg(kCurrentSceneBundleVersion);
+		}
+		if (ageDetails.isEmpty())
+			ageDetails = QStringLiteral("an older scene layout");
+		dialog.setText(QString("%1 uses %2.")
+			.arg(QFileInfo(scenePath).fileName(), ageDetails));
+		dialog.setInformativeText("Upgrade a copy; the original scene will remain unchanged.");
+		QPushButton* upgrade = dialog.addButton("Upgrade a Copy...", QMessageBox::AcceptRole);
+		dialog.addButton("Cancel", QMessageBox::RejectRole);
+		dialog.exec();
+		if (dialog.clickedButton() != upgrade)
+			return false;
+		const QFileInfo sourceInfo(scenePath);
+		QString destination;
+		if (compatibility.sourceKind == SceneSourceKind::Bundle) {
+			const QString base = sourceInfo.completeBaseName() + "-upgraded.egscene";
+			destination = QFileDialog::getSaveFileName(this, "Upgrade Scene Copy",
+				QDir(sourceInfo.absolutePath()).filePath(base), "EGTRAIN Case Study (*.egscene)");
+		} else {
+			// A migration destination must not already exist. A save-style chooser
+			// lets the user name a sibling directory without selecting an existing one.
+			destination = QFileDialog::getSaveFileName(this, "Upgrade Scene Copy",
+				QDir(sourceInfo.absolutePath()).filePath(sourceInfo.fileName() + "-upgraded"),
+				"EGTRAIN Scene Directory (*)");
+		}
+		if (destination.isEmpty())
+			return false;
+		const SceneMigrationResult migrated = migrateSceneCopy(scenePath.toStdString(),
+			destination.toStdString());
+		if (!migrated.success()) {
+			QString message = firstDiagnosticMessage(migrated.diagnostics);
+			if (message.isEmpty())
+				message = compatibilityMessage();
+			showBlockingError(this, "Cannot Upgrade Scene", message);
+			return false;
+		}
+		return openSceneDirectory(destination);
+	}
+	if (compatibility.classification == SceneCompatibilityClass::OlderUnsupported) {
+		if (!noCompatibilityDialogs)
+			showBlockingError(this, "Older Scene Not Supported",
+				"This scene uses an older schema or bundle layout with no registered migration path.\n\n"
+				+ compatibilityMessage());
+		return false;
+	}
+	if (compatibility.classification == SceneCompatibilityClass::Newer) {
+		if (noCompatibilityDialogs) {
+			statusBar()->showMessage("Newer scene format requires a newer EGTRAIN version");
+			return false;
+		}
+		QMessageBox dialog(this);
+		dialog.setIcon(QMessageBox::Question);
+		dialog.setWindowTitle("Newer Scene");
+		dialog.setText("This scene was saved with a newer scene format.");
+		QString details = QString("Supported schema: %1; scene schema: %2")
+			.arg(kCurrentSceneSchemaVersion).arg(compatibility.schemaVersion);
+		if (compatibility.bundleVersion)
+			details += QString("; supported bundle: %1; scene bundle: %2")
+				.arg(kCurrentSceneBundleVersion).arg(*compatibility.bundleVersion);
+		dialog.setInformativeText(details);
+		QPushButton* updates = dialog.addButton("Check for Updates...", QMessageBox::AcceptRole);
+		dialog.addButton("Cancel", QMessageBox::RejectRole);
+		dialog.exec();
+		if (dialog.clickedButton() == updates)
+			startUpdateCheck(true);
+		return false;
+	}
+	if (compatibility.classification == SceneCompatibilityClass::Malformed) {
+		if (!noCompatibilityDialogs)
+			showBlockingError(this, "Cannot Open Scene", compatibilityMessage());
+		return false;
+	}
+	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
 	const bool reloadingSameScene = m_sceneLoaded
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	auto result = loadScenePath(scenePath.toStdString());
@@ -3198,6 +3299,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = sceneIsBundle;
+	m_sceneBundleVersion = result.bundleVersion;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_sceneDirty = false;
 	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
@@ -3655,6 +3757,7 @@ bool MainWindow::saveSceneAsToBundle() {
 
 	m_sceneDir = targetPath;
 	m_sceneIsBundle = true;
+	m_sceneBundleVersion = kCurrentSceneBundleVersion;
 	addRecentScene(targetPath);
 	return finishSceneSave(result);
 }
@@ -3695,6 +3798,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 
 	m_sceneDir = targetPath;
 	m_sceneIsBundle = false;
+	m_sceneBundleVersion.reset();
 	addRecentScene(targetPath);
 	return finishSceneSave(result);
 }
@@ -4084,12 +4188,16 @@ void MainWindow::refreshLoadedDataTree() {
 	addRow(caseRoot, "Description", m_sceneModel.description.empty()
 		? QStringLiteral("(none)") : QString::fromStdString(m_sceneModel.description), "1", "Parsed");
 	addRow(caseRoot, "Source path", m_sceneDir, "1", "Loaded");
-	addRow(caseRoot, "Canonical schema version", QString::number(m_sceneModel.schemaVersion), "1", "Parsed");
+	addRow(caseRoot, "Canonical schema version", QString::number(m_sceneModel.schemaVersion),
+		QString::number(kCurrentSceneSchemaVersion), "Parsed");
 	addRow(caseRoot, "Saved with app version", m_sceneModel.savedWithAppVersion.empty()
 		? QStringLiteral("(not recorded)") : QString::fromStdString(m_sceneModel.savedWithAppVersion), "1",
 		m_sceneModel.savedWithAppVersion.empty() ? QStringLiteral("Missing optional") : QStringLiteral("Loaded"));
 	if (m_sceneIsBundle)
-		addRow(caseRoot, "Bundle format version", "1", "1", "Loaded");
+		addRow(caseRoot, "Bundle format version", m_sceneBundleVersion
+			? QString::number(*m_sceneBundleVersion) : QStringLiteral("(not recorded)"),
+			QString::number(kCurrentSceneBundleVersion),
+			m_sceneBundleVersion ? QStringLiteral("Loaded") : QStringLiteral("Missing"));
 
 	auto* sourceFiles = addRow(caseRoot, "Source files discovered", QString(),
 			QString::number(static_cast<int>(m_sceneModel.sourceFiles.size())), "Loaded");
@@ -15460,11 +15568,15 @@ void MainWindow::runTrackPreviewE2E() {
 			} else {
 				QByteArray contents = file.readAll();
 				file.close();
-				if (!contents.contains("\"schema_version\": 1")) {
+				const QByteArray currentSchemaMarker = "\"schema_version\": "
+					+ QByteArray::number(kCurrentSceneSchemaVersion);
+				const QByteArray newerSchemaMarker = "\"schema_version\": "
+					+ QByteArray::number(kCurrentSceneSchemaVersion + 1);
+				if (!contents.contains(currentSchemaMarker)) {
 					structuralOk = false;
 					fail("structural rejection", "saved scene schema marker not found");
 				} else {
-					contents.replace("\"schema_version\": 1", "\"schema_version\": 2");
+					contents.replace(currentSchemaMarker, newerSchemaMarker);
 					const bool wroteUnsupported = file.open(QIODevice::WriteOnly | QIODevice::Truncate)
 						&& file.write(contents) == contents.size();
 					file.close();

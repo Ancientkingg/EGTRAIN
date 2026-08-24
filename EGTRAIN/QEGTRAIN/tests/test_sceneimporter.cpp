@@ -134,6 +134,9 @@ int main() {
 			ok &= expect(readJson(fs::path(output.dir) / "views.json", views), "Synthetic views readable");
 			ok &= expect(scene["base_time"] == "07:10:40"
 					&& scene["simulation_settings"]["duration_seconds"] == 9000.0, "Known settings imported");
+			ok &= expect(scene["schema_version"] == kCurrentSceneSchemaVersion
+					&& scene["saved_with_app_version"] == EGTRAIN_APP_VERSION,
+					"Legacy import records the creating application version");
 			bool rootReport = false, coordinateReport = false, stationViewReport = false;
 			int trackViewSources = 0;
 			int trackViewConversions = 0;

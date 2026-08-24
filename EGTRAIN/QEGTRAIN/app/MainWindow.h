@@ -405,6 +405,7 @@ private:
 	TrackPreviewResult m_cachedTrackPreview;
 	bool m_sceneLoaded = false;
 	bool m_sceneIsBundle = false;
+	std::optional<int> m_sceneBundleVersion;
 	bool m_sceneDirty = false;
 	bool m_committingPendingEditorValues = false;
 	QAction* m_saveSceneAction = nullptr;

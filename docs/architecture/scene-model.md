@@ -127,6 +127,17 @@ avoids cascaded reference errors from partially parsed files.
 
 ## Compatibility boundary
 
+Compatibility is probed from `scene.json` before normal loading. The schema
+version describes canonical data; the bundle version describes ZIP transport;
+`saved_with_app_version` is descriptive provenance only. A newer schema or
+bundle is never downgraded. Older inputs are migratable only through explicit
+incremental registry steps; the production registry is currently empty.
+
+An upgrade always writes a copy through private staging and the existing
+transactional writer. The source directory or bundle remains unchanged on
+success and failure. Directory scenes and transparent bundles share the same
+current model, and a newer EGTRAIN release is required for newer formats.
+
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed
 in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases).

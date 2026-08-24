@@ -4,10 +4,14 @@
 #include "scene/SceneDiagnostic.h"
 #include <array>
 #include <cstddef>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+
+inline constexpr int kCurrentSceneSchemaVersion = 1;
+inline constexpr int kCurrentSceneBundleVersion = 1;
 
 struct SceneSimulationSettings {
 	bool hasDuration = false;
@@ -342,6 +346,7 @@ struct SceneLoadResult {
 	SceneModel scene; // partial on structural failure
 	std::vector<SceneDiagnostic> diagnostics;
 	std::string inputSnapshot;
+	std::optional<int> bundleVersion;
 };
 
 struct SceneInputSnapshot {

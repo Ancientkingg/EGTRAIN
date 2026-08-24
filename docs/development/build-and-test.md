@@ -68,6 +68,10 @@ blocking-time diagram data, visual classification, scene validation, explicit
 legacy import/export, scene writing, both native runtime builders, canonical
 TrackPreview rendering, transparent scene bundle round-trips/security limits,
 and smoke output decoding.
+Scene compatibility tests cover manifest probing, independent schema/bundle
+classification, hostile newer bundles, and transactional test-only migration
+chains. The production migration registry is empty; `scene_tool migrate` is a
+future extension rather than a second migration implementation.
 
 The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs
