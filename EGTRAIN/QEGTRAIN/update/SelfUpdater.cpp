@@ -370,7 +370,9 @@ void SelfUpdater::startPreparation() {
 
 void SelfUpdater::handlePreparationFinished(const UpdatePreparationResult& result) {
 	if (m_preparationThread) {
-		m_preparationThread->quit();
+		QThread* thread = m_preparationThread;
+		thread->quit();
+		thread->wait();
 		m_preparationThread = nullptr;
 	}
 	if (!result.success) {
