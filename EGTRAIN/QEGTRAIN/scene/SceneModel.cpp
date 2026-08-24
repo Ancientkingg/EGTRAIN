@@ -240,7 +240,7 @@ bool resolveScenePassengerLegStops(const SceneService& service, const ScenePasse
 
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
-	scene.schemaVersion = 1;
+	scene.schemaVersion = kCurrentSceneSchemaVersion;
 	scene.name = "Untitled Case Study";
 	scene.baseTime = "08:00:00";
 	scene.settings.hasDuration = true;
@@ -819,9 +819,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (!sceneJson.contains("schema_version")) {
 			addError("scene.version.missing", "scene.json", "Missing schema_version", "schema_version");
 		} else if (!sceneJson["schema_version"].is_number_integer()
-				|| sceneJson["schema_version"].get<int>() != 1) {
+				|| sceneJson["schema_version"].get<int>() != kCurrentSceneSchemaVersion) {
 			addError("scene.version.unsupported", "scene.json",
-					"Unsupported schema_version, must be the integer 1", "schema_version");
+					"Unsupported schema_version, must be the current integer "
+						+ std::to_string(kCurrentSceneSchemaVersion), "schema_version");
 		} else {
 			result.scene.schemaVersion = sceneJson["schema_version"].get<int>();
 		}

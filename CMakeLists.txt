@@ -140,6 +140,8 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/scene/SceneModel.cpp
 	${SRC_DIR}/scene/SectionInventory.cpp
 	${SRC_DIR}/scene/SceneBundle.cpp
+	${SRC_DIR}/scene/SceneCompatibility.cpp
+	${SRC_DIR}/scene/SceneMigration.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
 	${SRC_DIR}/scene/SceneWriter.cpp
@@ -205,6 +207,8 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
 	${SRC_DIR}/scene/SceneBundle.h
+	${SRC_DIR}/scene/SceneCompatibility.h
+	${SRC_DIR}/scene/SceneMigration.h
 	${SRC_DIR}/scene/SceneValidator.h
 	${SRC_DIR}/scene/SceneImporter.h
 	${SRC_DIR}/scene/SceneWriter.h
@@ -674,6 +678,19 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scenebundle
 		COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
+	add_executable(test_scenecompatibility
+		${SRC_DIR}/tests/test_scenecompatibility.cpp
+		${SRC_DIR}/scene/SceneDiagnostic.cpp
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SectionInventory.cpp
+		${SRC_DIR}/scene/SceneBundle.cpp
+		${SRC_DIR}/scene/SceneCompatibility.cpp
+		${SRC_DIR}/scene/SceneMigration.cpp
+		${SRC_DIR}/scene/SceneWriter.cpp)
+	target_link_libraries(test_scenecompatibility PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+	add_test(NAME test_scenecompatibility
+		COMMAND test_scenecompatibility ${SRC_DIR}/tests/fixtures/scenes/minimal)
+
 	add_executable(test_scenebuilder
 		${SRC_DIR}/tests/test_scenebuilder.cpp
 		${SRC_DIR}/simulation/Infrastructure.cpp
@@ -806,7 +823,7 @@ if(EGTRAIN_BUILD_TESTS)
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
-	set_tests_properties(test_scenebundle PROPERTIES LABELS "scene-v2")
+	set_tests_properties(test_scenebundle test_scenecompatibility PROPERTIES LABELS "scene-v2")
 endif()
 
 # Install

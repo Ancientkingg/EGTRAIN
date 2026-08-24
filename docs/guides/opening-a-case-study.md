@@ -14,6 +14,11 @@ the same JSON data that EGTRAIN loads from a V1 scene directory.
 Opening a bundle does not run it or modify the downloaded file. Use
 **File > Save Case Study As...** to create a new `.egscene` after editing the scene.
 
+If a scene is older and a reviewed migration is available, EGTRAIN offers
+**Upgrade a Copy...** and leaves the original unchanged. If no migration is
+registered, it reports that the scene is unsupported. A newer schema or bundle
+requires a newer EGTRAIN release; the dialog can use **Check for Updates...**.
+
 If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
 the file again. The reader rejects truncated archives, unknown files, unsafe
 paths, duplicate entries, and files that exceed the documented bundle limits.

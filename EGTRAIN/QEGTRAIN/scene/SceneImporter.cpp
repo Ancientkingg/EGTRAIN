@@ -2135,7 +2135,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const bool hasDas = passengerImport.sources.hasDas;
 	const bool hasRouteChoice = passengerImport.sources.hasRouteChoice;
 
-	json sceneJson = {{"schema_version", 1}, {"name", sceneName},
+	json sceneJson = {{"schema_version", kCurrentSceneSchemaVersion}, {"name", sceneName},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}}};
 	if (knownSettings) {
 		sceneJson["base_time"] = baseTime;
