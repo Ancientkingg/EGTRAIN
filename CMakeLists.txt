@@ -35,6 +35,13 @@ if(MSVC)
 endif()
 
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
+option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
+
+if(EGTRAIN_PACKAGED_BUILD)
+    add_compile_definitions(EGTRAIN_PACKAGED_BUILD=1)
+else()
+    add_compile_definitions(EGTRAIN_PACKAGED_BUILD=0)
+endif()
 
 if(EGTRAIN_ENABLE_SANITIZERS)
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
@@ -127,6 +134,7 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/update/ReleaseInfo.cpp
 	${SRC_DIR}/update/UpdateChecker.cpp
 	${SRC_DIR}/update/UpdateSettings.cpp
+	${SRC_DIR}/update/SelfUpdater.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
 	${SRC_DIR}/scene/SectionInventory.cpp
@@ -190,6 +198,7 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/update/ReleaseInfo.h
 	${SRC_DIR}/update/UpdateChecker.h
 	${SRC_DIR}/update/UpdateSettings.h
+	${SRC_DIR}/update/SelfUpdater.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
@@ -288,6 +297,21 @@ target_link_libraries(QEGTRAIN PRIVATE cppzmq nlohmann_json::nlohmann_json)
 target_link_libraries(QEGTRAIN PRIVATE egtrain_miniz)
 message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
 
+add_executable(egtrain_update_helper
+	${SRC_DIR}/update/UpdateHelper.cpp)
+if(MSVC)
+    set_property(TARGET egtrain_update_helper PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+if(EGTRAIN_PACKAGED_BUILD)
+    enable_testing()
+    add_executable(test_updatehelper
+        ${SRC_DIR}/tests/test_updatehelper.cpp)
+    target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
+    add_test(NAME test_updatehelper COMMAND test_updatehelper $<TARGET_FILE:egtrain_update_helper>)
+endif()
+
 # Platform-specific settings
 if(APPLE)
     set_target_properties(QEGTRAIN PROPERTIES
@@ -365,6 +389,13 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/Version.cpp)
     target_link_libraries(test_updatechecker PRIVATE Qt5::Core Qt5::Network)
     add_test(NAME test_updatechecker COMMAND test_updatechecker)
+
+    if(NOT TARGET test_updatehelper)
+        add_executable(test_updatehelper
+            ${SRC_DIR}/tests/test_updatehelper.cpp)
+        target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
+        add_test(NAME test_updatehelper COMMAND test_updatehelper $<TARGET_FILE:egtrain_update_helper>)
+    endif()
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)

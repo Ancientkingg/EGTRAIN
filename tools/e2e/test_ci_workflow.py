@@ -199,6 +199,28 @@ def main() -> None:
         missing.append("Windows Qt Network package verification")
     if "libqt5network5" not in release_workflow or "libQt5Network.so*" not in release_workflow:
         missing.append("Linux Qt Network package verification")
+    if release_workflow.count("-DEGTRAIN_PACKAGED_BUILD=ON") != 3:
+        missing.append("packaged-build updater gate on all platform packages")
+    if release_workflow.count("Verify update helper transaction") != 3 or any(
+        helper not in release_workflow
+        for helper in (
+            "QEGTRAIN.app/Contents/MacOS/egtrain_update_helper",
+            "egtrain_update_helper.exe",
+            "squashfs-root/usr/bin/egtrain_update_helper",
+        )
+    ):
+        missing.append("packaged update helper verification")
+    if any(
+        value not in release_workflow
+        for value in (
+            "update-manifest.json",
+            'QEGTRAIN-macos-arm64.zip",sha256:$mac_sha',
+            'QEGTRAIN-windows-x64.zip",sha256:$windows_sha',
+            'QEGTRAIN-linux-x86_64.AppImage",sha256:$linux_sha',
+            'if [[ "$count" != "10" ]]',
+        )
+    ):
+        missing.append("release update manifest and exact package checksums")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 
