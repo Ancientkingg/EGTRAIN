@@ -1,17 +1,12 @@
 #include "update/SelfUpdater.h"
 
-#include "update/WindowsStaging.h"
-
 #include <QCoreApplication>
-#include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
-#include <QProcessEnvironment>
 #include <QTemporaryDir>
-#include <QXmlStreamReader>
 
 #ifndef EGTRAIN_PACKAGED_BUILD
 #define EGTRAIN_PACKAGED_BUILD 0
@@ -44,63 +39,12 @@ bool writableParent(const QString& path) {
 	return parent.exists() && parent.isDir() && parent.isWritable();
 }
 
-bool runProcess(const QString& program, const QStringList& arguments, int timeoutMs,
-	QString* error = nullptr, const QProcessEnvironment* environment = nullptr) {
-	QProcess process;
-	if (environment)
-		process.setProcessEnvironment(*environment);
-	process.start(program, arguments);
-	if (!process.waitForStarted(5000)) {
-		if (error)
-			*error = QStringLiteral("Could not start %1.").arg(program);
-		return false;
-	}
-	if (!process.waitForFinished(timeoutMs)) {
-		process.kill();
-		process.waitForFinished(1000);
-		if (error)
-			*error = QStringLiteral("%1 timed out.").arg(program);
-		return false;
-	}
-	if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
-		if (error)
-			*error = QStringLiteral("%1 could not prepare the update package.").arg(program);
-		return false;
-	}
-	return true;
-}
-
-bool validElf(const QString& path) {
-	QFile file(path);
-	if (!file.open(QIODevice::ReadOnly))
-		return false;
-	return file.read(4) == QByteArray::fromHex("7f454c46");
-}
-
-std::optional<QString> macBundleVersion(const QString& bundlePath) {
-	QFile plist(QDir(bundlePath).filePath(QStringLiteral("Contents/Info.plist")));
-	if (!plist.open(QIODevice::ReadOnly | QIODevice::Text))
-		return std::nullopt;
-	QXmlStreamReader xml(&plist);
-	QString key;
-	while (!xml.atEnd()) {
-		xml.readNext();
-		if (!xml.isStartElement())
-			continue;
-		if (xml.name() == QStringLiteral("key")) {
-			key = xml.readElementText();
-		} else if (xml.name() == QStringLiteral("string")
-			&& key == QStringLiteral("CFBundleShortVersionString")) {
-			return xml.readElementText();
-		}
-	}
-	return std::nullopt;
-}
-
 } // namespace
 
 SelfUpdater::SelfUpdater(QObject* parent)
 	: QObject(parent), m_network(this), m_timeout(this) {
+	qRegisterMetaType<UpdatePreparationInput>("UpdatePreparationInput");
+	qRegisterMetaType<UpdatePreparationResult>("UpdatePreparationResult");
 	m_timeout.setSingleShot(true);
 	connect(&m_timeout, &QTimer::timeout, this, [this]() {
 		if (!m_reply)
@@ -112,6 +56,13 @@ SelfUpdater::SelfUpdater(QObject* parent)
 		reply->deleteLater();
 		fail(QStringLiteral("The update download timed out."));
 	});
+}
+
+SelfUpdater::~SelfUpdater() {
+	if (m_preparationThread) {
+		m_preparationThread->quit();
+		m_preparationThread->wait();
+	}
 }
 
 SelfUpdateCapability SelfUpdater::capability() const {
@@ -361,28 +312,7 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 		fail(QStringLiteral("The update package size does not match the release manifest."));
 		return;
 	}
-	QFile package(m_packageFile.fileName());
-	if (!package.open(QIODevice::ReadOnly)) {
-		fail(QStringLiteral("Could not read the downloaded update."));
-		return;
-	}
-	QCryptographicHash hash(QCryptographicHash::Sha256);
-	if (!hash.addData(&package)) {
-		fail(QStringLiteral("Could not verify the downloaded update."));
-		return;
-	}
-	if (QString::fromLatin1(hash.result().toHex()) != m_manifest.sha256) {
-		fail(QStringLiteral("The downloaded update failed its SHA-256 check."));
-		return;
-	}
-	QString error;
-	if (!stagePackage(package.fileName(), &error)) {
-		fail(error.isEmpty() ? QStringLiteral("The update package is incomplete.") : error);
-		return;
-	}
-	m_busy = false;
-	m_ready = true;
-	emit finished(true, QString());
+	startPreparation();
 }
 
 void SelfUpdater::fail(const QString& error) {
@@ -403,7 +333,7 @@ void SelfUpdater::fail(const QString& error) {
 }
 
 void SelfUpdater::cancel() {
-	if (!m_busy)
+	if (!m_busy || m_preparationThread)
 		return;
 	m_cancelRequested = true;
 	if (m_reply) {
@@ -413,94 +343,45 @@ void SelfUpdater::cancel() {
 	fail(QStringLiteral("Update cancelled."));
 }
 
-bool SelfUpdater::stagePackage(const QString& packagePath, QString* error) {
-	if (m_stagingRoot.isEmpty()) {
-		if (error)
-			*error = QStringLiteral("Update staging storage is unavailable.");
-		return false;
+void SelfUpdater::startPreparation() {
+	if (m_stagingRoot.isEmpty() || m_preparationThread) {
+		fail(QStringLiteral("Update staging storage is unavailable."));
+		return;
 	}
-#if defined(Q_OS_MACOS)
-	return stageMacPackage(packagePath, error);
-#elif defined(Q_OS_WIN)
-	return stageWindowsPackage(packagePath, error);
-#elif defined(Q_OS_LINUX)
-	return stageLinuxPackage(packagePath, error);
-#else
-	Q_UNUSED(packagePath);
-	if (error)
-		*error = QStringLiteral("Self-update is not supported on this platform.");
-	return false;
-#endif
+	UpdatePreparationInput input;
+	input.packagePath = m_packageFile.fileName();
+	input.stagingRoot = m_stagingRoot;
+	input.currentPath = m_currentPath;
+	input.manifest = m_manifest;
+
+	emit preparing(m_manifest.version);
+	auto* thread = new QThread(this);
+	auto* worker = new UpdatePreparationWorker;
+	worker->moveToThread(thread);
+	connect(thread, &QThread::started, worker,
+		[worker, input]() { worker->prepare(input); });
+	connect(worker, &UpdatePreparationWorker::finished,
+		this, &SelfUpdater::handlePreparationFinished);
+	connect(thread, &QThread::finished, worker, &QObject::deleteLater);
+	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+	m_preparationThread = thread;
+	thread->start(QThread::LowPriority);
 }
 
-bool SelfUpdater::stageMacPackage(const QString& packagePath, QString* error) {
-	const QString& root = m_stagingRoot;
-	const QString extract = QDir(root).filePath(QStringLiteral("extract"));
-	if (!QDir().mkpath(extract))
-		return false;
-	if (!runProcess(QStringLiteral("/usr/bin/ditto"),
-		{QStringLiteral("-x"), QStringLiteral("-k"), packagePath, extract}, 60000, error))
-		return false;
-	const QString source = QDir(extract).filePath(QStringLiteral("QEGTRAIN-Lebanon/QEGTRAIN.app"));
-	const QFileInfo app(source);
-	if (!app.isDir() || app.fileName() != QStringLiteral("QEGTRAIN.app")
-		|| !QFileInfo(QDir(source).filePath("Contents/MacOS/QEGTRAIN")).isFile()
-		|| !QFileInfo(QDir(source).filePath("Contents/Info.plist")).isFile()) {
-		if (error)
-			*error = QStringLiteral("The macOS update package has an invalid app bundle.");
-		return false;
+void SelfUpdater::handlePreparationFinished(const UpdatePreparationResult& result) {
+	if (m_preparationThread) {
+		m_preparationThread->quit();
+		m_preparationThread = nullptr;
 	}
-	m_stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN.app"));
-	if (!runProcess(QStringLiteral("/usr/bin/ditto"), {source, m_stagedPath}, 60000, error))
-		return false;
-	if (!runProcess(QStringLiteral("/usr/bin/codesign"),
-		{QStringLiteral("--verify"), QStringLiteral("--deep"), QStringLiteral("--strict"), m_stagedPath},
-		60000, error))
-		return false;
-	const std::optional<QString> version = macBundleVersion(m_stagedPath);
-	if (!version || *version != m_manifest.version) {
-		if (error)
-			*error = QStringLiteral("The macOS update app version does not match the release manifest.");
-		return false;
+	if (!result.success) {
+		fail(result.error.isEmpty()
+			? QStringLiteral("The update package is incomplete.") : result.error);
+		return;
 	}
-	return true;
-}
-
-bool SelfUpdater::stageWindowsPackage(const QString& packagePath, QString* error) {
-	const QString& root = m_stagingRoot;
-	const QString extract = QDir(root).filePath(QStringLiteral("extract"));
-	if (!QDir().mkpath(extract))
-		return false;
-	QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
-	environment.insert(QStringLiteral("EGTRAIN_UPDATE_ZIP"), packagePath);
-	environment.insert(QStringLiteral("EGTRAIN_UPDATE_DEST"), extract);
-	const QString script = QStringLiteral(
-		"$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:EGTRAIN_UPDATE_ZIP "
-		"-DestinationPath $env:EGTRAIN_UPDATE_DEST -Force");
-	if (!runProcess(QStringLiteral("powershell.exe"),
-		{QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"), QStringLiteral("-Command"), script},
-		60000, error, &environment))
-		return false;
-	m_stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
-	return WindowsStaging::buildStage(extract, m_stagedPath, error);
-}
-
-bool SelfUpdater::stageLinuxPackage(const QString& packagePath, QString* error) {
-	const QString& root = m_stagingRoot;
-	m_stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN-linux-x86_64.AppImage"));
-	if (!QFile::copy(packagePath, m_stagedPath)) {
-		if (error)
-			*error = QStringLiteral("Could not stage the AppImage.");
-		return false;
-	}
-	QFile::Permissions permissions = QFileInfo(m_currentPath).permissions();
-	permissions |= QFile::ExeOwner;
-	if (!QFile::setPermissions(m_stagedPath, permissions) || !validElf(m_stagedPath)) {
-		if (error)
-			*error = QStringLiteral("The downloaded AppImage is structurally invalid.");
-		return false;
-	}
-	return true;
+	m_stagedPath = result.stagedPath;
+	m_busy = false;
+	m_ready = true;
+	emit finished(true, QString());
 }
 
 void SelfUpdater::clearStaging() {

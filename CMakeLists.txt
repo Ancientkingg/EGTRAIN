@@ -134,6 +134,7 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/update/ReleaseInfo.cpp
 	${SRC_DIR}/update/UpdateChecker.cpp
 	${SRC_DIR}/update/UpdateSettings.cpp
+	${SRC_DIR}/update/UpdatePreparation.cpp
 	${SRC_DIR}/update/SelfUpdater.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
@@ -198,6 +199,7 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/update/ReleaseInfo.h
 	${SRC_DIR}/update/UpdateChecker.h
 	${SRC_DIR}/update/UpdateSettings.h
+	${SRC_DIR}/update/UpdatePreparation.h
 	${SRC_DIR}/update/SelfUpdater.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
@@ -394,6 +396,12 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_updatestaging.cpp)
     target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
     add_test(NAME test_updatestaging COMMAND test_updatestaging)
+
+    add_executable(test_updatepreparation
+        ${SRC_DIR}/tests/test_updatepreparation.cpp
+        ${SRC_DIR}/update/UpdatePreparation.cpp)
+    target_link_libraries(test_updatepreparation PRIVATE Qt5::Core)
+    add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
 
     if(NOT TARGET test_updatehelper)
         add_executable(test_updatehelper

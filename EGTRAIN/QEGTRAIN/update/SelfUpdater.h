@@ -2,11 +2,13 @@
 #define EGTRAIN_SELF_UPDATER_H
 
 #include "update/ReleaseInfo.h"
+#include "update/UpdatePreparation.h"
 
 #include <QByteArray>
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QPointer>
+#include <QThread>
 #include <QTimer>
 #include <QObject>
 
@@ -25,27 +27,30 @@ class SelfUpdater : public QObject {
 
 public:
 	explicit SelfUpdater(QObject* parent = nullptr);
+	~SelfUpdater() override;
 
 	SelfUpdateCapability capability() const;
 	bool canSelfUpdate(const StableRelease& release) const;
 	bool isBusy() const { return m_busy; }
+	bool isPreparing() const { return m_preparationThread != nullptr; }
 	void start(const StableRelease& release);
 	void cancel();
 	bool restart();
 
 signals:
 	void progress(qint64 received, qint64 total);
+	void preparing(const QString& version);
 	void finished(bool success, const QString& error);
+
+private slots:
+	void handlePreparationFinished(const UpdatePreparationResult& result);
 
 private:
 	void requestManifest();
 	void requestPackage(const UpdateManifest& manifest);
 	void handleReply(QNetworkReply* reply, bool manifestReply);
 	void fail(const QString& error);
-	bool stagePackage(const QString& packagePath, QString* error);
-	bool stageMacPackage(const QString& packagePath, QString* error);
-	bool stageWindowsPackage(const QString& packagePath, QString* error);
-	bool stageLinuxPackage(const QString& packagePath, QString* error);
+	void startPreparation();
 	void clearStaging();
 
 	QNetworkAccessManager m_network;
@@ -60,6 +65,7 @@ private:
 	QString m_currentPath;
 	QString m_launchPath;
 	QString m_helperPath;
+	QThread* m_preparationThread = nullptr;
 	qint64 m_packageBytes = 0;
 	bool m_busy = false;
 	bool m_cancelRequested = false;

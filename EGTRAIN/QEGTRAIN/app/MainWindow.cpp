@@ -3821,6 +3821,14 @@ void MainWindow::setupUpdateActions() {
 		}
 	});
 	connect(m_selfUpdater, &SelfUpdater::finished, this, &MainWindow::handleSelfUpdateFinished);
+	connect(m_selfUpdater, &SelfUpdater::preparing, this, [this](const QString& version) {
+		if (!m_updateProgress)
+			return;
+		m_updateProgress->setLabelText(QStringLiteral("Verifying and preparing EGTRAIN %1...")
+			.arg(version));
+		m_updateProgress->setCancelButton(nullptr);
+		m_updateProgress->setRange(0, 0);
+	});
 }
 
 void MainWindow::maybePromptForUpdateChecks() {
@@ -3941,7 +3949,7 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 void MainWindow::startSelfUpdate(const StableRelease& release) {
 	if (!m_selfUpdater || m_selfUpdater->isBusy() || !maybeSaveScene())
 		return;
-	m_updateProgress = new QProgressDialog(QStringLiteral("Downloading and preparing EGTRAIN %1...")
+	m_updateProgress = new QProgressDialog(QStringLiteral("Downloading EGTRAIN %1...")
 		.arg(formatSemanticVersion(release.version)),
 		QStringLiteral("Cancel"), 0, 0, this);
 	m_updateProgress->setWindowTitle(QStringLiteral("EGTRAIN Update"));
@@ -3950,8 +3958,16 @@ void MainWindow::startSelfUpdate(const StableRelease& release) {
 	m_updateProgress->setAutoReset(false);
 	m_updateProgress->setMinimumDuration(0);
 	connect(m_updateProgress, &QProgressDialog::canceled, this, [this]() {
-		if (m_selfUpdater)
-			m_selfUpdater->cancel();
+		if (!m_selfUpdater)
+			return;
+		if (m_selfUpdater->isPreparing()) {
+			// Preparation cannot be interrupted safely; Esc or a stray cancel
+			// must not hide the dialog while the update is still progressing.
+			if (m_updateProgress && !m_updateProgress->isVisible())
+				m_updateProgress->show();
+			return;
+		}
+		m_selfUpdater->cancel();
 	});
 	m_updateProgress->show();
 	m_selfUpdater->start(release);
