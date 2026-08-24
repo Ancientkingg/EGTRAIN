@@ -3929,9 +3929,10 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 	QPushButton* stopButton = dialog.addButton(QStringLiteral("Stop Checking"),
 		QMessageBox::DestructiveRole);
 	dialog.exec();
-	if (dialog.clickedButton() == updateButton) {
+	QAbstractButton* clickedButton = dialog.clickedButton();
+	if (updateButton && clickedButton == updateButton) {
 		startSelfUpdate(release);
-	} else if (dialog.clickedButton() == stopButton) {
+	} else if (clickedButton == stopButton) {
 		QSettings settings;
 		writeUpdateCheckState(settings, UpdateCheckState::Disabled);
 		settings.sync();
@@ -3939,7 +3940,7 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 			const QSignalBlocker blocker(m_automaticUpdateChecksAction);
 			m_automaticUpdateChecksAction->setChecked(false);
 		}
-	} else if (dialog.clickedButton() == openButton
+	} else if (clickedButton == openButton
 		&& !QDesktopServices::openUrl(release.releasePage)) {
 		QMessageBox::warning(this, QStringLiteral("Open Release Page"),
 			QStringLiteral("Could not open the release page:\n%1").arg(release.releasePage.toString()));
