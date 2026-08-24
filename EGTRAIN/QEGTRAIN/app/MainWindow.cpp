@@ -21,6 +21,9 @@
 #include "scene/SectionInventory.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
+#include "update/ReleaseInfo.h"
+#include "update/UpdateChecker.h"
+#include "update/UpdateSettings.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLegendMarker>
@@ -50,6 +53,7 @@
 #include <QSignalBlocker>
 #include <QSettings>
 #include <QIcon>
+#include <QDesktopServices>
 #include <QToolButton>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
@@ -1445,6 +1449,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
 
 	ui->setupUi(this);
+	setupUpdateActions();
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
 	cout << "\n...PREPARING GUI...\n\n";
@@ -3768,6 +3773,141 @@ void MainWindow::updateSceneActions() {
 	if (m_recentScenesMenu) {
 		QSettings settings;
 		m_recentScenesMenu->setEnabled(!settings.value(kRecentScenesKey).toStringList().isEmpty());
+	}
+}
+
+void MainWindow::setupUpdateActions() {
+	if (!ui->menuHelp || updatesSuppressedByEnvironment())
+		return;
+
+	m_checkForUpdatesAction = new QAction(QStringLiteral("Check for Updates..."), this);
+	m_checkForUpdatesAction->setObjectName(QStringLiteral("actionCheckForUpdates"));
+	m_automaticUpdateChecksAction = new QAction(
+		QStringLiteral("Automatically Check for Updates"), this);
+	m_automaticUpdateChecksAction->setObjectName(QStringLiteral("actionAutomaticallyCheckForUpdates"));
+	m_automaticUpdateChecksAction->setCheckable(true);
+	QSettings settings;
+	{
+		const QSignalBlocker blocker(m_automaticUpdateChecksAction);
+		m_automaticUpdateChecksAction->setChecked(
+			readUpdateCheckState(settings) == UpdateCheckState::Enabled);
+	}
+	ui->menuHelp->addSeparator();
+	ui->menuHelp->addAction(m_checkForUpdatesAction);
+	ui->menuHelp->addAction(m_automaticUpdateChecksAction);
+
+	m_updateChecker = new UpdateChecker(this);
+	connect(m_checkForUpdatesAction, &QAction::triggered, this,
+		[this]() { startUpdateCheck(true); });
+	connect(m_automaticUpdateChecksAction, &QAction::toggled, this, [this](bool checked) {
+		QSettings preferences;
+		writeUpdateCheckState(preferences, checked ? UpdateCheckState::Enabled
+			: UpdateCheckState::Disabled);
+		preferences.sync();
+	});
+	connect(m_updateChecker, &UpdateChecker::finished, this, &MainWindow::handleUpdateCheckFinished);
+}
+
+void MainWindow::maybePromptForUpdateChecks() {
+	if (!m_updateChecker || updatesSuppressedByEnvironment())
+		return;
+	QSettings settings;
+	const UpdateCheckState state = readUpdateCheckState(settings);
+	if (state == UpdateCheckState::Unknown) {
+		QMessageBox dialog(QMessageBox::Question,
+			QStringLiteral("Automatically Check for EGTRAIN Updates?"),
+			QStringLiteral("EGTRAIN can check GitHub Releases when the application starts and notify you "
+				"when a newer stable version is available."), QMessageBox::NoButton, this);
+		dialog.setInformativeText(QStringLiteral("You can change this later from Help."));
+		QPushButton* enableButton = dialog.addButton(QStringLiteral("Check Automatically"),
+			QMessageBox::AcceptRole);
+		dialog.addButton(QStringLiteral("Don't Check Automatically"), QMessageBox::RejectRole);
+		dialog.setDefaultButton(enableButton);
+		dialog.exec();
+		const UpdateCheckState chosen = dialog.clickedButton() == enableButton
+			? UpdateCheckState::Enabled : UpdateCheckState::Disabled;
+		writeUpdateCheckState(settings, chosen);
+		settings.sync();
+		if (m_automaticUpdateChecksAction) {
+			const QSignalBlocker blocker(m_automaticUpdateChecksAction);
+			m_automaticUpdateChecksAction->setChecked(chosen == UpdateCheckState::Enabled);
+		}
+		if (chosen == UpdateCheckState::Enabled)
+			startUpdateCheck(false);
+		return;
+	}
+	if (state == UpdateCheckState::Enabled)
+		startUpdateCheck(false);
+}
+
+void MainWindow::startUpdateCheck(bool manual) {
+	if (!m_updateChecker || updatesSuppressedByEnvironment())
+		return;
+	QSettings settings;
+	if (!shouldCheckForUpdates(readUpdateCheckState(settings), manual))
+		return;
+	if (!manual && m_updateChecker->isChecking())
+		return;
+	m_manualUpdateCheck = manual;
+	m_updateChecker->check();
+}
+
+void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
+	const bool manual = m_manualUpdateCheck;
+	m_manualUpdateCheck = false;
+	if (!result.success || !result.release) {
+		if (manual) {
+			QMessageBox::warning(this, QStringLiteral("Check for Updates"),
+				result.error.isEmpty() ? QStringLiteral("Could not check for updates.") : result.error);
+		} else {
+			qWarning().noquote() << "Automatic update check failed:"
+				<< (result.error.isEmpty() ? QStringLiteral("unknown error") : result.error);
+		}
+		return;
+	}
+
+	const std::optional<SemanticVersion> current =
+		parseStableVersion(QCoreApplication::applicationVersion().toStdString());
+	if (!current) {
+		const QString error = QStringLiteral("The installed application version is invalid.");
+		if (manual)
+			QMessageBox::warning(this, QStringLiteral("Check for Updates"), error);
+		else
+			qWarning().noquote() << "Automatic update check failed:" << error;
+		return;
+	}
+	if (!isUpdateAvailable(*current, *result.release)) {
+		if (manual)
+			QMessageBox::information(this, QStringLiteral("Check for Updates"),
+				QStringLiteral("EGTRAIN %1 is up to date.").arg(formatSemanticVersion(*current)));
+		return;
+	}
+
+	const StableRelease& release = *result.release;
+	QMessageBox dialog(QMessageBox::Information,
+		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
+		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
+		QMessageBox::NoButton, this);
+	dialog.setInformativeText(release.notes.isEmpty()
+		? QStringLiteral("No release notes were provided.") : release.notes);
+	QPushButton* openButton = dialog.addButton(QStringLiteral("Open Release Page"),
+		QMessageBox::AcceptRole);
+	dialog.addButton(QStringLiteral("Later"), QMessageBox::RejectRole);
+	QPushButton* stopButton = dialog.addButton(QStringLiteral("Stop Checking"),
+		QMessageBox::DestructiveRole);
+	dialog.exec();
+	if (dialog.clickedButton() == stopButton) {
+		QSettings settings;
+		writeUpdateCheckState(settings, UpdateCheckState::Disabled);
+		settings.sync();
+		if (m_automaticUpdateChecksAction) {
+			const QSignalBlocker blocker(m_automaticUpdateChecksAction);
+			m_automaticUpdateChecksAction->setChecked(false);
+		}
+	} else if (dialog.clickedButton() == openButton
+		&& !QDesktopServices::openUrl(release.releasePage)) {
+		QMessageBox::warning(this, QStringLiteral("Open Release Page"),
+			QStringLiteral("Could not open the release page:\n%1").arg(release.releasePage.toString()));
 	}
 }
 
@@ -17311,9 +17451,13 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(0, this, &MainWindow::runCreatorAcceptanceE2E);
 		return;
 	}
-	// skip the chooser when -n was given so scripted runs load directly
-	if (!initial_variables.nArgProvided)
-		QTimer::singleShot(0, this, &MainWindow::showStartupChooser);
+	// Keep update consent behind the startup chooser. Scripted launches have no
+	// chooser, so the same queued callback runs after the initial window shows.
+	QTimer::singleShot(0, this, [this]() {
+		if (!initial_variables.nArgProvided)
+			showStartupChooser();
+		maybePromptForUpdateChecks();
+	});
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART"))

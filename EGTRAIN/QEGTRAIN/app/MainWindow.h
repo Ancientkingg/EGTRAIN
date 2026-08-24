@@ -98,6 +98,8 @@ QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
 class DiagramWindow;
+class UpdateChecker;
+struct UpdateCheckResult;
 
 // custom GUI files
 #include "graphics/NetworkView.h"
@@ -381,6 +383,10 @@ private:
 	QToolBar* m_toolBar;
 	QAction* m_openCaseAction = nullptr;
 	QAction* m_newSceneAction = nullptr;
+	QAction* m_checkForUpdatesAction = nullptr;
+	QAction* m_automaticUpdateChecksAction = nullptr;
+	UpdateChecker* m_updateChecker = nullptr;
+	bool m_manualUpdateCheck = false;
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
@@ -596,6 +602,10 @@ private:
 	void refreshFollowTrainChoices();
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
+	void setupUpdateActions();
+	void maybePromptForUpdateChecks();
+	void startUpdateCheck(bool manual);
+	void handleUpdateCheckFinished(const UpdateCheckResult& result);
 	void showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
 	void centerSceneItem(QGraphicsItem* item);
 	void setFollowTrain(int trainIndex);
