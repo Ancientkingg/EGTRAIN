@@ -169,6 +169,7 @@ jobs:
           test -d "$APP/Contents/Frameworks/QtCore.framework"
           test -d "$APP/Contents/Frameworks/QtCharts.framework"
           test -d "$APP/Contents/Frameworks/QtSvg.framework"
+          test -d "$APP/Contents/Frameworks/QtNetwork.framework"
           test -f "$APP/Contents/PlugIns/imageformats/libqsvg.dylib"
           test -f "$APP/Contents/Resources/egtrain.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
@@ -348,7 +349,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $dist = "dist/QEGTRAIN"
           if (-not (Test-Path "$dist/QEGTRAIN.exe")) { throw "missing QEGTRAIN.exe" }
-          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll","Qt5Svg.dll")) {
+          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll","Qt5Svg.dll","Qt5Network.dll")) {
             if (-not (Test-Path "$dist/$dll")) { throw "missing $dll" }
           }
           if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
@@ -382,7 +383,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential cmake patchelf wget file desktop-file-utils \
-            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
             libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
 
       - name: Configure
@@ -468,6 +469,7 @@ jobs:
           test -f squashfs-root/AppRun
           find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
           find squashfs-root -name 'libQt5Svg.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt5Network.so*' -print -quit | grep -q .
           find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, and canonical Scenes"
 

@@ -193,6 +193,12 @@ def main() -> None:
         for name in scene_names
     ) or "artifacts/EGTRAIN-scenes/*.egscene" not in release_workflow:
         missing.append("scene bundles in published release assets")
+    if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
+        missing.append("macOS Qt Network package verification")
+    if '"Qt5Network.dll"' not in release_workflow:
+        missing.append("Windows Qt Network package verification")
+    if "libqt5network5" not in release_workflow or "libQt5Network.so*" not in release_workflow:
+        missing.append("Linux Qt Network package verification")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 

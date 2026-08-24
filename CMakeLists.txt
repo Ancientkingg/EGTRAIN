@@ -63,7 +63,7 @@ set_target_properties(egtrain_miniz PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED
 include_directories(${SRC_DIR})
 
 # --- Dependencies ---
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
 
 # OpenMP is required because project headers include omp.h.
 if(APPLE)
@@ -123,7 +123,10 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp
     ${SRC_DIR}/util/TimeFormat.cpp
-	${SRC_DIR}/util/Version.cpp
+    ${SRC_DIR}/util/Version.cpp
+	${SRC_DIR}/update/ReleaseInfo.cpp
+	${SRC_DIR}/update/UpdateChecker.cpp
+	${SRC_DIR}/update/UpdateSettings.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
 	${SRC_DIR}/scene/SectionInventory.cpp
@@ -184,6 +187,9 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/SimulationWorker.h
     ${SRC_DIR}/util/TimeFormat.h
     ${SRC_DIR}/util/Version.h
+	${SRC_DIR}/update/ReleaseInfo.h
+	${SRC_DIR}/update/UpdateChecker.h
+	${SRC_DIR}/update/UpdateSettings.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
@@ -259,6 +265,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     Qt5::Widgets
     Qt5::Charts
     Qt5::Svg
+    Qt5::Network
 )
 
 if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
@@ -350,6 +357,14 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_version.cpp
         ${SRC_DIR}/util/Version.cpp)
     add_test(NAME test_version COMMAND test_version)
+
+    add_executable(test_updatechecker
+        ${SRC_DIR}/tests/test_updatechecker.cpp
+        ${SRC_DIR}/update/ReleaseInfo.cpp
+        ${SRC_DIR}/update/UpdateSettings.cpp
+        ${SRC_DIR}/util/Version.cpp)
+    target_link_libraries(test_updatechecker PRIVATE Qt5::Core Qt5::Network)
+    add_test(NAME test_updatechecker COMMAND test_updatechecker)
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
