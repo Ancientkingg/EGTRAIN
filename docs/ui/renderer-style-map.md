@@ -33,7 +33,9 @@ Measured against the `#12191F` canvas, the contrast ratios are 7.64:1 for free, 
 
 ## Train categories
 
-Train badges are fixed screen-space overlays: compact badges are 92 by 24 px and detailed badges are 156 by 32 px. Both use the dark neutral surface `#26313B`, bright `#F2F5F7` identifier text, and the existing category outline, shape, and icon cues. The category fill is retained as the small 16 by 16 px icon plate behind each dark train SVG:
+Train overlays ignore view transformations and expand from one geometry-based anchor. Below 1.8x, ordinary trains use an 18 by 16 px category marker with no text. From 1.8x to below 3x, a content-sized identity chip shows the category icon and operating code, falling back to the description. At 3x and above, the detailed label also shows speed when Train speed labels is enabled. Selected and followed trains use the detailed label at every zoom, with a `#315A70` border and a higher stacking order.
+
+Identity chips are 22 px high and at most 88 px wide. Detailed labels are 26 px high and at most 132 px wide. Both use `#26313B`, `#F2F5F7` identifier text, `#C5D0D6` speed text, and the existing category icon and accent:
 
 | Category | Icon plate | Outline | Shape |
 | --- | --- | --- | --- |
@@ -43,15 +45,15 @@ Train badges are fixed screen-space overlays: compact badges are 92 by 24 px and
 | High speed | `#86A6B9` | `#3E627A` | rounded |
 | Freight | `#A99787` | `#5D4C3F` | square |
 
-The identifier is semibold/bold at 9 pt in compact mode and 10 pt in detailed mode. Detailed speed text is subordinate at 8 pt in `#C5D0D6`; speed is hidden in compact mode. A bright direction triangle stays on the left for reversed trains and right otherwise, so direction is not conveyed by color. The badge keeps its identifier and optional speed text in one non-interactive `QGraphicsItem` with `ItemIgnoresTransformations`. Long identifiers use middle elision so a distinguishing service suffix remains visible, while the Follow selector retains the full identifier.
+The small triangular nose is part of the leading edge of every marker or label; reversed trains point left. Long identifiers use middle elision. The overlay remains non-interactive, and the underlying train body owns clicks.
 
-The badge tooltip exposes the full unelided identifier and speed where available as a pointer-access fallback. The badge has no focusable or screen-reader presentation; use the full Follow selector for keyboard-oriented train identification.
+The tooltip exposes the full description, operating code, speed, and train type. The Follow selector and train details retain their full identifiers.
 
 ## Entity icons
 
 Entity icons use 24 by 24 SVGs on a transparent canvas. Geometry stays inside the 2 to 22 coordinate range. Primary strokes use 1.5 px with round joins and caps, and rounded housings use a 3 px corner radius. The palette is `#101A22` for the surface, `#26313B` for housings, `#0D131A` for outlines, `#F2F5F7` for ink, `#D2D7DC` with `#464646` outlines for stations, `#2AAA7A` for passengers, `#2ECC71` for Proceed, `#F2A516` for Caution, `#EF5350` for Stop, and `#7F8C95` for Neutral.
 
-Stations use one circular marker on the network and in the map key. The `station.svg` asset is used for station details and context icons. Passenger icons render at 14 by 14 pixels and keep their passenger IDs in `PassengerItem` objects. Train category icons render at 14 by 14 pixels inside the badge: Passenger, Sprinter, Intercity, High speed, and Freight each have a distinct cab or locomotive shape. Signal icons occupy the 12 by 12 square at the top of the fixed 12 by 16 signal item. Neutral uses a gray lamp and center dot, Stop uses a red lamp and bar, Caution uses a yellow lamp and triangle, and Proceed uses a green lamp and chevron. The direction triangle remains in the lower signal area.
+Stations use one circular marker on the network and in the map key. The `station.svg` asset is used for station details and context icons. Passenger icons render at 14 by 14 pixels and keep their passenger IDs in `PassengerItem` objects. Train category icons render at 12 px in overview markers and 14 px in labels. Signal icons occupy the 12 by 12 square at the top of the fixed 12 by 16 signal item. Neutral uses a gray lamp and center dot, Stop uses a red lamp and bar, Caution uses a yellow lamp and triangle, and Proceed uses a green lamp and chevron. The direction triangle remains in the lower signal area.
 
 The application loads these assets through the Qt resource aliases under `:/icons/`. `MainWindow`, `TrainBadgeItem`, and `SignalItem` cache the pixmaps and draw them with smooth transformation. Station, passenger, train badge, and signal overlays ignore view transformations so their screen sizes remain stable while the network zooms.
 

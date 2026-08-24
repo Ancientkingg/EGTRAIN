@@ -73,7 +73,6 @@
 #include <QSlider>
 #include <QHBoxLayout>
 #include <QFileDialog>
-#include <QGraphicsSimpleTextItem>
 #include <QComboBox>
 #include <QVariantAnimation>
 #include <QPointer>
@@ -365,6 +364,7 @@ private:
 	QComboBox* m_followTrainCombo = nullptr;
 	QPointer<QMenu> m_sceneContextMenu;
 	int m_followTrainIndex = -1;
+	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
@@ -374,7 +374,6 @@ private:
 	int m_creatorAcceptancePolls = 0;
 	QPointer<DiagramWindow> m_creatorBaselineDiagram;
 	QMap<int, QPointF> m_prevTrainPositions;
-	QMap<int, QGraphicsSimpleTextItem*> m_trainSpeedLabels; // per-train speed overlay
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
@@ -875,6 +874,7 @@ private:
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	void updateStationOverlayDegrees();
+	bool isTrainOverlayPromoted(int trainIndex) const;
 	void updateViewportOverlays();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);

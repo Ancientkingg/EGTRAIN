@@ -8,6 +8,8 @@ SCENE="$SCENE_ROOT/Copenhagen"
 OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.log"
 SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.png"
 DENSE_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dense-e2e.png"
+MEDIUM_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-medium-e2e.png"
+SELECTED_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-selected-e2e.png"
 FOLLOW_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-follow-e2e.png"
 CONTEXT_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-context-e2e.png"
 COMMAND_BAR_1024_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1024-e2e.png"
@@ -28,13 +30,17 @@ if [[ ! -x "$APP" ]]; then
 fi
 
 cd "$ROOT/EGTRAIN/QEGTRAIN"
-rm -f "$CONTEXT_SHOT"
+rm -f "$SHOT" "$MEDIUM_SHOT" "$DENSE_SHOT" "$SELECTED_SHOT" "$FOLLOW_SHOT" "$CONTEXT_SHOT" \
+	"$DPR2_SHOT" "${DPR2_SHOT%.png}-medium.png" "${DPR2_SHOT%.png}-dense.png" \
+	"${DPR2_SHOT%.png}-selected.png" "${DPR2_SHOT%.png}-follow.png"
 QT_QPA_PLATFORM=offscreen \
 QT_SCALE_FACTOR=1 \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_VISUAL_POLISH=1 \
 QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
 QEGTRAIN_E2E_DENSE_SCREENSHOT="$DENSE_SHOT" \
+QEGTRAIN_E2E_MEDIUM_SCREENSHOT="$MEDIUM_SHOT" \
+QEGTRAIN_E2E_SELECTED_SCREENSHOT="$SELECTED_SHOT" \
 QEGTRAIN_E2E_FOLLOW_SCREENSHOT="$FOLLOW_SHOT" \
 QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$CONTEXT_SHOT" \
 QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$COMMAND_BAR_1024_SHOT" \
@@ -46,6 +52,8 @@ grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
 grep -q "E2E_VISUAL_POLISH_DPR_1.0" "$OUT"
 test -s "$SHOT"
 test -s "$DENSE_SHOT"
+test -s "$MEDIUM_SHOT"
+test -s "$SELECTED_SHOT"
 test -s "$FOLLOW_SHOT"
 test -s "$CONTEXT_SHOT"
 test -s "$COMMAND_BAR_1024_SHOT"
@@ -61,7 +69,7 @@ if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"
 	echo "dead Show Graph action still present in MainWindow.ui" >&2
 	exit 1
 fi
-echo "visual polish e2e passed: $SHOT $DENSE_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
+echo "visual polish e2e passed: $SHOT $MEDIUM_SHOT $DENSE_SHOT $SELECTED_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
 
 if ! QT_QPA_PLATFORM=offscreen \
 	QT_SCALE_FACTOR=2 \
@@ -69,6 +77,8 @@ if ! QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_E2E_VISUAL_POLISH=1 \
 	QEGTRAIN_E2E_SCREENSHOT="$DPR2_SHOT" \
 	QEGTRAIN_E2E_DENSE_SCREENSHOT="${DPR2_SHOT%.png}-dense.png" \
+	QEGTRAIN_E2E_MEDIUM_SCREENSHOT="${DPR2_SHOT%.png}-medium.png" \
+	QEGTRAIN_E2E_SELECTED_SCREENSHOT="${DPR2_SHOT%.png}-selected.png" \
 	QEGTRAIN_E2E_FOLLOW_SCREENSHOT="${DPR2_SHOT%.png}-follow.png" \
 	QEGTRAIN_E2E_CONTEXT_SCREENSHOT="${DPR2_SHOT%.png}-context.png" \
 	QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$DPR2_COMMAND_BAR_1024_SHOT" \
@@ -81,6 +91,10 @@ fi
 grep -q "E2E_VISUAL_POLISH_DPR_2.0" "$DPR2_OUT"
 grep -q "E2E_VISUAL_POLISH_OK" "$DPR2_OUT"
 test -s "$DPR2_SHOT"
+test -s "${DPR2_SHOT%.png}-medium.png"
+test -s "${DPR2_SHOT%.png}-dense.png"
+test -s "${DPR2_SHOT%.png}-selected.png"
+test -s "${DPR2_SHOT%.png}-follow.png"
 test -s "$DPR2_COMMAND_BAR_1024_SHOT"
 test -s "$DPR2_COMMAND_BAR_1200_SHOT"
 test -s "$DPR2_COMMAND_BAR_1440_SHOT"
