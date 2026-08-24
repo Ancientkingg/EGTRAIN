@@ -122,7 +122,6 @@ bool validElf(const QString& path) {
 	return file.read(4) == QByteArray::fromHex("7f454c46");
 }
 
-#if defined(Q_OS_MACOS)
 std::optional<QString> macBundleVersion(const QString& bundlePath) {
 	QFile plist(QDir(bundlePath).filePath(QStringLiteral("Contents/Info.plist")));
 	if (!plist.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -142,7 +141,6 @@ std::optional<QString> macBundleVersion(const QString& bundlePath) {
 	}
 	return std::nullopt;
 }
-#endif
 
 } // namespace
 
