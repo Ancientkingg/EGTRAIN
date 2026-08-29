@@ -10,6 +10,7 @@
 #include "diagrams/TimetableTableWindow.h"
 #include "util/TrajectoryUtil.h"
 #include "util/CsvWriter.h"
+#include "util/PlaybackProfiler.h"
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/TractionCurve.h"
@@ -54,16 +55,25 @@
 #include <QInputDialog>
 #include <QCoreApplication>
 #include <QStandardPaths>
+#include <QSysInfo>
 #include <QSignalBlocker>
 #include <QSettings>
 #include <QIcon>
 #include <QDesktopServices>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QTemporaryDir>
 #include <QToolButton>
+#include <QUrl>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
 #include <QTabWidget>
 #include <QRegularExpression>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <cstdio>
+#include <chrono>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -76,6 +86,61 @@
 extern InitialParameters initial_variables;
 
 namespace {
+using StartupClock = std::chrono::steady_clock;
+StartupClock::time_point g_startupTimingOrigin;
+quint64 g_startupTimingSequence = 0;
+struct StartupIdentity {
+	QString path;
+	int schemaVersion = 0;
+	std::string name;
+	std::string baseTime;
+	std::string defaultScenarioId;
+	SceneSimulationSettings settings;
+	std::array<std::size_t, 22> collectionSizes{};
+	std::string inputSnapshot;
+	bool set = false;
+};
+StartupIdentity g_startupIdentity;
+
+#ifdef signals
+#define EGTRAIN_RESTORE_STARTUP_SIGNALS
+#undef signals
+#endif
+StartupIdentity startupIdentity(const QString& path, const SceneModel& model,
+		const std::string& inputSnapshot = {}) {
+	return {QFileInfo(path).absoluteFilePath(), model.schemaVersion, model.name, model.baseTime,
+		model.defaultScenarioId, model.settings,
+		{model.loadedData.size(), model.sourceFiles.size(), model.importReport.size(),
+			model.tracks.size(), model.trackViews.size(), model.nodes.size(), model.arcs.size(),
+			model.blocks.size(), model.connections.size(), model.stations.size(),
+			model.stationViews.size(), model.signals.size(), model.signallingAreas.size(),
+			model.routes.size(), model.blockDependencies.size(), model.singleTrackRestrictions.size(),
+			model.stationBoundaries.size(), model.trainUnits.size(), model.compositions.size(),
+			model.services.size(), model.scenarios.size(), model.passengers.size()},
+		inputSnapshot, true};
+}
+#ifdef EGTRAIN_RESTORE_STARTUP_SIGNALS
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_STARTUP_SIGNALS
+#endif
+
+bool sameStartupSettings(const SceneSimulationSettings& left,
+		const SceneSimulationSettings& right) {
+	return left.hasDuration == right.hasDuration && left.durationSeconds == right.durationSeconds
+		&& left.hasBufferTime == right.hasBufferTime
+		&& left.bufferTimeSeconds == right.bufferTimeSeconds
+		&& left.hasRecoveryTime == right.hasRecoveryTime
+		&& left.recoveryTimePercent == right.recoveryTimePercent;
+}
+
+bool sameStartupIdentity(const StartupIdentity& left, const StartupIdentity& right) {
+	return left.set && right.set && left.path == right.path
+		&& left.schemaVersion == right.schemaVersion && left.name == right.name
+		&& left.baseTime == right.baseTime && left.defaultScenarioId == right.defaultScenarioId
+		&& sameStartupSettings(left.settings, right.settings)
+		&& left.collectionSizes == right.collectionSizes;
+}
+
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailZoom = 3.0;
@@ -1181,8 +1246,41 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 		addLoadedDataTreeItem(tree, row, child);
 }
 
+bool sceneDropCandidate(const QMimeData* mime, QString* path, QString* rejection) {
+	if (!mime || !mime->hasUrls() || mime->urls().isEmpty()) {
+		*rejection = QStringLiteral("no file was dropped");
+		return false;
+	}
+	if (mime->urls().size() != 1) {
+		*rejection = QStringLiteral("drop exactly one .egscene file");
+		return false;
+	}
+	const QUrl url = mime->urls().front();
+	if (!url.isLocalFile()) {
+		*rejection = QStringLiteral("only local .egscene files can be opened");
+		return false;
+	}
+	const QFileInfo info(url.toLocalFile());
+	if (!info.exists()) {
+		*rejection = QStringLiteral("the dropped file does not exist");
+		return false;
+	}
+	if (!info.isFile()) {
+		*rejection = QStringLiteral("drop an .egscene file, not a directory");
+		return false;
+	}
+	if (info.suffix().compare(QStringLiteral("egscene"), Qt::CaseInsensitive) != 0) {
+		*rejection = QStringLiteral("the dropped file must use the .egscene extension");
+		return false;
+	}
+	*path = info.absoluteFilePath();
+	return true;
+}
+
 bool e2eDialogsSuppressed() {
-	return qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")
+	return startupTimingEnabled()
+		|| PlaybackProfiler::enabled()
+		|| qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
@@ -1190,6 +1288,7 @@ bool e2eDialogsSuppressed() {
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR");
 }
 
@@ -1444,6 +1543,55 @@ std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
 }
 } // namespace
 
+bool startupTimingEnabled() {
+	return qEnvironmentVariable("QEGTRAIN_STARTUP_TIMING") == QLatin1String("1");
+}
+
+void beginStartupTiming() {
+	if (startupTimingEnabled()) {
+		g_startupTimingOrigin = StartupClock::now();
+		g_startupTimingSequence = 0;
+		g_startupIdentity = StartupIdentity();
+	}
+}
+
+qint64 startupTimingNowNanoseconds() {
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(
+		StartupClock::now() - g_startupTimingOrigin).count();
+}
+
+void recordStartupTiming(const QString& phase, int iteration, int generation,
+		qint64 elapsedNanoseconds, const QString& invocation, const QString& source,
+		bool identityOk, bool canonicalPreloadNested) {
+	if (!startupTimingEnabled())
+		return;
+	QJsonObject record{{QStringLiteral("event"), QStringLiteral("complete")},
+		{QStringLiteral("sequence"), static_cast<qint64>(g_startupTimingSequence++)},
+		{QStringLiteral("phase"), phase}, {QStringLiteral("iteration"), iteration},
+		{QStringLiteral("temperature"), iteration == 0
+			? QStringLiteral("fresh_process") : QStringLiteral("warm_in_process")},
+		{QStringLiteral("elapsed_ms"), elapsedNanoseconds / 1000000.0},
+		{QStringLiteral("identity_ok"), identityOk}};
+	if (generation >= 0)
+		record.insert(QStringLiteral("generation"), generation);
+	if (!invocation.isEmpty())
+		record.insert(QStringLiteral("invocation"), invocation);
+	if (!source.isEmpty())
+		record.insert(QStringLiteral("source"), source);
+	if (canonicalPreloadNested)
+		record.insert(QStringLiteral("canonical_preload_nested"), true);
+	if (phase.endsWith(QLatin1String("paint")))
+		record.insert(QStringLiteral("paint_scope"), QStringLiteral("completed_qt_viewport_paint_handling"));
+	const QByteArray json = QJsonDocument(record).toJson(QJsonDocument::Compact);
+	std::fprintf(stdout, "QEGTRAIN_TIMING %s\n", json.constData());
+	std::fflush(stdout);
+}
+
+void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult& loaded) {
+	if (startupTimingEnabled())
+		g_startupIdentity = startupIdentity(path, loaded.scene, loaded.inputSnapshot);
+}
+
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 										  ui(new Ui::MainWindow),
 										  m_worker(nullptr),
@@ -1480,6 +1628,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// set network view
 	networkView = new NetworkView(centralWidget);
 	networkView->setObjectName("networkView");
+	// QGraphicsView accepts drops by default. Disable that path so drops over
+	// the viewport route to MainWindow without changing its pan interaction.
+	networkView->setAcceptDrops(false);
+	networkView->viewport()->setAcceptDrops(false);
+	setAcceptDrops(true);
 
 	// set progress bar
 	progressBar = new TimeProgressBar(centralWidget);
@@ -1527,6 +1680,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(networkView, &NetworkView::interactionFinished,
 		this, &MainWindow::updateViewportOverlays);
+	connect(networkView, &NetworkView::timingPaintCompleted,
+		this, &MainWindow::handleStartupTimingPaint);
+	connect(networkView, &NetworkView::playbackProfileBegan, this, [this]() {
+		QTimer::singleShot(PlaybackProfiler::instance().durationMs(), this, [this]() {
+			const int currentTimestep = m_snapshot ? m_snapshot->timestep : -1;
+			if (PlaybackProfiler::instance().freeze(currentTimestep) && m_worker)
+				m_worker->requestStop();
+		});
+	});
 	networkView->setMouseTracking(true);
 
 	// connect elements from UI
@@ -3071,6 +3233,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// Dock/editor construction above can rebuild the top-level focus chain;
 	// restore the command-bar sequence after every child widget exists.
 	setCommandBarTabOrder();
+	if (startupTimingEnabled()) {
+		bool ok = false;
+		m_startupTimingWarmTrials = qEnvironmentVariableIntValue("QEGTRAIN_STARTUP_WARM_TRIALS", &ok);
+		if (!ok || m_startupTimingWarmTrials < 0)
+			m_startupTimingWarmTrials = 0;
+	}
 }
 
 MainWindow::~MainWindow() {
@@ -3085,6 +3253,48 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 	} else {
 		event->ignore();
 	}
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
+	QString path;
+	QString rejection;
+	if (sceneDropCandidate(event->mimeData(), &path, &rejection)
+		&& event->possibleActions().testFlag(Qt::CopyAction)) {
+		event->setDropAction(Qt::CopyAction);
+		event->accept();
+	} else {
+		if (rejection.isEmpty())
+			rejection = QStringLiteral("the source does not permit copying");
+		statusBar()->showMessage(QStringLiteral("Drop rejected: %1. Scene unchanged.").arg(rejection), 8000);
+		event->ignore();
+	}
+}
+
+void MainWindow::dropEvent(QDropEvent* event) {
+	QString path;
+	QString rejection;
+	if (!sceneDropCandidate(event->mimeData(), &path, &rejection)
+		|| !event->possibleActions().testFlag(Qt::CopyAction)) {
+		if (rejection.isEmpty())
+			rejection = QStringLiteral("the source does not permit copying");
+		statusBar()->showMessage(QStringLiteral("Drop rejected: %1. Scene unchanged.").arg(rejection), 8000);
+		event->ignore();
+		return;
+	}
+
+	if (!maybeSaveScene()) {
+		statusBar()->showMessage(QStringLiteral("Open canceled. Scene unchanged."), 8000);
+		event->ignore();
+		return;
+	}
+	if (!openSceneDirectory(path)) {
+		statusBar()->showMessage(QStringLiteral("Scene unchanged: %1 could not be opened.")
+			.arg(QFileInfo(path).fileName()), 8000);
+		event->ignore();
+		return;
+	}
+	event->setDropAction(Qt::CopyAction);
+	event->accept();
 }
 
 void MainWindow::newScene() {
@@ -3261,7 +3471,16 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
 	const bool reloadingSameScene = m_sceneLoaded
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
+	const qint64 loadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 	auto result = loadScenePath(scenePath.toStdString());
+	const bool timingIdentityOk = !startupTimingEnabled()
+		|| (sameStartupIdentity(g_startupIdentity,
+			startupIdentity(scenePath, result.scene, result.inputSnapshot))
+			&& g_startupIdentity.inputSnapshot == result.inputSnapshot);
+	if (startupTimingEnabled())
+		recordStartupTiming(QStringLiteral("canonical_load"), m_startupTimingIteration, -1,
+			startupTimingNowNanoseconds() - loadStarted, QStringLiteral("scene_open"),
+			QStringLiteral("MainWindow::openSceneDirectory"), timingIdentityOk);
 	int errorCount = errorDiagnosticCount(result.diagnostics);
 	if (errorCount > 0) {
 		QString message = firstDiagnosticMessage(result.diagnostics);
@@ -3316,6 +3535,15 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
+	if (startupTimingEnabled()) {
+		if (!timingIdentityOk) {
+			failStartupTiming(QStringLiteral("scene identity, counts, or canonical input snapshot changed"));
+			return false;
+		}
+		if (m_startupTimingScenePath.isEmpty())
+			m_startupTimingScenePath = scenePath;
+		networkView->armTimingPaint(QStringLiteral("preview"), m_startupTimingIteration);
+	}
 	if (m_loadedDataDock) {
 		m_loadedDataDock->show();
 		m_loadedDataDock->raise();
@@ -10237,8 +10465,20 @@ void MainWindow::setFollowTrain(int trainIndex) {
 }
 
 void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard) {
-	Q_UNUSED(scenePos);
-	Q_UNUSED(keyboard);
+	if (!keyboard && networkView) {
+		const QPointF devicePos = networkView->viewportTransform().map(scenePos);
+		for (auto* overlay : m_stationOverlays) {
+			if (!overlay || !overlay->isVisible() || !overlay->isFitSymbolVisible()
+				|| overlay->fitCollisionOffset().isNull() || !overlay->hasSourceIdentity())
+				continue;
+			const QRectF symbolRect = overlay->deviceSymbolRect().translated(
+				networkView->viewportTransform().map(overlay->stableAnchor()));
+			if (symbolRect.contains(devicePos)) {
+				item = resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack());
+				break;
+			}
+		}
+	}
 	if (m_sceneContextMenu) {
 		m_sceneContextMenu->close();
 		m_sceneContextMenu.clear();
@@ -10478,6 +10718,26 @@ void MainWindow::runStationOverlayE2E() {
 	} else {
 		resize(1200, 800);
 		QApplication::processEvents();
+		if (caseName == QLatin1String("Copenhagen")) {
+			const auto kbHallen = std::find_if(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+				[](const StationOverlayItem* overlay) {
+					return overlay && overlay->stationName() == QLatin1String("KBHallen");
+				});
+			if (kbHallen == m_stationOverlays.cend()) {
+				fail("Copenhagen source station KBHallen is missing");
+			} else {
+				if ((*kbHallen)->displayName() != QLatin1String("KB Hallen"))
+					fail(QString("Copenhagen source station KBHallen displayed as %1")
+						.arg((*kbHallen)->displayName()));
+				else
+					marker("E2E_STATION_DISPLAY_KBHALLEN_OK");
+				if ((*kbHallen)->sourceIdentityCount() != 2)
+					fail(QString("Copenhagen KBHallen overlay bound %1 platform nodes instead of 2")
+						.arg((*kbHallen)->sourceIdentityCount()));
+				else
+					marker("E2E_STATION_BINDING_KBHALLEN_OK");
+			}
+		}
 		const QRectF topologyBounds = networkView->topologyBounds();
 		const auto checkZoom = [&](qreal ratio, const char* label) {
 			fitView();
@@ -10500,9 +10760,20 @@ void MainWindow::runStationOverlayE2E() {
 			for (auto* overlay : m_stationOverlays) {
 				if (!overlay || !overlay->isVisible())
 					continue;
+				if (ratio > 1.0 && (!overlay->fitCollisionOffset().isNull()
+						|| !overlay->isFitSymbolVisible()))
+					fail(QString("%1 retained Fit-only station collision state: %2")
+						.arg(label).arg(overlay->stationName()));
+				if (!overlay->isFitSymbolVisible())
+					continue;
 				const QPointF anchor = networkView->viewportTransform().map(overlay->stableAnchor())
-					+ overlay->viewportOffset();
+					+ overlay->viewportOffset() + overlay->fitCollisionOffset();
 				const QRectF symbolRect = overlay->symbolRect().translated(anchor);
+				if (ratio <= 1.0)
+					for (const QRectF& other : symbols)
+						if (symbolRect.intersects(other))
+							fail(QString("FIT station symbols intersect: %1")
+								.arg(overlay->stationName()));
 				symbols.append(symbolRect);
 				if (inset.intersects(symbolRect))
 					++visibleSymbols;
@@ -10586,6 +10857,9 @@ void MainWindow::runStationOverlayE2E() {
 			[](const auto* overlay) { return overlay && (overlay->isInterchange() || overlay->isEndpoint()); });
 		if (!hasTopologyPriority && m_stationOverlays.size() > 1) {
 			const QString previousSelectedStationName = m_selectedStationName;
+			const bool previousHasSelectedStationIdentity = m_hasSelectedStationIdentity;
+			const double previousSelectedStationNodeId = m_selectedStationNodeId;
+			const int previousSelectedStationTrack = m_selectedStationTrack;
 			StationOverlayItem* selectedOverlay = nullptr;
 			for (auto* overlay : m_stationOverlays) {
 				if (overlay && overlay->isVisible()) {
@@ -10595,6 +10869,11 @@ void MainWindow::runStationOverlayE2E() {
 			}
 			if (selectedOverlay) {
 				m_selectedStationName = selectedOverlay->stationName();
+				m_hasSelectedStationIdentity = selectedOverlay->hasSourceIdentity();
+				if (m_hasSelectedStationIdentity) {
+					m_selectedStationNodeId = selectedOverlay->sourceNodeId();
+					m_selectedStationTrack = selectedOverlay->sourceTrack();
+				}
 				updateViewportOverlays();
 				const bool ordinaryLabelVisible = std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
 					[selectedOverlay](const auto* overlay) {
@@ -10604,6 +10883,9 @@ void MainWindow::runStationOverlayE2E() {
 				if (!ordinaryLabelVisible)
 					fail("FIT selected station suppressed every ordinary fallback label");
 				m_selectedStationName = previousSelectedStationName;
+				m_hasSelectedStationIdentity = previousHasSelectedStationIdentity;
+				m_selectedStationNodeId = previousSelectedStationNodeId;
+				m_selectedStationTrack = previousSelectedStationTrack;
 				updateViewportOverlays();
 			}
 		}
@@ -10638,6 +10920,9 @@ void MainWindow::runStationOverlayE2E() {
 		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(devicePixelRatio, 0, 'f', 1));
 
 		const QString previousSelectedStationName = m_selectedStationName;
+		const bool previousHasSelectedStationIdentity = m_hasSelectedStationIdentity;
+		const double previousSelectedStationNodeId = m_selectedStationNodeId;
+		const int previousSelectedStationTrack = m_selectedStationTrack;
 		const QList<StationOverlayItem*> previousStationOverlays = m_stationOverlays;
 		const QList<QGraphicsItem*> previousStationDecorations = m_stationDecorations;
 		QList<QGraphicsItem*> previouslyVisibleItems;
@@ -10674,6 +10959,7 @@ void MainWindow::runStationOverlayE2E() {
 		m_stationDecorations.clear();
 		m_stationOverlays.append(overlappingOverlay);
 		m_stationDecorations.append(overlappingOverlay);
+		bindStationOverlaySources();
 		if (stationTarget->sceneBoundingRect().center() != overlappingOverlay->stableAnchor())
 			fail("semantic fixture station and overlay anchors diverged");
 
@@ -10764,9 +11050,158 @@ void MainWindow::runStationOverlayE2E() {
 			handleCloseInfoDockWidget();
 		overlappingOverlay->hide();
 		stationTarget->hide();
+
+		fitView();
+		const QPoint viewportCenter = networkView->viewport()->rect().center();
+		const QPointF highAnchor = networkView->mapToScene(viewportCenter);
+		const QPointF highPlatformAnchor = networkView->mapToScene(viewportCenter - QPoint(4, 0));
+		const QPointF lowAnchor = networkView->mapToScene(viewportCenter + QPoint(4, 0));
+		const QPointF unboundAnchor = networkView->mapToScene(viewportCenter + QPoint(200, 100));
+		auto* highSourceNode = new Node;
+		highSourceNode->ID = -2521.0;
+		highSourceNode->station = true;
+		highSourceNode->stationName = "E2EDuplicateStation";
+		auto* highPlatformSourceNode = new Node;
+		highPlatformSourceNode->ID = -2523.0;
+		highPlatformSourceNode->station = true;
+		highPlatformSourceNode->stationName = "E2EDuplicateStation";
+		auto* lowSourceNode = new Node;
+		lowSourceNode->ID = -2522.0;
+		lowSourceNode->station = true;
+		lowSourceNode->stationName = "E2EDuplicateStation";
+		auto* highStation = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
+		highStation->track = -1;
+		highStation->node = highSourceNode;
+		highStation->setPos(highAnchor);
+		auto* highPlatformStation = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
+		highPlatformStation->track = -2;
+		highPlatformStation->node = highPlatformSourceNode;
+		highPlatformStation->setPos(highPlatformAnchor);
+		auto* lowStation = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
+		lowStation->track = -1;
+		lowStation->node = lowSourceNode;
+		lowStation->setPos(lowAnchor);
+		auto* highOverlay = new StationOverlayItem(
+			QString::fromStdString(highSourceNode->stationName), highAnchor, semanticVisual);
+		auto* lowOverlay = new StationOverlayItem(
+			QString::fromStdString(lowSourceNode->stationName), lowAnchor, semanticVisual);
+		auto* unboundOverlay = new StationOverlayItem(
+			QString::fromStdString(lowSourceNode->stationName), unboundAnchor, semanticVisual);
+		for (QGraphicsItem* item : {static_cast<QGraphicsItem*>(highStation),
+				static_cast<QGraphicsItem*>(highPlatformStation), static_cast<QGraphicsItem*>(lowStation),
+				static_cast<QGraphicsItem*>(highOverlay), static_cast<QGraphicsItem*>(lowOverlay),
+				static_cast<QGraphicsItem*>(unboundOverlay)})
+			scene->addItem(item);
+		m_stationOverlays = {highOverlay, lowOverlay, unboundOverlay};
+		m_stationDecorations = {highOverlay, lowOverlay, unboundOverlay};
+		m_selectedStationName.clear();
+		m_hasSelectedStationIdentity = false;
+		bindStationOverlaySources();
+		updateStationOverlayDegrees();
+		highOverlay->setDegree(3);
+		if (highOverlay->sourceIdentityCount() != 2
+			|| !highOverlay->matchesSourceIdentity(highSourceNode->ID, highStation->track)
+			|| !highOverlay->matchesSourceIdentity(
+				highPlatformSourceNode->ID, highPlatformStation->track)
+			|| highOverlay->sourceNodeId() != highSourceNode->ID
+			|| highOverlay->sourceTrack() != highStation->track
+			|| lowOverlay->sourceIdentityCount() != 1
+			|| !lowOverlay->matchesSourceIdentity(lowSourceNode->ID, lowStation->track)
+			|| unboundOverlay->hasSourceIdentity()) {
+			fail("station overlays did not bind all nodes to their nearest stable anchors");
+		} else {
+			marker("E2E_STATION_MULTI_SOURCE_BINDING_OK");
+		}
+		displayStationNodeInfo(highPlatformStation);
+		if (!highOverlay->isSelected() || lowOverlay->isSelected() || unboundOverlay->isSelected()
+			|| m_selectedStationNodeId != highPlatformSourceNode->ID
+			|| m_selectedStationTrack != highPlatformStation->track)
+			fail("station overlay selection did not match only its bound platform identities");
+		unboundOverlay->hide();
+		m_stationOverlays = {highOverlay, lowOverlay};
+		m_stationDecorations = {highOverlay, lowOverlay};
+		fitView();
+		updateViewportOverlays();
+		QApplication::processEvents();
+		if (!highOverlay->fitCollisionOffset().isNull())
+			fail("FIT moved the higher-priority collision fixture station");
+		if (lowOverlay->fitCollisionOffset().isNull() || !lowOverlay->isFitSymbolVisible())
+			fail("FIT did not displace the lower-priority collision fixture station");
+		const QPointF highDeviceAnchor = networkView->viewportTransform().map(highOverlay->stableAnchor())
+			+ highOverlay->viewportOffset() + highOverlay->fitCollisionOffset();
+		const QPointF lowDeviceAnchor = networkView->viewportTransform().map(lowOverlay->stableAnchor())
+			+ lowOverlay->viewportOffset() + lowOverlay->fitCollisionOffset();
+		if (highOverlay->symbolRect().translated(highDeviceAnchor)
+				.intersects(lowOverlay->symbolRect().translated(lowDeviceAnchor)))
+			fail("FIT collision fixture station symbols still overlap");
+		const QPoint displacedClick = lowDeviceAnchor.toPoint();
+		const QPoint displacedScreen = networkView->viewport()->mapToGlobal(displacedClick);
+		QGraphicsSceneContextMenuEvent displacedContext(QEvent::GraphicsSceneContextMenu);
+		displacedContext.setReason(QGraphicsSceneContextMenuEvent::Mouse);
+		displacedContext.setScenePos(networkView->mapToScene(displacedClick));
+		displacedContext.setScreenPos(displacedScreen);
+		displacedContext.setWidget(networkView->viewport());
+		scene->contextMenuEvent(&displacedContext);
+		QApplication::processEvents();
+		QAction* displacedCopy = nullptr;
+		if (m_sceneContextMenu) {
+			for (QAction* action : m_sceneContextMenu->actions())
+				if (action && action->text() == QLatin1String("Copy node ID")) {
+					displacedCopy = action;
+					break;
+				}
+		}
+		if (!m_sceneContextMenu || m_sceneContextMenu->title() != QLatin1String("Station")
+			|| !displacedCopy) {
+			fail("displaced Fit symbol context request did not route to a station menu");
+		} else {
+			displacedCopy->trigger();
+			QApplication::processEvents();
+			const QString expectedId = QString::number(lowSourceNode->ID, 'g',
+				std::numeric_limits<double>::max_digits10);
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedId)
+				fail("displaced Fit symbol context action resolved the wrong duplicate station");
+			else
+				marker("E2E_STATION_DISPLACED_CONTEXT_EXACT_OK");
+		}
+		if (m_sceneContextMenu)
+			m_sceneContextMenu->close();
+		QApplication::processEvents();
+
+		QMouseEvent displacedPress(QEvent::MouseButtonPress, QPointF(displacedClick),
+			QPointF(displacedScreen), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QApplication::sendEvent(networkView->viewport(), &displacedPress);
+		QMouseEvent displacedRelease(QEvent::MouseButtonRelease, QPointF(displacedClick),
+			QPointF(displacedScreen), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(networkView->viewport(), &displacedRelease);
+		QApplication::processEvents();
+		if (m_selectedStationName != QString::fromStdString(lowSourceNode->stationName)
+			|| !m_hasSelectedStationIdentity || m_selectedStationNodeId != lowSourceNode->ID
+			|| m_selectedStationTrack != lowStation->track
+			|| !lowOverlay->isSelected() || highOverlay->isSelected())
+			fail("displaced Fit symbol click did not select the exact source station");
+		else
+			marker("E2E_STATION_DISPLACED_CLICK_EXACT_OK");
+
+		networkView->zoomBy(3.0);
+		updateViewportOverlays();
+		QApplication::processEvents();
+		if (!highOverlay->fitCollisionOffset().isNull() || !lowOverlay->fitCollisionOffset().isNull()
+			|| !highOverlay->isFitSymbolVisible() || !lowOverlay->isFitSymbolVisible())
+			fail("3X did not clear only the Fit collision state");
+		handleCloseInfoDockWidget();
+		for (QGraphicsItem* item : {static_cast<QGraphicsItem*>(highOverlay),
+				static_cast<QGraphicsItem*>(lowOverlay), static_cast<QGraphicsItem*>(unboundOverlay),
+				static_cast<QGraphicsItem*>(highStation), static_cast<QGraphicsItem*>(highPlatformStation),
+				static_cast<QGraphicsItem*>(lowStation)})
+			item->hide();
+
 		m_stationOverlays = previousStationOverlays;
 		m_stationDecorations = previousStationDecorations;
 		m_selectedStationName = previousSelectedStationName;
+		m_hasSelectedStationIdentity = previousHasSelectedStationIdentity;
+		m_selectedStationNodeId = previousSelectedStationNodeId;
+		m_selectedStationTrack = previousSelectedStationTrack;
 		for (auto* item : previouslyVisibleItems)
 			if (item && item->scene() == scene) {
 				if (item->data(kSignalDecorationRole).toBool())
@@ -12201,18 +12636,98 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 	captureScreenshot("QEGTRAIN_E2E_FOLLOW_SCREENSHOT", "follow");
-	if (scene && networkView && selectedTrainBody) {
-		QGraphicsSceneMouseEvent reselectionEvent(QEvent::GraphicsSceneMousePress);
-		reselectionEvent.setButton(Qt::LeftButton);
-		reselectionEvent.setButtons(Qt::LeftButton);
-		reselectionEvent.setScenePos(selectedTrainBody->sceneBoundingRect().center());
-		reselectionEvent.setWidget(networkView->viewport());
-		scene->mousePressEvent(&reselectionEvent);
+	if (scene && networkView && selectedTrain && selectedTrainBody) {
+		disconnect(&simulation, &DispatchController::snapshotAvailable,
+			this, &MainWindow::waitForUpdates);
+		if (m_worker)
+			m_worker->requestPause();
 		QApplication::processEvents();
-		if (!effect || !infoDockWidget || !infoDockWidget->isVisible() || !trainInfoWidget->isVisible()) {
+		stopTrainAnimation(selectedTrain->index);
+		if (m_worker && !m_worker->isPauseRequested()) {
 			ok = false;
-			failures << "reselection did not restore the train selection state";
+			failures << "train movement was not paused before reselection";
 		}
+
+		const QPointF cachedCenter = selectedTrainBody->sceneBoundingRect().center();
+		networkView->centerOn(cachedCenter);
+		networkView->zoomBy(4.0);
+		QApplication::processEvents();
+		const QPoint targetViewportCenter = networkView->viewport()->rect().center()
+			+ QPoint(qMax(40, networkView->viewport()->width() / 8), 0);
+		const QPointF moveDelta = networkView->mapToScene(targetViewportCenter) - cachedCenter;
+		const QPointF originalPosition = selectedTrain->pos();
+		selectedTrain->setPos(originalPosition + moveDelta);
+		QApplication::processEvents();
+
+		if (selectedTrainBody->sceneBoundingRect().contains(cachedCenter)
+			|| selectedTrainBody->contains(selectedTrainBody->mapFromScene(cachedCenter))) {
+			ok = false;
+			failures << "moved train geometry still hits its stale cached center";
+		}
+
+		const QPointF movedCenter = selectedTrainBody->sceneBoundingRect().center();
+		const QPoint clickPos = networkView->mapFromScene(movedCenter);
+		if (!networkView->viewport()->rect().contains(clickPos)) {
+			ok = false;
+			failures << QString("recomputed train center is outside the viewport (cached=%1,%2 moved=%3,%4 click=%5,%6 viewport=%7x%8)")
+				.arg(cachedCenter.x(), 0, 'f', 1).arg(cachedCenter.y(), 0, 'f', 1)
+				.arg(movedCenter.x(), 0, 'f', 1).arg(movedCenter.y(), 0, 'f', 1)
+				.arg(clickPos.x()).arg(clickPos.y())
+				.arg(networkView->viewport()->width()).arg(networkView->viewport()->height());
+		} else {
+			const QPoint screenPos = networkView->viewport()->mapToGlobal(clickPos);
+			QMouseEvent press(QEvent::MouseButtonPress, QPointF(clickPos), QPointF(screenPos),
+				Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+			QApplication::sendEvent(networkView->viewport(), &press);
+			QMouseEvent release(QEvent::MouseButtonRelease, QPointF(clickPos), QPointF(screenPos),
+				Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+			QApplication::sendEvent(networkView->viewport(), &release);
+			QApplication::processEvents();
+		}
+
+		if (m_selectedTrainIndex != selectedTrain->index) {
+			ok = false;
+			failures << "viewport reselection did not select the exact moved train";
+		}
+		const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(selectedTrain->index) : -1;
+		if (!m_followAction || !m_followAction->isChecked() || m_followTrainIndex != selectedTrain->index
+			|| !m_followTrainCombo || comboIndex < 0 || m_followTrainCombo->currentIndex() != comboIndex) {
+			ok = false;
+			failures << "viewport reselection did not follow the exact moved train";
+		}
+		networkView->fitToTopology();
+		updateViewportOverlays();
+		QApplication::processEvents();
+		TrainBadgeItem* selectedBadge = m_trainBadges.value(selectedTrain->index, nullptr);
+		if (!effect || selectedTrain->graphicsEffect() != effect || !selectedBadge
+			|| !selectedBadge->isPromoted()
+			|| selectedBadge->presentation() != TrainBadgeItem::Presentation::Detailed) {
+			ok = false;
+			failures << "viewport reselection did not highlight and promote the exact moved train";
+		}
+		if (!infoDockWidget || !infoDockWidget->isVisible()
+			|| infoDockWidget->windowTitle() != QStringLiteral("Train Info")
+			|| !trainInfoWidget || !trainInfoWidget->isVisible()) {
+			ok = false;
+			failures << "viewport reselection did not restore train info state";
+		}
+		const QString expectedTrainId = QString::fromStdString(to_string_precision(selectedTrain->trainId, 0));
+		const QString expectedTrainType = QString::fromStdString(selectedTrain->trainType);
+		const QString expectedTrainLength = QString::fromStdString(to_string_precision(selectedTrain->trainLength, 0));
+		const QString expectedWagonCount = QString::fromStdString(to_string_precision(selectedTrain->wagonCount, 0));
+		if (!trainIDText || trainIDText->text() != expectedTrainId
+			|| !trainTypeText || trainTypeText->text() != expectedTrainType
+			|| !trainLengthText || trainLengthText->text() != expectedTrainLength
+			|| !trainWagonsText || trainWagonsText->text() != expectedWagonCount) {
+			ok = false;
+			failures << "viewport reselection did not populate the exact moved train details";
+		}
+		if (selectedTrainBody->pen() != selectedTrainPen || selectedTrainBody->brush() != selectedTrainBrush) {
+			ok = false;
+			failures << "viewport reselection changed the moved train source paint";
+		}
+		selectedTrain->setPos(originalPosition);
+		QApplication::processEvents();
 	}
 	if (!scene || !networkView) {
 		ok = false;
@@ -17689,6 +18204,7 @@ void MainWindow::setupGUI() {
 	buildSignalIndex();
 	buildTrackIndexes();
 
+	bindStationOverlaySources();
 	if (!hasSharedPreview)
 		updateStationOverlayDegrees();
 	updateViewportOverlays();
@@ -17700,6 +18216,52 @@ void MainWindow::setupGUI() {
 	// View menu is populated from the .ui file
 	// ui->menuTools->setTitle("");
 	// ui->menuAbout->setTitle("");
+}
+
+bool MainWindow::startupTimingIdentityMatches(const QString& path, const SceneModel& model,
+		const std::string* inputSnapshot) const {
+	const StartupIdentity current = startupIdentity(
+		path, model, inputSnapshot ? *inputSnapshot : std::string());
+	return sameStartupIdentity(g_startupIdentity, current)
+		&& (!inputSnapshot || g_startupIdentity.inputSnapshot == *inputSnapshot);
+}
+
+void MainWindow::failStartupTiming(const QString& message) {
+	std::fprintf(stderr, "QEGTRAIN_TIMING_ERROR %s\n", message.toUtf8().constData());
+	std::fflush(stderr);
+	QCoreApplication::exit(2);
+}
+
+void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
+		qint64 elapsedNanoseconds) {
+	if (!startupTimingEnabled() || generation != m_startupTimingIteration)
+		return;
+	const bool identityOk = startupTimingIdentityMatches(m_sceneDir, m_sceneModel);
+	recordStartupTiming(kind == QLatin1String("preview")
+			? QStringLiteral("first_preview_paint") : QStringLiteral("first_runtime_paint"),
+		m_startupTimingIteration, generation, elapsedNanoseconds, kind,
+		QStringLiteral("NetworkView::viewportEvent"), identityOk);
+	if (!identityOk) {
+		failStartupTiming(QStringLiteral("scene identity or counts changed before first paint"));
+		return;
+	}
+	if (kind == QLatin1String("preview")) {
+		QTimer::singleShot(0, this, &MainWindow::runScene);
+		return;
+	}
+	if (kind != QLatin1String("runtime")) {
+		failStartupTiming(QStringLiteral("unexpected paint generation kind"));
+		return;
+	}
+	if (m_startupTimingIteration >= m_startupTimingWarmTrials) {
+		QCoreApplication::exit(0);
+		return;
+	}
+	++m_startupTimingIteration;
+	QTimer::singleShot(0, this, [this]() {
+		if (!openSceneDirectory(m_startupTimingScenePath))
+			failStartupTiming(QStringLiteral("warm scene reload failed"));
+	});
 }
 
 // open GUI
@@ -17730,8 +18292,18 @@ void MainWindow::showEvent(QShowEvent* e) {
 	});
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
-	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART"))
+	if (PlaybackProfiler::enabled()) {
+		if (PlaybackProfiler::startupTimingConflict()) {
+			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"startup_timing_enabled\"}\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		m_speedSlider->setValue(kMaxStepDelayMs
+			- qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS"));
 		QTimer::singleShot(1500, this, &MainWindow::runCurrent);
+	} else if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
+		QTimer::singleShot(1500, this, &MainWindow::runCurrent);
+	}
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
 		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS"))
@@ -17745,6 +18317,147 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(1000, this, &MainWindow::runTrackPreviewE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT"))
 		QTimer::singleShot(1000, this, &MainWindow::runLegacyImportE2E);
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP"))
+		QTimer::singleShot(100, this, &MainWindow::runSceneDropE2E);
+}
+
+void MainWindow::runSceneDropE2E() {
+	bool ok = true;
+	QStringList failures;
+	const auto fail = [&](const QString& message) {
+		ok = false;
+		failures.append(message);
+	};
+
+	QTemporaryDir temp;
+	if (!temp.isValid()) {
+		fail(QStringLiteral("temporary directory creation failed"));
+	} else {
+		SceneModel droppedScene = m_sceneModel;
+		droppedScene.name = "Dropped Scene";
+		const QString validPath = temp.filePath(QStringLiteral("valid.EGSCENE"));
+		if (!saveSceneBundle(droppedScene, validPath.toStdString()).success())
+			fail(QStringLiteral("valid bundle creation failed"));
+
+		QFile wrongExtension(temp.filePath(QStringLiteral("scene.txt")));
+		if (!wrongExtension.open(QIODevice::WriteOnly) || wrongExtension.write("not a scene") < 0)
+			fail(QStringLiteral("wrong-extension fixture creation failed"));
+		wrongExtension.close();
+		QFile malformed(temp.filePath(QStringLiteral("malformed.egscene")));
+		if (!malformed.open(QIODevice::WriteOnly) || malformed.write("not a bundle") < 0)
+			fail(QStringLiteral("malformed fixture creation failed"));
+		malformed.close();
+		const QString directoryPath = temp.filePath(QStringLiteral("directory"));
+		if (!QDir().mkpath(directoryPath))
+			fail(QStringLiteral("directory fixture creation failed"));
+
+		const QPoint viewportPoint = networkView->viewport()->rect().center();
+		const QPoint dropPoint = networkView->viewport()->mapTo(this, viewportPoint);
+		// This in-process check covers MainWindow's routing contract. Native file-manager
+		// delivery over the viewport remains a GUI smoke-test residual.
+		const auto deliver = [&](const QList<QUrl>& urls, bool hasUrls, bool dragAccepted,
+				bool dropAccepted, const QString& statusText,
+				Qt::DropActions actions = Qt::CopyAction) {
+			QMimeData mime;
+			if (hasUrls)
+				mime.setUrls(urls);
+			else
+				mime.setText(QStringLiteral("no URLs"));
+			QDragEnterEvent drag(dropPoint, actions, &mime, Qt::LeftButton, Qt::NoModifier);
+			drag.setAccepted(false);
+			QApplication::sendEvent(this, &drag);
+			if (drag.isAccepted() != dragAccepted)
+				fail(QStringLiteral("unexpected drag acceptance for %1").arg(statusText));
+			if (drag.isAccepted() && drag.dropAction() != Qt::CopyAction)
+				fail(QStringLiteral("drag did not advertise copying for %1").arg(statusText));
+			QDropEvent drop(QPointF(dropPoint), actions, &mime, Qt::LeftButton, Qt::NoModifier);
+			drop.setAccepted(false);
+			QApplication::sendEvent(this, &drop);
+			if (drop.isAccepted() != dropAccepted)
+				fail(QStringLiteral("unexpected drop acceptance for %1").arg(statusText));
+			if (drop.isAccepted() && drop.dropAction() != Qt::CopyAction)
+				fail(QStringLiteral("drop did not complete as a copy for %1").arg(statusText));
+			if (!statusText.isEmpty() && !statusBar()->currentMessage().contains(statusText, Qt::CaseInsensitive))
+				fail(QStringLiteral("unclear drop result for %1: %2")
+					.arg(statusText, statusBar()->currentMessage()));
+		};
+
+		if (!acceptDrops() || networkView->acceptDrops() || networkView->viewport()->acceptDrops())
+			fail(QStringLiteral("central viewport does not route drops to MainWindow"));
+		if (networkView->dragMode() != QGraphicsView::ScrollHandDrag)
+			fail(QStringLiteral("canvas pan drag mode changed"));
+
+		const quint64 revisionBeforeValidDrop = m_sceneRevision;
+		deliver({QUrl::fromLocalFile(validPath)}, true, true, true, QString());
+		if (m_sceneDir != QFileInfo(validPath).absoluteFilePath()
+			|| m_sceneModel.name != "Dropped Scene" || m_sceneRevision != revisionBeforeValidDrop + 1
+			|| !scene || networkView->scene() != scene
+			|| scene->items().isEmpty())
+			fail(QStringLiteral("valid dropped scene did not open and render"));
+
+		const QString scenePath = m_sceneDir;
+		const std::string sceneName = m_sceneModel.name;
+		const quint64 sceneRevision = m_sceneRevision;
+		QGraphicsScene* const renderedScene = scene;
+		const QList<QGraphicsItem*> renderedItems = scene ? scene->items() : QList<QGraphicsItem*>();
+		const auto unchanged = [&](const QString& label) {
+			if (m_sceneDir != scenePath || m_sceneModel.name != sceneName
+				|| m_sceneRevision != sceneRevision || scene != renderedScene
+				|| !scene || networkView->scene() != renderedScene || scene->items() != renderedItems)
+				fail(label + QStringLiteral(" replaced the current scene"));
+		};
+
+		bool canceledUnsavedPrompt = false;
+		m_sceneDirty = true;
+		QTimer cancelTimer(this);
+		cancelTimer.setInterval(0);
+		connect(&cancelTimer, &QTimer::timeout, this, [&]() {
+			auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
+			auto* cancel = box ? box->button(QMessageBox::Cancel) : nullptr;
+			if (!cancel)
+				return;
+			canceledUnsavedPrompt = true;
+			cancelTimer.stop();
+			cancel->click();
+		});
+		cancelTimer.start();
+		deliver({QUrl::fromLocalFile(validPath)}, true, true, false, QStringLiteral("canceled"));
+		cancelTimer.stop();
+		if (!canceledUnsavedPrompt)
+			fail(QStringLiteral("dirty-scene drop did not show the unsaved-scene prompt"));
+		unchanged(QStringLiteral("canceled dirty-scene drop"));
+		m_sceneDirty = false;
+
+		deliver({QUrl::fromLocalFile(validPath)}, true, false, false,
+			QStringLiteral("copying"), Qt::MoveAction);
+		unchanged(QStringLiteral("move-only drop"));
+		deliver({}, false, false, false, QStringLiteral("no file"));
+		unchanged(QStringLiteral("no-URL drop"));
+		deliver({QUrl::fromLocalFile(validPath), QUrl::fromLocalFile(validPath)}, true,
+			false, false, QStringLiteral("exactly one"));
+		unchanged(QStringLiteral("multiple-file drop"));
+		deliver({QUrl(QStringLiteral("https://example.com/scene.egscene"))}, true,
+			false, false, QStringLiteral("local"));
+		unchanged(QStringLiteral("remote URL drop"));
+		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("directory"));
+		unchanged(QStringLiteral("directory drop"));
+		deliver({QUrl::fromLocalFile(wrongExtension.fileName())}, true,
+			false, false, QStringLiteral("extension"));
+		unchanged(QStringLiteral("wrong-extension drop"));
+		deliver({QUrl::fromLocalFile(temp.filePath(QStringLiteral("missing.egscene")))}, true,
+			false, false, QStringLiteral("does not exist"));
+		unchanged(QStringLiteral("nonexistent-file drop"));
+		deliver({QUrl::fromLocalFile(malformed.fileName())}, true,
+			true, false, QStringLiteral("could not be opened"));
+		unchanged(QStringLiteral("malformed-scene drop"));
+	}
+
+	if (ok)
+		std::fprintf(stdout, "E2E_SCENE_DROP_OK\n");
+	else
+		std::fprintf(stderr, "E2E_SCENE_DROP_FAIL: %s\n", failures.join(", ").toUtf8().constData());
+	std::fflush(ok ? stdout : stderr);
+	QCoreApplication::exit(ok ? 0 : 1);
 }
 
 bool MainWindow::hasRawRunResults() const {
@@ -17805,12 +18518,20 @@ QMenu* MainWindow::editorsMenu() {
 // generic open and legacy import flows as buttons. Replaces the bare
 // "Select Legacy Case Folder" dialog that used to open over the blank canvas.
 void MainWindow::showStartupChooser() {
+	const QString currentCaseName = m_sceneLoaded
+		? QString::fromStdString(m_sceneModel.name) : QString();
+	const QString sceneDirBefore = m_sceneDir;
+	const quint64 sceneRevisionBefore = m_sceneRevision;
+
 	QDialog dialog(this);
 	dialog.setWindowTitle("Open a Case");
 	dialog.resize(560, 460);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
-	QLabel* heading = new QLabel("Choose a case study to open:", &dialog);
+	QLabel* heading = new QLabel(currentCaseName.isEmpty()
+		? QStringLiteral("Choose a case study to open:")
+		: QString("%1 is already loaded. Choose another case study to open, or continue with it:")
+			.arg(currentCaseName), &dialog);
 	layout->addWidget(heading);
 
 	QListWidget* list = new QListWidget(&dialog);
@@ -17867,7 +18588,8 @@ void MainWindow::showStartupChooser() {
 	QPushButton* newCaseBtn = new QPushButton("New Case Study...", &dialog);
 	QPushButton* legacyBtn = new QPushButton("Import Legacy Case...", &dialog);
 	QPushButton* browseBtn = new QPushButton("Open Scene Folder...", &dialog);
-	QPushButton* skipBtn = new QPushButton("Skip", &dialog);
+	QPushButton* continueBtn = new QPushButton(currentCaseName.isEmpty()
+		? QStringLiteral("Cancel") : QString("Continue with %1").arg(currentCaseName), &dialog);
 	QPushButton* openBtn = new QPushButton("Open", &dialog);
 	openBtn->setDefault(true);
 	openBtn->setEnabled(false);
@@ -17875,12 +18597,12 @@ void MainWindow::showStartupChooser() {
 	buttons->addWidget(legacyBtn);
 	buttons->addWidget(browseBtn);
 	buttons->addStretch();
-	buttons->addWidget(skipBtn);
+	buttons->addWidget(continueBtn);
 	buttons->addWidget(openBtn);
 	layout->addLayout(buttons);
 
-	enum { Skipped, OpenSelected, BrowseScene, ImportLegacy, NewCase };
-	int choice = Skipped;
+	enum { ContinueCurrent, OpenSelected, BrowseScene, ImportLegacy, NewCase };
+	int choice = ContinueCurrent;
 	connect(list, &QListWidget::itemSelectionChanged, &dialog, [&]() {
 		openBtn->setEnabled(list->currentItem() != nullptr);
 	});
@@ -17892,10 +18614,13 @@ void MainWindow::showStartupChooser() {
 	connect(browseBtn, &QPushButton::clicked, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
 	connect(legacyBtn, &QPushButton::clicked, &dialog, [&]() { choice = ImportLegacy; dialog.accept(); });
 	connect(newCaseBtn, &QPushButton::clicked, &dialog, [&]() { choice = NewCase; dialog.accept(); });
-	connect(skipBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
+	connect(continueBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
 
 	if (list->count() > 0)
 		list->setCurrentRow(0);
+	const bool startupChooserE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_STARTUP_CHOOSER");
+	if (startupChooserE2E)
+		QTimer::singleShot(0, continueBtn, &QPushButton::click);
 	dialog.exec();
 
 	switch (choice) {
@@ -17912,9 +18637,27 @@ void MainWindow::showStartupChooser() {
 		case NewCase:
 			newScene();
 			break;
-		default:
-		statusBar()->showMessage("No case chosen; use File > Open Case Study when ready", 8000);
+		case ContinueCurrent:
+			if (!currentCaseName.isEmpty())
+				statusBar()->showMessage(QString("Ready - %1").arg(currentCaseName));
 			break;
+	}
+
+	if (startupChooserE2E) {
+		const auto marker = [](const char* name, const QString& value) {
+			std::fprintf(stdout, "%s=%s\n", name, value.toUtf8().constData());
+		};
+		marker("E2E_STARTUP_CHOOSER_PROMPT", heading->text());
+		marker("E2E_STARTUP_CHOOSER_ACTION", continueBtn->text());
+		marker("E2E_STARTUP_CHOOSER_MODEL", QString::fromStdString(m_sceneModel.name));
+		marker("E2E_STARTUP_CHOOSER_CASE_LABEL", m_caseNameLabel ? m_caseNameLabel->text() : QString());
+		marker("E2E_STARTUP_CHOOSER_READINESS", m_caseReadinessLabel ? m_caseReadinessLabel->text() : QString());
+		marker("E2E_STARTUP_CHOOSER_STATUS", statusBar()->currentMessage());
+		marker("E2E_STARTUP_CHOOSER_UNCHANGED",
+			m_sceneLoaded && m_sceneDir == sceneDirBefore && m_sceneRevision == sceneRevisionBefore
+				? QStringLiteral("yes") : QStringLiteral("no"));
+		std::fflush(stdout);
+		QCoreApplication::exit(0);
 	}
 }
 
@@ -18268,6 +19011,12 @@ void MainWindow::startSimulation() {
 
 // handle simulation completion on the main thread
 void MainWindow::onSimulationFinished() {
+	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
+		PlaybackProfiler::instance().emitRecords(true);
+		clearSimulationWorker(false);
+		QCoreApplication::exit(0);
+		return;
+	}
 	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
 	m_sceneChangedDuringRun = false;
 	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
@@ -18376,6 +19125,9 @@ void MainWindow::teardownGUI() {
 	m_signalDecorations.clear();
 	m_stationOverlays.clear();
 	m_selectedStationName.clear();
+	m_hasSelectedStationIdentity = false;
+	m_selectedStationNodeId = 0.0;
+	m_selectedStationTrack = -1;
 	m_vcMessageItems.clear();
 	m_stationDecorations.clear();
 	m_signalsByAheadId.clear();
@@ -18451,6 +19203,26 @@ void MainWindow::runScene() {
 	if (!m_sceneLoaded)
 		return;
 
+	if (PlaybackProfiler::enabled()) {
+		const std::string requested = qEnvironmentVariable(
+			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO").toStdString();
+		const SceneScenario* configured = requested == "default"
+			? defaultScenario(static_cast<const SceneModel&>(m_sceneModel))
+			: nullptr;
+		if (requested != "default") {
+			const auto match = std::find_if(m_sceneModel.scenarios.cbegin(), m_sceneModel.scenarios.cend(),
+				[&requested](const SceneScenario& scenario) { return scenario.id == requested; });
+			if (match != m_sceneModel.scenarios.cend())
+				configured = &*match;
+		}
+		if (!configured) {
+			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"scenario_unavailable\"}\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		m_selectedScenarioId = configured->id;
+	}
+
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
@@ -18469,7 +19241,8 @@ void MainWindow::runScene() {
 		return;
 
 	statusBar()->showMessage("Preparing scene simulation...");
-	QApplication::processEvents();
+	if (!startupTimingEnabled())
+		QApplication::processEvents();
 
 	const QRectF previewFitBounds = m_previewFitBounds;
 	const QPointF previewZoomFocus = m_previewZoomFocus;
@@ -18489,7 +19262,17 @@ void MainWindow::runScene() {
 	invalidateRunResults();
 	m_appliedScenarioId = m_selectedScenarioId;
 	const SceneRunSelection selection = selectedSceneOccurrences();
+	const bool identityBeforePrepare = !startupTimingEnabled()
+		|| startupTimingIdentityMatches(m_sceneDir, m_sceneModel);
+	const qint64 prepareStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_selectedScenarioId, selection);
+	const bool timingIdentityOk = identityBeforePrepare
+		&& (!startupTimingEnabled() || startupTimingIdentityMatches(m_sceneDir, m_sceneModel));
+	if (startupTimingEnabled())
+		recordStartupTiming(QStringLiteral("native_runtime_construction"), m_startupTimingIteration,
+			-1, startupTimingNowNanoseconds() - prepareStarted,
+			QStringLiteral("simulation.prepareScene"), QStringLiteral("MainWindow::runScene"),
+			timingIdentityOk);
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
 		m_runtimeStatus = QStringLiteral("Failed");
@@ -18506,6 +19289,45 @@ void MainWindow::runScene() {
 
 	setupGUI();
 	fitView();
+	if (PlaybackProfiler::enabled()) {
+		PlaybackProfiler::RunConfig config;
+		config.trial = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_TRIAL");
+		config.view = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW").toStdString();
+#if defined(Q_OS_MACOS)
+		config.platform = "macOS";
+#elif defined(Q_OS_WIN)
+		config.platform = "Windows";
+#else
+		config.platform = "Linux";
+#endif
+		config.architecture = QSysInfo::currentCpuArchitecture().toStdString();
+		config.qtPlatform = QGuiApplication::platformName().toStdString();
+		config.buildType = EGTRAIN_BUILD_TYPE;
+		config.caseName = m_sceneModel.name;
+		config.requestedScenario = qEnvironmentVariable(
+			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO").toStdString();
+		config.scenario = m_appliedScenarioId;
+		config.defaultScenario = m_sceneModel.defaultScenarioId;
+		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
+		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");
+		config.delayMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS");
+		config.passengerGui = initial_variables.PAX_GUI;
+		config.tsm = initial_variables.TSM != 0;
+		config.routeChoice = initial_variables.RChoice != 0;
+		config.horizon = static_cast<int>(initial_variables.times);
+		config.structural = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_STRUCTURAL") == QLatin1String("1");
+		PlaybackProfiler::instance().configure(config);
+		m_playbackProfileViewApplied = false;
+	}
+	if (startupTimingEnabled()) {
+		if (!timingIdentityOk) {
+			failStartupTiming(QStringLiteral("scene identity or counts changed during native preparation"));
+			return;
+		}
+		networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTimingIteration);
+		statusBar()->showMessage(QString("Prepared scene: %1").arg(QString::fromStdString(m_sceneModel.name)));
+		return;
+	}
 
 	// scene stays loaded; only the case-study load path clears it
 	updateSceneWindowTitle();
@@ -18647,7 +19469,7 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
-	overlay->setScale(scale);
+	overlay->setVisualScale(scale);
 	scene->addItem(overlay);
 	m_stationOverlays.push_back(overlay);
 	m_stationDecorations.push_back(overlay);
@@ -19502,6 +20324,9 @@ void MainWindow::handleHelpAbout() {
 // removes highlight from last clicked item
 void MainWindow::handleCloseInfoDockWidget() {
 	m_selectedStationName.clear();
+	m_hasSelectedStationIdentity = false;
+	m_selectedStationNodeId = 0.0;
+	m_selectedStationTrack = -1;
 	m_selectedTrainIndex = -1;
 	for (auto* overlay : m_stationOverlays)
 		if (overlay)
@@ -19566,9 +20391,14 @@ void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 		return;
 	handleCloseInfoDockWidget();
 	m_selectedStationName = QString::fromStdString(re->node->stationName);
+	m_hasSelectedStationIdentity = true;
+	m_selectedStationNodeId = re->node->ID;
+	m_selectedStationTrack = re->track;
 	for (auto* overlay : m_stationOverlays)
 		if (overlay)
-			overlay->setSelected(overlay->stationName() == m_selectedStationName);
+			overlay->setSelected(overlay->hasSourceIdentity()
+				? overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack)
+				: !m_hasSelectedStationIdentity && overlay->stationName() == m_selectedStationName);
 	updateViewportOverlays();
 
 	// update Node info displayed on widget
@@ -20178,15 +21008,18 @@ void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int t
 // slot to update GUI at each timestep (no longer blocks; simulation runs on worker thread)
 
 void MainWindow::updateTimeline(int timestep, int totalTimesteps) {
+	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/timeline", "gui", "gui/snapshot_delivery");
 	if (progressBar)
 		progressBar->setProgress(timestep, totalTimesteps, m_startOffsetSeconds);
 }
 
 void MainWindow::waitForUpdates() {
+	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery", "gui", "");
 	const auto snapshot = simulation.takeSimulationSnapshot();
 	if (!snapshot)
 		return;
 	m_snapshot = snapshot;
+	PlaybackProfiler::instance().noteDelivery();
 	const int timestep = snapshot->timestep;
 	static bool autostartProgressReported = false;
 	if (!autostartProgressReported && qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
@@ -20200,19 +21033,63 @@ void MainWindow::waitForUpdates() {
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
 	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
-		updateSignalling();
-		updateTrainPosition(timestep);
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame", "gui", "gui/snapshot_delivery");
+		PlaybackProfiler::instance().noteRenderedUpdate();
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/signalling", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updateSignalling();
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_position", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updateTrainPosition(timestep);
+		}
 
 		// pax info
 		if (initial_variables.PAX_GUI) {
-			updatePlatforms(timestep);
-			updatePaxIconInfo();
-			updateTrainPaxInfo();
+			{
+				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/platforms", "gui",
+					"gui/snapshot_delivery/render_frame");
+				updatePlatforms(timestep);
+			}
+			{
+				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/passenger_icons", "gui",
+					"gui/snapshot_delivery/render_frame");
+				updatePaxIconInfo();
+			}
+			{
+				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_passenger_info", "gui",
+					"gui/snapshot_delivery/render_frame");
+				updateTrainPaxInfo();
+			}
 		}
 		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
 			runVisualPolishE2E();
 
 		m_lastRenderMs = now;
+	}
+
+	if (PlaybackProfiler::enabled() && !m_playbackProfileViewApplied
+			&& !PlaybackProfiler::instance().measuring()
+			&& !PlaybackProfiler::instance().frozen()) {
+		TrainItemGroup* selected = nullptr;
+		for (TrainItemGroup* train : allTrains)
+			if (train && train->isVisible() && (!selected || train->index < selected->index))
+				selected = train;
+		if (selected) {
+			m_playbackProfileViewApplied = true;
+			if (m_followAction)
+				m_followAction->setChecked(false);
+			m_followTrainIndex = -1;
+			networkView->fitToTopology();
+			if (qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW") == QLatin1String("dense")) {
+				networkView->centerOn(selected->sceneBoundingRect().center());
+				networkView->zoomBy(3.0);
+			}
+			PlaybackProfiler::instance().arm(timestep);
+			networkView->viewport()->update();
+		}
 	}
 }
 
@@ -20476,6 +21353,7 @@ void MainWindow::updateTrainPosition(int t) {
 					interp->setEndValue(QVariant::fromValue(QPointF(0, 0)));
 					interp->setEasingCurve(QEasingCurve::Linear);
 					connect(interp, &QVariantAnimation::valueChanged, this, [trainItem, badge, badgeCenter](const QVariant& val) {
+						QEGTRAIN_PROFILE_SCOPE("gui/train_animation/value_changed", "gui", "");
 						QPointF offset = val.toPointF();
 						trainItem->setPos(offset);
 						if (badge)
@@ -21750,6 +22628,84 @@ void MainWindow::updateNetworkLegend() {
 	m_networkLegendWidget->setCaseContent(content);
 }
 
+void MainWindow::bindStationOverlaySources() {
+	if (!scene)
+		return;
+	QList<StationNodeItem*> stationNodes;
+	for (QGraphicsItem* item : scene->items()) {
+		auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
+		if (station && station->node)
+			stationNodes.append(station);
+	}
+	QList<QList<StationNodeItem*>> assignments;
+	assignments.reserve(m_stationOverlays.size());
+	for (int index = 0; index < m_stationOverlays.size(); ++index)
+		assignments.append(QList<StationNodeItem*>());
+	for (auto* station : stationNodes) {
+		const QString stationName = QString::fromStdString(station->node->stationName);
+		const QPointF stationCenter = station->sceneBoundingRect().center();
+		int nearestIndex = -1;
+		qreal nearestDistance = std::numeric_limits<qreal>::max();
+		for (int index = 0; index < m_stationOverlays.size(); ++index) {
+			const auto* overlay = m_stationOverlays.at(index);
+			if (!overlay || overlay->stationName() != stationName)
+				continue;
+			const QPointF delta = stationCenter - overlay->stableAnchor();
+			const qreal distance = delta.x() * delta.x() + delta.y() * delta.y();
+			bool nearer = nearestIndex < 0 || distance < nearestDistance;
+			if (!nearer && distance == nearestDistance) {
+				const QPointF currentAnchor = m_stationOverlays.at(nearestIndex)->stableAnchor();
+				const QPointF candidateAnchor = overlay->stableAnchor();
+				nearer = candidateAnchor.x() < currentAnchor.x()
+					|| (candidateAnchor.x() == currentAnchor.x()
+						&& candidateAnchor.y() < currentAnchor.y());
+			}
+			if (nearer) {
+				nearestIndex = index;
+				nearestDistance = distance;
+			}
+		}
+		if (nearestIndex >= 0)
+			assignments[nearestIndex].append(station);
+	}
+
+	for (int index = 0; index < m_stationOverlays.size(); ++index) {
+		auto* overlay = m_stationOverlays.at(index);
+		if (!overlay)
+			continue;
+		auto& assigned = assignments[index];
+		std::sort(assigned.begin(), assigned.end(), [overlay](const auto* left, const auto* right) {
+			const QPointF leftDelta = left->sceneBoundingRect().center() - overlay->stableAnchor();
+			const QPointF rightDelta = right->sceneBoundingRect().center() - overlay->stableAnchor();
+			const qreal leftDistance = leftDelta.x() * leftDelta.x() + leftDelta.y() * leftDelta.y();
+			const qreal rightDistance = rightDelta.x() * rightDelta.x() + rightDelta.y() * rightDelta.y();
+			if (leftDistance != rightDistance)
+				return leftDistance < rightDistance;
+			if (left->track != right->track)
+				return left->track < right->track;
+			return left->node->ID < right->node->ID;
+		});
+		QList<StationOverlayItem::SourceIdentity> identities;
+		for (const auto* station : assigned)
+			identities.append({station->node->ID, station->track});
+		overlay->setSourceIdentities(identities);
+		if (overlay->hasSourceIdentity()) {
+			const double representativeNodeId = overlay->sourceNodeId();
+			const int representativeTrack = overlay->sourceTrack();
+			overlay->setDisplacedClickHandler(
+				[this, representativeNodeId, representativeTrack](const QString&) {
+					QTimer::singleShot(0, this, [this, representativeNodeId, representativeTrack]() {
+						if (auto* current = resolveStationNodeItem(
+							representativeNodeId, representativeTrack))
+							displayStationNodeInfo(current);
+					});
+				});
+		} else {
+			overlay->setDisplacedClickHandler({});
+		}
+	}
+}
+
 void MainWindow::updateStationOverlayDegrees() {
 	if (!scene)
 		return;
@@ -21761,6 +22717,19 @@ void MainWindow::updateStationOverlayDegrees() {
 		const QPointF second = item->mapToScene(line.p2());
 		return (atEndpoint(point, first) || atEndpoint(point, second)) ? 1 : 0;
 	};
+	QList<StationNodeItem*> stationNodes;
+	QList<QGraphicsItem*> edges;
+	for (QGraphicsItem* item : scene->items()) {
+		if (!item || !item->isVisible())
+			continue;
+		if (auto* station = qgraphicsitem_cast<StationNodeItem*>(item)) {
+			if (station->node)
+				stationNodes.append(station);
+		} else if (qgraphicsitem_cast<TrackLineItem*>(item)
+				|| qgraphicsitem_cast<ConnectionItem*>(item)) {
+			edges.append(item);
+		}
+	}
 
 	for (auto* overlay : m_stationOverlays) {
 		if (!overlay)
@@ -21768,16 +22737,15 @@ void MainWindow::updateStationOverlayDegrees() {
 		int highestDegree = 0;
 		bool hasInterchange = false;
 		bool hasEndpoint = false;
-		for (auto* item : scene->items()) {
-			auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
-			if (!station || !station->node || !station->isVisible()
-				|| QString::fromStdString(station->node->stationName) != overlay->stationName())
+		for (auto* station : stationNodes) {
+			const bool assigned = overlay->hasSourceIdentity()
+				? overlay->matchesSourceIdentity(station->node->ID, station->track)
+				: QString::fromStdString(station->node->stationName) == overlay->stationName();
+			if (!assigned)
 				continue;
 			const QPointF point = station->sceneBoundingRect().center();
 			int degree = 0;
-			for (auto* edge : scene->items()) {
-				if (!edge || !edge->isVisible())
-					continue;
+			for (auto* edge : edges) {
 				if (auto* track = qgraphicsitem_cast<TrackLineItem*>(edge)) {
 					degree += segmentDegree(track, track->line(), point);
 					if (auto* virtualArc = dynamic_cast<VirtualArcItem*>(track))
@@ -21835,9 +22803,14 @@ void MainWindow::updateViewportOverlays() {
 			continue;
 		overlay->setLabelScale(stationLabelScale);
 		overlay->setViewportOffset(QPointF());
+		overlay->setFitCollisionOffset(QPointF());
+		overlay->setFitSymbolVisible(true);
 		overlay->setCollisionBlocked(false);
-		overlay->setSelected(!m_selectedStationName.isEmpty()
-			&& overlay->stationName() == m_selectedStationName);
+		const bool selectedByIdentity = m_hasSelectedStationIdentity && overlay->hasSourceIdentity()
+			&& overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack);
+		const bool selectedByLegacyName = !m_hasSelectedStationIdentity && !overlay->hasSourceIdentity()
+			&& !m_selectedStationName.isEmpty() && overlay->stationName() == m_selectedStationName;
+		overlay->setSelected(selectedByIdentity || selectedByLegacyName);
 		overlay->setVisible(m_stationLayerVisible);
 		if (!m_stationLayerVisible)
 			continue;
@@ -21905,6 +22878,28 @@ void MainWindow::updateViewportOverlays() {
 		return overlay->isInterchange() || overlay->isEndpoint();
 	});
 	const bool showOrdinaryOverviewLabels = !hasTopologyPriority;
+	const bool fitLayout = networkView->zoomRatio() <= 1.0 + 1e-5;
+	if (fitLayout) {
+		QList<QRectF> placedSymbols;
+		for (auto* overlay : candidates) {
+			CandidatePlacement* placement = placementFor(overlay);
+			if (!placement)
+				continue;
+			bool found = false;
+			const QPointF collisionOffset = StationOverlayItem::firstFitCollisionOffset(
+				placement->current.symbolRect, inset, placedSymbols, {}, &found);
+			if (!found) {
+				overlay->setFitSymbolVisible(false);
+				symbolRects[placement->symbolIndex] = QRectF();
+				continue;
+			}
+			overlay->setFitCollisionOffset(collisionOffset);
+			const QRectF finalSymbol = placement->current.symbolRect.translated(collisionOffset);
+			symbolRects[placement->symbolIndex] = finalSymbol;
+			placedSymbols.append(finalSymbol);
+		}
+	}
+
 	QList<QRectF> placedLabels;
 	for (auto* overlay : candidates) {
 		const bool forced = overlay->isSelected() || overlay->isFollowed() || overlay->isHovered();
@@ -21915,21 +22910,34 @@ void MainWindow::updateViewportOverlays() {
 		bool collisionBlocked = false;
 		CandidatePlacement* placement = placementFor(overlay);
 		if (placement) {
-			const StationOverlayItem::ViewportPlacement* choices[4] = {
-				&placement->right, &placement->left, &placement->above, &placement->below};
-			if (placement->current.side == StationOverlayItem::LabelSide::Left) {
-				choices[0] = &placement->left;
-				choices[1] = &placement->right;
+			StationOverlayItem::ViewportPlacement choices[4] = {
+				placement->right, placement->left, placement->above, placement->below};
+			if (placement->current.side == StationOverlayItem::LabelSide::Left)
+				std::swap(choices[0], choices[1]);
+			if (fitLayout) {
+				const QRectF finalSymbol = symbolRects.at(placement->symbolIndex);
+				for (auto& choice : choices) {
+					const QPointF labelDelta = placement->current.symbolRect.center()
+						- choice.symbolRect.center();
+					choice.offset = placement->current.offset;
+					choice.labelRect.translate(labelDelta);
+					choice.symbolRect = finalSymbol;
+					choice.combinedRect = finalSymbol.isNull()
+						? choice.labelRect : finalSymbol.united(choice.labelRect);
+					choice.fits = inset.contains(choice.labelRect)
+						&& (finalSymbol.isNull() || inset.contains(finalSymbol));
+				}
 			}
 			const StationOverlayItem::ViewportPlacement* chosen = nullptr;
 			const StationOverlayItem::ViewportPlacement* hoverFallback = nullptr;
-			for (const auto* choice : choices) {
+			for (const auto& choiceValue : choices) {
+				const auto* choice = &choiceValue;
 				if (!choice->fits)
 					continue;
 				const QRectF inflated = choice->labelRect.adjusted(-4.0, -4.0, 4.0, 4.0);
 				bool symbolCollision = false;
 				for (const QRectF& symbol : symbolRects) {
-					if (inflated.intersects(symbol)) {
+					if (!symbol.isNull() && inflated.intersects(symbol)) {
 						symbolCollision = true;
 						break;
 					}
@@ -21938,7 +22946,7 @@ void MainWindow::updateViewportOverlays() {
 					continue;
 				bool symbolMovedIntoLabel = false;
 				for (const QRectF& other : placedLabels) {
-					if (other.intersects(choice->symbolRect)) {
+					if (!choice->symbolRect.isNull() && other.intersects(choice->symbolRect)) {
 						symbolMovedIntoLabel = true;
 						break;
 					}

@@ -505,18 +505,13 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 
 } // namespace
 
-void resetNativeOperationsState() {
+void prepareNativeOperationsState() {
 	N_OrderLists = 0;
 	numRegions = 0;
 	N_Train = 0;
 	N_TrainD = 0;
 	numAllStationPlatforms = 0;
 	numAllDailyPassengers = 0;
-	for (int index = 0; index < Max_N_Reg; ++index) {
-		nativeClearRegionalTrain(regional_train[index]);
-		regional_train[index].~Regional();
-		new (&regional_train[index]) Regional();
-	}
 	for (OrderList& orderList : OL)
 		orderList = OrderList();
 	AllStationPlatforms.clear();
@@ -525,6 +520,15 @@ void resetNativeOperationsState() {
 	VCmsgTimestep.clear();
 	VCmsgTrain.clear();
 	VCmsgText.clear();
+}
+
+void resetNativeOperationsState() {
+	prepareNativeOperationsState();
+	for (int index = 0; index < Max_N_Reg; ++index) {
+		nativeClearRegionalTrain(regional_train[index]);
+		regional_train[index].~Regional();
+		new (&regional_train[index]) Regional();
+	}
 }
 
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,

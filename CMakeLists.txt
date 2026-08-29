@@ -119,6 +119,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/NumberGenerator.cpp
     ${SRC_DIR}/simulation/Optimisation.cpp
     ${SRC_DIR}/util/Logger.cpp
+    ${SRC_DIR}/util/PlaybackProfiler.cpp
     ${SRC_DIR}/graphics/items/PassengerItem.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
@@ -186,6 +187,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Logger.hpp
+    ${SRC_DIR}/util/PlaybackProfiler.h
     ${SRC_DIR}/graphics/items/PassengerItem.h
     ${SRC_DIR}/simulation/Passengers.h
     ${SRC_DIR}/graphics/items/PlatformItem.h
@@ -264,6 +266,8 @@ add_executable(QEGTRAIN
     ${EGTRAIN_RESOURCES}
     ${EGTRAIN_PLATFORM_RESOURCES}
 )
+
+target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_BUILD_TYPE="$<CONFIG>")
 
 target_include_directories(QEGTRAIN PRIVATE
     ${SRC_DIR}
@@ -554,9 +558,17 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_networkscene_selection PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_playbackprofiler
+        ${SRC_DIR}/tests/test_playbackprofiler.cpp
+        ${SRC_DIR}/util/PlaybackProfiler.cpp)
+    target_include_directories(test_playbackprofiler PRIVATE ${SRC_DIR})
+    target_link_libraries(test_playbackprofiler PRIVATE nlohmann_json::nlohmann_json)
+    add_test(NAME test_playbackprofiler COMMAND test_playbackprofiler)
+
     add_executable(test_networkview
         ${SRC_DIR}/tests/test_networkview.cpp
         ${SRC_DIR}/graphics/NetworkView.cpp
+        ${SRC_DIR}/util/PlaybackProfiler.cpp
         ${SRC_DIR}/graphics/items/TrackLineItem.cpp
         ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
         ${SRC_DIR}/graphics/items/ConnectionItem.cpp
@@ -774,6 +786,12 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_startup_launch_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
+	add_test(NAME test_scene_drop
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
+	set_tests_properties(test_scene_drop PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
+		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
+		TIMEOUT 60)
 	add_test(NAME test_native_startup_without_legacy
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_native_startup_without_legacy PROPERTIES
@@ -816,6 +834,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
 	add_test(NAME test_ownership_inventory
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
+	add_test(NAME test_measure_peak_rss
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_measure_peak_rss.py)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.

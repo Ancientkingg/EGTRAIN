@@ -3,9 +3,12 @@
 
 #include <QFont>
 #include <QGraphicsItem>
+#include <QList>
 #include <QPointF>
 #include <QRectF>
 #include <QString>
+
+#include <functional>
 
 #include "graphics/VisualPolish.h"
 
@@ -23,6 +26,10 @@ public:
 		bool fitsBeforeClamp = false;
 		bool fits = false;
 	};
+	struct SourceIdentity {
+		double nodeId = 0.0;
+		int track = -1;
+	};
 
 	StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
 		const StationVisual& visual, int degree = 0, QGraphicsItem* parent = nullptr);
@@ -39,10 +46,26 @@ public:
 	static QString displayName(const std::string& stationName);
 	qreal labelScale() const;
 	void setLabelScale(qreal scale);
+	qreal visualScale() const { return m_visualScale; }
+	void setVisualScale(qreal scale);
 
 	QPointF stableAnchor() const { return m_stableAnchor; }
 	QPointF viewportOffset() const { return m_viewportOffset; }
 	void setViewportOffset(const QPointF& offset);
+	QPointF fitCollisionOffset() const { return m_fitCollisionOffset; }
+	void setFitCollisionOffset(const QPointF& offset);
+	bool isFitSymbolVisible() const { return m_fitSymbolVisible; }
+	void setFitSymbolVisible(bool visible);
+	void setDisplacedClickHandler(std::function<void(const QString&)> handler);
+	void setSourceIdentities(const QList<SourceIdentity>& identities);
+	void clearSourceIdentities();
+	bool hasSourceIdentity() const { return !m_sourceIdentities.isEmpty(); }
+	int sourceIdentityCount() const { return m_sourceIdentities.size(); }
+	bool matchesSourceIdentity(double nodeId, int track) const;
+	double sourceNodeId() const;
+	int sourceTrack() const;
+	static QPointF firstFitCollisionOffset(const QRectF& symbolRect, const QRectF& viewportInset,
+		const QList<QRectF>& occupiedSymbols, const QList<QRectF>& blockedRects, bool* found);
 
 	LabelSide labelSide() const { return m_labelSide; }
 	void setLabelSide(LabelSide side);
@@ -53,8 +76,8 @@ public:
 	QRectF symbolRect() const { return m_symbolRect; }
 	QRectF labelRect() const { return m_labelRect; }
 	QRectF combinedRect() const;
-	QRectF deviceSymbolRect() const { return symbolRect(); }
-	QRectF deviceLabelRect() const { return labelRect(); }
+	QRectF deviceSymbolRect() const { return translatedSymbol(m_symbolRect); }
+	QRectF deviceLabelRect() const { return translated(m_labelRect); }
 	QRectF deviceCombinedRect() const { return combinedRect(); }
 
 	void setLayoutVisible(bool visible);
@@ -80,29 +103,37 @@ public:
 protected:
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
 	void rebuildGeometry();
 	QRectF labelRectForSide(LabelSide side) const;
 	QRectF translated(const QRectF& rect) const;
+	QRectF translatedSymbol(const QRectF& rect) const;
 
 	QString m_stationName;
 	QString m_displayName;
 	QPointF m_stableAnchor;
 	QPointF m_viewportOffset;
+	QPointF m_fitCollisionOffset;
 	StationVisual m_visual;
 	QFont m_labelFont;
+	qreal m_labelScale = 1.0;
+	qreal m_visualScale = 1.0;
 	QRectF m_symbolRect;
 	QRectF m_labelRect;
 	LabelSide m_labelSide = LabelSide::Right;
 	bool m_layoutVisible = true;
 	bool m_nameVisible = true;
 	bool m_collisionBlocked = false;
+	bool m_fitSymbolVisible = true;
 	bool m_hovered = false;
 	bool m_followed = false;
 	int m_degree = 0;
 	bool m_interchange = false;
 	bool m_endpoint = false;
+	QList<SourceIdentity> m_sourceIdentities;
+	std::function<void(const QString&)> m_displacedClickHandler;
 };
 
 #endif // STATIONOVERLAYITEM_H

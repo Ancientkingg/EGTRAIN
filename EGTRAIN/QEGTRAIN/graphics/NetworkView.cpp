@@ -2,6 +2,7 @@
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/VirtualArcItem.h"
+#include "util/PlaybackProfiler.h"
 
 #include <algorithm>
 #include <cmath>
@@ -241,6 +242,12 @@ void NetworkView::wheelEvent(QWheelEvent* event) {
 	}
 }
 
+void NetworkView::armTimingPaint(const QString& kind, int generation) {
+	m_timingPaintKind = kind;
+	m_timingPaintGeneration = generation;
+	m_timingPaintTimer.start();
+}
+
 bool NetworkView::viewportEvent(QEvent* event) {
 	if (event->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(event);
@@ -250,10 +257,32 @@ bool NetworkView::viewportEvent(QEvent* event) {
 			return true;
 		}
 	}
-	return QGraphicsView::viewportEvent(event);
+	if (event->type() != QEvent::Paint)
+		return QGraphicsView::viewportEvent(event);
+	bool result = false;
+	{
+		QEGTRAIN_PROFILE_SCOPE("render/viewport_paint", "render", "");
+		result = QGraphicsView::viewportEvent(event);
+	}
+	{
+		auto& profiler = PlaybackProfiler::instance();
+		profiler.notePaint();
+		if (profiler.beginAfterPaint(zoomRatio()))
+			emit playbackProfileBegan();
+	}
+	if (event->type() == QEvent::Paint && m_timingPaintGeneration >= 0) {
+		const QString kind = m_timingPaintKind;
+		const int generation = m_timingPaintGeneration;
+		const qint64 elapsed = m_timingPaintTimer.nsecsElapsed();
+		m_timingPaintGeneration = -1;
+		m_timingPaintKind.clear();
+		emit timingPaintCompleted(kind, generation, elapsed);
+	}
+	return result;
 }
 
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
+	QEGTRAIN_PROFILE_SCOPE("render/viewport_paint/background", "render", "render/viewport_paint");
 	painter->fillRect(rect, kCanvasColor);
 
 	const qreal viewScale = qAbs(transform().m11());

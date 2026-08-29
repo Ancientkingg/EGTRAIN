@@ -5,9 +5,11 @@
 
 #include <array>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -48,6 +50,15 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const char*
 	return false;
 }
 
+static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics,
+		const char* code, const char* file) {
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.code == code && diagnostic.file == file)
+			return true;
+	}
+	return false;
+}
+
 static void put16(std::string& output, unsigned int value) {
 	output.push_back(static_cast<char>(value & 0xffU));
 	output.push_back(static_cast<char>((value >> 8) & 0xffU));
@@ -77,6 +88,7 @@ static std::string rawArchive(const std::vector<RawEntry>& entries) {
 				reinterpret_cast<const unsigned char*>(entry.data.data()), entry.data.size())));
 		put32(output, 0x04034b50U);
 		put16(output, 20);
+		put16(output, 0);
 		put16(output, entry.method);
 		put16(output, 0);
 		put16(output, 0);
@@ -128,6 +140,109 @@ static bool writeBytes(const fs::path& path, const std::string& bytes) {
 	std::ofstream output(path, std::ios::binary);
 	output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
 	return static_cast<bool>(output);
+}
+
+struct ScopedTempEnvironment {
+	std::array<const char*, 3> names{{"TMPDIR", "TEMP", "TMP"}};
+	std::array<std::optional<std::string>, 3> previous;
+	bool configured = true;
+
+	explicit ScopedTempEnvironment(const fs::path& path) {
+		const std::string value = path.string();
+		for (std::size_t index = 0; index < names.size(); ++index) {
+			if (const char* current = std::getenv(names[index]))
+				previous[index] = current;
+			configured = set(names[index], value.c_str()) && configured;
+		}
+	}
+
+	~ScopedTempEnvironment() {
+		for (std::size_t index = 0; index < names.size(); ++index) {
+			if (previous[index])
+				set(names[index], previous[index]->c_str());
+			else
+				clear(names[index]);
+		}
+	}
+
+	ScopedTempEnvironment(const ScopedTempEnvironment&) = delete;
+	ScopedTempEnvironment& operator=(const ScopedTempEnvironment&) = delete;
+
+private:
+	static bool set(const char* name, const char* value) {
+#ifdef _WIN32
+		return _putenv_s(name, value) == 0;
+#else
+		return setenv(name, value, 1) == 0;
+#endif
+	}
+
+	static void clear(const char* name) {
+#ifdef _WIN32
+		_putenv_s(name, "");
+#else
+		unsetenv(name);
+#endif
+	}
+};
+
+static bool testExtractionCleanup(const SceneModel& source) {
+	bool ok = true;
+	TempDir fixture;
+	const fs::path validBundle = fixture.path / "valid.egscene";
+	if (!expect(saveSceneBundle(source, validBundle.string()).success(),
+			"cleanup success fixture packs"))
+		return false;
+
+	const fs::path canonical = fixture.path / "canonical";
+	if (!expect(saveScene(source, canonical.string()).success(),
+			"cleanup malformed fixture stages canonical files"))
+		return false;
+	std::vector<RawEntry> entries;
+	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			"rolling_stock.json", "services.json", "scenarios.json"}) {
+		std::string data = readBytes(canonical / name);
+		if (std::string(name) == "scene.json") {
+			const std::size_t openingBrace = data.find('{');
+			if (!expect(openingBrace != std::string::npos, "cleanup manifest fixture is JSON"))
+				return false;
+			data.insert(openingBrace + 1,
+					"\n    \"format\": \"egscene\",\n    \"bundle_version\": 1,");
+		} else if (std::string(name) == "infrastructure.json") {
+			data = "not-json";
+		}
+		entries.push_back({name, std::move(data)});
+	}
+	const fs::path malformedBundle = fixture.path / "malformed-infrastructure.egscene";
+	if (!expect(writeBytes(malformedBundle, rawArchive(entries)),
+			"cleanup malformed archive fixture writes"))
+		return false;
+
+	const fs::path extractionRoot = fixture.path / "private-temp";
+	if (!expect(fs::create_directory(extractionRoot), "private temporary root creates"))
+		return false;
+	ScopedTempEnvironment environment(extractionRoot);
+	std::error_code error;
+	const fs::path routedRoot = fs::temp_directory_path(error);
+	const bool routed = environment.configured && !error
+			&& fs::equivalent(routedRoot, extractionRoot, error) && !error;
+	if (!expect(routed, "bundle extraction uses the private temporary root"))
+		return false;
+
+	const SceneLoadResult successful = loadSceneBundle(validBundle.string());
+	ok &= expect(!hasErrors(successful.diagnostics), "cleanup fixture bundle loads successfully");
+	error.clear();
+	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
+			"successful bundle load removes private extraction state");
+
+	const SceneLoadResult failed = loadSceneBundle(malformedBundle.string());
+	ok &= expect(hasErrors(failed.diagnostics)
+			&& hasDiagnostic(failed.diagnostics, "scene.json.parse", "infrastructure.json"),
+			"malformed canonical entry reaches parser and names infrastructure.json");
+	error.clear();
+	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
+			"failed bundle load removes private extraction state");
+	return ok;
 }
 
 static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second, const fs::path& root) {
@@ -216,10 +331,12 @@ int main(int argc, char** argv) {
 	}
 
 	bool ok = true;
-	TempDir temp;
-	ok &= testNewSceneRoundTrip(temp.path);
 	const SceneLoadResult source = loadScene(argv[1]);
 	ok &= expect(!hasErrors(source.diagnostics), "canonical directory loads");
+	if (!hasErrors(source.diagnostics))
+		ok &= testExtractionCleanup(source.scene);
+	TempDir temp;
+	ok &= testNewSceneRoundTrip(temp.path);
 	const fs::path firstBundle = temp.path / "first.egscene";
 	const fs::path secondBundle = temp.path / "second.egscene";
 	const SceneSaveResult firstSave = saveSceneBundle(source.scene, firstBundle.string());

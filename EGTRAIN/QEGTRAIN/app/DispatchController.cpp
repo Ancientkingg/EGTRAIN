@@ -4,6 +4,7 @@
 #include "simulation/Simulation.h"
 #include "simulation/SimulationWorker.h"
 #include "util/portability.h"  // localtime_r shim on MSVC
+#include "util/PlaybackProfiler.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -13,6 +14,9 @@
 #include <memory>
 #include <map>
 #include <optional>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace {
 void ensureDirectory(const string& path) {
@@ -166,19 +170,65 @@ DispatchController simulation;
 
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
-	resetState();
+	using DetailClock = std::chrono::steady_clock;
+	const char* detailGate = std::getenv("QEGTRAIN_STARTUP_NATIVE_DETAIL");
+	const char* timingGate = std::getenv("QEGTRAIN_STARTUP_TIMING");
+	const bool detailEnabled = detailGate && std::strcmp(detailGate, "1") == 0
+		&& timingGate && std::strcmp(timingGate, "1") == 0;
+	static unsigned long long detailInvocation = 0;
+	const unsigned long long invocation = detailEnabled ? ++detailInvocation : 0;
+	const auto now = [detailEnabled] {
+		return detailEnabled ? DetailClock::now() : DetailClock::time_point{};
+	};
+	const auto started = now();
+	std::chrono::nanoseconds resetSetupTime{};
+	std::chrono::nanoseconds validationTime{};
+	std::chrono::nanoseconds infrastructureTime{};
+	std::chrono::nanoseconds operationsTime{};
+	std::chrono::nanoseconds outputTime{};
+	const auto elapsed = [](DetailClock::time_point from, DetailClock::time_point to) {
+		return std::chrono::duration_cast<std::chrono::nanoseconds>(to - from);
+	};
+	const auto reportDetail = [&](const char* stage) {
+		if (!detailEnabled)
+			return;
+		const auto total = resetSetupTime + validationTime + infrastructureTime + operationsTime + outputTime;
+		const auto milliseconds = [](std::chrono::nanoseconds duration) {
+			return std::chrono::duration<double, std::milli>(duration).count();
+		};
+		std::fprintf(stdout, "QEGTRAIN_NATIVE_DETAIL invocation=%llu total_ms=%.6f reset_setup_ms=%.6f runnable_validation_ms=%.6f infrastructure_signalling_ms=%.6f operations_ms=%.6f output_directory_setup_ms=%.6f stage=%s\n",
+			invocation, milliseconds(total), milliseconds(resetSetupTime), milliseconds(validationTime),
+			milliseconds(infrastructureTime), milliseconds(operationsTime), milliseconds(outputTime), stage);
+		std::fflush(stdout);
+	};
+
+	beginScenePreparation();
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
 			? std::optional<double>(initial_variables.times) : std::nullopt;
+	auto checkpoint = now();
+	resetSetupTime = elapsed(started, checkpoint);
 	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene, selectedOccurrences,
 			effectiveDurationOverride);
-	if (hasErrors(diagnostics))
+	auto next = now();
+	validationTime = elapsed(checkpoint, next);
+	checkpoint = next;
+	if (hasErrors(diagnostics)) {
+		resetState();
+		reportDetail("runnable_validation_failure");
 		return diagnostics;
+	}
 
 	const std::vector<SceneDiagnostic> infrastructure =
 		buildInfrastructureAndSignallingFromScene(scene);
 	diagnostics.insert(diagnostics.end(), infrastructure.begin(), infrastructure.end());
-	if (hasErrors(diagnostics)) {
+	const bool infrastructureFailed = hasErrors(diagnostics);
+	if (infrastructureFailed)
 		resetState();
+	next = now();
+	infrastructureTime = elapsed(checkpoint, next);
+	checkpoint = next;
+	if (infrastructureFailed) {
+		reportDetail("infrastructure_signalling_failure");
 		return diagnostics;
 	}
 
@@ -187,6 +237,9 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	diagnostics.insert(diagnostics.end(), operations.begin(), operations.end());
 	if (hasErrors(diagnostics)) {
 		resetState();
+		next = now();
+		operationsTime = elapsed(checkpoint, next);
+		reportDetail("operations_failure");
 		return diagnostics;
 	}
 	if (initial_variables.RChoice) {
@@ -198,9 +251,15 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 				"passengers.json", "passenger", {}, "passengers", {},
 				"Add a passenger journey within the selected run"});
 			resetState();
+			next = now();
+			operationsTime = elapsed(checkpoint, next);
+			reportDetail("operations_failure");
 			return diagnostics;
 		}
 	}
+	next = now();
+	operationsTime = elapsed(checkpoint, next);
+	checkpoint = next;
 
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
@@ -211,7 +270,20 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	ensureDirectory(initial_variables.OutputMainFolder + "/TEMP");
 	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories/RoutesGenerated");
 	Folder_RI_PH = initial_variables.OutputMainFolder + "/TrainTrajectories";
+	outputTime = elapsed(checkpoint, now());
+	reportDetail("success");
 	return diagnostics;
+}
+
+void DispatchController::beginScenePreparation() {
+	snapshotMailbox_.take();
+	prepareNativeOperationsState();
+	BlocksOccupied.clear();
+	BlocksConnected.clear();
+	ETCS_MA.clear();
+	AllLocations.clear();
+	All_Topology_Sequences.clear();
+	signalAspects.clear();
 }
 
 // Reset all native runtime state before loading another canonical scene.
@@ -232,9 +304,20 @@ std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationS
 }
 
 void DispatchController::publishSimulationSnapshot(int timestep) {
-	auto snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
-	if (snapshotMailbox_.publish(std::move(snapshot)))
-		emit snapshotAvailable();
+	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish", "worker", "");
+	std::shared_ptr<const GuiSimulationSnapshot> snapshot;
+	{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/build_gui_snapshot", "worker",
+			"worker/playback_step/snapshot_build_publish");
+		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
+	}
+	{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/mailbox_publish", "worker",
+			"worker/playback_step/snapshot_build_publish");
+		if (snapshotMailbox_.publish(std::move(snapshot)))
+			emit snapshotAvailable();
+	}
+	PlaybackProfiler::instance().noteTimestep(timestep);
 }
 
 void DispatchController::runSimulation() {
@@ -342,6 +425,8 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			if (int delay = sw->delayMs())
 				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 		}
+		{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 		clock_t startEGTRAIN = clock(); // EGTRAIN start time
 		std::cout << "\r Time of simulation is " << t;
 
@@ -455,6 +540,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
 		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
+		}
 
 		publishSimulationSnapshot(t);
 	}

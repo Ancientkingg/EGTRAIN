@@ -105,6 +105,12 @@ The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
 (`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), and Lebanon (`-n 6`). It
 checks clean native execution and the available trajectory/station evidence.
 
+## Peak-memory measurement
+
+On macOS, use the native peak-RSS collector for canonical Copenhagen and
+Milano-Brescia Release runs. The protocol and generated record contract are in
+[Peak-memory baselines](memory-baselines.md).
+
 ## Scene Roundtrip Smoke Test
 
 ```bash

@@ -45,6 +45,7 @@ signals:
 	void simulationFinished();
 
 private:
+	void beginScenePreparation();
 	void publishSimulationSnapshot(int timestep);
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
