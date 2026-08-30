@@ -564,6 +564,8 @@ if(EGTRAIN_BUILD_TESTS)
     target_include_directories(test_playbackprofiler PRIVATE ${SRC_DIR})
     target_link_libraries(test_playbackprofiler PRIVATE nlohmann_json::nlohmann_json)
     add_test(NAME test_playbackprofiler COMMAND test_playbackprofiler)
+    add_test(NAME test_playback_profile
+        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py)
 
     add_executable(test_networkview
         ${SRC_DIR}/tests/test_networkview.cpp
