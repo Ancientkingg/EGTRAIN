@@ -147,6 +147,14 @@ using namespace std;
 
 struct SceneSaveResult;
 
+bool startupTimingEnabled();
+void beginStartupTiming();
+qint64 startupTimingNowNanoseconds();
+void recordStartupTiming(const QString& phase, int iteration, int generation,
+	qint64 elapsedNanoseconds, const QString& invocation = {}, const QString& source = {},
+	bool identityOk = true, bool canonicalPreloadNested = false);
+void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult& loaded);
+
 namespace Ui {
 class MainWindow;
 }
@@ -234,6 +242,8 @@ public:
 protected:
 	void showEvent(QShowEvent* e) override;
 	void closeEvent(QCloseEvent* event) override;
+	void dragEnterEvent(QDragEnterEvent* event) override;
+	void dropEvent(QDropEvent* event) override;
 
 public slots:
 	void handleHelpAbout();
@@ -377,6 +387,7 @@ private:
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
+	bool m_playbackProfileViewApplied = false;
 	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
 	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
 	std::set<TrackLineItem*> m_activeTrackItems;
@@ -463,6 +474,9 @@ private:
 	QLabel* m_runResultsSummaryLabel = nullptr;
 	int m_lastRunSelectedOccurrences = 0;
 	int m_lastRunTotalOccurrences = 0;
+	int m_startupTimingIteration = 0;
+	int m_startupTimingWarmTrials = 0;
+	QString m_startupTimingScenePath;
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
@@ -598,6 +612,9 @@ private:
 	QList<QGraphicsItem*> m_stationDecorations;
 	QList<StationOverlayItem*> m_stationOverlays;
 	QString m_selectedStationName;
+	bool m_hasSelectedStationIdentity = false;
+	double m_selectedStationNodeId = 0.0;
+	int m_selectedStationTrack = -1;
 	QList<QGraphicsItem*> m_signalDecorations;
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
@@ -864,6 +881,11 @@ private:
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
 	void runLegacyImportE2E();
+	void runSceneDropE2E();
+	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
+	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
+		const std::string* inputSnapshot = nullptr) const;
+	void failStartupTiming(const QString& message);
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
@@ -873,6 +895,7 @@ private:
 	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 	void buildTrackIndexes();
+	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
 	bool isTrainOverlayPromoted(int trainIndex) const;
 	void updateViewportOverlays();

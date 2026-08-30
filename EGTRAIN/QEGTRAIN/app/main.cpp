@@ -33,14 +33,10 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 	return 0;
 }
 
-bool interactivePromptModeEnabled(int argc, char* argv[]) {
-	return cmdOptionEntered(argv, argv + argc, "--interactive") ||
-		cmdOptionEntered(argv, argv + argc, "-interactive");
-}
-
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
-	const bool promptForMissingOptions = interactivePromptModeEnabled(argc, argv);
+	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") ||
+		cmdOptionEntered(argv, argv + argc, "-interactive");
 	const bool creatorAcceptance = qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE");
 
 	// no options entered
@@ -184,6 +180,7 @@ void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
 
 Logger owl;
 int main(int argc, char* argv[]) {
+	beginStartupTiming();
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
 	QCoreApplication::setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION));
@@ -193,6 +190,10 @@ int main(int argc, char* argv[]) {
 	const bool sceneOption = cmdOptionEntered(argv, argv + argc, "--scene");
 	if (sceneOption && (!sceneArgument || sceneArgument[0] == '-')) {
 		std::cerr << "ERROR: --scene requires a scene path or case study.\n";
+		return 1;
+	}
+	if (startupTimingEnabled() && !sceneOption) {
+		std::cerr << "ERROR: QEGTRAIN_STARTUP_TIMING requires an explicit --scene.\n";
 		return 1;
 	}
 	const std::string defaultName = initial_variables.name;
@@ -233,7 +234,12 @@ int main(int argc, char* argv[]) {
 		}
 		const QString scenePath = resolveScenePath(
 			sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
+		const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 		SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
+		if (startupTimingEnabled())
+			recordStartupTiming(QStringLiteral("canonical_load"), 0, -1,
+				startupTimingNowNanoseconds() - preloadStarted, QStringLiteral("startup_preload"),
+				QStringLiteral("main"), true);
 		if (!hasErrors(loaded.diagnostics)) {
 			const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
 				effectiveDurationOverride);
@@ -245,10 +251,15 @@ int main(int argc, char* argv[]) {
 								  QString::fromStdString(toDisplayText(loaded.diagnostics.front())));
 			return 1;
 		}
+		setStartupTimingPreloadIdentity(scenePath, loaded);
 		initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
 		InputMainFolder.clear();
 		initial_variables.InputMainFolder.clear();
 		MainWindow window;
+		if (startupTimingEnabled())
+			recordStartupTiming(QStringLiteral("application_initialization"), 0, -1,
+				startupTimingNowNanoseconds(), QStringLiteral("main_to_mainwindow_constructed"),
+				QStringLiteral("main"), true, true);
 		if (!window.openSceneDirectory(scenePath))
 			return 1;
 		window.openGUI();

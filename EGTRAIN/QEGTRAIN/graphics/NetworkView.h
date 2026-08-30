@@ -17,6 +17,7 @@
 #include <QString>
 #include <QDebug>
 #include <QScrollBar>
+#include <QElapsedTimer>
 #include <iostream>
 
 class NetworkView : public QGraphicsView {
@@ -39,6 +40,7 @@ public:
 	qreal fittedScale() const;
 	QRectF topologyBounds() const;
 	QString zoomLabel() const;
+	void armTimingPaint(const QString& kind, int generation);
 
 protected:
 	bool viewportEvent(QEvent* event) override;
@@ -60,10 +62,15 @@ private:
 	bool m_suppressViewportChanged = false;
 	QPointF m_viewCenter;
 	bool m_hasViewCenter = false;
+	QElapsedTimer m_timingPaintTimer;
+	QString m_timingPaintKind;
+	int m_timingPaintGeneration = -1;
 
 signals:
 	void interactionFinished();
 	void viewportChanged();
+	void timingPaintCompleted(const QString& kind, int generation, qint64 elapsedNanoseconds);
+	void playbackProfileBegan();
 };
 
 #endif // NETWORKVIEW_H
