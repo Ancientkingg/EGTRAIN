@@ -28,12 +28,14 @@ Scene loading, native preparation, `setupGUI()`, `startSimulation()`, and waitin
 
 The profiler records these paths; animation is conditional, so a trial with no movement reports `gui/train_animation/value_changed` as an unobserved optional path while every other listed path remains mandatory.
 
-- Worker: `worker/playback_step/compute`, `worker/playback_step/snapshot_build_publish`, and its `build_gui_snapshot` and `mailbox_publish` children.
+- Worker: `worker/playback_step/compute`; its five direct children `passenger_entry_platform_refresh`, `train_movement`, `train_passenger_state_payload`, `passenger_status_output`, and `infrastructure_signalling_cleanup`; `worker/playback_step/snapshot_build_publish`; and its `build_gui_snapshot` and `mailbox_publish` children.
 - GUI: `gui/snapshot_delivery`, `timeline`, throttled `render_frame`, and its `signalling`, `train_position`, `platforms`, `passenger_icons`, and `train_passenger_info` children.
 - Animation: `gui/train_animation/value_changed`.
 - Rendering: `render/viewport_paint` and `render/viewport_paint/background`.
 
-The worker compute scope starts after pause, stop, and step-delay handling and ends before snapshot publication. Snapshot deliveries, rendered updates, completed paints, and start/end timesteps are counted separately. Calls, inclusive totals, and extrema cover every observation. Median and p95 use a bounded deterministic streaming reservoir across the full window rather than retaining only early samples.
+The worker compute scope starts after pause, stop, and step-delay handling and ends before snapshot publication. Its five children are unconditional sequential scopes called once per compute step. `passenger_entry_platform_refresh` combines journey starts with the optional all-platform waiting-list refresh. `train_movement` covers trajectory calculation and per-train movement records. `train_passenger_state_payload` combines train-passenger interaction with construction of the per-train traffic-state payload. `passenger_status_output` covers writing the current passenger status. `infrastructure_signalling_cleanup` combines occupancy, failures, movement authorities, station protection, signalling activation and release, track unlocking, occupied-list cleanup, and operating-order detection.
+
+Compute self time is the residual after subtracting those five direct children. It intentionally retains progress output, traffic-state and route-choice external sharing, CPU-time bookkeeping, gaps between the compound phases, and profiler overhead. Snapshot deliveries, rendered updates, completed paints, and start/end timesteps are counted separately. Calls, inclusive totals, and extrema cover every observation. Median and p95 use a bounded deterministic streaming reservoir across the full window rather than retaining only early samples.
 
 ## Evidence and structural checks
 
@@ -42,8 +44,8 @@ The worker compute scope starts after pause, stop, and step-delay handling and e
 The harness persists only:
 
 - `records.jsonl`: validated run, aggregate, and completion records.
-- `summary.json`: the exact `structural` or `recorded` mode and evidence status, separate Fit and dense rankings, each trial's direct-child-subtracted self total, median trial self totals, median per-call median/p95, decision results, and valid dense-to-Fit comparisons.
-- `report.txt`: the same decision inputs in readable form, settings, and a path-safe reproducible command.
+- `summary.json`: schema 3, the exact `structural` or `recorded` mode and evidence status, separate Fit and dense rankings, each trial's direct-child-subtracted self total, each compute child's inclusive share of its compute parent, median trial self totals, median per-call median/p95, decision results, and valid dense-to-Fit comparisons.
+- `report.txt`: the same decision inputs and compute-parent shares in readable form, settings, and a path-safe reproducible command.
 
 It does not retain process output, environments, paths, binary details, identifiers, timestamps, or unrelated logs.
 

@@ -430,26 +430,37 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		clock_t startEGTRAIN = clock(); // EGTRAIN start time
 		std::cout << "\r Time of simulation is " << t;
 
-		// Simulate entrance process of passengers on the railway network according to route choice
-		checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
+				"worker/playback_step/compute");
+			// Simulate entrance process of passengers on the railway network according to route choice
+			checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
 
-		// This function will update the list of all waiting passengers at all platforms in the network at every instant
-		// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
-		// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
-		if (initial_variables.PAX_GUI) {
-			Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
+			// This function will update the list of all waiting passengers at all platforms in the network at every instant
+			// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
+			// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
+			if (initial_variables.PAX_GUI) {
+				Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
+			}
 		}
 
-		// Simulate train movement at each simulation step
-		for (int j = 0; j < numRegions; j++) {
-			regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
-			regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			regional_train[j].recordStationPassagesAtTime(t);
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
+				"worker/playback_step/compute");
+			// Simulate train movement at each simulation step
+			for (int j = 0; j < numRegions; j++) {
+				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
+				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
+				regional_train[j].recordStationPassagesAtTime(t);
 
-			// check if train arrived at destination or departed from origin
-			regional_train[j].checkTrainArrDep(j, t);
+				// check if train arrived at destination or departed from origin
+				regional_train[j].checkTrainArrDep(j, t);
+			}
 		}
 
+		{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
+			"worker/playback_step/compute");
 		// Here we prepare the Traffic State data
 		for (int n = 0; n < numRegions; n++) {
 
@@ -484,9 +495,14 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
 
 		}
+		}
 
-		// Print Passenger Status after the simulation
-		printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_status_output", "worker",
+				"worker/playback_step/compute");
+			// Print Passenger Status after the simulation
+			printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
+		}
 
 		jsmsg["time"] = t;
 
@@ -506,37 +522,41 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
 		}
 
-		ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup", "worker",
+				"worker/playback_step/compute");
+			ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
 
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+			Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
 
-		// Occupy failed sections and give them an End of Authority so both
-		// aspect-driven and moving-block trains react to the incident
-		Apply_Signal_Failures_Mixed_Signalling(t);
+			// Occupy failed sections and give them an End of Authority so both
+			// aspect-driven and moving-block trains react to the incident
+			Apply_Signal_Failures_Mixed_Signalling(t);
 
-		// Only for level>=3
-		ReportAllTrainPositionsToRBC(t, 50);
+			// Only for level>=3
+			ReportAllTrainPositionsToRBC(t, 50);
 
-		// function to protect all station areas
-		protectStationAreas(t);
+			// function to protect all station areas
+			protectStationAreas(t);
 
-		releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
+			releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
 
-		activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
+			activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
 
-		unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
+			unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
 
-		for (int i = 0; i < numRegions; i++) {
-			regional_train[i].unlockSingleTrack(
-				train_route[regional_train[i].indexOfRoute].sequence_of_block_sections,
-				train_route[regional_train[i].indexOfRoute].N_Block_Sections,
-				t);
-		} // unlock occupied single tracks
+			for (int i = 0; i < numRegions; i++) {
+				regional_train[i].unlockSingleTrack(
+					train_route[regional_train[i].indexOfRoute].sequence_of_block_sections,
+					train_route[regional_train[i].indexOfRoute].N_Block_Sections,
+					t);
+			} // unlock occupied single tracks
 
-		BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-		BlocksConnected.clear(); // Clear the list BlocksConnected
+			BlocksOccupied.clear();	 // Clear the list BlocksOccupied
+			BlocksConnected.clear(); // Clear the list BlocksConnected
 
-		Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
+			Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
+		}
 
 		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
 		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN

@@ -13,8 +13,17 @@ from pathlib import Path
 
 PREFIX = "QEGTRAIN_PLAYBACK_PROFILE "
 REPO_ROOT = Path(__file__).resolve().parents[2]
+COMPUTE_PATH = "worker/playback_step/compute"
+COMPUTE_CHILDREN = {
+    f"{COMPUTE_PATH}/passenger_entry_platform_refresh",
+    f"{COMPUTE_PATH}/train_movement",
+    f"{COMPUTE_PATH}/train_passenger_state_payload",
+    f"{COMPUTE_PATH}/passenger_status_output",
+    f"{COMPUTE_PATH}/infrastructure_signalling_cleanup",
+}
 PATHS = {
-    "worker/playback_step/compute",
+    COMPUTE_PATH,
+    *COMPUTE_CHILDREN,
     "worker/playback_step/snapshot_build_publish",
     "worker/playback_step/snapshot_build_publish/build_gui_snapshot",
     "worker/playback_step/snapshot_build_publish/mailbox_publish",
@@ -31,7 +40,8 @@ PATHS = {
     "render/viewport_paint/background",
 }
 PARENTS = {
-    "worker/playback_step/compute": ("worker", ""),
+    COMPUTE_PATH: ("worker", ""),
+    **{path: ("worker", COMPUTE_PATH) for path in COMPUTE_CHILDREN},
     "worker/playback_step/snapshot_build_publish": ("worker", ""),
     "worker/playback_step/snapshot_build_publish/build_gui_snapshot":
         ("worker", "worker/playback_step/snapshot_build_publish"),
@@ -201,6 +211,9 @@ def validate_trial(records: list[dict], *, trial: int, view: str, duration_ms: i
                 or not aggregate["calls"] * aggregate["min_ns"] <= aggregate["total_ns"]
                 <= aggregate["calls"] * aggregate["max_ns"]):
             raise ValueError("invalid aggregate totals")
+    compute_calls = aggregates_by_path[COMPUTE_PATH]["calls"]
+    if any(aggregates_by_path[path]["calls"] != compute_calls for path in COMPUTE_CHILDREN):
+        raise ValueError("compute child calls must match compute calls")
 
     minimum = 1 if structural else 100
     if completion["start_timestep"] >= completion["end_timestep"] or completion["timesteps"] < minimum:
@@ -250,6 +263,7 @@ def summarize(trials: list[dict], *, structural: bool) -> dict:
                 if path not in trial["self_ns"]:
                     values.append({"trial": trial["trial"], "self_total_ns": 0,
                                    "lane_share": 0.0, "window_share": 0.0,
+                                   "compute_parent_share": None,
                                    "lane_dominant": False, "meets_decision_rule": False,
                                    "observed": False})
                     medians.append(0)
@@ -264,11 +278,16 @@ def summarize(trials: list[dict], *, structural: bool) -> dict:
                 self_ns = trial["self_ns"][path]
                 lane_share = self_ns / lane_total if lane_total else 0.0
                 window_share = self_ns / trial["observed_ns"]
+                compute_parent_share = None
+                if path in COMPUTE_CHILDREN:
+                    compute_total = trial["aggregates"][COMPUTE_PATH]["total_ns"]
+                    compute_parent_share = aggregate["total_ns"] / compute_total if compute_total else 0.0
                 dominant = self_ns == lane_max
                 qualifies = dominant and lane_share >= 0.20 and window_share >= 0.05
                 dominant_trials += int(qualifies)
                 values.append({"trial": trial["trial"], "self_total_ns": self_ns,
                                "lane_share": lane_share, "window_share": window_share,
+                               "compute_parent_share": compute_parent_share,
                                "lane_dominant": dominant, "meets_decision_rule": qualifies,
                                "observed": True})
                 medians.append(aggregate["median_ns"])
@@ -307,7 +326,7 @@ def summarize(trials: list[dict], *, structural: bool) -> dict:
                     / fit[path]["median_per_call_p95_ns"] if fit[path]["median_per_call_p95_ns"] else None})
     mode = "structural" if structural else "recorded"
     evidence_status = "structural only; not recorded evidence" if structural else "recorded evidence"
-    return {"schema": 2, "mode": mode, "evidence_status": evidence_status,
+    return {"schema": 3, "mode": mode, "evidence_status": evidence_status,
             "views": views, "dense_to_fit": comparisons}
 
 
@@ -405,8 +424,10 @@ def main() -> None:
         for row in view_summary["rankings"]:
             trial_totals = ", ".join(
                 f"t{value['trial']}={value['self_total_ns']}ns/"
-                f"{value['lane_share']:.1%} lane/{value['window_share']:.1%} window/"
-                f"dominant={'yes' if value['lane_dominant'] else 'no'}"
+                f"{value['lane_share']:.1%} lane/{value['window_share']:.1%} window"
+                + (f"/{value['compute_parent_share']:.1%} compute parent"
+                   if value["compute_parent_share"] is not None else "")
+                + f"/dominant={'yes' if value['lane_dominant'] else 'no'}"
                 for value in row["trial_self_totals"])
             lines.append(f"{row['path']}: self [{trial_totals}], median self "
                          f"{row['median_trial_self_total_ns']}ns, median per-call "

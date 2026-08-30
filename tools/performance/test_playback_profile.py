@@ -18,7 +18,12 @@ def records(*, paints=1, structural=True):
         "scope": "post_startup_playback", "mode": "structural" if structural else "recorded",
     }
     totals = {
-        "worker/playback_step/compute": 30,
+        "worker/playback_step/compute": 100,
+        "worker/playback_step/compute/passenger_entry_platform_refresh": 10,
+        "worker/playback_step/compute/train_movement": 10,
+        "worker/playback_step/compute/train_passenger_state_payload": 10,
+        "worker/playback_step/compute/passenger_status_output": 10,
+        "worker/playback_step/compute/infrastructure_signalling_cleanup": 10,
         "worker/playback_step/snapshot_build_publish": 30,
         "worker/playback_step/snapshot_build_publish/build_gui_snapshot": 10,
         "worker/playback_step/snapshot_build_publish/mailbox_publish": 10,
@@ -114,7 +119,32 @@ class PlaybackProfileTests(unittest.TestCase):
     def test_percentile_and_direct_child_self_time(self):
         self.assertEqual(profile.percentile([1, 2, 3, 100], 0.95), 100)
         trial = records()
-        self.assertEqual(profile.self_totals(trial)["gui/snapshot_delivery"], 10)
+        totals = profile.self_totals(trial)
+        self.assertEqual(totals["gui/snapshot_delivery"], 10)
+        self.assertEqual(totals[profile.COMPUTE_PATH], 50)
+
+    def test_compute_children_are_direct_mandatory_paths_with_matching_calls(self):
+        trial = records()
+        aggregates = {record["path"]: record for record in trial
+                      if record["type"] == "aggregate"}
+        self.assertTrue(profile.COMPUTE_CHILDREN <= profile.MANDATORY_PATHS)
+        for path in profile.COMPUTE_CHILDREN:
+            self.assertEqual(profile.PARENTS[path], ("worker", profile.COMPUTE_PATH))
+            self.assertEqual(aggregates[path]["calls"], aggregates[profile.COMPUTE_PATH]["calls"])
+
+        aggregates[next(iter(profile.COMPUTE_CHILDREN))]["calls"] -= 1
+        with self.assertRaisesRegex(ValueError, "compute child calls"):
+            profile.validate_trial(trial, trial=1, view="fit", duration_ms=50,
+                                   delay_ms=0, structural=True)
+
+    def test_compute_children_must_reconcile_with_parent(self):
+        bad = records()
+        parent = next(record for record in bad if record.get("path") == profile.COMPUTE_PATH)
+        set_total(parent, 49)
+        parent.update({"p95_ns": 5, "max_ns": 5})
+        with self.assertRaisesRegex(ValueError, "direct children exceed"):
+            profile.validate_trial(bad, trial=1, view="fit", duration_ms=50,
+                                   delay_ms=0, structural=True)
 
     def test_forbidden_metadata_and_absolute_paths_are_rejected(self):
         bad = records()
@@ -236,6 +266,7 @@ class PlaybackProfileTests(unittest.TestCase):
             trials.append({"view": view, "trial": 1, "self_ns": self_ns,
                            "aggregates": aggregates, "observed_ns": 50_000_000})
         summary = profile.summarize(trials, structural=True)
+        self.assertEqual(summary["schema"], 3)
         self.assertEqual(summary["mode"], "structural")
         self.assertEqual(summary["evidence_status"], "structural only; not recorded evidence")
         self.assertEqual(set(summary["views"]), {"fit", "dense"})
@@ -243,6 +274,12 @@ class PlaybackProfileTests(unittest.TestCase):
         fit_row = summary["views"]["fit"]["rankings"][0]
         self.assertIn("trial_self_totals", fit_row)
         self.assertIn("median_per_call_p95_ns", fit_row)
+        child_row = next(row for row in summary["views"]["fit"]["rankings"]
+                         if row["path"] in profile.COMPUTE_CHILDREN)
+        self.assertEqual(child_row["trial_self_totals"][0]["compute_parent_share"], 0.1)
+        nonchild_row = next(row for row in summary["views"]["fit"]["rankings"]
+                            if row["path"] == profile.COMPUTE_PATH)
+        self.assertIsNone(nonchild_row["trial_self_totals"][0]["compute_parent_share"])
         self.assertEqual(summary["views"]["fit"]["trials"][0]["unobserved_optional_paths"],
                          ["gui/train_animation/value_changed"])
 
