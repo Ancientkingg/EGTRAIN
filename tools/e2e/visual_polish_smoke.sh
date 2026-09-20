@@ -23,6 +23,14 @@ DPR2_COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1440-e2e.p
 STATION_OUT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e"
 STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-copenhagen"
 STATION_DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e-dpr2.log"
+SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-settings.XXXXXX")"
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	rm -rf "$SETTINGS_DIR"
+	exit "$exit_code"
+}
+trap cleanup EXIT
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
@@ -30,6 +38,7 @@ if [[ ! -x "$APP" ]]; then
 fi
 
 cd "$ROOT/EGTRAIN/QEGTRAIN"
+export QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR"
 rm -f "$SHOT" "$MEDIUM_SHOT" "$DENSE_SHOT" "$SELECTED_SHOT" "$FOLLOW_SHOT" "$CONTEXT_SHOT" \
 	"$DPR2_SHOT" "${DPR2_SHOT%.png}-medium.png" "${DPR2_SHOT%.png}-dense.png" \
 	"${DPR2_SHOT%.png}-selected.png" "${DPR2_SHOT%.png}-follow.png"

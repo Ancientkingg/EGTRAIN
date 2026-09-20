@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QStringList>
 
@@ -184,6 +185,17 @@ int main(int argc, char* argv[]) {
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
 	QCoreApplication::setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION));
+	const QString settingsDir = qEnvironmentVariable("QEGTRAIN_E2E_SETTINGS_DIR");
+	if (!settingsDir.isEmpty()) {
+		if (!QDir().mkpath(settingsDir)) {
+			std::cerr << "ERROR: Could not create QEGTRAIN_E2E_SETTINGS_DIR.\n";
+			return 1;
+		}
+		QSettings::setDefaultFormat(QSettings::IniFormat);
+		const QString absoluteSettingsDir = QDir(settingsDir).absolutePath();
+		QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, absoluteSettingsDir);
+		QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, absoluteSettingsDir);
+	}
 	parseCmdOptions(argc, argv);
 
 	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");

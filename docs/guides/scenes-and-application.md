@@ -8,8 +8,11 @@ and run it through the native scene path.
 
 Choose `File > Open Case Study...` and select an `.egscene` file. Use
 `File > Open Scene Folder...` when editing a canonical directory containing
-`scene.json`. The **Loaded Data** dock opens with the case study so you can
-review what was found before choosing `Run Scene`. Use
+`scene.json`. Normal mode keeps the canvas and editor flow uncluttered; use
+`View > Advanced / Developer details` when you want the automatic Loaded Data
+panel, full validation counts, and technical inventories. The existing View
+actions can still open Loaded Data or Validation explicitly in normal mode.
+Use
 `Save Case Study As...` for a new bundle. From the command line, `--scene`
 accepts the same bundle or directory path.
 
@@ -36,15 +39,16 @@ or ZIP remains unchanged. Newer schema or bundle versions require a newer app.
 
 ## Review what loaded
 
-The **Loaded Data** dock keeps opening separate from running. Its case-study
-tree shows the source path, canonical schema version, bundle format version,
-source files, category counts, default and available scenarios, validation
-state, and runtime/result readiness. Expand a category to follow source data to
-parsed canonical objects. Imported scenes also show conversion, skipped, and
+The **Loaded Data** dock stays separate from running. Its case-study tree shows
+the source path, canonical schema version, bundle format version, source files,
+category counts, default and available scenarios, validation state, and
+runtime/result readiness. Expand a category to follow source data to parsed
+canonical objects. Imported scenes also show conversion, skipped, and
 unresolved-reference counts from `import_report`. `Missing optional` means the
 scene is usable without that file; `Unsupported` means the file was found but
 EGTRAIN did not consume it. `Not built` means no runtime has been prepared from
-the current input.
+the current input. Advanced mode raises this panel automatically after open;
+normal mode leaves it available through View when you need it.
 
 Double-click infrastructure or signalling rows to focus the existing network
 view, validation rows to open the diagnostics table, or a rolling stock unit,
@@ -83,8 +87,11 @@ from midnight. The complete key contract and historical aliases are in the
 ## Scenario library and student loop
 
 Open the **Incidents** dock to choose the canonical default or another named
-scenario. The library shows each scenario's ID, name, incident count, default
-and validation status, and an in-memory modified marker. **Blank** and
+scenario. The library shows each scenario's ID, name, incident and entrance-
+delay counts, default marker, and an in-memory modified marker. The authored
+description remains available; Advanced mode adds the full validation status.
+Normal mode still marks an actionable invalid scenario as `Invalid` but does
+not surface non-blocking warning detail. **Blank** and
 **Duplicate** create isolated scenarios; editing incidents, names, or
 descriptions changes only the selected scenario. **Import JSON...** and
 **Export JSON...** use the standalone scenario object documented in the schema
@@ -92,8 +99,8 @@ reference. Imports retain entrance delays, validate references against the
 open case, and report any adjusted ID rather than replacing an existing
 scenario or incident.
 
-The completed student loop is: open a case, review **Loaded Data** and
-**Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
+The completed student loop is: open a case, optionally review **Loaded Data**
+and **Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
 review the run summary, run the selected scenario, then use **Run Results** to
 open the existing timetable, delay, speed, and blocking-time views. Results
 are cleared when the case or scenario changes and are rebuilt only by a new
@@ -102,18 +109,24 @@ scenario.
 
 The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
-JSON-only settings. A completed incident-free run can be frozen with **Set
-delay baseline**. Selecting another scenario retains that baseline, while a
-canonical scene edit, **New**, or **Open** clears it and advances the local
-scene revision. **Compare delays** requires an incident run with no entrance
-delays and matching scene revision, base time, duration, timestep, and full
-selected `(service_id, occurrence)` identity set. The compact table and CSV
-show baseline/scenario identities, matching final authored timetable arrivals,
+JSON-only settings. A completed run without incidents or entrance delays can be frozen with **Set
+delay baseline**. The results panel confirms the completed run identity and
+places the next action or disabled reason beside the baseline controls.
+Selecting another scenario keeps the baseline but reports that the newly
+selected scenario has not been run; a canonical scene edit, **New**, or
+**Open** clears the baseline and explains that a new run without incidents or entrance delays is
+needed. **Compare delays** requires an incident run with no entrance delays and
+matching scene revision, base time, duration, timestep, and full selected
+`(service_id, occurrence)` identity set. The compact table and CSV show
+baseline/scenario identities, matching final authored timetable arrivals,
 positive contribution, primary/secondary attribution, incident IDs, first
-direct time/location, and destination-termination outcome. Primary means direct runtime evidence exists
-for that occurrence; secondary means it does not. Timetable differences alone
-are never treated as causal, and a comparison with no direct evidence anywhere
-is rejected. Positive contribution rows sum exactly to total arrival delay.
+direct time/location, and destination-termination outcome. Primary means direct
+runtime evidence exists for that occurrence; secondary means it does not.
+Timetable differences alone are never treated as causal, and a comparison with
+no direct evidence anywhere is rejected with a diagnostic. A valid comparison
+with zero positive rows is still a success and is labelled **zero positive
+additional final-arrival delay**; positive contribution rows otherwise sum
+exactly to total arrival delay.
 
 ## Portable bundles
 

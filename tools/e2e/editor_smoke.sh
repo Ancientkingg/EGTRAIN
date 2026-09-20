@@ -6,6 +6,14 @@ APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 ALT_SCENE="${QEGTRAIN_E2E_SCENE_ALT:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Copenhagen}"
 OUT="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e"
 LOG="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log"
+SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-settings.XXXXXX")"
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	rm -rf "$SETTINGS_DIR"
+	exit "$exit_code"
+}
+trap cleanup EXIT
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app is not built" >&2
@@ -38,10 +46,12 @@ QEGTRAIN_E2E_EDITOR_SMOKE=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCENE_ALT="$ALT_SCENE" \
 QEGTRAIN_E2E_OUT="$OUT" \
+QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR" \
 QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-"$APP" --scene "$SCENE" -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+"$APP" --scene "$SCENE" -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>"$SETTINGS_DIR/stderr.log"
 APP_EXIT=$?
 set -e
+cat "$SETTINGS_DIR/stderr.log" >>"$LOG"
 
 required_markers=(
 	E2E_EDITOR_NEW_CASE_OK

@@ -29,7 +29,8 @@ UNPACKED="$TMP_ROOT/unpacked-bundle"
 OUTPUT="$TMP_ROOT/output"
 EXPORTS="$TMP_ROOT/exports"
 LOG="$TMP_ROOT/creator-acceptance.log"
-mkdir -p "$FOLDER" "$OUTPUT" "$EXPORTS"
+SETTINGS="$TMP_ROOT/settings"
+mkdir -p "$FOLDER" "$OUTPUT" "$EXPORTS" "$SETTINGS"
 
 set +e
 python3 - "$ROOT" "$APP" "$LOG" "$OUTPUT" "$FOLDER" "$BUNDLE" "$EXPORTS" <<'PY'
@@ -47,6 +48,7 @@ environment.update({
     "QEGTRAIN_E2E_CREATOR_FOLDER": str(folder),
     "QEGTRAIN_E2E_CREATOR_BUNDLE": str(bundle),
     "QEGTRAIN_E2E_CREATOR_EXPORT_DIR": str(exports),
+    "QEGTRAIN_E2E_SETTINGS_DIR": str(log.parent / "settings"),
     "QT_QPA_PLATFORM": "offscreen",
 })
 command = [str(app), "-g", "1", "-pax", "1", "-TSM", "0", "-RC", "0"]

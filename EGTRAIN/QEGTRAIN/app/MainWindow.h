@@ -421,6 +421,7 @@ private:
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
+	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
 	QMenu* m_recentScenesMenu = nullptr;
 	QDockWidget* m_validationDock = nullptr;
@@ -470,8 +471,10 @@ private:
 	RunProvenance m_pendingRunProvenance;
 	RunProvenance m_completedRunProvenance;
 	std::optional<DelayRunSnapshot> m_delayBaseline;
+	QString m_delayBaselineStatus;
 	quint64 m_sceneRevision = 0;
 	QLabel* m_runResultsSummaryLabel = nullptr;
+	QLabel* m_delayFeedbackLabel = nullptr;
 	int m_lastRunSelectedOccurrences = 0;
 	int m_lastRunTotalOccurrences = 0;
 	int m_startupTimingIteration = 0;
@@ -677,6 +680,9 @@ private:
 		const std::string& scope = {}) const;
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
+	void updateScenarioPresentation();
+	bool advancedDetailsEnabled() const;
+	void updateDiagnosticPresentation();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
 	void markSceneDirty();
 	void invalidateRunResults();
@@ -872,6 +878,7 @@ private:
 	bool showRunReview();
 	void setDelayBaseline();
 	void showDelayComparison();
+	void refreshRunResultsSummary();
 	DelayRunSnapshot completedDelaySnapshot() const;
 	RunProvenance captureRunProvenance() const;
 
