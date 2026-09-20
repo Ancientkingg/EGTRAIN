@@ -124,6 +124,12 @@ digits; focusing or saving an untouched value preserves its stored precision.
 The Category chooser edits only service metadata. It offers six presets and No
 category; an imported unknown value is shown explicitly and retained until
 changed. Duplication copies the category with the other service settings.
+Route choices show endpoints and traversal direction, with canonical IDs as
+secondary labels and item data. Tooltips list traversed stations, not scheduled
+calls. Stop choices follow the remaining ordered route; Add Stop refuses an
+exhausted or unresolved path. Existing invalid assignments remain visible and
+saveable, with a reason beside the platform selector. Route edits never delete
+or silently retarget stops.
 Train incidents use one generated-service chooser, with code, route, scheduled
 entry and secondary canonical identity. Selecting a row stores both service ID
 and occurrence. Historical all-occurrence targets retain an explicit scope row;

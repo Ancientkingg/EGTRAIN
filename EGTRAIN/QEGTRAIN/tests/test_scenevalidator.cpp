@@ -306,6 +306,14 @@ int main(int argc, char** argv) {
 				"authored disconnected route order is rejected");
 	SceneModel reverseRoute = clean;
 	reverseRoute.routes[0].blocks = {"block-2", "block-1"};
+	ok &= expect(hasCode(validateScene(reverseRoute), "scene.ref.stop.order"),
+		"stop order follows the route direction rather than unordered membership");
+	std::reverse(reverseRoute.services[0].stops.begin(), reverseRoute.services[0].stops.end());
+	const auto reverseTraversal = buildSceneRouteTraversal(reverseRoute, reverseRoute.routes[0]);
+	ok &= expect(reverseTraversal.resolved && reverseTraversal.direction == -1
+		&& reverseTraversal.visits.front().stationId == "station-2"
+		&& !hasCode(validateScene(reverseRoute), "scene.ref.stop.order"),
+		"reversed stops resolve on a reversed route");
 	ok &= expect(!hasCode(validateScene(reverseRoute), "scene.route.disconnected"),
 				"coherent reverse route order remains valid");
 	SceneModel directionChange = clean;
@@ -339,6 +347,18 @@ int main(int argc, char** argv) {
 	SceneModel switchChain = switchTopology;
 	switchChain.routes.push_back({"switch-route", {aToB, bToC}, false, "", false});
 	const auto switchChainDiagnostics = validateScene(switchChain);
+	switchChain.stations = {{"A", "A", false, 0.0, {{"A.p", {"a.0"}}}},
+		{"B-entry", "B entry", false, 0.0, {{"B.in", {"b.0"}}}},
+		{"B-exit", "B exit", false, 0.0, {{"B.out", {"b.1"}}}},
+		{"C", "C", false, 0.0, {{"C.p", {"c.1"}}}}};
+	const auto switchTraversal = buildSceneRouteTraversal(switchChain, switchChain.routes[0]);
+	ok &= expect(switchTraversal.resolved && switchTraversal.visits.size() == 4
+		&& switchTraversal.visits[1].nodeId == "b.0" && switchTraversal.visits[1].sectionIndex == 0
+		&& switchTraversal.visits[2].nodeId == "b.1" && switchTraversal.visits[2].sectionIndex == 1,
+		"overlapping connection sections retain only their clipped platform anchors");
+	ok &= expect(sceneSectionsOverlap("@A@same", 0.0, 2.0, "@B@same", 1.0, 3.0)
+		&& !sceneSectionsOverlap("@A@", 0.0, 1.0, "@A@", 1.0, 2.0),
+		"legacy section token matching is shared and touching intervals do not overlap");
 	ok &= expect(!aToB.empty() && !bToC.empty()
 				&& !hasCode(switchChainDiagnostics, "scene.route.disconnected")
 				&& !hasCode(switchChainDiagnostics, "scene.route.direction"),

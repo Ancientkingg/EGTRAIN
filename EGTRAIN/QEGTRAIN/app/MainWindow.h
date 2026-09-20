@@ -579,6 +579,7 @@ private:
 	QPushButton* m_moveStopDownButton = nullptr;
 	QComboBox* m_stopStationCombo = nullptr;  // references a SceneStation.id
 	QComboBox* m_stopPlatformCombo = nullptr; // references a ScenePlatform.id of the selected station, blank allowed
+	QLabel* m_stopEligibilityLabel = nullptr;
 	QCheckBox* m_stopHasArrivalCheck = nullptr;
 	QLineEdit* m_stopArrivalSecondsEdit = nullptr; // whole seconds
 	QCheckBox* m_stopHasDepartureCheck = nullptr;
@@ -822,7 +823,7 @@ private:
 	void commitServiceOperatingCode();
 	void commitServiceCategory(int index);
 	void commitServiceComposition(const QString& text);
-	void commitServiceRoute(const QString& text);
+	void commitServiceRoute(int index);
 	void commitServiceThrough(bool checked);
 	void commitServiceHasEntryTime(bool checked);
 	void commitServiceEntryTimeSeconds();

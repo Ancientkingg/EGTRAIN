@@ -1439,6 +1439,74 @@ QString stopRowLabel(const SceneStop& stop) {
 	return label;
 }
 
+SceneRouteTraversal serviceTraversal(const SceneModel& model, const SceneService& service) {
+	for (const auto& route : model.routes)
+		if (route.id == service.route)
+			return buildSceneRouteTraversal(model, route);
+	return {};
+}
+
+SceneRouteTraversal remainingStopTraversal(const SceneModel& model, const SceneService& service,
+		std::size_t stopIndex) {
+	auto traversal = serviceTraversal(model, service);
+	SceneService prefix = service;
+	prefix.stops.resize(std::min(stopIndex, prefix.stops.size()));
+	std::size_t cursor = 0;
+	for (const auto& resolution : resolveSceneServiceStops(model, prefix, traversal)) {
+		if (resolution.status == SceneStopResolutionStatus::Resolved)
+			cursor = resolution.visitIndex + 1;
+		else if (resolution.status != SceneStopResolutionStatus::OffRouteContext) {
+			traversal.visits.clear();
+			return traversal;
+		}
+	}
+	traversal.visits.erase(traversal.visits.begin(), traversal.visits.begin() + cursor);
+	return traversal;
+}
+
+QString stopResolutionText(SceneStopResolutionStatus status) {
+	switch (status) {
+	case SceneStopResolutionStatus::Resolved: return "Reachable ordered route visit";
+	case SceneStopResolutionStatus::AmbiguousPlatform: return "Choose an explicit reachable platform";
+	case SceneStopResolutionStatus::OffRouteContext: return "Off-route schedule context; no simulated stop";
+	case SceneStopResolutionStatus::OutOfOrder: return "Invalid: stop is before or at an already used route visit";
+	case SceneStopResolutionStatus::InvalidPlatform: return "Invalid: platform is not reachable on this route";
+	case SceneStopResolutionStatus::UnknownStation: return "Invalid: station is missing";
+	case SceneStopResolutionStatus::UnresolvedRoute: return "Invalid: route traversal is unresolved";
+	}
+	return {};
+}
+
+void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route,
+		const SceneSectionInventory& inventory) {
+	const auto traversal = buildSceneRouteTraversal(model, route, inventory);
+	QStringList stations;
+	std::string previousStation;
+	for (const auto& visit : traversal.visits) {
+		if (visit.stationId == previousStation)
+			continue;
+		previousStation = visit.stationId;
+		QString name = QString::fromStdString(visit.stationId);
+		for (const auto& station : model.stations)
+			if (station.id == visit.stationId && !station.name.empty()) {
+				name = QString::fromStdString(station.name);
+				break;
+			}
+		stations << name;
+	}
+	const QString description = !traversal.resolved ? QStringLiteral("Unresolved route")
+		: stations.isEmpty() ? QStringLiteral("Route without station anchors")
+		: QString("%1 → %2").arg(stations.first(), stations.last());
+	const QString direction = traversal.direction > 0 ? QStringLiteral("forward")
+		: traversal.direction < 0 ? QStringLiteral("reverse") : QStringLiteral("unknown direction");
+	combo->addItem(QString("%1 · %2 [%3]").arg(description, direction,
+		QString::fromStdString(route.id)), QString::fromStdString(route.id));
+	combo->setItemData(combo->count() - 1,
+		traversal.resolved ? QString("Traversed stations (not scheduled calls): %1")
+			.arg(stations.isEmpty() ? QStringLiteral("none") : stations.join(" → "))
+			: QStringLiteral("Station order unavailable: fix the route topology."), Qt::ToolTipRole);
+}
+
 bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPath) {
 	QDir sourceDir(sourcePath);
 	if (!sourceDir.exists())
@@ -2831,6 +2899,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addWidget(new QLabel("Stop Platform", serviceDetailPane));
 	m_stopPlatformCombo = new QComboBox(serviceDetailPane);
 	serviceDetailLayout->addWidget(m_stopPlatformCombo);
+	m_stopEligibilityLabel = new QLabel(serviceDetailPane);
+	m_stopEligibilityLabel->setWordWrap(true);
+	serviceDetailLayout->addWidget(m_stopEligibilityLabel);
 
 	QHBoxLayout* stopArrivalLayout = new QHBoxLayout();
 	m_stopHasArrivalCheck = new QCheckBox("Planned arrival (s)", serviceDetailPane);
@@ -2905,7 +2976,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_serviceCategoryCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
 		&MainWindow::commitServiceCategory);
 	connect(m_serviceCompositionCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceComposition);
-	connect(m_serviceRouteCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceRoute);
+	connect(m_serviceRouteCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWindow::commitServiceRoute);
 	connect(m_serviceThroughCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceThrough);
 	connect(m_serviceHasEntryTimeCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasEntryTime);
 	connect(m_serviceEntryTimeSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceEntryTimeSeconds);
@@ -8555,14 +8626,16 @@ void MainWindow::updateServiceDetailPanel() {
 	if (m_serviceRouteCombo) {
 		const QSignalBlocker blocker(m_serviceRouteCombo);
 		m_serviceRouteCombo->clear();
+		const auto inventory = buildSceneSectionInventory(m_sceneModel);
 		for (const auto& route : m_sceneModel.routes)
-			m_serviceRouteCombo->addItem(QString::fromStdString(route.id));
+			addServiceRouteChoice(m_serviceRouteCombo, m_sceneModel, route, inventory);
 		if (hasSelection) {
 			QString currentRoute = QString::fromStdString(m_sceneModel.services[row].route);
-			if (m_serviceRouteCombo->findText(currentRoute) < 0)
-				m_serviceRouteCombo->addItem(currentRoute); // dangling reference, still shown/selectable
-			m_serviceRouteCombo->setCurrentText(currentRoute);
+			if (m_serviceRouteCombo->findData(currentRoute) < 0)
+				m_serviceRouteCombo->addItem(QString("Missing route [%1]").arg(currentRoute), currentRoute);
+			m_serviceRouteCombo->setCurrentIndex(m_serviceRouteCombo->findData(currentRoute));
 		}
+		m_serviceRouteCombo->setToolTip(m_serviceRouteCombo->currentData(Qt::ToolTipRole).toString());
 		m_serviceRouteCombo->setEnabled(editorAvailable);
 	}
 
@@ -9100,18 +9173,19 @@ void MainWindow::commitServiceComposition(const QString& text) {
 	refreshValidationPanel();
 }
 
-void MainWindow::commitServiceRoute(const QString& text) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
+void MainWindow::commitServiceRoute(int index) {
+	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_serviceRouteCombo || index < 0)
 		return;
 	int row = m_serviceListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
 		return;
 
-	std::string newRoute = text.toStdString();
+	std::string newRoute = m_serviceRouteCombo->itemData(index).toString().toStdString();
 	if (newRoute == m_sceneModel.services[row].route)
 		return;
 
 	m_sceneModel.services[row].route = newRoute;
+	m_serviceRouteCombo->setToolTip(m_serviceRouteCombo->itemData(index, Qt::ToolTipRole).toString());
 
 	// the combo already shows the chosen value and the service list labels are
 	// unchanged, so do not rebuild the panel here (that would close the popup)
@@ -9120,6 +9194,7 @@ void MainWindow::commitServiceRoute(const QString& text) {
 	updateSceneActions();
 	refreshValidationPanel();
 	refreshServiceOccurrencePreview();
+	refreshStopList();
 }
 
 void MainWindow::commitServiceThrough(bool checked) {
@@ -9459,8 +9534,13 @@ void MainWindow::updateStopDetailPanel() {
 	if (m_stopStationCombo) {
 		const QSignalBlocker blocker(m_stopStationCombo);
 		m_stopStationCombo->clear();
-		for (const auto& station : m_sceneModel.stations)
-			m_stopStationCombo->addItem(QString::fromStdString(station.id));
+		if (hasSelection)
+			for (const auto& visit : remainingStopTraversal(m_sceneModel,
+					m_sceneModel.services[serviceRow], stopRow).visits) {
+				const QString station = QString::fromStdString(visit.stationId);
+				if (m_stopStationCombo->findText(station) < 0)
+					m_stopStationCombo->addItem(station);
+			}
 		if (hasSelection) {
 			QString currentStation = QString::fromStdString(stop.stationId);
 			if (m_stopStationCombo->findText(currentStation) < 0)
@@ -9532,36 +9612,58 @@ void MainWindow::refreshStopPlatformCombo() {
 	m_stopPlatformCombo->addItem(QString()); // blank choice: no platform
 	if (hasSelection) {
 		const SceneStop& stop = m_sceneModel.services[serviceRow].stops[stopRow];
-		// look the station up by id rather than trusting the station combo text
-		const SceneStation* selectedStation = nullptr;
-		for (const auto& station : m_sceneModel.stations) {
-			if (station.id == stop.stationId) {
-				selectedStation = &station;
-				break;
-			}
-		}
-		if (selectedStation) {
-			for (const auto& platform : selectedStation->platforms)
-				m_stopPlatformCombo->addItem(QString::fromStdString(platform.id));
+		for (const auto& visit : remainingStopTraversal(m_sceneModel,
+				m_sceneModel.services[serviceRow], stopRow).visits) {
+			const QString platform = QString::fromStdString(visit.platformId);
+			if (visit.stationId == stop.stationId && m_stopPlatformCombo->findText(platform) < 0)
+				m_stopPlatformCombo->addItem(platform);
 		}
 		QString currentPlatform = QString::fromStdString(stop.platformId);
 		if (!currentPlatform.isEmpty() && m_stopPlatformCombo->findText(currentPlatform) < 0)
 			m_stopPlatformCombo->addItem(currentPlatform); // dangling reference, still shown/selectable
 		m_stopPlatformCombo->setCurrentText(currentPlatform);
+		const auto resolutions = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
+			serviceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]));
+		m_stopEligibilityLabel->setText(stopResolutionText(resolutions[stopRow].status));
+		for (int index = 0; m_stopListWidget && index < m_stopListWidget->count(); ++index)
+			m_stopListWidget->item(index)->setToolTip(stopResolutionText(resolutions[index].status));
 	}
+	else if (m_stopEligibilityLabel)
+		m_stopEligibilityLabel->clear();
 	m_stopPlatformCombo->setEnabled(hasSelection);
 }
 
 void MainWindow::addStop() {
-	if (!m_sceneLoaded || !m_serviceListWidget)
+	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
 		return;
 	int serviceRow = m_serviceListWidget->currentRow();
 	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
 		return;
 
 	SceneStop stop;
-	if (!m_sceneModel.stations.empty())
-		stop.stationId = m_sceneModel.stations.front().id;
+	const auto remaining = remainingStopTraversal(m_sceneModel, m_sceneModel.services[serviceRow],
+		m_sceneModel.services[serviceRow].stops.size());
+	if (remaining.visits.empty()) {
+		QMessageBox::information(this, "No reachable stop",
+			"No station visit remains after the current stops. Check the route and stop order before adding a stop.");
+		return;
+	}
+	stop.stationId = remaining.visits.front().stationId;
+	QStringList platforms;
+	for (const auto& visit : remaining.visits)
+		if (visit.stationId == stop.stationId && !platforms.contains(QString::fromStdString(visit.platformId)))
+			platforms << QString::fromStdString(visit.platformId);
+	if (platforms.size() == 1)
+		stop.platformId = platforms.first().toStdString();
+	else {
+		bool accepted = false;
+		const QString chosen = QInputDialog::getItem(this, "Choose stop platform",
+			QString("Reachable platforms at %1").arg(QString::fromStdString(stop.stationId)),
+			platforms, 0, false, &accepted);
+		if (!accepted)
+			return;
+		stop.platformId = chosen.toStdString();
+	}
 	m_sceneModel.services[serviceRow].stops.push_back(stop);
 
 	markSceneDirty();
@@ -9686,6 +9788,10 @@ void MainWindow::commitStopStation(const QString& text) {
 	}
 	if (!platformValid)
 		stops[stopRow].platformId.clear();
+	const auto choices = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
+		serviceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]));
+	if (stops[stopRow].platformId.empty() && choices[stopRow].candidatePlatformIds.size() == 1)
+		stops[stopRow].platformId = choices[stopRow].candidatePlatformIds.front();
 
 	// update the list row label in place instead of rebuilding the whole list
 	if (QListWidgetItem* item = m_stopListWidget->item(stopRow)) {
@@ -9731,6 +9837,7 @@ void MainWindow::commitStopPlatform(const QString& text) {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
+	refreshStopPlatformCombo();
 }
 
 void MainWindow::commitStopHasArrival(bool checked) {
@@ -14330,7 +14437,7 @@ void MainWindow::runEditorSmokeE2E() {
 					facetFailure(facetOk, "infrastructure", "orphan block could not be restored to a valid track");
 				if (!addInfrastructureRow("stations") || !setInfrastructureCell("stations", 0, 0, "e2e-station-a") || !setInfrastructureCell("stations", 0, 1, "E2E A") || !setInfrastructureCell("stations", 0, 2, "true") || !setInfrastructureCell("stations", 0, 3, "0.5") || !addInfrastructureRow("stations") || !setInfrastructureCell("stations", 1, 0, "e2e-station-b") || !setInfrastructureCell("stations", 1, 1, "E2E B") || !setInfrastructureCell("stations", 1, 2, "true") || !setInfrastructureCell("stations", 1, 3, "1.5"))
 					facetFailure(facetOk, "stations/signalling", "station table authoring did not apply");
-				if (!addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 0, 0, "e2e-station-a") || !setInfrastructureCell("platforms", 0, 1, "e2e-platform-a") || !setInfrastructureCell("platforms", 0, 2, mainNodeIds[0]) || !addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 1, 0, "e2e-station-b") || !setInfrastructureCell("platforms", 1, 1, "e2e-platform-b") || !setInfrastructureCell("platforms", 1, 2, mainNodeIds[2]))
+				if (!addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 0, 0, "e2e-station-a") || !setInfrastructureCell("platforms", 0, 1, "e2e-platform-a") || !setInfrastructureCell("platforms", 0, 2, mainNodeIds[0]) || !addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 1, 0, "e2e-station-b") || !setInfrastructureCell("platforms", 1, 1, "e2e-platform-b") || !setInfrastructureCell("platforms", 1, 2, yardNodeIds[2]))
 					facetFailure(facetOk, "stations/signalling", "platform table authoring or station move did not apply");
 				if (!addInfrastructureRow("signals") || !setInfrastructureCell("signals", 0, 0, "e2e-signal"))
 					facetFailure(facetOk, "stations/signalling", "signal table authoring did not apply");
@@ -14579,10 +14686,10 @@ void MainWindow::runEditorSmokeE2E() {
 					// deliberately incomplete service structurally reloadable here.
 					if (!m_sceneModel.services.empty())
 						m_sceneModel.services.front().composition = "e2e-unresolved-composition";
-					if (m_serviceListWidget->count() != 1 || m_serviceRouteCombo->findText("e2e-block-route") < 0)
+					if (m_serviceListWidget->count() != 1 || m_serviceRouteCombo->findData("e2e-block-route") < 0)
 						facetFailure(facetOk, "stations/signalling", "service route choices did not refresh immediately");
 					else {
-						m_serviceRouteCombo->setCurrentText("e2e-block-route");
+						m_serviceRouteCombo->setCurrentIndex(m_serviceRouteCombo->findData("e2e-block-route"));
 						m_addStopButton->click();
 						QApplication::processEvents();
 						const bool firstStopChoices = m_stopStationCombo->findText("e2e-station-a") >= 0 && m_stopPlatformCombo->findText("e2e-platform-a") >= 0;
@@ -15836,6 +15943,28 @@ void MainWindow::runEditorSmokeE2E() {
 		if (!m_serviceCategoryCombo || m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
 				|| !m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
 			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
+		const auto originalService = m_sceneModel.services[0];
+		const auto sourceRoute = std::find_if(m_sceneModel.routes.begin(), m_sceneModel.routes.end(),
+			[&](const SceneRoute& route) { return route.id == originalService.route; });
+		if (sourceRoute != m_sceneModel.routes.end()) {
+			SceneRoute duplicateRoute = *sourceRoute;
+			duplicateRoute.id += "-same-description";
+			m_sceneModel.routes.push_back(duplicateRoute);
+			updateServiceDetailPanel();
+			m_serviceRouteCombo->setCurrentIndex(m_serviceRouteCombo->findData(QString::fromStdString(duplicateRoute.id)));
+			if (m_sceneModel.services[0].route != duplicateRoute.id
+				|| !m_serviceRouteCombo->toolTip().contains("not scheduled calls"))
+				facetFailure(facetOk, "service routes", "descriptive route selection lost canonical identity or context");
+			m_sceneModel.services[0].route = "missing-route";
+			updateServiceDetailPanel();
+			if (m_serviceRouteCombo->currentData().toString() != "missing-route"
+				|| !sameStop(m_sceneModel.services[0].stops.front(), originalService.stops.front())
+				|| !m_stopEligibilityLabel->text().contains("unresolved"))
+				facetFailure(facetOk, "service routes", "missing route or invalid stop was silently replaced");
+			m_sceneModel.services[0] = originalService;
+			m_sceneModel.routes.pop_back();
+			updateServiceDetailPanel();
+		}
 		duplicateService();
 		if (m_serviceListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "service", "duplicate did not apply");
@@ -15965,7 +16094,7 @@ void MainWindow::runEditorSmokeE2E() {
 			}
 			selectAllServiceOccurrences();
 			commitServiceComposition(QString::fromStdString(editedCompositionId));
-			commitServiceRoute(QString::fromStdString(expectedServices[0].route));
+			m_serviceRouteCombo->setCurrentIndex(m_serviceRouteCombo->findData(QString::fromStdString(expectedServices[0].route)));
 			if (m_serviceOperatingCodeEdit) {
 				m_serviceOperatingCodeEdit->setText("1723");
 				QMetaObject::invokeMethod(m_serviceOperatingCodeEdit, "editingFinished", Qt::DirectConnection);
@@ -16129,6 +16258,28 @@ void MainWindow::runEditorSmokeE2E() {
 			const int originalStopCount = static_cast<int>(m_sceneModel.services[serviceRow].stops.size());
 			if (originalStopCount <= 0)
 				facetFailure(facetOk, "timetable", "no baseline stop available for move coverage");
+			// Give this repeat-call fixture a second real anchor before the final
+			// station, instead of calling the same consumed node twice.
+			SceneStop finalStop = m_sceneModel.services[serviceRow].stops.back();
+			const auto finalResolution = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
+				serviceTraversal(m_sceneModel, m_sceneModel.services[serviceRow])).back();
+			if (finalStop.platformId.empty() && finalResolution.candidatePlatformIds.size() == 1)
+				finalStop.platformId = finalResolution.candidatePlatformIds.front();
+			for (auto& station : m_sceneModel.stations)
+				for (auto& platform : station.platforms)
+					if (station.id == finalStop.stationId && platform.id == finalStop.platformId
+						&& !platform.nodeIds.empty()) {
+						const auto anchor = std::find_if(m_sceneModel.nodes.begin(), m_sceneModel.nodes.end(),
+							[&](const SceneNode& node) { return node.id == platform.nodeIds.front(); });
+						const SceneNode* preceding = nullptr;
+						if (anchor != m_sceneModel.nodes.end())
+							for (const auto& node : m_sceneModel.nodes)
+								if (node.trackId == anchor->trackId && node.xKm < anchor->xKm
+									&& (!preceding || node.xKm > preceding->xKm))
+									preceding = &node;
+						if (preceding)
+							platform.nodeIds.insert(platform.nodeIds.begin(), preceding->id);
+					}
 			addStop();
 			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1) {
 				facetFailure(facetOk, "timetable", "add stop did not apply");
@@ -16202,7 +16353,15 @@ void MainWindow::runEditorSmokeE2E() {
 				m_stopListWidget->setCurrentRow(originalStopCount);
 				moveStopUp();
 			}
+			cancelConfirmation();
 			addStop();
+			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1)
+				facetFailure(facetOk, "timetable", "exhausted route accepted an extra stop");
+			// Loaded invalid drafts remain removable; adding through the UI above
+			// must not create one.
+			m_sceneModel.services[serviceRow].stops.push_back(editedStop);
+			refreshStopList();
+			m_stopListWidget->setCurrentRow(originalStopCount + 1);
 			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 2) {
 				facetFailure(facetOk, "timetable", "temporary stop add did not apply");
 			} else {

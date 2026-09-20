@@ -409,9 +409,33 @@ const SceneStation* nativeStationForId(
 
 bool nativeRuntimeNodeMatchesStation(const Node& node, const SceneStation& station,
 		const std::string& stationName) {
-	return !node.stationPlatformId.empty() && node.stationPlatformId != "None"
+	return (station.platforms.empty() ? node.station
+			: !node.stationPlatformId.empty() && node.stationPlatformId != "None")
 			&& (node.stationName == stationName || node.stationName == station.id
-					|| (node.station && node.stationName.empty()));
+				|| (node.station && node.stationName.empty()));
+}
+
+bool nativeRuntimeNodeForVisit(const Route& route, const SceneStopResolution& resolution,
+		Node& result) {
+	if (resolution.sectionIndex >= static_cast<std::size_t>(route.N_Block_Sections))
+		return false;
+	const Section& section = route.sequence_of_block_sections[resolution.sectionIndex];
+	if (section.ID != resolution.sectionId)
+		return false;
+	const auto matches = [&resolution](const Node& node) {
+		return !resolution.nodeId.empty() && node.sceneNodeId == resolution.nodeId;
+	};
+	if (matches(section.start_node)) {
+		result = section.start_node;
+		return true;
+	}
+	for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex) {
+		if (!matches(section.arcs_in_signalling_block_section[arcIndex].endNode))
+			continue;
+		result = section.arcs_in_signalling_block_section[arcIndex].endNode;
+		return true;
+	}
+	return false;
 }
 
 bool nativeRuntimePlatformExists(const std::string& platformId, const std::string& stationId,
@@ -649,6 +673,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		return selectedOccurrences.empty()
 				|| selectedOccurrences.count(SceneServiceOccurrence{serviceId, occurrence}) > 0;
 	};
+	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	for (const SceneService& service : scene.services) {
 		if (service.id.empty())
 			continue;
@@ -770,6 +795,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		}
 
 		const Route& runtimeRoute = train_route[routeIt->second];
+		const SceneRouteTraversal routeTraversal = buildSceneRouteTraversal(scene, *routes.at(service.route), sectionInventory);
+		const std::vector<SceneStopResolution> stopResolutions =
+			resolveSceneServiceStops(scene, service, routeTraversal);
 		if (service.hasEntryTime && (!nativeFinite(service.entryTimeSeconds) || service.entryTimeSeconds < 0.0))
 			addNativeDiagnostic(diagnostics, "scene.native.timetable.entry", "Entry time must be finite and non-negative",
 					"services.json", "service", service.id, "services[" + service.id + "].entry_seconds");
@@ -791,62 +819,71 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 					addNativeDiagnostic(diagnostics, "scene.native.ref.platform", "Explicit stop platform is unknown or not built in the runtime infrastructure",
 							"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id", stop.platformId);
 			}
-			std::unordered_set<std::string> candidatePlatforms;
 			Node selectedNode;
 			bool selected = false;
-			const auto considerNode = [&](const Node& node) {
-				if (!nativeRuntimeNodeMatchesStation(node, *station, stationName))
-					return;
-				if (explicitPlatform != nullptr && node.stationPlatformId != explicitPlatform->id)
-					return;
-				candidatePlatforms.insert(node.stationPlatformId);
-				if (!selected) {
-					selectedNode = node;
-					selected = true;
+			const SceneStopResolution resolution = stopIndex < stopResolutions.size()
+				? stopResolutions[stopIndex] : SceneStopResolution();
+			if (resolution.status == SceneStopResolutionStatus::Resolved) {
+				selected = nativeRuntimeNodeForVisit(runtimeRoute, resolution, selectedNode);
+				if (!selected)
+					addNativeDiagnostic(diagnostics, "scene.native.ref.platform",
+							"Resolved stop visit is not present in the built runtime route",
+							"services.json", "service", service.id,
+							"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id",
+							resolution.nodeId);
+				else if (!nativeRuntimeNodeMatchesStation(selectedNode, *station, stationName)
+						|| (!stop.platformId.empty() && selectedNode.stationPlatformId != stop.platformId)) {
+					addNativeDiagnostic(diagnostics, "scene.native.ref.platform",
+							"Resolved stop visit does not retain its canonical station/platform identity",
+							"services.json", "service", service.id,
+							"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id",
+							stop.platformId);
+					selected = false;
 				}
-			};
-			for (int sectionIndex = 0; sectionIndex < runtimeRoute.N_Block_Sections; ++sectionIndex) {
-				const Section& section = runtimeRoute.sequence_of_block_sections[sectionIndex];
-				considerNode(section.start_node);
-				for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex)
-					considerNode(section.arcs_in_signalling_block_section[arcIndex].endNode);
-			}
-			if (stop.platformId.empty()) {
-				if (candidatePlatforms.size() > 1) {
-					addNativeDiagnostic(diagnostics, "scene.native.ref.platform.ambiguous",
-							"A stop without a platform resolves to multiple route platforms",
-							"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id");
-					continue;
-				}
-				if (!candidatePlatforms.empty())
-					resolvedPlatformId = *candidatePlatforms.begin();
-				else {
-					// Legacy timetables may retain stops before a train enters, or after it
-					// leaves, its simulated route. Keep those schedule rows without inventing
-					// a platform assignment; they remain inert in route station matching.
-					selectedNode.station = true;
-					selectedNode.stationName = stationName;
-					selectedNode.stationPlatformId = "None";
-					if (station->hasPosition)
-						selectedNode.X = station->positionKm;
-					else if (!station->platforms.empty()) {
-						for (const StationPlatform& platform : AllStationPlatforms) {
-							if (platform.ID == station->platforms.front().id) {
-								selectedNode.X = platform.X;
-								selectedNode.Y = platform.Y;
-								break;
-							}
+				resolvedPlatformId = stop.platformId.empty()
+						? (resolution.visitIndex < routeTraversal.visits.size()
+								? routeTraversal.visits[resolution.visitIndex].platformId : std::string())
+						: stop.platformId;
+			} else if (resolution.status == SceneStopResolutionStatus::OffRouteContext
+					&& stop.platformId.empty()) {
+				// Legacy timetables may retain stops before a train enters, or after it
+				// leaves, its simulated route. Keep those schedule rows without inventing
+				// a platform assignment; they remain inert in route station matching.
+				selectedNode.station = true;
+				selectedNode.stationName = stationName;
+				selectedNode.stationPlatformId = "None";
+				if (station->hasPosition)
+					selectedNode.X = station->positionKm;
+				else if (!station->platforms.empty()) {
+					for (const StationPlatform& platform : AllStationPlatforms) {
+						if (platform.ID == station->platforms.front().id) {
+							selectedNode.X = platform.X;
+							selectedNode.Y = platform.Y;
+							break;
 						}
 					}
-					selected = true;
 				}
+				selected = true;
+			} else {
+				const char* code = resolution.status == SceneStopResolutionStatus::AmbiguousPlatform
+						? "scene.native.ref.platform.ambiguous"
+						: resolution.status == SceneStopResolutionStatus::OutOfOrder
+								? "scene.native.ref.stop.order"
+								: resolution.status == SceneStopResolutionStatus::UnresolvedRoute
+										? "scene.native.ref.stop.route" : "scene.native.ref.platform";
+				const char* message = resolution.status == SceneStopResolutionStatus::AmbiguousPlatform
+						? "A stop without a platform resolves to multiple ordered route platforms"
+						: resolution.status == SceneStopResolutionStatus::OutOfOrder
+								? "Stop is not reachable after the preceding ordered route visit"
+								: resolution.status == SceneStopResolutionStatus::UnresolvedRoute
+										? "Stop cannot be resolved because the service route has no ordered traversal"
+										: "Explicit stop platform is not present on the ordered service route";
+				addNativeDiagnostic(diagnostics, code, message, "services.json", "service", service.id,
+						"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]",
+						stop.platformId.empty() ? stop.stationId : stop.platformId);
 			}
-			if (!selected) {
-				if (!stop.platformId.empty())
-					addNativeDiagnostic(diagnostics, "scene.native.ref.platform", "Explicit stop platform is not present on the service route",
-							"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id", stop.platformId);
+			if (!selected)
 				continue;
-			}
 			if ((stop.hasPlannedArrival && !nativeFinite(stop.plannedArrivalSeconds))
 					|| (stop.hasPlannedDeparture && !nativeFinite(stop.plannedDepartureSeconds))
 					|| !nativeFinite(stop.dwellSeconds) || stop.dwellSeconds < 0.0)
@@ -914,10 +951,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	std::vector<SimulationIncident> stagedIncidents;
 	std::map<SceneServiceOccurrence, double> occurrenceDelay;
 	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
-	SceneSectionInventory sectionInventory;
-	if (scenario != nullptr && std::any_of(scenario->incidents.begin(), scenario->incidents.end(),
-			[](const SceneIncident& incident) { return incident.type == "signal_failure"; }))
-		sectionInventory = buildSceneSectionInventory(scene);
 	if (scenario != nullptr) {
 		for (const SceneIncident& incident : scenario->incidents) {
 			bool valid = true;

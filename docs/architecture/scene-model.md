@@ -100,6 +100,16 @@ leaving that canonical value unchanged. Arrival and departure timetable values
 remain independently optional and are staged as runtime `-1` when absent,
 including repeated occurrences.
 
+Route descriptions, stop validation and native stop preparation share an ordered
+traversal from `SectionInventory`. It follows authored section order, native
+direction and overlapping-switch clipping. Stops consume successive real node
+visits; shared section boundaries count once, while later visits are retained.
+A missing platform resolves only when one reachable platform remains. Explicit
+unreachable platforms and exhausted/out-of-order visits block preparation.
+Blank-platform rows at stations outside the route remain warning-labelled inert
+schedule context for legacy compatibility. No provenance flag distinguishes
+imported rows from otherwise identical authored rows.
+
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals
