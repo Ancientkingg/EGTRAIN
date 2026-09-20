@@ -89,7 +89,8 @@ PY
 APP_EXIT=$?
 set -e
 
-if [[ "$APP_EXIT" -ne 0 ]] || ! grep -Fqx E2E_CREATOR_ACCEPTANCE_OK "$LOG"; then
+if [[ "$APP_EXIT" -ne 0 ]] || ! grep -Fqx E2E_CREATOR_ACCEPTANCE_OK "$LOG" \
+	|| ! grep -Fqx E2E_CREATOR_PENDING_OPEN_OK "$LOG"; then
 	echo "creator acceptance smoke failed (app exit $APP_EXIT)" >&2
 	echo "--- log tail ---" >&2
 	tail -40 "$LOG" >&2 || true

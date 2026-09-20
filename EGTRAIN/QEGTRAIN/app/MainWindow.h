@@ -642,6 +642,7 @@ private:
 	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
+	bool requestOpenScene(const QString& path);
 	bool maybeSaveScene();
 	const TrackPreviewLine* cachedTrackLine(int track) const;
 	void renderTrackPreview(const SceneModel& sceneModel);
