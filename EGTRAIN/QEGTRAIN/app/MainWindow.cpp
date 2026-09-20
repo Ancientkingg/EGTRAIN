@@ -7442,12 +7442,23 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	series->setProperty("trainId", QString::fromStdString(unit.id));
 	for (const auto& point : samples)
 		series->append(point.first * 3.6, point.second / 1000.0);
+	series->setPointsVisible(samples.size() == 1);
 	chart->addSeries(series);
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty())
 		chart->axes(Qt::Horizontal).first()->setTitleText("Speed (km/h)");
-	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Tractive effort (kN)");
+	if (auto* effortAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).value(0))) {
+		effortAxis->setTitleText("Tractive effort (kN)");
+		effortAxis->setRange(0.0, std::max(1.0, effortAxis->max()));
+	}
+	if (std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
+		if (row[1] < row[0])
+			return false;
+		const auto effort = [&row](double speed) { return row[2] + row[3] * speed + row[4] * speed * speed; };
+		const double minimumAt = row[4] > 0.0 ? std::clamp(-row[3] / (2.0 * row[4]), row[0], row[1]) : row[0];
+		return effort(minimumAt) < 0.0 || effort(row[1]) < 0.0;
+	}))
+		chart->setTitle(chart->title() + "<br>Curve contains negative effort below the default 0 kN view");
 
 	QString title = QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id));
 	if (!unit.sourceTractionFile.empty())
@@ -14355,6 +14366,48 @@ void MainWindow::runEditorSmokeE2E() {
 					view->window()->close();
 				}
 			}
+		}
+		// Exercise the shared input plot, including Qt's actual zoom/reset axes.
+		int tractionPlotIndex = 0;
+		for (const auto& fixture : std::vector<std::pair<std::array<double, 5>, bool>>{
+				{{0, 10, 20000, 1000, 0}, false}, {{0, 10, 20000, 0, 0}, false},
+				{{0, 10, 0, 0, 0}, false}, {{5, 5, 20000, 0, 0}, false},
+				{{0, 10, -1000, 200, 0}, true}, {{0, 1, 1, -128, 2048}, true}}) {
+			SceneTrainUnit unit;
+			unit.id = "Input traction axis check";
+			unit.tractionCurve = {fixture.first};
+			plotTrainUnitTraction(unit);
+			QApplication::processEvents();
+			DiagramWindow* window = findChildren<DiagramWindow*>().last();
+			QChartView* view = window->findChild<QChartView*>();
+			QChart* chart = view->chart();
+			auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).value(0));
+			auto* series = qobject_cast<QLineSeries*>(chart->series().value(0));
+			const auto samples = sampleTractionCurve(unit.tractionCurve);
+			bool plotOk = axis && series && axis->min() == 0.0 && axis->max() > 0.0
+				&& series->count() == static_cast<int>(samples.size())
+				&& (samples.size() != 1 || series->pointsVisible());
+			for (int i = 0; plotOk && i < series->count(); ++i) {
+				plotOk = series->at(i) == QPointF(samples[i].first * 3.6, samples[i].second / 1000.0)
+					&& series->at(i).y() <= axis->max();
+			}
+			plotOk = plotOk && chart->title().contains("negative") == fixture.second;
+			if (axis) {
+				const double maximum = axis->max();
+				chart->zoom(2.0);
+				plotOk = plotOk && axis->min() > 0.0;
+				for (QPushButton* button : window->findChildren<QPushButton*>())
+					if (button->text() == "Reset zoom")
+						button->click();
+				plotOk = plotOk && axis->min() == 0.0 && axis->max() == maximum;
+			}
+			const QString plotPath = QDir(qEnvironmentVariable("QEGTRAIN_E2E_OUT", QDir::tempPath()))
+				.filePath(QString("input-traction-%1.png").arg(tractionPlotIndex++));
+			plotOk = view->grab().save(plotPath, "PNG") && plotOk;
+			if (!plotOk)
+				failures << QString("input traction axes/reset/samples: %1").arg(plotPath);
+			axesOk = axesOk && plotOk;
+			window->close();
 		}
 		if (!explorerOk || !hasParameterSource || !hasTractionSource || !hasPlotButton || !hasEditableTrainSources
 				|| !hasPlannedArrival || !hasPlannedDeparture || !axesOk) {
