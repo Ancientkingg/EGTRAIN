@@ -152,6 +152,13 @@ services. Runtime occurrence identity is the pair
 `(service_id, occurrence)`, with a 1-based occurrence number, and its existing
 display key is `service_id-occurrence`.
 
+`category` is optional string metadata in schema V1. Missing or empty means no
+category; the writer omits empty values. The editor offers Intercity, Regional,
+High speed/international, Freight, Metro/urban and Suburban, and preserves
+unknown strings exactly. Category does not affect simulation or inferred train
+display types. Folder and bundle saves preserve it; legacy export omits it
+because the old format has no category field.
+
 Optional runtime controls are:
 
 - `performance_percent`: percentage, default `100.0`, finite range `1..100`.

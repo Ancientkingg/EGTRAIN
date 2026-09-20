@@ -121,6 +121,9 @@ Services show their service code, configured total and count within the
 simulation period separately. Selected-in-period counts exclude unchecked
 generated services. Maximum speed restriction uses six significant display
 digits; focusing or saving an untouched value preserves its stored precision.
+The Category chooser edits only service metadata. It offers six presets and No
+category; an imported unknown value is shown explicitly and retained until
+changed. Duplication copies the category with the other service settings.
 Train incidents use one generated-service chooser, with code, route, scheduled
 entry and secondary canonical identity. Selecting a row stores both service ID
 and occurrence. Historical all-occurrence targets retain an explicit scope row;

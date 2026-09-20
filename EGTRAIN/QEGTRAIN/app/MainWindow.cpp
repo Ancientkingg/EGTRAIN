@@ -2734,6 +2734,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_serviceOperatingCodeEdit = new QLineEdit(serviceDetailPane);
 	m_serviceOperatingCodeEdit->setObjectName("serviceOperatingCodeEdit");
 	serviceDetailLayout->addWidget(m_serviceOperatingCodeEdit);
+	serviceDetailLayout->addWidget(new QLabel("Category", serviceDetailPane));
+	m_serviceCategoryCombo = new QComboBox(serviceDetailPane);
+	m_serviceCategoryCombo->setObjectName("serviceCategoryCombo");
+	serviceDetailLayout->addWidget(m_serviceCategoryCombo);
 	serviceDetailLayout->addWidget(new QLabel("Composition", serviceDetailPane));
 	m_serviceCompositionCombo = new QComboBox(serviceDetailPane);
 	serviceDetailLayout->addWidget(m_serviceCompositionCombo);
@@ -2898,6 +2902,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_serviceIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceIdEdit);
 	connect(m_serviceOperatingCodeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceOperatingCode);
+	connect(m_serviceCategoryCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+		&MainWindow::commitServiceCategory);
 	connect(m_serviceCompositionCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceComposition);
 	connect(m_serviceRouteCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceRoute);
 	connect(m_serviceThroughCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceThrough);
@@ -8509,6 +8515,29 @@ void MainWindow::updateServiceDetailPanel() {
 		m_serviceOperatingCodeEdit->setEnabled(editorAvailable);
 	}
 
+	if (m_serviceCategoryCombo) {
+		const QSignalBlocker blocker(m_serviceCategoryCombo);
+		m_serviceCategoryCombo->clear();
+		m_serviceCategoryCombo->addItem("No category", QString());
+		for (const QString& category : {QStringLiteral("Intercity"), QStringLiteral("Regional"),
+				QStringLiteral("High speed/international"), QStringLiteral("Freight"),
+				QStringLiteral("Metro/urban"), QStringLiteral("Suburban")})
+			m_serviceCategoryCombo->addItem(category, category);
+		int categoryIndex = 0;
+		if (hasSelection) {
+			const QString currentCategory = QString::fromStdString(m_sceneModel.services[row].category);
+			categoryIndex = m_serviceCategoryCombo->findData(currentCategory);
+			if (categoryIndex < 0 && !currentCategory.isEmpty()) {
+				m_serviceCategoryCombo->addItem(QString("Unknown: %1").arg(currentCategory), currentCategory);
+				categoryIndex = m_serviceCategoryCombo->count() - 1;
+			}
+			if (categoryIndex < 0)
+				categoryIndex = 0;
+		}
+		m_serviceCategoryCombo->setCurrentIndex(categoryIndex);
+		m_serviceCategoryCombo->setEnabled(editorAvailable);
+	}
+
 	if (m_serviceCompositionCombo) {
 		const QSignalBlocker blocker(m_serviceCompositionCombo);
 		m_serviceCompositionCombo->clear();
@@ -9035,6 +9064,19 @@ void MainWindow::commitServiceOperatingCode() {
 	markSceneDirty();
 	refreshValidationPanel();
 	refreshServiceOccurrencePreview();
+}
+
+void MainWindow::commitServiceCategory(int index) {
+	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_serviceCategoryCombo || index < 0)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	const std::string value = m_serviceCategoryCombo->itemData(index).toString().toStdString();
+	if (value == m_sceneModel.services[row].category)
+		return;
+	m_sceneModel.services[row].category = value;
+	markSceneDirty();
 }
 
 void MainWindow::commitServiceComposition(const QString& text) {
@@ -13796,7 +13838,7 @@ void MainWindow::runEditorSmokeE2E() {
 		if (left.size() != right.size())
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [&](const SceneService& a, const SceneService& b) {
-			if (a.id != b.id || a.operatingCode != b.operatingCode || a.composition != b.composition || a.route != b.route
+			if (a.id != b.id || a.operatingCode != b.operatingCode || a.category != b.category || a.composition != b.composition || a.route != b.route
 					|| a.performancePercent != b.performancePercent || a.hasMaximumSpeed != b.hasMaximumSpeed
 					|| a.maximumSpeedKmh != b.maximumSpeedKmh || a.through != b.through
 					|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
@@ -15787,11 +15829,32 @@ void MainWindow::runEditorSmokeE2E() {
 		const double preciseMaximumSpeedKmh = 876.5432109876543;
 		const int originalCount = m_serviceListWidget->count();
 		m_serviceListWidget->setCurrentRow(0);
+		const std::string unknownCategory = "Regional heritage / custom";
+		m_sceneModel.services[0].category = unknownCategory;
+		expectedServices[0].category = unknownCategory;
+		updateServiceDetailPanel();
+		if (!m_serviceCategoryCombo || m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
+				|| !m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
+			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
 		duplicateService();
 		if (m_serviceListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "service", "duplicate did not apply");
 		} else {
 			m_serviceListWidget->setCurrentRow(1);
+			SceneService categoryExpected = m_sceneModel.services[1];
+			if (categoryExpected.category != unknownCategory)
+				facetFailure(facetOk, "service", "duplicate lost category");
+			if (m_serviceCategoryCombo) {
+				for (const QString& category : {QString(), QStringLiteral("Intercity"), QStringLiteral("Regional"),
+						QStringLiteral("High speed/international"), QStringLiteral("Freight"),
+						QStringLiteral("Metro/urban"), QStringLiteral("Suburban"), QString::fromStdString(unknownCategory)}) {
+					const int index = m_serviceCategoryCombo->findData(category);
+					m_serviceCategoryCombo->setCurrentIndex(index);
+					categoryExpected.category = category.toStdString();
+					if (index < 0 || !sameServices({categoryExpected}, {m_sceneModel.services[1]}))
+						facetFailure(facetOk, "service", "category selection changed other service settings");
+				}
+			}
 			const std::string oldServiceId = m_sceneModel.services[1].id;
 			int referenceScenarioRow = -1;
 			std::size_t temporaryDelayCount = 0;

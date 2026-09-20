@@ -337,6 +337,24 @@ int main(int argc, char** argv) {
 		ok &= testExtractionCleanup(source.scene);
 	TempDir temp;
 	ok &= testNewSceneRoundTrip(temp.path);
+	SceneModel categoryScene = source.scene;
+	if (!categoryScene.services.empty()) {
+		const fs::path categoryFolder = temp.path / "category";
+		const fs::path categoryBundle = temp.path / "category.egscene";
+		for (const char* category : {"", "Intercity", "Regional", "High speed/international",
+				"Freight", "Metro/urban", "Suburban", " Regional heritage / custom "}) {
+			categoryScene.services.front().category = category;
+			ok &= expect(saveScene(categoryScene, categoryFolder.string()).success()
+					&& saveSceneBundle(categoryScene, categoryBundle.string()).success(),
+					"category fixtures save as folder and bundle");
+			for (const fs::path& path : {categoryFolder, categoryBundle}) {
+				const SceneLoadResult loaded = loadScenePath(path.string());
+				ok &= expect(!hasErrors(loaded.diagnostics) && !loaded.scene.services.empty()
+						&& loaded.scene.services.front().category == category,
+						"missing, preset and unknown category values round-trip exactly");
+			}
+		}
+	}
 	const fs::path firstBundle = temp.path / "first.egscene";
 	const fs::path secondBundle = temp.path / "second.egscene";
 	const SceneSaveResult firstSave = saveSceneBundle(source.scene, firstBundle.string());

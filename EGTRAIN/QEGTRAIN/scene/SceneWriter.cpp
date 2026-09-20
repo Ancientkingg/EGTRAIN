@@ -235,6 +235,8 @@ static json writeServices(const SceneModel& scene) {
 		};
 		if (!service.operatingCode.empty())
 			value["operating_code"] = service.operatingCode;
+		if (!service.category.empty())
+			value["category"] = service.category;
 		if (service.performancePercent != 100.0)
 			value["performance_percent"] = service.performancePercent;
 		if (service.hasMaximumSpeed)

@@ -75,6 +75,11 @@ limited by that cap, then multiplied by performance; 100% takes the legacy
 raw path. Performance does not alter braking, mass, shared composition data,
 buffer, or recovery.
 
+The optional service `category` is descriptive metadata, independent of physical
+properties, performance, speed limits and stops. Missing values mean no category;
+unknown strings survive canonical folder and bundle persistence. Legacy export
+cannot represent this field and omits it.
+
 Passenger journey windows use absolute seconds from midnight. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
 are read only by explicit legacy import and written only by explicit legacy

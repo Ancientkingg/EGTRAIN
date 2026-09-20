@@ -205,6 +205,12 @@ with the scene for repair.
 
 ## Edit and validate
 
+In Services, Category offers Intercity, Regional, High speed/international,
+Freight, Metro/urban, Suburban and No category. Unknown imported values remain
+visible until you choose a replacement. This label does not change train
+performance, composition or stops. It survives duplication and folder/bundle
+saves, but not legacy export.
+
 Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
 links consistent:
 
