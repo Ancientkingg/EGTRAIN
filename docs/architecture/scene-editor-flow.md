@@ -96,11 +96,23 @@ surface.
 |---|---|---|
 | Case settings | Name, description, base time, duration, buffer, recovery | Schema version, units, scene path, validation summary |
 | Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
-| Rolling stock units | ID; engine section with traction source, rows and plot; characteristics section with nine native physical fields and parameter source | Static traction plot; composition usage |
+| Rolling stock units | ID; engine section with traction source, rows and plot; characteristics section with nine native physical fields and parameter source; session-only Link/Unlink/Retry controls for physical and traction files | Static traction plot; composition usage; live link status |
 | Compositions | ID and ordered rolling-stock-unit membership | Selected-unit source references and traction plot |
 | Services and timetable | ID, operating code, composition, route, through state, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stops, platforms, planned arrival/departure, dwell | Generated occurrence identities and offsets |
 | Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
 | Passengers | Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair | Row-specific import outcomes and validation diagnostics |
+
+Rolling-stock links are UI session state, not scene schema. The watcher keeps an
+absolute selected file and its parent directory armed through atomic replacement,
+deletion, and recreation; a short debounce groups callbacks for one file. A
+complete validated candidate is compared with the last accepted values before
+the canonical unit changes. Shared links use one grouped Keep local/Reload
+decision; a focused local edit prompts for a conflict decision, while an update
+observed during a run is deferred and offered after completion. New scenes,
+successful opens, unlink, deletion, and relinking clear
+the corresponding observers; failed or cancelled opens leave the current links
+intact. Saved scenes therefore remain portable when their source files are
+absent.
 
 The scenario editor can create and delete non-default scenarios and edit the
 canonical entrance-delay rows used by native staging.

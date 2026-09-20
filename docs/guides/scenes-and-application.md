@@ -59,6 +59,26 @@ an original parameter or tractive-effort filename is not reopened by the native
 runtime. The tractive-effort plot evaluates the same piecewise polynomial as the
 runtime and displays speed in km/h and effort in kN.
 
+The rolling-stock editor also has explicit **Link parameter file...** and
+**Link traction file...** actions. These links are session-only absolute local
+paths, separate from the descriptive provenance fields, and are cleared when a
+scene is reopened or replaced; Save As does not relocate or persist them.
+Parameter files contain exactly nine whitespace-separated finite values:
+traction-unit mass (kg), wagon mass (kg), wagon count, maximum speed (m/s),
+maximum deceleration (m/s²), frontal area (m²), resistance coefficient, jerk
+(m/s³), and length (m). Traction files contain up to 20 nonblank rows, each
+with five finite values: starting speed (m/s), ending speed (m/s), and the
+coefficients `a b c` for force in N, `a + b*v + c*v*v`. Speed intervals must
+have positive width, be ordered, and not overlap.
+
+Each linked update is applied only after the complete candidate validates.
+Malformed or missing content leaves accepted values unchanged and keeps
+**Retry** available. A valid change marks the scene dirty only when values
+differ and refreshes open input traction plots. Conflicting local edits require
+a Keep local/Reload decision, grouped for all units sharing the file. Updates
+observed during a run are offered after the run completes. Completed result
+charts do not change.
+
 ## Scene directory
 
 | File | Status | Contents |

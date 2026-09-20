@@ -74,6 +74,28 @@ static bool readJson(const fs::path& path, json& value) {
 
 int main() {
 	bool ok = true;
+	{
+		TempDir root;
+		const fs::path physical = fs::path(root.dir) / "physical.txt";
+		const fs::path traction = fs::path(root.dir) / "traction.txt";
+		writeText(physical, "100 50 0 80 1 12 -0.2 0 30\n");
+		writeText(traction, "0 10 100 0 0\n\n10 20 90 0 0\n");
+		const auto parsedPhysical = parseTrainPhysicalSourceFile(physical.string());
+		const auto parsedTraction = parseTrainTractionSourceFile(traction.string());
+		ok &= expect(parsedPhysical.success() && parsedPhysical.physical.number_of_wagons == 0.0,
+			"Strict physical source accepts the native zero-wagon domain");
+		ok &= expect(parsedTraction.success() && parsedTraction.tractionCurve.size() == 2,
+			"Strict traction source accepts complete rows and blank lines");
+		writeText(physical, "100 50 0 80 1 12 -0.2 0 30 extra\n");
+		ok &= expect(!parseTrainPhysicalSourceFile(physical.string()).success(),
+			"Strict physical source rejects extra tokens");
+		writeText(traction, "0 10 100 0 0\npartial\n");
+		ok &= expect(!parseTrainTractionSourceFile(traction.string()).success(),
+			"Strict traction source rejects a malformed row instead of skipping it");
+		writeText(traction, "0 10 100 0 0\n5 20 90 0 0\n");
+		ok &= expect(!parseTrainTractionSourceFile(traction.string()).success(),
+			"Strict traction source rejects overlapping intervals");
+	}
 	// One small fixture exercises the new fields together, including explicit
 	// Trains provenance and a coordinate that must remain unresolved.
 	{

@@ -111,7 +111,11 @@ void DiagramWindow::setChart(QChart* chart) {
 	m_timeAxisApplied = false;
 	if (chart)
 		applyChartStyle(chart);
-	m_view->setChart(chart);  // QChartView takes ownership
+	QChart* previous = m_view ? m_view->chart() : nullptr;
+	if (previous != chart)
+		m_view->setChart(chart);  // QChartView takes ownership of the new chart
+	if (previous && previous != chart)
+		delete previous; // setChart releases, rather than deletes, the old chart
 	// The train dropdown replaces the built-in legend, which collapses to "..."
 	// once many trains are present.
 	if (chart && chart->legend())

@@ -302,6 +302,115 @@ static bool parseDoubleToken(const std::string& token, double& value) {
 	}
 }
 
+static bool validLivePhysical(const SceneTrainPhysical& physical) {
+	const double values[] = {
+		physical.mass_of_traction_unit_kg, physical.mass_of_a_wagon_kg,
+		physical.number_of_wagons, physical.max_speed_ms,
+		physical.max_deceleration_ms2, physical.frontal_area_m2,
+		physical.resistance_coefficient, physical.jerk_ms3, physical.length_m};
+	for (double value : values) {
+		if (!std::isfinite(value))
+			return false;
+	}
+	return physical.mass_of_traction_unit_kg >= 0.0
+		&& physical.mass_of_a_wagon_kg >= 0.0
+		&& physical.number_of_wagons >= 0.0
+		&& physical.max_speed_ms > 0.0
+		&& physical.max_deceleration_ms2 > 0.0
+		&& physical.frontal_area_m2 >= 0.0
+		&& physical.jerk_ms3 >= 0.0
+		&& physical.length_m >= 0.0
+		&& std::isfinite(physical.mass_of_traction_unit_kg
+			+ physical.mass_of_a_wagon_kg * physical.number_of_wagons)
+		&& physical.mass_of_traction_unit_kg
+			+ physical.mass_of_a_wagon_kg * physical.number_of_wagons > 0.0;
+}
+
+SceneTrainPhysicalSourceResult parseTrainPhysicalSourceFile(const std::string& path) {
+	SceneTrainPhysicalSourceResult result;
+	std::string content;
+	if (!readFile(fs::path(path), content)) {
+		result.error = "The physical source could not be read";
+		return result;
+	}
+	const std::vector<std::string> tokens = readTokens(content);
+	if (tokens.size() != 9) {
+		result.error = "The physical source must contain exactly nine values";
+		return result;
+	}
+	double* values[] = {
+		&result.physical.mass_of_traction_unit_kg, &result.physical.mass_of_a_wagon_kg,
+		&result.physical.number_of_wagons, &result.physical.max_speed_ms,
+		&result.physical.max_deceleration_ms2, &result.physical.frontal_area_m2,
+		&result.physical.resistance_coefficient, &result.physical.jerk_ms3,
+		&result.physical.length_m};
+	for (std::size_t index = 0; index < tokens.size(); ++index) {
+		if (!parseDoubleToken(tokens[index], *values[index])
+				|| !std::isfinite(*values[index])) {
+			result.error = "The physical source contains a non-finite or malformed value";
+			return result;
+		}
+	}
+	if (!validLivePhysical(result.physical))
+		result.error = "The physical source contains values outside the supported domain";
+	return result;
+}
+
+SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& path) {
+	SceneTrainTractionSourceResult result;
+	std::string content;
+	if (!readFile(fs::path(path), content)) {
+		result.error = "The traction source could not be read";
+		return result;
+	}
+	std::stringstream input(content);
+	std::string line;
+	int rowNumber = 0;
+	while (std::getline(input, line)) {
+		if (trim(line).empty())
+			continue;
+		++rowNumber;
+		const std::vector<std::string> tokens = readTokens(line);
+		if (tokens.size() != 5) {
+			result.error = "Traction row " + std::to_string(rowNumber)
+				+ " must contain exactly five values";
+			return result;
+		}
+		std::array<double, 5> row{};
+		for (std::size_t index = 0; index < row.size(); ++index) {
+			if (!parseDoubleToken(tokens[index], row[index]) || !std::isfinite(row[index])) {
+				result.error = "Traction row " + std::to_string(rowNumber)
+					+ " contains a non-finite or malformed value";
+				return result;
+			}
+		}
+		if (!(row[0] < row[1])) {
+			result.error = "Traction row " + std::to_string(rowNumber)
+				+ " has an invalid speed interval";
+			return result;
+		}
+		if (!result.tractionCurve.empty()) {
+			const auto& previous = result.tractionCurve.back();
+			if (row[0] < previous[0]) {
+				result.error = "Traction rows are not in ascending speed order";
+				return result;
+			}
+			if (row[0] < previous[1]) {
+				result.error = "Traction intervals overlap";
+				return result;
+			}
+		}
+		result.tractionCurve.push_back(row);
+		if (result.tractionCurve.size() > 20) {
+			result.error = "The traction source exceeds the runtime 20-band capacity";
+			return result;
+		}
+	}
+	if (result.tractionCurve.empty())
+		result.error = "The traction source contains no rows";
+	return result;
+}
+
 static bool parseIntegerToken(const std::string& token, int& value) {
 	try {
 		std::size_t used = 0;

@@ -84,6 +84,7 @@
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QTabWidget>
+#include <QSet>
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
@@ -98,6 +99,7 @@ QT_CHARTS_USE_NAMESPACE
 class ConsoleWidget; // forward declaration for m_logPane
 class DiagramWindow;
 class UpdateChecker;
+class QFileSystemWatcher;
 class SelfUpdater;
 class QProgressDialog;
 struct UpdateCheckResult;
@@ -418,6 +420,24 @@ private:
 	std::optional<int> m_sceneBundleVersion;
 	bool m_sceneDirty = false;
 	bool m_committingPendingEditorValues = false;
+	struct TrainUnitSourceLink {
+		QString dataPath;
+		QString tractionPath;
+		std::optional<SceneTrainPhysical> acceptedPhysical;
+		std::vector<std::array<double, 5>> acceptedTraction;
+		QString dataSignature;
+		QString tractionSignature;
+		QString dataStatus;
+		QString tractionStatus;
+		bool dataDeferred = false;
+		bool tractionDeferred = false;
+		quint64 generation = 0;
+	};
+	std::map<std::string, TrainUnitSourceLink> m_trainUnitSourceLinks;
+	QFileSystemWatcher* m_trainUnitSourceWatcher = nullptr;
+	QTimer* m_trainUnitSourceDebounceTimer = nullptr;
+	QSet<QString> m_pendingTrainUnitSourcePaths;
+	bool m_processingTrainUnitSourceChanges = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
@@ -488,6 +508,14 @@ private:
 	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
 	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
 	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
+	QPushButton* m_linkTrainUnitSourceDataButton = nullptr;
+	QPushButton* m_unlinkTrainUnitSourceDataButton = nullptr;
+	QPushButton* m_retryTrainUnitSourceDataButton = nullptr;
+	QLabel* m_trainUnitSourceDataStatusLabel = nullptr;
+	QPushButton* m_linkTrainUnitSourceTractionButton = nullptr;
+	QPushButton* m_unlinkTrainUnitSourceTractionButton = nullptr;
+	QPushButton* m_retryTrainUnitSourceTractionButton = nullptr;
+	QLabel* m_trainUnitSourceTractionStatusLabel = nullptr;
 	QTableWidget* m_trainUnitTractionTable = nullptr;
 	QPushButton* m_addTrainUnitButton = nullptr;
 	QPushButton* m_duplicateTrainUnitButton = nullptr;
@@ -769,6 +797,16 @@ private:
 	void deleteTrainUnit();
 	void commitTrainUnitIdEdit();
 	void commitTrainUnitSources();
+	void linkTrainUnitSource(bool traction);
+	void unlinkTrainUnitSource(bool traction);
+	void retryTrainUnitSource(bool traction);
+	void scheduleTrainUnitSourceChange(const QString& path);
+	void processTrainUnitSourceChanges();
+	void processTrainUnitSourceFile(const QString& path, bool traction);
+	void refreshTrainUnitSourceWatches();
+	void clearTrainUnitSourceLinks();
+	void updateTrainUnitSourceStatus();
+	void refreshInputTractionDiagrams(const std::string& unitId);
 	void commitTrainUnitPhysical(int fieldIndex);
 	void addTrainUnitTractionRow();
 	void removeTrainUnitTractionRow();

@@ -35,7 +35,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFileSystemWatcher>
 #include <QSaveFile>
+#include <QCryptographicHash>
 #include <cfloat>
 #include <QThread>
 #include <QCloseEvent>
@@ -57,6 +59,7 @@
 #include <QStandardPaths>
 #include <QSysInfo>
 #include <QSignalBlocker>
+#include <QScopedValueRollback>
 #include <QSettings>
 #include <QIcon>
 #include <QDesktopServices>
@@ -173,6 +176,58 @@ public:
 		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
 	}
 };
+
+QString sourceFileSignature(const QString& path) {
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return QStringLiteral("<missing>");
+	return QString::fromLatin1(QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex());
+}
+
+QString absoluteSourcePath(const QString& path) {
+	return QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+}
+
+bool sameTrainPhysical(const SceneTrainPhysical& left, const SceneTrainPhysical& right) {
+	return left.mass_of_traction_unit_kg == right.mass_of_traction_unit_kg
+		&& left.mass_of_a_wagon_kg == right.mass_of_a_wagon_kg
+		&& left.number_of_wagons == right.number_of_wagons
+		&& left.max_speed_ms == right.max_speed_ms
+		&& left.max_deceleration_ms2 == right.max_deceleration_ms2
+		&& left.frontal_area_m2 == right.frontal_area_m2
+		&& left.resistance_coefficient == right.resistance_coefficient
+		&& left.jerk_ms3 == right.jerk_ms3
+		&& left.length_m == right.length_m;
+}
+
+QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
+	const auto samples = sampleTractionCurve(unit.tractionCurve);
+	QChart* chart = new QChart();
+	chart->setTitle(QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id)));
+	QLineSeries* series = new QLineSeries();
+	series->setName(QString::fromStdString(unit.id));
+	series->setProperty("trainId", QString::fromStdString(unit.id));
+	for (const auto& point : samples)
+		series->append(point.first * 3.6, point.second / 1000.0);
+	series->setPointsVisible(samples.size() == 1);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	if (!chart->axes(Qt::Horizontal).isEmpty())
+		chart->axes(Qt::Horizontal).first()->setTitleText("Speed (km/h)");
+	if (auto* effortAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).value(0))) {
+		effortAxis->setTitleText("Tractive effort (kN)");
+		effortAxis->setRange(0.0, std::max(1.0, effortAxis->max()));
+	}
+	if (std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
+		if (row[1] < row[0])
+			return false;
+		const auto effort = [&row](double speed) { return row[2] + row[3] * speed + row[4] * speed * speed; };
+		const double minimumAt = row[4] > 0.0 ? std::clamp(-row[3] / (2.0 * row[4]), row[0], row[1]) : row[0];
+		return effort(minimumAt) < 0.0 || effort(row[1]) < 0.0;
+	}))
+		chart->setTitle(chart->title() + "<br>Curve contains negative effort below the default 0 kN view");
+	return chart;
+}
 
 QString sceneSectionDisplayLabel(const SceneSectionDescriptor& section) {
 	if (section.connectionDerived) {
@@ -1604,6 +1659,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
 
 	ui->setupUi(this);
+	m_trainUnitSourceWatcher = new QFileSystemWatcher(this);
+	m_trainUnitSourceDebounceTimer = new QTimer(this);
+	m_trainUnitSourceDebounceTimer->setSingleShot(true);
+	m_trainUnitSourceDebounceTimer->setInterval(150);
+	connect(m_trainUnitSourceWatcher, &QFileSystemWatcher::fileChanged, this,
+			[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
+	connect(m_trainUnitSourceWatcher, &QFileSystemWatcher::directoryChanged, this,
+			[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
+	connect(m_trainUnitSourceDebounceTimer, &QTimer::timeout, this,
+			&MainWindow::processTrainUnitSourceChanges);
 	setupUpdateActions();
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
@@ -2408,6 +2473,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainUnitSourceTractionEdit = new QLineEdit(trainUnitDetailPane);
 	m_trainUnitSourceTractionEdit->setPlaceholderText("Optional");
 	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionEdit);
+	QHBoxLayout* tractionSourceActions = new QHBoxLayout();
+	m_linkTrainUnitSourceTractionButton = new QPushButton("Link traction file...", trainUnitDetailPane);
+	m_linkTrainUnitSourceTractionButton->setObjectName("linkTrainUnitSourceTractionButton");
+	m_unlinkTrainUnitSourceTractionButton = new QPushButton("Unlink", trainUnitDetailPane);
+	m_unlinkTrainUnitSourceTractionButton->setObjectName("unlinkTrainUnitSourceTractionButton");
+	m_retryTrainUnitSourceTractionButton = new QPushButton("Retry", trainUnitDetailPane);
+	m_retryTrainUnitSourceTractionButton->setObjectName("retryTrainUnitSourceTractionButton");
+	tractionSourceActions->addWidget(m_linkTrainUnitSourceTractionButton);
+	tractionSourceActions->addWidget(m_unlinkTrainUnitSourceTractionButton);
+	tractionSourceActions->addWidget(m_retryTrainUnitSourceTractionButton);
+	trainUnitDetailLayout->addLayout(tractionSourceActions);
+	m_trainUnitSourceTractionStatusLabel = new QLabel("Unlinked", trainUnitDetailPane);
+	m_trainUnitSourceTractionStatusLabel->setObjectName("trainUnitSourceTractionStatusLabel");
+	m_trainUnitSourceTractionStatusLabel->setWordWrap(true);
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionStatusLabel);
 
 	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
 	m_trainUnitTractionTable = new QTableWidget(0, 5, trainUnitDetailPane);
@@ -2449,6 +2529,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainUnitSourceDataEdit = new QLineEdit(trainUnitDetailPane);
 	m_trainUnitSourceDataEdit->setPlaceholderText("Optional");
 	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataEdit);
+	QHBoxLayout* dataSourceActions = new QHBoxLayout();
+	m_linkTrainUnitSourceDataButton = new QPushButton("Link parameter file...", trainUnitDetailPane);
+	m_linkTrainUnitSourceDataButton->setObjectName("linkTrainUnitSourceDataButton");
+	m_unlinkTrainUnitSourceDataButton = new QPushButton("Unlink", trainUnitDetailPane);
+	m_unlinkTrainUnitSourceDataButton->setObjectName("unlinkTrainUnitSourceDataButton");
+	m_retryTrainUnitSourceDataButton = new QPushButton("Retry", trainUnitDetailPane);
+	m_retryTrainUnitSourceDataButton->setObjectName("retryTrainUnitSourceDataButton");
+	dataSourceActions->addWidget(m_linkTrainUnitSourceDataButton);
+	dataSourceActions->addWidget(m_unlinkTrainUnitSourceDataButton);
+	dataSourceActions->addWidget(m_retryTrainUnitSourceDataButton);
+	trainUnitDetailLayout->addLayout(dataSourceActions);
+	m_trainUnitSourceDataStatusLabel = new QLabel("Unlinked", trainUnitDetailPane);
+	m_trainUnitSourceDataStatusLabel->setObjectName("trainUnitSourceDataStatusLabel");
+	m_trainUnitSourceDataStatusLabel->setWordWrap(true);
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataStatusLabel);
 
 	QScrollArea* trainUnitDetailScroll = new QScrollArea(trainUnitWidget);
 	trainUnitDetailScroll->setWidgetResizable(true);
@@ -2465,6 +2560,24 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_trainUnitIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitIdEdit);
 	connect(m_trainUnitSourceDataEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitSources);
 	connect(m_trainUnitSourceTractionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitSources);
+	connect(m_linkTrainUnitSourceDataButton, &QPushButton::clicked, this, [this]() {
+		linkTrainUnitSource(false);
+	});
+	connect(m_unlinkTrainUnitSourceDataButton, &QPushButton::clicked, this, [this]() {
+		unlinkTrainUnitSource(false);
+	});
+	connect(m_retryTrainUnitSourceDataButton, &QPushButton::clicked, this, [this]() {
+		retryTrainUnitSource(false);
+	});
+	connect(m_linkTrainUnitSourceTractionButton, &QPushButton::clicked, this, [this]() {
+		linkTrainUnitSource(true);
+	});
+	connect(m_unlinkTrainUnitSourceTractionButton, &QPushButton::clicked, this, [this]() {
+		unlinkTrainUnitSource(true);
+	});
+	connect(m_retryTrainUnitSourceTractionButton, &QPushButton::clicked, this, [this]() {
+		retryTrainUnitSource(true);
+	});
 	for (int i = 0; i < 9; ++i) {
 		connect(m_trainUnitPhysicalEdits[static_cast<size_t>(i)], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 				this, [this, i](double) { commitTrainUnitPhysical(i); });
@@ -3339,6 +3452,7 @@ void MainWindow::newScene() {
 	m_excludedSceneOccurrences.clear();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
+	clearTrainUnitSourceLinks();
 	teardownGUI();
 	simulation.resetState();
 	m_sceneDir.clear();
@@ -3539,6 +3653,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		return false;
 	}
 
+	clearTrainUnitSourceLinks();
 	teardownGUI();
 	simulation.resetState();
 
@@ -7164,13 +7279,16 @@ void MainWindow::updateTrainUnitDetailPanel() {
 		m_trainUnitPhysicalEdits[index]->setEnabled(hasSelection);
 	}
 	if (m_trainUnitSourceDataEdit) {
+		const QSignalBlocker blocker(m_trainUnitSourceDataEdit);
 		m_trainUnitSourceDataEdit->setText(unit ? QString::fromStdString(unit->sourceDataFile) : QString());
 		m_trainUnitSourceDataEdit->setEnabled(hasSelection);
 	}
 	if (m_trainUnitSourceTractionEdit) {
+		const QSignalBlocker blocker(m_trainUnitSourceTractionEdit);
 		m_trainUnitSourceTractionEdit->setText(unit ? QString::fromStdString(unit->sourceTractionFile) : QString());
 		m_trainUnitSourceTractionEdit->setEnabled(hasSelection);
 	}
+	updateTrainUnitSourceStatus();
 	if (m_plotTrainUnitTractionButton)
 		m_plotTrainUnitTractionButton->setEnabled(unit && !unit->tractionCurve.empty());
 	if (m_duplicateTrainUnitButton)
@@ -7296,7 +7414,10 @@ void MainWindow::deleteTrainUnit() {
 			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id)),
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 		return;
+	m_trainUnitSourceLinks.erase(id);
 	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
+	refreshInputTractionDiagrams(id);
+	refreshTrainUnitSourceWatches();
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -7327,6 +7448,18 @@ void MainWindow::commitTrainUnitIdEdit() {
 			return;
 		}
 	}
+	const auto sourceLink = m_trainUnitSourceLinks.find(oldId);
+	if (sourceLink != m_trainUnitSourceLinks.end()) {
+		TrainUnitSourceLink state = std::move(sourceLink->second);
+		m_trainUnitSourceLinks.erase(sourceLink);
+		m_trainUnitSourceLinks.emplace(newId, std::move(state));
+	}
+	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
+		if (window && window->property("inputTrainUnitId").toString() == QString::fromStdString(oldId)) {
+			window->setProperty("inputTrainUnitId", QString::fromStdString(newId));
+			window->setWindowTitle(QString("Input traction characteristic: %1").arg(QString::fromStdString(newId)));
+		}
+	}
 	m_sceneModel.trainUnits[row].id = newId;
 	for (auto& composition : m_sceneModel.compositions) {
 		for (auto& unitId : composition.units) {
@@ -7341,6 +7474,8 @@ void MainWindow::commitTrainUnitIdEdit() {
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
+	refreshTrainUnitSourceWatches();
+	updateTrainUnitSourceStatus();
 	refreshCompositionPanel();
 	refreshValidationPanel();
 }
@@ -7364,6 +7499,507 @@ void MainWindow::commitTrainUnitSources() {
 	updateSceneActions();
 	refreshValidationPanel();
 	updateCompositionUnitButtons();
+}
+
+void MainWindow::updateTrainUnitSourceStatus() {
+	const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
+	const SceneTrainUnit* unit = m_sceneLoaded && row >= 0
+		&& row < static_cast<int>(m_sceneModel.trainUnits.size())
+		? &m_sceneModel.trainUnits[static_cast<std::size_t>(row)] : nullptr;
+	const auto update = [unit](QPushButton* linkButton, QPushButton* unlinkButton,
+			QPushButton* retryButton, QLabel* statusLabel, const QString& path,
+			const QString& status) {
+		const bool hasSelection = unit != nullptr;
+		const bool linked = hasSelection && !path.isEmpty();
+		if (linkButton)
+			linkButton->setEnabled(hasSelection);
+		if (unlinkButton)
+			unlinkButton->setEnabled(linked);
+		if (retryButton)
+			retryButton->setEnabled(linked);
+		if (!statusLabel)
+			return;
+		if (!hasSelection) {
+			statusLabel->setText(QStringLiteral("No unit selected"));
+			statusLabel->setToolTip(QString());
+		} else if (!linked) {
+			statusLabel->setText(QStringLiteral("Unlinked"));
+			statusLabel->setToolTip(QString());
+		} else {
+			QString display = status;
+			if (display.isEmpty())
+				display = QFileInfo(path).exists()
+					? QStringLiteral("Linked: %1").arg(QFileInfo(path).fileName())
+					: QStringLiteral("Linked file missing; Retry");
+			statusLabel->setText(display);
+			statusLabel->setToolTip(path);
+		}
+	};
+	TrainUnitSourceLink* state = nullptr;
+	if (unit) {
+		const auto it = m_trainUnitSourceLinks.find(unit->id);
+		if (it != m_trainUnitSourceLinks.end())
+			state = &it->second;
+	}
+	update(m_linkTrainUnitSourceDataButton, m_unlinkTrainUnitSourceDataButton,
+		m_retryTrainUnitSourceDataButton, m_trainUnitSourceDataStatusLabel,
+		state ? state->dataPath : QString(), state ? state->dataStatus : QString());
+	update(m_linkTrainUnitSourceTractionButton, m_unlinkTrainUnitSourceTractionButton,
+		m_retryTrainUnitSourceTractionButton, m_trainUnitSourceTractionStatusLabel,
+		state ? state->tractionPath : QString(), state ? state->tractionStatus : QString());
+}
+
+void MainWindow::refreshTrainUnitSourceWatches() {
+	if (!m_trainUnitSourceWatcher)
+		return;
+	QSet<QString> files;
+	QSet<QString> directories;
+	for (const auto& entry : m_trainUnitSourceLinks) {
+		const TrainUnitSourceLink& state = entry.second;
+		for (const QString& path : {state.dataPath, state.tractionPath}) {
+			if (path.isEmpty())
+				continue;
+			if (QFileInfo(path).isFile())
+				files.insert(path);
+			const QString parent = QFileInfo(path).absolutePath();
+			if (!parent.isEmpty())
+				directories.insert(parent);
+		}
+	}
+	const auto reconcile = [this](const QStringList& watched, const QSet<QString>& wanted) {
+		for (const QString& path : watched)
+			if (!wanted.contains(path)) m_trainUnitSourceWatcher->removePath(path);
+		for (const QString& path : wanted)
+			if (!watched.contains(path)) m_trainUnitSourceWatcher->addPath(path);
+	};
+	reconcile(m_trainUnitSourceWatcher->files(), files);
+	reconcile(m_trainUnitSourceWatcher->directories(), directories);
+}
+
+void MainWindow::clearTrainUnitSourceLinks() {
+	if (m_trainUnitSourceDebounceTimer)
+		m_trainUnitSourceDebounceTimer->stop();
+	m_pendingTrainUnitSourcePaths.clear();
+	m_trainUnitSourceLinks.clear();
+	if (m_trainUnitSourceWatcher) {
+		const QStringList watched = m_trainUnitSourceWatcher->files()
+			+ m_trainUnitSourceWatcher->directories();
+		if (!watched.isEmpty())
+			m_trainUnitSourceWatcher->removePaths(watched);
+	}
+	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
+		if (window && window->property("inputTrainUnitId").isValid())
+			window->close();
+	}
+	updateTrainUnitSourceStatus();
+}
+
+void MainWindow::linkTrainUnitSource(bool traction) {
+	if (!m_sceneLoaded || !m_trainUnitListWidget)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	commitPendingEditorValues();
+	const SceneTrainUnit unit = m_sceneModel.trainUnits[static_cast<std::size_t>(row)];
+	const quint64 sceneRevision = m_sceneRevision;
+	const std::string unitId = unit.id;
+	const auto it = m_trainUnitSourceLinks.find(unitId);
+	const QString oldPath = it == m_trainUnitSourceLinks.end() ? QString()
+		: (traction ? it->second.tractionPath : it->second.dataPath);
+	const QString selected = QFileDialog::getOpenFileName(this,
+		traction ? QStringLiteral("Link traction source") : QStringLiteral("Link parameter source"),
+		oldPath.isEmpty() ? QDir::homePath() : QFileInfo(oldPath).absolutePath());
+	if (selected.isEmpty() || !m_sceneLoaded || m_sceneRevision != sceneRevision)
+		return;
+	const QString path = absoluteSourcePath(selected);
+	TrainUnitSourceLink& state = m_trainUnitSourceLinks[unitId];
+	++state.generation;
+	QString* linkedPath = traction ? &state.tractionPath : &state.dataPath;
+	QString* signature = traction ? &state.tractionSignature : &state.dataSignature;
+	QString* status = traction ? &state.tractionStatus : &state.dataStatus;
+	if (*linkedPath != path) {
+		signature->clear();
+		status->clear();
+	}
+	if (traction)
+		state.acceptedTraction = unit.tractionCurve;
+	else
+		state.acceptedPhysical = unit.physical;
+	*linkedPath = path;
+	if (traction) {
+		state.tractionDeferred = m_worker != nullptr;
+		*status = state.tractionDeferred
+			? QStringLiteral("Linked; pending reload after run")
+			: QStringLiteral("Linked; waiting for reload");
+	} else {
+		state.dataDeferred = m_worker != nullptr;
+		*status = state.dataDeferred
+			? QStringLiteral("Linked; pending reload after run")
+			: QStringLiteral("Linked; waiting for reload");
+	}
+	refreshTrainUnitSourceWatches();
+	m_pendingTrainUnitSourcePaths.insert(path);
+	if (m_trainUnitSourceDebounceTimer)
+		m_trainUnitSourceDebounceTimer->start();
+	updateTrainUnitSourceStatus();
+}
+
+void MainWindow::unlinkTrainUnitSource(bool traction) {
+	if (!m_sceneLoaded || !m_trainUnitListWidget)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	const std::string unitId = m_sceneModel.trainUnits[static_cast<std::size_t>(row)].id;
+	const auto it = m_trainUnitSourceLinks.find(unitId);
+	if (it == m_trainUnitSourceLinks.end())
+		return;
+	if (traction) {
+		++it->second.generation;
+		it->second.tractionPath.clear();
+		it->second.tractionSignature.clear();
+		it->second.acceptedTraction.clear();
+		it->second.tractionStatus.clear();
+		it->second.tractionDeferred = false;
+	} else {
+		++it->second.generation;
+		it->second.dataPath.clear();
+		it->second.dataSignature.clear();
+		it->second.acceptedPhysical.reset();
+		it->second.dataStatus.clear();
+		it->second.dataDeferred = false;
+	}
+	if (it->second.dataPath.isEmpty() && it->second.tractionPath.isEmpty())
+		m_trainUnitSourceLinks.erase(it);
+	refreshTrainUnitSourceWatches();
+	updateTrainUnitSourceStatus();
+}
+
+void MainWindow::retryTrainUnitSource(bool traction) {
+	if (!m_sceneLoaded || !m_trainUnitListWidget)
+		return;
+	const int row = m_trainUnitListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
+		return;
+	const std::string unitId = m_sceneModel.trainUnits[static_cast<std::size_t>(row)].id;
+	const auto it = m_trainUnitSourceLinks.find(unitId);
+	if (it == m_trainUnitSourceLinks.end())
+		return;
+	const QString path = traction ? it->second.tractionPath : it->second.dataPath;
+	if (path.isEmpty())
+		return;
+	if (traction) {
+		it->second.tractionSignature.clear();
+		it->second.tractionDeferred = m_worker != nullptr;
+		it->second.tractionStatus = it->second.tractionDeferred
+			? QStringLiteral("Retry pending after run") : QStringLiteral("Retrying");
+	} else {
+		it->second.dataSignature.clear();
+		it->second.dataDeferred = m_worker != nullptr;
+		it->second.dataStatus = it->second.dataDeferred
+			? QStringLiteral("Retry pending after run") : QStringLiteral("Retrying");
+	}
+	refreshTrainUnitSourceWatches();
+	m_pendingTrainUnitSourcePaths.insert(path);
+	if (m_trainUnitSourceDebounceTimer)
+		m_trainUnitSourceDebounceTimer->start();
+	updateTrainUnitSourceStatus();
+}
+
+void MainWindow::scheduleTrainUnitSourceChange(const QString& changedPath) {
+	const QString path = absoluteSourcePath(changedPath);
+	for (auto& entry : m_trainUnitSourceLinks) {
+		TrainUnitSourceLink& state = entry.second;
+		const auto consider = [this, &path](const QString& linkedPath, bool traction,
+				TrainUnitSourceLink& current) {
+			if (linkedPath.isEmpty())
+				return;
+			const QString parent = QFileInfo(linkedPath).absolutePath();
+			if (path != linkedPath && path != parent)
+				return;
+			m_pendingTrainUnitSourcePaths.insert(linkedPath);
+			if (m_worker && sourceFileSignature(linkedPath)
+					!= (traction ? current.tractionSignature : current.dataSignature)) {
+				if (traction) {
+					current.tractionDeferred = true;
+					current.tractionStatus = QStringLiteral("Changed during run; pending reload");
+				} else {
+					current.dataDeferred = true;
+					current.dataStatus = QStringLiteral("Changed during run; pending reload");
+				}
+			}
+		};
+		consider(state.dataPath, false, state);
+		consider(state.tractionPath, true, state);
+	}
+	if (m_pendingTrainUnitSourcePaths.isEmpty())
+		return;
+	if (m_worker)
+		updateTrainUnitSourceStatus();
+	if (m_trainUnitSourceDebounceTimer)
+		m_trainUnitSourceDebounceTimer->start();
+}
+
+void MainWindow::processTrainUnitSourceChanges() {
+	if (m_processingTrainUnitSourceChanges || m_pendingTrainUnitSourcePaths.isEmpty() || m_worker)
+		return;
+	if (m_trainUnitSourceDebounceTimer)
+		m_trainUnitSourceDebounceTimer->stop();
+	QScopedValueRollback<bool> processing(m_processingTrainUnitSourceChanges, true);
+	const QSet<QString> pending = m_pendingTrainUnitSourcePaths;
+	m_pendingTrainUnitSourcePaths.clear();
+	std::vector<std::pair<QString, bool>> associations;
+	for (const auto& entry : m_trainUnitSourceLinks) {
+		for (const auto& association : std::array<std::pair<QString, bool>, 2>{
+				std::make_pair(entry.second.dataPath, false), std::make_pair(entry.second.tractionPath, true)}) {
+			if (!association.first.isEmpty() && pending.contains(association.first))
+				associations.push_back(association);
+		}
+	}
+	QSet<QString> processed;
+	for (const auto& association : associations) {
+		const QString key = QString(association.second ? "traction\n" : "physical\n") + association.first;
+		if (processed.contains(key))
+			continue;
+		processed.insert(key);
+		processTrainUnitSourceFile(association.first, association.second);
+	}
+	if (!m_pendingTrainUnitSourcePaths.isEmpty() && m_trainUnitSourceDebounceTimer)
+		m_trainUnitSourceDebounceTimer->start();
+}
+
+void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) {
+	if (!m_sceneLoaded || m_worker)
+		return;
+	commitPendingEditorValues();
+	std::vector<std::string> affected;
+	for (const auto& entry : m_trainUnitSourceLinks) {
+		const QString linkedPath = traction ? entry.second.tractionPath : entry.second.dataPath;
+		if (linkedPath == path)
+			affected.push_back(entry.first);
+	}
+	if (affected.empty()) {
+		refreshTrainUnitSourceWatches();
+		return;
+	}
+	const QString signature = sourceFileSignature(path);
+	bool needsProcessing = false;
+	for (const std::string& unitId : affected) {
+		const auto it = m_trainUnitSourceLinks.find(unitId);
+		if (it == m_trainUnitSourceLinks.end())
+			continue;
+		const QString handled = traction ? it->second.tractionSignature : it->second.dataSignature;
+		needsProcessing = needsProcessing || handled != signature;
+	}
+	if (!needsProcessing) {
+		for (const std::string& unitId : affected) {
+			auto& link = m_trainUnitSourceLinks.at(unitId);
+			bool& deferred = traction ? link.tractionDeferred : link.dataDeferred;
+			if (deferred) {
+				(traction ? link.tractionStatus : link.dataStatus) = QStringLiteral("Up to date");
+				deferred = false;
+			}
+		}
+		refreshTrainUnitSourceWatches();
+		updateTrainUnitSourceStatus();
+		return;
+	}
+
+	SceneTrainPhysicalSourceResult physicalResult;
+	SceneTrainTractionSourceResult tractionResult;
+	if (traction)
+		tractionResult = parseTrainTractionSourceFile(path.toStdString());
+	else
+		physicalResult = parseTrainPhysicalSourceFile(path.toStdString());
+	const bool parsed = traction ? tractionResult.success() : physicalResult.success();
+	const QString error = traction ? QString::fromStdString(tractionResult.error)
+		: QString::fromStdString(physicalResult.error);
+	if (!parsed) {
+		for (const std::string& unitId : affected) {
+			auto it = m_trainUnitSourceLinks.find(unitId);
+			if (it == m_trainUnitSourceLinks.end()
+					|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
+				continue;
+			if (traction) {
+				it->second.tractionSignature = signature;
+				it->second.tractionStatus = QStringLiteral("Rejected: %1; Retry available").arg(error);
+				it->second.tractionDeferred = false;
+			} else {
+				it->second.dataSignature = signature;
+				it->second.dataStatus = QStringLiteral("Rejected: %1; Retry available").arg(error);
+				it->second.dataDeferred = false;
+			}
+		}
+		refreshTrainUnitSourceWatches();
+		updateTrainUnitSourceStatus();
+		statusBar()->showMessage(QString("Source reload rejected: %1").arg(error), 8000);
+		return;
+	}
+
+	QStringList conflicts;
+	QStringList affectedNames;
+	std::map<std::string, quint64> generations;
+	bool deferredChange = false;
+	for (const std::string& unitId : affected) {
+		const auto it = m_trainUnitSourceLinks.find(unitId);
+		if (it == m_trainUnitSourceLinks.end()
+				|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
+			continue;
+		affectedNames << QString::fromStdString(unitId);
+		generations.emplace(unitId, it->second.generation);
+		deferredChange = deferredChange || (traction ? it->second.tractionDeferred : it->second.dataDeferred);
+		const SceneTrainUnit* unit = trainUnitById(unitId);
+		if (!unit)
+			continue;
+		const bool localChanged = traction
+			? (unit->tractionCurve != it->second.acceptedTraction)
+			: (it->second.acceptedPhysical && !sameTrainPhysical(unit->physical, *it->second.acceptedPhysical));
+		const bool candidateChanged = traction
+			? unit->tractionCurve != tractionResult.tractionCurve
+			: !sameTrainPhysical(unit->physical, physicalResult.physical);
+		if (localChanged && candidateChanged)
+			conflicts << QString::fromStdString(unitId);
+	}
+	if (affectedNames.isEmpty()) {
+		refreshTrainUnitSourceWatches();
+		return;
+	}
+	const quint64 sceneRevisionAtDecision = m_sceneRevision;
+	bool reload = true;
+	if (!conflicts.isEmpty() || deferredChange) {
+		QMessageBox dialog(this);
+		dialog.setIcon(QMessageBox::Question);
+		dialog.setWindowTitle("Linked source changed");
+		dialog.setText(QString("%1 changed for %2.")
+			.arg(traction ? QStringLiteral("The traction source") : QStringLiteral("The parameter source"),
+				affectedNames.join(", ")));
+		dialog.setInformativeText(conflicts.isEmpty()
+			? QStringLiteral("The source changed during a run. Reload the external values or keep local edits?")
+			: QStringLiteral("Local edits conflict in %1. Reload the external values or keep local edits?")
+				.arg(conflicts.join(", ")));
+		QPushButton* reloadButton = dialog.addButton("Reload", QMessageBox::AcceptRole);
+		QPushButton* keepButton = dialog.addButton("Keep local", QMessageBox::RejectRole);
+		dialog.setDefaultButton(keepButton);
+		dialog.exec();
+		reload = dialog.clickedButton() == reloadButton;
+	}
+	const auto requeueCurrentAssociations = [this, &path, &affected, traction]() {
+		for (const auto& entry : m_trainUnitSourceLinks) {
+			const QString currentPath = traction ? entry.second.tractionPath : entry.second.dataPath;
+			if (currentPath == path
+					|| std::find(affected.begin(), affected.end(), entry.first) != affected.end()) {
+				if (!currentPath.isEmpty())
+					m_pendingTrainUnitSourcePaths.insert(currentPath);
+			}
+		}
+		refreshTrainUnitSourceWatches();
+	};
+	bool staleDecision = !m_sceneLoaded || m_worker || m_sceneRevision != sceneRevisionAtDecision;
+	if (!staleDecision) {
+		for (const std::string& unitId : affected) {
+			const auto it = m_trainUnitSourceLinks.find(unitId);
+			const auto generation = generations.find(unitId);
+			if (it == m_trainUnitSourceLinks.end() || generation == generations.end()
+					|| (traction ? it->second.tractionPath : it->second.dataPath) != path
+					|| it->second.generation != generation->second) {
+				staleDecision = true;
+				break;
+			}
+		}
+	}
+	if (staleDecision) {
+		requeueCurrentAssociations();
+		updateTrainUnitSourceStatus();
+		return;
+	}
+	if (!reload) {
+		for (const std::string& unitId : affected) {
+			auto it = m_trainUnitSourceLinks.find(unitId);
+			if (it == m_trainUnitSourceLinks.end()
+					|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
+				continue;
+			if (traction) {
+				it->second.tractionSignature = signature;
+				it->second.tractionStatus = QStringLiteral("Kept local; Retry available");
+				it->second.tractionDeferred = false;
+			} else {
+				it->second.dataSignature = signature;
+				it->second.dataStatus = QStringLiteral("Kept local; Retry available");
+				it->second.dataDeferred = false;
+			}
+		}
+		refreshTrainUnitSourceWatches();
+		updateTrainUnitSourceStatus();
+		return;
+	}
+
+	bool changed = false;
+	std::set<std::string> changedTractionUnits;
+	for (const std::string& unitId : affected) {
+		auto linkIt = m_trainUnitSourceLinks.find(unitId);
+		if (linkIt == m_trainUnitSourceLinks.end())
+			continue;
+		SceneTrainUnit* unit = nullptr;
+		for (auto& candidate : m_sceneModel.trainUnits) {
+			if (candidate.id == unitId) {
+				unit = &candidate;
+				break;
+			}
+		}
+		if (!unit)
+			continue;
+		if (traction) {
+			const bool unitChanged = unit->tractionCurve != tractionResult.tractionCurve;
+			if (unitChanged) {
+				unit->tractionCurve = tractionResult.tractionCurve;
+				changed = true;
+				changedTractionUnits.insert(unitId);
+			}
+			linkIt->second.acceptedTraction = tractionResult.tractionCurve;
+			linkIt->second.tractionSignature = signature;
+			linkIt->second.tractionStatus = unitChanged ? QStringLiteral("Reloaded") : QStringLiteral("Up to date");
+			linkIt->second.tractionDeferred = false;
+		} else {
+			const bool unitChanged = !sameTrainPhysical(unit->physical, physicalResult.physical);
+			if (unitChanged) {
+				unit->physical = physicalResult.physical;
+				unit->hasPhysical = true;
+				changed = true;
+			}
+			linkIt->second.acceptedPhysical = physicalResult.physical;
+			linkIt->second.dataSignature = signature;
+			linkIt->second.dataStatus = unitChanged ? QStringLiteral("Reloaded") : QStringLiteral("Up to date");
+			linkIt->second.dataDeferred = false;
+		}
+	}
+	if (changed)
+		markSceneDirty();
+	refreshTrainUnitPanel();
+	refreshCompositionPanel();
+	refreshValidationPanel();
+	for (const std::string& unitId : changedTractionUnits)
+		refreshInputTractionDiagrams(unitId);
+	refreshTrainUnitSourceWatches();
+	updateTrainUnitSourceStatus();
+}
+
+void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
+	const SceneTrainUnit* unit = trainUnitById(unitId);
+	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
+		if (!window || window->property("inputTrainUnitId").toString() != QString::fromStdString(unitId)
+				|| !window->isVisible())
+			continue;
+		if (!unit || unit->tractionCurve.empty()) {
+			window->close();
+			continue;
+		}
+		QString title = QString("Input traction characteristic: %1").arg(QString::fromStdString(unit->id));
+		if (!unit->sourceTractionFile.empty())
+			title += QString("  (%1)").arg(QString::fromStdString(unit->sourceTractionFile));
+		window->setWindowTitle(title);
+		window->setChart(buildInputTractionChart(*unit));
+	}
 }
 
 void MainWindow::commitTrainUnitPhysical(int fieldIndex) {
@@ -7568,36 +8204,13 @@ void MainWindow::plotSelectedCompositionUnitTraction() {
 }
 
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
-	const auto samples = sampleTractionCurve(unit.tractionCurve);
-	QChart* chart = new QChart();
-	chart->setTitle(QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id)));
-	QLineSeries* series = new QLineSeries();
-	series->setName(QString::fromStdString(unit.id));
-	series->setProperty("trainId", QString::fromStdString(unit.id));
-	for (const auto& point : samples)
-		series->append(point.first * 3.6, point.second / 1000.0);
-	series->setPointsVisible(samples.size() == 1);
-	chart->addSeries(series);
-	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText("Speed (km/h)");
-	if (auto* effortAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).value(0))) {
-		effortAxis->setTitleText("Tractive effort (kN)");
-		effortAxis->setRange(0.0, std::max(1.0, effortAxis->max()));
-	}
-	if (std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
-		if (row[1] < row[0])
-			return false;
-		const auto effort = [&row](double speed) { return row[2] + row[3] * speed + row[4] * speed * speed; };
-		const double minimumAt = row[4] > 0.0 ? std::clamp(-row[3] / (2.0 * row[4]), row[0], row[1]) : row[0];
-		return effort(minimumAt) < 0.0 || effort(row[1]) < 0.0;
-	}))
-		chart->setTitle(chart->title() + "<br>Curve contains negative effort below the default 0 kN view");
+	QChart* chart = buildInputTractionChart(unit);
 
 	QString title = QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id));
 	if (!unit.sourceTractionFile.empty())
 		title += QString("  (%1)").arg(QString::fromStdString(unit.sourceTractionFile));
 	DiagramWindow* win = new DiagramWindow(title, this);
+	win->setProperty("inputTrainUnitId", QString::fromStdString(unit.id));
 	win->setChart(chart);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
@@ -13048,6 +13661,10 @@ void MainWindow::runEditorSmokeE2E() {
 	std::vector<SceneService> expectedNewCaseServices;
 	std::vector<SceneIncident> expectedNewCaseIncidents;
 	std::vector<SceneEntranceDelay> expectedEntranceDelays;
+	QTemporaryDir sourceLinkFixture;
+	QString sourcePhysicalPath;
+	QString sourceTractionPath;
+	std::string sourceLinkUnitId;
 
 	auto facetFailure = [&](bool& facetOk, const char* facet, const QString& message) {
 		facetOk = false;
@@ -14866,6 +15483,128 @@ void MainWindow::runEditorSmokeE2E() {
 		expectedCompositions = m_sceneModel.compositions;
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_TRAIN_UNIT_OK\n");
+	}
+
+	if (!m_sceneModel.trainUnits.empty()) {
+		bool facetOk = true;
+		m_trainUnitListWidget->setCurrentRow(0);
+		sourceLinkUnitId = m_sceneModel.trainUnits.front().id;
+		sourcePhysicalPath = sourceLinkFixture.filePath("physical.txt");
+		sourceTractionPath = sourceLinkFixture.filePath("traction.txt");
+		const auto writeSource = [&](const QString& path, const QByteArray& bytes) {
+			QSaveFile file(path);
+			if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit())
+				facetFailure(facetOk, "source links", "temporary source write failed");
+		};
+		const auto settle = []() {
+			QEventLoop loop;
+			QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+			loop.exec();
+		};
+		const auto answerReload = [this](const QString& choice, bool* prompted = nullptr) {
+			QTimer::singleShot(25, this, [choice, prompted]() {
+				for (QWidget* widget : QApplication::topLevelWidgets()) {
+					if (auto* dialog = qobject_cast<QMessageBox*>(widget)) {
+						if (prompted) *prompted = true;
+						for (QAbstractButton* button : dialog->buttons())
+							if (button->text() == choice) button->click();
+					}
+				}
+			});
+		};
+		TrainUnitSourceLink link;
+		link.dataPath = sourcePhysicalPath;
+		link.tractionPath = sourceTractionPath;
+		link.acceptedPhysical = m_sceneModel.trainUnits.front().physical;
+		link.acceptedTraction = m_sceneModel.trainUnits.front().tractionCurve;
+		m_trainUnitSourceLinks[sourceLinkUnitId] = link;
+		refreshTrainUnitSourceWatches();
+		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 71\n");
+		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
+		settle();
+		if (m_sceneModel.trainUnits.front().physical.length_m != 71.0
+				|| m_sceneModel.trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
+			facetFailure(facetOk, "source links", "complete file changes did not apply");
+		const quint64 acceptedRevision = m_sceneRevision;
+		m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred = true;
+		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
+		bool unchangedPrompted = false;
+		answerReload("Keep local", &unchangedPrompted);
+		m_pendingTrainUnitSourcePaths.insert(sourceTractionPath);
+		processTrainUnitSourceChanges();
+		settle();
+		if (m_sceneRevision != acceptedRevision || unchangedPrompted
+				|| m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred)
+			facetFailure(facetOk, "source links", "unchanged deferred save prompted or dirtied the scene");
+		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
+		settle();
+		if (m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 210000
+				|| !m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
+			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
+		QFile::remove(sourceTractionPath);
+		settle();
+		writeSource(sourceTractionPath, "0 40 220000 0 0\n");
+		settle();
+		if (m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 220000
+				|| !m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
+		// The focused editor must commit before comparing with the accepted source.
+		m_trainUnitDock->show();
+		m_trainUnitDock->raise();
+		activateWindow();
+		m_trainUnitPhysicalEdits[8]->setFocus();
+		QApplication::processEvents();
+		if (!m_trainUnitPhysicalEdits[8]->hasFocus())
+			facetFailure(facetOk, "source links", "length editor did not receive focus");
+		m_trainUnitPhysicalEdits[8]->findChild<QLineEdit*>()->setText("73");
+		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 72\n");
+		answerReload("Keep local");
+		processTrainUnitSourceFile(sourcePhysicalPath, false);
+		if (m_sceneModel.trainUnits.front().physical.length_m != 73.0)
+			facetFailure(facetOk, "source links", "focused local edit was overwritten");
+		const quint64 keptRevision = m_sceneRevision;
+		settle();
+		if (m_sceneRevision != keptRevision)
+			facetFailure(facetOk, "source links", "rejected content was reapplied");
+		answerReload("Reload");
+		retryTrainUnitSource(false);
+		processTrainUnitSourceChanges();
+		if (m_sceneModel.trainUnits.front().physical.length_m != 72.0)
+			facetFailure(facetOk, "source links", "explicit retry did not reload");
+		// A duplicate shares values, not the authority to watch an external file.
+		duplicateTrainUnit();
+		const std::string duplicateId = m_sceneModel.trainUnits[1].id;
+		if (m_trainUnitSourceLinks.count(duplicateId))
+			facetFailure(facetOk, "source links", "duplicate inherited a live link");
+		m_trainUnitSourceLinks[duplicateId] = m_trainUnitSourceLinks.at(sourceLinkUnitId);
+		writeSource(sourceTractionPath, "0 40 230000 0 0\n");
+		settle();
+		if (m_sceneModel.trainUnits[0].tractionCurve.front()[2] != 230000
+				|| m_sceneModel.trainUnits[1].tractionCurve.front()[2] != 230000)
+			facetFailure(facetOk, "source links", QString("shared source values %1 / %2; status %3")
+				.arg(m_sceneModel.trainUnits[0].tractionCurve.front()[2])
+				.arg(m_sceneModel.trainUnits[1].tractionCurve.front()[2])
+				.arg(m_trainUnitSourceLinks.at(duplicateId).tractionStatus));
+		m_trainUnitIdEdit->setText(QString::fromStdString(duplicateId + "_renamed"));
+		commitTrainUnitIdEdit();
+		if (m_trainUnitSourceLinks.count(duplicateId)
+				|| !m_trainUnitSourceLinks.count(duplicateId + "_renamed"))
+			facetFailure(facetOk, "source links", "rename did not migrate the link");
+		acceptConfirmation();
+		deleteTrainUnit();
+		if (m_trainUnitSourceLinks.size() != 1
+				|| !m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");
+		m_trainUnitListWidget->setCurrentRow(0);
+		unlinkTrainUnitSource(false);
+		unlinkTrainUnitSource(true);
+		if (!m_trainUnitSourceLinks.empty() || !m_trainUnitSourceWatcher->files().isEmpty()
+				|| !m_trainUnitSourceWatcher->directories().isEmpty())
+			facetFailure(facetOk, "source links", "unlink retained watches");
+		QFile::remove(sourcePhysicalPath);
+		QFile::remove(sourceTractionPath);
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_SOURCE_LINKS_OK\n");
 	}
 
 	std::string editedCompositionId;
@@ -19805,6 +20544,8 @@ void MainWindow::onSimulationFinished() {
 		std::fflush(stderr);
 		clearSimulationWorker(false);
 		refreshInfrastructurePanel();
+		refreshIncidentPanel();
+		processTrainUnitSourceChanges();
 		QCoreApplication::exit(ok ? 0 : 2);
 		return;
 	}
@@ -19824,6 +20565,7 @@ void MainWindow::onSimulationFinished() {
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
+	processTrainUnitSourceChanges();
 }
 
 void MainWindow::teardownGUI() {
