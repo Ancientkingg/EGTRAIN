@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QLabel>
 #include <QLineSeries>
+#include <QPointer>
 #include <QValueAxis>
 
 #include <iostream>
@@ -60,6 +61,14 @@ int main(int argc, char* argv[]) {
 		ok &= expect(speedReadout->text().contains("12.35"), "hover exit keeps exact x value");
 		ok &= expect(speedReadout->text().contains("678.90"), "hover exit keeps exact y value");
 	}
+
+	QPointer<QChart> previousChart = speedWindow.findChild<QChartView*>()->chart();
+	QLineSeries* replacementSeries = nullptr;
+	QChart* replacementChart = chartWithAxes("Replacement speed", "Replacement effort", replacementSeries);
+	speedWindow.setChart(replacementChart);
+	ok &= expect(previousChart.isNull(), "replacing a chart deletes the previous chart");
+	ok &= expect(speedWindow.findChild<QChartView*>()->chart() == replacementChart,
+		"replacing a chart keeps the new chart owned by the view");
 
 	QLineSeries* timeSeries = nullptr;
 	DiagramWindow timeWindow("Time versus distance");
