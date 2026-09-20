@@ -894,11 +894,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 					: commandedMaximumSpeed * service.performancePercent / 100.0;
 			plan.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedMs * 3.6;
 			const double offset = service.hasRepeat ? (occurrence - 1) * headway : 0.0;
-			const double entry = service.hasEntryTime ? service.entryTimeSeconds
-					: ((!service.stops.empty() && service.stops.front().hasPlannedDeparture
-							&& nativeFinite(service.stops.front().plannedDepartureSeconds))
-							? service.stops.front().plannedDepartureSeconds : 0.0);
-			plan.scheduledDeparture = entry + offset;
+			plan.scheduledDeparture = sceneServiceScheduledEntry(service, occurrence);
 			plan.stops = baseStops;
 			for (NativeStopPlan& stop : plan.stops) {
 				if (stop.hasPlannedArrival)

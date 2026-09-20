@@ -95,6 +95,12 @@ leaving that canonical value unchanged. Arrival and departure timetable values
 remain independently optional and are staged as runtime `-1` when absent,
 including repeated occurrences.
 
+Scheduled entry uses explicit entry time first, otherwise the first finite
+planned departure, otherwise zero, plus the repeat offset. The editor's
+in-period count includes entries in `[0, effective duration)`. Configured totals
+and selected totals remain separate; this display does not filter runtime
+expansion or include scenario entrance delays in the schedule.
+
 Only the selected scenario is applied: an explicit selection wins, otherwise
 the exact default is used, with the first scenario used only when no default is
 declared. `DispatchController::prepareScene` and

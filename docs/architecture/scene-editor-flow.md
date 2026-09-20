@@ -117,6 +117,15 @@ absent.
 The scenario editor can create and delete non-default scenarios and edit the
 canonical entrance-delay rows used by native staging.
 
+Services show their service code, configured total and count within the
+simulation period separately. Selected-in-period counts exclude unchecked
+generated services. Maximum speed restriction uses six significant display
+digits; focusing or saving an untouched value preserves its stored precision.
+Train incidents use one generated-service chooser, with code, route, scheduled
+entry and secondary canonical identity. Selecting a row stores both service ID
+and occurrence. Historical all-occurrence targets retain an explicit scope row;
+removed targets remain visibly invalid until deliberately changed.
+
 ## Explicit out-of-scope list
 
 - Drag-and-drop railway CAD, route painting, or automatic signal placement.

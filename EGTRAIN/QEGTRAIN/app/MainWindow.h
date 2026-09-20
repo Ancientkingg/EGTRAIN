@@ -601,8 +601,6 @@ private:
 	QComboBox* m_incidentTargetCombo = nullptr;		 // signal id or service id depending on type
 	QLineEdit* m_incidentStartSecondsEdit = nullptr; // whole seconds
 	QLineEdit* m_incidentEndSecondsEdit = nullptr;	 // whole seconds
-	QCheckBox* m_incidentHasOccurrenceCheck = nullptr;
-	QLineEdit* m_incidentOccurrenceEdit = nullptr;
 	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
@@ -842,11 +840,14 @@ private:
 	void selectNoneServiceOccurrences();
 	double serviceOccurrenceDuration() const;
 	int totalServiceOccurrences() const;
+	int inPeriodServiceOccurrences() const;
 	int selectedServiceOccurrences() const;
+	int selectedServiceOccurrencesInPeriod() const;
 	SceneRunSelection selectedSceneOccurrences() const;
 	void pruneExcludedServiceOccurrences();
 	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
 	std::string uniqueServiceId(const std::string& baseId) const;
+	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
 	// stop (timetable) editor: edits the selected service's stops in place
 	void refreshStopList();
@@ -887,8 +888,6 @@ private:
 	void commitIncidentTarget(const QString& text);
 	void commitIncidentStartSeconds();
 	void commitIncidentEndSeconds();
-	void commitIncidentOccurrence();
-	void commitIncidentHasOccurrence(bool checked);
 	void commitIncidentReducedSpeed();
 	void commitIncidentHasReducedSpeed(bool checked);
 	void commitIncidentHasEndSeconds(bool checked);
