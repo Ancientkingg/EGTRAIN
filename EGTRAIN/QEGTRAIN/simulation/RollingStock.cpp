@@ -673,6 +673,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		return selectedOccurrences.empty()
 				|| selectedOccurrences.count(SceneServiceOccurrence{serviceId, occurrence}) > 0;
 	};
+	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	for (const SceneService& service : scene.services) {
 		if (service.id.empty())
 			continue;
@@ -794,7 +795,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		}
 
 		const Route& runtimeRoute = train_route[routeIt->second];
-		const SceneRouteTraversal routeTraversal = buildSceneRouteTraversal(scene, *routes.at(service.route));
+		const SceneRouteTraversal routeTraversal = buildSceneRouteTraversal(scene, *routes.at(service.route), sectionInventory);
 		const std::vector<SceneStopResolution> stopResolutions =
 			resolveSceneServiceStops(scene, service, routeTraversal);
 		if (service.hasEntryTime && (!nativeFinite(service.entryTimeSeconds) || service.entryTimeSeconds < 0.0))
@@ -950,10 +951,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	std::vector<SimulationIncident> stagedIncidents;
 	std::map<SceneServiceOccurrence, double> occurrenceDelay;
 	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
-	SceneSectionInventory sectionInventory;
-	if (scenario != nullptr && std::any_of(scenario->incidents.begin(), scenario->incidents.end(),
-			[](const SceneIncident& incident) { return incident.type == "signal_failure"; }))
-		sectionInventory = buildSceneSectionInventory(scene);
 	if (scenario != nullptr) {
 		for (const SceneIncident& incident : scenario->incidents) {
 			bool valid = true;

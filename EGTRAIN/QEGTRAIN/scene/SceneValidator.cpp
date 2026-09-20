@@ -809,7 +809,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				break;
 			}
 		const SceneRouteTraversal routeTraversal = serviceRoute
-				? buildSceneRouteTraversal(scene, *serviceRoute) : SceneRouteTraversal();
+				? buildSceneRouteTraversal(scene, *serviceRoute, sectionInventory) : SceneRouteTraversal();
 		const std::vector<SceneStopResolution> stopResolutions =
 			resolveSceneServiceStops(scene, service, routeTraversal);
 		for (std::size_t stopIndex = 0; stopIndex < service.stops.size(); ++stopIndex) {

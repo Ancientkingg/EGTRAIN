@@ -89,6 +89,8 @@ int sceneRouteDirection(const SceneModel& scene,
 bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double leftEnd,
 		const std::string& rightId, double rightStart, double rightEnd);
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route);
+SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route,
+		const SceneSectionInventory& inventory);
 std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
 		const SceneService& service, const SceneRouteTraversal& traversal);
 std::string formatSceneSectionCoordinate(double coordinate);

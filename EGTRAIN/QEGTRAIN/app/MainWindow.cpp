@@ -1477,8 +1477,9 @@ QString stopResolutionText(SceneStopResolutionStatus status) {
 	return {};
 }
 
-void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route) {
-	const auto traversal = buildSceneRouteTraversal(model, route);
+void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route,
+		const SceneSectionInventory& inventory) {
+	const auto traversal = buildSceneRouteTraversal(model, route, inventory);
 	QStringList stations;
 	std::string previousStation;
 	for (const auto& visit : traversal.visits) {
@@ -8625,8 +8626,9 @@ void MainWindow::updateServiceDetailPanel() {
 	if (m_serviceRouteCombo) {
 		const QSignalBlocker blocker(m_serviceRouteCombo);
 		m_serviceRouteCombo->clear();
+		const auto inventory = buildSceneSectionInventory(m_sceneModel);
 		for (const auto& route : m_sceneModel.routes)
-			addServiceRouteChoice(m_serviceRouteCombo, m_sceneModel, route);
+			addServiceRouteChoice(m_serviceRouteCombo, m_sceneModel, route, inventory);
 		if (hasSelection) {
 			QString currentRoute = QString::fromStdString(m_sceneModel.services[row].route);
 			if (m_serviceRouteCombo->findData(currentRoute) < 0)

@@ -445,8 +445,12 @@ int sceneRouteDirection(const SceneModel& scene,
 }
 
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route) {
+	return buildSceneRouteTraversal(scene, route, buildSceneSectionInventory(scene));
+}
+
+SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route,
+		const SceneSectionInventory& inventory) {
 	SceneRouteTraversal traversal;
-	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
 	std::vector<const SceneSectionDescriptor*> sections;
 	sections.reserve(route.blocks.size());
 	for (const std::string& reference : route.blocks) {
