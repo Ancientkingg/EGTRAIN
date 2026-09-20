@@ -4,6 +4,7 @@
 #include "scene/SceneModel.h"
 
 #include <cstddef>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -47,9 +48,49 @@ struct SceneSectionTransition {
 	bool regionJump = false;
 };
 
+struct SceneRouteVisit {
+	std::string sectionId;
+	std::string nodeId;
+	std::string stationId;
+	std::string platformId;
+	std::size_t sectionIndex = std::numeric_limits<std::size_t>::max();
+};
+
+struct SceneRouteTraversal {
+	int direction = 0; // 1 = native forward, -1 = native reverse, 0 = unresolved.
+	bool resolved = false;
+	std::vector<SceneRouteVisit> visits;
+};
+
+enum class SceneStopResolutionStatus {
+	Resolved,
+	AmbiguousPlatform,
+	OffRouteContext,
+	OutOfOrder,
+	InvalidPlatform,
+	UnknownStation,
+	UnresolvedRoute,
+};
+
+struct SceneStopResolution {
+	SceneStopResolutionStatus status = SceneStopResolutionStatus::UnresolvedRoute;
+	std::size_t visitIndex = std::numeric_limits<std::size_t>::max();
+	std::size_t sectionIndex = std::numeric_limits<std::size_t>::max();
+	std::vector<std::string> candidatePlatformIds;
+	std::string nodeId;
+	std::string sectionId;
+};
+
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene);
 SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 		const SceneSectionDescriptor& left, const SceneSectionDescriptor& right);
+int sceneRouteDirection(const SceneModel& scene,
+		const std::vector<const SceneSectionDescriptor*>& sections);
+bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double leftEnd,
+		const std::string& rightId, double rightStart, double rightEnd);
+SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route);
+std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
+		const SceneService& service, const SceneRouteTraversal& traversal);
 std::string formatSceneSectionCoordinate(double coordinate);
 
 #endif // SCENE_SECTION_INVENTORY_H

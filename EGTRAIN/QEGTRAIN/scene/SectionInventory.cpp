@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <sstream>
 #include <unordered_map>
 
 namespace {
@@ -129,6 +130,36 @@ bool sectionBoundaryIsRegionJump(const SceneSectionDescriptor& left,
 	const std::string rightTrack = forward ? sectionStartTrack(right) : sectionEndTrack(right);
 	return leftTrack != rightTrack
 			&& std::fabs(leftCoordinate - rightCoordinate) > kCoordinateTolerance;
+}
+
+std::vector<std::string> nativeSectionTokens(const std::string& sectionId) {
+	std::vector<std::string> tokens;
+	std::istringstream line(sectionId);
+	std::string token;
+	while (std::getline(line, token, '@'))
+		if (!token.empty())
+			tokens.push_back(token);
+	return tokens;
+}
+
+std::vector<std::string> filterSectionNodes(const SceneSectionDescriptor& section,
+		const std::unordered_map<std::string, const SceneNode*>& nodesById,
+		double startKm, double endKm) {
+	std::vector<std::string> result;
+	for (const std::string& nodeId : section.nodeIds) {
+		const auto node = nodesById.find(nodeId);
+		if (node == nodesById.end())
+			continue;
+		if (node->second->xKm >= startKm - kCoordinateTolerance
+				&& node->second->xKm <= endKm + kCoordinateTolerance)
+			result.push_back(nodeId);
+	}
+	return result;
+}
+
+void addCandidatePlatform(std::vector<std::string>& platforms, const std::string& platformId) {
+	if (std::find(platforms.begin(), platforms.end(), platformId) == platforms.end())
+		platforms.push_back(platformId);
 }
 
 } // namespace
@@ -363,4 +394,230 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 		}
 	}
 	return inventory;
+}
+
+bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double leftEnd,
+		const std::string& rightId, double rightStart, double rightEnd) {
+	if (!((rightStart >= leftStart && rightStart < leftEnd)
+			|| (leftStart >= rightStart && leftStart < rightEnd)))
+		return false;
+	const auto leftTokens = nativeSectionTokens(leftId);
+	const auto rightTokens = nativeSectionTokens(rightId);
+	return std::any_of(leftTokens.begin(), leftTokens.end(), [&rightTokens](const std::string& token) {
+		return std::find(rightTokens.begin(), rightTokens.end(), token) != rightTokens.end();
+	});
+}
+
+int sceneRouteDirection(const SceneModel& scene,
+		const std::vector<const SceneSectionDescriptor*>& sections) {
+	if (sections.empty())
+		return 0;
+	if (sections.size() == 1)
+		return 1;
+	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
+			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
+	bool forward = false;
+	bool reverse = false;
+	int preferredDirection = 0;
+	for (std::size_t index = 1; index < sections.size(); ++index) {
+		const SceneSectionTransition transition = classifySceneSectionTransition(scene,
+				*sections[index - 1], *sections[index]);
+		forward = forward || transition.joinsForward;
+		reverse = reverse || transition.joinsReverse;
+		if (forward && reverse)
+			return 0;
+		if (transition.joinsForward || transition.joinsReverse)
+			continue;
+		if (transition.regionJump && hasLegacyImport) {
+			if (preferredDirection == 0 && forward != reverse)
+				preferredDirection = forward ? 1 : -1;
+			forward = false;
+			reverse = false;
+			continue;
+		}
+		return 0;
+	}
+	if (preferredDirection != 0)
+		return preferredDirection;
+	if (forward != reverse)
+		return forward ? 1 : -1;
+	return sections.front()->startKm < sections.back()->startKm ? 1 : -1;
+}
+
+SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route) {
+	SceneRouteTraversal traversal;
+	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+	std::vector<const SceneSectionDescriptor*> sections;
+	sections.reserve(route.blocks.size());
+	for (const std::string& reference : route.blocks) {
+		const SceneSectionDescriptor* section = inventory.resolve(reference);
+		if (section == nullptr)
+			return traversal;
+		sections.push_back(section);
+	}
+	traversal.direction = sceneRouteDirection(scene, sections);
+	if (sections.empty() || traversal.direction == 0)
+		return traversal;
+
+	std::unordered_map<std::string, const SceneNode*> nodesById;
+	for (const auto& node : scene.nodes)
+		nodesById.emplace(node.id, &node);
+	std::vector<double> starts;
+	std::vector<double> ends;
+	starts.reserve(sections.size());
+	ends.reserve(sections.size());
+	for (const SceneSectionDescriptor* section : sections) {
+		starts.push_back(section->startKm);
+		ends.push_back(section->endKm);
+	}
+	for (std::size_t index = 1; index < sections.size(); ++index) {
+		if (!sections[index - 1]->connectionDerived || !sections[index]->connectionDerived
+				|| !sceneSectionsOverlap(sections[index - 1]->id, starts[index - 1], ends[index - 1],
+						sections[index]->id, starts[index], ends[index]))
+			continue;
+		double cuttingPosition = 0.0;
+		if (traversal.direction > 0) {
+			cuttingPosition = (sections[index]->firstConnectionKm
+					- sections[index - 1]->secondConnectionKm) / 2.0
+				+ sections[index - 1]->secondConnectionKm;
+			if (cuttingPosition > starts[index - 1] && cuttingPosition < ends[index - 1])
+				ends[index - 1] = cuttingPosition;
+			if (cuttingPosition > starts[index] && cuttingPosition < ends[index])
+				starts[index] = cuttingPosition;
+		} else {
+			cuttingPosition = (sections[index - 1]->firstConnectionKm
+					- sections[index]->secondConnectionKm) / 2.0
+				+ sections[index]->secondConnectionKm;
+			if (cuttingPosition > starts[index - 1] && cuttingPosition < ends[index - 1])
+				starts[index - 1] = cuttingPosition;
+			if (cuttingPosition > starts[index] && cuttingPosition < ends[index])
+				ends[index] = cuttingPosition;
+		}
+	}
+
+	std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> platformBindings;
+	for (const auto& station : scene.stations)
+		for (const auto& platform : station.platforms)
+			for (const std::string& nodeId : platform.nodeIds)
+				platformBindings[nodeId].emplace_back(station.id, platform.id);
+	std::unordered_map<std::string, std::vector<std::string>> positionedStations;
+	for (const auto& station : scene.stations) {
+		if (!station.hasPosition || !station.platforms.empty())
+			continue;
+		for (const auto& node : scene.nodes)
+			if (std::fabs(node.xKm - station.positionKm) <= kCoordinateTolerance)
+				positionedStations[node.id].push_back(station.id);
+	}
+
+	std::string previousRawNodeId;
+	for (std::size_t sectionIndex = 0; sectionIndex < sections.size(); ++sectionIndex) {
+		std::vector<std::string> nodeIds = filterSectionNodes(*sections[sectionIndex], nodesById,
+				starts[sectionIndex], ends[sectionIndex]);
+		if (traversal.direction < 0)
+			std::reverse(nodeIds.begin(), nodeIds.end());
+		for (const std::string& nodeId : nodeIds) {
+			const bool adjacentRawBoundary = !previousRawNodeId.empty() && previousRawNodeId == nodeId;
+			if (adjacentRawBoundary)
+				continue;
+			std::vector<std::pair<std::string, std::string>> bindings;
+			const auto platformIt = platformBindings.find(nodeId);
+			if (platformIt != platformBindings.end())
+				bindings = platformIt->second;
+			const auto positionIt = positionedStations.find(nodeId);
+			if (bindings.empty() && positionIt != positionedStations.end())
+				for (const std::string& stationId : positionIt->second)
+					bindings.emplace_back(stationId, std::string());
+			if (bindings.empty()) {
+				previousRawNodeId = nodeId;
+				continue;
+			}
+			for (const auto& binding : bindings) {
+				traversal.visits.push_back({sections[sectionIndex]->id, nodeId,
+						binding.first, binding.second, sectionIndex});
+			}
+			previousRawNodeId = nodeId;
+		}
+	}
+	traversal.resolved = true;
+	return traversal;
+}
+
+std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
+		const SceneService& service, const SceneRouteTraversal& traversal) {
+	std::vector<SceneStopResolution> result;
+	result.reserve(service.stops.size());
+	std::size_t cursor = 0;
+	for (const SceneStop& stop : service.stops) {
+		SceneStopResolution resolution;
+		if (!traversal.resolved) {
+			resolution.status = SceneStopResolutionStatus::UnresolvedRoute;
+			result.push_back(std::move(resolution));
+			continue;
+		}
+		const bool stationKnown = std::any_of(scene.stations.begin(), scene.stations.end(),
+				[&stop](const SceneStation& station) { return station.id == stop.stationId; });
+		if (!stationKnown) {
+			resolution.status = SceneStopResolutionStatus::UnknownStation;
+			result.push_back(std::move(resolution));
+			continue;
+		}
+		std::vector<std::size_t> after;
+		std::vector<std::size_t> before;
+		for (std::size_t index = 0; index < traversal.visits.size(); ++index) {
+			const SceneRouteVisit& visit = traversal.visits[index];
+			if (visit.stationId != stop.stationId)
+				continue;
+			if (index >= cursor)
+				after.push_back(index);
+			else
+				before.push_back(index);
+		}
+		for (const std::size_t index : after)
+			addCandidatePlatform(resolution.candidatePlatformIds,
+					traversal.visits[index].platformId);
+		if (stop.platformId.empty()) {
+			if (resolution.candidatePlatformIds.size() > 1) {
+				resolution.status = SceneStopResolutionStatus::AmbiguousPlatform;
+			} else if (resolution.candidatePlatformIds.size() == 1) {
+				for (const std::size_t index : after) {
+					if (traversal.visits[index].platformId != resolution.candidatePlatformIds.front())
+						continue;
+					resolution.status = SceneStopResolutionStatus::Resolved;
+					resolution.visitIndex = index;
+					resolution.sectionIndex = traversal.visits[index].sectionIndex;
+					resolution.nodeId = traversal.visits[index].nodeId;
+					resolution.sectionId = traversal.visits[index].sectionId;
+					break;
+				}
+			} else if (!before.empty()) {
+				resolution.status = SceneStopResolutionStatus::OutOfOrder;
+			} else {
+				resolution.status = SceneStopResolutionStatus::OffRouteContext;
+			}
+		} else {
+			for (const std::size_t index : after) {
+				if (traversal.visits[index].platformId != stop.platformId)
+					continue;
+				resolution.status = SceneStopResolutionStatus::Resolved;
+				resolution.visitIndex = index;
+				resolution.sectionIndex = traversal.visits[index].sectionIndex;
+				resolution.nodeId = traversal.visits[index].nodeId;
+				resolution.sectionId = traversal.visits[index].sectionId;
+				break;
+			}
+			if (resolution.status != SceneStopResolutionStatus::Resolved) {
+				const bool seenPlatform = std::any_of(traversal.visits.begin(), traversal.visits.end(),
+						[&stop](const SceneRouteVisit& visit) {
+							return visit.stationId == stop.stationId && visit.platformId == stop.platformId;
+						});
+				resolution.status = seenPlatform && !before.empty()
+						? SceneStopResolutionStatus::OutOfOrder
+						: SceneStopResolutionStatus::InvalidPlatform;
+			}
+		}
+		if (resolution.status == SceneStopResolutionStatus::Resolved)
+			cursor = resolution.visitIndex + 1;
+		result.push_back(std::move(resolution));
+	}
+	return result;
 }

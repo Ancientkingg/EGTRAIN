@@ -211,6 +211,15 @@ visible until you choose a replacement. This label does not change train
 performance, composition or stops. It survives duplication and folder/bundle
 saves, but not legacy export.
 
+The route chooser shows endpoints and direction. Its tooltip lists stations
+passed by the route, not stopping calls. Add Stop chooses a remaining station
+visit and its unique reachable platform; if several platforms are reachable,
+choose one explicitly. Moving stops or changing routes can leave invalid
+assignments: the editor keeps them for repair and explains the problem. These
+drafts can be saved, but incompatible stop instructions cannot run. Historical
+blank-platform rows outside the route remain schedule context, not simulated
+stops.
+
 Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
 links consistent:
 
