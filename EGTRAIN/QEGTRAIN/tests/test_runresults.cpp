@@ -600,6 +600,16 @@ int main() {
 				&& comparison.rows[0].destinationTerminationRequested
 				&& comparison.rows[0].destinationTerminated,
 				"signal-failure direct evidence and destination outcome reach comparison rows");
+		DelayRunSnapshot zeroScenario = scenario;
+		zeroScenario.scenarioId = "incident-zero-delay";
+		zeroScenario.timetable[0].simulatedArrivalSeconds = {true, 100.0};
+		zeroScenario.timetable[1].simulatedArrivalSeconds = {true, 150.0};
+		zeroScenario.timetable[2].simulatedArrivalSeconds = {true, 200.0};
+		const DelayComparisonResult zeroResult = compareDelayRuns(baseline, zeroScenario);
+		ok &= expect(zeroResult.valid && zeroResult.rows.empty()
+				&& zeroResult.totalArrivalDelay.available
+				&& closeTo(zeroResult.totalArrivalDelay.value, 0.0),
+				"delay comparison accepts zero positive additional final-arrival delay without rows");
 
 		DelayRunSnapshot mismatched = scenario;
 		mismatched.run.trains.pop_back();

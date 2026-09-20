@@ -142,6 +142,7 @@ bool sameStartupIdentity(const StartupIdentity& left, const StartupIdentity& rig
 }
 
 const char* kRecentScenesKey = "recentScenes";
+const char* kAdvancedDetailsKey = "advancedDetails";
 const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailZoom = 3.0;
 constexpr qreal kSignalDetailZoom = 8.0;
@@ -2164,6 +2165,34 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_loadedDataTree, &QTreeWidget::itemActivated, this,
 			[this](QTreeWidgetItem* item, int) { activateLoadedDataItem(item); });
 
+	m_advancedDetailsAction = new QAction(QStringLiteral("Advanced / Developer details"), this);
+	m_advancedDetailsAction->setObjectName(QStringLiteral("actionAdvancedDetails"));
+	m_advancedDetailsAction->setCheckable(true);
+	m_advancedDetailsAction->setToolTip(QStringLiteral(
+		"Show technical inventories, validation details, and non-blocking warnings"));
+	QSettings detailsSettings;
+	m_advancedDetailsAction->setChecked(detailsSettings.value(kAdvancedDetailsKey, false).toBool());
+	if (ui->menuView) {
+		ui->menuView->addSeparator();
+		ui->menuView->addAction(m_advancedDetailsAction);
+	}
+	connect(m_advancedDetailsAction, &QAction::toggled, this, [this](bool enabled) {
+		QSettings settings;
+		settings.setValue(kAdvancedDetailsKey, enabled);
+		settings.sync();
+		if (m_loadedDataDock) {
+			m_loadedDataDock->setVisible(enabled);
+			if (enabled)
+				m_loadedDataDock->raise();
+		}
+		if (!enabled && m_validationDock)
+			m_validationDock->hide();
+		updateDiagnosticPresentation();
+		updateScenarioPresentation();
+		refreshRunResultsSummary();
+		updateDiagramActions();
+	});
+
 	// Case settings: the six scene-level values stay in one small editor so
 	// opening the panel never changes the model and every edit uses one commit path.
 	m_caseSettingsDock = new QDockWidget("Case Settings", this);
@@ -3316,6 +3345,11 @@ void MainWindow::newScene() {
 	m_savedSceneSha256.clear();
 	m_sceneModel = makeNewSceneModel();
 	++m_sceneRevision;
+	if (m_delayBaseline)
+		m_delayBaselineStatus = QStringLiteral(
+			"Delay baseline cleared: a new case study was created. Complete a run with no incidents or entrance delays to set a new baseline.");
+	else
+		m_delayBaselineStatus.clear();
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = false;
@@ -3514,6 +3548,11 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	m_sceneDir = scenePath;
 	m_sceneModel = result.scene;
 	++m_sceneRevision;
+	if (m_delayBaseline)
+		m_delayBaselineStatus = QStringLiteral(
+			"Delay baseline cleared: another case study was opened. Complete a run with no incidents or entrance delays to set a new baseline.");
+	else
+		m_delayBaselineStatus.clear();
 	m_delayBaseline.reset();
 	m_sceneLoaded = true;
 	m_sceneIsBundle = sceneIsBundle;
@@ -3558,7 +3597,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 			m_startupTimingScenePath = scenePath;
 		networkView->armTimingPaint(QStringLiteral("preview"), m_startupTimingIteration);
 	}
-	if (m_loadedDataDock) {
+	if (m_loadedDataDock && advancedDetailsEnabled()) {
 		m_loadedDataDock->show();
 		m_loadedDataDock->raise();
 	}
@@ -4326,6 +4365,84 @@ void MainWindow::handleSelfUpdateFinished(bool success, const QString& error) {
 	QCoreApplication::quit();
 }
 
+bool MainWindow::advancedDetailsEnabled() const {
+	if (m_advancedDetailsAction)
+		return m_advancedDetailsAction->isChecked();
+	QSettings settings;
+	return settings.value(kAdvancedDetailsKey, false).toBool();
+}
+
+void MainWindow::updateDiagnosticPresentation() {
+	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
+	if (m_validationStatusLabel) {
+		if (advancedDetailsEnabled()) {
+			QString message = QStringLiteral("Validation: %1 error(s), %2 warning(s)")
+				.arg(counts.errors).arg(counts.warnings);
+			if (counts.infos > 0)
+				message += QStringLiteral(", %1 info").arg(counts.infos);
+			m_validationStatusLabel->setText(message);
+		} else if (counts.errors > 0) {
+			m_validationStatusLabel->setText(
+				QStringLiteral("Not ready: %1 validation error(s) must be fixed").arg(counts.errors));
+		} else {
+			m_validationStatusLabel->clear();
+		}
+	}
+	updateCaseLayersPanel();
+}
+
+void MainWindow::updateScenarioPresentation() {
+	if (!m_scenarioListWidget)
+		return;
+	const bool details = advancedDetailsEnabled();
+	const auto validationStatus = [this](std::size_t index) {
+		const std::string prefix = "scenarios[" + std::to_string(index) + "]";
+		int errors = 0;
+		int warnings = 0;
+		for (const auto& diagnostic : m_sceneDiagnostics) {
+			if (diagnostic.path.rfind(prefix, 0) != 0)
+				continue;
+			if (diagnostic.severity == SceneSeverity::Error)
+				++errors;
+			else if (diagnostic.severity == SceneSeverity::Warning)
+				++warnings;
+		}
+		return errors > 0 ? QStringLiteral("Invalid")
+			: (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
+	};
+	for (std::size_t index = 0; index < m_sceneModel.scenarios.size()
+			&& index < static_cast<std::size_t>(m_scenarioListWidget->count()); ++index) {
+		const SceneScenario& scenario = m_sceneModel.scenarios[index];
+		const QString description = scenario.description.empty()
+			? QStringLiteral("(no description)") : QString::fromStdString(scenario.description);
+		QString label = QString("%1 — %2")
+			.arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name));
+		if (details) {
+			label += QString(" | %1 | %2 incident(s) | %3 delay(s) | %4")
+				.arg(description)
+				.arg(static_cast<int>(scenario.incidents.size()))
+				.arg(static_cast<int>(scenario.entranceDelays.size()))
+				.arg(validationStatus(index));
+		} else {
+			label += QString(" | %1 incident(s) | %2 delay(s)")
+				.arg(static_cast<int>(scenario.incidents.size()))
+				.arg(static_cast<int>(scenario.entranceDelays.size()));
+			if (!scenario.description.empty())
+				label += QString(" | %1").arg(description);
+			if (validationStatus(index) == QStringLiteral("Invalid"))
+				label += QStringLiteral(" | Invalid");
+		}
+		if (scenario.id == m_sceneModel.defaultScenarioId)
+			label += QStringLiteral(" | default");
+		if (m_modifiedScenarioIds.count(scenario.id) > 0)
+			label += QStringLiteral(" | modified");
+		if (auto* item = m_scenarioListWidget->item(static_cast<int>(index))) {
+			item->setText(label);
+			item->setToolTip(label);
+		}
+	}
+}
+
 void MainWindow::refreshValidationPanel() {
 	if (m_committingPendingEditorValues)
 		return;
@@ -4368,17 +4485,11 @@ void MainWindow::refreshValidationPanel() {
 		m_validationTable->resizeColumnsToContents();
 	}
 
-	SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
-	QString message = QString("Validation: %1 error(s), %2 warning(s)").arg(counts.errors).arg(counts.warnings);
-	if (counts.infos > 0)
-		message += QString(", %1 info").arg(counts.infos);
-	if (m_validationStatusLabel)
-		m_validationStatusLabel->setText(message);
+	updateDiagnosticPresentation();
 	refreshLoadedDataTree();
 	refreshScenarioList();
 	refreshPassengerPanel();
 	updateSceneActions();
-	updateCaseLayersPanel();
 }
 
 void MainWindow::refreshLoadedDataTree() {
@@ -4540,6 +4651,9 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 
 void MainWindow::markSceneDirty() {
 	++m_sceneRevision;
+	if (m_delayBaseline)
+		m_delayBaselineStatus = QStringLiteral(
+			"Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline.");
 	m_delayBaseline.reset();
 	m_sceneDirty = true;
 	if (m_worker) {
@@ -9215,41 +9329,13 @@ void MainWindow::refreshScenarioList() {
 		const QSignalBlocker blocker(m_scenarioListWidget);
 		m_scenarioListWidget->clear();
 		int rowToSelect = -1;
-		const auto validationStatus = [this](std::size_t index) {
-			const std::string prefix = "scenarios[" + std::to_string(index) + "]";
-			int errors = 0;
-			int warnings = 0;
-			for (const auto& diagnostic : m_sceneDiagnostics) {
-				if (diagnostic.path.rfind(prefix, 0) != 0)
-					continue;
-				if (diagnostic.severity == SceneSeverity::Error)
-					++errors;
-				else if (diagnostic.severity == SceneSeverity::Warning)
-					++warnings;
-			}
-			return errors > 0 ? QStringLiteral("Invalid")
-				: (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
-		};
 		for (std::size_t index = 0; hasScene && index < m_sceneModel.scenarios.size(); ++index) {
 			const SceneScenario& scenario = m_sceneModel.scenarios[index];
-			const QString description = scenario.description.empty()
-				? QStringLiteral("(no description)") : QString::fromStdString(scenario.description);
-			QString label = QString("%1 — %2 | %3 | %4 incident(s) | %5 delay(s) | %6")
-				.arg(QString::fromStdString(scenario.id))
-				.arg(QString::fromStdString(scenario.name))
-				.arg(description)
-				.arg(static_cast<int>(scenario.incidents.size()))
-				.arg(static_cast<int>(scenario.entranceDelays.size()))
-				.arg(validationStatus(index));
-			if (scenario.id == m_sceneModel.defaultScenarioId)
-				label += " | default";
-			if (m_modifiedScenarioIds.count(scenario.id) > 0)
-				label += " | modified";
-			auto* item = new QListWidgetItem(label, m_scenarioListWidget);
-			item->setToolTip(label);
+			new QListWidgetItem(m_scenarioListWidget);
 			if (scenario.id == m_selectedScenarioId)
 				rowToSelect = static_cast<int>(index);
 		}
+		updateScenarioPresentation();
 		m_scenarioListWidget->setCurrentRow(rowToSelect);
 		m_scenarioListWidget->setEnabled(hasScene && !m_worker);
 	}
@@ -11555,9 +11641,24 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "secondary diagnostics docks are visible by default";
 	}
-	if (!m_loadedDataDock || !m_loadedDataDock->isVisible()) {
+	QAction* advancedDetailsAction = actionNamed("actionAdvancedDetails");
+	if (!advancedDetailsAction || !m_loadedDataDock) {
 		ok = false;
-		failures << "loaded data review is not visible after scene open";
+		failures << "advanced details presentation controls are missing";
+	} else {
+		advancedDetailsAction->setChecked(false);
+		QApplication::processEvents();
+		if (m_loadedDataDock->isVisible()) {
+			ok = false;
+			failures << "loaded data review opened automatically in normal mode";
+		}
+		m_loadedDataDock->toggleViewAction()->trigger();
+		QApplication::processEvents();
+		if (!m_loadedDataDock->isVisible()) {
+			ok = false;
+			failures << "loaded data review is not available from its explicit View action";
+		}
+		m_loadedDataDock->hide();
 	}
 
 	showNormal();
@@ -13223,6 +13324,106 @@ void MainWindow::runEditorSmokeE2E() {
 				ok = false;
 				failures << "scene: primary scene not restored";
 			}
+		}
+	}
+
+	// Optional diagnostics must not replace a focused editor value or hide a
+	// blocking error. Exercise both presentation modes without committing edits.
+	{
+		QAction* detailsAction = findChild<QAction*>("actionAdvancedDetails");
+		if (!detailsAction || detailsAction->isChecked()) {
+			ok = false;
+			failures << "presentation: fresh settings profile did not start in normal mode";
+		} else if (!m_loadedDataDock || m_loadedDataDock->isVisible()) {
+			ok = false;
+			failures << "presentation: loaded data opened automatically in normal mode";
+		} else if (!m_scenarioListWidget || m_scenarioListWidget->count() == 0) {
+			ok = false;
+			failures << "presentation: scenario list is unavailable for diagnostic checks";
+		} else {
+			const std::vector<SceneDiagnostic> originalDiagnostics = m_sceneDiagnostics;
+			const std::string originalName = m_sceneModel.name;
+			const bool originalDirty = m_sceneDirty;
+			const quint64 originalRevision = m_sceneRevision;
+			const QString originalEditorText = m_caseNameEdit ? m_caseNameEdit->text() : QString();
+			const auto syntheticDiagnostic = [](SceneSeverity severity, const char* message) {
+				SceneDiagnostic diagnostic;
+				diagnostic.severity = severity;
+				diagnostic.code = "e2e.presentation";
+				diagnostic.message = message;
+				diagnostic.path = "scenarios[0]";
+				return diagnostic;
+			};
+			const auto applyPresentation = [this]() {
+				updateDiagnosticPresentation();
+				updateScenarioPresentation();
+				refreshLoadedDataTree();
+				QApplication::processEvents();
+			};
+			const auto firstScenarioText = [this]() {
+				return m_scenarioListWidget && m_scenarioListWidget->item(0)
+					? m_scenarioListWidget->item(0)->text() : QString();
+			};
+
+			if (m_caseNameEdit) {
+				m_caseNameEdit->setFocus();
+				m_caseNameEdit->setText(originalEditorText + " pending");
+				const bool dirtyBeforeToggle = m_sceneDirty;
+				const quint64 revisionBeforeToggle = m_sceneRevision;
+				detailsAction->setChecked(true);
+				QApplication::processEvents();
+				if (!m_loadedDataDock->isVisible() || !QSettings().value(kAdvancedDetailsKey).toBool())
+					failures << "presentation: advanced details did not open or persist";
+				if (m_caseNameEdit->text() != originalEditorText + " pending"
+						|| m_sceneModel.name != originalName || m_sceneDirty != dirtyBeforeToggle
+						|| m_sceneRevision != revisionBeforeToggle)
+					failures << "presentation: advanced toggle replaced or committed focused case text";
+				m_caseNameEdit->setText(originalEditorText);
+			} else {
+				failures << "presentation: case name editor is unavailable for focus preservation";
+			}
+
+			detailsAction->setChecked(false);
+			if (m_loadedDataDock->isVisible() || m_validationDock->isVisible())
+				failures << "presentation: normal mode did not close diagnostic docks";
+			m_sceneDiagnostics.clear();
+			applyPresentation();
+			if (!m_validationStatusLabel->text().isEmpty()
+					|| m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
+					|| firstScenarioText().contains("Warning")
+					|| firstScenarioText().contains("Invalid"))
+				failures << "presentation: clean normal mode exposed diagnostic warnings";
+
+			m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
+				"E2E non-blocking warning")};
+			applyPresentation();
+			if (!m_validationStatusLabel->text().isEmpty()
+					|| m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
+					|| firstScenarioText().contains("Warning"))
+				failures << "presentation: normal mode exposed a non-blocking warning";
+
+			m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Error,
+				"E2E invalid scenario")};
+			applyPresentation();
+			if (!m_validationStatusLabel->text().contains("Not ready")
+					|| m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario")
+					|| !firstScenarioText().contains("Invalid"))
+				failures << "presentation: normal mode hid an actionable invalid scenario";
+
+			detailsAction->setChecked(true);
+			m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
+				"E2E non-blocking warning")};
+			applyPresentation();
+			if (!m_validationStatusLabel->text().contains("Validation:")
+					|| !m_validationStatusLabel->text().contains("warning")
+					|| !firstScenarioText().contains("Warning"))
+				failures << "presentation: advanced mode hid full warning details";
+
+			m_sceneDiagnostics = originalDiagnostics;
+			applyPresentation();
+			if (m_sceneModel.name != originalName || m_sceneDirty != originalDirty
+					|| m_sceneRevision != originalRevision)
+				failures << "presentation: diagnostic checks changed scene state";
 		}
 	}
 
@@ -17569,6 +17770,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				.arg(hasErrors(m_sceneDiagnostics)));
 			return;
 		}
+		if (QAction* detailsAction = findChild<QAction*>("actionAdvancedDetails"))
+			detailsAction->setChecked(true);
 		if (!m_loadedDataDock || !m_loadedDataTree) {
 			fail(QStringLiteral("Loaded Data review is unavailable after bundle reopen"));
 			return;
@@ -17635,8 +17838,14 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 		m_speedSlider->setValue(500);
 		if (!m_sceneLoaded || !m_runSceneAction || !m_serviceOccurrenceTable
-				|| !m_scenarioListWidget || !m_setDelayBaselineButton) {
+				|| !m_scenarioListWidget || !m_setDelayBaselineButton || !m_compareDelayButton
+				|| !m_delayFeedbackLabel) {
 			fail(QStringLiteral("run and occurrence controls are unavailable"));
+			return;
+		}
+		if (m_setDelayBaselineButton->isEnabled() || m_compareDelayButton->isEnabled()
+				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
+			fail(QStringLiteral("delay controls did not expose a disabled no-results reason"));
 			return;
 		}
 		int baselineRow = -1;
@@ -17707,7 +17916,9 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		m_setDelayBaselineButton->click();
-		if (!m_delayBaseline) {
+		if (!m_delayBaseline || !m_runResultsSummaryLabel || !m_delayFeedbackLabel
+				|| !m_runResultsSummaryLabel->text().contains(QStringLiteral("Delay baseline:"))
+				|| !m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline:"))) {
 			fail(QStringLiteral("public delay baseline control did not freeze baseline"));
 			return;
 		}
@@ -17780,6 +17991,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				.arg(static_cast<int>(m_completedTimetableResults.size())));
 			return;
 		}
+		if (!m_delayFeedbackLabel || m_compareDelayButton->isEnabled()
+				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("entrance delays"))) {
+			fail(QStringLiteral("entrance-delay result did not explain why delay comparison is disabled"));
+			return;
+		}
 		marker("E2E_CREATOR_ENTRANCE_RUN_OK");
 		int incidentRow = -1;
 		for (int row = 0; row < m_sceneModel.scenarios.size(); ++row)
@@ -17813,6 +18029,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				directEvidence = true;
 		if (m_completedRunProvenance.appliedScenario != "incident" || !directEvidence) {
 			fail(QStringLiteral("final incident run lacked direct incident evidence"));
+			return;
+		}
+		if (!m_compareDelayButton->isEnabled() || !m_delayFeedbackLabel
+				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("positive additional final-arrival delay"))) {
+			fail(QStringLiteral("incident result did not expose an enabled delay comparison next step"));
 			return;
 		}
 		marker("E2E_CREATOR_INCIDENT_RUN_OK");
@@ -17978,12 +18199,71 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("delay comparison result control is unavailable"));
 			return;
 		}
+		bool initialComparisonSeen = false;
+		bool initialRejectionSeen = false;
+		QString initialRejectionText;
+		QTimer::singleShot(0, this, [this, &initialComparisonSeen, &initialRejectionSeen,
+				&initialRejectionText]() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* message = qobject_cast<QMessageBox*>(widget);
+				if (message && message->isVisible()) {
+					initialRejectionSeen = true;
+					initialRejectionText = message->text();
+					message->accept();
+					return;
+				}
+				auto* dialog = qobject_cast<QDialog*>(widget);
+				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
+					continue;
+				initialComparisonSeen = true;
+				dialog->accept();
+				return;
+			}
+		});
+		compareButton->click();
+		process();
+		if (!initialComparisonSeen && !initialRejectionSeen) {
+			fail(QStringLiteral("delay comparison button produced neither a result dialog nor a rejection diagnostic"));
+			return;
+		}
+		if (initialRejectionSeen && initialRejectionText.trimmed().isEmpty()) {
+			fail(QStringLiteral("delay comparison rejection did not expose a diagnostic"));
+			return;
+		}
+
+		const RunResults incidentResults = m_completedRunResults;
+		const std::vector<TimetableResultRow> incidentTimetable = m_completedTimetableResults;
+		m_completedTimetableResults = m_delayBaseline
+			? m_delayBaseline->timetable : std::vector<TimetableResultRow>();
+		bool injectedPositiveDelay = false;
+		for (TimetableResultRow& row : m_completedTimetableResults) {
+			if (row.simulatedArrivalSeconds.available) {
+				row.simulatedArrivalSeconds.value += 15.0;
+				injectedPositiveDelay = true;
+			}
+		}
+		if (!injectedPositiveDelay) {
+			m_completedRunResults = incidentResults;
+			m_completedTimetableResults = incidentTimetable;
+			refreshRunResults();
+			fail(QStringLiteral("creator timetable had no final arrival row for positive comparison presentation"));
+			return;
+		}
+		refreshRunResults();
+		bool nonzeroComparisonSeen = false;
+		bool nonzeroComparisonOk = false;
 		acceptFileDialog(path("delay_comparison.csv"), false);
-		QTimer::singleShot(75, this, [this]() {
+		QTimer::singleShot(75, this, [this, &nonzeroComparisonSeen, &nonzeroComparisonOk]() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
 				auto* dialog = qobject_cast<QDialog*>(widget);
 				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
 					continue;
+				nonzeroComparisonSeen = true;
+				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("delayComparisonContext"));
+				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
+				nonzeroComparisonOk = context
+					&& context->text().contains(QStringLiteral("positive additional final-arrival delay"), Qt::CaseInsensitive)
+					&& table && table->rowCount() > 0;
 				for (QPushButton* button : dialog->findChildren<QPushButton*>())
 					if (button->text() == QStringLiteral("Export CSV...")) {
 						button->click();
@@ -17994,10 +18274,69 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		});
 		compareButton->click();
 		process();
-		for (QWidget* widget : QApplication::topLevelWidgets())
-			if (auto* dialog = qobject_cast<QDialog*>(widget))
-				if (dialog->windowTitle() == QStringLiteral("Incident delay comparison"))
-					dialog->close();
+		if (!nonzeroComparisonSeen || !nonzeroComparisonOk) {
+			m_completedRunResults = incidentResults;
+			m_completedTimetableResults = incidentTimetable;
+			refreshRunResults();
+			fail(QStringLiteral("nonzero delay comparison did not expose its metric and rows"));
+			return;
+		}
+
+		m_completedTimetableResults = m_delayBaseline
+			? m_delayBaseline->timetable : std::vector<TimetableResultRow>();
+		refreshRunResults();
+		bool zeroComparisonSeen = false;
+		bool zeroComparisonOk = false;
+		QTimer::singleShot(0, this, [this, &zeroComparisonSeen, &zeroComparisonOk]() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QDialog*>(widget);
+				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
+					continue;
+				zeroComparisonSeen = true;
+				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("delayComparisonContext"));
+				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
+				zeroComparisonOk = context
+					&& context->text().contains(QStringLiteral("zero positive additional final-arrival delay"))
+					&& table && table->rowCount() == 0;
+				dialog->accept();
+				return;
+			}
+		});
+		compareButton->click();
+		process();
+		m_completedRunResults = incidentResults;
+		m_completedTimetableResults = incidentTimetable;
+		refreshRunResults();
+		if (!zeroComparisonSeen || !zeroComparisonOk) {
+			fail(QStringLiteral("zero delay comparison did not report explicit success"));
+			return;
+		}
+
+		const RunResults incidentResultsForRejection = m_completedRunResults;
+		for (TrainRunResult& train : m_completedRunResults.trains)
+			train.directIncidentIds.clear();
+		bool rejectionSeen = false;
+		QString rejectionText;
+		QTimer::singleShot(0, this, [this, &rejectionSeen, &rejectionText]() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QMessageBox*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				rejectionSeen = true;
+				rejectionText = dialog->text();
+				dialog->accept();
+				return;
+			}
+		});
+		compareButton->click();
+		process();
+		m_completedRunResults = incidentResultsForRejection;
+		refreshRunResults();
+		if (!rejectionSeen || !rejectionText.contains(QStringLiteral("direct incident evidence"))) {
+			fail(QStringLiteral("invalid delay comparison did not expose rejection diagnostics (seen=%1, text=%2)")
+				.arg(rejectionSeen).arg(rejectionText));
+			return;
+		}
 		marker("E2E_CREATOR_EXPORTS_OK");
 		next();
 		return;
@@ -18020,8 +18359,16 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		for (QPushButton* button : findChildren<QPushButton*>())
 			if (button->objectName().startsWith(QStringLiteral("resultView_")))
 				resultButtonsDisabled = resultButtonsDisabled && !button->isEnabled();
-		if (m_resultsAvailable || m_runResultsDock->isVisible() || !resultButtonsDisabled) {
+		if (m_resultsAvailable || m_delayBaseline || m_runResultsDock->isVisible() || !resultButtonsDisabled
+				|| !m_delayFeedbackLabel || !m_delayFeedbackLabel->text().contains(QStringLiteral("cleared"))) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
+			return;
+		}
+		acceptMessageBox(QMessageBox::Discard);
+		if (!requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
+				|| !m_delayBaselineStatus.isEmpty()
+				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
+			fail(QStringLiteral("opening a case retained the previous case's baseline-clear message"));
 			return;
 		}
 		m_creatorAcceptanceFinished = true;
@@ -18799,11 +19146,59 @@ void MainWindow::updateDiagramActions() {
 	const DelayRunSnapshot current = completedDelaySnapshot();
 	const bool canSetBaseline = available && !current.scenarioId.empty()
 		&& !current.hasIncidents && !current.hasEntranceDelays;
-	if (m_setDelayBaselineButton)
+	const bool canCompare = available && m_delayBaseline.has_value()
+		&& current.hasIncidents && !current.hasEntranceDelays;
+	if (m_setDelayBaselineButton) {
 		m_setDelayBaselineButton->setEnabled(canSetBaseline);
-	if (m_compareDelayButton)
-		m_compareDelayButton->setEnabled(available && m_delayBaseline.has_value()
-			&& current.hasIncidents && !current.hasEntranceDelays);
+		m_setDelayBaselineButton->setToolTip(canSetBaseline
+			? QStringLiteral("Freeze this completed run with no incidents or entrance delays as the delay baseline")
+			: QStringLiteral("Complete a run with no incidents or entrance delays before setting a delay baseline"));
+	}
+	if (m_compareDelayButton) {
+		m_compareDelayButton->setEnabled(canCompare);
+		m_compareDelayButton->setToolTip(canCompare
+			? QStringLiteral("Compare the completed incident run with the frozen delay baseline")
+			: QStringLiteral("Run a completed incident scenario without entrance delays after setting a baseline"));
+	}
+
+	QString feedback;
+	if (!available) {
+		if (m_delayBaseline) {
+			feedback = QStringLiteral("Baseline: %1. Run the selected scenario to create completed results for comparison.")
+				.arg(completedRunContext(m_delayBaseline->provenance));
+		} else if (!m_delayBaselineStatus.isEmpty()) {
+			feedback = m_delayBaselineStatus;
+		} else {
+			feedback = QStringLiteral("No completed run. Run the selected scenario; a run with no incidents or entrance delays can become the baseline.");
+		}
+	} else if (!m_delayBaseline) {
+		if (canSetBaseline) {
+			feedback = QStringLiteral("Completed run: %1. Set this run with no incidents or entrance delays as the delay baseline.")
+				.arg(completedRunContext(current.provenance));
+		} else if (current.hasEntranceDelays) {
+			feedback = QStringLiteral("Completed run: %1. This run has entrance delays; run a scenario with no incidents or entrance delays to set the baseline.")
+				.arg(completedRunContext(current.provenance));
+		} else {
+			feedback = QStringLiteral("Completed run: %1. This run has incidents; run a scenario with no incidents or entrance delays to set the baseline.")
+				.arg(completedRunContext(current.provenance));
+		}
+	} else if (canCompare) {
+		feedback = QStringLiteral("Baseline: %1. Compare the completed incident scenario; the metric is positive additional final-arrival delay.")
+			.arg(completedRunContext(m_delayBaseline->provenance));
+	} else if (current.hasEntranceDelays) {
+		feedback = QStringLiteral("Baseline: %1. Comparison requires a completed incident scenario with no entrance delays.")
+			.arg(completedRunContext(m_delayBaseline->provenance));
+	} else if (!current.hasIncidents) {
+		feedback = QStringLiteral("Baseline: %1. Run an incident scenario without entrance delays, then compare.")
+			.arg(completedRunContext(m_delayBaseline->provenance));
+	}
+	if (!current.scenarioId.empty() && !m_selectedScenarioId.empty()
+			&& current.scenarioId != m_selectedScenarioId) {
+		feedback += QStringLiteral(" Selected next scenario: %1; it has not been run yet.")
+			.arg(QString::fromStdString(m_selectedScenarioId));
+	}
+	if (m_delayFeedbackLabel)
+		m_delayFeedbackLabel->setText(feedback);
 }
 
 // Lazily created so the menu only appears once an editor dock registers.
@@ -19057,6 +19452,7 @@ bool MainWindow::showRunReview() {
 	context->setObjectName("runReviewContext");
 	layout->addWidget(context);
 
+	const bool detailsEnabled = advancedDetailsEnabled();
 	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
 	auto* facts = new QGridLayout();
 	facts->setHorizontalSpacing(24);
@@ -19074,40 +19470,44 @@ bool MainWindow::showRunReview() {
 		.arg(selectedServiceOccurrences()).arg(totalServiceOccurrences()));
 	addFact(2, "Compositions", QString::number(static_cast<int>(m_sceneModel.compositions.size())));
 	addFact(3, "Incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
-	addFact(4, "Validation", QString("%1 errors, %2 warnings").arg(counts.errors).arg(counts.warnings));
+	if (detailsEnabled) {
+		addFact(4, "Validation", QString("%1 errors, %2 warnings").arg(counts.errors).arg(counts.warnings));
+	}
 	layout->addLayout(facts);
 
-	auto* status = new QLabel(counts.warnings == 0
-		? QStringLiteral("Ready to run. No validation issues were found.")
-		: QString("Ready to run. Review %1 validation %2 if needed.")
-			.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings"), &review);
+	auto* status = new QLabel(detailsEnabled && counts.warnings > 0
+		? QString("Ready to run. Review %1 validation %2 if needed.")
+			.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings")
+		: QStringLiteral("Ready to run."), &review);
 	status->setObjectName("runReviewStatus");
-	status->setProperty("warning", counts.warnings > 0);
+	status->setProperty("warning", detailsEnabled && counts.warnings > 0);
 	status->setWordWrap(true);
 	layout->addWidget(status);
 
-	const QString summary = runReviewText();
-	const int detailsStart = summary.indexOf("\nIncident configuration:");
-	const int delaysStart = summary.indexOf("\nEntrance delay configuration:");
-	const int firstDetail = detailsStart < 0 ? delaysStart
-		: delaysStart < 0 ? detailsStart : std::min(detailsStart, delaysStart);
-	if (firstDetail >= 0) {
-		auto* detailsToggle = new QToolButton(&review);
-		detailsToggle->setText("Configuration details");
-		detailsToggle->setCheckable(true);
-		detailsToggle->setArrowType(Qt::RightArrow);
-		detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-		auto* details = new QLabel(summary.mid(firstDetail + 1), &review);
-		details->setObjectName("runReviewDetails");
-		details->setWordWrap(true);
-		details->setTextInteractionFlags(Qt::TextSelectableByMouse);
-		details->hide();
-		connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
-			detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
-			details->setVisible(shown);
-		});
-		layout->addWidget(detailsToggle);
-		layout->addWidget(details);
+	if (detailsEnabled) {
+		const QString summary = runReviewText();
+		const int detailsStart = summary.indexOf("\nIncident configuration:");
+		const int delaysStart = summary.indexOf("\nEntrance delay configuration:");
+		const int firstDetail = detailsStart < 0 ? delaysStart
+			: delaysStart < 0 ? detailsStart : std::min(detailsStart, delaysStart);
+		if (firstDetail >= 0) {
+			auto* detailsToggle = new QToolButton(&review);
+			detailsToggle->setText("Configuration details");
+			detailsToggle->setCheckable(true);
+			detailsToggle->setArrowType(Qt::RightArrow);
+			detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+			auto* details = new QLabel(summary.mid(firstDetail + 1), &review);
+			details->setObjectName("runReviewDetails");
+			details->setWordWrap(true);
+			details->setTextInteractionFlags(Qt::TextSelectableByMouse);
+			details->hide();
+			connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
+				detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
+				details->setVisible(shown);
+			});
+			layout->addWidget(detailsToggle);
+			layout->addWidget(details);
+		}
 	}
 
 	auto* buttons = new QHBoxLayout();
@@ -19117,8 +19517,10 @@ bool MainWindow::showRunReview() {
 	auto* runButton = new QPushButton("Run simulation", &review);
 	runButton->setObjectName("runReviewRunButton");
 	runButton->setDefault(true);
-	buttons->addWidget(loadedButton);
-	buttons->addWidget(validationButton);
+	if (detailsEnabled) {
+		buttons->addWidget(loadedButton);
+		buttons->addWidget(validationButton);
+	}
 	buttons->addStretch();
 	buttons->addWidget(cancelButton);
 	buttons->addWidget(runButton);
@@ -19130,6 +19532,8 @@ bool MainWindow::showRunReview() {
 	connect(loadedButton, &QPushButton::clicked, &review, [&]() { choice = ShowLoadedData; review.accept(); });
 	connect(validationButton, &QPushButton::clicked, &review, [&]() { choice = ShowValidation; review.accept(); });
 	connect(cancelButton, &QPushButton::clicked, &review, &QDialog::reject);
+	loadedButton->setVisible(detailsEnabled);
+	validationButton->setVisible(detailsEnabled);
 	review.exec();
 	if (choice == StartRun)
 		return true;
@@ -19193,7 +19597,8 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 void MainWindow::setDelayBaseline() {
 	const DelayRunSnapshot snapshot = completedDelaySnapshot();
 	if (snapshot.scenarioId.empty() || snapshot.run.trains.empty()) {
-		QMessageBox::warning(this, "Delay baseline unavailable", "Complete an incident-free run first.");
+		QMessageBox::warning(this, "Delay baseline unavailable",
+			"Complete a run with no incidents or entrance delays first.");
 		return;
 	}
 	if (snapshot.hasIncidents || snapshot.hasEntranceDelays) {
@@ -19202,6 +19607,8 @@ void MainWindow::setDelayBaseline() {
 		return;
 	}
 	m_delayBaseline = snapshot;
+	m_delayBaselineStatus = QString("Delay baseline set: %1. Compare it with a completed incident scenario without entrance delays.")
+		.arg(completedRunContext(snapshot.provenance));
 	statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
 	refreshRunResults();
 	updateDiagramActions();
@@ -19209,7 +19616,8 @@ void MainWindow::setDelayBaseline() {
 
 void MainWindow::showDelayComparison() {
 	if (!m_delayBaseline) {
-		QMessageBox::warning(this, "Delay comparison unavailable", "Set an incident-free delay baseline first.");
+		QMessageBox::warning(this, "Delay comparison unavailable",
+			"Set a delay baseline from a run with no incidents or entrance delays first.");
 		return;
 	}
 	const DelayRunSnapshot scenario = completedDelaySnapshot();
@@ -19223,9 +19631,14 @@ void MainWindow::showDelayComparison() {
 	dialog.setWindowTitle("Incident delay comparison");
 	dialog.resize(1180, 520);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
-	QLabel* context = new QLabel(QString("Baseline: %1 | Scenario: %2 | Total positive arrival delay: %3 s")
-		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance))
-		.arg(comparison.totalArrivalDelay.available ? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-")), &dialog);
+	const QString resultSummary = comparison.rows.empty()
+		? QStringLiteral("Success: zero positive additional final-arrival delay.")
+		: QString("Positive additional final-arrival delay: %1 s")
+			.arg(comparison.totalArrivalDelay.available
+				? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-"));
+	QLabel* context = new QLabel(QString("Baseline: %1 | Scenario: %2 | %3")
+		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance), resultSummary), &dialog);
+	context->setObjectName("delayComparisonContext");
 	context->setWordWrap(true);
 	layout->addWidget(context);
 	QTableWidget* table = new QTableWidget(&dialog);
@@ -20376,18 +20789,24 @@ void MainWindow::setupRunResultsDock() {
 	QHBoxLayout* toolRow = new QHBoxLayout();
 	toolRow->addWidget(exportCsvBtn);
 	toolRow->addWidget(exportPngBtn);
+	toolRow->addStretch();
+	containerLayout->addLayout(toolRow);
+	QHBoxLayout* delayRow = new QHBoxLayout();
+	m_delayFeedbackLabel = new QLabel(container);
+	m_delayFeedbackLabel->setObjectName("delayFeedbackLabel");
+	m_delayFeedbackLabel->setWordWrap(true);
+	delayRow->addWidget(m_delayFeedbackLabel, 1);
 	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
 	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
-	m_setDelayBaselineButton->setToolTip("Freeze this completed incident-free run as the delay baseline");
+	m_setDelayBaselineButton->setToolTip("Freeze this completed run with no incidents or entrance delays as the delay baseline");
 	connect(m_setDelayBaselineButton, &QPushButton::clicked, this, &MainWindow::setDelayBaseline);
-	toolRow->addWidget(m_setDelayBaselineButton);
+	delayRow->addWidget(m_setDelayBaselineButton);
 	m_compareDelayButton = new QPushButton("Compare delays", container);
 	m_compareDelayButton->setObjectName("compareDelayButton");
 	m_compareDelayButton->setToolTip("Compare the completed incident run with the frozen delay baseline");
 	connect(m_compareDelayButton, &QPushButton::clicked, this, &MainWindow::showDelayComparison);
-	toolRow->addWidget(m_compareDelayButton);
-	toolRow->addStretch();
-	containerLayout->addLayout(toolRow);
+	delayRow->addWidget(m_compareDelayButton);
+	containerLayout->addLayout(delayRow);
 	containerLayout->addWidget(m_runResultsTable);
 	m_runResultsDock->setWidget(container);
 	addDockWidget(Qt::BottomDockWidgetArea, m_runResultsDock);
@@ -20397,23 +20816,7 @@ void MainWindow::setupRunResultsDock() {
 void MainWindow::refreshRunResults() {
 	if (!m_runResultsDock || !m_runResultsTable || m_completedRunResults.trains.empty())
 		return;
-	int directEvidenceCount = 0;
-	int destinationTerminationCount = 0;
-	for (const TrainRunResult& result : m_completedRunResults.trains) {
-		if (!result.directIncidentIds.empty())
-			++directEvidenceCount;
-		if (result.destinationTerminated)
-			++destinationTerminationCount;
-	}
-	if (m_runResultsSummaryLabel) {
-		QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed | Direct incident evidence: %4 | Destination terminations: %5")
-			.arg(completedRunContext(m_completedRunProvenance))
-			.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences)
-			.arg(directEvidenceCount).arg(destinationTerminationCount);
-		if (m_delayBaseline)
-			summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
-		m_runResultsSummaryLabel->setText(summary);
-	}
+	refreshRunResultsSummary();
 	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(completedRunContext(m_completedRunProvenance)));
 
 	const RunResults& results = m_completedRunResults;
@@ -20484,6 +20887,29 @@ void MainWindow::refreshRunResults() {
 			m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
 	}
+}
+
+void MainWindow::refreshRunResultsSummary() {
+	if (!m_runResultsSummaryLabel || m_completedRunResults.trains.empty())
+		return;
+	int directEvidenceCount = 0;
+	int destinationTerminationCount = 0;
+	for (const TrainRunResult& result : m_completedRunResults.trains) {
+		if (!result.directIncidentIds.empty())
+			++directEvidenceCount;
+		if (result.destinationTerminated)
+			++destinationTerminationCount;
+	}
+	QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed")
+		.arg(completedRunContext(m_completedRunProvenance))
+		.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences);
+	if (advancedDetailsEnabled()) {
+		summary += QString(" | Direct incident evidence: %1 | Destination terminations: %2")
+			.arg(directEvidenceCount).arg(destinationTerminationCount);
+	}
+	if (m_delayBaseline)
+		summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
+	m_runResultsSummaryLabel->setText(summary);
 }
 
 void MainWindow::setupInfoDockWidget() {
