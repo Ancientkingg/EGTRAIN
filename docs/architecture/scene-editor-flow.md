@@ -12,7 +12,7 @@ using legacy files.
 
 - Start state: the main window opens with no scene selected. `New Case Study...`, `Open Case Study...`, `Open Scene Folder...`, recent scenes, `Load Legacy Case...`, and `Quit` are available. Save, scene edit panes, and scene Run are disabled until a scene opens.
 - New scene: `New Case Study...` creates the smallest structurally valid `SceneModel`. It remains editable and saveable while semantic diagnostics identify the railway data still required for Run.
-- Open scene: `Open Case Study...` selects an `.egscene` bundle; `Open Scene Folder...` selects an editable canonical directory. Both load the same canonical JSON into `SceneModel`, add the selected path to the recent-scenes list in `QSettings`, and raise the non-modal Loaded Data review.
+- Open scene: `Open Case Study...` selects an `.egscene` bundle; `Open Scene Folder...` selects an editable canonical directory. Both load the same canonical JSON into `SceneModel`, add the selected path to the recent-scenes list in `QSettings`, and raise the non-modal Loaded Data review. File, recent-scene, drop, and chooser opens resolve focused edits through one Save, Discard, or Cancel decision after the target is selected. Cancelled pickers and failed loads retain the current scene; teardown starts only after the incoming scene loads successfully.
 - Compatibility: opening probes schema, bundle, and descriptive saved-with metadata before loading. Current scenes open directly; older scenes offer only an explicit upgrade copy when a registered migration reaches the current format; newer scenes offer **Check for Updates...** and Cancel. Automated/headless flows do not show these dialogs or start network checks.
 - Validation: opening a scene populates the validation panel with `SceneDiagnostic` entries. Structural errors are shown first. Semantic validation runs only when structural loading has no errors; the panel remains available from the View menu and Loaded Data diagnostics.
 - Edit panes: after a valid enough model loads, the editor panes show scene data from `SceneModel`. V1 edits update `SceneModel`; they do not edit legacy files directly.
@@ -22,7 +22,9 @@ using legacy files.
 
 `Load Legacy Case...` is an explicit conversion action. It reads a selected
 external legacy directory into a new canonical scene; the source files are not
-an editable or runtime fallback.
+an editable or runtime fallback. After the source and destination are
+validated, pending edits are resolved before conversion and the imported scene
+opens without a second prompt.
 
 ## Main window layout
 
@@ -69,6 +71,8 @@ setupGUI
 ```
 
 Only after setup succeeds does the simulation worker start.
+Case replacement waits for the old worker to stop and ignores any queued
+completion from that worker. Disabled scenario controls are not pending edits.
 
 The Loaded Data panel reports one global runtime state instead of claiming each
 input file built a separate runtime model. It is `Not built` after open or an

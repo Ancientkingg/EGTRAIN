@@ -3295,14 +3295,7 @@ void MainWindow::dropEvent(QDropEvent* event) {
 		return;
 	}
 
-	if (!maybeSaveScene()) {
-		statusBar()->showMessage(QStringLiteral("Open canceled. Scene unchanged."), 8000);
-		event->ignore();
-		return;
-	}
-	if (!openSceneDirectory(path)) {
-		statusBar()->showMessage(QStringLiteral("Scene unchanged: %1 could not be opened.")
-			.arg(QFileInfo(path).fileName()), 8000);
+	if (!requestOpenScene(path)) {
 		event->ignore();
 		return;
 	}
@@ -3359,26 +3352,34 @@ void MainWindow::newScene() {
 }
 
 void MainWindow::openSceneDialog() {
-	if (!maybeSaveScene())
-		return;
-
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
 	const QString path = QFileDialog::getOpenFileName(this, "Open Case Study", startDir,
 		"EGTRAIN Case Study (*.egscene)");
 	if (path.isEmpty())
 		return;
 
-	openSceneDirectory(path);
+	requestOpenScene(path);
 }
 
 void MainWindow::openSceneFolderDialog() {
-	if (!maybeSaveScene())
-		return;
-
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
 	const QString dir = QFileDialog::getExistingDirectory(this, "Open Scene Folder", startDir);
 	if (!dir.isEmpty())
-		openSceneDirectory(dir);
+		requestOpenScene(dir);
+}
+
+bool MainWindow::requestOpenScene(const QString& path) {
+	if (path.isEmpty())
+		return false;
+	if (!maybeSaveScene()) {
+		statusBar()->showMessage("Open canceled. Current scene retained.", 8000);
+		return false;
+	}
+	if (openSceneDirectory(path))
+		return true;
+	statusBar()->showMessage(QString("Scene unchanged: %1 could not be opened.")
+		.arg(QFileInfo(path).fileName()), 8000);
+	return false;
 }
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
@@ -3535,11 +3536,6 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	updateCaseLayersPanel();
 	updateSceneActions();
 	addRecentScene(scenePath);
-	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
-								 .arg(reloadingSameScene ? "Scene reloaded" : "Scene loaded")
-								 .arg(QString::fromStdString(m_sceneModel.name))
-								 .arg(static_cast<int>(m_sceneModel.services.size()))
-								 .arg(static_cast<int>(m_sceneModel.routes.size())));
 	refreshCompositionPanel();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
@@ -3548,6 +3544,11 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
+	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
+								 .arg(reloadingSameScene ? "Scene reloaded" : "Scene loaded")
+								 .arg(QString::fromStdString(m_sceneModel.name))
+								 .arg(static_cast<int>(m_sceneModel.services.size()))
+								 .arg(static_cast<int>(m_sceneModel.routes.size())));
 	if (startupTimingEnabled()) {
 		if (!timingIdentityOk) {
 			failStartupTiming(QStringLiteral("scene identity, counts, or canonical input snapshot changed"));
@@ -4681,6 +4682,12 @@ void MainWindow::commitPendingEditorValues() {
 		commitStopDepartureSeconds();
 	if (m_stopDwellSecondsEdit && m_stopDwellSecondsEdit->isEnabled())
 		commitStopDwellSeconds();
+	// Scenario and incident controls are disabled and cleared during a run.
+	// Their placeholder values are not pending edits.
+	if (m_worker) {
+		m_committingPendingEditorValues = false;
+		return;
+	}
 	commitScenarioIdEdit();
 	commitScenarioNameEdit();
 	commitScenarioDescriptionEdit();
@@ -10287,9 +10294,7 @@ void MainWindow::rebuildRecentScenesMenu() {
 		action->setStatusTip(path);
 		action->setToolTip(path);
 		connect(action, &QAction::triggered, this, [this, action]() {
-			if (!maybeSaveScene())
-				return;
-			openSceneDirectory(action->data().toString());
+			requestOpenScene(action->data().toString());
 		});
 	}
 	if (recent.isEmpty()) {
@@ -10464,7 +10469,6 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 void MainWindow::setFollowTrain(int trainIndex) {
 	if (trainIndex < 0) {
 		if (m_followAction) {
-			const QSignalBlocker blocker(m_followAction);
 			m_followAction->setChecked(false);
 		}
 		m_followTrainIndex = -1;
@@ -10481,7 +10485,6 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		}
 	}
 	if (m_followAction) {
-		const QSignalBlocker blocker(m_followAction);
 		m_followAction->setChecked(true);
 	}
 	m_followTrainIndex = trainIndex;
@@ -17382,6 +17385,159 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
 			return;
 		}
+		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
+		const std::string originalName = m_sceneModel.name;
+		auto openRecent = [this](const QString& path) {
+			for (QAction* action : m_recentScenesMenu->actions()) {
+				if (action->data().toString() == path) {
+					action->trigger();
+					return true;
+				}
+			}
+			return false;
+		};
+		for (QMessageBox::StandardButton decision : {QMessageBox::Cancel,
+				QMessageBox::Discard, QMessageBox::Save}) {
+			m_caseNameEdit->setFocus(Qt::OtherFocusReason);
+			m_caseNameEdit->setText(QStringLiteral("pending case name"));
+			acceptMessageBox(decision);
+			if (!openRecent(folder)) {
+				fail(QStringLiteral("pending-open test could not find recent folder"));
+				return;
+			}
+			process();
+			if (decision == QMessageBox::Cancel) {
+				if (m_sceneDir != bundle || !m_sceneDirty
+						|| m_sceneModel.name != "pending case name") {
+					fail(QStringLiteral("Cancel did not retain focused edits and current bundle"));
+					return;
+				}
+			} else {
+				if (m_sceneDir != folder || m_sceneIsBundle || m_sceneDirty
+						|| m_sceneModel.name != originalName) {
+					fail(QStringLiteral("Save or Discard did not continue the pending folder open"));
+					return;
+				}
+				if (!openRecent(bundle)
+						|| m_sceneModel.name != (decision == QMessageBox::Save
+							? "pending case name" : originalName)) {
+					fail(QStringLiteral("Save or Discard persisted the wrong outgoing bundle contents"));
+					return;
+				}
+			}
+		}
+		if (!editLine(m_caseNameEdit, QString::fromStdString(originalName))) {
+			fail(QStringLiteral("could not restore case name after pending-open checks"));
+			return;
+		}
+		m_saveSceneAction->trigger();
+		m_caseNameEdit->setText(QStringLiteral("chooser pending edit"));
+		QTimer::singleShot(0, this, [this, folder]() {
+			auto* chooser = findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
+			auto* list = chooser
+				? chooser->findChild<QListWidget*>(QStringLiteral("caseChooserList")) : nullptr;
+			if (!list)
+				return;
+			for (int row = 0; row < list->count(); ++row) {
+				if (list->item(row)->data(Qt::UserRole).toString() == folder) {
+					list->setCurrentRow(row);
+					break;
+				}
+			}
+			if (auto* open = chooser->findChild<QPushButton*>(QStringLiteral("caseChooserOpenButton")))
+				open->click();
+		});
+		acceptMessageBox(QMessageBox::Cancel);
+		m_openCaseAction->trigger();
+		if (m_sceneDir != bundle || !m_sceneDirty
+				|| m_sceneModel.name != "chooser pending edit") {
+			fail(QStringLiteral("chooser bypassed the pending-open cancellation boundary"));
+			return;
+		}
+		if (!editLine(m_caseNameEdit, QString::fromStdString(originalName))) {
+			fail(QStringLiteral("could not restore case name after chooser check"));
+			return;
+		}
+		m_saveSceneAction->trigger();
+		{
+			QTemporaryDir invalidInput;
+			const QString invalidBundle = invalidInput.filePath("invalid.egscene");
+			QFile file(invalidBundle);
+			if (!file.open(QIODevice::WriteOnly) || file.write("invalid scene") < 0) {
+				fail(QStringLiteral("could not create invalid incoming bundle fixture"));
+				return;
+			}
+			file.close();
+			addRecentScene(invalidBundle);
+			m_caseNameEdit->setText(QStringLiteral("retained after failed open"));
+			acceptMessageBox(QMessageBox::Discard);
+			if (!openRecent(invalidBundle)) {
+				fail(QStringLiteral("invalid incoming bundle was not offered as a recent scene"));
+				return;
+			}
+			if (m_sceneDir != bundle || !m_sceneDirty
+					|| m_sceneModel.name != "retained after failed open") {
+				fail(QStringLiteral("failed incoming load erased current dirty case"));
+				return;
+			}
+		}
+		rebuildRecentScenesMenu();
+		if (!editLine(m_caseNameEdit, QString::fromStdString(originalName))) {
+			fail(QStringLiteral("could not restore case name after failed-load check"));
+			return;
+		}
+		m_saveSceneAction->trigger();
+		m_newSceneAction->trigger();
+		process();
+		const QString failedSave = QDir(emitPath(qEnvironmentVariable("QEGTRAIN_E2E_OUT")))
+			.filePath(QStringLiteral("failed-save.egscene"));
+		if (!QDir().mkpath(failedSave)
+				|| saveSceneBundle(m_sceneModel, failedSave.toStdString()).success()) {
+			fail(QStringLiteral("could not create failed-save fixture"));
+			return;
+		}
+		m_sceneDir = failedSave;
+		m_sceneIsBundle = true;
+		m_caseNameEdit->setText(QStringLiteral("retained after failed save"));
+		acceptMessageBox(QMessageBox::Save);
+		if (!openRecent(bundle)) {
+			fail(QStringLiteral("failed-save replacement was not offered as a recent scene"));
+			return;
+		}
+		if (!m_sceneLoaded || m_sceneDir != failedSave || !m_sceneDirty
+				|| m_sceneModel.name != "retained after failed save") {
+			fail(QStringLiteral("failed save replaced the unsaved current case"));
+			return;
+		}
+		m_sceneDir.clear();
+		m_sceneIsBundle = false;
+		m_sceneBundleVersion.reset();
+		updateSceneWindowTitle();
+		updateSceneActions();
+		QTimer rejectSaveAs;
+		rejectSaveAs.setInterval(10);
+		connect(&rejectSaveAs, &QTimer::timeout, this, []() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				if (auto* dialog = qobject_cast<QFileDialog*>(widget))
+					if (dialog->isVisible())
+						dialog->reject();
+			}
+		});
+		rejectSaveAs.start();
+		acceptMessageBox(QMessageBox::Save);
+		openRecent(bundle);
+		rejectSaveAs.stop();
+		if (!m_sceneLoaded || !m_sceneDir.isEmpty() || !m_sceneDirty
+				|| m_sceneModel.name != "retained after failed save") {
+			fail(QStringLiteral("cancelled Save As replaced the unsaved current case"));
+			return;
+		}
+		acceptMessageBox(QMessageBox::Discard);
+		if (!openRecent(bundle) || m_sceneDir != bundle || m_sceneDirty) {
+			fail(QStringLiteral("Discard did not continue opening from an unsaved new case"));
+			return;
+		}
+		marker("E2E_CREATOR_PENDING_OPEN_OK");
 		m_newSceneAction->trigger();
 		process();
 		QAction* openBundle = findChild<QAction*>("actionOpenCaseStudyBundle");
@@ -17438,11 +17594,46 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		marker("E2E_CREATOR_BUNDLE_ROUNDTRIP_OK");
+		m_speedSlider->setValue(0);
+		m_runSceneAction->trigger();
 		next();
 		return;
 	}
 
 	if (m_creatorAcceptancePhase == 9) {
+		if (!m_worker) {
+			fail(QStringLiteral("replacement check did not retain a running worker"));
+			return;
+		}
+		auto* followButton = findChild<QToolButton*>("actionFollowButton");
+		if (!followButton) {
+			fail(QStringLiteral("Follow control unavailable for running replacement"));
+			return;
+		}
+		followButton->click();
+		setFollowTrain(-1);
+		if (followButton->isChecked()) {
+			fail(QStringLiteral("clearing Follow left the toolbar control checked"));
+			return;
+		}
+		followButton->click();
+		ui->actionSimulationPause->trigger();
+		for (QAction* action : m_recentScenesMenu->actions()) {
+			if (action->data().toString() == m_sceneDir) {
+				action->trigger();
+				break;
+			}
+		}
+		process();
+		if (m_worker || m_resultsAvailable || m_runtimeStatus != "Not built"
+				|| m_followAction->isChecked() || followButton->isChecked() || m_followTrainIndex != -1
+				|| progressBar->isVisible()
+				|| ui->actionSimulationPause->text() != "Pause"
+				|| !statusBar()->currentMessage().startsWith("Scene reloaded:")) {
+			fail(QStringLiteral("stopped run completion changed the replacement scene"));
+			return;
+		}
+		m_speedSlider->setValue(500);
 		if (!m_sceneLoaded || !m_runSceneAction || !m_serviceOccurrenceTable
 				|| !m_scenarioListWidget || !m_setDelayBaselineButton) {
 			fail(QStringLiteral("run and occurrence controls are unavailable"));
@@ -17469,6 +17660,13 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 		m_creatorAcceptancePolls = 0;
 		m_runSceneAction->trigger();
+		const quint64 runningRevision = m_sceneRevision;
+		const bool runningDirty = m_sceneDirty;
+		commitPendingEditorValues();
+		if (!m_worker || m_sceneRevision != runningRevision || m_sceneDirty != runningDirty) {
+			fail(QStringLiteral("resolving pending edits during a run changed disabled scenario inputs"));
+			return;
+		}
 		marker("E2E_CREATOR_BASELINE_RUN_STARTED");
 		next();
 		return;
@@ -17843,8 +18041,11 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 	m_worker = nullptr;
 	m_workerThread = nullptr;
 	// Pause and Stop only mean something while a worker exists.
-	if (ui->actionSimulationPause)
+	if (ui->actionSimulationPause) {
 		ui->actionSimulationPause->setEnabled(false);
+		ui->actionSimulationPause->setText("Pause");
+		ui->actionSimulationPause->setChecked(false);
+	}
 	if (ui->actionSimulationStop)
 		ui->actionSimulationStop->setEnabled(false);
 }
@@ -18625,6 +18826,7 @@ void MainWindow::showStartupChooser() {
 
 	QDialog dialog(this);
 	dialog.setWindowTitle("Open a Case");
+	dialog.setObjectName("caseChooserDialog");
 	dialog.resize(560, 460);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
@@ -18635,6 +18837,7 @@ void MainWindow::showStartupChooser() {
 	layout->addWidget(heading);
 
 	QListWidget* list = new QListWidget(&dialog);
+	list->setObjectName("caseChooserList");
 	QSet<QString> seen;
 	const auto addSceneItem = [&](const QString& path, const QString& badge) {
 		const QString canonical = QFileInfo(path).canonicalFilePath();
@@ -18691,6 +18894,7 @@ void MainWindow::showStartupChooser() {
 	QPushButton* continueBtn = new QPushButton(currentCaseName.isEmpty()
 		? QStringLiteral("Cancel") : QString("Continue with %1").arg(currentCaseName), &dialog);
 	QPushButton* openBtn = new QPushButton("Open", &dialog);
+	openBtn->setObjectName("caseChooserOpenButton");
 	openBtn->setDefault(true);
 	openBtn->setEnabled(false);
 	buttons->addWidget(newCaseBtn);
@@ -18726,7 +18930,7 @@ void MainWindow::showStartupChooser() {
 	switch (choice) {
 		case OpenSelected:
 			if (QListWidgetItem* item = list->currentItem())
-				openSceneDirectory(item->data(Qt::UserRole).toString());
+				requestOpenScene(item->data(Qt::UserRole).toString());
 			break;
 		case BrowseScene:
 			openSceneFolderDialog();
@@ -19099,7 +19303,11 @@ void MainWindow::startSimulation() {
 	// when the thread starts, begin the simulation
 	connect(m_workerThread, &QThread::started, m_worker, &SimulationWorker::run);
 	// when simulation finishes on the worker, handle results on main thread
-	connect(m_worker, &SimulationWorker::simulationFinished, this, &MainWindow::onSimulationFinished);
+	connect(m_worker, &SimulationWorker::simulationFinished, this, [this, worker = m_worker]() {
+		// A stopped run can leave a queued completion after another case opens.
+		if (worker && worker == m_worker)
+			onSimulationFinished();
+	});
 	// clean up when thread finishes
 	connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
 	connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
@@ -19196,9 +19404,6 @@ void MainWindow::onSimulationFinished() {
 	statusBar()->showMessage(sceneChangedDuringRun
 		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
 		: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
-	ui->actionSimulationPause->setText("Pause");
-	ui->actionSimulationPause->setChecked(false);
-
 	// The Run Results dock raised by refreshRunResults is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
@@ -19211,6 +19416,7 @@ void MainWindow::onSimulationFinished() {
 void MainWindow::teardownGUI() {
 	// Stop any running simulation before clearing scene objects it may reference.
 	clearSimulationWorker(true);
+	progressBar->hide();
 
 	stopTrainAnimations();
 
@@ -19441,8 +19647,6 @@ void MainWindow::runScene() {
 }
 
 void MainWindow::actionLoad_Network() {
-	if (!maybeSaveScene())
-		return;
 	const bool e2e = qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT");
 	QString sourceDir;
 	QString destinationDir;
@@ -19470,6 +19674,9 @@ void MainWindow::actionLoad_Network() {
 						 "Choose a scene destination that is separate from and outside the legacy source folder.");
 		return;
 	}
+
+	if (!maybeSaveScene())
+		return;
 
 	statusBar()->showMessage("Importing legacy case...");
 	QApplication::processEvents();
