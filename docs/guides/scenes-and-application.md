@@ -47,10 +47,10 @@ EGTRAIN did not consume it. `Not built` means no runtime has been prepared from
 the current input.
 
 Double-click infrastructure or signalling rows to focus the existing network
-view, validation rows to open the diagnostics table, or a train unit,
+view, validation rows to open the diagnostics table, or a rolling stock unit,
 composition, service, or scenario incident to open its existing editor.
-Each train-unit row owns its parameter, curve, plot, and provenance details.
-Train-unit provenance is descriptive:
+Each rolling-stock-unit row owns its parameter, curve, plot, and provenance details.
+Rolling-stock-unit provenance is descriptive:
 an original parameter or tractive-effort filename is not reopened by the native
 runtime. The tractive-effort plot evaluates the same piecewise polynomial as the
 runtime and displays speed in km/h and effort in kN.
@@ -63,7 +63,7 @@ runtime and displays speed in km/h and effort in kN.
 | `infrastructure.json` | required | tracks, nodes, arcs, blocks, connections |
 | `stations.json` | required | stations, positions, platforms, platform nodes |
 | `signalling.json` | required | signals, routes, dependencies, restrictions, boundaries |
-| `rolling_stock.json` | required | physical/traction train units and compositions |
+| `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
