@@ -485,9 +485,20 @@ int main() {
 			&& !normalizedScenarios["scenarios"][1]["incidents"][0].contains("end_seconds"),
 			"writer preserves a nonzero reduced speed when its presence flag is stale");
 	ok &= expect(!legacyServices["services"][0].contains("performance_percent")
+				&& !legacyServices["services"][0].contains("category")
 				&& !legacyServices["services"][0].contains("maximum_speed_kmh")
 				&& !legacyServices["services"][0].contains("repeat"),
 				"default service properties remain omitted for legacy scenes");
+	SceneModel missingCategory;
+	ok &= expect(loadHasNoErrors(legacyDefaultsPath, missingCategory)
+			&& missingCategory.services[0].category.empty(), "missing category defaults to empty");
+	legacyServices["services"][0]["category"] = 42;
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	ok &= expect(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
+			"non-string category is rejected");
 	ok &= expect(reloaded.services[0].stops[1].hasPlannedArrival
 				&& reloaded.services[0].stops[1].plannedArrivalSeconds == 200.0,
 			"planned arrival round-trips");

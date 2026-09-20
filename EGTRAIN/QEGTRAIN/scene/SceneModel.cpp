@@ -1402,6 +1402,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			SceneService service;
 			stringField(value, "id", "services.json", path, service.id);
 			stringField(value, "operating_code", "services.json", path, service.operatingCode, false);
+			stringField(value, "category", "services.json", path, service.category, false);
 			stringField(value, "composition", "services.json", path, service.composition);
 			stringField(value, "route", "services.json", path, service.route);
 			numberField(value, "performance_percent", "services.json", path,

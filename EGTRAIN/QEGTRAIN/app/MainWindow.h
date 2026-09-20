@@ -546,6 +546,7 @@ private:
 	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
 	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
 	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
+	QComboBox* m_serviceCategoryCombo = nullptr;
 	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
 	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
 	QCheckBox* m_serviceThroughCheck = nullptr;
@@ -819,6 +820,7 @@ private:
 	void deleteService();
 	void commitServiceIdEdit();
 	void commitServiceOperatingCode();
+	void commitServiceCategory(int index);
 	void commitServiceComposition(const QString& text);
 	void commitServiceRoute(const QString& text);
 	void commitServiceThrough(bool checked);

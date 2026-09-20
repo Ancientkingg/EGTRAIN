@@ -189,6 +189,7 @@ struct SceneService {
 	bool hasOperatingCodeStep = false;
 	int operatingCodeStep = 0;
 	std::vector<SceneStop> stops;
+	std::string category;
 };
 
 struct SceneServiceOccurrence {
