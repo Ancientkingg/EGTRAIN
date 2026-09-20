@@ -846,6 +846,30 @@ int main(int argc, char** argv) {
 	composite.scenarios[0].incidents[0].target = "block-2";
 	ok &= expect(validateScene(composite).empty(), "signal failure accepts a basic block target");
 
+	SceneService counted;
+	counted.id = "counted";
+	counted.stops.emplace_back();
+	counted.stops.front().hasPlannedDeparture = true;
+	counted.stops.front().plannedDepartureSeconds = 120.0;
+	counted.hasRepeat = true;
+	counted.headwaySeconds = 60.0;
+	counted.hasRepeatCount = true;
+	counted.repeatCount = 5;
+	ok &= expect(sceneServiceInWindowCount(counted, 240.0) == 2,
+		"implicit first departure and exclusive horizon determine in-period count");
+	counted.hasEntryTime = true;
+	counted.entryTimeSeconds = -60.0;
+	ok &= expect(sceneServiceScheduledEntry(counted, 2) == 0.0
+		&& sceneServiceInWindowCount(counted, 180.0) == 3,
+		"explicit entry wins and negative entries are outside the horizon");
+	ok &= expect(sceneServiceInWindowCount(counted, 180.0,
+		{{"counted", 1}, {"counted", 2}, {"counted", 5}, {"other", 2}}) == 1,
+		"selected in-period count retains stable identity and horizon limits");
+	counted.repeatCount = std::numeric_limits<int>::max();
+	ok &= expect(sceneServiceInWindowCount(counted, 180.0) == 3
+		&& sceneServiceOccurrenceCount(counted, 180.0) == counted.repeatCount,
+		"large configured totals stay intact while window counting is bounded");
+
 	const std::string fixtureDir = argv[1];
 	ok &= expect(!hasErrors(validateSceneStructure(fixtureDir)),
 			"historical fixture remains structurally loadable");

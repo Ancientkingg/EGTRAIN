@@ -178,6 +178,51 @@ std::string sceneOutputDirectoryComponent(const std::string& sceneName) {
 	return sceneName;
 }
 
+double sceneServiceScheduledEntry(const SceneService& service, int occurrence) {
+	const double entry = service.hasEntryTime ? service.entryTimeSeconds
+			: (!service.stops.empty() && service.stops.front().hasPlannedDeparture
+					&& std::isfinite(service.stops.front().plannedDepartureSeconds)
+					? service.stops.front().plannedDepartureSeconds : 0.0);
+	return entry + (service.hasRepeat ? (occurrence - 1.0) * service.headwaySeconds : 0.0);
+}
+
+int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
+		const SceneRunSelection& selection) {
+	if (!std::isfinite(durationSeconds) || durationSeconds <= 0.0)
+		return 0;
+	const int total = sceneServiceOccurrenceCount(service, durationSeconds);
+	const auto inWindow = [&](int occurrence) {
+		const double entry = sceneServiceScheduledEntry(service, occurrence);
+		return std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds;
+	};
+	if (!selection.empty()) {
+		int count = 0;
+		for (const SceneServiceOccurrence& value : selection)
+			if (value.serviceId == service.id && value.occurrence >= 1
+					&& value.occurrence <= total && inWindow(value.occurrence))
+				++count;
+		return count;
+	}
+	if (!service.hasRepeat)
+		return inWindow(1) ? 1 : 0;
+	if (!std::isfinite(service.headwaySeconds) || service.headwaySeconds <= 0.0
+			|| !std::isfinite(sceneServiceScheduledEntry(service)))
+		return 0;
+	const auto before = [&](double boundary) {
+		int low = 0;
+		int high = total;
+		while (low < high) {
+			const int middle = low + (high - low) / 2;
+			if (sceneServiceScheduledEntry(service, middle + 1) < boundary)
+				low = middle + 1;
+			else
+				high = middle;
+		}
+		return low;
+	};
+	return before(durationSeconds) - before(0.0);
+}
+
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds) {
 	if (!service.hasRepeat)
 		return 1;

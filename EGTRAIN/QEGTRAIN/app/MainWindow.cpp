@@ -177,6 +177,19 @@ public:
 	}
 };
 
+class ServiceSpeedSpinBox : public CompactDoubleSpinBox {
+public:
+	using CompactDoubleSpinBox::CompactDoubleSpinBox;
+	QString textFromValue(double value) const override {
+		return QString::number(value, 'g', 6);
+	}
+	double valueFromText(const QString& text) const override {
+		if (!lineEdit()->isModified() && text == textFromValue(value()))
+			return value();
+		return CompactDoubleSpinBox::valueFromText(text);
+	}
+};
+
 QString sourceFileSignature(const QString& path) {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly))
@@ -2717,7 +2730,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_serviceIdEdit = new QLineEdit(serviceDetailPane);
 	m_serviceIdEdit->setObjectName("serviceIdEdit");
 	serviceDetailLayout->addWidget(m_serviceIdEdit);
-	serviceDetailLayout->addWidget(new QLabel("Operating code", serviceDetailPane));
+	serviceDetailLayout->addWidget(new QLabel("Service code (number)", serviceDetailPane));
 	m_serviceOperatingCodeEdit = new QLineEdit(serviceDetailPane);
 	m_serviceOperatingCodeEdit->setObjectName("serviceOperatingCodeEdit");
 	serviceDetailLayout->addWidget(m_serviceOperatingCodeEdit);
@@ -2750,7 +2763,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addLayout(repeatLayout);
 
 	QHBoxLayout* repeatCountLayout = new QHBoxLayout();
-	m_serviceHasRepeatCountCheck = new QCheckBox("Occurrence count", serviceDetailPane);
+	m_serviceHasRepeatCountCheck = new QCheckBox("Configured total", serviceDetailPane);
 	m_serviceHasRepeatCountCheck->setObjectName("serviceHasRepeatCountCheck");
 	m_serviceRepeatCountEdit = new QLineEdit(serviceDetailPane);
 	m_serviceRepeatCountEdit->setObjectName("serviceRepeatCountEdit");
@@ -2761,7 +2774,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addLayout(repeatCountLayout);
 
 	QHBoxLayout* performanceLayout = new QHBoxLayout();
-	performanceLayout->addWidget(new QLabel("Performance (%)", serviceDetailPane));
+	performanceLayout->addWidget(new QLabel("Running performance (parameter) %", serviceDetailPane));
 	m_servicePerformancePercentEdit = new CompactDoubleSpinBox(serviceDetailPane);
 	m_servicePerformancePercentEdit->setObjectName("servicePerformancePercentEdit");
 	m_servicePerformancePercentEdit->setRange(1.0, 100.0);
@@ -2771,9 +2784,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addLayout(performanceLayout);
 
 	QHBoxLayout* maximumSpeedLayout = new QHBoxLayout();
-	m_serviceHasMaximumSpeedCheck = new QCheckBox("Maximum speed (km/h)", serviceDetailPane);
+	m_serviceHasMaximumSpeedCheck = new QCheckBox("Maximum speed restriction km/h", serviceDetailPane);
 	m_serviceHasMaximumSpeedCheck->setObjectName("serviceHasMaximumSpeedCheck");
-	m_serviceMaximumSpeedKmhEdit = new CompactDoubleSpinBox(serviceDetailPane);
+	m_serviceMaximumSpeedKmhEdit = new ServiceSpeedSpinBox(serviceDetailPane);
 	m_serviceMaximumSpeedKmhEdit->setObjectName("serviceMaximumSpeedKmhEdit");
 	m_serviceMaximumSpeedKmhEdit->setRange(0.1, 1000.0);
 	m_serviceMaximumSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
@@ -2783,7 +2796,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailLayout->addLayout(maximumSpeedLayout);
 
 	QHBoxLayout* operatingCodeStepLayout = new QHBoxLayout();
-	m_serviceHasOperatingCodeStepCheck = new QCheckBox("Operating-code step", serviceDetailPane);
+	m_serviceHasOperatingCodeStepCheck = new QCheckBox("Service code (number) step", serviceDetailPane);
 	m_serviceHasOperatingCodeStepCheck->setObjectName("serviceHasOperatingCodeStepCheck");
 	m_serviceOperatingCodeStepEdit = new QLineEdit(serviceDetailPane);
 	m_serviceOperatingCodeStepEdit->setObjectName("serviceOperatingCodeStepEdit");
@@ -2858,7 +2871,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_serviceOccurrenceTable->setObjectName("serviceOccurrenceTable");
 	m_serviceOccurrenceTable->setColumnCount(6);
 	m_serviceOccurrenceTable->setHorizontalHeaderLabels({
-		"Include", "Operating code", "Service / occurrence", "Offset / departure", "Performance (%)", "Maximum speed (km/h)"});
+		"Include", "Service code (number)", "Generated service", "Scheduled entry", "Running performance (parameter) %", "Maximum speed restriction (km/h)"});
 	m_serviceOccurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_serviceOccurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_serviceOccurrenceTable->setAlternatingRowColors(true);
@@ -3018,13 +3031,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentHasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
 	m_incidentHasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
 	incidentDetailLayout->addWidget(m_incidentHasEndSecondsCheck);
-	m_incidentHasOccurrenceCheck = new QCheckBox("Occurrence (1-based)", incidentDetailPane);
-	m_incidentHasOccurrenceCheck->setObjectName("incidentHasOccurrenceCheck");
-	m_incidentOccurrenceEdit = new QLineEdit(incidentDetailPane);
-	m_incidentOccurrenceEdit->setObjectName("incidentOccurrenceEdit");
-	m_incidentOccurrenceEdit->setValidator(new QIntValidator(1, std::numeric_limits<int>::max(), m_incidentOccurrenceEdit));
-	incidentDetailLayout->addWidget(m_incidentHasOccurrenceCheck);
-	incidentDetailLayout->addWidget(m_incidentOccurrenceEdit);
 	m_incidentHasReducedSpeedCheck = new QCheckBox("Reduced speed cap", incidentDetailPane);
 	m_incidentHasReducedSpeedCheck->setObjectName("incidentHasReducedSpeedCheck");
 	m_incidentReducedSpeedKmhEdit = new CompactDoubleSpinBox(incidentDetailPane);
@@ -3117,8 +3123,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_incidentTargetCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentTarget);
 	connect(m_incidentStartSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentStartSeconds);
 	connect(m_incidentEndSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentEndSeconds);
-	connect(m_incidentHasOccurrenceCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasOccurrence);
-	connect(m_incidentOccurrenceEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentOccurrence);
 	connect(m_incidentHasReducedSpeedCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasReducedSpeed);
 	connect(m_incidentReducedSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &MainWindow::commitIncidentReducedSpeed);
 	connect(m_incidentHasEndSecondsCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasEndSeconds);
@@ -4926,8 +4930,6 @@ void MainWindow::commitPendingEditorValues() {
 			&& m_incidentHasEndSecondsCheck->isChecked())
 			|| hasEditorFocus(m_incidentEndSecondsEdit)))
 		commitIncidentEndSeconds();
-	if (m_incidentHasOccurrenceCheck && m_incidentHasOccurrenceCheck->isChecked())
-		commitIncidentOccurrence();
 	if (m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked()
 			&& m_incidentReducedSpeedKmhEdit) {
 		m_incidentReducedSpeedKmhEdit->interpretText();
@@ -8641,6 +8643,17 @@ std::string MainWindow::uniqueServiceId(const std::string& baseId) const {
 	return candidate;
 }
 
+QString MainWindow::generatedServiceLabel(const SceneService& service, int occurrence) const {
+	const std::string code = sceneServiceOccurrenceOperatingCode(service, occurrence);
+	const double entry = sceneServiceScheduledEntry(service, occurrence);
+	const QString entryText = std::isfinite(entry)
+		? QString("+%1 s").arg(QString::number(entry, 'g', 12))
+		: QStringLiteral("(invalid scheduled entry)");
+	return QString("%1 | route %2 | entry %3")
+		.arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code),
+			QString::fromStdString(service.route), entryText);
+}
+
 double MainWindow::serviceOccurrenceDuration() const {
 	if (initial_variables.durationOverride)
 		return initial_variables.times;
@@ -8690,6 +8703,18 @@ int MainWindow::totalServiceOccurrences() const {
 	return total;
 }
 
+int MainWindow::inPeriodServiceOccurrences() const {
+	if (!m_sceneLoaded)
+		return 0;
+	long long total = 0;
+	for (const SceneService& service : m_sceneModel.services) {
+		total += sceneServiceInWindowCount(service, serviceOccurrenceDuration());
+		if (total >= std::numeric_limits<int>::max())
+			return std::numeric_limits<int>::max();
+	}
+	return static_cast<int>(total);
+}
+
 int MainWindow::selectedServiceOccurrences() const {
 	if (!m_sceneLoaded)
 		return 0;
@@ -8703,6 +8728,27 @@ int MainWindow::selectedServiceOccurrences() const {
 			++excluded;
 	}
 	return std::max(0, totalServiceOccurrences() - excluded);
+}
+
+int MainWindow::selectedServiceOccurrencesInPeriod() const {
+	if (!m_sceneLoaded)
+		return 0;
+	const double durationSeconds = serviceOccurrenceDuration();
+	const int configured = totalServiceOccurrences();
+	if (m_excludedSceneOccurrences.empty() || configured > Max_N_Reg)
+		return inPeriodServiceOccurrences();
+	int selected = 0;
+	for (const SceneService& service : m_sceneModel.services) {
+		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
+		for (int occurrence = 1; occurrence <= count; ++occurrence) {
+			const SceneServiceOccurrence value{service.id, occurrence};
+			const double entry = sceneServiceScheduledEntry(service, occurrence);
+			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end()
+					&& std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds)
+				++selected;
+		}
+	}
+	return selected;
 }
 
 SceneRunSelection MainWindow::selectedSceneOccurrences() const {
@@ -8764,31 +8810,23 @@ void MainWindow::refreshServiceOccurrencePreview() {
 			include->setData(Qt::UserRole, QString::fromStdString(service.id));
 			include->setData(Qt::UserRole + 1, occurrence);
 			m_serviceOccurrenceTable->setItem(row, 0, include);
+			const std::string code = sceneServiceOccurrenceOperatingCode(service, occurrence);
 			m_serviceOccurrenceTable->setItem(row, 1,
-				new QTableWidgetItem(QString::fromStdString(sceneServiceOccurrenceOperatingCode(service, occurrence))));
+				new QTableWidgetItem(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code)));
 			m_serviceOccurrenceTable->setItem(row, 2,
-				new QTableWidgetItem(QString("%1 / %2").arg(QString::fromStdString(service.id)).arg(occurrence)));
-			double offset = 0.0;
-			if (service.hasRepeat && service.headwaySeconds > 0.0)
-				offset = service.headwaySeconds * static_cast<double>(occurrence - 1);
-			QString context = QString("+%1 s").arg(QString::number(offset, 'f', 0));
-			if (!service.stops.empty() && service.stops.front().hasPlannedDeparture) {
-				context = QString("Departure %1 (+%2 s)")
-					.arg(QString::fromStdString(formatSimTime(
-						static_cast<long long>(service.stops.front().plannedDepartureSeconds + offset),
-						m_startOffsetSeconds)))
-					.arg(QString::number(offset, 'f', 0));
-			} else if (service.hasEntryTime) {
-				context = QString("Entry %1 (+%2 s)")
-					.arg(QString::fromStdString(formatSimTime(
-						static_cast<long long>(service.entryTimeSeconds + offset), m_startOffsetSeconds)))
-					.arg(QString::number(offset, 'f', 0));
-			}
-			m_serviceOccurrenceTable->setItem(row, 3, new QTableWidgetItem(context));
+				new QTableWidgetItem(QString("route %1").arg(QString::fromStdString(service.route))));
+			const double entry = sceneServiceScheduledEntry(service, occurrence);
+			m_serviceOccurrenceTable->setItem(row, 3, new QTableWidgetItem(
+				std::isfinite(entry) ? QString("+%1 s").arg(QString::number(entry, 'g', 12))
+					: QStringLiteral("(invalid scheduled entry)")));
 			m_serviceOccurrenceTable->setItem(row, 4,
 				new QTableWidgetItem(QString::number(static_cast<double>(service.performancePercent), 'g', 6)));
 			m_serviceOccurrenceTable->setItem(row, 5, new QTableWidgetItem(service.hasMaximumSpeed
 				? QString::number(service.maximumSpeedKmh, 'g', 6) : QStringLiteral("-")));
+			for (int column = 0; column < m_serviceOccurrenceTable->columnCount(); ++column)
+				m_serviceOccurrenceTable->item(row, column)->setToolTip(
+					generatedServiceLabel(service, occurrence) + QString(" [%1, #%2]")
+						.arg(QString::fromStdString(service.id)).arg(occurrence));
 		}
 		if (row >= displayedOccurrences)
 			break;
@@ -8796,12 +8834,16 @@ void MainWindow::refreshServiceOccurrencePreview() {
 	m_serviceOccurrenceTable->resizeColumnsToContents();
 	m_updatingServiceOccurrencePreview = false;
 	if (m_serviceOccurrenceSelectionLabel) {
-		if (totalOccurrences > Max_N_Reg)
-			m_serviceOccurrenceSelectionLabel->setText(QString("%1 occurrences; first %2 shown. Reduce the pattern to select a subset.")
-				.arg(totalOccurrences).arg(Max_N_Reg));
-		else
-			m_serviceOccurrenceSelectionLabel->setText(QString("%1/%2 occurrences selected")
-				.arg(selectedServiceOccurrences()).arg(totalOccurrences));
+		QString text = QString("Configured total: %1; Number of services in sim.: %2; Selected: %3; Selected in period: %4.\n"
+			"Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
+			.arg(totalOccurrences).arg(inPeriodServiceOccurrences()).arg(selectedServiceOccurrences())
+			.arg(selectedServiceOccurrencesInPeriod())
+			.arg(QString::number(durationSeconds, 'g', 12));
+		if (totalOccurrences > displayedOccurrences)
+			text += QString("\nPreview limited to %1 rows; generation is not truncated. Reduce the configured pattern before Run.")
+				.arg(displayedOccurrences);
+		m_serviceOccurrenceSelectionLabel->setText(text);
+		m_serviceOccurrenceSelectionLabel->setWordWrap(true);
 	}
 	const bool controlsEnabled = m_sceneLoaded && !m_worker && totalOccurrences <= Max_N_Reg;
 	if (m_serviceOccurrenceTable)
@@ -8811,6 +8853,7 @@ void MainWindow::refreshServiceOccurrencePreview() {
 	if (m_selectNoneOccurrencesButton)
 		m_selectNoneOccurrencesButton->setEnabled(controlsEnabled);
 	refreshEntranceDelayPanel();
+	refreshIncidentTargetCombo();
 }
 
 void MainWindow::updateServiceOccurrenceSelection(QTableWidgetItem* item) {
@@ -8823,9 +8866,7 @@ void MainWindow::updateServiceOccurrenceSelection(QTableWidgetItem* item) {
 		m_excludedSceneOccurrences.erase(value);
 	else
 		m_excludedSceneOccurrences.insert(value);
-	if (m_serviceOccurrenceSelectionLabel)
-		m_serviceOccurrenceSelectionLabel->setText(QString("%1/%2 occurrences selected")
-			.arg(selectedServiceOccurrences()).arg(totalServiceOccurrences()));
+	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::selectAllServiceOccurrences() {
@@ -10050,7 +10091,7 @@ void MainWindow::updateEntranceDelayDetailPanel() {
 		const QSignalBlocker blocker(m_entranceDelayServiceCombo);
 		m_entranceDelayServiceCombo->clear();
 		for (const SceneService& candidate : m_sceneModel.services)
-			m_entranceDelayServiceCombo->addItem(QString::fromStdString(candidate.id),
+			m_entranceDelayServiceCombo->addItem(generatedServiceLabel(candidate, 1),
 				QString::fromStdString(candidate.id));
 		if (delay) {
 			int index = m_entranceDelayServiceCombo->findData(QString::fromStdString(delay->serviceId));
@@ -10082,9 +10123,7 @@ void MainWindow::updateEntranceDelayDetailPanel() {
 		} else {
 			QString context = QString("Valid occurrence range: 1..%1").arg(occurrenceCount);
 			if (service) {
-				const std::string code = sceneServiceOccurrenceOperatingCode(*service, delay->occurrence);
-				context += QString(" | Generated operating code: %1")
-					.arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code));
+				context += QStringLiteral(" | ") + generatedServiceLabel(*service, delay->occurrence);
 			} else {
 				context += QStringLiteral(" | Generated operating code: (unavailable)");
 			}
@@ -10506,20 +10545,6 @@ void MainWindow::updateIncidentDetailPanel() {
 		m_incidentHasEndSecondsCheck->setChecked(hasEnd);
 		m_incidentHasEndSecondsCheck->setEnabled(hasSelection);
 	}
-	if (m_incidentHasOccurrenceCheck) {
-		const QSignalBlocker blocker(m_incidentHasOccurrenceCheck);
-		const bool hasOccurrence = isBreakdown && (incidents[static_cast<std::size_t>(row)].hasOccurrence
-			|| incidents[static_cast<std::size_t>(row)].occurrence != 1);
-		m_incidentHasOccurrenceCheck->setChecked(hasOccurrence);
-		m_incidentHasOccurrenceCheck->setEnabled(isBreakdown);
-	}
-	if (m_incidentOccurrenceEdit) {
-		const QSignalBlocker blocker(m_incidentOccurrenceEdit);
-		const int occurrence = hasSelection ? std::max(1, incidents[static_cast<std::size_t>(row)].occurrence) : 1;
-		m_incidentOccurrenceEdit->setText(QString::number(occurrence));
-		m_incidentOccurrenceEdit->setEnabled(isBreakdown
-			&& m_incidentHasOccurrenceCheck && m_incidentHasOccurrenceCheck->isChecked());
-	}
 	if (m_incidentHasReducedSpeedCheck) {
 		const QSignalBlocker blocker(m_incidentHasReducedSpeedCheck);
 		const bool hasCap = isBreakdown && (incidents[static_cast<std::size_t>(row)].hasReducedSpeed
@@ -10552,34 +10577,96 @@ void MainWindow::updateIncidentDetailPanel() {
 void MainWindow::refreshIncidentTargetCombo() {
 	if (!m_incidentTargetCombo)
 		return;
-
-	const auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && !m_worker && row >= 0
-		&& row < static_cast<int>(incidents.size());
-
+	const SceneIncident* incident = selectedIncident();
 	const QSignalBlocker blocker(m_incidentTargetCombo);
 	m_incidentTargetCombo->clear();
-	m_incidentTargetCombo->addItem(QString()); // blank choice: no target
-
-	if (hasSelection) {
-		const SceneIncident& incident = incidents[row];
-		// which pool of ids to offer depends on the current type
-		QString typeText = m_incidentTypeCombo ? m_incidentTypeCombo->currentText() : QString();
-		if (typeText == "signal_failure") {
-			for (const auto& target : signalFailureTargets(m_sceneModel))
-				m_incidentTargetCombo->addItem(QString::fromStdString(target));
+	m_incidentTargetCombo->addItem(QStringLiteral("Choose target"), QString());
+	int current = 0;
+	if (incident) {
+		const QString target = QString::fromStdString(incident->target);
+		bool found = false;
+		if (incident->type == "signal_failure") {
+			for (const std::string& value : signalFailureTargets(m_sceneModel))
+				m_incidentTargetCombo->addItem(QString::fromStdString(value), QString::fromStdString(value));
+			current = m_incidentTargetCombo->findData(target);
+			if (current < 0 && !target.isEmpty()) {
+				m_incidentTargetCombo->addItem(QStringLiteral("Invalid removed target: ") + target, target);
+				current = m_incidentTargetCombo->count() - 1;
+			}
 		} else {
-			// train_breakdown or any unrecognised type: offer service ids
-			for (const auto& service : m_sceneModel.services)
-				m_incidentTargetCombo->addItem(QString::fromStdString(service.id));
+			const bool singular = incident->hasOccurrence || incident->occurrence != 1;
+			if (!singular && !incident->target.empty()) {
+				const bool exists = std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+					[&](const SceneService& service) { return service.id == incident->target; });
+				m_incidentTargetCombo->addItem(
+					(exists ? QStringLiteral("Historical scope: all generated services [")
+						: QStringLiteral("Invalid removed target; historical all scope ["))
+						+ target + QStringLiteral("]"), target);
+				const int index = m_incidentTargetCombo->count() - 1;
+				m_incidentTargetCombo->setItemData(index, 0, Qt::UserRole + 1);
+				current = index;
+			}
+			int shown = 0;
+			for (const SceneService& service : m_sceneModel.services) {
+				const int count = std::max(0,
+					sceneServiceOccurrenceCount(service, serviceOccurrenceDuration()));
+				for (int occurrence = 1; occurrence <= count && shown < Max_N_Reg; ++occurrence, ++shown) {
+					m_incidentTargetCombo->addItem(generatedServiceLabel(service, occurrence),
+						QString::fromStdString(service.id));
+					const int index = m_incidentTargetCombo->count() - 1;
+					m_incidentTargetCombo->setItemData(index, occurrence, Qt::UserRole + 1);
+					if (singular && service.id == incident->target && occurrence == incident->occurrence) {
+						current = index;
+						found = true;
+					}
+				}
+				if (shown >= Max_N_Reg)
+					break;
+			}
+			if (singular && !found && !incident->target.empty()) {
+				for (const SceneService& service : m_sceneModel.services) {
+					if (service.id != incident->target)
+						continue;
+					const int count = std::max(0,
+						sceneServiceOccurrenceCount(service, serviceOccurrenceDuration()));
+					if (incident->occurrence < 1 || incident->occurrence > count)
+						break;
+					m_incidentTargetCombo->addItem(generatedServiceLabel(service, incident->occurrence),
+						QString::fromStdString(service.id));
+					current = m_incidentTargetCombo->count() - 1;
+					m_incidentTargetCombo->setItemData(current, incident->occurrence, Qt::UserRole + 1);
+					found = true;
+					break;
+				}
+			}
 		}
-		QString currentTarget = QString::fromStdString(incident.target);
-		if (!currentTarget.isEmpty() && m_incidentTargetCombo->findText(currentTarget) < 0)
-			m_incidentTargetCombo->addItem(currentTarget); // dangling reference, still shown/selectable
-		m_incidentTargetCombo->setCurrentText(currentTarget);
+		if (incident->type != "signal_failure" && !incident->target.empty()
+				&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
+			m_incidentTargetCombo->addItem(
+				QStringLiteral("Invalid removed target [") + target + QStringLiteral(", ")
+					+ QString::number(incident->occurrence) + QStringLiteral("]"), target);
+			current = m_incidentTargetCombo->count() - 1;
+			m_incidentTargetCombo->setItemData(current,
+				incident->hasOccurrence || incident->occurrence != 1 ? incident->occurrence : 0,
+				Qt::UserRole + 1);
+			}
 	}
-	m_incidentTargetCombo->setEnabled(hasSelection);
+	QHash<QString, int> labelCounts;
+	for (int index = 0; index < m_incidentTargetCombo->count(); ++index)
+		++labelCounts[m_incidentTargetCombo->itemText(index)];
+	for (int index = 0; index < m_incidentTargetCombo->count(); ++index) {
+		const QString label = m_incidentTargetCombo->itemText(index);
+		const QString identity = QString(" [%1, #%2]")
+			.arg(m_incidentTargetCombo->itemData(index).toString())
+			.arg(m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt());
+		if (labelCounts.value(label) > 1)
+			m_incidentTargetCombo->setItemText(index, label + identity);
+		m_incidentTargetCombo->setItemData(index, label + identity, Qt::ToolTipRole);
+	}
+	m_incidentTargetCombo->setCurrentIndex(std::max(0, current));
+	m_incidentTargetCombo->setEnabled(incident != nullptr && !m_worker);
+	m_incidentTargetCombo->setToolTip(
+		QStringLiteral("Service code with route, elapsed scheduled entry and stable identity."));
 }
 
 std::string MainWindow::uniqueIncidentId(const std::string& baseId) const {
@@ -10756,23 +10843,25 @@ void MainWindow::commitIncidentType(const QString& text) {
 	updateIncidentDetailPanel();
 }
 
-void MainWindow::commitIncidentTarget(const QString& text) {
-	if (!m_sceneLoaded || !m_incidentListWidget)
+void MainWindow::commitIncidentTarget(const QString&) {
+	if (!m_sceneLoaded || m_worker || !m_incidentTargetCombo)
 		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
+	SceneIncident* incident = selectedIncident();
+	if (!incident)
 		return;
-
-	std::string newTarget = text.toStdString();
-	if (newTarget == incidents[row].target)
+	const std::string newTarget = m_incidentTargetCombo->currentData().toString().toStdString();
+	int occurrence = m_incidentTargetCombo->currentData(Qt::UserRole + 1).toInt();
+	const bool singular = incident->type != "signal_failure" && occurrence > 0;
+	occurrence = std::max(1, occurrence);
+	if (incident->target == newTarget && incident->hasOccurrence == singular
+			&& incident->occurrence == occurrence)
 		return;
-
-	incidents[row].target = newTarget;
-
-	// the combo already shows the chosen value; no panel rebuild needed
+	incident->target = newTarget;
+	incident->hasOccurrence = singular;
+	incident->occurrence = occurrence;
 	markScenarioModified();
 	refreshValidationPanel();
+	updateIncidentDetailPanel();
 }
 
 void MainWindow::commitIncidentStartSeconds() {
@@ -10832,45 +10921,6 @@ void MainWindow::commitIncidentEndSeconds() {
 
 	markScenarioModified();
 	refreshValidationPanel();
-}
-
-void MainWindow::commitIncidentOccurrence() {
-	if (!m_sceneLoaded || !m_incidentOccurrenceEdit)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	bool ok = false;
-	int occurrence = m_incidentOccurrenceEdit->text().toInt(&ok);
-	if (!ok || occurrence < 1)
-		occurrence = 1;
-	{
-		const QSignalBlocker blocker(m_incidentOccurrenceEdit);
-		m_incidentOccurrenceEdit->setText(QString::number(occurrence));
-	}
-	if (incident->occurrence == occurrence && incident->hasOccurrence)
-		return;
-	incident->occurrence = occurrence;
-	incident->hasOccurrence = true;
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshIncidentPanel();
-}
-
-void MainWindow::commitIncidentHasOccurrence(bool checked) {
-	if (!m_sceneLoaded)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	if (incident->hasOccurrence == checked)
-		return;
-	incident->hasOccurrence = checked;
-	if (!checked)
-		incident->occurrence = 1;
-	markScenarioModified();
-	refreshValidationPanel();
-	updateIncidentDetailPanel();
 }
 
 void MainWindow::commitIncidentReducedSpeed() {
@@ -15920,6 +15970,11 @@ void MainWindow::runEditorSmokeE2E() {
 			m_sceneModel.services[1].hasMaximumSpeed = true;
 			m_sceneModel.services[1].maximumSpeedKmh = preciseMaximumSpeedKmh;
 			updateServiceDetailPanel();
+			if (m_serviceMaximumSpeedKmhEdit->text() != QString::number(preciseMaximumSpeedKmh, 'g', 6))
+				facetFailure(facetOk, "service", "speed editor did not use compact display precision");
+			m_serviceMaximumSpeedKmhEdit->setFocus();
+			m_serviceMaximumSpeedKmhEdit->interpretText();
+			m_serviceMaximumSpeedKmhEdit->clearFocus();
 			commitPendingServiceSettings();
 			if (m_sceneModel.services[1].performancePercent != precisePerformancePercent
 					|| m_sceneModel.services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
@@ -15927,6 +15982,8 @@ void MainWindow::runEditorSmokeE2E() {
 			const SceneService serviceBeforeSelection = m_sceneModel.services[1];
 			const bool dirtyBeforeSelection = m_sceneDirty;
 			selectNoneServiceOccurrences();
+			if (selectedServiceOccurrencesInPeriod() != 0)
+				facetFailure(facetOk, "service", "empty GUI selection counted all services in period");
 			if (m_serviceOccurrenceTable) {
 				for (int previewRow = 0; previewRow < m_serviceOccurrenceTable->rowCount(); ++previewRow) {
 					QTableWidgetItem* include = m_serviceOccurrenceTable->item(previewRow, 0);
@@ -16247,18 +16304,19 @@ void MainWindow::runEditorSmokeE2E() {
 				m_incidentTypeCombo->setCurrentText("train_breakdown");
 			if (!m_incidentHasReducedSpeedCheck || !m_incidentHasReducedSpeedCheck->isEnabled())
 				facetFailure(facetOk, "incident", "breakdown controls stayed disabled after the type change");
-			commitIncidentTarget(QString::fromStdString(editedServiceId));
+			for (int index = 0; index < m_incidentTargetCombo->count(); ++index) {
+				if (m_incidentTargetCombo->itemData(index).toString().toStdString() == editedServiceId
+						&& m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt() == 2) {
+					m_incidentTargetCombo->setCurrentIndex(index);
+					break;
+				}
+			}
 			if (m_incidentStartSecondsEdit)
 				m_incidentStartSecondsEdit->setText("100");
 			commitIncidentStartSeconds();
 			if (m_incidentEndSecondsEdit)
 				m_incidentEndSecondsEdit->setText("200");
 			commitIncidentEndSeconds();
-			if (m_incidentHasOccurrenceCheck)
-				m_incidentHasOccurrenceCheck->setChecked(true);
-			if (m_incidentOccurrenceEdit)
-				m_incidentOccurrenceEdit->setText("2");
-			commitIncidentOccurrence();
 			if (m_incidentHasReducedSpeedCheck)
 				m_incidentHasReducedSpeedCheck->setChecked(true);
 			if (SceneIncident* incident = selectedIncident(); !incident
@@ -16306,15 +16364,34 @@ void MainWindow::runEditorSmokeE2E() {
 			const int serviceCount = m_serviceListWidget->count();
 			addService();
 			const std::string temporaryServiceId = m_sceneModel.services.back().id;
-			if (m_incidentTargetCombo->findText(QString::fromStdString(temporaryServiceId)) < 0)
+			if (m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) < 0)
 				facetFailure(facetOk, "incident", "service add did not refresh breakdown targets");
 			acceptConfirmation();
 			deleteService();
 			if (m_serviceListWidget->count() != serviceCount
-					|| m_incidentTargetCombo->findText(QString::fromStdString(temporaryServiceId)) >= 0)
+					|| m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) >= 0)
 				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
 		}
 		const QString review = runReviewText();
+		if (editedRow >= 0) {
+			m_incidentListWidget->setCurrentRow(editedRow);
+			SceneIncident* incident = selectedIncident();
+			const SceneIncident saved = *incident;
+			incident->hasOccurrence = false;
+			incident->occurrence = 1;
+			updateIncidentDetailPanel();
+			commitPendingEditorValues();
+			if (incident->hasOccurrence || !m_incidentTargetCombo->currentText().contains("Historical scope"))
+				facetFailure(facetOk, "incident", "historical all-occurrence scope was narrowed");
+			incident->hasOccurrence = true;
+			incident->occurrence = std::numeric_limits<int>::max();
+			updateIncidentDetailPanel();
+			if (!m_incidentTargetCombo->currentText().contains("Invalid removed target")
+					|| m_incidentTargetCombo->currentData().toString().toStdString() != saved.target)
+				facetFailure(facetOk, "incident", "removed occurrence was silently retargeted");
+			*incident = saved;
+			updateIncidentDetailPanel();
+		}
 		const bool reviewOk = review.contains(QString("Scenario: %1").arg(scenarioContext()))
 			&& review.contains(QString("id=%1 type=train_breakdown target=%2 start=100")
 				.arg(QString::fromStdString(editedIncidentId), QString::fromStdString(editedServiceId)))
@@ -18128,11 +18205,6 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("60"))
 				|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("100"))) {
 			fail(QStringLiteral("breakdown incident target or finite interval did not commit"));
-			return;
-		}
-		m_incidentHasOccurrenceCheck->setChecked(true);
-		if (!editLine(m_incidentOccurrenceEdit, QStringLiteral("1"))) {
-			fail(QStringLiteral("breakdown occurrence did not commit"));
 			return;
 		}
 		m_incidentHasReducedSpeedCheck->setChecked(true);
@@ -20154,16 +20226,20 @@ QString MainWindow::runReviewText() const {
 			entranceDelayDetails += detail;
 		}
 	}
-	QString summary = QString("Case study: %1\nScenario: %2\nServices: %3\nOccurrences: %4/%5 selected\nCompositions: %6\nIncidents: %7\nValidation: %8 error(s), %9 warning(s)")
+	QString summary = QString("Case study: %1\nScenario: %2\nService definitions: %3\nConfigured total: %4\nNumber of services in sim.: %5\nSelected: %6\nSelected in period: %7\nCompositions: %8\nIncidents: %9\nValidation: %10 error(s), %11 warning(s)")
 		.arg(QString::fromStdString(m_sceneModel.name))
 		.arg(scenarioContext())
 		.arg(static_cast<int>(m_sceneModel.services.size()))
-		.arg(selectedServiceOccurrences())
 		.arg(totalServiceOccurrences())
+		.arg(inPeriodServiceOccurrences())
+		.arg(selectedServiceOccurrences())
+		.arg(selectedServiceOccurrencesInPeriod())
 		.arg(static_cast<int>(m_sceneModel.compositions.size()))
 		.arg(static_cast<int>(selectedScenarioIncidents().size()))
 		.arg(counts.errors)
 		.arg(counts.warnings);
+	summary += QString("\nCounting rule: scheduled entry ≥ 0 and < %1 s; these are configured identities, not observed trains.")
+		.arg(QString::number(serviceOccurrenceDuration(), 'g', 12));
 	if (!incidentDetails.isEmpty())
 		summary += "\nIncident configuration: " + incidentDetails;
 	if (!entranceDelayDetails.isEmpty())
@@ -20204,13 +20280,17 @@ bool MainWindow::showRunReview() {
 		facts->addWidget(name, row, 0);
 		facts->addWidget(fact, row, 1);
 	};
-	addFact(0, "Services", QString::number(static_cast<int>(m_sceneModel.services.size())));
-	addFact(1, "Occurrences", QString("%1 of %2 selected")
-		.arg(selectedServiceOccurrences()).arg(totalServiceOccurrences()));
-	addFact(2, "Compositions", QString::number(static_cast<int>(m_sceneModel.compositions.size())));
-	addFact(3, "Incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
+	addFact(0, "Service definitions", QString::number(static_cast<int>(m_sceneModel.services.size())));
+	addFact(1, "Configured total", QString::number(totalServiceOccurrences()));
+	addFact(2, "Number of services in sim.", QString::number(inPeriodServiceOccurrences()));
+	addFact(3, "Selected", QString::number(selectedServiceOccurrences()));
+	addFact(4, "Selected in period", QString::number(selectedServiceOccurrencesInPeriod()));
+	addFact(5, "Compositions", QString::number(static_cast<int>(m_sceneModel.compositions.size())));
+	addFact(6, "Incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
+	addFact(7, "Counting rule", QString("Scheduled entry ≥ 0 and < %1 s")
+		.arg(QString::number(serviceOccurrenceDuration(), 'g', 12)));
 	if (detailsEnabled) {
-		addFact(4, "Validation", QString("%1 errors, %2 warnings").arg(counts.errors).arg(counts.warnings));
+		addFact(8, "Validation", QString("%1 errors, %2 warnings").arg(counts.errors).arg(counts.warnings));
 	}
 	layout->addLayout(facts);
 

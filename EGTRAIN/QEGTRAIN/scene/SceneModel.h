@@ -325,6 +325,9 @@ struct SceneModel {
 SceneModel makeNewSceneModel();
 
 std::string sceneOutputDirectoryComponent(const std::string& sceneName);
+double sceneServiceScheduledEntry(const SceneService& service, int occurrence = 1);
+int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
+		const SceneRunSelection& selection = {});
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds);
 std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence);
 bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
