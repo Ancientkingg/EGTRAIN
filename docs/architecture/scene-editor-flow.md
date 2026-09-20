@@ -31,7 +31,7 @@ an editable or runtime fallback.
 | File menu | `Open Case Study...`, `Open Scene Folder...`, `Save Scene`, `Save Case Study As...`, `Save Scene As Folder...`, recent scenes, `Load Legacy Case...`, `Quit` | Open, recent scenes, legacy case picker, and Quit are always enabled. Save is enabled when a scene is loaded and dirty. Both Save As actions are enabled when a scene is loaded. |
 | Simulation menu and toolbar | `Run`, `Pause`, `Stop`, speed control | Run is enabled when a runnable scene is loaded and no scene error diagnostics are current. Pause and Stop are enabled only while simulation is running. |
 | Central view | Existing network view and progress bar | Empty at startup. Shows canonical scene infrastructure after open and simulation state after setup and run. |
-| Editor docks | Case settings, infrastructure, train units, compositions, services and timetable, incidents | Enabled for a new or opened canonical scene. A legacy case must first be imported as a scene. |
+| Editor docks | Case settings, infrastructure, rolling stock units, compositions, services and timetable, incidents | Enabled for a new or opened canonical scene. A legacy case must first be imported as a scene. |
 | Validation panel | Dockable table of diagnostics | Visible after scene open. Updated on open, edit, save, and pre-run validation. |
 | Loaded Data panel | Case/source metadata, parsed category counts, scenarios, provenance, validation status, editor links, runtime and result readiness | Raised after scene open. Item activation reuses the existing network view, validation table, and domain editors. |
 | Existing info dock | Read-only selected item details for nodes, stations, arcs, connections, signals, trains | Enabled when the network view has selectable items. It stays read-only outside explicit editor controls. |
@@ -86,8 +86,8 @@ surface.
 |---|---|---|
 | Case settings | Name, description, base time, duration, buffer, recovery | Schema version, units, scene path, validation summary |
 | Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
-| Train units | ID, nine native physical fields, traction rows, parameter source reference, traction source reference | Static traction plot; composition usage |
-| Compositions | ID and ordered train-unit membership | Selected-unit source references and traction plot |
+| Rolling stock units | ID; engine section with traction source, rows and plot; characteristics section with nine native physical fields and parameter source | Static traction plot; composition usage |
+| Compositions | ID and ordered rolling-stock-unit membership | Selected-unit source references and traction plot |
 | Services and timetable | ID, operating code, composition, route, through state, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stops, platforms, planned arrival/departure, dwell | Generated occurrence identities and offsets |
 | Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
 | Passengers | Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair | Row-specific import outcomes and validation diagnostics |

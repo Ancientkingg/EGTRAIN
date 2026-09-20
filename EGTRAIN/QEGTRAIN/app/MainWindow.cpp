@@ -1226,6 +1226,8 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 			label[0] = label[0].toUpper();
 		if (label == "Scene")
 			label = "Case metadata";
+		if (label == "Train units")
+			label = "Rolling stock units";
 	}
 	row->setText(0, label);
 	row->setText(1, QString::fromStdString(item.sourceFile));
@@ -1238,7 +1240,7 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 			: (item.targetType == "validation"
 				? QStringLiteral("Activate this row to open the existing validation table.")
 				: (item.targetType == "train_unit_plot"
-					? QStringLiteral("Activate this row to plot this train unit's tractive effort.")
+					? QStringLiteral("Activate this row to plot this rolling stock unit's tractive effort.")
 					: QStringLiteral("Activate this row to open the existing editor.")));
 		row->setToolTip(0, tooltip);
 	}
@@ -2338,13 +2340,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// train-unit editor: one list/detail dock for physical values and traction
 	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
-	m_trainUnitDock = new QDockWidget("Train Units", this);
+	m_trainUnitDock = new QDockWidget("Rolling stock units", this);
 	m_trainUnitDock->setObjectName("trainUnitDock");
 	QWidget* trainUnitWidget = new QWidget(m_trainUnitDock);
 	QHBoxLayout* trainUnitLayout = new QHBoxLayout(trainUnitWidget);
 	QWidget* trainUnitListPane = new QWidget(trainUnitWidget);
 	QVBoxLayout* trainUnitListLayout = new QVBoxLayout(trainUnitListPane);
-	trainUnitListLayout->addWidget(new QLabel("Train Units", trainUnitListPane));
+	trainUnitListLayout->addWidget(new QLabel("Rolling stock units", trainUnitListPane));
 	m_trainUnitListWidget = new QListWidget(trainUnitListPane);
 	trainUnitListLayout->addWidget(m_trainUnitListWidget);
 	QHBoxLayout* trainUnitButtonLayout = new QHBoxLayout();
@@ -2359,10 +2361,46 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	QWidget* trainUnitDetailPane = new QWidget(trainUnitWidget);
 	QVBoxLayout* trainUnitDetailLayout = new QVBoxLayout(trainUnitDetailPane);
-	trainUnitDetailLayout->addWidget(new QLabel("Train Unit Id", trainUnitDetailPane));
+	auto addUnitHeading = [trainUnitDetailPane, trainUnitDetailLayout](const QString& title) {
+		auto* heading = new QLabel(title, trainUnitDetailPane);
+		heading->setObjectName("rollingStockSectionHeading");
+		QFont font = heading->font();
+		font.setBold(true);
+		font.setPointSizeF(font.pointSizeF() + 2.0);
+		heading->setFont(font);
+		heading->setWordWrap(true);
+		trainUnitDetailLayout->addWidget(heading);
+	};
+	addUnitHeading("Rolling stock unit ID");
 	m_trainUnitIdEdit = new QLineEdit(trainUnitDetailPane);
 	trainUnitDetailLayout->addWidget(m_trainUnitIdEdit);
+	addUnitHeading("Rolling stock engine");
+	trainUnitDetailLayout->addWidget(new QLabel("Tractive-effort source reference", trainUnitDetailPane));
+	m_trainUnitSourceTractionEdit = new QLineEdit(trainUnitDetailPane);
+	m_trainUnitSourceTractionEdit->setPlaceholderText("Optional");
+	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionEdit);
 
+	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
+	m_trainUnitTractionTable = new QTableWidget(0, 5, trainUnitDetailPane);
+	m_trainUnitTractionTable->setHorizontalHeaderLabels(QStringList()
+		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
+	m_trainUnitTractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_trainUnitTractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	// size columns to their headers so "Lower speed (m/s)" is never clipped
+	m_trainUnitTractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	m_trainUnitTractionTable->horizontalHeader()->setStretchLastSection(true);
+	m_trainUnitTractionTable->setMinimumHeight(m_trainUnitTractionTable->fontMetrics().lineSpacing() * 8);
+	trainUnitDetailLayout->addWidget(m_trainUnitTractionTable, 1);
+	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
+	m_addTrainUnitTractionButton = new QPushButton("Add Traction Row", trainUnitDetailPane);
+	m_removeTrainUnitTractionButton = new QPushButton("Delete Traction Row", trainUnitDetailPane);
+	tractionButtonLayout->addWidget(m_addTrainUnitTractionButton);
+	tractionButtonLayout->addWidget(m_removeTrainUnitTractionButton);
+	trainUnitDetailLayout->addLayout(tractionButtonLayout);
+	m_plotTrainUnitTractionButton = new QPushButton("Plot input traction characteristic", trainUnitDetailPane);
+	trainUnitDetailLayout->addWidget(m_plotTrainUnitTractionButton);
+
+	addUnitHeading("Rolling stock unit characteristics");
 	QFormLayout* trainPhysicalLayout = new QFormLayout();
 	const char* physicalLabels[] = {
 		"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
@@ -2378,41 +2416,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		trainPhysicalLayout->addRow(new QLabel(physicalLabels[i], trainUnitDetailPane), edit);
 	}
 	trainUnitDetailLayout->addLayout(trainPhysicalLayout);
-
 	trainUnitDetailLayout->addWidget(new QLabel("Parameter source reference", trainUnitDetailPane));
 	m_trainUnitSourceDataEdit = new QLineEdit(trainUnitDetailPane);
 	m_trainUnitSourceDataEdit->setPlaceholderText("Optional");
 	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataEdit);
-	trainUnitDetailLayout->addWidget(new QLabel("Tractive-effort source reference", trainUnitDetailPane));
-	m_trainUnitSourceTractionEdit = new QLineEdit(trainUnitDetailPane);
-	m_trainUnitSourceTractionEdit->setPlaceholderText("Optional");
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionEdit);
-	m_plotTrainUnitTractionButton = new QPushButton("Plot input traction characteristic", trainUnitDetailPane);
-	trainUnitDetailLayout->addWidget(m_plotTrainUnitTractionButton);
-
-	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
-	m_trainUnitTractionTable = new QTableWidget(0, 5, trainUnitDetailPane);
-	m_trainUnitTractionTable->setHorizontalHeaderLabels(QStringList()
-		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
-	m_trainUnitTractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_trainUnitTractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	// size columns to their headers so "Lower speed (m/s)" is never clipped
-	m_trainUnitTractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	m_trainUnitTractionTable->horizontalHeader()->setStretchLastSection(true);
-	trainUnitDetailLayout->addWidget(m_trainUnitTractionTable);
-	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
-	m_addTrainUnitTractionButton = new QPushButton("Add Traction Row", trainUnitDetailPane);
-	m_removeTrainUnitTractionButton = new QPushButton("Delete Traction Row", trainUnitDetailPane);
-	tractionButtonLayout->addWidget(m_addTrainUnitTractionButton);
-	tractionButtonLayout->addWidget(m_removeTrainUnitTractionButton);
-	trainUnitDetailLayout->addLayout(tractionButtonLayout);
-	trainUnitDetailLayout->addStretch();
 
 	QScrollArea* trainUnitDetailScroll = new QScrollArea(trainUnitWidget);
 	trainUnitDetailScroll->setWidgetResizable(true);
 	trainUnitDetailScroll->setFrameShape(QFrame::NoFrame);
 	trainUnitDetailScroll->setWidget(trainUnitDetailPane);
-	trainUnitLayout->addWidget(trainUnitDetailScroll);
+	trainUnitLayout->addWidget(trainUnitDetailScroll, 1);
 
 	m_trainUnitDock->setWidget(trainUnitWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
@@ -2473,7 +2486,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	compositionDetailLayout->addWidget(new QLabel("Composition Id", compositionDetailPane));
 	m_compositionIdEdit = new QLineEdit(compositionDetailPane);
 	compositionDetailLayout->addWidget(m_compositionIdEdit);
-	compositionDetailLayout->addWidget(new QLabel("Units (in order)", compositionDetailPane));
+	compositionDetailLayout->addWidget(new QLabel("Rolling stock units (in order)", compositionDetailPane));
 	m_compositionUnitsListWidget = new QListWidget(compositionDetailPane);
 	compositionDetailLayout->addWidget(m_compositionUnitsListWidget);
 	QHBoxLayout* unitButtonLayout = new QHBoxLayout();
@@ -7153,13 +7166,13 @@ void MainWindow::deleteTrainUnit() {
 	const std::string id = m_sceneModel.trainUnits[row].id;
 	const QStringList consumers = directDeleteConsumers(QStringLiteral("train_unit"), id);
 	if (!consumers.isEmpty()) {
-		showBlockingError(this, "Cannot Delete Train Unit",
-			QString("Cannot delete train unit '%1' because it is still referenced by:\n• %2\nRemove it from those compositions first.")
+		showBlockingError(this, "Cannot Delete Rolling Stock Unit",
+			QString("Cannot delete rolling stock unit '%1' because it is still referenced by:\n• %2\nRemove it from those compositions first.")
 				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
 		return;
 	}
-	if (QMessageBox::question(this, "Delete Train Unit",
-			QString("Delete train unit '%1'?").arg(QString::fromStdString(id)),
+	if (QMessageBox::question(this, "Delete Rolling Stock Unit",
+			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id)),
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 		return;
 	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
@@ -7605,7 +7618,7 @@ void MainWindow::addUnitToComposition() {
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
 		return;
 	if (m_sceneModel.trainUnits.empty()) {
-		QMessageBox::information(this, "Add Unit", "This scene has no train units defined.");
+		QMessageBox::information(this, "Add Rolling Stock Unit", "This scene has no rolling stock units defined.");
 		return;
 	}
 
@@ -7614,7 +7627,7 @@ void MainWindow::addUnitToComposition() {
 		unitIds << QString::fromStdString(unit.id);
 
 	bool ok = false;
-	QString chosen = QInputDialog::getItem(this, "Add Unit", "Train unit:", unitIds, 0, false, &ok);
+	QString chosen = QInputDialog::getItem(this, "Add Rolling Stock Unit", "Rolling stock unit:", unitIds, 0, false, &ok);
 	if (!ok || chosen.isEmpty())
 		return;
 
@@ -14429,6 +14442,40 @@ void MainWindow::runEditorSmokeE2E() {
 	} else {
 		bool facetOk = true;
 		const int originalCount = m_trainUnitListWidget->count();
+		const auto headings = m_trainUnitDock->findChildren<QLabel*>("rollingStockSectionHeading");
+		const QStringList sectionTitles{"Rolling stock unit ID", "Rolling stock engine", "Rolling stock unit characteristics"};
+		bool layoutOk = headings.size() == sectionTitles.size();
+		for (int i = 0; layoutOk && i < headings.size(); ++i) {
+			layoutOk = headings[i]->text() == sectionTitles[i] && headings[i]->font().bold()
+				&& headings[i]->font().pointSizeF() > m_trainUnitIdEdit->font().pointSizeF()
+				&& (i == 0 || headings[i - 1]->y() < headings[i]->y());
+		}
+		layoutOk = layoutOk && headings.size() == 3
+			&& m_trainUnitTractionTable->y() > headings[1]->y()
+			&& m_plotTrainUnitTractionButton->y() < headings[2]->y();
+		const bool wasDirty = m_sceneDirty;
+		m_sceneDirty = false;
+		const QSize oldSize = m_trainUnitDock->size();
+		const QSize oldTableSize = m_trainUnitTractionTable->size();
+		const bool wasFloating = m_trainUnitDock->isFloating();
+		m_trainUnitDock->setFloating(true);
+		m_trainUnitDock->resize(1400, 1200);
+		QApplication::processEvents();
+		layoutOk = layoutOk && !m_sceneDirty && m_trainUnitTractionTable->width() > oldTableSize.width()
+			&& m_trainUnitTractionTable->height() > oldTableSize.height();
+		const QString layoutShot = QDir(qEnvironmentVariable("QEGTRAIN_E2E_OUT", QDir::tempPath()))
+			.filePath("rolling-stock-expanded.png");
+		layoutOk = m_trainUnitDock->grab().save(layoutShot, "PNG") && layoutOk;
+		m_trainUnitDock->setFloating(wasFloating);
+		m_trainUnitDock->resize(oldSize);
+		m_sceneDirty = wasDirty;
+		m_trainUnitListWidget->setCurrentRow(-1);
+		layoutOk = layoutOk && !m_trainUnitIdEdit->isEnabled() && !m_trainUnitSourceDataEdit->isEnabled()
+			&& !m_trainUnitSourceTractionEdit->isEnabled() && !m_trainUnitTractionTable->isEnabled();
+		for (auto* edit : m_trainUnitPhysicalEdits)
+			layoutOk = layoutOk && edit && !edit->isEnabled();
+		if (!layoutOk)
+			facetFailure(facetOk, "rolling stock layout", "section order, typography, resize or empty selection changed");
 		m_trainUnitListWidget->setCurrentRow(0);
 		addTrainUnit();
 		if (m_trainUnitListWidget->count() != originalCount + 1) {
