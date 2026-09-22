@@ -167,8 +167,9 @@ Optional runtime controls are:
 - `maximum_speed_kmh`: positive finite speed in km/h. It is a service cap and
   is applied as `min(composition max speed, service cap)` before performance
   scaling. The writer omits it when it is not configured.
-- `through`: boolean, and `entry_time_seconds`: seconds relative to the scene
-  base-time origin.
+- `entry_time_seconds`: finite non-negative seconds relative to the scene
+  base-time origin. The historical boolean `through` remains readable and
+  writable, but the stop list determines scheduled calls.
 - `repeat`: an object with positive finite `headway_seconds` in seconds. Its
   optional positive integer `count` is the total number of occurrences,
   including the base occurrence, and overrides the duration/headway horizon.
@@ -189,7 +190,7 @@ optional string `platform`. The planned timetable keys are:
 
 - `planned_arrival_seconds`: optional numeric planned arrival.
 - `planned_departure_seconds`: optional numeric planned departure.
-- `dwell_seconds`: required numeric planned dwell, normally non-negative.
+- `dwell_seconds`: required finite non-negative planned dwell in seconds.
 
 Arrival and departure are independently optional on every stop. There is no
 last-stop-only departure rule. Legacy timetable `-1` values are preserved as
@@ -198,8 +199,16 @@ other field. Validation may warn when an intermediate schedule is incomplete.
 These are input plans in seconds relative to the scene's base-time origin, not
 simulation results.
 
-An empty `stops` array is valid for a through service; `through: true` records
-that intent explicitly.
+An empty `stops` array means no scheduled calls without requiring `through`.
+Nonempty stops take precedence over `through: true`. Legacy export writes the
+actual stops, or an empty timetable for no calls; legacy import marks an empty
+timetable as through.
+
+Planned route events must be finite, non-negative, ordered and no earlier than
+explicit entry. Departure before arrival blocks Run. Inert off-route context
+can retain finite historical negative offsets. Missing intermediate departures
+and dwell exceeding the arrival/departure window are advisory warnings, not
+physical running-time predictions.
 
 ## `scenarios.json`
 

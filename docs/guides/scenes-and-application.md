@@ -220,6 +220,16 @@ drafts can be saved, but incompatible stop instructions cannot run. Historical
 blank-platform rows outside the route remain schedule context, not simulated
 stops.
 
+Click a timetable row to edit its station, platform, dwell, arrival and departure.
+Accept applies the fields together; Cancel leaves the row unchanged. Add Stop
+uses the same dialog. Removing every row gives a service with no scheduled calls.
+Blank planned times are absent, while `0` is simulation zero. Use Elapsed for
+seconds from zero or Clock for case-base time: with base `08:00:00`, `90` seconds
+is `08:01:30`. Enter `+1d 00:00:00` for next midnight. Merely switching mode or
+changing the case base time does not shift stored offsets. Entry stays elapsed
+seconds. Invalid chronology blocks Run; incomplete departures and insufficient
+dwell windows are warnings. These checks do not guarantee physical feasibility.
+
 Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
 links consistent:
 

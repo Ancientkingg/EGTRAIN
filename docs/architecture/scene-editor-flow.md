@@ -98,7 +98,7 @@ surface.
 | Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
 | Rolling stock units | ID; engine section with traction source, rows and plot; characteristics section with nine native physical fields and parameter source; session-only Link/Unlink/Retry controls for physical and traction files | Static traction plot; composition usage; live link status |
 | Compositions | ID and ordered rolling-stock-unit membership | Selected-unit source references and traction plot |
-| Services and timetable | ID, operating code, composition, route, through state, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stops, platforms, planned arrival/departure, dwell | Generated occurrence identities and offsets |
+| Services and timetable | ID, operating code, composition, route, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stop matrix and stop dialog | Generated occurrence identities and offsets |
 | Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
 | Passengers | Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair | Row-specific import outcomes and validation diagnostics |
 
@@ -130,6 +130,18 @@ calls. Stop choices follow the remaining ordered route; Add Stop refuses an
 exhausted or unresolved path. Existing invalid assignments remain visible and
 saveable, with a reason beside the platform selector. Route edits never delete
 or silently retarget stops.
+
+Clicking or keyboard-activating a timetable row opens a copied-stop dialog.
+Accept validates the focused fields and commits once; Cancel changes nothing,
+including when adding a stop. The matrix and dialog offer Elapsed/Clock time
+with the canonical case base time shown. Blank arrival or departure means absent,
+not zero. Clock input uses `HH:MM:SS[.fraction]` and explicit `+Nd ` prefixes for
+later days; a clock before base is not silently interpreted as tomorrow.
+Representation changes preserve stored offsets and untouched precision. The
+dialog blocks malformed, nonfinite or newly negative input; chronology errors
+can be saved as drafts but block Run. A short dwell window remains advisory.
+An empty stop matrix is a service with no scheduled calls, with no extra switch.
+
 Train incidents use one generated-service chooser, with code, route, scheduled
 entry and secondary canonical identity. Selecting a row stores both service ID
 and occurrence. Historical all-occurrence targets retain an explicit scope row;

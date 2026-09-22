@@ -134,6 +134,56 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	SceneModel timetable = clean;
+	timetable.services[0].stops[0].hasPlannedArrival = true;
+	timetable.services[0].stops[0].plannedArrivalSeconds = 90.0;
+	ok &= expect(!hasErrors(validateScene(timetable)), "implicit departure entry allows origin pre-departure dwell");
+	timetable.services[0].hasEntryTime = true;
+	timetable.services[0].entryTimeSeconds = 100.0;
+	ok &= expect(hasCodeAndSeverity(validateScene(timetable), "scene.time.order", SceneSeverity::Error),
+			"first arrival before explicit entry blocks Run");
+	timetable.services[0].stops[0].plannedDepartureSeconds = 95.0;
+	const auto beforeEntry = validateScene(timetable);
+	ok &= expect(std::count_if(beforeEntry.begin(), beforeEntry.end(), [](const SceneDiagnostic& d) {
+		return d.code == "scene.time.order";
+	}) == 2, "each event before entry is diagnosed without regressing the ordering cursor");
+	timetable.services[0].entryTimeSeconds = 0.0;
+	timetable.services[0].stops[0].hasPlannedDeparture = false;
+	timetable.services[0].stops[1].plannedArrivalSeconds = 80.0;
+	ok &= expect(hasCodeAndSeverity(validateScene(timetable), "scene.time.order", SceneSeverity::Error),
+			"arrival-only row constrains the next event");
+	timetable = clean;
+	timetable.services[0].stops[0].hasPlannedArrival = true;
+	timetable.services[0].stops[0].plannedArrivalSeconds = 90.0;
+	timetable.services[0].stops[0].dwellSeconds = 20.0;
+	ok &= expect(hasCodeAndSeverity(validateScene(timetable), "scene.dwell.exceeds_window", SceneSeverity::Warning)
+			&& !hasErrors(validateScene(timetable)), "short dwell window remains advisory for historical schedules");
+	for (const double invalid : {-1.0, std::numeric_limits<double>::infinity(),
+			std::numeric_limits<double>::quiet_NaN()}) {
+		timetable = clean;
+		timetable.services[0].hasEntryTime = true;
+		timetable.services[0].entryTimeSeconds = invalid;
+		timetable.services[0].stops[0].plannedDepartureSeconds = invalid;
+		timetable.services[0].stops[0].dwellSeconds = invalid;
+		const auto errors = validateScene(timetable);
+		ok &= expect(hasCode(errors, "scene.time.entry.invalid") && hasCode(errors, "scene.time.invalid")
+				&& hasCode(errors, "scene.dwell.invalid"), "entry, planned times and dwell reject invalid numbers");
+	}
+	timetable = clean;
+	timetable.stations.push_back({"context", "Outside", true, 10.0, {}});
+	timetable.services[0].stops.insert(timetable.services[0].stops.begin(),
+			{"context", "", true, true, -20.0, -10.0, 0.0});
+	timetable.services[0].hasEntryTime = true;
+	timetable.services[0].entryTimeSeconds = 100.0;
+	ok &= expect(!hasErrors(validateScene(timetable)), "negative off-route context does not constrain runnable chronology");
+	timetable = clean;
+	timetable.services[0].through = true;
+	ok &= expect(validateScene(timetable).empty(), "nonempty stops override historical through flag");
+	timetable.services[0].through = false;
+	timetable.services[0].stops.clear();
+	timetable.passengers.clear();
+	timetable.scenarios[0].entranceDelays.clear();
+	ok &= expect(validateRunnableScene(timetable).empty(), "empty stops need no through flag");
 	const std::filesystem::path outputRoot = "scene-output-root";
 	const std::vector<std::pair<std::string, std::string>> outputNameCases = {
 		{"Readable Scene", "Readable Scene"},
