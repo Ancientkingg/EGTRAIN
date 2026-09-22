@@ -56,6 +56,8 @@
 #include <QProgressDialog>
 #include <QInputDialog>
 #include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
 #include <QStandardPaths>
 #include <QSysInfo>
 #include <QSignalBlocker>
@@ -11171,7 +11173,8 @@ void MainWindow::refreshFollowTrainChoices() {
 	if (!m_followTrainCombo)
 		return;
 
-	int previousTrainIndex = m_followTrainIndex;
+	const int previousTrainIndex = m_followTrainIndex;
+	const bool hadFollowTarget = previousTrainIndex >= 0;
 	m_updatingFollowCombo = true;
 	const QSignalBlocker blocker(m_followTrainCombo);
 	m_followTrainCombo->clear();
@@ -11186,15 +11189,25 @@ void MainWindow::refreshFollowTrainChoices() {
 		m_followTrainCombo->addItem("No trains to follow", -1);
 
 	int comboIndex = m_followTrainCombo->findData(previousTrainIndex);
-	if (comboIndex < 0 && m_followTrainCombo->count() > 0)
+	if (comboIndex < 0 && !hadFollowTarget && m_followTrainCombo->count() > 0)
 		comboIndex = 0;
 	if (comboIndex >= 0)
 		m_followTrainCombo->setCurrentIndex(comboIndex);
+	else
+		m_followTrainCombo->setCurrentIndex(-1);
 
-	if (m_followAction && m_followAction->isChecked() && comboIndex >= 0)
-		m_followTrainIndex = m_followTrainCombo->itemData(comboIndex).toInt();
-	else if (!m_followAction || !m_followAction->isChecked())
+	if (m_followAction && m_followAction->isChecked()) {
+		if (comboIndex >= 0 && m_followTrainCombo->itemData(comboIndex).toInt() == previousTrainIndex) {
+			m_followTrainIndex = previousTrainIndex;
+		} else {
+			const QSignalBlocker actionBlocker(m_followAction);
+			m_followAction->setChecked(false);
+			m_followTrainIndex = -1;
+			statusBar()->showMessage("Follow stopped: the selected train is no longer available", 5000);
+		}
+	} else {
 		m_followTrainIndex = -1;
+	}
 
 	m_updatingFollowCombo = false;
 	updateViewportOverlays();
@@ -11278,27 +11291,67 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 
 void MainWindow::setFollowTrain(int trainIndex) {
 	if (trainIndex < 0) {
-		if (m_followAction) {
+		const bool wasFollowing = m_followTrainIndex >= 0
+			|| (m_followAction && m_followAction->isChecked());
+		if (m_followAction && m_followAction->isChecked()) {
+			const QSignalBlocker blocker(m_followAction);
 			m_followAction->setChecked(false);
 		}
 		m_followTrainIndex = -1;
 		updateViewportOverlays();
+		if (wasFollowing)
+			statusBar()->showMessage("Follow disabled", 3000);
 		return;
 	}
-	if (!resolveTrainItem(trainIndex))
-		return;
-	if (m_followTrainCombo) {
-		const int comboIndex = m_followTrainCombo->findData(trainIndex);
-		if (comboIndex >= 0) {
-			const QSignalBlocker blocker(m_followTrainCombo);
-			m_followTrainCombo->setCurrentIndex(comboIndex);
+
+	const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(trainIndex) : -1;
+	if (trainIndex >= numRegions || (m_followTrainCombo && comboIndex < 0)) {
+		if (m_followAction && m_followAction->isChecked()) {
+			const QSignalBlocker blocker(m_followAction);
+			m_followAction->setChecked(false);
 		}
+		m_followTrainIndex = -1;
+		updateViewportOverlays();
+		statusBar()->showMessage("Cannot follow the selected train: it is no longer available", 5000);
+		return;
 	}
-	if (m_followAction) {
+
+	TrainItemGroup* item = resolveTrainItem(trainIndex);
+	const bool exitedInSnapshot = m_snapshot && std::any_of(m_snapshot->trains.cbegin(),
+		m_snapshot->trains.cend(), [trainIndex](const GuiTrainState& state) {
+			return state.index == trainIndex && state.outOfSimulation;
+		});
+	if (exitedInSnapshot || (item && item->outOfSimulation)) {
+		if (m_followAction && m_followAction->isChecked()) {
+			const QSignalBlocker blocker(m_followAction);
+			m_followAction->setChecked(false);
+		}
+		m_followTrainIndex = -1;
+		updateViewportOverlays();
+		statusBar()->showMessage("Cannot follow the selected train: it has left the simulation", 5000);
+		return;
+	}
+
+	if (m_followTrainCombo && comboIndex >= 0) {
+		const QSignalBlocker blocker(m_followTrainCombo);
+		m_followTrainCombo->setCurrentIndex(comboIndex);
+	}
+	if (m_followAction && !m_followAction->isChecked()) {
+		const QSignalBlocker blocker(m_followAction);
 		m_followAction->setChecked(true);
 	}
 	m_followTrainIndex = trainIndex;
 	updateViewportOverlays();
+
+	QString label = m_followTrainCombo && comboIndex >= 0
+		? m_followTrainCombo->itemText(comboIndex)
+		: QString("Train %1").arg(trainIndex + 1);
+	if (item) {
+		centerSceneItem(item);
+		statusBar()->showMessage(QString("Following %1").arg(label));
+	} else {
+		statusBar()->showMessage(QString("Following %1; waiting for departure").arg(label));
+	}
 }
 
 void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard) {
@@ -12070,6 +12123,25 @@ void MainWindow::runVisualPolishE2E() {
 
 	bool ok = true;
 	QStringList failures;
+	const auto clampedCameraCenter = [this](const QPointF& target) {
+		if (!networkView || !networkView->viewport())
+			return target;
+		const QRectF sceneBounds = networkView->sceneRect();
+		if (sceneBounds.isEmpty())
+			return target;
+		const QRectF visibleBounds = networkView->mapToScene(
+			networkView->viewport()->rect()).boundingRect();
+		const auto clampAxis = [](qreal value, qreal lower, qreal upper) {
+			if (lower > upper)
+				return (lower + upper) / 2.0;
+			return qBound(lower, value, upper);
+		};
+		return QPointF(
+			clampAxis(target.x(), sceneBounds.left() + visibleBounds.width() / 2.0,
+				sceneBounds.right() - visibleBounds.width() / 2.0),
+			clampAxis(target.y(), sceneBounds.top() + visibleBounds.height() / 2.0,
+				sceneBounds.bottom() - visibleBounds.height() / 2.0));
+	};
 	const QString timelineSentinel = QStringLiteral("E2E timeline status sentinel");
 	statusBar()->showMessage(timelineSentinel, 10000);
 	if (m_snapshot)
@@ -13440,30 +13512,203 @@ void MainWindow::runVisualPolishE2E() {
 	}
 
 	if (m_followAction && m_followTrainCombo && m_followTrainCombo->count() > 0) {
-		m_followAction->setChecked(false);
+		setFollowTrain(-1);
 		if (std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
 			[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
 			ok = false;
 			failures << "follow deactivation left a stale station priority";
 		}
-		m_followAction->setChecked(true);
-		const int followedOverlays = static_cast<int>(std::count_if(m_stationOverlays.cbegin(),
-			m_stationOverlays.cend(), [](const auto* overlay) { return overlay && overlay->isFollowed(); }));
-		if (!m_stationOverlays.isEmpty() && followedOverlays != 1) {
-			ok = false;
-			failures << QString("follow activation updated %1 station priorities instead of one")
-				.arg(followedOverlays);
+
+		TrainItemGroup* activeFollowTrain = selectedTrain;
+		if (networkView && !allTrains.isEmpty()) {
+			const QPointF viewCenter = networkView->sceneRect().center();
+			qreal bestDistance = std::numeric_limits<qreal>::max();
+			for (TrainItemGroup* candidate : allTrains) {
+				if (!candidate || !candidate->isVisible())
+					continue;
+				const qreal distance = QLineF(candidate->sceneBoundingRect().center(), viewCenter).length();
+				if (!activeFollowTrain || distance < bestDistance) {
+					activeFollowTrain = candidate;
+					bestDistance = distance;
+				}
+			}
 		}
-		QApplication::processEvents();
-		if (!m_followAction->isChecked() || m_followTrainIndex < 0) {
-			ok = false;
-			failures << "follow mode did not activate";
-		} else {
-			for (auto* train : allTrains) {
-				if (train && train->index == m_followTrainIndex) {
-					networkView->centerOn(train->sceneBoundingRect().center());
+		if (activeFollowTrain && activeFollowTrain->trainPolygonItemList) {
+			for (TrainBodyItem* body : *activeFollowTrain->trainPolygonItemList) {
+				if (body && body->isVisible() && !body->polygon().isEmpty()) {
+					selectedTrain = activeFollowTrain;
+					selectedTrainBody = body;
+					selectedTrainPen = body->pen();
+					selectedTrainBrush = body->brush();
 					break;
 				}
+			}
+		}
+		const int activeFollowIndex = selectedTrain ? selectedTrain->index : -1;
+		if (activeFollowIndex < 0) {
+			ok = false;
+			failures << "no active train is available for paused follow activation";
+		} else {
+			if (m_worker)
+				m_worker->requestPause();
+			disconnect(&simulation, &DispatchController::snapshotAvailable,
+				this, &MainWindow::waitForUpdates);
+			networkView->fitToTopology();
+			networkView->zoomBy(24.0);
+			QApplication::processEvents();
+			setFollowTrain(activeFollowIndex);
+			QApplication::processEvents();
+			const TrainItemGroup* followed = resolveTrainItem(activeFollowIndex);
+			const QPointF expectedCenter = followed ? followed->sceneBoundingRect().center() : QPointF();
+			const QPointF expectedCameraCenter = clampedCameraCenter(expectedCenter);
+			const QPointF cameraCenter = networkView->mapToScene(networkView->viewport()->rect().center());
+			if (!m_followAction->isChecked() || m_followTrainIndex != activeFollowIndex
+				|| !followed || QLineF(cameraCenter, expectedCameraCenter).length() > 10.0) {
+				ok = false;
+				failures << QString("paused follow activation did not center the selected train immediately (camera=%1,%2 target=%3,%4 expected=%5,%6 zoom=%7 fit=%8 bounds=%9,%10 %11x%12)")
+					.arg(cameraCenter.x(), 0, 'f', 2).arg(cameraCenter.y(), 0, 'f', 2)
+					.arg(expectedCenter.x(), 0, 'f', 2).arg(expectedCenter.y(), 0, 'f', 2)
+					.arg(expectedCameraCenter.x(), 0, 'f', 2).arg(expectedCameraCenter.y(), 0, 'f', 2)
+					.arg(networkView->zoomRatio(), 0, 'f', 2).arg(networkView->fittedScale(), 0, 'f', 6)
+					.arg(networkView->sceneRect().left(), 0, 'f', 2).arg(networkView->sceneRect().top(), 0, 'f', 2)
+					.arg(networkView->sceneRect().width(), 0, 'f', 2).arg(networkView->sceneRect().height(), 0, 'f', 2);
+			}
+			const int activeComboIndex = m_followTrainCombo->findData(activeFollowIndex);
+			if (activeComboIndex < 0 || m_followTrainCombo->currentIndex() != activeComboIndex) {
+				ok = false;
+				failures << "paused follow activation did not synchronize the train selector";
+			}
+
+			m_followAction->setChecked(false);
+			QApplication::processEvents();
+			if (m_followAction->isChecked() || m_followTrainIndex != -1
+				|| std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+					[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
+				ok = false;
+				failures << "follow disable did not clear the target and station priority";
+			}
+
+			int futureFollowIndex = -1;
+			if (m_snapshot) {
+				for (const GuiTrainState& state : m_snapshot->trains) {
+					if (state.index != activeFollowIndex && state.departureTime > m_snapshot->timestep
+						&& !resolveTrainItem(state.index)) {
+						futureFollowIndex = state.index;
+						break;
+					}
+				}
+			}
+			if (futureFollowIndex >= 0) {
+				const int futureComboIndex = m_followTrainCombo->findData(futureFollowIndex);
+				m_followTrainCombo->setCurrentIndex(futureComboIndex);
+				m_followAction->setChecked(true);
+				QApplication::processEvents();
+				if (!m_followAction->isChecked() || m_followTrainIndex != futureFollowIndex
+					|| !statusBar()->currentMessage().contains("waiting for departure")) {
+					ok = false;
+					failures << "future train follow activation was ignored or did not report waiting";
+				}
+
+				const auto waitingSnapshot = m_snapshot;
+				auto skippedSnapshot = std::make_shared<GuiSimulationSnapshot>(*waitingSnapshot);
+				for (GuiTrainState& state : skippedSnapshot->trains) {
+					if (state.index == futureFollowIndex) {
+						state.outOfSimulation = true;
+						state.routeAxisPosition = -9999;
+					}
+				}
+				m_snapshot = skippedSnapshot;
+				updateTrainPosition(skippedSnapshot->timestep);
+				if (m_followTrainIndex != -1 || m_followAction->isChecked()) {
+					ok = false;
+					failures << "skipped train exit did not clear armed follow";
+				}
+				setFollowTrain(futureFollowIndex);
+				if (m_followTrainIndex != -1 || m_followAction->isChecked()
+					|| !statusBar()->currentMessage().contains("left the simulation")) {
+					ok = false;
+					failures << "exited train without graphics could be followed";
+				}
+				m_snapshot = waitingSnapshot;
+				setFollowTrain(futureFollowIndex);
+
+				GuiTrainState futureEntryState;
+				bool haveFutureEntry = false;
+				int futureEntryTime = -1;
+				const GuiTrainState* entryGeometry = nullptr;
+				for (const GuiTrainState& state : m_snapshot->trains) {
+					if (state.index == futureFollowIndex)
+						futureEntryState = state;
+					if (state.index == activeFollowIndex)
+						entryGeometry = &state;
+				}
+				if (entryGeometry && entryGeometry->routeIndex >= 0
+					&& entryGeometry->routeAxisPosition != -9999
+					&& !entryGeometry->wagonHeadPositions.empty()
+					&& entryGeometry->wagonHeadPositions.size() == entryGeometry->wagonTailPositions.size()) {
+					// The worker may not have simulated the future departure yet. Reuse
+					// the paused active geometry to exercise the same entry path without
+					// depending on worker timing or an unfilled future trajectory.
+					futureEntryState.routeIndex = entryGeometry->routeIndex;
+					futureEntryState.reversedDirection = entryGeometry->reversedDirection;
+					futureEntryState.wagonCount = entryGeometry->wagonCount;
+					futureEntryState.length = entryGeometry->length;
+					futureEntryState.routeAxisPosition = entryGeometry->routeAxisPosition;
+					futureEntryState.wagonHeadPositions = entryGeometry->wagonHeadPositions;
+					futureEntryState.wagonTailPositions = entryGeometry->wagonTailPositions;
+					futureEntryState.outOfSimulation = false;
+					futureEntryTime = qMax(futureEntryState.departureTime, m_snapshot->timestep + 1);
+					haveFutureEntry = true;
+				}
+				if (!haveFutureEntry) {
+					ok = false;
+					failures << "future train had no renderable departure snapshot";
+				} else {
+					auto entrySnapshot = std::make_shared<GuiSimulationSnapshot>(*m_snapshot);
+					entrySnapshot->timestep = futureEntryTime;
+					for (GuiTrainState& state : entrySnapshot->trains) {
+						if (state.index == futureFollowIndex) {
+							state = futureEntryState;
+							break;
+						}
+					}
+					networkView->centerOn(networkView->sceneRect().topLeft());
+					const QPointF cameraBeforeEntry = networkView->mapToScene(
+						networkView->viewport()->rect().center());
+					m_snapshot = entrySnapshot;
+					updateTrainPosition(futureEntryTime);
+					QApplication::processEvents();
+					TrainItemGroup* enteredTrain = resolveTrainItem(futureFollowIndex);
+					const QPointF enteredCenter = enteredTrain
+						? enteredTrain->sceneBoundingRect().center() : QPointF();
+					const QPointF enteredCameraCenter = networkView->mapToScene(
+						networkView->viewport()->rect().center());
+					if (QLineF(cameraBeforeEntry, clampedCameraCenter(enteredCenter)).length() <= 20.0
+						|| !enteredTrain || !enteredTrain->isVisible()
+						|| !m_followAction->isChecked() || m_followTrainIndex != futureFollowIndex
+						|| QLineF(enteredCameraCenter, clampedCameraCenter(enteredCenter)).length() > 10.0) {
+						ok = false;
+						failures << "future train entry did not create and center the armed follow target";
+					}
+					// Keep the synthetic entry separate from the active fixture so the
+					// later exact viewport reselection cannot hit two train bodies.
+					if (enteredTrain) {
+						const QPointF separation(1000.0, 1000.0);
+						enteredTrain->setPos(enteredTrain->pos() + separation);
+						if (TrainBadgeItem* badge = m_trainBadges.value(futureFollowIndex, nullptr))
+							badge->setPos(badge->pos() + separation);
+					}
+				}
+			} else {
+				ok = false;
+				failures << "no future train was available for follow waiting regression";
+			}
+
+			setFollowTrain(activeFollowIndex);
+			QApplication::processEvents();
+			if (!m_followAction->isChecked() || m_followTrainIndex != activeFollowIndex) {
+				ok = false;
+				failures << "switching back to an active follow target retargeted incorrectly";
 			}
 		}
 	} else {
@@ -13488,6 +13733,196 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 	captureScreenshot("QEGTRAIN_E2E_FOLLOW_SCREENSHOT", "follow");
+	if (networkView && m_followAction && m_followAction->isChecked()) {
+		networkView->zoomBy(24.0);
+		setFollowTrain(m_followTrainIndex);
+	}
+	if (scene && networkView && selectedTrain && selectedTrainBody && m_snapshot) {
+		const auto firstSnapshot = m_snapshot;
+		auto movedSnapshot = std::make_shared<GuiSimulationSnapshot>(*firstSnapshot);
+		auto interruptedSnapshot = std::make_shared<GuiSimulationSnapshot>(*firstSnapshot);
+		GuiTrainState* movedState = nullptr;
+		GuiTrainState* interruptedState = nullptr;
+		for (GuiTrainState& state : movedSnapshot->trains) {
+			if (state.index == selectedTrain->index) {
+				movedState = &state;
+				break;
+			}
+		}
+		for (GuiTrainState& state : interruptedSnapshot->trains) {
+			if (state.index == selectedTrain->index) {
+				interruptedState = &state;
+				break;
+			}
+		}
+		if (!movedState || !interruptedState || movedState->routeIndex < 0
+			|| movedState->routeIndex >= static_cast<int>(train_route.size())
+			|| movedState->routeAxisPosition == -9999
+			|| movedState->wagonHeadPositions.empty()
+			|| movedState->wagonHeadPositions.size() != movedState->wagonTailPositions.size()) {
+			ok = false;
+			failures << "follow animation regression lacks a complete active train snapshot";
+		} else {
+			const GuiTrainState* baseState = nullptr;
+			for (const GuiTrainState& state : firstSnapshot->trains) {
+				if (state.index == selectedTrain->index) {
+					baseState = &state;
+					break;
+				}
+			}
+			const auto shiftState = [](GuiTrainState& state, double delta) {
+				state.routeAxisPosition += delta;
+				const double geoDelta = (state.reversedDirection ? -delta : delta) / 1000.0;
+				for (double& position : state.wagonHeadPositions)
+					position += geoDelta;
+				for (double& position : state.wagonTailPositions)
+					position += geoDelta;
+			};
+			const auto hasRenderableGeometry = [this, selectedTrain](const GuiTrainState& state) {
+				if (!selectedTrain->trainPolygonItemList)
+					return false;
+				return getTrainPolygonItemList(selectedTrain->trainPolygonItemList, state);
+			};
+			double step = 0.0;
+			if (baseState) {
+				for (double magnitude = 1000.0; magnitude >= 0.5 && step == 0.0; magnitude *= 0.5) {
+					for (const double signedStep : {magnitude, -magnitude}) {
+						GuiTrainState candidate = *baseState;
+						shiftState(candidate, signedStep);
+						GuiTrainState secondCandidate = *baseState;
+						shiftState(secondCandidate, signedStep * 2.0);
+						if (!hasRenderableGeometry(candidate) || !hasRenderableGeometry(secondCandidate))
+							continue;
+						*movedState = std::move(candidate);
+						*interruptedState = std::move(secondCandidate);
+						step = signedStep;
+						break;
+					}
+				}
+				// Candidate probing changes the displayed polygons; restore the base
+				// state before delivering the snapshots through the real update path.
+				hasRenderableGeometry(*baseState);
+			}
+
+			if (step == 0.0) {
+				ok = false;
+				failures << "follow animation regression could not create two in-route positions";
+			} else {
+				movedSnapshot->timestep = firstSnapshot->timestep + 1;
+				interruptedSnapshot->timestep = firstSnapshot->timestep + 2;
+
+				m_snapshot = firstSnapshot;
+				updateTrainPosition(firstSnapshot->timestep);
+				stopTrainAnimation(selectedTrain->index);
+				selectedTrain->setPos(QPointF(0.0, 0.0));
+				if (TrainBadgeItem* badge = m_trainBadges.value(selectedTrain->index, nullptr))
+					badge->setPos(m_prevTrainPositions.value(selectedTrain->index,
+						selectedTrain->sceneBoundingRect().center()));
+				const QPointF initialBodyCenter = selectedTrainBody->sceneBoundingRect().center();
+
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				QVariantAnimation* firstAnimation = m_trainAnimations.value(selectedTrain->index, nullptr);
+				if (!firstAnimation || firstAnimation->state() != QAbstractAnimation::Running
+					|| firstAnimation->duration() <= 0 || selectedTrain->pos().manhattanLength() <= 0.5) {
+					ok = false;
+					failures << "first follow delivery did not start a nonzero animation";
+				}
+				// Advance deterministically without letting event processing finish
+				// the transition before the interrupting snapshot is delivered.
+				if (firstAnimation)
+					firstAnimation->setCurrentTime(firstAnimation->duration() / 2);
+
+				// A second, distinct delivery interrupts the 120 ms transition while
+				// replacing the polygons; the body and badge must move together.
+				m_snapshot = interruptedSnapshot;
+				updateTrainPosition(interruptedSnapshot->timestep);
+				QVariantAnimation* replacementAnimation = m_trainAnimations.value(selectedTrain->index, nullptr);
+				// Stopped animations are deleted later; no events have run since
+				// the first pointer was captured, so its stopped state is inspectable.
+				if (!replacementAnimation || replacementAnimation == firstAnimation
+					|| replacementAnimation->state() != QAbstractAnimation::Running
+					|| (firstAnimation && firstAnimation->state() != QAbstractAnimation::Stopped)
+					|| selectedTrain->pos().manhattanLength() <= 0.5) {
+					ok = false;
+					failures << "second follow delivery did not replace the in-flight animation";
+				}
+				TrainBadgeItem* interruptedBadge = m_trainBadges.value(selectedTrain->index, nullptr);
+				const QPointF interruptedBodyCenter = selectedTrainBody->sceneBoundingRect().center();
+				const QPointF interruptedRelation = interruptedBadge
+					? interruptedBadge->sceneBoundingRect().center() - interruptedBodyCenter : QPointF();
+				const qreal interruptedAnchorError = interruptedBadge
+					? QLineF(interruptedBadge->scenePos(), selectedTrain->sceneBoundingRect().center()).length()
+					: std::numeric_limits<qreal>::max();
+				const QPointF interruptedTargetCenter = m_prevTrainPositions.value(selectedTrain->index);
+				const QPointF interruptedCameraCenter = networkView->mapToScene(
+					networkView->viewport()->rect().center());
+
+				QElapsedTimer animationWait;
+				animationWait.start();
+				while (animationWait.elapsed() < 250)
+					QApplication::processEvents(QEventLoop::AllEvents, 20);
+				if (m_trainAnimations.contains(selectedTrain->index)
+					|| selectedTrain->pos().manhattanLength() > 0.01) {
+					ok = false;
+					failures << "follow animation did not finish and clear its offset";
+				}
+				const QPointF finalBodyCenter = selectedTrainBody->sceneBoundingRect().center();
+				TrainBadgeItem* finalBadge = m_trainBadges.value(selectedTrain->index, nullptr);
+				const QPointF finalRelation = finalBadge
+					? finalBadge->sceneBoundingRect().center() - finalBodyCenter : QPointF();
+				const QPointF finalCameraCenter = networkView->mapToScene(
+					networkView->viewport()->rect().center());
+				const QPointF finalGroupCenter = selectedTrain->sceneBoundingRect().center();
+				const qreal bodyMovement = QLineF(initialBodyCenter, finalBodyCenter).length();
+				const qreal interruptedAssociation = QLineF(interruptedRelation, finalRelation).length();
+				if (!interruptedBadge || !finalBadge || bodyMovement <= 1.0
+					|| interruptedAssociation > 1.0 || interruptedAnchorError > 1.0
+					|| (finalBadge && QLineF(finalBadge->scenePos(), finalGroupCenter).length() > 1.0)
+					|| QLineF(interruptedCameraCenter,
+						clampedCameraCenter(interruptedTargetCenter)).length() > 10.0
+					|| QLineF(finalCameraCenter, clampedCameraCenter(finalGroupCenter)).length() > 10.0) {
+					ok = false;
+					failures << QString("follow animation lost body movement, badge association, or camera center (movement=%1 association=%2 interruptedCamera=%3,%4 target=%5,%6 finalCamera=%7,%8 group=%9,%10)")
+						.arg(bodyMovement, 0, 'f', 2).arg(interruptedAssociation, 0, 'f', 2)
+						.arg(interruptedCameraCenter.x(), 0, 'f', 2).arg(interruptedCameraCenter.y(), 0, 'f', 2)
+						.arg(interruptedTargetCenter.x(), 0, 'f', 2).arg(interruptedTargetCenter.y(), 0, 'f', 2)
+						.arg(finalCameraCenter.x(), 0, 'f', 2).arg(finalCameraCenter.y(), 0, 'f', 2)
+						.arg(finalGroupCenter.x(), 0, 'f', 2).arg(finalGroupCenter.y(), 0, 'f', 2);
+				}
+
+				// Exiting the followed train disables Follow rather than retaining a
+				// stale target, and the target can be restored without retargeting.
+				auto exitedSnapshot = std::make_shared<GuiSimulationSnapshot>(*interruptedSnapshot);
+				for (GuiTrainState& state : exitedSnapshot->trains)
+					if (state.index == selectedTrain->index)
+						state.outOfSimulation = true;
+				m_snapshot = exitedSnapshot;
+				updateTrainPosition(exitedSnapshot->timestep);
+				QApplication::processEvents();
+				if (m_followAction->isChecked() || m_followTrainIndex != -1
+					|| !statusBar()->currentMessage().contains("left the simulation")) {
+					ok = false;
+					failures << "follow exit did not disable with explicit status";
+				}
+				const int exitedComboIndex = m_followTrainCombo->findData(selectedTrain->index);
+				if (exitedComboIndex >= 0)
+					m_followTrainCombo->setCurrentIndex(exitedComboIndex);
+				m_followAction->setChecked(true);
+				QApplication::processEvents();
+				if (m_followAction->isChecked() || m_followTrainIndex != -1) {
+					ok = false;
+					failures << "reselecting an exited train re-enabled Follow";
+				}
+				m_snapshot = interruptedSnapshot;
+				updateTrainPosition(interruptedSnapshot->timestep);
+				setFollowTrain(selectedTrain->index);
+			}
+		}
+	} else {
+		ok = false;
+		failures << "follow animation regression lacks scene, viewport, train, or snapshot";
+	}
 	if (scene && networkView && selectedTrain && selectedTrainBody) {
 		disconnect(&simulation, &DispatchController::snapshotAvailable,
 			this, &MainWindow::waitForUpdates);
@@ -20772,6 +21207,10 @@ void MainWindow::startSimulation() {
 
 // handle simulation completion on the main thread
 void MainWindow::onSimulationFinished() {
+	const bool hadFollowTarget = m_followTrainIndex >= 0
+		|| (m_followAction && m_followAction->isChecked());
+	if (hadFollowTarget)
+		setFollowTrain(-1);
 	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
 		PlaybackProfiler::instance().emitRecords(true);
 		clearSimulationWorker(false);
@@ -20858,7 +21297,9 @@ void MainWindow::onSimulationFinished() {
 	progressBar->hide();
 	statusBar()->showMessage(sceneChangedDuringRun
 		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
-		: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
+		: hadFollowTarget
+			? QStringLiteral("Simulation complete - Follow disabled")
+			: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
 	// The Run Results dock raised by refreshRunResults is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
@@ -23066,6 +23507,11 @@ void MainWindow::updateTrainPosition(int t) {
 		updateBlockOccupationStatus(state);
 	for (const GuiTrainState& state : m_snapshot->trains) {
 		const int train = state.index;
+		// Throttled delivery can skip the whole visible lifetime of a train.
+		if (state.outOfSimulation && m_followTrainIndex == train) {
+			setFollowTrain(-1);
+			statusBar()->showMessage("Follow stopped: the selected train left the simulation", 5000);
+		}
 		// check if train item exists
 		TrainItemGroup* trainItem = nullptr;
 		for (auto it = allTrains.begin(); it != allTrains.end(); ++it) {
@@ -23083,13 +23529,18 @@ void MainWindow::updateTrainPosition(int t) {
 			trainItem->setVisible(m_trainLayerVisible && !state.outOfSimulation);
 			// update train position
 			if (!state.outOfSimulation) {
-				// capture previous scene center for interpolation
-				QPointF oldCenter;
+				// Capture the currently displayed center before replacing the polygons.
+				// An interrupted animation leaves a temporary group offset that must
+				// not become part of the next geometry center.
+				const QPointF oldCenter = trainItem->sceneBoundingRect().center();
 				auto prevIt = m_prevTrainPositions.find(train);
-				if (prevIt != m_prevTrainPositions.end())
-					oldCenter = prevIt.value();
-				else
-					oldCenter = trainItem->sceneBoundingRect().center();
+				const QPointF oldBadgeCenter = prevIt != m_prevTrainPositions.end()
+					? prevIt.value() : oldCenter;
+				stopTrainAnimation(train);
+				trainItem->setPos(QPointF(0, 0));
+				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
+				if (badge)
+					badge->setPos(oldBadgeCenter);
 
 				const bool hasVisibleGeometry = getTrainPolygonItemList(
 					trainItem->trainPolygonItemList, state);
@@ -23098,8 +23549,6 @@ void MainWindow::updateTrainPosition(int t) {
 
 				// animate smooth transition from old position to new position
 				QPointF newCenter = trainItem->sceneBoundingRect().center();
-
-				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
 				if (badge) {
 					badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(state)));
 					badge->setTooltipDetails(QString::fromStdString(state.description),
@@ -23147,7 +23596,7 @@ void MainWindow::updateTrainPosition(int t) {
 					if (badge)
 						badge->setPos(badgeCenter);
 				}
-				if (hasVisibleGeometry && m_followAction && m_followAction->isChecked()
+				if (hasVisibleGeometry && networkView && m_followAction && m_followAction->isChecked()
 						&& m_followTrainIndex == train)
 					networkView->centerOn(newCenter);
 			}
@@ -23166,11 +23615,17 @@ void MainWindow::updateTrainPosition(int t) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
 			legendNeedsUpdate = true;
-			if (firstTrain && !allTrains.isEmpty() && allTrains.last()->isVisible())
-				networkView->centerOn(allTrains.last()->sceneBoundingRect().center());
+			TrainItemGroup* newTrain = resolveTrainItem(train);
+			if (firstTrain && newTrain && newTrain->isVisible())
+				centerSceneItem(newTrain);
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train
-					&& !allTrains.isEmpty() && allTrains.last()->isVisible())
-				networkView->centerOn(allTrains.last());
+					&& newTrain && newTrain->isVisible()) {
+				centerSceneItem(newTrain);
+				const QString label = m_followTrainCombo
+					? m_followTrainCombo->itemText(m_followTrainCombo->findData(train))
+					: QString::fromStdString(state.description);
+				statusBar()->showMessage(QString("Following %1").arg(label));
+			}
 		}
 	}
 	for (const GuiSectionState& state : m_snapshot->sectionStates)
@@ -23185,6 +23640,13 @@ void MainWindow::updateTrainPosition(int t) {
 bool MainWindow::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train) {
 	if (!trainPolygonItemList)
 		return false;
+	for (TrainBodyItem* body : *trainPolygonItemList) {
+		if (!body)
+			continue;
+		if (auto* group = qgraphicsitem_cast<TrainItemGroup*>(body->parentItem()))
+			group->prepareForChildGeometryChange();
+		break;
+	}
 	bool hasVisibleGeometry = false;
 	// get the polygon of each wagon
 	for (int wagon = 0; wagon <= train.wagonCount; wagon++) {
