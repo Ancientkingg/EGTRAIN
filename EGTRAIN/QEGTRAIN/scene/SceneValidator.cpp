@@ -791,17 +791,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
 					"Use a smaller decimal base, step, or repeat count");
 		serviceOccurrences[service.id] = occurrences;
-		if (service.stops.empty()) {
-			if (!service.through)
-				diagnostics.warning("scene.service.no_stops", "Service has no stops", "services.json",
-						"service", service.id, path + ".stops", "",
-						"Add at least one stop or mark the service through");
-		} else if (service.through) {
-			diagnostics.warning("scene.service.through_stops", "Through service has stops", "services.json",
-					"service", service.id, path + ".through");
-		}
-		bool hasPreviousDeparture = false;
-		double previousDeparture = 0.0;
+		if (service.hasEntryTime && (!std::isfinite(service.entryTimeSeconds) || service.entryTimeSeconds < 0.0))
+			diagnostics.error("scene.time.entry.invalid", "Entry time must be finite and non-negative",
+					"services.json", "service", service.id, path + ".entry_time_seconds");
+		bool hasPreviousEvent = service.hasEntryTime && std::isfinite(service.entryTimeSeconds);
+		double previousEvent = service.entryTimeSeconds;
 		const SceneRoute* serviceRoute = nullptr;
 		for (const auto& candidate : scene.routes)
 			if (candidate.id == service.route) {
@@ -885,19 +879,33 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.time.invalid", "Departure before arrival", "services.json",
 						"service", service.id, stopPath + ".planned_departure_seconds");
 			}
-			if (stop.hasPlannedDeparture) {
-				if (hasPreviousDeparture && stop.plannedDepartureSeconds < previousDeparture)
-					diagnostics.warning("scene.time.order", "Non-increasing departure times", "services.json",
-							"service", service.id, stopPath + ".planned_departure_seconds");
-				hasPreviousDeparture = true;
-				previousDeparture = stop.plannedDepartureSeconds;
-			} else if (stopIndex + 1 < service.stops.size()) {
+			const bool context = stopIndex < stopResolutions.size()
+					&& stopResolutions[stopIndex].status == SceneStopResolutionStatus::OffRouteContext
+					&& stop.platformId.empty();
+			const auto checkEvent = [&](bool present, double seconds, const char* field) {
+				if (!present) return;
+				if (!std::isfinite(seconds) || (!context && seconds < 0.0)) {
+					diagnostics.error("scene.time.invalid", "Planned time must be finite and non-negative on the route",
+							"services.json", "service", service.id, stopPath + field);
+					return;
+				}
+				if (context) return;
+				if (hasPreviousEvent && seconds < previousEvent)
+					diagnostics.error("scene.time.order", "Planned time precedes entry or a previous route event",
+							"services.json", "service", service.id, stopPath + field, "",
+							"Keep arrival and departure times in route order, at or after explicit entry");
+				previousEvent = hasPreviousEvent ? std::max(previousEvent, seconds) : seconds;
+				hasPreviousEvent = true;
+			};
+			checkEvent(stop.hasPlannedArrival, stop.plannedArrivalSeconds, ".planned_arrival_seconds");
+			checkEvent(stop.hasPlannedDeparture, stop.plannedDepartureSeconds, ".planned_departure_seconds");
+			if (!stop.hasPlannedDeparture && stopIndex + 1 < service.stops.size()) {
 				diagnostics.warning("scene.time.departure.missing",
 						"Intermediate stop has no planned departure", "services.json", "service", service.id,
 						stopPath + ".planned_departure_seconds");
 			}
-			if (stop.dwellSeconds < 0.0)
-				diagnostics.error("scene.dwell.invalid", "Negative dwell time", "services.json", "service",
+			if (!std::isfinite(stop.dwellSeconds) || stop.dwellSeconds < 0.0)
+				diagnostics.error("scene.dwell.invalid", "Dwell time must be finite and non-negative", "services.json", "service",
 						service.id, stopPath + ".dwell_seconds", "",
 						"Use a dwell time of 0 or more seconds");
 			if (stop.hasPlannedArrival && stop.hasPlannedDeparture

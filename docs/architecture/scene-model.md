@@ -64,6 +64,20 @@ schedule may produce a validation warning, but departure omission is not
 restricted to the last stop. Dwell and repetition remain planned input as
 well.
 
+Planned times on the route must be finite, non-negative and ordered, including
+arrival-only rows. Explicit entry must precede the first known route event.
+Without explicit entry, the native first-departure rule permits an earlier
+origin arrival for pre-departure dwell. Invalid numbers and chronology block
+Run; incomplete intermediate departures and insufficient dwell windows remain
+warnings for historical schedules. These checks do not predict physical running
+time. Inert off-route context retains historical finite negative offsets.
+
+The stop list is authoritative: empty means no scheduled calls, regardless of
+the historical `through` field. Nonempty stops are never discarded because that
+field is true. Canonical input/output retains the field for compatibility;
+legacy export writes the actual stop rows or an empty timetable, which import
+recognizes as a through service.
+
 Each service also has a unique canonical `id` and an optional
 `operating_code`. The latter defaults to the ID and preserves the active train
 identity consumed by the existing simulator. It is intentionally not required

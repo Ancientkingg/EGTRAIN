@@ -147,6 +147,7 @@ int main() {
 	std::srand(12345);
 	bool ok = true;
 	SceneModel scene = completeScene();
+	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
 	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";
 	InputMainFolder = initial_variables.InputMainFolder;
 	auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(scene);
@@ -156,6 +157,7 @@ int main() {
 
 	const auto diagnostics = buildOperationsFromScene(scene, "scenario.selected");
 	ok &= expect(!hasErrors(diagnostics), "M3 operations builder accepts the complete fixture");
+	ok &= expect(regional_train[0].numStations == 3, "historical through flag does not discard scheduled stops");
 	SceneModel tooManyStops = completeScene();
 	while (tooManyStops.services[0].stops.size() <= static_cast<std::size_t>(Train::kMaxTimetableStations))
 		tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
@@ -717,7 +719,7 @@ int main() {
 	trajectoryPerformance.services[0].entryTimeSeconds = 0.0;
 	trajectoryPerformance.services[0].hasRepeatCount = true;
 	trajectoryPerformance.services[0].repeatCount = 1;
-	trajectoryPerformance.services[0].through = true;
+	trajectoryPerformance.services[0].through = false;
 	trajectoryPerformance.services[0].stops.clear();
 	trajectoryPerformance.passengers.clear();
 	for (SceneTrainUnit& trainUnit : trajectoryPerformance.trainUnits)

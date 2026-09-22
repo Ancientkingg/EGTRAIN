@@ -549,7 +549,6 @@ private:
 	QComboBox* m_serviceCategoryCombo = nullptr;
 	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
 	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
-	QCheckBox* m_serviceThroughCheck = nullptr;
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
 	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
@@ -572,19 +571,14 @@ private:
 	SceneRunSelection m_excludedSceneOccurrences;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
-	QListWidget* m_stopListWidget = nullptr; // one row per SceneStop of the selected service
+	QTableWidget* m_stopTableWidget = nullptr;
 	QPushButton* m_addStopButton = nullptr;
 	QPushButton* m_removeStopButton = nullptr;
 	QPushButton* m_moveStopUpButton = nullptr;
 	QPushButton* m_moveStopDownButton = nullptr;
-	QComboBox* m_stopStationCombo = nullptr;  // references a SceneStation.id
-	QComboBox* m_stopPlatformCombo = nullptr; // references a ScenePlatform.id of the selected station, blank allowed
-	QLabel* m_stopEligibilityLabel = nullptr;
-	QCheckBox* m_stopHasArrivalCheck = nullptr;
-	QLineEdit* m_stopArrivalSecondsEdit = nullptr; // whole seconds
-	QCheckBox* m_stopHasDepartureCheck = nullptr;
-	QLineEdit* m_stopDepartureSecondsEdit = nullptr; // whole seconds
-	QLineEdit* m_stopDwellSecondsEdit = nullptr;	 // whole seconds, always present
+	QComboBox* m_stopTimeModeCombo = nullptr;
+	QLabel* m_stopTimeBaseLabel = nullptr;
+	bool m_stopClockMode = false;
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
@@ -824,7 +818,6 @@ private:
 	void commitServiceCategory(int index);
 	void commitServiceComposition(const QString& text);
 	void commitServiceRoute(int index);
-	void commitServiceThrough(bool checked);
 	void commitServiceHasEntryTime(bool checked);
 	void commitServiceEntryTimeSeconds();
 	void commitServiceHasRepeat(bool checked);
@@ -852,21 +845,14 @@ private:
 	std::string uniqueServiceId(const std::string& baseId) const;
 	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
-	// stop (timetable) editor: edits the selected service's stops in place
+	// stop (timetable) editor: edits copied SceneStop records through one modal
 	void refreshStopList();
-	void updateStopDetailPanel();
-	void refreshStopPlatformCombo();
+	void updateStopActions();
 	void addStop();
 	void removeStop();
 	void moveStopUp();
 	void moveStopDown();
-	void commitStopStation(const QString& text);
-	void commitStopPlatform(const QString& text);
-	void commitStopHasArrival(bool checked);
-	void commitStopHasDeparture(bool checked);
-	void commitStopArrivalSeconds();
-	void commitStopDepartureSeconds();
-	void commitStopDwellSeconds();
+	void editStop(int row);
 
 	// incident editor
 	void refreshScenarioList();

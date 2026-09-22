@@ -677,11 +677,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	for (const SceneService& service : scene.services) {
 		if (service.id.empty())
 			continue;
-		if (service.stops.empty() && !service.through)
-			addNativeDiagnostic(diagnostics, "scene.native.service.stops", "A service must contain at least one stop",
-					"services.json", "service", service.id, "services[" + service.id + "].stops");
-		if (service.stops.empty() && !service.through)
-			continue;
 		if (!nativeFinite(service.performancePercent) || service.performancePercent < 1.0
 				|| service.performancePercent > 100.0)
 			addNativeDiagnostic(diagnostics, "scene.native.service.performance",
