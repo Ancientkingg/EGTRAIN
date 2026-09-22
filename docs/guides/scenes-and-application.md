@@ -129,7 +129,14 @@ scenario.
 
 The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
-JSON-only settings. A completed run without incidents or entrance delays can be frozen with **Set
+JSON-only settings. During playback, choose a train in **Train to follow** and
+activate **Follow** to center the network view on it immediately, including
+while paused. A selected train that has not departed yet remains armed and the
+status bar reports that Follow is waiting for departure. Follow is cleared when
+it is disabled, when playback exits, or when the selected train is no longer
+available; it never silently switches to another train.
+
+A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline but reports that the newly
