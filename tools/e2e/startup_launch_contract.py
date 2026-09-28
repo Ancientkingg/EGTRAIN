@@ -25,6 +25,9 @@ READY_MARKERS = (
     "Passenger GUI:",
 )
 TIMING_PREFIX = "QEGTRAIN_TIMING "
+# These are functional launch checks, not startup performance thresholds.
+# Allow instrumented Debug builds to finish both fresh and warm scene preparation.
+LAUNCH_TIMEOUT_SECONDS = 60
 
 
 def assert_startup_timing_contract(app: Path) -> None:
@@ -43,7 +46,7 @@ def assert_startup_timing_contract(app: Path) -> None:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                timeout=12,
+                timeout=LAUNCH_TIMEOUT_SECONDS,
             )
         except subprocess.TimeoutExpired as exc:
             raise SystemExit(f"startup timing contract timed out\n{(exc.stdout or '')[-4000:]}") from exc
@@ -75,7 +78,7 @@ def assert_no_argument_chooser_continuation(app: Path) -> None:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            timeout=12,
+            timeout=LAUNCH_TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired as exc:
         raise SystemExit(

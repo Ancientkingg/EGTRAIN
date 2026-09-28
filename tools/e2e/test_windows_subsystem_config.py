@@ -66,6 +66,13 @@ def test_preview_snapshot_comparator() -> None:
     if _has_direct_preview_code_equality(source):
         raise SystemExit("MainWindow.cpp still compares previewCodes directly")
     if not re.search(
+        r"currentItems\.size\(\)\s*!=\s*renderedItems\.size\(\)\s*"
+        r"\|\|\s*!std::equal\(currentItems\.cbegin\(\),\s*currentItems\.cend\(\),\s*"
+        r"renderedItems\.cbegin\(\)\)",
+        source,
+    ):
+        raise SystemExit("scene-drop item comparison must size-check before std::equal")
+    if not re.search(
         r"previewCodes\.size\(\)\s*!=\s*expectedPreviewCodes\.size\(\)\s*"
         r"\|\|\s*!std::equal\(previewCodes\.cbegin\(\),\s*previewCodes\.cend\(\),\s*"
         r"expectedPreviewCodes\.cbegin\(\)\)",
