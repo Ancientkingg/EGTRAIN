@@ -188,6 +188,9 @@ int main(int argc, char* argv[]) {
 	app.processEvents();
 	y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	ok &= expect(y->isReverse(), "time conversion preserves reversed axis");
+	auto* clockY = qobject_cast<QCategoryAxis*>(chart->axes(Qt::Vertical).first());
+	ok &= expect(clockY && clockY->categoriesLabels().contains("08:00:00"),
+		"elapsed zero has a real tick with a nonzero clock offset");
 	moveTo(view, QPointF(20, 30), series);
 	ok &= expect(tooltip->isVisible() && tooltip->text().contains("08:00:30") && tooltip->text().contains("20.00"),
 		"time Y formats sample time and leaves X numeric");
@@ -327,6 +330,44 @@ int main(int argc, char* argv[]) {
 	ok &= expect(std::abs((dualY->max() - dualY->min()) - expectedSpan) < 0.01 &&
 		std::abs((dualCategory->max() - dualCategory->min()) - expectedSpan) < 0.01,
 		"numeric and category Y axes zoom exactly once from original ranges");
+	// Route charts keep singleton events visible and allow zero/negative station X.
+	DiagramWindow route("Route chart");
+	auto* routeChart = new QChart;
+	auto* singleEvent = new QLineSeries;
+	singleEvent->setName("A (planned arrival)");
+	singleEvent->setProperty("trainId", "A");
+	singleEvent->setPointsVisible(true);
+	singleEvent->append(-2, 30);
+	routeChart->addSeries(singleEvent);
+	auto* distance = new QValueAxis;
+	auto* elapsed = new QValueAxis;
+	elapsed->setReverse(true);
+	distance->setRange(-3, 1);
+	elapsed->setRange(0, 60);
+	routeChart->addAxis(distance, Qt::AlignBottom);
+	routeChart->addAxis(elapsed, Qt::AlignLeft);
+	singleEvent->attachAxis(distance);
+	singleEvent->attachAxis(elapsed);
+	auto* stationAxis = new QCategoryAxis;
+	stationAxis->setStartValue(-4); // Must precede negative and zero append values.
+	stationAxis->append("Central [one] / Central [two]", -2);
+	stationAxis->append("Zero [zero]", 0);
+	stationAxis->setRange(-3, 1);
+	routeChart->addAxis(stationAxis, Qt::AlignTop);
+	singleEvent->attachAxis(stationAxis);
+	route.setChart(routeChart);
+	route.setTimeAxisY(true, 8 * 3600);
+	route.show();
+	app.processEvents();
+	ok &= expect(singleEvent->pointsVisible() && singleEvent->count() == 1
+		&& stationAxis->categoriesLabels().size() == 2
+		&& stationAxis->categoriesLabels().first().contains("[two]")
+		&& stationAxis->categoriesLabels().last().contains("Zero"),
+		"isolated event and distinct colocated station IDs remain visible");
+	auto* routeClock = qobject_cast<QCategoryAxis*>(routeChart->axes(Qt::Vertical).first());
+	ok &= expect(routeClock && routeClock->isReverse()
+		&& routeClock->categoriesLabels().contains("08:00:00"),
+		"route elapsed zero tick and downward time orientation");
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

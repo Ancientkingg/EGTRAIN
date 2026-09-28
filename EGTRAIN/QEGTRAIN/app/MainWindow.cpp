@@ -6,6 +6,7 @@
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "util/TrajectoryUtil.h"
@@ -30,6 +31,7 @@
 #include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLegendMarker>
 #include <QBuffer>
 #include <QDir>
@@ -1373,7 +1375,8 @@ bool e2eDialogsSuppressed() {
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR");
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM");
 }
 
 // modal boxes deadlock the env-gated smoke runs, which have no user to
@@ -3461,7 +3464,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();
-	ui->displayTrainPathDiagrams->setText("Train paths (per corridor)...");
+	ui->displayTrainPathDiagrams->setText("Train paths (reference route)...");
 	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
 	if (ui->menuTools)
 		menuBar()->removeAction(ui->menuTools->menuAction());
@@ -21258,6 +21261,42 @@ void MainWindow::onSimulationFinished() {
 	m_pendingRunProvenance = RunProvenance();
 	refreshLoadedDataTree();
 
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
+		bool ok = m_resultsAvailable && numRegions > 0;
+		if (ok) {
+			const int reference = regional_train[0].indexOfRoute;
+			buildRouteDiagram(false, reference);
+			buildRouteDiagram(true, reference);
+			QApplication::processEvents();
+			const auto windows = findChildren<DiagramWindow*>();
+			ok = windows.size() == 2;
+			for (DiagramWindow* window : windows) {
+				auto* view = window->findChild<QChartView*>();
+				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
+				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
+				ok &= clock && clock->isReverse() && clock->min() == 0
+					&& clock->categoriesLabels().contains(QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)));
+				ok &= view && !view->chart()->axes(Qt::Horizontal).isEmpty();
+				if (view) {
+					for (auto* abstractSeries : view->chart()->series()) {
+						auto* line = qobject_cast<QLineSeries*>(abstractSeries);
+						if (line && ((window->windowTitle().startsWith("Timetable")
+							&& !line->name().contains("dwell")) || line->count() == 1))
+							ok &= line->pointsVisible();
+					}
+					const QString file = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/"
+						+ (window->windowTitle().startsWith("Timetable") ? "timetable_graph" : "train_path_graph") + ".png";
+					ok &= view->grab().save(file);
+				}
+			}
+		}
+		std::fprintf(ok ? stdout : stderr, ok ? "E2E_ROUTE_DIAGRAM_OK\n" : "E2E_ROUTE_DIAGRAM_FAIL\n");
+		std::fflush(ok ? stdout : stderr);
+		clearSimulationWorker(false);
+		QCoreApplication::exit(ok ? 0 : 2);
+		return;
+	}
+
 	// verification hook: write every CSV export from the completed run, then exit
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")) {
 		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_EXPORT_DIR");
@@ -24037,141 +24076,31 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 	trainPolygon->swap(UpdatedTrainPolygon);
 }
 
-// display train path diagrams for all corridors (only working for two)
-void MainWindow::displayTrainPathDiagrams() {
-	// check if there is a 2nd corridor
-	int noCorridors = 1;
-	for (int i = 0; i < numRegions; i++) {
-		if (train_route[regional_train[i].indexOfRoute].corridor == "blockSets") {
-			noCorridors++;
-			break;
+// Choose a reference from routes that were actually used in this run.
+int chooseRouteDiagramReference(QWidget* parent, const QString& purpose) {
+	QStringList routeIds;
+	std::vector<int> used;
+	for (int i = 0; i < numRegions; ++i) {
+		const int index = regional_train[i].indexOfRoute;
+		if (index >= 0 && index < static_cast<int>(train_route.size())
+				&& std::find(used.begin(), used.end(), index) == used.end()) {
+			used.push_back(index);
+			routeIds.append(QString::fromStdString(train_route[index].ID));
 		}
 	}
-
-	// generate a diagram for each corridor
-	for (int i = 0; i < noCorridors; i++) {
-		std::string corridor(1, char('A' + i));
-		buildCorridorTrainPathDiagram(corridor);
-	}
+	if (used.empty()) return -1;
+	bool accepted = true;
+	const QString selected = e2eDialogsSuppressed() ? routeIds.first()
+		: QInputDialog::getItem(parent, "Reference route", "Reference route for " + purpose + ":",
+			routeIds, 0, false, &accepted);
+	const int choice = routeIds.indexOf(selected);
+	return accepted && choice >= 0 ? used[choice] : -1;
 }
 
-// build train path diagram for a single corridor
-void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
-	double minRangeX = DBL_MAX, maxRangeX = -1;
-	QList<QLineSeries*> seriesToAdd;
-	std::pair<double, double> corridorJumpX = {0, 0}; // length, lower bound X
-
-	// create chart
-	QChart* chart = new QChart();
-
-	QString title = "Train paths (time vs distance), corridor ";
-	title.append(QString::fromStdString(corridor));
-	title += QString(" [%1]").arg(completedRunContext(m_completedRunProvenance));
-	chart->setTitle(title);
-
-	for (int i = 0; i < numRegions; i++) {
-		// check route corridor
-		if (train_route[regional_train[i].indexOfRoute].corridor == corridor &&
-			regional_train[i].earliestActiveTrajectoryIndex >= 0) {
-			const auto segments = validTrajectorySegments(regional_train[i].instant_spatial_position,
-														 regional_train[i].earliestActiveTrajectoryIndex,
-														 regional_train[i].End_Time);
-			for (const auto& segment : segments) {
-				QLineSeries* trainSeries = new QLineSeries();
-				for (int t = segment.first; t <= segment.last; ++t) {
-					double position = regional_train[i].instant_spatial_position[t];
-					if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-						position /= 1000;
-					} else {
-						position = (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - position) / 1000;
-						if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first != 0) {
-							position -= train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
-							corridorJumpX.first = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
-							corridorJumpX.second = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.second;
-						}
-					}
-					*trainSeries << QPointF(t * timestep, position);
-					minRangeX = std::min(minRangeX, position);
-					maxRangeX = std::max(maxRangeX, position);
-				}
-				trainSeries->setName(QString::fromStdString(regional_train[i].trainDescription));
-				trainSeries->setProperty("trainId", QString::fromStdString(regional_train[i].trainDescription));
-				seriesToAdd.append(trainSeries);
-			}
-		}
-	}
-
-	// division of time axis
-	int interval = 300; // fractions of 5 min
-	if (initial_variables.times * timestep > 7200) {
-		interval *= 2; // increase to 10min (long simulations)
-	}
-	int numIntervals = ceil(initial_variables.times * timestep / interval);
-
-	// define x axis (time)
-	QValueAxis* axisX = new QValueAxis;
-	axisX->setRange(0, interval * numIntervals); // t = [0, (times-1)*timestep]
-	axisX->setTickCount(numIntervals + 1);
-	axisX->setLabelFormat("%.0f");
-	axisX->setTitleText("Time (s)");
-	chart->addAxis(axisX, Qt::AlignTop);
-
-	// define y axis (distance)
-	QValueAxis* axisY = new QValueAxis;
-	axisY->setTickType(QValueAxis::TicksDynamic);
-	axisY->setTickAnchor(0);
-	axisY->setTickInterval(5); // ticks every 5km
-	axisY->setReverse(true);   // revert y axis
-	axisY->setLabelFormat("%.0f");
-	axisY->setGridLineVisible(false); // hide grid lines
-	axisY->setTitleText("Distance (km)");
-	chart->addAxis(axisY, Qt::AlignLeft);
-
-	// define y axis (stations)
-	QCategoryAxis* axisYStations = new QCategoryAxis;
-	// create ticks with station names
-	for (int i = 0; i < numStations; i++) {
-		// ignore stations out of range (correct maxRange for jump)
-		if ((StationArray[i].X <= (maxRangeX + corridorJumpX.first + 0.001)) && StationArray[i].X >= (minRangeX - 0.001)) {
-			// check if station belongs to the corridor
-			if (std::find(StationArray[i].corridors.begin(), StationArray[i].corridors.end(), corridor) != StationArray[i].corridors.end()) {
-				// correct X in case of jump
-				if (corridorJumpX.first != 0 && StationArray[i].X > corridorJumpX.second) {
-					axisYStations->append(QString::fromStdString(StationArray[i].stationName), (StationArray[i].X - corridorJumpX.first));
-				}
-				// no jump
-				else {
-					axisYStations->append(QString::fromStdString(StationArray[i].stationName), StationArray[i].X);
-				}
-			}
-		}
-	}
-	axisYStations->setRange(floor(minRangeX), ceil(maxRangeX));
-	axisYStations->setReverse(true); // revert y axis
-	axisYStations->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
-	chart->addAxis(axisYStations, Qt::AlignRight);
-
-	// add series to chart
-	for (int i = 0; i < seriesToAdd.count(); i++) {
-		// add series to chart
-		chart->addSeries(seriesToAdd.at(i));
-
-		// attach axes to series
-		seriesToAdd.at(i)->attachAxis(axisX);
-		seriesToAdd.at(i)->attachAxis(axisYStations);
-		seriesToAdd.at(i)->attachAxis(axisY);
-	}
-
-	// show the chart in the shared diagram window, which adds the train filter
-	// panel, hover and click identification, and PNG and CSV export
-	DiagramWindow* win = new DiagramWindow(title, this);
-	win->setChart(chart);
-	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "train_path.csv");
-	attachRunProvenance(win, m_completedRunProvenance);
-	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(true, m_startOffsetSeconds);
-	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+void MainWindow::displayTrainPathDiagrams() {
+	if (!hasRunResults()) return;
+	const int reference = chooseRouteDiagramReference(this, "train paths");
+	if (reference >= 0) buildRouteDiagram(false, reference);
 }
 
 // manage VCoupling notifications
@@ -24420,90 +24349,194 @@ void MainWindow::showDelayDiagram() {
 }
 
 void MainWindow::showTimetableGraph() {
-	if (!hasRunResults()) {
-		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
-		return;
+	if (!hasRunResults()) return;
+	const int reference = chooseRouteDiagramReference(this, "timetable");
+	if (reference >= 0) buildRouteDiagram(true, reference);
+}
+
+void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
+	if (!hasRunResults() || referenceIndex < 0 || referenceIndex >= static_cast<int>(train_route.size())) return;
+	const Route& reference = train_route[referenceIndex];
+	const RouteDiagramPath referencePath = routeDiagramPath(reference, &m_sceneModel);
+	if (referencePath.nodes.empty()) return;
+	std::map<int, RouteDiagramPath> paths;
+	std::map<int, RouteDiagramProjection> projections;
+	for (int i = 0; i < numRegions; ++i) {
+		const int routeIndex = regional_train[i].indexOfRoute;
+		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()) || paths.count(routeIndex)) continue;
+		paths.emplace(routeIndex, routeDiagramPath(train_route[routeIndex], &m_sceneModel));
+		projections.emplace(routeIndex, buildRouteDiagramProjection(paths.at(routeIndex), referencePath));
 	}
-
-	QChart* chart = new QChart();
-	const QString title = QString("Train graph: planned vs simulated arrival/departure [%1]")
-		.arg(completedRunContext(m_completedRunProvenance));
-	chart->setTitle(title);
-	const auto rows = buildTimetableResults(runResultTrainPointers());
-
-	for (int i = 0; i < numRegions; i++) {
-		const std::string trainId = regional_train[i].trainDescription;
-		const QString trainName = QString::fromStdString(trainId);
-		QLineSeries* simulatedArrival = new QLineSeries();
-		simulatedArrival->setName(trainName + " (simulated arrival)");
-		simulatedArrival->setProperty("trainId", trainName);
-		QLineSeries* plannedArrival = new QLineSeries();
-		plannedArrival->setName(trainName + " (planned arrival)");
-		plannedArrival->setProperty("trainId", trainName);
-		QLineSeries* simulatedDeparture = new QLineSeries();
-		simulatedDeparture->setName(trainName + " (simulated departure)");
-		simulatedDeparture->setProperty("trainId", trainName);
-		QLineSeries* plannedDeparture = new QLineSeries();
-		plannedDeparture->setName(trainName + " (planned departure)");
-		plannedDeparture->setProperty("trainId", trainName);
-
-		for (const TimetableResultRow& row : rows) {
-			if (row.trainId != trainId)
-				continue;
-			const QString call = QString("Station: %1 | Call: %2 | Journey: %3")
-				.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(row.journeyIndex);
-			if (row.simulatedArrivalSeconds.available)
-				appendInspectedPoint(simulatedArrival, row.simulatedArrivalSeconds.value, row.journeyIndex,
-					call + " | Simulated arrival");
-			if (row.plannedArrivalSeconds.available)
-				appendInspectedPoint(plannedArrival, row.plannedArrivalSeconds.value, row.journeyIndex,
-					call + " | Planned arrival");
-			if (row.simulatedDepartureSeconds.available)
-				appendInspectedPoint(simulatedDeparture, row.simulatedDepartureSeconds.value, row.journeyIndex,
-					call + " | Simulated departure");
-			if (row.plannedDepartureSeconds.available)
-				appendInspectedPoint(plannedDeparture, row.plannedDepartureSeconds.value, row.journeyIndex,
-					call + " | Planned departure");
-		}
-
-		auto addSeriesPair = [chart](QLineSeries* simulated, QLineSeries* planned) {
-			if (simulated->count() > 0) {
-				chart->addSeries(simulated);
-				if (planned->count() > 0) {
-					QPen plannedPen = planned->pen();
-					plannedPen.setStyle(Qt::DashLine);
-					plannedPen.setColor(simulated->pen().color());
-					planned->setPen(plannedPen);
-					chart->addSeries(planned);
-				} else {
-					delete planned;
+	const auto position = [&](const Train& train, double sourceKm) -> std::optional<double> {
+		const auto projection = projections.find(train.indexOfRoute);
+		return projection == projections.end() ? std::optional<double>() : projection->second.map(sourceKm);
+	};
+	const double origin = referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.back().positionKm;
+	const QString label = QString("%1 | %2 (0 s = run start)")
+		.arg(timetable ? "Timetable" : "Train paths", QString::fromStdString(reference.ID));
+	const QString explanation = QString("Reference %1: runtime route X (km), origin %2, travel %3; X increases right. "
+		"Elapsed time increases downward from 0 s. Other routes use shared node/station anchors; "
+		"ambiguous or unmapped portions are omitted, never extrapolated.")
+		.arg(QString::fromStdString(reference.ID)).arg(origin, 0, 'f', 3)
+		.arg(end >= origin ? "right" : "left");
+	auto* chart = new QChart();
+	chart->setTitle(label);
+	std::vector<std::vector<std::string>> exportRows;
+	const auto record = [&](const Train& train, const char* kind, const std::string& station,
+		int journey, int call, const RunResultValue& time, std::optional<double> x) {
+		exportRows.push_back({train.trainDescription, reference.ID, train_route[train.indexOfRoute].ID,
+			kind, station, journey ? std::to_string(journey) : "", call ? std::to_string(call) : "",
+			time.available ? csv::formatDouble(time.value) : "", x ? csv::formatDouble(*x) : ""});
+	};
+	if (timetable) {
+		const auto rows = buildTimetableResults(runResultTrainPointers());
+		for (int i = 0; i < numRegions; ++i) {
+			const Train& train = regional_train[i];
+			const auto path = paths.find(train.indexOfRoute);
+			const auto projection = projections.find(train.indexOfRoute);
+			if (path == paths.end() || projection == projections.end()) continue;
+			const QString name = QString::fromStdString(train.trainDescription);
+			// Separate series at every absent or unprojectable event. Never connect
+			// across a missing schedule value or an unavailable station visit.
+			for (int kind = 0; kind < 4; ++kind) {
+				QLineSeries* segment = nullptr;
+				for (const auto& row : rows) {
+					if (row.trainId != train.trainDescription) continue;
+					const int stopIndex = row.journeyIndex - 1;
+					const auto x = routeDiagramStopPosition(train, stopIndex, path->second, projection->second);
+					const RunResultValue time = kind == 0 ? row.plannedArrivalSeconds : kind == 1 ? row.plannedDepartureSeconds
+						: kind == 2 ? row.simulatedArrivalSeconds : row.simulatedDepartureSeconds;
+					const char* event = kind == 0 ? "planned arrival" : kind == 1 ? "planned departure"
+						: kind == 2 ? "simulated arrival" : "simulated departure";
+					record(train, event, row.stationId, row.journeyIndex, row.callIndex, time, x);
+					if (!x || !time.available) { segment = nullptr; continue; }
+					if (!segment) {
+						segment = new QLineSeries();
+						segment->setName(name + " (" + event + ")");
+						segment->setProperty("trainId", name);
+						segment->setPointsVisible(true);
+						QPen pen(QColor::fromHsv((i * 71) % 360, 175, kind < 2 ? 170 : 235));
+						if (kind < 2) pen.setStyle(Qt::DashLine);
+						segment->setPen(pen);
+						chart->addSeries(segment);
+					}
+					appendInspectedPoint(segment, *x, time.value,
+						QString("Station: %1 | Call: %2 | Journey: %3 | %4")
+						.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(row.journeyIndex).arg(event));
 				}
-			} else if (planned->count() > 0) {
-				QPen plannedPen = planned->pen();
-				plannedPen.setStyle(Qt::DashLine);
-				planned->setPen(plannedPen);
-				chart->addSeries(planned);
-				delete simulated;
-			} else {
-				delete simulated;
-				delete planned;
 			}
-		};
-		addSeriesPair(simulatedArrival, plannedArrival);
-		addSeriesPair(simulatedDeparture, plannedDeparture);
+			// A dwell is vertical: fixed reference distance, advancing time.
+			for (const auto& row : rows) {
+				if (row.trainId != train.trainDescription) continue;
+				const auto x = routeDiagramStopPosition(train, row.journeyIndex - 1, path->second, projection->second);
+				for (int planned = 0; planned < 2; ++planned) {
+					const auto arrival = planned ? row.plannedArrivalSeconds : row.simulatedArrivalSeconds;
+					const auto departure = planned ? row.plannedDepartureSeconds : row.simulatedDepartureSeconds;
+					if (!x || !arrival.available || !departure.available) continue;
+					auto* dwell = new QLineSeries();
+					dwell->setName(name + (planned ? " (planned dwell)" : " (simulated dwell)"));
+					dwell->setProperty("trainId", name);
+					QPen pen(QColor::fromHsv((i * 71) % 360, 175, planned ? 170 : 235));
+						if (planned) pen.setStyle(Qt::DashLine);
+					dwell->setPen(pen);
+					const QString context = QString("Station: %1 | Call: %2 | %3 dwell")
+						.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(planned ? "Planned" : "Simulated");
+					appendInspectedPoint(dwell, *x, arrival.value, context);
+					appendInspectedPoint(dwell, *x, departure.value, context);
+					chart->addSeries(dwell);
+				}
+			}
+		}
+	} else {
+		for (int i = 0; i < numRegions; ++i) {
+			const Train& train = regional_train[i];
+			if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
+			if (train.earliestActiveTrajectoryIndex < 0) continue;
+			for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
+				train.earliestActiveTrajectoryIndex, train.End_Time)) {
+				QLineSeries* segment = nullptr;
+				for (int t = valid.first; t <= valid.last; ++t) {
+					const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
+					const auto x = position(train, sourceKm);
+					const RunResultValue time{true, t * timestep};
+					record(train, "trajectory", "", 0, 0, time, x);
+					if (!x) { segment = nullptr; continue; }
+					if (!segment) {
+						segment = new QLineSeries();
+						segment->setName(QString::fromStdString(train.trainDescription));
+						segment->setProperty("trainId", QString::fromStdString(train.trainDescription));
+						segment->setProperty("inspectionInterval", QString("Route: %1 | Simulated trajectory")
+							.arg(QString::fromStdString(train_route[train.indexOfRoute].ID)));
+						segment->setPointsVisible(true); // Preserve an isolated valid sample.
+						chart->addSeries(segment);
+					}
+					segment->append(*x, time.value);
+					if (segment->count() == 2) segment->setPointsVisible(false);
+				}
+			}
+		}
 	}
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText("Time (simulation seconds)");
-	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Journey order (1-based)");
-
-	DiagramWindow* win = new DiagramWindow(title, this);
+	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
+	if (!chart->axes(Qt::Horizontal).isEmpty()) {
+		auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+		axis->setTitleText(QString("Route X (km); origin %1, travel %2")
+			.arg(origin, 0, 'f', 3).arg(end >= origin ? "right" : "left"));
+		const double low = std::min(origin, end), high = std::max(origin, end);
+		axis->setRange(low - 0.01, std::max(low + 0.02, high + 0.01));
+	}
+	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
+	axisY->setTitleText("Elapsed simulation time (s), downward");
+	axisY->setReverse(true);
+	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
+	for (auto* series : chart->series()) {
+		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
+		if (!series->attachedAxes().contains(chart->axes(Qt::Horizontal).first()))
+			series->attachAxis(chart->axes(Qt::Horizontal).first());
+	}
+	// Station names come from platform-bound canonical IDs, not from map X.
+	const auto stationLabels = routeDiagramStationLabels(referencePath);
+	if (!stationLabels.empty()) {
+		auto* stations = new QCategoryAxis();
+		stations->setTitleText("Reference stations");
+		stations->setLabelsAngle(-90);
+		stations->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+		auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+		stations->setStartValue(distanceAxis->min() - 1);
+		for (const auto& station : stationLabels)
+			stations->append(QString::fromStdString(station.second)
+				+ QString(" (%1 km)").arg(station.first, 0, 'f', 2), station.first);
+		stations->setRange(distanceAxis->min(), distanceAxis->max());
+		chart->addAxis(stations, Qt::AlignTop);
+		for (auto* series : chart->series()) series->attachAxis(stations);
+	}
+	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
+	DiagramWindow* win = new DiagramWindow(label, this);
 	win->setChart(chart);
-	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
+	auto* note = new QLabel(explanation, win);
+	note->setWordWrap(true);
+	qobject_cast<QVBoxLayout*>(win->layout())->insertWidget(1, note);
+	const auto csvRows = std::move(exportRows);
+	const auto graphCsv = [csvRows](const QStringList& visible) {
+		std::vector<std::string> ids;
+		for (const QString& id : visible) ids.push_back(id.toStdString());
+		return buildRouteDiagramCsv(csvRows, ids);
+	};
+	win->setCsvProvider(graphCsv, timetable ? "timetable_graph.csv" : "train_path_graph.csv");
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
+		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
+		const QString basename = timetable ? "timetable_graph" : "train_path_graph";
+		for (const auto& selection : {std::pair<QString, QStringList>{"all", allTrainIds()},
+				std::pair<QString, QStringList>{"first", QStringList{allTrainIds().first()}}}) {
+			QFile out(dir + "/" + basename + "_" + selection.first + ".csv");
+			if (out.open(QIODevice::WriteOnly)) out.write(QByteArray::fromStdString(graphCsv(selection.second)));
+		}
+	}
 	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(true, m_startOffsetSeconds);
+	win->setTimeAxisY(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }

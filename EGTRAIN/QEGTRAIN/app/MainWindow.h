@@ -231,7 +231,6 @@ public:
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
-	void buildCorridorTrainPathDiagram(std::string corridor);
 	bool hasRunResults() const;
 	void updateDiagramActions();
 	QMenu* editorsMenu();
@@ -977,6 +976,7 @@ private slots:
 	void showTimeDistanceDiagram();
 	void showTractiveEffortDistanceDiagram();
 	void showTimetableGraph();
+	void buildRouteDiagram(bool timetable, int referenceIndex);
 	void showTimetableTable();
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
