@@ -20516,9 +20516,12 @@ void MainWindow::runSceneDropE2E() {
 		QGraphicsScene* const renderedScene = scene;
 		const QList<QGraphicsItem*> renderedItems = scene ? scene->items() : QList<QGraphicsItem*>();
 		const auto unchanged = [&](const QString& label) {
+			const QList<QGraphicsItem*> currentItems = scene ? scene->items() : QList<QGraphicsItem*>();
 			if (m_sceneDir != scenePath || m_sceneModel.name != sceneName
 				|| m_sceneRevision != sceneRevision || scene != renderedScene
-				|| !scene || networkView->scene() != renderedScene || scene->items() != renderedItems)
+				|| !scene || networkView->scene() != renderedScene
+				|| currentItems.size() != renderedItems.size()
+				|| !std::equal(currentItems.cbegin(), currentItems.cend(), renderedItems.cbegin()))
 				fail(label + QStringLiteral(" replaced the current scene"));
 		};
 
