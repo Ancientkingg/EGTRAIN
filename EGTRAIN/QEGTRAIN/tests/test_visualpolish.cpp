@@ -41,24 +41,24 @@ int main(int argc, char* argv[]) {
 	ok &= expect(freeBase.width == 2, "free track uses one documented overview width");
 
 	const TrackStateVisual freeTrack = classifyTrackState(TrackOperationalState::Free);
-	const TrackStateVisual preparedTrack = classifyTrackState(TrackOperationalState::Prepared);
+	const TrackStateVisual permissiveTrack = classifyTrackState(TrackOperationalState::Prepared);
 	const TrackStateVisual occupiedTrack = classifyTrackState(TrackOperationalState::Occupied);
 	const TrackStateVisual blockedTrack = classifyTrackState(TrackOperationalState::Blocked);
 	ok &= expect(freeTrack.style == Qt::NoPen && freeTrack.width == 0, "free track has no underlay");
-	ok &= expect(preparedTrack.style == Qt::DashDotLine && preparedTrack.width == 5, "prepared track underlay");
+	ok &= expect(permissiveTrack.style == Qt::DashDotLine && permissiveTrack.width == 5, "permissive signalling underlay");
 	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 6, "occupied track underlay");
 	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 5, "blocked track has non-color cue");
-	ok &= expect(preparedTrack.color == QColor("#4C8DAE"), "prepared track color");
+	ok &= expect(permissiveTrack.color == QColor("#4C8DAE"), "permissive signalling color");
 	ok &= expect(occupiedTrack.color == QColor("#D05A47"), "occupied track color");
 	ok &= expect(blockedTrack.color == QColor("#D6A13A"), "blocked track color");
-	const QByteArray preparedMask = renderStrokeMask(preparedTrack.width, preparedTrack.style);
+	const QByteArray permissiveMask = renderStrokeMask(permissiveTrack.width, permissiveTrack.style);
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);
 	const QByteArray blockedMask = renderStrokeMask(blockedTrack.width, blockedTrack.style);
-	ok &= expect(preparedMask != occupiedMask && occupiedMask != blockedMask
-		&& preparedMask != blockedMask,
+	ok &= expect(permissiveMask != occupiedMask && occupiedMask != blockedMask
+		&& permissiveMask != blockedMask,
 		"track states remain distinguishable by stroke structure without color");
 	ok &= expect(trackStatePriority(TrackOperationalState::Free) < trackStatePriority(TrackOperationalState::Prepared), "free track priority");
-	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "prepared track priority");
+	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "permissive signalling priority");
 	ok &= expect(trackStatePriority(TrackOperationalState::Occupied) < trackStatePriority(TrackOperationalState::Blocked), "occupied track priority");
 
 	const SignalVisual stopSignal = classifySignalAspect(0);

@@ -46,8 +46,17 @@ struct GuiSignalState {
 	bool reversedDirection = false;
 };
 
+// Every nonzero copied route-section code reports the permissive-signalling
+// cue. The producer value can describe an approach aspect and is not a
+// reservation or a movement guarantee for the selected direction.
+inline bool guiSectionReportsPermissiveSignalling(double signalCode) {
+	return signalCode != 0.0;
+}
+
 struct GuiSectionState {
 	std::string sectionId;
+	// Legacy field name: true when any copied route section reports
+	// permissive signalling, not a reservation or direction guarantee.
 	bool prepared = false;
 	bool blocked = false;
 };

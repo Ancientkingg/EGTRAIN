@@ -58,6 +58,7 @@ QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$COMMAND_BAR_1440_SHOT" \
 	"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
 
 grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
+grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$OUT"
 grep -q "E2E_VISUAL_POLISH_DPR_1.0" "$OUT"
 test -s "$SHOT"
 test -s "$DENSE_SHOT"
@@ -99,6 +100,7 @@ if ! QT_QPA_PLATFORM=offscreen \
 fi
 grep -q "E2E_VISUAL_POLISH_DPR_2.0" "$DPR2_OUT"
 grep -q "E2E_VISUAL_POLISH_OK" "$DPR2_OUT"
+grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$DPR2_OUT"
 test -s "$DPR2_SHOT"
 test -s "${DPR2_SHOT%.png}-medium.png"
 test -s "${DPR2_SHOT%.png}-dense.png"
@@ -108,6 +110,22 @@ test -s "$DPR2_COMMAND_BAR_1024_SHOT"
 test -s "$DPR2_COMMAND_BAR_1200_SHOT"
 test -s "$DPR2_COMMAND_BAR_1440_SHOT"
 echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
+
+COMPLETION_OUT="${TMPDIR:-/tmp}/qegtrain-operational-completion-e2e.log"
+QT_QPA_PLATFORM=offscreen \
+QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
+	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$COMPLETION_OUT" 2>&1
+grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
+echo "operational completion and rerun e2e passed"
+
+DISCARD_OUT="${TMPDIR:-/tmp}/qegtrain-operational-discard-e2e.log"
+QT_QPA_PLATFORM=offscreen \
+QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_E2E_OPERATIONAL_DISCARD=1 \
+	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$DISCARD_OUT" 2>&1
+grep -q "E2E_OPERATIONAL_DISCARD_OK" "$DISCARD_OUT"
+echo "discarded-run preview legend e2e passed"
 
 SCENE_NAMES=(Netherlands Paimpol Copenhagen Milano_Brescia Assignment_Gvc_Gdg_Ut Lebanon)
 for case in 1 2 3 4 5 6; do

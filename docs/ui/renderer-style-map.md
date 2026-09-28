@@ -9,13 +9,17 @@ This map is the visual contract for the network playback primitives. State color
 | State | Priority | Color | Pen | Meaning |
 | --- | ---: | --- | --- | --- |
 | Free | 0 | `#A0ACB4` | solid, 2 px | No operational reservation or occupation is reported. |
-| Prepared | 1 | `#4C8DAE` | dash-dot, 6 px | A route is prepared for movement. |
+| Permissive signalling | 1 | `#4C8DAE` | dash-dot, 6 px | At least one copied route section reports a nonzero signalling code, including approach aspects. This is not a reservation or a guarantee for the selected direction. |
 | Occupied | 2 | `#D05A47` | solid, 8 px | A train or other movement occupies the section. |
 | Blocked | 3 | `#D6A13A` | dashed, 8 px | The section is unavailable or restricted. |
 
-`TrackLineItem`, `VirtualArcItem`, and `ConnectionItem` use the free-track style for base topology. `TrackLineItem` paints an operational underlay before that base stroke. Prepared, occupied, and blocked states differ by width and pen style as well as color.
+The map key follows the graphics currently displayed: authoring preview shows the base Track entry; runtime graphics show the operational entries. A failed or discarded run can return to authoring preview without changing the historical run status to Not built.
 
-Measured against the `#12191F` canvas, the contrast ratios are 7.64:1 for free, 4.84:1 for prepared, 4.42:1 for occupied, and 7.61:1 for blocked. Each exceeds the 3:1 target for graphical objects.
+Operational underlays are transient playback state. Every delivered frame clears the prior underlays before applying permissive signalling, occupation, then blocking (blocked wins over occupied, which wins over permissive). Stop clears underlays immediately; normal completion and case teardown also clear them, and late queued snapshots after Stop or completion cannot restore them. Track selection remains independent. The final immutable simulation snapshot remains available after completion for passenger inspection until a different case is opened; it does not keep the last operational underlay visible.
+
+`TrackLineItem`, `VirtualArcItem`, and `ConnectionItem` use the free-track style for base topology. `TrackLineItem` paints an operational underlay before that base stroke. Permissive signalling, occupied, and blocked states differ by width and pen style as well as color.
+
+Measured against the `#12191F` canvas, the contrast ratios are 7.64:1 for free, 4.84:1 for permissive signalling, 4.42:1 for occupied, and 7.61:1 for blocked. Each exceeds the 3:1 target for graphical objects.
 
 ## Signal aspect
 
