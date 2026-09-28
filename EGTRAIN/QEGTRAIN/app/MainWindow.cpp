@@ -468,6 +468,13 @@ const QColor kBlockingSwitchColor(240, 210, 40, 180);
 const QColor kBlockingCriticalColor(220, 50, 50, 200);
 const QColor kBlockingCapacityColor(235, 175, 20, 230);
 
+void appendInspectedPoint(QLineSeries* series, double x, double y, const QString& context) {
+	series->append(x, y);
+	QStringList points = series->property("inspectionPoints").toStringList();
+	points.append(context);
+	series->setProperty("inspectionPoints", points);
+}
+
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
 	bool useCapacityCriticalStyle) {
 	const auto colorFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
@@ -499,6 +506,9 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		QPen pen(colorFor(segment));
 		pen.setWidthF(segment.penWidth);
 		series->setPen(pen);
+		series->setProperty("inspectionInterval", QString("Resource: %1 | Type: %2 | Start: %3 s | End: %4 s")
+			.arg(QString::fromStdString(segment.blockId), blockingSegmentTypeName(segment))
+			.arg(segment.startTime, 0, 'f', 2).arg(segment.endTime, 0, 'f', 2));
 		series->append(segment.startTime, segment.midPositionKm);
 		series->append(segment.endTime, segment.midPositionKm);
 		chart->addSeries(series);
@@ -24380,7 +24390,9 @@ void MainWindow::showDelayDiagram() {
 		for (const TimetableResultRow& row : rows) {
 			if (row.trainId != regional_train[i].trainDescription || !row.arrivalDelaySeconds.available)
 				continue;
-			series->append(row.journeyIndex, row.arrivalDelaySeconds.value / 60.0);
+			appendInspectedPoint(series, row.journeyIndex, row.arrivalDelaySeconds.value / 60.0,
+				QString("Station: %1 | Call: %2 | Arrival delay")
+					.arg(QString::fromStdString(row.stationId)).arg(row.callIndex));
 			hasData = true;
 		}
 		if (hasData) {
@@ -24438,14 +24450,20 @@ void MainWindow::showTimetableGraph() {
 		for (const TimetableResultRow& row : rows) {
 			if (row.trainId != trainId)
 				continue;
+			const QString call = QString("Station: %1 | Call: %2 | Journey: %3")
+				.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(row.journeyIndex);
 			if (row.simulatedArrivalSeconds.available)
-				simulatedArrival->append(row.simulatedArrivalSeconds.value, row.journeyIndex);
+				appendInspectedPoint(simulatedArrival, row.simulatedArrivalSeconds.value, row.journeyIndex,
+					call + " | Simulated arrival");
 			if (row.plannedArrivalSeconds.available)
-				plannedArrival->append(row.plannedArrivalSeconds.value, row.journeyIndex);
+				appendInspectedPoint(plannedArrival, row.plannedArrivalSeconds.value, row.journeyIndex,
+					call + " | Planned arrival");
 			if (row.simulatedDepartureSeconds.available)
-				simulatedDeparture->append(row.simulatedDepartureSeconds.value, row.journeyIndex);
+				appendInspectedPoint(simulatedDeparture, row.simulatedDepartureSeconds.value, row.journeyIndex,
+					call + " | Simulated departure");
 			if (row.plannedDepartureSeconds.available)
-				plannedDeparture->append(row.plannedDepartureSeconds.value, row.journeyIndex);
+				appendInspectedPoint(plannedDeparture, row.plannedDepartureSeconds.value, row.journeyIndex,
+					call + " | Planned departure");
 		}
 
 		auto addSeriesPair = [chart](QLineSeries* simulated, QLineSeries* planned) {
@@ -24553,7 +24571,9 @@ void MainWindow::showBlockingTimeDiagram() {
 			it = plannedSeries.emplace(reference.trainName, series).first;
 			++plannedColorIndex;
 		}
-		it->second->append(reference.time, reference.positionKm);
+		appendInspectedPoint(it->second, reference.time, reference.positionKm,
+			QString("Station: %1 | Planned %2").arg(QString::fromStdString(reference.stationName),
+				QString::fromStdString(reference.eventType)));
 	}
 
 	QLineSeries* dummySwitch = new QLineSeries();

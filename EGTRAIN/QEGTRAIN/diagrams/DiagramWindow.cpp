@@ -2,7 +2,15 @@
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
+#include <QApplication>
 #include <QBuffer>
+#include <QWheelEvent>
+#include <QNativeGestureEvent>
+#include <QGestureEvent>
+#include <QPinchGesture>
+#include <QShortcut>
+#include <QtCharts/QScatterSeries>
+#include <algorithm>
 #include <QColor>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -23,6 +31,7 @@
 #include <QtCharts/QXYSeries>
 
 #include <cmath>
+#include <limits>
 namespace {
 
 // Reduced-opacity pen for lines that are not the pinned train.
@@ -40,6 +49,24 @@ bool writeArtifact(const QString& path, const std::string& bytes) {
 		return false;
 	const QByteArray data = QByteArray::fromStdString(bytes);
 	return file.write(data) == data.size() && file.commit();
+}
+
+// Clip a stroke to the visible plot before hit-testing. The returned fractions
+// still refer to its original endpoints, so inspection keeps the sample index.
+bool clippedSegment(const QRectF& plot, const QPointF& a, const QPointF& b,
+		double& first, double& last) {
+	first = 0;
+	last = 1;
+	const QPointF d = b - a;
+	const auto edge = [&](double p, double q) {
+		if (p == 0) return q >= 0;
+		const double t = q / p;
+		if (p < 0) first = std::max(first, t);
+		else last = std::min(last, t);
+		return first <= last;
+	};
+	return edge(-d.x(), a.x() - plot.left()) && edge(d.x(), plot.right() - a.x())
+		&& edge(-d.y(), a.y() - plot.top()) && edge(d.y(), plot.bottom() - a.y());
 }
 
 // Emphasised pen for the pinned train.
@@ -65,6 +92,35 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_view->setMouseTracking(true);
 	m_view->viewport()->setMouseTracking(true);
 	m_view->viewport()->installEventFilter(this);
+	m_view->viewport()->grabGesture(Qt::PinchGesture);
+	m_view->setFocusPolicy(Qt::StrongFocus);
+	m_tooltip = new QLabel(this);
+	m_tooltip->setObjectName("diagramTooltip");
+	m_tooltip->setTextFormat(Qt::PlainText);
+	m_tooltip->setForegroundRole(QPalette::ToolTipText);
+	m_tooltip->setBackgroundRole(QPalette::ToolTipBase);
+	m_tooltip->setAutoFillBackground(true);
+	m_tooltip->setMargin(6);
+	m_tooltip->setFrameShape(QFrame::StyledPanel);
+	m_tooltip->setAttribute(Qt::WA_TransparentForMouseEvents);
+	m_tooltip->hide();
+	installEventFilter(this);
+	for (const auto key : {Qt::Key_Plus, Qt::Key_Equal, Qt::Key_Minus, Qt::Key_0, Qt::Key_Home,
+		Qt::Key_Left, Qt::Key_Right, Qt::Key_Up, Qt::Key_Down}) {
+		auto* shortcut = new QShortcut(QKeySequence(key), this);
+		shortcut->setContext(Qt::WidgetWithChildrenShortcut);
+		connect(shortcut, &QShortcut::activated, this, [this, key] {
+			if (!m_view->hasFocus() && !m_view->viewport()->hasFocus()) return;
+			if (key == Qt::Key_0 || key == Qt::Key_Home) { resetZoom(); return; }
+			QPointF pan;
+			if (key == Qt::Key_Left) pan.setX(40);
+			if (key == Qt::Key_Right) pan.setX(-40);
+			if (key == Qt::Key_Up) pan.setY(40);
+			if (key == Qt::Key_Down) pan.setY(-40);
+			navigate(pan.isNull() ? (key == Qt::Key_Minus ? 1 / 1.2 : 1.2) : 1,
+				m_view->chart()->plotArea().center(), pan);
+		});
+	}
 	// Drag a rectangle to zoom; filter state is unaffected by zoom or pan.
 	m_view->setRubberBand(QChartView::RectangleRubberBand);
 
@@ -78,7 +134,7 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_pinLabel = new QLabel("", this);
 
 	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
-	resetZoomBtn->setToolTip("Undo rubber-band zoom (drag on the chart to zoom in)");
+	resetZoomBtn->setToolTip("Restore full bounds; keep train filters and selection (Home or 0)");
 	connect(resetZoomBtn, &QPushButton::clicked, this, &DiagramWindow::resetZoom);
 
 	m_csvButton = new QPushButton("Export CSV...", this);
@@ -99,7 +155,9 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	topBar->addWidget(m_csvButton);
 	topBar->addWidget(exportPngBtn);
 
-	m_readout = new QLabel("Hover over the chart to read values; click a line to select its train", this);
+	m_readout = new QLabel("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.", this);
+	m_readout->setWordWrap(true);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->addLayout(topBar);
@@ -108,10 +166,15 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 }
 
 void DiagramWindow::setChart(QChart* chart) {
-	m_timeAxisApplied = false;
+	if (m_view && m_view->chart() == chart) return;
+	clearTooltip();
+	delete m_numericAxis.data(); // detached axis belongs to this window, not the old chart
+	m_numericAxis = nullptr;
+	m_fullBounds.clear();
+	m_clockAxis = nullptr;
 	if (chart)
 		applyChartStyle(chart);
-	QChart* previous = m_view ? m_view->chart() : nullptr;
+	QChart* previous = m_view->chart();
 	if (previous != chart)
 		m_view->setChart(chart);  // QChartView takes ownership of the new chart
 	if (previous && previous != chart)
@@ -121,15 +184,27 @@ void DiagramWindow::setChart(QChart* chart) {
 	if (chart && chart->legend())
 		chart->legend()->hide();
 	rebuildFilterGroups();
-	if (m_timeAxis)
-		applyTimeAxis();
+	if (chart)
+		for (auto* axis : chart->axes())
+			if (auto* value = qobject_cast<QValueAxis*>(axis))
+				m_fullBounds.insert(axis, {value->min(), value->max()});
+	applyTimeAxis();
 }
 
 void DiagramWindow::setTimeAxisX(bool on, long long startOffsetSeconds) {
+	clearTooltip();
+	m_timeOrientation = Qt::Horizontal;
 	m_timeAxis = on;
 	m_startOffset = startOffsetSeconds;
-	if (m_timeAxis)
-		applyTimeAxis();
+	applyTimeAxis();
+}
+
+void DiagramWindow::setTimeAxisY(bool on, long long startOffsetSeconds) {
+	clearTooltip();
+	m_timeOrientation = Qt::Vertical;
+	m_timeAxis = on;
+	m_startOffset = startOffsetSeconds;
+	applyTimeAxis();
 }
 
 void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)> provider,
@@ -152,26 +227,33 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 	chart->setBackgroundBrush(palette().brush(QPalette::Base));
 	chart->setMargins(QMargins(12, 8, 12, 8));
 
-	QFont titleFont = chart->titleFont();
+	QFont titleFont = font();
 	titleFont.setPointSizeF(titleFont.pointSizeF() + 2.0);
 	titleFont.setBold(true);
 	chart->setTitleFont(titleFont);
 	chart->setTitleBrush(palette().brush(QPalette::WindowText));
 
-	const QPen gridPen(QColor(0, 0, 0, 30));
+	QColor gridColor = palette().color(QPalette::WindowText);
+	gridColor.setAlpha(30);
+	const QPen gridPen(gridColor);
 	const QBrush labelBrush = palette().brush(QPalette::WindowText);
 	const auto axes = chart->axes();
 	for (QAbstractAxis* axis : axes) {
 		axis->setGridLinePen(gridPen);
 		axis->setLabelsBrush(labelBrush);
 		axis->setTitleBrush(labelBrush);
-		axis->setLinePen(QPen(QColor(0, 0, 0, 90)));
+		QColor lineColor = palette().color(QPalette::WindowText);
+		lineColor.setAlpha(90);
+		axis->setLinePen(QPen(lineColor));
 	}
 
 	const auto seriesList = chart->series();
 	for (QAbstractSeries* series : seriesList) {
 		if (auto* xy = qobject_cast<QXYSeries*>(series)) {
 			QPen pen = xy->pen();
+			if (series->name().contains("planned", Qt::CaseInsensitive))
+				pen.setStyle(Qt::DashLine);
+			xy->setPen(pen);
 			if (pen.widthF() < 2.0) {
 				pen.setWidthF(2.0);
 				xy->setPen(pen);
@@ -180,15 +262,34 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 	}
 }
 
-// Swap the raw-seconds X axis for one labelled HH:MM:SS at round intervals.
+// Keep numeric ranges and orientation when replacing time labels.
 void DiagramWindow::applyTimeAxis() {
 	QChart* chart = m_view ? m_view->chart() : nullptr;
-	if (!chart || m_timeAxisApplied)
+	if (!chart) return;
+	if (m_clockAxis) {
+		auto* old = qobject_cast<QValueAxis*>(m_clockAxis.data());
+		const auto alignment = old->alignment();
+		const auto bounds = m_fullBounds.take(old);
+		auto* numeric = m_numericAxis.data();
+		if (!numeric) return;
+		numeric->setRange(old->min(), old->max());
+		numeric->setReverse(old->isReverse());
+		QList<QAbstractSeries*> attached;
+		for (auto* series : chart->series())
+			if (series->attachedAxes().contains(old)) attached.append(series);
+		chart->removeAxis(old);
+		old->deleteLater();
+		chart->addAxis(numeric, alignment);
+		for (auto* series : attached) series->attachAxis(numeric);
+		m_fullBounds.insert(numeric, bounds);
+		m_numericAxis = nullptr;
+		m_clockAxis = nullptr;
+	}
+	if (!m_timeAxis) return;
+	const auto timeAxes = chart->axes(m_timeOrientation);
+	if (timeAxes.isEmpty())
 		return;
-	const auto horizontal = chart->axes(Qt::Horizontal);
-	if (horizontal.isEmpty())
-		return;
-	auto* seconds = qobject_cast<QValueAxis*>(horizontal.first());
+	auto* seconds = qobject_cast<QValueAxis*>(timeAxes.first());
 	if (!seconds)
 		return;
 	const double min = seconds->min();
@@ -197,34 +298,50 @@ void DiagramWindow::applyTimeAxis() {
 	if (!(span > 0.0))
 		return;
 
-	// Aim for four to eight round-interval labels.
-	const double candidates[] = {30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400, 21600, 43200};
-	double step = candidates[sizeof(candidates) / sizeof(candidates[0]) - 1];
-	for (double candidate : candidates) {
-		if (span / candidate <= 8.0) {
-			step = candidate;
-			break;
-		}
-	}
 
 	auto* clock = new QCategoryAxis(chart);
 	clock->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+	clock->setStartValue(min - 1);
+	clock->setReverse(seconds->isReverse());
 	clock->setMin(min);
 	clock->setMax(max);
 	clock->setTitleText("Time");
-	clock->setGridLinePen(QPen(QColor(0, 0, 0, 30)));
+	clock->setGridLinePen(seconds->gridLinePen());
+	clock->setGridLineVisible(seconds->isGridLineVisible());
+	clock->setMinorGridLineVisible(seconds->isMinorGridLineVisible());
+	clock->setLinePen(seconds->linePen());
+	clock->setLabelsFont(seconds->labelsFont());
+	clock->setTitleFont(seconds->titleFont());
 	clock->setLabelsBrush(palette().brush(QPalette::WindowText));
 	clock->setTitleBrush(palette().brush(QPalette::WindowText));
-	for (double tick = std::ceil(min / step) * step; tick <= max + 1e-9; tick += step)
-		clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
 
-	const auto seriesList = chart->series();
+
+	QList<QAbstractSeries*> seriesList;
+	for (auto* series : chart->series())
+		if (series->attachedAxes().contains(seconds)) seriesList.append(series);
+	const auto alignment = seconds->alignment();
+	const auto bounds = m_fullBounds.take(seconds);
 	chart->removeAxis(seconds);
-	seconds->deleteLater();
-	chart->addAxis(clock, Qt::AlignBottom);
+	seconds->setParent(this); // keep the original numeric ticks and grid for the roundtrip
+	m_numericAxis = seconds;
+	chart->addAxis(clock, alignment);
+	m_fullBounds.insert(clock, bounds);
 	for (QAbstractSeries* series : seriesList)
 		series->attachAxis(clock);
-	m_timeAxisApplied = true;
+	m_clockAxis = clock;
+	const auto updateLabels = [this, clock](qreal low, qreal high) {
+		for (const QString& label : clock->categoriesLabels()) clock->remove(label);
+		const double raw = (high - low) / 6;
+		const double power = std::pow(10.0, std::floor(std::log10(std::max(1.0, raw))));
+		double interval = std::max(1.0, std::ceil(raw / power) * power);
+		for (double candidate : {1., 5., 10., 30., 60., 120., 300., 600., 900., 1800., 3600., 7200., 14400., 21600., 43200.})
+			if ((high - low) / candidate <= 8) { interval = candidate; break; }
+		clock->setStartValue(low - interval);
+		for (double tick = std::ceil(low / interval) * interval; tick <= high; tick += interval)
+			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
+	};
+	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
+	updateLabels(min, max);
 }
 
 QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
@@ -266,16 +383,7 @@ void DiagramWindow::rebuildFilterGroups() {
 		}
 		m_groups[groupIndex].members.append(series);
 
-		// Connect identification signals once per series.
-		if (auto* xy = qobject_cast<QXYSeries*>(series)) {
-			connect(xy, &QXYSeries::hovered, this, [this, series](const QPointF& point, bool state) {
-				m_hoverName = state ? series->name() : QString();
-				updateReadout(point, m_hoverName);
-			});
-			connect(xy, &QXYSeries::clicked, this, [this, trainId](const QPointF&) {
-				pinTrain(trainId);
-			});
-		}
+
 	}
 
 	if (!m_trainsButton)
@@ -294,6 +402,7 @@ void DiagramWindow::rebuildFilterGroups() {
 }
 
 void DiagramWindow::applyTrainVisibility() {
+	clearTooltip();
 	if (!m_trainsButton)
 		return;
 	for (const SeriesGroup& group : m_groups) {
@@ -339,7 +448,7 @@ void DiagramWindow::refreshEmphasis() {
 }
 
 void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesName) {
-	if (!m_readout || !m_view || !m_view->chart())
+	if (!m_tooltip || !m_view || !m_view->chart())
 		return;
 
 	const QChart* chart = m_view->chart();
@@ -349,17 +458,14 @@ void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesNam
 		? QString("x") : horizontal.first()->titleText();
 	const QString yLabel = vertical.isEmpty() || vertical.first()->titleText().isEmpty()
 		? QString("y") : vertical.first()->titleText();
-	const QString xText = m_timeAxis
+	const QString xText = m_timeAxis && m_timeOrientation == Qt::Horizontal
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.x()), m_startOffset))
 		: QString::number(value.x(), 'f', 2);
-	const QString yText = QString::number(value.y(), 'f', 2);
-	if (seriesName.isEmpty()) {
-		m_readout->setText(QString("%1: %2   %3: %4")
-			.arg(xLabel).arg(xText).arg(yLabel).arg(yText));
-	} else {
-		m_readout->setText(QString("%1   %2: %3   %4: %5")
-			.arg(seriesName).arg(xLabel).arg(xText).arg(yLabel).arg(yText));
-	}
+	const QString yText = m_timeAxis && m_timeOrientation == Qt::Vertical
+		? QString::fromStdString(formatSimTime(static_cast<long long>(value.y()), m_startOffset))
+		: QString::number(value.y(), 'f', 2);
+	m_tooltip->setText(QString("%1\n%2: %3   %4: %5")
+		.arg(seriesName).arg(xLabel).arg(xText).arg(yLabel).arg(yText));
 }
 
 QStringList DiagramWindow::visibleTrainIds() const {
@@ -369,8 +475,13 @@ QStringList DiagramWindow::visibleTrainIds() const {
 }
 
 void DiagramWindow::resetZoom() {
-	if (m_view && m_view->chart())
+	clearTooltip();
+	if (m_view && m_view->chart()) {
 		m_view->chart()->zoomReset();
+		for (auto it = m_fullBounds.cbegin(); it != m_fullBounds.cend(); ++it)
+			if (auto* axis = qobject_cast<QValueAxis*>(it.key()))
+				axis->setRange(it.value().first, it.value().second);
+	}
 }
 
 void DiagramWindow::exportPng() {
@@ -419,14 +530,158 @@ void DiagramWindow::exportCsv() {
 			QString("Could not export the data and provenance to:\n%1").arg(path));
 }
 
+void DiagramWindow::clearTooltip() {
+	if (m_tooltip) m_tooltip->hide();
+}
+
+QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
+	clearTooltip();
+	auto* chart = m_view->chart();
+	const QPointF cursor = chart->mapFromScene(m_view->mapToScene(position));
+	if (!chart->plotArea().contains(cursor)) return nullptr;
+	QXYSeries* selected = nullptr;
+	QPointF sample;
+	int sampleIndex = -1;
+	double best = 10;
+	for (auto* series : chart->series()) {
+		auto* xy = qobject_cast<QXYSeries*>(series);
+		if (!xy || !xy->isVisible()) continue;
+		const auto points = xy->pointsVector();
+		bool inside = false;
+		if (xy->property("inspectionFilled").toBool() && points.size() >= 4
+				&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
+			QPolygonF polygon;
+			for (const auto& point : points) polygon.append(chart->mapToPosition(point, xy));
+			inside = polygon.containsPoint(cursor, Qt::OddEvenFill);
+		}
+		double nearestVertex = std::numeric_limits<double>::max();
+		for (int i = 0; i < points.size(); ++i) {
+			const QPointF point = chart->mapToPosition(points[i], xy);
+			if (inside) {
+				const double vertexDistance = QLineF(cursor, point).length();
+				if (best > 0 && vertexDistance < nearestVertex) {
+					nearestVertex = vertexDistance; selected = xy; sample = points[i]; sampleIndex = i;
+				}
+				continue;
+			}
+			if (chart->plotArea().contains(point)) {
+				const double distance = QLineF(cursor, point).length();
+				if (distance < best) { best = distance; selected = xy; sample = points[i]; sampleIndex = i; }
+			}
+			if (i == 0 || qobject_cast<QScatterSeries*>(xy)) continue;
+			const QPointF previous = chart->mapToPosition(points[i - 1], xy);
+			double first, last;
+			if (!clippedSegment(chart->plotArea(), previous, point, first, last)) continue;
+			const QPointF delta = point - previous;
+			const double length2 = QPointF::dotProduct(delta, delta);
+			const double t = length2 > 0 ? std::clamp(QPointF::dotProduct(cursor - previous, delta) / length2, first, last) : first;
+			const double distance = QLineF(cursor, previous + t * delta).length();
+			if (distance < best) {
+				best = distance;
+				const int nearest = t < 0.5 ? i - 1 : i;
+				selected = xy; sample = points[nearest]; sampleIndex = nearest;
+			}
+		}
+		if (inside && selected == xy) best = 0;
+	}
+	if (!selected) return nullptr;
+	QString identity = selected->name();
+	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
+	updateReadout(sample, identity + " (nearest sample)");
+	const QStringList contexts = selected->property("inspectionPoints").toStringList();
+	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
+		m_tooltip->setText(m_tooltip->text() + "\n" + contexts[sampleIndex]);
+	const QString interval = selected->property("inspectionInterval").toString();
+	if (!interval.isEmpty()) m_tooltip->setText(m_tooltip->text() + "\n" + interval);
+	m_tooltip->setWordWrap(true);
+	m_tooltip->setMaximumWidth(std::max(100, std::min(480, width() - 24)));
+	m_tooltip->adjustSize();
+	QPoint local = m_view->viewport()->mapTo(this, position) + QPoint(16, 20);
+	if (local.x() + m_tooltip->width() > width()) local.setX(local.x() - m_tooltip->width() - 32);
+	if (local.y() + m_tooltip->height() > height()) local.setY(local.y() - m_tooltip->height() - 40);
+	local.setX(std::clamp(local.x(), 0, std::max(0, width() - m_tooltip->width())));
+	local.setY(std::clamp(local.y(), 0, std::max(0, height() - m_tooltip->height())));
+	m_tooltip->move(local);
+	m_tooltip->show();
+	m_tooltip->raise();
+	return selected;
+}
+
+void DiagramWindow::navigate(double factor, const QPointF& position, const QPointF& pan) {
+	clearTooltip();
+	if (!std::isfinite(factor) || factor <= 0) return;
+	const QRectF plot = m_view->chart()->plotArea();
+	if (plot.width() <= 0 || plot.height() <= 0) return;
+	QVector<QPair<QValueAxis*, QPair<double, double>>> destinations;
+	for (auto it = m_fullBounds.cbegin(); it != m_fullBounds.cend(); ++it) {
+		auto* axis = qobject_cast<QValueAxis*>(it.key());
+		if (!axis) continue;
+		const double full = it.value().second - it.value().first;
+		if (!(full > 0)) continue;
+		const bool horizontal = axis->orientation() == Qt::Horizontal;
+		double fraction = horizontal ? (position.x() - plot.left()) / plot.width() : (plot.bottom() - position.y()) / plot.height();
+		fraction = std::clamp(fraction, 0.0, 1.0);
+		if (axis->isReverse()) fraction = 1 - fraction;
+		const double span = axis->max() - axis->min();
+		const double next = std::clamp(span / factor, full / 1000000, full);
+		double shift = horizontal ? -pan.x() / plot.width() : pan.y() / plot.height();
+		if (axis->isReverse()) shift = -shift;
+		const double low = std::clamp(axis->min() + fraction * (span - next) + shift * span,
+			it.value().first, it.value().second - next);
+		destinations.append({axis, {low, low + next}});
+	}
+	// Attached axes can synchronize when any range changes. Capture all ranges
+	// before the first mutation so each receives exactly one navigation step.
+	for (const auto& destination : destinations)
+		destination.first->setRange(destination.second.first, destination.second.second);
+}
+
 bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
-	if (m_view && obj == m_view->viewport() && ev->type() == QEvent::MouseMove && m_view->chart()) {
-		QMouseEvent* me = static_cast<QMouseEvent*>(ev);
-		// map: viewport pos -> scene pos -> chart-local pos -> data value
-		QPointF scenePos = m_view->mapToScene(me->pos());
-		QPointF chartPos = m_view->chart()->mapFromScene(scenePos);
-		QPointF val = m_view->chart()->mapToValue(chartPos);
-		updateReadout(val, m_hoverName);
+	if (ev->type() == QEvent::Hide || ev->type() == QEvent::Close || ev->type() == QEvent::Leave)
+		clearTooltip();
+	if (!m_view || obj != m_view->viewport() || !m_view->chart())
+		return QDialog::eventFilter(obj, ev);
+	const auto chartPosition = [this](const QPoint& p) { return m_view->chart()->mapFromScene(m_view->mapToScene(p)); };
+	if (ev->type() == QEvent::MouseMove) {
+		auto* mouse = static_cast<QMouseEvent*>(ev);
+		if (mouse->buttons() == Qt::NoButton) inspectAt(mouse->pos());
+		else clearTooltip();
+	} else if (ev->type() == QEvent::MouseButtonPress) {
+		m_pressPosition = static_cast<QMouseEvent*>(ev)->pos();
+		clearTooltip();
+	} else if (ev->type() == QEvent::MouseButtonRelease) {
+		auto* mouse = static_cast<QMouseEvent*>(ev);
+		if (mouse->button() == Qt::LeftButton && (mouse->pos() - m_pressPosition).manhattanLength() < QApplication::startDragDistance())
+			if (auto* series = inspectAt(mouse->pos())) pinTrain(groupIdForSeries(series));
+	} else if (ev->type() == QEvent::Wheel) {
+		auto* wheel = static_cast<QWheelEvent*>(ev);
+		const QPoint pixels = wheel->pixelDelta();
+		const QPoint angles = wheel->angleDelta();
+		if (pixels.isNull() && angles.isNull()) { wheel->accept(); return true; }
+		if (wheel->modifiers() & (Qt::ControlModifier | Qt::MetaModifier)) {
+			const double delta = pixels.isNull()
+				? (angles.y() != 0 ? angles.y() : angles.x()) / 120.0
+				: (pixels.y() != 0 ? pixels.y() : pixels.x()) / 100.0;
+			navigate(std::exp(std::clamp(delta * 0.2, -2.0, 2.0)), chartPosition(wheel->position().toPoint()));
+		} else {
+			QPointF pan = pixels.isNull() ? QPointF(angles) / 3 : QPointF(pixels);
+			if (wheel->modifiers() & Qt::ShiftModifier) pan = QPointF(pan.y(), pan.x());
+			navigate(1, chartPosition(wheel->position().toPoint()), pan);
+		}
+		wheel->accept(); return true;
+	} else if (ev->type() == QEvent::NativeGesture) {
+		auto* gesture = static_cast<QNativeGestureEvent*>(ev);
+		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
+			navigate(1 + gesture->value(), chartPosition(gesture->localPos().toPoint()));
+			gesture->accept(); return true;
+		}
+	} else if (ev->type() == QEvent::Gesture) {
+		auto* event = static_cast<QGestureEvent*>(ev);
+		if (auto* pinch = static_cast<QPinchGesture*>(event->gesture(Qt::PinchGesture))) {
+			if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged)
+				navigate(pinch->scaleFactor(), chartPosition(pinch->centerPoint().toPoint()));
+			event->accept(pinch); return true;
+		}
 	}
 	return QDialog::eventFilter(obj, ev);
 }
