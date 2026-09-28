@@ -267,7 +267,7 @@ public slots:
 	void removeTrainPaxInfoIcon();
 	void removePaxInfoIcon();
 	void updateBlockOccupationStatus(const GuiTrainState& train);
-	void releaseBlockOccupationStatus();
+	void clearOperationalTrackStates();
 	void updateTrainPosition(int t);
 	void startSimulation();
 	void runCurrent();
@@ -380,6 +380,7 @@ private:
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
+	int m_operationalLifecycleE2eCompletions = 0;
 	bool m_editorE2eFinished = false;
 	bool m_creatorAcceptanceFinished = false;
 	int m_creatorAcceptancePhase = 0;
@@ -644,6 +645,8 @@ private:
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
+	bool m_showingTrackPreview = true;
+	std::shared_ptr<const GuiSimulationSnapshot> m_operationalLifecycleE2eFirstFrame;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();

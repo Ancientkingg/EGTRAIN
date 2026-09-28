@@ -1493,7 +1493,8 @@ bool e2eDialogsSuppressed() {
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM");
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
 }
 
 // modal boxes deadlock the env-gated smoke runs, which have no user to
@@ -1980,8 +1981,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::handleHelpAbout);
 	connect(ui->actionSimulationStart, &QAction::triggered, this, &MainWindow::runCurrent);
 	connect(ui->actionSimulationStop, &QAction::triggered, this, [this]() {
-		if (m_worker)
+		if (m_worker) {
 			m_worker->requestStop();
+			// Stop is a lifecycle boundary for transient playback overlays. The
+			// worker may still publish one queued snapshot while it exits; the
+			// delivery guard below drops it instead of repainting these states.
+			clearOperationalTrackStates();
+		}
 	});
 	connect(infoDockWidget, &InfoDockWidget::closed, this, &MainWindow::handleCloseInfoDockWidget);
 
@@ -3958,6 +3964,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	} else if (scene) {
 		scene->clear();
 	}
+	m_showingTrackPreview = true;
 	effect = nullptr;
 	const QString selectedFacet = m_infrastructureFacetCombo
 									  ? m_infrastructureFacetCombo->currentData().toString()
@@ -12316,6 +12323,16 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "map key did not refresh when trains entered the network";
 	}
+	const auto hasOperationalLegendEntry = [&mapKeyEntriesBeforeFit](const QString& label) {
+		return std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
+			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
+	};
+	if (!hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
+			|| !hasOperationalLegendEntry(QStringLiteral("Occupied section"))
+			|| !hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
+		ok = false;
+		failures << "runtime map key omitted operational track states";
+	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && scene && !allTrains.isEmpty()) {
 		TrainItemGroup* testTrain = allTrains.first();
@@ -12702,7 +12719,7 @@ void MainWindow::runVisualPolishE2E() {
 			event.setScenePos(selectedTrainBody->sceneBoundingRect().center());
 			event.setWidget(networkView->viewport());
 			scene->mousePressEvent(&event);
-			QApplication::processEvents();
+			// Compare the synchronous click result before animations advance.
 			const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(selectedTrain->index) : -1;
 			if (!m_followTrainCombo || comboIndex < 0 || m_followTrainCombo->currentIndex() != comboIndex) {
 				ok = false;
@@ -12749,6 +12766,7 @@ void MainWindow::runVisualPolishE2E() {
 						.arg(expectedCenter.x(), 0, 'f', 1)
 						.arg(expectedCenter.y(), 0, 'f', 1);
 			}
+			QApplication::processEvents();
 		}
 	}
 	if (!allArcs.isEmpty() && allArcs.first() && allArcs.first()->arc) {
@@ -14184,6 +14202,61 @@ void MainWindow::runVisualPolishE2E() {
 	if (m_followTrainIndex != -1) {
 		ok = false;
 		failures << "follow toggle did not clear its train index";
+	}
+
+	// Exercise the real Stop/completion lifecycle after the rendering checks.
+	// Keep a selected operational track so clearing transient states cannot
+	// accidentally clear independent graphics selection. Re-enable delivery
+	// with a unique connection to cover a late queued snapshot as well.
+	if (!m_worker || allArcs.isEmpty()) {
+		ok = false;
+		failures << "operational track lifecycle fixture lost its running scene";
+	} else {
+		TrackLineItem* lifecycleTrack = nullptr;
+		for (TrackLineItem* track : allArcs) {
+			if (track && track->operationalState() != TrackOperationalState::Free) {
+				lifecycleTrack = track;
+				break;
+			}
+		}
+		if (!lifecycleTrack) {
+			ok = false;
+			failures << "operational track lifecycle fixture has no active state";
+		} else {
+			lifecycleTrack->setFlag(QGraphicsItem::ItemIsSelectable, true);
+			lifecycleTrack->setSelected(true);
+			connect(&simulation, &DispatchController::snapshotAvailable,
+				this, &MainWindow::waitForUpdates,
+				static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+			if (ui->actionSimulationStop)
+				ui->actionSimulationStop->trigger();
+			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
+					|| !lifecycleTrack->isSelected()) {
+				ok = false;
+				failures << "Stop did not immediately clear the underlay while preserving selection";
+			}
+			// A delivery already queued at Stop must not restore the underlay.
+			QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
+			QElapsedTimer stopWait;
+			stopWait.start();
+			while (m_worker && stopWait.elapsed() < 15000)
+				QApplication::processEvents(QEventLoop::AllEvents, 20);
+			if (m_worker) {
+				ok = false;
+				failures << "Stop did not complete through the worker lifecycle";
+			}
+			if (lifecycleTrack->operationalState() != TrackOperationalState::Free)
+				failures << "Stop/completion left a transient operational track state";
+			if (!lifecycleTrack->isSelected())
+				failures << "Stop/completion cleared independent track selection";
+			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
+					|| !lifecycleTrack->isSelected())
+				ok = false;
+			else {
+				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
+				std::fflush(stdout);
+			}
+		}
 	}
 
 	if (ok) {
@@ -19983,6 +20056,12 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 		m_workerThread->quit();
 		m_workerThread->wait();
 	}
+	// The mailbox can still contain the last worker publication after the
+	// thread has stopped. Drop it with the other transient playback state so a
+	// queued snapshotAvailable callback cannot repaint an old run.
+	simulation.takeSimulationSnapshot();
+	clearOperationalTrackStates();
+	// Retain the final frame for passenger inspection until scene teardown.
 	m_worker = nullptr;
 	m_workerThread = nullptr;
 	// Pause and Stop only mean something while a worker exists.
@@ -20016,6 +20095,7 @@ void MainWindow::stopTrainAnimations() {
 
 // setup GUI
 void MainWindow::setupGUI() {
+	m_showingTrackPreview = false;
 
 	// initialize qpoints
 	QPointF pt, pt_prev, ptc, pts, pte;
@@ -21478,9 +21558,74 @@ void MainWindow::onSimulationFinished() {
 	refreshIncidentPanel();
 	updateSceneActions();
 	processTrainUnitSourceChanges();
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
+		const QStringList labels = m_networkLegendWidget ? m_networkLegendWidget->entryLabels() : QStringList();
+		const bool preview = sceneChangedDuringRun && m_runtimeStatus == QStringLiteral("Failed")
+			&& m_showingTrackPreview && !m_worker && !m_resultsAvailable
+			&& labels.contains(QStringLiteral("Track"))
+			&& !labels.contains(QStringLiteral("Permissive signalling"))
+			&& !labels.contains(QStringLiteral("Occupied section"));
+		std::fprintf(preview ? stdout : stderr, preview
+			? "E2E_OPERATIONAL_DISCARD_OK\n" : "E2E_OPERATIONAL_DISCARD_FAIL: preview legend\n");
+		std::fflush(preview ? stdout : stderr);
+		QCoreApplication::exit(preview ? 0 : 2);
+		return;
+	}
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_COMPLETION")) {
+		const bool clean = m_runtimeStatus == QStringLiteral("Completed") && m_snapshot
+			&& (m_operationalLifecycleE2eCompletions == 0
+				|| m_snapshot != m_operationalLifecycleE2eFirstFrame)
+			&& std::all_of(allArcs.cbegin(), allArcs.cend(), [](const TrackLineItem* track) {
+				return !track || track->operationalState() == TrackOperationalState::Free;
+			});
+		if (!clean || ++m_operationalLifecycleE2eCompletions > 2) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: final frame or overlay cleanup\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		// The completed immutable frame remains available until the next scene is opened.
+		const auto finalFrame = m_snapshot;
+		QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
+		QTimer::singleShot(0, this, [this, finalFrame]() {
+			if (m_snapshot != finalFrame || simulation.takeSimulationSnapshot()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: late notification\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			if (m_operationalLifecycleE2eCompletions == 1) {
+				m_operationalLifecycleE2eFirstFrame = finalFrame;
+				runCurrent();
+				if (!m_worker) {
+					std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: rerun did not start\n");
+					QCoreApplication::exit(2);
+				}
+				return;
+			}
+			const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
+			QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
+			if (!openSceneDirectory(scenePath) || m_snapshot || m_worker || !allArcs.isEmpty()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			QTimer::singleShot(0, this, [this]() {
+				if (m_snapshot || simulation.takeSimulationSnapshot()) {
+					std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: stale case notification\n");
+					QCoreApplication::exit(2);
+					return;
+				}
+				std::fprintf(stdout, "E2E_OPERATIONAL_COMPLETION_OK\n");
+				std::fflush(stdout);
+				QCoreApplication::exit(0);
+			});
+		});
+	}
 }
 
 void MainWindow::teardownGUI() {
+	m_showingTrackPreview = true;
 	// Stop any running simulation before clearing scene objects it may reference.
 	clearSimulationWorker(true);
 	progressBar->hide();
@@ -22849,7 +22994,7 @@ void MainWindow::displayArcInfo(TrackLineItem* line) {
 	const auto operationalStateName = [](TrackOperationalState state) {
 		switch (state) {
 			case TrackOperationalState::Prepared:
-				return QStringLiteral("Prepared");
+				return QStringLiteral("Permissive signalling");
 			case TrackOperationalState::Occupied:
 				return QStringLiteral("Occupied");
 			case TrackOperationalState::Blocked:
@@ -23402,10 +23547,22 @@ void MainWindow::updateTimeline(int timestep, int totalTimesteps) {
 
 void MainWindow::waitForUpdates() {
 	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery", "gui", "");
+	// A queued notification can outlive its worker or arrive after Stop. Drain
+	// the mailbox, but never apply that late publication to the current scene.
+	if (!m_worker || m_runtimeStatus != QStringLiteral("Running")
+			|| m_worker->isStopRequested()) {
+		simulation.takeSimulationSnapshot();
+		return;
+	}
 	const auto snapshot = simulation.takeSimulationSnapshot();
 	if (!snapshot)
 		return;
 	m_snapshot = snapshot;
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")
+			&& !m_sceneChangedDuringRun && m_caseDescriptionEdit) {
+		m_caseDescriptionEdit->setText(QStringLiteral("discarded operational run"));
+		commitCaseSettings();
+	}
 	PlaybackProfiler::instance().noteDelivery();
 	const int timestep = snapshot->timestep;
 	static bool autostartProgressReported = false;
@@ -23628,7 +23785,7 @@ void MainWindow::updateBlockOccupationStatus(const GuiTrainState& train) {
 	}
 }
 
-void MainWindow::releaseBlockOccupationStatus() {
+void MainWindow::clearOperationalTrackStates() {
 	for (auto* track : m_activeTrackItems)
 		if (track)
 			track->setOperationalState(TrackOperationalState::Free);
@@ -23654,7 +23811,7 @@ void MainWindow::updateTrainPosition(int t) {
 		if (group)
 			group->setVisible(false);
 	// update every train
-	releaseBlockOccupationStatus();
+	clearOperationalTrackStates();
 	const auto applySectionState = [this](const GuiSectionState& state, TrackOperationalState visualState) {
 		if (!state.prepared && visualState == TrackOperationalState::Prepared)
 			return;
@@ -25121,7 +25278,9 @@ void MainWindow::updateNetworkLegend() {
 	if (!m_networkLegendWidget)
 		return;
 	NetworkLegendContent content;
-	const bool preview = !m_previewFitBounds.isEmpty();
+	// Runtime retains preview fit bounds, and a discarded run may still have
+	// Failed status while the authoring preview is displayed.
+	const bool preview = m_showingTrackPreview;
 	content.hasTracks = numTrackLines > 0 || !m_sceneModel.tracks.empty();
 	content.showOperationalTrackStates = !preview;
 	content.hasSelectedTrack = preview && m_previewHasSelectedTrack;

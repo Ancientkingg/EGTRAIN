@@ -214,7 +214,7 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	if (content.hasTracks) {
 		if (content.showOperationalTrackStates) {
 			m_entries << trackEntry("Free track", TrackOperationalState::Free)
-					  << trackEntry("Prepared route", TrackOperationalState::Prepared)
+					  << trackEntry("Permissive signalling", TrackOperationalState::Prepared)
 					  << trackEntry("Occupied section", TrackOperationalState::Occupied)
 					  << trackEntry("Blocked section", TrackOperationalState::Blocked);
 		} else {
@@ -291,6 +291,7 @@ void NetworkLegendWidget::rebuildRows() {
 		auto* label = new QLabel(entry.label, row);
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
+		label->setWordWrap(true);
 		label->setToolTip(entry.label);
 		rowLayout->addWidget(label, 1);
 		layout->addWidget(row);

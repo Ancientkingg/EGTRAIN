@@ -74,11 +74,18 @@ int main(int argc, char* argv[]) {
 		&& entries.at(0).lineWidth == freeTrackVisual().width
 		&& entries.at(0).penStyle == Qt::SolidLine,
 		"free track entry uses the renderer base style");
-	ok &= expect(entries.at(1).label == "Prepared route"
+	ok &= expect(entries.at(1).label == "Permissive signalling"
 		&& entries.at(1).trackState == TrackOperationalState::Prepared
 		&& entries.at(1).color == classifyTrackState(TrackOperationalState::Prepared).color
 		&& entries.at(1).penStyle == classifyTrackState(TrackOperationalState::Prepared).style,
-		"prepared track entry uses renderer classification");
+		"permissive signalling entry uses renderer classification");
+	legend.setFixedWidth(180);
+	QApplication::processEvents();
+	auto* permissiveLabel = legend.findChild<QLabel*>("mapKeyEntry1");
+	ok &= expect(permissiveLabel && permissiveLabel->wordWrap()
+		&& permissiveLabel->width() >= permissiveLabel->fontMetrics().horizontalAdvance("signalling")
+		&& permissiveLabel->height() >= permissiveLabel->fontMetrics().lineSpacing() * 2,
+		"permissive signalling label wraps at the narrow case dock width");
 	ok &= expect(entries.at(2).label == "Occupied section"
 		&& entries.at(2).color == classifyTrackState(TrackOperationalState::Occupied).color,
 		"occupied track entry uses renderer classification");
@@ -90,7 +97,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(preparedSwatch && preparedSwatch->width() == 46
 		&& containsColor(preparedImage, classifyTrackState(TrackOperationalState::Prepared).color)
 		&& containsColor(preparedImage, freeTrackVisual().color),
-		"prepared track swatch mirrors the renderer state underlay and base rail");
+		"permissive signalling swatch mirrors the renderer state underlay and base rail");
 	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch4");
 	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
 	ok &= expect(trainSwatch && containsColor(trainImage, QColor("#26313B"))

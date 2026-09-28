@@ -15,6 +15,28 @@ void require(bool condition, const char* message) {
 }
 
 int main() {
+	require(!guiSectionReportsPermissiveSignalling(0.0),
+		"zero signalling code was reported as permissive signalling");
+	require(guiSectionReportsPermissiveSignalling(1.0)
+		&& guiSectionReportsPermissiveSignalling(75.0)
+		&& guiSectionReportsPermissiveSignalling(180.0)
+		&& guiSectionReportsPermissiveSignalling(270.0)
+		&& guiSectionReportsPermissiveSignalling(751.0),
+		"nonzero signalling codes did not report permissive signalling");
+	GuiSimulationSnapshot operational;
+	operational.sectionStates.push_back({"unused-nonzero", guiSectionReportsPermissiveSignalling(751.0), false});
+	operational.sectionStates.push_back({"blocked", guiSectionReportsPermissiveSignalling(0.0), true});
+	GuiTrainState occupiedTrain;
+	occupiedTrain.occupiedArcs.push_back({7, 2.5});
+	operational.trains.push_back(occupiedTrain);
+	require(operational.sectionStates.at(0).prepared
+		&& !operational.sectionStates.at(0).blocked
+		&& operational.trains.front().occupiedArcs.size() == 1,
+		"permissive signalling was conflated with occupied or blocked state");
+	require(operational.sectionStates.at(1).blocked
+		&& !operational.sectionStates.at(1).prepared,
+		"blocked section did not remain independent of permissive signalling");
+
 	GuiTrainState activeTrain;
 	activeTrain.description = "Intercity northbound";
 	require(guiTrainDisplayIdentifier(activeTrain) == activeTrain.description,
