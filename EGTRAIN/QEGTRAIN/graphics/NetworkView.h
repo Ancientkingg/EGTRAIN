@@ -36,7 +36,7 @@ public:
 	void fitToBounds(const QRectF& bounds);
 	bool zoomBy(qreal factor, const QPointF& viewportAnchor = QPointF(-1.0, -1.0));
 	qreal zoomRatio() const;
-	static constexpr qreal maximumZoomRatio() { return 64.0; }
+	static constexpr qreal maximumZoomRatio() { return 640.0; }
 	qreal fittedScale() const;
 	QRectF topologyBounds() const;
 	QString zoomLabel() const;
