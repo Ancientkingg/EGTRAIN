@@ -139,8 +139,8 @@ def main() -> None:
         missing.append("stale main release metadata")
     if 'tag="v${{ needs.version.outputs.version }}"' not in release_workflow:
         missing.append("stable production release tag")
-    if release_workflow.count("-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}") != 5:
-        missing.append("shared release version in all five build jobs")
+    if release_workflow.count('"-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"') != 5:
+        missing.append("quoted shared release version in all five build jobs")
     if release_workflow.count("    needs: version\n") != 5:
         missing.append("version selection before all builds")
     for marker in (
