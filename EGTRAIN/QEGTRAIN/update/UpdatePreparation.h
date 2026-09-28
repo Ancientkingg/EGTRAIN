@@ -31,6 +31,9 @@ Q_DECLARE_METATYPE(UpdatePreparationResult)
 bool verifyDownloadedPackageHash(const QString& packagePath,
 	const QString& expectedSha256, QString* error = nullptr);
 
+// Stage a package after download verification has succeeded.
+QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error = nullptr);
+
 class UpdatePreparationWorker : public QObject {
 	Q_OBJECT
 

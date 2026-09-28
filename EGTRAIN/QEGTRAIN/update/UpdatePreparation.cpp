@@ -123,7 +123,7 @@ QString stageWindowsPackage(const UpdatePreparationInput& input, QString* error)
 
 QString stageLinuxPackage(const UpdatePreparationInput& input, QString* error) {
 	const QString root = input.stagingRoot;
-	const QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN-linux-x86_64.AppImage"));
+	const QString stagedPath = QDir(root).filePath(QStringLiteral("ready.AppImage"));
 	if (!QFile::copy(input.packagePath, stagedPath)) {
 		if (error)
 			*error = QStringLiteral("Could not stage the AppImage.");
@@ -139,7 +139,9 @@ QString stageLinuxPackage(const UpdatePreparationInput& input, QString* error) {
 	return stagedPath;
 }
 
-QString stagePlatformPackage(const UpdatePreparationInput& input, QString* error) {
+} // namespace
+
+QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error) {
 #if defined(Q_OS_MACOS)
 	return stageMacPackage(input, error);
 #elif defined(Q_OS_WIN)
@@ -152,8 +154,6 @@ QString stagePlatformPackage(const UpdatePreparationInput& input, QString* error
 	return {};
 #endif
 }
-
-} // namespace
 
 bool verifyDownloadedPackageHash(const QString& packagePath,
 	const QString& expectedSha256, QString* error) {
@@ -186,7 +186,7 @@ void UpdatePreparationWorker::prepare(UpdatePreparationInput input) {
 		if (m_platformStager)
 			stagedPath = m_platformStager(input, &error);
 		else
-			stagedPath = stagePlatformPackage(input, &error);
+			stagedPath = stageUpdatePackage(input, &error);
 	}
 	result.success = !stagedPath.isEmpty();
 	result.error = error;

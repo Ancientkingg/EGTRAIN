@@ -146,9 +146,20 @@ The visual and render smoke artifacts include:
   project and runs CTest, including documentation-only changes.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
-  smoke suite, validates the scene bundles, and publishes release assets.
-- `v*` tags still publish versioned releases, and `workflow_dispatch` remains
-  available for a manual release run.
+  smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
+  release. Before building, the pipeline increments the highest patch version
+  among the CMake baseline, existing stable tags, and reserved release versions.
+  All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
+  baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
+- Production and tag releases run serially. A stale production run cannot
+  publish after the branch advances, and an existing production release tag
+  cannot be overwritten. If a failed-job retry encounters a used version,
+  rerun all jobs on the latest production commit to allocate a new version.
+- `v*` tags supply their application version explicitly. Tags containing a
+  prerelease suffix remain prereleases and are not offered by the updater.
+  `workflow_dispatch` validates the pipeline without publishing.
+- Releases remain drafts until every package and scene bundle is uploaded.
+  Stable production releases then appear in the application's update checks.
 
 ## Verification Gates
 

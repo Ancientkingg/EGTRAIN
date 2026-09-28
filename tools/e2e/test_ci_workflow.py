@@ -89,7 +89,7 @@ def main() -> None:
         missing.append("version tag release trigger")
     if "  workflow_dispatch:\n" not in release_trigger:
         missing.append("manual release trigger")
-    if not re.search(r"project\(EGTRAIN VERSION \d+\.\d+\.\d+ LANGUAGES", cmake):
+    if not re.search(r'set\(EGTRAIN_VERSION "\d+\.\d+\.\d+" CACHE STRING', cmake):
         missing.append("three-component CMake application version")
     if any(
         marker not in content
@@ -99,7 +99,8 @@ def main() -> None:
             ("setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION))", main_cpp),
             ('VALUE "ProductVersion", "@PROJECT_VERSION@\\0"', windows_resource),
             ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', release_workflow),
-            ('if [[ "${tag#v}" != "$cmake_version" ]]', release_workflow),
+            ('project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES', cmake),
+            ('version="${{ needs.version.outputs.version }}"', release_workflow),
         )
     ):
         missing.append("single-source application version propagation")
@@ -124,14 +125,41 @@ def main() -> None:
         missing.append("production sanitizer diagnostics and time budgets")
     publish_job = release_workflow.split("\n  release:\n", 1)[1]
     publish_condition = publish_job.split("\n    runs-on:", 1)[0]
-    if "needs: [validation, sanitizer, package-macos, package-windows, package-linux]" not in publish_condition:
+    if "needs: [version, validation, sanitizer, package-macos, package-windows, package-linux]" not in publish_condition:
         missing.append("release publication validation gates")
-    if "refs/heads/production" not in publish_condition or "refs/heads/main" in publish_condition:
-        missing.append("production release publish condition")
+    if "if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))" not in publish_condition:
+        missing.append("publication restricted to production and tag pushes")
+    if not re.search(
+        r"if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\).*?"
+        r"add_test\(NAME test_updatepreparation COMMAND test_updatepreparation\)",
+        cmake, re.DOTALL,
+    ) or release_workflow.count("'^test_update(helper|preparation)$'") != 3:
+        missing.append("real update preparation tests in all platform packages")
     if 'tag="main-' in release_workflow or 'name="EGTRAIN main build' in release_workflow:
         missing.append("stale main release metadata")
-    if 'tag="production-' not in release_workflow or 'name="EGTRAIN production build' not in release_workflow:
-        missing.append("production release metadata")
+    if 'tag="v${{ needs.version.outputs.version }}"' not in release_workflow:
+        missing.append("stable production release tag")
+    if release_workflow.count("-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}") != 5:
+        missing.append("shared release version in all five build jobs")
+    if release_workflow.count("    needs: version\n") != 5:
+        missing.append("version selection before all builds")
+    for marker in (
+        "fetch-depth: 0",
+        "run: python3 tools/release/version.py",
+        "cancel-in-progress: false",
+        "github.event_name == 'push' && 'egtrain-publish'",
+        'production_commit="$(git ls-remote origin refs/heads/production | cut -f1)"',
+        'if [[ "$production_commit" != "$GITHUB_SHA" ]]',
+        'git ls-remote origin "refs/tags/$tag"',
+        "draft: true",
+        'gh release edit "$RELEASE_TAG" --draft=false --latest="$MAKE_LATEST"',
+    ):
+        if marker not in release_workflow:
+            missing.append("safe versioned publication: " + marker)
+    production_metadata = publish_job.split('tag="v${{ needs.version.outputs.version }}"', 1)[-1]
+    production_metadata = production_metadata.split("          fi", 1)[0]
+    if "prerelease=false" not in production_metadata or "make_latest=true" not in production_metadata:
+        missing.append("production releases offered by the stable updater")
     macos_package_verification = release_workflow.split(
         "      - name: Verify the presentation package\n", 1
     )[1].split("\n      - ", 1)[0]
