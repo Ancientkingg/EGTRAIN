@@ -158,6 +158,8 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/util/SpeedFormat.cpp
     ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
+    ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
     ${SRC_DIR}/diagrams/TrainFilterButton.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
@@ -489,6 +491,13 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
     add_test(NAME test_capacityanalysis COMMAND test_capacityanalysis)
 
+    add_executable(test_routediagramcoordinates
+        ${SRC_DIR}/tests/test_routediagramcoordinates.cpp
+        ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
+        ${SRC_DIR}/util/CsvWriter.cpp)
+    target_include_directories(test_routediagramcoordinates PRIVATE ${SRC_DIR})
+    add_test(NAME test_routediagramcoordinates COMMAND test_routediagramcoordinates)
+
     add_executable(test_diagramwindow
         ${SRC_DIR}/tests/test_diagramwindow.cpp
         ${SRC_DIR}/diagrams/DiagramWindow.cpp
@@ -739,6 +748,9 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_operationsbuilder
 		${SRC_DIR}/tests/test_operationsbuilder.cpp
+		${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
+		${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
+		${SRC_DIR}/util/CsvWriter.cpp
 		${SRC_DIR}/simulation/Infrastructure.cpp
 		${SRC_DIR}/simulation/InitialParameters.cpp
 		${SRC_DIR}/simulation/NumberGenerator.cpp
