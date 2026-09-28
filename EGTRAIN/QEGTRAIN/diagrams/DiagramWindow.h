@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QHash>
 #include <QPen>
+#include <QBrush>
 #include <QPointer>
 #include <QPointF>
 #include <QString>
@@ -97,6 +98,7 @@ private:
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;
 	QHash<QAbstractSeries*, QPen> m_basePens;
+	QHash<QAbstractSeries*, QBrush> m_baseBrushes;
 	QPoint m_pressPosition;
 	QPointer<QAbstractAxis> m_clockAxis;
 	QPointer<QValueAxis> m_numericAxis; // detached while its clock axis is displayed

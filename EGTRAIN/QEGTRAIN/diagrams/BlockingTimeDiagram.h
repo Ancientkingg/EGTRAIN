@@ -25,6 +25,11 @@ struct BlockingTimeDiagramInput {
 	std::string stationName = "None";
 	bool isComplete = false;
 	bool capacityCritical = false;
+	// Optional measured/calculated components; negative is the runtime sentinel.
+	double startApproachTime = -1.0, startRunTime = -1.0;
+	double endRunTime = -1.0, endClearTime = -1.0;
+	double setupTime = -1.0, sightReactionTime = -1.0;
+	double releaseTime = -1.0, runTimeMargin = -1.0;
 };
 
 struct BlockingTimeDiagramSegment {
@@ -33,10 +38,23 @@ struct BlockingTimeDiagramSegment {
 	double startTime = 0.0;
 	double endTime = 0.0;
 	double midPositionKm = 0.0;
-	double penWidth = 2.0;
+	double startPositionKm = 0.0;
+	double endPositionKm = 0.0;
+	double originalStartTime = 0.0;
+	double originalEndTime = 0.0;
+	double startApproachTime = -1.0, startRunTime = -1.0;
+	double endRunTime = -1.0, endClearTime = -1.0;
+	double setupTime = -1.0, sightReactionTime = -1.0;
+	double releaseTime = -1.0, runTimeMargin = -1.0;
 	BlockingTimeSegmentStyle style = BlockingTimeSegmentStyle::Default;
 	bool capacityCritical = false;
 };
+
+struct CapacityCompressionRow;
+
+// Undo the occupation's profile-based displacement, not the timetable shift.
+void restoreCompressedOriginalTimes(std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<CapacityCompressionRow>& compression);
 
 struct BlockingTimePlannedReference {
 	std::string trainName;
@@ -72,5 +90,10 @@ std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(
 	const std::vector<BlockingTimePlannedReference>& references,
 	double startTime,
 	double endTime);
+
+// Each returned group is a standalone event or one clipped adjacent event pair.
+// An empty station name marks an interpolated boundary, never a station event.
+std::vector<std::vector<BlockingTimePlannedReference>> clipBlockingTimePlannedReferences(
+	const std::vector<BlockingTimePlannedReference>& references, double startTime, double endTime);
 
 #endif // BLOCKINGTIMEDIAGRAM_H

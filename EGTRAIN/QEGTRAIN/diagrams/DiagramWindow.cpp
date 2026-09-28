@@ -10,6 +10,7 @@
 #include <QPinchGesture>
 #include <QShortcut>
 #include <QtCharts/QScatterSeries>
+#include <QtCharts/QAreaSeries>
 #include <algorithm>
 #include <QColor>
 #include <QFileDialog>
@@ -356,6 +357,7 @@ QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
 void DiagramWindow::rebuildFilterGroups() {
 	m_groups.clear();
 	m_basePens.clear();
+	m_baseBrushes.clear();
 	QChart* chart = m_view ? m_view->chart() : nullptr;
 	if (!chart) {
 		if (m_trainsButton)
@@ -368,6 +370,8 @@ void DiagramWindow::rebuildFilterGroups() {
 	for (QAbstractSeries* series : seriesList) {
 		if (auto* xy = qobject_cast<QXYSeries*>(series))
 			m_basePens.insert(series, xy->pen());
+		if (auto* area = qobject_cast<QAreaSeries*>(series))
+			m_baseBrushes.insert(series, area->brush());
 
 		const QString trainId = groupIdForSeries(series);
 		int groupIndex;
@@ -434,8 +438,18 @@ void DiagramWindow::refreshEmphasis() {
 		const bool isPinned = pinnedActive && group.trainId == m_pinnedTrainId;
 		for (QAbstractSeries* series : group.members) {
 			auto* xy = qobject_cast<QXYSeries*>(series);
-			if (!xy)
+			if (!xy) {
+				if (auto* area = qobject_cast<QAreaSeries*>(series)) {
+					QBrush brush = m_baseBrushes.value(series, area->brush());
+					if (pinnedActive && !isPinned) {
+						QColor color = brush.color();
+						color.setAlpha(std::min(color.alpha(), 18));
+						brush.setColor(color);
+					}
+					area->setBrush(brush);
+				}
 				continue;
+			}
 			const QPen base = m_basePens.value(series, xy->pen());
 			if (!pinnedActive)
 				xy->setPen(base);
@@ -543,6 +557,10 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	QPointF sample;
 	int sampleIndex = -1;
 	double best = 10;
+	QXYSeries* filled = nullptr;
+	QPointF filledSample;
+	int filledIndex = -1;
+	double filledVertexDistance = std::numeric_limits<double>::max();
 	for (auto* series : chart->series()) {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
@@ -554,13 +572,12 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 			for (const auto& point : points) polygon.append(chart->mapToPosition(point, xy));
 			inside = polygon.containsPoint(cursor, Qt::OddEvenFill);
 		}
-		double nearestVertex = std::numeric_limits<double>::max();
 		for (int i = 0; i < points.size(); ++i) {
 			const QPointF point = chart->mapToPosition(points[i], xy);
 			if (inside) {
 				const double vertexDistance = QLineF(cursor, point).length();
-				if (best > 0 && vertexDistance < nearestVertex) {
-					nearestVertex = vertexDistance; selected = xy; sample = points[i]; sampleIndex = i;
+				if (vertexDistance < filledVertexDistance) {
+					filledVertexDistance = vertexDistance; filled = xy; filledSample = points[i]; filledIndex = i;
 				}
 				continue;
 			}
@@ -582,7 +599,11 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 				selected = xy; sample = points[nearest]; sampleIndex = nearest;
 			}
 		}
-		if (inside && selected == xy) best = 0;
+	}
+	if (!selected && filled) {
+		selected = filled;
+		sample = filledSample;
+		sampleIndex = filledIndex;
 	}
 	if (!selected) return nullptr;
 	QString identity = selected->name();
