@@ -4,10 +4,14 @@
 #include "scene/SceneDiagnostic.h"
 #include <array>
 #include <cstddef>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+
+inline constexpr int kCurrentSceneSchemaVersion = 1;
+inline constexpr int kCurrentSceneBundleVersion = 1;
 
 struct SceneSimulationSettings {
 	bool hasDuration = false;
@@ -185,6 +189,7 @@ struct SceneService {
 	bool hasOperatingCodeStep = false;
 	int operatingCodeStep = 0;
 	std::vector<SceneStop> stops;
+	std::string category;
 };
 
 struct SceneServiceOccurrence {
@@ -287,6 +292,7 @@ struct SceneImportReportRow {
 
 struct SceneModel {
 	int schemaVersion = 0;
+	std::string savedWithAppVersion;
 	std::string name;
 	std::string description;
 	std::string baseTime;
@@ -320,6 +326,9 @@ struct SceneModel {
 SceneModel makeNewSceneModel();
 
 std::string sceneOutputDirectoryComponent(const std::string& sceneName);
+double sceneServiceScheduledEntry(const SceneService& service, int occurrence = 1);
+int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
+		const SceneRunSelection& selection = {});
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds);
 std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence);
 bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
@@ -341,6 +350,7 @@ struct SceneLoadResult {
 	SceneModel scene; // partial on structural failure
 	std::vector<SceneDiagnostic> diagnostics;
 	std::string inputSnapshot;
+	std::optional<int> bundleVersion;
 };
 
 struct SceneInputSnapshot {

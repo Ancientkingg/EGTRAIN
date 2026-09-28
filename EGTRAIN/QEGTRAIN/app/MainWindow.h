@@ -73,7 +73,6 @@
 #include <QSlider>
 #include <QHBoxLayout>
 #include <QFileDialog>
-#include <QGraphicsSimpleTextItem>
 #include <QComboBox>
 #include <QVariantAnimation>
 #include <QPointer>
@@ -85,9 +84,11 @@
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QTabWidget>
+#include <QSet>
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
+#include "scene/TrackPreview.h"
 
 // charts
 #include <QtCharts/QChartView>
@@ -97,6 +98,12 @@ QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
 class DiagramWindow;
+class UpdateChecker;
+class QFileSystemWatcher;
+class SelfUpdater;
+class QProgressDialog;
+struct UpdateCheckResult;
+struct StableRelease;
 
 // custom GUI files
 #include "graphics/NetworkView.h"
@@ -141,6 +148,14 @@ extern bool GUI;
 using namespace std;
 
 struct SceneSaveResult;
+
+bool startupTimingEnabled();
+void beginStartupTiming();
+qint64 startupTimingNowNanoseconds();
+void recordStartupTiming(const QString& phase, int iteration, int generation,
+	qint64 elapsedNanoseconds, const QString& invocation = {}, const QString& source = {},
+	bool identityOk = true, bool canonicalPreloadNested = false);
+void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult& loaded);
 
 namespace Ui {
 class MainWindow;
@@ -212,7 +227,7 @@ public:
 	void updateSignalAspect(const std::string& ID, double code, bool reversed);
 
 	// get train polygon (list)
-	void getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
+	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
@@ -229,6 +244,8 @@ public:
 protected:
 	void showEvent(QShowEvent* e) override;
 	void closeEvent(QCloseEvent* event) override;
+	void dragEnterEvent(QDragEnterEvent* event) override;
+	void dropEvent(QDropEvent* event) override;
 
 public slots:
 	void handleHelpAbout();
@@ -359,6 +376,7 @@ private:
 	QComboBox* m_followTrainCombo = nullptr;
 	QPointer<QMenu> m_sceneContextMenu;
 	int m_followTrainIndex = -1;
+	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
@@ -368,10 +386,10 @@ private:
 	int m_creatorAcceptancePolls = 0;
 	QPointer<DiagramWindow> m_creatorBaselineDiagram;
 	QMap<int, QPointF> m_prevTrainPositions;
-	QMap<int, QGraphicsSimpleTextItem*> m_trainSpeedLabels; // per-train speed overlay
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
+	bool m_playbackProfileViewApplied = false;
 	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
 	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
 	std::set<TrackLineItem*> m_activeTrackItems;
@@ -380,6 +398,12 @@ private:
 	QToolBar* m_toolBar;
 	QAction* m_openCaseAction = nullptr;
 	QAction* m_newSceneAction = nullptr;
+	QAction* m_checkForUpdatesAction = nullptr;
+	QAction* m_automaticUpdateChecksAction = nullptr;
+	UpdateChecker* m_updateChecker = nullptr;
+	SelfUpdater* m_selfUpdater = nullptr;
+	QProgressDialog* m_updateProgress = nullptr;
+	bool m_manualUpdateCheck = false;
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
@@ -390,13 +414,34 @@ private:
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
 	SceneModel m_sceneModel;
+	TrackPreviewResult m_cachedTrackPreview;
 	bool m_sceneLoaded = false;
 	bool m_sceneIsBundle = false;
+	std::optional<int> m_sceneBundleVersion;
 	bool m_sceneDirty = false;
 	bool m_committingPendingEditorValues = false;
+	struct TrainUnitSourceLink {
+		QString dataPath;
+		QString tractionPath;
+		std::optional<SceneTrainPhysical> acceptedPhysical;
+		std::vector<std::array<double, 5>> acceptedTraction;
+		QString dataSignature;
+		QString tractionSignature;
+		QString dataStatus;
+		QString tractionStatus;
+		bool dataDeferred = false;
+		bool tractionDeferred = false;
+		quint64 generation = 0;
+	};
+	std::map<std::string, TrainUnitSourceLink> m_trainUnitSourceLinks;
+	QFileSystemWatcher* m_trainUnitSourceWatcher = nullptr;
+	QTimer* m_trainUnitSourceDebounceTimer = nullptr;
+	QSet<QString> m_pendingTrainUnitSourcePaths;
+	bool m_processingTrainUnitSourceChanges = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
+	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
 	QMenu* m_recentScenesMenu = nullptr;
 	QDockWidget* m_validationDock = nullptr;
@@ -446,10 +491,15 @@ private:
 	RunProvenance m_pendingRunProvenance;
 	RunProvenance m_completedRunProvenance;
 	std::optional<DelayRunSnapshot> m_delayBaseline;
+	QString m_delayBaselineStatus;
 	quint64 m_sceneRevision = 0;
 	QLabel* m_runResultsSummaryLabel = nullptr;
+	QLabel* m_delayFeedbackLabel = nullptr;
 	int m_lastRunSelectedOccurrences = 0;
 	int m_lastRunTotalOccurrences = 0;
+	int m_startupTimingIteration = 0;
+	int m_startupTimingWarmTrials = 0;
+	QString m_startupTimingScenePath;
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
@@ -458,6 +508,14 @@ private:
 	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
 	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
 	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
+	QPushButton* m_linkTrainUnitSourceDataButton = nullptr;
+	QPushButton* m_unlinkTrainUnitSourceDataButton = nullptr;
+	QPushButton* m_retryTrainUnitSourceDataButton = nullptr;
+	QLabel* m_trainUnitSourceDataStatusLabel = nullptr;
+	QPushButton* m_linkTrainUnitSourceTractionButton = nullptr;
+	QPushButton* m_unlinkTrainUnitSourceTractionButton = nullptr;
+	QPushButton* m_retryTrainUnitSourceTractionButton = nullptr;
+	QLabel* m_trainUnitSourceTractionStatusLabel = nullptr;
 	QTableWidget* m_trainUnitTractionTable = nullptr;
 	QPushButton* m_addTrainUnitButton = nullptr;
 	QPushButton* m_duplicateTrainUnitButton = nullptr;
@@ -488,9 +546,9 @@ private:
 	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
 	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
 	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
+	QComboBox* m_serviceCategoryCombo = nullptr;
 	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
 	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
-	QCheckBox* m_serviceThroughCheck = nullptr;
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
 	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
@@ -513,18 +571,14 @@ private:
 	SceneRunSelection m_excludedSceneOccurrences;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
-	QListWidget* m_stopListWidget = nullptr; // one row per SceneStop of the selected service
+	QTableWidget* m_stopTableWidget = nullptr;
 	QPushButton* m_addStopButton = nullptr;
 	QPushButton* m_removeStopButton = nullptr;
 	QPushButton* m_moveStopUpButton = nullptr;
 	QPushButton* m_moveStopDownButton = nullptr;
-	QComboBox* m_stopStationCombo = nullptr;  // references a SceneStation.id
-	QComboBox* m_stopPlatformCombo = nullptr; // references a ScenePlatform.id of the selected station, blank allowed
-	QCheckBox* m_stopHasArrivalCheck = nullptr;
-	QLineEdit* m_stopArrivalSecondsEdit = nullptr; // whole seconds
-	QCheckBox* m_stopHasDepartureCheck = nullptr;
-	QLineEdit* m_stopDepartureSecondsEdit = nullptr; // whole seconds
-	QLineEdit* m_stopDwellSecondsEdit = nullptr;	 // whole seconds, always present
+	QComboBox* m_stopTimeModeCombo = nullptr;
+	QLabel* m_stopTimeBaseLabel = nullptr;
+	bool m_stopClockMode = false;
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
@@ -543,8 +597,6 @@ private:
 	QComboBox* m_incidentTargetCombo = nullptr;		 // signal id or service id depending on type
 	QLineEdit* m_incidentStartSecondsEdit = nullptr; // whole seconds
 	QLineEdit* m_incidentEndSecondsEdit = nullptr;	 // whole seconds
-	QCheckBox* m_incidentHasOccurrenceCheck = nullptr;
-	QLineEdit* m_incidentOccurrenceEdit = nullptr;
 	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
@@ -585,6 +637,9 @@ private:
 	QList<QGraphicsItem*> m_stationDecorations;
 	QList<StationOverlayItem*> m_stationOverlays;
 	QString m_selectedStationName;
+	bool m_hasSelectedStationIdentity = false;
+	double m_selectedStationNodeId = 0.0;
+	int m_selectedStationTrack = -1;
 	QList<QGraphicsItem*> m_signalDecorations;
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
@@ -594,6 +649,12 @@ private:
 	void refreshFollowTrainChoices();
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
+	void setupUpdateActions();
+	void maybePromptForUpdateChecks();
+	void startUpdateCheck(bool manual);
+	void handleUpdateCheckFinished(const UpdateCheckResult& result);
+	void startSelfUpdate(const StableRelease& release);
+	void handleSelfUpdateFinished(bool success, const QString& error);
 	void showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
 	void centerSceneItem(QGraphicsItem* item);
 	void setFollowTrain(int trainIndex);
@@ -606,7 +667,9 @@ private:
 	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
+	bool requestOpenScene(const QString& path);
 	bool maybeSaveScene();
+	const TrackPreviewLine* cachedTrackLine(int track) const;
 	void renderTrackPreview(const SceneModel& sceneModel);
 	bool finishSceneSave(const SceneSaveResult& result);
 	bool saveSceneToCurrentDir();
@@ -639,6 +702,9 @@ private:
 		const std::string& scope = {}) const;
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
+	void updateScenarioPresentation();
+	bool advancedDetailsEnabled() const;
+	void updateDiagnosticPresentation();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
 	void markSceneDirty();
 	void invalidateRunResults();
@@ -725,6 +791,16 @@ private:
 	void deleteTrainUnit();
 	void commitTrainUnitIdEdit();
 	void commitTrainUnitSources();
+	void linkTrainUnitSource(bool traction);
+	void unlinkTrainUnitSource(bool traction);
+	void retryTrainUnitSource(bool traction);
+	void scheduleTrainUnitSourceChange(const QString& path);
+	void processTrainUnitSourceChanges();
+	void processTrainUnitSourceFile(const QString& path, bool traction);
+	void refreshTrainUnitSourceWatches();
+	void clearTrainUnitSourceLinks();
+	void updateTrainUnitSourceStatus();
+	void refreshInputTractionDiagrams(const std::string& unitId);
 	void commitTrainUnitPhysical(int fieldIndex);
 	void addTrainUnitTractionRow();
 	void removeTrainUnitTractionRow();
@@ -739,9 +815,9 @@ private:
 	void deleteService();
 	void commitServiceIdEdit();
 	void commitServiceOperatingCode();
+	void commitServiceCategory(int index);
 	void commitServiceComposition(const QString& text);
-	void commitServiceRoute(const QString& text);
-	void commitServiceThrough(bool checked);
+	void commitServiceRoute(int index);
 	void commitServiceHasEntryTime(bool checked);
 	void commitServiceEntryTimeSeconds();
 	void commitServiceHasRepeat(bool checked);
@@ -760,27 +836,23 @@ private:
 	void selectNoneServiceOccurrences();
 	double serviceOccurrenceDuration() const;
 	int totalServiceOccurrences() const;
+	int inPeriodServiceOccurrences() const;
 	int selectedServiceOccurrences() const;
+	int selectedServiceOccurrencesInPeriod() const;
 	SceneRunSelection selectedSceneOccurrences() const;
 	void pruneExcludedServiceOccurrences();
 	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
 	std::string uniqueServiceId(const std::string& baseId) const;
+	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
-	// stop (timetable) editor: edits the selected service's stops in place
+	// stop (timetable) editor: edits copied SceneStop records through one modal
 	void refreshStopList();
-	void updateStopDetailPanel();
-	void refreshStopPlatformCombo();
+	void updateStopActions();
 	void addStop();
 	void removeStop();
 	void moveStopUp();
 	void moveStopDown();
-	void commitStopStation(const QString& text);
-	void commitStopPlatform(const QString& text);
-	void commitStopHasArrival(bool checked);
-	void commitStopHasDeparture(bool checked);
-	void commitStopArrivalSeconds();
-	void commitStopDepartureSeconds();
-	void commitStopDwellSeconds();
+	void editStop(int row);
 
 	// incident editor
 	void refreshScenarioList();
@@ -805,8 +877,6 @@ private:
 	void commitIncidentTarget(const QString& text);
 	void commitIncidentStartSeconds();
 	void commitIncidentEndSeconds();
-	void commitIncidentOccurrence();
-	void commitIncidentHasOccurrence(bool checked);
 	void commitIncidentReducedSpeed();
 	void commitIncidentHasReducedSpeed(bool checked);
 	void commitIncidentHasEndSeconds(bool checked);
@@ -834,6 +904,7 @@ private:
 	bool showRunReview();
 	void setDelayBaseline();
 	void showDelayComparison();
+	void refreshRunResultsSummary();
 	DelayRunSnapshot completedDelaySnapshot() const;
 	RunProvenance captureRunProvenance() const;
 
@@ -844,6 +915,11 @@ private:
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
 	void runLegacyImportE2E();
+	void runSceneDropE2E();
+	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
+	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
+		const std::string* inputSnapshot = nullptr) const;
+	void failStartupTiming(const QString& message);
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
@@ -853,7 +929,9 @@ private:
 	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 	void buildTrackIndexes();
+	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
+	bool isTrainOverlayPromoted(int trainIndex) const;
 	void updateViewportOverlays();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);

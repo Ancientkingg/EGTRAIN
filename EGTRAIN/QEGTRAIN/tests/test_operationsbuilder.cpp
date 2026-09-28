@@ -147,6 +147,7 @@ int main() {
 	std::srand(12345);
 	bool ok = true;
 	SceneModel scene = completeScene();
+	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
 	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";
 	InputMainFolder = initial_variables.InputMainFolder;
 	auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(scene);
@@ -156,6 +157,7 @@ int main() {
 
 	const auto diagnostics = buildOperationsFromScene(scene, "scenario.selected");
 	ok &= expect(!hasErrors(diagnostics), "M3 operations builder accepts the complete fixture");
+	ok &= expect(regional_train[0].numStations == 3, "historical through flag does not discard scheduled stops");
 	SceneModel tooManyStops = completeScene();
 	while (tooManyStops.services[0].stops.size() <= static_cast<std::size_t>(Train::kMaxTimetableStations))
 		tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
@@ -514,6 +516,12 @@ int main() {
 		{"station.2", "platform.2", true, true, 100.0, 110.0, 0.0},
 		{"station.1", "platform.1", true, true, 120.0, 130.0, 0.0},
 		{"station.2", "platform.2", true, true, 140.0, 150.0, 0.0}};
+	buildInfrastructureAndSignallingFromScene(repeatedPassengerStops);
+	ok &= expect(hasCode(buildOperationsFromScene(repeatedPassengerStops, "scenario.base", onlySecond),
+		"scene.native.ref.stop.order"), "repeated calls cannot reuse an earlier route visit");
+	// Two distinct visits to the same platform, separated by station One.
+	repeatedPassengerStops.stations[0].platforms[0].nodeIds = {"node.3"};
+	repeatedPassengerStops.stations[2].platforms[0].nodeIds = {"node.0", "node.2"};
 	ScenePassengerJourney& repeatedJourney = repeatedPassengerStops.passengers[0].journeys[0];
 	repeatedJourney.originStationId = "station.1";
 	repeatedJourney.destinationStationId = "station.2";
@@ -533,6 +541,7 @@ int main() {
 	ok &= expect(!hasErrors(repeatedInfrastructure) && !hasErrors(repeatedOperations)
 				&& resolveScenePassengerLegStops(repeatedPassengerStops.services[0], repeatedJourney.legs[0], repeatedPair)
 				&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
+				&& regional_train[0].Stations[0].X == 0.0 && regional_train[0].Stations[2].X == 2.0
 				&& repeatedJourneyStaged,
 				"native passenger staging follows the repeated-stop ordered pair");
 	SceneModel invalidUnselectedPassenger = completeScene();
@@ -650,6 +659,20 @@ int main() {
 	const auto reversedOperations = buildOperationsFromScene(reversed, "scenario.selected");
 	ok &= expect(!hasErrors(reversedInfrastructure) && !hasErrors(reversedOperations),
 			"reversed routes resolve stop nodes without legacy node-list storage");
+	SceneModel ordered = completeScene();
+	ordered.passengers.clear();
+	ordered.services[0].stops[1].platformId.clear();
+	buildInfrastructureAndSignallingFromScene(ordered);
+	ok &= expect(!hasErrors(buildOperationsFromScene(ordered, "scenario.base"))
+		&& regional_train[0].Stations[1].stationPlatformId == "platform.1",
+		"a unique reachable platform resolves without an explicit selection");
+	ordered.stations[1].platforms.push_back({"platform.other", {"node.3"}});
+	buildInfrastructureAndSignallingFromScene(ordered);
+	ok &= expect(hasCode(buildOperationsFromScene(ordered, "scenario.base"),
+		"scene.native.ref.platform.ambiguous"), "multiple reachable platforms require an explicit choice");
+	ordered.services[0].stops[1].platformId = "platform.other";
+	ok &= expect(hasCode(buildOperationsFromScene(ordered, "scenario.base"), "scene.native.ref.stop.order"),
+		"an explicit late platform cannot be followed by an earlier station");
 
 	SceneModel routeExternal = completeScene();
 	routeExternal.routes[0].blocks = {"block.0", "block.1"};
@@ -696,7 +719,7 @@ int main() {
 	trajectoryPerformance.services[0].entryTimeSeconds = 0.0;
 	trajectoryPerformance.services[0].hasRepeatCount = true;
 	trajectoryPerformance.services[0].repeatCount = 1;
-	trajectoryPerformance.services[0].through = true;
+	trajectoryPerformance.services[0].through = false;
 	trajectoryPerformance.services[0].stops.clear();
 	trajectoryPerformance.passengers.clear();
 	for (SceneTrainUnit& trainUnit : trajectoryPerformance.trainUnits)

@@ -68,6 +68,10 @@ blocking-time diagram data, visual classification, scene validation, explicit
 legacy import/export, scene writing, both native runtime builders, canonical
 TrackPreview rendering, transparent scene bundle round-trips/security limits,
 and smoke output decoding.
+Scene compatibility tests cover manifest probing, independent schema/bundle
+classification, hostile newer bundles, and transactional test-only migration
+chains. The production migration registry is empty; `scene_tool migrate` is a
+future extension rather than a second migration implementation.
 
 The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs
@@ -100,6 +104,12 @@ tools/e2e/headless_smoke.py
 The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
 (`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), and Lebanon (`-n 6`). It
 checks clean native execution and the available trajectory/station evidence.
+
+## Peak-memory measurement
+
+On macOS, use the native peak-RSS collector for canonical Copenhagen and
+Milano-Brescia Release runs. The protocol and generated record contract are in
+[Peak-memory baselines](memory-baselines.md).
 
 ## Scene Roundtrip Smoke Test
 

@@ -22,10 +22,8 @@ int main(int argc, char** argv) {
         if (image.isNull() || image.size() != QSize(size, size) || !image.hasAlphaChannel())
             return 1;
     }
-    const std::array<const char*, 13> entity_icons{
-        ":/icons/station-stop.svg",
-        ":/icons/station-platform.svg",
-        ":/icons/station-interchange.svg",
+    const std::array<const char*, 11> entity_icons{
+        ":/icons/station.svg",
         ":/icons/passenger.svg",
         ":/icons/train-passenger.svg",
         ":/icons/train-sprinter.svg",

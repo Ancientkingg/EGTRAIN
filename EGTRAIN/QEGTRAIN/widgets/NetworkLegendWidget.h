@@ -18,7 +18,6 @@ struct NetworkLegendEntry {
 	TrackOperationalState trackState = TrackOperationalState::Free;
 	TrainVisualKind trainKind = TrainVisualKind::Passenger;
 	TrainBadgeShape trainShape = TrainBadgeShape::Rounded;
-	StationVisualKind stationKind = StationVisualKind::StopMarker;
 	SignalCueKind signalCue = SignalCueKind::Neutral;
 	QString iconResource;
 };

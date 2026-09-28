@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(EGTRAIN VERSION 1.0 LANGUAGES C CXX)
+project(EGTRAIN VERSION 1.0.0 LANGUAGES C CXX)
+
+# The project version is the single application-version source for every
+# target and package surface.
+add_compile_definitions(EGTRAIN_APP_VERSION=\"${PROJECT_VERSION}\")
+file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/EGTRAIN_VERSION" CONTENT "${PROJECT_VERSION}\n")
 
 if(WIN32)
     enable_language(RC)
@@ -30,6 +35,13 @@ if(MSVC)
 endif()
 
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
+option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
+
+if(EGTRAIN_PACKAGED_BUILD)
+    add_compile_definitions(EGTRAIN_PACKAGED_BUILD=1)
+else()
+    add_compile_definitions(EGTRAIN_PACKAGED_BUILD=0)
+endif()
 
 if(EGTRAIN_ENABLE_SANITIZERS)
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
@@ -58,7 +70,7 @@ set_target_properties(egtrain_miniz PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED
 include_directories(${SRC_DIR})
 
 # --- Dependencies ---
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
 
 # OpenMP is required because project headers include omp.h.
 if(APPLE)
@@ -107,6 +119,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/NumberGenerator.cpp
     ${SRC_DIR}/simulation/Optimisation.cpp
     ${SRC_DIR}/util/Logger.cpp
+    ${SRC_DIR}/util/PlaybackProfiler.cpp
     ${SRC_DIR}/graphics/items/PassengerItem.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
@@ -118,10 +131,18 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp
     ${SRC_DIR}/util/TimeFormat.cpp
+    ${SRC_DIR}/util/Version.cpp
+	${SRC_DIR}/update/ReleaseInfo.cpp
+	${SRC_DIR}/update/UpdateChecker.cpp
+	${SRC_DIR}/update/UpdateSettings.cpp
+	${SRC_DIR}/update/UpdatePreparation.cpp
+	${SRC_DIR}/update/SelfUpdater.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
 	${SRC_DIR}/scene/SceneModel.cpp
 	${SRC_DIR}/scene/SectionInventory.cpp
 	${SRC_DIR}/scene/SceneBundle.cpp
+	${SRC_DIR}/scene/SceneCompatibility.cpp
+	${SRC_DIR}/scene/SceneMigration.cpp
 	${SRC_DIR}/scene/SceneValidator.cpp
 	${SRC_DIR}/scene/SceneImporter.cpp
 	${SRC_DIR}/scene/SceneWriter.cpp
@@ -166,6 +187,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Logger.hpp
+    ${SRC_DIR}/util/PlaybackProfiler.h
     ${SRC_DIR}/graphics/items/PassengerItem.h
     ${SRC_DIR}/simulation/Passengers.h
     ${SRC_DIR}/graphics/items/PlatformItem.h
@@ -177,10 +199,18 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Simulation.h
     ${SRC_DIR}/simulation/SimulationWorker.h
     ${SRC_DIR}/util/TimeFormat.h
+    ${SRC_DIR}/util/Version.h
+	${SRC_DIR}/update/ReleaseInfo.h
+	${SRC_DIR}/update/UpdateChecker.h
+	${SRC_DIR}/update/UpdateSettings.h
+	${SRC_DIR}/update/UpdatePreparation.h
+	${SRC_DIR}/update/SelfUpdater.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
 	${SRC_DIR}/scene/SceneBundle.h
+	${SRC_DIR}/scene/SceneCompatibility.h
+	${SRC_DIR}/scene/SceneMigration.h
 	${SRC_DIR}/scene/SceneValidator.h
 	${SRC_DIR}/scene/SceneImporter.h
 	${SRC_DIR}/scene/SceneWriter.h
@@ -237,6 +267,8 @@ add_executable(QEGTRAIN
     ${EGTRAIN_PLATFORM_RESOURCES}
 )
 
+target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_BUILD_TYPE="$<CONFIG>")
+
 target_include_directories(QEGTRAIN PRIVATE
     ${SRC_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/EGTRAIN/QEGTRAIN  # for AUTOUIC generated headers
@@ -252,6 +284,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     Qt5::Widgets
     Qt5::Charts
     Qt5::Svg
+    Qt5::Network
 )
 
 if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
@@ -273,6 +306,21 @@ endif()
 target_link_libraries(QEGTRAIN PRIVATE cppzmq nlohmann_json::nlohmann_json)
 target_link_libraries(QEGTRAIN PRIVATE egtrain_miniz)
 message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
+
+add_executable(egtrain_update_helper
+	${SRC_DIR}/update/UpdateHelper.cpp)
+if(MSVC)
+    set_property(TARGET egtrain_update_helper PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+if(EGTRAIN_PACKAGED_BUILD)
+    enable_testing()
+    add_executable(test_updatehelper
+        ${SRC_DIR}/tests/test_updatehelper.cpp)
+    target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
+    add_test(NAME test_updatehelper COMMAND test_updatehelper $<TARGET_FILE:egtrain_update_helper>)
+endif()
 
 # Platform-specific settings
 if(APPLE)
@@ -338,6 +386,37 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_timeformat.cpp
         ${SRC_DIR}/util/TimeFormat.cpp)
     add_test(NAME test_timeformat COMMAND test_timeformat)
+
+    add_executable(test_version
+        ${SRC_DIR}/tests/test_version.cpp
+        ${SRC_DIR}/util/Version.cpp)
+    add_test(NAME test_version COMMAND test_version)
+
+    add_executable(test_updatechecker
+        ${SRC_DIR}/tests/test_updatechecker.cpp
+        ${SRC_DIR}/update/ReleaseInfo.cpp
+        ${SRC_DIR}/update/UpdateSettings.cpp
+        ${SRC_DIR}/util/Version.cpp)
+    target_link_libraries(test_updatechecker PRIVATE Qt5::Core Qt5::Network)
+    add_test(NAME test_updatechecker COMMAND test_updatechecker)
+
+    add_executable(test_updatestaging
+        ${SRC_DIR}/tests/test_updatestaging.cpp)
+    target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
+    add_test(NAME test_updatestaging COMMAND test_updatestaging)
+
+    add_executable(test_updatepreparation
+        ${SRC_DIR}/tests/test_updatepreparation.cpp
+        ${SRC_DIR}/update/UpdatePreparation.cpp)
+    target_link_libraries(test_updatepreparation PRIVATE Qt5::Core)
+    add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
+
+    if(NOT TARGET test_updatehelper)
+        add_executable(test_updatehelper
+            ${SRC_DIR}/tests/test_updatehelper.cpp)
+        target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
+        add_test(NAME test_updatehelper COMMAND test_updatehelper $<TARGET_FILE:egtrain_update_helper>)
+    endif()
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
@@ -479,9 +558,19 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_networkscene_selection PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_playbackprofiler
+        ${SRC_DIR}/tests/test_playbackprofiler.cpp
+        ${SRC_DIR}/util/PlaybackProfiler.cpp)
+    target_include_directories(test_playbackprofiler PRIVATE ${SRC_DIR})
+    target_link_libraries(test_playbackprofiler PRIVATE nlohmann_json::nlohmann_json)
+    add_test(NAME test_playbackprofiler COMMAND test_playbackprofiler)
+    add_test(NAME test_playback_profile
+        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py)
+
     add_executable(test_networkview
         ${SRC_DIR}/tests/test_networkview.cpp
         ${SRC_DIR}/graphics/NetworkView.cpp
+        ${SRC_DIR}/util/PlaybackProfiler.cpp
         ${SRC_DIR}/graphics/items/TrackLineItem.cpp
         ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
         ${SRC_DIR}/graphics/items/ConnectionItem.cpp
@@ -603,6 +692,19 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scenebundle
 		COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
+	add_executable(test_scenecompatibility
+		${SRC_DIR}/tests/test_scenecompatibility.cpp
+		${SRC_DIR}/scene/SceneDiagnostic.cpp
+		${SRC_DIR}/scene/SceneModel.cpp
+		${SRC_DIR}/scene/SectionInventory.cpp
+		${SRC_DIR}/scene/SceneBundle.cpp
+		${SRC_DIR}/scene/SceneCompatibility.cpp
+		${SRC_DIR}/scene/SceneMigration.cpp
+		${SRC_DIR}/scene/SceneWriter.cpp)
+	target_link_libraries(test_scenecompatibility PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+	add_test(NAME test_scenecompatibility
+		COMMAND test_scenecompatibility ${SRC_DIR}/tests/fixtures/scenes/minimal)
+
 	add_executable(test_scenebuilder
 		${SRC_DIR}/tests/test_scenebuilder.cpp
 		${SRC_DIR}/simulation/Infrastructure.cpp
@@ -686,6 +788,12 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_startup_launch_contract
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 15)
+	add_test(NAME test_scene_drop
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
+	set_tests_properties(test_scene_drop PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
+		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
+		TIMEOUT 60)
 	add_test(NAME test_native_startup_without_legacy
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_native_startup_without_legacy PROPERTIES
@@ -728,6 +836,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
 	add_test(NAME test_ownership_inventory
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
+	add_test(NAME test_measure_peak_rss
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_measure_peak_rss.py)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
@@ -735,7 +845,7 @@ if(EGTRAIN_BUILD_TESTS)
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
-	set_tests_properties(test_scenebundle PROPERTIES LABELS "scene-v2")
+	set_tests_properties(test_scenebundle test_scenecompatibility PROPERTIES LABELS "scene-v2")
 endif()
 
 # Install

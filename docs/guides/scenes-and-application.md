@@ -8,8 +8,11 @@ and run it through the native scene path.
 
 Choose `File > Open Case Study...` and select an `.egscene` file. Use
 `File > Open Scene Folder...` when editing a canonical directory containing
-`scene.json`. The **Loaded Data** dock opens with the case study so you can
-review what was found before choosing `Run Scene`. Use
+`scene.json`. Normal mode keeps the canvas and editor flow uncluttered; use
+`View > Advanced / Developer details` when you want the automatic Loaded Data
+panel, full validation counts, and technical inventories. The existing View
+actions can still open Loaded Data or Validation explicitly in normal mode.
+Use
 `Save Case Study As...` for a new bundle. From the command line, `--scene`
 accepts the same bundle or directory path.
 
@@ -19,26 +22,62 @@ compatibility aliases, and validates before a run. Infrastructure, signalling,
 rolling stock, services, the selected
 scenario, and passengers are built directly from `SceneModel` in memory.
 
+### Application updates
+
+At first launch EGTRAIN asks whether to check for releases automatically. You
+can disable or re-enable automatic checks from **Help**. **Check for Updates...**
+always performs a manual check, even when automatic checks are disabled. An
+available update is downloaded only after consent; **Update and Restart**
+installs it and relaunches the application. If the install location is not
+writable, download the release and install it with the platform's normal
+permissions instead.
+
+Application version, scene schema version, and bundle version are independent.
+The saved-with application version is provenance and does not by itself prompt
+for an upgrade. Older scenes can be upgraded to a copy; the original directory
+or ZIP remains unchanged. Newer schema or bundle versions require a newer app.
+
 ## Review what loaded
 
-The **Loaded Data** dock keeps opening separate from running. Its case-study
-tree shows the source path, canonical schema version, bundle format version,
-source files, category counts, default and available scenarios, validation
-state, and runtime/result readiness. Expand a category to follow source data to
-parsed canonical objects. Imported scenes also show conversion, skipped, and
+The **Loaded Data** dock stays separate from running. Its case-study tree shows
+the source path, canonical schema version, bundle format version, source files,
+category counts, default and available scenarios, validation state, and
+runtime/result readiness. Expand a category to follow source data to parsed
+canonical objects. Imported scenes also show conversion, skipped, and
 unresolved-reference counts from `import_report`. `Missing optional` means the
 scene is usable without that file; `Unsupported` means the file was found but
 EGTRAIN did not consume it. `Not built` means no runtime has been prepared from
-the current input.
+the current input. Advanced mode raises this panel automatically after open;
+normal mode leaves it available through View when you need it.
 
 Double-click infrastructure or signalling rows to focus the existing network
-view, validation rows to open the diagnostics table, or a train unit,
+view, validation rows to open the diagnostics table, or a rolling stock unit,
 composition, service, or scenario incident to open its existing editor.
-Each train-unit row owns its parameter, curve, plot, and provenance details.
-Train-unit provenance is descriptive:
+Each rolling-stock-unit row owns its parameter, curve, plot, and provenance details.
+Rolling-stock-unit provenance is descriptive:
 an original parameter or tractive-effort filename is not reopened by the native
 runtime. The tractive-effort plot evaluates the same piecewise polynomial as the
 runtime and displays speed in km/h and effort in kN.
+
+The rolling-stock editor also has explicit **Link parameter file...** and
+**Link traction file...** actions. These links are session-only absolute local
+paths, separate from the descriptive provenance fields, and are cleared when a
+scene is reopened or replaced; Save As does not relocate or persist them.
+Parameter files contain exactly nine whitespace-separated finite values:
+traction-unit mass (kg), wagon mass (kg), wagon count, maximum speed (m/s),
+maximum deceleration (m/s²), frontal area (m²), resistance coefficient, jerk
+(m/s³), and length (m). Traction files contain up to 20 nonblank rows, each
+with five finite values: starting speed (m/s), ending speed (m/s), and the
+coefficients `a b c` for force in N, `a + b*v + c*v*v`. Speed intervals must
+have positive width, be ordered, and not overlap.
+
+Each linked update is applied only after the complete candidate validates.
+Malformed or missing content leaves accepted values unchanged and keeps
+**Retry** available. A valid change marks the scene dirty only when values
+differ and refreshes open input traction plots. Conflicting local edits require
+a Keep local/Reload decision, grouped for all units sharing the file. Updates
+observed during a run are offered after the run completes. Completed result
+charts do not change.
 
 ## Scene directory
 
@@ -48,7 +87,7 @@ runtime and displays speed in km/h and effort in kN.
 | `infrastructure.json` | required | tracks, nodes, arcs, blocks, connections |
 | `stations.json` | required | stations, positions, platforms, platform nodes |
 | `signalling.json` | required | signals, routes, dependencies, restrictions, boundaries |
-| `rolling_stock.json` | required | physical/traction train units and compositions |
+| `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
@@ -68,8 +107,11 @@ from midnight. The complete key contract and historical aliases are in the
 ## Scenario library and student loop
 
 Open the **Incidents** dock to choose the canonical default or another named
-scenario. The library shows each scenario's ID, name, incident count, default
-and validation status, and an in-memory modified marker. **Blank** and
+scenario. The library shows each scenario's ID, name, incident and entrance-
+delay counts, default marker, and an in-memory modified marker. The authored
+description remains available; Advanced mode adds the full validation status.
+Normal mode still marks an actionable invalid scenario as `Invalid` but does
+not surface non-blocking warning detail. **Blank** and
 **Duplicate** create isolated scenarios; editing incidents, names, or
 descriptions changes only the selected scenario. **Import JSON...** and
 **Export JSON...** use the standalone scenario object documented in the schema
@@ -77,8 +119,8 @@ reference. Imports retain entrance delays, validate references against the
 open case, and report any adjusted ID rather than replacing an existing
 scenario or incident.
 
-The completed student loop is: open a case, review **Loaded Data** and
-**Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
+The completed student loop is: open a case, optionally review **Loaded Data**
+and **Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
 review the run summary, run the selected scenario, then use **Run Results** to
 open the existing timetable, delay, speed, and blocking-time views. Results
 are cleared when the case or scenario changes and are rebuilt only by a new
@@ -87,18 +129,31 @@ scenario.
 
 The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
-JSON-only settings. A completed incident-free run can be frozen with **Set
-delay baseline**. Selecting another scenario retains that baseline, while a
-canonical scene edit, **New**, or **Open** clears it and advances the local
-scene revision. **Compare delays** requires an incident run with no entrance
-delays and matching scene revision, base time, duration, timestep, and full
-selected `(service_id, occurrence)` identity set. The compact table and CSV
-show baseline/scenario identities, matching final authored timetable arrivals,
+JSON-only settings. During playback, choose a train in **Train to follow** and
+activate **Follow** to center the network view on it immediately, including
+while paused. A selected train that has not departed yet remains armed and the
+status bar reports that Follow is waiting for departure. Follow is cleared when
+it is disabled, when playback exits, or when the selected train is no longer
+available; it never silently switches to another train.
+
+A completed run without incidents or entrance delays can be frozen with **Set
+delay baseline**. The results panel confirms the completed run identity and
+places the next action or disabled reason beside the baseline controls.
+Selecting another scenario keeps the baseline but reports that the newly
+selected scenario has not been run; a canonical scene edit, **New**, or
+**Open** clears the baseline and explains that a new run without incidents or entrance delays is
+needed. **Compare delays** requires an incident run with no entrance delays and
+matching scene revision, base time, duration, timestep, and full selected
+`(service_id, occurrence)` identity set. The compact table and CSV show
+baseline/scenario identities, matching final authored timetable arrivals,
 positive contribution, primary/secondary attribution, incident IDs, first
-direct time/location, and destination-termination outcome. Primary means direct runtime evidence exists
-for that occurrence; secondary means it does not. Timetable differences alone
-are never treated as causal, and a comparison with no direct evidence anywhere
-is rejected. Positive contribution rows sum exactly to total arrival delay.
+direct time/location, and destination-termination outcome. Primary means direct
+runtime evidence exists for that occurrence; secondary means it does not.
+Timetable differences alone are never treated as causal, and a comparison with
+no direct evidence anywhere is rejected with a diagnostic. A valid comparison
+with zero positive rows is still a success and is labelled **zero positive
+additional final-arrival delay**; positive contribution rows otherwise sum
+exactly to total arrival delay.
 
 ## Portable bundles
 
@@ -156,6 +211,31 @@ errors prevent a usable scene from being published; semantic diagnostics stay
 with the scene for repair.
 
 ## Edit and validate
+
+In Services, Category offers Intercity, Regional, High speed/international,
+Freight, Metro/urban, Suburban and No category. Unknown imported values remain
+visible until you choose a replacement. This label does not change train
+performance, composition or stops. It survives duplication and folder/bundle
+saves, but not legacy export.
+
+The route chooser shows endpoints and direction. Its tooltip lists stations
+passed by the route, not stopping calls. Add Stop chooses a remaining station
+visit and its unique reachable platform; if several platforms are reachable,
+choose one explicitly. Moving stops or changing routes can leave invalid
+assignments: the editor keeps them for repair and explains the problem. These
+drafts can be saved, but incompatible stop instructions cannot run. Historical
+blank-platform rows outside the route remain schedule context, not simulated
+stops.
+
+Click a timetable row to edit its station, platform, dwell, arrival and departure.
+Accept applies the fields together; Cancel leaves the row unchanged. Add Stop
+uses the same dialog. Removing every row gives a service with no scheduled calls.
+Blank planned times are absent, while `0` is simulation zero. Use Elapsed for
+seconds from zero or Clock for case-base time: with base `08:00:00`, `90` seconds
+is `08:01:30`. Enter `+1d 00:00:00` for next midnight. Merely switching mode or
+changing the case base time does not shift stored offsets. Entry stays elapsed
+seconds. Invalid chronology blocks Run; incomplete departures and insufficient
+dwell windows are warnings. These checks do not guarantee physical feasibility.
 
 Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
 links consistent:

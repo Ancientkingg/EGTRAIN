@@ -76,6 +76,7 @@ public:
 
 class Node {
 public:
+	string sceneNodeId; // Canonical scene node identity, when built from a SceneModel.
 	double ID;
 	double X, Y;
 	bool isSignalled;
@@ -102,6 +103,7 @@ public:
 	Node();
 
 	Node& operator=(const Node& ob2) {
+		sceneNodeId = ob2.sceneNodeId;
 		ID = ob2.ID;
 		X = ob2.X;
 		Y = ob2.Y;
@@ -192,6 +194,7 @@ public:
 class BlockSet {
 public:
 	int ID;
+	string sceneTrackId;              // Canonical scene track identity, when built from a SceneModel.
 	int len;
 	int arcs, numNodes;              // Number of arcs and nodes in this track line
 	Arc A[1500];                     // Runtime arcs populated from the scene model
@@ -214,6 +217,7 @@ extern int numConnections;
 class Connections {
 public:
 	string ID;
+	string sceneFirstNodeId, sceneSecondNodeId;
 	int idFirstTrackLine, idSecondTrackLine;
 	double xFirstNode, xSecondNode;
 	double speedlimit; // Speed limit in m/s (default 16.67 m/s)

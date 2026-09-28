@@ -3,6 +3,7 @@
 
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
+#include <array>
 #include <string>
 #include <vector>
 
@@ -29,11 +30,28 @@ struct ScenePassengerImportResult {
 	bool success() const;
 };
 
+struct SceneTrainPhysicalSourceResult {
+	SceneTrainPhysical physical;
+	std::string error;
+	bool success() const { return error.empty(); }
+};
+
+struct SceneTrainTractionSourceResult {
+	std::vector<std::array<double, 5>> tractionCurve;
+	std::string error;
+	bool success() const { return error.empty(); }
+};
+
 SceneImportResult importLegacyScene(const std::string& legacyDir,
 									const std::string& sceneDir,
 									const std::string& sceneName);
 
 ScenePassengerImportResult importLegacyPassengers(const std::string& legacyRootOrPassengerDir,
-													const SceneModel& scene);
+														const SceneModel& scene);
+
+// Strict live-reload entry points. The historical importer below intentionally
+// keeps its permissive row handling; these functions require a complete file.
+SceneTrainPhysicalSourceResult parseTrainPhysicalSourceFile(const std::string& path);
+SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& path);
 
 #endif // SCENEIMPORTER_H

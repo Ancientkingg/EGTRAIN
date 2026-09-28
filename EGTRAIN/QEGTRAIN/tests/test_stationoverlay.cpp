@@ -8,7 +8,9 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
+#include <QImage>
 #include <QMouseEvent>
+#include <QPainter>
 
 #include <cmath>
 #include <iostream>
@@ -48,9 +50,21 @@ int main(int argc, char* argv[]) {
 	QApplication app(argc, argv);
 	bool ok = true;
 
-	StationVisual platform = classifyStation(true, 1);
-	StationVisual stopVisual = classifyStation(false, 0);
-	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), platform);
+	StationVisual stationVisual = classifyStation();
+	QImage stationImage(24, 24, QImage::Format_ARGB32_Premultiplied);
+	stationImage.fill(Qt::transparent);
+	{
+		QPainter painter(&stationImage);
+		painter.translate(12.0, 12.0);
+		StationNodeItem station(QRectF(-8.0, -8.0, 16.0, 16.0));
+		station.setPen(QPen(stationVisual.outline));
+		station.setBrush(stationVisual.fill);
+		station.paint(&painter, nullptr, nullptr);
+	}
+	ok &= expect(stationImage.pixelColor(12, 12).alpha() > 0
+			&& stationImage.pixelColor(4, 4).alpha() == 0,
+		"station node paints a circle instead of a rectangle");
+	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), stationVisual);
 	ok &= expect(overlay.zValue() > 3.0 && overlay.zValue() < 5.0,
 		"station text paints above signals and below train badges");
 	ok &= expect(overlay.flags().testFlag(QGraphicsItem::ItemIsSelectable),
@@ -73,7 +87,34 @@ int main(int argc, char* argv[]) {
 	ok &= expect(overlay.stableAnchor() == QPointF(40.0, 50.0), "stable anchor is retained");
 	overlay.setViewportOffset(QPointF(-3.0, 7.0));
 	ok &= expect(overlay.viewportOffset() == QPointF(-3.0, 7.0), "viewport clamp offset is separate");
-	ok &= expect(overlay.displayName(QStringLiteral("KogeNord")) == QStringLiteral("Koge Nord"), "camel-case display conversion");
+	overlay.setFitCollisionOffset(QPointF(20.0, 0.0));
+	ok &= expect(overlay.fitCollisionOffset() == QPointF(20.0, 0.0)
+			&& overlay.deviceSymbolRect() == symbol.translated(17.0, 7.0),
+		"Fit collision offset moves only the symbol after viewport clamping");
+	overlay.setFitCollisionOffset(QPointF());
+	ok &= expect(overlay.viewportOffset() == QPointF(-3.0, 7.0)
+			&& overlay.fitCollisionOffset().isNull(),
+		"clearing the Fit collision offset preserves viewport clamping");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("DanshojBBx")) == QStringLiteral("Danshoj BBx"),
+		"Copenhagen mixed-case suffix remains one run");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("RyparkenBBx")) == QStringLiteral("Ryparken BBx"),
+		"second Copenhagen mixed-case suffix remains one run");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("KBHallen")) == QStringLiteral("KB Hallen"),
+		"Copenhagen acronym prefix remains one word");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("KogeNord")) == QStringLiteral("Koge Nord"),
+		"legacy camel-case boundary remains split");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("PMBivioAdda")) == QStringLiteral("PM Bivio Adda"),
+		"Italian acronym prefix and camel-case boundary remain split");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("NBTCentralStation")) == QStringLiteral("NBT Central Station"),
+		"Lebanon acronym prefix and camel-case boundary remain split");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("FlintholmCH")) == QStringLiteral("Flintholm CH"),
+		"trailing two-letter acronym remains intact");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("NyEllebjergAE")) == QStringLiteral("Ny Ellebjerg AE"),
+		"multiple word boundaries preserve the trailing acronym");
+	StationOverlayItem acronymOverlay("KBHallen", QPointF(), stationVisual);
+	ok &= expect(acronymOverlay.stationName() == QStringLiteral("KBHallen")
+			&& acronymOverlay.displayName() == QStringLiteral("KB Hallen"),
+		"display formatting leaves the source station identity unchanged");
 	overlay.setNameVisible(false);
 	ok &= expect(!overlay.isLabelVisible(), "station-name layer hides the label without hiding the station item");
 	ok &= expect(overlay.isVisible(), "station-name layer does not hide the station symbol");
@@ -110,23 +151,44 @@ int main(int argc, char* argv[]) {
 	ok &= expect(offscreenPlacement.offset.isNull() && !offscreenPlacement.fits,
 		"far-offscreen station overlays are not pinned to the viewport edge");
 
-	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), platform);
+	const QRectF collisionInset(0.0, 0.0, 120.0, 80.0);
+	const QRectF collisionSymbol(42.0, 32.0, 16.0, 16.0);
+	bool foundCollisionOffset = false;
+	const QPointF deterministicOffset = StationOverlayItem::firstFitCollisionOffset(
+		collisionSymbol, collisionInset, {collisionSymbol}, {}, &foundCollisionOffset);
+	ok &= expect(foundCollisionOffset && deterministicOffset == QPointF(20.0, 0.0),
+		"Fit collision search deterministically displaces the lower-priority symbol to the right");
+	const QPointF repeatedOffset = StationOverlayItem::firstFitCollisionOffset(
+		collisionSymbol, collisionInset, {collisionSymbol}, {}, &foundCollisionOffset);
+	ok &= expect(foundCollisionOffset && repeatedOffset == deterministicOffset,
+		"Fit collision search is stable across repeated layouts");
+	const QRectF tightInset = collisionSymbol;
+	StationOverlayItem::firstFitCollisionOffset(
+		collisionSymbol, tightInset, {collisionSymbol}, {}, &foundCollisionOffset);
+	ok &= expect(!foundCollisionOffset,
+		"Fit collision search reports suppression when no candidate remains inside the viewport");
+
+	StationOverlayItem multiNode("MultiNode", QPointF(8.0, 8.0), stationVisual);
+	multiNode.setSourceIdentities({{-2521.0, 21}, {-2522.0, 22}});
+	ok &= expect(multiNode.sourceIdentityCount() == 2
+			&& multiNode.matchesSourceIdentity(-2521.0, 21)
+			&& multiNode.matchesSourceIdentity(-2522.0, 22),
+		"one station overlay matches every assigned platform identity");
+	ok &= expect(multiNode.sourceNodeId() == -2521.0 && multiNode.sourceTrack() == 21,
+		"first assigned platform remains the deterministic representative identity");
+	multiNode.clearSourceIdentities();
+	ok &= expect(!multiNode.hasSourceIdentity()
+			&& !multiNode.matchesSourceIdentity(-2521.0, 21),
+		"clearing station identities removes every platform match");
 	multiNode.setNetworkDegree(3, true, true);
 	ok &= expect(multiNode.isInterchange(), "multi-node station keeps interchange flag");
 	ok &= expect(multiNode.isEndpoint(), "multi-node station keeps endpoint flag");
-	StationOverlayItem platformAfterDegree("PlatformAfterDegree", QPointF(12.0, 12.0), platform);
-	platformAfterDegree.setDegree(3);
-	StationOverlayItem stopAfterDegree("StopAfterDegree", QPointF(12.0, 12.0), stopVisual);
-	stopAfterDegree.setDegree(3);
-	ok &= expect(StationOverlayItem::priorityLess(platformAfterDegree, stopAfterDegree, QPointF()),
-		"platform class remains ahead of stop marker after interchange classification");
-
 	QList<StationOverlayItem*> candidates;
-	StationOverlayItem selected("Zulu", QPointF(0.0, 0.0), platform);
-	StationOverlayItem followed("Alpha", QPointF(1.0, 1.0), platform);
-	StationOverlayItem interchange("Beta", QPointF(2.0, 2.0), classifyStation(true, 3));
-	StationOverlayItem endpoint("Gamma", QPointF(3.0, 3.0), platform);
-	StationOverlayItem stop("Delta", QPointF(4.0, 4.0), stopVisual);
+	StationOverlayItem selected("Zulu", QPointF(0.0, 0.0), stationVisual);
+	StationOverlayItem followed("Alpha", QPointF(1.0, 1.0), stationVisual);
+	StationOverlayItem interchange("Beta", QPointF(2.0, 2.0), stationVisual);
+	StationOverlayItem endpoint("Gamma", QPointF(3.0, 3.0), stationVisual);
+	StationOverlayItem stop("Delta", QPointF(4.0, 4.0), stationVisual);
 	selected.setSelected(true);
 	followed.setFollowed(true);
 	interchange.setDegree(3);
@@ -139,19 +201,15 @@ int main(int argc, char* argv[]) {
 	ok &= expect(candidates.at(1) == &followed, "followed station has second priority");
 	ok &= expect(candidates.at(2) == &interchange, "interchange has third priority");
 	ok &= expect(candidates.at(3) == &endpoint, "endpoint has fourth priority");
-	ok &= expect(candidates.at(4) == &stop, "stop marker has remaining priority");
-	StationOverlayItem platformPriority("ZuluPlatform", QPointF(30.0, 0.0), platform);
-	StationOverlayItem stopPriority("AlphaStop", QPointF(30.0, 0.0), stop.visual());
-	ok &= expect(StationOverlayItem::priorityLess(platformPriority, stopPriority, QPointF()),
-		"platform precedes stop marker at equal distance");
-	StationOverlayItem nameZulu("ZuluTie", QPointF(40.0, 0.0), platform);
-	StationOverlayItem nameAlpha("AlphaTie", QPointF(-40.0, 0.0), platform);
+	ok &= expect(candidates.at(4) == &stop, "ordinary station has remaining priority");
+	StationOverlayItem nameZulu("ZuluTie", QPointF(40.0, 0.0), stationVisual);
+	StationOverlayItem nameAlpha("AlphaTie", QPointF(-40.0, 0.0), stationVisual);
 	ok &= expect(StationOverlayItem::priorityLess(nameAlpha, nameZulu, QPointF()),
 		"station name breaks equal-distance priority ties");
 
 	{
 		QGraphicsScene hoverScene;
-		auto* hovered = new StationOverlayItem("Hovered", QPointF(0.0, 0.0), platform);
+		auto* hovered = new StationOverlayItem("Hovered", QPointF(0.0, 0.0), stationVisual);
 		hovered->setLayoutVisible(false);
 		hovered->setCollisionBlocked(true);
 		hoverScene.addItem(hovered);
@@ -172,11 +230,49 @@ int main(int argc, char* argv[]) {
 
 	{
 		NetworkScene scene(nullptr);
+		scene.setSceneRect(-100.0, -100.0, 200.0, 200.0);
+		QGraphicsView view(&scene);
+		view.resize(240, 180);
+		view.scale(2.0, 2.0);
+		view.show();
+		QApplication::processEvents();
+		auto* displaced = new StationOverlayItem(
+			"ExactSourceStation", QPointF(0.0, 0.0), stationVisual);
+		displaced->setVisualScale(0.75);
+		displaced->setNameVisible(false);
+		QString clickedSource;
+		displaced->setDisplacedClickHandler(
+			[&clickedSource](const QString& stationName) { clickedSource = stationName; });
+		displaced->setFitCollisionOffset(QPointF(20.0, 0.0));
+		scene.addItem(displaced);
+		QApplication::processEvents();
+		ok &= expect(displaced->scale() == 1.0
+				&& displaced->symbolRect().size() == QSizeF(12.0, 12.0)
+				&& displaced->deviceSymbolRect().center() == QPointF(20.0, 0.0),
+			"0.75 overlays expose their actual fixed-device symbol geometry and offsets");
+		const QPoint displacedViewportPos = view.mapFromScene(displaced->stableAnchor()) + QPoint(20, 0);
+		const QPoint displacedScreenPos = view.viewport()->mapToGlobal(displacedViewportPos);
+		QMouseEvent press(QEvent::MouseButtonPress, QPointF(displacedViewportPos),
+			QPointF(displacedScreenPos), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QApplication::sendEvent(view.viewport(), &press);
+		QMouseEvent release(QEvent::MouseButtonRelease, QPointF(displacedViewportPos),
+			QPointF(displacedScreenPos), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view.viewport(), &release);
+		QApplication::processEvents();
+		ok &= expect(clickedSource == QStringLiteral("ExactSourceStation"),
+			"a real view click uses the same 20 device-pixel offset as 0.75 collision geometry");
+		displaced->setFitSymbolVisible(false);
+		ok &= expect(displaced->acceptedMouseButtons() == Qt::NoButton,
+			"a suppressed Fit symbol leaves node and label input available");
+	}
+
+	{
+		NetworkScene scene(nullptr);
 		QGraphicsView view(&scene);
 		view.resize(240, 180);
 		StationNodeItem station(QRectF(-10.0, -10.0, 20.0, 20.0));
 		station.setPos(0.0, 0.0);
-		StationOverlayItem decoration("Koge", QPointF(0.0, 0.0), platform);
+		StationOverlayItem decoration("Koge", QPointF(0.0, 0.0), stationVisual);
 		decoration.setZValue(3.0);
 		scene.addItem(&station);
 		scene.addItem(&decoration);

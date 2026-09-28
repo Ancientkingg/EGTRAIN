@@ -178,6 +178,51 @@ std::string sceneOutputDirectoryComponent(const std::string& sceneName) {
 	return sceneName;
 }
 
+double sceneServiceScheduledEntry(const SceneService& service, int occurrence) {
+	const double entry = service.hasEntryTime ? service.entryTimeSeconds
+			: (!service.stops.empty() && service.stops.front().hasPlannedDeparture
+					&& std::isfinite(service.stops.front().plannedDepartureSeconds)
+					? service.stops.front().plannedDepartureSeconds : 0.0);
+	return entry + (service.hasRepeat ? (occurrence - 1.0) * service.headwaySeconds : 0.0);
+}
+
+int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
+		const SceneRunSelection& selection) {
+	if (!std::isfinite(durationSeconds) || durationSeconds <= 0.0)
+		return 0;
+	const int total = sceneServiceOccurrenceCount(service, durationSeconds);
+	const auto inWindow = [&](int occurrence) {
+		const double entry = sceneServiceScheduledEntry(service, occurrence);
+		return std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds;
+	};
+	if (!selection.empty()) {
+		int count = 0;
+		for (const SceneServiceOccurrence& value : selection)
+			if (value.serviceId == service.id && value.occurrence >= 1
+					&& value.occurrence <= total && inWindow(value.occurrence))
+				++count;
+		return count;
+	}
+	if (!service.hasRepeat)
+		return inWindow(1) ? 1 : 0;
+	if (!std::isfinite(service.headwaySeconds) || service.headwaySeconds <= 0.0
+			|| !std::isfinite(sceneServiceScheduledEntry(service)))
+		return 0;
+	const auto before = [&](double boundary) {
+		int low = 0;
+		int high = total;
+		while (low < high) {
+			const int middle = low + (high - low) / 2;
+			if (sceneServiceScheduledEntry(service, middle + 1) < boundary)
+				low = middle + 1;
+			else
+				high = middle;
+		}
+		return low;
+	};
+	return before(durationSeconds) - before(0.0);
+}
+
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds) {
 	if (!service.hasRepeat)
 		return 1;
@@ -240,7 +285,7 @@ bool resolveScenePassengerLegStops(const SceneService& service, const ScenePasse
 
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
-	scene.schemaVersion = 1;
+	scene.schemaVersion = kCurrentSceneSchemaVersion;
 	scene.name = "Untitled Case Study";
 	scene.baseTime = "08:00:00";
 	scene.settings.hasDuration = true;
@@ -819,13 +864,16 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (!sceneJson.contains("schema_version")) {
 			addError("scene.version.missing", "scene.json", "Missing schema_version", "schema_version");
 		} else if (!sceneJson["schema_version"].is_number_integer()
-				|| sceneJson["schema_version"].get<int>() != 1) {
+				|| sceneJson["schema_version"].get<int>() != kCurrentSceneSchemaVersion) {
 			addError("scene.version.unsupported", "scene.json",
-					"Unsupported schema_version, must be the integer 1", "schema_version");
+					"Unsupported schema_version, must be the current integer "
+						+ std::to_string(kCurrentSceneSchemaVersion), "schema_version");
 		} else {
 			result.scene.schemaVersion = sceneJson["schema_version"].get<int>();
 		}
 		stringField(sceneJson, "name", "scene.json", "", result.scene.name);
+		stringField(sceneJson, "saved_with_app_version", "scene.json", "",
+				result.scene.savedWithAppVersion, false);
 		stringField(sceneJson, "description", "scene.json", "", result.scene.description, false);
 		stringField(sceneJson, "base_time", "scene.json", "", result.scene.baseTime, false);
 		if (sceneJson.contains("units")) {
@@ -1354,6 +1402,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			SceneService service;
 			stringField(value, "id", "services.json", path, service.id);
 			stringField(value, "operating_code", "services.json", path, service.operatingCode, false);
+			stringField(value, "category", "services.json", path, service.category, false);
 			stringField(value, "composition", "services.json", path, service.composition);
 			stringField(value, "route", "services.json", path, service.route);
 			numberField(value, "performance_percent", "services.json", path,

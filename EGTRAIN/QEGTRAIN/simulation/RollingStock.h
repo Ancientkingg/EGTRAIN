@@ -34,6 +34,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		const std::string& selectedScenarioId = {},
 		const SceneRunSelection& selectedOccurrences = {});
 
+// Clear operation metadata before preparing a scene without rebuilding train slots.
+void prepareNativeOperationsState();
+
 // Release native train-owned arrays and operation globals between scene runs.
 void resetNativeOperationsState();
 

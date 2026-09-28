@@ -16,6 +16,12 @@ void require(bool condition, const char* message) {
 
 int main() {
 	GuiTrainState activeTrain;
+	activeTrain.description = "Intercity northbound";
+	require(guiTrainDisplayIdentifier(activeTrain) == activeTrain.description,
+		"train description fallback was not used");
+	activeTrain.operatingCode = "1725";
+	require(guiTrainDisplayIdentifier(activeTrain) == activeTrain.operatingCode,
+		"operating code was not preferred");
 	activeTrain.occupiedArcs.push_back({7, 2.5});
 	GuiTrainState exitedTrain = activeTrain;
 	exitedTrain.outOfSimulation = true;

@@ -235,6 +235,8 @@ static json writeServices(const SceneModel& scene) {
 		};
 		if (!service.operatingCode.empty())
 			value["operating_code"] = service.operatingCode;
+		if (!service.category.empty())
+			value["category"] = service.category;
 		if (service.performancePercent != 100.0)
 			value["performance_percent"] = service.performancePercent;
 		if (service.hasMaximumSpeed)
@@ -561,6 +563,7 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	json sceneJson = {
 		{"schema_version", scene.schemaVersion},
 		{"name", scene.name},
+		{"saved_with_app_version", EGTRAIN_APP_VERSION},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
 	};
 	if (!scene.description.empty())

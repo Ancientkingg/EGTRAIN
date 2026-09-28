@@ -69,7 +69,7 @@ int main() {
 			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
 			<< "\n";
 		std::ofstream(scene / "services.json")
-			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","through":true,"entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]},{"id":"empty","composition":"comp","route":"route0","entry_time_seconds":0,"stops":[]}]})"
 			<< "\n";
 
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
@@ -79,6 +79,12 @@ int main() {
 		std::string line;
 		std::getline(route, line);
 		ok &= expect(line == "@Depot/1@", "Slash block id remains wrapped");
+		std::ifstream timetable(fs::path(outDir.dir) / "TimeTable" / "svc.txt");
+		std::getline(timetable, line);
+		ok &= expect(line == "st\t0\t-1\t0", "nonempty stops export despite historical through flag, retaining absent arrival");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "TimeTable" / "empty.txt")
+				&& fs::file_size(fs::path(outDir.dir) / "TimeTable" / "empty.txt") == 0,
+				"zero stops export as an empty legacy timetable without a flag");
 	}
 
 	// 8. Non-ASCII route ids are not treated as decimal route numbers.

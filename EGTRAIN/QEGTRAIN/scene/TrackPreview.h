@@ -29,6 +29,7 @@ struct TrackPreviewStation {
 	std::string nodeId;
 	double x = 0.0;
 	bool hasPlatform = false;
+	std::string id;
 };
 
 struct TrackPreviewSignal {
@@ -49,5 +50,13 @@ struct TrackPreviewResult {
 struct SceneModel;
 
 TrackPreviewResult loadTrackPreview(const SceneModel& scene);
+
+// These helpers operate on projected scene coordinates only; rawX remains the
+// canonical chainage used to interpolate runtime positions.
+bool trackPreviewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
+		TrackPreviewPoint& point);
+bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
+		TrackPreviewPoint& point);
+TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview);
 
 #endif

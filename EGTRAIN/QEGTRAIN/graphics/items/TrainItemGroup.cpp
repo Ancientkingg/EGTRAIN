@@ -17,3 +17,11 @@ TrainItemGroup::TrainItemGroup(QGraphicsItem* parent)
 
 TrainItemGroup::~TrainItemGroup() {
 }
+
+void TrainItemGroup::prepareForChildGeometryChange() {
+	prepareGeometryChange();
+}
+
+QRectF TrainItemGroup::boundingRect() const {
+	return childrenBoundingRect();
+}

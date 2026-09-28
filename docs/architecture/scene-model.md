@@ -64,6 +64,20 @@ schedule may produce a validation warning, but departure omission is not
 restricted to the last stop. Dwell and repetition remain planned input as
 well.
 
+Planned times on the route must be finite, non-negative and ordered, including
+arrival-only rows. Explicit entry must precede the first known route event.
+Without explicit entry, the native first-departure rule permits an earlier
+origin arrival for pre-departure dwell. Invalid numbers and chronology block
+Run; incomplete intermediate departures and insufficient dwell windows remain
+warnings for historical schedules. These checks do not predict physical running
+time. Inert off-route context retains historical finite negative offsets.
+
+The stop list is authoritative: empty means no scheduled calls, regardless of
+the historical `through` field. Nonempty stops are never discarded because that
+field is true. Canonical input/output retains the field for compatibility;
+legacy export writes the actual stop rows or an empty timetable, which import
+recognizes as a through service.
+
 Each service also has a unique canonical `id` and an optional
 `operating_code`. The latter defaults to the ID and preserves the active train
 identity consumed by the existing simulator. It is intentionally not required
@@ -74,6 +88,11 @@ service cap in km/h. The native commanded speed is the composition maximum
 limited by that cap, then multiplied by performance; 100% takes the legacy
 raw path. Performance does not alter braking, mass, shared composition data,
 buffer, or recovery.
+
+The optional service `category` is descriptive metadata, independent of physical
+properties, performance, speed limits and stops. Missing values mean no category;
+unknown strings survive canonical folder and bundle persistence. Legacy export
+cannot represent this field and omits it.
 
 Passenger journey windows use absolute seconds from midnight. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
@@ -94,6 +113,22 @@ the compatibility hourly-retiming algorithm may derive `departure_time` while
 leaving that canonical value unchanged. Arrival and departure timetable values
 remain independently optional and are staged as runtime `-1` when absent,
 including repeated occurrences.
+
+Route descriptions, stop validation and native stop preparation share an ordered
+traversal from `SectionInventory`. It follows authored section order, native
+direction and overlapping-switch clipping. Stops consume successive real node
+visits; shared section boundaries count once, while later visits are retained.
+A missing platform resolves only when one reachable platform remains. Explicit
+unreachable platforms and exhausted/out-of-order visits block preparation.
+Blank-platform rows at stations outside the route remain warning-labelled inert
+schedule context for legacy compatibility. No provenance flag distinguishes
+imported rows from otherwise identical authored rows.
+
+Scheduled entry uses explicit entry time first, otherwise the first finite
+planned departure, otherwise zero, plus the repeat offset. The editor's
+in-period count includes entries in `[0, effective duration)`. Configured totals
+and selected totals remain separate; this display does not filter runtime
+expansion or include scenario entrance delays in the schedule.
 
 Only the selected scenario is applied: an explicit selection wins, otherwise
 the exact default is used, with the first scenario used only when no default is
@@ -126,6 +161,17 @@ model validation only when structural loading has no error diagnostics, which
 avoids cascaded reference errors from partially parsed files.
 
 ## Compatibility boundary
+
+Compatibility is probed from `scene.json` before normal loading. The schema
+version describes canonical data; the bundle version describes ZIP transport;
+`saved_with_app_version` is descriptive provenance only. A newer schema or
+bundle is never downgraded. Older inputs are migratable only through explicit
+incremental registry steps; the production registry is currently empty.
+
+An upgrade always writes a copy through private staging and the existing
+transactional writer. The source directory or bundle remains unchanged on
+success and failure. Directory scenes and transparent bundles share the same
+current model, and a newer EGTRAIN release is required for newer formats.
 
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed

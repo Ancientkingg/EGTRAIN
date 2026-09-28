@@ -1016,48 +1016,8 @@ static void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependenc
 
 // Function to recognize if two block sections are overlapping
 bool areBlocksConnected(Section A, Section blockSets) {
-	bool AreOnSameBlock = false; // if the block does not have a station IsCommonBlock=true is enough to turn this variable into true, else if the block has a station this variable turns to true if IsCommonBlock is true and Blocking Time blockSets has the same stationName;
-	bool IsCommonBlock = false;	 // This variable is true if one of the two blocking times have at least a block in common
-	string BlockNameA;
-	BlockNameA = A.ID;
-	istringstream Line(BlockNameA);
-	list<string> TokenA;
-	string tok;
-
-	while (getline(Line, tok, '@')) {
-		if (tok.size() > 0)
-			TokenA.push_back(tok);
-	}
-
-	string BlockNameB = blockSets.ID;
-	istringstream Line2(BlockNameB);
-	list<string> TokenB;
-	string tok2;
-
-	while (getline(Line2, tok2, '@')) {
-		if (tok2.size() > 0)
-			TokenB.push_back(tok2);
-	}
-
-	for (list<string>::iterator h = TokenA.begin(); h != TokenA.end(); h++) {
-		for (list<string>::iterator p = TokenB.begin(); p != TokenB.end(); p++) {
-			if (*p == *h) {
-				IsCommonBlock = true;
-				break;
-			}
-		}
-		if (IsCommonBlock == 1)
-			break;
-	}
-	// If the blocking time has a station then AreOnSameBlock is true only if IsCommonBlock is true and the blocking times have the same stationName
-	if ((((blockSets.start_node.X >= A.start_node.X) && (blockSets.start_node.X < A.end_node.X)) || ((A.start_node.X >= blockSets.start_node.X) && (A.start_node.X < blockSets.end_node.X))) && (IsCommonBlock == 1)) { // if the beginning of A or the beginning of blockSets is in between the beginning and Ending Node of the other and they have a common part of the name
-		AreOnSameBlock = true;
-	}
-
-	if (AreOnSameBlock == 1)
-		return true;
-	else
-		return false;
+	return sceneSectionsOverlap(A.ID, A.start_node.X, A.end_node.X,
+			blockSets.ID, blockSets.start_node.X, blockSets.end_node.X);
 }
 
 // Function to set all Track Detection Section Boundaries and Geo Coordinates
@@ -2650,7 +2610,6 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			bool forward = false;
 			bool reverse = false;
 			bool directionError = false;
-			int preferredDirection = 0;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
 						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
@@ -2660,8 +2619,6 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				if (transition.joinsForward || transition.joinsReverse)
 					continue;
 				if (transition.regionJump && hasLegacyImport) {
-					if (preferredDirection == 0 && forward != reverse)
-						preferredDirection = forward ? 1 : -1;
 					forward = false;
 					reverse = false;
 					continue;
@@ -2675,9 +2632,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
 						"signalling.json", "route", route.id, "routes.blocks");
 			else {
-				if (preferredDirection == 0 && forward != reverse)
-					preferredDirection = forward ? 1 : -1;
-				routeDirections[index] = preferredDirection;
+				routeDirections[index] = sceneRouteDirection(scene, routeSections);
 			}
 		}
 	}
@@ -2804,6 +2759,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		NativeTrack& track = nativeTracks[slot];
 		BlockSet& runtimeTrack = blockSets[slot];
 		runtimeTrack.ID = static_cast<int>(slot);
+		runtimeTrack.sceneTrackId = track.id;
 		runtimeTrack.numNodes = static_cast<int>(track.chainNodes.size());
 		runtimeTrack.arcs = static_cast<int>(track.chainArcs.size());
 		runtimeTrack.len = static_cast<int>(track.chainArcs.size());
@@ -2816,6 +2772,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		}
 		for (std::size_t index = 0; index < track.chainNodes.size(); ++index) {
 			Node node;
+			node.sceneNodeId = track.chainNodes[index]->id;
 			node.ID = static_cast<double>(slot * 1000000 + index + 1);
 			node.X = track.chainNodes[index]->xKm;
 			node.Y = track.chainNodes[index]->yKm;
@@ -2874,6 +2831,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		const bool fromFirst = fromNode.X <= toNode.X;
 		connection.idFirstTrackLine = fromFirst ? firstSlot : secondSlot;
 		connection.idSecondTrackLine = fromFirst ? secondSlot : firstSlot;
+		connection.sceneFirstNodeId = fromFirst ? source.fromNodeId : source.toNodeId;
+		connection.sceneSecondNodeId = fromFirst ? source.toNodeId : source.fromNodeId;
 		connection.xFirstNode = fromFirst ? fromNode.X : toNode.X;
 		connection.xSecondNode = fromFirst ? toNode.X : fromNode.X;
 		connection.speedlimit = source.hasSpeedLimit ? source.speedLimitMs : 16.667;

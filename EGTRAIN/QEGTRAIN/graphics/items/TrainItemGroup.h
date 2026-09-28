@@ -30,6 +30,11 @@ public:
 	// pointer to list of polygons
 	QList<TrainBodyItem*>* trainPolygonItemList;
 
+	// QGraphicsItemGroup caches its child bounds. Notify the scene before a
+	// train body polygon changes so the group's scene index remains current.
+	void prepareForChildGeometryChange();
+	QRectF boundingRect() const override;
+
 	// to allow cast
 	enum { Type = UserType + 8 };
 	int type() const {

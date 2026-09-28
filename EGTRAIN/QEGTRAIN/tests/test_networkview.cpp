@@ -187,12 +187,18 @@ int main(int argc, char** argv) {
 		"resize preserves a programmatic scene center");
 	view.resize(640, 480);
 	QApplication::processEvents();
-	checkProgrammaticZoom(100.0, true, "zoom-in clamps at the station-detail maximum");
+	view.zoomBy(32.0);
+	QWheelEvent detailWheel(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(), QPoint(0, 120),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(view.viewport(), &detailWheel);
+	ok &= expect(near(view.zoomRatio(), 64.0 * 1.15, 1e-5),
+		"wheel zoom continues beyond the former 64x limit");
+	checkProgrammaticZoom(1000.0, true, "zoom-in clamps at the station-detail maximum");
 	ok &= expect(near(view.zoomRatio(), NetworkView::maximumZoomRatio(), 1e-5)
-			&& view.zoomLabel() == "64x",
-		"zoom-in reaches the 64x station-detail maximum");
+			&& view.zoomLabel() == "640x",
+		"zoom-in reaches the 640x station-detail maximum");
 	checkProgrammaticZoom(1.15, false, "zoom-in at maximum is a no-op");
-	checkProgrammaticZoom(1.0 / 100.0, true, "zoom-out clamps at Fit");
+	checkProgrammaticZoom(1.0 / 1000.0, true, "zoom-out clamps at Fit");
 	ok &= expect(near(view.zoomRatio(), 1.0, 1e-5) && view.zoomLabel() == "Fit",
 		"zoom-out clamps at Fit");
 	checkProgrammaticZoom(1.0 / 1.15, false, "zoom-out at Fit remains a no-op");
@@ -219,7 +225,7 @@ int main(int argc, char** argv) {
 	view.zoomBy(2.0);
 	ok &= expect(view.zoomLabel() == "2x", "integral zoom labels use map notation");
 	view.zoomBy(NetworkView::maximumZoomRatio());
-	ok &= expect(view.zoomLabel() == "64x", "maximum zoom label uses map notation");
+	ok &= expect(view.zoomLabel() == "640x", "maximum zoom label uses map notation");
 
 	Q_UNUSED(fittedScale);
 	return ok ? 0 : 1;

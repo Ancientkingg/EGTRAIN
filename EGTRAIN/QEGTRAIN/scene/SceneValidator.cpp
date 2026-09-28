@@ -422,13 +422,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
 			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
-	std::unordered_map<std::string, std::unordered_set<std::string>> sectionNodeIds;
-	for (const auto& section : sectionInventory.sections) {
-		std::unordered_set<std::string> ids(section.nodeIds.begin(), section.nodeIds.end());
-		sectionNodeIds[section.id] = ids;
-		if (!section.sourceBlockId.empty())
-			sectionNodeIds[section.sourceBlockId] = ids;
-	}
 
 	std::unordered_set<std::string> stationIds;
 	std::unordered_map<std::string, const SceneStation*> stations;
@@ -556,8 +549,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 	std::unordered_set<std::string> routeIds;
 	collectIds(scene.routes, "signalling.json", "route", "routes", diagnostics, routeIds);
-	std::unordered_map<std::string, std::unordered_set<std::string>> routeNodeIds;
-	std::unordered_set<std::string> routesWithCompleteNodeMembership;
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		const SceneRoute& route = scene.routes[index];
 		const std::string path = "routes[" + std::to_string(index) + "]";
@@ -565,27 +556,18 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.route.empty", "Route has no blocks", "signalling.json", "route", route.id,
 					path + ".blocks", "", "List the block ids the route runs through");
 		}
-		bool nodeMembershipComplete = !route.blocks.empty() && !sectionNodeIds.empty();
 		std::vector<const SceneSectionDescriptor*> routeSections;
 		routeSections.reserve(route.blocks.size());
 		for (const auto& token : route.blocks) {
 			const SceneSectionDescriptor* section = sectionInventory.resolve(token);
 			if (section == nullptr) {
-				nodeMembershipComplete = false;
 				diagnostics.error("scene.ref.unresolved", "Route refers to an unknown runtime section",
 						"signalling.json", "route", route.id, path + ".blocks", token,
 						"Choose a base block or an exact connection-derived section from the section catalog");
 			} else {
 				routeSections.push_back(section);
 			}
-			const auto nodes = sectionNodeIds.find(token);
-			if (nodes == sectionNodeIds.end())
-				nodeMembershipComplete = false;
-			else
-				routeNodeIds[route.id].insert(nodes->second.begin(), nodes->second.end());
 		}
-		if (nodeMembershipComplete)
-			routesWithCompleteNodeMembership.insert(route.id);
 		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
 			bool forward = false;
 			bool reverse = false;
@@ -809,17 +791,21 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
 					"Use a smaller decimal base, step, or repeat count");
 		serviceOccurrences[service.id] = occurrences;
-		if (service.stops.empty()) {
-			if (!service.through)
-				diagnostics.warning("scene.service.no_stops", "Service has no stops", "services.json",
-						"service", service.id, path + ".stops", "",
-						"Add at least one stop or mark the service through");
-		} else if (service.through) {
-			diagnostics.warning("scene.service.through_stops", "Through service has stops", "services.json",
-					"service", service.id, path + ".through");
-		}
-		bool hasPreviousDeparture = false;
-		double previousDeparture = 0.0;
+		if (service.hasEntryTime && (!std::isfinite(service.entryTimeSeconds) || service.entryTimeSeconds < 0.0))
+			diagnostics.error("scene.time.entry.invalid", "Entry time must be finite and non-negative",
+					"services.json", "service", service.id, path + ".entry_time_seconds");
+		bool hasPreviousEvent = service.hasEntryTime && std::isfinite(service.entryTimeSeconds);
+		double previousEvent = service.entryTimeSeconds;
+		const SceneRoute* serviceRoute = nullptr;
+		for (const auto& candidate : scene.routes)
+			if (candidate.id == service.route) {
+				serviceRoute = &candidate;
+				break;
+			}
+		const SceneRouteTraversal routeTraversal = serviceRoute
+				? buildSceneRouteTraversal(scene, *serviceRoute, sectionInventory) : SceneRouteTraversal();
+		const std::vector<SceneStopResolution> stopResolutions =
+			resolveSceneServiceStops(scene, service, routeTraversal);
 		for (std::size_t stopIndex = 0; stopIndex < service.stops.size(); ++stopIndex) {
 			const SceneStop& stop = service.stops[stopIndex];
 			const std::string stopPath = path + ".stops[" + std::to_string(stopIndex) + "]";
@@ -838,18 +824,54 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				if (selectedPlatform == nullptr) {
 					diagnostics.error("scene.ref.platform", "Stop refers to platform not on station",
 							"services.json", "service", service.id, stopPath + ".platform", stop.platformId);
-				} else if (!selectedPlatform->nodeIds.empty()
-						&& routesWithCompleteNodeMembership.count(service.route) > 0) {
-					const auto routeNodes = routeNodeIds.find(service.route);
-					const bool accessible = routeNodes != routeNodeIds.end()
-							&& std::any_of(selectedPlatform->nodeIds.begin(), selectedPlatform->nodeIds.end(),
-									[&routeNodes](const std::string& nodeId) {
-										return routeNodes->second.count(nodeId) > 0;
-									});
-					if (!accessible)
-						diagnostics.error("scene.ref.platform.route", "Stop platform is not present on the service route",
+				}
+			}
+			if (stopIndex < stopResolutions.size()) {
+				const SceneStopResolution& resolution = stopResolutions[stopIndex];
+				switch (resolution.status) {
+				case SceneStopResolutionStatus::AmbiguousPlatform:
+					diagnostics.error("scene.ref.platform.route",
+							"Stop without a platform resolves to multiple ordered route platforms",
+							"services.json", "service", service.id, stopPath + ".platform", "",
+							"Choose one of the reachable platforms: "
+								+ (resolution.candidatePlatformIds.empty() ? std::string("(none)")
+										: resolution.candidatePlatformIds.front()));
+					break;
+				case SceneStopResolutionStatus::OutOfOrder:
+					diagnostics.error("scene.ref.stop.order",
+							"Stop is not reachable after the preceding ordered route visit",
+							"services.json", "service", service.id, stopPath + ".station", stop.stationId,
+							"Reorder the stop or choose a later route visit");
+					break;
+				case SceneStopResolutionStatus::OffRouteContext:
+					if (stop.platformId.empty())
+						diagnostics.warning("scene.stop.off_route.context",
+								"Blank-platform stop is retained as inert schedule context because its station is outside the route",
+								"services.json", "service", service.id, stopPath + ".station", stop.stationId,
+								"Choose a reachable station/platform before running this stop");
+					else
+						diagnostics.error("scene.ref.platform.route",
+								"Explicit stop platform is not present on the ordered service route",
 								"services.json", "service", service.id, stopPath + ".platform", stop.platformId,
-								"Bind the platform to a node on the selected route or choose another platform");
+								"Choose a platform on a later ordered route visit");
+					break;
+				case SceneStopResolutionStatus::InvalidPlatform:
+					if (!stop.platformId.empty())
+						diagnostics.error("scene.ref.platform.route",
+								"Explicit stop platform is not present on the ordered service route",
+								"services.json", "service", service.id, stopPath + ".platform", stop.platformId,
+								"Choose one of the reachable platforms");
+					break;
+				case SceneStopResolutionStatus::UnresolvedRoute:
+					if (serviceRoute != nullptr)
+						diagnostics.error("scene.ref.stop.route",
+								"Stop cannot be resolved because the service route has no ordered traversal",
+								"services.json", "service", service.id, stopPath + ".station", stop.stationId,
+								"Fix the route topology before assigning stops");
+					break;
+				case SceneStopResolutionStatus::UnknownStation:
+				case SceneStopResolutionStatus::Resolved:
+					break;
 				}
 			}
 			if (stop.hasPlannedArrival && stop.hasPlannedDeparture
@@ -857,19 +879,33 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.time.invalid", "Departure before arrival", "services.json",
 						"service", service.id, stopPath + ".planned_departure_seconds");
 			}
-			if (stop.hasPlannedDeparture) {
-				if (hasPreviousDeparture && stop.plannedDepartureSeconds < previousDeparture)
-					diagnostics.warning("scene.time.order", "Non-increasing departure times", "services.json",
-							"service", service.id, stopPath + ".planned_departure_seconds");
-				hasPreviousDeparture = true;
-				previousDeparture = stop.plannedDepartureSeconds;
-			} else if (stopIndex + 1 < service.stops.size()) {
+			const bool context = stopIndex < stopResolutions.size()
+					&& stopResolutions[stopIndex].status == SceneStopResolutionStatus::OffRouteContext
+					&& stop.platformId.empty();
+			const auto checkEvent = [&](bool present, double seconds, const char* field) {
+				if (!present) return;
+				if (!std::isfinite(seconds) || (!context && seconds < 0.0)) {
+					diagnostics.error("scene.time.invalid", "Planned time must be finite and non-negative on the route",
+							"services.json", "service", service.id, stopPath + field);
+					return;
+				}
+				if (context) return;
+				if (hasPreviousEvent && seconds < previousEvent)
+					diagnostics.error("scene.time.order", "Planned time precedes entry or a previous route event",
+							"services.json", "service", service.id, stopPath + field, "",
+							"Keep arrival and departure times in route order, at or after explicit entry");
+				previousEvent = hasPreviousEvent ? std::max(previousEvent, seconds) : seconds;
+				hasPreviousEvent = true;
+			};
+			checkEvent(stop.hasPlannedArrival, stop.plannedArrivalSeconds, ".planned_arrival_seconds");
+			checkEvent(stop.hasPlannedDeparture, stop.plannedDepartureSeconds, ".planned_departure_seconds");
+			if (!stop.hasPlannedDeparture && stopIndex + 1 < service.stops.size()) {
 				diagnostics.warning("scene.time.departure.missing",
 						"Intermediate stop has no planned departure", "services.json", "service", service.id,
 						stopPath + ".planned_departure_seconds");
 			}
-			if (stop.dwellSeconds < 0.0)
-				diagnostics.error("scene.dwell.invalid", "Negative dwell time", "services.json", "service",
+			if (!std::isfinite(stop.dwellSeconds) || stop.dwellSeconds < 0.0)
+				diagnostics.error("scene.dwell.invalid", "Dwell time must be finite and non-negative", "services.json", "service",
 						service.id, stopPath + ".dwell_seconds", "",
 						"Use a dwell time of 0 or more seconds");
 			if (stop.hasPlannedArrival && stop.hasPlannedDeparture

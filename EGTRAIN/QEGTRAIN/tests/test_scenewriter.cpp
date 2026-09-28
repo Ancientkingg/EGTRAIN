@@ -201,6 +201,7 @@ int main() {
 	bool ok = true;
 	TempDir temp;
 	SceneModel source = completeScene();
+	source.savedWithAppVersion = "0.9.0";
 	source.stations[0].platforms[0].hasLength = true;
 	source.stations[0].platforms[0].lengthM = 125.0;
 	source.stations[0].platforms[0].hasWidth = true;
@@ -226,6 +227,13 @@ int main() {
 			&& savedSnapshot == onDiskSnapshot.bytes,
 			"successful save retains the exact framed canonical input snapshot");
 	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
+	json savedScene;
+	{
+		std::ifstream input(temp.path / "scene.json");
+		input >> savedScene;
+	}
+	ok &= expect(savedScene["saved_with_app_version"] == EGTRAIN_APP_VERSION,
+			"writer records the authoritative current app version");
 	{
 		std::ofstream marker(temp.path / "generation-marker.txt", std::ios::binary);
 		marker << "original generation marker\n";
@@ -477,9 +485,20 @@ int main() {
 			&& !normalizedScenarios["scenarios"][1]["incidents"][0].contains("end_seconds"),
 			"writer preserves a nonzero reduced speed when its presence flag is stale");
 	ok &= expect(!legacyServices["services"][0].contains("performance_percent")
+				&& !legacyServices["services"][0].contains("category")
 				&& !legacyServices["services"][0].contains("maximum_speed_kmh")
 				&& !legacyServices["services"][0].contains("repeat"),
 				"default service properties remain omitted for legacy scenes");
+	SceneModel missingCategory;
+	ok &= expect(loadHasNoErrors(legacyDefaultsPath, missingCategory)
+			&& missingCategory.services[0].category.empty(), "missing category defaults to empty");
+	legacyServices["services"][0]["category"] = 42;
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	ok &= expect(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
+			"non-string category is rejected");
 	ok &= expect(reloaded.services[0].stops[1].hasPlannedArrival
 				&& reloaded.services[0].stops[1].plannedArrivalSeconds == 200.0,
 			"planned arrival round-trips");
@@ -490,6 +509,26 @@ int main() {
 	ok &= expect(reloaded.trainUnits[0].sourceDataFile == "/TrainData/unit-1.txt"
 				&& reloaded.trainUnits[0].sourceTractionFile.empty(),
 			"rolling provenance fields are independently optional");
+	ok &= expect(reloaded.savedWithAppVersion == EGTRAIN_APP_VERSION,
+			"saved app version round-trips");
+
+	const fs::path missingVersionPath = temp.path / "missing-version";
+	ok &= expect(saveScene(source, missingVersionPath.string()).success(),
+			"scene with saved app version saves before optional-field check");
+	json missingVersionScene;
+	{
+		std::ifstream input(missingVersionPath / "scene.json");
+		input >> missingVersionScene;
+	}
+	missingVersionScene.erase("saved_with_app_version");
+	{
+		std::ofstream output(missingVersionPath / "scene.json");
+		output << missingVersionScene.dump(2) << "\n";
+	}
+	SceneModel missingVersion;
+	ok &= expect(loadHasNoErrors(missingVersionPath, missingVersion)
+			&& missingVersion.savedWithAppVersion.empty(),
+			"missing saved app version remains valid and empty");
 
 	// The student-facing loaded-data summary distinguishes source, parsed,
 	// optional, and validation states and carries only concrete editor targets.

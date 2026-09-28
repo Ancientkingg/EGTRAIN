@@ -6,9 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ENTITY_ASSETS = {
-    "icons/station-stop.svg": "resources/icons/station-stop.svg",
-    "icons/station-platform.svg": "resources/icons/station-platform.svg",
-    "icons/station-interchange.svg": "resources/icons/station-interchange.svg",
+    "icons/station.svg": "resources/icons/station.svg",
     "icons/passenger.svg": "resources/icons/passenger.svg",
     "icons/train-passenger.svg": "resources/icons/train-passenger.svg",
     "icons/train-sprinter.svg": "resources/icons/train-sprinter.svg",
@@ -51,7 +49,7 @@ def main() -> None:
     if not any(f'":/{alias}"' in source_text for alias in ENTITY_ASSETS):
         raise SystemExit("application and graphics source do not reference an SVG resource")
 
-    if "find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg)" not in cmake:
+    if not re.search(r"find_package\(Qt5 REQUIRED COMPONENTS [^)]*\bSvg\b", cmake):
         raise SystemExit("CMake does not require Qt5 Svg")
     if "Qt5::Svg" not in cmake:
         raise SystemExit("CMake does not link Qt5::Svg")

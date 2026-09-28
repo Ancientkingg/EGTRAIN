@@ -4,6 +4,7 @@
 #include "simulation/Simulation.h"
 #include "simulation/SimulationWorker.h"
 #include "util/portability.h"  // localtime_r shim on MSVC
+#include "util/PlaybackProfiler.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -13,6 +14,9 @@
 #include <memory>
 #include <map>
 #include <optional>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace {
 void ensureDirectory(const string& path) {
@@ -34,6 +38,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		state.id = train.ID;
 		state.type = train.type;
 		state.description = train.trainDescription;
+		state.operatingCode = train.operatingCode;
 		state.routeIndex = train.indexOfRoute;
 		const bool validRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(train_route.size());
 		state.reversedDirection = validRoute ? train_route[train.indexOfRoute].reversed_direction : false;
@@ -165,19 +170,65 @@ DispatchController simulation;
 
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
-	resetState();
+	using DetailClock = std::chrono::steady_clock;
+	const char* detailGate = std::getenv("QEGTRAIN_STARTUP_NATIVE_DETAIL");
+	const char* timingGate = std::getenv("QEGTRAIN_STARTUP_TIMING");
+	const bool detailEnabled = detailGate && std::strcmp(detailGate, "1") == 0
+		&& timingGate && std::strcmp(timingGate, "1") == 0;
+	static unsigned long long detailInvocation = 0;
+	const unsigned long long invocation = detailEnabled ? ++detailInvocation : 0;
+	const auto now = [detailEnabled] {
+		return detailEnabled ? DetailClock::now() : DetailClock::time_point{};
+	};
+	const auto started = now();
+	std::chrono::nanoseconds resetSetupTime{};
+	std::chrono::nanoseconds validationTime{};
+	std::chrono::nanoseconds infrastructureTime{};
+	std::chrono::nanoseconds operationsTime{};
+	std::chrono::nanoseconds outputTime{};
+	const auto elapsed = [](DetailClock::time_point from, DetailClock::time_point to) {
+		return std::chrono::duration_cast<std::chrono::nanoseconds>(to - from);
+	};
+	const auto reportDetail = [&](const char* stage) {
+		if (!detailEnabled)
+			return;
+		const auto total = resetSetupTime + validationTime + infrastructureTime + operationsTime + outputTime;
+		const auto milliseconds = [](std::chrono::nanoseconds duration) {
+			return std::chrono::duration<double, std::milli>(duration).count();
+		};
+		std::fprintf(stdout, "QEGTRAIN_NATIVE_DETAIL invocation=%llu total_ms=%.6f reset_setup_ms=%.6f runnable_validation_ms=%.6f infrastructure_signalling_ms=%.6f operations_ms=%.6f output_directory_setup_ms=%.6f stage=%s\n",
+			invocation, milliseconds(total), milliseconds(resetSetupTime), milliseconds(validationTime),
+			milliseconds(infrastructureTime), milliseconds(operationsTime), milliseconds(outputTime), stage);
+		std::fflush(stdout);
+	};
+
+	beginScenePreparation();
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
 			? std::optional<double>(initial_variables.times) : std::nullopt;
+	auto checkpoint = now();
+	resetSetupTime = elapsed(started, checkpoint);
 	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene, selectedOccurrences,
 			effectiveDurationOverride);
-	if (hasErrors(diagnostics))
+	auto next = now();
+	validationTime = elapsed(checkpoint, next);
+	checkpoint = next;
+	if (hasErrors(diagnostics)) {
+		resetState();
+		reportDetail("runnable_validation_failure");
 		return diagnostics;
+	}
 
 	const std::vector<SceneDiagnostic> infrastructure =
 		buildInfrastructureAndSignallingFromScene(scene);
 	diagnostics.insert(diagnostics.end(), infrastructure.begin(), infrastructure.end());
-	if (hasErrors(diagnostics)) {
+	const bool infrastructureFailed = hasErrors(diagnostics);
+	if (infrastructureFailed)
 		resetState();
+	next = now();
+	infrastructureTime = elapsed(checkpoint, next);
+	checkpoint = next;
+	if (infrastructureFailed) {
+		reportDetail("infrastructure_signalling_failure");
 		return diagnostics;
 	}
 
@@ -186,6 +237,9 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	diagnostics.insert(diagnostics.end(), operations.begin(), operations.end());
 	if (hasErrors(diagnostics)) {
 		resetState();
+		next = now();
+		operationsTime = elapsed(checkpoint, next);
+		reportDetail("operations_failure");
 		return diagnostics;
 	}
 	if (initial_variables.RChoice) {
@@ -197,9 +251,15 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 				"passengers.json", "passenger", {}, "passengers", {},
 				"Add a passenger journey within the selected run"});
 			resetState();
+			next = now();
+			operationsTime = elapsed(checkpoint, next);
+			reportDetail("operations_failure");
 			return diagnostics;
 		}
 	}
+	next = now();
+	operationsTime = elapsed(checkpoint, next);
+	checkpoint = next;
 
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
@@ -210,7 +270,20 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	ensureDirectory(initial_variables.OutputMainFolder + "/TEMP");
 	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories/RoutesGenerated");
 	Folder_RI_PH = initial_variables.OutputMainFolder + "/TrainTrajectories";
+	outputTime = elapsed(checkpoint, now());
+	reportDetail("success");
 	return diagnostics;
+}
+
+void DispatchController::beginScenePreparation() {
+	snapshotMailbox_.take();
+	prepareNativeOperationsState();
+	BlocksOccupied.clear();
+	BlocksConnected.clear();
+	ETCS_MA.clear();
+	AllLocations.clear();
+	All_Topology_Sequences.clear();
+	signalAspects.clear();
 }
 
 // Reset all native runtime state before loading another canonical scene.
@@ -231,9 +304,20 @@ std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationS
 }
 
 void DispatchController::publishSimulationSnapshot(int timestep) {
-	auto snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
-	if (snapshotMailbox_.publish(std::move(snapshot)))
-		emit snapshotAvailable();
+	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish", "worker", "");
+	std::shared_ptr<const GuiSimulationSnapshot> snapshot;
+	{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/build_gui_snapshot", "worker",
+			"worker/playback_step/snapshot_build_publish");
+		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
+	}
+	{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/mailbox_publish", "worker",
+			"worker/playback_step/snapshot_build_publish");
+		if (snapshotMailbox_.publish(std::move(snapshot)))
+			emit snapshotAvailable();
+	}
+	PlaybackProfiler::instance().noteTimestep(timestep);
 }
 
 void DispatchController::runSimulation() {
@@ -341,29 +425,42 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			if (int delay = sw->delayMs())
 				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 		}
+		{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 		clock_t startEGTRAIN = clock(); // EGTRAIN start time
 		std::cout << "\r Time of simulation is " << t;
 
-		// Simulate entrance process of passengers on the railway network according to route choice
-		checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
+				"worker/playback_step/compute");
+			// Simulate entrance process of passengers on the railway network according to route choice
+			checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
 
-		// This function will update the list of all waiting passengers at all platforms in the network at every instant
-		// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
-		// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
-		if (initial_variables.PAX_GUI) {
-			Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
+			// This function will update the list of all waiting passengers at all platforms in the network at every instant
+			// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
+			// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
+			if (initial_variables.PAX_GUI) {
+				Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
+			}
 		}
 
-		// Simulate train movement at each simulation step
-		for (int j = 0; j < numRegions; j++) {
-			regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
-			regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-			regional_train[j].recordStationPassagesAtTime(t);
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
+				"worker/playback_step/compute");
+			// Simulate train movement at each simulation step
+			for (int j = 0; j < numRegions; j++) {
+				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
+				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
+				regional_train[j].recordStationPassagesAtTime(t);
 
-			// check if train arrived at destination or departed from origin
-			regional_train[j].checkTrainArrDep(j, t);
+				// check if train arrived at destination or departed from origin
+				regional_train[j].checkTrainArrDep(j, t);
+			}
 		}
 
+		{
+		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
+			"worker/playback_step/compute");
 		// Here we prepare the Traffic State data
 		for (int n = 0; n < numRegions; n++) {
 
@@ -398,9 +495,14 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
 
 		}
+		}
 
-		// Print Passenger Status after the simulation
-		printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_status_output", "worker",
+				"worker/playback_step/compute");
+			// Print Passenger Status after the simulation
+			printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
+		}
 
 		jsmsg["time"] = t;
 
@@ -420,40 +522,45 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
 		}
 
-		ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup", "worker",
+				"worker/playback_step/compute");
+			ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
 
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+			Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
 
-		// Occupy failed sections and give them an End of Authority so both
-		// aspect-driven and moving-block trains react to the incident
-		Apply_Signal_Failures_Mixed_Signalling(t);
+			// Occupy failed sections and give them an End of Authority so both
+			// aspect-driven and moving-block trains react to the incident
+			Apply_Signal_Failures_Mixed_Signalling(t);
 
-		// Only for level>=3
-		ReportAllTrainPositionsToRBC(t, 50);
+			// Only for level>=3
+			ReportAllTrainPositionsToRBC(t, 50);
 
-		// function to protect all station areas
-		protectStationAreas(t);
+			// function to protect all station areas
+			protectStationAreas(t);
 
-		releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
+			releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
 
-		activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
+			activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
 
-		unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
+			unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
 
-		for (int i = 0; i < numRegions; i++) {
-			regional_train[i].unlockSingleTrack(
-				train_route[regional_train[i].indexOfRoute].sequence_of_block_sections,
-				train_route[regional_train[i].indexOfRoute].N_Block_Sections,
-				t);
-		} // unlock occupied single tracks
+			for (int i = 0; i < numRegions; i++) {
+				regional_train[i].unlockSingleTrack(
+					train_route[regional_train[i].indexOfRoute].sequence_of_block_sections,
+					train_route[regional_train[i].indexOfRoute].N_Block_Sections,
+					t);
+			} // unlock occupied single tracks
 
-		BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-		BlocksConnected.clear(); // Clear the list BlocksConnected
+			BlocksOccupied.clear();	 // Clear the list BlocksOccupied
+			BlocksConnected.clear(); // Clear the list BlocksConnected
 
-		Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
+			Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
+		}
 
 		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
 		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
+		}
 
 		publishSimulationSnapshot(t);
 	}

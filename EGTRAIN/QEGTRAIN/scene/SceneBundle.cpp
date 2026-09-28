@@ -34,8 +34,6 @@ constexpr mz_uint64 kMaxEntrySize = 16ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxTotalSize = 64ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxCompressionRatio = 1000;
 constexpr mz_uint kMaxEntries = 16;
-constexpr int kBundleVersion = 1;
-constexpr int kSchemaVersion = 1;
 
 const std::array<const char*, 7> kRequiredEntries = {
 	"scene.json", "infrastructure.json", "stations.json", "signalling.json",
@@ -69,6 +67,12 @@ struct ArchiveEntry {
 	mz_uint index = 0;
 	std::string name;
 	mz_zip_archive_file_stat stat{};
+};
+
+struct BundleManifest {
+	int schemaVersion = 0;
+	std::optional<int> bundleVersion;
+	std::string savedWithAppVersion;
 };
 
 static void addDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
@@ -235,8 +239,10 @@ static bool readArchiveFile(const fs::path& path, std::string& contents,
 	return true;
 }
 
+static bool canonicalEntryName(const std::string& name);
+
 static bool inspectBundle(const fs::path& path, const std::string& archiveBytes, ZipReader& reader,
-		std::vector<ArchiveEntry>& entries,
+		std::vector<ArchiveEntry>& entries, BundleManifest& manifest,
 		std::vector<SceneDiagnostic>& diagnostics) {
 	const mz_uint64 archiveSize = archiveBytes.size();
 	if (!mz_zip_reader_init_mem(&reader.zip, archiveBytes.data(), archiveBytes.size(), 0)) {
@@ -300,13 +306,6 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			addDiagnostic(diagnostics, "scene.bundle.duplicate", "Case-insensitive duplicate ZIP entry", name);
 			return false;
 		}
-		if (name != "passengers.json" && name != "views.json"
-				&& std::none_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&name](const char* required) {
-					return name == required;
-				})) {
-			addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", name);
-			return false;
-		}
 		if (stat.m_comp_size > archiveSize) {
 			addDiagnostic(diagnostics, "scene.bundle.archive", "ZIP entry exceeds the archive size", name);
 			return false;
@@ -328,29 +327,34 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 		entries.push_back({index, name, stat});
 	}
 
-	for (const char* required : kRequiredEntries) {
-		if (std::none_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-				return entry.name == required;
-			})) {
-			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", required);
-			return false;
-		}
-	}
-
-	if (!mz_zip_validate_archive(&reader.zip, 0)) {
-		addDiagnostic(diagnostics, "scene.bundle.archive", "ZIP validation failed: " + zipError(reader.zip),
-				path.string());
-		return false;
-	}
-
-	const auto manifest = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
+	const auto manifestEntry = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
 		return entry.name == "scene.json";
 	});
-	std::string manifestText(static_cast<std::size_t>(manifest->stat.m_uncomp_size), '\0');
-	if (!mz_zip_reader_extract_to_mem(&reader.zip, manifest->index,
+	if (manifestEntry == entries.end()) {
+		const auto unknown = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
+			return !canonicalEntryName(entry.name);
+		});
+		if (unknown != entries.end()) {
+			addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1",
+					unknown->name);
+			return false;
+		}
+		addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
+		return false;
+	}
+	std::string manifestText(static_cast<std::size_t>(manifestEntry->stat.m_uncomp_size), '\0');
+	if (!mz_zip_reader_extract_to_mem(&reader.zip, manifestEntry->index,
 				manifestText.empty() ? nullptr : manifestText.data(), manifestText.size(), 0)) {
-		addDiagnostic(diagnostics, "scene.bundle.manifest", "Cannot extract scene.json manifest",
-				"scene.json");
+		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
+				[&entries](const char* required) {
+					return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
+						return entry.name == required;
+					});
+				});
+		if (!allRequired)
+			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
+		else
+			addDiagnostic(diagnostics, "scene.bundle.manifest", "Cannot extract scene.json manifest", "scene.json");
 		return false;
 	}
 	try {
@@ -361,19 +365,67 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 					"scene.json");
 			return false;
 		}
-		if (!manifestJson.contains("bundle_version") || !manifestJson["bundle_version"].is_number_integer()
-				|| manifestJson["bundle_version"] != kBundleVersion) {
-			addDiagnostic(diagnostics, "scene.bundle.version", "scene.json bundle_version must be 1", "scene.json");
+		if (!manifestJson.contains("bundle_version") || !manifestJson["bundle_version"].is_number_integer()) {
+			addDiagnostic(diagnostics, "scene.bundle.version", "scene.json bundle_version must be an integer", "scene.json");
 			return false;
 		}
-		if (!manifestJson.contains("schema_version") || !manifestJson["schema_version"].is_number_integer()
-				|| manifestJson["schema_version"] != kSchemaVersion) {
-			addDiagnostic(diagnostics, "scene.bundle.schema", "scene.json schema_version must be 1", "scene.json");
+		if (!manifestJson.contains("schema_version") || !manifestJson["schema_version"].is_number_integer()) {
+			addDiagnostic(diagnostics, "scene.bundle.schema", "scene.json schema_version must be an integer", "scene.json");
 			return false;
+		}
+		manifest.bundleVersion = manifestJson["bundle_version"].get<int>();
+		manifest.schemaVersion = manifestJson["schema_version"].get<int>();
+		if (manifestJson.contains("saved_with_app_version")) {
+			if (!manifestJson["saved_with_app_version"].is_string()) {
+				addDiagnostic(diagnostics, "scene.bundle.manifest",
+						"scene.json saved_with_app_version must be a string", "scene.json");
+				return false;
+			}
+			manifest.savedWithAppVersion = manifestJson["saved_with_app_version"].get<std::string>();
 		}
 	} catch (const json::exception& error) {
-		addDiagnostic(diagnostics, "scene.bundle.manifest", std::string("Invalid scene.json manifest: ") + error.what(),
-				"scene.json");
+		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
+				[&entries](const char* required) {
+					return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
+						return entry.name == required;
+					});
+				});
+		if (!allRequired) {
+			const auto unknown = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
+				return !canonicalEntryName(entry.name);
+			});
+			if (unknown != entries.end())
+				addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", unknown->name);
+			else
+				addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
+		} else {
+			addDiagnostic(diagnostics, "scene.bundle.manifest",
+					std::string("Invalid scene.json manifest: ") + error.what(), "scene.json");
+		}
+		return false;
+	}
+	if (*manifest.bundleVersion == kCurrentSceneBundleVersion) {
+		for (const auto& entry : entries) {
+			if (entry.name != "passengers.json" && entry.name != "views.json"
+					&& std::none_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&entry](const char* required) {
+						return entry.name == required;
+					})) {
+				addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", entry.name);
+				return false;
+			}
+		}
+		for (const char* required : kRequiredEntries) {
+			if (std::none_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
+					return entry.name == required;
+				})) {
+				addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", required);
+				return false;
+			}
+		}
+	}
+	if (!mz_zip_validate_archive(&reader.zip, 0)) {
+		addDiagnostic(diagnostics, "scene.bundle.archive", "ZIP validation failed: " + zipError(reader.zip),
+				path.string());
 		return false;
 	}
 	return true;
@@ -383,6 +435,12 @@ static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEnt
 		const fs::path& destination, std::vector<SceneDiagnostic>& diagnostics) {
 	for (const auto& entry : entries) {
 		const fs::path output = destination / entry.name;
+		std::error_code ec;
+		if (!fs::create_directories(output.parent_path(), ec) && ec) {
+			addDiagnostic(diagnostics, "scene.bundle.extract",
+				"Cannot create ZIP entry parent directory: " + ec.message(), entry.name);
+			return false;
+		}
 		if (!mz_zip_reader_extract_to_file(const_cast<mz_zip_archive*>(&reader.zip), entry.index,
 				output.string().c_str(), 0)) {
 			addDiagnostic(diagnostics, "scene.bundle.extract", "Cannot extract ZIP entry: " + zipError(reader.zip),
@@ -391,6 +449,13 @@ static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEnt
 		}
 	}
 	return true;
+}
+
+static bool canonicalEntryName(const std::string& name) {
+	return name == "passengers.json" || name == "views.json"
+			|| std::any_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&name](const char* required) {
+				return name == required;
+			});
 }
 
 static bool publishPath(const fs::path& staging, const fs::path& target,
@@ -434,6 +499,59 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 
 } // namespace
 
+SceneBundleProbeResult probeSceneBundle(const std::string& bundlePath) {
+	SceneBundleProbeResult result;
+	std::string archiveBytes;
+	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+		return result;
+	ZipReader reader;
+	std::vector<ArchiveEntry> entries;
+	BundleManifest manifest;
+	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest,
+			result.diagnostics))
+		return result;
+	result.schemaVersion = manifest.schemaVersion;
+	result.bundleVersion = manifest.bundleVersion;
+	result.savedWithAppVersion = manifest.savedWithAppVersion;
+	result.structurallyValid = true;
+	return result;
+}
+
+SceneSaveResult extractSceneBundleForMigration(const std::string& bundlePath,
+		const std::string& destinationDirectory) {
+	SceneSaveResult result;
+	const fs::path destination(destinationDirectory);
+	std::error_code ec;
+	if (destination.empty() || !fs::is_directory(destination, ec) || ec
+			|| fs::is_symlink(destination, ec)) {
+		addDiagnostic(result.diagnostics, "scene.bundle.publish",
+				"Migration extraction destination must be a private directory",
+				destinationDirectory);
+		return result;
+	}
+	std::string archiveBytes;
+	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+		return result;
+	ZipReader reader;
+	std::vector<ArchiveEntry> entries;
+	BundleManifest manifest;
+	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest,
+			result.diagnostics))
+		return result;
+	if (manifest.bundleVersion && *manifest.bundleVersion > kCurrentSceneBundleVersion) {
+		addDiagnostic(result.diagnostics, "scene.bundle.version",
+				"Newer bundle layouts are not extracted", "scene.json");
+		return result;
+	}
+	// Older layouts are eligible for an explicitly registered migration step.
+	// Their unknown-but-safe entries are part of that step's input; current v1
+	// has already passed its exact allowlist checks in inspectBundle().
+	if (!extractEntries(reader, entries, destination, result.diagnostics))
+		return result;
+	result.wroteAll = !hasErrors(result.diagnostics);
+	return result;
+}
+
 SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 	SceneLoadResult result;
 	std::string archiveBytes;
@@ -441,8 +559,20 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	ZipReader reader;
 	std::vector<ArchiveEntry> entries;
-	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, result.diagnostics))
+	BundleManifest manifest;
+	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
 		return result;
+	result.bundleVersion = manifest.bundleVersion;
+	if (manifest.bundleVersion != kCurrentSceneBundleVersion) {
+		addDiagnostic(result.diagnostics, "scene.bundle.version",
+				"Unsupported bundle_version; only the current bundle layout can be loaded", "scene.json");
+		return result;
+	}
+	if (manifest.schemaVersion != kCurrentSceneSchemaVersion) {
+		addDiagnostic(result.diagnostics, "scene.bundle.schema",
+				"Unsupported schema_version; only the current scene schema can be loaded", "scene.json");
+		return result;
+	}
 
 	TempDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics))
@@ -451,6 +581,7 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	SceneLoadResult loaded = loadScene(temp.path.string());
 	loaded.inputSnapshot = std::move(archiveBytes);
+	loaded.bundleVersion = manifest.bundleVersion;
 	return loaded;
 }
 
@@ -467,8 +598,9 @@ SceneLoadResult loadScenePath(const std::string& path) {
 
 SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bundlePath) {
 	SceneSaveResult result;
-	if (scene.schemaVersion != kSchemaVersion) {
-		addDiagnostic(result.diagnostics, "scene.bundle.schema", "Bundle writer requires schema_version 1", "scene.json");
+	if (scene.schemaVersion != kCurrentSceneSchemaVersion) {
+		addDiagnostic(result.diagnostics, "scene.bundle.schema",
+				"Bundle writer requires the current schema_version", "scene.json");
 		return result;
 	}
 	const fs::path target(bundlePath);
@@ -495,7 +627,7 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 			return result;
 		}
 		manifest["format"] = "egscene";
-		manifest["bundle_version"] = kBundleVersion;
+		manifest["bundle_version"] = kCurrentSceneBundleVersion;
 		manifestText = manifest.dump(4) + "\n";
 	} catch (const json::exception& error) {
 		addDiagnostic(result.diagnostics, "scene.bundle.manifest", std::string("Cannot update scene.json manifest: ") + error.what(),
@@ -596,7 +728,8 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	{
 		ZipReader checkReader;
 		std::vector<ArchiveEntry> checkEntries;
-		if (!inspectBundle(staging, archiveBytes, checkReader, checkEntries, result.diagnostics))
+		BundleManifest checkManifest;
+		if (!inspectBundle(staging, archiveBytes, checkReader, checkEntries, checkManifest, result.diagnostics))
 			return result;
 	}
 	if (!publishPath(staging, target, result.diagnostics, "bundle", true))
@@ -629,8 +762,15 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
 		return result;
 	std::vector<ArchiveEntry> entries;
-	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, result.diagnostics))
+	BundleManifest manifest;
+	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
 		return result;
+	if (manifest.bundleVersion != kCurrentSceneBundleVersion
+			|| manifest.schemaVersion != kCurrentSceneSchemaVersion) {
+		addDiagnostic(result.diagnostics, "scene.bundle.version",
+				"Only the current scene bundle can be unpacked", "scene.json");
+		return result;
+	}
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".") : destination.parent_path();
 	std::error_code ec;
 	fs::create_directories(parent, ec);
