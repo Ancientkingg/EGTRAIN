@@ -63,6 +63,7 @@
 #include <QVBoxLayout>
 #include <list>
 #include <vector>
+#include "diagrams/BlockingTimeDiagram.h"
 #include <map>
 #include <set>
 #include <utility>
@@ -982,7 +983,8 @@ private slots:
 	void showBlockingTimeDiagram();
 	void showCapacityAnalysis();
 	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
-		RunProvenance provenance);
+		RunProvenance provenance, std::vector<BlockingTimeDiagramSegment> segments,
+		double routeStartKm, double routeEndKm, const QString& referenceId);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
 };

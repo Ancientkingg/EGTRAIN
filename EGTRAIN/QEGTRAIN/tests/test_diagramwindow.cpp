@@ -10,6 +10,7 @@
 #include <QShortcut>
 #include <QScatterSeries>
 #include <QLineSeries>
+#include <QAreaSeries>
 #include <QListWidget>
 #include <QMouseEvent>
 #include <QNativeGestureEvent>
@@ -368,6 +369,54 @@ int main(int argc, char* argv[]) {
 	ok &= expect(routeClock && routeClock->isReverse()
 		&& routeClock->categoriesLabels().contains("08:00:00"),
 		"route elapsed zero tick and downward time orientation");
+	DiagramWindow staircase("Calculated envelope");
+	auto* stairChart = new QChart;
+	auto* lower = new QLineSeries;
+	auto* upper = new QLineSeries;
+	lower->append(1, 10); lower->append(2, 10);
+	upper->append(1, 20); upper->append(2, 20);
+	auto* area = new QAreaSeries(upper, lower);
+	area->setName("A envelope"); area->setProperty("trainId", "A");
+	area->setBrush(QColor(60, 100, 200, 65));
+	stairChart->addSeries(area);
+	auto* outline = new QLineSeries;
+	outline->setName("A envelope"); outline->setProperty("trainId", "A");
+	outline->setProperty("inspectionFilled", true);
+	outline->setProperty("inspectionInterval", "Calculated blocking envelope");
+	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
+		outline->append(p);
+	stairChart->addSeries(outline);
+	auto* actual = new QLineSeries;
+	actual->setName("A recorded trajectory"); actual->setProperty("trainId", "A");
+	actual->append(1.2, 14); actual->append(1.8, 16);
+	stairChart->addSeries(actual);
+	auto* overlap = new QLineSeries;
+	overlap->setName("B envelope"); overlap->setProperty("trainId", "B");
+	overlap->setProperty("inspectionFilled", true);
+	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
+		overlap->append(p);
+	stairChart->addSeries(overlap);
+	auto* otherActual = new QScatterSeries;
+	otherActual->setName("B recorded trajectory"); otherActual->setProperty("trainId", "B");
+	otherActual->append(1.7, 18);
+	stairChart->addSeries(otherActual);
+	stairChart->createDefaultAxes();
+	auto* stairY = qobject_cast<QValueAxis*>(stairChart->axes(Qt::Vertical).first());
+	stairY->setReverse(true); stairY->setRange(0, 30);
+	staircase.setChart(stairChart); staircase.setTimeAxisY(true);
+	staircase.show(); app.processEvents();
+	moveTo(staircase.findChild<QChartView*>(), QPointF(1.5, 12), outline);
+	auto* stairTip = staircase.findChild<QLabel*>("diagramTooltip");
+	ok &= expect(stairTip->isVisible() && stairTip->text().contains("Calculated blocking envelope"),
+		"filled chart-coordinate rectangle can be inspected in its interior");
+	moveTo(staircase.findChild<QChartView*>(), QPointF(1.2, 14), actual);
+	ok &= expect(stairTip->text().contains("A recorded trajectory"),
+		"exact recorded sample takes precedence over overlapping filled interiors");
+	moveTo(staircase.findChild<QChartView*>(), QPointF(1.7, 18), otherActual);
+	ok &= expect(stairTip->text().contains("B recorded trajectory"),
+		"overlapping trains select the nearby visible recorded sample");
+	ok &= expect(stairChart->series().indexOf(actual) > stairChart->series().indexOf(area)
+		&& stairY->isReverse(), "recorded layer draws over the downward-time area fill");
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

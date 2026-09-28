@@ -30,6 +30,7 @@
 #include "update/UpdateSettings.h"
 #include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
+#include <QtCharts/QAreaSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLegendMarker>
@@ -500,23 +501,61 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 	};
 	std::map<std::string, bool> legendEntries;
 	for (const BlockingTimeDiagramSegment& segment : segments) {
-		auto* series = new QLineSeries();
+		const double left = std::min(segment.startPositionKm, segment.endPositionKm);
+		const double right = std::max(segment.startPositionKm, segment.endPositionKm);
 		const std::string legendKey = segment.trainName + suffixFor(segment);
-		series->setName(QString::fromStdString(legendKey));
-		series->setProperty("trainId", QString::fromStdString(segment.trainName));
-		const bool firstLegendEntry = legendEntries.emplace(legendKey, true).second;
-		QPen pen(colorFor(segment));
-		pen.setWidthF(segment.penWidth);
-		series->setPen(pen);
-		series->setProperty("inspectionInterval", QString("Resource: %1 | Type: %2 | Start: %3 s | End: %4 s")
+		const QString name = QString::fromStdString(legendKey);
+		const QString trainId = QString::fromStdString(segment.trainName);
+		const QColor color = colorFor(segment);
+		if (left != right) {
+			auto* lower = new QLineSeries();
+			auto* upper = new QLineSeries();
+			lower->append(left, segment.startTime);
+			lower->append(right, segment.startTime);
+			upper->append(left, segment.endTime);
+			upper->append(right, segment.endTime);
+			auto* fill = new QAreaSeries(upper, lower);
+			fill->setName(name);
+			fill->setProperty("trainId", trainId);
+			QColor translucent = color;
+			translucent.setAlpha(65);
+			fill->setBrush(translucent);
+			fill->setPen(Qt::NoPen);
+			chart->addSeries(fill);
+			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
+		}
+		auto* outline = new QLineSeries();
+		outline->setName(name);
+		outline->setProperty("trainId", trainId);
+		outline->setProperty("layer", "calculated blocking envelope");
+		outline->setProperty("inspectionFilled", left != right);
+		QPen pen(color.darker(135));
+		pen.setWidthF(2.0);
+		outline->setPen(pen);
+		outline->setProperty("inspectionInterval", QString("Calculated blocking envelope | Resource: %1 | Type: %2 | "
+			"Directed X: %3 to %4 km | Display: %5 to %6 s | Original: %7 to %8 s | "
+			"Original approach: %9 | Original run start: %10 | Original run end: %11 | Original clearance: %12")
 			.arg(QString::fromStdString(segment.blockId), blockingSegmentTypeName(segment))
-			.arg(segment.startTime, 0, 'f', 2).arg(segment.endTime, 0, 'f', 2));
-		series->append(segment.startTime, segment.midPositionKm);
-		series->append(segment.endTime, segment.midPositionKm);
-		chart->addSeries(series);
-		if (!firstLegendEntry)
-			for (QLegendMarker* marker : chart->legend()->markers(series))
-				marker->setVisible(false);
+			.arg(segment.startPositionKm).arg(segment.endPositionKm)
+			.arg(segment.startTime).arg(segment.endTime)
+			.arg(segment.originalStartTime).arg(segment.originalEndTime)
+			.arg(segment.startApproachTime >= 0 ? QString::number(segment.startApproachTime) : "unavailable")
+			.arg(segment.startRunTime >= 0 ? QString::number(segment.startRunTime) : "unavailable")
+			.arg(segment.endRunTime >= 0 ? QString::number(segment.endRunTime) : "unavailable")
+			.arg(segment.endClearTime >= 0 ? QString::number(segment.endClearTime) : "unavailable")
+			+ QString(" | Setup: %1 | Sight reaction: %2 | Release: %3 | Run margin: %4")
+			.arg(segment.setupTime >= 0 ? QString::number(segment.setupTime) : "unavailable")
+			.arg(segment.sightReactionTime >= 0 ? QString::number(segment.sightReactionTime) : "unavailable")
+			.arg(segment.releaseTime >= 0 ? QString::number(segment.releaseTime) : "unavailable")
+			.arg(segment.runTimeMargin >= 0 ? QString::number(segment.runTimeMargin) : "unavailable"));
+		outline->append(left, segment.startTime);
+		outline->append(right, segment.startTime);
+		outline->append(right, segment.endTime);
+		outline->append(left, segment.endTime);
+		if (left != right) outline->append(left, segment.startTime);
+		chart->addSeries(outline);
+		if (!legendEntries.emplace(legendKey, true).second)
+			for (QLegendMarker* marker : chart->legend()->markers(outline)) marker->setVisible(false);
 	}
 }
 
@@ -542,8 +581,8 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 	for (int i = 0; i < numRegions; ++i) {
 		const Train& t = regional_train[i];
 		std::vector<BlockingTimeDiagramInput> blocks;
-		blocks.reserve(static_cast<std::size_t>(std::max(0, t.N_BlockTimeComplete)));
-		for (int j = 0; j < t.N_BlockTimeComplete; ++j) {
+		blocks.reserve(static_cast<std::size_t>(std::max(0, std::min(t.N_BlockSections, 1000))));
+		for (int j = 0; j < std::min(t.N_BlockSections, 1000); ++j) {
 			BlockingTimeDiagramInput block;
 			block.blockId = t.BlockTime[j].BlockID;
 			block.startOccTime = t.BlockTime[j].StartOccTime;
@@ -553,6 +592,14 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 			block.switchName = t.BlockTime[j].SwitchName;
 			block.stationName = t.BlockTime[j].stationName;
 			block.isComplete = t.BlockTime[j].IsComplete;
+			block.startApproachTime = t.BlockTime[j].StartApproachTime;
+			block.startRunTime = t.BlockTime[j].StartRunTime;
+			block.endRunTime = t.BlockTime[j].EndRunTime;
+			block.endClearTime = t.BlockTime[j].EndClearTime;
+			block.setupTime = t.BlockTime[j].setupTime;
+			block.sightReactionTime = t.BlockTime[j].sightReacTime;
+			block.releaseTime = t.BlockTime[j].ReleaseTime;
+			block.runTimeMargin = t.BlockTime[j].RunTimeMargin;
 			blocks.push_back(block);
 		}
 		trains.push_back(blocks);
@@ -561,8 +608,28 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 	return buildBlockingTimeDiagramSegments(trains, trainNames);
 }
 
+std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
+	const std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::map<std::string, RouteDiagramProjection>& projections, int& omitted) {
+	std::vector<BlockingTimeDiagramSegment> mapped;
+	for (auto segment : segments) {
+		const auto projection = projections.find(segment.trainName);
+		const auto start = projection == projections.end() ? std::optional<double>()
+			: projection->second.map(segment.startPositionKm);
+		const auto end = projection == projections.end() ? std::optional<double>()
+			: projection->second.map(segment.endPositionKm);
+		if (!start || !end) { ++omitted; continue; }
+		segment.startPositionKm = *start;
+		segment.endPositionKm = *end;
+		segment.midPositionKm = (*start + *end) / 2.0;
+		mapped.push_back(std::move(segment));
+	}
+	return mapped;
+}
+
 std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
-	const BlockingTimeScope& scope) {
+	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
+	const std::map<int, RouteDiagramProjection>& projections, int& omitted) {
 	std::vector<BlockingTimePlannedReference> references;
 	if (scope.routeIndex >= 0 && scope.trainIds.empty())
 		return references;
@@ -577,15 +644,20 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
 			if (!train.stationIsOnRoute(stationIndex, scope.blockIds))
 				continue;
-			const double positionMeters = train.stationRoutePositionMeters(stationIndex);
-			if (!std::isfinite(positionMeters) || positionMeters < 0.0)
+			const auto path = paths.find(train.indexOfRoute);
+			const auto projection = projections.find(train.indexOfRoute);
+			const auto positionKm = path == paths.end() || projection == projections.end()
+				? std::optional<double>() : routeDiagramStopPosition(train, stationIndex, path->second, projection->second);
+			if (!positionKm) {
+				++omitted;
+				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
 				continue;
-			const double positionKm = positionMeters / 1000.0;
+			}
 			const auto append = [&](const char* eventType, double time) {
 				if (!std::isfinite(time) || time < 0.0)
 					return;
 				references.push_back({train.trainDescription, train.stationNameForArrivalStats(stationIndex),
-					eventType, time, positionKm});
+					eventType, time, *positionKm});
 			};
 			append("arrival", train.ScheduledArrivals[stationIndex]);
 			append("departure", train.ScheduledDepartures[stationIndex]);
@@ -598,7 +670,11 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 // reference rows so the visible dashed layer is exportable too.
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockingTimePlannedReference>& plannedReferences) {
+	const std::vector<BlockingTimePlannedReference>& plannedReferences,
+	const std::vector<std::vector<std::string>>& trajectories = {}) {
+	const auto optional = [](double value) {
+		return std::isfinite(value) && value >= 0.0 ? csv::formatDouble(value) : std::string();
+	};
 	std::vector<std::vector<std::string>> rows;
 	for (const BlockingTimeDiagramSegment& s : segments) {
 		if (!trainInVisibleSet(visibleTrainIds, s.trainName))
@@ -612,7 +688,12 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			blockingSegmentTypeName(s),
 			std::string(),
 			std::string(),
-			std::string()});
+			std::string(),
+			csv::formatDouble(s.startPositionKm), csv::formatDouble(s.endPositionKm),
+			csv::formatDouble(s.originalStartTime), csv::formatDouble(s.originalEndTime),
+			optional(s.startApproachTime), optional(s.startRunTime), optional(s.endRunTime),
+			optional(s.endClearTime), optional(s.setupTime), optional(s.sightReactionTime),
+			optional(s.releaseTime), optional(s.runTimeMargin), "calculated blocking envelope"});
 	}
 	for (const BlockingTimePlannedReference& reference : plannedReferences) {
 		if (!trainInVisibleSet(visibleTrainIds, reference.trainName))
@@ -626,22 +707,50 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			"planned reference",
 			reference.eventType,
 			reference.stationName,
-			csv::formatDouble(reference.time)});
+			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event"});
 	}
+	for (const auto& row : trajectories)
+		if (!row.empty() && trainInVisibleSet(visibleTrainIds, row.front())) rows.push_back(row);
 	if (rows.empty())
 		return std::string();
 	return csv::makeDocument(
 		{"Train", "Block", "Occupation start[s]", "Occupation end[s]", "Position[km]", "Segment type",
-			"Planned reference", "Station", "Planned time[s]"},
+			"Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]",
+			"Original start[s]", "Original end[s]", "Approach[s]", "Run start[s]", "Run end[s]",
+			"Clearance[s]", "Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer"},
 		rows);
 }
 
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
 	const BlockingTimeScope scope = defaultBlockingTimeScope();
+	if (train_route.empty()) return {};
+	int referenceIndex = -1;
+	for (int i = 0; i < numRegions; ++i)
+		if (regional_train[i].indexOfRoute >= 0
+			&& regional_train[i].indexOfRoute < static_cast<int>(train_route.size())) {
+			referenceIndex = regional_train[i].indexOfRoute;
+			break;
+		}
+	if (referenceIndex < 0) return {};
+	int omitted = 0;
+	const RouteDiagramPath reference = routeDiagramPath(train_route[referenceIndex], nullptr);
+	std::map<int, RouteDiagramPath> paths;
+	std::map<int, RouteDiagramProjection> projections;
+	std::map<std::string, RouteDiagramProjection> byTrain;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		const int index = train.indexOfRoute;
+		if (index < 0 || index >= static_cast<int>(train_route.size())) continue;
+		if (!paths.count(index)) {
+			paths.emplace(index, routeDiagramPath(train_route[index], nullptr));
+			projections.emplace(index, buildRouteDiagramProjection(paths.at(index), reference));
+		}
+		byTrain.emplace(train.trainDescription, projections.at(index));
+	}
 	return buildBlockingTimeCsv(visibleTrainIds,
-		filterBlockingTimeDiagramSegments(buildAllBlockingTimeSegments(), scope.trainIds, scope.blockIds,
-			scope.startTime, scope.endTime),
-		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope),
+		projectBlockingSegments(filterBlockingTimeDiagramSegments(buildAllBlockingTimeSegments(), scope.trainIds,
+			scope.blockIds, scope.startTime, scope.endTime), byTrain, omitted),
+		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope, paths, projections, omitted),
 			scope.startTime, scope.endTime));
 }
 
@@ -850,6 +959,14 @@ BlockingTimeDiagramInput capacityOccupation(const BlockingTimes& source) {
 	occupation.switchName = source.SwitchName;
 	occupation.stationName = source.stationName;
 	occupation.isComplete = source.IsComplete;
+	occupation.startApproachTime = source.StartApproachTime;
+	occupation.startRunTime = source.StartRunTime;
+	occupation.endRunTime = source.EndRunTime;
+	occupation.endClearTime = source.EndClearTime;
+	occupation.setupTime = source.setupTime;
+	occupation.sightReactionTime = source.sightReacTime;
+	occupation.releaseTime = source.ReleaseTime;
+	occupation.runTimeMargin = source.RunTimeMargin;
 	return occupation;
 }
 
@@ -861,7 +978,7 @@ CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAn
 		return result;
 
 	const BlockingTimes* reference = nullptr;
-	for (int blockIndex = 0; blockIndex < train.N_BlockTimeComplete; ++blockIndex) {
+	for (int blockIndex = 0; blockIndex < std::min(train.N_BlockSections, 1000); ++blockIndex) {
 		const BlockingTimes& source = train.BlockTime[blockIndex];
 		const BlockingTimeDiagramInput occupation = capacityOccupation(source);
 		if (!validBlockingTimeDiagramInput(occupation))
@@ -19622,7 +19739,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		if (!blocking
 				|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
 				|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
-			fail(QStringLiteral("blocking-time exports were not driven through the public diagram"));
+			fail(QString("blocking-time exports were not driven through the public diagram (window %1)")
+				.arg(blocking ? "present" : "absent"));
 			return;
 		}
 		QPushButton* summaryCsv = findChild<QPushButton*>("resultView_ExportCSV");
@@ -24551,16 +24669,44 @@ void MainWindow::showBlockingTimeDiagram() {
 	BlockingTimeScope scope = defaultBlockingTimeScope();
 	if (!e2eDialogsSuppressed() && !chooseBlockingTimeScope(this, scope))
 		return;
-	const std::vector<BlockingTimeDiagramSegment> segments =
-		scope.routeIndex >= 0 && scope.trainIds.empty()
-			? std::vector<BlockingTimeDiagramSegment>()
-			: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
-				scope.startTime, scope.endTime);
-	const std::vector<BlockingTimePlannedReference> plannedReferences =
-		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope),
+	const auto scoped = scope.routeIndex >= 0 && scope.trainIds.empty()
+		? std::vector<BlockingTimeDiagramSegment>()
+		: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
 			scope.startTime, scope.endTime);
+	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : [&]() {
+		for (int i = 0; i < numRegions; ++i)
+			if ((scope.trainIds.empty() || std::find(scope.trainIds.begin(), scope.trainIds.end(),
+				regional_train[i].trainDescription) != scope.trainIds.end())
+				&& regional_train[i].indexOfRoute >= 0
+				&& regional_train[i].indexOfRoute < static_cast<int>(train_route.size()))
+				return regional_train[i].indexOfRoute;
+		return -1;
+	}();
+	if (referenceIndex < 0) return;
+	const RouteDiagramPath referencePath = routeDiagramPath(train_route[referenceIndex], &m_sceneModel);
+	std::map<int, RouteDiagramPath> paths;
+	std::map<int, RouteDiagramProjection> projections;
+	std::map<std::string, RouteDiagramProjection> byTrain;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		const int index = train.indexOfRoute;
+		if (index < 0 || index >= static_cast<int>(train_route.size())) continue;
+		if (!paths.count(index)) {
+			paths.emplace(index, routeDiagramPath(train_route[index], &m_sceneModel));
+			projections.emplace(index, buildRouteDiagramProjection(paths.at(index), referencePath));
+		}
+		byTrain.emplace(train.trainDescription, projections.at(index));
+	}
+	int omitted = 0;
+	const auto segments = projectBlockingSegments(scoped, byTrain, omitted);
+	const auto allPlannedReferences = buildBlockingTimePlannedReferences(scope, paths, projections, omitted);
+	const auto plannedReferences = filterBlockingTimePlannedReferences(
+		allPlannedReferences, scope.startTime, scope.endTime);
+	const auto plottedPlanned = clipBlockingTimePlannedReferences(
+		allPlannedReferences, scope.startTime, scope.endTime);
 	if (segments.empty() && plannedReferences.empty()) {
-		QMessageBox::information(this, "No Data", "No complete blocking-time data is available for this simulation.");
+		QMessageBox::information(this, "No Data", "No complete blocking envelope with finite endpoints and clearance could be projected in this scope. "
+			"Incomplete, missing-clearance or unmapped records are omitted.");
 		return;
 	}
 
@@ -24575,7 +24721,7 @@ void MainWindow::showBlockingTimeDiagram() {
 			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
 				QString::fromStdString(scope.blockIds.back()));
 	}
-	const QString title = QString("Blocking time: actual occupations and dashed planned timetable | %1 | %2 to %3 [%4]")
+	const QString title = QString("Blocking time: calculated envelopes, recorded trajectories and planned events | %1 | %2 to %3 [%4]")
 		.arg(routeScope,
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
@@ -24587,26 +24733,64 @@ void MainWindow::showBlockingTimeDiagram() {
 	const QColor plannedColors[] = {
 		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
 		QColor(138, 43, 226), QColor(210, 105, 30), QColor(0, 128, 128)};
-	std::map<std::string, QLineSeries*> plannedSeries;
-	int plannedColorIndex = 0;
-	for (const BlockingTimePlannedReference& reference : plannedReferences) {
-		auto it = plannedSeries.find(reference.trainName);
-		if (it == plannedSeries.end()) {
-			auto* series = new QLineSeries();
-			series->setName(QString::fromStdString(reference.trainName + " (planned reference)"));
-			series->setProperty("trainId", QString::fromStdString(reference.trainName));
-			QPen pen(plannedColors[plannedColorIndex % (sizeof(plannedColors) / sizeof(plannedColors[0]))]);
-			pen.setStyle(Qt::DashLine);
-			pen.setWidthF(2.5);
-			series->setPen(pen);
-			series->setPointsVisible(true);
-			chart->addSeries(series);
-			it = plannedSeries.emplace(reference.trainName, series).first;
-			++plannedColorIndex;
+	std::map<std::string, int> plannedColorsByTrain;
+	for (const auto& group : plottedPlanned) {
+		const std::string& trainName = group.front().trainName;
+		const auto color = plannedColorsByTrain.emplace(trainName, static_cast<int>(plannedColorsByTrain.size()));
+		auto* series = new QLineSeries();
+		series->setName(QString::fromStdString(trainName + " (planned reference)"));
+		series->setProperty("trainId", QString::fromStdString(trainName));
+		QPen pen(plannedColors[color.first->second % (sizeof(plannedColors) / sizeof(plannedColors[0]))]);
+		pen.setStyle(Qt::DashLine);
+		pen.setWidthF(2.5);
+		series->setPen(pen);
+		series->setPointsVisible(true);
+		for (const auto& reference : group)
+			appendInspectedPoint(series, reference.positionKm, reference.time,
+				reference.stationName.empty() ? "Clipped planned interpolation (not a station event)"
+					: QString("Station: %1 | Planned %2").arg(QString::fromStdString(reference.stationName),
+						QString::fromStdString(reference.eventType)));
+		chart->addSeries(series);
+		if (!color.second)
+			for (QLegendMarker* marker : chart->legend()->markers(series)) marker->setVisible(false);
+	}
+
+	std::vector<std::vector<std::string>> trajectoryRows;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (train.earliestActiveTrajectoryIndex < 0) continue;
+		const auto projection = byTrain.find(train.trainDescription);
+		if (projection == byTrain.end()) continue;
+		for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
+			train.earliestActiveTrajectoryIndex, train.End_Time)) {
+			QLineSeries* line = nullptr;
+			for (int t = valid.first; t <= valid.last; ++t) {
+				const double time = t * timestep;
+				const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
+				const auto x = projection->second.map(sourceKm);
+				const bool inScope = x && time >= scope.startTime && time <= scope.endTime
+					&& std::any_of(segments.begin(), segments.end(), [&](const auto& block) {
+						return block.trainName == train.trainDescription && time >= block.startTime
+							&& time <= block.endTime && *x >= std::min(block.startPositionKm, block.endPositionKm)
+							&& *x <= std::max(block.startPositionKm, block.endPositionKm);
+					});
+				if (!inScope) { line = nullptr; continue; }
+				if (!line) {
+					line = new QLineSeries();
+					line->setName(QString::fromStdString(train.trainDescription) + " (recorded trajectory)");
+					line->setProperty("trainId", QString::fromStdString(train.trainDescription));
+					line->setProperty("layer", "recorded trajectory");
+					line->setProperty("inspectionInterval", "Recorded simulation samples; no boundary samples inferred");
+					line->setPen(QPen(QColor(20, 35, 45), 2.5));
+					line->setPointsVisible(true);
+					chart->addSeries(line);
+				}
+				line->append(*x, time);
+				if (line->count() == 2) line->setPointsVisible(false);
+				trajectoryRows.push_back({train.trainDescription, "", "", "", csv::formatDouble(*x),
+					"recorded sample", "", "", csv::formatDouble(time), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
+			}
 		}
-		appendInspectedPoint(it->second, reference.time, reference.positionKm,
-			QString("Station: %1 | Planned %2").arg(QString::fromStdString(reference.stationName),
-				QString::fromStdString(reference.eventType)));
 	}
 
 	QLineSeries* dummySwitch = new QLineSeries();
@@ -24624,25 +24808,34 @@ void MainWindow::showBlockingTimeDiagram() {
 	chart->addSeries(dummyCritical);
 
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty()) {
-		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
-		if (auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first()))
-			axis->setRange(scope.startTime, scope.endTime);
-	}
-	if (!chart->axes(Qt::Vertical).isEmpty()) {
-		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
-	}
+	auto* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	const double origin = referencePath.nodes.empty() ? 0.0 : referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.empty() ? origin : referencePath.nodes.back().positionKm;
+	axisX->setTitleText(QString("Reference %1 X (km); origin %2, travel %3")
+		.arg(QString::fromStdString(referencePath.id)).arg(origin, 0, 'f', 3)
+		.arg(end >= origin ? "right" : "left"));
+	axisX->setRange(std::min(origin, end) - 0.01, std::max(std::min(origin, end) + 0.02, std::max(origin, end) + 0.01));
+	auto* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	axisY->setTitleText("Elapsed simulation time (s), downward");
+	axisY->setReverse(true);
+	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
 
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
+	auto* note = new QLabel(QString("Reference: %1. 0 s = run start. Calculated envelope: approach - setup - sight reaction through clearance + release + run margin, not independently observed occupation. "
+		"Unmapped endpoints/events omitted: %2; incomplete or missing-clearance blocks are also omitted. "
+		"No extrapolation. Recorded movement is sampled only within scoped envelopes.")
+		.arg(QString::fromStdString(referencePath.id)).arg(omitted), win);
+	note->setWordWrap(true);
+	qobject_cast<QVBoxLayout*>(win->layout())->insertWidget(1, note);
 	const std::function<std::string(const QStringList&)> scopedCsv =
-		[segments, plannedReferences](const QStringList& visibleTrainIds) {
-			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences);
+		[segments, plannedReferences, trajectoryRows](const QStringList& visibleTrainIds) {
+			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences, trajectoryRows);
 		};
 	win->setCsvProvider(snapshotCsv(scopedCsv), "blocking_time.csv");
 	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(true, m_startOffsetSeconds);
+	win->setTimeAxisY(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }
@@ -24793,8 +24986,25 @@ void MainWindow::showCapacityAnalysis() {
 			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
-	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
-		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance);
+	const RouteDiagramPath compressedReference = routeDiagramPath(train_route[scope.routeIndex], &m_sceneModel);
+	std::map<std::string, RouteDiagramProjection> compressedProjections;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
+		compressedProjections.emplace(train.trainDescription, buildRouteDiagramProjection(
+			routeDiagramPath(train_route[train.indexOfRoute], &m_sceneModel), compressedReference));
+	}
+	int compressedOmitted = 0;
+	auto shiftedSegments = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
+	restoreCompressedOriginalTimes(shiftedSegments, result.compression);
+	const auto compressedSegments = projectBlockingSegments(shiftedSegments, compressedProjections, compressedOmitted);
+	const double routeStartKm = compressedReference.nodes.empty() ? 0.0 : compressedReference.nodes.front().positionKm;
+	const double routeEndKm = compressedReference.nodes.empty() ? routeStartKm : compressedReference.nodes.back().positionKm;
+	const QString referenceId = QString::fromStdString(compressedReference.id);
+	connect(diagramButton, &QPushButton::clicked, dialog,
+		[this, result, sectionLabel, provenance, compressedSegments, routeStartKm, routeEndKm, referenceId]() {
+		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance, compressedSegments,
+			routeStartKm, routeEndKm, referenceId);
 	});
 	QPushButton* closeButton = new QPushButton("Close", dialog);
 	connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
@@ -24807,9 +25017,9 @@ void MainWindow::showCapacityAnalysis() {
 }
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
-	const QString& sectionLabel, RunProvenance provenance) {
-	const std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(
-		result.compressedOccupations, result.trainIdentities);
+	const QString& sectionLabel, RunProvenance provenance,
+	std::vector<BlockingTimeDiagramSegment> segments, double routeStartKm, double routeEndKm,
+	const QString& referenceId) {
 	if (segments.empty()) {
 		QMessageBox::information(this, "Capacity diagram", "No complete compressed occupation data is available.");
 		return;
@@ -24830,12 +25040,20 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	addKey("Key: Conflict", kBlockingCriticalColor);
 	addKey("Key: Capacity critical block (touching)", kBlockingCapacityColor);
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
-	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
+	auto* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	axisX->setTitleText(QString("Reference %1 X (km)").arg(referenceId));
+	axisX->setRange(std::min(routeStartKm, routeEndKm) - 0.01,
+		std::max(std::min(routeStartKm, routeEndKm) + 0.02, std::max(routeStartKm, routeEndKm) + 0.01));
+	auto* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	axisY->setTitleText("Compressed envelope time (s), downward");
+	axisY->setReverse(true);
+	axisY->setRange(std::min(0.0, axisY->min()), std::max(1.0, axisY->max()));
 	DiagramWindow* window = new DiagramWindow(chart->title(), this);
 	window->setChart(chart);
+	auto* note = new QLabel(QString("Reference: %1. Shifted calculated envelopes only, not recorded train movement. "
+		"Unmapped or incomplete blocks omitted; no extrapolation.").arg(referenceId), window);
+	note->setWordWrap(true);
+	qobject_cast<QVBoxLayout*>(window->layout())->insertWidget(1, note);
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
@@ -24843,7 +25061,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv");
 	attachRunProvenance(window, std::move(provenance));
 	connect(window, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	window->setTimeAxisX(true, m_startOffsetSeconds);
+	window->setTimeAxisY(true, m_startOffsetSeconds);
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }

@@ -20,6 +20,7 @@ BlockingTimeDiagramInput occupation(const char* id, double start, double end) {
 	value.posStart = 0.0;
 	value.posEnd = 100.0;
 	value.isComplete = true;
+	value.endClearTime = end;
 	return value;
 }
 
@@ -113,8 +114,14 @@ int main() {
 	ok &= expect(compressed.criticalBlocks.size() == 3 && hasCritical("A", "B", "AB")
 		&& hasCritical("A", "C", "AC") && hasCritical("C", "D", "CD"),
 		"adjacent and nonadjacent governing touches are retained separately");
-	const auto compressedSegments = buildBlockingTimeDiagramSegments(compressed.compressedOccupations,
+	auto compressedSegments = buildBlockingTimeDiagramSegments(compressed.compressedOccupations,
 		compressed.trainIdentities);
+	restoreCompressedOriginalTimes(compressedSegments, compressed.compression);
+	ok &= expect(!compressedSegments.empty()
+		&& compressedSegments.front().endClearTime == 20.0
+		&& compressedSegments.front().startPositionKm == 0.0
+		&& compressedSegments.front().endPositionKm == 0.1,
+		"compressed adapter retains original clearance and directed spatial endpoints");
 	const auto criticalSegment = std::find_if(compressedSegments.begin(), compressedSegments.end(),
 		[](const BlockingTimeDiagramSegment& segment) {
 			return segment.capacityCritical && segment.blockId == "AB";
@@ -122,6 +129,14 @@ int main() {
 	ok &= expect(criticalSegment != compressedSegments.end()
 		&& criticalSegment->style != BlockingTimeSegmentStyle::Critical,
 		"touching capacity-critical styling stays distinct from red overlap conflict");
+	ok &= expect(compressedSegments.size() > 2
+		&& compressed.compression[1].scheduledReference == 100.0
+		&& compressed.compression[1].originalReference == 0.0
+		&& compressedSegments[2].trainName == "B"
+		&& compressedSegments[2].startTime == 20.0
+		&& compressedSegments[2].originalStartTime == 0.0
+		&& compressedSegments[2].originalEndTime == 10.0,
+		"compressed diagram adapter and export evidence undo profile rather than timetable shift");
 	ok &= expect(compressed.cycleTime == 100.0 && compressed.cyclePercentage == 50.0,
 		"explicit cycle endpoint and transparent period percentage are exact");
 	ok &= expect(compressed.firstIdentity == "A" && compressed.cycleEndIdentity == "C"

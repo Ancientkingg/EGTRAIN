@@ -469,11 +469,46 @@ def check_exports(bundle_path):
     }
     expect(len(selected_train_ids) == 2,
            "trajectory export does not identify both selected service occurrences")
-    actual = [row for row in blocking_rows if row["Segment type"] != "planned reference"]
+    actual = [row for row in blocking_rows if row["Layer"] == "calculated blocking envelope"]
+    recorded = [row for row in blocking_rows if row["Layer"] == "recorded trajectory"]
+    expect(recorded and {row["Train"] for row in recorded} <= selected_train_ids,
+           "blocking-time chart lacks scoped recorded movement")
+    expect(all(row["Planned time[s]"] and row["Position[km]"] for row in recorded),
+           "recorded trajectory samples lack time or distance")
+    expect(all(row["Start X[km]"] and row["End X[km]"] and row["Original start[s]"]
+               and row["Original end[s]"] for row in actual),
+           "blocking-time envelope lacks endpoint or original time evidence")
     expect({row["Train"] for row in actual} == selected_train_ids,
            "blocking-time export lacks actual occupations for both selected occurrences")
     expect(all(row["Block"] and row["Occupation start[s]"] and row["Occupation end[s]"]
-               for row in actual), "blocking-time actual occupation is incomplete")
+               for row in actual), "blocking-time calculated envelope is incomplete")
+    expect(len({row["Block"] for row in actual}) >= 2,
+           "two-train chart must retain multiple blocking sections")
+    expect(all(0 <= float(row["Start X[km]"]) <= 2
+               and 0 <= float(row["End X[km]"]) <= 2
+               and float(row["Occupation start[s]"]) == float(row["Original start[s]"])
+               and float(row["Occupation end[s]"]) == min(900, float(row["Original end[s]"]))
+               for row in actual),
+           "envelope must match source-route geometry and original or clipped time")
+    expect(any(float(row["Occupation end[s]"]) < float(row["Original end[s]"])
+               for row in actual), "scope clipping must retain original end-time evidence")
+
+    with (exports / "capacity_compressed_blocking_time.csv").open(newline="", encoding="utf-8") as stream:
+        compressed_rows = list(csv.DictReader(stream))
+    expect(compressed_rows and all(row["Layer"] == "calculated blocking envelope"
+               and row["Start X[km]"] and row["End X[km]"] for row in compressed_rows),
+           "compressed diagram must have projected envelopes and no recorded movement")
+    original_by_block = {(row["Train"], row["Block"]):
+                         (float(row["Original start[s]"]), float(row["Original end[s]"]))
+                         for row in actual}
+    matching = [row for row in compressed_rows
+                if (row["Train"], row["Block"]) in original_by_block]
+    expect(matching and all(
+        (float(row["Original start[s]"]), float(row["Original end[s]"])) ==
+        original_by_block[row["Train"], row["Block"]] for row in matching),
+        "compressed CSV original envelope times must match unshifted source evidence")
+    for name in ("blocking_time.png", "capacity_compressed_blocking_time.png"):
+        expect((exports / name).stat().st_size > 0, f"{name} is empty")
 
     with (exports / "capacity_analysis.csv").open(newline="", encoding="utf-8") as stream:
         capacity_rows = list(csv.DictReader(stream))

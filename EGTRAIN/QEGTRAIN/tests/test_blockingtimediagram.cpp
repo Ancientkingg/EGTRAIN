@@ -1,6 +1,7 @@
 #include "diagrams/BlockingTimeDiagram.h"
 
 #include <iostream>
+#include <limits>
 #include <vector>
 
 static bool expect(bool condition, const char* message) {
@@ -19,6 +20,7 @@ static BlockingTimeDiagramInput block(const char* id, double start, double end, 
 	b.switchName = switchName;
 	b.stationName = stationName;
 	b.isComplete = complete;
+	b.endClearTime = end;
 	return b;
 }
 
@@ -53,7 +55,8 @@ int main() {
 		ok &= expect(segments[0].midPositionKm == 1.2, "first segment midpoint");
 		ok &= expect(segments[1].trainName == "A", "switch segment train name");
 		ok &= expect(segments[1].style == BlockingTimeSegmentStyle::Switch, "switch segment style");
-		ok &= expect(segments[1].penWidth >= 2.0, "minimum pen width");
+		ok &= expect(segments[1].startPositionKm == 1.6 && segments[1].endPositionKm == 2.2,
+			"directed rectangle endpoints retain their chart coordinates");
 		ok &= expect(segments[2].trainName == "B", "critical station train name");
 		ok &= expect(segments[2].style == BlockingTimeSegmentStyle::CriticalStation, "critical station segment style");
 		ok &= expect(segments[2].midPositionKm == 1.25, "critical station midpoint");
@@ -63,8 +66,9 @@ int main() {
 		segments, {"A"}, {"@12-B0@"}, 12.0, 18.0);
 	ok &= expect(scoped.size() == 1, "route block and train scope filters segments");
 	if (!scoped.empty()) {
-		ok &= expect(scoped[0].startTime == 12.0 && scoped[0].endTime == 18.0,
-			"time scope clips copied segment bounds");
+		ok &= expect(scoped[0].startTime == 12.0 && scoped[0].endTime == 18.0
+			&& scoped[0].originalStartTime == 10.0 && scoped[0].originalEndTime == 20.0,
+			"time scope clips displayed bounds but retains original evidence");
 		ok &= expect(scoped[0].style == BlockingTimeSegmentStyle::Critical,
 			"critical style survives when the conflicting train is hidden");
 	}
@@ -76,6 +80,16 @@ int main() {
 	const auto crossing = filterBlockingTimePlannedReferences(references, 15.0, 25.0);
 	ok &= expect(crossing.size() == 2 && crossing.front().time == 10.0 && crossing.back().time == 30.0,
 		"planned scope retains both source points for a visible line crossing");
+	const auto plotted = clipBlockingTimePlannedReferences(references, 15.0, 25.0);
+	ok &= expect(plotted.size() == 1 && plotted[0].size() == 2
+		&& plotted[0][0].time == 15.0 && plotted[0][1].time == 25.0
+		&& plotted[0][0].positionKm == 0.5 && plotted[0][1].positionKm == 1.5
+		&& plotted[0][0].stationName.empty() && plotted[0][1].stationName.empty()
+		&& plotted[0][0].eventType == "clipped planned interpolation",
+		"selected window clips rendered planned line without presenting boundary as station events");
+	const auto gaps = clipBlockingTimePlannedReferences({references[0],
+		{"A", "", "", std::numeric_limits<double>::quiet_NaN(), 0.0}, references[1]}, 15.0, 25.0);
+	ok &= expect(gaps.empty(), "omitted planned events cannot be bridged by a rendered line");
 	ok &= expect(filterBlockingTimePlannedReferences(references, 31.0, 39.0).empty(),
 		"off-window planned points do not create an empty scoped chart or export");
 	const auto nearTouch = buildBlockingTimeDiagramSegments({
@@ -86,6 +100,20 @@ int main() {
 		&& nearTouch[1].style == BlockingTimeSegmentStyle::Default,
 		"sub-tolerance touching is not also styled as an overlap conflict");
 
+	const auto reversed = buildBlockingTimeDiagramSegments({{
+		block("reverse", 1, 2, 2000, 1000, "None", "None", true),
+		block("point", 2, 3, 1000, 1000, "None", "None", true)}}, {"R"});
+	ok &= expect(reversed.size() == 2 && reversed[0].startPositionKm == 2.0
+		&& reversed[0].endPositionKm == 1.0 && reversed[1].startPositionKm == reversed[1].endPositionKm,
+		"reversed and zero-width boundaries preserve exact directed positions");
+	auto missing = block("missing clearance", 1, 2, 0, 100, "None", "None", true);
+	missing.endClearTime = -1;
+	auto nonfinite = block("nonfinite", 1, 2, 0, 100, "None", "None", true);
+	nonfinite.posEnd = std::numeric_limits<double>::infinity();
+	auto nonfiniteClearance = block("nonfinite clearance", 1, 2, 0, 100, "None", "None", true);
+	nonfiniteClearance.endClearTime = std::numeric_limits<double>::infinity();
+	ok &= expect(buildBlockingTimeDiagramSegments({{missing, nonfinite, nonfiniteClearance}}, {"R"}).empty(),
+		"missing clearance and nonfinite geometry cannot be rendered as measured envelopes");
 	if (!ok)
 		return 1;
 
