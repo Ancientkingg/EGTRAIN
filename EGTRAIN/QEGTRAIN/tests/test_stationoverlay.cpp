@@ -2,6 +2,7 @@
 
 #include "graphics/NetworkScene.h"
 #include "graphics/items/StationNodeItem.h"
+#include "graphics/items/NodeItem.h"
 
 #include <QApplication>
 #include <QGraphicsSceneContextMenuEvent>
@@ -12,6 +13,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -62,8 +64,43 @@ int main(int argc, char* argv[]) {
 		station.paint(&painter, nullptr, nullptr);
 	}
 	ok &= expect(stationImage.pixelColor(12, 12).alpha() > 0
-			&& stationImage.pixelColor(4, 4).alpha() == 0,
-		"station node paints a circle instead of a rectangle");
+			&& stationImage.pixelColor(4, 4).alpha() > 0,
+		"station node paints the historical square");
+	QGraphicsScene boundaryScene;
+	QGraphicsView boundaryView(&boundaryScene);
+	boundaryView.setFrameShape(QFrame::NoFrame);
+	boundaryView.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	boundaryView.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	boundaryView.setBackgroundBrush(Qt::black);
+	boundaryView.setSceneRect(QRectF(-300.0, -300.0, 800.0, 800.0));
+	boundaryView.resize(48, 48);
+	auto* boundary = new NodeItem(QRectF(123.0, 205.0, 28.0, 28.0));
+	boundary->setPen(QPen(Qt::lightGray));
+	boundary->setBrush(Qt::lightGray);
+	boundaryScene.addItem(boundary);
+	boundaryView.scale(0.05, 0.05);
+	boundaryView.show();
+	boundaryView.centerOn(boundary->rect().center());
+	QApplication::processEvents();
+	const QPoint dot = boundaryView.mapFromScene(boundary->rect().center());
+	const QImage boundaryImage = boundaryView.viewport()->grab().toImage();
+	bool fitDotPainted = false;
+	for (int dx = -2; dx <= 2; ++dx)
+		for (int dy = -2; dy <= 2; ++dy) {
+			const QPoint pixel = dot + QPoint(dx, dy);
+			fitDotPainted |= boundaryImage.rect().contains(pixel)
+				&& boundaryImage.pixelColor(pixel) != QColor(Qt::black);
+		}
+	ok &= expect(fitDotPainted, "scene renders the Fit dot through its own cullable item");
+	const QList<QGraphicsItem*> hit = boundaryScene.items(boundaryView.mapToScene(dot + QPoint(1, 0)),
+		Qt::IntersectsItemShape, Qt::DescendingOrder, boundaryView.viewportTransform());
+	ok &= expect(std::any_of(hit.cbegin(), hit.cend(), [&](QGraphicsItem* item) {
+		return item == boundary || item->parentItem() == boundary;
+	}), "scene hit geometry includes the independent device-sized child");
+	ok &= expect(boundary->childItems().size() == 1
+		&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
+		&& boundary->childItems().first()->scenePos() == boundary->rect().center(),
+		"minimum dot has its own cullable bounds at a nonzero topology coordinate");
 	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), stationVisual);
 	ok &= expect(overlay.zValue() > 3.0 && overlay.zValue() < 5.0,
 		"station text paints above signals and below train badges");

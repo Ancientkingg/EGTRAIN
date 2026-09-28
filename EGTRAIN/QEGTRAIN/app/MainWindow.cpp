@@ -50,6 +50,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QPlainTextEdit>
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
@@ -3962,6 +3963,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		teardownGUI();
 		m_infrastructureSelectionId = selectedInfrastructureId;
 	} else if (scene) {
+		m_inspectedSignal = nullptr;
 		scene->clear();
 	}
 	m_showingTrackPreview = true;
@@ -4073,14 +4075,22 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		const qreal offset = static_cast<qreal>(line.displayOffset);
 		tracks[line.id] = {&line, offset};
 
-		QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : QColor(185, 190, 198));
-		pen.setWidthF(selectedTrackIds.count(line.id) > 0 ? 3.0 : 1.25);
-		pen.setCosmetic(true);
-		QPainterPath path(QPointF(line.points.front().x, line.points.front().y + offset));
-		for (std::size_t point = 1; point < line.points.size(); ++point)
-			path.lineTo(line.points[point].x, line.points[point].y + offset);
-		auto* item = scene->addPath(path, pen);
-		item->setAcceptedMouseButtons(Qt::NoButton);
+		for (std::size_t point = 1; point < line.points.size(); ++point) {
+			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
+				return candidate.trackId == line.id
+					&& ((candidate.fromNodeId == line.points[point - 1].nodeId
+						&& candidate.toNodeId == line.points[point].nodeId)
+						|| (candidate.toNodeId == line.points[point - 1].nodeId
+							&& candidate.fromNodeId == line.points[point].nodeId));
+			});
+			const TrackVisual visual = classifyTrackSpeed(arc == sceneModel.arcs.end() ? 0.0 : arc->speedLimitMs);
+			QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : visual.color);
+			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
+			pen.setCosmetic(true);
+			auto* item = scene->addLine(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
+				line.points[point].x, line.points[point].y + offset), pen);
+			item->setAcceptedMouseButtons(Qt::NoButton);
+		}
 		for (const auto& point : line.points)
 			includePreviewPoint(QPointF(point.x, point.y + offset));
 	}
@@ -4098,8 +4108,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 
 		QPainterPath path(start);
 		path.lineTo(end);
-		QPen pen(QColor(210, 215, 222));
-		pen.setWidthF(2.25);
+		QPen pen(Qt::white);
+		pen.setWidth(2);
 		pen.setCosmetic(true);
 		pen.setCapStyle(Qt::RoundCap);
 		auto* item = scene->addPath(path, pen);
@@ -4224,8 +4234,19 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		if (!previewSignalNormal(*track->second.first, signal.rawX, normal))
 			continue;
 
+		QStringList canonicalIds;
+		for (const SceneSignal& source : sceneSignals(sceneModel))
+			if (source.protectedSection == signal.sectionId)
+				canonicalIds.append(QString::fromStdString(source.id));
 		for (const bool reversed : {true, false}) {
 			auto* glyph = new SignalItem(QRectF(-4.0, -4.0, 8.0, 8.0));
+			glyph->X = signal.rawX;
+			glyph->sectionAheadId = signal.sectionId;
+			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
+				.arg(QString::fromStdString(signal.trackId))
+				.arg(signal.rawX, 0, 'g', 10)
+				.arg(QString::fromStdString(signal.sectionId))
+				.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
 			glyph->setZValue(3.0);
 			glyph->setPos(center);
 			glyph->setPen(QPen(QColor("#0D131A"), 1.0));
@@ -11943,6 +11964,59 @@ void MainWindow::runStationOverlayE2E() {
 
 		checkZoom(3.0, "3X");
 		checkZoom(12.0, "12X");
+		if (caseName == QLatin1String("Netherlands") && m_signalLayerVisible) {
+			fitView();
+			updateViewportOverlays();
+			const QTransform device = networkView->viewportTransform();
+			const QRectF view = networkView->viewport()->rect();
+			int eligible = 0;
+			int represented = 0;
+			int visibleCues = 0;
+			SignalItem* largestGroup = nullptr;
+			for (QGraphicsItem* item : m_signalDecorations) {
+				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+				if (!signal || !item->data(kSignalBaseVisibleRole).toBool()
+						|| !item->data(kSignalAnchorRole).isValid())
+					continue;
+				const QPointF anchor = device.map(item->data(kSignalAnchorRole).toPointF());
+				if (!view.contains(anchor))
+					continue;
+				++eligible;
+				if (!signal->isVisible())
+					continue;
+				++visibleCues;
+				represented += qMax(1, signal->groupedSignalCount());
+				if (!largestGroup || signal->groupedSignalCount() > largestGroup->groupedSignalCount())
+					largestGroup = signal;
+				if (QLineF(anchor, device.map(signal->scenePos())).length() > 24.0
+						|| signal->toolTip().isEmpty())
+					fail("Netherlands signal cluster scattered away from its topology or lost identities");
+			}
+			if (eligible < 30 || represented != eligible || visibleCues >= eligible)
+				fail(QString("Netherlands Fit signal density not grouped locally (%1 locations, %2 represented, %3 cues)")
+					.arg(eligible).arg(represented).arg(visibleCues));
+			else
+				marker(QString("E2E_NETHERLANDS_SIGNAL_LOCAL_GROUPS_OK eligible=%1 represented=%2 cues=%3")
+					.arg(eligible).arg(represented).arg(visibleCues));
+			if (largestGroup && largestGroup->groupedSignalCount() > 9) {
+				displaySignallingInfo(largestGroup);
+				QApplication::processEvents();
+				// Dock reflow changes viewport cells: inspect the *current* group,
+				// not the pre-dock membership count.
+				const int inspectedCount = largestGroup->isVisible()
+					? qMax(1, largestGroup->groupedSignalCount()) : 1;
+				if (!signallingGroupDetails || signallingGroupDetails->toPlainText().split('\n').size()
+						!= inspectedCount + 1
+						|| (inspectedCount > 9 && signallingGroupDetails->verticalScrollBar()->maximum() <= 0))
+					fail(QString("Netherlands signal group is not fully inspectable through the scrolling inspector "
+						"(group=%1 lines=%2 scroll=%3)")
+						.arg(inspectedCount)
+						.arg(signallingGroupDetails ? signallingGroupDetails->toPlainText().split('\n').size() : -1)
+						.arg(signallingGroupDetails ? signallingGroupDetails->verticalScrollBar()->maximum() : -1));
+				handleCloseInfoDockWidget();
+				infoDockWidget->hide();
+			}
+		}
 		const qreal devicePixelRatio = windowHandle() ? windowHandle()->devicePixelRatio() : 1.0;
 		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(devicePixelRatio, 0, 'f', 1));
 
@@ -12195,11 +12269,15 @@ void MainWindow::runStationOverlayE2E() {
 			m_sceneContextMenu->close();
 		QApplication::processEvents();
 
-		QMouseEvent displacedPress(QEvent::MouseButtonPress, QPointF(displacedClick),
-			QPointF(displacedScreen), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		const QPointF afterContextAnchor = networkView->viewportTransform().map(lowOverlay->stableAnchor())
+			+ lowOverlay->viewportOffset() + lowOverlay->fitCollisionOffset();
+		const QPoint clickAfterContext = afterContextAnchor.toPoint();
+		const QPoint screenAfterContext = networkView->viewport()->mapToGlobal(clickAfterContext);
+		QMouseEvent displacedPress(QEvent::MouseButtonPress, QPointF(clickAfterContext),
+			QPointF(screenAfterContext), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 		QApplication::sendEvent(networkView->viewport(), &displacedPress);
-		QMouseEvent displacedRelease(QEvent::MouseButtonRelease, QPointF(displacedClick),
-			QPointF(displacedScreen), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QMouseEvent displacedRelease(QEvent::MouseButtonRelease, QPointF(clickAfterContext),
+			QPointF(screenAfterContext), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 		QApplication::sendEvent(networkView->viewport(), &displacedRelease);
 		QApplication::processEvents();
 		if (m_selectedStationName != QString::fromStdString(lowSourceNode->stationName)
@@ -12861,6 +12939,242 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "signal posts or bases remain visible at overview zoom";
 	}
+	if (networkView && scene) {
+		QList<SignalItem*> previousSignals;
+		for (QGraphicsItem* item : m_signalDecorations)
+			if (auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr)
+				if (item->data(kSignalBaseVisibleRole).toBool()) {
+					previousSignals.append(signal);
+					item->setData(kSignalBaseVisibleRole, false);
+				}
+		const QPointF anchor = networkView->mapToScene(networkView->viewport()->rect().center());
+		QList<SignalItem*> denseSignals;
+		for (int i = 0; i < 6; ++i) {
+			auto* plate = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+			plate->setPos(anchor);
+			plate->setAspectCode(i % 2 ? 180 : 0);
+			plate->setReversedDirection(i % 2 == 0);
+			plate->setInspectionIdentity(QStringLiteral("fixture %1").arg(i));
+			plate->setData(kSignalAnchorRole, anchor);
+			plate->setData(kSignalBaseVisibleRole, true);
+			scene->addItem(plate);
+			m_signalDecorations.append(plate);
+			denseSignals.append(plate);
+		}
+		for (const qreal zoom : {1.0, kSignalDetailZoom}) {
+			networkView->fitToTopology();
+			if (zoom > 1.0)
+				networkView->zoomBy(zoom);
+			updateViewportOverlays();
+			SignalItem* representative = nullptr;
+			int visible = 0;
+			for (SignalItem* plate : denseSignals) {
+				visible += plate->isVisible();
+				if (plate->isVisible())
+					representative = plate;
+			}
+			bool everyIdentity = representative != nullptr;
+			for (int i = 0; i < denseSignals.size() && everyIdentity; ++i)
+				everyIdentity = representative->toolTip().contains(QStringLiteral("fixture %1:").arg(i));
+			if (visible != 1 || !representative || representative->groupedSignalCount() != 6
+					|| QLineF(networkView->viewportTransform().map(anchor),
+						networkView->viewportTransform().map(representative->scenePos())).length() > 20.0
+					|| !representative->toolTip().contains("Stop")
+					|| !representative->toolTip().contains("Proceed")
+					|| !everyIdentity) {
+				ok = false;
+				failures << "six overlapping runtime-sized opposing signals lost a local inspectable combined cue";
+			}
+		}
+		// Snapshot changes must rebuild the visible mixture without modifying the
+		// six original operational aspect codes or their individual identities.
+		for (SignalItem* plate : denseSignals)
+			plate->setAspectCode(180);
+		updateSignalCues();
+		SignalItem* regrouped = nullptr;
+		for (SignalItem* plate : denseSignals)
+			if (plate->isVisible())
+				regrouped = plate;
+		if (!regrouped || regrouped->groupedSignalCount() != 6
+				|| regrouped->toolTip().contains("Stop") || !regrouped->toolTip().contains("Proceed")) {
+			ok = false;
+			failures << "signal aspect update did not rebuild the combined cue";
+		}
+		// An in-view boundary one pixel from the viewport edge must keep its
+		// entire actual plate and direction tick inside the viewport.
+		const QRectF viewRect = networkView->viewport()->rect();
+		const QPointF edge = networkView->mapToScene(QPoint(qRound(viewRect.right() - 1.0),
+			qRound(viewRect.center().y())));
+		auto* edgeSignal = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+		edgeSignal->setPos(edge);
+		edgeSignal->setData(kSignalAnchorRole, edge);
+		edgeSignal->setData(kSignalBaseVisibleRole, true);
+		scene->addItem(edgeSignal);
+		m_signalDecorations.append(edgeSignal);
+		updateSignalCues();
+		const QRectF paintedEdge = edgeSignal->deviceTransform(networkView->viewportTransform())
+			.mapRect(edgeSignal->boundingRect());
+		if (!edgeSignal->isVisible() || !viewRect.contains(paintedEdge)) {
+			ok = false;
+			failures << QString("viewport-edge signal plate or direction was clipped or hidden "
+				"(visible=%1 viewport=%2,%3 %4x%5 item=%6,%7 %8x%9)")
+				.arg(edgeSignal->isVisible()).arg(viewRect.x()).arg(viewRect.y())
+				.arg(viewRect.width()).arg(viewRect.height()).arg(paintedEdge.x()).arg(paintedEdge.y())
+				.arg(paintedEdge.width()).arg(paintedEdge.height());
+		}
+		m_signalDecorations.removeAll(edgeSignal);
+		scene->removeItem(edgeSignal);
+		delete edgeSignal;
+		if (regrouped) {
+			displaySignallingInfo(regrouped);
+			if (!signallingGroupDetails || !signallingGroupDetails->isVisible()
+					|| !signallingGroupDetails->verticalScrollBar()
+					|| !signallingGroupDetails->toPlainText().contains("fixture 0")
+					|| !signallingGroupDetails->toPlainText().contains("fixture 5")) {
+				ok = false;
+				failures << "signal inspector did not expose all grouped identities in its scrollable list";
+			}
+			denseSignals.at(1)->setAspectCode(0);
+			updateSignalCues();
+			if (regrouped->isVisible() && !signallingGroupDetails->toPlainText().contains("fixture 1: right, Stop")) {
+				ok = false;
+				failures << "open signal inspector did not refresh after an aspect change";
+			}
+			handleCloseInfoDockWidget();
+			infoDockWidget->hide();
+		}
+		for (SignalItem* plate : denseSignals)
+			plate->setData(kSignalBaseVisibleRole, false);
+		networkView->fitToTopology();
+		networkView->zoomBy(kSignalDetailZoom);
+		const auto addBoundaryPlate = [&](qreal x, qreal y, const QString& identity, int aspect) {
+			const QPointF point = networkView->viewportTransform().inverted().map(QPointF(x, y));
+			auto* plate = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+			plate->setPos(point);
+			plate->setData(kSignalAnchorRole, point);
+			plate->setData(kSignalBaseVisibleRole, true);
+			plate->setAspectCode(aspect);
+			plate->setInspectionIdentity(identity);
+			scene->addItem(plate);
+			m_signalDecorations.append(plate);
+			return plate;
+		};
+		auto* adjacentStop = addBoundaryPlate(27.99, 70.0, "adjacent Stop", 0);
+		auto* adjacentProceed = addBoundaryPlate(28.01, 70.0, "adjacent Proceed", 180);
+		updateSignalCues();
+		const auto painted = [this](SignalItem* plate) {
+			return plate->deviceTransform(networkView->viewportTransform()).mapRect(plate->boundingRect());
+		};
+		if (!adjacentStop->isVisible() || !adjacentProceed->isVisible()
+				|| painted(adjacentStop).intersects(painted(adjacentProceed))
+				|| adjacentStop->toolTip().contains("adjacent Proceed")
+				|| adjacentProceed->toolTip().contains("adjacent Stop")) {
+			ok = false;
+			failures << "adjacent-cell 20px Stop/Proceed plates overlap or lose independent identity";
+		}
+		const qreal right = networkView->viewport()->rect().right();
+		auto* edgePrevious = addBoundaryPlate(right - 57.0, 70.0, "edge previous", 0);
+		auto* edgeFull = addBoundaryPlate(right - 29.0, 70.0, "edge full", 180);
+		auto* edgeStrip = addBoundaryPlate(right - 1.0, 70.0, "edge strip", 0);
+		updateSignalCues();
+		const QRectF edgeViewport = networkView->viewport()->rect();
+		SignalItem* edgeGroup = edgeFull->isVisible() ? edgeFull : edgeStrip;
+		if (!edgePrevious->isVisible() || !edgeGroup->isVisible()
+				|| edgeGroup->groupedSignalCount() != 2
+				|| !edgeGroup->toolTip().contains("edge full")
+				|| !edgeGroup->toolTip().contains("edge strip")
+				|| painted(edgePrevious).intersects(painted(edgeGroup))
+				|| !edgeViewport.contains(painted(edgePrevious))
+				|| !edgeViewport.contains(painted(edgeGroup))) {
+			ok = false;
+			failures << "partial edge cell did not merge or neighboring 20px plates overlap";
+		}
+		for (SignalItem* plate : {adjacentStop, adjacentProceed, edgePrevious, edgeFull, edgeStrip})
+			plate->setData(kSignalBaseVisibleRole, false);
+		infoDockWidget->show();
+		signallingInfoWidget->show();
+		QApplication::processEvents();
+		auto* orderedA = addBoundaryPlate(107.0, 70.0, "ordered A", 0);
+		auto* orderedB = addBoundaryPlate(113.0, 70.0, "ordered B", 180);
+		updateSignalCues();
+		displaySignallingInfo(orderedB);
+		QApplication::processEvents();
+		const auto movePlateToDevice = [this](SignalItem* plate, int x) {
+			const QPointF point = networkView->mapToScene(QPoint(x, 70));
+			plate->setData(kSignalAnchorRole, point);
+			plate->setPos(point);
+		};
+		movePlateToDevice(orderedA, 107);
+		movePlateToDevice(orderedB, 113);
+		updateSignalCues();
+		if (!orderedA->isVisible() || !orderedB->isVisible()
+				|| orderedB->graphicsEffect() != effect
+				|| signallingGroupDetails->toPlainText().contains("ordered A")) {
+			ok = false;
+			failures << "selected B was not independently inspectable before pan";
+		}
+		const QPointF camera = networkView->mapToScene(networkView->viewport()->rect().center());
+		const qreal cameraScale = std::hypot(networkView->viewportTransform().m11(),
+			networkView->viewportTransform().m12());
+		networkView->centerOn(camera - QPointF(6.0 / cameraScale, 0.0));
+		updateSignalCues();
+		if (orderedA->isVisible() || !orderedB->isVisible()
+				|| orderedB->groupedSignalCount() != 2
+				|| orderedB->graphicsEffect() != effect
+				|| !signallingGroupDetails->toPlainText().contains("ordered A")
+				|| !signallingGroupDetails->toPlainText().contains("ordered B")) {
+			ok = false;
+			failures << "selected B lost its grouped highlight or inspector after a six-pixel pan";
+		}
+		orderedB->setAspectCode(0);
+		updateSignalCues();
+		if (!orderedB->isVisible() || !signallingGroupDetails->toPlainText().contains("ordered B: right, Stop")
+				|| signallingAspectText->text() != QLatin1String("Stop")) {
+			ok = false;
+			failures << "hidden-member aspect change did not refresh selected B's group inspector";
+		}
+		networkView->centerOn(camera);
+		updateSignalCues();
+		if (!orderedA->isVisible() || !orderedB->isVisible()
+				|| orderedB->groupedSignalCount() != 0
+				|| orderedB->graphicsEffect() != effect
+				|| signallingGroupDetails->toPlainText().contains("ordered A")
+				|| !signallingGroupDetails->toPlainText().contains("ordered B: right, Stop")) {
+			ok = false;
+			failures << "selected B did not recover its independent aspect after the split";
+		}
+		handleCloseInfoDockWidget();
+		infoDockWidget->hide();
+		for (SignalItem* plate : {orderedA, orderedB, adjacentStop, adjacentProceed,
+				edgePrevious, edgeFull, edgeStrip}) {
+			m_signalDecorations.removeAll(plate);
+			scene->removeItem(plate);
+			delete plate;
+		}
+		for (SignalItem* plate : denseSignals) {
+			m_signalDecorations.removeAll(plate);
+			scene->removeItem(plate);
+			delete plate;
+		}
+		for (SignalItem* signal : previousSignals)
+			signal->setData(kSignalBaseVisibleRole, true);
+		updateViewportOverlays();
+		const QPointF switchCoord(253.0, 197.0);
+		paintNode(switchCoord, 0, 2, -1, nullptr);
+		NodeItem* switchDot = nullptr;
+		for (QGraphicsItem* item : scene->items())
+			if (auto* node = qgraphicsitem_cast<NodeItem*>(item))
+				if (!node->node && node->track == -1 && node->rect().center() == switchCoord)
+					switchDot = node;
+		if (!switchDot || switchDot->rect().width() == 0.0 || switchDot->childItems().isEmpty()) {
+			ok = false;
+			failures << "zero-sized switch fixture lost its supplied nonzero topology coordinate";
+		}
+		if (switchDot) {
+			scene->removeItem(switchDot);
+			delete switchDot;
+		}
+	}
 	if (networkView) {
 		const qreal currentRatio = networkView->zoomRatio();
 		if (currentRatio < kSignalDetailZoom)
@@ -12889,16 +13203,16 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "required layer controls are missing";
 	} else {
+		// Checkbox slots run synchronously. Do not deliver unrelated simulation
+		// frames between the ownership counts for this layer-only assertion.
 		const int initialItems = scene ? scene->items().size() : 0;
 		const bool initialTrainVisible = !allTrains.isEmpty() && allTrains.first()->isVisible();
 		trainLayer->setChecked(!trainLayer->isChecked());
-		QApplication::processEvents();
 		if (allTrains.isEmpty() || allTrains.first()->isVisible() == initialTrainVisible) {
 			ok = false;
 			failures << "train layer toggle is not functional";
 		}
 		trainLayer->setChecked(!trainLayer->isChecked());
-		QApplication::processEvents();
 		if (scene && scene->items().size() != initialItems) {
 			ok = false;
 			failures << "train layer toggle changed scene ownership";
@@ -17920,13 +18234,13 @@ void MainWindow::runTrackPreviewE2E() {
 			updateViewportOverlays();
 			const QTransform transform = networkView->viewportTransform();
 			for (QGraphicsItem* item : m_signalDecorations) {
-				if (!item || !qgraphicsitem_cast<SignalItem*>(item)
-						|| !item->data(kSignalAnchorRole).isValid())
+				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+				if (!signal || !signal->isVisible() || !item->data(kSignalAnchorRole).isValid())
 					continue;
 				const QPointF anchor = transform.map(item->data(kSignalAnchorRole).toPointF());
 				const QPointF marker = transform.map(item->scenePos());
-				if (qAbs(QLineF(anchor, marker).length() - kPreviewSignalOffsetPixels) > 0.5)
-					fail("signals", "preview signal drifted away from its fixed trackside offset");
+				if (QLineF(anchor, marker).length() > 24.0 || signal->toolTip().isEmpty())
+					fail("signals", "preview signal lost its bounded boundary location or source identity");
 			}
 		}
 		if (previewHasSignalGlyph && m_signalLayerCheck) {
@@ -18151,6 +18465,33 @@ void MainWindow::runTrackPreviewE2E() {
 	}
 	if (structuralOk)
 		marker("E2E_TRACK_PREVIEW_STRUCTURAL_REJECTION_OK");
+
+	// Exercise identity propagation with an authored signal on a real preview
+	// boundary. Render only an in-memory copy; do not change the opened scene.
+	if (m_sceneLoaded) {
+		const TrackPreviewResult source = loadTrackPreview(m_sceneModel);
+		if (source.previewSignals.empty()) {
+			fail("signals", "preview identity fixture has no boundary");
+		} else {
+			SceneModel identified = m_sceneModel;
+			const std::string sectionId = source.previewSignals.front().sectionId;
+			sceneSignals(identified).push_back({"E2E_SIGNAL_PREVIEW_360", sectionId});
+			renderTrackPreview(identified);
+			updateViewportOverlays();
+			const bool inspectable = std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
+				[&](QGraphicsItem* item) {
+					auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+					return signal && signal->isVisible()
+						&& signal->inspectionIdentity().contains("E2E_SIGNAL_PREVIEW_360")
+						&& signal->toolTip().contains("E2E_SIGNAL_PREVIEW_360")
+						&& signal->toolTip().contains(QString::fromStdString(sectionId));
+				});
+			if (!inspectable)
+				fail("signals", "authored preview signal ID and boundary are not inspectable");
+			else
+				marker("E2E_TRACK_PREVIEW_SIGNAL_IDENTITY_OK");
+		}
+	}
 
 	if (ok) {
 		std::fprintf(stdout, "E2E_TRACK_PREVIEW_OK\n");
@@ -21563,7 +21904,8 @@ void MainWindow::onSimulationFinished() {
 		const QStringList labels = m_networkLegendWidget ? m_networkLegendWidget->entryLabels() : QStringList();
 		const bool preview = sceneChangedDuringRun && m_runtimeStatus == QStringLiteral("Failed")
 			&& m_showingTrackPreview && !m_worker && !m_resultsAvailable
-			&& labels.contains(QStringLiteral("Track"))
+			&& labels.contains(QStringLiteral("Local track"))
+			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
 			&& !labels.contains(QStringLiteral("Permissive signalling"))
 			&& !labels.contains(QStringLiteral("Occupied section"));
 		std::fprintf(preview ? stdout : stderr, preview
@@ -21633,6 +21975,7 @@ void MainWindow::teardownGUI() {
 	stopTrainAnimations();
 
 	// Clearing the scene deletes all owned QGraphicsItems.
+	m_inspectedSignal = nullptr;
 	scene->clear();
 
 	// Clear list pointers - the items were owned by the scene and are now deleted.
@@ -21947,6 +22290,11 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(coord);
 
+	// Historical zero-size double-switch dots vanish at Fit; keep a device-visible minimum.
+	if (size == 0) {
+		rect = QRectF(0.0, 0.0, 4.0, 4.0);
+		rect.moveCenter(coord);
+	}
 	NodeItem* el = new NodeItem(rect);
 	el->setPen(pen);
 	el->setBrush(Qt::lightGray);
@@ -21961,7 +22309,8 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 
 // draws a station Node
 void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node) {
-	StationVisual visual = classifyStation();
+	const bool hasPlatform = Node && !Node->stationPlatformId.empty() && Node->stationPlatformId != "None";
+	StationVisual visual = classifyStation(hasPlatform, Node ? Node->numConnections : 0);
 	QPen pen = QPen(visual.outline);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
@@ -22212,7 +22561,7 @@ void MainWindow::paintArc(QPointF start, QPointF end, int pen_width, int track, 
 
 // Arc drawing
 void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track, Arc* Arc) {
-	TrackVisual visual = freeTrackVisual();
+	TrackVisual visual = classifyTrackSpeed(Arc ? Arc->speedLimit : 0.0);
 	QPen pen = QPen(visual.color);
 	pen.setWidth(std::max(pen_width, visual.width));
 	pen.setCosmetic(true);
@@ -22235,9 +22584,8 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 
 // draws a connection
 void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection) {
-	const TrackVisual visual = freeTrackVisual();
-	QPen pen(visual.color);
-	pen.setWidth(std::max(pen_width, visual.width));
+	QPen pen(Qt::white);
+	pen.setWidth(pen_width);
 	pen.setCosmetic(true);
 
 	// draws a line from start to end with a given line width
@@ -22307,7 +22655,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	QPen penPlate = QPen();
 	penPlate.setWidth(0);
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
-	const qreal markerSize = static_cast<qreal>(size) * 0.6;
+	const qreal markerSize = std::max<qreal>(8.0, size);
 	QRectF rect = QRectF(0, 0, markerSize, markerSize);
 	rect.moveCenter(QPointF(0.0, 0.0));
 
@@ -22322,6 +22670,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	SignalItem* plate1 = new SignalItem(rect);
 	plate1->setZValue(3);
 	plate1->setPos(QPointF(plateCenterX, plateCenterY));
+	plate1->setData(kSignalAnchorRole, plate1->pos());
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
 	plate1->setAspectCode(180);
@@ -22375,6 +22724,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	SignalItem* plate2 = new SignalItem(rect);
 	plate2->setZValue(3);
 	plate2->setPos(QPointF(plateCenterX, plateCenterY));
+	plate2->setData(kSignalAnchorRole, plate2->pos());
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
 	plate2->setAspectCode(180);
@@ -22792,6 +23142,11 @@ void MainWindow::setupInfoDockWidget() {
 	signallingProtectedSectionText->setObjectName("signallingProtectedSectionText");
 	signallingNextTrackText = new QLineEdit(signallingInfoWidget);
 	signallingNextTrackText->setObjectName("signallingNextTrackText");
+	signallingGroupDetails = new QPlainTextEdit(signallingInfoWidget);
+	signallingGroupDetails->setObjectName("signallingGroupDetails");
+	signallingGroupDetails->setReadOnly(true);
+	signallingGroupDetails->setMaximumHeight(120);
+	signallingGroupDetails->setWordWrapMode(QTextOption::NoWrap);
 	signallingFormLayout = new QFormLayout();
 	signallingFormLayout->addRow("Track ID", signallingTrackIDText);
 	signallingFormLayout->addRow("X (m)", signallingXText);
@@ -22800,6 +23155,7 @@ void MainWindow::setupInfoDockWidget() {
 	signallingFormLayout->addRow("Aspect", signallingAspectText);
 	signallingFormLayout->addRow("Protected section", signallingProtectedSectionText);
 	signallingFormLayout->addRow("Next track", signallingNextTrackText);
+	signallingFormLayout->addRow("Signals at location", signallingGroupDetails);
 	signallingInfoWidget->setLayout(signallingFormLayout);
 
 	// train info widget
@@ -22855,6 +23211,7 @@ void MainWindow::handleHelpAbout() {
 // hides all widgets from the dock widget
 // removes highlight from last clicked item
 void MainWindow::handleCloseInfoDockWidget() {
+	m_inspectedSignal = nullptr;
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
 	m_selectedStationNodeId = 0.0;
@@ -23087,6 +23444,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	if (!signal)
 		return;
 	handleCloseInfoDockWidget();
+	m_inspectedSignal = signal;
 
 	// update signalling info displayed on widget
 	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
@@ -23105,6 +23463,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 		}
 	};
 	signallingAspectText->setText(aspectName(signal->aspectCode()));
+	signallingGroupDetails->setPlainText(signal->toolTip());
 	const std::string protectedSection = !signal->sectionAheadId.empty()
 		? signal->sectionAheadId
 		: signal->sectionBehindId;
@@ -23143,6 +23502,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	signal->setGraphicsEffect(effect);
+	updateSignalCues();
 }
 
 void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode) {
@@ -23643,6 +24003,7 @@ void MainWindow::updateSignalling() {
 		return;
 	for (const GuiSignalState& signal : m_snapshot->signalStates)
 		updateSignalAspect(signal.sectionId, signal.code, signal.reversedDirection);
+	updateSignalCues();
 }
 
 // slot to update passenger counter at platforms
@@ -25448,7 +25809,6 @@ void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
 	const bool dense = networkView->zoomRatio() >= kDenseDetailZoom;
-	const bool signalDetail = networkView->zoomRatio() >= kSignalDetailZoom;
 	const qreal stationLabelScale = qMin<qreal>(3.0,
 		std::sqrt(qMax<qreal>(1.0, networkView->zoomRatio() / kDenseDetailZoom)));
 
@@ -25661,41 +26021,7 @@ void MainWindow::updateViewportOverlays() {
 		overlay->setLayoutVisible(visible);
 	}
 
-	// Keep markers readable without painting dense section boundaries on top of
-	// one another. Higher zoom progressively reveals closer signals.
-	QList<QPointF> signalCenters;
-	const qreal minimumSignalDistanceSquared = signalDetail ? 144.0 : 576.0;
-	for (auto* item : m_signalDecorations) {
-		if (!item)
-			continue;
-		const bool baseVisible = item->data(kSignalBaseVisibleRole).toBool();
-		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
-		if (signal && item->data(kSignalAnchorRole).isValid()) {
-			const qreal viewScale = std::hypot(toDevice.m11(), toDevice.m12());
-			if (viewScale > 0.0) {
-				const QPointF anchor = item->data(kSignalAnchorRole).toPointF();
-				const QPointF normal = item->data(kSignalNormalRole).toPointF();
-				const qreal direction = item->data(kSignalDirectionRole).toReal();
-				item->setPos(anchor + direction * kPreviewSignalOffsetPixels / viewScale * normal);
-			}
-		}
-		if (signal)
-			signal->setScale(signalDetail ? 1.0 : 0.7);
-		bool visible = m_signalLayerVisible && baseVisible && (signal || signalDetail);
-		if (visible && signal) {
-			const QPointF center = toDevice.map(signal->scenePos());
-			visible = inset.contains(center)
-				&& std::none_of(signalCenters.cbegin(), signalCenters.cend(),
-					[&center, minimumSignalDistanceSquared](const QPointF& existing) {
-						const QPointF delta = center - existing;
-						return delta.x() * delta.x() + delta.y() * delta.y()
-							< minimumSignalDistanceSquared;
-					});
-			if (visible)
-				signalCenters.append(center);
-		}
-		item->setVisible(visible);
-	}
+	updateSignalCues();
 
 	const bool paxText = paxTextVisible();
 	for (auto* platform : allPlatforms) {
@@ -25710,6 +26036,129 @@ void MainWindow::updateViewportOverlays() {
 		it.value()->setPromoted(promoted);
 		it.value()->setPresentation(
 			TrainBadgeItem::presentationForZoom(networkView->zoomRatio(), promoted));
+	}
+}
+
+// Only layout signal cues here: aspect snapshots can change many times between
+// viewport moves without needing to relayout station names or train labels.
+void MainWindow::updateSignalCues() {
+	if (!networkView)
+		return;
+	const QTransform toDevice = networkView->viewportTransform();
+	const QRectF viewport = networkView->viewport()->rect();
+	const qreal viewScale = std::hypot(toDevice.m11(), toDevice.m12());
+	if (viewScale <= 0.0)
+		return;
+	const bool detail = networkView->zoomRatio() >= kSignalDetailZoom;
+	qreal maximumRadius = 0.0;
+	for (QGraphicsItem* item : m_signalDecorations) {
+		auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+		if (!signal || !item->data(kSignalBaseVisibleRole).toBool()
+				|| !item->data(kSignalAnchorRole).isValid())
+			continue;
+		const qreal baseScale = detail ? 1.0 : (signal->rect().width() > 12.0 ? 0.25 : 1.0);
+		const qreal combinedScale = qMax(baseScale, 11.0 / signal->rect().width());
+		maximumRadius = qMax(maximumRadius, (signal->rect().width() / 2.0 + 3.0) * combinedScale);
+	}
+	const qreal cellSize = qMax(detail && m_previewHasSignals ? 20.0 : 28.0,
+		2.0 * maximumRadius + 2.0);
+	// A partial right/bottom strip belongs to the adjacent full cell. Thus
+	// edge clamping cannot pull two different cells' plates into one another.
+	const int lastColumn = qMax(0, qFloor(viewport.width() / cellSize) - 1);
+	const int lastRow = qMax(0, qFloor(viewport.height() / cellSize) - 1);
+	std::map<std::pair<int, int>, QList<SignalItem*>> cells;
+	for (QGraphicsItem* item : m_signalDecorations) {
+		if (!item)
+			continue;
+		const bool layerVisible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
+		if (!signal) {
+			item->setVisible(layerVisible && detail);
+			continue;
+		}
+		signal->setVisible(false);
+		signal->setGroupedSignals({});
+		if (!item->data(kSignalAnchorRole).isValid())
+			continue;
+		const QPointF anchor = item->data(kSignalAnchorRole).toPointF();
+		QPointF natural = anchor;
+		if (item->data(kSignalNormalRole).isValid()) {
+			const QPointF normal = item->data(kSignalNormalRole).toPointF();
+			natural += item->data(kSignalDirectionRole).toReal()
+				* kPreviewSignalOffsetPixels / viewScale * normal;
+		}
+		signal->setPos(natural);
+		signal->setScale(detail ? 1.0 : (signal->rect().width() > 12.0 ? 0.25 : 1.0));
+		// Eligibility uses the original location, not a 12px station-label inset.
+		const QPointF deviceAnchor = toDevice.map(anchor);
+		if (!layerVisible || !viewport.contains(deviceAnchor))
+			continue;
+		const auto cell = std::make_pair(
+			qBound(0, qFloor((deviceAnchor.x() - viewport.left()) / cellSize), lastColumn),
+			qBound(0, qFloor((deviceAnchor.y() - viewport.top()) / cellSize), lastRow));
+		cells[cell].append(signal);
+	}
+	const QTransform fromDevice = toDevice.inverted();
+	QString inspectedDetails;
+	for (const auto& cell : cells) {
+		const QList<SignalItem*>& members = cell.second;
+		// The inspected member remains the visible representative across a
+		// merge; colored sectors still expose every constituent aspect.
+		SignalItem* representative = m_inspectedSignal && members.contains(m_inspectedSignal)
+			? m_inspectedSignal : members.first();
+		QVector<QPair<int, bool>> aspects;
+		QStringList identities;
+		for (SignalItem* member : members) {
+			aspects.append(qMakePair(member->aspectCode(), member->reversedDirection));
+			const SignalCueKind cue = classifySignalCue(member->aspectCode());
+			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
+				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
+				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+			identities.append(QStringLiteral("%1: %2, %3")
+				.arg(member->inspectionIdentity(), member->reversedDirection
+					? QStringLiteral("left") : QStringLiteral("right"), aspect));
+		}
+		if (members.size() > 1)
+			representative->setScale(qMax(representative->scale(), 11.0 / representative->rect().width()));
+		representative->setGroupedSignals(members.size() > 1 ? aspects : QVector<QPair<int, bool>>());
+		representative->setToolTip(QStringLiteral("%1 signal%2 at this location\n%3")
+			.arg(members.size()).arg(members.size() == 1 ? QString() : QStringLiteral("s"))
+			.arg(identities.join(QLatin1Char('\n'))));
+		QPointF center(viewport.left() + (cell.first.first + 0.5) * cellSize,
+			viewport.top() + (cell.first.second + 0.5) * cellSize);
+		// Reserve the plate, its direction ticks and the actual viewport edge.
+		const qreal radius = (representative->rect().width() / 2.0 + 3.0)
+			* representative->scale();
+		const qreal xMargin = qMin(radius, viewport.width() / 2.0);
+		const qreal yMargin = qMin(radius, viewport.height() / 2.0);
+		center.setX(qBound(viewport.left() + xMargin, center.x(), viewport.right() - xMargin));
+		center.setY(qBound(viewport.top() + yMargin, center.y(), viewport.bottom() - yMargin));
+		representative->setPos(fromDevice.map(center));
+		representative->setVisible(true);
+		if (members.contains(m_inspectedSignal))
+			inspectedDetails = representative->toolTip();
+	}
+	if (signallingInfoWidget && signallingInfoWidget->isVisible() && signallingGroupDetails
+			&& m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal)) {
+		if (inspectedDetails.isEmpty()) {
+			const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
+			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
+				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
+				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+			inspectedDetails = QStringLiteral("Signal outside the visible layer\n%1: %2, %3")
+				.arg(m_inspectedSignal->inspectionIdentity(),
+					m_inspectedSignal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"),
+					aspect);
+		}
+		if (signallingGroupDetails->toPlainText() != inspectedDetails) {
+			const int scroll = signallingGroupDetails->verticalScrollBar()->value();
+			signallingGroupDetails->setPlainText(inspectedDetails);
+			signallingGroupDetails->verticalScrollBar()->setValue(scroll);
+		}
+		const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
+		signallingAspectText->setText(cue == SignalCueKind::Stop ? QStringLiteral("Stop")
+			: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
+			: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral"));
 	}
 }
 

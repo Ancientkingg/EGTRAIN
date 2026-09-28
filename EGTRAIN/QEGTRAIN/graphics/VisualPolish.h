@@ -43,6 +43,7 @@ struct SignalVisual {
 };
 
 TrackVisual freeTrackVisual();
+TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond);
 TrackStateVisual classifyTrackState(TrackOperationalState state);
 int trackStatePriority(TrackOperationalState state);
 TrainVisual classifyTrainType(const std::string& type, const std::string& description);
@@ -50,7 +51,7 @@ TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
 int trainBadgeCornerRadius(TrainBadgeShape shape);
 SignalVisual classifySignalAspect(int code);
 SignalCueKind classifySignalCue(int code);
-StationVisual classifyStation();
+StationVisual classifyStation(bool hasPlatformId = false, int connectionCount = 0);
 QString simulationSpeedLabel(int delayMs);
 QString simulationSpeedMode(int delayMs);
 

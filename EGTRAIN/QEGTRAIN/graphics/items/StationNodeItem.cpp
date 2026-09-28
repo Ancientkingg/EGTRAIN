@@ -15,5 +15,5 @@ void StationNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* o
 	painter->setPen(pen());
 	painter->setBrush(brush());
 
-	painter->drawEllipse(rect());
+	painter->drawRect(rect());
 }

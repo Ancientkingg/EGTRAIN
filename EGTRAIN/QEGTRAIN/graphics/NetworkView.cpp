@@ -11,8 +11,7 @@
 
 namespace {
 constexpr qreal kFitPadding = 24.0;
-const QColor kCanvasColor("#101a22");
-const QColor kGridColor("#182832");
+const QColor kCanvasColor(Qt::black);
 }
 
 NetworkView::NetworkView(QWidget* parent)
@@ -284,27 +283,6 @@ bool NetworkView::viewportEvent(QEvent* event) {
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
 	QEGTRAIN_PROFILE_SCOPE("render/viewport_paint/background", "render", "render/viewport_paint");
 	painter->fillRect(rect, kCanvasColor);
-
-	const qreal viewScale = qAbs(transform().m11());
-	if (viewScale <= 0.0)
-		return;
-
-	qreal spacing = 80.0;
-	while (spacing * viewScale < 24.0)
-		spacing *= 2.0;
-	while (spacing * viewScale > 96.0)
-		spacing /= 2.0;
-
-	QPen gridPen(kGridColor);
-	gridPen.setCosmetic(true);
-	gridPen.setWidth(0);
-	painter->setPen(gridPen);
-	const qreal left = std::floor(rect.left() / spacing) * spacing;
-	const qreal top = std::floor(rect.top() / spacing) * spacing;
-	for (qreal x = left; x <= rect.right(); x += spacing)
-		painter->drawLine(QLineF(x, rect.top(), x, rect.bottom()));
-	for (qreal y = top; y <= rect.bottom(); y += spacing)
-		painter->drawLine(QLineF(rect.left(), y, rect.right(), y));
 }
 
 void NetworkView::resizeEvent(QResizeEvent* event) {

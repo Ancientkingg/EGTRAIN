@@ -63,27 +63,16 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			const QColor markerColor(210, 215, 220);
-			const QRectF symbol(15.0, 1.0, 16.0, 16.0);
-			painter.setPen(QPen(markerColor, 1.0));
-			painter.setBrush(markerColor);
-			painter.drawEllipse(symbol.adjusted(5.0, 5.0, -5.0, -5.0));
+			const QPixmap icon(m_entry.iconResource);
+			if (!icon.isNull())
+				painter.drawPixmap(QRect(15, 1, 16, 16), icon);
 			return;
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Signal) {
-			const QColor outline("#0D131A");
-			const QRectF lamp(17.0, 3.0, 12.0, 12.0);
-			painter.setPen(QPen(outline, 1.0));
+			painter.setPen(QPen(Qt::white, 1.0));
 			painter.setBrush(m_entry.color);
-			painter.drawEllipse(lamp);
-			const QPointF center = lamp.center();
-			QPolygonF direction;
-			direction << center + QPointF(0.3 * lamp.width(), 0.0)
-					  << center + QPointF(-0.1 * lamp.width(), -0.25 * lamp.height())
-					  << center + QPointF(-0.1 * lamp.width(), 0.25 * lamp.height());
-			painter.setBrush(outline);
-			painter.drawPolygon(direction);
+			painter.drawEllipse(QRectF(17.0, 3.0, 12.0, 12.0));
 			return;
 		}
 
@@ -212,13 +201,18 @@ NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
 void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	m_entries.clear();
 	if (content.hasTracks) {
+		NetworkLegendEntry high = trackEntry("High speed track (200+ km/h)", TrackOperationalState::Free);
+		high.color = classifyTrackSpeed(200.0 / 3.6).color;
+		high.lineWidth = 4;
+		NetworkLegendEntry main = trackEntry("Mainline track (120+ km/h)", TrackOperationalState::Free);
+		main.color = classifyTrackSpeed(120.0 / 3.6).color;
+		main.lineWidth = 3;
+		m_entries << high << main << trackEntry("Local track", TrackOperationalState::Free);
 		if (content.showOperationalTrackStates) {
-			m_entries << trackEntry("Free track", TrackOperationalState::Free)
-					  << trackEntry("Permissive signalling", TrackOperationalState::Prepared)
+			m_entries << trackEntry("Permissive signalling", TrackOperationalState::Prepared)
 					  << trackEntry("Occupied section", TrackOperationalState::Occupied)
 					  << trackEntry("Blocked section", TrackOperationalState::Blocked);
 		} else {
-			m_entries << trackEntry("Track", TrackOperationalState::Free);
 			if (content.hasSelectedTrack) {
 				NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
 				selected.color = QColor(242, 170, 70);

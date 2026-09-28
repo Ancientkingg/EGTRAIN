@@ -6,6 +6,7 @@
 #include <QPainter>
 
 #include "graphics/items/TrainBadgeItem.h"
+#include "graphics/items/SignalItem.h"
 
 #include <iostream>
 
@@ -37,7 +38,12 @@ int main(int argc, char* argv[]) {
 	QGuiApplication app(argc, argv);
 	bool ok = true;
 	const TrackVisual freeBase = freeTrackVisual();
-	ok &= expect(freeBase.color == QColor("#A0ACB4"), "free track uses the neutral base color");
+	ok &= expect(freeBase.color == QColor(120, 120, 120), "local track uses historical gray");
+	ok &= expect(classifyTrackSpeed(200.0 / 3.6).color == QColor(30, 130, 210)
+		&& classifyTrackSpeed(200.0 / 3.6).width == 4, "historical high-speed boundary");
+	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(80, 80, 80)
+		&& classifyTrackSpeed(120.0 / 3.6).width == 3, "historical mainline boundary");
+	ok &= expect(classifyTrackSpeed(119.0 / 3.6).color == QColor(120, 120, 120), "historical local boundary");
 	ok &= expect(freeBase.width == 2, "free track uses one documented overview width");
 
 	const TrackStateVisual freeTrack = classifyTrackState(TrackOperationalState::Free);
@@ -106,7 +112,9 @@ int main(int argc, char* argv[]) {
 		"train category silhouettes");
 
 	const StationVisual station = classifyStation();
-	ok &= expect(station.iconResource == ":/icons/station.svg", "station uses the uniform station icon");
+	ok &= expect(station.iconResource == ":/icons/train_station.png", "station uses the original pictogram");
+	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
+	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
 
 	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
 	ok &= expect(simulationSpeedLabel(250) == "Speed: 4.0x", "delayed speed label");
@@ -202,6 +210,26 @@ int main(int argc, char* argv[]) {
 	ok &= expect(elided != "H-Ballerup-Osterport-1" && elided.endsWith('1'),
 		"long train identifiers use middle elision and preserve the suffix");
 
+	// A combined cue retains opposing Stop/Proceed sectors and both directions;
+	// the source aspect on the representative remains unchanged.
+	SignalItem combined(QRectF(-10, -10, 20, 20));
+	combined.setAspectCode(180);
+	combined.setGroupedSignals({{0, true}, {180, false}, {180, true}});
+	QImage opposing(48, 48, QImage::Format_ARGB32_Premultiplied);
+	opposing.fill(Qt::black);
+	{
+		QPainter painter(&opposing);
+		painter.translate(24, 24);
+		combined.paint(&painter, nullptr, nullptr);
+	}
+	ok &= expect(combined.aspectCode() == 180 && combined.groupedSignalCount() == 3,
+		"grouping does not overwrite an individual operational aspect");
+	ok &= expect(opposing.pixelColor(32, 24) == QColor(Qt::red)
+		&& opposing.pixelColor(16, 24) == QColor(Qt::green),
+		"opposing Stop and Proceed remain visible in one grouped plate");
+	ok &= expect(combined.boundingRect().contains(QPointF(-11, 0))
+		&& combined.boundingRect().contains(QPointF(11, 0)),
+		"the grouped cue bounds include both direction ticks");
 	if (!ok)
 		return 1;
 
