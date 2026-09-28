@@ -32,6 +32,16 @@ installs it and relaunches the application. If the install location is not
 writable, download the release and install it with the platform's normal
 permissions instead.
 
+Production updates are stable versioned releases. With automatic checks enabled,
+EGTRAIN offers newer releases on the next application start; it does not interrupt
+an already-running session when a release is published. Use **Help > Check for
+Updates...** to check immediately. Installing an update always requires consent.
+
+Production build 107 and earlier have no updater and need one manual upgrade.
+The Linux AppImage from production build 111 also needs one manual upgrade to
+correct its update-staging path. After that, use **Update and Restart** for
+future releases. Windows and macOS build 111 can update in place.
+
 Application version, scene schema version, and bundle version are independent.
 The saved-with application version is provenance and does not by itself prompt
 for an upgrade. Older scenes can be upgraded to a copy; the original directory

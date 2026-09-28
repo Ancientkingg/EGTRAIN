@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
-project(EGTRAIN VERSION 1.0.0 LANGUAGES C CXX)
+set(EGTRAIN_VERSION "1.0.0" CACHE STRING "Application version for this build")
+if(NOT EGTRAIN_VERSION MATCHES "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$")
+    message(FATAL_ERROR "EGTRAIN_VERSION must be a stable X.Y.Z version")
+endif()
+project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES C CXX)
 
 # The project version is the single application-version source for every
 # target and package surface.
@@ -380,6 +384,15 @@ target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json egtrain_mi
 
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
+if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
+    enable_testing()
+    add_executable(test_updatepreparation
+        ${SRC_DIR}/tests/test_updatepreparation.cpp
+        ${SRC_DIR}/update/UpdatePreparation.cpp)
+    target_link_libraries(test_updatepreparation PRIVATE Qt5::Core)
+    add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
+
+endif()
 if(EGTRAIN_BUILD_TESTS)
     enable_testing()
     add_executable(test_timeformat
@@ -404,12 +417,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_updatestaging.cpp)
     target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
     add_test(NAME test_updatestaging COMMAND test_updatestaging)
-
-    add_executable(test_updatepreparation
-        ${SRC_DIR}/tests/test_updatepreparation.cpp
-        ${SRC_DIR}/update/UpdatePreparation.cpp)
-    target_link_libraries(test_updatepreparation PRIVATE Qt5::Core)
-    add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
 
     if(NOT TARGET test_updatehelper)
         add_executable(test_updatehelper
@@ -827,6 +834,8 @@ if(EGTRAIN_BUILD_TESTS)
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh)
 		set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 420)
 	endif()
+	add_test(NAME test_release_version
+		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_version.py)
 	add_test(NAME test_ci_workflow
 		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds

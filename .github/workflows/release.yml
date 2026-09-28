@@ -1,7 +1,7 @@
 name: Release
 
 # Builds downloadable applications for macOS, Windows, and Linux.
-# Production pushes publish the three platform packages and six case-study bundles.
+# Production pushes publish a newer stable version with platform packages and scenes.
 # v* tags publish releases using the tag name. Manual runs test the full pipeline.
 on:
   push:
@@ -14,8 +14,29 @@ on:
       - production
   workflow_dispatch:
 
+# Production and tag releases share version allocation and must not overlap.
+concurrency:
+  group: ${{ github.event_name == 'push' && 'egtrain-publish' || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
+  version:
+    name: Select application version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/release/version.py
+
   validation:
+    needs: version
     name: Full validation
     runs-on: macos-latest
     steps:
@@ -28,7 +49,7 @@ jobs:
         run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
 
       - name: Configure
-        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+        run: cmake -S . -B build -DEGTRAIN_VERSION=${{ needs.version.outputs.version }} -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
       - name: Build
         run: cmake --build build
@@ -87,6 +108,7 @@ jobs:
           if-no-files-found: ignore
 
   sanitizer:
+    needs: version
     name: Sanitizers
     runs-on: macos-latest
     steps:
@@ -100,7 +122,7 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -S . -B build
+          cmake -S . -B build -DEGTRAIN_VERSION=${{ needs.version.outputs.version }}
           -DCMAKE_BUILD_TYPE=Debug
           -DEGTRAIN_BUILD_TESTS=ON
           -DEGTRAIN_ENABLE_SANITIZERS=ON
@@ -128,6 +150,7 @@ jobs:
           if-no-files-found: ignore
 
   package-macos:
+    needs: version
     name: Package macOS
     runs-on: macos-latest
     steps:
@@ -138,7 +161,7 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -S . -B build
+          cmake -S . -B build -DEGTRAIN_VERSION=${{ needs.version.outputs.version }}
           -DCMAKE_BUILD_TYPE=Release
           -DEGTRAIN_PACKAGED_BUILD=ON
           -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
@@ -147,7 +170,7 @@ jobs:
         run: cmake --build build --config Release -j
 
       - name: Verify update helper transaction
-        run: ctest --test-dir build -R '^test_updatehelper$' --output-on-failure
+        run: ctest --test-dir build -R '^test_update(helper|preparation)$' --output-on-failure
 
       - name: Bundle Qt and dependencies into the app
         run: |
@@ -295,6 +318,7 @@ jobs:
           if-no-files-found: error
 
   package-windows:
+    needs: version
     name: Package Windows
     runs-on: windows-latest
     steps:
@@ -320,7 +344,7 @@ jobs:
       - name: Configure
         shell: pwsh
         run: >
-          cmake -S . -B build
+          cmake -S . -B build -DEGTRAIN_VERSION=${{ needs.version.outputs.version }}
           -DEGTRAIN_PACKAGED_BUILD=ON
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
@@ -330,7 +354,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Verify update helper transaction
-        run: ctest --test-dir build -C Release -R '^test_updatehelper$' --output-on-failure
+        run: ctest --test-dir build -C Release -R '^test_update(helper|preparation)$' --output-on-failure
 
       - name: Assemble package
         shell: pwsh
@@ -388,6 +412,7 @@ jobs:
           if-no-files-found: error
 
   package-linux:
+    needs: version
     name: Package Linux
     runs-on: ubuntu-latest
     steps:
@@ -402,13 +427,13 @@ jobs:
             libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
 
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
+        run: cmake -S . -B build -DEGTRAIN_VERSION=${{ needs.version.outputs.version }} -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
 
       - name: Build
         run: cmake --build build --config Release -j"$(nproc)"
 
       - name: Verify update helper transaction
-        run: ctest --test-dir build -R '^test_updatehelper$' --output-on-failure
+        run: ctest --test-dir build -R '^test_update(helper|preparation)$' --output-on-failure
 
       - name: Assemble AppDir
         run: |
@@ -504,33 +529,13 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    needs: [validation, sanitizer, package-macos, package-windows, package-linux]
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/production') || startsWith(github.ref, 'refs/tags/v')
+    needs: [version, validation, sanitizer, package-macos, package-windows, package-linux]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validate stable release tag
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-')
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag="$GITHUB_REF_NAME"
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Stable release tags must match vX.Y.Z: $tag"
-            exit 1
-          fi
-          cmake_version="$(sed -nE 's/^project\(EGTRAIN VERSION ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' CMakeLists.txt | head -n 1)"
-          if [[ -z "$cmake_version" ]]; then
-            echo "Could not read the EGTRAIN project version from CMakeLists.txt"
-            exit 1
-          fi
-          if [[ "${tag#v}" != "$cmake_version" ]]; then
-            echo "Stable tag $tag does not match CMake version $cmake_version"
-            exit 1
-          fi
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -542,6 +547,8 @@ jobs:
 
       - name: Set release metadata
         id: release-meta
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -556,11 +563,20 @@ jobs:
               make_latest=true
             fi
           else
-            short_sha="${GITHUB_SHA::7}"
-            tag="production-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
-            name="EGTRAIN production build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT} (${short_sha})"
-            prerelease=true
-            make_latest=false
+            tag="v${{ needs.version.outputs.version }}"
+            name="EGTRAIN $tag"
+            prerelease=false
+            make_latest=true
+            production_commit="$(git ls-remote origin refs/heads/production | cut -f1)"
+            if [[ "$production_commit" != "$GITHUB_SHA" ]]; then
+              echo "Production has advanced; publish its latest run instead of this stale run."
+              exit 1
+            fi
+            release_tags="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name')"
+            if [[ -n "$(git ls-remote origin "refs/tags/$tag")" ]] || grep -Fxq "$tag" <<< "$release_tags"; then
+              echo "Release tag $tag already exists. Rerun all jobs to allocate a new version."
+              exit 1
+            fi
           fi
 
           {
@@ -574,7 +590,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="$(sed -nE 's/^project\(EGTRAIN VERSION ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' CMakeLists.txt | head -n 1)"
+          version="${{ needs.version.outputs.version }}"
           test -n "$version"
           mac_sha="$(sha256sum artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip | cut -d ' ' -f 1)"
           windows_sha="$(sha256sum artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | cut -d ' ' -f 1)"
@@ -622,7 +638,7 @@ jobs:
             exit 1
           fi
 
-      - name: Publish release
+      - name: Prepare release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release-meta.outputs.tag }}
@@ -637,6 +653,7 @@ jobs:
           prerelease: ${{ steps.release-meta.outputs.prerelease }}
           make_latest: ${{ steps.release-meta.outputs.make_latest }}
           fail_on_unmatched_files: true
+          draft: true
           body: |
             Automated EGTRAIN build for `${{ steps.release-meta.outputs.name }}`.
 
@@ -644,3 +661,10 @@ jobs:
             - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             Download the package for your platform. Case studies are also available as `.egscene` files.
+
+      - name: Publish complete release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
+          MAKE_LATEST: ${{ steps.release-meta.outputs.make_latest }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --latest="$MAKE_LATEST"

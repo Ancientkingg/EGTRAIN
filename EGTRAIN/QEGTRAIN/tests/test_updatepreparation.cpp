@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
+#include <QFileInfo>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QTimer>
@@ -85,6 +86,22 @@ int main(int argc, char** argv) {
 		return 1;
 
 	bool ok = true;
+#if defined(Q_OS_LINUX)
+	UpdatePreparationInput linuxInput;
+	linuxInput.stagingRoot = temp.path();
+	linuxInput.packagePath = QDir(temp.path()).filePath("QEGTRAIN-linux-x86_64.AppImage");
+	linuxInput.currentPath = QDir(temp.path()).filePath("current.AppImage");
+	const QByteArray elfContents = QByteArray::fromHex("7f454c46") + "test AppImage";
+	ok &= expect(writeFile(linuxInput.packagePath, elfContents)
+		&& writeFile(linuxInput.currentPath, elfContents), "AppImage fixtures are writable");
+	QString stageError;
+	const QString linuxStage = stageUpdatePackage(linuxInput, &stageError);
+	ok &= expect(!linuxStage.isEmpty() && stageError.isEmpty(),
+		"real Linux preparation accepts the production download path");
+	ok &= expect(linuxStage != linuxInput.packagePath && QFile::exists(linuxInput.packagePath),
+		"AppImage preparation keeps download and staged installation separate");
+	ok &= expect(QFileInfo(linuxStage).isExecutable(), "staged AppImage is executable");
+#endif
 	QByteArray packageContents(3 * 1024 * 1024, 'p');
 	for (int offset = 0; offset < packageContents.size(); offset += 4096)
 		packageContents[offset] = static_cast<char>(offset % 251);
