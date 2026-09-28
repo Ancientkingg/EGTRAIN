@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
 	auto* permissiveLabel = legend.findChild<QLabel*>("mapKeyEntry1");
 	ok &= expect(permissiveLabel && permissiveLabel->wordWrap()
 		&& permissiveLabel->width() >= permissiveLabel->fontMetrics().horizontalAdvance("signalling")
+		&& permissiveLabel->minimumHeight() >= permissiveLabel->heightForWidth(permissiveLabel->width())
 		&& permissiveLabel->height() >= permissiveLabel->fontMetrics().lineSpacing() * 2,
 		"permissive signalling label wraps at the narrow case dock width");
 	ok &= expect(entries.at(2).label == "Occupied section"

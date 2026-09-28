@@ -292,6 +292,10 @@ void NetworkLegendWidget::rebuildRows() {
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);
+		label->ensurePolished();
+		const int labelWidth = row->maximumWidth() - rowLayout->contentsMargins().left()
+			- rowLayout->contentsMargins().right() - rowLayout->spacing() - swatch->width();
+		label->setMinimumHeight(label->heightForWidth(labelWidth));
 		label->setToolTip(entry.label);
 		rowLayout->addWidget(label, 1);
 		layout->addWidget(row);
