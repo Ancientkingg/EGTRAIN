@@ -27,5 +27,6 @@ use the canonical model.
 - [Scene schema reference](architecture/scene-schema.md)
 - [Scene bundle format](architecture/scene-bundle.md)
 - [Release testing checklist](development/release-testing-checklist.md)
+- [Usage and diagnostics wire contract](telemetry/README.md)
 
 Keep new documentation short, concrete, and current.

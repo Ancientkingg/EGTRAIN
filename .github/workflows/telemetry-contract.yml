@@ -1,0 +1,27 @@
+name: Telemetry contract
+
+on:
+  push:
+    paths:
+      - 'docs/telemetry/**'
+      - 'tools/e2e/test_telemetry_contract.py'
+      - '.github/workflows/telemetry-contract.yml'
+  pull_request:
+    paths:
+      - 'docs/telemetry/**'
+      - 'tools/e2e/test_telemetry_contract.py'
+      - '.github/workflows/telemetry-contract.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test-only validator
+        run: python3 -m pip install 'jsonschema==4.25.1' 'rfc3339-validator==0.1.4'
+      - name: Check contract and examples
+        run: python3 tools/e2e/test_telemetry_contract.py
