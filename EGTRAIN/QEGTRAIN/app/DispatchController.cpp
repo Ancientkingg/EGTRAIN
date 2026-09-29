@@ -315,6 +315,7 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 			"worker/playback_step/snapshot_build_publish");
 		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
 	}
+	replayCandidate_.record(snapshot);
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/mailbox_publish", "worker",
 			"worker/playback_step/snapshot_build_publish");

@@ -134,6 +134,7 @@ struct StableRelease;
 
 #include "app/DispatchController.h"
 #include "app/GuiSimulationSnapshot.h"
+#include "app/GuiReplayHistory.h"
 
 #include "simulation/Rescheduling.h"
 
@@ -647,6 +648,14 @@ private:
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
+	GuiReplayHistory m_completedReplay;
+	QWidget* m_replayBar = nullptr;
+	QSlider* m_replaySlider = nullptr;
+	QLabel* m_replayLabel = nullptr;
+	QPushButton* m_replayPlayButton = nullptr;
+	QTimer* m_replayTimer = nullptr;
+	bool m_replayActive = false;
+	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
 	std::shared_ptr<const GuiSimulationSnapshot> m_operationalLifecycleE2eFirstFrame;
 
@@ -928,6 +937,10 @@ private:
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
+	void clearReplay();
+	void seekReplay(int requestedTime);
+	void renderSnapshot(bool historical);
+	bool replayTrainHasPosition(int trainIndex) const;
 
 	// list of signals
 	QList<SignalItem*> allSignals;

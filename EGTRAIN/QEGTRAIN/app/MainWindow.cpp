@@ -75,6 +75,7 @@
 #include <QMimeData>
 #include <QTemporaryDir>
 #include <QToolButton>
+#include <QStyleOptionSlider>
 #include <QUrl>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
@@ -89,6 +90,7 @@
 #include <limits>
 #include <map>
 #include <functional>
+#include <initializer_list>
 #include <memory>
 
 // utilization of GUI
@@ -96,6 +98,31 @@
 extern InitialParameters initial_variables;
 
 namespace {
+class ReplaySlider : public QSlider {
+public:
+	explicit ReplaySlider(QWidget* parent) : QSlider(Qt::Horizontal, parent) {}
+protected:
+	void mousePressEvent(QMouseEvent* event) override {
+		if (event->button() == Qt::LeftButton) {
+			QStyleOptionSlider option;
+			initStyleOption(&option);
+			const QRect groove = style()->subControlRect(QStyle::CC_Slider, &option,
+				QStyle::SC_SliderGroove, this);
+			const QRect handle = style()->subControlRect(QStyle::CC_Slider, &option,
+				QStyle::SC_SliderHandle, this);
+			if (!handle.contains(event->pos())) {
+				const int span = groove.width() - handle.width();
+				const int position = event->pos().x() - groove.x() - handle.width() / 2;
+				setValue(QStyle::sliderValueFromPosition(minimum(), maximum(), position, span,
+					invertedAppearance()));
+				event->accept();
+				return;
+			}
+		}
+		QSlider::mousePressEvent(event);
+	}
+};
+
 using StartupClock = std::chrono::steady_clock;
 StartupClock::time_point g_startupTimingOrigin;
 quint64 g_startupTimingSequence = 0;
@@ -1928,6 +1955,45 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(networkView);
 	mainLayout->addWidget(progressBar);
+	m_replayBar = new QWidget(centralWidget);
+	m_replayBar->setObjectName("completedReplayBar");
+	auto* replayLayout = new QHBoxLayout(m_replayBar);
+	replayLayout->setContentsMargins(4, 2, 4, 2);
+	auto* replayStart = new QPushButton("Start", m_replayBar);
+	auto* replayEnd = new QPushButton("End", m_replayBar);
+	m_replayPlayButton = new QPushButton("Play", m_replayBar);
+	m_replaySlider = new ReplaySlider(m_replayBar);
+	m_replaySlider->setObjectName("completedReplaySlider");
+	m_replaySlider->setAccessibleName("Replay time");
+	m_replaySlider->setFocusPolicy(Qt::StrongFocus);
+	m_replayLabel = new QLabel(m_replayBar);
+	replayLayout->addWidget(replayStart);
+	replayLayout->addWidget(m_replayPlayButton);
+	replayLayout->addWidget(replayEnd);
+	replayLayout->addWidget(m_replaySlider, 1);
+	replayLayout->addWidget(m_replayLabel);
+	mainLayout->addWidget(m_replayBar);
+	m_replayBar->hide();
+	m_replayTimer = new QTimer(this);
+	m_replayTimer->setInterval(1000); // One simulated second per wall second.
+	connect(m_replaySlider, &QSlider::valueChanged, this, &MainWindow::seekReplay);
+	connect(replayStart, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
+	connect(replayEnd, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.lastTime()); });
+	connect(m_replayPlayButton, &QPushButton::clicked, this, [this]() {
+		if (m_replayTimer->isActive()) m_replayTimer->stop();
+		else if (!m_completedReplay.empty()) {
+			if (m_replayRequestedTime >= m_completedReplay.lastTime()) seekReplay(m_completedReplay.firstTime());
+			m_replayTimer->start();
+		}
+		m_replayPlayButton->setText(m_replayTimer->isActive() ? "Pause" : "Play");
+	});
+	connect(m_replayTimer, &QTimer::timeout, this, [this]() {
+		seekReplay(m_replayRequestedTime + 1);
+		if (m_replayRequestedTime >= m_completedReplay.lastTime()) {
+			m_replayTimer->stop();
+			m_replayPlayButton->setText("Play");
+		}
+	});
 
 	// set layout in QWidget
 	centralWidget->setLayout(mainLayout);
@@ -2207,13 +2273,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_trainLayerVisible = checked;
 		for (auto* train : allTrains)
 			if (train)
-				train->setVisible(checked && !train->outOfSimulation);
+				train->setVisible(checked && (m_replayActive
+					? replayTrainHasPosition(train->index) : !train->outOfSimulation));
 		for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
 			if (!it.value())
 				continue;
 			auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
 				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
-			it.value()->setVisible(checked && trainIt != allTrains.cend() && !(*trainIt)->outOfSimulation);
+			it.value()->setVisible(checked && trainIt != allTrains.cend()
+				&& (m_replayActive ? replayTrainHasPosition(it.key()) : !(*trainIt)->outOfSimulation));
 		}
 	});
 	connect(m_trainSpeedLabelsCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -5026,6 +5094,14 @@ void MainWindow::markSceneDirty() {
 }
 
 void MainWindow::invalidateRunResults() {
+	if (!m_worker) {
+		if (m_replayActive && m_sceneLoaded && scene) {
+			setFollowTrain(-1);
+			handleCloseInfoDockWidget();
+			renderTrackPreview(m_sceneModel); // Teardown clears history and graphics together.
+		}
+		clearReplay();
+	}
 	m_runtimeStatus = QStringLiteral("Not built");
 	m_runtimeDiagnostics.clear();
 	m_resultsAvailable = false;
@@ -11382,6 +11458,14 @@ TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
 	return nullptr;
 }
 
+bool MainWindow::replayTrainHasPosition(int trainIndex) const {
+	if (!m_snapshot) return false;
+	const auto state = std::find_if(m_snapshot->trains.cbegin(), m_snapshot->trains.cend(),
+		[trainIndex](const GuiTrainState& train) { return train.index == trainIndex; });
+	return state != m_snapshot->trains.cend()
+		&& guiReplayTrainHasPosition(*state, m_snapshot->timestep);
+}
+
 TrainBodyItem* MainWindow::resolveTrainBodyItem(int trainIndex) const {
 	if (!scene)
 		return nullptr;
@@ -11479,6 +11563,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		m_snapshot->trains.cend(), [trainIndex](const GuiTrainState& state) {
 			return state.index == trainIndex && state.outOfSimulation;
 		});
+	const bool waitingInReplay = m_replayActive && !replayTrainHasPosition(trainIndex);
 	if (exitedInSnapshot || (item && item->outOfSimulation)) {
 		if (m_followAction && m_followAction->isChecked()) {
 			const QSignalBlocker blocker(m_followAction);
@@ -11504,7 +11589,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	QString label = m_followTrainCombo && comboIndex >= 0
 		? m_followTrainCombo->itemText(comboIndex)
 		: QString("Train %1").arg(trainIndex + 1);
-	if (item) {
+	if (item && !waitingInReplay && item->isVisible()) {
 		centerSceneItem(item);
 		statusBar()->showMessage(QString("Following %1").arg(label));
 	} else {
@@ -14558,6 +14643,10 @@ void MainWindow::runVisualPolishE2E() {
 			if (m_worker) {
 				ok = false;
 				failures << "Stop did not complete through the worker lifecycle";
+			}
+			if (!m_completedReplay.empty() || m_replayTimer->isActive()) {
+				ok = false;
+				failures << "Stop retained completed replay";
 			}
 			if (lifecycleTrack->operationalState() != TrackOperationalState::Free)
 				failures << "Stop/completion left a transient operational track state";
@@ -20390,6 +20479,17 @@ void MainWindow::runCreatorAcceptanceE2E() {
 	}
 }
 
+void MainWindow::clearReplay() {
+	if (m_replayTimer) m_replayTimer->stop();
+	if (m_replayPlayButton) m_replayPlayButton->setText("Play");
+	if (m_replayBar) m_replayBar->hide();
+	m_replayActive = false;
+	if (m_replaySlider) m_replaySlider->setEnabled(true);
+	if (m_replayPlayButton) m_replayPlayButton->setEnabled(true);
+	m_completedReplay.clear();
+	simulation.resetReplayCandidate();
+}
+
 void MainWindow::clearSimulationWorker(bool requestStop) {
 	if (m_worker && requestStop)
 		m_worker->requestStop();
@@ -21730,6 +21830,7 @@ void MainWindow::startSimulation() {
 	if (m_worker)
 		return; // already running
 
+	clearReplay();
 	// show progress bar
 	progressBar->show();
 	statusBar()->showMessage("Simulation running...");
@@ -21774,6 +21875,7 @@ void MainWindow::onSimulationFinished() {
 	}
 	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
 	m_sceneChangedDuringRun = false;
+	const bool stopped = m_worker && m_worker->isStopRequested();
 	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
 	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed") : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
@@ -21895,6 +21997,25 @@ void MainWindow::onSimulationFinished() {
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
+	if (m_resultsAvailable && !stopped) {
+		m_completedReplay = simulation.takeReplayCandidate();
+		if (!m_completedReplay.empty()) {
+			m_replayRequestedTime = m_completedReplay.lastTime();
+			const QSignalBlocker blocker(m_replaySlider);
+			m_replaySlider->setRange(m_completedReplay.firstTime(), m_completedReplay.lastTime());
+			m_replaySlider->setValue(m_replayRequestedTime);
+			m_replayLabel->setText(QString("Replay available: %1–%2 s | every %3 s%4")
+				.arg(m_completedReplay.firstTime()).arg(m_completedReplay.lastTime())
+				.arg(GuiReplayHistory::cadenceSeconds)
+				.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+			m_replayBar->show();
+		} else if (m_completedReplay.oversize()) {
+			m_replayLabel->setText("Replay unavailable: one frame exceeded the 64 MiB payload budget");
+			m_replayBar->show();
+			m_replaySlider->setEnabled(false);
+			m_replayPlayButton->setEnabled(false);
+		}
+	} else simulation.resetReplayCandidate();
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
@@ -21903,6 +22024,7 @@ void MainWindow::onSimulationFinished() {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
 		const QStringList labels = m_networkLegendWidget ? m_networkLegendWidget->entryLabels() : QStringList();
 		const bool preview = sceneChangedDuringRun && m_runtimeStatus == QStringLiteral("Failed")
+			&& m_completedReplay.empty() && !m_replayBar->isVisible()
 			&& m_showingTrackPreview && !m_worker && !m_resultsAvailable
 			&& labels.contains(QStringLiteral("Local track"))
 			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
@@ -21927,27 +22049,386 @@ void MainWindow::onSimulationFinished() {
 			QCoreApplication::exit(2);
 			return;
 		}
-		// The completed immutable frame remains available until the next scene is opened.
-		const auto finalFrame = m_snapshot;
+		// Completion must not activate historical overlays before an explicit seek.
+		const bool replayAvailable = !m_completedReplay.empty() && m_replayBar->isVisible()
+			&& !m_replayActive && m_completedReplay.lastTime() >= m_completedReplay.firstTime();
+		if (!replayAvailable) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: replay unavailable or automatically activated\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		const int first = m_completedReplay.firstTime();
+		const int last = m_completedReplay.lastTime();
+		const int middle = first + (last - first) / 2;
+		const RunResults completedResults = m_completedRunResults;
+		const auto completedTimetable = m_completedTimetableResults;
+		m_replaySlider->setValue(middle);
+		const auto expected = m_completedReplay.atOrBefore(middle);
+		const auto analyticsUnchanged = [this, &completedResults, &completedTimetable]() {
+			const auto sameValues = [](std::initializer_list<std::pair<RunResultValue, RunResultValue>> values) {
+				return std::all_of(values.begin(), values.end(), [](const auto& pair) {
+					return pair.first.available == pair.second.available
+						&& pair.first.value == pair.second.value;
+				});
+			};
+			const auto& now = m_completedRunResults;
+			if (now.trains.size() != completedResults.trains.size()
+					|| m_completedTimetableResults.size() != completedTimetable.size()
+					|| !sameValues({{now.networkStartSeconds, completedResults.networkStartSeconds},
+						{now.networkEndSeconds, completedResults.networkEndSeconds},
+						{now.networkTravelSeconds, completedResults.networkTravelSeconds},
+						{now.energyConsumedKWh, completedResults.energyConsumedKWh},
+						{now.energyWithRegenKWh, completedResults.energyWithRegenKWh},
+						{now.substationKWh, completedResults.substationKWh},
+						{now.substationWithRegenKWh, completedResults.substationWithRegenKWh}})) return false;
+			for (std::size_t i = 0; i < now.trains.size(); ++i) {
+				const auto& a = now.trains[i];
+				const auto& b = completedResults.trains[i];
+				if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
+						|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
+						|| a.performancePercent != b.performancePercent
+						|| a.hasConfiguredMaximumSpeed != b.hasConfiguredMaximumSpeed
+						|| a.configuredMaximumSpeedKmh != b.configuredMaximumSpeedKmh
+						|| a.compositionMaximumSpeedMs != b.compositionMaximumSpeedMs
+						|| a.appliedMaximumSpeedMs != b.appliedMaximumSpeedMs
+						|| a.appliedMaximumSpeedKmh != b.appliedMaximumSpeedKmh
+						|| a.directIncidentIds != b.directIncidentIds
+						|| a.destinationTerminationRequested != b.destinationTerminationRequested
+						|| a.destinationTerminated != b.destinationTerminated
+						|| !sameValues({{a.startSeconds, b.startSeconds}, {a.endSeconds, b.endSeconds},
+							{a.travelSeconds, b.travelSeconds}, {a.energyConsumedKWh, b.energyConsumedKWh},
+							{a.energyWithRegenKWh, b.energyWithRegenKWh},
+							{a.substationKWh, b.substationKWh},
+							{a.substationWithRegenKWh, b.substationWithRegenKWh},
+							{a.firstDirectIncidentTime, b.firstDirectIncidentTime},
+							{a.firstDirectIncidentLocation, b.firstDirectIncidentLocation}})) return false;
+			}
+			for (std::size_t i = 0; i < completedTimetable.size(); ++i) {
+				const auto& a = m_completedTimetableResults[i];
+				const auto& b = completedTimetable[i];
+				if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
+						|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
+						|| a.stationId != b.stationId || a.journeyIndex != b.journeyIndex
+						|| a.callIndex != b.callIndex
+						|| !sameValues({{a.plannedArrivalSeconds, b.plannedArrivalSeconds},
+							{a.plannedDepartureSeconds, b.plannedDepartureSeconds},
+							{a.simulatedArrivalSeconds, b.simulatedArrivalSeconds},
+							{a.simulatedDepartureSeconds, b.simulatedDepartureSeconds},
+							{a.arrivalDelaySeconds, b.arrivalDelaySeconds},
+							{a.departureDelaySeconds, b.departureDelaySeconds}})) return false;
+			}
+			return true;
+		};
+		const auto coherent = [this, &analyticsUnchanged](const std::shared_ptr<const GuiSimulationSnapshot>& frame) {
+			if (!analyticsUnchanged()) return false;
+			if (m_snapshot != frame) return false;
+			for (const auto& state : frame->trains) {
+				TrainItemGroup* item = resolveTrainItem(state.index);
+				TrainBadgeItem* badge = m_trainBadges.value(state.index, nullptr);
+				if (!guiReplayTrainHasPosition(state, frame->timestep)) {
+					if ((item && item->isVisible()) || (badge && badge->isVisible())) return false;
+					continue;
+				}
+				if (!item || !item->trainPolygonItemList) return false;
+				bool drawable = false;
+				for (int wagon = 0; wagon <= state.wagonCount; ++wagon) {
+					QPolygonF expectedPolygon;
+					getTrainPolygon(&expectedPolygon, wagon, state);
+					if (wagon >= item->trainPolygonItemList->size()
+							|| item->trainPolygonItemList->at(wagon)->polygon() != expectedPolygon)
+						return false;
+					drawable |= !expectedPolygon.isEmpty();
+				}
+				if (drawable && (!item->isVisible() || !badge || !badge->isVisible())) return false;
+			}
+			for (const auto& signal : frame->signalStates) {
+				auto it = m_signalsByAheadId.find(signal.sectionId);
+				if (it == m_signalsByAheadId.end()) continue;
+				for (const auto* item : it->second)
+					if (item && item->reversedDirection == signal.reversedDirection
+							&& item->aspectCode() != signal.code) return false;
+			}
+			for (const auto& section : frame->sectionStates) {
+				auto it = m_tracksBySectionId.find(section.sectionId);
+				if (it == m_tracksBySectionId.end()) continue;
+				for (auto* track : it->second)
+					if (track && section.blocked && track->operationalState() != TrackOperationalState::Blocked)
+						return false;
+			}
+			return m_trainAnimations.isEmpty();
+		};
+		if (!coherent(expected)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: middle replay incoherent\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		m_replaySlider->setFocus();
+		QKeyEvent right(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
+		QApplication::sendEvent(m_replaySlider, &right);
+		const bool keyboardSeek = m_replayRequestedTime == middle + 1;
+		QWheelEvent wheel(QPointF(m_replaySlider->rect().center()),
+			QPointF(m_replaySlider->mapToGlobal(m_replaySlider->rect().center())),
+			QPoint(), QPoint(0, 120), Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+		QApplication::sendEvent(m_replaySlider, &wheel);
+		const bool wheelSeek = m_replayRequestedTime != middle + 1;
+		seekReplay(first);
+		const QPoint replayClick(m_replaySlider->width() - 8, m_replaySlider->height() / 2);
+		QMouseEvent click(QEvent::MouseButtonPress, replayClick,
+			Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QApplication::sendEvent(m_replaySlider, &click);
+		const bool mouseSeek = m_replayRequestedTime > first;
+		QMouseEvent release(QEvent::MouseButtonRelease, replayClick,
+			Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(m_replaySlider, &release);
+		seekReplay(first);
+		if (!keyboardSeek || !wheelSeek || !mouseSeek
+				|| !coherent(m_completedReplay.atOrBefore(first))) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: beginning replay incoherent (key=%d wheel=%d mouse=%d frame=%d)\n",
+				keyboardSeek, wheelSeek, mouseSeek, coherent(m_completedReplay.atOrBefore(first)));
+			QCoreApplication::exit(2);
+			return;
+		}
+		const auto firstFrame = m_completedReplay.atOrBefore(first);
+		const auto future = std::find_if(firstFrame->trains.cbegin(), firstFrame->trains.cend(),
+			[first, last](const GuiTrainState& state) {
+				return state.departureTime > first && state.departureTime < last;
+			});
+		if (future == firstFrame->trains.cend()) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no future departure fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		{
+			setFollowTrain(future->index);
+			const bool waiting = m_followTrainIndex == future->index
+				&& statusBar()->currentMessage().contains("waiting for departure")
+				&& std::none_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+					[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			TrainItemGroup* followed = resolveTrainItem(future->index);
+			if (!waiting || !followed || !followed->isVisible()
+					|| m_followTrainIndex != future->index) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: historical Follow\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			setFollowTrain(-1);
+		}
+		seekReplay(future->departureTime - 1);
+		m_trainLayerCheck->setChecked(false);
+		m_trainLayerCheck->setChecked(true);
+		if (auto* item = resolveTrainItem(future->index); !item || item->isVisible()
+				|| !m_trainBadges.value(future->index)
+				|| m_trainBadges.value(future->index)->isVisible()) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: layer restored future train or lost fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		std::shared_ptr<const GuiSimulationSnapshot> activeFrame;
+		int activeIndex = -1;
+		for (int time = first; time <= last && activeIndex < 0; time += GuiReplayHistory::cadenceSeconds) {
+			const auto frame = m_completedReplay.atOrBefore(time);
+			for (const auto& train : frame->trains) {
+				if (!guiReplayTrainHasPosition(train, frame->timestep)) continue;
+				QPolygonF polygon;
+				getTrainPolygon(&polygon, 0, train);
+				if (polygon.isEmpty()) continue;
+				activeFrame = frame;
+				activeIndex = train.index;
+				break;
+			}
+		}
+		if (!activeFrame) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no drawable active train fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		seekReplay(activeFrame->timestep);
+		if (!resolveTrainItem(activeIndex) || !resolveTrainItem(activeIndex)->isVisible()
+				|| !coherent(activeFrame)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: active train missing\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		// Simulate a later exit without changing immutable history, then seek back.
+		auto exitedFrame = std::make_shared<GuiSimulationSnapshot>(*activeFrame);
+		for (auto& state : exitedFrame->trains)
+			if (state.index == activeIndex) {
+				state.outOfSimulation = true;
+				state.occupiedArcs.clear();
+			}
+		m_snapshot = exitedFrame;
+		renderSnapshot(true);
+		const bool hiddenAtExit = !resolveTrainItem(activeIndex)->isVisible();
+		seekReplay(activeFrame->timestep);
+		if (!hiddenAtExit || !resolveTrainItem(activeIndex)
+				|| !resolveTrainItem(activeIndex)->isVisible() || !coherent(activeFrame)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: exited train did not return at sampled geometry\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		TrainBodyItem* bodySelection = resolveTrainBodyItem(activeIndex);
+		if (!bodySelection) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no train inspector fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		displayTrainDetails(bodySelection, false);
+		seekReplay(last);
+		seekReplay(activeFrame->timestep);
+		if (m_selectedTrainIndex != activeIndex || !trainInfoWidget->isVisible()
+				|| !resolveTrainItem(activeIndex)->graphicsEffect()) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: train inspection lost\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		if (initial_variables.PAX_GUI) {
+			if (trainPaxItem != resolveTrainItem(activeIndex) || !trainPaxInfoItem
+					|| !trainPaxInfoItem->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no passenger inspection fixture\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			handleCloseInfoDockWidget();
+			seekReplay(activeFrame->timestep + GuiReplayHistory::cadenceSeconds);
+			if (trainPaxItem || trainPaxInfoItem) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: closed passenger inspection returned\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			TrainBodyItem* futureBody = resolveTrainBodyItem(future->index);
+			if (!futureBody) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: future passenger train missing\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			displayTrainDetails(futureBody, false);
+			TrainItemGroup* futureTarget = resolveTrainItem(future->index);
+			seekReplay(future->departureTime - 1);
+			if (trainPaxItem != futureTarget || trainPaxInfoItem) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: temporary absence lost target\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			if (trainPaxItem != futureTarget || !trainPaxInfoItem || !trainPaxInfoItem->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: passenger inspection did not return\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			m_passengerLayerCheck->setChecked(false);
+			seekReplay(future->departureTime - 1);
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			if (trainPaxItem != futureTarget || trainPaxInfoItem) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: disabled passenger layer repainted overlay\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			m_passengerLayerCheck->setChecked(true);
+		}
+		seekReplay(middle);
+		if (!coherent(expected)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: end-to-middle replay or analytics incoherent\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		StationOverlayItem* stationSelection = nullptr;
+		for (auto* overlay : m_stationOverlays)
+			if (overlay && overlay->hasSourceIdentity()
+					&& resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack())) {
+				stationSelection = overlay;
+				break;
+			}
+		if (!stationSelection) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no station selection fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		displayStationNodeInfo(resolveStationNodeItem(
+			stationSelection->sourceNodeId(), stationSelection->sourceTrack()));
+		seekReplay(first);
+		if (!stationSelection->isSelected() || !m_hasSelectedStationIdentity
+				|| !infoDockWidget->isVisible()
+				|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: station selection lost\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		SignalItem* signalSelection = nullptr;
+		for (auto* decoration : m_signalDecorations)
+			if (auto* signal = qgraphicsitem_cast<SignalItem*>(decoration);
+							signal && signal->groupedSignalCount() > 1) {
+				signalSelection = signal;
+				break;
+			}
+		if (!signalSelection) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no grouped signal inspection fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		displaySignallingInfo(signalSelection);
+		seekReplay(middle);
+		m_replayTimer->start();
+		const bool timerDelivered = QMetaObject::invokeMethod(m_replayTimer, "timeout");
+		m_replayTimer->stop();
+		const SignalCueKind inspectedCue = classifySignalCue(signalSelection->aspectCode());
+		const QString inspectedAspect = inspectedCue == SignalCueKind::Stop ? QStringLiteral("Stop")
+			: inspectedCue == SignalCueKind::Caution ? QStringLiteral("Caution")
+			: inspectedCue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+		if (!timerDelivered || m_inspectedSignal != signalSelection
+				|| !signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
+				|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))
+				|| signallingGroupDetails->toPlainText().isEmpty()
+				|| signallingAspectText->text() != inspectedAspect
+				|| !coherent(m_completedReplay.atOrBefore(m_replayRequestedTime))) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: signal inspection lost on seek/play (timer=%d selected=%d visible=%d effect=%d details=%d coherent=%d)\n",
+				timerDelivered, m_inspectedSignal == signalSelection, signallingInfoWidget->isVisible(),
+				signalSelection->graphicsEffect() != nullptr, !signallingGroupDetails->toPlainText().isEmpty(),
+				coherent(m_completedReplay.atOrBefore(m_replayRequestedTime)));
+			QCoreApplication::exit(2);
+			return;
+		}
+		const auto selectedFrame = m_snapshot;
 		QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
-		QTimer::singleShot(0, this, [this, finalFrame]() {
-			if (m_snapshot != finalFrame || simulation.takeSimulationSnapshot()) {
+		QTimer::singleShot(0, this, [this, selectedFrame]() {
+			if (m_snapshot != selectedFrame || simulation.takeSimulationSnapshot()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: late notification\n");
 				QCoreApplication::exit(2);
 				return;
 			}
 			if (m_operationalLifecycleE2eCompletions == 1) {
-				m_operationalLifecycleE2eFirstFrame = finalFrame;
+				m_operationalLifecycleE2eFirstFrame = selectedFrame;
+				m_replayTimer->start();
 				runCurrent();
-				if (!m_worker) {
-					std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: rerun did not start\n");
+				if (!m_worker || m_replayTimer->isActive() || !m_completedReplay.empty()) {
+					std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: rerun retained replay\n");
 					QCoreApplication::exit(2);
 				}
 				return;
 			}
 			const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
+			if (m_sceneModel.scenarios.empty()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no scenario fixture\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			auto alternate = m_sceneModel.scenarios.front();
+			alternate.id = "__replay_e2e_alternate__";
+			m_sceneModel.scenarios.push_back(alternate);
+			m_replayTimer->start();
+			selectScenario(static_cast<int>(m_sceneModel.scenarios.size()) - 1);
+			if (m_replayTimer->isActive() || !m_completedReplay.empty() || m_snapshot
+					|| !m_showingTrackPreview || !allTrains.isEmpty() || !m_activeTrackItems.empty()
+					|| m_followTrainIndex >= 0 || m_replayBar->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: scenario retained historical graphics\n");
+				QCoreApplication::exit(2);
+				return;
+			}
 			QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
-			if (!openSceneDirectory(scenePath) || m_snapshot || m_worker || !allArcs.isEmpty()) {
+			m_replayTimer->start();
+			if (!openSceneDirectory(scenePath) || m_snapshot || m_worker || !allArcs.isEmpty()
+					|| m_replayTimer->isActive() || !m_completedReplay.empty()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
 				QCoreApplication::exit(2);
 				return;
@@ -21970,6 +22451,7 @@ void MainWindow::teardownGUI() {
 	m_showingTrackPreview = true;
 	// Stop any running simulation before clearing scene objects it may reference.
 	clearSimulationWorker(true);
+	clearReplay();
 	progressBar->hide();
 
 	stopTrainAnimations();
@@ -22519,6 +23001,8 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	if (!passenger.nextDestination.empty()) {
 		ss << "\nNext destination: " << passenger.nextDestination;
 	}
+	if (m_replayActive)
+		ss << "\nReplay: journey details unavailable";
 
 	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
@@ -23228,6 +23712,7 @@ void MainWindow::handleCloseInfoDockWidget() {
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
 	removeTrainPaxInfoIcon();
+	trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
 	removePaxInfoIcon();
 
 	// remove highlight
@@ -23527,10 +24012,9 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 	removeTrainPaxInfoIcon();
 	removePaxInfoIcon();
 
-	// show pax info
-	if (initial_variables.PAX_GUI) {
+	// show pax info only while its layer is enabled
+	if (initial_variables.PAX_GUI && m_passengerLayerVisible)
 		paintTrainPassengerInfo(groupItem);
-	}
 
 	// show widget
 	infoDockWidget->setWindowTitle("Train Info");
@@ -23937,40 +24421,8 @@ void MainWindow::waitForUpdates() {
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
 	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
-		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame", "gui", "gui/snapshot_delivery");
 		PlaybackProfiler::instance().noteRenderedUpdate();
-		{
-			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/signalling", "gui",
-				"gui/snapshot_delivery/render_frame");
-			updateSignalling();
-		}
-		{
-			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_position", "gui",
-				"gui/snapshot_delivery/render_frame");
-			updateTrainPosition(timestep);
-		}
-
-		// pax info
-		if (initial_variables.PAX_GUI) {
-			{
-				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/platforms", "gui",
-					"gui/snapshot_delivery/render_frame");
-				updatePlatforms(timestep);
-			}
-			{
-				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/passenger_icons", "gui",
-					"gui/snapshot_delivery/render_frame");
-				updatePaxIconInfo();
-			}
-			{
-				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_passenger_info", "gui",
-					"gui/snapshot_delivery/render_frame");
-				updateTrainPaxInfo();
-			}
-		}
-		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
-			runVisualPolishE2E();
-
+		renderSnapshot(false);
 		m_lastRenderMs = now;
 	}
 
@@ -23995,6 +24447,74 @@ void MainWindow::waitForUpdates() {
 			networkView->viewport()->update();
 		}
 	}
+}
+
+void MainWindow::seekReplay(int requestedTime) {
+	if (m_completedReplay.empty() || m_worker) return;
+	m_replayRequestedTime = qBound(m_completedReplay.firstTime(), requestedTime, m_completedReplay.lastTime());
+	const auto frame = m_completedReplay.atOrBefore(m_replayRequestedTime);
+	if (!frame) return;
+	m_replayActive = true;
+	// Passenger journey inspection is not historical. Retain train, station and
+	// signal selection; the shared renderer refreshes their frame-derived values.
+	removePaxInfoIcon();
+	paxIconItem = nullptr;
+	stopTrainAnimations();
+	m_prevTrainPositions.clear();
+	m_snapshot = frame;
+	{
+		const QSignalBlocker blocker(m_replaySlider);
+		m_replaySlider->setValue(m_replayRequestedTime);
+	}
+	m_replayLabel->setText(QString("Replay %1 s | available %2–%3 s | every %4 s%5")
+		.arg(frame->timestep).arg(m_completedReplay.firstTime()).arg(m_completedReplay.lastTime())
+		.arg(GuiReplayHistory::cadenceSeconds)
+		.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+	renderSnapshot(true);
+	if (trainPaxItem && !replayTrainHasPosition(trainPaxItem->index))
+		removeTrainPaxInfoIcon();
+	else if (trainPaxItem && !trainPaxInfoItem && initial_variables.PAX_GUI
+			&& m_passengerLayerVisible)
+		paintTrainPassengerInfo(trainPaxItem);
+	updateViewportOverlays();
+}
+
+void MainWindow::renderSnapshot(bool historical) {
+	if (!m_snapshot) return;
+	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame", "gui", "gui/snapshot_delivery");
+
+	{
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/signalling", "gui",
+			"gui/snapshot_delivery/render_frame");
+		updateSignalling();
+	}
+	{
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_position", "gui",
+			"gui/snapshot_delivery/render_frame");
+		updateTrainPosition(m_snapshot->timestep);
+	}
+
+	// pax info
+	if (initial_variables.PAX_GUI) {
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/platforms", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updatePlatforms(m_snapshot->timestep);
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/passenger_icons", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updatePaxIconInfo();
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_passenger_info", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updateTrainPaxInfo();
+		}
+	}
+
+	if (!historical && qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
+		runVisualPolishE2E();
 }
 
 // slot to update signal aspects
@@ -24192,7 +24712,8 @@ void MainWindow::updateTrainPosition(int t) {
 		if (state.prepared)
 			applySectionState(state, TrackOperationalState::Prepared);
 	for (const GuiTrainState& state : m_snapshot->trains)
-		updateBlockOccupationStatus(state);
+		if (!m_replayActive || guiReplayTrainHasPosition(state, t))
+			updateBlockOccupationStatus(state);
 	for (const GuiTrainState& state : m_snapshot->trains) {
 		const int train = state.index;
 		// Throttled delivery can skip the whole visible lifetime of a train.
@@ -24214,9 +24735,13 @@ void MainWindow::updateTrainPosition(int t) {
 			trainItem->outOfSimulation = state.outOfSimulation;
 			trainItem->currentOnboardPassengers = state.currentOnboardPassengers;
 			trainItem->maxOnboardPassengers = state.maxOnboardPassengers;
-			trainItem->setVisible(m_trainLayerVisible && !state.outOfSimulation);
+			const bool hasPosition = guiReplayTrainHasPosition(state, t);
+			trainItem->setVisible(m_trainLayerVisible && (m_replayActive
+				? hasPosition : !state.outOfSimulation));
+			if (m_replayActive && !hasPosition && m_trainBadges.contains(train))
+				m_trainBadges[train]->hide();
 			// update train position
-			if (!state.outOfSimulation) {
+			if (!state.outOfSimulation && (!m_replayActive || hasPosition)) {
 				// Capture the currently displayed center before replacing the polygons.
 				// An interrupted animation leaves a temporary group offset that must
 				// not become part of the next geometry center.
@@ -24254,7 +24779,7 @@ void MainWindow::updateTrainPosition(int t) {
 				m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
 				const QPointF badgeCenter = newCenter;
-				if (delta.manhattanLength() > 0.5) {
+				if (!m_replayActive && delta.manhattanLength() > 0.5) {
 					stopTrainAnimation(train);
 					trainItem->setPos(delta);
 					if (badge)
@@ -24299,12 +24824,13 @@ void MainWindow::updateTrainPosition(int t) {
 		// new train starting; >= not == because the frame throttle may drop
 		// the exact departure frame, and the recorded trajectory (not the live
 		// train state) is what says whether the train is on the network at t
-		else if (t >= state.departureTime && state.routeAxisPosition != -9999) {
+		else if (m_replayActive ? guiReplayTrainHasPosition(state, t)
+				: t >= state.departureTime && state.routeAxisPosition != -9999) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
 			legendNeedsUpdate = true;
 			TrainItemGroup* newTrain = resolveTrainItem(train);
-			if (firstTrain && newTrain && newTrain->isVisible())
+			if (firstTrain && !m_replayActive && newTrain && newTrain->isVisible())
 				centerSceneItem(newTrain);
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train
 					&& newTrain && newTrain->isVisible()) {
@@ -25870,7 +26396,8 @@ void MainWindow::updateViewportOverlays() {
 
 	QPointF followedCenter;
 	bool hasFollowedCenter = false;
-	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0) {
+	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
+			&& (!m_replayActive || replayTrainHasPosition(m_followTrainIndex))) {
 		if (auto* train = resolveTrainItem(m_followTrainIndex)) {
 			followedCenter = train->sceneBoundingRect().center();
 			hasFollowedCenter = true;

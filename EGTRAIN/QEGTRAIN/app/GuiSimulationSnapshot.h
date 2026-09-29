@@ -40,6 +40,12 @@ inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
 	return !train.outOfSimulation;
 }
 
+inline bool guiReplayTrainHasPosition(const GuiTrainState& train, int timestep) {
+	return !train.outOfSimulation && timestep >= train.departureTime
+		&& train.routeAxisPosition != -9999.0
+		&& !train.wagonHeadPositions.empty() && !train.wagonTailPositions.empty();
+}
+
 struct GuiSignalState {
 	std::string sectionId;
 	int code = 0;
