@@ -13979,6 +13979,21 @@ void MainWindow::runVisualPolishE2E() {
 			ok = false;
 			failures << "viewport reselection did not restore train info state";
 		}
+		auto* inspectorScroll = infoDockWidget ? qobject_cast<QScrollArea*>(infoDockWidget->widget()) : nullptr;
+		for (QLineEdit* field : {trainIDText, trainTypeText, trainLengthText, trainWagonsText}) {
+			if (!inspectorScroll || !field) {
+				ok = false;
+				failures << "train inspector viewport unavailable";
+				break;
+			}
+			const int left = field->mapTo(inspectorScroll->viewport(), QPoint(0, 0)).x();
+			if (!field->isReadOnly() || left < 0
+					|| left + field->width() > inspectorScroll->viewport()->width()) {
+				ok = false;
+				failures << "train inspector values require horizontal scrolling";
+				break;
+			}
+		}
 		const QString expectedTrainId = QString::fromStdString(to_string_precision(selectedTrain->trainId, 0));
 		const QString expectedTrainType = QString::fromStdString(selectedTrain->trainType);
 		const QString expectedTrainLength = QString::fromStdString(to_string_precision(selectedTrain->trainLength, 0));
@@ -23240,6 +23255,11 @@ void MainWindow::setupInfoDockWidget() {
 	infoWidgetMainLayout->addWidget(trainInfoWidget);
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
+	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
+			signallingFormLayout, trainFormLayout})
+		form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	for (auto* label : infoWidget->findChildren<QLabel*>())
+		label->setWordWrap(true);
 	for (auto* edit : infoWidget->findChildren<QLineEdit*>()) {
 		edit->setReadOnly(true);
 		connect(edit, &QLineEdit::textChanged, edit, [edit](const QString& text) {
@@ -23253,7 +23273,7 @@ void MainWindow::setupInfoDockWidget() {
 	auto* infoScroll = new QScrollArea(infoDockWidget);
 	infoScroll->setWidgetResizable(true);
 	infoScroll->setFrameShape(QFrame::NoFrame);
-	infoScroll->setMinimumSize(0, 0);
+	infoScroll->setMinimumSize(300, 0);
 	infoScroll->setWidget(infoWidget);
 	infoDockWidget->setWidget(infoScroll);
 	infoDockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
