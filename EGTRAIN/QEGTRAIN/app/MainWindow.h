@@ -698,8 +698,8 @@ private:
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
-	void refreshInfrastructurePanel();
-	void refreshInfrastructureTable();
+	void refreshInfrastructurePanel(bool resetSelection = false);
+	void refreshInfrastructureTable(bool resetSelection = false);
 	void refreshBlockTrackFilter();
 	void refreshRouteSectionPanel();
 	void commitInfrastructureCell(int row, int column);

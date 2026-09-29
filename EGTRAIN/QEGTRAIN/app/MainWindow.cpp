@@ -4066,7 +4066,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
-	refreshInfrastructurePanel();
+	refreshInfrastructurePanel(!reloadingSameScene);
 	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
@@ -5691,7 +5691,7 @@ void MainWindow::refreshRouteSectionPanel() {
 			&& selectedRow >= 0 && selectedRow + 1 < m_routeSectionListWidget->count());
 }
 
-void MainWindow::refreshInfrastructurePanel() {
+void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
 	const bool editable = m_sceneLoaded && !m_worker;
 	if (m_infrastructureDock)
 		m_infrastructureDock->setEnabled(editable);
@@ -5701,16 +5701,16 @@ void MainWindow::refreshInfrastructurePanel() {
 	}
 	if (m_addInfrastructureButton)
 		m_addInfrastructureButton->setEnabled(editable);
-	refreshInfrastructureTable();
+	refreshInfrastructureTable(resetSelection);
 }
 
-void MainWindow::refreshInfrastructureTable() {
+void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 	if (!m_infrastructureTable || !m_infrastructureFacetCombo)
 		return;
 
 	const QString facet = m_infrastructureFacetCombo->currentData().toString();
-	const int previousRow = m_infrastructureTable->currentRow();
-	const QString previousId = m_infrastructureSelectionId;
+	const int previousRow = resetSelection ? -1 : m_infrastructureTable->currentRow();
+	const QString previousId = resetSelection ? QString() : m_infrastructureSelectionId;
 	if (facet == QStringLiteral("blocks"))
 		refreshBlockTrackFilter();
 	m_blockRowModelIndices.clear();
@@ -6090,7 +6090,7 @@ void MainWindow::refreshInfrastructureTable() {
 			break;
 		}
 	}
-	if (rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
+	if (!resetSelection && rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
 		rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, m_infrastructureTable->rowCount() - 1);
 	m_infrastructureTable->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : 0);
 	updateInfrastructureSelection();
@@ -14530,10 +14530,27 @@ void MainWindow::runEditorSmokeE2E() {
 					ok = false;
 					failures << "scene: legacy scene state not cleared on alternate";
 				}
+				if (m_infrastructureTable->currentRow() != -1 || m_previewHasSelectedTrack || m_sceneDirty) {
+					ok = false;
+					failures << "scene: newly opened case has an implicit infrastructure selection";
+				}
+				m_infrastructureFacetCombo->setCurrentIndex(m_infrastructureFacetCombo->findData("tracks"));
+				m_infrastructureTable->setCurrentCell(0, 0);
+				const QString explicitlySelectedTrack = m_infrastructureSelectionId;
+				refreshInfrastructurePanel();
+				if (explicitlySelectedTrack.isEmpty() || !m_previewHasSelectedTrack || m_sceneDirty
+						|| m_infrastructureSelectionId != explicitlySelectedTrack) {
+					ok = false;
+					failures << "scene: explicit track selection was lost or dirtied the scene";
+				}
 				bool restored = openSceneDirectory(scenePath);
 				if (!restored || !m_sceneLoaded) {
 					ok = false;
 					failures << "scene: scene did not reopen after alternate";
+				}
+				if (m_previewHasSelectedTrack || m_sceneDirty) {
+					ok = false;
+					failures << "scene: explicit selection leaked into another case";
 				}
 			}
 			if (QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
@@ -19765,6 +19782,17 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		if (!capacity
 				|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
+			return;
+		}
+		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
+		const bool validCapacityPercentage = std::any_of(capacityLabels.cbegin(), capacityLabels.cend(),
+			[](const QLabel* label) {
+				return label->text().startsWith(QStringLiteral("Cycle / occupation time:"))
+					&& label->text().contains(QStringLiteral("%."))
+					&& !label->text().contains(QStringLiteral("%%"));
+			});
+		if (!validCapacityPercentage) {
+			fail(QStringLiteral("capacity calculation details have an invalid percentage unit"));
 			return;
 		}
 		QPushButton* compressedButton = nullptr;
@@ -25549,7 +25577,7 @@ void MainWindow::showCapacityAnalysis() {
 	detailsToggle->setCheckable(true);
 	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	detailsToggle->setArrowType(Qt::RightArrow);
-	auto* details = new QLabel(QString("Cycle / occupation time: %1 s; period: %2 s; cycle / period × 100: %3%%.\n"
+	auto* details = new QLabel(QString("Cycle / occupation time: %1 s; period: %2 s; cycle / period × 100: %3%.\n"
 		"Cycle start: %4 (%5); cycle end: %6 (%7). Conflict-free compressed occupations. "
 		"Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
 		.arg(cycle, period, percentage, QString::fromStdString(result.firstIdentity),
