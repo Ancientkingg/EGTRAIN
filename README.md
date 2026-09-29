@@ -191,3 +191,13 @@ tools/e2e/               End-to-end smoke tests
 tools/golden_master/     Output comparison helpers
 docs/                    User, architecture, and development documentation
 ```
+
+## License
+
+EGTRAIN's source code is licensed under the
+[GNU General Public License, version 3 only](LICENSE)
+(`GPL-3.0-only`).
+
+Third-party components retain their own licenses. The code license does not
+cover case-study datasets or grant rights to third-party assets; their
+respective terms and permissions apply.
