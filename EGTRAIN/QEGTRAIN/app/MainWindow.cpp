@@ -2,6 +2,7 @@
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
+#include <QAccessible>
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
@@ -2412,6 +2413,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			button->setFocusPolicy(Qt::StrongFocus);
 			button->setAutoRaise(true);
 			button->setFixedHeight(32);
+			// Accessibility can toggle the button without activating its action.
+			// Reconcile after a normal click finishes so it cannot toggle twice.
+			connect(button, &QToolButton::toggled, button, [button]() {
+				QAction* defaultAction = button->defaultAction();
+				if (defaultAction && defaultAction->isCheckable()
+						&& defaultAction->isChecked() != button->isChecked())
+					defaultAction->setChecked(button->isChecked());
+			}, Qt::QueuedConnection);
 			const QString name = QString::fromLatin1(objectName);
 			if (name == "actionZoomInButton" || name == "actionZoomOutButton")
 				button->setFixedWidth(34);
@@ -11554,13 +11563,11 @@ void MainWindow::refreshFollowTrainChoices() {
 		if (comboIndex >= 0 && m_followTrainCombo->itemData(comboIndex).toInt() == previousTrainIndex) {
 			m_followTrainIndex = previousTrainIndex;
 		} else {
-			const QSignalBlocker actionBlocker(m_followAction);
-			m_followAction->setChecked(false);
-			m_followTrainIndex = -1;
+			setFollowTrain(-1);
 			statusBar()->showMessage("Follow stopped: the selected train is no longer available", 5000);
 		}
 	} else {
-		m_followTrainIndex = -1;
+		setFollowTrain(-1);
 	}
 
 	m_updatingFollowCombo = false;
@@ -11652,6 +11659,14 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 }
 
 void MainWindow::setFollowTrain(int trainIndex) {
+	const auto synchronizeButton = [this]() {
+		if (m_toolBar && m_followAction) {
+			if (auto* button = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(m_followAction))) {
+				const QSignalBlocker blocker(button);
+				button->setChecked(m_followAction->isChecked());
+			}
+		}
+	};
 	if (trainIndex < 0) {
 		const bool wasFollowing = m_followTrainIndex >= 0
 			|| (m_followAction && m_followAction->isChecked());
@@ -11660,6 +11675,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 			m_followAction->setChecked(false);
 		}
 		m_followTrainIndex = -1;
+		synchronizeButton();
 		updateViewportOverlays();
 		if (wasFollowing)
 			statusBar()->showMessage("Follow disabled", 3000);
@@ -11668,12 +11684,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 
 	const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(trainIndex) : -1;
 	if (trainIndex >= numRegions || (m_followTrainCombo && comboIndex < 0)) {
-		if (m_followAction && m_followAction->isChecked()) {
-			const QSignalBlocker blocker(m_followAction);
-			m_followAction->setChecked(false);
-		}
-		m_followTrainIndex = -1;
-		updateViewportOverlays();
+		setFollowTrain(-1);
 		statusBar()->showMessage("Cannot follow the selected train: it is no longer available", 5000);
 		return;
 	}
@@ -11685,12 +11696,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		});
 	const bool waitingInReplay = m_replayActive && !replayTrainHasPosition(trainIndex);
 	if (exitedInSnapshot || (item && item->outOfSimulation)) {
-		if (m_followAction && m_followAction->isChecked()) {
-			const QSignalBlocker blocker(m_followAction);
-			m_followAction->setChecked(false);
-		}
-		m_followTrainIndex = -1;
-		updateViewportOverlays();
+		setFollowTrain(-1);
 		statusBar()->showMessage("Cannot follow the selected train: it has left the simulation", 5000);
 		return;
 	}
@@ -11704,6 +11710,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		m_followAction->setChecked(true);
 	}
 	m_followTrainIndex = trainIndex;
+	synchronizeButton();
 	updateViewportOverlays();
 
 	QString label = m_followTrainCombo && comboIndex >= 0
@@ -19418,10 +19425,70 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("Follow control unavailable for running replacement"));
 			return;
 		}
+		auto* accessible = QAccessible::queryAccessibleInterface(followButton);
+		auto* accessibleActions = accessible ? accessible->actionInterface() : nullptr;
+		if (!accessibleActions) {
+			fail(QStringLiteral("Follow accessibility actions unavailable"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		process();
+		if (!followButton->isChecked() || !m_followAction->isChecked()
+				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			fail(QStringLiteral("accessible Follow toggle did not activate the selected target"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		process();
+		if (followButton->isChecked() || m_followAction->isChecked() || m_followTrainIndex != -1) {
+			fail(QStringLiteral("accessible Follow toggle did not clear the target"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		setFollowTrain(-1);
+		process();
+		if (followButton->isChecked() || m_followAction->isChecked() || m_followTrainIndex != -1) {
+			fail(QStringLiteral("queued accessible Follow toggle overrode an explicit clear"));
+			return;
+		}
 		followButton->click();
+		process();
+		if (!followButton->isChecked() || !m_followAction->isChecked()
+				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			fail(QStringLiteral("Follow click toggled the action more than once"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		setFollowTrain(m_followTrainCombo->currentData().toInt());
+		process();
+		if (!followButton->isChecked() || !m_followAction->isChecked()
+				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			fail(QStringLiteral("queued accessible Follow toggle overrode an explicit target"));
+			return;
+		}
 		setFollowTrain(-1);
 		if (followButton->isChecked()) {
 			fail(QStringLiteral("clearing Follow left the toolbar control checked"));
+			return;
+		}
+		clearSimulationWorker(true);
+		const int completionTarget = m_followTrainCombo->currentData().toInt();
+		setFollowTrain(completionTarget);
+		if (completionTarget < 0 || m_followTrainIndex != completionTarget) {
+			fail(QStringLiteral("completion ordering fixture has no followable train"));
+			return;
+		}
+		setFollowTrain(-1);
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		onSimulationFinished();
+		process();
+		if (followButton->isChecked() || m_followAction->isChecked() || m_followTrainIndex != -1) {
+			fail(QStringLiteral("queued accessible Follow toggle survived simulation completion"));
+			return;
+		}
+		m_runSceneAction->trigger();
+		if (!m_worker) {
+			fail(QStringLiteral("completion ordering check could not restart the replacement run"));
 			return;
 		}
 		followButton->click();
@@ -21374,8 +21441,7 @@ void MainWindow::startSimulation() {
 void MainWindow::onSimulationFinished() {
 	const bool hadFollowTarget = m_followTrainIndex >= 0
 		|| (m_followAction && m_followAction->isChecked());
-	if (hadFollowTarget)
-		setFollowTrain(-1);
+	setFollowTrain(-1);
 	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
 		PlaybackProfiler::instance().emitRecords(true);
 		clearSimulationWorker(false);
@@ -22014,12 +22080,10 @@ void MainWindow::teardownGUI() {
 	effect = nullptr; // owned and deleted by the cleared item
 
 	regionStations.clear();
-	m_followTrainIndex = -1;
+	setFollowTrain(-1);
 	m_selectedTrainIndex = -1;
 	m_e2eAttempts = 0;
 	m_e2eFinished = false;
-	if (m_followAction)
-		m_followAction->setChecked(false);
 	if (m_followTrainCombo) {
 		m_followTrainCombo->clear();
 		m_followTrainCombo->addItem("No trains to follow", -1);
@@ -23957,9 +24021,7 @@ void MainWindow::waitForUpdates() {
 				selected = train;
 		if (selected) {
 			m_playbackProfileViewApplied = true;
-			if (m_followAction)
-				m_followAction->setChecked(false);
-			m_followTrainIndex = -1;
+			setFollowTrain(-1);
 			networkView->fitToTopology();
 			if (qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW") == QLatin1String("dense")) {
 				networkView->centerOn(selected->sceneBoundingRect().center());
