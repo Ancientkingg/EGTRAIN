@@ -87,6 +87,7 @@ QRectF TrainBadgeItem::badgeRect() const {
 	return QRectF(kAnchorOffsetX, -kAnchorGapY - height, badgeWidth(), height);
 }
 QRectF TrainBadgeItem::boundingRect() const { return badgeRect().adjusted(-1.0, -1.0, 1.0, 1.0); }
+QPainterPath TrainBadgeItem::shape() const { return QPainterPath(); }
 QRectF TrainBadgeItem::iconRect() const {
 	const QRectF body = badgeRect();
 	const qreal size = m_presentation == Presentation::Overview ? 12.0 : 14.0;
@@ -130,40 +131,11 @@ QPolygonF TrainBadgeItem::directionNose() const {
 
 void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option); Q_UNUSED(widget);
-	painter->setRenderHint(QPainter::Antialiasing, true);
-	const QRectF body = badgeRect().adjusted(0.75, 0.75, -0.75, -0.75);
-	const QRectF shell = m_reversed ? body.adjusted(kNoseWidth, 0.0, 0.0, 0.0)
-		: body.adjusted(0.0, 0.0, -kNoseWidth, 0.0);
-	QPainterPath shape; shape.addRoundedRect(shell,
-		m_presentation == Presentation::Overview ? 2.0 : 4.0,
-		m_presentation == Presentation::Overview ? 2.0 : 4.0);
-	QPainterPath nose; nose.addPolygon(directionNose()); shape = shape.united(nose);
-	QPen outline(m_promoted ? promotedBorderColor() : m_visual.outline);
-	outline.setWidthF(m_promoted ? 1.6 : 1.0);
-	painter->setPen(outline); painter->setBrush(badgeSurfaceColor()); painter->drawPath(shape);
-
-	const QRectF icon = iconRect();
-	QPen plateOutline(m_visual.outline); plateOutline.setWidthF(0.7);
-	painter->setPen(plateOutline); painter->setBrush(m_visual.fill);
-	const qreal radius = qMin<qreal>(2.5, trainBadgeCornerRadius(m_visual.shape));
-	painter->drawRoundedRect(icon.adjusted(-0.5, -0.5, 0.5, 0.5), radius, radius);
-	painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
-	painter->drawPixmap(icon, m_icon, m_icon.rect());
-	if (!showsIdentifier()) return;
-	painter->setFont(identifierFont()); painter->setPen(badgePrimaryTextColor());
-	painter->drawText(identifierTextRect(), Qt::AlignVCenter | Qt::AlignLeft, displayedIdentifier());
-	if (showsSpeed()) {
-		painter->setFont(speedFont()); painter->setPen(badgeSecondaryTextColor());
-		painter->drawText(speedTextRect(), Qt::AlignVCenter | Qt::AlignRight, m_speedText);
-	}
+	// The historical renderer paints the locomotive and wagons themselves,
+	// without an additional screen-sized category badge or label.
+	Q_UNUSED(painter);
 }
 
 void TrainBadgeItem::updateToolTip() {
-	QStringList lines;
-	if (!m_description.isEmpty()) lines << QStringLiteral("Train: %1").arg(m_description);
-	else if (!m_identifier.isEmpty()) lines << QStringLiteral("Train: %1").arg(m_identifier);
-	if (!m_operatingCode.isEmpty()) lines << QStringLiteral("Operating code: %1").arg(m_operatingCode);
-	if (!m_speedText.isEmpty()) lines << QStringLiteral("Speed: %1").arg(m_speedText);
-	if (!m_trainType.isEmpty()) lines << QStringLiteral("Type: %1").arg(m_trainType);
-	setToolTip(lines.join(QLatin1Char('\n')));
+	setToolTip(QString());
 }

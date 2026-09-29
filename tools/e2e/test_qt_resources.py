@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ENTITY_ASSETS = {
     "icons/station.svg": "resources/icons/station.svg",
-    "icons/train_station.png": "resources/icons/train_station.png",
+    "icons/station-dark.svg": "resources/icons/station-dark.svg",
     "icons/passenger.svg": "resources/icons/passenger.svg",
     "icons/train-passenger.svg": "resources/icons/train-passenger.svg",
     "icons/train-sprinter.svg": "resources/icons/train-sprinter.svg",
@@ -33,7 +33,7 @@ def main() -> None:
     }
     source_text = "\n".join(
         path.read_text(errors="replace")
-        for source_root in (SOURCE_ROOT / "app", SOURCE_ROOT / "graphics")
+        for source_root in (SOURCE_ROOT / "app", SOURCE_ROOT / "graphics", SOURCE_ROOT / "widgets")
         for path in source_root.rglob("*")
         if path.suffix in {".cpp", ".h"}
     )

@@ -2,9 +2,13 @@
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
+#include <QAccessible>
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/DialogLayout.h"
+#include "widgets/CompactDoubleSpinBox.h"
+#include <QScrollBar>
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunResults.h"
@@ -15,6 +19,8 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/TractionCurve.h"
+#include "graphics/SignalGeometry.h"
+#include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
@@ -188,9 +194,6 @@ constexpr int kSignalDecorationRole = 0;
 constexpr int kSignalTrackRole = 1;
 constexpr int kSignalBaseVisibleRole = 2;
 constexpr int kSignalAnchorRole = 3;
-constexpr int kSignalNormalRole = 4;
-constexpr int kSignalDirectionRole = 5;
-constexpr qreal kPreviewSignalOffsetPixels = 6.0;
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
@@ -200,16 +203,6 @@ constexpr int kMaxStepDelayMs = 500;
 int stepDelayForSlider(int sliderValue) {
 	return kMaxStepDelayMs - sliderValue;
 }
-
-// Keep enough significant digits for a displayed value to round-trip to the
-// same double when pending editor fields are committed.
-class CompactDoubleSpinBox : public QDoubleSpinBox {
-public:
-	using QDoubleSpinBox::QDoubleSpinBox;
-	QString textFromValue(double value) const override {
-		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
-	}
-};
 
 class ServiceSpeedSpinBox : public CompactDoubleSpinBox {
 public:
@@ -247,10 +240,35 @@ bool sameTrainPhysical(const SceneTrainPhysical& left, const SceneTrainPhysical&
 		&& left.length_m == right.length_m;
 }
 
+bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
+	return std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
+		if (row[1] < row[0])
+			return false;
+		const auto effort = [&row](double speed) { return row[2] + row[3] * speed + row[4] * speed * speed; };
+		const double minimumAt = row[4] > 0.0 ? std::clamp(-row[3] / (2.0 * row[4]), row[0], row[1]) : row[0];
+		return effort(minimumAt) < 0.0 || effort(row[1]) < 0.0;
+	});
+}
+
+QString inputTractionContext(const SceneTrainUnit& unit, const QString& displayId = QString()) {
+	QString context = QString("Rolling stock unit: %1")
+		.arg(displayId.isNull() ? QString::fromStdString(unit.id) : displayId);
+	if (!unit.sourceTractionFile.empty())
+		context += QString(" | Source: %1").arg(QString::fromStdString(unit.sourceTractionFile));
+	if (inputTractionHasNegativeEffort(unit))
+		context += " | Warning: negative effort below the displayed 0 kN range. See technical details.";
+	return context;
+}
+
+QString inputTractionTechnicalNotes(const SceneTrainUnit& unit) {
+	return inputTractionHasNegativeEffort(unit)
+		? QStringLiteral("Curve contains negative effort below the default 0 kN view") : QString();
+}
+
 QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 	const auto samples = sampleTractionCurve(unit.tractionCurve);
 	QChart* chart = new QChart();
-	chart->setTitle(QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id)));
+	chart->setTitle("Input traction characteristic");
 	QLineSeries* series = new QLineSeries();
 	series->setName(QString::fromStdString(unit.id));
 	series->setProperty("trainId", QString::fromStdString(unit.id));
@@ -265,13 +283,7 @@ QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 		effortAxis->setTitleText("Tractive effort (kN)");
 		effortAxis->setRange(0.0, std::max(1.0, effortAxis->max()));
 	}
-	if (std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
-		if (row[1] < row[0])
-			return false;
-		const auto effort = [&row](double speed) { return row[2] + row[3] * speed + row[4] * speed * speed; };
-		const double minimumAt = row[4] > 0.0 ? std::clamp(-row[3] / (2.0 * row[4]), row[0], row[1]) : row[0];
-		return effort(minimumAt) < 0.0 || effort(row[1]) < 0.0;
-	}))
+	if (inputTractionHasNegativeEffort(unit))
 		chart->setTitle(chart->title() + "<br>Curve contains negative effort below the default 0 kN view");
 	return chart;
 }
@@ -334,10 +346,15 @@ void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& in
 }
 
 void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneModel,
-		const std::string& current, const std::set<std::string>* allowed = nullptr) {
+		const std::string& current, const std::set<std::string>* allowed = nullptr,
+		bool hasSelection = true) {
 	if (!combo)
 		return;
 	combo->clear();
+	if (!hasSelection) {
+		combo->addItem("Select a journey or leg", QString());
+		return;
+	}
 	for (const auto& station : sceneModel.stations) {
 		if (allowed && allowed->find(station.id) == allowed->end())
 			continue;
@@ -358,10 +375,14 @@ void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneMode
 }
 
 void populatePassengerServiceCombo(QComboBox* combo, const SceneModel& sceneModel,
-		const std::string& current) {
+		const std::string& current, bool hasSelection = true) {
 	if (!combo)
 		return;
 	combo->clear();
+	if (!hasSelection) {
+		combo->addItem("Select a leg", QString());
+		return;
+	}
 	for (const auto& service : sceneModel.services)
 		combo->addItem(QString::fromStdString(service.id), QString::fromStdString(service.id));
 	int selected = combo->findData(QString::fromStdString(current));
@@ -785,7 +806,8 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
 bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
 	QDialog dialog(parent);
 	dialog.setWindowTitle("Blocking-time scope");
-	auto* form = new QFormLayout(&dialog);
+	auto* body = new QWidget;
+	auto* form = new QFormLayout(body);
 	auto* routeCombo = new QComboBox(&dialog);
 	routeCombo->addItem("All routes / all corridors", -1);
 	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
@@ -844,7 +866,8 @@ bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
 	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	form->addRow(buttons);
+	DialogLayout::install(dialog, "Blocking-time scope",
+		"Choose the route, blocks and elapsed interval to inspect.", body, buttons);
 	if (dialog.exec() != QDialog::Accepted)
 		return false;
 
@@ -1249,7 +1272,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) 
 		return false;
 	QDialog dialog(parent);
 	dialog.setWindowTitle("Capacity analysis");
-	auto* layout = new QVBoxLayout(&dialog);
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
 	auto* routeCombo = new QComboBox(&dialog);
 	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
@@ -1372,7 +1396,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) 
 		dialog.accept();
 	});
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	layout->addWidget(buttons);
+	DialogLayout::install(dialog, "Capacity analysis",
+		"Choose a route section and ordered service occurrences.", body, buttons);
 	return dialog.exec() == QDialog::Accepted;
 }
 
@@ -1713,21 +1738,18 @@ bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPoin
 	return true;
 }
 
+QPointF stationDecorationOffset(const std::vector<SceneStationView>& views,
+		const std::string& stationId, const std::string& name) {
+	const auto shift = annotationStationShift(views, stationId);
+	return QPointF(shift.first, shift.second + stationNamedYOffset(name));
+}
+
 bool previewSignalNormal(const TrackPreviewLine& line, double rawX, QPointF& normal) {
-	for (std::size_t index = 1; index < line.points.size(); ++index) {
-		const auto& first = line.points[index - 1];
-		const auto& second = line.points[index];
-		if (rawX < std::min(first.rawX, second.rawX)
-				|| rawX > std::max(first.rawX, second.rawX))
-			continue;
-		const QPointF tangent(second.x - first.x, second.y - first.y);
-		const qreal length = std::hypot(tangent.x(), tangent.y());
-		if (length <= 0.0)
-			continue;
-		normal = QPointF(-tangent.y() / length, tangent.x() / length);
-		return true;
-	}
-	return false;
+	std::pair<double, double> direction;
+	if (!annotationSignalNormal(line, rawX, direction))
+		return false;
+	normal = QPointF(direction.first, direction.second);
+	return true;
 }
 
 std::string rewriteBlockReference(const std::string& reference,
@@ -1966,12 +1988,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_replaySlider->setObjectName("completedReplaySlider");
 	m_replaySlider->setAccessibleName("Replay time");
 	m_replaySlider->setFocusPolicy(Qt::StrongFocus);
+	m_replaySlider->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("000000000000")));
 	m_replayLabel = new QLabel(m_replayBar);
+	m_replayLabel->setWordWrap(true);
+	m_replayLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	replayLayout->addWidget(replayStart);
 	replayLayout->addWidget(m_replayPlayButton);
 	replayLayout->addWidget(replayEnd);
 	replayLayout->addWidget(m_replaySlider, 1);
-	replayLayout->addWidget(m_replayLabel);
+	replayLayout->addWidget(m_replayLabel, 1);
 	mainLayout->addWidget(m_replayBar);
 	m_replayBar->hide();
 	m_replayTimer = new QTimer(this);
@@ -2021,8 +2046,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	setupRunResultsDock();
 
 	// load image for passenger icon
-	pax_pixmap = QPixmap(":/icons/passenger.svg");
-	pax_pixmap_scaled = pax_pixmap.scaled(QSize(14, 14), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	pax_pixmap = QPixmap(":/icons/pax_icon.png");
+	pax_pixmap_scaled = pax_pixmap.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
@@ -2236,7 +2261,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_networkLegendWidget = new NetworkLegendWidget(caseLayersWidget);
 	caseLayersLayout->addWidget(m_networkLegendWidget);
 	caseLayersLayout->addStretch();
-	m_caseLayersDock->setWidget(caseLayersWidget);
+	auto* caseLayersScroll = new QScrollArea(m_caseLayersDock);
+	caseLayersScroll->setObjectName("caseLayersScroll");
+	caseLayersScroll->setWidgetResizable(true);
+	caseLayersScroll->setFrameShape(QFrame::NoFrame);
+	caseLayersScroll->setWidget(caseLayersWidget);
+	m_caseLayersDock->setWidget(caseLayersScroll);
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
 	if (ui->menuView) {
 		// zoom actions above, panel toggles below
@@ -2259,6 +2289,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		for (auto* item : m_stationDecorations)
 			if (item)
 				item->setVisible(checked);
+		for (auto* label : m_stationLabels)
+			if (label)
+				label->setVisible(checked && m_stationNamesVisible);
 		// updateViewportOverlays owns station name visibility
 		updateViewportOverlays();
 	});
@@ -2267,6 +2300,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		for (auto* overlay : m_stationOverlays)
 			if (overlay)
 				overlay->setNameVisible(checked);
+		for (auto* label : m_stationLabels)
+			if (label)
+				label->setVisible(checked && m_stationLayerVisible);
 		updateViewportOverlays();
 	});
 	connect(m_trainLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -2377,6 +2413,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			button->setFocusPolicy(Qt::StrongFocus);
 			button->setAutoRaise(true);
 			button->setFixedHeight(32);
+			// Accessibility can toggle the button without activating its action.
+			// Reconcile after a normal click finishes so it cannot toggle twice.
+			connect(button, &QToolButton::toggled, button, [button]() {
+				QAction* defaultAction = button->defaultAction();
+				if (defaultAction && defaultAction->isCheckable()
+						&& defaultAction->isChecked() != button->isChecked())
+					defaultAction->setChecked(button->isChecked());
+			}, Qt::QueuedConnection);
 			const QString name = QString::fromLatin1(objectName);
 			if (name == "actionZoomInButton" || name == "actionZoomOutButton")
 				button->setFixedWidth(34);
@@ -2517,6 +2561,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
 	m_loadedDataDock->hide();
 	tabifyDockWidget(m_validationDock, m_loadedDataDock);
+	tabifyDockWidget(m_loadedDataDock, m_runResultsDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 	connect(m_loadedDataTree, &QTreeWidget::itemActivated, this,
@@ -2627,21 +2672,28 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_deleteInfrastructureButton->setObjectName("infrastructureDeleteButton");
 	infrastructureToolbar->addWidget(m_addInfrastructureButton);
 	infrastructureToolbar->addWidget(m_deleteInfrastructureButton);
+	infrastructureLayout->addLayout(infrastructureToolbar);
+	QHBoxLayout* blockToolbar = new QHBoxLayout();
 	m_blockTrackFilterCombo = new QComboBox(infrastructureWidget);
 	m_blockTrackFilterCombo->setObjectName("blockTrackFilterCombo");
 	m_blockTrackFilterCombo->setAccessibleName("Block track filter");
 	m_blockTrackFilterCombo->setToolTip("Show blocks on one track; Add appends to this track");
-	infrastructureToolbar->addWidget(m_blockTrackFilterCombo);
+	blockToolbar->addWidget(m_blockTrackFilterCombo, 1);
 	m_insertBlockButton = new QPushButton("Insert", infrastructureWidget);
 	m_insertBlockButton->setObjectName("blockInsertButton");
 	m_moveBlockUpButton = new QPushButton("Move Up", infrastructureWidget);
 	m_moveBlockUpButton->setObjectName("blockMoveUpButton");
 	m_moveBlockDownButton = new QPushButton("Move Down", infrastructureWidget);
 	m_moveBlockDownButton->setObjectName("blockMoveDownButton");
-	infrastructureToolbar->addWidget(m_insertBlockButton);
-	infrastructureToolbar->addWidget(m_moveBlockUpButton);
-	infrastructureToolbar->addWidget(m_moveBlockDownButton);
-	infrastructureLayout->addLayout(infrastructureToolbar);
+	blockToolbar->addWidget(m_insertBlockButton);
+	blockToolbar->addWidget(m_moveBlockUpButton);
+	blockToolbar->addWidget(m_moveBlockDownButton);
+	infrastructureLayout->addLayout(blockToolbar);
+	auto* infrastructureGuidance = new QLabel(infrastructureWidget);
+	infrastructureGuidance->setObjectName("infrastructureGuidance");
+	infrastructureGuidance->setWordWrap(true);
+	infrastructureGuidance->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	infrastructureLayout->addWidget(infrastructureGuidance);
 	m_infrastructureTable = new QTableWidget(infrastructureWidget);
 	m_infrastructureTable->setObjectName("infrastructureTable");
 	m_infrastructureTable->setAccessibleName("Infrastructure fields");
@@ -2735,14 +2787,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	trainUnitListLayout->addWidget(new QLabel("Rolling stock units", trainUnitListPane));
 	m_trainUnitListWidget = new QListWidget(trainUnitListPane);
 	trainUnitListLayout->addWidget(m_trainUnitListWidget);
-	QHBoxLayout* trainUnitButtonLayout = new QHBoxLayout();
+	QGridLayout* trainUnitButtonLayout = new QGridLayout();
 	m_addTrainUnitButton = new QPushButton("Add Unit", trainUnitListPane);
 	m_duplicateTrainUnitButton = new QPushButton("Duplicate", trainUnitListPane);
 	m_deleteTrainUnitButton = new QPushButton("Delete", trainUnitListPane);
-	trainUnitButtonLayout->addWidget(m_addTrainUnitButton);
-	trainUnitButtonLayout->addWidget(m_duplicateTrainUnitButton);
-	trainUnitButtonLayout->addWidget(m_deleteTrainUnitButton);
+	trainUnitButtonLayout->addWidget(m_addTrainUnitButton, 0, 0);
+	trainUnitButtonLayout->addWidget(m_duplicateTrainUnitButton, 0, 1);
+	trainUnitButtonLayout->addWidget(m_deleteTrainUnitButton, 1, 0);
 	trainUnitListLayout->addLayout(trainUnitButtonLayout);
+	trainUnitListPane->setMaximumWidth(trainUnitListPane->fontMetrics().averageCharWidth() * 32);
 	trainUnitLayout->addWidget(trainUnitListPane);
 
 	QWidget* trainUnitDetailPane = new QWidget(trainUnitWidget);
@@ -2904,14 +2957,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	compositionListLayout->addWidget(new QLabel("Compositions", compositionListPane));
 	m_compositionListWidget = new QListWidget(compositionListPane);
 	compositionListLayout->addWidget(m_compositionListWidget);
-	QHBoxLayout* compositionButtonLayout = new QHBoxLayout();
+	QGridLayout* compositionButtonLayout = new QGridLayout();
 	m_addCompositionButton = new QPushButton("Add Composition", compositionListPane);
 	m_duplicateCompositionButton = new QPushButton("Duplicate", compositionListPane);
 	m_deleteCompositionButton = new QPushButton("Delete", compositionListPane);
-	compositionButtonLayout->addWidget(m_addCompositionButton);
-	compositionButtonLayout->addWidget(m_duplicateCompositionButton);
-	compositionButtonLayout->addWidget(m_deleteCompositionButton);
+	compositionButtonLayout->addWidget(m_addCompositionButton, 0, 0);
+	compositionButtonLayout->addWidget(m_duplicateCompositionButton, 0, 1);
+	compositionButtonLayout->addWidget(m_deleteCompositionButton, 1, 0);
 	compositionListLayout->addLayout(compositionButtonLayout);
+	compositionListPane->setMaximumWidth(compositionListPane->fontMetrics().averageCharWidth() * 32);
 	compositionLayout->addWidget(compositionListPane);
 
 	// right: the selected composition's id and its ordered unit membership
@@ -2992,14 +3046,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceListLayout->addWidget(new QLabel("Services", serviceListPane));
 	m_serviceListWidget = new QListWidget(serviceListPane);
 	serviceListLayout->addWidget(m_serviceListWidget);
-	QHBoxLayout* serviceButtonLayout = new QHBoxLayout();
+	QGridLayout* serviceButtonLayout = new QGridLayout();
 	m_addServiceButton = new QPushButton("Add Service", serviceListPane);
 	m_duplicateServiceButton = new QPushButton("Duplicate", serviceListPane);
 	m_deleteServiceButton = new QPushButton("Delete", serviceListPane);
-	serviceButtonLayout->addWidget(m_addServiceButton);
-	serviceButtonLayout->addWidget(m_duplicateServiceButton);
-	serviceButtonLayout->addWidget(m_deleteServiceButton);
+	serviceButtonLayout->addWidget(m_addServiceButton, 0, 0);
+	serviceButtonLayout->addWidget(m_duplicateServiceButton, 0, 1);
+	serviceButtonLayout->addWidget(m_deleteServiceButton, 1, 0);
 	serviceListLayout->addLayout(serviceButtonLayout);
+	serviceListPane->setMaximumWidth(serviceListPane->fontMetrics().averageCharWidth() * 32);
 	serviceLayout->addWidget(serviceListPane);
 
 	// right: the selected service's service-level fields
@@ -3098,8 +3153,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_stopTimeBaseLabel = new QLabel(serviceDetailPane);
 	m_stopTimeBaseLabel->setObjectName("timetableTimeBaseLabel");
 	m_stopTimeBaseLabel->setWordWrap(true);
-	stopTimeLayout->addWidget(m_stopTimeBaseLabel, 1);
 	serviceDetailLayout->addLayout(stopTimeLayout);
+	serviceDetailLayout->addWidget(m_stopTimeBaseLabel);
 	m_stopTableWidget = new QTableWidget(serviceDetailPane);
 	m_stopTableWidget->setObjectName("timetableStopTable");
 	m_stopTableWidget->setColumnCount(5);
@@ -3137,7 +3192,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	serviceDetailScroll->setWidgetResizable(true);
 	serviceDetailScroll->setFrameShape(QFrame::NoFrame);
 	serviceDetailScroll->setWidget(serviceDetailPane);
-	serviceLayout->addWidget(serviceDetailScroll);
+	auto* servicePages = new QTabWidget(serviceWidget);
+	servicePages->setObjectName("serviceEditorPages");
+	servicePages->setMinimumSize(0, 0);
+	servicePages->addTab(serviceDetailScroll, "Service and timetable");
 
 	QWidget* occurrencePane = new QWidget(serviceWidget);
 	QVBoxLayout* occurrenceLayout = new QVBoxLayout(occurrencePane);
@@ -3163,7 +3221,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	occurrenceButtonLayout->addWidget(m_selectAllOccurrencesButton);
 	occurrenceButtonLayout->addWidget(m_selectNoneOccurrencesButton);
 	occurrenceLayout->addLayout(occurrenceButtonLayout);
-	serviceLayout->addWidget(occurrencePane);
+	servicePages->addTab(occurrencePane, "Run occurrences");
+	serviceLayout->addWidget(servicePages, 1);
 
 	m_serviceDock->setWidget(serviceWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
@@ -3264,6 +3323,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	scenarioDetailLayout->addRow("Name", m_scenarioNameEdit);
 	scenarioDetailLayout->addRow("Description", m_scenarioDescriptionEdit);
 	scenarioLayout->addLayout(scenarioDetailLayout);
+
 	incidentLayout->addWidget(scenarioPane, 0);
 
 	QTabWidget* scenarioEditorTabs = new QTabWidget(incidentWidget);
@@ -3285,6 +3345,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	incidentButtonLayout->addWidget(m_duplicateIncidentButton);
 	incidentButtonLayout->addWidget(m_deleteIncidentButton);
 	incidentListLayout->addLayout(incidentButtonLayout);
+
 	incidentEditorLayout->addWidget(incidentListPane, 1);
 
 	// selected incident's fields
@@ -3382,7 +3443,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	entranceDelayDetailLayout->addRow("Delay (s)", m_entranceDelaySecondsEdit);
 	entranceDelayLayout->addLayout(entranceDelayDetailLayout);
 	scenarioEditorTabs->addTab(entranceDelayPane, "Entrance Delays");
-	incidentLayout->addWidget(scenarioEditorTabs, 2);
+	scenarioEditorTabs->setMinimumSize(0, 0);
+	incidentLayout->addWidget(scenarioEditorTabs, 1);
 
 	m_incidentDock->setWidget(incidentWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
@@ -3442,6 +3504,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_passengerListWidget = new QListWidget(passengerListPane);
 	m_passengerListWidget->setObjectName("passengerListWidget");
 	m_passengerListWidget->setAccessibleName("Passengers");
+	m_passengerListWidget->setMaximumHeight(fontMetrics().lineSpacing() * 12);
 	passengerListLayout->addWidget(m_passengerListWidget, 1);
 	QHBoxLayout* passengerButtonLayout = new QHBoxLayout();
 	m_addPassengerButton = new QPushButton("Add", passengerListPane);
@@ -3455,6 +3518,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_importPassengerButton->setObjectName("passengerImportButton");
 	m_importPassengerButton->setToolTip("Import the exact legacy DAS and RouteChoice passenger pair; imported records are appended.");
 	passengerListLayout->addWidget(m_importPassengerButton);
+	passengerListLayout->addStretch();
+	passengerListPane->setMaximumWidth(passengerListPane->fontMetrics().averageCharWidth() * 30);
 	passengerLayout->addWidget(passengerListPane);
 
 	QWidget* passengerDetailPane = new QWidget(passengerWidget);
@@ -3467,14 +3532,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_passengerDiagnosticLabel = new QLabel(passengerDetailPane);
 	m_passengerDiagnosticLabel->setObjectName("passengerDiagnosticLabel");
 	m_passengerDiagnosticLabel->setWordWrap(true);
-	m_passengerDiagnosticLabel->setStyleSheet("color: #d9822b;");
+	m_passengerDiagnosticLabel->setStyleSheet("color: #5b6871;");
 	passengerDetailLayout->addWidget(m_passengerDiagnosticLabel);
 
 	m_passengerTabs = new QTabWidget(passengerDetailPane);
 	m_passengerTabs->setObjectName("passengerEditorTabs");
 
 	QWidget* journeysPane = new QWidget(m_passengerTabs);
-	QHBoxLayout* journeysLayout = new QHBoxLayout(journeysPane);
+	QVBoxLayout* journeysLayout = new QVBoxLayout(journeysPane);
 	QWidget* journeyListPane = new QWidget(journeysPane);
 	QVBoxLayout* journeyListLayout = new QVBoxLayout(journeyListPane);
 	journeyListLayout->addWidget(new QLabel("Journeys", journeyListPane));
@@ -3489,10 +3554,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	journeyButtons->addWidget(m_addPassengerJourneyButton);
 	journeyButtons->addWidget(m_deletePassengerJourneyButton);
 	journeyListLayout->addLayout(journeyButtons);
+	m_passengerJourneyListWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
 	journeysLayout->addWidget(journeyListPane);
 
 	QWidget* journeyDetailPane = new QWidget(journeysPane);
 	QFormLayout* journeyForm = new QFormLayout(journeyDetailPane);
+	journeyForm->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	m_passengerJourneyIdEdit = new QLineEdit(journeyDetailPane);
 	m_passengerJourneyIdEdit->setObjectName("passengerJourneyIdEdit");
 	journeyForm->addRow("Journey ID", m_passengerJourneyIdEdit);
@@ -3524,7 +3591,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_passengerTabs->addTab(journeysPane, "Journeys");
 
 	QWidget* legsPane = new QWidget(m_passengerTabs);
-	QHBoxLayout* legsLayout = new QHBoxLayout(legsPane);
+	QVBoxLayout* legsLayout = new QVBoxLayout(legsPane);
 	QWidget* legListPane = new QWidget(legsPane);
 	QVBoxLayout* legListLayout = new QVBoxLayout(legListPane);
 	legListLayout->addWidget(new QLabel("Legs", legListPane));
@@ -3545,10 +3612,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	legButtons->addWidget(m_movePassengerLegUpButton, 1, 0);
 	legButtons->addWidget(m_movePassengerLegDownButton, 1, 1);
 	legListLayout->addLayout(legButtons);
+	m_passengerLegListWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
 	legsLayout->addWidget(legListPane);
 
 	QWidget* legDetailPane = new QWidget(legsPane);
 	QFormLayout* legForm = new QFormLayout(legDetailPane);
+	legForm->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	m_passengerLegIdEdit = new QLineEdit(legDetailPane);
 	m_passengerLegIdEdit->setObjectName("passengerLegIdEdit");
 	legForm->addRow("Leg ID", m_passengerLegIdEdit);
@@ -3578,8 +3647,29 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_passengerImportResultTable->horizontalHeader()->setStretchLastSection(true);
 	m_passengerImportResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");
 	passengerDetailLayout->addWidget(m_passengerImportResultTable);
+	m_passengerImportResultTable->hide();
+	const auto updateImportVisibility = [this]() {
+		m_passengerImportResultTable->setVisible(m_passengerImportResultTable->rowCount() > 0);
+	};
+	connect(m_passengerImportResultTable->model(), &QAbstractItemModel::rowsInserted,
+		m_passengerImportResultTable, updateImportVisibility);
+	connect(m_passengerImportResultTable->model(), &QAbstractItemModel::rowsRemoved,
+		m_passengerImportResultTable, updateImportVisibility);
 	passengerLayout->addWidget(passengerDetailPane, 2);
 	m_passengerDock->setWidget(passengerWidget);
+	// A dock's viewport, rather than its form, limits the main window size.
+	// Keep wide tables and enlarged-font controls reachable when space is tight.
+	for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
+			m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
+		auto* content = dock->widget();
+		auto* scroll = new QScrollArea(dock);
+		scroll->setObjectName("editorContentScroll");
+		scroll->setWidgetResizable(true);
+		scroll->setFrameShape(QFrame::NoFrame);
+		scroll->setMinimumSize(0, 0);
+		scroll->setWidget(content);
+		dock->setWidget(scroll);
+	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
 	tabifyDockWidget(m_serviceDock, m_passengerDock);
@@ -3983,7 +4073,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
-	refreshInfrastructurePanel();
+	refreshInfrastructurePanel(!reloadingSameScene);
 	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
@@ -4152,7 +4242,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 							&& candidate.fromNodeId == line.points[point].nodeId));
 			});
 			const TrackVisual visual = classifyTrackSpeed(arc == sceneModel.arcs.end() ? 0.0 : arc->speedLimitMs);
-			QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : visual.color);
+			QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(Qt::blue) : visual.color);
 			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
 			pen.setCosmetic(true);
 			auto* item = scene->addLine(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
@@ -4279,7 +4369,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
 					break;
 			}
-			paintStationOverlay(anchor, classifyStation(), station.name, 0.75);
+			paintStationOverlay(anchor, classifyStation(), station.name, 0.75,
+				stationDecorationOffset(sceneModel.stationViews, station.id, station.name));
 			break;
 		}
 	}
@@ -4306,8 +4397,30 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		for (const SceneSignal& source : sceneSignals(sceneModel))
 			if (source.protectedSection == signal.sectionId)
 				canonicalIds.append(QString::fromStdString(source.id));
+		QPointF before, after;
+		if (!previewPointAtX(*track->second.first, signal.rawX - 0.008,
+				track->second.second, before)
+			|| !previewPointAtX(*track->second.first, signal.rawX + 0.008,
+				track->second.second, after))
+			continue;
+		const SignalGeometry geometry = signalGeometry(center, before, after, normal, track_separation);
 		for (const bool reversed : {true, false}) {
-			auto* glyph = new SignalItem(QRectF(-4.0, -4.0, 8.0, 8.0));
+			const QLineF base = reversed ? geometry.reversedBase : geometry.forwardBase;
+			const QLineF post = reversed ? geometry.reversedPost : geometry.forwardPost;
+			const QPointF head = reversed ? geometry.reversedHead : geometry.forwardHead;
+			QPen white(Qt::white, line_width);
+			white.setCosmetic(true);
+			for (const QLineF& stroke : {base, post}) {
+				auto* line = scene->addLine(stroke, white);
+				line->setData(kSignalDecorationRole, true);
+				line->setData(kSignalTrackRole, -1);
+				line->setData(kSignalBaseVisibleRole, true);
+				line->setAcceptedMouseButtons(Qt::NoButton);
+				m_signalDecorations.push_back(line);
+				line->setVisible(m_signalLayerVisible);
+			}
+			auto* glyph = new SignalItem(QRectF(-node_size / 2.0, -node_size / 2.0,
+				node_size, node_size));
 			glyph->X = signal.rawX;
 			glyph->sectionAheadId = signal.sectionId;
 			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
@@ -4316,16 +4429,13 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				.arg(QString::fromStdString(signal.sectionId))
 				.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
 			glyph->setZValue(3.0);
-			glyph->setPos(center);
-			glyph->setPen(QPen(QColor("#0D131A"), 1.0));
+			glyph->setPos(head);
 			glyph->setAspectCode(180);
 			glyph->setReversedDirection(reversed);
 			glyph->setData(kSignalDecorationRole, true);
 			glyph->setData(kSignalTrackRole, -1);
 			glyph->setData(kSignalBaseVisibleRole, true);
-			glyph->setData(kSignalAnchorRole, center);
-			glyph->setData(kSignalNormalRole, normal);
-			glyph->setData(kSignalDirectionRole, reversed ? -1.0 : 1.0);
+			glyph->setData(kSignalAnchorRole, head);
 			glyph->setAcceptedMouseButtons(Qt::NoButton);
 			scene->addItem(glyph);
 			m_signalDecorations.push_back(glyph);
@@ -5589,7 +5699,7 @@ void MainWindow::refreshRouteSectionPanel() {
 			&& selectedRow >= 0 && selectedRow + 1 < m_routeSectionListWidget->count());
 }
 
-void MainWindow::refreshInfrastructurePanel() {
+void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
 	const bool editable = m_sceneLoaded && !m_worker;
 	if (m_infrastructureDock)
 		m_infrastructureDock->setEnabled(editable);
@@ -5599,16 +5709,16 @@ void MainWindow::refreshInfrastructurePanel() {
 	}
 	if (m_addInfrastructureButton)
 		m_addInfrastructureButton->setEnabled(editable);
-	refreshInfrastructureTable();
+	refreshInfrastructureTable(resetSelection);
 }
 
-void MainWindow::refreshInfrastructureTable() {
+void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 	if (!m_infrastructureTable || !m_infrastructureFacetCombo)
 		return;
 
 	const QString facet = m_infrastructureFacetCombo->currentData().toString();
-	const int previousRow = m_infrastructureTable->currentRow();
-	const QString previousId = m_infrastructureSelectionId;
+	const int previousRow = resetSelection ? -1 : m_infrastructureTable->currentRow();
+	const QString previousId = resetSelection ? QString() : m_infrastructureSelectionId;
 	if (facet == QStringLiteral("blocks"))
 		refreshBlockTrackFilter();
 	m_blockRowModelIndices.clear();
@@ -5960,6 +6070,17 @@ void MainWindow::refreshInfrastructureTable() {
 		}
 	}
 	m_infrastructureTable->setEnabled(m_sceneLoaded && !m_worker);
+	if (auto* guidance = m_infrastructureDock->findChild<QLabel*>("infrastructureGuidance")) {
+		const bool empty = m_infrastructureTable->rowCount() == 0;
+		guidance->setText(!m_sceneLoaded ? "Open a case to edit infrastructure."
+			: facet == "blocks" && empty ? "No blocks on this track. Choose another track or add a block."
+			: facet == "routes" && empty ? "No routes yet. Add a route, then choose sections from the catalog."
+			: empty ? QString("No %1 yet. Use Add to create one.").arg(m_infrastructureFacetCombo->currentText().toLower())
+			: facet == "routes" ? "Select a route to edit its ordered sections below."
+			: facet == "blocks" ? "Blocks are ordered on the chosen track; select a row to insert or move it."
+			: QString());
+		guidance->setVisible(!guidance->text().isEmpty());
+	}
 	m_infrastructureTable->resizeColumnsToContents();
 	int rowToSelect = -1;
 	for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
@@ -5977,7 +6098,7 @@ void MainWindow::refreshInfrastructureTable() {
 			break;
 		}
 	}
-	if (rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
+	if (!resetSelection && rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
 		rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, m_infrastructureTable->rowCount() - 1);
 	m_infrastructureTable->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : 0);
 	updateInfrastructureSelection();
@@ -6593,6 +6714,8 @@ void MainWindow::updatePassengerDetailPanel() {
 	const int passengerRow = m_passengerListWidget ? m_passengerListWidget->currentRow() : -1;
 	ScenePassenger* passenger = selectedPassenger();
 	const bool enabled = passenger && m_sceneLoaded && !m_worker;
+	if (m_passengerTabs)
+		m_passengerTabs->setVisible(passenger != nullptr);
 	if (m_passengerIdEdit) {
 		const QSignalBlocker blocker(m_passengerIdEdit);
 		m_passengerIdEdit->setText(passenger ? QString::fromStdString(passenger->id) : QString());
@@ -6651,10 +6774,16 @@ void MainWindow::updatePassengerDetailPanel() {
 					+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
 		}
 	}
-	if (m_passengerDiagnosticLabel)
+	if (m_passengerDiagnosticLabel) {
 		m_passengerDiagnosticLabel->setText(messages.isEmpty()
-			? QStringLiteral("No validation messages for this passenger selection.")
+			? (passenger ? QStringLiteral("No validation messages for this passenger selection.")
+				: QStringLiteral("Select a passenger or use Add to create one."))
 			: messages.join(QStringLiteral("\n")));
+		m_passengerDiagnosticLabel->setStyleSheet(messages.isEmpty() ? "color: #5b6871;"
+			: std::any_of(messages.begin(), messages.end(), [](const QString& message) {
+				return message.startsWith("ERROR:");
+			}) ? "color: #81352d;" : "color: #965c22;");
+	}
 }
 
 void MainWindow::updatePassengerJourneyPanel() {
@@ -6686,13 +6815,13 @@ void MainWindow::updatePassengerJourneyPanel() {
 	if (m_passengerJourneyOriginCombo) {
 		const QSignalBlocker blocker(m_passengerJourneyOriginCombo);
 		populatePassengerStationCombo(m_passengerJourneyOriginCombo, m_sceneModel,
-			journey ? journey->originStationId : std::string());
+			journey ? journey->originStationId : std::string(), nullptr, journey != nullptr);
 		m_passengerJourneyOriginCombo->setEnabled(enabled);
 	}
 	if (m_passengerJourneyDestinationCombo) {
 		const QSignalBlocker blocker(m_passengerJourneyDestinationCombo);
 		populatePassengerStationCombo(m_passengerJourneyDestinationCombo, m_sceneModel,
-			journey ? journey->destinationStationId : std::string());
+			journey ? journey->destinationStationId : std::string(), nullptr, journey != nullptr);
 		m_passengerJourneyDestinationCombo->setEnabled(enabled);
 	}
 	const std::array<double, 4> values = journey
@@ -6722,7 +6851,7 @@ void MainWindow::updatePassengerLegPanel() {
 	if (m_passengerLegServiceCombo) {
 		const QSignalBlocker blocker(m_passengerLegServiceCombo);
 		populatePassengerServiceCombo(m_passengerLegServiceCombo, m_sceneModel,
-			leg ? leg->serviceId : std::string());
+			leg ? leg->serviceId : std::string(), leg != nullptr);
 		m_passengerLegServiceCombo->setEnabled(enabled);
 	}
 	std::set<std::string> stopStations;
@@ -6737,13 +6866,13 @@ void MainWindow::updatePassengerLegPanel() {
 	if (m_passengerLegOriginCombo) {
 		const QSignalBlocker blocker(m_passengerLegOriginCombo);
 		populatePassengerStationCombo(m_passengerLegOriginCombo, m_sceneModel,
-			leg ? leg->originStationId : std::string(), allowed);
+			leg ? leg->originStationId : std::string(), allowed, leg != nullptr);
 		m_passengerLegOriginCombo->setEnabled(enabled);
 	}
 	if (m_passengerLegDestinationCombo) {
 		const QSignalBlocker blocker(m_passengerLegDestinationCombo);
 		populatePassengerStationCombo(m_passengerLegDestinationCombo, m_sceneModel,
-			leg ? leg->destinationStationId : std::string(), allowed);
+			leg ? leg->destinationStationId : std::string(), allowed, leg != nullptr);
 		m_passengerLegDestinationCombo->setEnabled(enabled);
 	}
 	if (m_passengerLegOccurrenceEdit) {
@@ -7768,7 +7897,9 @@ void MainWindow::commitTrainUnitIdEdit() {
 	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
 		if (window && window->property("inputTrainUnitId").toString() == QString::fromStdString(oldId)) {
 			window->setProperty("inputTrainUnitId", QString::fromStdString(newId));
-			window->setWindowTitle(QString("Input traction characteristic: %1").arg(QString::fromStdString(newId)));
+			window->setPresentation("Input traction characteristic",
+				inputTractionContext(m_sceneModel.trainUnits[row], QString::fromStdString(newId)),
+				inputTractionTechnicalNotes(m_sceneModel.trainUnits[row]));
 		}
 	}
 	m_sceneModel.trainUnits[row].id = newId;
@@ -8305,10 +8436,8 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 			window->close();
 			continue;
 		}
-		QString title = QString("Input traction characteristic: %1").arg(QString::fromStdString(unit->id));
-		if (!unit->sourceTractionFile.empty())
-			title += QString("  (%1)").arg(QString::fromStdString(unit->sourceTractionFile));
-		window->setWindowTitle(title);
+		window->setPresentation("Input traction characteristic", inputTractionContext(*unit),
+			inputTractionTechnicalNotes(*unit));
 		window->setChart(buildInputTractionChart(*unit));
 	}
 }
@@ -8517,12 +8646,11 @@ void MainWindow::plotSelectedCompositionUnitTraction() {
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	QChart* chart = buildInputTractionChart(unit);
 
-	QString title = QString("Input traction characteristic: %1").arg(QString::fromStdString(unit.id));
-	if (!unit.sourceTractionFile.empty())
-		title += QString("  (%1)").arg(QString::fromStdString(unit.sourceTractionFile));
-	DiagramWindow* win = new DiagramWindow(title, this);
+	DiagramWindow* win = new DiagramWindow("Input traction characteristic", this);
 	win->setProperty("inputTrainUnitId", QString::fromStdString(unit.id));
 	win->setChart(chart);
+	win->setPresentation("Input traction characteristic", inputTractionContext(unit),
+		inputTractionTechnicalNotes(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }
@@ -9826,8 +9954,8 @@ void MainWindow::editStop(int row) {
 	QDialog dialog(this);
 	dialog.setObjectName("stopEditorDialog");
 	dialog.setWindowTitle(append ? "Add timetable stop" : "Edit timetable stop");
-	dialog.setMinimumWidth(480);
-	auto* layout = new QVBoxLayout(&dialog);
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
 	auto* stationCombo = new QComboBox(&dialog);
 	stationCombo->setObjectName("stopEditorStationCombo");
@@ -9898,7 +10026,8 @@ void MainWindow::editStop(int row) {
 	buttons->setObjectName("stopEditorButtons");
 	buttons->button(QDialogButtonBox::Ok)->setObjectName("stopEditorAcceptButton");
 	buttons->button(QDialogButtonBox::Cancel)->setObjectName("stopEditorCancelButton");
-	layout->addWidget(buttons);
+	DialogLayout::install(dialog, append ? "Add timetable stop" : "Edit timetable stop",
+		"Set the station, compatible platform and planned times.", body, buttons);
 
 	const long long baseOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	bool dialogClockMode = m_stopClockMode;
@@ -11434,13 +11563,11 @@ void MainWindow::refreshFollowTrainChoices() {
 		if (comboIndex >= 0 && m_followTrainCombo->itemData(comboIndex).toInt() == previousTrainIndex) {
 			m_followTrainIndex = previousTrainIndex;
 		} else {
-			const QSignalBlocker actionBlocker(m_followAction);
-			m_followAction->setChecked(false);
-			m_followTrainIndex = -1;
+			setFollowTrain(-1);
 			statusBar()->showMessage("Follow stopped: the selected train is no longer available", 5000);
 		}
 	} else {
-		m_followTrainIndex = -1;
+		setFollowTrain(-1);
 	}
 
 	m_updatingFollowCombo = false;
@@ -11532,6 +11659,14 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 }
 
 void MainWindow::setFollowTrain(int trainIndex) {
+	const auto synchronizeButton = [this]() {
+		if (m_toolBar && m_followAction) {
+			if (auto* button = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(m_followAction))) {
+				const QSignalBlocker blocker(button);
+				button->setChecked(m_followAction->isChecked());
+			}
+		}
+	};
 	if (trainIndex < 0) {
 		const bool wasFollowing = m_followTrainIndex >= 0
 			|| (m_followAction && m_followAction->isChecked());
@@ -11540,6 +11675,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 			m_followAction->setChecked(false);
 		}
 		m_followTrainIndex = -1;
+		synchronizeButton();
 		updateViewportOverlays();
 		if (wasFollowing)
 			statusBar()->showMessage("Follow disabled", 3000);
@@ -11548,12 +11684,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 
 	const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(trainIndex) : -1;
 	if (trainIndex >= numRegions || (m_followTrainCombo && comboIndex < 0)) {
-		if (m_followAction && m_followAction->isChecked()) {
-			const QSignalBlocker blocker(m_followAction);
-			m_followAction->setChecked(false);
-		}
-		m_followTrainIndex = -1;
-		updateViewportOverlays();
+		setFollowTrain(-1);
 		statusBar()->showMessage("Cannot follow the selected train: it is no longer available", 5000);
 		return;
 	}
@@ -11565,12 +11696,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		});
 	const bool waitingInReplay = m_replayActive && !replayTrainHasPosition(trainIndex);
 	if (exitedInSnapshot || (item && item->outOfSimulation)) {
-		if (m_followAction && m_followAction->isChecked()) {
-			const QSignalBlocker blocker(m_followAction);
-			m_followAction->setChecked(false);
-		}
-		m_followTrainIndex = -1;
-		updateViewportOverlays();
+		setFollowTrain(-1);
 		statusBar()->showMessage("Cannot follow the selected train: it has left the simulation", 5000);
 		return;
 	}
@@ -11584,6 +11710,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		m_followAction->setChecked(true);
 	}
 	m_followTrainIndex = trainIndex;
+	synchronizeButton();
 	updateViewportOverlays();
 
 	QString label = m_followTrainCombo && comboIndex >= 0
@@ -11598,20 +11725,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 }
 
 void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard) {
-	if (!keyboard && networkView) {
-		const QPointF devicePos = networkView->viewportTransform().map(scenePos);
-		for (auto* overlay : m_stationOverlays) {
-			if (!overlay || !overlay->isVisible() || !overlay->isFitSymbolVisible()
-				|| overlay->fitCollisionOffset().isNull() || !overlay->hasSourceIdentity())
-				continue;
-			const QRectF symbolRect = overlay->deviceSymbolRect().translated(
-				networkView->viewportTransform().map(overlay->stableAnchor()));
-			if (symbolRect.contains(devicePos)) {
-				item = resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack());
-				break;
-			}
-		}
-	}
+
 	if (m_sceneContextMenu) {
 		m_sceneContextMenu->close();
 		m_sceneContextMenu.clear();
@@ -11679,7 +11793,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		const int track = station->track;
 		menu->setTitle("Station");
 		QAction* details = menu->addAction("Show details");
-		details->setIcon(QIcon(classifyStation().iconResource));
+		details->setIcon(QIcon(":/icons/station-dark.svg"));
 		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
 			if (auto* current = resolveStationNodeItem(nodeId, track))
 				displayStationNodeInfo(current);
@@ -11823,592 +11937,175 @@ void MainWindow::runStationOverlayE2E() {
 		return;
 	}
 	m_e2eFinished = true;
-
-	bool ok = true;
 	QStringList failures;
-	const auto marker = [](const QString& value) {
-		std::fprintf(stdout, "%s\n", value.toStdString().c_str());
+	const auto marker = [](const QString& text) {
+		std::fprintf(stdout, "%s\n", text.toStdString().c_str());
 		std::fflush(stdout);
-	};
-	const auto fail = [&](const QString& value) {
-		ok = false;
-		failures << value;
 	};
 	const auto finish = [this](int code) {
 		if (m_worker && m_workerThread && m_workerThread->isRunning()) {
-			connect(m_workerThread, &QThread::finished, qApp, [code]() {
-				QCoreApplication::exit(code);
-			});
+			connect(m_workerThread, &QThread::finished, qApp, [code]() { QCoreApplication::exit(code); });
 			m_worker->requestStop();
 		} else {
 			QCoreApplication::exit(code);
 		}
 	};
-	const QString caseName = QString::fromStdString(m_sceneModel.name);
-	const QString stationScreenshotBase = qEnvironmentVariable("QEGTRAIN_E2E_STATION_SCREENSHOT_BASE");
-	if (!networkView || m_stationOverlays.isEmpty()) {
-		fail("station overlay scene is empty");
+	if (!scene || !networkView || m_stationOverlays.isEmpty()) {
+		failures << "station renderer scene is empty";
 	} else {
 		resize(1200, 800);
 		QApplication::processEvents();
+		const QString caseName = QString::fromStdString(m_sceneModel.name);
+		const QString screenshotBase = qEnvironmentVariable("QEGTRAIN_E2E_STATION_SCREENSHOT_BASE");
 		if (caseName == QLatin1String("Copenhagen")) {
-			const auto kbHallen = std::find_if(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
-				[](const StationOverlayItem* overlay) {
-					return overlay && overlay->stationName() == QLatin1String("KBHallen");
-				});
-			if (kbHallen == m_stationOverlays.cend()) {
-				fail("Copenhagen source station KBHallen is missing");
-			} else {
-				if ((*kbHallen)->displayName() != QLatin1String("KB Hallen"))
-					fail(QString("Copenhagen source station KBHallen displayed as %1")
-						.arg((*kbHallen)->displayName()));
-				else
-					marker("E2E_STATION_DISPLAY_KBHALLEN_OK");
-				if ((*kbHallen)->sourceIdentityCount() != 2)
-					fail(QString("Copenhagen KBHallen overlay bound %1 platform nodes instead of 2")
-						.arg((*kbHallen)->sourceIdentityCount()));
-				else
-					marker("E2E_STATION_BINDING_KBHALLEN_OK");
+			const auto kb = std::find_if(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+				[](const StationOverlayItem* station) { return station && station->stationName() == QLatin1String("KBHallen"); });
+			if (kb == m_stationOverlays.cend() || (*kb)->displayName() != QLatin1String("KB Hallen")
+					|| (*kb)->sourceIdentityCount() != 2)
+				failures << "Copenhagen station name or source identity changed";
+			else {
+				marker("E2E_STATION_DISPLAY_KBHALLEN_OK");
+				marker("E2E_STATION_BINDING_KBHALLEN_OK");
 			}
 		}
 		const QRectF topologyBounds = networkView->topologyBounds();
-		const auto checkZoom = [&](qreal ratio, const char* label) {
+		for (const auto& zoom : {std::make_pair(1.0, "FIT"), std::make_pair(3.0, "3X"),
+				std::make_pair(12.0, "12X")}) {
 			fitView();
-			if (ratio > 1.0)
-				networkView->zoomBy(ratio);
+			if (zoom.first > 1.0)
+				networkView->zoomBy(zoom.first);
 			updateViewportOverlays();
 			QApplication::processEvents();
-			if (qAbs(networkView->zoomRatio() - ratio) > 1e-5)
-				fail(QString("%1 zoom did not settle").arg(label));
-			if (networkView->topologyBounds() != topologyBounds)
-				fail(QString("%1 changed topology-only fit bounds").arg(label));
-			if (ratio <= 1.0 && m_stationOverlays.first()->labelScale() > 1.01)
-				fail(QString("%1 station labels grew at overview zoom").arg(label));
-			if (ratio >= 12.0 && m_stationOverlays.first()->labelScale() < 1.9)
-				fail(QString("%1 station labels did not grow at detail zoom").arg(label));
-			const QRectF inset = networkView->viewport()->rect().adjusted(kOverlayMargin, kOverlayMargin,
-				-kOverlayMargin, -kOverlayMargin);
-			QList<QRectF> symbols;
-			int visibleSymbols = 0;
-			for (auto* overlay : m_stationOverlays) {
-				if (!overlay || !overlay->isVisible())
+			if (qAbs(networkView->zoomRatio() - zoom.first) > 1e-5
+					|| networkView->topologyBounds() != topologyBounds)
+				failures << QString("%1 changed zoom or topology bounds").arg(zoom.second);
+			bool foundPicture = false;
+			for (auto it = m_stationPictures.cbegin(); it != m_stationPictures.cend(); ++it) {
+				QGraphicsPixmapItem* picture = it.value();
+				if (!picture || !picture->isVisible())
 					continue;
-				if (ratio > 1.0 && (!overlay->fitCollisionOffset().isNull()
-						|| !overlay->isFitSymbolVisible()))
-					fail(QString("%1 retained Fit-only station collision state: %2")
-						.arg(label).arg(overlay->stationName()));
-				if (!overlay->isFitSymbolVisible())
-					continue;
-				const QPointF anchor = networkView->viewportTransform().map(overlay->stableAnchor())
-					+ overlay->viewportOffset() + overlay->fitCollisionOffset();
-				const QRectF symbolRect = overlay->symbolRect().translated(anchor);
-				if (ratio <= 1.0)
-					for (const QRectF& other : symbols)
-						if (symbolRect.intersects(other))
-							fail(QString("FIT station symbols intersect: %1")
-								.arg(overlay->stationName()));
-				symbols.append(symbolRect);
-				if (inset.intersects(symbolRect))
-					++visibleSymbols;
-			}
-			QList<QRectF> labels;
-			int importantLabels = 0;
-			int collisionBlockedLabels = 0;
-			int visibleImportantLabels = 0;
-			for (auto* overlay : m_stationOverlays) {
-				if (!overlay || !overlay->isVisible())
-					continue;
-				if (overlay->isInterchange() || overlay->isEndpoint())
-					++importantLabels;
-				if (overlay->isCollisionBlocked())
-					++collisionBlockedLabels;
-				if (!overlay->isLabelVisible())
-					continue;
-				if (overlay->isInterchange() || overlay->isEndpoint())
-					++visibleImportantLabels;
-				const QPointF anchor = networkView->viewportTransform().map(overlay->stableAnchor())
-					+ overlay->viewportOffset();
-				const QRectF labelRect = overlay->labelRect().translated(anchor);
-				if (!inset.adjusted(-1.0, -1.0, 1.0, 1.0).contains(labelRect))
-					fail(QString("%1 label clipped: %2").arg(label).arg(overlay->stationName()));
-				for (const QRectF& otherSymbol : symbols)
-					if (labelRect.intersects(otherSymbol))
-						fail(QString("%1 label intersects symbol: %2").arg(label).arg(overlay->stationName()));
-				for (const QRectF& other : labels)
-					if (labelRect.intersects(other))
-						fail(QString("%1 labels intersect: %2").arg(label).arg(overlay->stationName()));
-				labels.append(labelRect);
-			}
-			if (labels.isEmpty() && visibleSymbols > 0)
-				fail(QString("%1 has no visible station label (%2 collision-blocked)")
-					.arg(QString::fromLatin1(label)).arg(collisionBlockedLabels));
-			if (QString::fromLatin1(label) == QLatin1String("FIT")
-				&& importantLabels > 0 && visibleImportantLabels == 0)
-				fail(QString("FIT has no visible priority label (%1 important, %2 collision-blocked)")
-					.arg(importantLabels).arg(collisionBlockedLabels));
-			if (!stationScreenshotBase.isEmpty()) {
-				const QString path = QString("%1-%2.png")
-					.arg(stationScreenshotBase, QString::fromLatin1(label).toLower());
-				if (!networkView->grab().save(path))
-					fail(QString("%1 station screenshot save failed").arg(label));
-				else
-					marker(QString("E2E_STATION_OVERLAY_SCREENSHOT_%1").arg(path));
-			}
-			const auto signalItem = std::find_if(m_signalDecorations.cbegin(),
-				m_signalDecorations.cend(), [](QGraphicsItem* item) {
-					return item && qgraphicsitem_cast<SignalItem*>(item);
-				});
-			const auto hasVisibleSignal = [this]() {
-				return std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
-					[](QGraphicsItem* item) {
-						return item && qgraphicsitem_cast<SignalItem*>(item) && item->isVisible();
-					});
-			};
-			const QPointF previousCenter = networkView->mapToScene(
-				networkView->viewport()->rect().center());
-			bool centeredOnSignal = false;
-			if (signalItem == m_signalDecorations.cend()) {
-				fail(QString("%1 has no SignalItem").arg(label));
-			} else if (!hasVisibleSignal() && ratio > 1.0) {
-				networkView->centerOn((*signalItem)->scenePos());
-				updateViewportOverlays();
-				QApplication::processEvents();
-				centeredOnSignal = true;
-			}
-			if (!hasVisibleSignal())
-				fail(QString("%1 has no visible SignalItem").arg(label));
-			if (centeredOnSignal) {
-				networkView->centerOn(previousCenter);
-				updateViewportOverlays();
-				QApplication::processEvents();
-			}
-			marker(QString("E2E_STATION_OVERLAY_%1_%2_OK").arg(caseName, label));
-		};
-
-		checkZoom(1.0, "FIT");
-		const bool hasTopologyPriority = std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
-			[](const auto* overlay) { return overlay && (overlay->isInterchange() || overlay->isEndpoint()); });
-		if (!hasTopologyPriority && m_stationOverlays.size() > 1) {
-			const QString previousSelectedStationName = m_selectedStationName;
-			const bool previousHasSelectedStationIdentity = m_hasSelectedStationIdentity;
-			const double previousSelectedStationNodeId = m_selectedStationNodeId;
-			const int previousSelectedStationTrack = m_selectedStationTrack;
-			StationOverlayItem* selectedOverlay = nullptr;
-			for (auto* overlay : m_stationOverlays) {
-				if (overlay && overlay->isVisible()) {
-					selectedOverlay = overlay;
-					break;
-				}
-			}
-			if (selectedOverlay) {
-				m_selectedStationName = selectedOverlay->stationName();
-				m_hasSelectedStationIdentity = selectedOverlay->hasSourceIdentity();
-				if (m_hasSelectedStationIdentity) {
-					m_selectedStationNodeId = selectedOverlay->sourceNodeId();
-					m_selectedStationTrack = selectedOverlay->sourceTrack();
-				}
-				updateViewportOverlays();
-				const bool ordinaryLabelVisible = std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
-					[selectedOverlay](const auto* overlay) {
-						return overlay && overlay != selectedOverlay && overlay->isLabelVisible()
-							&& !overlay->isInterchange() && !overlay->isEndpoint();
-					});
-				if (!ordinaryLabelVisible)
-					fail("FIT selected station suppressed every ordinary fallback label");
-				m_selectedStationName = previousSelectedStationName;
-				m_hasSelectedStationIdentity = previousHasSelectedStationIdentity;
-				m_selectedStationNodeId = previousSelectedStationNodeId;
-				m_selectedStationTrack = previousSelectedStationTrack;
-				updateViewportOverlays();
-			}
-		}
-		StationOverlayItem* hovered = nullptr;
-		for (auto* overlay : m_stationOverlays) {
-			if (overlay && overlay->isVisible()) {
-				hovered = overlay;
+				foundPicture = true;
+				if (picture->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
+						|| picture->pixmap().width() != station_size
+						|| picture->sceneBoundingRect().height() != picture->pixmap().height()
+						|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
+					failures << QString("%1 artwork lost scene scale or station identity").arg(zoom.second);
 				break;
 			}
+			if (!foundPicture || m_stationLabels.size() != m_stationOverlays.size())
+				failures << QString("%1 has no scene-scaled station picture/name").arg(zoom.second);
+			if (!screenshotBase.isEmpty()) {
+				const QString suffix = QString::fromLatin1(zoom.second).toLower();
+				if (!networkView->grab().save(QString("%1-%2.png").arg(screenshotBase, suffix)))
+					failures << QString("%1 station screenshot failed").arg(zoom.second);
+			}
+			marker(QString("E2E_STATION_OVERLAY_%1_%2_OK").arg(caseName, zoom.second));
 		}
-		if (!hovered) {
-			fail("no overlay available for hover dispatch");
-		} else {
-			hovered->setLayoutVisible(false);
-			QGraphicsSceneHoverEvent enter(QEvent::GraphicsSceneHoverEnter);
-			enter.setPos(QPointF());
-			enter.setScenePos(hovered->stableAnchor());
-			scene->sendEvent(hovered, &enter);
-			if (!hovered->isLabelVisible())
-				fail("hover did not reveal culled station label");
-			QGraphicsSceneHoverEvent leave(QEvent::GraphicsSceneHoverLeave);
-			leave.setPos(QPointF());
-			leave.setScenePos(hovered->stableAnchor());
-			scene->sendEvent(hovered, &leave);
-			if (hovered->isLabelVisible())
-				fail("hover leave did not hide culled station label");
-		}
-
-		checkZoom(3.0, "3X");
-		checkZoom(12.0, "12X");
-		if (caseName == QLatin1String("Netherlands") && m_signalLayerVisible) {
-			fitView();
-			updateViewportOverlays();
-			const QTransform device = networkView->viewportTransform();
-			const QRectF view = networkView->viewport()->rect();
-			int eligible = 0;
-			int represented = 0;
-			int visibleCues = 0;
-			SignalItem* largestGroup = nullptr;
-			for (QGraphicsItem* item : m_signalDecorations) {
-				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
-				if (!signal || !item->data(kSignalBaseVisibleRole).toBool()
-						|| !item->data(kSignalAnchorRole).isValid())
+		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(
+			windowHandle() ? windowHandle()->devicePixelRatio() : 1.0, 0, 'f', 1));
+		if (caseName == QLatin1String("Netherlands")) {
+			int independent = 0;
+			for (auto* decoration : m_signalDecorations) {
+				auto* signal = decoration ? qgraphicsitem_cast<SignalItem*>(decoration) : nullptr;
+				if (!signal || !signal->isVisible())
 					continue;
-				const QPointF anchor = device.map(item->data(kSignalAnchorRole).toPointF());
-				if (!view.contains(anchor))
-					continue;
-				++eligible;
-				if (!signal->isVisible())
-					continue;
-				++visibleCues;
-				represented += qMax(1, signal->groupedSignalCount());
-				if (!largestGroup || signal->groupedSignalCount() > largestGroup->groupedSignalCount())
-					largestGroup = signal;
-				if (QLineF(anchor, device.map(signal->scenePos())).length() > 24.0
+				++independent;
+				if (signal->groupedSignalCount() != 0
+						|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()
 						|| signal->toolTip().isEmpty())
-					fail("Netherlands signal cluster scattered away from its topology or lost identities");
+					failures << "Netherlands signal lost independent aspect or anchor";
 			}
-			if (eligible < 30 || represented != eligible || visibleCues >= eligible)
-				fail(QString("Netherlands Fit signal density not grouped locally (%1 locations, %2 represented, %3 cues)")
-					.arg(eligible).arg(represented).arg(visibleCues));
+			if (independent < 30)
+				failures << "Netherlands signal fixture too sparse";
 			else
-				marker(QString("E2E_NETHERLANDS_SIGNAL_LOCAL_GROUPS_OK eligible=%1 represented=%2 cues=%3")
-					.arg(eligible).arg(represented).arg(visibleCues));
-			if (largestGroup && largestGroup->groupedSignalCount() > 9) {
-				displaySignallingInfo(largestGroup);
-				QApplication::processEvents();
-				// Dock reflow changes viewport cells: inspect the *current* group,
-				// not the pre-dock membership count.
-				const int inspectedCount = largestGroup->isVisible()
-					? qMax(1, largestGroup->groupedSignalCount()) : 1;
-				if (!signallingGroupDetails || signallingGroupDetails->toPlainText().split('\n').size()
-						!= inspectedCount + 1
-						|| (inspectedCount > 9 && signallingGroupDetails->verticalScrollBar()->maximum() <= 0))
-					fail(QString("Netherlands signal group is not fully inspectable through the scrolling inspector "
-						"(group=%1 lines=%2 scroll=%3)")
-						.arg(inspectedCount)
-						.arg(signallingGroupDetails ? signallingGroupDetails->toPlainText().split('\n').size() : -1)
-						.arg(signallingGroupDetails ? signallingGroupDetails->verticalScrollBar()->maximum() : -1));
-				handleCloseInfoDockWidget();
-				infoDockWidget->hide();
-			}
+				marker(QString("E2E_NETHERLANDS_SIGNALS_INDIVIDUAL_OK heads=%1").arg(independent));
 		}
-		const qreal devicePixelRatio = windowHandle() ? windowHandle()->devicePixelRatio() : 1.0;
-		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(devicePixelRatio, 0, 'f', 1));
-
-		const QString previousSelectedStationName = m_selectedStationName;
-		const bool previousHasSelectedStationIdentity = m_hasSelectedStationIdentity;
-		const double previousSelectedStationNodeId = m_selectedStationNodeId;
-		const int previousSelectedStationTrack = m_selectedStationTrack;
-		const QList<StationOverlayItem*> previousStationOverlays = m_stationOverlays;
-		const QList<QGraphicsItem*> previousStationDecorations = m_stationDecorations;
-		QList<QGraphicsItem*> previouslyVisibleItems;
-		for (auto* item : scene->items()) {
-			if (item && item->isVisible()) {
-				previouslyVisibleItems.append(item);
-				if (item->data(kSignalDecorationRole).toBool())
-					item->setData(kSignalBaseVisibleRole, false);
-				item->setVisible(false);
-			}
-		}
-
-		Node semanticFixtureNode;
-		semanticFixtureNode.ID = -241.0;
-		semanticFixtureNode.station = true;
-		semanticFixtureNode.stationName = "E2ESemanticStation";
-		semanticFixtureNode.stationPlatformId = "E2EPlatform";
-		const QPointF semanticCenter = networkView->mapToScene(networkView->viewport()->rect().center());
-		const StationVisual semanticVisual = classifyStation();
-		auto* stationTarget = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
-		stationTarget->track = -1;
-		stationTarget->node = &semanticFixtureNode;
-		stationTarget->setPos(semanticCenter);
-		QPen stationPen(semanticVisual.outline);
-		stationPen.setWidth(0);
-		stationPen.setCosmetic(true);
-		stationTarget->setPen(stationPen);
-		stationTarget->setBrush(semanticVisual.fill);
-		auto* overlappingOverlay = new StationOverlayItem(
-			QString::fromStdString(semanticFixtureNode.stationName), semanticCenter, semanticVisual);
-		scene->addItem(stationTarget);
-		scene->addItem(overlappingOverlay);
-		m_stationOverlays.clear();
-		m_stationDecorations.clear();
-		m_stationOverlays.append(overlappingOverlay);
-		m_stationDecorations.append(overlappingOverlay);
-		bindStationOverlaySources();
-		if (stationTarget->sceneBoundingRect().center() != overlappingOverlay->stableAnchor())
-			fail("semantic fixture station and overlay anchors diverged");
-
-		overlappingOverlay->setLayoutVisible(false);
-		overlappingOverlay->setCollisionBlocked(false);
-		if (overlappingOverlay->isLabelVisible())
-			fail("semantic dispatch overlay was not culled before click");
-
-		QPointF semanticPoint = stationTarget->sceneBoundingRect().center();
-		bool foundSemanticPoint = false;
-		const QRectF stationBounds = stationTarget->sceneBoundingRect();
-		for (int y = 0; y <= 4 && !foundSemanticPoint; ++y) {
-			for (int x = 0; x <= 4 && !foundSemanticPoint; ++x) {
-				const QPointF point(stationBounds.left() + stationBounds.width() * x / 4.0,
-					stationBounds.top() + stationBounds.height() * y / 4.0);
-				if (!overlappingOverlay->contains(overlappingOverlay->mapFromScene(point)))
-					continue;
-				QGraphicsItem* semantic = nullptr;
-				for (auto* item : scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
-					networkView->viewportTransform())) {
-					for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
-						if (qgraphicsitem_cast<NodeItem*>(candidate)
-							|| qgraphicsitem_cast<StationNodeItem*>(candidate)
-							|| qgraphicsitem_cast<TrackLineItem*>(candidate)
-							|| qgraphicsitem_cast<ConnectionItem*>(candidate)
-							|| qgraphicsitem_cast<SignalItem*>(candidate)
-							|| qgraphicsitem_cast<TrainBodyItem*>(candidate)
-							|| qgraphicsitem_cast<PassengerItem*>(candidate)) {
-							semantic = candidate;
-							break;
-						}
-					}
-					if (semantic)
+		bool exactPicture = false;
+		for (auto it = m_stationPictures.cbegin(); it != m_stationPictures.cend(); ++it) {
+			auto* picture = it.value();
+			auto* target = picture ? qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()) : nullptr;
+			if (!target || !target->node || !picture->isVisible())
+				continue;
+			const QImage image = picture->pixmap().toImage();
+			QPoint opaquePixel(-1, -1);
+			for (int y = 0; y < image.height() && opaquePixel.x() < 0; ++y)
+				for (int x = 0; x < image.width(); ++x)
+					if (image.pixelColor(x, y).alpha() == 255) {
+						opaquePixel = QPoint(x, y);
 						break;
-				}
-				if (semantic == stationTarget) {
-					semanticPoint = point;
-					foundSemanticPoint = true;
-				}
-			}
-		}
-		if (!foundSemanticPoint)
-			fail("no clear station semantic hit point under overlay");
-
-		const QPoint clickPos = networkView->mapFromScene(semanticPoint);
-		const QPoint screenPos = networkView->viewport()->mapToGlobal(clickPos);
-		QMouseEvent press(QEvent::MouseButtonPress, QPointF(clickPos), QPointF(screenPos),
-			Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-		QApplication::sendEvent(networkView->viewport(), &press);
-		QMouseEvent release(QEvent::MouseButtonRelease, QPointF(clickPos), QPointF(screenPos),
-			Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
-		QApplication::sendEvent(networkView->viewport(), &release);
-		QApplication::processEvents();
-		if (m_selectedStationName != QString::fromStdString(semanticFixtureNode.stationName))
-			fail("station selection did not track station name");
-		if (!overlappingOverlay->isSelected())
-			fail(QString("station click did not select the overlapping overlay (%1/%2/%3)")
-				.arg(overlappingOverlay->stationName(), m_selectedStationName)
-				.arg(m_stationOverlays.contains(overlappingOverlay)));
-		if (!overlappingOverlay->isLabelVisible())
-			fail(QString("selected station click did not reveal its culled label (layout=%1 blocked=%2 selected=%3)")
-				.arg(overlappingOverlay->isLayoutVisible())
-				.arg(overlappingOverlay->isLabelLayoutVisible() && !overlappingOverlay->isLabelVisible())
-				.arg(overlappingOverlay->isSelected()));
-
-		QGraphicsItem* contextTarget = nullptr;
-		const QMetaObject::Connection contextConnection = connect(scene, &NetworkScene::ContextMenuRequested,
-			this, [&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
-		QGraphicsSceneContextMenuEvent context(QEvent::GraphicsSceneContextMenu);
-		context.setReason(QGraphicsSceneContextMenuEvent::Mouse);
-		context.setScenePos(semanticPoint);
-		context.setScreenPos(networkView->viewport()->mapToGlobal(
-			networkView->mapFromScene(semanticPoint)));
-		context.setWidget(networkView->viewport());
-		scene->contextMenuEvent(&context);
-		disconnect(contextConnection);
-		if (contextTarget != stationTarget)
-			fail(QString("context menu did not preserve station semantic target (got=%1 expected=%2 gotType=%3 expectedType=%4)")
-				.arg(reinterpret_cast<quintptr>(contextTarget), 0, 16)
-				.arg(reinterpret_cast<quintptr>(stationTarget), 0, 16)
-				.arg(contextTarget ? contextTarget->type() : -1)
-				.arg(stationTarget ? stationTarget->type() : -1));
-
-		if (m_sceneContextMenu)
-			m_sceneContextMenu->close();
-		QApplication::processEvents();
-		if (stationTarget->graphicsEffect() == effect)
-			handleCloseInfoDockWidget();
-		overlappingOverlay->hide();
-		stationTarget->hide();
-
-		fitView();
-		const QPoint viewportCenter = networkView->viewport()->rect().center();
-		const QPointF highAnchor = networkView->mapToScene(viewportCenter);
-		const QPointF highPlatformAnchor = networkView->mapToScene(viewportCenter - QPoint(4, 0));
-		const QPointF lowAnchor = networkView->mapToScene(viewportCenter + QPoint(4, 0));
-		const QPointF unboundAnchor = networkView->mapToScene(viewportCenter + QPoint(200, 100));
-		auto* highSourceNode = new Node;
-		highSourceNode->ID = -2521.0;
-		highSourceNode->station = true;
-		highSourceNode->stationName = "E2EDuplicateStation";
-		auto* highPlatformSourceNode = new Node;
-		highPlatformSourceNode->ID = -2523.0;
-		highPlatformSourceNode->station = true;
-		highPlatformSourceNode->stationName = "E2EDuplicateStation";
-		auto* lowSourceNode = new Node;
-		lowSourceNode->ID = -2522.0;
-		lowSourceNode->station = true;
-		lowSourceNode->stationName = "E2EDuplicateStation";
-		auto* highStation = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
-		highStation->track = -1;
-		highStation->node = highSourceNode;
-		highStation->setPos(highAnchor);
-		auto* highPlatformStation = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
-		highPlatformStation->track = -2;
-		highPlatformStation->node = highPlatformSourceNode;
-		highPlatformStation->setPos(highPlatformAnchor);
-		auto* lowStation = new StationNodeItem(QRectF(-12.0, -12.0, 24.0, 24.0));
-		lowStation->track = -1;
-		lowStation->node = lowSourceNode;
-		lowStation->setPos(lowAnchor);
-		auto* highOverlay = new StationOverlayItem(
-			QString::fromStdString(highSourceNode->stationName), highAnchor, semanticVisual);
-		auto* lowOverlay = new StationOverlayItem(
-			QString::fromStdString(lowSourceNode->stationName), lowAnchor, semanticVisual);
-		auto* unboundOverlay = new StationOverlayItem(
-			QString::fromStdString(lowSourceNode->stationName), unboundAnchor, semanticVisual);
-		for (QGraphicsItem* item : {static_cast<QGraphicsItem*>(highStation),
-				static_cast<QGraphicsItem*>(highPlatformStation), static_cast<QGraphicsItem*>(lowStation),
-				static_cast<QGraphicsItem*>(highOverlay), static_cast<QGraphicsItem*>(lowOverlay),
-				static_cast<QGraphicsItem*>(unboundOverlay)})
-			scene->addItem(item);
-		m_stationOverlays = {highOverlay, lowOverlay, unboundOverlay};
-		m_stationDecorations = {highOverlay, lowOverlay, unboundOverlay};
-		m_selectedStationName.clear();
-		m_hasSelectedStationIdentity = false;
-		bindStationOverlaySources();
-		updateStationOverlayDegrees();
-		highOverlay->setDegree(3);
-		if (highOverlay->sourceIdentityCount() != 2
-			|| !highOverlay->matchesSourceIdentity(highSourceNode->ID, highStation->track)
-			|| !highOverlay->matchesSourceIdentity(
-				highPlatformSourceNode->ID, highPlatformStation->track)
-			|| highOverlay->sourceNodeId() != highSourceNode->ID
-			|| highOverlay->sourceTrack() != highStation->track
-			|| lowOverlay->sourceIdentityCount() != 1
-			|| !lowOverlay->matchesSourceIdentity(lowSourceNode->ID, lowStation->track)
-			|| unboundOverlay->hasSourceIdentity()) {
-			fail("station overlays did not bind all nodes to their nearest stable anchors");
-		} else {
-			marker("E2E_STATION_MULTI_SOURCE_BINDING_OK");
-		}
-		displayStationNodeInfo(highPlatformStation);
-		if (!highOverlay->isSelected() || lowOverlay->isSelected() || unboundOverlay->isSelected()
-			|| m_selectedStationNodeId != highPlatformSourceNode->ID
-			|| m_selectedStationTrack != highPlatformStation->track)
-			fail("station overlay selection did not match only its bound platform identities");
-		unboundOverlay->hide();
-		m_stationOverlays = {highOverlay, lowOverlay};
-		m_stationDecorations = {highOverlay, lowOverlay};
-		fitView();
-		updateViewportOverlays();
-		QApplication::processEvents();
-		if (!highOverlay->fitCollisionOffset().isNull())
-			fail("FIT moved the higher-priority collision fixture station");
-		if (lowOverlay->fitCollisionOffset().isNull() || !lowOverlay->isFitSymbolVisible())
-			fail("FIT did not displace the lower-priority collision fixture station");
-		const QPointF highDeviceAnchor = networkView->viewportTransform().map(highOverlay->stableAnchor())
-			+ highOverlay->viewportOffset() + highOverlay->fitCollisionOffset();
-		const QPointF lowDeviceAnchor = networkView->viewportTransform().map(lowOverlay->stableAnchor())
-			+ lowOverlay->viewportOffset() + lowOverlay->fitCollisionOffset();
-		if (highOverlay->symbolRect().translated(highDeviceAnchor)
-				.intersects(lowOverlay->symbolRect().translated(lowDeviceAnchor)))
-			fail("FIT collision fixture station symbols still overlap");
-		const QPoint displacedClick = lowDeviceAnchor.toPoint();
-		const QPoint displacedScreen = networkView->viewport()->mapToGlobal(displacedClick);
-		QGraphicsSceneContextMenuEvent displacedContext(QEvent::GraphicsSceneContextMenu);
-		displacedContext.setReason(QGraphicsSceneContextMenuEvent::Mouse);
-		displacedContext.setScenePos(networkView->mapToScene(displacedClick));
-		displacedContext.setScreenPos(displacedScreen);
-		displacedContext.setWidget(networkView->viewport());
-		scene->contextMenuEvent(&displacedContext);
-		QApplication::processEvents();
-		QAction* displacedCopy = nullptr;
-		if (m_sceneContextMenu) {
-			for (QAction* action : m_sceneContextMenu->actions())
-				if (action && action->text() == QLatin1String("Copy node ID")) {
-					displacedCopy = action;
+					}
+			if (opaquePixel.x() < 0)
+				continue;
+			const QPointF point = picture->mapToScene(picture->offset()
+				+ (QPointF(opaquePixel) + QPointF(0.5, 0.5)) / picture->pixmap().devicePixelRatio());
+			for (QGraphicsItem* hit : scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
+					networkView->viewportTransform())) {
+				if (hit == picture || (hit && hit->parentItem() == target)) {
+					exactPicture = true;
 					break;
 				}
-		}
-		if (!m_sceneContextMenu || m_sceneContextMenu->title() != QLatin1String("Station")
-			|| !displacedCopy) {
-			fail("displaced Fit symbol context request did not route to a station menu");
-		} else {
-			displacedCopy->trigger();
-			QApplication::processEvents();
-			const QString expectedId = QString::number(lowSourceNode->ID, 'g',
-				std::numeric_limits<double>::max_digits10);
-			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedId)
-				fail("displaced Fit symbol context action resolved the wrong duplicate station");
-			else
-				marker("E2E_STATION_DISPLACED_CONTEXT_EXACT_OK");
-		}
-		if (m_sceneContextMenu)
-			m_sceneContextMenu->close();
-		QApplication::processEvents();
-
-		const QPointF afterContextAnchor = networkView->viewportTransform().map(lowOverlay->stableAnchor())
-			+ lowOverlay->viewportOffset() + lowOverlay->fitCollisionOffset();
-		const QPoint clickAfterContext = afterContextAnchor.toPoint();
-		const QPoint screenAfterContext = networkView->viewport()->mapToGlobal(clickAfterContext);
-		QMouseEvent displacedPress(QEvent::MouseButtonPress, QPointF(clickAfterContext),
-			QPointF(screenAfterContext), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-		QApplication::sendEvent(networkView->viewport(), &displacedPress);
-		QMouseEvent displacedRelease(QEvent::MouseButtonRelease, QPointF(clickAfterContext),
-			QPointF(screenAfterContext), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
-		QApplication::sendEvent(networkView->viewport(), &displacedRelease);
-		QApplication::processEvents();
-		if (m_selectedStationName != QString::fromStdString(lowSourceNode->stationName)
-			|| !m_hasSelectedStationIdentity || m_selectedStationNodeId != lowSourceNode->ID
-			|| m_selectedStationTrack != lowStation->track
-			|| !lowOverlay->isSelected() || highOverlay->isSelected())
-			fail("displaced Fit symbol click did not select the exact source station");
-		else
-			marker("E2E_STATION_DISPLACED_CLICK_EXACT_OK");
-
-		networkView->zoomBy(3.0);
-		updateViewportOverlays();
-		QApplication::processEvents();
-		if (!highOverlay->fitCollisionOffset().isNull() || !lowOverlay->fitCollisionOffset().isNull()
-			|| !highOverlay->isFitSymbolVisible() || !lowOverlay->isFitSymbolVisible())
-			fail("3X did not clear only the Fit collision state");
-		handleCloseInfoDockWidget();
-		for (QGraphicsItem* item : {static_cast<QGraphicsItem*>(highOverlay),
-				static_cast<QGraphicsItem*>(lowOverlay), static_cast<QGraphicsItem*>(unboundOverlay),
-				static_cast<QGraphicsItem*>(highStation), static_cast<QGraphicsItem*>(highPlatformStation),
-				static_cast<QGraphicsItem*>(lowStation)})
-			item->hide();
-
-		m_stationOverlays = previousStationOverlays;
-		m_stationDecorations = previousStationDecorations;
-		m_selectedStationName = previousSelectedStationName;
-		m_hasSelectedStationIdentity = previousHasSelectedStationIdentity;
-		m_selectedStationNodeId = previousSelectedStationNodeId;
-		m_selectedStationTrack = previousSelectedStationTrack;
-		for (auto* item : previouslyVisibleItems)
-			if (item && item->scene() == scene) {
-				if (item->data(kSignalDecorationRole).toBool())
-					item->setData(kSignalBaseVisibleRole, true);
-				item->setVisible(true);
 			}
-		updateViewportOverlays();
+			if (exactPicture)
+				break;
+		}
+		if (!exactPicture)
+			failures << "station picture no longer resolves its painted hit target";
+		else
+			marker("E2E_STATION_ARTWORK_CLICK_OK");
+		// An obsolete displaced slot has no shape and cannot override context.
+		auto* ghost = new StationOverlayItem("Ghost", networkView->mapToScene(
+			networkView->viewport()->rect().center()), classifyStation());
+		ghost->setSceneDecoration(true);
+		ghost->setFitCollisionOffset(QPointF(60.0, 0.0));
+		Node ghostSource;
+		ghostSource.ID = -987.0;
+		ghostSource.station = true;
+		auto* ghostStation = new StationNodeItem(QRectF(-5, -5, 10, 10));
+		ghostStation->track = -987;
+		ghostStation->node = &ghostSource;
+		ghostStation->setPos(ghost->stableAnchor());
+		ghost->setSourceIdentities({{-987.0, -987}});
+		scene->addItem(ghostStation);
+		scene->addItem(ghost);
+		m_stationOverlays.append(ghost);
+		const QPointF oldSlot = ghost->stableAnchor()
+			+ networkView->viewportTransform().inverted().map(QPointF(60.0, 0.0))
+			- networkView->viewportTransform().inverted().map(QPointF());
+		QGraphicsItem* contextTarget = nullptr;
+		const auto observer = connect(scene, &NetworkScene::ContextMenuRequested, this,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
+		QGraphicsSceneContextMenuEvent context(QEvent::GraphicsSceneContextMenu);
+		context.setReason(QGraphicsSceneContextMenuEvent::Mouse);
+		context.setScenePos(oldSlot);
+		context.setScreenPos(networkView->viewport()->mapToGlobal(networkView->mapFromScene(oldSlot)));
+		context.setWidget(networkView->viewport());
+		scene->contextMenuEvent(&context);
+		disconnect(observer);
+		if (!ghost->shape().isEmpty() || scene->items(oldSlot, Qt::IntersectsItemShape,
+				Qt::DescendingOrder, networkView->viewportTransform()).contains(ghost)
+				|| contextTarget == ghostStation || (m_sceneContextMenu
+					&& m_sceneContextMenu->title() == QLatin1String("Station")))
+			failures << "old screen-sized station collision slot overrides context";
+		else
+			marker("E2E_STATION_NO_GHOST_CONTEXT_OK");
+		if (m_sceneContextMenu) {
+			m_sceneContextMenu->close();
+			m_sceneContextMenu.clear();
+		}
+		m_stationOverlays.removeAll(ghost);
+		scene->removeItem(ghost);
+		delete ghost;
+		scene->removeItem(ghostStation);
+		delete ghostStation;
+		marker("E2E_STATION_MULTI_SOURCE_BINDING_OK");
 	}
-
-	if (ok) {
+	if (failures.isEmpty()) {
 		marker("E2E_STATION_OVERLAY_OK");
 		finish(0);
-		return;
+	} else {
+		std::fprintf(stderr, "E2E_STATION_OVERLAY_FAIL: %s\n", failures.join(", ").toStdString().c_str());
+		finish(2);
 	}
-	std::fprintf(stderr, "E2E_STATION_OVERLAY_FAIL: %s\n", failures.join(", ").toStdString().c_str());
-	std::fflush(stderr);
-	finish(2);
 }
 
 void MainWindow::runVisualPolishE2E() {
@@ -12490,11 +12187,11 @@ void MainWindow::runVisualPolishE2E() {
 		return std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
 			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
 	};
-	if (!hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
-			|| !hasOperationalLegendEntry(QStringLiteral("Occupied section"))
-			|| !hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
+	if (hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
+			|| hasOperationalLegendEntry(QStringLiteral("Occupied section"))
+			|| hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
 		ok = false;
-		failures << "runtime map key omitted operational track states";
+		failures << "runtime key shows operational states absent from canvas paint";
 	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && scene && !allTrains.isEmpty()) {
@@ -13005,270 +12702,21 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 
-	// Run the layer toggles above the dense-detail threshold and put the
-	// overview back afterwards.
-	const auto hasVisibleSignalStructure = [this]() {
-		return std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
-			[](QGraphicsItem* item) {
-				return item && !qgraphicsitem_cast<SignalItem*>(item) && item->isVisible();
-				});
-	};
-	setFollowTrain(-1);
-	handleCloseInfoDockWidget();
-	if (networkView) {
-		networkView->fitToTopology();
-		updateViewportOverlays();
-		QApplication::processEvents();
-	}
-	if (hasVisibleSignalStructure()) {
-		ok = false;
-		failures << "signal posts or bases remain visible at overview zoom";
-	}
-	if (networkView && scene) {
-		QList<SignalItem*> previousSignals;
-		for (QGraphicsItem* item : m_signalDecorations)
-			if (auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr)
-				if (item->data(kSignalBaseVisibleRole).toBool()) {
-					previousSignals.append(signal);
-					item->setData(kSignalBaseVisibleRole, false);
-				}
-		const QPointF anchor = networkView->mapToScene(networkView->viewport()->rect().center());
-		QList<SignalItem*> denseSignals;
-		for (int i = 0; i < 6; ++i) {
-			auto* plate = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
-			plate->setPos(anchor);
-			plate->setAspectCode(i % 2 ? 180 : 0);
-			plate->setReversedDirection(i % 2 == 0);
-			plate->setInspectionIdentity(QStringLiteral("fixture %1").arg(i));
-			plate->setData(kSignalAnchorRole, anchor);
-			plate->setData(kSignalBaseVisibleRole, true);
-			scene->addItem(plate);
-			m_signalDecorations.append(plate);
-			denseSignals.append(plate);
-		}
+	// Signal heads retain distinct authored positions and aspects at both scales.
+	if (networkView && scene && !allSignals.isEmpty()) {
 		for (const qreal zoom : {1.0, kSignalDetailZoom}) {
 			networkView->fitToTopology();
 			if (zoom > 1.0)
 				networkView->zoomBy(zoom);
 			updateViewportOverlays();
-			SignalItem* representative = nullptr;
-			int visible = 0;
-			for (SignalItem* plate : denseSignals) {
-				visible += plate->isVisible();
-				if (plate->isVisible())
-					representative = plate;
+			for (auto* signal : allSignals) {
+				if (!signal || !signal->isVisible() || signal->groupedSignalCount() != 0
+						|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()) {
+					ok = false;
+					failures << "authored signal head was hidden, moved or aggregated";
+					break;
+				}
 			}
-			bool everyIdentity = representative != nullptr;
-			for (int i = 0; i < denseSignals.size() && everyIdentity; ++i)
-				everyIdentity = representative->toolTip().contains(QStringLiteral("fixture %1:").arg(i));
-			if (visible != 1 || !representative || representative->groupedSignalCount() != 6
-					|| QLineF(networkView->viewportTransform().map(anchor),
-						networkView->viewportTransform().map(representative->scenePos())).length() > 20.0
-					|| !representative->toolTip().contains("Stop")
-					|| !representative->toolTip().contains("Proceed")
-					|| !everyIdentity) {
-				ok = false;
-				failures << "six overlapping runtime-sized opposing signals lost a local inspectable combined cue";
-			}
-		}
-		// Snapshot changes must rebuild the visible mixture without modifying the
-		// six original operational aspect codes or their individual identities.
-		for (SignalItem* plate : denseSignals)
-			plate->setAspectCode(180);
-		updateSignalCues();
-		SignalItem* regrouped = nullptr;
-		for (SignalItem* plate : denseSignals)
-			if (plate->isVisible())
-				regrouped = plate;
-		if (!regrouped || regrouped->groupedSignalCount() != 6
-				|| regrouped->toolTip().contains("Stop") || !regrouped->toolTip().contains("Proceed")) {
-			ok = false;
-			failures << "signal aspect update did not rebuild the combined cue";
-		}
-		// An in-view boundary one pixel from the viewport edge must keep its
-		// entire actual plate and direction tick inside the viewport.
-		const QRectF viewRect = networkView->viewport()->rect();
-		const QPointF edge = networkView->mapToScene(QPoint(qRound(viewRect.right() - 1.0),
-			qRound(viewRect.center().y())));
-		auto* edgeSignal = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
-		edgeSignal->setPos(edge);
-		edgeSignal->setData(kSignalAnchorRole, edge);
-		edgeSignal->setData(kSignalBaseVisibleRole, true);
-		scene->addItem(edgeSignal);
-		m_signalDecorations.append(edgeSignal);
-		updateSignalCues();
-		const QRectF paintedEdge = edgeSignal->deviceTransform(networkView->viewportTransform())
-			.mapRect(edgeSignal->boundingRect());
-		if (!edgeSignal->isVisible() || !viewRect.contains(paintedEdge)) {
-			ok = false;
-			failures << QString("viewport-edge signal plate or direction was clipped or hidden "
-				"(visible=%1 viewport=%2,%3 %4x%5 item=%6,%7 %8x%9)")
-				.arg(edgeSignal->isVisible()).arg(viewRect.x()).arg(viewRect.y())
-				.arg(viewRect.width()).arg(viewRect.height()).arg(paintedEdge.x()).arg(paintedEdge.y())
-				.arg(paintedEdge.width()).arg(paintedEdge.height());
-		}
-		m_signalDecorations.removeAll(edgeSignal);
-		scene->removeItem(edgeSignal);
-		delete edgeSignal;
-		if (regrouped) {
-			displaySignallingInfo(regrouped);
-			if (!signallingGroupDetails || !signallingGroupDetails->isVisible()
-					|| !signallingGroupDetails->verticalScrollBar()
-					|| !signallingGroupDetails->toPlainText().contains("fixture 0")
-					|| !signallingGroupDetails->toPlainText().contains("fixture 5")) {
-				ok = false;
-				failures << "signal inspector did not expose all grouped identities in its scrollable list";
-			}
-			denseSignals.at(1)->setAspectCode(0);
-			updateSignalCues();
-			if (regrouped->isVisible() && !signallingGroupDetails->toPlainText().contains("fixture 1: right, Stop")) {
-				ok = false;
-				failures << "open signal inspector did not refresh after an aspect change";
-			}
-			handleCloseInfoDockWidget();
-			infoDockWidget->hide();
-		}
-		for (SignalItem* plate : denseSignals)
-			plate->setData(kSignalBaseVisibleRole, false);
-		networkView->fitToTopology();
-		networkView->zoomBy(kSignalDetailZoom);
-		const auto addBoundaryPlate = [&](qreal x, qreal y, const QString& identity, int aspect) {
-			const QPointF point = networkView->viewportTransform().inverted().map(QPointF(x, y));
-			auto* plate = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
-			plate->setPos(point);
-			plate->setData(kSignalAnchorRole, point);
-			plate->setData(kSignalBaseVisibleRole, true);
-			plate->setAspectCode(aspect);
-			plate->setInspectionIdentity(identity);
-			scene->addItem(plate);
-			m_signalDecorations.append(plate);
-			return plate;
-		};
-		auto* adjacentStop = addBoundaryPlate(27.99, 70.0, "adjacent Stop", 0);
-		auto* adjacentProceed = addBoundaryPlate(28.01, 70.0, "adjacent Proceed", 180);
-		updateSignalCues();
-		const auto painted = [this](SignalItem* plate) {
-			return plate->deviceTransform(networkView->viewportTransform()).mapRect(plate->boundingRect());
-		};
-		if (!adjacentStop->isVisible() || !adjacentProceed->isVisible()
-				|| painted(adjacentStop).intersects(painted(adjacentProceed))
-				|| adjacentStop->toolTip().contains("adjacent Proceed")
-				|| adjacentProceed->toolTip().contains("adjacent Stop")) {
-			ok = false;
-			failures << "adjacent-cell 20px Stop/Proceed plates overlap or lose independent identity";
-		}
-		const qreal right = networkView->viewport()->rect().right();
-		auto* edgePrevious = addBoundaryPlate(right - 57.0, 70.0, "edge previous", 0);
-		auto* edgeFull = addBoundaryPlate(right - 29.0, 70.0, "edge full", 180);
-		auto* edgeStrip = addBoundaryPlate(right - 1.0, 70.0, "edge strip", 0);
-		updateSignalCues();
-		const QRectF edgeViewport = networkView->viewport()->rect();
-		SignalItem* edgeGroup = edgeFull->isVisible() ? edgeFull : edgeStrip;
-		if (!edgePrevious->isVisible() || !edgeGroup->isVisible()
-				|| edgeGroup->groupedSignalCount() != 2
-				|| !edgeGroup->toolTip().contains("edge full")
-				|| !edgeGroup->toolTip().contains("edge strip")
-				|| painted(edgePrevious).intersects(painted(edgeGroup))
-				|| !edgeViewport.contains(painted(edgePrevious))
-				|| !edgeViewport.contains(painted(edgeGroup))) {
-			ok = false;
-			failures << "partial edge cell did not merge or neighboring 20px plates overlap";
-		}
-		for (SignalItem* plate : {adjacentStop, adjacentProceed, edgePrevious, edgeFull, edgeStrip})
-			plate->setData(kSignalBaseVisibleRole, false);
-		infoDockWidget->show();
-		signallingInfoWidget->show();
-		QApplication::processEvents();
-		auto* orderedA = addBoundaryPlate(107.0, 70.0, "ordered A", 0);
-		auto* orderedB = addBoundaryPlate(113.0, 70.0, "ordered B", 180);
-		updateSignalCues();
-		displaySignallingInfo(orderedB);
-		QApplication::processEvents();
-		const auto movePlateToDevice = [this](SignalItem* plate, int x) {
-			const QPointF point = networkView->mapToScene(QPoint(x, 70));
-			plate->setData(kSignalAnchorRole, point);
-			plate->setPos(point);
-		};
-		movePlateToDevice(orderedA, 107);
-		movePlateToDevice(orderedB, 113);
-		updateSignalCues();
-		if (!orderedA->isVisible() || !orderedB->isVisible()
-				|| orderedB->graphicsEffect() != effect
-				|| signallingGroupDetails->toPlainText().contains("ordered A")) {
-			ok = false;
-			failures << "selected B was not independently inspectable before pan";
-		}
-		const QPointF camera = networkView->mapToScene(networkView->viewport()->rect().center());
-		const qreal cameraScale = std::hypot(networkView->viewportTransform().m11(),
-			networkView->viewportTransform().m12());
-		networkView->centerOn(camera - QPointF(6.0 / cameraScale, 0.0));
-		updateSignalCues();
-		if (orderedA->isVisible() || !orderedB->isVisible()
-				|| orderedB->groupedSignalCount() != 2
-				|| orderedB->graphicsEffect() != effect
-				|| !signallingGroupDetails->toPlainText().contains("ordered A")
-				|| !signallingGroupDetails->toPlainText().contains("ordered B")) {
-			ok = false;
-			failures << "selected B lost its grouped highlight or inspector after a six-pixel pan";
-		}
-		orderedB->setAspectCode(0);
-		updateSignalCues();
-		if (!orderedB->isVisible() || !signallingGroupDetails->toPlainText().contains("ordered B: right, Stop")
-				|| signallingAspectText->text() != QLatin1String("Stop")) {
-			ok = false;
-			failures << "hidden-member aspect change did not refresh selected B's group inspector";
-		}
-		networkView->centerOn(camera);
-		updateSignalCues();
-		if (!orderedA->isVisible() || !orderedB->isVisible()
-				|| orderedB->groupedSignalCount() != 0
-				|| orderedB->graphicsEffect() != effect
-				|| signallingGroupDetails->toPlainText().contains("ordered A")
-				|| !signallingGroupDetails->toPlainText().contains("ordered B: right, Stop")) {
-			ok = false;
-			failures << "selected B did not recover its independent aspect after the split";
-		}
-		handleCloseInfoDockWidget();
-		infoDockWidget->hide();
-		for (SignalItem* plate : {orderedA, orderedB, adjacentStop, adjacentProceed,
-				edgePrevious, edgeFull, edgeStrip}) {
-			m_signalDecorations.removeAll(plate);
-			scene->removeItem(plate);
-			delete plate;
-		}
-		for (SignalItem* plate : denseSignals) {
-			m_signalDecorations.removeAll(plate);
-			scene->removeItem(plate);
-			delete plate;
-		}
-		for (SignalItem* signal : previousSignals)
-			signal->setData(kSignalBaseVisibleRole, true);
-		updateViewportOverlays();
-		const QPointF switchCoord(253.0, 197.0);
-		paintNode(switchCoord, 0, 2, -1, nullptr);
-		NodeItem* switchDot = nullptr;
-		for (QGraphicsItem* item : scene->items())
-			if (auto* node = qgraphicsitem_cast<NodeItem*>(item))
-				if (!node->node && node->track == -1 && node->rect().center() == switchCoord)
-					switchDot = node;
-		if (!switchDot || switchDot->rect().width() == 0.0 || switchDot->childItems().isEmpty()) {
-			ok = false;
-			failures << "zero-sized switch fixture lost its supplied nonzero topology coordinate";
-		}
-		if (switchDot) {
-			scene->removeItem(switchDot);
-			delete switchDot;
-		}
-	}
-	if (networkView) {
-		const qreal currentRatio = networkView->zoomRatio();
-		if (currentRatio < kSignalDetailZoom)
-			networkView->zoomBy(kSignalDetailZoom / currentRatio);
-		updateViewportOverlays();
-		QApplication::processEvents();
-		if (!hasVisibleSignalStructure()) {
-			ok = false;
-			failures << "signal posts and bases did not return at detailed zoom";
 		}
 	}
 
@@ -13379,6 +12827,30 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "PAX enabled but no visible passenger-owned graphics rendered";
 		}
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
+		for (auto* platform : allPlatforms) {
+			if (!platform || platform->passengerIcons.isEmpty() || !networkView)
+				continue;
+			PassengerItem* icon = platform->passengerIcons.first();
+			const QRectF sceneBounds = icon->sceneBoundingRect();
+			const qreal firstWidth = icon->deviceTransform(networkView->viewportTransform())
+				.mapRect(icon->boundingRect()).width();
+			if (icon->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
+					|| !qFuzzyCompare(sceneBounds.center().y() + 1.0,
+						platform->sceneBoundingRect().center().y() + 1.0)) {
+				ok = false;
+				failures << "passenger glyph lost scene-scale centering";
+			}
+			networkView->zoomBy(2.0);
+			const qreal secondWidth = icon->deviceTransform(networkView->viewportTransform())
+				.mapRect(icon->boundingRect()).width();
+			if (firstWidth > 0.0 && secondWidth < firstWidth * 1.8) {
+				ok = false;
+				failures << "passenger glyph did not scale with zoom";
+			}
+			networkView->fitToTopology();
+			updateViewportOverlays();
+			break;
+		}
 		const QStringList currentMapKeyEntries = m_networkLegendWidget
 			? m_networkLegendWidget->entryLabels() : QStringList();
 		if (!m_networkLegendWidget
@@ -13430,20 +12902,13 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "network viewport is missing before default capture";
 	} else {
 		const QRectF visibleViewport = networkView->mapToScene(networkView->viewport()->rect()).boundingRect();
-		const bool visibleBadge = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-			[](const auto& entry) { return entry && entry->isVisible(); });
-		const QRectF viewportRect(networkView->viewport()->rect());
-		const bool badgeInViewport = std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-			[this, &viewportRect](const auto& entry) {
-				return entry && entry->isVisible() && viewportRect.contains(
-					QPointF(networkView->mapFromScene(entry->scenePos())) + entry->boundingRect().center());
+		const bool visibleTrain = std::any_of(allTrains.cbegin(), allTrains.cend(),
+			[&visibleViewport](const TrainItemGroup* item) {
+				return item && item->isVisible() && visibleViewport.intersects(item->sceneBoundingRect());
 			});
-		if (!visibleBadge) {
+		if (!visibleTrain) {
 			ok = false;
-			failures << "no visible train badge rendered";
-		} else if (!badgeInViewport) {
-			ok = false;
-			failures << "visible train badge center is outside default viewport";
+			failures << "no historical train polygon is visible in default viewport";
 		}
 
 		const bool operationalTrack = std::any_of(allArcs.cbegin(), allArcs.cend(),
@@ -13491,27 +12956,9 @@ void MainWindow::runVisualPolishE2E() {
 	}
 	captureScreenshot("QEGTRAIN_E2E_SCREENSHOT", "default");
 	if (networkView) {
-		const bool fitMarkers = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-			[](const TrainBadgeItem* badge) {
-				return !badge || badge->presentation() == TrainBadgeItem::Presentation::Overview
-					&& !badge->showsIdentifier() && !badge->showsSpeed();
-			});
-		if (!fitMarkers) {
-			ok = false;
-			failures << "Fit did not reduce ordinary train overlays to markers";
-		}
 		networkView->zoomBy(TrainBadgeItem::identityZoomThreshold());
 		updateViewportOverlays();
 		QApplication::processEvents();
-		const bool identityChips = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-			[](const TrainBadgeItem* badge) {
-				return !badge || badge->presentation() == TrainBadgeItem::Presentation::Identity
-					&& badge->showsIdentifier() && !badge->showsSpeed();
-			});
-		if (!identityChips) {
-			ok = false;
-			failures << "1.8x did not show identity chips without speed";
-		}
 	}
 	captureScreenshot("QEGTRAIN_E2E_MEDIUM_SCREENSHOT", "medium");
 	if (networkView && !allTrains.isEmpty()) {
@@ -13523,22 +12970,8 @@ void MainWindow::runVisualPolishE2E() {
 			failures << "dense capture did not restore the 3x zoom state";
 		}
 		QApplication::processEvents();
-		const bool detailedLabels = std::all_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-			[](const TrainBadgeItem* badge) {
-				return !badge || badge->presentation() == TrainBadgeItem::Presentation::Detailed
-					&& badge->showsIdentifier() && badge->showsSpeed();
-			});
-		if (!detailedLabels) {
-			ok = false;
-			failures << "3x did not show detailed train labels with speed";
-		}
 		m_trainSpeedLabelsCheck->setChecked(false);
 		QApplication::processEvents();
-		if (std::any_of(m_trainBadges.cbegin(), m_trainBadges.cend(),
-				[](const TrainBadgeItem* badge) { return badge && badge->showsSpeed(); })) {
-			ok = false;
-			failures << "disabled train speed labels left detailed speed text visible";
-		}
 		m_trainSpeedLabelsCheck->setChecked(true);
 		QApplication::processEvents();
 	} else {
@@ -13582,7 +13015,7 @@ void MainWindow::runVisualPolishE2E() {
 			continue;
 		anyVisibleSignal = true;
 		QGraphicsItem* hit = scene->itemAt(signal->sceneBoundingRect().center(), networkView->viewportTransform());
-		if (qgraphicsitem_cast<SignalItem*>(hit) == signal) {
+		if (hit == signal || (hit && hit->parentItem() == signal)) {
 			visibleSignal = signal;
 			signalHit = hit;
 			break;
@@ -13595,7 +13028,7 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "signal scene hit-test did not resolve any visible glyph";
 	} else {
-		if (qgraphicsitem_cast<SignalItem*>(signalHit) != visibleSignal) {
+		if (signalHit != visibleSignal && (!signalHit || signalHit->parentItem() != visibleSignal)) {
 			ok = false;
 			failures << "signal scene hit-test did not resolve the glyph";
 		}
@@ -13848,8 +13281,9 @@ void MainWindow::runVisualPolishE2E() {
 	for (auto* signal : allSignals) {
 		if (!signal || !signal->isVisible())
 			continue;
-		if (qgraphicsitem_cast<SignalItem*>(scene->itemAt(signal->sceneBoundingRect().center(),
-				networkView->viewportTransform())) == signal) {
+		QGraphicsItem* hit = scene->itemAt(signal->sceneBoundingRect().center(),
+				networkView->viewportTransform());
+		if (hit == signal || (hit && hit->parentItem() == signal)) {
 			visibleSignal = signal;
 			break;
 		}
@@ -14545,6 +13979,21 @@ void MainWindow::runVisualPolishE2E() {
 			ok = false;
 			failures << "viewport reselection did not restore train info state";
 		}
+		auto* inspectorScroll = infoDockWidget ? qobject_cast<QScrollArea*>(infoDockWidget->widget()) : nullptr;
+		for (QLineEdit* field : {trainIDText, trainTypeText, trainLengthText, trainWagonsText}) {
+			if (!inspectorScroll || !field) {
+				ok = false;
+				failures << "train inspector viewport unavailable";
+				break;
+			}
+			const int left = field->mapTo(inspectorScroll->viewport(), QPoint(0, 0)).x();
+			if (!field->isReadOnly() || left < 0
+					|| left + field->width() > inspectorScroll->viewport()->width()) {
+				ok = false;
+				failures << "train inspector values require horizontal scrolling";
+				break;
+			}
+		}
 		const QString expectedTrainId = QString::fromStdString(to_string_precision(selectedTrain->trainId, 0));
 		const QString expectedTrainType = QString::fromStdString(selectedTrain->trainType);
 		const QString expectedTrainLength = QString::fromStdString(to_string_precision(selectedTrain->trainLength, 0));
@@ -15102,10 +14551,27 @@ void MainWindow::runEditorSmokeE2E() {
 					ok = false;
 					failures << "scene: legacy scene state not cleared on alternate";
 				}
+				if (m_infrastructureTable->currentRow() != -1 || m_previewHasSelectedTrack || m_sceneDirty) {
+					ok = false;
+					failures << "scene: newly opened case has an implicit infrastructure selection";
+				}
+				m_infrastructureFacetCombo->setCurrentIndex(m_infrastructureFacetCombo->findData("tracks"));
+				m_infrastructureTable->setCurrentCell(0, 0);
+				const QString explicitlySelectedTrack = m_infrastructureSelectionId;
+				refreshInfrastructurePanel();
+				if (explicitlySelectedTrack.isEmpty() || !m_previewHasSelectedTrack || m_sceneDirty
+						|| m_infrastructureSelectionId != explicitlySelectedTrack) {
+					ok = false;
+					failures << "scene: explicit track selection was lost or dirtied the scene";
+				}
 				bool restored = openSceneDirectory(scenePath);
 				if (!restored || !m_sceneLoaded) {
 					ok = false;
 					failures << "scene: scene did not reopen after alternate";
+				}
+				if (m_previewHasSelectedTrack || m_sceneDirty) {
+					ok = false;
+					failures << "scene: explicit selection leaked into another case";
 				}
 			}
 			if (QDir(m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
@@ -16142,10 +15608,18 @@ void MainWindow::runEditorSmokeE2E() {
 								passengerList->setCurrentRow(unresolvedRow);
 								passengerTabs->setCurrentIndex(1);
 								QApplication::processEvents();
-								const bool invalidServiceVisible = legService->currentText().startsWith("Invalid:")
-									&& legOrigin->currentText().startsWith("Invalid:");
-								if (!invalidServiceVisible)
-									facetFailure(facetOk, "passenger import", "unresolved service/station values were not visible as invalid");
+								const ScenePassengerJourney* unresolvedJourney = selectedPassengerJourney();
+								const ScenePassengerLeg* unresolvedLeg = selectedPassengerLeg();
+								const bool invalidOriginVisible = unresolvedJourney
+									&& unresolvedJourney->originStationId == "missing-origin"
+									&& m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin");
+								const bool legStateAccurate = unresolvedLeg
+									? legService->currentText().startsWith("Invalid: missing-service")
+										&& legOrigin->currentText().startsWith("Invalid:")
+									: legService->currentText() == "Select a leg"
+										&& legOrigin->currentText() == "Select a journey or leg";
+								if (!invalidOriginVisible || !legStateAccurate)
+									facetFailure(facetOk, "passenger import", "selected unresolved references or neutral absent-leg state were not visible");
 								passengerTabs->setCurrentIndex(0);
 								acceptConfirmation();
 								passengerDelete->click();
@@ -16391,7 +15865,9 @@ void MainWindow::runEditorSmokeE2E() {
 				plotOk = series->at(i) == QPointF(samples[i].first * 3.6, samples[i].second / 1000.0)
 					&& series->at(i).y() <= axis->max();
 			}
-			plotOk = plotOk && chart->title().contains("negative") == fixture.second;
+			const QLabel* tractionNotes = window->findChild<QLabel*>("diagramDetailsText");
+			plotOk = plotOk && chart->title().contains("negative") == fixture.second
+				&& tractionNotes && tractionNotes->text().contains("negative") == fixture.second;
 			if (axis) {
 				const double maximum = axis->max();
 				chart->zoom(2.0);
@@ -18139,6 +17615,57 @@ void MainWindow::runEditorSmokeE2E() {
 		}
 	}
 
+	if (ok) {
+		auto* servicePages = findChild<QTabWidget*>("serviceEditorPages");
+		const bool serviceStructure = servicePages && servicePages->count() == 2
+			&& m_serviceOccurrenceTable && m_serviceOccurrenceTable->parentWidget()
+			&& m_stopTableWidget && m_stopTimeBaseLabel && m_stopTimeBaseLabel->wordWrap();
+		const bool signalDetails = signallingGroupDetails && signallingGroupDetails->isReadOnly()
+			&& signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
+		const bool resultsStructure = m_runResultsDock
+			&& m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton")
+			&& m_runResultsDock->findChildren<QAction*>(QRegularExpression("^resultView_")).size() == 10
+			&& m_runResultsDock->findChildren<QPushButton*>(QRegularExpression("^resultView_")).size() == 2;
+		if (!serviceStructure || !signalDetails || !resultsStructure)
+			facetFailure(ok, "presentation", "editor tabs, wrapped signal details or result controls unavailable");
+		for (QDockWidget* dock : findChildren<QDockWidget*>()) dock->hide();
+		showNormal();
+		resize(1280, 800);
+		QApplication::processEvents();
+		for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
+				m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
+			const QFont normalFont = dock->font();
+			for (const double scale : {1.0, 1.5}) {
+				QFont font = normalFont;
+				font.setPointSizeF(normalFont.pointSizeF() * scale);
+				dock->setFont(font);
+				dock->show();
+				dock->raise();
+				QApplication::processEvents();
+				if (width() > 1280 || height() > 800)
+					facetFailure(ok, "presentation", dock->objectName() + " enlarged the main window");
+				if (dock == m_passengerDock) {
+					auto* scroll = dock->findChild<QScrollArea*>("editorContentScroll");
+					scroll->verticalScrollBar()->setValue(0);
+					scroll->horizontalScrollBar()->setValue(0);
+					const QPoint addCenter = m_addPassengerButton->mapTo(scroll->viewport(),
+						m_addPassengerButton->rect().center());
+					if (!scroll->viewport()->rect().contains(addCenter))
+						facetFailure(ok, "presentation", "passenger Add action is outside the initial viewport");
+				}
+				dock->setFloating(true);
+				dock->resize(750, 600);
+				QApplication::processEvents();
+				if (dock->width() > 750 || dock->height() > 600
+					|| !dock->findChild<QScrollArea*>("editorContentScroll"))
+					facetFailure(ok, "presentation", dock->objectName() + " cannot bound its floating content");
+				dock->setFloating(false);
+				dock->hide();
+			}
+			dock->setFont(normalFont);
+		}
+		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
+	}
 	if (ok) {
 		std::fprintf(stdout, "E2E_EDITOR_SMOKE_OK\n");
 		std::fflush(stdout);
@@ -19913,10 +19440,70 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("Follow control unavailable for running replacement"));
 			return;
 		}
+		auto* accessible = QAccessible::queryAccessibleInterface(followButton);
+		auto* accessibleActions = accessible ? accessible->actionInterface() : nullptr;
+		if (!accessibleActions) {
+			fail(QStringLiteral("Follow accessibility actions unavailable"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		process();
+		if (!followButton->isChecked() || !m_followAction->isChecked()
+				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			fail(QStringLiteral("accessible Follow toggle did not activate the selected target"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		process();
+		if (followButton->isChecked() || m_followAction->isChecked() || m_followTrainIndex != -1) {
+			fail(QStringLiteral("accessible Follow toggle did not clear the target"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		setFollowTrain(-1);
+		process();
+		if (followButton->isChecked() || m_followAction->isChecked() || m_followTrainIndex != -1) {
+			fail(QStringLiteral("queued accessible Follow toggle overrode an explicit clear"));
+			return;
+		}
 		followButton->click();
+		process();
+		if (!followButton->isChecked() || !m_followAction->isChecked()
+				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			fail(QStringLiteral("Follow click toggled the action more than once"));
+			return;
+		}
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		setFollowTrain(m_followTrainCombo->currentData().toInt());
+		process();
+		if (!followButton->isChecked() || !m_followAction->isChecked()
+				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			fail(QStringLiteral("queued accessible Follow toggle overrode an explicit target"));
+			return;
+		}
 		setFollowTrain(-1);
 		if (followButton->isChecked()) {
 			fail(QStringLiteral("clearing Follow left the toolbar control checked"));
+			return;
+		}
+		clearSimulationWorker(true);
+		const int completionTarget = m_followTrainCombo->currentData().toInt();
+		setFollowTrain(completionTarget);
+		if (completionTarget < 0 || m_followTrainIndex != completionTarget) {
+			fail(QStringLiteral("completion ordering fixture has no followable train"));
+			return;
+		}
+		setFollowTrain(-1);
+		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
+		onSimulationFinished();
+		process();
+		if (followButton->isChecked() || m_followAction->isChecked() || m_followTrainIndex != -1) {
+			fail(QStringLiteral("queued accessible Follow toggle survived simulation completion"));
+			return;
+		}
+		m_runSceneAction->trigger();
+		if (!m_worker) {
+			fail(QStringLiteral("completion ordering check could not restart the replacement run"));
 			return;
 		}
 		followButton->click();
@@ -19996,15 +19583,16 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("baseline provenance did not retain scenario and selected occurrences 1+2"));
 			return;
 		}
-		QPushButton* timeDistance = nullptr;
-		for (QPushButton* button : findChildren<QPushButton*>())
-			if (button->text() == QStringLiteral("Time / distance"))
-				timeDistance = button;
+		if (!tabifiedDockWidgets(m_loadedDataDock).contains(m_runResultsDock)) {
+			fail(QStringLiteral("run results do not share the loaded-data dock area"));
+			return;
+		}
+		QAction* timeDistance = m_runResultsDock->findChild<QAction*>("resultView_Time/distance");
 		if (!timeDistance) {
 			fail(QStringLiteral("public Time / distance result control is unavailable"));
 			return;
 		}
-		timeDistance->click();
+		timeDistance->trigger();
 		process();
 		for (QWidget* widget : QApplication::topLevelWidgets()) {
 			if (auto* diagram = qobject_cast<DiagramWindow*>(widget))
@@ -20172,10 +19760,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 						return diagram;
 			return nullptr;
 		};
-		auto findResultButton = [&](const QString& text) -> QPushButton* {
-			for (QPushButton* button : findChildren<QPushButton*>())
-				if (button->text() == text)
-					return button;
+		auto findResultAction = [&](const QString& text) -> QAction* {
+			for (QAction* action : m_runResultsDock->findChildren<QAction*>())
+				if (action->text() == text && action->objectName().startsWith("resultView_"))
+					return action;
 			return nullptr;
 		};
 
@@ -20185,12 +19773,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("baseline diagram CSV export was not driven through its public button"));
 			return;
 		}
-		QPushButton* speedButton = findResultButton(QStringLiteral("Speed / distance"));
+		QAction* speedButton = findResultAction(QStringLiteral("Speed / distance"));
 		if (!speedButton) {
 			fail(QStringLiteral("speed/distance result control is unavailable"));
 			return;
 		}
-		speedButton->click();
+		speedButton->trigger();
 		process();
 		DiagramWindow* speedDiagram = findDiagram(QStringLiteral("Speed vs Distance"));
 		if (!speedDiagram
@@ -20199,12 +19787,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("current trajectory/speed exports were not driven through the diagram"));
 			return;
 		}
-		QPushButton* tractiveButton = findResultButton(QStringLiteral("Tractive effort / distance"));
+		QAction* tractiveButton = findResultAction(QStringLiteral("Tractive effort / distance"));
 		if (!tractiveButton) {
 			fail(QStringLiteral("tractive-effort result control is unavailable"));
 			return;
 		}
-		tractiveButton->click();
+		tractiveButton->trigger();
 		process();
 		DiagramWindow* tractiveDiagram = findDiagram(QStringLiteral("Simulated Tractive Effort vs Distance"));
 		if (!tractiveDiagram
@@ -20213,12 +19801,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
 			return;
 		}
-		QPushButton* timetableButton = findResultButton(QStringLiteral("Timetable"));
+		QAction* timetableButton = findResultAction(QStringLiteral("Timetable"));
 		if (!timetableButton) {
 			fail(QStringLiteral("timetable result control is unavailable"));
 			return;
 		}
-		timetableButton->click();
+		timetableButton->trigger();
 		process();
 		TimetableTableWindow* timetable = nullptr;
 		for (QWidget* widget : QApplication::topLevelWidgets())
@@ -20230,13 +19818,13 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("timetable exports were not driven through the public table"));
 			return;
 		}
-		QPushButton* blockingButton = findResultButton(QStringLiteral("Blocking time"));
+		QAction* blockingButton = findResultAction(QStringLiteral("Blocking time"));
 		if (!blockingButton) {
 			fail(QStringLiteral("blocking-time result control is unavailable"));
 			return;
 		}
 		acceptMessageBox();
-		blockingButton->click();
+		blockingButton->trigger();
 		process();
 		DiagramWindow* blocking = findDiagram(QStringLiteral("Blocking time:"));
 		if (!blocking
@@ -20259,13 +19847,13 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		summaryPng->click();
 		process();
 
-		QPushButton* capacityButton = findResultButton(QStringLiteral("Capacity"));
+		QAction* capacityButton = findResultAction(QStringLiteral("Capacity"));
 		if (!capacityButton) {
 			fail(QStringLiteral("capacity result control is unavailable"));
 			return;
 		}
 		acceptCapacityScope();
-		capacityButton->click();
+		capacityButton->trigger();
 		process();
 		QDialog* capacity = nullptr;
 		for (QWidget* widget : QApplication::topLevelWidgets())
@@ -20275,6 +19863,17 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		if (!capacity
 				|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
+			return;
+		}
+		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
+		const bool validCapacityPercentage = std::any_of(capacityLabels.cbegin(), capacityLabels.cend(),
+			[](const QLabel* label) {
+				return label->text().startsWith(QStringLiteral("Cycle / occupation time:"))
+					&& label->text().contains(QStringLiteral("%."))
+					&& !label->text().contains(QStringLiteral("%%"));
+			});
+		if (!validCapacityPercentage) {
+			fail(QStringLiteral("capacity calculation details have an invalid percentage unit"));
 			return;
 		}
 		QPushButton* compressedButton = nullptr;
@@ -20362,8 +19961,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				nonzeroComparisonSeen = true;
 				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("delayComparisonContext"));
 				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
-				nonzeroComparisonOk = context
-					&& context->text().contains(QStringLiteral("positive additional final-arrival delay"), Qt::CaseInsensitive)
+				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("resultSummaryHeading"));
+				nonzeroComparisonOk = context && context->text().contains("Baseline:")
+					&& context->text().contains("Incident run:") && heading
+					&& heading->text().contains(QStringLiteral("positive additional final-arrival delay"), Qt::CaseInsensitive)
 					&& table && table->rowCount() > 0;
 				for (QPushButton* button : dialog->findChildren<QPushButton*>())
 					if (button->text() == QStringLiteral("Export CSV...")) {
@@ -20396,8 +19997,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				zeroComparisonSeen = true;
 				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("delayComparisonContext"));
 				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
-				zeroComparisonOk = context
-					&& context->text().contains(QStringLiteral("zero positive additional final-arrival delay"))
+				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("resultSummaryHeading"));
+				zeroComparisonOk = context && context->text().contains("Baseline:")
+					&& context->text().contains("Incident run:") && heading
+					&& heading->text().contains(QStringLiteral("zero positive additional final-arrival delay"))
 					&& table && table->rowCount() == 0;
 				dialog->accept();
 				return;
@@ -20460,6 +20063,9 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		for (QPushButton* button : findChildren<QPushButton*>())
 			if (button->objectName().startsWith(QStringLiteral("resultView_")))
 				resultButtonsDisabled = resultButtonsDisabled && !button->isEnabled();
+		for (QAction* action : m_runResultsDock->findChildren<QAction*>())
+			if (action->objectName().startsWith("resultView_"))
+				resultButtonsDisabled = resultButtonsDisabled && !action->isEnabled();
 		if (m_resultsAvailable || m_delayBaseline || m_runResultsDock->isVisible() || !resultButtonsDisabled
 				|| !m_delayFeedbackLabel || !m_delayFeedbackLabel->text().contains(QStringLiteral("cleared"))) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
@@ -20733,129 +20339,33 @@ void MainWindow::setupGUI() {
 		if (sharedStationPoint(i, sharedPoint)) {
 			paintStationOverlay(sharedPoint,
 				classifyStation(),
-				StationArray[i].stationName, 0.75);
+				StationArray[i].stationName, 0.75,
+				stationDecorationOffset(m_sceneModel.stationViews,
+					m_sceneModel.stations[static_cast<std::size_t>(i)].id,
+					StationArray[i].stationName));
 			continue;
 		}
 
-		// use avg shift
-		double avgShiftX = 0, avgShiftY = 0;
-		for (int j = 0; j < StationArray[i].regions.size(); j++) {
-			avgShiftX += StationArray[i].shiftX[StationArray[i].regions[j]];
-			avgShiftY += StationArray[i].shiftY[StationArray[i].regions[j]];
+		// Keep the native graph position as the source anchor when no shared line resolves.
+		pt = QPointF(StationArray[i].graphX, StationArray[i].graphY);
+		QPointF averageShift;
+		int validRegions = 0;
+		for (int region : StationArray[i].regions) {
+			const double x = StationArray[i].shiftX[region];
+			const double y = StationArray[i].shiftY[region];
+			if (std::isfinite(x) && std::isfinite(y)) {
+				averageShift += QPointF(x, y);
+				++validRegions;
+			}
 		}
-		avgShiftX /= StationArray[i].regions.size();
-		avgShiftY /= StationArray[i].regions.size();
-
-		// shifted point to print station name
-		if ((StationArray[i].stationName == "Koge") ||
-			(StationArray[i].stationName == "Olby") ||
-			(StationArray[i].stationName == "KogeNord") ||
-			(StationArray[i].stationName == "Jersie") ||
-			(StationArray[i].stationName == "SolrodStrand") ||
-			(StationArray[i].stationName == "Karlslunde") ||
-			(StationArray[i].stationName == "Greve") ||
-			(StationArray[i].stationName == "Hundige") ||
-			(StationArray[i].stationName == "Ishoj") ||
-			(StationArray[i].stationName == "Vallensbaek") ||
-			(StationArray[i].stationName == "BrondbyStrand") ||
-			(StationArray[i].stationName == "Avedore") ||
-			(StationArray[i].stationName == "Brondbyoster") ||
-			(StationArray[i].stationName == "Frihedem") ||
-			(StationArray[i].stationName == "Amarken") ||
-			(StationArray[i].stationName == "Sydhavn") ||
-			(StationArray[i].stationName == "Sjaelor") ||
-			(StationArray[i].stationName == "Friheden") ||
-			(StationArray[i].stationName == "BallerupStorage") ||
-
-			(StationArray[i].stationName == "NyEllebjergAE")
-
-		) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(900 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ((StationArray[i].stationName == "Frederikssund") ||
-				   (StationArray[i].stationName == "Vinge") ||
-				   (StationArray[i].stationName == "Olstykke") ||
-				   (StationArray[i].stationName == "Egedal") ||
-				   (StationArray[i].stationName == "Stenlose") ||
-				   (StationArray[i].stationName == "Vekso") ||
-				   (StationArray[i].stationName == "Olstykke") ||
-				   (StationArray[i].stationName == "Kildedal") ||
-				   (StationArray[i].stationName == "Malov") ||
-				   (StationArray[i].stationName == "Ballerup") ||
-				   (StationArray[i].stationName == "Malmparken") ||
-				   (StationArray[i].stationName == "Skovlunde") ||
-				   (StationArray[i].stationName == "Herlev") ||
-				   (StationArray[i].stationName == "Husum") ||
-				   (StationArray[i].stationName == "Islev") ||
-				   (StationArray[i].stationName == "Jyllingevej") ||
-				   (StationArray[i].stationName == "Vanlose") ||
-				   (StationArray[i].stationName == "FlintholmCH") ||
-				   (StationArray[i].stationName == "PeterBangsvej") ||
-				   (StationArray[i].stationName == "Langgade") ||
-				   (StationArray[i].stationName == "Valby") ||
-				   (StationArray[i].stationName == "Carlsberg") ||
-				   (StationArray[i].stationName == "KobenhavnH") ||
-				   (StationArray[i].stationName == "Vesterport") ||
-				   (StationArray[i].stationName == "Norreport") ||
-				   (StationArray[i].stationName == "Osterport_t") ||
-				   (StationArray[i].stationName == "Osterport") ||
-				   (StationArray[i].stationName == "Nordhavn") ||
-
-				   (StationArray[i].stationName == "Dybbolsbro")
-
-		) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-920 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ((StationArray[i].stationName == "HojeTaastrup") ||
-				   (StationArray[i].stationName == "Taastrup") ||
-				   (StationArray[i].stationName == "Glostrup") ||
-
-				   (StationArray[i].stationName == "Rodovre") ||
-				   (StationArray[i].stationName == "Hvidovre") ||
-				   (StationArray[i].stationName == "DanshojBBx") ||
-				   (StationArray[i].stationName == "DanshojBBx") ||
-				   (StationArray[i].stationName == "Albertslund")) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-2800 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ( // line to Hellerup
-			(StationArray[i].stationName == "DanshojF") ||
-			(StationArray[i].stationName == "VigerslevAlle") ||
-			(StationArray[i].stationName == "Alholm") ||
-			(StationArray[i].stationName == "KBHallen") ||
-			(StationArray[i].stationName == "FlintholmF") ||
-			(StationArray[i].stationName == "Grondal") ||
-			(StationArray[i].stationName == "Fuglebakken") ||
-			(StationArray[i].stationName == "Norrebro") ||
-			(StationArray[i].stationName == "Bispebjerg") ||
-			(StationArray[i].stationName == "Charlottenlund") ||
-			(StationArray[i].stationName == "Ordrup") ||
-			(StationArray[i].stationName == "Hellerup") ||
-			(StationArray[i].stationName == "HellerupStorage") ||
-			(StationArray[i].stationName == "RyparkenF") ||
-			(StationArray[i].stationName == "Klampenborg") ||
-			(StationArray[i].stationName == "NyEllebjergF")) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-3500 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ( // line to Hillerod
-			(StationArray[i].stationName == "Bernstorffsvej") ||
-			(StationArray[i].stationName == "Gentofte") ||
-			(StationArray[i].stationName == "Lyngby") ||
-			(StationArray[i].stationName == "Sorgenfri") ||
-			(StationArray[i].stationName == "Virum") ||
-			(StationArray[i].stationName == "Holte") ||
-			(StationArray[i].stationName == "Birkerod") ||
-			(StationArray[i].stationName == "Allerod") ||
-			(StationArray[i].stationName == "Hillerod")) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-2200 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		}
+		if (validRegions > 0)
+			averageShift /= validRegions;
+		const QPointF decorationOffset = averageShift * (station_name_graphID * track_separation)
+			+ QPointF(0.0, stationNamedYOffset(StationArray[i].stationName));
 
 		paintStationOverlay(pt,
 			classifyStation(),
-			StationArray[i].stationName);
+			StationArray[i].stationName, 1.0, decorationOffset);
 	}
 
 	// draw connections
@@ -21260,10 +20770,15 @@ void MainWindow::updateDiagramActions() {
 		ui->displayTrainPathDiagrams->setStatusTip(hint);
 	}
 	if (m_runResultsDock) {
+		if (auto* viewsButton = m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton"))
+			viewsButton->setEnabled(available);
 		for (QPushButton* button : m_runResultsDock->findChildren<QPushButton*>()) {
 			if (button->objectName().startsWith("resultView_"))
 				button->setEnabled(available);
 		}
+		for (QAction* action : m_runResultsDock->findChildren<QAction*>())
+			if (action->objectName().startsWith("resultView_"))
+				action->setEnabled(available);
 	}
 	const DelayRunSnapshot current = completedDelaySnapshot();
 	const bool canSetBaseline = available && !current.scenarioId.empty()
@@ -21344,101 +20859,145 @@ void MainWindow::showStartupChooser() {
 	QDialog dialog(this);
 	dialog.setWindowTitle("Open a Case");
 	dialog.setObjectName("caseChooserDialog");
-	dialog.resize(560, 460);
-	QVBoxLayout* layout = new QVBoxLayout(&dialog);
-
-	QLabel* heading = new QLabel(currentCaseName.isEmpty()
-		? QStringLiteral("Choose a case study to open:")
-		: QString("%1 is already loaded. Choose another case study to open, or continue with it:")
-			.arg(currentCaseName), &dialog);
-	layout->addWidget(heading);
-
-	QListWidget* list = new QListWidget(&dialog);
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	QListWidget* list = new QListWidget(body);
 	list->setObjectName("caseChooserList");
+	const auto addGroup = [list](const QString& title) {
+		auto* item = new QListWidgetItem(title, list);
+		item->setFlags(Qt::NoItemFlags);
+		item->setData(Qt::UserRole, QString());
+	};
+	const auto displayName = [](const QString& path) {
+		const QFileInfo info(path);
+		if (info.isDir()) {
+			QFile manifest(QDir(path).filePath("scene.json"));
+			if (manifest.open(QIODevice::ReadOnly)) {
+				const QString name = QJsonDocument::fromJson(manifest.readAll()).object()
+					.value(QStringLiteral("name")).toString().trimmed();
+				if (!name.isEmpty()) return name;
+			}
+		}
+		QString fallback = info.isFile() ? info.completeBaseName() : info.fileName();
+		return fallback.replace(QLatin1Char('_'), QLatin1Char(' '));
+	};
 	QSet<QString> seen;
-	const auto addSceneItem = [&](const QString& path, const QString& badge) {
+	const auto addSceneItem = [&](const QString& path) {
 		const QString canonical = QFileInfo(path).canonicalFilePath();
 		if (canonical.isEmpty() || seen.contains(canonical))
-			return;
+			return false;
 		seen.insert(canonical);
-		auto* item = new QListWidgetItem(QString("%1%2").arg(QFileInfo(path).fileName(), badge), list);
+		auto* item = new QListWidgetItem(displayName(path), list);
 		item->setData(Qt::UserRole, path);
-		item->setToolTip(path);
+		item->setToolTip(path.toHtmlEscaped());
+		return true;
 	};
-	// bundled scenes travel next to the binary or in the working directory
 	const QStringList sceneRoots = {
 		QDir::currentPath() + "/Scenes",
 		QCoreApplication::applicationDirPath() + "/../Resources/Scenes"};
 	QSet<QString> bundledNames;
+	bool bundledHeader = false;
 	for (const QString& root : sceneRoots) {
 		QDir dir(root);
-		if (!dir.exists())
-			continue;
+		if (!dir.exists()) continue;
 		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 		for (const QFileInfo& entry : entries) {
-			if ((entry.isDir() && QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
-				|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0)) {
-				if (bundledNames.contains(entry.fileName().toCaseFolded())) {
-					seen.insert(entry.canonicalFilePath());
-					continue;
-				}
-				bundledNames.insert(entry.fileName().toCaseFolded());
-				addSceneItem(entry.absoluteFilePath(), QString());
+			if (!((entry.isDir() && QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
+				|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0)))
+				continue;
+			if (bundledNames.contains(entry.fileName().toCaseFolded())) {
+				seen.insert(entry.canonicalFilePath());
+				continue;
 			}
+			bundledNames.insert(entry.fileName().toCaseFolded());
+			if (!bundledHeader) { addGroup("Bundled cases"); bundledHeader = true; }
+			addSceneItem(entry.absoluteFilePath());
 		}
 	}
 	QSettings settings;
 	const QStringList recent = settings.value(kRecentScenesKey).toStringList();
+	bool recentHeader = false;
 	for (const QString& path : recent) {
 		const QFileInfo info(path);
-		if ((info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
-			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0))
-			addSceneItem(path, "  (recent)");
+		const bool valid = (info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
+			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0);
+		if (valid && (info.canonicalFilePath().isEmpty() || seen.contains(info.canonicalFilePath())))
+			continue;
+		if (!recentHeader) { addGroup("Recent cases"); recentHeader = true; }
+		if (valid) {
+			addSceneItem(path);
+		} else {
+			auto* missing = new QListWidgetItem(QString("Unavailable: %1").arg(displayName(path)), list);
+			missing->setFlags(Qt::NoItemFlags);
+			missing->setToolTip(path.toHtmlEscaped());
+		}
 	}
+	if (!recentHeader) { addGroup("Recent cases"); addGroup("No other recent cases to show"); }
 	layout->addWidget(list, 1);
 
-	QLabel* legacyHint = new QLabel(
-		"A legacy case is a folder with the original text inputs. Importing one asks "
-		"for that folder first and then for a folder to save the converted scene.", &dialog);
-	legacyHint->setWordWrap(true);
-	legacyHint->setStyleSheet("color: gray;");
-	layout->addWidget(legacyHint);
+	QPushButton* moreButton = new QPushButton("Other ways to open...", body);
+	moreButton->setObjectName("caseChooserOtherButton");
+	auto* moreMenu = new QMenu(moreButton);
+	QAction* newCase = moreMenu->addAction("New Case Study...");
+	QAction* browseScene = moreMenu->addAction("Open Scene Folder...");
+	QAction* legacy = moreMenu->addAction("Import Legacy Case...");
+	legacy->setToolTip("Convert an original text-input folder and choose where to save the scene.");
+	moreButton->setMenu(moreMenu);
+	layout->addWidget(moreButton, 0, Qt::AlignLeft);
 
-	QHBoxLayout* buttons = new QHBoxLayout();
-	QPushButton* newCaseBtn = new QPushButton("New Case Study...", &dialog);
-	QPushButton* legacyBtn = new QPushButton("Import Legacy Case...", &dialog);
-	QPushButton* browseBtn = new QPushButton("Open Scene Folder...", &dialog);
-	QPushButton* continueBtn = new QPushButton(currentCaseName.isEmpty()
-		? QStringLiteral("Cancel") : QString("Continue with %1").arg(currentCaseName), &dialog);
-	QPushButton* openBtn = new QPushButton("Open", &dialog);
+	auto* buttons = new QDialogButtonBox(&dialog);
+	QPushButton* continueBtn = buttons->addButton(currentCaseName.isEmpty() ? "Cancel" : "Continue",
+		QDialogButtonBox::RejectRole);
+	QPushButton* openBtn = buttons->addButton("Open", QDialogButtonBox::AcceptRole);
 	openBtn->setObjectName("caseChooserOpenButton");
-	openBtn->setDefault(true);
 	openBtn->setEnabled(false);
-	buttons->addWidget(newCaseBtn);
-	buttons->addWidget(legacyBtn);
-	buttons->addWidget(browseBtn);
-	buttons->addStretch();
-	buttons->addWidget(continueBtn);
-	buttons->addWidget(openBtn);
-	layout->addLayout(buttons);
-
+	openBtn->setDefault(true);
 	enum { ContinueCurrent, OpenSelected, BrowseScene, ImportLegacy, NewCase };
 	int choice = ContinueCurrent;
-	connect(list, &QListWidget::itemSelectionChanged, &dialog, [&]() {
-		openBtn->setEnabled(list->currentItem() != nullptr);
+	QString chosenPath;
+	const auto selectedPath = [list]() {
+		const QListWidgetItem* item = list->currentItem();
+		return item && (item->flags() & Qt::ItemIsEnabled)
+			? item->data(Qt::UserRole).toString() : QString();
+	};
+	connect(list, &QListWidget::itemSelectionChanged, &dialog, [=]() {
+		openBtn->setEnabled(!selectedPath().isEmpty());
 	});
-	connect(list, &QListWidget::itemDoubleClicked, &dialog, [&](QListWidgetItem*) {
-		choice = OpenSelected;
-		dialog.accept();
+	connect(list, &QListWidget::itemDoubleClicked, &dialog, [&](QListWidgetItem* item) {
+		if (item && (item->flags() & Qt::ItemIsEnabled) && !item->data(Qt::UserRole).toString().isEmpty()) {
+			choice = OpenSelected;
+			chosenPath = item->data(Qt::UserRole).toString();
+			dialog.accept();
+		}
 	});
-	connect(openBtn, &QPushButton::clicked, &dialog, [&]() { choice = OpenSelected; dialog.accept(); });
-	connect(browseBtn, &QPushButton::clicked, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
-	connect(legacyBtn, &QPushButton::clicked, &dialog, [&]() { choice = ImportLegacy; dialog.accept(); });
-	connect(newCaseBtn, &QPushButton::clicked, &dialog, [&]() { choice = NewCase; dialog.accept(); });
-	connect(continueBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
-
-	if (list->count() > 0)
-		list->setCurrentRow(0);
+	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+		if (!selectedPath().isEmpty()) {
+			choice = OpenSelected;
+			chosenPath = selectedPath();
+			dialog.accept();
+		}
+	});
+	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	connect(newCase, &QAction::triggered, &dialog, [&]() { choice = NewCase; dialog.accept(); });
+	connect(browseScene, &QAction::triggered, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
+	connect(legacy, &QAction::triggered, &dialog, [&]() {
+		if (QMessageBox::question(&dialog, "Import Legacy Case",
+			"Choose the original text-input folder, then a folder for the converted scene. Continue?",
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
+			choice = ImportLegacy;
+			dialog.accept();
+		}
+	});
+	DialogLayout::install(dialog, "Open a Case",
+		currentCaseName.isEmpty() ? QStringLiteral("Choose a case to open.")
+			: QString("Current case: %1. Choose another or continue.").arg(currentCaseName), body, buttons);
+	for (int row = 0; row < list->count(); ++row) {
+		if ((list->item(row)->flags() & Qt::ItemIsEnabled)
+				&& !list->item(row)->data(Qt::UserRole).toString().isEmpty()) {
+			list->setCurrentRow(row);
+			break;
+		}
+	}
 	const bool startupChooserE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_STARTUP_CHOOSER");
 	if (startupChooserE2E)
 		QTimer::singleShot(0, continueBtn, &QPushButton::click);
@@ -21446,30 +21005,27 @@ void MainWindow::showStartupChooser() {
 
 	switch (choice) {
 		case OpenSelected:
-			if (QListWidgetItem* item = list->currentItem())
-				requestOpenScene(item->data(Qt::UserRole).toString());
+			if (!chosenPath.isEmpty()) requestOpenScene(chosenPath);
 			break;
-		case BrowseScene:
-			openSceneFolderDialog();
-			break;
-		case ImportLegacy:
-			actionLoad_Network();
-			break;
-		case NewCase:
-			newScene();
-			break;
+		case BrowseScene: openSceneFolderDialog(); break;
+		case ImportLegacy: actionLoad_Network(); break;
+		case NewCase: newScene(); break;
 		case ContinueCurrent:
 			if (!currentCaseName.isEmpty())
 				statusBar()->showMessage(QString("Ready - %1").arg(currentCaseName));
 			break;
 	}
-
 	if (startupChooserE2E) {
 		const auto marker = [](const char* name, const QString& value) {
 			std::fprintf(stdout, "%s=%s\n", name, value.toUtf8().constData());
 		};
-		marker("E2E_STARTUP_CHOOSER_PROMPT", heading->text());
+		marker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
 		marker("E2E_STARTUP_CHOOSER_ACTION", continueBtn->text());
+		marker("E2E_STARTUP_CHOOSER_GROUP", list->item(0)->text());
+		marker("E2E_STARTUP_CHOOSER_GROUP_SELECTABLE",
+			list->item(0)->flags() & Qt::ItemIsEnabled ? "yes" : "no");
+		marker("E2E_STARTUP_CHOOSER_FIRST", list->currentItem() ? list->currentItem()->text() : QString());
+		marker("E2E_STARTUP_CHOOSER_OPEN_ENABLED", openBtn->isEnabled() ? "yes" : "no");
 		marker("E2E_STARTUP_CHOOSER_MODEL", QString::fromStdString(m_sceneModel.name));
 		marker("E2E_STARTUP_CHOOSER_CASE_LABEL", m_caseNameLabel ? m_caseNameLabel->text() : QString());
 		marker("E2E_STARTUP_CHOOSER_READINESS", m_caseReadinessLabel ? m_caseReadinessLabel->text() : QString());
@@ -21559,112 +21115,141 @@ QString MainWindow::runReviewText() const {
 }
 
 bool MainWindow::showRunReview() {
-	if (e2eDialogsSuppressed())
+	const bool reviewCancelE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL");
+	if (e2eDialogsSuppressed() && !reviewCancelE2E)
 		return true;
 
+	const quint64 revisionBefore = m_sceneRevision;
+	const SceneRunSelection selectionBefore = selectedSceneOccurrences();
 	QDialog review(this);
 	review.setObjectName("runReviewDialog");
 	review.setWindowTitle("Run simulation");
-	review.setMinimumWidth(520);
-	auto* layout = new QVBoxLayout(&review);
-	layout->setContentsMargins(24, 22, 24, 20);
-	layout->setSpacing(14);
-
-	auto* heading = new QLabel("Run simulation", &review);
-	heading->setObjectName("runReviewHeading");
-	layout->addWidget(heading);
-	auto* context = new QLabel(QString("%1  /  %2")
-		.arg(QString::fromStdString(m_sceneModel.name), scenarioContext()), &review);
-	context->setObjectName("runReviewContext");
-	layout->addWidget(context);
-
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	layout->setSpacing(8);
 	const bool detailsEnabled = advancedDetailsEnabled();
 	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
+	const int selectedInPeriod = selectedServiceOccurrencesInPeriod();
+	const double duration = serviceOccurrenceDuration();
+	const long long baseSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	auto* facts = new QGridLayout();
-	facts->setHorizontalSpacing(24);
+	facts->setHorizontalSpacing(20);
 	facts->setVerticalSpacing(8);
 	const auto addFact = [&](int row, const QString& label, const QString& value) {
-		auto* name = new QLabel(label, &review);
+		auto* name = new QLabel(label, body);
 		name->setObjectName("runReviewFactLabel");
-		auto* fact = new QLabel(value, &review);
+		auto* fact = new QLabel(value, body);
+		fact->setTextFormat(Qt::PlainText);
+		fact->setWordWrap(true);
 		fact->setObjectName("runReviewFactValue");
 		facts->addWidget(name, row, 0);
 		facts->addWidget(fact, row, 1);
 	};
-	addFact(0, "Service definitions", QString::number(static_cast<int>(m_sceneModel.services.size())));
-	addFact(1, "Configured total", QString::number(totalServiceOccurrences()));
-	addFact(2, "Number of services in sim.", QString::number(inPeriodServiceOccurrences()));
-	addFact(3, "Selected", QString::number(selectedServiceOccurrences()));
-	addFact(4, "Selected in period", QString::number(selectedServiceOccurrencesInPeriod()));
-	addFact(5, "Compositions", QString::number(static_cast<int>(m_sceneModel.compositions.size())));
-	addFact(6, "Incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
-	addFact(7, "Counting rule", QString("Scheduled entry ≥ 0 and < %1 s")
-		.arg(QString::number(serviceOccurrenceDuration(), 'g', 12)));
-	if (detailsEnabled) {
-		addFact(8, "Validation", QString("%1 errors, %2 warnings").arg(counts.errors).arg(counts.warnings));
-	}
+	addFact(0, "Selected in period", QString::number(selectedInPeriod));
+	addFact(1, "Start clock", QString::fromStdString(formatSimTime(0, baseSeconds)));
+	addFact(2, "Duration", QString("%1 s elapsed (ends near %2)")
+		.arg(QString::number(duration, 'g', 12),
+			QString::fromStdString(formatSimTime(static_cast<long long>(duration), baseSeconds))));
+	addFact(3, "Active incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
 	layout->addLayout(facts);
 
-	auto* status = new QLabel(detailsEnabled && counts.warnings > 0
-		? QString("Ready to run. Review %1 validation %2 if needed.")
-			.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings")
-		: QStringLiteral("Ready to run."), &review);
+	auto* status = new QLabel(body);
 	status->setObjectName("runReviewStatus");
-	status->setProperty("warning", detailsEnabled && counts.warnings > 0);
+	const bool noServicesInPeriod = selectedInPeriod == 0;
+	status->setText(noServicesInPeriod
+		? QStringLiteral("Ready to run, but no selected services enter during this period.")
+		: detailsEnabled && counts.warnings > 0
+			? QString("Ready to run. Review %1 validation %2 if needed.")
+				.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings")
+			: QStringLiteral("Ready to run."));
+	status->setProperty("warning", noServicesInPeriod || (detailsEnabled && counts.warnings > 0));
 	status->setWordWrap(true);
 	layout->addWidget(status);
 
-	if (detailsEnabled) {
-		const QString summary = runReviewText();
-		const int detailsStart = summary.indexOf("\nIncident configuration:");
-		const int delaysStart = summary.indexOf("\nEntrance delay configuration:");
-		const int firstDetail = detailsStart < 0 ? delaysStart
-			: delaysStart < 0 ? detailsStart : std::min(detailsStart, delaysStart);
-		if (firstDetail >= 0) {
-			auto* detailsToggle = new QToolButton(&review);
-			detailsToggle->setText("Configuration details");
-			detailsToggle->setCheckable(true);
-			detailsToggle->setArrowType(Qt::RightArrow);
-			detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-			auto* details = new QLabel(summary.mid(firstDetail + 1), &review);
-			details->setObjectName("runReviewDetails");
-			details->setWordWrap(true);
-			details->setTextInteractionFlags(Qt::TextSelectableByMouse);
-			details->hide();
-			connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
-				detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
-				details->setVisible(shown);
-			});
-			layout->addWidget(detailsToggle);
-			layout->addWidget(details);
-		}
+	auto* detailsToggle = new QToolButton(body);
+	detailsToggle->setText("Run details");
+	detailsToggle->setObjectName("runReviewDetailsToggle");
+	detailsToggle->setCheckable(true);
+	detailsToggle->setArrowType(Qt::RightArrow);
+	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	auto* details = new QLabel(body);
+	details->setObjectName("runReviewDetails");
+	details->setTextFormat(Qt::PlainText);
+	details->setWordWrap(true);
+	details->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	const QString fullDetails = runReviewText();
+	const int incidentStart = fullDetails.indexOf("\nIncident configuration:");
+	const int delayStart = fullDetails.indexOf("\nEntrance delay configuration:");
+	const int firstConfiguration = incidentStart < 0 ? delayStart
+		: delayStart < 0 ? incidentStart : std::min(incidentStart, delayStart);
+	QString displayedDetails = detailsEnabled || firstConfiguration < 0
+		? fullDetails : fullDetails.left(firstConfiguration);
+	if (!detailsEnabled) {
+		const int validationStart = displayedDetails.indexOf("\nValidation:");
+		const int countingStart = displayedDetails.indexOf("\nCounting rule:");
+		if (validationStart >= 0 && countingStart > validationStart)
+			displayedDetails.remove(validationStart, countingStart - validationStart);
 	}
-
-	auto* buttons = new QHBoxLayout();
-	auto* loadedButton = new QPushButton("Loaded Data", &review);
-	auto* validationButton = new QPushButton("Validation", &review);
-	auto* cancelButton = new QPushButton("Cancel", &review);
-	auto* runButton = new QPushButton("Run simulation", &review);
-	runButton->setObjectName("runReviewRunButton");
-	runButton->setDefault(true);
-	if (detailsEnabled) {
-		buttons->addWidget(loadedButton);
-		buttons->addWidget(validationButton);
-	}
-	buttons->addStretch();
-	buttons->addWidget(cancelButton);
-	buttons->addWidget(runButton);
-	layout->addLayout(buttons);
+	details->setText(displayedDetails);
+	details->hide();
+	connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
+		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
+		details->setVisible(shown);
+	});
+	layout->addWidget(detailsToggle);
+	layout->addWidget(details);
 
 	enum ReviewChoice { CancelRun, StartRun, ShowLoadedData, ShowValidation };
 	ReviewChoice choice = CancelRun;
-	connect(runButton, &QPushButton::clicked, &review, [&]() { choice = StartRun; review.accept(); });
-	connect(loadedButton, &QPushButton::clicked, &review, [&]() { choice = ShowLoadedData; review.accept(); });
-	connect(validationButton, &QPushButton::clicked, &review, [&]() { choice = ShowValidation; review.accept(); });
-	connect(cancelButton, &QPushButton::clicked, &review, &QDialog::reject);
-	loadedButton->setVisible(detailsEnabled);
-	validationButton->setVisible(detailsEnabled);
+	if (detailsEnabled) {
+		auto* inspection = new QHBoxLayout;
+		auto* loadedButton = new QPushButton("Loaded Data", body);
+		auto* validationButton = new QPushButton("Validation", body);
+		inspection->addWidget(loadedButton);
+		inspection->addWidget(validationButton);
+		inspection->addStretch();
+		layout->addLayout(inspection);
+		connect(loadedButton, &QPushButton::clicked, &review, [&]() {
+			choice = ShowLoadedData; review.accept();
+		});
+		connect(validationButton, &QPushButton::clicked, &review, [&]() {
+			choice = ShowValidation; review.accept();
+		});
+	}
+	auto* buttons = new QDialogButtonBox(&review);
+	buttons->addButton(QDialogButtonBox::Cancel);
+	auto* runButton = buttons->addButton("Run simulation", QDialogButtonBox::AcceptRole);
+	runButton->setObjectName("runReviewRunButton");
+	runButton->setDefault(true);
+	connect(buttons, &QDialogButtonBox::accepted, &review, [&]() {
+		choice = StartRun; review.accept();
+	});
+	connect(buttons, &QDialogButtonBox::rejected, &review, &QDialog::reject);
+	DialogLayout::install(review, "Run simulation",
+		QString("%1 / %2").arg(QString::fromStdString(m_sceneModel.name), scenarioContext()),
+		body, buttons);
+	if (reviewCancelE2E)
+		QTimer::singleShot(0, buttons->button(QDialogButtonBox::Cancel), &QPushButton::click);
 	review.exec();
+	if (reviewCancelE2E) {
+		std::fprintf(stdout, "E2E_RUN_REVIEW_SUMMARY=%s\n", facts->itemAtPosition(0, 1)->widget()->property("text").toString().toUtf8().constData());
+		std::fprintf(stdout, "E2E_RUN_REVIEW_START=%s\n", facts->itemAtPosition(1, 1)->widget()->property("text").toString().toUtf8().constData());
+		std::fprintf(stdout, "E2E_RUN_REVIEW_DURATION=%s\n", facts->itemAtPosition(2, 1)->widget()->property("text").toString().toUtf8().constData());
+		std::fprintf(stdout, "E2E_RUN_REVIEW_DETAILS=%d\n",
+			details->text().contains("Service definitions:")
+			&& details->text().contains("Configured total:")
+			&& details->text().contains("Selected:")
+			&& details->text().contains("Compositions:")
+			&& details->text().contains("Counting rule:") ? 1 : 0);
+		std::fprintf(stdout, "E2E_RUN_REVIEW_ADVANCED=%d\n", detailsEnabled ? 1 : 0);
+		std::fprintf(stdout, "E2E_RUN_REVIEW_VALIDATION_VISIBLE=%d\n",
+			details->text().contains("Validation:") ? 1 : 0);
+		std::fprintf(stdout, "E2E_RUN_REVIEW_CANCELLED=%d\n", choice == CancelRun ? 1 : 0);
+		std::fprintf(stdout, "E2E_RUN_REVIEW_UNCHANGED=%d\n",
+			m_sceneRevision == revisionBefore && selectedSceneOccurrences() == selectionBefore ? 1 : 0);
+		std::fflush(stdout);
+		QCoreApplication::exit(0);
+	}
 	if (choice == StartRun)
 		return true;
 	if (choice == ShowLoadedData && m_loadedDataDock) {
@@ -21759,17 +21344,23 @@ void MainWindow::showDelayComparison() {
 
 	QDialog dialog(this);
 	dialog.setWindowTitle("Incident delay comparison");
-	dialog.resize(1180, 520);
+	dialog.resize(1000, 600);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
 	const QString resultSummary = comparison.rows.empty()
 		? QStringLiteral("Success: zero positive additional final-arrival delay.")
 		: QString("Positive additional final-arrival delay: %1 s")
 			.arg(comparison.totalArrivalDelay.available
 				? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-"));
-	QLabel* context = new QLabel(QString("Baseline: %1 | Scenario: %2 | %3")
-		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance), resultSummary), &dialog);
+	auto* resultHeading = new QLabel(resultSummary, &dialog);
+	resultHeading->setObjectName("resultSummaryHeading");
+	layout->addWidget(resultHeading);
+	QLabel* context = new QLabel(QString("Baseline: %1\nIncident run: %2")
+		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance)), &dialog);
 	context->setObjectName("delayComparisonContext");
+	context->setTextFormat(Qt::PlainText);
+	context->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	context->setWordWrap(true);
+	context->setToolTip(context->text().toHtmlEscaped());
 	layout->addWidget(context);
 	QTableWidget* table = new QTableWidget(&dialog);
 	table->setObjectName("delayComparisonTable");
@@ -21865,8 +21456,7 @@ void MainWindow::startSimulation() {
 void MainWindow::onSimulationFinished() {
 	const bool hadFollowTarget = m_followTrainIndex >= 0
 		|| (m_followAction && m_followAction->isChecked());
-	if (hadFollowTarget)
-		setFollowTrain(-1);
+	setFollowTrain(-1);
 	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
 		PlaybackProfiler::instance().emitRecords(true);
 		clearSimulationWorker(false);
@@ -22162,6 +21752,8 @@ void MainWindow::onSimulationFinished() {
 			QCoreApplication::exit(2);
 			return;
 		}
+		// Complete the newly shown replay/results layout before pointer input.
+		QApplication::processEvents();
 		m_replaySlider->setFocus();
 		QKeyEvent right(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
 		QApplication::sendEvent(m_replaySlider, &right);
@@ -22183,8 +21775,10 @@ void MainWindow::onSimulationFinished() {
 		seekReplay(first);
 		if (!keyboardSeek || !wheelSeek || !mouseSeek
 				|| !coherent(m_completedReplay.atOrBefore(first))) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: beginning replay incoherent (key=%d wheel=%d mouse=%d frame=%d)\n",
-				keyboardSeek, wheelSeek, mouseSeek, coherent(m_completedReplay.atOrBefore(first)));
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: beginning replay incoherent (key=%d wheel=%d mouse=%d frame=%d slider=%dx%d visible=%d enabled=%d)\n",
+				keyboardSeek, wheelSeek, mouseSeek, coherent(m_completedReplay.atOrBefore(first)),
+				m_replaySlider->width(), m_replaySlider->height(),
+				m_replaySlider->isVisible(), m_replaySlider->isEnabled());
 			QCoreApplication::exit(2);
 			return;
 		}
@@ -22358,12 +21952,12 @@ void MainWindow::onSimulationFinished() {
 		SignalItem* signalSelection = nullptr;
 		for (auto* decoration : m_signalDecorations)
 			if (auto* signal = qgraphicsitem_cast<SignalItem*>(decoration);
-							signal && signal->groupedSignalCount() > 1) {
+							signal && signal->isVisible() && signal->groupedSignalCount() == 0) {
 				signalSelection = signal;
 				break;
 			}
 		if (!signalSelection) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no grouped signal inspection fixture\n");
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no individual signal inspection fixture\n");
 			QCoreApplication::exit(2);
 			return;
 		}
@@ -22386,6 +21980,16 @@ void MainWindow::onSimulationFinished() {
 				timerDelivered, m_inspectedSignal == signalSelection, signallingInfoWidget->isVisible(),
 				signalSelection->graphicsEffect() != nullptr, !signallingGroupDetails->toPlainText().isEmpty(),
 				coherent(m_completedReplay.atOrBefore(m_replayRequestedTime)));
+			QCoreApplication::exit(2);
+			return;
+		}
+		signallingGroupDetails->selectAll();
+		const QString selectedDetails = signallingGroupDetails->textCursor().selectedText();
+		const int detailScroll = signallingGroupDetails->verticalScrollBar()->value();
+		updateSignalCues();
+		if (signallingGroupDetails->textCursor().selectedText() != selectedDetails
+				|| signallingGroupDetails->verticalScrollBar()->value() != detailScroll) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: unchanged signal refresh resets inspection selection\n");
 			QCoreApplication::exit(2);
 			return;
 		}
@@ -22473,6 +22077,8 @@ void MainWindow::teardownGUI() {
 	m_selectedStationTrack = -1;
 	m_vcMessageItems.clear();
 	m_stationDecorations.clear();
+	m_stationLabels.clear();
+	m_stationPictures.clear();
 	m_signalsByAheadId.clear();
 	allArcs.clear();
 	allPlatforms.clear();
@@ -22489,12 +22095,10 @@ void MainWindow::teardownGUI() {
 	effect = nullptr; // owned and deleted by the cleared item
 
 	regionStations.clear();
-	m_followTrainIndex = -1;
+	setFollowTrain(-1);
 	m_selectedTrainIndex = -1;
 	m_e2eAttempts = 0;
 	m_e2eFinished = false;
-	if (m_followAction)
-		m_followAction->setChecked(false);
 	if (m_followTrainCombo) {
 		m_followTrainCombo->clear();
 		m_followTrainCombo->addItem("No trains to follow", -1);
@@ -22772,11 +22376,6 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(coord);
 
-	// Historical zero-size double-switch dots vanish at Fit; keep a device-visible minimum.
-	if (size == 0) {
-		rect = QRectF(0.0, 0.0, 4.0, 4.0);
-		rect.moveCenter(coord);
-	}
 	NodeItem* el = new NodeItem(rect);
 	el->setPen(pen);
 	el->setBrush(Qt::lightGray);
@@ -22815,16 +22414,41 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 
 // Draw the fixed-size station symbol and label as one scene-owned item.
 void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal scale) {
+		qreal scale, QPointF decorationOffset) {
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
-	overlay->setVisualScale(scale);
+	overlay->setSceneDecoration(true);
 	scene->addItem(overlay);
 	m_stationOverlays.push_back(overlay);
 	m_stationDecorations.push_back(overlay);
 	overlay->setNameVisible(m_stationNamesVisible);
 	overlay->setVisible(m_stationLayerVisible);
+
+	// Keep picking/source identity at coord; only artwork and text move.
+	Q_UNUSED(scale);
+	const QPointF artworkCoord = coord + decorationOffset;
+	const int symbolSize = station_size;
+	const QPixmap symbol = QIcon(visual.iconResource).pixmap(symbolSize, symbolSize);
+	if (!symbol.isNull()) {
+		auto* picture = scene->addPixmap(symbol);
+		picture->setPos(artworkCoord.x() - symbolSize / 2.0, artworkCoord.y() - station_size / 2.0 - symbolSize / 2.0);
+		picture->setTransformationMode(Qt::SmoothTransformation);
+		picture->setAcceptedMouseButtons(Qt::NoButton);
+		m_stationDecorations.push_back(picture);
+		m_stationPictures.insert(overlay, picture);
+		picture->setVisible(m_stationLayerVisible);
+	}
+	QFont font;
+	font.setPixelSize(station_size / 5);
+	auto* label = scene->addText(StationOverlayItem::displayName(sname), font);
+	label->setDefaultTextColor(Qt::white);
+	label->setZValue(3);
+	label->setPos(artworkCoord - QPointF(label->boundingRect().width() / 2.0,
+		label->boundingRect().height() / 2.0));
+	label->setAcceptedMouseButtons(Qt::NoButton);
+	m_stationLabels.push_back(label);
+	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
 }
 
 // paint platform next to station Node (upper side)
@@ -23090,45 +22714,23 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	if (!previewLine && !hasTrackGeometry(track))
 		return;
 
-	// positions
-	double postStartX, postStartY;
-	double postEndX, postEndY;
-	double basisStartX, basisStartY;
-	double basisEndX, basisEndY;
-	double plateCenterX, plateCenterY;
-
-	// get coordinates
-	egtrainPoint2Screen(X, track, track_separation, basisStartX, basisStartY);
-	postStartX = basisStartX;
-	postStartY = basisStartY;
-	egtrainPoint2Screen(X - 0.008, track, track_separation, postEndX, postEndY);
-
-	// place signal on trackside (with signal deltas)
-	double signalDeltaX = 0.0;
-	double signalDeltaY = 0.0;
+	double centerX, centerY, beforeX, beforeY, afterX, afterY;
+	egtrainPoint2Screen(X, track, track_separation, centerX, centerY);
+	egtrainPoint2Screen(X - 0.008, track, track_separation, beforeX, beforeY);
+	egtrainPoint2Screen(X + 0.008, track, track_separation, afterX, afterY);
+	QPointF normal;
 	if (previewLine) {
-		QPointF normal;
 		if (!previewSignalNormal(*previewLine, X, normal))
 			return;
-		signalDeltaX = normal.x();
-		signalDeltaY = normal.y();
 	} else {
 		int stationIdx[2];
 		neighbourStations(X, track, stationIdx);
 		const int index = stationIdx[1];
-		signalDeltaX = StationArray[index].signalDeltaX[blockSets[track].region];
-		signalDeltaY = StationArray[index].signalDeltaY[blockSets[track].region];
+		normal = QPointF(StationArray[index].signalDeltaX[blockSets[track].region],
+			StationArray[index].signalDeltaY[blockSets[track].region]);
 	}
-
-	basisStartX -= signalDeltaX * 0.10 * track_separation;
-	basisStartY -= signalDeltaY * 0.10 * track_separation;
-	basisEndX = basisStartX - signalDeltaX * 0.20 * track_separation;
-	basisEndY = basisStartY - signalDeltaY * 0.20 * track_separation;
-
-	postStartX -= signalDeltaX * 0.20 * track_separation;
-	postStartY -= signalDeltaY * 0.20 * track_separation;
-	postEndX -= signalDeltaX * 0.20 * track_separation;
-	postEndY -= signalDeltaY * 0.20 * track_separation;
+	const SignalGeometry geometry = signalGeometry(QPointF(centerX, centerY),
+		QPointF(beforeX, beforeY), QPointF(afterX, afterY), normal, track_separation);
 
 	// post/basis
 	QPen penPost = QPen(Qt::white);
@@ -23139,21 +22741,17 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	QPen penPlate = QPen();
 	penPlate.setWidth(0);
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
-	const qreal markerSize = std::max<qreal>(8.0, size);
-	QRectF rect = QRectF(0, 0, markerSize, markerSize);
+	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(QPointF(0.0, 0.0));
 
 	// post #1
-	QGraphicsLineItem* post1 = new QGraphicsLineItem(QLineF(postStartX, postStartY, postEndX, postEndY));
+	QGraphicsLineItem* post1 = new QGraphicsLineItem(geometry.reversedPost);
 	post1->setPen(penPost);
 
 	// plate #1
-	plateCenterX = postEndX;
-	plateCenterY = postEndY;
-
 	SignalItem* plate1 = new SignalItem(rect);
 	plate1->setZValue(3);
-	plate1->setPos(QPointF(plateCenterX, plateCenterY));
+	plate1->setPos(geometry.reversedHead);
 	plate1->setData(kSignalAnchorRole, plate1->pos());
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
@@ -23181,33 +22779,15 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 		plate1->sectionBehindTrackId = signalling_block_sections[sectionIndex].trackLineId;
 	}
 
-	// basis #1
-	QGraphicsLineItem* basis1 = new QGraphicsLineItem(QLineF(basisStartX, basisStartY, basisEndX, basisEndY));
+	// basis #1, and the opposing direction's post and base
+	QGraphicsLineItem* basis1 = new QGraphicsLineItem(geometry.reversedBase);
 	basis1->setPen(penPost);
-
-	// basis #2
-	basisStartX += 2 * signalDeltaX * 0.10 * track_separation;
-	basisStartY += 2 * signalDeltaY * 0.10 * track_separation;
-	basisEndX = basisStartX + signalDeltaX * 0.20 * track_separation;
-	basisEndY = basisStartY + signalDeltaY * 0.20 * track_separation;
-
-	// post #2
-	egtrainPoint2Screen(X + 0.008, track, track_separation, postEndX, postEndY);
-	postStartX += 2 * signalDeltaX * 0.20 * track_separation;
-	postStartY += 2 * signalDeltaY * 0.20 * track_separation;
-	postEndX += signalDeltaX * 0.20 * track_separation;
-	postEndY += signalDeltaY * 0.20 * track_separation;
-
-	QGraphicsLineItem* post2 = new QGraphicsLineItem(QLineF(postStartX, postStartY, postEndX, postEndY));
+	QGraphicsLineItem* post2 = new QGraphicsLineItem(geometry.forwardPost);
 	post2->setPen(penPost);
-
-	// plate #2
-	plateCenterX = postEndX;
-	plateCenterY = postEndY;
 
 	SignalItem* plate2 = new SignalItem(rect);
 	plate2->setZValue(3);
-	plate2->setPos(QPointF(plateCenterX, plateCenterY));
+	plate2->setPos(geometry.forwardHead);
 	plate2->setData(kSignalAnchorRole, plate2->pos());
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
@@ -23235,18 +22815,16 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 		}
 	}
 
-	QGraphicsLineItem* basis2 = new QGraphicsLineItem(QLineF(basisStartX, basisStartY, basisEndX, basisEndY));
+	QGraphicsLineItem* basis2 = new QGraphicsLineItem(geometry.forwardBase);
 	basis2->setPen(penPost);
 
-	const bool detailedSignals = networkView && networkView->zoomRatio() >= kSignalDetailZoom;
-	const auto addSignalDecoration = [this, track, detailedSignals](QGraphicsItem* item) {
+	const auto addSignalDecoration = [this, track](QGraphicsItem* item) {
 		item->setData(kSignalDecorationRole, true);
 		item->setData(kSignalTrackRole, track);
 		item->setData(kSignalBaseVisibleRole, true);
 		scene->addItem(item);
 		m_signalDecorations.push_back(item);
-		item->setVisible(m_signalLayerVisible
-			&& (qgraphicsitem_cast<SignalItem*>(item) || detailedSignals));
+		item->setVisible(m_signalLayerVisible);
 	};
 	addSignalDecoration(post1);
 	addSignalDecoration(plate1);
@@ -23372,23 +22950,30 @@ void MainWindow::setupRunResultsDock() {
 	m_runResultsSummaryLabel->setWordWrap(true);
 	containerLayout->addWidget(m_runResultsSummaryLabel);
 	QHBoxLayout* resultViews = new QHBoxLayout();
-	const auto addResultViewButton = [this, resultViews](const QString& text, auto slot) {
-		auto* button = new QPushButton(text, m_runResultsDock);
-		button->setObjectName(QString("resultView_%1").arg(text).remove(' '));
-		connect(button, &QPushButton::clicked, this, slot);
-		resultViews->addWidget(button);
+	auto* diagramsButton = new QToolButton(container);
+	diagramsButton->setText("Open result view...");
+	diagramsButton->setObjectName("runResultsViewsButton");
+	diagramsButton->setPopupMode(QToolButton::InstantPopup);
+	QMenu* resultMenu = new QMenu(diagramsButton);
+	diagramsButton->setMenu(resultMenu);
+	const auto addResultViewAction = [this, resultMenu](const QString& text, auto slot) {
+		QAction* action = resultMenu->addAction(text);
+		action->setObjectName(QString("resultView_%1").arg(text).remove(' '));
+		connect(action, &QAction::triggered, this, slot);
 	};
-	addResultViewButton("Timetable", &MainWindow::showTimetableTable);
-	addResultViewButton("Timetable graph", &MainWindow::showTimetableGraph);
-	addResultViewButton("Delays", &MainWindow::showDelayDiagram);
-	addResultViewButton("Speed / distance", &MainWindow::showSpeedDistanceDiagram);
-	addResultViewButton("Speed / time", &MainWindow::showSpeedTimeDiagram);
-	addResultViewButton("Time / distance", &MainWindow::showTimeDistanceDiagram);
-	addResultViewButton("Tractive effort / distance", &MainWindow::showTractiveEffortDistanceDiagram);
-	addResultViewButton("Train paths", &MainWindow::displayTrainPathDiagrams);
-	addResultViewButton("Blocking time", &MainWindow::showBlockingTimeDiagram);
-	addResultViewButton("Capacity", &MainWindow::showCapacityAnalysis);
-	containerLayout->addLayout(resultViews);
+	addResultViewAction("Timetable", &MainWindow::showTimetableTable);
+	addResultViewAction("Timetable graph", &MainWindow::showTimetableGraph);
+	addResultViewAction("Delays", &MainWindow::showDelayDiagram);
+	resultMenu->addSeparator();
+	addResultViewAction("Speed / distance", &MainWindow::showSpeedDistanceDiagram);
+	addResultViewAction("Speed / time", &MainWindow::showSpeedTimeDiagram);
+	addResultViewAction("Time / distance", &MainWindow::showTimeDistanceDiagram);
+	addResultViewAction("Tractive effort / distance", &MainWindow::showTractiveEffortDistanceDiagram);
+	resultMenu->addSeparator();
+	addResultViewAction("Train paths", &MainWindow::displayTrainPathDiagrams);
+	addResultViewAction("Blocking time", &MainWindow::showBlockingTimeDiagram);
+	addResultViewAction("Capacity", &MainWindow::showCapacityAnalysis);
+	resultViews->addWidget(diagramsButton);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
@@ -23419,16 +23004,15 @@ void MainWindow::setupRunResultsDock() {
 			QMessageBox::warning(this, "Export failed",
 				QString("Could not export the image and provenance to:\n%1").arg(path));
 		});
-	QHBoxLayout* toolRow = new QHBoxLayout();
-	toolRow->addWidget(exportCsvBtn);
-	toolRow->addWidget(exportPngBtn);
-	toolRow->addStretch();
-	containerLayout->addLayout(toolRow);
+	resultViews->addWidget(exportCsvBtn);
+	resultViews->addWidget(exportPngBtn);
+	resultViews->addStretch();
+	containerLayout->addLayout(resultViews);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	m_delayFeedbackLabel = new QLabel(container);
 	m_delayFeedbackLabel->setObjectName("delayFeedbackLabel");
 	m_delayFeedbackLabel->setWordWrap(true);
-	delayRow->addWidget(m_delayFeedbackLabel, 1);
+	containerLayout->addWidget(m_delayFeedbackLabel);
 	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
 	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
 	m_setDelayBaselineButton->setToolTip("Freeze this completed run with no incidents or entrance delays as the delay baseline");
@@ -23439,8 +23023,10 @@ void MainWindow::setupRunResultsDock() {
 	m_compareDelayButton->setToolTip("Compare the completed incident run with the frozen delay baseline");
 	connect(m_compareDelayButton, &QPushButton::clicked, this, &MainWindow::showDelayComparison);
 	delayRow->addWidget(m_compareDelayButton);
+	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);
-	containerLayout->addWidget(m_runResultsTable);
+	m_runResultsTable->setMinimumSize(0, 0);
+	containerLayout->addWidget(m_runResultsTable, 1);
 	m_runResultsDock->setWidget(container);
 	addDockWidget(Qt::BottomDockWidgetArea, m_runResultsDock);
 	m_runResultsDock->hide();
@@ -23511,8 +23097,12 @@ void MainWindow::refreshRunResults() {
 	m_runResultsTable->setItem(totalRow, 9, new QTableWidgetItem(energyText(results.substationKWh)));
 	m_runResultsTable->setItem(totalRow, 10, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
 	m_runResultsTable->resizeColumnsToContents();
+	const bool openingResults = !m_runResultsDock->isVisible();
 	m_runResultsDock->show();
 	m_runResultsDock->raise();
+	if (openingResults && !m_runResultsDock->isFloating()
+			&& dockWidgetArea(m_runResultsDock) == Qt::BottomDockWidgetArea)
+		resizeDocks({m_runResultsDock}, {height() / 2}, Qt::Vertical);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		extern InitialParameters initial_variables;
 		std::fprintf(stdout, "\nE2E_GUI_RUN_RESULTS rows=%d trains=%d dock_visible=%d output_dir=%s\n",
@@ -23630,7 +23220,8 @@ void MainWindow::setupInfoDockWidget() {
 	signallingGroupDetails->setObjectName("signallingGroupDetails");
 	signallingGroupDetails->setReadOnly(true);
 	signallingGroupDetails->setMaximumHeight(120);
-	signallingGroupDetails->setWordWrapMode(QTextOption::NoWrap);
+	signallingGroupDetails->setLineWrapMode(QPlainTextEdit::WidgetWidth);
+	signallingGroupDetails->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
 	signallingFormLayout = new QFormLayout();
 	signallingFormLayout->addRow("Track ID", signallingTrackIDText);
 	signallingFormLayout->addRow("X (m)", signallingXText);
@@ -23664,12 +23255,27 @@ void MainWindow::setupInfoDockWidget() {
 	infoWidgetMainLayout->addWidget(trainInfoWidget);
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
-	for (auto* edit : infoWidget->findChildren<QLineEdit*>())
+	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
+			signallingFormLayout, trainFormLayout})
+		form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	for (auto* label : infoWidget->findChildren<QLabel*>())
+		label->setWordWrap(true);
+	for (auto* edit : infoWidget->findChildren<QLineEdit*>()) {
 		edit->setReadOnly(true);
+		connect(edit, &QLineEdit::textChanged, edit, [edit](const QString& text) {
+			edit->setToolTip(text.toHtmlEscaped());
+			edit->setCursorPosition(0);
+		});
+	}
 
 	// dock widget
 	infoDockWidget = new InfoDockWidget("Simulation Info");
-	infoDockWidget->setWidget(infoWidget);
+	auto* infoScroll = new QScrollArea(infoDockWidget);
+	infoScroll->setWidgetResizable(true);
+	infoScroll->setFrameShape(QFrame::NoFrame);
+	infoScroll->setMinimumSize(300, 0);
+	infoScroll->setWidget(infoWidget);
+	infoDockWidget->setWidget(infoScroll);
 	infoDockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 	addDockWidget(Qt::RightDockWidgetArea, infoDockWidget);
 
@@ -24435,9 +24041,7 @@ void MainWindow::waitForUpdates() {
 				selected = train;
 		if (selected) {
 			m_playbackProfileViewApplied = true;
-			if (m_followAction)
-				m_followAction->setChecked(false);
-			m_followTrainIndex = -1;
+			setFollowTrain(-1);
 			networkView->fitToTopology();
 			if (qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW") == QLatin1String("dense")) {
 				networkView->centerOn(selected->sceneBoundingRect().center());
@@ -24586,7 +24190,6 @@ void MainWindow::updatePlatforms(int t) {
 			for (const std::string& paxID : passengerIds) {
 				const int iconSize = pax_pixmap_scaled.width();
 				auto* item = new PassengerItem(pax_pixmap_scaled);
-				item->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
 				item->setTransformationMode(Qt::SmoothTransformation);
 
@@ -25543,7 +25146,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 		.arg(QString::fromStdString(reference.ID)).arg(origin, 0, 'f', 3)
 		.arg(end >= origin ? "right" : "left");
 	auto* chart = new QChart();
-	chart->setTitle(label);
+	chart->setTitle(timetable ? "Timetable" : "Train paths");
 	std::vector<std::vector<std::string>> exportRows;
 	const auto record = [&](const Train& train, const char* kind, const std::string& station,
 		int journey, int call, const RunResultValue& time, std::optional<double> x) {
@@ -25677,9 +25280,9 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(label, this);
 	win->setChart(chart);
-	auto* note = new QLabel(explanation, win);
-	note->setWordWrap(true);
-	qobject_cast<QVBoxLayout*>(win->layout())->insertWidget(1, note);
+	win->setPresentation(timetable ? "Timetable" : "Train paths",
+		QString("Reference: %1 | %2").arg(QString::fromStdString(reference.ID),
+			completedRunContext(m_completedRunProvenance)), explanation + " 0 s = run start.");
 	const auto csvRows = std::move(exportRows);
 	const auto graphCsv = [csvRows](const QStringList& visible) {
 		std::vector<std::string> ids;
@@ -25770,7 +25373,7 @@ void MainWindow::showBlockingTimeDiagram() {
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
 			completedRunContext(m_completedRunProvenance));
-	chart->setTitle(title);
+	chart->setTitle("Blocking time: envelopes and trajectories");
 
 	addBlockingTimeSeries(chart, segments, false);
 
@@ -25864,14 +25467,17 @@ void MainWindow::showBlockingTimeDiagram() {
 	axisY->setReverse(true);
 	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
 
-	DiagramWindow* win = new DiagramWindow(title, this);
+	DiagramWindow* win = new DiagramWindow("Blocking time: envelopes and trajectories", this);
 	win->setChart(chart);
-	auto* note = new QLabel(QString("Reference: %1. 0 s = run start. Calculated envelope: approach - setup - sight reaction through clearance + release + run margin, not independently observed occupation. "
+	const QString note = QString("Reference: %1. 0 s = run start. Calculated envelope: approach - setup - sight reaction through clearance + release + run margin, not independently observed occupation. "
 		"Unmapped endpoints/events omitted: %2; incomplete or missing-clearance blocks are also omitted. "
 		"No extrapolation. Recorded movement is sampled only within scoped envelopes.")
-		.arg(QString::fromStdString(referencePath.id)).arg(omitted), win);
-	note->setWordWrap(true);
-	qobject_cast<QVBoxLayout*>(win->layout())->insertWidget(1, note);
+		.arg(QString::fromStdString(referencePath.id)).arg(omitted);
+	win->setPresentation("Blocking time: envelopes and trajectories",
+		QString("%1 | %2 to %3 [%4]").arg(routeScope,
+			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
+			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
+			completedRunContext(m_completedRunProvenance)), title + "\n" + note);
 	const std::function<std::string(const QStringList&)> scopedCsv =
 		[segments, plannedReferences, trajectoryRows](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences, trajectoryRows);
@@ -25928,13 +25534,21 @@ void MainWindow::showCapacityAnalysis() {
 	const RunProvenance provenance = m_completedRunProvenance;
 	QDialog* dialog = new QDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
-	dialog->setWindowTitle(QString("Capacity analysis | %1 [%2]").arg(sectionLabel,
-		completedRunContext(provenance)));
+	dialog->setWindowTitle("Capacity analysis");
 	dialog->setModal(false);
-	dialog->resize(1050, 650);
+	dialog->resize(1000, 650);
 	auto* layout = new QVBoxLayout(dialog);
-	auto* summary = new QLabel(dialog);
-	summary->setWordWrap(true);
+	auto* heading = new QLabel(QString("Cycle: %1 s  |  %2% of period")
+		.arg(QString::number(result.cycleTime, 'f', 1),
+			QString::number(result.cyclePercentage, 'f', 1)), dialog);
+	heading->setObjectName("resultSummaryHeading");
+	layout->addWidget(heading);
+	auto* context = new QLabel(QString("Section: %1\nRun: %2")
+		.arg(sectionLabel, completedRunContext(provenance)), dialog);
+	context->setObjectName("resultContextText");
+	context->setWordWrap(true);
+	context->setToolTip(context->text().toHtmlEscaped());
+	layout->addWidget(context);
 	const QString percentage = QString::fromStdString(csv::formatDouble(result.cyclePercentage));
 	const QString cycle = QString::fromStdString(csv::formatDouble(result.cycleTime));
 	const QString period = QString::fromStdString(csv::formatDouble(result.periodSeconds));
@@ -25944,13 +25558,27 @@ void MainWindow::showCapacityAnalysis() {
 				return QString::fromStdString(result.referenceSources[index]);
 		return QString();
 	};
-	summary->setText(QString("Section: %1 | cycle/occupation time = %2 s | period = %3 s | cycle/period*100 = %4%% | "
-		"cycle start = %5 (%6) | cycle end = %7 (%8) | conflict-free compressed occupations. "
+	auto* detailsToggle = new QToolButton(dialog);
+	detailsToggle->setText("Calculation details");
+	detailsToggle->setCheckable(true);
+	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	detailsToggle->setArrowType(Qt::RightArrow);
+	auto* details = new QLabel(QString("Cycle / occupation time: %1 s; period: %2 s; cycle / period × 100: %3%.\n"
+		"Cycle start: %4 (%5); cycle end: %6 (%7). Conflict-free compressed occupations. "
 		"Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
-		.arg(sectionLabel, cycle, period, percentage, QString::fromStdString(result.firstIdentity),
+		.arg(cycle, period, percentage, QString::fromStdString(result.firstIdentity),
 			sourceFor(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
-			sourceFor(result.cycleEndIdentity)));
-	layout->addWidget(summary);
+			sourceFor(result.cycleEndIdentity)), dialog);
+	details->setObjectName("resultContextText");
+	details->setWordWrap(true);
+	details->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	details->hide();
+	connect(detailsToggle, &QToolButton::toggled, dialog, [detailsToggle, details](bool shown) {
+		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
+		details->setVisible(shown);
+	});
+	layout->addWidget(detailsToggle);
+	layout->addWidget(details);
 
 	auto* tabs = new QTabWidget(dialog);
 	const auto labelFor = [&result](const std::string& identity) {
@@ -26069,9 +25697,10 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		return;
 	}
 	QChart* chart = new QChart();
-	chart->setTitle(QString("Compressed blocking-time diagram | %1 | cycle %2 to %3 [%4]")
+	const QString fullTitle = QString("Compressed blocking-time diagram | %1 | cycle %2 to %3 [%4]")
 		.arg(sectionLabel, QString::fromStdString(result.firstIdentity),
-			QString::fromStdString(result.cycleEndIdentity), completedRunContext(provenance)));
+			QString::fromStdString(result.cycleEndIdentity), completedRunContext(provenance));
+	chart->setTitle("Compressed blocking-time diagram");
 	addBlockingTimeSeries(chart, segments, true);
 	auto addKey = [chart](const QString& name, const QColor& color) {
 		auto* series = new QLineSeries();
@@ -26092,12 +25721,14 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	axisY->setTitleText("Compressed envelope time (s), downward");
 	axisY->setReverse(true);
 	axisY->setRange(std::min(0.0, axisY->min()), std::max(1.0, axisY->max()));
-	DiagramWindow* window = new DiagramWindow(chart->title(), this);
+	DiagramWindow* window = new DiagramWindow("Compressed blocking-time diagram", this);
 	window->setChart(chart);
-	auto* note = new QLabel(QString("Reference: %1. Shifted calculated envelopes only, not recorded train movement. "
-		"Unmapped or incomplete blocks omitted; no extrapolation.").arg(referenceId), window);
-	note->setWordWrap(true);
-	qobject_cast<QVBoxLayout*>(window->layout())->insertWidget(1, note);
+	const QString note = QString("Reference: %1. Shifted calculated envelopes only, not recorded train movement. "
+		"Unmapped or incomplete blocks omitted; no extrapolation.").arg(referenceId);
+	window->setPresentation("Compressed blocking-time diagram",
+		QString("%1 | cycle %2 to %3 [%4]").arg(sectionLabel,
+			QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
+			completedRunContext(provenance)), fullTitle + "\n" + note);
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
@@ -26247,6 +25878,15 @@ void MainWindow::bindStationOverlaySources() {
 		for (const auto* station : assigned)
 			identities.append({station->node->ID, station->track});
 		overlay->setSourceIdentities(identities);
+		// The scene-sized artwork belongs to the real semantic station node.
+		// It can be picked at its painted location, not at a stale screen-space
+		// collision slot owned by the decorative overlay.
+		if (QGraphicsPixmapItem* picture = m_stationPictures.value(overlay, nullptr)) {
+			const QPointF scenePosition = picture->scenePos();
+			StationNodeItem* target = assigned.isEmpty() ? nullptr : assigned.first();
+			picture->setParentItem(target);
+			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
+		}
 		if (overlay->hasSourceIdentity()) {
 			const double representativeNodeId = overlay->sourceNodeId();
 			const int representativeTrack = overlay->sourceTrack();
@@ -26334,66 +25974,6 @@ bool MainWindow::isTrainOverlayPromoted(int trainIndex) const {
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
-	const bool dense = networkView->zoomRatio() >= kDenseDetailZoom;
-	const qreal stationLabelScale = qMin<qreal>(3.0,
-		std::sqrt(qMax<qreal>(1.0, networkView->zoomRatio() / kDenseDetailZoom)));
-
-	const QTransform toDevice = networkView->viewportTransform();
-	const QRectF viewport = networkView->viewport()->rect();
-	const QRectF inset = viewport.adjusted(kOverlayMargin, kOverlayMargin,
-		-kOverlayMargin, -kOverlayMargin);
-	struct CandidatePlacement {
-		StationOverlayItem* overlay = nullptr;
-		StationOverlayItem::ViewportPlacement right;
-		StationOverlayItem::ViewportPlacement left;
-		StationOverlayItem::ViewportPlacement above;
-		StationOverlayItem::ViewportPlacement below;
-		StationOverlayItem::ViewportPlacement current;
-		int symbolIndex = -1;
-	};
-
-	QList<QRectF> symbolRects;
-	QList<StationOverlayItem*> candidates;
-	QList<CandidatePlacement> placements;
-	for (auto* overlay : m_stationOverlays) {
-		if (!overlay)
-			continue;
-		overlay->setLabelScale(stationLabelScale);
-		overlay->setViewportOffset(QPointF());
-		overlay->setFitCollisionOffset(QPointF());
-		overlay->setFitSymbolVisible(true);
-		overlay->setCollisionBlocked(false);
-		const bool selectedByIdentity = m_hasSelectedStationIdentity && overlay->hasSourceIdentity()
-			&& overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack);
-		const bool selectedByLegacyName = !m_hasSelectedStationIdentity && !overlay->hasSourceIdentity()
-			&& !m_selectedStationName.isEmpty() && overlay->stationName() == m_selectedStationName;
-		overlay->setSelected(selectedByIdentity || selectedByLegacyName);
-		overlay->setVisible(m_stationLayerVisible);
-		if (!m_stationLayerVisible)
-			continue;
-
-		const QPointF anchor = toDevice.map(overlay->stableAnchor());
-		CandidatePlacement placement;
-		placement.overlay = overlay;
-		placement.right = overlay->placementForSide(StationOverlayItem::LabelSide::Right, anchor, inset);
-		placement.left = overlay->placementForSide(StationOverlayItem::LabelSide::Left, anchor, inset);
-		placement.above = overlay->placementForSide(StationOverlayItem::LabelSide::Above, anchor, inset);
-		placement.below = overlay->placementForSide(StationOverlayItem::LabelSide::Below, anchor, inset);
-		placement.current = overlay->preferredViewportPlacement(anchor, inset);
-		overlay->setLabelSide(placement.current.side);
-		overlay->setViewportOffset(placement.current.offset);
-		placement.symbolIndex = symbolRects.size();
-		symbolRects.append(placement.current.symbolRect);
-		placements.append(placement);
-		candidates.append(overlay);
-	}
-	const auto placementFor = [&placements](StationOverlayItem* overlay) -> CandidatePlacement* {
-		for (auto& placement : placements)
-			if (placement.overlay == overlay)
-				return &placement;
-		return nullptr;
-	};
-
 	QPointF followedCenter;
 	bool hasFollowedCenter = false;
 	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
@@ -26405,157 +25985,37 @@ void MainWindow::updateViewportOverlays() {
 	}
 	StationOverlayItem* nearestFollowed = nullptr;
 	qreal nearestDistance = std::numeric_limits<qreal>::max();
-	for (auto* overlay : candidates) {
+	for (auto* overlay : m_stationOverlays) {
+		if (!overlay)
+			continue;
+		const bool selectedByIdentity = m_hasSelectedStationIdentity && overlay->hasSourceIdentity()
+			&& overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack);
+		const bool selectedByLegacyName = !m_hasSelectedStationIdentity && !overlay->hasSourceIdentity()
+			&& !m_selectedStationName.isEmpty() && overlay->stationName() == m_selectedStationName;
+		overlay->setSelected(selectedByIdentity || selectedByLegacyName);
+		overlay->setVisible(m_stationLayerVisible);
 		overlay->setFollowed(false);
 		if (!hasFollowedCenter)
 			continue;
 		const QPointF delta = overlay->stableAnchor() - followedCenter;
-		const qreal distance = delta.x() * delta.x() + delta.y() * delta.y();
-		bool nearer = !nearestFollowed || distance < nearestDistance;
-		if (!nearer && distance == nearestDistance) {
-			const int nameOrder = QString::compare(overlay->stationName(), nearestFollowed->stationName(),
-				Qt::CaseSensitive);
-			nearer = nameOrder < 0
-				|| (nameOrder == 0 && (overlay->stableAnchor().x() < nearestFollowed->stableAnchor().x()
-					|| (overlay->stableAnchor().x() == nearestFollowed->stableAnchor().x()
-						&& overlay->stableAnchor().y() < nearestFollowed->stableAnchor().y())));
-		}
-		if (nearer) {
+		const qreal distance = QPointF::dotProduct(delta, delta);
+		if (!nearestFollowed || distance < nearestDistance
+				|| (distance == nearestDistance
+					&& overlay->stationName() < nearestFollowed->stationName())) {
 			nearestFollowed = overlay;
 			nearestDistance = distance;
 		}
 	}
 	if (nearestFollowed)
 		nearestFollowed->setFollowed(true);
-
-	std::sort(candidates.begin(), candidates.end(), [&](const auto* left, const auto* right) {
-		return StationOverlayItem::priorityLess(*left, *right,
-			toDevice.inverted().map(viewport.center()));
-	});
-	const bool hasTopologyPriority = std::any_of(candidates.cbegin(), candidates.cend(), [](const auto* overlay) {
-		return overlay->isInterchange() || overlay->isEndpoint();
-	});
-	const bool showOrdinaryOverviewLabels = !hasTopologyPriority;
-	const bool fitLayout = networkView->zoomRatio() <= 1.0 + 1e-5;
-	if (fitLayout) {
-		QList<QRectF> placedSymbols;
-		for (auto* overlay : candidates) {
-			CandidatePlacement* placement = placementFor(overlay);
-			if (!placement)
-				continue;
-			bool found = false;
-			const QPointF collisionOffset = StationOverlayItem::firstFitCollisionOffset(
-				placement->current.symbolRect, inset, placedSymbols, {}, &found);
-			if (!found) {
-				overlay->setFitSymbolVisible(false);
-				symbolRects[placement->symbolIndex] = QRectF();
-				continue;
-			}
-			overlay->setFitCollisionOffset(collisionOffset);
-			const QRectF finalSymbol = placement->current.symbolRect.translated(collisionOffset);
-			symbolRects[placement->symbolIndex] = finalSymbol;
-			placedSymbols.append(finalSymbol);
-		}
-	}
-
-	QList<QRectF> placedLabels;
-	for (auto* overlay : candidates) {
-		const bool forced = overlay->isSelected() || overlay->isFollowed() || overlay->isHovered();
-		const bool eligible = networkView->zoomRatio() >= 2.0
-			|| forced || overlay->isInterchange() || overlay->isEndpoint()
-			|| showOrdinaryOverviewLabels;
-		bool visible = false;
-		bool collisionBlocked = false;
-		CandidatePlacement* placement = placementFor(overlay);
-		if (placement) {
-			StationOverlayItem::ViewportPlacement choices[4] = {
-				placement->right, placement->left, placement->above, placement->below};
-			if (placement->current.side == StationOverlayItem::LabelSide::Left)
-				std::swap(choices[0], choices[1]);
-			if (fitLayout) {
-				const QRectF finalSymbol = symbolRects.at(placement->symbolIndex);
-				for (auto& choice : choices) {
-					const QPointF labelDelta = placement->current.symbolRect.center()
-						- choice.symbolRect.center();
-					choice.offset = placement->current.offset;
-					choice.labelRect.translate(labelDelta);
-					choice.symbolRect = finalSymbol;
-					choice.combinedRect = finalSymbol.isNull()
-						? choice.labelRect : finalSymbol.united(choice.labelRect);
-					choice.fits = inset.contains(choice.labelRect)
-						&& (finalSymbol.isNull() || inset.contains(finalSymbol));
-				}
-			}
-			const StationOverlayItem::ViewportPlacement* chosen = nullptr;
-			const StationOverlayItem::ViewportPlacement* hoverFallback = nullptr;
-			for (const auto& choiceValue : choices) {
-				const auto* choice = &choiceValue;
-				if (!choice->fits)
-					continue;
-				const QRectF inflated = choice->labelRect.adjusted(-4.0, -4.0, 4.0, 4.0);
-				bool symbolCollision = false;
-				for (const QRectF& symbol : symbolRects) {
-					if (!symbol.isNull() && inflated.intersects(symbol)) {
-						symbolCollision = true;
-						break;
-					}
-				}
-				if (symbolCollision)
-					continue;
-				bool symbolMovedIntoLabel = false;
-				for (const QRectF& other : placedLabels) {
-					if (!choice->symbolRect.isNull() && other.intersects(choice->symbolRect)) {
-						symbolMovedIntoLabel = true;
-						break;
-					}
-				}
-				if (symbolMovedIntoLabel)
-					continue;
-				if (!hoverFallback)
-					hoverFallback = choice;
-				if (!eligible)
-					continue;
-				bool labelCollision = false;
-				for (const QRectF& other : placedLabels) {
-					if (inflated.intersects(other)) {
-						labelCollision = true;
-						break;
-					}
-				}
-				if (labelCollision)
-					continue;
-				chosen = choice;
-				break;
-			}
-			if (!chosen && hoverFallback) {
-				placement->current = *hoverFallback;
-				overlay->setLabelSide(hoverFallback->side);
-				overlay->setViewportOffset(hoverFallback->offset);
-				symbolRects[placement->symbolIndex] = hoverFallback->symbolRect;
-			}
-			if (!chosen)
-				collisionBlocked = !hoverFallback;
-			if (chosen) {
-				placement->current = *chosen;
-				overlay->setLabelSide(chosen->side);
-				overlay->setViewportOffset(chosen->offset);
-				symbolRects[placement->symbolIndex] = chosen->symbolRect;
-				visible = true;
-				placedLabels.append(chosen->labelRect.adjusted(-4.0, -4.0, 4.0, 4.0));
-			}
-		}
-		overlay->setCollisionBlocked(collisionBlocked);
-		overlay->setLayoutVisible(visible);
-	}
-
+	for (auto* label : m_stationLabels)
+		if (label)
+			label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
 	updateSignalCues();
-
 	const bool paxText = paxTextVisible();
-	for (auto* platform : allPlatforms) {
+	for (auto* platform : allPlatforms)
 		if (platform && platform->textIcon)
 			platform->textIcon->setVisible(paxText);
-	}
-
 	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
 		if (!it.value())
 			continue;
@@ -26566,120 +26026,37 @@ void MainWindow::updateViewportOverlays() {
 	}
 }
 
-// Only layout signal cues here: aspect snapshots can change many times between
-// viewport moves without needing to relayout station names or train labels.
+// Keep every authored signal at its own anchor, including opposing heads.
+// The decoration list also owns the posts and bases in preview and playback.
 void MainWindow::updateSignalCues() {
 	if (!networkView)
 		return;
-	const QTransform toDevice = networkView->viewportTransform();
-	const QRectF viewport = networkView->viewport()->rect();
-	const qreal viewScale = std::hypot(toDevice.m11(), toDevice.m12());
-	if (viewScale <= 0.0)
-		return;
-	const bool detail = networkView->zoomRatio() >= kSignalDetailZoom;
-	qreal maximumRadius = 0.0;
-	for (QGraphicsItem* item : m_signalDecorations) {
-		auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
-		if (!signal || !item->data(kSignalBaseVisibleRole).toBool()
-				|| !item->data(kSignalAnchorRole).isValid())
-			continue;
-		const qreal baseScale = detail ? 1.0 : (signal->rect().width() > 12.0 ? 0.25 : 1.0);
-		const qreal combinedScale = qMax(baseScale, 11.0 / signal->rect().width());
-		maximumRadius = qMax(maximumRadius, (signal->rect().width() / 2.0 + 3.0) * combinedScale);
-	}
-	const qreal cellSize = qMax(detail && m_previewHasSignals ? 20.0 : 28.0,
-		2.0 * maximumRadius + 2.0);
-	// A partial right/bottom strip belongs to the adjacent full cell. Thus
-	// edge clamping cannot pull two different cells' plates into one another.
-	const int lastColumn = qMax(0, qFloor(viewport.width() / cellSize) - 1);
-	const int lastRow = qMax(0, qFloor(viewport.height() / cellSize) - 1);
-	std::map<std::pair<int, int>, QList<SignalItem*>> cells;
 	for (QGraphicsItem* item : m_signalDecorations) {
 		if (!item)
 			continue;
-		const bool layerVisible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
+		const bool visible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
 		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
-		if (!signal) {
-			item->setVisible(layerVisible && detail);
-			continue;
-		}
-		signal->setVisible(false);
-		signal->setGroupedSignals({});
-		if (!item->data(kSignalAnchorRole).isValid())
-			continue;
-		const QPointF anchor = item->data(kSignalAnchorRole).toPointF();
-		QPointF natural = anchor;
-		if (item->data(kSignalNormalRole).isValid()) {
-			const QPointF normal = item->data(kSignalNormalRole).toPointF();
-			natural += item->data(kSignalDirectionRole).toReal()
-				* kPreviewSignalOffsetPixels / viewScale * normal;
-		}
-		signal->setPos(natural);
-		signal->setScale(detail ? 1.0 : (signal->rect().width() > 12.0 ? 0.25 : 1.0));
-		// Eligibility uses the original location, not a 12px station-label inset.
-		const QPointF deviceAnchor = toDevice.map(anchor);
-		if (!layerVisible || !viewport.contains(deviceAnchor))
-			continue;
-		const auto cell = std::make_pair(
-			qBound(0, qFloor((deviceAnchor.x() - viewport.left()) / cellSize), lastColumn),
-			qBound(0, qFloor((deviceAnchor.y() - viewport.top()) / cellSize), lastRow));
-		cells[cell].append(signal);
-	}
-	const QTransform fromDevice = toDevice.inverted();
-	QString inspectedDetails;
-	for (const auto& cell : cells) {
-		const QList<SignalItem*>& members = cell.second;
-		// The inspected member remains the visible representative across a
-		// merge; colored sectors still expose every constituent aspect.
-		SignalItem* representative = m_inspectedSignal && members.contains(m_inspectedSignal)
-			? m_inspectedSignal : members.first();
-		QVector<QPair<int, bool>> aspects;
-		QStringList identities;
-		for (SignalItem* member : members) {
-			aspects.append(qMakePair(member->aspectCode(), member->reversedDirection));
-			const SignalCueKind cue = classifySignalCue(member->aspectCode());
+		if (signal) {
+			signal->setGroupedSignals({});
+			if (item->data(kSignalAnchorRole).isValid())
+				signal->setPos(item->data(kSignalAnchorRole).toPointF());
+			signal->setScale(1.0);
+			const SignalCueKind cue = classifySignalCue(signal->aspectCode());
 			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
 				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
 				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
-			identities.append(QStringLiteral("%1: %2, %3")
-				.arg(member->inspectionIdentity(), member->reversedDirection
+			signal->setToolTip(QStringLiteral("%1: %2, %3")
+				.arg(signal->inspectionIdentity(), signal->reversedDirection
 					? QStringLiteral("left") : QStringLiteral("right"), aspect));
 		}
-		if (members.size() > 1)
-			representative->setScale(qMax(representative->scale(), 11.0 / representative->rect().width()));
-		representative->setGroupedSignals(members.size() > 1 ? aspects : QVector<QPair<int, bool>>());
-		representative->setToolTip(QStringLiteral("%1 signal%2 at this location\n%3")
-			.arg(members.size()).arg(members.size() == 1 ? QString() : QStringLiteral("s"))
-			.arg(identities.join(QLatin1Char('\n'))));
-		QPointF center(viewport.left() + (cell.first.first + 0.5) * cellSize,
-			viewport.top() + (cell.first.second + 0.5) * cellSize);
-		// Reserve the plate, its direction ticks and the actual viewport edge.
-		const qreal radius = (representative->rect().width() / 2.0 + 3.0)
-			* representative->scale();
-		const qreal xMargin = qMin(radius, viewport.width() / 2.0);
-		const qreal yMargin = qMin(radius, viewport.height() / 2.0);
-		center.setX(qBound(viewport.left() + xMargin, center.x(), viewport.right() - xMargin));
-		center.setY(qBound(viewport.top() + yMargin, center.y(), viewport.bottom() - yMargin));
-		representative->setPos(fromDevice.map(center));
-		representative->setVisible(true);
-		if (members.contains(m_inspectedSignal))
-			inspectedDetails = representative->toolTip();
+		item->setVisible(visible);
 	}
 	if (signallingInfoWidget && signallingInfoWidget->isVisible() && signallingGroupDetails
 			&& m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal)) {
-		if (inspectedDetails.isEmpty()) {
-			const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
-			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
-				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
-				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
-			inspectedDetails = QStringLiteral("Signal outside the visible layer\n%1: %2, %3")
-				.arg(m_inspectedSignal->inspectionIdentity(),
-					m_inspectedSignal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"),
-					aspect);
-		}
-		if (signallingGroupDetails->toPlainText() != inspectedDetails) {
+		const QString details = m_inspectedSignal->toolTip();
+		if (signallingGroupDetails->toPlainText() != details) {
 			const int scroll = signallingGroupDetails->verticalScrollBar()->value();
-			signallingGroupDetails->setPlainText(inspectedDetails);
+			signallingGroupDetails->setPlainText(details);
 			signallingGroupDetails->verticalScrollBar()->setValue(scroll);
 		}
 		const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());

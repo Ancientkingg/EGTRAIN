@@ -11,6 +11,7 @@
 #include <vector>
 
 class QTableWidget;
+class QLabel;
 class TrainFilterButton;
 
 // Planned versus simulated timetable as a filterable, sortable table with the
@@ -23,6 +24,7 @@ public:
 						 std::function<std::string(const QStringList&)> csvProvider,
 						 QWidget* parent = nullptr);
 	void setRunProvenance(RunProvenance provenance);
+	void setPresentation(const QString& heading, const QString& context);
 
 private slots:
 	void applyTrainVisibility();
@@ -36,6 +38,7 @@ private:
 	long long m_startOffset = 0;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QPointer<QTableWidget> m_table;
+	QPointer<QLabel> m_contextLabel;
 	QPointer<TrainFilterButton> m_trainsButton;
 	RunProvenance m_runProvenance;
 	bool m_hasRunProvenance = false;

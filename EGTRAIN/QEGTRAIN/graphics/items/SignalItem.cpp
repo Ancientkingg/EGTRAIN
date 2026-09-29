@@ -7,7 +7,14 @@
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_lampColor(QColor(128, 128, 128)) {
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
-	setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	// Invisible picking geometry stays device-sized while the actual head scales
+	// with the authored scene. NetworkScene resolves child hits to this signal.
+	auto* target = new QGraphicsEllipseItem(QRectF(-6.0, -6.0, 12.0, 12.0), this);
+	target->setPos(rect.center());
+	target->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	target->setPen(Qt::NoPen);
+	target->setBrush(Qt::NoBrush);
+	target->setAcceptedMouseButtons(Qt::NoButton);
 
 	// initialize parameters
 	trackID = -1;
@@ -64,53 +71,7 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	// Preserve each distinct aspect, including Stop, with equal-sized sectors.
-	// The central count distinguishes even a same-aspect cluster from a lone plate.
-	painter->setPen(QPen(graphicsEffect() ? QColor(110, 170, 255) : Qt::white, 1.0));
-	if (m_groupedSignals.size() > 1) {
-		QVector<QColor> colors;
-		for (const int code : {0, 75, 180, -1}) {
-			for (const auto& member : m_groupedSignals) {
-				if (classifySignalCue(member.first) == classifySignalCue(code)) {
-					colors.append(classifySignalAspect(member.first).lamp);
-					break;
-				}
-			}
-		}
-		for (int i = 0; i < colors.size(); ++i) {
-			painter->setBrush(colors.at(i));
-			painter->drawPie(rect(), 90 * 16 - i * 360 * 16 / colors.size(),
-				-360 * 16 / colors.size());
-		}
-		painter->setPen(QPen(Qt::white, 1.0));
-		painter->setBrush(QColor(0, 0, 0, 200));
-		const QRectF countRect = rect().adjusted(rect().width() * 0.19, rect().height() * 0.19,
-			-rect().width() * 0.19, -rect().height() * 0.19);
-		painter->drawEllipse(countRect);
-		QFont font = painter->font();
-		font.setPixelSize(qMax(6, qRound(8.0 / scale())));
-		font.setBold(true);
-		painter->setFont(font);
-		painter->drawText(countRect, Qt::AlignCenter,
-			m_groupedSignals.size() <= 9 ? QString::number(m_groupedSignals.size()) : QStringLiteral("+"));
-	} else {
-		painter->setBrush(m_lampColor);
-		painter->drawEllipse(rect());
-	}
-	painter->setPen(QPen(Qt::white, 1.0));
-	const QPointF center = rect().center();
-	for (const bool reversed : {true, false}) {
-		if (m_groupedSignals.size() > 1) {
-			bool present = false;
-			for (const auto& member : m_groupedSignals)
-				present |= member.second == reversed;
-			if (!present)
-				continue;
-		} else if (reversedDirection != reversed) {
-			continue;
-		}
-		const qreal direction = reversed ? -1.0 : 1.0;
-		painter->drawLine(center + QPointF(direction * rect().width() * 0.55, -2.0),
-			center + QPointF(direction * rect().width() * 0.55, 2.0));
-	}
+	painter->setPen(pen());
+	painter->setBrush(m_lampColor);
+	painter->drawEllipse(rect());
 }

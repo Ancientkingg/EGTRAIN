@@ -1,5 +1,6 @@
 #include <QGuiApplication>
 #include <QImage>
+#include <QIcon>
 #include <QSize>
 
 #include <array>
@@ -22,8 +23,9 @@ int main(int argc, char** argv) {
         if (image.isNull() || image.size() != QSize(size, size) || !image.hasAlphaChannel())
             return 1;
     }
-    const std::array<const char*, 11> entity_icons{
+    const std::array<const char*, 12> entity_icons{
         ":/icons/station.svg",
+        ":/icons/station-dark.svg",
         ":/icons/passenger.svg",
         ":/icons/train-passenger.svg",
         ":/icons/train-sprinter.svg",
@@ -40,6 +42,21 @@ int main(int argc, char** argv) {
         if (image.isNull() || image.size() != QSize(24, 24) || !image.hasAlphaChannel())
             return 1;
     }
+    for (const char* path : {":/icons/station.svg", ":/icons/station-dark.svg"}) {
+        for (const int size : {16, 24, 32, 48, 300, 600}) {
+            const QImage image = QIcon(path).pixmap(size, size).toImage();
+            if (image.size() != QSize(size, size) || image.pixelColor(0, 0).alpha() != 0
+                || image.pixelColor(size * 5 / 24, size * 16 / 24).alpha() == 0)
+                return 1;
+        }
+    }
+    if (QImage(":/icons/station.svg").pixelColor(5, 16).lightness()
+        <= QImage(":/icons/station-dark.svg").pixelColor(5, 16).lightness())
+        return 1;
+    const QImage historicalPassenger(":/icons/pax_icon.png");
+    if (historicalPassenger.isNull() || historicalPassenger.size() != QSize(1200, 1200)
+        || !historicalPassenger.hasAlphaChannel())
+        return 1;
     const std::array<const char*, 5> command_icons{
         ":/icons/run.svg",
         ":/icons/pause.svg",

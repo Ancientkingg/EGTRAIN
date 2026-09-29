@@ -2,10 +2,13 @@
 
 #include <QApplication>
 #include <QContextMenuEvent>
+#include <QGraphicsColorizeEffect>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsTextItem>
 #include <QGraphicsView>
+#include <QImage>
+#include <QPainter>
 
 #include <iostream>
 
@@ -170,8 +173,8 @@ int main(int argc, char* argv[]) {
 			&& signal.trackID == 3 && signal.sectionAheadId == "protected"
 			&& signal.sectionAheadLength == 125.0 && signal.sectionAheadTrackId == 4,
 			"signal marker keeps scene bounds and inspector metadata");
-		ok &= expect(signal.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
-			"signal marker remains readable across view zoom levels");
+		ok &= expect(!signal.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+			"signal head follows scene zoom without a device-sized minimum");
 		signal.setPos(40.0, -80.0);
 		TrainBodyItem train(QPolygonF() << QPointF(-10.0, -6.0) << QPointF(10.0, -6.0)
 			<< QPointF(10.0, 6.0) << QPointF(-10.0, 6.0));
@@ -339,6 +342,126 @@ int main(int argc, char* argv[]) {
 		ok &= expect(requestedScenePos == scenePos, "unrecognized-child request preserves scene position");
 		ok &= expect(requestedScreenPos == screenPos, "unrecognized-child request preserves screen position");
 		ok &= expect(!requestedKeyboard, "unrecognized-child request preserves mouse reason");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.resize(240, 180);
+		view.scale(0.08, 0.08);
+		SignalItem reversed(QRectF(-10.0, -10.0, 20.0, 20.0));
+		SignalItem forward(QRectF(-10.0, -10.0, 20.0, 20.0));
+		reversed.setPos(-8.0, -30.0);
+		forward.setPos(8.0, 30.0);
+		reversed.setAspectCode(0);
+		forward.setAspectCode(180);
+		reversed.setReversedDirection(true);
+		forward.setReversedDirection(false);
+		scene.addItem(&reversed);
+		scene.addItem(&forward); // inserted last, so its synthetic target is topmost
+		SignalItem* clicked = nullptr;
+		QGraphicsItem* context = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnSignal,
+			[&](SignalItem* signal) { clicked = signal; });
+		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { context = item; });
+		sendLeftClick(scene, view, reversed.scenePos());
+		ok &= expect(clicked == &reversed && clicked->aspectCode() == 0,
+			"scaled Stop head wins over opposing Proceed head's invisible padding");
+		sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Mouse,
+			reversed.scenePos(), QPoint());
+		ok &= expect(context == &reversed,
+			"opposing signal context resolves the painted head");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		SignalItem signal(QRectF(-10.0, -10.0, 20.0, 20.0));
+		signal.setZValue(3);
+		TrainBodyItem train(QPolygonF(QRectF(-20.0, -20.0, 40.0, 40.0)));
+		train.setBrush(Qt::blue);
+		train.setZValue(4);
+		scene.addItem(&signal);
+		scene.addItem(&train);
+		TrainBodyItem* clicked = nullptr;
+		QGraphicsItem* context = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnTrain,
+			[&](TrainBodyItem* item) { clicked = item; });
+		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { context = item; });
+		sendLeftClick(scene, view, QPointF());
+		ok &= expect(clicked == &train, "painted train wins over covered signal on click");
+		sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Mouse, QPointF(), QPoint());
+		ok &= expect(context == &train, "painted train wins over covered signal for context menu");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.scale(0.08, 0.08);
+		NodeItem node(QRectF(-8.0, -8.0, 16.0, 16.0));
+		node.setZValue(4);
+		SignalItem signal(QRectF(-2.0, -2.0, 4.0, 4.0));
+		signal.setPos(14.0, 0.0);
+		signal.setZValue(3);
+		scene.addItem(&node);
+		scene.addItem(&signal);
+		SignalItem* clicked = nullptr;
+		QGraphicsItem* context = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnSignal,
+			[&](SignalItem* item) { clicked = item; });
+		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { context = item; });
+		sendLeftClick(scene, view, signal.scenePos());
+		ok &= expect(clicked == &signal, "painted signal wins over higher invisible node padding");
+		sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Mouse, signal.scenePos(), QPoint());
+		ok &= expect(context == &signal, "node padding does not obscure painted signal context");
+	}
+
+	for (bool useConnection : {false, true}) {
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.scale(0.08, 0.08);
+		NodeItem node(QRectF(0, 0, 0, 0));
+		TrackLineItem track(QLineF(-60, 0, 60, 0));
+		ConnectionItem connection(QLineF(-60, 0, 60, 0));
+		scene.addItem(&node);
+		scene.addItem(useConnection ? static_cast<QGraphicsItem*>(&connection) : &track);
+		NodeItem* clicked = nullptr;
+		QGraphicsItem* context = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode,
+			[&](NodeItem* item) { clicked = item; });
+		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { context = item; });
+		sendLeftClick(scene, view, QPointF(1, 0));
+		ok &= expect(clicked == &node, "zero-size node target wins over underlying line on click");
+		sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Mouse, QPointF(1, 0), QPoint());
+		ok &= expect(context == &node, "zero-size node target wins over underlying line for context menu");
+	}
+
+	{
+		TrackLineItem track(QLineF(4, 20, 44, 20));
+		QPen speed(QColor(30, 130, 210), 4);
+		speed.setCosmetic(true);
+		track.setPen(speed);
+		const auto paintTrack = [&track]() {
+			QImage image(48, 40, QImage::Format_ARGB32_Premultiplied);
+			image.fill(Qt::black);
+			QPainter painter(&image);
+			track.paint(&painter, nullptr, nullptr);
+			return image.pixelColor(24, 20);
+		};
+		for (const TrackOperationalState state : {TrackOperationalState::Free,
+				TrackOperationalState::Prepared, TrackOperationalState::Occupied,
+				TrackOperationalState::Blocked}) {
+			track.setOperationalState(state);
+			ok &= expect(paintTrack() == speed.color(),
+				"ordinary track keeps historical speed color in every operational state");
+		}
+		track.setGraphicsEffect(new QGraphicsColorizeEffect);
+		ok &= expect(paintTrack() == QColor(Qt::blue),
+			"selected track paints historical blue instead of an operational underlay");
 	}
 
 	if (!ok)

@@ -3,14 +3,15 @@
 NodeItem::NodeItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), track(-1), node(nullptr) {
 	setZValue(1); // draw over arcs and connections (which have z = 0)
-	// A separate transformation-independent child owns the Fit-sized geometry,
-	// so painting, culling and semantic hits agree on its actual bounds.
-	auto* fitDot = new QGraphicsEllipseItem(QRectF(-1.5, -1.5, 3.0, 3.0), this);
-	fitDot->setPos(rect.center());
-	fitDot->setFlag(QGraphicsItem::ItemIgnoresTransformations);
-	fitDot->setPen(Qt::NoPen);
-	fitDot->setBrush(Qt::lightGray);
-	fitDot->setAcceptedMouseButtons(Qt::NoButton);
+	// A transparent device-space child preserves the existing Fit hit target,
+	// but only the parent scene-sized dot paints.
+	auto* target = new QGraphicsEllipseItem(QRectF(-1.5, -1.5, 3.0, 3.0), this);
+	target->setPos(rect.center());
+	target->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	target->setPen(Qt::NoPen);
+	target->setBrush(Qt::NoBrush);
+	target->setAcceptedMouseButtons(Qt::NoButton);
+
 }
 
 NodeItem::~NodeItem() {

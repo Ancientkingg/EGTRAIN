@@ -49,16 +49,9 @@ void TrackLineItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	const TrackStateVisual stateVisual = classifyTrackState(m_operationalState);
-	if (stateVisual.style != Qt::NoPen && stateVisual.width > 0) {
-		QPen underlay(stateVisual.color);
-		underlay.setWidth(stateVisual.width);
-		underlay.setStyle(stateVisual.style);
-		underlay.setCosmetic(true);
-		painter->setPen(underlay);
-		painter->drawLine(line());
-	}
-
-	painter->setPen(pen());
+	QPen stroke = pen();
+	if (graphicsEffect())
+		stroke.setColor(Qt::blue);
+	painter->setPen(stroke);
 	painter->drawLine(line());
 }

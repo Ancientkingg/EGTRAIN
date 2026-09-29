@@ -4,6 +4,7 @@
 #include <QImage>
 #include <QLabel>
 #include <QRegularExpression>
+#include <QScrollArea>
 #include <QToolButton>
 
 #include <algorithm>
@@ -21,19 +22,6 @@ static bool containsColor(const QImage& image, const QColor& color) {
 		for (int x = 0; x < image.width(); ++x)
 			if (image.pixelColor(x, y).rgb() == color.rgb())
 				return true;
-	return false;
-}
-
-static bool containsColorNear(const QImage& image, const QColor& color, int tolerance) {
-	for (int y = 0; y < image.height(); ++y) {
-		for (int x = 0; x < image.width(); ++x) {
-			const QColor pixel = image.pixelColor(x, y);
-			if (std::abs(pixel.red() - color.red()) <= tolerance
-				&& std::abs(pixel.green() - color.green()) <= tolerance
-				&& std::abs(pixel.blue() - color.blue()) <= tolerance)
-				return true;
-		}
-	}
 	return false;
 }
 
@@ -67,49 +55,26 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 13, "case content produces stable deduplicated entries");
+	ok &= expect(entries.size() == 10, "case content produces stable deduplicated entries");
 	ok &= expect(entries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
 		&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
 		&& entries.at(2).color == freeTrackVisual().color
 		&& entries.at(2).lineWidth == freeTrackVisual().width
 		&& entries.at(2).penStyle == Qt::SolidLine,
 		"speed-class entries use the renderer base styles");
-	ok &= expect(entries.at(3).label == "Permissive signalling"
-		&& entries.at(3).trackState == TrackOperationalState::Prepared
-		&& entries.at(3).color == classifyTrackState(TrackOperationalState::Prepared).color
-		&& entries.at(3).penStyle == classifyTrackState(TrackOperationalState::Prepared).style,
-		"permissive signalling entry uses renderer classification");
 	legend.setFixedWidth(180);
 	QApplication::processEvents();
-	auto* permissiveLabel = legend.findChild<QLabel*>("mapKeyEntry3");
-	ok &= expect(permissiveLabel && permissiveLabel->wordWrap()
-		&& permissiveLabel->width() >= permissiveLabel->fontMetrics().horizontalAdvance("signalling")
-		&& permissiveLabel->minimumHeight() >= permissiveLabel->heightForWidth(permissiveLabel->width())
-		&& permissiveLabel->height() >= permissiveLabel->fontMetrics().lineSpacing() * 2,
-		"permissive signalling label wraps at the narrow case dock width");
-	ok &= expect(entries.at(4).label == "Occupied section"
-		&& entries.at(4).color == classifyTrackState(TrackOperationalState::Occupied).color,
-		"occupied track entry uses renderer classification");
-	ok &= expect(entries.at(5).label == "Blocked section"
-		&& entries.at(5).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
-		"blocked track entry keeps its non-color cue");
-	auto* preparedSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
-	const QImage preparedImage = preparedSwatch ? preparedSwatch->grab().toImage() : QImage();
-	ok &= expect(preparedSwatch && preparedSwatch->width() == 46
-		&& containsColor(preparedImage, classifyTrackState(TrackOperationalState::Prepared).color)
-		&& containsColor(preparedImage, freeTrackVisual().color),
-		"permissive signalling swatch mirrors the renderer state underlay and base rail");
-	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
+	ok &= expect(std::none_of(entries.cbegin(), entries.cend(), [](const NetworkLegendEntry& entry) {
+		return entry.kind == NetworkLegendEntryKind::Track && entry.trackState != TrackOperationalState::Free;
+	}), "nonvisual operational states have no map-key swatches");
+	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
 	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
-	ok &= expect(trainSwatch && containsColor(trainImage, QColor("#26313B"))
-			&& containsColor(trainImage, classifyTrainType("IC", "IC 2201").fill),
-		"train swatch mirrors the compact on-track badge and classified plate");
-	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
-	const QImage stationImage = stationSwatch ? stationSwatch->grab().toImage() : QImage();
-	ok &= expect(stationSwatch && containsColorNear(stationImage, QColor(210, 215, 220), 30)
-			&& !containsColor(stationImage, QColor("#5078D2")),
-		"station swatch mirrors the gray on-track circular marker instead of the SVG tile");
-	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch9");
+	ok &= expect(trainSwatch && containsColor(trainImage, classifyTrainType("IC", "IC 2201").fill),
+		"train swatch mirrors historical locomotive fill");
+	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch5");
+	ok &= expect(stationSwatch && stationSwatch->size() == QSize(46, 18),
+		"station swatch keeps its compact map-key footprint");
+	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
 	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
 	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red)),
 		"signal swatch renders the historical red plate");
@@ -126,8 +91,9 @@ int main(int argc, char* argv[]) {
 		}
 		if (entry.kind == NetworkLegendEntryKind::Station) {
 			++stationCount;
-			ok &= expect(entry.iconResource == classifyStation().iconResource,
-				"station entry uses the uniform renderer classification");
+			ok &= expect(entry.iconResource == ":/icons/station-dark.svg"
+				&& classifyStation().iconResource == ":/icons/station.svg",
+				"station entry uses the light-surface variant of the shared pictogram");
 		}
 		if (entry.signalCue == SignalCueKind::Stop) {
 			stopSignalFound = true;
@@ -136,7 +102,7 @@ int main(int argc, char* argv[]) {
 		}
 		if (entry.kind == NetworkLegendEntryKind::Passenger) {
 			passengerFound = true;
-			ok &= expect(entry.iconResource == ":/icons/passenger.svg",
+			ok &= expect(entry.iconResource == ":/icons/pax_icon.png",
 				"passenger entry uses the renderer icon");
 		}
 	}
@@ -177,9 +143,31 @@ int main(int argc, char* argv[]) {
 			&& previewEntries.at(6).label == "Caution signal"
 			&& previewEntries.at(7).label == "Proceed signal",
 		"preview key explains every operational signal aspect");
-	ok &= expect(previewEntries.at(3).color == QColor(242, 170, 70)
+	ok &= expect(previewEntries.at(3).color == QColor(Qt::blue)
 			&& previewEntries.at(3).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");
+
+	// Resizing the rail or changing the font must not clip wrapped speed ranges.
+	QScrollArea rail;
+	rail.setWidgetResizable(true);
+	auto* constrainedLegend = new NetworkLegendWidget;
+	constrainedLegend->setCaseContent(content);
+	rail.setWidget(constrainedLegend);
+	rail.show();
+	for (int fontSize : {11, 18}) {
+		rail.setStyleSheet(QString("QWidget#mapKeyBody QLabel { font-size: %1px; }").arg(fontSize));
+		for (int width : {180, 230}) {
+			rail.setFixedSize(width, 200);
+			QApplication::processEvents();
+			QApplication::processEvents();
+			for (QLabel* label : constrainedLegend->findChildren<QLabel*>(QRegularExpression("^mapKeyEntry"))) {
+				ok &= expect(label->height() >= label->heightForWidth(label->width()),
+					"wrapped map key text fits after width and font changes");
+				ok &= expect(label->parentWidget()->rect().contains(label->geometry()),
+					"wrapped map key text stays within its own row");
+			}
+		}
+	}
 
 	return ok ? 0 : 1;
 }

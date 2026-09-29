@@ -190,7 +190,7 @@ public:
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal scale = 1.0);
+		qreal scale = 1.0, QPointF decorationOffset = QPointF());
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);
@@ -640,6 +640,8 @@ private:
 	bool m_passengerLayerVisible = true;
 	QList<QGraphicsItem*> m_stationDecorations;
 	QList<StationOverlayItem*> m_stationOverlays;
+	QList<QGraphicsItem*> m_stationLabels;
+	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
 	QString m_selectedStationName;
 	bool m_hasSelectedStationIdentity = false;
 	double m_selectedStationNodeId = 0.0;
@@ -696,8 +698,8 @@ private:
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
-	void refreshInfrastructurePanel();
-	void refreshInfrastructureTable();
+	void refreshInfrastructurePanel(bool resetSelection = false);
+	void refreshInfrastructureTable(bool resetSelection = false);
 	void refreshBlockTrackFilter();
 	void refreshRouteSectionPanel();
 	void commitInfrastructureCell(int row, int column);
