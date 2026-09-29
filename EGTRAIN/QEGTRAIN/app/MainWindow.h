@@ -103,6 +103,7 @@ class UpdateChecker;
 class QFileSystemWatcher;
 class SelfUpdater;
 class QProgressDialog;
+class QPlainTextEdit;
 struct UpdateCheckResult;
 struct StableRelease;
 
@@ -355,6 +356,7 @@ private:
 	QLineEdit* signallingAspectText;
 	QLineEdit* signallingProtectedSectionText;
 	QLineEdit* signallingNextTrackText;
+	QPlainTextEdit* signallingGroupDetails;
 	QFormLayout* signallingFormLayout;
 	QWidget* trainInfoWidget;
 	QLineEdit* trainIDText;
@@ -929,6 +931,7 @@ private:
 
 	// list of signals
 	QList<SignalItem*> allSignals;
+	SignalItem* m_inspectedSignal = nullptr; // scene-owned; cleared before scene teardown
 	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 	void buildTrackIndexes();
@@ -936,6 +939,7 @@ private:
 	void updateStationOverlayDegrees();
 	bool isTrainOverlayPromoted(int trainIndex) const;
 	void updateViewportOverlays();
+	void updateSignalCues();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
 	bool paxTextVisible() const;

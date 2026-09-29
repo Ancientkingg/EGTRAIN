@@ -7,6 +7,8 @@
 #include <QStyleOptionGraphicsItem>
 #include <QWidget>
 #include <QPolygonF>
+#include <QVector>
+#include <QPair>
 #include <QtMath>
 
 class SignalItem : public QGraphicsEllipseItem {
@@ -19,6 +21,11 @@ public:
 	void setAspectCode(int code);
 	int aspectCode() const;
 	void setReversedDirection(bool reversed);
+	void setGroupedSignals(const QVector<QPair<int, bool>>& aspects);
+	int groupedSignalCount() const { return m_groupedSignals.size(); }
+	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
+	QString inspectionIdentity() const;
+	QRectF boundingRect() const override;
 
 	// reimplemented functions
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
@@ -49,6 +56,8 @@ public:
 private:
 	int m_aspectCode;
 	QColor m_lampColor;
+	QVector<QPair<int, bool>> m_groupedSignals;
+	QString m_inspectionIdentity;
 };
 
 #endif // SIGNALITEM_H

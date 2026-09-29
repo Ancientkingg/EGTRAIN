@@ -49,8 +49,8 @@ int main(int argc, char** argv) {
 	for (int y = 0; y < background.height(); ++y) {
 		for (int x = 0; x < background.width(); ++x) {
 			const QColor pixel = background.pixelColor(x, y);
-			hasCanvas |= pixel == QColor("#101a22");
-			hasGrid |= pixel == QColor("#182832");
+			hasCanvas |= pixel == QColor(Qt::black);
+			hasGrid |= pixel != QColor(Qt::black);
 		}
 	}
 	NetworkView view;
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 	farOverlay->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 
 	bool ok = true;
-	ok &= expect(hasCanvas && hasGrid, "operational canvas uses the restrained signal-box grid");
+	ok &= expect(hasCanvas && !hasGrid, "historical canvas is uniformly black");
 	view.fitToTopology();
 	const QRectF topology = view.topologyBounds();
 	const qreal fittedScale = view.fittedScale();

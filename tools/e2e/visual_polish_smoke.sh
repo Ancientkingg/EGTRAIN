@@ -154,6 +154,9 @@ for case in 1 2 3 4 5 6; do
 	grep -q "E2E_STATION_DISPLACED_CLICK_EXACT_OK" "$station_out"
 	grep -q "E2E_STATION_DISPLACED_CONTEXT_EXACT_OK" "$station_out"
 	grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$station_out"
+	if [[ "$case" == "1" ]]; then
+		grep -q "E2E_NETHERLANDS_SIGNAL_LOCAL_GROUPS_OK" "$station_out"
+	fi
 	if [[ "$case" == "3" ]]; then
 		grep -q "E2E_STATION_OVERLAY_DPR_1.0" "$station_out"
 		grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$station_out"
