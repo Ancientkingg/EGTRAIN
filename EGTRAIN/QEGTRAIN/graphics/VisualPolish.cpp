@@ -22,7 +22,16 @@ bool containsAny(const std::string& text, std::initializer_list<const char*> nee
 } // namespace
 
 TrackVisual freeTrackVisual() {
-	return {QColor("#A0ACB4"), 2};
+	return classifyTrackSpeed(0.0);
+}
+
+TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond) {
+	const double kmh = speedLimitMetersPerSecond * 3.6;
+	if (kmh >= 200.0)
+		return {QColor(30, 130, 210), 4};
+	if (kmh >= 120.0)
+		return {QColor(80, 80, 80), 3};
+	return {QColor(120, 120, 120), 2};
 }
 
 TrackStateVisual classifyTrackState(TrackOperationalState state) {
@@ -112,8 +121,12 @@ SignalVisual classifySignalAspect(int code) {
 	return {QColor(128, 128, 128), classifySignalCue(code), ":/icons/signal-neutral.svg"};
 }
 
-StationVisual classifyStation() {
-	return {QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station.svg"};
+StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
+	if (connectionCount >= 3)
+		return {QColor(80, 120, 210), QColor(30, 60, 130), ":/icons/train_station.png"};
+	if (hasPlatformId)
+		return {QColor(70, 70, 70), QColor(30, 30, 30), ":/icons/train_station.png"};
+	return {QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/train_station.png"};
 }
 
 // One simulated second renders every delayMs, so the nominal playback factor

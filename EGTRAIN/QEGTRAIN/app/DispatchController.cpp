@@ -86,7 +86,11 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			if (!id.empty()) {
 				auto& state = sectionStates[id];
 				state.sectionId = id;
-				state.prepared = state.prepared || section.code != 0.0;
+				// Route copies intentionally merge by section ID. Any nonzero
+				// signalling code, including an approach aspect, reports the
+				// permissive-signalling cue. It is not a reservation or a
+				// guarantee for the selected route direction.
+				state.prepared = state.prepared || guiSectionReportsPermissiveSignalling(section.code);
 			}
 			if (id.find('/') == std::string::npos) {
 				appendSignal(id, static_cast<int>(section.code), route.reversed_direction);
@@ -311,6 +315,7 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 			"worker/playback_step/snapshot_build_publish");
 		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
 	}
+	replayCandidate_.record(snapshot);
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/mailbox_publish", "worker",
 			"worker/playback_step/snapshot_build_publish");

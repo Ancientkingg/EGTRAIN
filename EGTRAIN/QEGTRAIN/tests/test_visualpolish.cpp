@@ -6,6 +6,7 @@
 #include <QPainter>
 
 #include "graphics/items/TrainBadgeItem.h"
+#include "graphics/items/SignalItem.h"
 
 #include <iostream>
 
@@ -37,28 +38,33 @@ int main(int argc, char* argv[]) {
 	QGuiApplication app(argc, argv);
 	bool ok = true;
 	const TrackVisual freeBase = freeTrackVisual();
-	ok &= expect(freeBase.color == QColor("#A0ACB4"), "free track uses the neutral base color");
+	ok &= expect(freeBase.color == QColor(120, 120, 120), "local track uses historical gray");
+	ok &= expect(classifyTrackSpeed(200.0 / 3.6).color == QColor(30, 130, 210)
+		&& classifyTrackSpeed(200.0 / 3.6).width == 4, "historical high-speed boundary");
+	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(80, 80, 80)
+		&& classifyTrackSpeed(120.0 / 3.6).width == 3, "historical mainline boundary");
+	ok &= expect(classifyTrackSpeed(119.0 / 3.6).color == QColor(120, 120, 120), "historical local boundary");
 	ok &= expect(freeBase.width == 2, "free track uses one documented overview width");
 
 	const TrackStateVisual freeTrack = classifyTrackState(TrackOperationalState::Free);
-	const TrackStateVisual preparedTrack = classifyTrackState(TrackOperationalState::Prepared);
+	const TrackStateVisual permissiveTrack = classifyTrackState(TrackOperationalState::Prepared);
 	const TrackStateVisual occupiedTrack = classifyTrackState(TrackOperationalState::Occupied);
 	const TrackStateVisual blockedTrack = classifyTrackState(TrackOperationalState::Blocked);
 	ok &= expect(freeTrack.style == Qt::NoPen && freeTrack.width == 0, "free track has no underlay");
-	ok &= expect(preparedTrack.style == Qt::DashDotLine && preparedTrack.width == 5, "prepared track underlay");
+	ok &= expect(permissiveTrack.style == Qt::DashDotLine && permissiveTrack.width == 5, "permissive signalling underlay");
 	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 6, "occupied track underlay");
 	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 5, "blocked track has non-color cue");
-	ok &= expect(preparedTrack.color == QColor("#4C8DAE"), "prepared track color");
+	ok &= expect(permissiveTrack.color == QColor("#4C8DAE"), "permissive signalling color");
 	ok &= expect(occupiedTrack.color == QColor("#D05A47"), "occupied track color");
 	ok &= expect(blockedTrack.color == QColor("#D6A13A"), "blocked track color");
-	const QByteArray preparedMask = renderStrokeMask(preparedTrack.width, preparedTrack.style);
+	const QByteArray permissiveMask = renderStrokeMask(permissiveTrack.width, permissiveTrack.style);
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);
 	const QByteArray blockedMask = renderStrokeMask(blockedTrack.width, blockedTrack.style);
-	ok &= expect(preparedMask != occupiedMask && occupiedMask != blockedMask
-		&& preparedMask != blockedMask,
+	ok &= expect(permissiveMask != occupiedMask && occupiedMask != blockedMask
+		&& permissiveMask != blockedMask,
 		"track states remain distinguishable by stroke structure without color");
 	ok &= expect(trackStatePriority(TrackOperationalState::Free) < trackStatePriority(TrackOperationalState::Prepared), "free track priority");
-	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "prepared track priority");
+	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "permissive signalling priority");
 	ok &= expect(trackStatePriority(TrackOperationalState::Occupied) < trackStatePriority(TrackOperationalState::Blocked), "occupied track priority");
 
 	const SignalVisual stopSignal = classifySignalAspect(0);
@@ -106,7 +112,9 @@ int main(int argc, char* argv[]) {
 		"train category silhouettes");
 
 	const StationVisual station = classifyStation();
-	ok &= expect(station.iconResource == ":/icons/station.svg", "station uses the uniform station icon");
+	ok &= expect(station.iconResource == ":/icons/train_station.png", "station uses the original pictogram");
+	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
+	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
 
 	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
 	ok &= expect(simulationSpeedLabel(250) == "Speed: 4.0x", "delayed speed label");
@@ -202,6 +210,26 @@ int main(int argc, char* argv[]) {
 	ok &= expect(elided != "H-Ballerup-Osterport-1" && elided.endsWith('1'),
 		"long train identifiers use middle elision and preserve the suffix");
 
+	// A combined cue retains opposing Stop/Proceed sectors and both directions;
+	// the source aspect on the representative remains unchanged.
+	SignalItem combined(QRectF(-10, -10, 20, 20));
+	combined.setAspectCode(180);
+	combined.setGroupedSignals({{0, true}, {180, false}, {180, true}});
+	QImage opposing(48, 48, QImage::Format_ARGB32_Premultiplied);
+	opposing.fill(Qt::black);
+	{
+		QPainter painter(&opposing);
+		painter.translate(24, 24);
+		combined.paint(&painter, nullptr, nullptr);
+	}
+	ok &= expect(combined.aspectCode() == 180 && combined.groupedSignalCount() == 3,
+		"grouping does not overwrite an individual operational aspect");
+	ok &= expect(opposing.pixelColor(32, 24) == QColor(Qt::red)
+		&& opposing.pixelColor(16, 24) == QColor(Qt::green),
+		"opposing Stop and Proceed remain visible in one grouped plate");
+	ok &= expect(combined.boundingRect().contains(QPointF(-11, 0))
+		&& combined.boundingRect().contains(QPointF(11, 0)),
+		"the grouped cue bounds include both direction ticks");
 	if (!ok)
 		return 1;
 

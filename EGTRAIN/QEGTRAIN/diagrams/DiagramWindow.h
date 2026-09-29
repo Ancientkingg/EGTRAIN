@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QHash>
 #include <QPen>
+#include <QBrush>
 #include <QPointer>
 #include <QPointF>
 #include <QString>
@@ -12,6 +13,7 @@
 #include <QtCharts/QAbstractSeries>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
 
 #include <functional>
 
@@ -28,12 +30,22 @@ class TrainFilterButton;
 // Series are grouped by the dynamic property "trainId" when the caller sets it
 // (the same train can own several series, such as planned and simulated lines);
 // series without that property are grouped by their own name.
+// Optional inspection metadata: "inspectionPoints" is a QStringList with one
+// plain-text context entry per appended point (including empty entries).
+// "inspectionInterval" is plain-text context shared by a line segment;
+// "inspectionFilled" explicitly opts a closed QLineSeries into interior hits.
+// A line hit always reports its nearest actual plotted sample, not an
+// interpolated value at the cursor.
 class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	void setChart(QChart* chart);                                  // takes ownership
-	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);  // label X axis and hover as HH:MM:SS
+	// Format one axis as HH:MM:SS with an offset; true selects X or Y, false
+	// restores numeric formatting. Set before or after setChart. Bounds and
+	// reversal come from the caller; reset restores the bounds at setChart.
+	void setTimeAxisY(bool on, long long startOffsetSeconds = 0);
+	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);
 
 	// Supply raw source data for CSV export. The provider receives the ids of the
 	// trains currently visible so it can export only what the user is looking at.
@@ -64,6 +76,9 @@ private:
 
 	void applyChartStyle(QChart* chart);
 	void applyTimeAxis();
+	QAbstractSeries* inspectAt(const QPoint& viewportPosition);
+	void clearTooltip();
+	void navigate(double factor, const QPointF& chartPosition, const QPointF& pan = {});
 	void rebuildFilterGroups();
 	void pinTrain(const QString& trainId);
 	void refreshEmphasis();
@@ -77,11 +92,16 @@ private:
 	QPointer<TrainFilterButton> m_trainsButton;
 	QPointer<QPushButton> m_csvButton;
 	bool m_timeAxis = false;
-	bool m_timeAxisApplied = false;
+	Qt::Orientation m_timeOrientation = Qt::Horizontal;
+	QPointer<QLabel> m_tooltip;
+	QHash<QAbstractAxis*, QPair<double, double>> m_fullBounds;
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;
 	QHash<QAbstractSeries*, QPen> m_basePens;
-	QString m_hoverName;
+	QHash<QAbstractSeries*, QBrush> m_baseBrushes;
+	QPoint m_pressPosition;
+	QPointer<QAbstractAxis> m_clockAxis;
+	QPointer<QValueAxis> m_numericAxis; // detached while its clock axis is displayed
 	QString m_pinnedTrainId;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QString m_csvSuggestedName;

@@ -6,6 +6,7 @@
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "util/TrajectoryUtil.h"
@@ -29,7 +30,9 @@
 #include "update/UpdateSettings.h"
 #include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
+#include <QtCharts/QAreaSeries>
 #include <QtCharts/QValueAxis>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLegendMarker>
 #include <QBuffer>
 #include <QDir>
@@ -47,6 +50,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QPlainTextEdit>
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
@@ -71,6 +75,7 @@
 #include <QMimeData>
 #include <QTemporaryDir>
 #include <QToolButton>
+#include <QStyleOptionSlider>
 #include <QUrl>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
@@ -85,6 +90,7 @@
 #include <limits>
 #include <map>
 #include <functional>
+#include <initializer_list>
 #include <memory>
 
 // utilization of GUI
@@ -92,6 +98,31 @@
 extern InitialParameters initial_variables;
 
 namespace {
+class ReplaySlider : public QSlider {
+public:
+	explicit ReplaySlider(QWidget* parent) : QSlider(Qt::Horizontal, parent) {}
+protected:
+	void mousePressEvent(QMouseEvent* event) override {
+		if (event->button() == Qt::LeftButton) {
+			QStyleOptionSlider option;
+			initStyleOption(&option);
+			const QRect groove = style()->subControlRect(QStyle::CC_Slider, &option,
+				QStyle::SC_SliderGroove, this);
+			const QRect handle = style()->subControlRect(QStyle::CC_Slider, &option,
+				QStyle::SC_SliderHandle, this);
+			if (!handle.contains(event->pos())) {
+				const int span = groove.width() - handle.width();
+				const int position = event->pos().x() - groove.x() - handle.width() / 2;
+				setValue(QStyle::sliderValueFromPosition(minimum(), maximum(), position, span,
+					invertedAppearance()));
+				event->accept();
+				return;
+			}
+		}
+		QSlider::mousePressEvent(event);
+	}
+};
+
 using StartupClock = std::chrono::steady_clock;
 StartupClock::time_point g_startupTimingOrigin;
 quint64 g_startupTimingSequence = 0;
@@ -468,6 +499,13 @@ const QColor kBlockingSwitchColor(240, 210, 40, 180);
 const QColor kBlockingCriticalColor(220, 50, 50, 200);
 const QColor kBlockingCapacityColor(235, 175, 20, 230);
 
+void appendInspectedPoint(QLineSeries* series, double x, double y, const QString& context) {
+	series->append(x, y);
+	QStringList points = series->property("inspectionPoints").toStringList();
+	points.append(context);
+	series->setProperty("inspectionPoints", points);
+}
+
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
 	bool useCapacityCriticalStyle) {
 	const auto colorFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
@@ -491,20 +529,61 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 	};
 	std::map<std::string, bool> legendEntries;
 	for (const BlockingTimeDiagramSegment& segment : segments) {
-		auto* series = new QLineSeries();
+		const double left = std::min(segment.startPositionKm, segment.endPositionKm);
+		const double right = std::max(segment.startPositionKm, segment.endPositionKm);
 		const std::string legendKey = segment.trainName + suffixFor(segment);
-		series->setName(QString::fromStdString(legendKey));
-		series->setProperty("trainId", QString::fromStdString(segment.trainName));
-		const bool firstLegendEntry = legendEntries.emplace(legendKey, true).second;
-		QPen pen(colorFor(segment));
-		pen.setWidthF(segment.penWidth);
-		series->setPen(pen);
-		series->append(segment.startTime, segment.midPositionKm);
-		series->append(segment.endTime, segment.midPositionKm);
-		chart->addSeries(series);
-		if (!firstLegendEntry)
-			for (QLegendMarker* marker : chart->legend()->markers(series))
-				marker->setVisible(false);
+		const QString name = QString::fromStdString(legendKey);
+		const QString trainId = QString::fromStdString(segment.trainName);
+		const QColor color = colorFor(segment);
+		if (left != right) {
+			auto* lower = new QLineSeries();
+			auto* upper = new QLineSeries();
+			lower->append(left, segment.startTime);
+			lower->append(right, segment.startTime);
+			upper->append(left, segment.endTime);
+			upper->append(right, segment.endTime);
+			auto* fill = new QAreaSeries(upper, lower);
+			fill->setName(name);
+			fill->setProperty("trainId", trainId);
+			QColor translucent = color;
+			translucent.setAlpha(65);
+			fill->setBrush(translucent);
+			fill->setPen(Qt::NoPen);
+			chart->addSeries(fill);
+			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
+		}
+		auto* outline = new QLineSeries();
+		outline->setName(name);
+		outline->setProperty("trainId", trainId);
+		outline->setProperty("layer", "calculated blocking envelope");
+		outline->setProperty("inspectionFilled", left != right);
+		QPen pen(color.darker(135));
+		pen.setWidthF(2.0);
+		outline->setPen(pen);
+		outline->setProperty("inspectionInterval", QString("Calculated blocking envelope | Resource: %1 | Type: %2 | "
+			"Directed X: %3 to %4 km | Display: %5 to %6 s | Original: %7 to %8 s | "
+			"Original approach: %9 | Original run start: %10 | Original run end: %11 | Original clearance: %12")
+			.arg(QString::fromStdString(segment.blockId), blockingSegmentTypeName(segment))
+			.arg(segment.startPositionKm).arg(segment.endPositionKm)
+			.arg(segment.startTime).arg(segment.endTime)
+			.arg(segment.originalStartTime).arg(segment.originalEndTime)
+			.arg(segment.startApproachTime >= 0 ? QString::number(segment.startApproachTime) : "unavailable")
+			.arg(segment.startRunTime >= 0 ? QString::number(segment.startRunTime) : "unavailable")
+			.arg(segment.endRunTime >= 0 ? QString::number(segment.endRunTime) : "unavailable")
+			.arg(segment.endClearTime >= 0 ? QString::number(segment.endClearTime) : "unavailable")
+			+ QString(" | Setup: %1 | Sight reaction: %2 | Release: %3 | Run margin: %4")
+			.arg(segment.setupTime >= 0 ? QString::number(segment.setupTime) : "unavailable")
+			.arg(segment.sightReactionTime >= 0 ? QString::number(segment.sightReactionTime) : "unavailable")
+			.arg(segment.releaseTime >= 0 ? QString::number(segment.releaseTime) : "unavailable")
+			.arg(segment.runTimeMargin >= 0 ? QString::number(segment.runTimeMargin) : "unavailable"));
+		outline->append(left, segment.startTime);
+		outline->append(right, segment.startTime);
+		outline->append(right, segment.endTime);
+		outline->append(left, segment.endTime);
+		if (left != right) outline->append(left, segment.startTime);
+		chart->addSeries(outline);
+		if (!legendEntries.emplace(legendKey, true).second)
+			for (QLegendMarker* marker : chart->legend()->markers(outline)) marker->setVisible(false);
 	}
 }
 
@@ -530,8 +609,8 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 	for (int i = 0; i < numRegions; ++i) {
 		const Train& t = regional_train[i];
 		std::vector<BlockingTimeDiagramInput> blocks;
-		blocks.reserve(static_cast<std::size_t>(std::max(0, t.N_BlockTimeComplete)));
-		for (int j = 0; j < t.N_BlockTimeComplete; ++j) {
+		blocks.reserve(static_cast<std::size_t>(std::max(0, std::min(t.N_BlockSections, 1000))));
+		for (int j = 0; j < std::min(t.N_BlockSections, 1000); ++j) {
 			BlockingTimeDiagramInput block;
 			block.blockId = t.BlockTime[j].BlockID;
 			block.startOccTime = t.BlockTime[j].StartOccTime;
@@ -541,6 +620,14 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 			block.switchName = t.BlockTime[j].SwitchName;
 			block.stationName = t.BlockTime[j].stationName;
 			block.isComplete = t.BlockTime[j].IsComplete;
+			block.startApproachTime = t.BlockTime[j].StartApproachTime;
+			block.startRunTime = t.BlockTime[j].StartRunTime;
+			block.endRunTime = t.BlockTime[j].EndRunTime;
+			block.endClearTime = t.BlockTime[j].EndClearTime;
+			block.setupTime = t.BlockTime[j].setupTime;
+			block.sightReactionTime = t.BlockTime[j].sightReacTime;
+			block.releaseTime = t.BlockTime[j].ReleaseTime;
+			block.runTimeMargin = t.BlockTime[j].RunTimeMargin;
 			blocks.push_back(block);
 		}
 		trains.push_back(blocks);
@@ -549,8 +636,28 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 	return buildBlockingTimeDiagramSegments(trains, trainNames);
 }
 
+std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
+	const std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::map<std::string, RouteDiagramProjection>& projections, int& omitted) {
+	std::vector<BlockingTimeDiagramSegment> mapped;
+	for (auto segment : segments) {
+		const auto projection = projections.find(segment.trainName);
+		const auto start = projection == projections.end() ? std::optional<double>()
+			: projection->second.map(segment.startPositionKm);
+		const auto end = projection == projections.end() ? std::optional<double>()
+			: projection->second.map(segment.endPositionKm);
+		if (!start || !end) { ++omitted; continue; }
+		segment.startPositionKm = *start;
+		segment.endPositionKm = *end;
+		segment.midPositionKm = (*start + *end) / 2.0;
+		mapped.push_back(std::move(segment));
+	}
+	return mapped;
+}
+
 std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
-	const BlockingTimeScope& scope) {
+	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
+	const std::map<int, RouteDiagramProjection>& projections, int& omitted) {
 	std::vector<BlockingTimePlannedReference> references;
 	if (scope.routeIndex >= 0 && scope.trainIds.empty())
 		return references;
@@ -565,15 +672,20 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
 			if (!train.stationIsOnRoute(stationIndex, scope.blockIds))
 				continue;
-			const double positionMeters = train.stationRoutePositionMeters(stationIndex);
-			if (!std::isfinite(positionMeters) || positionMeters < 0.0)
+			const auto path = paths.find(train.indexOfRoute);
+			const auto projection = projections.find(train.indexOfRoute);
+			const auto positionKm = path == paths.end() || projection == projections.end()
+				? std::optional<double>() : routeDiagramStopPosition(train, stationIndex, path->second, projection->second);
+			if (!positionKm) {
+				++omitted;
+				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
 				continue;
-			const double positionKm = positionMeters / 1000.0;
+			}
 			const auto append = [&](const char* eventType, double time) {
 				if (!std::isfinite(time) || time < 0.0)
 					return;
 				references.push_back({train.trainDescription, train.stationNameForArrivalStats(stationIndex),
-					eventType, time, positionKm});
+					eventType, time, *positionKm});
 			};
 			append("arrival", train.ScheduledArrivals[stationIndex]);
 			append("departure", train.ScheduledDepartures[stationIndex]);
@@ -586,7 +698,11 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 // reference rows so the visible dashed layer is exportable too.
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockingTimePlannedReference>& plannedReferences) {
+	const std::vector<BlockingTimePlannedReference>& plannedReferences,
+	const std::vector<std::vector<std::string>>& trajectories = {}) {
+	const auto optional = [](double value) {
+		return std::isfinite(value) && value >= 0.0 ? csv::formatDouble(value) : std::string();
+	};
 	std::vector<std::vector<std::string>> rows;
 	for (const BlockingTimeDiagramSegment& s : segments) {
 		if (!trainInVisibleSet(visibleTrainIds, s.trainName))
@@ -600,7 +716,12 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			blockingSegmentTypeName(s),
 			std::string(),
 			std::string(),
-			std::string()});
+			std::string(),
+			csv::formatDouble(s.startPositionKm), csv::formatDouble(s.endPositionKm),
+			csv::formatDouble(s.originalStartTime), csv::formatDouble(s.originalEndTime),
+			optional(s.startApproachTime), optional(s.startRunTime), optional(s.endRunTime),
+			optional(s.endClearTime), optional(s.setupTime), optional(s.sightReactionTime),
+			optional(s.releaseTime), optional(s.runTimeMargin), "calculated blocking envelope"});
 	}
 	for (const BlockingTimePlannedReference& reference : plannedReferences) {
 		if (!trainInVisibleSet(visibleTrainIds, reference.trainName))
@@ -614,22 +735,50 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			"planned reference",
 			reference.eventType,
 			reference.stationName,
-			csv::formatDouble(reference.time)});
+			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event"});
 	}
+	for (const auto& row : trajectories)
+		if (!row.empty() && trainInVisibleSet(visibleTrainIds, row.front())) rows.push_back(row);
 	if (rows.empty())
 		return std::string();
 	return csv::makeDocument(
 		{"Train", "Block", "Occupation start[s]", "Occupation end[s]", "Position[km]", "Segment type",
-			"Planned reference", "Station", "Planned time[s]"},
+			"Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]",
+			"Original start[s]", "Original end[s]", "Approach[s]", "Run start[s]", "Run end[s]",
+			"Clearance[s]", "Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer"},
 		rows);
 }
 
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
 	const BlockingTimeScope scope = defaultBlockingTimeScope();
+	if (train_route.empty()) return {};
+	int referenceIndex = -1;
+	for (int i = 0; i < numRegions; ++i)
+		if (regional_train[i].indexOfRoute >= 0
+			&& regional_train[i].indexOfRoute < static_cast<int>(train_route.size())) {
+			referenceIndex = regional_train[i].indexOfRoute;
+			break;
+		}
+	if (referenceIndex < 0) return {};
+	int omitted = 0;
+	const RouteDiagramPath reference = routeDiagramPath(train_route[referenceIndex], nullptr);
+	std::map<int, RouteDiagramPath> paths;
+	std::map<int, RouteDiagramProjection> projections;
+	std::map<std::string, RouteDiagramProjection> byTrain;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		const int index = train.indexOfRoute;
+		if (index < 0 || index >= static_cast<int>(train_route.size())) continue;
+		if (!paths.count(index)) {
+			paths.emplace(index, routeDiagramPath(train_route[index], nullptr));
+			projections.emplace(index, buildRouteDiagramProjection(paths.at(index), reference));
+		}
+		byTrain.emplace(train.trainDescription, projections.at(index));
+	}
 	return buildBlockingTimeCsv(visibleTrainIds,
-		filterBlockingTimeDiagramSegments(buildAllBlockingTimeSegments(), scope.trainIds, scope.blockIds,
-			scope.startTime, scope.endTime),
-		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope),
+		projectBlockingSegments(filterBlockingTimeDiagramSegments(buildAllBlockingTimeSegments(), scope.trainIds,
+			scope.blockIds, scope.startTime, scope.endTime), byTrain, omitted),
+		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope, paths, projections, omitted),
 			scope.startTime, scope.endTime));
 }
 
@@ -838,6 +987,14 @@ BlockingTimeDiagramInput capacityOccupation(const BlockingTimes& source) {
 	occupation.switchName = source.SwitchName;
 	occupation.stationName = source.stationName;
 	occupation.isComplete = source.IsComplete;
+	occupation.startApproachTime = source.StartApproachTime;
+	occupation.startRunTime = source.StartRunTime;
+	occupation.endRunTime = source.EndRunTime;
+	occupation.endClearTime = source.EndClearTime;
+	occupation.setupTime = source.setupTime;
+	occupation.sightReactionTime = source.sightReacTime;
+	occupation.releaseTime = source.ReleaseTime;
+	occupation.runTimeMargin = source.RunTimeMargin;
 	return occupation;
 }
 
@@ -849,7 +1006,7 @@ CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAn
 		return result;
 
 	const BlockingTimes* reference = nullptr;
-	for (int blockIndex = 0; blockIndex < train.N_BlockTimeComplete; ++blockIndex) {
+	for (int blockIndex = 0; blockIndex < std::min(train.N_BlockSections, 1000); ++blockIndex) {
 		const BlockingTimes& source = train.BlockTime[blockIndex];
 		const BlockingTimeDiagramInput occupation = capacityOccupation(source);
 		if (!validBlockingTimeDiagramInput(occupation))
@@ -1363,7 +1520,9 @@ bool e2eDialogsSuppressed() {
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR");
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")
+		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
 }
 
 // modal boxes deadlock the env-gated smoke runs, which have no user to
@@ -1796,6 +1955,45 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(networkView);
 	mainLayout->addWidget(progressBar);
+	m_replayBar = new QWidget(centralWidget);
+	m_replayBar->setObjectName("completedReplayBar");
+	auto* replayLayout = new QHBoxLayout(m_replayBar);
+	replayLayout->setContentsMargins(4, 2, 4, 2);
+	auto* replayStart = new QPushButton("Start", m_replayBar);
+	auto* replayEnd = new QPushButton("End", m_replayBar);
+	m_replayPlayButton = new QPushButton("Play", m_replayBar);
+	m_replaySlider = new ReplaySlider(m_replayBar);
+	m_replaySlider->setObjectName("completedReplaySlider");
+	m_replaySlider->setAccessibleName("Replay time");
+	m_replaySlider->setFocusPolicy(Qt::StrongFocus);
+	m_replayLabel = new QLabel(m_replayBar);
+	replayLayout->addWidget(replayStart);
+	replayLayout->addWidget(m_replayPlayButton);
+	replayLayout->addWidget(replayEnd);
+	replayLayout->addWidget(m_replaySlider, 1);
+	replayLayout->addWidget(m_replayLabel);
+	mainLayout->addWidget(m_replayBar);
+	m_replayBar->hide();
+	m_replayTimer = new QTimer(this);
+	m_replayTimer->setInterval(1000); // One simulated second per wall second.
+	connect(m_replaySlider, &QSlider::valueChanged, this, &MainWindow::seekReplay);
+	connect(replayStart, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
+	connect(replayEnd, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.lastTime()); });
+	connect(m_replayPlayButton, &QPushButton::clicked, this, [this]() {
+		if (m_replayTimer->isActive()) m_replayTimer->stop();
+		else if (!m_completedReplay.empty()) {
+			if (m_replayRequestedTime >= m_completedReplay.lastTime()) seekReplay(m_completedReplay.firstTime());
+			m_replayTimer->start();
+		}
+		m_replayPlayButton->setText(m_replayTimer->isActive() ? "Pause" : "Play");
+	});
+	connect(m_replayTimer, &QTimer::timeout, this, [this]() {
+		seekReplay(m_replayRequestedTime + 1);
+		if (m_replayRequestedTime >= m_completedReplay.lastTime()) {
+			m_replayTimer->stop();
+			m_replayPlayButton->setText("Play");
+		}
+	});
 
 	// set layout in QWidget
 	centralWidget->setLayout(mainLayout);
@@ -1850,8 +2048,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::handleHelpAbout);
 	connect(ui->actionSimulationStart, &QAction::triggered, this, &MainWindow::runCurrent);
 	connect(ui->actionSimulationStop, &QAction::triggered, this, [this]() {
-		if (m_worker)
+		if (m_worker) {
 			m_worker->requestStop();
+			// Stop is a lifecycle boundary for transient playback overlays. The
+			// worker may still publish one queued snapshot while it exits; the
+			// delivery guard below drops it instead of repainting these states.
+			clearOperationalTrackStates();
+		}
 	});
 	connect(infoDockWidget, &InfoDockWidget::closed, this, &MainWindow::handleCloseInfoDockWidget);
 
@@ -2070,13 +2273,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_trainLayerVisible = checked;
 		for (auto* train : allTrains)
 			if (train)
-				train->setVisible(checked && !train->outOfSimulation);
+				train->setVisible(checked && (m_replayActive
+					? replayTrainHasPosition(train->index) : !train->outOfSimulation));
 		for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
 			if (!it.value())
 				continue;
 			auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
 				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
-			it.value()->setVisible(checked && trainIt != allTrains.cend() && !(*trainIt)->outOfSimulation);
+			it.value()->setVisible(checked && trainIt != allTrains.cend()
+				&& (m_replayActive ? replayTrainHasPosition(it.key()) : !(*trainIt)->outOfSimulation));
 		}
 	});
 	connect(m_trainSpeedLabelsCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -3451,7 +3656,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();
-	ui->displayTrainPathDiagrams->setText("Train paths (per corridor)...");
+	ui->displayTrainPathDiagrams->setText("Train paths (reference route)...");
 	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
 	if (ui->menuTools)
 		menuBar()->removeAction(ui->menuTools->menuAction());
@@ -3826,8 +4031,10 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		teardownGUI();
 		m_infrastructureSelectionId = selectedInfrastructureId;
 	} else if (scene) {
+		m_inspectedSignal = nullptr;
 		scene->clear();
 	}
+	m_showingTrackPreview = true;
 	effect = nullptr;
 	const QString selectedFacet = m_infrastructureFacetCombo
 									  ? m_infrastructureFacetCombo->currentData().toString()
@@ -3936,14 +4143,22 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		const qreal offset = static_cast<qreal>(line.displayOffset);
 		tracks[line.id] = {&line, offset};
 
-		QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : QColor(185, 190, 198));
-		pen.setWidthF(selectedTrackIds.count(line.id) > 0 ? 3.0 : 1.25);
-		pen.setCosmetic(true);
-		QPainterPath path(QPointF(line.points.front().x, line.points.front().y + offset));
-		for (std::size_t point = 1; point < line.points.size(); ++point)
-			path.lineTo(line.points[point].x, line.points[point].y + offset);
-		auto* item = scene->addPath(path, pen);
-		item->setAcceptedMouseButtons(Qt::NoButton);
+		for (std::size_t point = 1; point < line.points.size(); ++point) {
+			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
+				return candidate.trackId == line.id
+					&& ((candidate.fromNodeId == line.points[point - 1].nodeId
+						&& candidate.toNodeId == line.points[point].nodeId)
+						|| (candidate.toNodeId == line.points[point - 1].nodeId
+							&& candidate.fromNodeId == line.points[point].nodeId));
+			});
+			const TrackVisual visual = classifyTrackSpeed(arc == sceneModel.arcs.end() ? 0.0 : arc->speedLimitMs);
+			QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(242, 170, 70) : visual.color);
+			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
+			pen.setCosmetic(true);
+			auto* item = scene->addLine(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
+				line.points[point].x, line.points[point].y + offset), pen);
+			item->setAcceptedMouseButtons(Qt::NoButton);
+		}
 		for (const auto& point : line.points)
 			includePreviewPoint(QPointF(point.x, point.y + offset));
 	}
@@ -3961,8 +4176,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 
 		QPainterPath path(start);
 		path.lineTo(end);
-		QPen pen(QColor(210, 215, 222));
-		pen.setWidthF(2.25);
+		QPen pen(Qt::white);
+		pen.setWidth(2);
 		pen.setCosmetic(true);
 		pen.setCapStyle(Qt::RoundCap);
 		auto* item = scene->addPath(path, pen);
@@ -4087,8 +4302,19 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		if (!previewSignalNormal(*track->second.first, signal.rawX, normal))
 			continue;
 
+		QStringList canonicalIds;
+		for (const SceneSignal& source : sceneSignals(sceneModel))
+			if (source.protectedSection == signal.sectionId)
+				canonicalIds.append(QString::fromStdString(source.id));
 		for (const bool reversed : {true, false}) {
 			auto* glyph = new SignalItem(QRectF(-4.0, -4.0, 8.0, 8.0));
+			glyph->X = signal.rawX;
+			glyph->sectionAheadId = signal.sectionId;
+			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
+				.arg(QString::fromStdString(signal.trackId))
+				.arg(signal.rawX, 0, 'g', 10)
+				.arg(QString::fromStdString(signal.sectionId))
+				.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
 			glyph->setZValue(3.0);
 			glyph->setPos(center);
 			glyph->setPen(QPen(QColor("#0D131A"), 1.0));
@@ -4868,6 +5094,14 @@ void MainWindow::markSceneDirty() {
 }
 
 void MainWindow::invalidateRunResults() {
+	if (!m_worker) {
+		if (m_replayActive && m_sceneLoaded && scene) {
+			setFollowTrain(-1);
+			handleCloseInfoDockWidget();
+			renderTrackPreview(m_sceneModel); // Teardown clears history and graphics together.
+		}
+		clearReplay();
+	}
 	m_runtimeStatus = QStringLiteral("Not built");
 	m_runtimeDiagnostics.clear();
 	m_resultsAvailable = false;
@@ -11224,6 +11458,14 @@ TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
 	return nullptr;
 }
 
+bool MainWindow::replayTrainHasPosition(int trainIndex) const {
+	if (!m_snapshot) return false;
+	const auto state = std::find_if(m_snapshot->trains.cbegin(), m_snapshot->trains.cend(),
+		[trainIndex](const GuiTrainState& train) { return train.index == trainIndex; });
+	return state != m_snapshot->trains.cend()
+		&& guiReplayTrainHasPosition(*state, m_snapshot->timestep);
+}
+
 TrainBodyItem* MainWindow::resolveTrainBodyItem(int trainIndex) const {
 	if (!scene)
 		return nullptr;
@@ -11321,6 +11563,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		m_snapshot->trains.cend(), [trainIndex](const GuiTrainState& state) {
 			return state.index == trainIndex && state.outOfSimulation;
 		});
+	const bool waitingInReplay = m_replayActive && !replayTrainHasPosition(trainIndex);
 	if (exitedInSnapshot || (item && item->outOfSimulation)) {
 		if (m_followAction && m_followAction->isChecked()) {
 			const QSignalBlocker blocker(m_followAction);
@@ -11346,7 +11589,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	QString label = m_followTrainCombo && comboIndex >= 0
 		? m_followTrainCombo->itemText(comboIndex)
 		: QString("Train %1").arg(trainIndex + 1);
-	if (item) {
+	if (item && !waitingInReplay && item->isVisible()) {
 		centerSceneItem(item);
 		statusBar()->showMessage(QString("Following %1").arg(label));
 	} else {
@@ -11806,6 +12049,59 @@ void MainWindow::runStationOverlayE2E() {
 
 		checkZoom(3.0, "3X");
 		checkZoom(12.0, "12X");
+		if (caseName == QLatin1String("Netherlands") && m_signalLayerVisible) {
+			fitView();
+			updateViewportOverlays();
+			const QTransform device = networkView->viewportTransform();
+			const QRectF view = networkView->viewport()->rect();
+			int eligible = 0;
+			int represented = 0;
+			int visibleCues = 0;
+			SignalItem* largestGroup = nullptr;
+			for (QGraphicsItem* item : m_signalDecorations) {
+				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+				if (!signal || !item->data(kSignalBaseVisibleRole).toBool()
+						|| !item->data(kSignalAnchorRole).isValid())
+					continue;
+				const QPointF anchor = device.map(item->data(kSignalAnchorRole).toPointF());
+				if (!view.contains(anchor))
+					continue;
+				++eligible;
+				if (!signal->isVisible())
+					continue;
+				++visibleCues;
+				represented += qMax(1, signal->groupedSignalCount());
+				if (!largestGroup || signal->groupedSignalCount() > largestGroup->groupedSignalCount())
+					largestGroup = signal;
+				if (QLineF(anchor, device.map(signal->scenePos())).length() > 24.0
+						|| signal->toolTip().isEmpty())
+					fail("Netherlands signal cluster scattered away from its topology or lost identities");
+			}
+			if (eligible < 30 || represented != eligible || visibleCues >= eligible)
+				fail(QString("Netherlands Fit signal density not grouped locally (%1 locations, %2 represented, %3 cues)")
+					.arg(eligible).arg(represented).arg(visibleCues));
+			else
+				marker(QString("E2E_NETHERLANDS_SIGNAL_LOCAL_GROUPS_OK eligible=%1 represented=%2 cues=%3")
+					.arg(eligible).arg(represented).arg(visibleCues));
+			if (largestGroup && largestGroup->groupedSignalCount() > 9) {
+				displaySignallingInfo(largestGroup);
+				QApplication::processEvents();
+				// Dock reflow changes viewport cells: inspect the *current* group,
+				// not the pre-dock membership count.
+				const int inspectedCount = largestGroup->isVisible()
+					? qMax(1, largestGroup->groupedSignalCount()) : 1;
+				if (!signallingGroupDetails || signallingGroupDetails->toPlainText().split('\n').size()
+						!= inspectedCount + 1
+						|| (inspectedCount > 9 && signallingGroupDetails->verticalScrollBar()->maximum() <= 0))
+					fail(QString("Netherlands signal group is not fully inspectable through the scrolling inspector "
+						"(group=%1 lines=%2 scroll=%3)")
+						.arg(inspectedCount)
+						.arg(signallingGroupDetails ? signallingGroupDetails->toPlainText().split('\n').size() : -1)
+						.arg(signallingGroupDetails ? signallingGroupDetails->verticalScrollBar()->maximum() : -1));
+				handleCloseInfoDockWidget();
+				infoDockWidget->hide();
+			}
+		}
 		const qreal devicePixelRatio = windowHandle() ? windowHandle()->devicePixelRatio() : 1.0;
 		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(devicePixelRatio, 0, 'f', 1));
 
@@ -12058,11 +12354,15 @@ void MainWindow::runStationOverlayE2E() {
 			m_sceneContextMenu->close();
 		QApplication::processEvents();
 
-		QMouseEvent displacedPress(QEvent::MouseButtonPress, QPointF(displacedClick),
-			QPointF(displacedScreen), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		const QPointF afterContextAnchor = networkView->viewportTransform().map(lowOverlay->stableAnchor())
+			+ lowOverlay->viewportOffset() + lowOverlay->fitCollisionOffset();
+		const QPoint clickAfterContext = afterContextAnchor.toPoint();
+		const QPoint screenAfterContext = networkView->viewport()->mapToGlobal(clickAfterContext);
+		QMouseEvent displacedPress(QEvent::MouseButtonPress, QPointF(clickAfterContext),
+			QPointF(screenAfterContext), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 		QApplication::sendEvent(networkView->viewport(), &displacedPress);
-		QMouseEvent displacedRelease(QEvent::MouseButtonRelease, QPointF(displacedClick),
-			QPointF(displacedScreen), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QMouseEvent displacedRelease(QEvent::MouseButtonRelease, QPointF(clickAfterContext),
+			QPointF(screenAfterContext), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 		QApplication::sendEvent(networkView->viewport(), &displacedRelease);
 		QApplication::processEvents();
 		if (m_selectedStationName != QString::fromStdString(lowSourceNode->stationName)
@@ -12185,6 +12485,16 @@ void MainWindow::runVisualPolishE2E() {
 		[](const NetworkLegendEntry& entry) { return entry.kind == NetworkLegendEntryKind::Train; })) {
 		ok = false;
 		failures << "map key did not refresh when trains entered the network";
+	}
+	const auto hasOperationalLegendEntry = [&mapKeyEntriesBeforeFit](const QString& label) {
+		return std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
+			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
+	};
+	if (!hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
+			|| !hasOperationalLegendEntry(QStringLiteral("Occupied section"))
+			|| !hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
+		ok = false;
+		failures << "runtime map key omitted operational track states";
 	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && scene && !allTrains.isEmpty()) {
@@ -12572,7 +12882,7 @@ void MainWindow::runVisualPolishE2E() {
 			event.setScenePos(selectedTrainBody->sceneBoundingRect().center());
 			event.setWidget(networkView->viewport());
 			scene->mousePressEvent(&event);
-			QApplication::processEvents();
+			// Compare the synchronous click result before animations advance.
 			const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(selectedTrain->index) : -1;
 			if (!m_followTrainCombo || comboIndex < 0 || m_followTrainCombo->currentIndex() != comboIndex) {
 				ok = false;
@@ -12619,6 +12929,7 @@ void MainWindow::runVisualPolishE2E() {
 						.arg(expectedCenter.x(), 0, 'f', 1)
 						.arg(expectedCenter.y(), 0, 'f', 1);
 			}
+			QApplication::processEvents();
 		}
 	}
 	if (!allArcs.isEmpty() && allArcs.first() && allArcs.first()->arc) {
@@ -12713,6 +13024,242 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "signal posts or bases remain visible at overview zoom";
 	}
+	if (networkView && scene) {
+		QList<SignalItem*> previousSignals;
+		for (QGraphicsItem* item : m_signalDecorations)
+			if (auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr)
+				if (item->data(kSignalBaseVisibleRole).toBool()) {
+					previousSignals.append(signal);
+					item->setData(kSignalBaseVisibleRole, false);
+				}
+		const QPointF anchor = networkView->mapToScene(networkView->viewport()->rect().center());
+		QList<SignalItem*> denseSignals;
+		for (int i = 0; i < 6; ++i) {
+			auto* plate = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+			plate->setPos(anchor);
+			plate->setAspectCode(i % 2 ? 180 : 0);
+			plate->setReversedDirection(i % 2 == 0);
+			plate->setInspectionIdentity(QStringLiteral("fixture %1").arg(i));
+			plate->setData(kSignalAnchorRole, anchor);
+			plate->setData(kSignalBaseVisibleRole, true);
+			scene->addItem(plate);
+			m_signalDecorations.append(plate);
+			denseSignals.append(plate);
+		}
+		for (const qreal zoom : {1.0, kSignalDetailZoom}) {
+			networkView->fitToTopology();
+			if (zoom > 1.0)
+				networkView->zoomBy(zoom);
+			updateViewportOverlays();
+			SignalItem* representative = nullptr;
+			int visible = 0;
+			for (SignalItem* plate : denseSignals) {
+				visible += plate->isVisible();
+				if (plate->isVisible())
+					representative = plate;
+			}
+			bool everyIdentity = representative != nullptr;
+			for (int i = 0; i < denseSignals.size() && everyIdentity; ++i)
+				everyIdentity = representative->toolTip().contains(QStringLiteral("fixture %1:").arg(i));
+			if (visible != 1 || !representative || representative->groupedSignalCount() != 6
+					|| QLineF(networkView->viewportTransform().map(anchor),
+						networkView->viewportTransform().map(representative->scenePos())).length() > 20.0
+					|| !representative->toolTip().contains("Stop")
+					|| !representative->toolTip().contains("Proceed")
+					|| !everyIdentity) {
+				ok = false;
+				failures << "six overlapping runtime-sized opposing signals lost a local inspectable combined cue";
+			}
+		}
+		// Snapshot changes must rebuild the visible mixture without modifying the
+		// six original operational aspect codes or their individual identities.
+		for (SignalItem* plate : denseSignals)
+			plate->setAspectCode(180);
+		updateSignalCues();
+		SignalItem* regrouped = nullptr;
+		for (SignalItem* plate : denseSignals)
+			if (plate->isVisible())
+				regrouped = plate;
+		if (!regrouped || regrouped->groupedSignalCount() != 6
+				|| regrouped->toolTip().contains("Stop") || !regrouped->toolTip().contains("Proceed")) {
+			ok = false;
+			failures << "signal aspect update did not rebuild the combined cue";
+		}
+		// An in-view boundary one pixel from the viewport edge must keep its
+		// entire actual plate and direction tick inside the viewport.
+		const QRectF viewRect = networkView->viewport()->rect();
+		const QPointF edge = networkView->mapToScene(QPoint(qRound(viewRect.right() - 1.0),
+			qRound(viewRect.center().y())));
+		auto* edgeSignal = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+		edgeSignal->setPos(edge);
+		edgeSignal->setData(kSignalAnchorRole, edge);
+		edgeSignal->setData(kSignalBaseVisibleRole, true);
+		scene->addItem(edgeSignal);
+		m_signalDecorations.append(edgeSignal);
+		updateSignalCues();
+		const QRectF paintedEdge = edgeSignal->deviceTransform(networkView->viewportTransform())
+			.mapRect(edgeSignal->boundingRect());
+		if (!edgeSignal->isVisible() || !viewRect.contains(paintedEdge)) {
+			ok = false;
+			failures << QString("viewport-edge signal plate or direction was clipped or hidden "
+				"(visible=%1 viewport=%2,%3 %4x%5 item=%6,%7 %8x%9)")
+				.arg(edgeSignal->isVisible()).arg(viewRect.x()).arg(viewRect.y())
+				.arg(viewRect.width()).arg(viewRect.height()).arg(paintedEdge.x()).arg(paintedEdge.y())
+				.arg(paintedEdge.width()).arg(paintedEdge.height());
+		}
+		m_signalDecorations.removeAll(edgeSignal);
+		scene->removeItem(edgeSignal);
+		delete edgeSignal;
+		if (regrouped) {
+			displaySignallingInfo(regrouped);
+			if (!signallingGroupDetails || !signallingGroupDetails->isVisible()
+					|| !signallingGroupDetails->verticalScrollBar()
+					|| !signallingGroupDetails->toPlainText().contains("fixture 0")
+					|| !signallingGroupDetails->toPlainText().contains("fixture 5")) {
+				ok = false;
+				failures << "signal inspector did not expose all grouped identities in its scrollable list";
+			}
+			denseSignals.at(1)->setAspectCode(0);
+			updateSignalCues();
+			if (regrouped->isVisible() && !signallingGroupDetails->toPlainText().contains("fixture 1: right, Stop")) {
+				ok = false;
+				failures << "open signal inspector did not refresh after an aspect change";
+			}
+			handleCloseInfoDockWidget();
+			infoDockWidget->hide();
+		}
+		for (SignalItem* plate : denseSignals)
+			plate->setData(kSignalBaseVisibleRole, false);
+		networkView->fitToTopology();
+		networkView->zoomBy(kSignalDetailZoom);
+		const auto addBoundaryPlate = [&](qreal x, qreal y, const QString& identity, int aspect) {
+			const QPointF point = networkView->viewportTransform().inverted().map(QPointF(x, y));
+			auto* plate = new SignalItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+			plate->setPos(point);
+			plate->setData(kSignalAnchorRole, point);
+			plate->setData(kSignalBaseVisibleRole, true);
+			plate->setAspectCode(aspect);
+			plate->setInspectionIdentity(identity);
+			scene->addItem(plate);
+			m_signalDecorations.append(plate);
+			return plate;
+		};
+		auto* adjacentStop = addBoundaryPlate(27.99, 70.0, "adjacent Stop", 0);
+		auto* adjacentProceed = addBoundaryPlate(28.01, 70.0, "adjacent Proceed", 180);
+		updateSignalCues();
+		const auto painted = [this](SignalItem* plate) {
+			return plate->deviceTransform(networkView->viewportTransform()).mapRect(plate->boundingRect());
+		};
+		if (!adjacentStop->isVisible() || !adjacentProceed->isVisible()
+				|| painted(adjacentStop).intersects(painted(adjacentProceed))
+				|| adjacentStop->toolTip().contains("adjacent Proceed")
+				|| adjacentProceed->toolTip().contains("adjacent Stop")) {
+			ok = false;
+			failures << "adjacent-cell 20px Stop/Proceed plates overlap or lose independent identity";
+		}
+		const qreal right = networkView->viewport()->rect().right();
+		auto* edgePrevious = addBoundaryPlate(right - 57.0, 70.0, "edge previous", 0);
+		auto* edgeFull = addBoundaryPlate(right - 29.0, 70.0, "edge full", 180);
+		auto* edgeStrip = addBoundaryPlate(right - 1.0, 70.0, "edge strip", 0);
+		updateSignalCues();
+		const QRectF edgeViewport = networkView->viewport()->rect();
+		SignalItem* edgeGroup = edgeFull->isVisible() ? edgeFull : edgeStrip;
+		if (!edgePrevious->isVisible() || !edgeGroup->isVisible()
+				|| edgeGroup->groupedSignalCount() != 2
+				|| !edgeGroup->toolTip().contains("edge full")
+				|| !edgeGroup->toolTip().contains("edge strip")
+				|| painted(edgePrevious).intersects(painted(edgeGroup))
+				|| !edgeViewport.contains(painted(edgePrevious))
+				|| !edgeViewport.contains(painted(edgeGroup))) {
+			ok = false;
+			failures << "partial edge cell did not merge or neighboring 20px plates overlap";
+		}
+		for (SignalItem* plate : {adjacentStop, adjacentProceed, edgePrevious, edgeFull, edgeStrip})
+			plate->setData(kSignalBaseVisibleRole, false);
+		infoDockWidget->show();
+		signallingInfoWidget->show();
+		QApplication::processEvents();
+		auto* orderedA = addBoundaryPlate(107.0, 70.0, "ordered A", 0);
+		auto* orderedB = addBoundaryPlate(113.0, 70.0, "ordered B", 180);
+		updateSignalCues();
+		displaySignallingInfo(orderedB);
+		QApplication::processEvents();
+		const auto movePlateToDevice = [this](SignalItem* plate, int x) {
+			const QPointF point = networkView->mapToScene(QPoint(x, 70));
+			plate->setData(kSignalAnchorRole, point);
+			plate->setPos(point);
+		};
+		movePlateToDevice(orderedA, 107);
+		movePlateToDevice(orderedB, 113);
+		updateSignalCues();
+		if (!orderedA->isVisible() || !orderedB->isVisible()
+				|| orderedB->graphicsEffect() != effect
+				|| signallingGroupDetails->toPlainText().contains("ordered A")) {
+			ok = false;
+			failures << "selected B was not independently inspectable before pan";
+		}
+		const QPointF camera = networkView->mapToScene(networkView->viewport()->rect().center());
+		const qreal cameraScale = std::hypot(networkView->viewportTransform().m11(),
+			networkView->viewportTransform().m12());
+		networkView->centerOn(camera - QPointF(6.0 / cameraScale, 0.0));
+		updateSignalCues();
+		if (orderedA->isVisible() || !orderedB->isVisible()
+				|| orderedB->groupedSignalCount() != 2
+				|| orderedB->graphicsEffect() != effect
+				|| !signallingGroupDetails->toPlainText().contains("ordered A")
+				|| !signallingGroupDetails->toPlainText().contains("ordered B")) {
+			ok = false;
+			failures << "selected B lost its grouped highlight or inspector after a six-pixel pan";
+		}
+		orderedB->setAspectCode(0);
+		updateSignalCues();
+		if (!orderedB->isVisible() || !signallingGroupDetails->toPlainText().contains("ordered B: right, Stop")
+				|| signallingAspectText->text() != QLatin1String("Stop")) {
+			ok = false;
+			failures << "hidden-member aspect change did not refresh selected B's group inspector";
+		}
+		networkView->centerOn(camera);
+		updateSignalCues();
+		if (!orderedA->isVisible() || !orderedB->isVisible()
+				|| orderedB->groupedSignalCount() != 0
+				|| orderedB->graphicsEffect() != effect
+				|| signallingGroupDetails->toPlainText().contains("ordered A")
+				|| !signallingGroupDetails->toPlainText().contains("ordered B: right, Stop")) {
+			ok = false;
+			failures << "selected B did not recover its independent aspect after the split";
+		}
+		handleCloseInfoDockWidget();
+		infoDockWidget->hide();
+		for (SignalItem* plate : {orderedA, orderedB, adjacentStop, adjacentProceed,
+				edgePrevious, edgeFull, edgeStrip}) {
+			m_signalDecorations.removeAll(plate);
+			scene->removeItem(plate);
+			delete plate;
+		}
+		for (SignalItem* plate : denseSignals) {
+			m_signalDecorations.removeAll(plate);
+			scene->removeItem(plate);
+			delete plate;
+		}
+		for (SignalItem* signal : previousSignals)
+			signal->setData(kSignalBaseVisibleRole, true);
+		updateViewportOverlays();
+		const QPointF switchCoord(253.0, 197.0);
+		paintNode(switchCoord, 0, 2, -1, nullptr);
+		NodeItem* switchDot = nullptr;
+		for (QGraphicsItem* item : scene->items())
+			if (auto* node = qgraphicsitem_cast<NodeItem*>(item))
+				if (!node->node && node->track == -1 && node->rect().center() == switchCoord)
+					switchDot = node;
+		if (!switchDot || switchDot->rect().width() == 0.0 || switchDot->childItems().isEmpty()) {
+			ok = false;
+			failures << "zero-sized switch fixture lost its supplied nonzero topology coordinate";
+		}
+		if (switchDot) {
+			scene->removeItem(switchDot);
+			delete switchDot;
+		}
+	}
 	if (networkView) {
 		const qreal currentRatio = networkView->zoomRatio();
 		if (currentRatio < kSignalDetailZoom)
@@ -12741,16 +13288,16 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "required layer controls are missing";
 	} else {
+		// Checkbox slots run synchronously. Do not deliver unrelated simulation
+		// frames between the ownership counts for this layer-only assertion.
 		const int initialItems = scene ? scene->items().size() : 0;
 		const bool initialTrainVisible = !allTrains.isEmpty() && allTrains.first()->isVisible();
 		trainLayer->setChecked(!trainLayer->isChecked());
-		QApplication::processEvents();
 		if (allTrains.isEmpty() || allTrains.first()->isVisible() == initialTrainVisible) {
 			ok = false;
 			failures << "train layer toggle is not functional";
 		}
 		trainLayer->setChecked(!trainLayer->isChecked());
-		QApplication::processEvents();
 		if (scene && scene->items().size() != initialItems) {
 			ok = false;
 			failures << "train layer toggle changed scene ownership";
@@ -14054,6 +14601,65 @@ void MainWindow::runVisualPolishE2E() {
 	if (m_followTrainIndex != -1) {
 		ok = false;
 		failures << "follow toggle did not clear its train index";
+	}
+
+	// Exercise the real Stop/completion lifecycle after the rendering checks.
+	// Keep a selected operational track so clearing transient states cannot
+	// accidentally clear independent graphics selection. Re-enable delivery
+	// with a unique connection to cover a late queued snapshot as well.
+	if (!m_worker || allArcs.isEmpty()) {
+		ok = false;
+		failures << "operational track lifecycle fixture lost its running scene";
+	} else {
+		TrackLineItem* lifecycleTrack = nullptr;
+		for (TrackLineItem* track : allArcs) {
+			if (track && track->operationalState() != TrackOperationalState::Free) {
+				lifecycleTrack = track;
+				break;
+			}
+		}
+		if (!lifecycleTrack) {
+			ok = false;
+			failures << "operational track lifecycle fixture has no active state";
+		} else {
+			lifecycleTrack->setFlag(QGraphicsItem::ItemIsSelectable, true);
+			lifecycleTrack->setSelected(true);
+			connect(&simulation, &DispatchController::snapshotAvailable,
+				this, &MainWindow::waitForUpdates,
+				static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+			if (ui->actionSimulationStop)
+				ui->actionSimulationStop->trigger();
+			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
+					|| !lifecycleTrack->isSelected()) {
+				ok = false;
+				failures << "Stop did not immediately clear the underlay while preserving selection";
+			}
+			// A delivery already queued at Stop must not restore the underlay.
+			QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
+			QElapsedTimer stopWait;
+			stopWait.start();
+			while (m_worker && stopWait.elapsed() < 15000)
+				QApplication::processEvents(QEventLoop::AllEvents, 20);
+			if (m_worker) {
+				ok = false;
+				failures << "Stop did not complete through the worker lifecycle";
+			}
+			if (!m_completedReplay.empty() || m_replayTimer->isActive()) {
+				ok = false;
+				failures << "Stop retained completed replay";
+			}
+			if (lifecycleTrack->operationalState() != TrackOperationalState::Free)
+				failures << "Stop/completion left a transient operational track state";
+			if (!lifecycleTrack->isSelected())
+				failures << "Stop/completion cleared independent track selection";
+			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
+					|| !lifecycleTrack->isSelected())
+				ok = false;
+			else {
+				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
+				std::fflush(stdout);
+			}
+		}
 	}
 
 	if (ok) {
@@ -17717,13 +18323,13 @@ void MainWindow::runTrackPreviewE2E() {
 			updateViewportOverlays();
 			const QTransform transform = networkView->viewportTransform();
 			for (QGraphicsItem* item : m_signalDecorations) {
-				if (!item || !qgraphicsitem_cast<SignalItem*>(item)
-						|| !item->data(kSignalAnchorRole).isValid())
+				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+				if (!signal || !signal->isVisible() || !item->data(kSignalAnchorRole).isValid())
 					continue;
 				const QPointF anchor = transform.map(item->data(kSignalAnchorRole).toPointF());
 				const QPointF marker = transform.map(item->scenePos());
-				if (qAbs(QLineF(anchor, marker).length() - kPreviewSignalOffsetPixels) > 0.5)
-					fail("signals", "preview signal drifted away from its fixed trackside offset");
+				if (QLineF(anchor, marker).length() > 24.0 || signal->toolTip().isEmpty())
+					fail("signals", "preview signal lost its bounded boundary location or source identity");
 			}
 		}
 		if (previewHasSignalGlyph && m_signalLayerCheck) {
@@ -17948,6 +18554,33 @@ void MainWindow::runTrackPreviewE2E() {
 	}
 	if (structuralOk)
 		marker("E2E_TRACK_PREVIEW_STRUCTURAL_REJECTION_OK");
+
+	// Exercise identity propagation with an authored signal on a real preview
+	// boundary. Render only an in-memory copy; do not change the opened scene.
+	if (m_sceneLoaded) {
+		const TrackPreviewResult source = loadTrackPreview(m_sceneModel);
+		if (source.previewSignals.empty()) {
+			fail("signals", "preview identity fixture has no boundary");
+		} else {
+			SceneModel identified = m_sceneModel;
+			const std::string sectionId = source.previewSignals.front().sectionId;
+			sceneSignals(identified).push_back({"E2E_SIGNAL_PREVIEW_360", sectionId});
+			renderTrackPreview(identified);
+			updateViewportOverlays();
+			const bool inspectable = std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
+				[&](QGraphicsItem* item) {
+					auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+					return signal && signal->isVisible()
+						&& signal->inspectionIdentity().contains("E2E_SIGNAL_PREVIEW_360")
+						&& signal->toolTip().contains("E2E_SIGNAL_PREVIEW_360")
+						&& signal->toolTip().contains(QString::fromStdString(sectionId));
+				});
+			if (!inspectable)
+				fail("signals", "authored preview signal ID and boundary are not inspectable");
+			else
+				marker("E2E_TRACK_PREVIEW_SIGNAL_IDENTITY_OK");
+		}
+	}
 
 	if (ok) {
 		std::fprintf(stdout, "E2E_TRACK_PREVIEW_OK\n");
@@ -19609,7 +20242,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		if (!blocking
 				|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
 				|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
-			fail(QStringLiteral("blocking-time exports were not driven through the public diagram"));
+			fail(QString("blocking-time exports were not driven through the public diagram (window %1)")
+				.arg(blocking ? "present" : "absent"));
 			return;
 		}
 		QPushButton* summaryCsv = findChild<QPushButton*>("resultView_ExportCSV");
@@ -19845,6 +20479,17 @@ void MainWindow::runCreatorAcceptanceE2E() {
 	}
 }
 
+void MainWindow::clearReplay() {
+	if (m_replayTimer) m_replayTimer->stop();
+	if (m_replayPlayButton) m_replayPlayButton->setText("Play");
+	if (m_replayBar) m_replayBar->hide();
+	m_replayActive = false;
+	if (m_replaySlider) m_replaySlider->setEnabled(true);
+	if (m_replayPlayButton) m_replayPlayButton->setEnabled(true);
+	m_completedReplay.clear();
+	simulation.resetReplayCandidate();
+}
+
 void MainWindow::clearSimulationWorker(bool requestStop) {
 	if (m_worker && requestStop)
 		m_worker->requestStop();
@@ -19852,6 +20497,12 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 		m_workerThread->quit();
 		m_workerThread->wait();
 	}
+	// The mailbox can still contain the last worker publication after the
+	// thread has stopped. Drop it with the other transient playback state so a
+	// queued snapshotAvailable callback cannot repaint an old run.
+	simulation.takeSimulationSnapshot();
+	clearOperationalTrackStates();
+	// Retain the final frame for passenger inspection until scene teardown.
 	m_worker = nullptr;
 	m_workerThread = nullptr;
 	// Pause and Stop only mean something while a worker exists.
@@ -19885,6 +20536,7 @@ void MainWindow::stopTrainAnimations() {
 
 // setup GUI
 void MainWindow::setupGUI() {
+	m_showingTrackPreview = false;
 
 	// initialize qpoints
 	QPointF pt, pt_prev, ptc, pts, pte;
@@ -21178,6 +21830,7 @@ void MainWindow::startSimulation() {
 	if (m_worker)
 		return; // already running
 
+	clearReplay();
 	// show progress bar
 	progressBar->show();
 	statusBar()->showMessage("Simulation running...");
@@ -21222,6 +21875,7 @@ void MainWindow::onSimulationFinished() {
 	}
 	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
 	m_sceneChangedDuringRun = false;
+	const bool stopped = m_worker && m_worker->isStopRequested();
 	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
 	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed") : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
@@ -21247,6 +21901,42 @@ void MainWindow::onSimulationFinished() {
 	}
 	m_pendingRunProvenance = RunProvenance();
 	refreshLoadedDataTree();
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
+		bool ok = m_resultsAvailable && numRegions > 0;
+		if (ok) {
+			const int reference = regional_train[0].indexOfRoute;
+			buildRouteDiagram(false, reference);
+			buildRouteDiagram(true, reference);
+			QApplication::processEvents();
+			const auto windows = findChildren<DiagramWindow*>();
+			ok = windows.size() == 2;
+			for (DiagramWindow* window : windows) {
+				auto* view = window->findChild<QChartView*>();
+				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
+				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
+				ok &= clock && clock->isReverse() && clock->min() == 0
+					&& clock->categoriesLabels().contains(QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)));
+				ok &= view && !view->chart()->axes(Qt::Horizontal).isEmpty();
+				if (view) {
+					for (auto* abstractSeries : view->chart()->series()) {
+						auto* line = qobject_cast<QLineSeries*>(abstractSeries);
+						if (line && ((window->windowTitle().startsWith("Timetable")
+							&& !line->name().contains("dwell")) || line->count() == 1))
+							ok &= line->pointsVisible();
+					}
+					const QString file = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/"
+						+ (window->windowTitle().startsWith("Timetable") ? "timetable_graph" : "train_path_graph") + ".png";
+					ok &= view->grab().save(file);
+				}
+			}
+		}
+		std::fprintf(ok ? stdout : stderr, ok ? "E2E_ROUTE_DIAGRAM_OK\n" : "E2E_ROUTE_DIAGRAM_FAIL\n");
+		std::fflush(ok ? stdout : stderr);
+		clearSimulationWorker(false);
+		QCoreApplication::exit(ok ? 0 : 2);
+		return;
+	}
 
 	// verification hook: write every CSV export from the completed run, then exit
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")) {
@@ -21307,20 +21997,467 @@ void MainWindow::onSimulationFinished() {
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
+	if (m_resultsAvailable && !stopped) {
+		m_completedReplay = simulation.takeReplayCandidate();
+		if (!m_completedReplay.empty()) {
+			m_replayRequestedTime = m_completedReplay.lastTime();
+			const QSignalBlocker blocker(m_replaySlider);
+			m_replaySlider->setRange(m_completedReplay.firstTime(), m_completedReplay.lastTime());
+			m_replaySlider->setValue(m_replayRequestedTime);
+			m_replayLabel->setText(QString("Replay available: %1–%2 s | every %3 s%4")
+				.arg(m_completedReplay.firstTime()).arg(m_completedReplay.lastTime())
+				.arg(GuiReplayHistory::cadenceSeconds)
+				.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+			m_replayBar->show();
+		} else if (m_completedReplay.oversize()) {
+			m_replayLabel->setText("Replay unavailable: one frame exceeded the 64 MiB payload budget");
+			m_replayBar->show();
+			m_replaySlider->setEnabled(false);
+			m_replayPlayButton->setEnabled(false);
+		}
+	} else simulation.resetReplayCandidate();
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
 	processTrainUnitSourceChanges();
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
+		const QStringList labels = m_networkLegendWidget ? m_networkLegendWidget->entryLabels() : QStringList();
+		const bool preview = sceneChangedDuringRun && m_runtimeStatus == QStringLiteral("Failed")
+			&& m_completedReplay.empty() && !m_replayBar->isVisible()
+			&& m_showingTrackPreview && !m_worker && !m_resultsAvailable
+			&& labels.contains(QStringLiteral("Local track"))
+			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
+			&& !labels.contains(QStringLiteral("Permissive signalling"))
+			&& !labels.contains(QStringLiteral("Occupied section"));
+		std::fprintf(preview ? stdout : stderr, preview
+			? "E2E_OPERATIONAL_DISCARD_OK\n" : "E2E_OPERATIONAL_DISCARD_FAIL: preview legend\n");
+		std::fflush(preview ? stdout : stderr);
+		QCoreApplication::exit(preview ? 0 : 2);
+		return;
+	}
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_COMPLETION")) {
+		const bool clean = m_runtimeStatus == QStringLiteral("Completed") && m_snapshot
+			&& (m_operationalLifecycleE2eCompletions == 0
+				|| m_snapshot != m_operationalLifecycleE2eFirstFrame)
+			&& std::all_of(allArcs.cbegin(), allArcs.cend(), [](const TrackLineItem* track) {
+				return !track || track->operationalState() == TrackOperationalState::Free;
+			});
+		if (!clean || ++m_operationalLifecycleE2eCompletions > 2) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: final frame or overlay cleanup\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		// Completion must not activate historical overlays before an explicit seek.
+		const bool replayAvailable = !m_completedReplay.empty() && m_replayBar->isVisible()
+			&& !m_replayActive && m_completedReplay.lastTime() >= m_completedReplay.firstTime();
+		if (!replayAvailable) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: replay unavailable or automatically activated\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		const int first = m_completedReplay.firstTime();
+		const int last = m_completedReplay.lastTime();
+		const int middle = first + (last - first) / 2;
+		const RunResults completedResults = m_completedRunResults;
+		const auto completedTimetable = m_completedTimetableResults;
+		m_replaySlider->setValue(middle);
+		const auto expected = m_completedReplay.atOrBefore(middle);
+		const auto analyticsUnchanged = [this, &completedResults, &completedTimetable]() {
+			const auto sameValues = [](std::initializer_list<std::pair<RunResultValue, RunResultValue>> values) {
+				return std::all_of(values.begin(), values.end(), [](const auto& pair) {
+					return pair.first.available == pair.second.available
+						&& pair.first.value == pair.second.value;
+				});
+			};
+			const auto& now = m_completedRunResults;
+			if (now.trains.size() != completedResults.trains.size()
+					|| m_completedTimetableResults.size() != completedTimetable.size()
+					|| !sameValues({{now.networkStartSeconds, completedResults.networkStartSeconds},
+						{now.networkEndSeconds, completedResults.networkEndSeconds},
+						{now.networkTravelSeconds, completedResults.networkTravelSeconds},
+						{now.energyConsumedKWh, completedResults.energyConsumedKWh},
+						{now.energyWithRegenKWh, completedResults.energyWithRegenKWh},
+						{now.substationKWh, completedResults.substationKWh},
+						{now.substationWithRegenKWh, completedResults.substationWithRegenKWh}})) return false;
+			for (std::size_t i = 0; i < now.trains.size(); ++i) {
+				const auto& a = now.trains[i];
+				const auto& b = completedResults.trains[i];
+				if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
+						|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
+						|| a.performancePercent != b.performancePercent
+						|| a.hasConfiguredMaximumSpeed != b.hasConfiguredMaximumSpeed
+						|| a.configuredMaximumSpeedKmh != b.configuredMaximumSpeedKmh
+						|| a.compositionMaximumSpeedMs != b.compositionMaximumSpeedMs
+						|| a.appliedMaximumSpeedMs != b.appliedMaximumSpeedMs
+						|| a.appliedMaximumSpeedKmh != b.appliedMaximumSpeedKmh
+						|| a.directIncidentIds != b.directIncidentIds
+						|| a.destinationTerminationRequested != b.destinationTerminationRequested
+						|| a.destinationTerminated != b.destinationTerminated
+						|| !sameValues({{a.startSeconds, b.startSeconds}, {a.endSeconds, b.endSeconds},
+							{a.travelSeconds, b.travelSeconds}, {a.energyConsumedKWh, b.energyConsumedKWh},
+							{a.energyWithRegenKWh, b.energyWithRegenKWh},
+							{a.substationKWh, b.substationKWh},
+							{a.substationWithRegenKWh, b.substationWithRegenKWh},
+							{a.firstDirectIncidentTime, b.firstDirectIncidentTime},
+							{a.firstDirectIncidentLocation, b.firstDirectIncidentLocation}})) return false;
+			}
+			for (std::size_t i = 0; i < completedTimetable.size(); ++i) {
+				const auto& a = m_completedTimetableResults[i];
+				const auto& b = completedTimetable[i];
+				if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
+						|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
+						|| a.stationId != b.stationId || a.journeyIndex != b.journeyIndex
+						|| a.callIndex != b.callIndex
+						|| !sameValues({{a.plannedArrivalSeconds, b.plannedArrivalSeconds},
+							{a.plannedDepartureSeconds, b.plannedDepartureSeconds},
+							{a.simulatedArrivalSeconds, b.simulatedArrivalSeconds},
+							{a.simulatedDepartureSeconds, b.simulatedDepartureSeconds},
+							{a.arrivalDelaySeconds, b.arrivalDelaySeconds},
+							{a.departureDelaySeconds, b.departureDelaySeconds}})) return false;
+			}
+			return true;
+		};
+		const auto coherent = [this, &analyticsUnchanged](const std::shared_ptr<const GuiSimulationSnapshot>& frame) {
+			if (!analyticsUnchanged()) return false;
+			if (m_snapshot != frame) return false;
+			for (const auto& state : frame->trains) {
+				TrainItemGroup* item = resolveTrainItem(state.index);
+				TrainBadgeItem* badge = m_trainBadges.value(state.index, nullptr);
+				if (!guiReplayTrainHasPosition(state, frame->timestep)) {
+					if ((item && item->isVisible()) || (badge && badge->isVisible())) return false;
+					continue;
+				}
+				if (!item || !item->trainPolygonItemList) return false;
+				bool drawable = false;
+				for (int wagon = 0; wagon <= state.wagonCount; ++wagon) {
+					QPolygonF expectedPolygon;
+					getTrainPolygon(&expectedPolygon, wagon, state);
+					if (wagon >= item->trainPolygonItemList->size()
+							|| item->trainPolygonItemList->at(wagon)->polygon() != expectedPolygon)
+						return false;
+					drawable |= !expectedPolygon.isEmpty();
+				}
+				if (drawable && (!item->isVisible() || !badge || !badge->isVisible())) return false;
+			}
+			for (const auto& signal : frame->signalStates) {
+				auto it = m_signalsByAheadId.find(signal.sectionId);
+				if (it == m_signalsByAheadId.end()) continue;
+				for (const auto* item : it->second)
+					if (item && item->reversedDirection == signal.reversedDirection
+							&& item->aspectCode() != signal.code) return false;
+			}
+			for (const auto& section : frame->sectionStates) {
+				auto it = m_tracksBySectionId.find(section.sectionId);
+				if (it == m_tracksBySectionId.end()) continue;
+				for (auto* track : it->second)
+					if (track && section.blocked && track->operationalState() != TrackOperationalState::Blocked)
+						return false;
+			}
+			return m_trainAnimations.isEmpty();
+		};
+		if (!coherent(expected)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: middle replay incoherent\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		m_replaySlider->setFocus();
+		QKeyEvent right(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
+		QApplication::sendEvent(m_replaySlider, &right);
+		const bool keyboardSeek = m_replayRequestedTime == middle + 1;
+		QWheelEvent wheel(QPointF(m_replaySlider->rect().center()),
+			QPointF(m_replaySlider->mapToGlobal(m_replaySlider->rect().center())),
+			QPoint(), QPoint(0, 120), Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+		QApplication::sendEvent(m_replaySlider, &wheel);
+		const bool wheelSeek = m_replayRequestedTime != middle + 1;
+		seekReplay(first);
+		const QPoint replayClick(m_replaySlider->width() - 8, m_replaySlider->height() / 2);
+		QMouseEvent click(QEvent::MouseButtonPress, replayClick,
+			Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QApplication::sendEvent(m_replaySlider, &click);
+		const bool mouseSeek = m_replayRequestedTime > first;
+		QMouseEvent release(QEvent::MouseButtonRelease, replayClick,
+			Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(m_replaySlider, &release);
+		seekReplay(first);
+		if (!keyboardSeek || !wheelSeek || !mouseSeek
+				|| !coherent(m_completedReplay.atOrBefore(first))) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: beginning replay incoherent (key=%d wheel=%d mouse=%d frame=%d)\n",
+				keyboardSeek, wheelSeek, mouseSeek, coherent(m_completedReplay.atOrBefore(first)));
+			QCoreApplication::exit(2);
+			return;
+		}
+		const auto firstFrame = m_completedReplay.atOrBefore(first);
+		const auto future = std::find_if(firstFrame->trains.cbegin(), firstFrame->trains.cend(),
+			[first, last](const GuiTrainState& state) {
+				return state.departureTime > first && state.departureTime < last;
+			});
+		if (future == firstFrame->trains.cend()) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no future departure fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		{
+			setFollowTrain(future->index);
+			const bool waiting = m_followTrainIndex == future->index
+				&& statusBar()->currentMessage().contains("waiting for departure")
+				&& std::none_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+					[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			TrainItemGroup* followed = resolveTrainItem(future->index);
+			if (!waiting || !followed || !followed->isVisible()
+					|| m_followTrainIndex != future->index) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: historical Follow\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			setFollowTrain(-1);
+		}
+		seekReplay(future->departureTime - 1);
+		m_trainLayerCheck->setChecked(false);
+		m_trainLayerCheck->setChecked(true);
+		if (auto* item = resolveTrainItem(future->index); !item || item->isVisible()
+				|| !m_trainBadges.value(future->index)
+				|| m_trainBadges.value(future->index)->isVisible()) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: layer restored future train or lost fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		std::shared_ptr<const GuiSimulationSnapshot> activeFrame;
+		int activeIndex = -1;
+		for (int time = first; time <= last && activeIndex < 0; time += GuiReplayHistory::cadenceSeconds) {
+			const auto frame = m_completedReplay.atOrBefore(time);
+			for (const auto& train : frame->trains) {
+				if (!guiReplayTrainHasPosition(train, frame->timestep)) continue;
+				QPolygonF polygon;
+				getTrainPolygon(&polygon, 0, train);
+				if (polygon.isEmpty()) continue;
+				activeFrame = frame;
+				activeIndex = train.index;
+				break;
+			}
+		}
+		if (!activeFrame) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no drawable active train fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		seekReplay(activeFrame->timestep);
+		if (!resolveTrainItem(activeIndex) || !resolveTrainItem(activeIndex)->isVisible()
+				|| !coherent(activeFrame)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: active train missing\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		// Simulate a later exit without changing immutable history, then seek back.
+		auto exitedFrame = std::make_shared<GuiSimulationSnapshot>(*activeFrame);
+		for (auto& state : exitedFrame->trains)
+			if (state.index == activeIndex) {
+				state.outOfSimulation = true;
+				state.occupiedArcs.clear();
+			}
+		m_snapshot = exitedFrame;
+		renderSnapshot(true);
+		const bool hiddenAtExit = !resolveTrainItem(activeIndex)->isVisible();
+		seekReplay(activeFrame->timestep);
+		if (!hiddenAtExit || !resolveTrainItem(activeIndex)
+				|| !resolveTrainItem(activeIndex)->isVisible() || !coherent(activeFrame)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: exited train did not return at sampled geometry\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		TrainBodyItem* bodySelection = resolveTrainBodyItem(activeIndex);
+		if (!bodySelection) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no train inspector fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		displayTrainDetails(bodySelection, false);
+		seekReplay(last);
+		seekReplay(activeFrame->timestep);
+		if (m_selectedTrainIndex != activeIndex || !trainInfoWidget->isVisible()
+				|| !resolveTrainItem(activeIndex)->graphicsEffect()) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: train inspection lost\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		if (initial_variables.PAX_GUI) {
+			if (trainPaxItem != resolveTrainItem(activeIndex) || !trainPaxInfoItem
+					|| !trainPaxInfoItem->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no passenger inspection fixture\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			handleCloseInfoDockWidget();
+			seekReplay(activeFrame->timestep + GuiReplayHistory::cadenceSeconds);
+			if (trainPaxItem || trainPaxInfoItem) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: closed passenger inspection returned\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			TrainBodyItem* futureBody = resolveTrainBodyItem(future->index);
+			if (!futureBody) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: future passenger train missing\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			displayTrainDetails(futureBody, false);
+			TrainItemGroup* futureTarget = resolveTrainItem(future->index);
+			seekReplay(future->departureTime - 1);
+			if (trainPaxItem != futureTarget || trainPaxInfoItem) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: temporary absence lost target\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			if (trainPaxItem != futureTarget || !trainPaxInfoItem || !trainPaxInfoItem->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: passenger inspection did not return\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			m_passengerLayerCheck->setChecked(false);
+			seekReplay(future->departureTime - 1);
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+			if (trainPaxItem != futureTarget || trainPaxInfoItem) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: disabled passenger layer repainted overlay\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			m_passengerLayerCheck->setChecked(true);
+		}
+		seekReplay(middle);
+		if (!coherent(expected)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: end-to-middle replay or analytics incoherent\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		StationOverlayItem* stationSelection = nullptr;
+		for (auto* overlay : m_stationOverlays)
+			if (overlay && overlay->hasSourceIdentity()
+					&& resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack())) {
+				stationSelection = overlay;
+				break;
+			}
+		if (!stationSelection) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no station selection fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		displayStationNodeInfo(resolveStationNodeItem(
+			stationSelection->sourceNodeId(), stationSelection->sourceTrack()));
+		seekReplay(first);
+		if (!stationSelection->isSelected() || !m_hasSelectedStationIdentity
+				|| !infoDockWidget->isVisible()
+				|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: station selection lost\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		SignalItem* signalSelection = nullptr;
+		for (auto* decoration : m_signalDecorations)
+			if (auto* signal = qgraphicsitem_cast<SignalItem*>(decoration);
+							signal && signal->groupedSignalCount() > 1) {
+				signalSelection = signal;
+				break;
+			}
+		if (!signalSelection) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no grouped signal inspection fixture\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		displaySignallingInfo(signalSelection);
+		seekReplay(middle);
+		m_replayTimer->start();
+		const bool timerDelivered = QMetaObject::invokeMethod(m_replayTimer, "timeout");
+		m_replayTimer->stop();
+		const SignalCueKind inspectedCue = classifySignalCue(signalSelection->aspectCode());
+		const QString inspectedAspect = inspectedCue == SignalCueKind::Stop ? QStringLiteral("Stop")
+			: inspectedCue == SignalCueKind::Caution ? QStringLiteral("Caution")
+			: inspectedCue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+		if (!timerDelivered || m_inspectedSignal != signalSelection
+				|| !signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
+				|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))
+				|| signallingGroupDetails->toPlainText().isEmpty()
+				|| signallingAspectText->text() != inspectedAspect
+				|| !coherent(m_completedReplay.atOrBefore(m_replayRequestedTime))) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: signal inspection lost on seek/play (timer=%d selected=%d visible=%d effect=%d details=%d coherent=%d)\n",
+				timerDelivered, m_inspectedSignal == signalSelection, signallingInfoWidget->isVisible(),
+				signalSelection->graphicsEffect() != nullptr, !signallingGroupDetails->toPlainText().isEmpty(),
+				coherent(m_completedReplay.atOrBefore(m_replayRequestedTime)));
+			QCoreApplication::exit(2);
+			return;
+		}
+		const auto selectedFrame = m_snapshot;
+		QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
+		QTimer::singleShot(0, this, [this, selectedFrame]() {
+			if (m_snapshot != selectedFrame || simulation.takeSimulationSnapshot()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: late notification\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			if (m_operationalLifecycleE2eCompletions == 1) {
+				m_operationalLifecycleE2eFirstFrame = selectedFrame;
+				m_replayTimer->start();
+				runCurrent();
+				if (!m_worker || m_replayTimer->isActive() || !m_completedReplay.empty()) {
+					std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: rerun retained replay\n");
+					QCoreApplication::exit(2);
+				}
+				return;
+			}
+			const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
+			if (m_sceneModel.scenarios.empty()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no scenario fixture\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			auto alternate = m_sceneModel.scenarios.front();
+			alternate.id = "__replay_e2e_alternate__";
+			m_sceneModel.scenarios.push_back(alternate);
+			m_replayTimer->start();
+			selectScenario(static_cast<int>(m_sceneModel.scenarios.size()) - 1);
+			if (m_replayTimer->isActive() || !m_completedReplay.empty() || m_snapshot
+					|| !m_showingTrackPreview || !allTrains.isEmpty() || !m_activeTrackItems.empty()
+					|| m_followTrainIndex >= 0 || m_replayBar->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: scenario retained historical graphics\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
+			m_replayTimer->start();
+			if (!openSceneDirectory(scenePath) || m_snapshot || m_worker || !allArcs.isEmpty()
+					|| m_replayTimer->isActive() || !m_completedReplay.empty()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+			QTimer::singleShot(0, this, [this]() {
+				if (m_snapshot || simulation.takeSimulationSnapshot()) {
+					std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: stale case notification\n");
+					QCoreApplication::exit(2);
+					return;
+				}
+				std::fprintf(stdout, "E2E_OPERATIONAL_COMPLETION_OK\n");
+				std::fflush(stdout);
+				QCoreApplication::exit(0);
+			});
+		});
+	}
 }
 
 void MainWindow::teardownGUI() {
+	m_showingTrackPreview = true;
 	// Stop any running simulation before clearing scene objects it may reference.
 	clearSimulationWorker(true);
+	clearReplay();
 	progressBar->hide();
 
 	stopTrainAnimations();
 
 	// Clearing the scene deletes all owned QGraphicsItems.
+	m_inspectedSignal = nullptr;
 	scene->clear();
 
 	// Clear list pointers - the items were owned by the scene and are now deleted.
@@ -21635,6 +22772,11 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	QRectF rect = QRectF(0, 0, size, size);
 	rect.moveCenter(coord);
 
+	// Historical zero-size double-switch dots vanish at Fit; keep a device-visible minimum.
+	if (size == 0) {
+		rect = QRectF(0.0, 0.0, 4.0, 4.0);
+		rect.moveCenter(coord);
+	}
 	NodeItem* el = new NodeItem(rect);
 	el->setPen(pen);
 	el->setBrush(Qt::lightGray);
@@ -21649,7 +22791,8 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 
 // draws a station Node
 void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node) {
-	StationVisual visual = classifyStation();
+	const bool hasPlatform = Node && !Node->stationPlatformId.empty() && Node->stationPlatformId != "None";
+	StationVisual visual = classifyStation(hasPlatform, Node ? Node->numConnections : 0);
 	QPen pen = QPen(visual.outline);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
@@ -21858,6 +23001,8 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	if (!passenger.nextDestination.empty()) {
 		ss << "\nNext destination: " << passenger.nextDestination;
 	}
+	if (m_replayActive)
+		ss << "\nReplay: journey details unavailable";
 
 	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
@@ -21900,7 +23045,7 @@ void MainWindow::paintArc(QPointF start, QPointF end, int pen_width, int track, 
 
 // Arc drawing
 void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track, Arc* Arc) {
-	TrackVisual visual = freeTrackVisual();
+	TrackVisual visual = classifyTrackSpeed(Arc ? Arc->speedLimit : 0.0);
 	QPen pen = QPen(visual.color);
 	pen.setWidth(std::max(pen_width, visual.width));
 	pen.setCosmetic(true);
@@ -21923,9 +23068,8 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 
 // draws a connection
 void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection) {
-	const TrackVisual visual = freeTrackVisual();
-	QPen pen(visual.color);
-	pen.setWidth(std::max(pen_width, visual.width));
+	QPen pen(Qt::white);
+	pen.setWidth(pen_width);
 	pen.setCosmetic(true);
 
 	// draws a line from start to end with a given line width
@@ -21995,7 +23139,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	QPen penPlate = QPen();
 	penPlate.setWidth(0);
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
-	const qreal markerSize = static_cast<qreal>(size) * 0.6;
+	const qreal markerSize = std::max<qreal>(8.0, size);
 	QRectF rect = QRectF(0, 0, markerSize, markerSize);
 	rect.moveCenter(QPointF(0.0, 0.0));
 
@@ -22010,6 +23154,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	SignalItem* plate1 = new SignalItem(rect);
 	plate1->setZValue(3);
 	plate1->setPos(QPointF(plateCenterX, plateCenterY));
+	plate1->setData(kSignalAnchorRole, plate1->pos());
 	plate1->setPen(penPlate);
 	plate1->setBrush(Qt::green);
 	plate1->setAspectCode(180);
@@ -22063,6 +23208,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	SignalItem* plate2 = new SignalItem(rect);
 	plate2->setZValue(3);
 	plate2->setPos(QPointF(plateCenterX, plateCenterY));
+	plate2->setData(kSignalAnchorRole, plate2->pos());
 	plate2->setPen(penPlate);
 	plate2->setBrush(Qt::green);
 	plate2->setAspectCode(180);
@@ -22480,6 +23626,11 @@ void MainWindow::setupInfoDockWidget() {
 	signallingProtectedSectionText->setObjectName("signallingProtectedSectionText");
 	signallingNextTrackText = new QLineEdit(signallingInfoWidget);
 	signallingNextTrackText->setObjectName("signallingNextTrackText");
+	signallingGroupDetails = new QPlainTextEdit(signallingInfoWidget);
+	signallingGroupDetails->setObjectName("signallingGroupDetails");
+	signallingGroupDetails->setReadOnly(true);
+	signallingGroupDetails->setMaximumHeight(120);
+	signallingGroupDetails->setWordWrapMode(QTextOption::NoWrap);
 	signallingFormLayout = new QFormLayout();
 	signallingFormLayout->addRow("Track ID", signallingTrackIDText);
 	signallingFormLayout->addRow("X (m)", signallingXText);
@@ -22488,6 +23639,7 @@ void MainWindow::setupInfoDockWidget() {
 	signallingFormLayout->addRow("Aspect", signallingAspectText);
 	signallingFormLayout->addRow("Protected section", signallingProtectedSectionText);
 	signallingFormLayout->addRow("Next track", signallingNextTrackText);
+	signallingFormLayout->addRow("Signals at location", signallingGroupDetails);
 	signallingInfoWidget->setLayout(signallingFormLayout);
 
 	// train info widget
@@ -22543,6 +23695,7 @@ void MainWindow::handleHelpAbout() {
 // hides all widgets from the dock widget
 // removes highlight from last clicked item
 void MainWindow::handleCloseInfoDockWidget() {
+	m_inspectedSignal = nullptr;
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
 	m_selectedStationNodeId = 0.0;
@@ -22559,6 +23712,7 @@ void MainWindow::handleCloseInfoDockWidget() {
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
 	removeTrainPaxInfoIcon();
+	trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
 	removePaxInfoIcon();
 
 	// remove highlight
@@ -22682,7 +23836,7 @@ void MainWindow::displayArcInfo(TrackLineItem* line) {
 	const auto operationalStateName = [](TrackOperationalState state) {
 		switch (state) {
 			case TrackOperationalState::Prepared:
-				return QStringLiteral("Prepared");
+				return QStringLiteral("Permissive signalling");
 			case TrackOperationalState::Occupied:
 				return QStringLiteral("Occupied");
 			case TrackOperationalState::Blocked:
@@ -22775,6 +23929,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	if (!signal)
 		return;
 	handleCloseInfoDockWidget();
+	m_inspectedSignal = signal;
 
 	// update signalling info displayed on widget
 	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
@@ -22793,6 +23948,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 		}
 	};
 	signallingAspectText->setText(aspectName(signal->aspectCode()));
+	signallingGroupDetails->setPlainText(signal->toolTip());
 	const std::string protectedSection = !signal->sectionAheadId.empty()
 		? signal->sectionAheadId
 		: signal->sectionBehindId;
@@ -22831,6 +23987,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 		effect = new HighlightEffect(Qt::blue, 1);
 	}
 	signal->setGraphicsEffect(effect);
+	updateSignalCues();
 }
 
 void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode) {
@@ -22855,10 +24012,9 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 	removeTrainPaxInfoIcon();
 	removePaxInfoIcon();
 
-	// show pax info
-	if (initial_variables.PAX_GUI) {
+	// show pax info only while its layer is enabled
+	if (initial_variables.PAX_GUI && m_passengerLayerVisible)
 		paintTrainPassengerInfo(groupItem);
-	}
 
 	// show widget
 	infoDockWidget->setWindowTitle("Train Info");
@@ -23235,10 +24391,22 @@ void MainWindow::updateTimeline(int timestep, int totalTimesteps) {
 
 void MainWindow::waitForUpdates() {
 	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery", "gui", "");
+	// A queued notification can outlive its worker or arrive after Stop. Drain
+	// the mailbox, but never apply that late publication to the current scene.
+	if (!m_worker || m_runtimeStatus != QStringLiteral("Running")
+			|| m_worker->isStopRequested()) {
+		simulation.takeSimulationSnapshot();
+		return;
+	}
 	const auto snapshot = simulation.takeSimulationSnapshot();
 	if (!snapshot)
 		return;
 	m_snapshot = snapshot;
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")
+			&& !m_sceneChangedDuringRun && m_caseDescriptionEdit) {
+		m_caseDescriptionEdit->setText(QStringLiteral("discarded operational run"));
+		commitCaseSettings();
+	}
 	PlaybackProfiler::instance().noteDelivery();
 	const int timestep = snapshot->timestep;
 	static bool autostartProgressReported = false;
@@ -23253,40 +24421,8 @@ void MainWindow::waitForUpdates() {
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
 	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
-		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame", "gui", "gui/snapshot_delivery");
 		PlaybackProfiler::instance().noteRenderedUpdate();
-		{
-			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/signalling", "gui",
-				"gui/snapshot_delivery/render_frame");
-			updateSignalling();
-		}
-		{
-			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_position", "gui",
-				"gui/snapshot_delivery/render_frame");
-			updateTrainPosition(timestep);
-		}
-
-		// pax info
-		if (initial_variables.PAX_GUI) {
-			{
-				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/platforms", "gui",
-					"gui/snapshot_delivery/render_frame");
-				updatePlatforms(timestep);
-			}
-			{
-				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/passenger_icons", "gui",
-					"gui/snapshot_delivery/render_frame");
-				updatePaxIconInfo();
-			}
-			{
-				QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_passenger_info", "gui",
-					"gui/snapshot_delivery/render_frame");
-				updateTrainPaxInfo();
-			}
-		}
-		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
-			runVisualPolishE2E();
-
+		renderSnapshot(false);
 		m_lastRenderMs = now;
 	}
 
@@ -23313,12 +24449,81 @@ void MainWindow::waitForUpdates() {
 	}
 }
 
+void MainWindow::seekReplay(int requestedTime) {
+	if (m_completedReplay.empty() || m_worker) return;
+	m_replayRequestedTime = qBound(m_completedReplay.firstTime(), requestedTime, m_completedReplay.lastTime());
+	const auto frame = m_completedReplay.atOrBefore(m_replayRequestedTime);
+	if (!frame) return;
+	m_replayActive = true;
+	// Passenger journey inspection is not historical. Retain train, station and
+	// signal selection; the shared renderer refreshes their frame-derived values.
+	removePaxInfoIcon();
+	paxIconItem = nullptr;
+	stopTrainAnimations();
+	m_prevTrainPositions.clear();
+	m_snapshot = frame;
+	{
+		const QSignalBlocker blocker(m_replaySlider);
+		m_replaySlider->setValue(m_replayRequestedTime);
+	}
+	m_replayLabel->setText(QString("Replay %1 s | available %2–%3 s | every %4 s%5")
+		.arg(frame->timestep).arg(m_completedReplay.firstTime()).arg(m_completedReplay.lastTime())
+		.arg(GuiReplayHistory::cadenceSeconds)
+		.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+	renderSnapshot(true);
+	if (trainPaxItem && !replayTrainHasPosition(trainPaxItem->index))
+		removeTrainPaxInfoIcon();
+	else if (trainPaxItem && !trainPaxInfoItem && initial_variables.PAX_GUI
+			&& m_passengerLayerVisible)
+		paintTrainPassengerInfo(trainPaxItem);
+	updateViewportOverlays();
+}
+
+void MainWindow::renderSnapshot(bool historical) {
+	if (!m_snapshot) return;
+	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame", "gui", "gui/snapshot_delivery");
+
+	{
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/signalling", "gui",
+			"gui/snapshot_delivery/render_frame");
+		updateSignalling();
+	}
+	{
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_position", "gui",
+			"gui/snapshot_delivery/render_frame");
+		updateTrainPosition(m_snapshot->timestep);
+	}
+
+	// pax info
+	if (initial_variables.PAX_GUI) {
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/platforms", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updatePlatforms(m_snapshot->timestep);
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/passenger_icons", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updatePaxIconInfo();
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_passenger_info", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updateTrainPaxInfo();
+		}
+	}
+
+	if (!historical && qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && !m_e2eFinished && !allTrains.isEmpty())
+		runVisualPolishE2E();
+}
+
 // slot to update signal aspects
 void MainWindow::updateSignalling() {
 	if (!m_snapshot)
 		return;
 	for (const GuiSignalState& signal : m_snapshot->signalStates)
 		updateSignalAspect(signal.sectionId, signal.code, signal.reversedDirection);
+	updateSignalCues();
 }
 
 // slot to update passenger counter at platforms
@@ -23461,7 +24666,7 @@ void MainWindow::updateBlockOccupationStatus(const GuiTrainState& train) {
 	}
 }
 
-void MainWindow::releaseBlockOccupationStatus() {
+void MainWindow::clearOperationalTrackStates() {
 	for (auto* track : m_activeTrackItems)
 		if (track)
 			track->setOperationalState(TrackOperationalState::Free);
@@ -23487,7 +24692,7 @@ void MainWindow::updateTrainPosition(int t) {
 		if (group)
 			group->setVisible(false);
 	// update every train
-	releaseBlockOccupationStatus();
+	clearOperationalTrackStates();
 	const auto applySectionState = [this](const GuiSectionState& state, TrackOperationalState visualState) {
 		if (!state.prepared && visualState == TrackOperationalState::Prepared)
 			return;
@@ -23507,7 +24712,8 @@ void MainWindow::updateTrainPosition(int t) {
 		if (state.prepared)
 			applySectionState(state, TrackOperationalState::Prepared);
 	for (const GuiTrainState& state : m_snapshot->trains)
-		updateBlockOccupationStatus(state);
+		if (!m_replayActive || guiReplayTrainHasPosition(state, t))
+			updateBlockOccupationStatus(state);
 	for (const GuiTrainState& state : m_snapshot->trains) {
 		const int train = state.index;
 		// Throttled delivery can skip the whole visible lifetime of a train.
@@ -23529,9 +24735,13 @@ void MainWindow::updateTrainPosition(int t) {
 			trainItem->outOfSimulation = state.outOfSimulation;
 			trainItem->currentOnboardPassengers = state.currentOnboardPassengers;
 			trainItem->maxOnboardPassengers = state.maxOnboardPassengers;
-			trainItem->setVisible(m_trainLayerVisible && !state.outOfSimulation);
+			const bool hasPosition = guiReplayTrainHasPosition(state, t);
+			trainItem->setVisible(m_trainLayerVisible && (m_replayActive
+				? hasPosition : !state.outOfSimulation));
+			if (m_replayActive && !hasPosition && m_trainBadges.contains(train))
+				m_trainBadges[train]->hide();
 			// update train position
-			if (!state.outOfSimulation) {
+			if (!state.outOfSimulation && (!m_replayActive || hasPosition)) {
 				// Capture the currently displayed center before replacing the polygons.
 				// An interrupted animation leaves a temporary group offset that must
 				// not become part of the next geometry center.
@@ -23569,7 +24779,7 @@ void MainWindow::updateTrainPosition(int t) {
 				m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
 				const QPointF badgeCenter = newCenter;
-				if (delta.manhattanLength() > 0.5) {
+				if (!m_replayActive && delta.manhattanLength() > 0.5) {
 					stopTrainAnimation(train);
 					trainItem->setPos(delta);
 					if (badge)
@@ -23614,12 +24824,13 @@ void MainWindow::updateTrainPosition(int t) {
 		// new train starting; >= not == because the frame throttle may drop
 		// the exact departure frame, and the recorded trajectory (not the live
 		// train state) is what says whether the train is on the network at t
-		else if (t >= state.departureTime && state.routeAxisPosition != -9999) {
+		else if (m_replayActive ? guiReplayTrainHasPosition(state, t)
+				: t >= state.departureTime && state.routeAxisPosition != -9999) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
 			legendNeedsUpdate = true;
 			TrainItemGroup* newTrain = resolveTrainItem(train);
-			if (firstTrain && newTrain && newTrain->isVisible())
+			if (firstTrain && !m_replayActive && newTrain && newTrain->isVisible())
 				centerSceneItem(newTrain);
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train
 					&& newTrain && newTrain->isVisible()) {
@@ -24027,141 +25238,31 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 	trainPolygon->swap(UpdatedTrainPolygon);
 }
 
-// display train path diagrams for all corridors (only working for two)
-void MainWindow::displayTrainPathDiagrams() {
-	// check if there is a 2nd corridor
-	int noCorridors = 1;
-	for (int i = 0; i < numRegions; i++) {
-		if (train_route[regional_train[i].indexOfRoute].corridor == "blockSets") {
-			noCorridors++;
-			break;
+// Choose a reference from routes that were actually used in this run.
+int chooseRouteDiagramReference(QWidget* parent, const QString& purpose) {
+	QStringList routeIds;
+	std::vector<int> used;
+	for (int i = 0; i < numRegions; ++i) {
+		const int index = regional_train[i].indexOfRoute;
+		if (index >= 0 && index < static_cast<int>(train_route.size())
+				&& std::find(used.begin(), used.end(), index) == used.end()) {
+			used.push_back(index);
+			routeIds.append(QString::fromStdString(train_route[index].ID));
 		}
 	}
-
-	// generate a diagram for each corridor
-	for (int i = 0; i < noCorridors; i++) {
-		std::string corridor(1, char('A' + i));
-		buildCorridorTrainPathDiagram(corridor);
-	}
+	if (used.empty()) return -1;
+	bool accepted = true;
+	const QString selected = e2eDialogsSuppressed() ? routeIds.first()
+		: QInputDialog::getItem(parent, "Reference route", "Reference route for " + purpose + ":",
+			routeIds, 0, false, &accepted);
+	const int choice = routeIds.indexOf(selected);
+	return accepted && choice >= 0 ? used[choice] : -1;
 }
 
-// build train path diagram for a single corridor
-void MainWindow::buildCorridorTrainPathDiagram(std::string corridor) {
-	double minRangeX = DBL_MAX, maxRangeX = -1;
-	QList<QLineSeries*> seriesToAdd;
-	std::pair<double, double> corridorJumpX = {0, 0}; // length, lower bound X
-
-	// create chart
-	QChart* chart = new QChart();
-
-	QString title = "Train paths (time vs distance), corridor ";
-	title.append(QString::fromStdString(corridor));
-	title += QString(" [%1]").arg(completedRunContext(m_completedRunProvenance));
-	chart->setTitle(title);
-
-	for (int i = 0; i < numRegions; i++) {
-		// check route corridor
-		if (train_route[regional_train[i].indexOfRoute].corridor == corridor &&
-			regional_train[i].earliestActiveTrajectoryIndex >= 0) {
-			const auto segments = validTrajectorySegments(regional_train[i].instant_spatial_position,
-														 regional_train[i].earliestActiveTrajectoryIndex,
-														 regional_train[i].End_Time);
-			for (const auto& segment : segments) {
-				QLineSeries* trainSeries = new QLineSeries();
-				for (int t = segment.first; t <= segment.last; ++t) {
-					double position = regional_train[i].instant_spatial_position[t];
-					if (!train_route[regional_train[i].indexOfRoute].reversed_direction) {
-						position /= 1000;
-					} else {
-						position = (train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute - position) / 1000;
-						if (train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first != 0) {
-							position -= train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
-							corridorJumpX.first = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.first;
-							corridorJumpX.second = train_route[regional_train[i].indexOfRoute].diffRegionsJumpX.second;
-						}
-					}
-					*trainSeries << QPointF(t * timestep, position);
-					minRangeX = std::min(minRangeX, position);
-					maxRangeX = std::max(maxRangeX, position);
-				}
-				trainSeries->setName(QString::fromStdString(regional_train[i].trainDescription));
-				trainSeries->setProperty("trainId", QString::fromStdString(regional_train[i].trainDescription));
-				seriesToAdd.append(trainSeries);
-			}
-		}
-	}
-
-	// division of time axis
-	int interval = 300; // fractions of 5 min
-	if (initial_variables.times * timestep > 7200) {
-		interval *= 2; // increase to 10min (long simulations)
-	}
-	int numIntervals = ceil(initial_variables.times * timestep / interval);
-
-	// define x axis (time)
-	QValueAxis* axisX = new QValueAxis;
-	axisX->setRange(0, interval * numIntervals); // t = [0, (times-1)*timestep]
-	axisX->setTickCount(numIntervals + 1);
-	axisX->setLabelFormat("%.0f");
-	axisX->setTitleText("Time (s)");
-	chart->addAxis(axisX, Qt::AlignTop);
-
-	// define y axis (distance)
-	QValueAxis* axisY = new QValueAxis;
-	axisY->setTickType(QValueAxis::TicksDynamic);
-	axisY->setTickAnchor(0);
-	axisY->setTickInterval(5); // ticks every 5km
-	axisY->setReverse(true);   // revert y axis
-	axisY->setLabelFormat("%.0f");
-	axisY->setGridLineVisible(false); // hide grid lines
-	axisY->setTitleText("Distance (km)");
-	chart->addAxis(axisY, Qt::AlignLeft);
-
-	// define y axis (stations)
-	QCategoryAxis* axisYStations = new QCategoryAxis;
-	// create ticks with station names
-	for (int i = 0; i < numStations; i++) {
-		// ignore stations out of range (correct maxRange for jump)
-		if ((StationArray[i].X <= (maxRangeX + corridorJumpX.first + 0.001)) && StationArray[i].X >= (minRangeX - 0.001)) {
-			// check if station belongs to the corridor
-			if (std::find(StationArray[i].corridors.begin(), StationArray[i].corridors.end(), corridor) != StationArray[i].corridors.end()) {
-				// correct X in case of jump
-				if (corridorJumpX.first != 0 && StationArray[i].X > corridorJumpX.second) {
-					axisYStations->append(QString::fromStdString(StationArray[i].stationName), (StationArray[i].X - corridorJumpX.first));
-				}
-				// no jump
-				else {
-					axisYStations->append(QString::fromStdString(StationArray[i].stationName), StationArray[i].X);
-				}
-			}
-		}
-	}
-	axisYStations->setRange(floor(minRangeX), ceil(maxRangeX));
-	axisYStations->setReverse(true); // revert y axis
-	axisYStations->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
-	chart->addAxis(axisYStations, Qt::AlignRight);
-
-	// add series to chart
-	for (int i = 0; i < seriesToAdd.count(); i++) {
-		// add series to chart
-		chart->addSeries(seriesToAdd.at(i));
-
-		// attach axes to series
-		seriesToAdd.at(i)->attachAxis(axisX);
-		seriesToAdd.at(i)->attachAxis(axisYStations);
-		seriesToAdd.at(i)->attachAxis(axisY);
-	}
-
-	// show the chart in the shared diagram window, which adds the train filter
-	// panel, hover and click identification, and PNG and CSV export
-	DiagramWindow* win = new DiagramWindow(title, this);
-	win->setChart(chart);
-	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "train_path.csv");
-	attachRunProvenance(win, m_completedRunProvenance);
-	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(true, m_startOffsetSeconds);
-	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+void MainWindow::displayTrainPathDiagrams() {
+	if (!hasRunResults()) return;
+	const int reference = chooseRouteDiagramReference(this, "train paths");
+	if (reference >= 0) buildRouteDiagram(false, reference);
 }
 
 // manage VCoupling notifications
@@ -24380,7 +25481,9 @@ void MainWindow::showDelayDiagram() {
 		for (const TimetableResultRow& row : rows) {
 			if (row.trainId != regional_train[i].trainDescription || !row.arrivalDelaySeconds.available)
 				continue;
-			series->append(row.journeyIndex, row.arrivalDelaySeconds.value / 60.0);
+			appendInspectedPoint(series, row.journeyIndex, row.arrivalDelaySeconds.value / 60.0,
+				QString("Station: %1 | Call: %2 | Arrival delay")
+					.arg(QString::fromStdString(row.stationId)).arg(row.callIndex));
 			hasData = true;
 		}
 		if (hasData) {
@@ -24408,84 +25511,194 @@ void MainWindow::showDelayDiagram() {
 }
 
 void MainWindow::showTimetableGraph() {
-	if (!hasRunResults()) {
-		statusBar()->showMessage("Run a simulation to open diagrams", 5000);
-		return;
+	if (!hasRunResults()) return;
+	const int reference = chooseRouteDiagramReference(this, "timetable");
+	if (reference >= 0) buildRouteDiagram(true, reference);
+}
+
+void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
+	if (!hasRunResults() || referenceIndex < 0 || referenceIndex >= static_cast<int>(train_route.size())) return;
+	const Route& reference = train_route[referenceIndex];
+	const RouteDiagramPath referencePath = routeDiagramPath(reference, &m_sceneModel);
+	if (referencePath.nodes.empty()) return;
+	std::map<int, RouteDiagramPath> paths;
+	std::map<int, RouteDiagramProjection> projections;
+	for (int i = 0; i < numRegions; ++i) {
+		const int routeIndex = regional_train[i].indexOfRoute;
+		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()) || paths.count(routeIndex)) continue;
+		paths.emplace(routeIndex, routeDiagramPath(train_route[routeIndex], &m_sceneModel));
+		projections.emplace(routeIndex, buildRouteDiagramProjection(paths.at(routeIndex), referencePath));
 	}
-
-	QChart* chart = new QChart();
-	const QString title = QString("Train graph: planned vs simulated arrival/departure [%1]")
-		.arg(completedRunContext(m_completedRunProvenance));
-	chart->setTitle(title);
-	const auto rows = buildTimetableResults(runResultTrainPointers());
-
-	for (int i = 0; i < numRegions; i++) {
-		const std::string trainId = regional_train[i].trainDescription;
-		const QString trainName = QString::fromStdString(trainId);
-		QLineSeries* simulatedArrival = new QLineSeries();
-		simulatedArrival->setName(trainName + " (simulated arrival)");
-		simulatedArrival->setProperty("trainId", trainName);
-		QLineSeries* plannedArrival = new QLineSeries();
-		plannedArrival->setName(trainName + " (planned arrival)");
-		plannedArrival->setProperty("trainId", trainName);
-		QLineSeries* simulatedDeparture = new QLineSeries();
-		simulatedDeparture->setName(trainName + " (simulated departure)");
-		simulatedDeparture->setProperty("trainId", trainName);
-		QLineSeries* plannedDeparture = new QLineSeries();
-		plannedDeparture->setName(trainName + " (planned departure)");
-		plannedDeparture->setProperty("trainId", trainName);
-
-		for (const TimetableResultRow& row : rows) {
-			if (row.trainId != trainId)
-				continue;
-			if (row.simulatedArrivalSeconds.available)
-				simulatedArrival->append(row.simulatedArrivalSeconds.value, row.journeyIndex);
-			if (row.plannedArrivalSeconds.available)
-				plannedArrival->append(row.plannedArrivalSeconds.value, row.journeyIndex);
-			if (row.simulatedDepartureSeconds.available)
-				simulatedDeparture->append(row.simulatedDepartureSeconds.value, row.journeyIndex);
-			if (row.plannedDepartureSeconds.available)
-				plannedDeparture->append(row.plannedDepartureSeconds.value, row.journeyIndex);
-		}
-
-		auto addSeriesPair = [chart](QLineSeries* simulated, QLineSeries* planned) {
-			if (simulated->count() > 0) {
-				chart->addSeries(simulated);
-				if (planned->count() > 0) {
-					QPen plannedPen = planned->pen();
-					plannedPen.setStyle(Qt::DashLine);
-					plannedPen.setColor(simulated->pen().color());
-					planned->setPen(plannedPen);
-					chart->addSeries(planned);
-				} else {
-					delete planned;
+	const auto position = [&](const Train& train, double sourceKm) -> std::optional<double> {
+		const auto projection = projections.find(train.indexOfRoute);
+		return projection == projections.end() ? std::optional<double>() : projection->second.map(sourceKm);
+	};
+	const double origin = referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.back().positionKm;
+	const QString label = QString("%1 | %2 (0 s = run start)")
+		.arg(timetable ? "Timetable" : "Train paths", QString::fromStdString(reference.ID));
+	const QString explanation = QString("Reference %1: runtime route X (km), origin %2, travel %3; X increases right. "
+		"Elapsed time increases downward from 0 s. Other routes use shared node/station anchors; "
+		"ambiguous or unmapped portions are omitted, never extrapolated.")
+		.arg(QString::fromStdString(reference.ID)).arg(origin, 0, 'f', 3)
+		.arg(end >= origin ? "right" : "left");
+	auto* chart = new QChart();
+	chart->setTitle(label);
+	std::vector<std::vector<std::string>> exportRows;
+	const auto record = [&](const Train& train, const char* kind, const std::string& station,
+		int journey, int call, const RunResultValue& time, std::optional<double> x) {
+		exportRows.push_back({train.trainDescription, reference.ID, train_route[train.indexOfRoute].ID,
+			kind, station, journey ? std::to_string(journey) : "", call ? std::to_string(call) : "",
+			time.available ? csv::formatDouble(time.value) : "", x ? csv::formatDouble(*x) : ""});
+	};
+	if (timetable) {
+		const auto rows = buildTimetableResults(runResultTrainPointers());
+		for (int i = 0; i < numRegions; ++i) {
+			const Train& train = regional_train[i];
+			const auto path = paths.find(train.indexOfRoute);
+			const auto projection = projections.find(train.indexOfRoute);
+			if (path == paths.end() || projection == projections.end()) continue;
+			const QString name = QString::fromStdString(train.trainDescription);
+			// Separate series at every absent or unprojectable event. Never connect
+			// across a missing schedule value or an unavailable station visit.
+			for (int kind = 0; kind < 4; ++kind) {
+				QLineSeries* segment = nullptr;
+				for (const auto& row : rows) {
+					if (row.trainId != train.trainDescription) continue;
+					const int stopIndex = row.journeyIndex - 1;
+					const auto x = routeDiagramStopPosition(train, stopIndex, path->second, projection->second);
+					const RunResultValue time = kind == 0 ? row.plannedArrivalSeconds : kind == 1 ? row.plannedDepartureSeconds
+						: kind == 2 ? row.simulatedArrivalSeconds : row.simulatedDepartureSeconds;
+					const char* event = kind == 0 ? "planned arrival" : kind == 1 ? "planned departure"
+						: kind == 2 ? "simulated arrival" : "simulated departure";
+					record(train, event, row.stationId, row.journeyIndex, row.callIndex, time, x);
+					if (!x || !time.available) { segment = nullptr; continue; }
+					if (!segment) {
+						segment = new QLineSeries();
+						segment->setName(name + " (" + event + ")");
+						segment->setProperty("trainId", name);
+						segment->setPointsVisible(true);
+						QPen pen(QColor::fromHsv((i * 71) % 360, 175, kind < 2 ? 170 : 235));
+						if (kind < 2) pen.setStyle(Qt::DashLine);
+						segment->setPen(pen);
+						chart->addSeries(segment);
+					}
+					appendInspectedPoint(segment, *x, time.value,
+						QString("Station: %1 | Call: %2 | Journey: %3 | %4")
+						.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(row.journeyIndex).arg(event));
 				}
-			} else if (planned->count() > 0) {
-				QPen plannedPen = planned->pen();
-				plannedPen.setStyle(Qt::DashLine);
-				planned->setPen(plannedPen);
-				chart->addSeries(planned);
-				delete simulated;
-			} else {
-				delete simulated;
-				delete planned;
 			}
-		};
-		addSeriesPair(simulatedArrival, plannedArrival);
-		addSeriesPair(simulatedDeparture, plannedDeparture);
+			// A dwell is vertical: fixed reference distance, advancing time.
+			for (const auto& row : rows) {
+				if (row.trainId != train.trainDescription) continue;
+				const auto x = routeDiagramStopPosition(train, row.journeyIndex - 1, path->second, projection->second);
+				for (int planned = 0; planned < 2; ++planned) {
+					const auto arrival = planned ? row.plannedArrivalSeconds : row.simulatedArrivalSeconds;
+					const auto departure = planned ? row.plannedDepartureSeconds : row.simulatedDepartureSeconds;
+					if (!x || !arrival.available || !departure.available) continue;
+					auto* dwell = new QLineSeries();
+					dwell->setName(name + (planned ? " (planned dwell)" : " (simulated dwell)"));
+					dwell->setProperty("trainId", name);
+					QPen pen(QColor::fromHsv((i * 71) % 360, 175, planned ? 170 : 235));
+						if (planned) pen.setStyle(Qt::DashLine);
+					dwell->setPen(pen);
+					const QString context = QString("Station: %1 | Call: %2 | %3 dwell")
+						.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(planned ? "Planned" : "Simulated");
+					appendInspectedPoint(dwell, *x, arrival.value, context);
+					appendInspectedPoint(dwell, *x, departure.value, context);
+					chart->addSeries(dwell);
+				}
+			}
+		}
+	} else {
+		for (int i = 0; i < numRegions; ++i) {
+			const Train& train = regional_train[i];
+			if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
+			if (train.earliestActiveTrajectoryIndex < 0) continue;
+			for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
+				train.earliestActiveTrajectoryIndex, train.End_Time)) {
+				QLineSeries* segment = nullptr;
+				for (int t = valid.first; t <= valid.last; ++t) {
+					const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
+					const auto x = position(train, sourceKm);
+					const RunResultValue time{true, t * timestep};
+					record(train, "trajectory", "", 0, 0, time, x);
+					if (!x) { segment = nullptr; continue; }
+					if (!segment) {
+						segment = new QLineSeries();
+						segment->setName(QString::fromStdString(train.trainDescription));
+						segment->setProperty("trainId", QString::fromStdString(train.trainDescription));
+						segment->setProperty("inspectionInterval", QString("Route: %1 | Simulated trajectory")
+							.arg(QString::fromStdString(train_route[train.indexOfRoute].ID)));
+						segment->setPointsVisible(true); // Preserve an isolated valid sample.
+						chart->addSeries(segment);
+					}
+					segment->append(*x, time.value);
+					if (segment->count() == 2) segment->setPointsVisible(false);
+				}
+			}
+		}
 	}
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText("Time (simulation seconds)");
-	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Journey order (1-based)");
-
-	DiagramWindow* win = new DiagramWindow(title, this);
+	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
+	if (!chart->axes(Qt::Horizontal).isEmpty()) {
+		auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+		axis->setTitleText(QString("Route X (km); origin %1, travel %2")
+			.arg(origin, 0, 'f', 3).arg(end >= origin ? "right" : "left"));
+		const double low = std::min(origin, end), high = std::max(origin, end);
+		axis->setRange(low - 0.01, std::max(low + 0.02, high + 0.01));
+	}
+	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
+	axisY->setTitleText("Elapsed simulation time (s), downward");
+	axisY->setReverse(true);
+	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
+	for (auto* series : chart->series()) {
+		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
+		if (!series->attachedAxes().contains(chart->axes(Qt::Horizontal).first()))
+			series->attachAxis(chart->axes(Qt::Horizontal).first());
+	}
+	// Station names come from platform-bound canonical IDs, not from map X.
+	const auto stationLabels = routeDiagramStationLabels(referencePath);
+	if (!stationLabels.empty()) {
+		auto* stations = new QCategoryAxis();
+		stations->setTitleText("Reference stations");
+		stations->setLabelsAngle(-90);
+		stations->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+		auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+		stations->setStartValue(distanceAxis->min() - 1);
+		for (const auto& station : stationLabels)
+			stations->append(QString::fromStdString(station.second)
+				+ QString(" (%1 km)").arg(station.first, 0, 'f', 2), station.first);
+		stations->setRange(distanceAxis->min(), distanceAxis->max());
+		chart->addAxis(stations, Qt::AlignTop);
+		for (auto* series : chart->series()) series->attachAxis(stations);
+	}
+	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
+	DiagramWindow* win = new DiagramWindow(label, this);
 	win->setChart(chart);
-	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
+	auto* note = new QLabel(explanation, win);
+	note->setWordWrap(true);
+	qobject_cast<QVBoxLayout*>(win->layout())->insertWidget(1, note);
+	const auto csvRows = std::move(exportRows);
+	const auto graphCsv = [csvRows](const QStringList& visible) {
+		std::vector<std::string> ids;
+		for (const QString& id : visible) ids.push_back(id.toStdString());
+		return buildRouteDiagramCsv(csvRows, ids);
+	};
+	win->setCsvProvider(graphCsv, timetable ? "timetable_graph.csv" : "train_path_graph.csv");
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
+		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
+		const QString basename = timetable ? "timetable_graph" : "train_path_graph";
+		for (const auto& selection : {std::pair<QString, QStringList>{"all", allTrainIds()},
+				std::pair<QString, QStringList>{"first", QStringList{allTrainIds().first()}}}) {
+			QFile out(dir + "/" + basename + "_" + selection.first + ".csv");
+			if (out.open(QIODevice::WriteOnly)) out.write(QByteArray::fromStdString(graphCsv(selection.second)));
+		}
+	}
 	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(true, m_startOffsetSeconds);
+	win->setTimeAxisY(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }
@@ -24500,16 +25713,44 @@ void MainWindow::showBlockingTimeDiagram() {
 	BlockingTimeScope scope = defaultBlockingTimeScope();
 	if (!e2eDialogsSuppressed() && !chooseBlockingTimeScope(this, scope))
 		return;
-	const std::vector<BlockingTimeDiagramSegment> segments =
-		scope.routeIndex >= 0 && scope.trainIds.empty()
-			? std::vector<BlockingTimeDiagramSegment>()
-			: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
-				scope.startTime, scope.endTime);
-	const std::vector<BlockingTimePlannedReference> plannedReferences =
-		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope),
+	const auto scoped = scope.routeIndex >= 0 && scope.trainIds.empty()
+		? std::vector<BlockingTimeDiagramSegment>()
+		: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
 			scope.startTime, scope.endTime);
+	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : [&]() {
+		for (int i = 0; i < numRegions; ++i)
+			if ((scope.trainIds.empty() || std::find(scope.trainIds.begin(), scope.trainIds.end(),
+				regional_train[i].trainDescription) != scope.trainIds.end())
+				&& regional_train[i].indexOfRoute >= 0
+				&& regional_train[i].indexOfRoute < static_cast<int>(train_route.size()))
+				return regional_train[i].indexOfRoute;
+		return -1;
+	}();
+	if (referenceIndex < 0) return;
+	const RouteDiagramPath referencePath = routeDiagramPath(train_route[referenceIndex], &m_sceneModel);
+	std::map<int, RouteDiagramPath> paths;
+	std::map<int, RouteDiagramProjection> projections;
+	std::map<std::string, RouteDiagramProjection> byTrain;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		const int index = train.indexOfRoute;
+		if (index < 0 || index >= static_cast<int>(train_route.size())) continue;
+		if (!paths.count(index)) {
+			paths.emplace(index, routeDiagramPath(train_route[index], &m_sceneModel));
+			projections.emplace(index, buildRouteDiagramProjection(paths.at(index), referencePath));
+		}
+		byTrain.emplace(train.trainDescription, projections.at(index));
+	}
+	int omitted = 0;
+	const auto segments = projectBlockingSegments(scoped, byTrain, omitted);
+	const auto allPlannedReferences = buildBlockingTimePlannedReferences(scope, paths, projections, omitted);
+	const auto plannedReferences = filterBlockingTimePlannedReferences(
+		allPlannedReferences, scope.startTime, scope.endTime);
+	const auto plottedPlanned = clipBlockingTimePlannedReferences(
+		allPlannedReferences, scope.startTime, scope.endTime);
 	if (segments.empty() && plannedReferences.empty()) {
-		QMessageBox::information(this, "No Data", "No complete blocking-time data is available for this simulation.");
+		QMessageBox::information(this, "No Data", "No complete blocking envelope with finite endpoints and clearance could be projected in this scope. "
+			"Incomplete, missing-clearance or unmapped records are omitted.");
 		return;
 	}
 
@@ -24524,7 +25765,7 @@ void MainWindow::showBlockingTimeDiagram() {
 			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
 				QString::fromStdString(scope.blockIds.back()));
 	}
-	const QString title = QString("Blocking time: actual occupations and dashed planned timetable | %1 | %2 to %3 [%4]")
+	const QString title = QString("Blocking time: calculated envelopes, recorded trajectories and planned events | %1 | %2 to %3 [%4]")
 		.arg(routeScope,
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
@@ -24536,24 +25777,64 @@ void MainWindow::showBlockingTimeDiagram() {
 	const QColor plannedColors[] = {
 		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
 		QColor(138, 43, 226), QColor(210, 105, 30), QColor(0, 128, 128)};
-	std::map<std::string, QLineSeries*> plannedSeries;
-	int plannedColorIndex = 0;
-	for (const BlockingTimePlannedReference& reference : plannedReferences) {
-		auto it = plannedSeries.find(reference.trainName);
-		if (it == plannedSeries.end()) {
-			auto* series = new QLineSeries();
-			series->setName(QString::fromStdString(reference.trainName + " (planned reference)"));
-			series->setProperty("trainId", QString::fromStdString(reference.trainName));
-			QPen pen(plannedColors[plannedColorIndex % (sizeof(plannedColors) / sizeof(plannedColors[0]))]);
-			pen.setStyle(Qt::DashLine);
-			pen.setWidthF(2.5);
-			series->setPen(pen);
-			series->setPointsVisible(true);
-			chart->addSeries(series);
-			it = plannedSeries.emplace(reference.trainName, series).first;
-			++plannedColorIndex;
+	std::map<std::string, int> plannedColorsByTrain;
+	for (const auto& group : plottedPlanned) {
+		const std::string& trainName = group.front().trainName;
+		const auto color = plannedColorsByTrain.emplace(trainName, static_cast<int>(plannedColorsByTrain.size()));
+		auto* series = new QLineSeries();
+		series->setName(QString::fromStdString(trainName + " (planned reference)"));
+		series->setProperty("trainId", QString::fromStdString(trainName));
+		QPen pen(plannedColors[color.first->second % (sizeof(plannedColors) / sizeof(plannedColors[0]))]);
+		pen.setStyle(Qt::DashLine);
+		pen.setWidthF(2.5);
+		series->setPen(pen);
+		series->setPointsVisible(true);
+		for (const auto& reference : group)
+			appendInspectedPoint(series, reference.positionKm, reference.time,
+				reference.stationName.empty() ? "Clipped planned interpolation (not a station event)"
+					: QString("Station: %1 | Planned %2").arg(QString::fromStdString(reference.stationName),
+						QString::fromStdString(reference.eventType)));
+		chart->addSeries(series);
+		if (!color.second)
+			for (QLegendMarker* marker : chart->legend()->markers(series)) marker->setVisible(false);
+	}
+
+	std::vector<std::vector<std::string>> trajectoryRows;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (train.earliestActiveTrajectoryIndex < 0) continue;
+		const auto projection = byTrain.find(train.trainDescription);
+		if (projection == byTrain.end()) continue;
+		for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
+			train.earliestActiveTrajectoryIndex, train.End_Time)) {
+			QLineSeries* line = nullptr;
+			for (int t = valid.first; t <= valid.last; ++t) {
+				const double time = t * timestep;
+				const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
+				const auto x = projection->second.map(sourceKm);
+				const bool inScope = x && time >= scope.startTime && time <= scope.endTime
+					&& std::any_of(segments.begin(), segments.end(), [&](const auto& block) {
+						return block.trainName == train.trainDescription && time >= block.startTime
+							&& time <= block.endTime && *x >= std::min(block.startPositionKm, block.endPositionKm)
+							&& *x <= std::max(block.startPositionKm, block.endPositionKm);
+					});
+				if (!inScope) { line = nullptr; continue; }
+				if (!line) {
+					line = new QLineSeries();
+					line->setName(QString::fromStdString(train.trainDescription) + " (recorded trajectory)");
+					line->setProperty("trainId", QString::fromStdString(train.trainDescription));
+					line->setProperty("layer", "recorded trajectory");
+					line->setProperty("inspectionInterval", "Recorded simulation samples; no boundary samples inferred");
+					line->setPen(QPen(QColor(20, 35, 45), 2.5));
+					line->setPointsVisible(true);
+					chart->addSeries(line);
+				}
+				line->append(*x, time);
+				if (line->count() == 2) line->setPointsVisible(false);
+				trajectoryRows.push_back({train.trainDescription, "", "", "", csv::formatDouble(*x),
+					"recorded sample", "", "", csv::formatDouble(time), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
+			}
 		}
-		it->second->append(reference.time, reference.positionKm);
 	}
 
 	QLineSeries* dummySwitch = new QLineSeries();
@@ -24571,25 +25852,34 @@ void MainWindow::showBlockingTimeDiagram() {
 	chart->addSeries(dummyCritical);
 
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty()) {
-		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
-		if (auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first()))
-			axis->setRange(scope.startTime, scope.endTime);
-	}
-	if (!chart->axes(Qt::Vertical).isEmpty()) {
-		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
-	}
+	auto* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	const double origin = referencePath.nodes.empty() ? 0.0 : referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.empty() ? origin : referencePath.nodes.back().positionKm;
+	axisX->setTitleText(QString("Reference %1 X (km); origin %2, travel %3")
+		.arg(QString::fromStdString(referencePath.id)).arg(origin, 0, 'f', 3)
+		.arg(end >= origin ? "right" : "left"));
+	axisX->setRange(std::min(origin, end) - 0.01, std::max(std::min(origin, end) + 0.02, std::max(origin, end) + 0.01));
+	auto* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	axisY->setTitleText("Elapsed simulation time (s), downward");
+	axisY->setReverse(true);
+	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
 
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setChart(chart);
+	auto* note = new QLabel(QString("Reference: %1. 0 s = run start. Calculated envelope: approach - setup - sight reaction through clearance + release + run margin, not independently observed occupation. "
+		"Unmapped endpoints/events omitted: %2; incomplete or missing-clearance blocks are also omitted. "
+		"No extrapolation. Recorded movement is sampled only within scoped envelopes.")
+		.arg(QString::fromStdString(referencePath.id)).arg(omitted), win);
+	note->setWordWrap(true);
+	qobject_cast<QVBoxLayout*>(win->layout())->insertWidget(1, note);
 	const std::function<std::string(const QStringList&)> scopedCsv =
-		[segments, plannedReferences](const QStringList& visibleTrainIds) {
-			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences);
+		[segments, plannedReferences, trajectoryRows](const QStringList& visibleTrainIds) {
+			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences, trajectoryRows);
 		};
 	win->setCsvProvider(snapshotCsv(scopedCsv), "blocking_time.csv");
 	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(true, m_startOffsetSeconds);
+	win->setTimeAxisY(true, m_startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }
@@ -24740,8 +26030,25 @@ void MainWindow::showCapacityAnalysis() {
 			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
-	connect(diagramButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
-		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance);
+	const RouteDiagramPath compressedReference = routeDiagramPath(train_route[scope.routeIndex], &m_sceneModel);
+	std::map<std::string, RouteDiagramProjection> compressedProjections;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
+		compressedProjections.emplace(train.trainDescription, buildRouteDiagramProjection(
+			routeDiagramPath(train_route[train.indexOfRoute], &m_sceneModel), compressedReference));
+	}
+	int compressedOmitted = 0;
+	auto shiftedSegments = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
+	restoreCompressedOriginalTimes(shiftedSegments, result.compression);
+	const auto compressedSegments = projectBlockingSegments(shiftedSegments, compressedProjections, compressedOmitted);
+	const double routeStartKm = compressedReference.nodes.empty() ? 0.0 : compressedReference.nodes.front().positionKm;
+	const double routeEndKm = compressedReference.nodes.empty() ? routeStartKm : compressedReference.nodes.back().positionKm;
+	const QString referenceId = QString::fromStdString(compressedReference.id);
+	connect(diagramButton, &QPushButton::clicked, dialog,
+		[this, result, sectionLabel, provenance, compressedSegments, routeStartKm, routeEndKm, referenceId]() {
+		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance, compressedSegments,
+			routeStartKm, routeEndKm, referenceId);
 	});
 	QPushButton* closeButton = new QPushButton("Close", dialog);
 	connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
@@ -24754,9 +26061,9 @@ void MainWindow::showCapacityAnalysis() {
 }
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
-	const QString& sectionLabel, RunProvenance provenance) {
-	const std::vector<BlockingTimeDiagramSegment> segments = buildBlockingTimeDiagramSegments(
-		result.compressedOccupations, result.trainIdentities);
+	const QString& sectionLabel, RunProvenance provenance,
+	std::vector<BlockingTimeDiagramSegment> segments, double routeStartKm, double routeEndKm,
+	const QString& referenceId) {
 	if (segments.empty()) {
 		QMessageBox::information(this, "Capacity diagram", "No complete compressed occupation data is available.");
 		return;
@@ -24777,12 +26084,20 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	addKey("Key: Conflict", kBlockingCriticalColor);
 	addKey("Key: Capacity critical block (touching)", kBlockingCapacityColor);
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText("Time");
-	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText("Position (km)");
+	auto* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	axisX->setTitleText(QString("Reference %1 X (km)").arg(referenceId));
+	axisX->setRange(std::min(routeStartKm, routeEndKm) - 0.01,
+		std::max(std::min(routeStartKm, routeEndKm) + 0.02, std::max(routeStartKm, routeEndKm) + 0.01));
+	auto* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	axisY->setTitleText("Compressed envelope time (s), downward");
+	axisY->setReverse(true);
+	axisY->setRange(std::min(0.0, axisY->min()), std::max(1.0, axisY->max()));
 	DiagramWindow* window = new DiagramWindow(chart->title(), this);
 	window->setChart(chart);
+	auto* note = new QLabel(QString("Reference: %1. Shifted calculated envelopes only, not recorded train movement. "
+		"Unmapped or incomplete blocks omitted; no extrapolation.").arg(referenceId), window);
+	note->setWordWrap(true);
+	qobject_cast<QVBoxLayout*>(window->layout())->insertWidget(1, note);
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
@@ -24790,7 +26105,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv");
 	attachRunProvenance(window, std::move(provenance));
 	connect(window, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	window->setTimeAxisX(true, m_startOffsetSeconds);
+	window->setTimeAxisY(true, m_startOffsetSeconds);
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }
@@ -24850,7 +26165,9 @@ void MainWindow::updateNetworkLegend() {
 	if (!m_networkLegendWidget)
 		return;
 	NetworkLegendContent content;
-	const bool preview = !m_previewFitBounds.isEmpty();
+	// Runtime retains preview fit bounds, and a discarded run may still have
+	// Failed status while the authoring preview is displayed.
+	const bool preview = m_showingTrackPreview;
 	content.hasTracks = numTrackLines > 0 || !m_sceneModel.tracks.empty();
 	content.showOperationalTrackStates = !preview;
 	content.hasSelectedTrack = preview && m_previewHasSelectedTrack;
@@ -25018,7 +26335,6 @@ void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
 	const bool dense = networkView->zoomRatio() >= kDenseDetailZoom;
-	const bool signalDetail = networkView->zoomRatio() >= kSignalDetailZoom;
 	const qreal stationLabelScale = qMin<qreal>(3.0,
 		std::sqrt(qMax<qreal>(1.0, networkView->zoomRatio() / kDenseDetailZoom)));
 
@@ -25080,7 +26396,8 @@ void MainWindow::updateViewportOverlays() {
 
 	QPointF followedCenter;
 	bool hasFollowedCenter = false;
-	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0) {
+	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
+			&& (!m_replayActive || replayTrainHasPosition(m_followTrainIndex))) {
 		if (auto* train = resolveTrainItem(m_followTrainIndex)) {
 			followedCenter = train->sceneBoundingRect().center();
 			hasFollowedCenter = true;
@@ -25231,41 +26548,7 @@ void MainWindow::updateViewportOverlays() {
 		overlay->setLayoutVisible(visible);
 	}
 
-	// Keep markers readable without painting dense section boundaries on top of
-	// one another. Higher zoom progressively reveals closer signals.
-	QList<QPointF> signalCenters;
-	const qreal minimumSignalDistanceSquared = signalDetail ? 144.0 : 576.0;
-	for (auto* item : m_signalDecorations) {
-		if (!item)
-			continue;
-		const bool baseVisible = item->data(kSignalBaseVisibleRole).toBool();
-		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
-		if (signal && item->data(kSignalAnchorRole).isValid()) {
-			const qreal viewScale = std::hypot(toDevice.m11(), toDevice.m12());
-			if (viewScale > 0.0) {
-				const QPointF anchor = item->data(kSignalAnchorRole).toPointF();
-				const QPointF normal = item->data(kSignalNormalRole).toPointF();
-				const qreal direction = item->data(kSignalDirectionRole).toReal();
-				item->setPos(anchor + direction * kPreviewSignalOffsetPixels / viewScale * normal);
-			}
-		}
-		if (signal)
-			signal->setScale(signalDetail ? 1.0 : 0.7);
-		bool visible = m_signalLayerVisible && baseVisible && (signal || signalDetail);
-		if (visible && signal) {
-			const QPointF center = toDevice.map(signal->scenePos());
-			visible = inset.contains(center)
-				&& std::none_of(signalCenters.cbegin(), signalCenters.cend(),
-					[&center, minimumSignalDistanceSquared](const QPointF& existing) {
-						const QPointF delta = center - existing;
-						return delta.x() * delta.x() + delta.y() * delta.y()
-							< minimumSignalDistanceSquared;
-					});
-			if (visible)
-				signalCenters.append(center);
-		}
-		item->setVisible(visible);
-	}
+	updateSignalCues();
 
 	const bool paxText = paxTextVisible();
 	for (auto* platform : allPlatforms) {
@@ -25280,6 +26563,129 @@ void MainWindow::updateViewportOverlays() {
 		it.value()->setPromoted(promoted);
 		it.value()->setPresentation(
 			TrainBadgeItem::presentationForZoom(networkView->zoomRatio(), promoted));
+	}
+}
+
+// Only layout signal cues here: aspect snapshots can change many times between
+// viewport moves without needing to relayout station names or train labels.
+void MainWindow::updateSignalCues() {
+	if (!networkView)
+		return;
+	const QTransform toDevice = networkView->viewportTransform();
+	const QRectF viewport = networkView->viewport()->rect();
+	const qreal viewScale = std::hypot(toDevice.m11(), toDevice.m12());
+	if (viewScale <= 0.0)
+		return;
+	const bool detail = networkView->zoomRatio() >= kSignalDetailZoom;
+	qreal maximumRadius = 0.0;
+	for (QGraphicsItem* item : m_signalDecorations) {
+		auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
+		if (!signal || !item->data(kSignalBaseVisibleRole).toBool()
+				|| !item->data(kSignalAnchorRole).isValid())
+			continue;
+		const qreal baseScale = detail ? 1.0 : (signal->rect().width() > 12.0 ? 0.25 : 1.0);
+		const qreal combinedScale = qMax(baseScale, 11.0 / signal->rect().width());
+		maximumRadius = qMax(maximumRadius, (signal->rect().width() / 2.0 + 3.0) * combinedScale);
+	}
+	const qreal cellSize = qMax(detail && m_previewHasSignals ? 20.0 : 28.0,
+		2.0 * maximumRadius + 2.0);
+	// A partial right/bottom strip belongs to the adjacent full cell. Thus
+	// edge clamping cannot pull two different cells' plates into one another.
+	const int lastColumn = qMax(0, qFloor(viewport.width() / cellSize) - 1);
+	const int lastRow = qMax(0, qFloor(viewport.height() / cellSize) - 1);
+	std::map<std::pair<int, int>, QList<SignalItem*>> cells;
+	for (QGraphicsItem* item : m_signalDecorations) {
+		if (!item)
+			continue;
+		const bool layerVisible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
+		if (!signal) {
+			item->setVisible(layerVisible && detail);
+			continue;
+		}
+		signal->setVisible(false);
+		signal->setGroupedSignals({});
+		if (!item->data(kSignalAnchorRole).isValid())
+			continue;
+		const QPointF anchor = item->data(kSignalAnchorRole).toPointF();
+		QPointF natural = anchor;
+		if (item->data(kSignalNormalRole).isValid()) {
+			const QPointF normal = item->data(kSignalNormalRole).toPointF();
+			natural += item->data(kSignalDirectionRole).toReal()
+				* kPreviewSignalOffsetPixels / viewScale * normal;
+		}
+		signal->setPos(natural);
+		signal->setScale(detail ? 1.0 : (signal->rect().width() > 12.0 ? 0.25 : 1.0));
+		// Eligibility uses the original location, not a 12px station-label inset.
+		const QPointF deviceAnchor = toDevice.map(anchor);
+		if (!layerVisible || !viewport.contains(deviceAnchor))
+			continue;
+		const auto cell = std::make_pair(
+			qBound(0, qFloor((deviceAnchor.x() - viewport.left()) / cellSize), lastColumn),
+			qBound(0, qFloor((deviceAnchor.y() - viewport.top()) / cellSize), lastRow));
+		cells[cell].append(signal);
+	}
+	const QTransform fromDevice = toDevice.inverted();
+	QString inspectedDetails;
+	for (const auto& cell : cells) {
+		const QList<SignalItem*>& members = cell.second;
+		// The inspected member remains the visible representative across a
+		// merge; colored sectors still expose every constituent aspect.
+		SignalItem* representative = m_inspectedSignal && members.contains(m_inspectedSignal)
+			? m_inspectedSignal : members.first();
+		QVector<QPair<int, bool>> aspects;
+		QStringList identities;
+		for (SignalItem* member : members) {
+			aspects.append(qMakePair(member->aspectCode(), member->reversedDirection));
+			const SignalCueKind cue = classifySignalCue(member->aspectCode());
+			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
+				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
+				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+			identities.append(QStringLiteral("%1: %2, %3")
+				.arg(member->inspectionIdentity(), member->reversedDirection
+					? QStringLiteral("left") : QStringLiteral("right"), aspect));
+		}
+		if (members.size() > 1)
+			representative->setScale(qMax(representative->scale(), 11.0 / representative->rect().width()));
+		representative->setGroupedSignals(members.size() > 1 ? aspects : QVector<QPair<int, bool>>());
+		representative->setToolTip(QStringLiteral("%1 signal%2 at this location\n%3")
+			.arg(members.size()).arg(members.size() == 1 ? QString() : QStringLiteral("s"))
+			.arg(identities.join(QLatin1Char('\n'))));
+		QPointF center(viewport.left() + (cell.first.first + 0.5) * cellSize,
+			viewport.top() + (cell.first.second + 0.5) * cellSize);
+		// Reserve the plate, its direction ticks and the actual viewport edge.
+		const qreal radius = (representative->rect().width() / 2.0 + 3.0)
+			* representative->scale();
+		const qreal xMargin = qMin(radius, viewport.width() / 2.0);
+		const qreal yMargin = qMin(radius, viewport.height() / 2.0);
+		center.setX(qBound(viewport.left() + xMargin, center.x(), viewport.right() - xMargin));
+		center.setY(qBound(viewport.top() + yMargin, center.y(), viewport.bottom() - yMargin));
+		representative->setPos(fromDevice.map(center));
+		representative->setVisible(true);
+		if (members.contains(m_inspectedSignal))
+			inspectedDetails = representative->toolTip();
+	}
+	if (signallingInfoWidget && signallingInfoWidget->isVisible() && signallingGroupDetails
+			&& m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal)) {
+		if (inspectedDetails.isEmpty()) {
+			const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
+			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
+				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
+				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+			inspectedDetails = QStringLiteral("Signal outside the visible layer\n%1: %2, %3")
+				.arg(m_inspectedSignal->inspectionIdentity(),
+					m_inspectedSignal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"),
+					aspect);
+		}
+		if (signallingGroupDetails->toPlainText() != inspectedDetails) {
+			const int scroll = signallingGroupDetails->verticalScrollBar()->value();
+			signallingGroupDetails->setPlainText(inspectedDetails);
+			signallingGroupDetails->verticalScrollBar()->setValue(scroll);
+		}
+		const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
+		signallingAspectText->setText(cue == SignalCueKind::Stop ? QStringLiteral("Stop")
+			: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
+			: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral"));
 	}
 }
 

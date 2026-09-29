@@ -63,6 +63,7 @@
 #include <QVBoxLayout>
 #include <list>
 #include <vector>
+#include "diagrams/BlockingTimeDiagram.h"
 #include <map>
 #include <set>
 #include <utility>
@@ -102,6 +103,7 @@ class UpdateChecker;
 class QFileSystemWatcher;
 class SelfUpdater;
 class QProgressDialog;
+class QPlainTextEdit;
 struct UpdateCheckResult;
 struct StableRelease;
 
@@ -132,6 +134,7 @@ struct StableRelease;
 
 #include "app/DispatchController.h"
 #include "app/GuiSimulationSnapshot.h"
+#include "app/GuiReplayHistory.h"
 
 #include "simulation/Rescheduling.h"
 
@@ -231,7 +234,6 @@ public:
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
-	void buildCorridorTrainPathDiagram(std::string corridor);
 	bool hasRunResults() const;
 	void updateDiagramActions();
 	QMenu* editorsMenu();
@@ -267,7 +269,7 @@ public slots:
 	void removeTrainPaxInfoIcon();
 	void removePaxInfoIcon();
 	void updateBlockOccupationStatus(const GuiTrainState& train);
-	void releaseBlockOccupationStatus();
+	void clearOperationalTrackStates();
 	void updateTrainPosition(int t);
 	void startSimulation();
 	void runCurrent();
@@ -355,6 +357,7 @@ private:
 	QLineEdit* signallingAspectText;
 	QLineEdit* signallingProtectedSectionText;
 	QLineEdit* signallingNextTrackText;
+	QPlainTextEdit* signallingGroupDetails;
 	QFormLayout* signallingFormLayout;
 	QWidget* trainInfoWidget;
 	QLineEdit* trainIDText;
@@ -380,6 +383,7 @@ private:
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
+	int m_operationalLifecycleE2eCompletions = 0;
 	bool m_editorE2eFinished = false;
 	bool m_creatorAcceptanceFinished = false;
 	int m_creatorAcceptancePhase = 0;
@@ -644,6 +648,16 @@ private:
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
+	GuiReplayHistory m_completedReplay;
+	QWidget* m_replayBar = nullptr;
+	QSlider* m_replaySlider = nullptr;
+	QLabel* m_replayLabel = nullptr;
+	QPushButton* m_replayPlayButton = nullptr;
+	QTimer* m_replayTimer = nullptr;
+	bool m_replayActive = false;
+	int m_replayRequestedTime = 0;
+	bool m_showingTrackPreview = true;
+	std::shared_ptr<const GuiSimulationSnapshot> m_operationalLifecycleE2eFirstFrame;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();
@@ -923,9 +937,14 @@ private:
 	void clearSimulationWorker(bool requestStop);
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
+	void clearReplay();
+	void seekReplay(int requestedTime);
+	void renderSnapshot(bool historical);
+	bool replayTrainHasPosition(int trainIndex) const;
 
 	// list of signals
 	QList<SignalItem*> allSignals;
+	SignalItem* m_inspectedSignal = nullptr; // scene-owned; cleared before scene teardown
 	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 	void buildTrackIndexes();
@@ -933,6 +952,7 @@ private:
 	void updateStationOverlayDegrees();
 	bool isTrainOverlayPromoted(int trainIndex) const;
 	void updateViewportOverlays();
+	void updateSignalCues();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
 	bool paxTextVisible() const;
@@ -977,12 +997,14 @@ private slots:
 	void showTimeDistanceDiagram();
 	void showTractiveEffortDistanceDiagram();
 	void showTimetableGraph();
+	void buildRouteDiagram(bool timetable, int referenceIndex);
 	void showTimetableTable();
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
 	void showCapacityAnalysis();
 	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
-		RunProvenance provenance);
+		RunProvenance provenance, std::vector<BlockingTimeDiagramSegment> segments,
+		double routeStartKm, double routeEndKm, const QString& referenceId);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 
 };

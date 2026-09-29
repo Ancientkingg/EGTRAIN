@@ -67,45 +67,52 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 11, "case content produces stable deduplicated entries");
-	ok &= expect(entries.at(0).label == "Free track"
-		&& entries.at(0).trackState == TrackOperationalState::Free
-		&& entries.at(0).color == freeTrackVisual().color
-		&& entries.at(0).lineWidth == freeTrackVisual().width
-		&& entries.at(0).penStyle == Qt::SolidLine,
-		"free track entry uses the renderer base style");
-	ok &= expect(entries.at(1).label == "Prepared route"
-		&& entries.at(1).trackState == TrackOperationalState::Prepared
-		&& entries.at(1).color == classifyTrackState(TrackOperationalState::Prepared).color
-		&& entries.at(1).penStyle == classifyTrackState(TrackOperationalState::Prepared).style,
-		"prepared track entry uses renderer classification");
-	ok &= expect(entries.at(2).label == "Occupied section"
-		&& entries.at(2).color == classifyTrackState(TrackOperationalState::Occupied).color,
+	ok &= expect(entries.size() == 13, "case content produces stable deduplicated entries");
+	ok &= expect(entries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
+		&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
+		&& entries.at(2).color == freeTrackVisual().color
+		&& entries.at(2).lineWidth == freeTrackVisual().width
+		&& entries.at(2).penStyle == Qt::SolidLine,
+		"speed-class entries use the renderer base styles");
+	ok &= expect(entries.at(3).label == "Permissive signalling"
+		&& entries.at(3).trackState == TrackOperationalState::Prepared
+		&& entries.at(3).color == classifyTrackState(TrackOperationalState::Prepared).color
+		&& entries.at(3).penStyle == classifyTrackState(TrackOperationalState::Prepared).style,
+		"permissive signalling entry uses renderer classification");
+	legend.setFixedWidth(180);
+	QApplication::processEvents();
+	auto* permissiveLabel = legend.findChild<QLabel*>("mapKeyEntry3");
+	ok &= expect(permissiveLabel && permissiveLabel->wordWrap()
+		&& permissiveLabel->width() >= permissiveLabel->fontMetrics().horizontalAdvance("signalling")
+		&& permissiveLabel->minimumHeight() >= permissiveLabel->heightForWidth(permissiveLabel->width())
+		&& permissiveLabel->height() >= permissiveLabel->fontMetrics().lineSpacing() * 2,
+		"permissive signalling label wraps at the narrow case dock width");
+	ok &= expect(entries.at(4).label == "Occupied section"
+		&& entries.at(4).color == classifyTrackState(TrackOperationalState::Occupied).color,
 		"occupied track entry uses renderer classification");
-	ok &= expect(entries.at(3).label == "Blocked section"
-		&& entries.at(3).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
+	ok &= expect(entries.at(5).label == "Blocked section"
+		&& entries.at(5).penStyle == classifyTrackState(TrackOperationalState::Blocked).style,
 		"blocked track entry keeps its non-color cue");
-	auto* preparedSwatch = legend.findChild<QWidget*>("mapKeySwatch1");
+	auto* preparedSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
 	const QImage preparedImage = preparedSwatch ? preparedSwatch->grab().toImage() : QImage();
 	ok &= expect(preparedSwatch && preparedSwatch->width() == 46
 		&& containsColor(preparedImage, classifyTrackState(TrackOperationalState::Prepared).color)
 		&& containsColor(preparedImage, freeTrackVisual().color),
-		"prepared track swatch mirrors the renderer state underlay and base rail");
-	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch4");
+		"permissive signalling swatch mirrors the renderer state underlay and base rail");
+	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
 	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
 	ok &= expect(trainSwatch && containsColor(trainImage, QColor("#26313B"))
 			&& containsColor(trainImage, classifyTrainType("IC", "IC 2201").fill),
 		"train swatch mirrors the compact on-track badge and classified plate");
-	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
+	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
 	const QImage stationImage = stationSwatch ? stationSwatch->grab().toImage() : QImage();
 	ok &= expect(stationSwatch && containsColorNear(stationImage, QColor(210, 215, 220), 30)
 			&& !containsColor(stationImage, QColor("#5078D2")),
 		"station swatch mirrors the gray on-track circular marker instead of the SVG tile");
-	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch7");
+	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch9");
 	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
-	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red))
-			&& containsColor(stopSignalImage, QColor("#0D131A")),
-		"signal swatch mirrors the on-track lamp and direction cue");
+	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red)),
+		"signal swatch renders the historical red plate");
 
 	int intercityCount = 0;
 	int stationCount = 0;
@@ -160,16 +167,18 @@ int main(int argc, char* argv[]) {
 	previewContent.hasSignals = true;
 	legend.setCaseContent(previewContent);
 	const QVector<NetworkLegendEntry> previewEntries = legend.entries();
-	ok &= expect(previewEntries.size() == 6
-			&& previewEntries.at(0).label == "Track"
-			&& previewEntries.at(1).label == "Selected track"
-			&& previewEntries.at(2).label == "Station"
-			&& previewEntries.at(3).label == "Stop signal"
-			&& previewEntries.at(4).label == "Caution signal"
-			&& previewEntries.at(5).label == "Proceed signal",
+	ok &= expect(previewEntries.size() == 8
+			&& previewEntries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
+			&& previewEntries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
+			&& previewEntries.at(2).color == classifyTrackSpeed(0.0).color
+			&& previewEntries.at(3).label == "Selected track"
+			&& previewEntries.at(4).label == "Station"
+			&& previewEntries.at(5).label == "Stop signal"
+			&& previewEntries.at(6).label == "Caution signal"
+			&& previewEntries.at(7).label == "Proceed signal",
 		"preview key explains every operational signal aspect");
-	ok &= expect(previewEntries.at(1).color == QColor(242, 170, 70)
-			&& previewEntries.at(1).lineWidth == 4,
+	ok &= expect(previewEntries.at(3).color == QColor(242, 170, 70)
+			&& previewEntries.at(3).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");
 
 	return ok ? 0 : 1;

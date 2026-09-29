@@ -1,4 +1,5 @@
 #include "diagrams/BlockingTimeDiagram.h"
+#include "diagrams/CapacityAnalysis.h"
 
 #include <algorithm>
 #include <cmath>
@@ -62,8 +63,10 @@ bool shareBlockingTimeResource(const BlockingTimeDiagramInput& first,
 }
 
 bool validBlockingTimeDiagramInput(const BlockingTimeDiagramInput& block) {
-	return block.isComplete && hasValue(block.blockId) && block.startOccTime >= 0.0
-		&& block.endOccTime > block.startOccTime && block.posStart >= 0.0 && block.posEnd >= 0.0;
+	return block.isComplete && hasValue(block.blockId) && std::isfinite(block.startOccTime)
+		&& std::isfinite(block.endOccTime) && std::isfinite(block.posStart) && std::isfinite(block.posEnd)
+		&& block.startOccTime >= 0.0 && block.endOccTime > block.startOccTime
+		&& block.posStart >= 0.0 && block.posEnd >= 0.0;
 }
 
 std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
@@ -96,7 +99,8 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 		const std::string trainName = trainIndex < trainNames.size() ? trainNames[trainIndex] : "";
 		for (size_t blockIndex = 0; blockIndex < trains[trainIndex].size(); blockIndex++) {
 			const BlockingTimeDiagramInput& block = trains[trainIndex][blockIndex];
-			if (!validBlockingTimeDiagramInput(block))
+			if (!validBlockingTimeDiagramInput(block) || !std::isfinite(block.endClearTime)
+				|| block.endClearTime < 0.0)
 				continue;
 
 			BlockingTimeDiagramSegment segment;
@@ -104,14 +108,37 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 			segment.blockId = block.blockId;
 			segment.startTime = block.startOccTime;
 			segment.endTime = block.endOccTime;
-			segment.midPositionKm = ((block.posStart + block.posEnd) / 2.0) / 1000.0;
-			segment.penWidth = std::max(2.0, std::abs(block.posEnd - block.posStart) / 100.0);
+			segment.startPositionKm = block.posStart / 1000.0;
+			segment.endPositionKm = block.posEnd / 1000.0;
+			segment.midPositionKm = (segment.startPositionKm + segment.endPositionKm) / 2.0;
+			segment.originalStartTime = segment.startTime;
+			segment.originalEndTime = segment.endTime;
+			segment.startApproachTime = block.startApproachTime;
+			segment.startRunTime = block.startRunTime;
+			segment.endRunTime = block.endRunTime;
+			segment.endClearTime = block.endClearTime;
+			segment.setupTime = block.setupTime;
+			segment.sightReactionTime = block.sightReactionTime;
+			segment.releaseTime = block.releaseTime;
+			segment.runTimeMargin = block.runTimeMargin;
 			segment.style = segmentStyle(block, critical[trainIndex][blockIndex]);
 			segment.capacityCritical = block.capacityCritical;
 			segments.push_back(segment);
 		}
 	}
 	return segments;
+}
+
+void restoreCompressedOriginalTimes(std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<CapacityCompressionRow>& compression) {
+	for (auto& segment : segments)
+		for (const auto& row : compression)
+			if (row.identity == segment.trainName) {
+				const double displacement = row.compressedReference - row.originalReference;
+				segment.originalStartTime -= displacement;
+				segment.originalEndTime -= displacement;
+				break;
+			}
 }
 
 std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
@@ -141,6 +168,52 @@ std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
 			filtered.push_back(std::move(segment));
 	}
 	return filtered;
+}
+
+std::vector<std::vector<BlockingTimePlannedReference>> clipBlockingTimePlannedReferences(
+	const std::vector<BlockingTimePlannedReference>& references, double startTime, double endTime) {
+	std::vector<std::vector<BlockingTimePlannedReference>> clipped;
+	if (!std::isfinite(startTime) || !std::isfinite(endTime) || endTime < startTime)
+		return clipped;
+	const auto valid = [](const BlockingTimePlannedReference& point) {
+		return std::isfinite(point.time) && std::isfinite(point.positionKm);
+	};
+	const auto boundary = [](const BlockingTimePlannedReference& first,
+		const BlockingTimePlannedReference& second, double time) {
+		BlockingTimePlannedReference point = first;
+		point.time = time;
+		point.positionKm += (second.positionKm - first.positionKm) *
+			((time - first.time) / (second.time - first.time));
+		point.stationName.clear();
+		point.eventType = "clipped planned interpolation";
+		return point;
+	};
+	for (std::size_t i = 0; i < references.size(); ++i) {
+		const auto& first = references[i];
+		if (!valid(first)) continue;
+		bool connected = false;
+		if (i + 1 < references.size()) {
+			const auto& second = references[i + 1];
+			if (first.trainName == second.trainName && valid(second) && first.time != second.time) {
+				const double from = std::max(startTime, std::min(first.time, second.time));
+				const double to = std::min(endTime, std::max(first.time, second.time));
+				if (from <= to) {
+					const double begin = first.time < second.time ? from : to;
+					const double finish = first.time < second.time ? to : from;
+					clipped.push_back({begin == first.time ? first : boundary(first, second, begin),
+						finish == second.time ? second : boundary(first, second, finish)});
+					connected = true;
+				}
+			}
+		}
+		const bool previousConnected = i > 0 && references[i - 1].trainName == first.trainName
+			&& valid(references[i - 1]) && references[i - 1].time != first.time
+			&& std::min(references[i - 1].time, first.time) <= endTime
+			&& std::max(references[i - 1].time, first.time) >= startTime;
+		if (!connected && !previousConnected && first.time >= startTime && first.time <= endTime)
+			clipped.push_back({first});
+	}
+	return clipped;
 }
 
 std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(

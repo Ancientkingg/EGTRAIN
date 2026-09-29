@@ -4,6 +4,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #ifdef signals
 #undef signals
 #endif
@@ -147,6 +148,48 @@ int main() {
 	std::srand(12345);
 	bool ok = true;
 	SceneModel scene = completeScene();
+	// Exercise native route construction, stop resolution and chart coordinate
+	// extraction together. The second route traverses the same track backwards.
+	SceneModel diagramScene = completeScene();
+	for (auto& node : diagramScene.nodes) {
+		node.xKm += 42.0;
+		node.yKm = 900.0 + node.xKm; // map geometry is not the route X basis
+	}
+	SceneRoute reverseRoute = diagramScene.routes.front();
+	reverseRoute.id = "route.reverse";
+	reverseRoute.blocks = {"block.2", "block.1", "block.0"};
+	reverseRoute.reversed = true;
+	diagramScene.routes.push_back(reverseRoute);
+	SceneService reverseService = diagramScene.services.front();
+	reverseService.id = "service.reverse";
+	reverseService.route = reverseRoute.id;
+	reverseService.stops = {reverseService.stops[2], reverseService.stops[1], reverseService.stops[0]};
+	diagramScene.services.push_back(reverseService);
+	const auto diagramInfra = buildInfrastructureAndSignallingFromScene(diagramScene);
+	const auto diagramOps = hasErrors(diagramInfra) ? diagramInfra
+		: buildOperationsFromScene(diagramScene, "scenario.base");
+	ok &= expect(!hasErrors(diagramInfra) && !hasErrors(diagramOps),
+		"forward and reverse diagram fixture builds through native paths");
+	if (!hasErrors(diagramInfra) && !hasErrors(diagramOps) && numRegions > 1) {
+		const RouteDiagramPath reference = routeDiagramPath(train_route[regional_train[0].indexOfRoute], &diagramScene);
+		const auto identity = buildRouteDiagramProjection(reference, reference);
+		const Train& forward = regional_train[0];
+		const Train& reverse = regional_train[numRegions - 1];
+		const RouteDiagramPath reversePath = routeDiagramPath(train_route[reverse.indexOfRoute], &diagramScene);
+		const auto reverseProjection = buildRouteDiagramProjection(reversePath, reference);
+		const auto forwardStop = routeDiagramStopPosition(forward, 1, reference, identity);
+		const auto backwardStop = routeDiagramStopPosition(reverse, 1, reversePath, reverseProjection);
+		ok &= expect(forwardStop && backwardStop && std::fabs(*forwardStop - 43.0) < 1e-6
+			&& std::fabs(*backwardStop - 43.0) < 1e-6,
+			"native forward/reverse stop nodes share reference coordinates");
+		const double forwardSample = forward.Stations[1].X * 1000.0;
+		const double reverseSample = reverse.Stations[1].X * 1000.0;
+		const auto forwardAtSample = identity.map(routeDiagramTrajectoryKm(forwardSample));
+		const auto reverseAtSample = reverseProjection.map(routeDiagramTrajectoryKm(reverseSample));
+		ok &= expect(forwardAtSample && reverseAtSample && std::fabs(*forwardAtSample - *forwardStop) < 1e-6
+			&& std::fabs(*reverseAtSample - *backwardStop) < 1e-6,
+			"runtime sample metres project without a second direction reversal");
+	}
 	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
 	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";
 	InputMainFolder = initial_variables.InputMainFolder;
@@ -921,5 +964,6 @@ int main() {
 		}
 		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
 	}
+	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

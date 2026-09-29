@@ -284,11 +284,14 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	if (m_fitSymbolVisible) {
 		painter->save();
 		painter->translate(m_fitCollisionOffset);
-		painter->setPen(QPen(markerColor, m_visualScale));
-		painter->setBrush(markerColor);
-		const qreal markerInset = 5.0 * m_visualScale;
-		painter->drawEllipse(m_symbolRect.adjusted(
-			markerInset, markerInset, -markerInset, -markerInset));
+		const QPixmap historicalSymbol(m_visual.iconResource);
+		if (!historicalSymbol.isNull())
+			painter->drawPixmap(m_symbolRect.toRect(), historicalSymbol);
+		else {
+			painter->setPen(QPen(markerColor, m_visualScale));
+			painter->setBrush(markerColor);
+			painter->drawEllipse(m_symbolRect);
+		}
 		painter->restore();
 	}
 	if (isLabelVisible()) {
