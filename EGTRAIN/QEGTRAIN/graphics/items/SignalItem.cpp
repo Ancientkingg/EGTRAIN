@@ -2,6 +2,8 @@
 
 #include "graphics/VisualPolish.h"
 
+#include <algorithm>
+
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_lampColor(QColor(128, 128, 128)) {
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
@@ -39,7 +41,7 @@ void SignalItem::setReversedDirection(bool reversed) {
 }
 
 void SignalItem::setGroupedSignals(const QVector<QPair<int, bool>>& aspects) {
-	if (m_groupedSignals == aspects)
+	if (std::equal(m_groupedSignals.cbegin(), m_groupedSignals.cend(), aspects.cbegin(), aspects.cend()))
 		return;
 	m_groupedSignals = aspects;
 	update();
