@@ -19,6 +19,7 @@
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/TractionCurve.h"
 #include "graphics/SignalGeometry.h"
+#include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
@@ -1736,21 +1737,18 @@ bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPoin
 	return true;
 }
 
+QPointF stationDecorationOffset(const std::vector<SceneStationView>& views,
+		const std::string& stationId, const std::string& name) {
+	const auto shift = annotationStationShift(views, stationId);
+	return QPointF(shift.first, shift.second + stationNamedYOffset(name));
+}
+
 bool previewSignalNormal(const TrackPreviewLine& line, double rawX, QPointF& normal) {
-	for (std::size_t index = 1; index < line.points.size(); ++index) {
-		const auto& first = line.points[index - 1];
-		const auto& second = line.points[index];
-		if (rawX < std::min(first.rawX, second.rawX)
-				|| rawX > std::max(first.rawX, second.rawX))
-			continue;
-		const QPointF tangent(second.x - first.x, second.y - first.y);
-		const qreal length = std::hypot(tangent.x(), tangent.y());
-		if (length <= 0.0)
-			continue;
-		normal = QPointF(-tangent.y() / length, tangent.x() / length);
-		return true;
-	}
-	return false;
+	std::pair<double, double> direction;
+	if (!annotationSignalNormal(line, rawX, direction))
+		return false;
+	normal = QPointF(direction.first, direction.second);
+	return true;
 }
 
 std::string rewriteBlockReference(const std::string& reference,
@@ -4362,7 +4360,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
 					break;
 			}
-			paintStationOverlay(anchor, classifyStation(), station.name, 0.75);
+			paintStationOverlay(anchor, classifyStation(), station.name, 0.75,
+				stationDecorationOffset(sceneModel.stationViews, station.id, station.name));
 			break;
 		}
 	}
@@ -20258,129 +20257,33 @@ void MainWindow::setupGUI() {
 		if (sharedStationPoint(i, sharedPoint)) {
 			paintStationOverlay(sharedPoint,
 				classifyStation(),
-				StationArray[i].stationName, 0.75);
+				StationArray[i].stationName, 0.75,
+				stationDecorationOffset(m_sceneModel.stationViews,
+					m_sceneModel.stations[static_cast<std::size_t>(i)].id,
+					StationArray[i].stationName));
 			continue;
 		}
 
-		// use avg shift
-		double avgShiftX = 0, avgShiftY = 0;
-		for (int j = 0; j < StationArray[i].regions.size(); j++) {
-			avgShiftX += StationArray[i].shiftX[StationArray[i].regions[j]];
-			avgShiftY += StationArray[i].shiftY[StationArray[i].regions[j]];
+		// Keep the native graph position as the source anchor when no shared line resolves.
+		pt = QPointF(StationArray[i].graphX, StationArray[i].graphY);
+		QPointF averageShift;
+		int validRegions = 0;
+		for (int region : StationArray[i].regions) {
+			const double x = StationArray[i].shiftX[region];
+			const double y = StationArray[i].shiftY[region];
+			if (std::isfinite(x) && std::isfinite(y)) {
+				averageShift += QPointF(x, y);
+				++validRegions;
+			}
 		}
-		avgShiftX /= StationArray[i].regions.size();
-		avgShiftY /= StationArray[i].regions.size();
-
-		// shifted point to print station name
-		if ((StationArray[i].stationName == "Koge") ||
-			(StationArray[i].stationName == "Olby") ||
-			(StationArray[i].stationName == "KogeNord") ||
-			(StationArray[i].stationName == "Jersie") ||
-			(StationArray[i].stationName == "SolrodStrand") ||
-			(StationArray[i].stationName == "Karlslunde") ||
-			(StationArray[i].stationName == "Greve") ||
-			(StationArray[i].stationName == "Hundige") ||
-			(StationArray[i].stationName == "Ishoj") ||
-			(StationArray[i].stationName == "Vallensbaek") ||
-			(StationArray[i].stationName == "BrondbyStrand") ||
-			(StationArray[i].stationName == "Avedore") ||
-			(StationArray[i].stationName == "Brondbyoster") ||
-			(StationArray[i].stationName == "Frihedem") ||
-			(StationArray[i].stationName == "Amarken") ||
-			(StationArray[i].stationName == "Sydhavn") ||
-			(StationArray[i].stationName == "Sjaelor") ||
-			(StationArray[i].stationName == "Friheden") ||
-			(StationArray[i].stationName == "BallerupStorage") ||
-
-			(StationArray[i].stationName == "NyEllebjergAE")
-
-		) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(900 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ((StationArray[i].stationName == "Frederikssund") ||
-				   (StationArray[i].stationName == "Vinge") ||
-				   (StationArray[i].stationName == "Olstykke") ||
-				   (StationArray[i].stationName == "Egedal") ||
-				   (StationArray[i].stationName == "Stenlose") ||
-				   (StationArray[i].stationName == "Vekso") ||
-				   (StationArray[i].stationName == "Olstykke") ||
-				   (StationArray[i].stationName == "Kildedal") ||
-				   (StationArray[i].stationName == "Malov") ||
-				   (StationArray[i].stationName == "Ballerup") ||
-				   (StationArray[i].stationName == "Malmparken") ||
-				   (StationArray[i].stationName == "Skovlunde") ||
-				   (StationArray[i].stationName == "Herlev") ||
-				   (StationArray[i].stationName == "Husum") ||
-				   (StationArray[i].stationName == "Islev") ||
-				   (StationArray[i].stationName == "Jyllingevej") ||
-				   (StationArray[i].stationName == "Vanlose") ||
-				   (StationArray[i].stationName == "FlintholmCH") ||
-				   (StationArray[i].stationName == "PeterBangsvej") ||
-				   (StationArray[i].stationName == "Langgade") ||
-				   (StationArray[i].stationName == "Valby") ||
-				   (StationArray[i].stationName == "Carlsberg") ||
-				   (StationArray[i].stationName == "KobenhavnH") ||
-				   (StationArray[i].stationName == "Vesterport") ||
-				   (StationArray[i].stationName == "Norreport") ||
-				   (StationArray[i].stationName == "Osterport_t") ||
-				   (StationArray[i].stationName == "Osterport") ||
-				   (StationArray[i].stationName == "Nordhavn") ||
-
-				   (StationArray[i].stationName == "Dybbolsbro")
-
-		) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-920 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ((StationArray[i].stationName == "HojeTaastrup") ||
-				   (StationArray[i].stationName == "Taastrup") ||
-				   (StationArray[i].stationName == "Glostrup") ||
-
-				   (StationArray[i].stationName == "Rodovre") ||
-				   (StationArray[i].stationName == "Hvidovre") ||
-				   (StationArray[i].stationName == "DanshojBBx") ||
-				   (StationArray[i].stationName == "DanshojBBx") ||
-				   (StationArray[i].stationName == "Albertslund")) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-2800 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ( // line to Hellerup
-			(StationArray[i].stationName == "DanshojF") ||
-			(StationArray[i].stationName == "VigerslevAlle") ||
-			(StationArray[i].stationName == "Alholm") ||
-			(StationArray[i].stationName == "KBHallen") ||
-			(StationArray[i].stationName == "FlintholmF") ||
-			(StationArray[i].stationName == "Grondal") ||
-			(StationArray[i].stationName == "Fuglebakken") ||
-			(StationArray[i].stationName == "Norrebro") ||
-			(StationArray[i].stationName == "Bispebjerg") ||
-			(StationArray[i].stationName == "Charlottenlund") ||
-			(StationArray[i].stationName == "Ordrup") ||
-			(StationArray[i].stationName == "Hellerup") ||
-			(StationArray[i].stationName == "HellerupStorage") ||
-			(StationArray[i].stationName == "RyparkenF") ||
-			(StationArray[i].stationName == "Klampenborg") ||
-			(StationArray[i].stationName == "NyEllebjergF")) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-3500 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else if ( // line to Hillerod
-			(StationArray[i].stationName == "Bernstorffsvej") ||
-			(StationArray[i].stationName == "Gentofte") ||
-			(StationArray[i].stationName == "Lyngby") ||
-			(StationArray[i].stationName == "Sorgenfri") ||
-			(StationArray[i].stationName == "Virum") ||
-			(StationArray[i].stationName == "Holte") ||
-			(StationArray[i].stationName == "Birkerod") ||
-			(StationArray[i].stationName == "Allerod") ||
-			(StationArray[i].stationName == "Hillerod")) {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(-2200 + StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		} else {
-			pt.setX(StationArray[i].graphX + avgShiftX * station_name_graphID * track_separation);
-			pt.setY(StationArray[i].graphY + avgShiftY * station_name_graphID * track_separation);
-		}
+		if (validRegions > 0)
+			averageShift /= validRegions;
+		const QPointF decorationOffset = averageShift * (station_name_graphID * track_separation)
+			+ QPointF(0.0, stationNamedYOffset(StationArray[i].stationName));
 
 		paintStationOverlay(pt,
 			classifyStation(),
-			StationArray[i].stationName);
+			StationArray[i].stationName, 1.0, decorationOffset);
 	}
 
 	// draw connections
@@ -22432,7 +22335,7 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 
 // Draw the fixed-size station symbol and label as one scene-owned item.
 void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal scale) {
+		qreal scale, QPointF decorationOffset) {
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
@@ -22443,13 +22346,14 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	overlay->setNameVisible(m_stationNamesVisible);
 	overlay->setVisible(m_stationLayerVisible);
 
-	// Artwork and name retain their historical scene-space anchors and scale.
+	// Keep picking/source identity at coord; only artwork and text move.
 	Q_UNUSED(scale);
+	const QPointF artworkCoord = coord + decorationOffset;
 	const int symbolSize = station_size;
 	const QPixmap symbol = QIcon(visual.iconResource).pixmap(symbolSize, symbolSize);
 	if (!symbol.isNull()) {
 		auto* picture = scene->addPixmap(symbol);
-		picture->setPos(coord.x() - symbolSize / 2.0, coord.y() - station_size / 2.0 - symbolSize / 2.0);
+		picture->setPos(artworkCoord.x() - symbolSize / 2.0, artworkCoord.y() - station_size / 2.0 - symbolSize / 2.0);
 		picture->setTransformationMode(Qt::SmoothTransformation);
 		picture->setAcceptedMouseButtons(Qt::NoButton);
 		m_stationDecorations.push_back(picture);
@@ -22461,7 +22365,7 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	auto* label = scene->addText(StationOverlayItem::displayName(sname), font);
 	label->setDefaultTextColor(Qt::white);
 	label->setZValue(3);
-	label->setPos(coord - QPointF(label->boundingRect().width() / 2.0,
+	label->setPos(artworkCoord - QPointF(label->boundingRect().width() / 2.0,
 		label->boundingRect().height() / 2.0));
 	label->setAcceptedMouseButtons(Qt::NoButton);
 	m_stationLabels.push_back(label);

@@ -1,6 +1,8 @@
 #include "scene/SceneModel.h"
 #include "scene/TrackPreview.h"
+#include "graphics/AnnotationPlacement.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <utility>
@@ -54,6 +56,72 @@ int main() {
 
 	const TrackPreviewResult result = loadTrackPreview(scene);
 	bool ok = true;
+	TrackPreviewLine signalLine {"signal", {{0.0, 0.0, "a", 0.0},
+		{10.0, 0.0, "b", 10.0}}, 0.0};
+	std::pair<double, double> normal;
+	ok &= expect(annotationSignalNormal(signalLine, 5.0, normal)
+		&& std::fabs(normal.first) < 1e-9 && std::fabs(normal.second + 1.0) < 1e-9,
+		"increasing chainage horizontal signal heads use the historical upper normal");
+	signalLine.points[1].y = 10.0;
+	ok &= expect(annotationSignalNormal(signalLine, 5.0, normal)
+		&& std::fabs(normal.first - std::sqrt(0.5)) < 1e-9
+		&& std::fabs(normal.second + std::sqrt(0.5)) < 1e-9,
+		"diagonal signal heads use the chainage-directed normal");
+	std::reverse(signalLine.points.begin(), signalLine.points.end());
+	ok &= expect(annotationSignalNormal(signalLine, 5.0, normal)
+		&& std::fabs(normal.first - std::sqrt(0.5)) < 1e-9
+		&& std::fabs(normal.second + std::sqrt(0.5)) < 1e-9,
+		"reversed storage does not reverse signal heads");
+	TrackPreviewLine bentSignalLine {"bend", {{0.0, 0.0, "a", 0.0},
+		{10.0, 0.0, "b", 10.0}, {10.0, 10.0, "c", 20.0}}, 0.0};
+	for (int order = 0; order < 2; ++order) {
+		for (double chainage : {0.0, 9.0, 10.0, 11.0, 20.0}) {
+			const double expectedX = chainage < 10.0 ? 0.0 : 1.0;
+			const double expectedY = chainage < 10.0 ? -1.0 : 0.0;
+			ok &= expect(annotationSignalNormal(bentSignalLine, chainage, normal)
+				&& std::fabs(normal.first - expectedX) < 1e-9
+				&& std::fabs(normal.second - expectedY) < 1e-9,
+				"bend boundaries use the outgoing chainage interval in either storage order");
+		}
+		std::reverse(bentSignalLine.points.begin(), bentSignalLine.points.end());
+	}
+	signalLine.points[0].rawX = signalLine.points[1].rawX = 5.0;
+	ok &= expect(!annotationSignalNormal(signalLine, 5.0, normal),
+		"degenerate chainage cannot determine signal handedness");
+	const std::vector<SceneStationView> placementViews {
+		{"A", 0.0, 0.0, {{0, 0.0}}, {}},
+		{"B", 0.0, 1.0, {{0, 1.0}, {1, 1.0}}, {}},
+		{"C", 0.0, 2.0, {{0, 2.0}}, {}},
+		{"D", -1.0, 2.0, {{1, 2.0}}, {}},
+		{"E", -2.0, 2.0, {{1, 3.0}}, {}}
+	};
+	ok &= expect(stationNamedYOffset("Koge") == 900.0
+		&& stationNamedYOffset("Dybbolsbro") == -920.0
+		&& stationNamedYOffset("unknown") == 0.0,
+		"historical named adjustments apply once on top of regional shift");
+	const auto firstShift = annotationStationShift(placementViews, "A");
+	const auto lastShift = annotationStationShift(placementViews, "C");
+	ok &= expect(std::fabs(firstShift.first) < 1e-9
+		&& std::fabs(firstShift.second - 1200.0) < 1e-9
+		&& std::fabs(lastShift.second - 1200.0) < 1e-9,
+		"first and last horizontal station decorations shift down 1200");
+	const auto bendShift = annotationStationShift(placementViews, "D");
+	const auto multiShift = annotationStationShift(placementViews, "B");
+	ok &= expect(std::isfinite(bendShift.first) && std::isfinite(bendShift.second)
+		&& std::fabs(bendShift.first) > 1.0 && std::fabs(bendShift.second) > 1.0,
+		"station bend uses the regional bisector");
+	ok &= expect(std::isfinite(multiShift.first) && std::isfinite(multiShift.second)
+		&& std::fabs(multiShift.first) > 1.0 && std::fabs(multiShift.second) < 1200.0,
+		"station with multiple regions averages independent shifts");
+	ok &= expect(annotationStationShift({}, "A") == std::make_pair(0.0, 0.0)
+		&& annotationStationShift(placementViews, "missing") == std::make_pair(0.0, 0.0),
+		"absent station geometry leaves semantic anchors unchanged");
+	const std::vector<SceneStationView> collapsed {
+		{"A", 0.0, 0.0, {{0, 0.0}}, {}},
+		{"B", 0.0, 0.0, {{0, 1.0}}, {}}
+	};
+	ok &= expect(annotationStationShift(collapsed, "A") == std::make_pair(0.0, 0.0),
+		"coincident geographic stations cannot introduce nonfinite decoration offsets");
 	const TrackPreviewResult normalized = normalizeTrackPreview(result);
 	ok &= expect(normalized.lines.size() == result.lines.size(),
 			"normalization retains every projected line");
