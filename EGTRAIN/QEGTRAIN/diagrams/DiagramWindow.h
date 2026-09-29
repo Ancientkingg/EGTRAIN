@@ -41,6 +41,10 @@ class DiagramWindow : public QDialog {
 public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	void setChart(QChart* chart);                                  // takes ownership
+	// Presentation only: keeps technical qualifications outside the plot and title.
+	void setPresentation(const QString& heading, const QString& context,
+		const QString& technicalNotes = QString());
+	void setRollingStockSubject(bool on);
 	// Format one axis as HH:MM:SS with an offset; true selects X or Y, false
 	// restores numeric formatting. Set before or after setChart. Bounds and
 	// reversal come from the caller; reset restores the bounds at setChart.
@@ -91,6 +95,11 @@ private:
 	QPointer<QLabel> m_pinLabel;
 	QPointer<TrainFilterButton> m_trainsButton;
 	QPointer<QPushButton> m_csvButton;
+	QPointer<QPushButton> m_clearPinButton;
+	QPointer<QLabel> m_contextLabel;
+	QPointer<QWidget> m_detailsPanel;
+	QPointer<QLabel> m_detailsLabel;
+	QPointer<QPushButton> m_detailsButton;
 	bool m_timeAxis = false;
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;

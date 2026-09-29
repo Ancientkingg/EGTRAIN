@@ -640,6 +640,8 @@ private:
 	bool m_passengerLayerVisible = true;
 	QList<QGraphicsItem*> m_stationDecorations;
 	QList<StationOverlayItem*> m_stationOverlays;
+	QList<QGraphicsItem*> m_stationLabels;
+	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
 	QString m_selectedStationName;
 	bool m_hasSelectedStationIdentity = false;
 	double m_selectedStationNodeId = 0.0;

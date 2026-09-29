@@ -1,6 +1,7 @@
 #include "graphics/NetworkScene.h"
 
 #include <QGraphicsView>
+#include <limits>
 
 NetworkScene::NetworkScene(QObject* parent)
 	: QGraphicsScene(parent) {
@@ -20,19 +21,45 @@ QTransform NetworkScene::viewTransformFor(QWidget* widget) const {
 QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* widget) const {
 	const QList<QGraphicsItem*> hitItems = items(
 		scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder, viewTransformFor(widget));
+	SignalItem* nearestSignal = nullptr;
+	qreal nearestDistance = std::numeric_limits<qreal>::max();
+	NodeItem* paddedNode = nullptr;
+	const QTransform device = viewTransformFor(widget);
+	const QPointF click = device.map(scenePos);
 	for (QGraphicsItem* item : hitItems) {
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
-			if (qgraphicsitem_cast<NodeItem*>(candidate)
-				|| qgraphicsitem_cast<StationNodeItem*>(candidate)
+			if (auto* signal = qgraphicsitem_cast<SignalItem*>(candidate)) {
+				const QPointF local = signal->mapFromScene(scenePos);
+				if (signal->QGraphicsEllipseItem::shape().contains(local))
+					return signal;
+				const qreal distance = QLineF(click, device.map(signal->sceneBoundingRect().center())).length();
+				if (distance < nearestDistance) {
+					nearestDistance = distance;
+					nearestSignal = signal;
+				}
+				break;
+			}
+			if (auto* node = qgraphicsitem_cast<NodeItem*>(candidate)) {
+				if (node->shape().contains(node->mapFromScene(scenePos)))
+					return node;
+				if (!paddedNode)
+					paddedNode = node;
+				break;
+			}
+			// Node targets sit above the broad track/connection selection shapes.
+			// Keep looking for painted signals or trains before falling back to the node.
+			if (paddedNode && (qgraphicsitem_cast<TrackLineItem*>(candidate)
+				|| qgraphicsitem_cast<ConnectionItem*>(candidate)))
+				break;
+			if (qgraphicsitem_cast<StationNodeItem*>(candidate)
 				|| qgraphicsitem_cast<TrackLineItem*>(candidate)
 				|| qgraphicsitem_cast<ConnectionItem*>(candidate)
-				|| qgraphicsitem_cast<SignalItem*>(candidate)
 				|| qgraphicsitem_cast<TrainBodyItem*>(candidate)
 				|| qgraphicsitem_cast<PassengerItem*>(candidate))
 				return candidate;
 		}
 	}
-	return nullptr;
+	return paddedNode ? static_cast<QGraphicsItem*>(paddedNode) : nearestSignal;
 }
 
 // handles the click on graphical items

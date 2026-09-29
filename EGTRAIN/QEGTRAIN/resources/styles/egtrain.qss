@@ -167,18 +167,22 @@ QPushButton:pressed {
     background: #d8e1e5;
 }
 
-QDialog#runReviewDialog {
+QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
     background: #f8fafb;
 }
 
-QLabel#runReviewHeading {
+QLabel#dialogHeading, QLabel#runReviewHeading {
     background: transparent;
     color: #24313a;
-    font-size: 20px;
     font-weight: 600;
 }
 
-QLabel#runReviewContext, QLabel#runReviewFactLabel {
+QLabel#runReviewHeading {
+    font-size: 20px;
+}
+
+QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
+QLabel#runReviewContext, QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
     background: transparent;
     color: #5b6871;
 }
@@ -188,7 +192,7 @@ QLabel#runReviewFactValue {
     font-weight: 600;
 }
 
-QLabel#runReviewStatus {
+QLabel[dialogStatus="neutral"], QLabel#runReviewStatus {
     background: #e7edf1;
     border: 1px solid #c5d0d7;
     border-radius: 2px;
@@ -196,10 +200,23 @@ QLabel#runReviewStatus {
     padding: 9px;
 }
 
-QLabel#runReviewStatus[warning="true"] {
+QLabel[dialogStatus="warning"], QLabel#runReviewStatus[warning="true"] {
     background: #f5eadc;
     border: 1px solid #d8b98e;
     color: #74451c;
+}
+
+QLabel[dialogStatus="error"] {
+    background: #f7e8e6;
+    border: 1px solid #c98f88;
+    border-radius: 2px;
+    color: #81352d;
+    padding: 9px;
+}
+
+QDialog#caseChooserDialog QListWidget::item:disabled {
+    color: #5b6871;
+    background: transparent;
 }
 
 QLabel#runReviewDetails {
@@ -208,17 +225,40 @@ QLabel#runReviewDetails {
     padding: 8px;
 }
 
-QPushButton#runReviewRunButton {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
     background: #315a70;
     border-color: #315a70;
     color: #ffffff;
     font-weight: 600;
+}
+
+QPushButton#runReviewRunButton {
     min-width: 110px;
 }
 
-QPushButton#runReviewRunButton:hover, QPushButton#runReviewRunButton:focus {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
     background: #26495c;
     border-color: #26495c;
+}
+
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
+    border-color: #315a70;
+    outline: 2px solid #315a70;
+}
+
+QDialog[dialogPresentation="true"] QPushButton:disabled,
+QDialog[dialogPresentation="true"] QComboBox:disabled,
+QDialog[dialogPresentation="true"] QLineEdit:disabled,
+QDialog#runReviewDialog QPushButton:disabled {
+    background: #e4e8eb;
+    border-color: #c9d3db;
+    color: #64717a;
+}
+
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
+    background: #dce3e7;
+    border-color: #c9d3db;
+    color: #64717a;
 }
 
 QTabWidget::pane {
@@ -241,6 +281,11 @@ QLineEdit[readOnly="true"] {
     background: #eceeec;
     color: #5b6871;
     border-color: #c8ced2;
+}
+
+QDialog[dialogPresentation="true"] QLineEdit[readOnly="true"]:focus {
+    border-color: #315a70;
+    outline: 1px solid #315a70;
 }
 
 QSlider::groove:horizontal {
@@ -271,6 +316,31 @@ QProgressBar::chunk {
 QPlainTextEdit {
     background: #12191f;
     color: #dde3e5;
+}
+
+QPlainTextEdit#signallingGroupDetails {
+    background: #ffffff;
+    color: #24313a;
+    border: 1px solid #c9d3db;
+    padding: 6px;
+}
+
+QPlainTextEdit#signallingGroupDetails:focus {
+    border-color: #315a70;
+}
+
+QLabel#infrastructureGuidance {
+    color: #5b6871;
+}
+
+QLabel#resultSummaryHeading {
+    color: #24313a;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+QLabel#resultContextText, QLabel#delayComparisonContext {
+    color: #5b6871;
 }
 
 QGraphicsView#networkView {

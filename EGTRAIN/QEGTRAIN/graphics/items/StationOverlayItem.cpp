@@ -125,7 +125,7 @@ void StationOverlayItem::setFitCollisionOffset(const QPointF& offset) {
 		return;
 	prepareGeometryChange();
 	m_fitCollisionOffset = offset;
-	setAcceptedMouseButtons(!offset.isNull() && m_fitSymbolVisible && m_displacedClickHandler
+	setAcceptedMouseButtons(!m_sceneDecoration && !offset.isNull() && m_fitSymbolVisible && m_displacedClickHandler
 		? Qt::LeftButton : Qt::NoButton);
 	update();
 }
@@ -135,14 +135,14 @@ void StationOverlayItem::setFitSymbolVisible(bool visible) {
 		return;
 	prepareGeometryChange();
 	m_fitSymbolVisible = visible;
-	setAcceptedMouseButtons(visible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
+	setAcceptedMouseButtons(!m_sceneDecoration && visible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
 		? Qt::LeftButton : Qt::NoButton);
 	update();
 }
 
 void StationOverlayItem::setDisplacedClickHandler(std::function<void(const QString&)> handler) {
 	m_displacedClickHandler = std::move(handler);
-	setAcceptedMouseButtons(m_fitSymbolVisible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
+	setAcceptedMouseButtons(!m_sceneDecoration && m_fitSymbolVisible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
 		? Qt::LeftButton : Qt::NoButton);
 }
 
@@ -268,6 +268,8 @@ QRectF StationOverlayItem::boundingRect() const {
 
 QPainterPath StationOverlayItem::shape() const {
 	QPainterPath path;
+	if (m_sceneDecoration)
+		return path;
 	if (m_fitSymbolVisible)
 		path.addRect(translatedSymbol(m_symbolRect));
 	if (isLabelVisible())
@@ -278,6 +280,8 @@ QPainterPath StationOverlayItem::shape() const {
 void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
+	if (m_sceneDecoration)
+		return;
 	painter->save();
 	painter->translate(m_viewportOffset);
 	const QColor markerColor(210, 215, 220);

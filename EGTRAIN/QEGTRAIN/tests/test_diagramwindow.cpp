@@ -2,6 +2,8 @@
 #include "diagrams/TrainFilterButton.h"
 
 #include <QApplication>
+#include <QFile>
+#include <QScreen>
 #include <QCategoryAxis>
 #include <QLabel>
 #include <QKeyEvent>
@@ -15,6 +17,7 @@
 #include <QMouseEvent>
 #include <QNativeGestureEvent>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QPointer>
 #include <QValueAxis>
 #include <QWheelEvent>
@@ -46,6 +49,9 @@ static void wheel(QChartView* view, QPoint pixels, QPoint angles, Qt::KeyboardMo
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
+	QFile stylesheet(QStringLiteral(EGTRAIN_DIALOG_QSS));
+	if (!stylesheet.open(QIODevice::ReadOnly)) return 1;
+	app.setStyleSheet(QString::fromUtf8(stylesheet.readAll()));
 	bool ok = true;
 	DiagramWindow window("Diagram navigation");
 	auto* chart = new QChart;
@@ -417,6 +423,55 @@ int main(int argc, char* argv[]) {
 		"overlapping trains select the nearby visible recorded sample");
 	ok &= expect(stairChart->series().indexOf(actual) > stairChart->series().indexOf(area)
 		&& stairY->isReverse(), "recorded layer draws over the downward-time area fill");
+	const QString authoredId = QStringLiteral("Unit | ") + QString(120, QLatin1Char('Q'));
+	const QString scientificWarning = QStringLiteral("Curve contains negative effort below the default 0 kN view");
+	DiagramWindow input("Input traction characteristic: " + authoredId);
+	QFont scaled = input.font();
+	scaled.setPointSizeF(18);
+	input.setFont(scaled);
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	auto* inputChart = new QChart;
+	auto* inputLine = new QLineSeries;
+	inputLine->setName("Input effort");
+	inputLine->append(10, 20); inputLine->append(20, 30);
+	inputChart->addSeries(inputLine);
+	inputChart->createDefaultAxes();
+	inputChart->setTitle(QStringLiteral("Input traction characteristic: ") + authoredId
+		+ QStringLiteral("<br>") + scientificWarning);
+	input.setPresentation("Input traction characteristic", "Case A / Scenario B | " + authoredId,
+		QStringLiteral("Measured input; ") + scientificWarning + QString(2000, QLatin1Char('X')));
+	input.setChart(inputChart);
+	input.show(); app.processEvents();
+	const auto* details = input.findChild<QScrollArea*>("diagramDetailsPanel");
+	auto* detailsButton = input.findChild<QPushButton*>("diagramDetailsButton");
+	const QRect screenArea = input.screen()->availableGeometry();
+	ok &= expect(input.width() <= screenArea.width() * 9 / 10 &&
+		input.height() <= screenArea.height() * 4 / 5,
+		"scaled diagram fits available screen with application QSS");
+	ok &= expect(input.windowTitle() == "Input traction characteristic" &&
+		input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B") &&
+		inputChart->title().contains(scientificWarning) &&
+		input.findChild<QLabel*>("diagramDetailsText")->text().contains(scientificWarning),
+		"explicit presentation before setChart preserves identity and scientific warning with | in ID");
+	ok &= expect(!input.findChild<TrainFilterButton*>()->isVisible() &&
+		input.findChild<QLabel*>("diagramContext")->text().contains(authoredId) &&
+		!input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:") &&
+		input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Input tractive effort"),
+		"input traction uses rolling-stock subject and no visible train filter");
+	ok &= expect(detailsButton && !details->isVisible(), "technical notes collapsed by default");
+	if (detailsButton) detailsButton->click();
+	app.processEvents();
+	ok &= expect(details->isVisible() &&
+		details->height() <= qMax(120, input.findChild<QLabel*>("diagramDetailsText")->fontMetrics().height() * 6) &&
+		input.findChild<QLabel*>("diagramDetailsText")->text().size() > 2000,
+		"long technical notes remain available in bounded details");
+	input.setPresentation("Updated heading", "Case C / Scenario D", scientificWarning);
+	app.processEvents();
+	ok &= expect(input.windowTitle() == "Updated heading" &&
+		input.findChild<QLabel*>("diagramContext")->text() == "Case C / Scenario D" &&
+		input.findChild<QLabel*>("diagramDetailsText")->text() == scientificWarning &&
+		inputChart->title().contains(scientificWarning),
+		"explicit presentation after setChart preserves distinct chart qualification");
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

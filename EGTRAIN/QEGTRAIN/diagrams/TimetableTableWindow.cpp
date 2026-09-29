@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
+#include <QScreen>
 #include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
@@ -61,8 +63,11 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	  m_startOffset(startOffsetSeconds),
 	  m_csvProvider(std::move(csvProvider)) {
 	setModal(false);
+	setProperty("dialogPresentation", true);
 	setWindowTitle("Timetable: planned vs simulated");
-	resize(1080, 640);
+	const QRect available = screen() ? screen()->availableGeometry() : QRect(0, 0, 1280, 800);
+	setMaximumSize(available.width() * 9 / 10, available.height() * 4 / 5);
+	resize(qMin(1080, maximumWidth()), qMin(640, maximumHeight()));
 
 	m_trainsButton = new TrainFilterButton(this);
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
@@ -92,8 +97,17 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->verticalHeader()->setVisible(false);
 
+	m_contextLabel = new QLabel(this);
+	m_contextLabel->setObjectName("timetableContext");
+	m_contextLabel->setTextFormat(Qt::PlainText);
+	m_contextLabel->setWordWrap(true);
+	m_contextLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	m_contextLabel->setMaximumHeight(fontMetrics().height() * 3);
+	m_contextLabel->hide();
 	QVBoxLayout* layout = new QVBoxLayout(this);
+	layout->setSpacing(8);
 	layout->addLayout(topBar);
+	layout->addWidget(m_contextLabel);
 	layout->addWidget(m_table, 1);
 
 	QStringList trainOrder;
@@ -116,6 +130,18 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
 	m_runProvenance = std::move(provenance);
 	m_hasRunProvenance = true;
+	setPresentation(QStringLiteral("Timetable: planned vs simulated"),
+		QStringLiteral("Case: %1 | Scenario: %2")
+			.arg(QString::fromStdString(m_runProvenance.caseName),
+			     QString::fromStdString(m_runProvenance.appliedScenario)));
+}
+
+void TimetableTableWindow::setPresentation(const QString& heading, const QString& context) {
+	setWindowTitle(heading);
+	m_contextLabel->setMaximumHeight(m_contextLabel->fontMetrics().height() * 3);
+	m_contextLabel->setText(context);
+	m_contextLabel->setToolTip(context.toHtmlEscaped());
+	m_contextLabel->setVisible(!context.isEmpty());
 }
 
 void TimetableTableWindow::fillTable() {

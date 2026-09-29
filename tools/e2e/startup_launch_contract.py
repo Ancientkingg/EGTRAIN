@@ -96,9 +96,9 @@ def assert_no_argument_chooser_continuation(app: Path) -> None:
             values[key] = value
     expected = {
         "E2E_STARTUP_CHOOSER_PROMPT": (
-            "Netherlands is already loaded. Choose another case study to open, or continue with it:"
+            "Current case: Netherlands. Choose another or continue."
         ),
-        "E2E_STARTUP_CHOOSER_ACTION": "Continue with Netherlands",
+        "E2E_STARTUP_CHOOSER_ACTION": "Continue",
         "E2E_STARTUP_CHOOSER_MODEL": "Netherlands",
         "E2E_STARTUP_CHOOSER_CASE_LABEL": "Netherlands",
         "E2E_STARTUP_CHOOSER_READINESS": "Ready to run",

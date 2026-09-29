@@ -84,23 +84,14 @@ int main(int argc, char* argv[]) {
 	QApplication::processEvents();
 	const QPoint dot = boundaryView.mapFromScene(boundary->rect().center());
 	const QImage boundaryImage = boundaryView.viewport()->grab().toImage();
-	bool fitDotPainted = false;
-	for (int dx = -2; dx <= 2; ++dx)
-		for (int dy = -2; dy <= 2; ++dy) {
-			const QPoint pixel = dot + QPoint(dx, dy);
-			fitDotPainted |= boundaryImage.rect().contains(pixel)
-				&& boundaryImage.pixelColor(pixel) != QColor(Qt::black);
-		}
-	ok &= expect(fitDotPainted, "scene renders the Fit dot through its own cullable item");
-	const QList<QGraphicsItem*> hit = boundaryScene.items(boundaryView.mapToScene(dot + QPoint(1, 0)),
-		Qt::IntersectsItemShape, Qt::DescendingOrder, boundaryView.viewportTransform());
-	ok &= expect(std::any_of(hit.cbegin(), hit.cend(), [&](QGraphicsItem* item) {
-		return item == boundary || item->parentItem() == boundary;
-	}), "scene hit geometry includes the independent device-sized child");
 	ok &= expect(boundary->childItems().size() == 1
-		&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-		&& boundary->childItems().first()->scenePos() == boundary->rect().center(),
-		"minimum dot has its own cullable bounds at a nonzero topology coordinate");
+		&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+		"transparent Fit target remains available for semantic picks");
+	ok &= expect(boundaryView.viewportTransform().mapRect(boundary->rect()).width() < 3.0,
+		"scene-sized boundary scales proportionally at Fit");
+	const QList<QGraphicsItem*> hit = boundaryScene.items(boundary->rect().center(),
+		Qt::IntersectsItemShape, Qt::DescendingOrder);
+	ok &= expect(hit.contains(boundary), "scene-sized boundary retains its semantic hit shape");
 	StationOverlayItem overlay("KogeNord", QPointF(40.0, 50.0), stationVisual);
 	ok &= expect(overlay.zValue() > 3.0 && overlay.zValue() < 5.0,
 		"station text paints above signals and below train badges");
@@ -327,6 +318,35 @@ int main(int argc, char* argv[]) {
 		ok &= expect(decoration.isSelected(), "semantic station selection survives default scene dispatch");
 		ok &= expect(sendContextMenu(scene, view, QPointF(0.0, 0.0)), "context event accepted through station overlay");
 		ok &= expect(contextTarget == &station, "context menu preserves station semantic target");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.resize(240, 180);
+		StationNodeItem station(QRectF(-10.0, -10.0, 20.0, 20.0));
+		StationOverlayItem overlay("SceneStation", QPointF(0.0, 0.0), stationVisual);
+		overlay.setSceneDecoration(true);
+		overlay.setFitCollisionOffset(QPointF(20.0, 0.0));
+		QPixmap symbol(30, 30);
+		symbol.fill(Qt::white);
+		auto* picture = new QGraphicsPixmapItem(symbol, &station);
+		picture->setPos(85.0, -15.0);
+		picture->setAcceptedMouseButtons(Qt::NoButton);
+		scene.addItem(&station);
+		scene.addItem(&overlay);
+		int clicks = 0;
+		QGraphicsItem* contextTarget = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode,
+			[&](StationNodeItem* item) { if (item == &station) ++clicks; });
+		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
+		ok &= expect(overlay.shape().isEmpty() && overlay.acceptedMouseButtons() == Qt::NoButton,
+			"legacy screen collision does not leave an unrelated station hit target");
+		sendLeftClick(scene, view, QPointF(100.0, 0.0));
+		ok &= expect(clicks == 1, "scene-scaled artwork resolves to its semantic station node");
+		sendContextMenu(scene, view, QPointF(100.0, 0.0));
+		ok &= expect(contextTarget == &station, "artwork context menu resolves to its station node");
 	}
 
 	if (!ok)

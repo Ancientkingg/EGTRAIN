@@ -174,6 +174,7 @@ set(EGTRAIN_SOURCES
 set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/ConnectionItem.h
     ${SRC_DIR}/widgets/ConsoleWidget.h
+    ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/app/DispatchController.h
     ${SRC_DIR}/widgets/InfoDockWidget.h
     ${SRC_DIR}/simulation/Infrastructure.h
@@ -505,9 +506,36 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/TimeFormat.cpp)
     target_include_directories(test_diagramwindow PRIVATE ${SRC_DIR})
     target_link_libraries(test_diagramwindow PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    target_compile_definitions(test_diagramwindow PRIVATE
+        EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     add_test(NAME test_diagramwindow COMMAND test_diagramwindow)
     set_tests_properties(test_diagramwindow PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_timetabletablewindow
+        ${SRC_DIR}/tests/test_timetabletablewindow.cpp
+        ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
+        ${SRC_DIR}/diagrams/TrainFilterButton.cpp
+        ${SRC_DIR}/diagrams/RunResults.cpp
+        ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/util/TrajectoryUtil.cpp
+        ${SRC_DIR}/util/TimeFormat.cpp)
+    target_link_libraries(test_timetabletablewindow PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets nlohmann_json::nlohmann_json)
+    target_compile_definitions(test_timetabletablewindow PRIVATE
+        EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_timetabletablewindow PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+        target_compile_options(test_timetabletablewindow PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+    endif()
+    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+        target_link_libraries(test_timetabletablewindow PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+    elseif(OpenMP_CXX_FOUND)
+        target_link_libraries(test_timetabletablewindow PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    add_test(NAME test_timetabletablewindow COMMAND test_timetabletablewindow)
+    set_tests_properties(test_timetabletablewindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_visualpolish
         ${SRC_DIR}/tests/test_visualpolish.cpp
@@ -607,6 +635,20 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_networkview COMMAND test_networkview)
     set_tests_properties(test_networkview PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_compactdoublespinbox
+        ${SRC_DIR}/tests/test_compactdoublespinbox.cpp)
+    target_link_libraries(test_compactdoublespinbox PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_compactdoublespinbox COMMAND test_compactdoublespinbox)
+    set_tests_properties(test_compactdoublespinbox PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_dialoglayout
+        ${SRC_DIR}/tests/test_dialoglayout.cpp)
+    target_link_libraries(test_dialoglayout PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    target_compile_definitions(test_dialoglayout PRIVATE
+        EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
+    add_test(NAME test_dialoglayout COMMAND test_dialoglayout)
+    set_tests_properties(test_dialoglayout PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_timeprogressbar
         ${SRC_DIR}/tests/test_timeprogressbar.cpp

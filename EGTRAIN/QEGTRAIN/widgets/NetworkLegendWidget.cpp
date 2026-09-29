@@ -1,5 +1,6 @@
 #include "widgets/NetworkLegendWidget.h"
 
+#include <QEvent>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -9,6 +10,29 @@
 #include <set>
 
 namespace {
+
+class LegendLabel : public QLabel {
+public:
+	using QLabel::QLabel;
+
+protected:
+	void resizeEvent(QResizeEvent* event) override {
+		QLabel::resizeEvent(event);
+		updateWrappedHeight();
+	}
+
+	void changeEvent(QEvent* event) override {
+		QLabel::changeEvent(event);
+		if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange)
+			updateWrappedHeight();
+	}
+
+private:
+	void updateWrappedHeight() {
+		// A narrow rail must reserve every wrapped line, including after a font change.
+		setMinimumHeight(qMax(0, heightForWidth(width())));
+	}
+};
 
 class LegendSwatch : public QWidget {
 public:
@@ -38,27 +62,12 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Train) {
-			const QRectF body(2.0, 2.0, 42.0, 14.0);
+			QPolygonF body;
+			body << QPointF(4, 5) << QPointF(38, 5) << QPointF(43, 9)
+				<< QPointF(38, 13) << QPointF(4, 13);
 			painter.setPen(QPen(m_entry.outlineColor, 1.2));
-			painter.setBrush(QColor("#26313B"));
-			const qreal radius = trainBadgeCornerRadius(m_entry.trainShape);
-			painter.drawRoundedRect(body, radius, radius);
-
-			QPolygonF direction;
-			direction << QPointF(body.right() - 3.0, body.center().y())
-					  << QPointF(body.right() - 8.0, body.center().y() - 3.0)
-					  << QPointF(body.right() - 8.0, body.center().y() + 3.0);
-			painter.setPen(Qt::NoPen);
-			painter.setBrush(QColor("#F2F5F7"));
-			painter.drawPolygon(direction);
-
-			const QRectF plate(5.0, 3.0, 12.0, 12.0);
-			painter.setPen(QPen(m_entry.outlineColor, 0.8));
 			painter.setBrush(m_entry.color);
-			painter.drawRoundedRect(plate, 2.0, 2.0);
-			const QPixmap icon(m_entry.iconResource);
-			if (!icon.isNull())
-				painter.drawPixmap(plate.adjusted(1.0, 1.0, -1.0, -1.0).toRect(), icon);
+			painter.drawPolygon(body);
 			return;
 		}
 
@@ -150,7 +159,7 @@ NetworkLegendEntry stationEntry(const StationVisual& visual) {
 	entry.kind = NetworkLegendEntryKind::Station;
 	entry.label = stationLabel();
 	entry.color = visual.fill;
-	entry.iconResource = visual.iconResource;
+	entry.iconResource = ":/icons/station-dark.svg";
 	return entry;
 }
 
@@ -208,17 +217,11 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		main.color = classifyTrackSpeed(120.0 / 3.6).color;
 		main.lineWidth = 3;
 		m_entries << high << main << trackEntry("Local track", TrackOperationalState::Free);
-		if (content.showOperationalTrackStates) {
-			m_entries << trackEntry("Permissive signalling", TrackOperationalState::Prepared)
-					  << trackEntry("Occupied section", TrackOperationalState::Occupied)
-					  << trackEntry("Blocked section", TrackOperationalState::Blocked);
-		} else {
-			if (content.hasSelectedTrack) {
-				NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
-				selected.color = QColor(242, 170, 70);
-				selected.lineWidth = 4;
-				m_entries << selected;
-			}
+		if (content.hasSelectedTrack) {
+			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
+			selected.color = Qt::blue;
+			selected.lineWidth = 4;
+			m_entries << selected;
 		}
 	}
 
@@ -240,7 +243,7 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		NetworkLegendEntry entry;
 		entry.kind = NetworkLegendEntryKind::Passenger;
 		entry.label = "Passenger count";
-		entry.iconResource = ":/icons/passenger.svg";
+		entry.iconResource = ":/icons/pax_icon.png";
 		m_entries << entry;
 	}
 	rebuildRows();
@@ -282,14 +285,10 @@ void NetworkLegendWidget::rebuildRows() {
 		auto* swatch = new LegendSwatch(entry, row);
 		swatch->setObjectName(QString("mapKeySwatch%1").arg(i));
 		rowLayout->addWidget(swatch);
-		auto* label = new QLabel(entry.label, row);
+		auto* label = new LegendLabel(entry.label, row);
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);
-		label->ensurePolished();
-		const int labelWidth = row->maximumWidth() - rowLayout->contentsMargins().left()
-			- rowLayout->contentsMargins().right() - rowLayout->spacing() - swatch->width();
-		label->setMinimumHeight(label->heightForWidth(labelWidth));
 		label->setToolTip(entry.label);
 		rowLayout->addWidget(label, 1);
 		layout->addWidget(row);
