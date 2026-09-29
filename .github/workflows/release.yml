@@ -7,11 +7,21 @@ on:
   push:
     branches:
       - production
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
     tags:
       - 'v*'
   pull_request:
     branches:
       - production
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
 
 # Production and tag releases share version allocation and must not overlap.

@@ -75,14 +75,27 @@ def main() -> None:
     if "  pull_request:\n    branches: [main]\n" not in validation_trigger:
         missing.append("main pull request validation trigger")
     if "paths:" in validation_trigger:
-        missing.append("unfiltered main validation triggers")
+        missing.append("main validation must not use a code allowlist")
     release_trigger = release_workflow.split("\njobs:", 1)[0]
     if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production release trigger")
     if not re.search(r"pull_request:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production pull request validation trigger")
     if "paths:" in release_trigger:
-        missing.append("unfiltered production release trigger")
+        missing.append("production release must not use a code allowlist")
+    expected_ignored_paths = {"**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"}
+    for name, trigger in (("main", validation_trigger), ("production", release_trigger)):
+        for event in ("push", "pull_request"):
+            event_match = re.search(
+                rf"^  {event}:\n((?:    .*\n|\n)*)", trigger, re.MULTILINE
+            )
+            event_block = event_match.group(1) if event_match else ""
+            filters = re.search(
+                r"^    paths-ignore:\n((?:      - .*\n)+)", event_block, re.MULTILINE
+            )
+            ignored_paths = set(re.findall(r"      - '([^']+)'", filters.group(1))) if filters else set()
+            if ignored_paths != expected_ignored_paths:
+                missing.append(f"{name} {event} documentation-only path filters")
     if "      - main\n" in release_trigger or "ci/release-pipeline" in release_trigger:
         missing.append("stale non-production release trigger")
     if "      - 'v*'" not in release_trigger:
