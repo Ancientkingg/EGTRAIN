@@ -1,0 +1,58 @@
+# Usage and diagnostics wire contract (version 1)
+
+This is a future sender/receiver contract, not a running service or permission to collect data. No endpoint is configured. A future sender must have an exact HTTPS URL compiled into the application before sending; with no URL configured it must fail closed and transmit nothing. Do not infer an endpoint from this document or accept a runtime-provided URL. This contract does not implement consent, collection, queue storage, transport, or a receiver. Native dumps, attachments, crash symbolication, dashboards, server deployment, and updates are out of scope.
+
+## Request and validation
+
+POST one JSON object per request to that exact compiled URL, with `Content-Type: application/json; charset=utf-8`. Do not send cookies or administrative credentials, and do not follow upload redirects. The [Draft 2020-12 schema](batch-v1.schema.json) is authoritative for field types, required fields, string bounds, enums, nesting, and closed objects. Validation must enable the JSON Schema `date-time` format check. Timestamps must be UTC (`Z`), with a valid Gregorian date and optional one to nine fractional digits. UUIDs are lowercase random version 4 with RFC variant bits; they must not be derived from hardware or user identifiers. Application version is exactly three dot-separated nonnegative decimal components, each at most nine digits with no leading zero except `0`; build metadata and prerelease text are disallowed. Platform and architecture are coarse enums, not device models.
+
+Only `schema_version: 1` is supported. One batch contains 1 to 50 events, all of one category. A usage batch requires `installation_id`, a random UUIDv4 generated for the participating installation. A diagnostics batch forbids that field and any other persistent identifier; do not join diagnostic events to usage installations. Each event requires a random UUIDv4 `event_id`, UTC `occurred_at`, allowlisted `name`, and an event-specific closed `properties` object. Generate a new event ID for each distinct occurrence and preserve it unchanged on retry, including after splitting a batch. A sender must not reuse an event ID across distinct events. `sent_at` is the time the batch is prepared for an attempt; client timestamps are advisory. The receiver records its own receipt time. No arbitrary text, exception messages, logs, project contents, paths, filenames, simulation input, email, device identifiers, or free-form keys may enter the payload, including in error fields.
+
+The wire body is at most **65,536 bytes of UTF-8 JSON**, including whitespace. This limit and rejection of malformed UTF-8, duplicate object keys, nonstandard numeric constants, and malformed JSON require a strict wire parser before schema validation. The test checker demonstrates these checks, but is not a server. A receiver must apply the size limit to the original received bytes, not a re-serialized object. Additional properties are forbidden at every object level. Maximum object depth is three (batch, event, event properties); `application` is depth two. No nested arrays or objects occur in properties. No unrestricted string is permitted. A sender must split locally before POST if a proposed body exceeds either limit. A single event too large to transmit is discarded, not truncated.
+
+## Event vocabulary and boundaries
+
+| Category | Name | Required properties | Count boundary |
+| --- | --- | --- | --- |
+| usage | `session.started` | none | Once when usage first becomes enabled in an interactive process, including saved consent at launch. Re-enabling within that process does not create another session. Never replay earlier actions; no session identifier. |
+| usage | `scene.opened` | `scene_kind`: `bundled`, `local` | Once after an open operation succeeds and installs a scene for use. Do not count a preview or cancelled chooser. |
+| usage | `editor.opened` | none | Once when a closed or hidden editor is opened by a user action. Repeated focus or switching tabs in an already-open editor does not count; closing and reopening counts again. |
+| usage | `simulation.started` | none | Once when a run actually begins, not when requested or rejected during preparation. |
+| usage | `simulation.completed` | `duration_bucket` | Once when a started run reaches successful completion; not on stop/cancel. |
+| usage | `simulation.failed` | `duration_bucket` | Once when a started run ends unsuccessfully due to an error; not on stop/cancel. |
+| usage | `export.completed` | `export_kind`: `scene_bundle`, `legacy`, `csv`, `png` | Once when output is successfully written; not on cancelled save dialogs. |
+| usage | `export.failed` | `export_kind`: `scene_bundle`, `legacy`, `csv`, `png` | Once when an attempted write fails; not on cancel or validation before writing. |
+| diagnostics | `operation.failed` | `operation_code`: `scene_open`, `simulation`, `export`; `error_code`: `invalid_input`, `unsupported_format`, `io_failure`, `internal_failure` | Once per handled failure of an attempted operation. No raw cause text. Not emitted for cancellations. |
+
+A failed scene open has no `scene.opened`; an unsuccessful started run has `simulation.started` and `simulation.failed`, never `simulation.completed`. A failure can yield a usage failure event and a diagnostics event, but there is no shared action or session identifier and the batches remain separate. Map failures into stable codes before emitting: `invalid_input` for invalid content, `unsupported_format` for an unsupported type or version, `io_failure` for a file operation failure, `internal_failure` for other handled operation failures. Do not emit an event when no listed code applies rather than insert raw details. A user cancel/stop is neither a completed nor a failed event. Durations are elapsed monotonic time from actual run start to termination, classified into `under_1s` (<1 s), `1s_to_10s` (1 to <10 s), `10s_to_1m` (10 to <60 s), `1m_to_10m` (60 to <600 s), or `10m_or_more` (>=600 s). Do not transmit raw duration. Counts are event occurrences, not unique people, and a crash before emission can leave incomplete sequences.
+
+## HTTP outcomes and queues
+
+Acceptance is all-or-nothing, including schema and event validation. The receiver should validate the strict wire representation, schema, supported version, and event vocabulary before accepting; unsupported versions, unknown names or properties receive 422. Use these outcomes:
+
+| Result | Sender handling |
+| --- | --- |
+| 202 | Entire batch accepted; remove the queued events. A receiver must take responsibility for durable storage before acknowledging. |
+| 400 / 422 | Invalid batch; discard without retry. Use 400 for malformed wire/ordinary invalid requests and 422 for unsupported version, unknown names/properties or other well-formed semantic validation failures. |
+| 413 | Split into smaller batches and retry; discard a single event still too large. |
+| 429 | Retry with exponential backoff and jitter. Honor a valid `Retry-After` value (nonnegative decimal seconds or an HTTP date in the future) capped at 24 hours; invalid, past or absent values use backoff. Wait for the greater of the bounded Retry-After and the current jittered backoff; apply the 30-second minimum to all retries. |
+| 5xx, timeout, DNS/connection/TLS failure | Retry with exponential backoff and jitter. |
+| 410 | Permanently retire the exact configured endpoint, clear its queue, and persist retirement across restarts. A future different compiled URL is a different endpoint. |
+| All other responses, including 3xx, 401, 403 | Unsuccessful; retain only within queue lifetime, apply a long cooldown (at least 24 hours), never a tight retry loop. |
+
+For retryable failures use exponential delays starting at 1 minute, doubling up to 24 hours with jitter between 0.5 and 1.5 times the delay, capped at 24 hours; never retry sooner than 30 seconds. Queue events for at most seven days after occurrence; expiration wins over retries or cooldown. The receiver deduplicates by `event_id` across batches and categories for at least eight days after first acceptance (seven-day queue lifetime plus clock/processing margin), so an accepted response lost in transit does not count twice. For deduplication, event content is the category plus all event fields (not `sent_at` or other envelope fields). If the same ID is reused with different event content, reject the entire batch with 422; duplicates with identical event content are accepted without counting twice. Duplicate IDs within one batch are invalid (422). The receiver must use an atomic acceptance/deduplication boundary before returning 202. Response bodies are ignored and cannot issue commands or change configuration. A compatible addition cannot change existing meanings; new names/properties or breaking semantics require a new schema version, not an unrecognized version-1 payload.
+
+## Privacy and future receiver responsibilities
+
+An installation ID is pseudonymous, not anonymous, and measures participating installations rather than people. Even diagnostics without an ID expose an IP address to the network/proxy layer. A future receiver must define access controls, rate limits, storage quotas, IP handling, retention, deletion procedures and backup expiry before deployment. Suggested retention is 30 days for raw usage/diagnostics and 12 months for aggregate trends; these are not guarantees the sender can enforce. Do not claim server-side deletion until a receiver implements it. Do not embed a binary secret as proof that events are authentic; the endpoint should treat payloads as untrusted.
+
+## Offline checks and examples
+
+[Valid usage](examples/valid-usage.json), [valid diagnostics](examples/valid-diagnostics.json), [invalid unknown field](examples/invalid-unknown-field.json), [invalid category mixing](examples/invalid-category-mixing.json), [private string](examples/invalid-private-string.json), and [missing identifier](examples/invalid-missing-identifier.json) illustrate the wire shape. The checker generates oversized and exact-boundary bodies rather than committing large repetitive fixtures. From the repository root run:
+
+```sh
+python3 -m pip install 'jsonschema==4.25.1' 'rfc3339-validator==0.1.4'  # test-only dependency; not used by the app
+python3 tools/e2e/test_telemetry_contract.py
+```
+
+The checker validates the schema itself, fixtures, all vocabulary branches, strict wire decoding, format checks, and byte/event boundaries. JSON Schema alone cannot enforce the original wire byte count, duplicate keys, UTF-8 validity, uniqueness of IDs across batches, random generation, retry state, IP policy, or durable receiver behavior.

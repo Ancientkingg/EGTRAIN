@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ancientkingg/EGTRAIN/blob/main/docs/telemetry/batch-v1.schema.json",
+  "title": "EGTRAIN telemetry batch version 1",
+  "oneOf": [
+    { "$ref": "#/$defs/usageBatch" },
+    { "$ref": "#/$defs/diagnosticBatch" }
+  ],
+  "$defs": {
+    "uuid4": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36,
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?![\\s\\S])",
+      "format": "uuid"
+    },
+    "utcTime": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 30,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z(?![\\s\\S])",
+      "format": "date-time"
+    },
+    "application": {
+      "type": "object",
+      "required": ["name", "version", "platform", "architecture"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "const": "EGTRAIN" },
+        "version": { "type": "string", "minLength": 5, "maxLength": 29, "pattern": "^(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})(?![\\s\\S])" },
+        "platform": { "enum": ["macos", "windows", "linux"] },
+        "architecture": { "enum": ["arm64", "x86_64"] }
+      }
+    },
+    "emptyProperties": {
+      "type": "object", "maxProperties": 0, "additionalProperties": false
+    },
+    "duration": {
+      "enum": ["under_1s", "1s_to_10s", "10s_to_1m", "1m_to_10m", "10m_or_more"]
+    },
+    "sceneKind": { "enum": ["bundled", "local"] },
+    "exportKind": { "enum": ["scene_bundle", "legacy", "csv", "png"] },
+    "usageEvent": {
+      "type": "object",
+      "required": ["event_id", "occurred_at", "name", "properties"],
+      "additionalProperties": false,
+      "properties": {
+        "event_id": { "$ref": "#/$defs/uuid4" },
+        "occurred_at": { "$ref": "#/$defs/utcTime" },
+        "name": { "enum": ["session.started", "scene.opened", "editor.opened", "simulation.started", "simulation.completed", "simulation.failed", "export.completed", "export.failed"] },
+        "properties": { "type": "object", "maxProperties": 2 }
+      },
+      "oneOf": [
+        { "properties": { "name": { "const": "session.started" }, "properties": { "$ref": "#/$defs/emptyProperties" } } },
+        { "properties": { "name": { "const": "scene.opened" }, "properties": { "type": "object", "required": ["scene_kind"], "additionalProperties": false, "properties": { "scene_kind": { "$ref": "#/$defs/sceneKind" } } } } },
+        { "properties": { "name": { "const": "editor.opened" }, "properties": { "$ref": "#/$defs/emptyProperties" } } },
+        { "properties": { "name": { "const": "simulation.started" }, "properties": { "$ref": "#/$defs/emptyProperties" } } },
+        { "properties": { "name": { "const": "simulation.completed" }, "properties": { "type": "object", "required": ["duration_bucket"], "additionalProperties": false, "properties": { "duration_bucket": { "$ref": "#/$defs/duration" } } } } },
+        { "properties": { "name": { "const": "simulation.failed" }, "properties": { "type": "object", "required": ["duration_bucket"], "additionalProperties": false, "properties": { "duration_bucket": { "$ref": "#/$defs/duration" } } } } },
+        { "properties": { "name": { "const": "export.completed" }, "properties": { "type": "object", "required": ["export_kind"], "additionalProperties": false, "properties": { "export_kind": { "$ref": "#/$defs/exportKind" } } } } },
+        { "properties": { "name": { "const": "export.failed" }, "properties": { "type": "object", "required": ["export_kind"], "additionalProperties": false, "properties": { "export_kind": { "$ref": "#/$defs/exportKind" } } } } }
+      ]
+    },
+    "diagnosticEvent": {
+      "type": "object",
+      "required": ["event_id", "occurred_at", "name", "properties"],
+      "additionalProperties": false,
+      "properties": {
+        "event_id": { "$ref": "#/$defs/uuid4" },
+        "occurred_at": { "$ref": "#/$defs/utcTime" },
+        "name": { "const": "operation.failed" },
+        "properties": {
+          "type": "object",
+          "required": ["operation_code", "error_code"],
+          "additionalProperties": false,
+          "properties": {
+            "operation_code": { "enum": ["scene_open", "simulation", "export"] },
+            "error_code": { "enum": ["invalid_input", "unsupported_format", "io_failure", "internal_failure"] }
+          }
+        }
+      }
+    },
+    "usageBatch": {
+      "type": "object",
+      "required": ["schema_version", "category", "sent_at", "application", "installation_id", "events"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "const": 1 },
+        "category": { "const": "usage" },
+        "sent_at": { "$ref": "#/$defs/utcTime" },
+        "application": { "$ref": "#/$defs/application" },
+        "installation_id": { "$ref": "#/$defs/uuid4" },
+        "events": { "type": "array", "minItems": 1, "maxItems": 50, "items": { "$ref": "#/$defs/usageEvent" } }
+      }
+    },
+    "diagnosticBatch": {
+      "type": "object",
+      "required": ["schema_version", "category", "sent_at", "application", "events"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "const": 1 },
+        "category": { "const": "diagnostics" },
+        "sent_at": { "$ref": "#/$defs/utcTime" },
+        "application": { "$ref": "#/$defs/application" },
+        "events": { "type": "array", "minItems": 1, "maxItems": 50, "items": { "$ref": "#/$defs/diagnosticEvent" } }
+      }
+    }
+  }
+}
