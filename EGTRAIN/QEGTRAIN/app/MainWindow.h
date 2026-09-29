@@ -666,6 +666,8 @@ private:
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
 	void setupUpdateActions();
+	void showPrivacySettings(bool initialPrompt);
+	bool privacyDialogTestHook() const;
 	void maybePromptForUpdateChecks();
 	void startUpdateCheck(bool manual);
 	void handleUpdateCheckFinished(const UpdateCheckResult& result);

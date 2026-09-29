@@ -40,6 +40,17 @@ endif()
 
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
 option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
+option(EGTRAIN_ENABLE_TELEMETRY "Enable consent UI for packaged interactive builds" OFF)
+set(EGTRAIN_TELEMETRY_URL "" CACHE STRING "Exact compiled HTTPS telemetry receiver URL")
+if(EGTRAIN_TELEMETRY_URL MATCHES "[\"\\\\;]")
+    message(FATAL_ERROR "EGTRAIN_TELEMETRY_URL contains unsupported characters")
+endif()
+if(EGTRAIN_ENABLE_TELEMETRY)
+    add_compile_definitions(EGTRAIN_ENABLE_TELEMETRY=1)
+else()
+    add_compile_definitions(EGTRAIN_ENABLE_TELEMETRY=0)
+endif()
+add_compile_definitions(EGTRAIN_TELEMETRY_URL="${EGTRAIN_TELEMETRY_URL}")
 
 if(EGTRAIN_PACKAGED_BUILD)
     add_compile_definitions(EGTRAIN_PACKAGED_BUILD=1)
@@ -139,6 +150,8 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/update/ReleaseInfo.cpp
 	${SRC_DIR}/update/UpdateChecker.cpp
 	${SRC_DIR}/update/UpdateSettings.cpp
+    ${SRC_DIR}/telemetry/TelemetryConsent.cpp
+    ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
 	${SRC_DIR}/update/UpdatePreparation.cpp
 	${SRC_DIR}/update/SelfUpdater.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
@@ -210,6 +223,8 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/update/ReleaseInfo.h
 	${SRC_DIR}/update/UpdateChecker.h
 	${SRC_DIR}/update/UpdateSettings.h
+    ${SRC_DIR}/telemetry/TelemetryConsent.h
+    ${SRC_DIR}/telemetry/TelemetryConsentDialog.h
 	${SRC_DIR}/update/UpdatePreparation.h
 	${SRC_DIR}/update/SelfUpdater.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
@@ -387,6 +402,11 @@ target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json egtrain_mi
 
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
+if(EGTRAIN_BUILD_TESTS)
+    target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_BUILD_TESTS=1)
+else()
+    target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_BUILD_TESTS=0)
+endif()
 if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
     enable_testing()
     add_executable(test_updatepreparation
@@ -407,6 +427,16 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_version.cpp
         ${SRC_DIR}/util/Version.cpp)
     add_test(NAME test_version COMMAND test_version)
+
+    add_executable(test_telemetryconsent
+        ${SRC_DIR}/tests/test_telemetryconsent.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsent.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
+        ${SRC_DIR}/update/UpdateSettings.cpp)
+    target_compile_definitions(test_telemetryconsent PRIVATE EGTRAIN_CONSENT_TEST_HOOK=1)
+    target_link_libraries(test_telemetryconsent PRIVATE Qt5::Widgets)
+    add_test(NAME test_telemetryconsent COMMAND test_telemetryconsent)
+    set_tests_properties(test_telemetryconsent PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_updatechecker
         ${SRC_DIR}/tests/test_updatechecker.cpp

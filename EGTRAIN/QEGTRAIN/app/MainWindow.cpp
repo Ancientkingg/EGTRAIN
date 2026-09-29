@@ -34,6 +34,8 @@
 #include "update/ReleaseInfo.h"
 #include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
+#include "telemetry/TelemetryConsent.h"
+#include "telemetry/TelemetryConsentDialog.h"
 #include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QAreaSeries>
@@ -1938,6 +1940,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_trainUnitSourceDebounceTimer, &QTimer::timeout, this,
 			&MainWindow::processTrainUnitSourceChanges);
 	setupUpdateActions();
+	if (ui->menuHelp) {
+		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy & diagnostics..."));
+		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
+		privacy->setShortcut(QKeySequence::Preferences);
+		connect(privacy, &QAction::triggered, this, [this] { showPrivacySettings(false); });
+	}
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
 	cout << "\n...PREPARING GUI...\n\n";
@@ -4734,6 +4742,43 @@ void MainWindow::setupUpdateActions() {
 		m_updateProgress->setCancelButton(nullptr);
 		m_updateProgress->setRange(0, 0);
 	});
+}
+
+bool MainWindow::privacyDialogTestHook() const {
+#if EGTRAIN_BUILD_TESTS
+	const QString mode = qEnvironmentVariable("QEGTRAIN_E2E_PRIVACY_DIALOG");
+	return (mode == QStringLiteral("1") || mode == QStringLiteral("settings"))
+		&& !qEnvironmentVariable("QEGTRAIN_E2E_SETTINGS_DIR").isEmpty();
+#else
+	return false;
+#endif
+}
+
+void MainWindow::showPrivacySettings(bool initialPrompt) {
+	QSettings settings;
+	TelemetryContext context = applicationTelemetryContext();
+	if (privacyDialogTestHook()) {
+		// A visual-test-only fake context: no sender exists and the URL is never contacted.
+		context = {true, true, true, QStringLiteral("https://127.0.0.1/consent-preview"), QStringLiteral("1")};
+	}
+	TelemetryConsent consent(settings, context);
+	if (!consent.available()) {
+		if (!initialPrompt)
+			QMessageBox::information(this, QStringLiteral("Privacy & diagnostics"),
+				QStringLiteral("Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent."));
+		return;
+	}
+	if (privacyDialogTestHook()
+		&& qEnvironmentVariable("QEGTRAIN_E2E_PRIVACY_DIALOG") == QStringLiteral("settings"))
+		initialPrompt = false;
+	if (initialPrompt && !consent.promptRequired()) return;
+	TelemetryConsentDialog dialog(consent, context.domain(), initialPrompt, this);
+	if (privacyDialogTestHook() && !qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT").isEmpty()) {
+		QTimer::singleShot(200, &dialog, [&dialog] {
+			dialog.grab().save(qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT"));
+		});
+	}
+	dialog.exec();
 }
 
 void MainWindow::maybePromptForUpdateChecks() {
@@ -20565,6 +20610,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	QTimer::singleShot(0, this, [this]() {
 		if (!initial_variables.nArgProvided)
 			showStartupChooser();
+		showPrivacySettings(true);
 		maybePromptForUpdateChecks();
 	});
 
