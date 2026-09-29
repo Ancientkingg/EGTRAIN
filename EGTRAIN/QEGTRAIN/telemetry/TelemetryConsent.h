@@ -32,6 +32,11 @@ public:
     bool usageEnabled();
     bool diagnosticsEnabled();
     QString usageInstallationId();
+    enum class ObservationStatus { Enabled, Disabled, Mismatch, Unavailable, Error };
+    struct UsageObservation { ObservationStatus status; QString installationId; };
+    struct DiagnosticsObservation { ObservationStatus status; int generation = 0; };
+    UsageObservation observeUsage();
+    DiagnosticsObservation observeDiagnostics();
     bool save(bool usage, bool diagnostics);
     void dismiss();
 #ifdef EGTRAIN_CONSENT_TEST_HOOK
@@ -58,6 +63,7 @@ private:
         bool receiver = false;
     };
     State read();
+    ObservationStatus observeState(State& state);
     bool persist(const State& state);
     QString lockPath() const;
     bool acquire(QLockFile& lock, const QString& path);

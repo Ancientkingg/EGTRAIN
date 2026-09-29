@@ -36,6 +36,7 @@
 #include "update/UpdateSettings.h"
 #include "telemetry/TelemetryConsent.h"
 #include "telemetry/TelemetryConsentDialog.h"
+#include "telemetry/TelemetrySender.h"
 #include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QAreaSeries>
@@ -3784,8 +3785,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 }
 
 MainWindow::~MainWindow() {
+	if (m_telemetrySender) m_telemetrySender->stop();
 	clearSimulationWorker(true);
 	delete ui;
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE")) {
+		std::fprintf(stdout, "E2E_TELEMETRY_SHUTDOWN\n");
+		std::fflush(stdout);
+	}
+#endif
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -4754,14 +4762,103 @@ bool MainWindow::privacyDialogTestHook() const {
 #endif
 }
 
-void MainWindow::showPrivacySettings(bool initialPrompt) {
-	QSettings settings;
+void MainWindow::startTelemetryAfterInitialConsent() {
+	if (m_telemetrySender) return;
+	try {
+	if (privacyDialogTestHook()) return;
 	TelemetryContext context = applicationTelemetryContext();
-	if (privacyDialogTestHook()) {
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	const QString requestedDir = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE");
+	const QString isolatedDir = QDir(requestedDir).canonicalPath();
+	const QString temporaryRoot = QDir(QDir::tempPath()).canonicalPath();
+	// Compare resolved paths: Python and Qt may use different spellings of macOS /var.
+	const bool isolated = !requestedDir.isEmpty() && QDir(requestedDir).isAbsolute()
+		&& QDir(requestedDir).exists() && !temporaryRoot.isEmpty()
+		&& isolatedDir.startsWith(temporaryRoot + QLatin1Char('/'));
+	if (!requestedDir.isEmpty() && !isolated) {
+		std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=invalid_isolation_root\n");
+		return;
+	}
+	if (isolated)
+		context = {true, true, true, QStringLiteral("https://127.0.0.1:19497/collect"), QStringLiteral("1")};
+#endif
+	if (!context.capable()) return;
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+		if (isolated) {
+			m_telemetrySettings.reset(new QSettings(QDir(isolatedDir).filePath("consent.ini"), QSettings::IniFormat));
+		} else
+#endif
+			m_telemetrySettings.reset(new QSettings);
+		m_telemetryConsent.reset(new TelemetryConsent(*m_telemetrySettings, context));
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+		if (isolated && !m_telemetryConsent->save(true, false)) {
+			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=consent_storage_failure\n");
+			return;
+		}
+#endif
+		telemetry::Application metadata;
+		metadata.version = QCoreApplication::applicationVersion();
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+		if (isolated) {
+			telemetry::TelemetrySender::TestOptions options;
+			const QString settingsFile = m_telemetrySettings->fileName();
+			options.settingsFactory = [settingsFile] {
+				return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat));
+			};
+			auto elapsed = std::make_shared<QElapsedTimer>();
+			elapsed->start();
+			options.monotonicMs = [elapsed] { return elapsed->elapsed() * 100; };
+			options.requestTimeoutMs = 1500;
+			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
+				QDir(isolatedDir).filePath("queue"), options));
+			auto* injectionTimer = new QTimer(this);
+			injectionTimer->setInterval(100);
+			connect(injectionTimer, &QTimer::timeout, this, [this, injectionTimer, attempts = 0]() mutable {
+				if (!m_telemetrySender || ++attempts > 100 ||
+					m_telemetrySender->tryEnqueue({telemetry::Name::SessionStarted})) {
+					if (attempts <= 100 && m_telemetrySender)
+						std::fprintf(stdout, "E2E_TELEMETRY_MOCK_ACCEPTED\n");
+					else
+						std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=gate_unavailable\n");
+					std::fflush(stdout);
+					injectionTimer->stop();
+					injectionTimer->deleteLater();
+				}
+			});
+			injectionTimer->start();
+		} else
+#endif
+			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
+				QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
+					.filePath(QStringLiteral("Telemetry"))));
+		connect(m_telemetryConsent.get(), &TelemetryConsent::revoked, this,
+			[this](bool usage, bool diagnostics) {
+				if (m_telemetrySender) m_telemetrySender->invalidateConsent(usage, diagnostics);
+			}, Qt::DirectConnection);
+		connect(m_telemetryConsent.get(), &TelemetryConsent::receiverChanged, this,
+			[this] { if (m_telemetrySender) m_telemetrySender->invalidateReceiver(); },
+			Qt::DirectConnection);
+	} catch (...) {
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
+			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=initialization_exception\n");
+#endif
+		m_telemetrySender.reset();
+		m_telemetryConsent.reset();
+		m_telemetrySettings.reset();
+	}
+}
+
+void MainWindow::showPrivacySettings(bool initialPrompt) {
+	QSettings previewSettings;
+	const bool preview = privacyDialogTestHook();
+	TelemetryContext context = applicationTelemetryContext();
+	if (preview) {
 		// A visual-test-only fake context: no sender exists and the URL is never contacted.
 		context = {true, true, true, QStringLiteral("https://127.0.0.1/consent-preview"), QStringLiteral("1")};
 	}
-	TelemetryConsent consent(settings, context);
+	TelemetryConsent previewConsent(previewSettings, context);
+	TelemetryConsent& consent = preview || !m_telemetryConsent ? previewConsent : *m_telemetryConsent;
 	if (!consent.available()) {
 		if (!initialPrompt)
 			QMessageBox::information(this, QStringLiteral("Privacy & diagnostics"),
@@ -4779,6 +4876,7 @@ void MainWindow::showPrivacySettings(bool initialPrompt) {
 		});
 	}
 	dialog.exec();
+	if (!preview && m_telemetrySender) m_telemetrySender->requestConsentRefresh();
 }
 
 void MainWindow::maybePromptForUpdateChecks() {
@@ -20611,6 +20709,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		if (!initial_variables.nArgProvided)
 			showStartupChooser();
 		showPrivacySettings(true);
+		startTelemetryAfterInitialConsent();
 		maybePromptForUpdateChecks();
 	});
 
@@ -23155,6 +23254,10 @@ void MainWindow::refreshRunResults() {
 			m_runResultsTable->rowCount(), static_cast<int>(results.trains.size()),
 			m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
+			QTimer::singleShot(3000, this, [] { QCoreApplication::quit(); });
+#endif
 	}
 }
 
