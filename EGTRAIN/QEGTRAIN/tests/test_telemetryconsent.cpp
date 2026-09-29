@@ -262,6 +262,42 @@ int main(int argc, char** argv) {
     coreProcess.start(QCoreApplication::applicationFilePath(), {QStringLiteral("--core-only")});
     ok &= check(coreProcess.waitForFinished(10000) && coreProcess.exitStatus() == QProcess::NormalExit
         && coreProcess.exitCode() == 0, "QCoreApplication without GUI is suppressed even with clean environment");
+    // Observations do not migrate another receiver's saved state.
+    QTemporaryDir observationDir;
+    QSettings observationSettings(observationDir.filePath("consent.ini"), QSettings::IniFormat);
+    TelemetryConsent observationWriter(observationSettings, context);
+    ok &= check(observationWriter.save(false, true), "diagnostics setup for observations");
+    const int initialGeneration = observationWriter.observeDiagnostics().generation;
+    QSettings observationReaderSettings(observationDir.filePath("consent.ini"), QSettings::IniFormat);
+    TelemetryContext otherReceiver = context;
+    otherReceiver.endpoint = QStringLiteral("https://other.example/collect");
+    TelemetryConsent observationReader(observationReaderSettings, otherReceiver);
+    const QByteArray beforeObservation = observationReaderSettings.value(QStringLiteral("telemetry/consentV1")).toByteArray();
+    ok &= check(observationReader.observeDiagnostics().status == TelemetryConsent::ObservationStatus::Mismatch
+        && observationReader.observeUsage().status == TelemetryConsent::ObservationStatus::Mismatch
+        && observationReaderSettings.value(QStringLiteral("telemetry/consentV1")).toByteArray() == beforeObservation,
+        "receiver mismatch observation does not migrate saved state");
+    ok &= check(observationWriter.save(true, true)
+        && observationWriter.observeDiagnostics().generation > initialGeneration,
+        "usage ID staging advances diagnostics generation even if diagnostics remains enabled");
+    QTemporaryDir migrationDir;
+    QSettings oldSettings(migrationDir.filePath("consent.ini"), QSettings::IniFormat);
+    TelemetryConsent oldReceiver(oldSettings, context);
+    ok &= check(oldReceiver.save(true, false), "old receiver consent setup");
+    QSettings newSettings(migrationDir.filePath("consent.ini"), QSettings::IniFormat);
+    TelemetryConsent newReceiver(newSettings, otherReceiver);
+    ok &= check(newReceiver.promptRequired() && newReceiver.save(true, false),
+        "initial dialog migrates receiver and saves renewed consent before sender startup");
+    QSettings workerSettings(migrationDir.filePath("consent.ini"), QSettings::IniFormat);
+    TelemetryConsent workerObservation(workerSettings, otherReceiver);
+    ok &= check(workerObservation.observeUsage().status == TelemetryConsent::ObservationStatus::Enabled
+        && oldReceiver.observeUsage().status == TelemetryConsent::ObservationStatus::Mismatch,
+        "new receiver is eligible immediately while old receiver cannot rewrite migration");
+    observationSettings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
+        "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":\"0\",\"id\":\"\"}"));
+    observationSettings.sync();
+    ok &= check(observationWriter.observeDiagnostics().status == TelemetryConsent::ObservationStatus::Error,
+        "malformed generation cannot be coerced to a reusable stamp");
     settings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
         "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"\"}"));
     settings.sync();

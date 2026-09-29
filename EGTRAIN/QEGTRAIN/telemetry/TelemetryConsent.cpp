@@ -98,6 +98,57 @@ TelemetryConsent::State TelemetryConsent::read() {
     return state;
 }
 
+TelemetryConsent::ObservationStatus TelemetryConsent::observeState(State& state) {
+    if (!available()) return ObservationStatus::Unavailable;
+    const QString path = lockPath();
+    QLockFile lock(path);
+    if (!acquire(lock, path)) return ObservationStatus::Error;
+    m_settings.sync();
+    if (m_settings.status() != QSettings::NoError) return ObservationStatus::Error;
+    const QByteArray bytes = m_settings.value(QString::fromLatin1(kKey)).toByteArray();
+    if (bytes.isEmpty()) return ObservationStatus::Disabled;
+    if (bytes.size() > 4096) return ObservationStatus::Error;
+    QJsonParseError error;
+    const QJsonDocument document = QJsonDocument::fromJson(bytes, &error);
+    if (error.error != QJsonParseError::NoError || !document.isObject()) return ObservationStatus::Error;
+    const QJsonObject object = document.object();
+    const QJsonValue generation = object.value(QStringLiteral("diagnosticsGeneration"));
+    if (!generation.isDouble() || generation.toDouble() < 0 ||
+        generation.toDouble() >= kGenerationLimit ||
+        generation.toDouble() != static_cast<int>(generation.toDouble())) return ObservationStatus::Error;
+    state.diagnosticsGeneration = static_cast<int>(generation.toDouble());
+    state.endpoint = object.value(QStringLiteral("endpoint")).toString();
+    state.terms = object.value(QStringLiteral("terms")).toString();
+    if (state.endpoint != m_context.endpoint || state.terms != m_context.termsVersion)
+        return ObservationStatus::Mismatch;
+    if (!object.value(QStringLiteral("handled")).isBool() ||
+        !object.value(QStringLiteral("usage")).isBool() ||
+        !object.value(QStringLiteral("diagnostics")).isBool() ||
+        !object.value(QStringLiteral("id")).isString()) return ObservationStatus::Error;
+    state.handled = object.value(QStringLiteral("handled")).toBool();
+    state.usage = object.value(QStringLiteral("usage")).toBool();
+    state.diagnostics = object.value(QStringLiteral("diagnostics")).toBool();
+    state.id = object.value(QStringLiteral("id")).toString();
+    return ObservationStatus::Enabled;
+}
+
+TelemetryConsent::UsageObservation TelemetryConsent::observeUsage() {
+    State state;
+    const auto status = observeState(state);
+    if (status != ObservationStatus::Enabled) return {status, {}};
+    if (state.usage && !validUsageId(state.id)) return {ObservationStatus::Error, {}};
+    return state.handled && state.usage ? UsageObservation{status, state.id}
+        : UsageObservation{ObservationStatus::Disabled, {}};
+}
+
+TelemetryConsent::DiagnosticsObservation TelemetryConsent::observeDiagnostics() {
+    State state;
+    const auto status = observeState(state);
+    if (status != ObservationStatus::Enabled) return {status, 0};
+    return state.handled && state.diagnostics ? DiagnosticsObservation{status, state.diagnosticsGeneration}
+        : DiagnosticsObservation{ObservationStatus::Disabled, 0};
+}
+
 bool TelemetryConsent::persist(const State& state) {
     QJsonObject obj{{QStringLiteral("endpoint"), state.endpoint},
                     {QStringLiteral("terms"), state.terms},
@@ -250,7 +301,18 @@ bool TelemetryConsent::save(bool usage, bool diagnostics) {
                 // Staging and final writes stay inside one lock transaction.
                 State staging = next;
                 staging.diagnostics = false;
-                if (persist(staging)) {
+                // An interrupted staging write must invalidate earlier diagnostic records.
+                if (m_last.diagnostics && !diagnosticsRevoked) {
+                    change.diagnostics = true;
+                    if (!advanceGeneration(staging.diagnosticsGeneration)) {
+                        staging.usage = false;
+                        staging.diagnostics = false;
+                        persist(staging);
+                        m_failed = true;
+                    }
+                    next.diagnosticsGeneration = staging.diagnosticsGeneration;
+                }
+                if (!m_failed && persist(staging)) {
                     m_last = staging;
                     next.id = QUuid::createUuid().toString(QUuid::WithoutBraces).toLower();
                 }

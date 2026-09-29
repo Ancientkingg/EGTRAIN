@@ -41,6 +41,10 @@ endif()
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
 option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
 option(EGTRAIN_ENABLE_TELEMETRY "Enable consent UI for packaged interactive builds" OFF)
+option(EGTRAIN_ISOLATED_TELEMETRY_SMOKE "Enable isolated numeric-loopback application smoke hook" OFF)
+if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE AND (NOT EGTRAIN_BUILD_TESTS OR NOT EGTRAIN_PACKAGED_BUILD))
+    message(FATAL_ERROR "Isolated telemetry smoke requires EGTRAIN_BUILD_TESTS and EGTRAIN_PACKAGED_BUILD")
+endif()
 set(EGTRAIN_TELEMETRY_URL "" CACHE STRING "Exact compiled HTTPS telemetry receiver URL")
 if(EGTRAIN_TELEMETRY_URL MATCHES "[\"\\\\;]")
     message(FATAL_ERROR "EGTRAIN_TELEMETRY_URL contains unsupported characters")
@@ -152,6 +156,9 @@ set(EGTRAIN_SOURCES
 	${SRC_DIR}/update/UpdateSettings.cpp
     ${SRC_DIR}/telemetry/TelemetryConsent.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
+    ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+    ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+    ${SRC_DIR}/telemetry/TelemetrySender.cpp
 	${SRC_DIR}/update/UpdatePreparation.cpp
 	${SRC_DIR}/update/SelfUpdater.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
@@ -402,6 +409,9 @@ target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json egtrain_mi
 
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
+if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
+    target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_SENDER_TEST_HOOK=1 EGTRAIN_ISOLATED_TELEMETRY_SMOKE=1)
+endif()
 if(EGTRAIN_BUILD_TESTS)
     target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_BUILD_TESTS=1)
 else()
@@ -437,6 +447,44 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_telemetryconsent PRIVATE Qt5::Widgets)
     add_test(NAME test_telemetryconsent COMMAND test_telemetryconsent)
     set_tests_properties(test_telemetryconsent PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_telemetryqueue
+        ${SRC_DIR}/tests/test_telemetryqueue.cpp
+        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+        ${SRC_DIR}/telemetry/TelemetryQueue.cpp)
+    target_compile_definitions(test_telemetryqueue PRIVATE EGTRAIN_TELEMETRY_TEST_HOOK=1)
+    target_link_libraries(test_telemetryqueue PRIVATE Qt5::Core)
+    add_test(NAME test_telemetryqueue COMMAND test_telemetryqueue)
+
+    add_executable(test_telemetrysender
+        ${SRC_DIR}/tests/test_telemetrysender.cpp
+        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+        ${SRC_DIR}/telemetry/TelemetrySender.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
+    target_compile_definitions(test_telemetrysender PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
+    target_link_libraries(test_telemetrysender PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
+    add_test(NAME test_telemetrysender COMMAND test_telemetrysender)
+
+    add_executable(test_telemetrynetwork
+        ${SRC_DIR}/tests/test_telemetrynetwork.cpp
+        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+        ${SRC_DIR}/telemetry/TelemetrySender.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
+    target_compile_definitions(test_telemetrynetwork PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
+    target_link_libraries(test_telemetrynetwork PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
+    foreach(mode reject trusted)
+        add_test(NAME test_telemetrynetwork_${mode} COMMAND python3
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
+            $<TARGET_FILE:test_telemetrynetwork>
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
+            ${mode})
+        set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
+    endforeach()
+    set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
 
     add_executable(test_updatechecker
         ${SRC_DIR}/tests/test_updatechecker.cpp

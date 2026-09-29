@@ -70,6 +70,7 @@
 #include <unordered_map>
 #include <tuple>
 #include <optional>
+#include <memory>
 #include <QStatusBar>
 #include <QSlider>
 #include <QHBoxLayout>
@@ -102,6 +103,9 @@ class DiagramWindow;
 class UpdateChecker;
 class QFileSystemWatcher;
 class SelfUpdater;
+class TelemetryConsent;
+class QSettings;
+namespace telemetry { class TelemetrySender; }
 class QProgressDialog;
 class QPlainTextEdit;
 struct UpdateCheckResult;
@@ -404,6 +408,9 @@ private:
 	QAction* m_newSceneAction = nullptr;
 	QAction* m_checkForUpdatesAction = nullptr;
 	QAction* m_automaticUpdateChecksAction = nullptr;
+	std::unique_ptr<QSettings> m_telemetrySettings;
+	std::unique_ptr<TelemetryConsent> m_telemetryConsent;
+	std::unique_ptr<telemetry::TelemetrySender> m_telemetrySender;
 	UpdateChecker* m_updateChecker = nullptr;
 	SelfUpdater* m_selfUpdater = nullptr;
 	QProgressDialog* m_updateProgress = nullptr;
@@ -667,6 +674,7 @@ private:
 	void updateSceneActions();
 	void setupUpdateActions();
 	void showPrivacySettings(bool initialPrompt);
+	void startTelemetryAfterInitialConsent();
 	bool privacyDialogTestHook() const;
 	void maybePromptForUpdateChecks();
 	void startUpdateCheck(bool manual);
