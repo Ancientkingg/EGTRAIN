@@ -121,6 +121,29 @@ The roundtrip smoke validates, exports, reimports, and compares high-value
 entity counts for all six canonical scenes, then runs the small Assignment
 reimport. Normal runs still load the canonical source directory directly.
 
+## Completed-run replay
+
+After a successful, unchanged full run, the Replay row appears under the network.
+Start, End, Play/Pause, the slider, its arrow keys and mouse wheel seek only the
+latest completed run. Play advances one requested simulation second per wall
+second; each selection displays the last recorded frame at or before that time,
+not interpolated positions. The label reports the selected frame time, five-second
+sampling cadence and actual coverage, including earlier-frame eviction. A replay
+seek explicitly restores historical operational overlays; normal completion does
+not. A new run or scene/scenario edit clears replay and returns active replay to
+the authoring preview. Train, station and signal inspections remain selected
+across seeks; future or exited trains do not appear on layer toggles or drive
+Follow station emphasis. Unsuccessful and stopped runs have no replay.
+Passenger journey details are unavailable in replay; snapshot scalar counts
+and statuses remain visible.
+
+The producer retains at most 8192 shared immutable frames and 64 MiB of
+accounted payload, evicting oldest frames to keep a recent window. Accounting
+includes nested vector and string capacities, not allocator bookkeeping,
+container nodes or shared-pointer control blocks, so 64 MiB is **not** a precise
+resident-memory limit. If one frame exceeds the payload limit, replay is
+unavailable with an explanation; the simulation continues.
+
 ## GUI Smoke Test
 
 ```bash

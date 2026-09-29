@@ -2,10 +2,12 @@
 #define DISPATCHCONTROLLER_H
 
 #include "app/GuiSimulationSnapshot.h"
+#include "app/GuiReplayHistory.h"
 #include "simulation/Optimisation.h"
 #include "simulation/Rescheduling.h"
 
 #include <QObject>
+#include <utility>
 
 #ifdef signals
 #define EGTRAIN_RESTORE_SIGNALS_KEYWORD
@@ -38,6 +40,9 @@ public:
 	void setVectorSizesFromInput(int vec_size);
 
 	std::shared_ptr<const GuiSimulationSnapshot> takeSimulationSnapshot();
+	// Only call these on the GUI thread before launch or after the worker has joined.
+	void resetReplayCandidate() { replayCandidate_.clear(); }
+	GuiReplayHistory takeReplayCandidate() { return std::exchange(replayCandidate_, GuiReplayHistory()); }
 
 signals:
 	void iterationFinished(int timestep);
@@ -49,6 +54,7 @@ private:
 	void publishSimulationSnapshot(int timestep);
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
+	GuiReplayHistory replayCandidate_;
 };
 
 // simulation object (global variable)
