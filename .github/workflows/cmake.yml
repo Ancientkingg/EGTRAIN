@@ -2,19 +2,19 @@ name: CMake
 
 on:
   push:
+    branches: [main]
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
-    branches: [main]
   pull_request:
+    branches: [main]
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
-    branches: [main]
 
 jobs:
   build:

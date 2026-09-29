@@ -5,23 +5,23 @@ name: Release
 # v* tags publish releases using the tag name. Manual runs test the full pipeline.
 on:
   push:
+    branches:
+      - production
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
-    branches:
-      - production
     tags:
       - 'v*'
   pull_request:
+    branches:
+      - production
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
-    branches:
-      - production
   workflow_dispatch:
 
 # Production and tag releases share version allocation and must not overlap.
