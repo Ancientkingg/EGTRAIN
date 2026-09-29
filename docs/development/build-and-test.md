@@ -165,8 +165,8 @@ The visual and render smoke artifacts include:
 
 ## CI and release branches
 
-- `main` is the validation branch. Every push and pull request builds the
-  project and runs CTest, including documentation-only changes.
+- `main` is the validation branch. Pushes and pull requests build the project
+  and run CTest unless every changed file matches the documentation filters.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
@@ -183,6 +183,18 @@ The visual and render smoke artifacts include:
   `workflow_dispatch` validates the pipeline without publishing.
 - Releases remain drafts until every package and scene bundle is uploaded.
   Stable production releases then appear in the application's update checks.
+
+Automatic pushes and pull requests to `main` and `production` skip their
+workflows when changes are limited to Markdown files (`**.md`), `docs/`, the
+root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
+workflow, as do changes to source, tests, scenes, build settings, or workflows.
+Documentation-only production pushes do not publish a new release. Updated
+packaged guides ship with the next release; `v*` tags and manual release runs
+are not filtered by changed paths.
+
+Do not require these path-filtered workflows as branch-protection checks:
+GitHub leaves skipped required workflows pending, which would block
+documentation-only pull requests.
 
 ## Verification Gates
 

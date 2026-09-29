@@ -5,11 +5,21 @@ name: Release
 # v* tags publish releases using the tag name. Manual runs test the full pipeline.
 on:
   push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
     branches:
       - production
     tags:
       - 'v*'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
     branches:
       - production
   workflow_dispatch:
