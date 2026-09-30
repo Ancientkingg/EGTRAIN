@@ -8,7 +8,7 @@ The stylesheet retains transitional `runReview*` selectors for compatibility; th
 
 ## Callers
 
-Run review, the case chooser, timetable-stop editing, blocking-time scope and capacity options use this layout. Run review separates its summary from expandable configuration details. The case chooser groups bundled and recent cases and keeps creation/import actions in a secondary menu.
+Run review, the case chooser, timetable-stop editing, blocking-time scope and capacity options use this layout. Incident delay comparison and capacity analysis results also use it: long run identities and section context wrap as plain text in the scrollable content, tables and secondary CSV/diagram actions remain in the body, and Close stays in the fixed footer. Run review separates its summary from expandable configuration details. The case chooser groups bundled and recent cases and keeps creation/import actions in a secondary menu.
 
 Composition membership uses the standard single-choice `QInputDialog`. File selection, warnings and confirmations retain `QFileDialog` and `QMessageBox`.
 
