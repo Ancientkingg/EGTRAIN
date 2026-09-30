@@ -22032,7 +22032,58 @@ bool MainWindow::showRunReview() {
 		body, buttons);
 	QJsonObject reviewDiagnostic;
 	if (reviewCancelE2E) {
+		const bool enlarged = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_ENLARGED");
+		if (enlarged) {
+			QFont font = review.font();
+			font.setPointSizeF(18);
+			review.setFont(font);
+			// Styled widgets have already resolved their fonts before this test seam.
+			for (QWidget* widget : review.findChildren<QWidget*>()) {
+				font = widget->font();
+				font.setPointSizeF(widget->objectName() == "dialogHeading" ? 22.5 : 18);
+				widget->setFont(font);
+			}
+			review.resize(qMin(560, review.maximumWidth()), qMin(420, review.maximumHeight()));
+		}
 		QTimer::singleShot(0, &review, [&]() {
+			// Modal show and disclosure changes post LayoutRequest events in Qt 5.
+			const auto settle = []() {
+				for (int i = 0; i < 3; ++i) {
+					QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+					QApplication::processEvents();
+				}
+			};
+			settle();
+			auto* scroll = review.findChild<QScrollArea*>("dialogBodyScroll");
+			auto* context = review.findChild<QLabel*>("dialogContext");
+			QScreen* screen = QGuiApplication::screenAt(review.mapToGlobal(QPoint()));
+			if (!screen)
+				screen = QGuiApplication::primaryScreen();
+			const QRect available = screen->availableGeometry();
+			reviewDiagnostic.insert("availableScreen", QJsonArray{available.width(), available.height()});
+			const auto rectangle = [&](QWidget* widget) {
+				const QPoint origin = widget->mapTo(&review, QPoint());
+				return QJsonArray{origin.x(), origin.y(), widget->width(), widget->height()};
+			};
+			const auto geometry = [&]() {
+				settle();
+				return QJsonObject{{"dialog", QJsonArray{0, 0, review.width(), review.height()}},
+					{"maximum", QJsonArray{review.maximumWidth(), review.maximumHeight()}},
+					{"scroll", rectangle(scroll)}, {"footer", rectangle(buttons)},
+					{"run", rectangle(runButton)}, {"cancel", rectangle(buttons->button(QDialogButtonBox::Cancel))},
+					{"scrollMaximum", scroll->verticalScrollBar()->maximum()},
+					{"footerVisible", buttons->isVisible()}, {"fontPoints", review.font().pointSizeF()},
+					{"controlFontPoints", QJsonArray{context->font().pointSizeF(), details->font().pointSizeF(),
+						runButton->font().pointSizeF(), buttons->button(QDialogButtonBox::Cancel)->font().pointSizeF()}}};
+			};
+			reviewDiagnostic.insert("initialFocus", review.focusWidget() == runButton ? "run" :
+				review.focusWidget() ? review.focusWidget()->objectName() : "none");
+			reviewDiagnostic.insert("runDefault", runButton->isDefault());
+			reviewDiagnostic.insert("cancelDefault", buttons->button(QDialogButtonBox::Cancel)->isDefault());
+			reviewDiagnostic.insert("context", context->text());
+			reviewDiagnostic.insert("plainContext", context->textFormat() == Qt::PlainText);
+			reviewDiagnostic.insert("plainDetails", details->textFormat() == Qt::PlainText);
+			reviewDiagnostic.insert("collapsedGeometry", geometry());
 			const auto detailState = [&]() {
 				return QJsonObject{{"checked", detailsToggle->isChecked()},
 					{"visible", details->isVisible()},
@@ -22050,8 +22101,56 @@ bool MainWindow::showRunReview() {
 			detailsToggle->click();
 			reviewDiagnostic.insert("expanded", detailState());
 			reviewDiagnostic.insert("details", details->text());
+			reviewDiagnostic.insert("expandedGeometry", geometry());
+			scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
+			reviewDiagnostic.insert("scrolledGeometry", geometry());
+
+			// Exercise the real focus chain without activating Run or inspection actions.
+			detailsToggle->setFocus();
+			QWidget* lastBody = detailsToggle;
+			QJsonArray bodyFocus;
+			QWidget* firstFooter = nullptr;
+			for (int i = 0; i < 12; ++i) {
+				QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+				QApplication::sendEvent(review.focusWidget(), &tab);
+				settle();
+				QWidget* focused = review.focusWidget();
+				if (focused && buttons->isAncestorOf(focused)) {
+					firstFooter = focused;
+					break;
+				}
+				if (!focused || !body->isAncestorOf(focused) || focused == detailsToggle)
+					break;
+				lastBody = focused;
+				bodyFocus.append(focused->property("text").toString());
+			}
+			scroll->verticalScrollBar()->setValue(0);
+			QJsonArray footerBacktab;
+			if (firstFooter) {
+				for (int i = 0; i <= buttons->buttons().size(); ++i) {
+					QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
+					QApplication::sendEvent(review.focusWidget(), &backtab);
+					settle();
+					QWidget* focused = review.focusWidget();
+					if (!focused || !buttons->isAncestorOf(focused))
+						break;
+					footerBacktab.append(focused->property("text").toString());
+				}
+			}
+			const QRect focusedRect(lastBody->mapTo(scroll->viewport(), QPoint()), lastBody->size());
+			reviewDiagnostic.insert("keyboard", QJsonObject{{"bodyFocus", bodyFocus},
+				{"tabReachedFooter", firstFooter != nullptr},
+				{"backtabReturned", firstFooter && review.focusWidget() == lastBody},
+				{"firstFooter", firstFooter == runButton ? "run" : "cancel"},
+				{"footerBacktab", footerBacktab},
+				{"backtabFocus", review.focusWidget() ? QString::fromLatin1(review.focusWidget()->metaObject()->className())
+					+ ":" + review.focusWidget()->objectName() + ":" + review.focusWidget()->property("text").toString() : "none"},
+				{"focusedBodyRect", QJsonArray{focusedRect.x(), focusedRect.y(), focusedRect.width(), focusedRect.height()}},
+				{"viewport", QJsonArray{0, 0, scroll->viewport()->width(), scroll->viewport()->height()}},
+				{"scrollValue", scroll->verticalScrollBar()->value()}});
 			detailsToggle->click();
 			reviewDiagnostic.insert("recollapsed", detailState());
+			reviewDiagnostic.insert("recollapsedGeometry", geometry());
 			const bool escape = qEnvironmentVariable("QEGTRAIN_E2E_REVIEW_CANCEL") == "escape";
 			reviewDiagnostic.insert("cancellation", escape ? "escape" : "button");
 			if (escape) {
