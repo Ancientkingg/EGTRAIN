@@ -261,6 +261,7 @@ protected:
 public slots:
 	void handleHelpAbout();
 	void handleCloseInfoDockWidget();
+	void displayPreviewInfo(QGraphicsItem* item);
 	void displayNodeInfo(NodeItem* el);
 	void displayStationNodeInfo(StationNodeItem* re);
 	void displayArcInfo(TrackLineItem* line);
@@ -658,6 +659,7 @@ private:
 	QList<QGraphicsItem*> m_stationLabels;
 	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
 	QString m_selectedStationName;
+	QString m_previewSelectedStationId;
 	bool m_hasSelectedStationIdentity = false;
 	double m_selectedStationNodeId = 0.0;
 	int m_selectedStationTrack = -1;
@@ -716,6 +718,9 @@ private:
 	bool maybeSaveScene();
 	const TrackPreviewLine* cachedTrackLine(int track) const;
 	void renderTrackPreview(const SceneModel& sceneModel);
+	void clearPreviewInspection();
+	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id,
+		const QString& track, bool reversed, quint64 revision) const;
 	bool finishSceneSave(const SceneSaveResult& result, const telemetry::OperationObservation& operation,
 		std::optional<telemetry::ExportKind> kind);
 	bool saveSceneToCurrentDir();
@@ -959,6 +964,8 @@ private:
 	void runStationOverlayE2E();
 	void runEditorSmokeE2E();
 	void runCreatorAcceptanceE2E();
+	bool checkPreviewInfrastructureE2E(QString& failure);
+	bool checkPreviewRuntimeParityE2E(QString& failure);
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
 	void runLegacyImportE2E();

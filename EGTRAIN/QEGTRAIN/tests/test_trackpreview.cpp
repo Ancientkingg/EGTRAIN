@@ -56,6 +56,17 @@ int main() {
 
 	const TrackPreviewResult result = loadTrackPreview(scene);
 	bool ok = true;
+	ok &= expect(result.connections.size() == 1 && result.connections.front().id == "switch.7",
+		"preview retains canonical source connection ID");
+	SceneModel duplicateConnections = scene;
+	duplicateConnections.connections.push_back({"switch.duplicate", "B0.Ut", "B1.Ut", false, 0.0});
+	const auto duplicates = normalizeTrackPreview(loadTrackPreview(duplicateConnections));
+	ok &= expect(duplicates.connections.size() == 2
+		&& duplicates.connections[0].id == "switch.7"
+		&& duplicates.connections[1].id == "switch.duplicate"
+		&& duplicates.connections[0].firstNodeId == duplicates.connections[1].firstNodeId,
+		"duplicate endpoint connections retain distinct canonical identities through normalization");
+
 	TrackPreviewLine signalLine {"signal", {{0.0, 0.0, "a", 0.0},
 		{10.0, 0.0, "b", 10.0}}, 0.0};
 	std::pair<double, double> normal;
