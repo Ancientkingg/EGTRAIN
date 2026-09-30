@@ -22030,10 +22030,44 @@ bool MainWindow::showRunReview() {
 	DialogLayout::install(review, "Run simulation",
 		QString("%1 / %2").arg(QString::fromStdString(m_sceneModel.name), scenarioContext()),
 		body, buttons);
-	if (reviewCancelE2E)
-		QTimer::singleShot(0, buttons->button(QDialogButtonBox::Cancel), &QPushButton::click);
+	QJsonObject reviewDiagnostic;
+	if (reviewCancelE2E) {
+		QTimer::singleShot(0, &review, [&]() {
+			const auto detailState = [&]() {
+				return QJsonObject{{"checked", detailsToggle->isChecked()},
+					{"visible", details->isVisible()},
+					{"arrow", detailsToggle->arrowType() == Qt::DownArrow ? "down" : "right"}};
+			};
+			QJsonObject summary;
+			for (int row = 0; row < facts->rowCount(); ++row)
+				summary.insert(facts->itemAtPosition(row, 0)->widget()->property("text").toString(),
+					facts->itemAtPosition(row, 1)->widget()->property("text").toString());
+			reviewDiagnostic.insert("summary", summary);
+			reviewDiagnostic.insert("status", status->text());
+			reviewDiagnostic.insert("warning", status->property("warning").toBool());
+			reviewDiagnostic.insert("runEnabled", runButton->isEnabled());
+			reviewDiagnostic.insert("collapsed", detailState());
+			detailsToggle->click();
+			reviewDiagnostic.insert("expanded", detailState());
+			reviewDiagnostic.insert("details", details->text());
+			detailsToggle->click();
+			reviewDiagnostic.insert("recollapsed", detailState());
+			const bool escape = qEnvironmentVariable("QEGTRAIN_E2E_REVIEW_CANCEL") == "escape";
+			reviewDiagnostic.insert("cancellation", escape ? "escape" : "button");
+			if (escape) {
+				QKeyEvent key(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+				QApplication::sendEvent(&review, &key);
+			} else {
+				buttons->button(QDialogButtonBox::Cancel)->click();
+			}
+		});
+	}
 	review.exec();
 	if (reviewCancelE2E) {
+		reviewDiagnostic.insert("rejected", review.result() == QDialog::Rejected);
+		reviewDiagnostic.insert("workerStarted", m_worker != nullptr);
+		std::fprintf(stdout, "E2E_RUN_REVIEW_RENDERED=%s\n",
+			QJsonDocument(reviewDiagnostic).toJson(QJsonDocument::Compact).constData());
 		std::fprintf(stdout, "E2E_RUN_REVIEW_SUMMARY=%s\n", facts->itemAtPosition(0, 1)->widget()->property("text").toString().toUtf8().constData());
 		std::fprintf(stdout, "E2E_RUN_REVIEW_START=%s\n", facts->itemAtPosition(1, 1)->widget()->property("text").toString().toUtf8().constData());
 		std::fprintf(stdout, "E2E_RUN_REVIEW_DURATION=%s\n", facts->itemAtPosition(2, 1)->widget()->property("text").toString().toUtf8().constData());
