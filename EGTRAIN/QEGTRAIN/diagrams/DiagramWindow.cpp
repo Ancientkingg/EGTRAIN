@@ -24,7 +24,6 @@
 #include <QPushButton>
 #include <QSaveFile>
 #include <QScreen>
-#include <QScrollArea>
 #include <QVariant>
 #include <QVBoxLayout>
 #include <QtCharts/QAbstractSeries>
@@ -166,53 +165,42 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_readout->setObjectName("diagramNavigationHelp");
 	m_readout->setWordWrap(true);
 	m_readout->setTextFormat(Qt::PlainText);
+	m_warningLabel = new QLabel(this);
+	m_warningLabel->setObjectName("diagramWarning");
+	m_warningLabel->setTextFormat(Qt::PlainText);
+	m_warningLabel->setWordWrap(true);
+	m_warningLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	QSizePolicy warningPolicy(QSizePolicy::Ignored, QSizePolicy::Minimum);
+	warningPolicy.setHeightForWidth(true);
+	m_warningLabel->setSizePolicy(warningPolicy);
+	m_warningLabel->hide();
 	m_contextLabel = new QLabel(this);
 	m_contextLabel->setObjectName("diagramContext");
 	m_contextLabel->setTextFormat(Qt::PlainText);
 	m_contextLabel->setWordWrap(true);
+	m_contextLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	m_contextLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	m_contextLabel->setMaximumHeight(fontMetrics().height() * 3);
 	m_contextLabel->hide();
-	m_detailsButton = new QPushButton("Technical details", this);
-	m_detailsButton->setObjectName("diagramDetailsButton");
-	m_detailsButton->setCheckable(true);
-	m_detailsButton->hide();
-	m_detailsPanel = new QScrollArea(this);
-	m_detailsPanel->setObjectName("diagramDetailsPanel");
-	auto* detailsScroll = qobject_cast<QScrollArea*>(m_detailsPanel.data());
-	detailsScroll->setWidgetResizable(true);
-	detailsScroll->setMaximumHeight(120);
-	m_detailsLabel = new QLabel;
-	m_detailsLabel->setObjectName("diagramDetailsText");
-	m_detailsLabel->setTextFormat(Qt::PlainText);
-	m_detailsLabel->setWordWrap(true);
-	m_detailsLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	m_detailsLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	detailsScroll->setWidget(m_detailsLabel);
-	m_detailsPanel->hide();
-	connect(m_detailsButton, &QPushButton::toggled, m_detailsPanel, &QWidget::setVisible);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setSpacing(8);
 	layout->addLayout(topBar);
+	layout->addWidget(m_warningLabel);
 	layout->addWidget(m_contextLabel);
-	layout->addWidget(m_detailsButton, 0, Qt::AlignLeft);
-	layout->addWidget(m_detailsPanel);
 	layout->addWidget(m_view, 1);
 	layout->addWidget(m_readout);
 }
 
 void DiagramWindow::setPresentation(const QString& heading, const QString& context,
-		const QString& technicalNotes) {
+		const QString& warning) {
 	setWindowTitle(heading);
+	m_warningLabel->setText(warning);
+	m_warningLabel->setVisible(!warning.isEmpty());
 	m_contextLabel->setMaximumHeight(m_contextLabel->fontMetrics().height() * 3);
-	m_detailsPanel->setMaximumHeight(qMax(120, m_detailsLabel->fontMetrics().height() * 6));
 	m_contextLabel->setText(context);
 	m_contextLabel->setToolTip(context.toHtmlEscaped());
 	m_contextLabel->setVisible(!context.isEmpty());
-	m_detailsLabel->setText(technicalNotes);
-	m_detailsButton->setVisible(!technicalNotes.isEmpty());
-	if (technicalNotes.isEmpty()) m_detailsButton->setChecked(false);
 }
 
 void DiagramWindow::setRollingStockSubject(bool on) {

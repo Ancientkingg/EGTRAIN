@@ -297,14 +297,12 @@ QString inputTractionContext(const SceneTrainUnit& unit, const QString& displayI
 		.arg(displayId.isNull() ? QString::fromStdString(unit.id) : displayId);
 	if (!unit.sourceTractionFile.empty())
 		context += QString(" | Source: %1").arg(QString::fromStdString(unit.sourceTractionFile));
-	if (inputTractionHasNegativeEffort(unit))
-		context += " | Warning: negative effort below the displayed 0 kN range. See technical details.";
 	return context;
 }
 
-QString inputTractionTechnicalNotes(const SceneTrainUnit& unit) {
+QString inputTractionWarning(const SceneTrainUnit& unit) {
 	return inputTractionHasNegativeEffort(unit)
-		? QStringLiteral("Curve contains negative effort below the default 0 kN view") : QString();
+		? QStringLiteral("Negative effort below the displayed 0 kN range.") : QString();
 }
 
 QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
@@ -3921,14 +3919,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Time / Distance (per train)...", this, &MainWindow::showTimeDistanceDiagram);
 	m_diagramsMenu->addAction("Simulated tractive effort / Distance (per train)...", this, &MainWindow::showTractiveEffortDistanceDiagram);
 	m_diagramsMenu->addSeparator();
-	m_diagramsMenu->addAction("Timetable graph (train graph)...", this, &MainWindow::showTimetableGraph);
+	m_diagramsMenu->addAction("Timetable graph (planned vs simulated stops)...", this, &MainWindow::showTimetableGraph);
 	m_diagramsMenu->addAction("Blocking-time overlay...", this, &MainWindow::showBlockingTimeDiagram);
 	m_diagramsMenu->addAction("Capacity analysis...", this, &MainWindow::showCapacityAnalysis);
 	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", this, &MainWindow::showTimetableTable);
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();
-	ui->displayTrainPathDiagrams->setText("Train paths (reference route)...");
+	ui->displayTrainPathDiagrams->setText("Train paths (simulated movement)...");
 	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
 	if (ui->menuTools)
 		menuBar()->removeAction(ui->menuTools->menuAction());
@@ -8533,7 +8531,7 @@ void MainWindow::commitTrainUnitIdEdit() {
 			window->setProperty("inputTrainUnitId", QString::fromStdString(newId));
 			window->setPresentation("Input traction characteristic",
 				inputTractionContext(m_sceneModel.trainUnits[row], QString::fromStdString(newId)),
-				inputTractionTechnicalNotes(m_sceneModel.trainUnits[row]));
+				inputTractionWarning(m_sceneModel.trainUnits[row]));
 		}
 	}
 	m_sceneModel.trainUnits[row].id = newId;
@@ -9071,7 +9069,7 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 			continue;
 		}
 		window->setPresentation("Input traction characteristic", inputTractionContext(*unit),
-			inputTractionTechnicalNotes(*unit));
+			inputTractionWarning(*unit));
 		window->setChart(buildInputTractionChart(*unit));
 	}
 }
@@ -9284,8 +9282,7 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setProperty("inputTrainUnitId", QString::fromStdString(unit.id));
 	win->setChart(chart);
-	win->setPresentation("Input traction characteristic", inputTractionContext(unit),
-		inputTractionTechnicalNotes(unit));
+	win->setPresentation("Input traction characteristic", inputTractionContext(unit), inputTractionWarning(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }
@@ -16528,9 +16525,10 @@ void MainWindow::runEditorSmokeE2E() {
 				plotOk = series->at(i) == QPointF(samples[i].first * 3.6, samples[i].second / 1000.0)
 					&& series->at(i).y() <= axis->max();
 			}
-			const QLabel* tractionNotes = window->findChild<QLabel*>("diagramDetailsText");
+			const QLabel* tractionWarning = window->findChild<QLabel*>("diagramWarning");
 			plotOk = plotOk && chart->title().contains("negative") == fixture.second
-				&& tractionNotes && tractionNotes->text().contains("negative") == fixture.second;
+				&& tractionWarning && tractionWarning->text().contains("Negative") == fixture.second
+				&& !window->findChild<QWidget*>("diagramDetailsPanel");
 			if (axis) {
 				const double maximum = axis->max();
 				chart->zoom(2.0);
@@ -24037,7 +24035,7 @@ void MainWindow::setupRunResultsDock() {
 		connect(action, &QAction::triggered, this, slot);
 	};
 	addResultViewAction("Timetable", &MainWindow::showTimetableTable);
-	addResultViewAction("Timetable graph", &MainWindow::showTimetableGraph);
+	addResultViewAction("Timetable graph (planned vs simulated stops)", &MainWindow::showTimetableGraph);
 	addResultViewAction("Delays", &MainWindow::showDelayDiagram);
 	resultMenu->addSeparator();
 	addResultViewAction("Speed / distance", &MainWindow::showSpeedDistanceDiagram);
@@ -24045,7 +24043,7 @@ void MainWindow::setupRunResultsDock() {
 	addResultViewAction("Time / distance", &MainWindow::showTimeDistanceDiagram);
 	addResultViewAction("Tractive effort / distance", &MainWindow::showTractiveEffortDistanceDiagram);
 	resultMenu->addSeparator();
-	addResultViewAction("Train paths", &MainWindow::displayTrainPathDiagrams);
+	addResultViewAction("Train paths (simulated movement)", &MainWindow::displayTrainPathDiagrams);
 	addResultViewAction("Blocking time", &MainWindow::showBlockingTimeDiagram);
 	addResultViewAction("Capacity", &MainWindow::showCapacityAnalysis);
 	resultViews->addWidget(diagramsButton);
@@ -26813,15 +26811,13 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	};
 	const double origin = referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.back().positionKm;
-	const QString label = QString("%1 | %2 (0 s = run start)")
-		.arg(timetable ? "Timetable" : "Train paths", QString::fromStdString(reference.ID));
-	const QString explanation = QString("Reference %1: runtime route X (km), origin %2, travel %3; X increases right. "
-		"Elapsed time increases downward from 0 s. Other routes use shared node/station anchors; "
-		"ambiguous or unmapped portions are omitted, never extrapolated.")
-		.arg(QString::fromStdString(reference.ID)).arg(origin, 0, 'f', 3)
-		.arg(end >= origin ? "right" : "left");
+	const QString heading = timetable ? "Timetable graph: planned vs simulated stops"
+		: "Train paths: simulated movement";
+	const QString explanation = timetable
+		? "Stop arrivals/departures and dwell, not continuous movement."
+		: "Recorded position samples, not planned stop times.";
 	auto* chart = new QChart();
-	chart->setTitle(timetable ? "Timetable" : "Train paths");
+	chart->setTitle(heading);
 	std::vector<std::vector<std::string>> exportRows;
 	const auto record = [&](const Train& train, const char* kind, const std::string& station,
 		int journey, int call, const RunResultValue& time, std::optional<double> x) {
@@ -26953,12 +26949,13 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 		for (auto* series : chart->series()) series->attachAxis(stations);
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
-	DiagramWindow* win = new DiagramWindow(label, this);
+	DiagramWindow* win = new DiagramWindow(heading, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
-	win->setPresentation(timetable ? "Timetable" : "Train paths",
-		QString("Reference: %1 | %2").arg(QString::fromStdString(reference.ID),
-			completedRunContext(m_completedRunProvenance)), explanation + " 0 s = run start.");
+	win->setPresentation(heading,
+		QString("Reference: %1 | %2 | 0 s = run start; time downward")
+			.arg(QString::fromStdString(reference.ID), completedRunContext(m_completedRunProvenance)),
+		explanation + " Ambiguous/unmapped portions omitted; no extrapolation.");
 	const auto csvRows = std::move(exportRows);
 	const auto graphCsv = [csvRows](const QStringList& visible) {
 		std::vector<std::string> ids;
@@ -27044,11 +27041,6 @@ void MainWindow::showBlockingTimeDiagram() {
 			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
 				QString::fromStdString(scope.blockIds.back()));
 	}
-	const QString title = QString("Blocking time: calculated envelopes, recorded trajectories and planned events | %1 | %2 to %3 [%4]")
-		.arg(routeScope,
-			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
-			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
-			completedRunContext(m_completedRunProvenance));
 	chart->setTitle("Blocking time: envelopes and trajectories");
 
 	addBlockingTimeSeries(chart, segments, false);
@@ -27146,15 +27138,14 @@ void MainWindow::showBlockingTimeDiagram() {
 	DiagramWindow* win = new DiagramWindow("Blocking time: envelopes and trajectories", this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
-	const QString note = QString("Reference: %1. 0 s = run start. Calculated envelope: approach - setup - sight reaction through clearance + release + run margin, not independently observed occupation. "
-		"Unmapped endpoints/events omitted: %2; incomplete or missing-clearance blocks are also omitted. "
-		"No extrapolation. Recorded movement is sampled only within scoped envelopes.")
-		.arg(QString::fromStdString(referencePath.id)).arg(omitted);
+	const QString note = QString("Calculated envelopes, not observed occupation; movement only within scope. "
+		"Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation.")
+		.arg(omitted);
 	win->setPresentation("Blocking time: envelopes and trajectories",
-		QString("%1 | %2 to %3 [%4]").arg(routeScope,
+		QString("%1 | %2 to %3 [%4] | Reference: %5").arg(routeScope,
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), m_startOffsetSeconds)),
 			QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), m_startOffsetSeconds)),
-			completedRunContext(m_completedRunProvenance)), title + "\n" + note);
+			completedRunContext(m_completedRunProvenance), QString::fromStdString(referencePath.id)), note);
 	const std::function<std::string(const QStringList&)> scopedCsv =
 		[segments, plannedReferences, trajectoryRows](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences, trajectoryRows);
@@ -27373,9 +27364,6 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		return;
 	}
 	QChart* chart = new QChart();
-	const QString fullTitle = QString("Compressed blocking-time diagram | %1 | cycle %2 to %3 [%4]")
-		.arg(sectionLabel, QString::fromStdString(result.firstIdentity),
-			QString::fromStdString(result.cycleEndIdentity), completedRunContext(provenance));
 	chart->setTitle("Compressed blocking-time diagram");
 	addBlockingTimeSeries(chart, segments, true);
 	auto addKey = [chart](const QString& name, const QColor& color) {
@@ -27400,12 +27388,12 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	DiagramWindow* window = new DiagramWindow("Compressed blocking-time diagram", this);
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	window->setChart(chart);
-	const QString note = QString("Reference: %1. Shifted calculated envelopes only, not recorded train movement. "
-		"Unmapped or incomplete blocks omitted; no extrapolation.").arg(referenceId);
+	const QString note = "Shifted calculated envelopes, not recorded movement. "
+		"Unmapped/incomplete blocks omitted; no extrapolation.";
 	window->setPresentation("Compressed blocking-time diagram",
-		QString("%1 | cycle %2 to %3 [%4]").arg(sectionLabel,
+		QString("%1 | cycle %2 to %3 [%4] | Reference: %5").arg(sectionLabel,
 			QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
-			completedRunContext(provenance)), fullTitle + "\n" + note);
+			completedRunContext(provenance), referenceId), note);
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});

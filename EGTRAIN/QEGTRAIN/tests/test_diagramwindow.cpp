@@ -17,7 +17,6 @@
 #include <QMouseEvent>
 #include <QNativeGestureEvent>
 #include <QPushButton>
-#include <QScrollArea>
 #include <QPointer>
 #include <QValueAxis>
 #include <QWheelEvent>
@@ -439,11 +438,14 @@ int main(int argc, char* argv[]) {
 	inputChart->setTitle(QStringLiteral("Input traction characteristic: ") + authoredId
 		+ QStringLiteral("<br>") + scientificWarning);
 	input.setPresentation("Input traction characteristic", "Case A / Scenario B | " + authoredId,
-		QStringLiteral("Measured input; ") + scientificWarning + QString(2000, QLatin1Char('X')));
+		scientificWarning);
 	input.setChart(inputChart);
 	input.show(); app.processEvents();
-	const auto* details = input.findChild<QScrollArea*>("diagramDetailsPanel");
-	auto* detailsButton = input.findChild<QPushButton*>("diagramDetailsButton");
+	ok &= expect(!input.findChild<QWidget*>("diagramDetailsPanel") &&
+		!input.findChild<QWidget*>("diagramDetailsButton") &&
+		!input.findChild<QWidget*>("diagramDetailsText"), "technical-detail widgets are absent");
+	for (const auto* button : input.findChildren<QPushButton*>())
+		ok &= expect(button->text() != "Technical details", "no technical-details action");
 	const QRect screenArea = input.screen()->availableGeometry();
 	ok &= expect(input.width() <= screenArea.width() * 9 / 10 &&
 		input.height() <= screenArea.height() * 4 / 5,
@@ -451,27 +453,51 @@ int main(int argc, char* argv[]) {
 	ok &= expect(input.windowTitle() == "Input traction characteristic" &&
 		input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B") &&
 		inputChart->title().contains(scientificWarning) &&
-		input.findChild<QLabel*>("diagramDetailsText")->text().contains(scientificWarning),
+		input.findChild<QLabel*>("diagramContext")->isVisible() &&
+		input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,
 		"explicit presentation before setChart preserves identity and scientific warning with | in ID");
 	ok &= expect(!input.findChild<TrainFilterButton*>()->isVisible() &&
 		input.findChild<QLabel*>("diagramContext")->text().contains(authoredId) &&
 		!input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:") &&
 		input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Input tractive effort"),
 		"input traction uses rolling-stock subject and no visible train filter");
-	ok &= expect(detailsButton && !details->isVisible(), "technical notes collapsed by default");
-	if (detailsButton) detailsButton->click();
-	app.processEvents();
-	ok &= expect(details->isVisible() &&
-		details->height() <= qMax(120, input.findChild<QLabel*>("diagramDetailsText")->fontMetrics().height() * 6) &&
-		input.findChild<QLabel*>("diagramDetailsText")->text().size() > 2000,
-		"long technical notes remain available in bounded details");
 	input.setPresentation("Updated heading", "Case C / Scenario D", scientificWarning);
 	app.processEvents();
 	ok &= expect(input.windowTitle() == "Updated heading" &&
 		input.findChild<QLabel*>("diagramContext")->text() == "Case C / Scenario D" &&
-		input.findChild<QLabel*>("diagramDetailsText")->text() == scientificWarning &&
+		input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning &&
 		inputChart->title().contains(scientificWarning),
 		"explicit presentation after setChart preserves distinct chart qualification");
+	// Long provenance must never consume the space needed by scientific caveats.
+	input.setMaximumWidth(qMin(640, input.maximumWidth()));
+	input.resize(input.maximumWidth(), input.maximumHeight());
+	const QString longContext = "Reference: " + QString(1500, QLatin1Char('R'))
+		+ " | Case: " + QString(1500, QLatin1Char('C'));
+	for (const QString& warning : {scientificWarning,
+		QStringLiteral("Stop arrivals/departures and dwell, not continuous movement. Ambiguous/unmapped portions omitted; no extrapolation."),
+		QStringLiteral("Calculated envelopes, not observed occupation; movement only within scope. Unmapped endpoints/events omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation."),
+		QStringLiteral("Shifted calculated envelopes, not recorded movement. Unmapped/incomplete blocks omitted; no extrapolation.")}) {
+		input.setPresentation("Scientific interpretation", longContext, warning);
+		app.processEvents();
+		const auto* label = input.findChild<QLabel*>("diagramWarning");
+		const auto* context = input.findChild<QLabel*>("diagramContext");
+		const QRect content = label->contentsRect();
+		const QRect textBounds = label->fontMetrics().boundingRect(
+			QRect(0, 0, content.width(), 10000), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, warning);
+		ok &= expect(label->text() == warning && label->isVisible() &&
+			label->height() >= label->heightForWidth(label->width()) &&
+			content.height() >= textBounds.height() &&
+			input.rect().contains(label->geometry()) &&
+			label->geometry().bottom() < context->geometry().top() &&
+			context->height() <= context->fontMetrics().height() * 3 &&
+			(context->alignment() & Qt::AlignTop) && input.width() <= 640 &&
+			input.height() <= input.maximumHeight(),
+			"complete warning fits above capped long provenance at enlarged font in bounded narrow window");
+	}
+	input.setPresentation("No warning", longContext);
+	ok &= expect(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
+	window.setPresentation("No context", QString());
+	ok &= expect(window.findChild<QLabel*>("diagramContext")->isHidden(), "empty context stays hidden");
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;
