@@ -214,6 +214,17 @@ QLabel[dialogStatus="error"] {
     padding: 9px;
 }
 
+QDialog#aboutDialog QPushButton[aboutLink="true"] {
+    color: #315a70;
+    text-decoration: underline;
+    text-align: left;
+    padding: 2px 4px;
+}
+
+QDialog#aboutDialog QPushButton[aboutLink="true"]:focus {
+    border: 2px solid #315a70;
+}
+
 QDialog#caseChooserDialog QListWidget::item:disabled {
     color: #5b6871;
     background: transparent;

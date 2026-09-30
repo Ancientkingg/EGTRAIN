@@ -10,6 +10,7 @@
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/AboutDialog.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include <QScrollBar>
 #include "diagrams/DiagramWindow.h"
@@ -24099,10 +24100,11 @@ void MainWindow::setupInfoDockWidget() {
 
 // help from menu
 void MainWindow::handleHelpAbout() {
-	QMessageBox::information(
-		this,
-		tr("About"),
-		tr("EGTRAIN %1\n\nMade at TU Delft").arg(QCoreApplication::applicationVersion()));
+	if (!m_aboutDialog)
+		m_aboutDialog = new AboutDialog(this);
+	m_aboutDialog->show();
+	m_aboutDialog->raise();
+	m_aboutDialog->activateWindow();
 }
 
 // hides all widgets from the dock widget

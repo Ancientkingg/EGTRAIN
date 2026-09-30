@@ -112,6 +112,7 @@ namespace telemetry { class TelemetrySender; }
 namespace telemetry_smoke { struct State; }
 #endif
 class QProgressDialog;
+class AboutDialog;
 class QPlainTextEdit;
 struct UpdateCheckResult;
 struct StableRelease;
@@ -390,6 +391,7 @@ private:
 	QAction* m_followAction = nullptr;
 	QComboBox* m_followTrainCombo = nullptr;
 	QPointer<QMenu> m_sceneContextMenu;
+	QPointer<AboutDialog> m_aboutDialog;
 	int m_followTrainIndex = -1;
 	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
