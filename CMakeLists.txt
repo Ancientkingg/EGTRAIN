@@ -118,6 +118,7 @@ find_package(nlohmann_json REQUIRED)
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
+    ${SRC_DIR}/widgets/AboutDialog.cpp
     ${SRC_DIR}/app/DispatchController.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
     ${SRC_DIR}/simulation/Infrastructure.cpp
@@ -195,6 +196,7 @@ set(EGTRAIN_SOURCES
 set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/ConnectionItem.h
     ${SRC_DIR}/widgets/ConsoleWidget.h
+    ${SRC_DIR}/widgets/AboutDialog.h
     ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/app/DispatchController.h
     ${SRC_DIR}/widgets/InfoDockWidget.h
@@ -743,6 +745,13 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_compactdoublespinbox PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_compactdoublespinbox COMMAND test_compactdoublespinbox)
     set_tests_properties(test_compactdoublespinbox PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_aboutdialog
+        ${SRC_DIR}/tests/test_aboutdialog.cpp
+        ${SRC_DIR}/widgets/AboutDialog.cpp)
+    target_link_libraries(test_aboutdialog PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_aboutdialog COMMAND test_aboutdialog)
+    set_tests_properties(test_aboutdialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_dialoglayout
         ${SRC_DIR}/tests/test_dialoglayout.cpp)
