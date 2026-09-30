@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Offscreen dialog contract using the existing creator-acceptance scene."""
 
+import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -15,11 +18,12 @@ def markers(output: str, prefix: str) -> dict:
     return dict(line.split("=", 1) for line in output.splitlines() if line.startswith(prefix) and "=" in line)
 
 
-def launch(app: Path, settings: Path, scene: Optional[Path] = None) -> dict:
+def launch(app: Path, settings: Path, scene: Optional[Path] = None,
+           cancellation: str = "button") -> dict:
     env = os.environ.copy()
     env.update(QT_QPA_PLATFORM="offscreen", QEGTRAIN_E2E_SETTINGS_DIR=str(settings))
     if scene:
-        env.update(QEGTRAIN_AUTOSTART="1", QEGTRAIN_E2E_REVIEW_CANCEL="1")
+        env.update(QEGTRAIN_AUTOSTART="1", QEGTRAIN_E2E_REVIEW_CANCEL=cancellation)
         args = [str(app), "--scene", str(scene)]
         prefix = "E2E_RUN_REVIEW_"
     else:
@@ -37,6 +41,73 @@ def launch(app: Path, settings: Path, scene: Optional[Path] = None) -> dict:
     return values
 
 
+def expected_review(scene: Path) -> tuple:
+    """Fixture-derived expectations, including its sole warning variant (excess dwell)."""
+    manifest = json.loads((scene / "scene.json").read_text())
+    services = json.loads((scene / "services.json").read_text())["services"]
+    stock = json.loads((scene / "rolling_stock.json").read_text())
+    scenarios = json.loads((scene / "scenarios.json").read_text())
+    scenario = next(item for item in scenarios["scenarios"]
+                    if item["id"] == scenarios["default_scenario_id"])
+    duration = manifest["simulation_settings"]["duration_seconds"]
+    entries = []
+    warnings = 0
+    for service in services:
+        repeat = service.get("repeat", {})
+        # The creator fixture uses explicit repeat counts and entry times.
+        count = repeat["count"] if repeat else 1
+        entries.extend(service["entry_time_seconds"] + index * repeat.get("headway_seconds", 0)
+                       for index in range(count))
+        for stop in service["stops"]:
+            if "planned_arrival_seconds" in stop and "planned_departure_seconds" in stop:
+                warnings += int(stop["dwell_seconds"] > stop["planned_departure_seconds"] - stop["planned_arrival_seconds"])
+    in_period = sum(0 <= entry < duration for entry in entries)
+    counts = {"Service definitions": len(services), "Configured total": len(entries),
+              "Number of services in sim.": in_period, "Selected": len(entries),
+              "Selected in period": in_period, "Compositions": len(stock["compositions"]),
+              "Incidents": len(scenario["incidents"])}
+    start = datetime.strptime(manifest["base_time"], "%H:%M:%S")
+    summary = {"Selected in period": str(in_period), "Start clock": start.strftime("%H:%M:%S"),
+               "Duration": f"{duration:g} s elapsed (ends near {(start + timedelta(seconds=duration)):%H:%M:%S})",
+               "Active incidents": str(counts["Incidents"])}
+    details = {"Case study": manifest["name"], "Scenario": scenario["id"],
+               **{label: str(value) for label, value in counts.items()},
+               "Counting rule": f"scheduled entry ≥ 0 and < {duration:g} s; these are configured identities, not observed trains."}
+    return summary, details, warnings
+
+
+def check_review(review: dict, scene: Path, advanced: bool, cancellation: str) -> None:
+    rendered = json.loads(review["E2E_RUN_REVIEW_RENDERED"])
+    summary, details, warnings = expected_review(scene)
+    assert rendered["summary"] == summary, rendered
+    actual = dict(line.split(": ", 1) for line in rendered["details"].splitlines())
+    for label, value in details.items():
+        assert actual.get(label) == value, (label, value, actual)
+    if advanced:
+        assert actual["Validation"] == f"0 error(s), {warnings} warning(s)", actual
+    else:
+        assert "Validation" not in actual, actual
+        assert "Incident configuration" not in actual, actual
+        assert "Entrance delay configuration" not in actual, actual
+    if advanced and int(details["Incidents"]):
+        assert "Incident configuration" in actual, actual
+    for state in ("collapsed", "recollapsed"):
+        assert rendered[state] == {"checked": False, "visible": False, "arrow": "right"}, rendered
+    assert rendered["expanded"] == {"checked": True, "visible": True, "arrow": "down"}, rendered
+    zero = summary["Selected in period"] == "0"
+    status = ("Ready to run, but no selected services enter during this period." if zero else
+              f"Ready to run. Review {warnings} validation {'warning' if warnings == 1 else 'warnings'} if needed."
+              if advanced and warnings else "Ready to run.")
+    assert rendered["status"] == status, rendered
+    assert rendered["warning"] == (zero or (advanced and warnings > 0)), rendered
+    assert rendered["runEnabled"] and rendered["rejected"] and not rendered["workerStarted"], rendered
+    assert rendered["cancellation"] == cancellation, rendered
+    assert review["E2E_RUN_REVIEW_ADVANCED"] == str(int(advanced)), review
+    assert review["E2E_RUN_REVIEW_VALIDATION_VISIBLE"] == str(int(advanced)), review
+    assert review["E2E_RUN_REVIEW_CANCELLED"] == "1", review
+    assert review["E2E_RUN_REVIEW_UNCHANGED"] == "1", review
+
+
 def main() -> None:
     if len(sys.argv) != 3:
         raise SystemExit("usage: dialog_presentation_contract.py APP CREATOR_ACCEPTANCE_SCENE")
@@ -50,20 +121,41 @@ def main() -> None:
         assert chooser["E2E_STARTUP_CHOOSER_OPEN_ENABLED"] == "yes", chooser
         assert chooser["E2E_STARTUP_CHOOSER_ACTION"] == "Continue", chooser
         assert chooser["E2E_STARTUP_CHOOSER_UNCHANGED"] == "yes", chooser
-        for advanced in (False, True):
-            ini = settings / "EGTRAIN/EGTRAIN.ini"
-            ini.parent.mkdir(parents=True, exist_ok=True)
-            ini.write_text(f"[General]\nadvancedDetails={'true' if advanced else 'false'}\n")
-            review = launch(app, settings, scene)
-            assert review["E2E_RUN_REVIEW_SUMMARY"] == "3", review
-            assert review["E2E_RUN_REVIEW_START"] == "09:15:30", review
-            assert review["E2E_RUN_REVIEW_DURATION"] == "900 s elapsed (ends near 09:30:30)", review
-            assert review["E2E_RUN_REVIEW_DETAILS"] == "1", review
-            assert review["E2E_RUN_REVIEW_ADVANCED"] == str(int(advanced)), review
-            assert review["E2E_RUN_REVIEW_VALIDATION_VISIBLE"] == str(int(advanced)), review
-            assert review["E2E_RUN_REVIEW_CANCELLED"] == "1", review
-            assert review["E2E_RUN_REVIEW_UNCHANGED"] == "1", review
-    print("chooser and normal/advanced run-review Cancel contract passed")
+        for variant in ("baseline", "boundaries", "zero-in-period", "warning", "incidents"):
+            fixture = settings / variant
+            shutil.copytree(scene, fixture)
+            services_path = fixture / "services.json"
+            services = json.loads(services_path.read_text())
+            service = services["services"][0]
+            duration = json.loads((fixture / "scene.json").read_text())["simulation_settings"]["duration_seconds"]
+            if variant == "boundaries":
+                service["entry_time_seconds"] = 0
+                service["repeat"]["headway_seconds"] = duration / 2
+            elif variant == "zero-in-period":
+                shift = duration - service["entry_time_seconds"]
+                service["entry_time_seconds"] = duration
+                for stop in service["stops"]:
+                    for field in ("planned_arrival_seconds", "planned_departure_seconds"):
+                        if field in stop:
+                            stop[field] += shift
+            elif variant == "warning":
+                stop = service["stops"][0]
+                stop["dwell_seconds"] = stop["planned_departure_seconds"] - stop["planned_arrival_seconds"] + 1
+            elif variant == "incidents":
+                scenarios_path = fixture / "scenarios.json"
+                scenarios = json.loads(scenarios_path.read_text())
+                scenarios["default_scenario_id"] = next(item["id"] for item in scenarios["scenarios"] if item["incidents"])
+                scenarios_path.write_text(json.dumps(scenarios))
+            services_path.write_text(json.dumps(services))
+            for advanced in (False, True):
+                for cancellation in ("button", "escape"):
+                    run_settings = settings / f"settings-{variant}-{advanced}-{cancellation}"
+                    ini = run_settings / "EGTRAIN/EGTRAIN.ini"
+                    ini.parent.mkdir(parents=True, exist_ok=True)
+                    ini.write_text(f"[General]\nadvancedDetails={'true' if advanced else 'false'}\n")
+                    check_review(launch(app, run_settings, fixture, cancellation), fixture, advanced, cancellation)
+            print(f"{variant}: normal/advanced details, readiness, Cancel and Escape passed")
+    print("chooser and run-review presentation contract passed")
 
 
 if __name__ == "__main__":
