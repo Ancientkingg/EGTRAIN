@@ -2,6 +2,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+PREVIEW_ONLY=0
+if [[ "${1:-}" == "--preview-infrastructure" ]]; then
+	PREVIEW_ONLY=1
+	export QEGTRAIN_E2E_PREVIEW_ONLY=1 QEGTRAIN_E2E_PREVIEW_PARITY=1
+fi
 APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 SCENE_TOOL="$ROOT/build/scene_tool"
 
@@ -90,6 +95,21 @@ sys.exit(exit_code)
 PY
 APP_EXIT=$?
 set -e
+
+if [[ "$PREVIEW_ONLY" -eq 1 ]]; then
+	if [[ -n "${QEGTRAIN_E2E_PREVIEW_LOG:-}" ]]; then
+		cp "$LOG" "$QEGTRAIN_E2E_PREVIEW_LOG"
+	fi
+	if [[ "$APP_EXIT" -ne 0 ]] \
+		|| ! grep -Fqx E2E_CREATOR_PREVIEW_PRIMITIVES_OK "$LOG" \
+		|| ! grep -Fqx E2E_PREVIEW_IDENTITY_LIFETIME_OK "$LOG" \
+		|| ! grep -Fqx E2E_PREVIEW_PREPARED_RUNTIME_PARITY_OK "$LOG"; then
+		tail -40 "$LOG" >&2
+		exit 1
+	fi
+	echo "creator preview infrastructure smoke passed"
+	exit 0
+fi
 
 if [[ "$APP_EXIT" -ne 0 ]] || ! grep -Fqx E2E_CREATOR_ACCEPTANCE_OK "$LOG" \
 	|| ! grep -Fqx E2E_CREATOR_PENDING_OPEN_OK "$LOG"; then

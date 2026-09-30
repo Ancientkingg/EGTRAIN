@@ -200,6 +200,41 @@ constexpr int kSignalDecorationRole = 0;
 constexpr int kSignalTrackRole = 1;
 constexpr int kSignalBaseVisibleRole = 2;
 constexpr int kSignalAnchorRole = 3;
+struct PreviewStationMembership {
+	std::string stationId;
+	std::string name;
+	std::string platformId;
+};
+
+std::map<std::string, PreviewStationMembership> previewStationMemberships(const SceneModel& model) {
+	std::map<std::string, PreviewStationMembership> result;
+	std::set<std::tuple<std::string, std::string, std::string>> assigned;
+	for (const auto& station : model.stations) {
+		const auto assign = [&](const std::string& nodeId) -> PreviewStationMembership& {
+			auto& membership = result[nodeId];
+			membership.stationId = station.id;
+			membership.name = station.name.empty() ? station.id : station.name;
+			return membership;
+		};
+		if (!station.platforms.empty()) {
+			for (const auto& platform : station.platforms)
+				for (const auto& nodeId : platform.nodeIds)
+					if (assigned.emplace(nodeId, station.id, platform.id).second)
+						assign(nodeId).platformId = platform.id;
+		} else if (station.hasPosition) {
+			for (const auto& node : model.nodes)
+				if (std::fabs(node.xKm - station.positionKm) <= 1e-8)
+					assign(node.id); // Native position binding retains any earlier platform.
+		}
+	}
+	return result;
+}
+
+void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string& id) {
+	item->setData(PreviewGraphics::Kind, kind);
+	item->setData(PreviewGraphics::Id, QString::fromStdString(id));
+}
+
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
@@ -2275,6 +2310,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	updateSceneActions();
 
 	// connect scene signals
+	connect(scene, &NetworkScene::MousePressedOnPreview, this, &MainWindow::displayPreviewInfo);
 	connect(scene, &NetworkScene::MousePressedOnNode, this, &MainWindow::displayNodeInfo);
 	connect(scene, &NetworkScene::MousePressedOnStationNode, this, &MainWindow::displayStationNodeInfo);
 	connect(scene, &NetworkScene::MousePressedOnArc, this, &MainWindow::displayArcInfo);
@@ -4307,6 +4343,7 @@ const TrackPreviewLine* MainWindow::cachedTrackLine(int track) const {
 }
 
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
+	clearPreviewInspection();
 	m_previewFitBounds = QRectF();
 	m_previewHasSelectedTrack = false;
 	m_previewHasSignals = false;
@@ -4329,15 +4366,13 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 									  : QString();
 	const std::string selectedId = m_infrastructureSelectionId.toStdString();
 	std::set<std::string> selectedTrackIds;
-	std::set<std::string> selectedNodeIds;
 	const auto selectTrack = [&selectedTrackIds](const std::string& id) {
 		if (!id.empty())
 			selectedTrackIds.insert(id);
 	};
-	const auto selectNode = [&selectedNodeIds, &selectTrack, &sceneModel](const std::string& id) {
+	const auto selectNode = [&selectTrack, &sceneModel](const std::string& id) {
 		if (id.empty())
 			return;
-		selectedNodeIds.insert(id);
 		for (const auto& node : sceneModel.nodes)
 			if (node.id == id)
 				selectTrack(node.trackId);
@@ -4443,9 +4478,12 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(Qt::blue) : visual.color);
 			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
 			pen.setCosmetic(true);
-			auto* item = scene->addLine(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
-				line.points[point].x, line.points[point].y + offset), pen);
-			item->setAcceptedMouseButtons(Qt::NoButton);
+			auto* item = new TrackLineItem(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
+				line.points[point].x, line.points[point].y + offset));
+			item->setPen(pen);
+			tagPreviewItem(item, arc == sceneModel.arcs.end() ? "track" : "arc",
+				arc == sceneModel.arcs.end() ? line.id : arc->id);
+			scene->addItem(item);
 		}
 		for (const auto& point : line.points)
 			includePreviewPoint(QPointF(point.x, point.y + offset));
@@ -4462,40 +4500,76 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		if (!previewPointAtNode(*first->second.first, connection.firstNodeId, first->second.second, start) || !previewPointAtNode(*second->second.first, connection.secondNodeId, second->second.second, end))
 			continue;
 
-		QPainterPath path(start);
-		path.lineTo(end);
 		QPen pen(Qt::white);
 		pen.setWidth(2);
 		pen.setCosmetic(true);
 		pen.setCapStyle(Qt::RoundCap);
-		auto* item = scene->addPath(path, pen);
+		auto* item = new ConnectionItem(QLineF(start, end));
+		item->setPen(pen);
+		tagPreviewItem(item, "connection", connection.id);
+		scene->addItem(item);
 		item->setZValue(0.5);
-		item->setAcceptedMouseButtons(Qt::NoButton);
 		includePreviewPoint(start);
 		includePreviewPoint(end);
 	}
 
-	// Infrastructure selections use a few lightweight overlays rather than a
-	// second graphics-item model. Invalid intermediate references simply do not
-	// produce an overlay; the canonical model remains untouched.
-	if (m_infrastructureDock && m_infrastructureDock->isVisible()) {
-		for (const auto& node : sceneModel.nodes) {
-			const auto track = tracks.find(node.trackId);
-			if (track == tracks.end())
-				continue;
-			QPointF point;
-			if (!previewPointAtNode(*track->second.first, node.id, track->second.second, point))
-				continue;
-			const bool highlighted = selectedNodeIds.count(node.id) > 0 || selectedTrackIds.count(node.trackId) > 0;
-			const qreal radius = highlighted ? 4.5 : 2.5;
-			auto* marker = scene->addEllipse(QRectF(-radius, -radius, radius * 2.0, radius * 2.0),
-				QPen(highlighted ? QColor(255, 215, 105) : QColor(130, 155, 185)),
-				QBrush(highlighted ? QColor(220, 115, 45) : QColor(85, 105, 130)));
-			marker->setPos(point);
-			marker->setFlag(QGraphicsItem::ItemIgnoresTransformations);
-			marker->setAcceptedMouseButtons(Qt::NoButton);
+	const auto memberships = previewStationMemberships(sceneModel);
+	std::map<std::string, int> connectionDegrees;
+	for (const auto& connection : sceneModel.connections) {
+		++connectionDegrees[connection.fromNodeId];
+		++connectionDegrees[connection.toNodeId];
+	}
+	std::map<std::string, QGraphicsItem*> nodeItems;
+	for (const auto& line : preview.lines) {
+		if (!tracks.count(line.id))
+			continue;
+		for (std::size_t index = 0; index < line.points.size(); ++index) {
+			const auto& point = line.points[index];
+			const auto membership = memberships.find(point.nodeId);
+			// Current runnable-chain presentation: first point is ordinary;
+			// four-node ordinary starts paint zero size, but the terminal dot remains.
+			const bool station = index > 0 && membership != memberships.end();
+			const int size = station ? station_node_size
+				: (line.points.size() == 4 && index + 1 < line.points.size() ? 0 : node_size);
+			QRectF rect(0, 0, size, size);
+			rect.moveCenter(QPointF(point.x, point.y + line.displayOffset));
+			QAbstractGraphicsShapeItem* item;
+			if (station) {
+				auto* square = new StationNodeItem(rect);
+				const auto& value = membership->second;
+				const StationVisual visual = classifyStation(!value.platformId.empty()
+					&& value.platformId != "None", connectionDegrees[point.nodeId]);
+				square->setPen(QPen(visual.outline, 0));
+				square->setBrush(visual.fill);
+				item = square;
+				tagPreviewItem(item, "station-node", point.nodeId);
+				item->setData(PreviewGraphics::StationId, QString::fromStdString(value.stationId));
+				item->setData(PreviewGraphics::PlatformId, QString::fromStdString(value.platformId));
+				if (initial_variables.PAX_GUI) {
+					QRectF barRect(0, 0, 5 * size, 0.9 * size);
+					barRect.moveCenter(rect.center() - QPointF(0, 1.15 * size));
+					auto* bar = new PlatformItem(barRect, square);
+					bar->setPen(QPen(Qt::white, 0));
+					bar->setBrush(Qt::white);
+					m_stationDecorations.push_back(bar);
+					bar->setVisible(m_stationLayerVisible);
+				}
+			} else {
+				item = new NodeItem(rect);
+				item->setPen(QPen(Qt::lightGray, 0));
+				item->setBrush(Qt::lightGray);
+				tagPreviewItem(item, "node", point.nodeId);
+			}
+			QPen pen = item->pen();
+			pen.setCosmetic(true);
+			item->setPen(pen);
+			scene->addItem(item);
+			nodeItems[point.nodeId] = item;
 		}
+	}
 
+	// Selected-only editor emphasis is separate from structural boundary marks.
+	if (m_infrastructureDock && m_infrastructureDock->isVisible()) {
 		if (selectedFacet == "arcs") {
 			for (const auto& arc : sceneModel.arcs) {
 				if (arc.id != selectedId)
@@ -4553,22 +4627,38 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	for (const auto& station : preview.stations) {
 		if (station.name.find("virtual") != std::string::npos)
 			continue;
-		for (const auto& track : tracks) {
-			const auto& points = track.second.first->points;
+		for (const auto& line : preview.lines) {
+			if (!tracks.count(line.id))
+				continue;
+			const auto& points = line.points;
 			QPointF anchor;
 			if (!station.nodeId.empty()) {
-				if (!previewPointAtNode(*track.second.first, station.nodeId, track.second.second, anchor))
+				if (!previewPointAtNode(line, station.nodeId, line.displayOffset, anchor))
 					continue;
 			} else {
 				const double minX = std::min(points.front().rawX, points.back().rawX);
 				const double maxX = std::max(points.front().rawX, points.back().rawX);
 				if (station.x < minX || station.x > maxX)
 					continue;
-				if (!previewPointAtX(*track.second.first, station.x, track.second.second, anchor))
+				if (!previewPointAtX(line, station.x, line.displayOffset, anchor))
 					break;
 			}
 			paintStationOverlay(anchor, classifyStation(), station.name, 0.75,
 				stationDecorationOffset(sceneModel.stationViews, station.id, station.name));
+			auto* overlay = m_stationOverlays.back();
+			tagPreviewItem(overlay, "station", station.id);
+			const auto bind = [&](QGraphicsItem* decoration, bool artwork) {
+				if (artwork) tagPreviewItem(decoration, "station", station.id);
+				const auto node = nodeItems.find(station.nodeId);
+				if (node != nodeItems.end()) {
+					const QPointF position = decoration->scenePos();
+					decoration->setParentItem(node->second);
+					decoration->setPos(node->second->mapFromScene(position));
+				}
+			};
+			if (auto* picture = m_stationPictures.value(overlay, nullptr))
+				bind(picture, true);
+			bind(m_stationLabels.back(), false);
 			break;
 		}
 	}
@@ -4619,6 +4709,9 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			}
 			auto* glyph = new SignalItem(QRectF(-node_size / 2.0, -node_size / 2.0,
 				node_size, node_size));
+			tagPreviewItem(glyph, "signal", signal.sectionId);
+			glyph->setData(PreviewGraphics::TrackId, QString::fromStdString(signal.trackId));
+			glyph->setData(PreviewGraphics::Reversed, reversed);
 			glyph->X = signal.rawX;
 			glyph->sectionAheadId = signal.sectionId;
 			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
@@ -12268,6 +12361,35 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		m_sceneContextMenu->close();
 		m_sceneContextMenu.clear();
 	}
+	if (item && item->data(PreviewGraphics::Kind).isValid()) {
+		const QString kind = item->data(PreviewGraphics::Kind).toString();
+		if (kind == "node" || kind == "connection")
+			return; // No new node/connection menus.
+		const QString id = item->data(PreviewGraphics::Id).toString();
+		const QString track = item->data(PreviewGraphics::TrackId).toString();
+		const bool reversed = item->data(PreviewGraphics::Reversed).toBool();
+		const quint64 revision = m_sceneRevision;
+		QMenu* menu = new QMenu(this);
+		menu->setAttribute(Qt::WA_DeleteOnClose);
+		menu->setTitle("Preview: " + id);
+		const auto resolve = [this, kind, id, track, reversed, revision]() {
+			return resolvePreviewItem(kind, id, track, reversed, revision);
+		};
+		connect(menu->addAction("Show details"), &QAction::triggered, this, [this, resolve]() {
+			if (auto* current = resolve()) displayPreviewInfo(current);
+		});
+		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
+			if (auto* current = resolve()) centerSceneItem(current);
+		});
+		connect(menu->addAction("Copy canonical ID"), &QAction::triggered, this, [resolve, id, track, reversed]() {
+			if (resolve() && QApplication::clipboard())
+				QApplication::clipboard()->setText(track.isEmpty() ? id
+					: QString("track %1; section %2; %3").arg(track, id, reversed ? "reverse" : "forward"));
+		});
+		m_sceneContextMenu = menu;
+		menu->popup(screenPos);
+		return;
+	}
 	if (qgraphicsitem_cast<NodeItem*>(item) || qgraphicsitem_cast<ConnectionItem*>(item))
 		return;
 
@@ -19732,6 +19854,44 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("folder reopen did not retain complete creator rows"));
 			return;
 		}
+		// Normal Open must construct semantic infrastructure before Run, without
+		// preparing native backing objects or runtime observer collections.
+		int previewArcs = 0, previewNodes = 0, previewConnections = 0;
+		for (auto* item : scene->items()) {
+			if (auto* arc = qgraphicsitem_cast<TrackLineItem*>(item)) {
+				++previewArcs;
+				if (arc->arc || arc->track != -1) {
+					fail(QStringLiteral("preview arc has runtime backing state"));
+					return;
+				}
+			}
+			if (qgraphicsitem_cast<NodeItem*>(item) || qgraphicsitem_cast<StationNodeItem*>(item))
+				++previewNodes;
+			if (qgraphicsitem_cast<ConnectionItem*>(item))
+				++previewConnections;
+		}
+		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
+				|| !allArcs.isEmpty() || !allSignals.isEmpty() || !allPlatforms.isEmpty()
+				|| m_worker || m_sceneDirty || !m_showingTrackPreview) {
+			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
+				.arg(previewArcs).arg(previewNodes).arg(previewConnections));
+			return;
+		}
+		marker("E2E_CREATOR_PREVIEW_PRIMITIVES_OK");
+		QString previewFailure;
+		if (!checkPreviewInfrastructureE2E(previewFailure)) {
+			fail(previewFailure);
+			return;
+		}
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PREVIEW_ONLY")) {
+			if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PREVIEW_PARITY")
+					&& !checkPreviewRuntimeParityE2E(previewFailure)) {
+				fail(previewFailure);
+				return;
+			}
+			QCoreApplication::exit(0);
+			return;
+		}
 		marker("E2E_CREATOR_FOLDER_ROUNDTRIP_OK");
 		next();
 		return;
@@ -22654,6 +22814,7 @@ void MainWindow::onSimulationFinished() {
 }
 
 void MainWindow::teardownGUI() {
+	clearPreviewInspection();
 	m_showingTrackPreview = true;
 	// Stop any running simulation before clearing scene objects it may reference.
 	clearSimulationWorker(true);
@@ -23915,6 +24076,7 @@ void MainWindow::handleHelpAbout() {
 // hides all widgets from the dock widget
 // removes highlight from last clicked item
 void MainWindow::handleCloseInfoDockWidget() {
+	m_previewSelectedStationId.clear();
 	m_inspectedSignal = nullptr;
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
@@ -23941,6 +24103,477 @@ void MainWindow::handleCloseInfoDockWidget() {
 		effect = nullptr;
 	}
 	updateViewportOverlays();
+}
+
+bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure) {
+	// Only this optional, bounded Run fixture prepares native infrastructure.
+	// Add a fourth authored point on a directed runnable chain, not a fallback.
+	auto arc = std::find_if(m_sceneModel.arcs.begin(), m_sceneModel.arcs.end(),
+		[](const SceneArc& value) { return value.id == "creator-main-arc-0"; });
+	if (arc == m_sceneModel.arcs.end()) {
+		failure = "parity fixture arc missing";
+		return false;
+	}
+	const std::string oldEnd = arc->toNodeId;
+	SceneArc second = *arc;
+	arc->toNodeId = "parity-midpoint";
+	second.id = "parity-second-arc";
+	second.fromNodeId = "parity-midpoint";
+	second.toNodeId = oldEnd;
+	m_sceneModel.arcs.push_back(second);
+	m_sceneModel.nodes.push_back({"parity-midpoint", "creator-main", 0.5, 0.125});
+	m_sceneModel.stations.push_back({"parity-first-station", "First", false, 0,
+		{{"parity-first-platform", {"creator-main-node-0"}}}});
+	markSceneDirty();
+	renderTrackPreview(m_sceneModel);
+	struct Primitive { int type; QRectF rect; QColor fill; QColor outline; };
+	std::vector<Primitive> boundaries;
+	for (auto* item : scene->items()) {
+		if (auto* node = qgraphicsitem_cast<NodeItem*>(item))
+			boundaries.push_back({item->type(), node->rect(), node->brush().color(), node->pen().color()});
+		else if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item))
+			boundaries.push_back({item->type(), square->rect(), square->brush().color(), square->pen().color()});
+	}
+	const quint64 revision = m_sceneRevision;
+	const auto held = [this, revision]() {
+		return resolvePreviewItem("arc", "creator-main-arc-0", QString(), false, revision);
+	};
+	showSceneContextMenu(held(), QPointF(), QPoint(), false);
+	m_speedSlider->setValue(0);
+	m_runSceneAction->trigger();
+	if (!m_worker || m_showingTrackPreview || held() || m_sceneContextMenu
+			|| !m_previewSelectedStationId.isEmpty() || !nodeIDText->text().isEmpty()) {
+		failure = "preview-to-prepared-runtime did not clear canonical state/actions";
+		return false;
+	}
+	for (const auto& expected : boundaries) {
+		bool found = false;
+		for (auto* item : scene->items()) {
+			QAbstractGraphicsShapeItem* shape = nullptr;
+			QRectF rect;
+			if (auto* node = qgraphicsitem_cast<NodeItem*>(item)) {
+				if (!node->node || node->track < 0) continue;
+				shape = node;
+				rect = node->rect();
+			} else if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
+				if (!square->node || square->track < 0) continue;
+				shape = square;
+				rect = square->rect();
+			}
+			if (shape && item->type() == expected.type
+					&& QLineF(rect.center(), expected.rect.center()).length() < 1e-6
+					&& rect.size() == expected.rect.size() && shape->brush().color() == expected.fill
+					&& shape->pen().color() == expected.outline)
+				found = true;
+		}
+		if (!found) {
+			failure = QString("prepared-runtime boundary mismatch: type=%1 center=%2,%3 size=%4")
+				.arg(expected.type).arg(expected.rect.center().x()).arg(expected.rect.center().y()).arg(expected.rect.width());
+			clearSimulationWorker(true);
+			return false;
+		}
+	}
+	for (auto* item : scene->items())
+		if (item->data(PreviewGraphics::Kind).isValid()) {
+			failure = "canonical preview role leaked into prepared runtime";
+			clearSimulationWorker(true);
+			return false;
+		}
+	clearSimulationWorker(true);
+	std::fprintf(stdout, "\nE2E_PREVIEW_PREPARED_RUNTIME_PARITY_OK\n");
+	std::fflush(stdout);
+	return true;
+}
+
+bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
+	const auto require = [&](bool condition, const QString& message) {
+		if (!condition) failure = message;
+		return condition;
+	};
+	const auto find = [&](const QString& kind, const QString& id) {
+		return resolvePreviewItem(kind, id, QString(), false, m_sceneRevision);
+	};
+	const auto click = [&](const QPointF& position) {
+		QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
+		event.setButton(Qt::LeftButton);
+		event.setButtons(Qt::LeftButton);
+		event.setScenePos(position);
+		event.setPos(networkView->mapFromScene(position));
+		event.setWidget(networkView->viewport());
+		scene->mousePressEvent(&event);
+	};
+	const auto clickArtwork = [&](QGraphicsPixmapItem* picture) {
+		const QRectF bounds = picture->boundingRect();
+		for (int y = 1; y < 20; ++y)
+			for (int x = 1; x < 20; ++x) {
+				const QPointF local(bounds.left() + bounds.width() * x / 20,
+					bounds.top() + bounds.height() * y / 20);
+				if (picture->shape().contains(local)) {
+					click(picture->mapToScene(local));
+					return;
+				}
+			}
+	};
+	const SceneModel saved = m_sceneModel;
+	const bool savedDirty = m_sceneDirty;
+	const quint64 initialRevision = m_sceneRevision;
+	const QString editorSelection = m_infrastructureSelectionId;
+	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
+	for (const auto& line : m_cachedTrackPreview.lines) {
+		for (const auto& point : line.points) {
+			auto* item = find("node", QString::fromStdString(point.nodeId));
+			if (!item) item = find("station-node", QString::fromStdString(point.nodeId));
+			if (!require(item != nullptr, "missing canonical endpoint " + QString::fromStdString(point.nodeId))) return false;
+			if (auto* node = qgraphicsitem_cast<NodeItem*>(item)) {
+				if (!require(!node->node && node->track == -1 && node->brush().color() == QColor(Qt::lightGray),
+					"ordinary preview node paint/backing state")) return false;
+			} else if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
+				if (!require(!square->node && square->track == -1, "station preview has backing state")) return false;
+			}
+			if (!require(item->sceneBoundingRect().center() == QPointF(point.x, point.y + line.displayOffset),
+				"preview endpoint coordinate differs from cached topology")) return false;
+			// Detail-scale events avoid ambiguity from Fit padding/nearby artwork.
+			networkView->resetTransform();
+			networkView->scale(2, 2);
+			click(QPointF(point.x, point.y + line.displayOffset));
+			if (!require(nodeIDText->text() == QString::fromStdString(point.nodeId), "node event canonical ID")) return false;
+		}
+	}
+	for (const auto& arc : saved.arcs) {
+		auto* item = qgraphicsitem_cast<TrackLineItem*>(find("arc", QString::fromStdString(arc.id)));
+		if (!require(item && item->pen().isCosmetic() && item->pen().color() == classifyTrackSpeed(arc.speedLimitMs).color,
+			"preview speed-class arc")) return false;
+		const auto from = std::find_if(saved.nodes.begin(), saved.nodes.end(), [&](const SceneNode& node) { return node.id == arc.fromNodeId; });
+		const auto to = std::find_if(saved.nodes.begin(), saved.nodes.end(), [&](const SceneNode& node) { return node.id == arc.toNodeId; });
+		const double lengthM = std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000;
+		click(item->line().pointAt(0.5));
+		if (!require(arcIDText->text() == QString::fromStdString(arc.id)
+			&& arcSpeedLimitText->text().toDouble() == arc.speedLimitMs
+			&& std::fabs(arcLengthText->text().toDouble() - lengthM) < 1e-6
+			&& arcGradientText->text().toDouble() == arc.gradientPercent
+			&& arcCurvatureText->text().toDouble() == arc.curvatureRadiusM
+			&& arcOperationalStateText->text() == "Unavailable before Run", "arc event canonical fields")) return false;
+	}
+	auto* connection = qgraphicsitem_cast<ConnectionItem*>(find("connection", "creator-switch"));
+	if (!require(connection && !connection->connection && connection->pen().color() == QColor(Qt::white)
+		&& connection->pen().width() == 2 && connection->pen().isCosmetic(), "preview connection paint/backing")) return false;
+	click(connection->line().pointAt(0.5));
+	if (!require(infoDockWidget->windowTitle().contains("creator-switch")
+		&& connectionXFirstNodeText->text().toDouble() == 1000, "connection event canonical fields")) return false;
+	if (!require(m_sceneRevision == initialRevision && m_sceneDirty == savedDirty
+		&& m_infrastructureSelectionId == editorSelection && !m_worker && allArcs.isEmpty()
+		&& allSignals.isEmpty() && allPlatforms.isEmpty(), "inspection mutated Open state")) return false;
+
+	const bool unchangedNodes = m_sceneModel.nodes.size() == saved.nodes.size()
+		&& std::equal(saved.nodes.begin(), saved.nodes.end(), m_sceneModel.nodes.begin(),
+			[](const SceneNode& a, const SceneNode& b) {
+				return std::tie(a.id, a.trackId, a.xKm, a.yKm) == std::tie(b.id, b.trackId, b.xKm, b.yKm);
+			});
+	const bool unchangedArcs = m_sceneModel.arcs.size() == saved.arcs.size()
+		&& std::equal(saved.arcs.begin(), saved.arcs.end(), m_sceneModel.arcs.begin(),
+			[](const SceneArc& a, const SceneArc& b) {
+				return std::tie(a.id, a.trackId, a.fromNodeId, a.toNodeId, a.curvatureRadiusM, a.gradientPercent, a.speedLimitMs)
+					== std::tie(b.id, b.trackId, b.fromNodeId, b.toNodeId, b.curvatureRadiusM, b.gradientPercent, b.speedLimitMs);
+			});
+	if (!require(unchangedNodes && unchangedArcs, "inspection changed authored geometry/units")) return false;
+
+	// Bounded in-memory authoring fixture: duplicate names/memberships/endpoints,
+	// hidden-track incidence, authored Z-before-A anchors, and malformed fallback.
+	SceneModel fixture;
+	fixture.tracks = {{"Z"}, {"A"}, {"hidden"}, {"fallback"}};
+	fixture.nodes = {{"z0", "Z", 0, 0}, {"z1", "Z", 1, 0}, {"z2", "Z", 2, 0}, {"z3", "Z", 3, 0},
+		{"a0", "A", 0, 1}, {"a1", "A", 1, 1}, {"a2", "A", 3, 1},
+		{"hidden0", "hidden", 1, 2}, {"f0", "fallback", 4, 0}, {"f1", "fallback", 5, 0}, {"f2", "fallback", 6, 0}};
+	fixture.arcs = {{"z-arc0", "Z", "z0", "z1", 0, 0, 60}, {"z-arc1", "Z", "z1", "z2", 0, 0, 40},
+		{"z-arc2", "Z", "z2", "z3", 0, 0, 20}, {"a-arc0", "A", "a0", "a1", 0, 0, 20},
+		{"a-arc1", "A", "a1", "a2", 0, 0, 20}, {"f-arc0", "fallback", "f0", "f1", 0, 0, 20}};
+	fixture.blocks = {{"Z-section0", "Z", 1}, {"Z-section1", "Z", 2}, {"A-section0", "A", 1}, {"A-section1", "A", 2}};
+	fixture.connections = {{"join-one", "z1", "a1"}, {"join-two", "z1", "a1"}, {"hidden-join", "z1", "hidden0"}};
+	fixture.trackViews = {{"Z", 0, 0, true}, {"A", 1, 1, true}, {"hidden", 2, 2, false}};
+	fixture.stations = {{"earlier", "Duplicate", false, 0, {{"platform-real", {"z1", "z0", "z2"}}}},
+		{"later", "Duplicate", true, 1 + 5e-9, {}}, {"between", "Duplicate", true, 1.5, {}}};
+	sceneSignals(fixture) = {{"authored-Z", "@Z-section1@"}, {"authored-A", "@A-section1@"}};
+	m_sceneModel = fixture;
+	++m_sceneRevision;
+	renderTrackPreview(m_sceneModel);
+	const QRectF topologyBounds = m_previewFitBounds;
+	auto* z0 = qgraphicsitem_cast<NodeItem*>(find("node", "z0"));
+	auto* z1 = qgraphicsitem_cast<StationNodeItem*>(find("station-node", "z1"));
+	auto* z3 = qgraphicsitem_cast<NodeItem*>(find("node", "z3"));
+	if (!require(z0 && z0->rect().width() == 0 && z1 && z3 && z3->rect().width() == node_size,
+		"first-station/four-node/terminal presentation")) return false;
+	if (!require(z1->data(PreviewGraphics::StationId).toString() == "later"
+		&& z1->data(PreviewGraphics::PlatformId).toString() == "platform-real"
+		&& z1->brush().color() == classifyStation(true, 3).fill,
+		"native last-wins fields/hidden and duplicate endpoint incidence")) return false;
+	if (!require(find("station-node", "z2") && find("connection", "join-one") && find("connection", "join-two")
+		&& find("track", "fallback"), "multiple platform nodes/duplicate connections/fallback track")) return false;
+	networkView->resetTransform();
+	networkView->scale(2, 2);
+	click(z1->rect().center());
+	if (!require(nodeStationNameText->text() == "Duplicate [later]" && nodeXText->text().toDouble() == 1000
+		&& infoDockWidget->windowTitle().contains("platform-real"), QString("station square canonical inspection: name=%1 x=%2 title=%3")
+			.arg(nodeStationNameText->text(), nodeXText->text(), infoDockWidget->windowTitle()))) return false;
+	StationOverlayItem* earlier = nullptr;
+	StationOverlayItem* between = nullptr;
+	for (auto* overlay : m_stationOverlays) {
+		if (overlay->data(PreviewGraphics::Id).toString() == "earlier") earlier = overlay;
+		if (overlay->data(PreviewGraphics::Id).toString() == "between") between = overlay;
+	}
+	const auto& line = m_cachedTrackPreview.lines.front();
+	QPointF expectedBetween;
+	previewPointAtX(line, 1.5, line.displayOffset, expectedBetween);
+	if (!require(earlier && between && between->stableAnchor() == expectedBetween,
+		"position-only artwork uses authored Z-before-A track")) return false;
+	auto* picture = m_stationPictures.value(earlier, nullptr);
+	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
+	picture->setPos(picture->pos() + QPointF(150, -150));
+	clickArtwork(picture);
+	if (!require(nodeStationNameText->text() == "Duplicate [earlier]"
+		&& m_previewSelectedStationId == "earlier", "displaced artwork owns canonical station identity")) return false;
+	// Position-only artwork has a real station, not an invented node.
+	auto* positionPicture = m_stationPictures.value(between, nullptr);
+	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
+	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
+	clickArtwork(positionPicture);
+	if (!require(nodeIDText->text() == "No node anchor" && nodeXText->text().toDouble() == 1500
+		&& nodeStationNameText->text() == "Duplicate [between]", "position-only canonical inspection")) return false;
+	const bool oldLayer = m_stationLayerVisible, oldNames = m_stationNamesVisible;
+	m_stationLayerVisible = false;
+	m_stationNamesVisible = false;
+	for (auto* decoration : m_stationDecorations) decoration->setVisible(false);
+	updateViewportOverlays();
+	if (!require(z1->isVisible() && !picture->isVisible() && !m_stationLabels.front()->isVisible(),
+		"station layers must not hide structural squares")) return false;
+	m_stationLayerVisible = true;
+	updateViewportOverlays();
+	if (!require(!m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
+	m_stationLayerVisible = oldLayer;
+	m_stationNamesVisible = oldNames;
+	for (auto* decoration : m_stationDecorations) decoration->setVisible(oldLayer);
+	updateViewportOverlays();
+	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
+	if (!require(arcIDText->text() == "No authored arc (fallback)" && arcFirstNodeIDText->text().isEmpty()
+		&& nodeStationNameText->text().isEmpty(), "fallback clears unrelated canonical fields")) return false;
+	const quint64 fixtureRevision = m_sceneRevision;
+	for (const auto& track : {QString("Z"), QString("A")}) {
+		auto* head = resolvePreviewItem("signal", "@" + track + "-section1@", track, false, fixtureRevision);
+		if (!require(head != nullptr, "same-chainage signal head missing")) return false;
+		click(head->sceneBoundingRect().center());
+		if (!require(signallingTrackIDText->text() == track && signallingXText->text().toDouble() == 1000
+			&& signallingLengthSectionAheadText->text() == "Unavailable before Run"
+			&& signallingGroupDetails->toPlainText().contains("authored-" + track), "exact canonical preview signal identity")) return false;
+	}
+	if (!require(m_previewFitBounds == topologyBounds && !m_worker && allArcs.isEmpty()
+		&& allPlatforms.isEmpty() && allSignals.isEmpty(), "hit geometry/inspection mutated topology or runtime")) return false;
+	// Held payload tests the same guard as menus without dereferencing a deleted action.
+	const auto held = [this, fixtureRevision]() {
+		return resolvePreviewItem("arc", "z-arc0", QString(), false, fixtureRevision);
+	};
+	showSceneContextMenu(find("arc", "z-arc0"), QPointF(), QPoint(), false);
+	renderTrackPreview(m_sceneModel);
+	if (!require(!m_sceneContextMenu && !infoDockWidget->isVisible() && nodeIDText->text().isEmpty()
+		&& m_previewSelectedStationId.isEmpty() && held(), "same-revision rebuild clears menu/inspection and safely resolves payload")) return false;
+	m_sceneModel.arcs.front().id = "renamed";
+	markSceneDirty();
+	renderTrackPreview(m_sceneModel);
+	if (!require(!held() && find("arc", "renamed"), "rename invalidates queued canonical identity")) return false;
+	m_sceneModel.arcs.erase(m_sceneModel.arcs.begin());
+	markSceneDirty();
+	renderTrackPreview(m_sceneModel);
+	if (!require(!find("arc", "renamed"), "delete removes canonical graphic")) return false;
+	m_sceneModel = fixture;
+	++m_sceneRevision;
+	renderTrackPreview(m_sceneModel);
+	if (!require(find("arc", "z-arc0") && !held(), "replacement reusing IDs rejects old payload")) return false;
+	m_sceneModel = saved;
+	m_sceneDirty = savedDirty;
+	++m_sceneRevision;
+	renderTrackPreview(m_sceneModel);
+	std::fprintf(stdout, "E2E_PREVIEW_IDENTITY_LIFETIME_OK\n");
+	std::fflush(stdout);
+	return true;
+}
+
+void MainWindow::clearPreviewInspection() {
+	if (m_sceneContextMenu) {
+		m_sceneContextMenu->close();
+		m_sceneContextMenu.clear();
+	}
+	if (m_showingTrackPreview) {
+		handleCloseInfoDockWidget();
+		infoDockWidget->hide();
+		for (auto* field : {nodeIDText, nodeXText, nodeYText, nodeTrackIDText,
+				nodeStationNameText, nodeRegionText, nodeConnectedTracksText, nodeSignalledText,
+				arcIDText, arcFirstNodeIDText, arcSecondNodeIDText, arcTrackIDText,
+				arcLengthText, arcCurvatureText, arcGradientText, arcSpeedLimitText,
+				arcOperationalStateText, arcConnectedSignalsText, connectionFirstTrackIDText,
+				connectionSecondTrackIDText, connectionXFirstNodeText, connectionXSecondNodeText,
+				signallingTrackIDText, signallingXText, signallingAspectText,
+				signallingProtectedSectionText, signallingNextTrackText,
+				signallingIDSectionAheadText, signallingLengthSectionAheadText})
+			field->clear();
+		signallingGroupDetails->clear();
+	}
+}
+
+QGraphicsItem* MainWindow::resolvePreviewItem(const QString& kind, const QString& id,
+		const QString& track, bool reversed, quint64 revision) const {
+	if (!m_showingTrackPreview || !m_sceneLoaded || revision != m_sceneRevision || !scene)
+		return nullptr;
+	for (auto* item : scene->items()) {
+		if (item->data(PreviewGraphics::Kind).toString() != kind
+				|| item->data(PreviewGraphics::Id).toString() != id)
+			continue;
+		if (kind == "signal" && (item->data(PreviewGraphics::TrackId).toString() != track
+				|| item->data(PreviewGraphics::Reversed).toBool() != reversed))
+			continue;
+		return item;
+	}
+	return nullptr;
+}
+
+void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
+	if (!item || item->scene() != scene || !m_showingTrackPreview || !m_sceneLoaded)
+		return;
+	const QString kind = item->data(PreviewGraphics::Kind).toString();
+	const std::string id = item->data(PreviewGraphics::Id).toString().toStdString();
+	const auto text = [](const std::string& value) { return QString::fromStdString(value); };
+	const auto number = [](double value) { return QString::number(value, 'g', 12); };
+	const QString unavailable = QStringLiteral("Unavailable before Run");
+	// Resolve canonical values at interaction; no pointers survive an edit/rebuild.
+	clearPreviewInspection();
+	QString title;
+	if (kind == "node" || kind == "station-node" || kind == "station") {
+		const SceneNode* node = nullptr;
+		const SceneStation* station = nullptr;
+		for (const auto& candidate : m_sceneModel.nodes)
+			if (kind != "station" && candidate.id == id)
+				node = &candidate;
+		const auto memberships = previewStationMemberships(m_sceneModel);
+		const auto membership = memberships.find(id);
+		const std::string stationId = kind == "station" ? id
+			: membership == memberships.end() ? std::string() : membership->second.stationId;
+		for (const auto& candidate : m_sceneModel.stations)
+			if (candidate.id == stationId)
+				station = &candidate;
+		if (kind == "station") {
+			if (!station)
+				return;
+			for (const auto& anchor : m_cachedTrackPreview.stations)
+				if (anchor.id == id)
+					for (const auto& candidate : m_sceneModel.nodes)
+						if (!anchor.nodeId.empty() && candidate.id == anchor.nodeId)
+							node = &candidate;
+		} else if (!node) {
+			return;
+		}
+		nodeIDText->setText(node ? text(node->id) : QStringLiteral("No node anchor"));
+		nodeXText->setText(node ? number(node->xKm * 1000)
+			: station && station->hasPosition ? number(station->positionKm * 1000) : unavailable);
+		nodeYText->setText(node ? number(node->yKm * 1000) : unavailable);
+		nodeTrackIDText->setText(node ? text(node->trackId) : QStringLiteral("No node anchor"));
+		nodeStationNameText->setText(station
+			? text(station->name.empty() ? station->id : station->name) + " [" + text(station->id) + "]"
+			: QString());
+		nodeRegionText->setText(unavailable);
+		nodeSignalledText->setText(unavailable);
+		QStringList connectedTracks;
+		if (node) {
+			connectedTracks << text(node->trackId);
+			for (const auto& connection : m_sceneModel.connections) {
+				const std::string other = connection.fromNodeId == node->id ? connection.toNodeId
+					: connection.toNodeId == node->id ? connection.fromNodeId : std::string();
+				for (const auto& candidate : m_sceneModel.nodes)
+					if (candidate.id == other && !connectedTracks.contains(text(candidate.trackId)))
+						connectedTracks << text(candidate.trackId);
+			}
+		}
+		nodeConnectedTracksText->setText(connectedTracks.join(", "));
+		if (station)
+			m_previewSelectedStationId = text(station->id);
+		title = kind == "station" ? "Station " + text(id) : "Node " + text(id);
+		if (kind != "station" && membership != memberships.end() && !membership->second.platformId.empty())
+			title += " / platform " + text(membership->second.platformId);
+		nodeInfoWidget->show();
+	} else if (kind == "arc" || kind == "track") {
+		if (kind == "arc") {
+			const auto arc = std::find_if(m_sceneModel.arcs.begin(), m_sceneModel.arcs.end(),
+				[&](const SceneArc& value) { return value.id == id; });
+			if (arc == m_sceneModel.arcs.end())
+				return;
+			arcIDText->setText(text(arc->id));
+			arcFirstNodeIDText->setText(text(arc->fromNodeId));
+			arcSecondNodeIDText->setText(text(arc->toNodeId));
+			arcTrackIDText->setText(text(arc->trackId));
+			const SceneNode* from = nullptr;
+			const SceneNode* to = nullptr;
+			for (const auto& node : m_sceneModel.nodes) {
+				if (node.id == arc->fromNodeId) from = &node;
+				if (node.id == arc->toNodeId) to = &node;
+			}
+			arcLengthText->setText(from && to
+				? number(std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000) : unavailable);
+			arcCurvatureText->setText(number(arc->curvatureRadiusM));
+			arcGradientText->setText(number(arc->gradientPercent));
+			arcSpeedLimitText->setText(number(arc->speedLimitMs));
+		} else {
+			if (std::none_of(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
+					[&](const SceneTrack& track) { return track.id == id; }))
+				return;
+			arcIDText->setText("No authored arc (fallback)");
+			arcTrackIDText->setText(text(id));
+		}
+		arcOperationalStateText->setText(unavailable);
+		arcConnectedSignalsText->setText(unavailable);
+		title = kind == "arc" ? "Arc " + text(id) : "Track " + text(id);
+		arcInfoWidget->show();
+	} else if (kind == "connection") {
+		const auto connection = std::find_if(m_sceneModel.connections.begin(), m_sceneModel.connections.end(),
+			[&](const SceneConnection& value) { return value.id == id; });
+		if (connection == m_sceneModel.connections.end())
+			return;
+		for (const auto& node : m_sceneModel.nodes) {
+			if (node.id == connection->fromNodeId) {
+				connectionFirstTrackIDText->setText(text(node.trackId));
+				connectionXFirstNodeText->setText(number(node.xKm * 1000));
+			}
+			if (node.id == connection->toNodeId) {
+				connectionSecondTrackIDText->setText(text(node.trackId));
+				connectionXSecondNodeText->setText(number(node.xKm * 1000));
+			}
+		}
+		title = "Connection " + text(id);
+		connectionInfoWidget->show();
+	} else if (kind == "signal") {
+		const std::string track = item->data(PreviewGraphics::TrackId).toString().toStdString();
+		const auto head = std::find_if(m_cachedTrackPreview.previewSignals.begin(), m_cachedTrackPreview.previewSignals.end(),
+			[&](const TrackPreviewSignal& signal) { return signal.trackId == track && signal.sectionId == id; });
+		if (head == m_cachedTrackPreview.previewSignals.end())
+			return;
+		signallingTrackIDText->setText(text(track));
+		signallingXText->setText(number(head->rawX * 1000));
+		signallingAspectText->setText(unavailable);
+		signallingProtectedSectionText->setText(text(id));
+		signallingNextTrackText->setText(unavailable);
+		signallingIDSectionAheadText->setText(text(id));
+		signallingLengthSectionAheadText->setText(unavailable);
+		QStringList ids;
+		for (const auto& signal : sceneSignals(m_sceneModel))
+			if (signal.protectedSection == id)
+				ids << text(signal.id);
+		signallingGroupDetails->setPlainText(QStringLiteral("Track %1; section %2; %3; authored signal IDs: %4")
+			.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
+				ids.isEmpty() ? "None" : ids.join(", ")));
+		title = "Signal " + text(id);
+		signallingInfoWidget->show();
+	} else {
+		return;
+	}
+	infoDockWidget->setWindowTitle("Preview: " + title + " (not running)");
+	infoDockWidget->show();
+	updateViewportOverlays();
+	// Do not recolor boundary dots/squares or neutral signal heads on inspection.
 }
 
 // shows Node info on dock widget
@@ -26614,7 +27247,9 @@ void MainWindow::updateViewportOverlays() {
 			&& overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack);
 		const bool selectedByLegacyName = !m_hasSelectedStationIdentity && !overlay->hasSourceIdentity()
 			&& !m_selectedStationName.isEmpty() && overlay->stationName() == m_selectedStationName;
-		overlay->setSelected(selectedByIdentity || selectedByLegacyName);
+		overlay->setSelected(m_showingTrackPreview
+			? !m_previewSelectedStationId.isEmpty() && overlay->data(PreviewGraphics::Id).toString() == m_previewSelectedStationId
+			: selectedByIdentity || selectedByLegacyName);
 		overlay->setVisible(m_stationLayerVisible);
 		overlay->setFollowed(false);
 		if (!hasFollowedCenter)

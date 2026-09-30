@@ -464,6 +464,47 @@ int main(int argc, char* argv[]) {
 			"selected track paints historical blue instead of an operational underlay");
 	}
 
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		scaleView(view);
+		auto* station = new StationNodeItem(QRectF(-10, -10, 20, 20));
+		station->setData(PreviewGraphics::Kind, "station-node");
+		station->setData(PreviewGraphics::Id, "node.non-numeric");
+		QPixmap pixmap(20, 20);
+		pixmap.fill(Qt::white);
+		auto* artwork = new QGraphicsPixmapItem(pixmap, station);
+		artwork->setPos(30, -40);
+		artwork->setData(PreviewGraphics::Kind, "station");
+		artwork->setData(PreviewGraphics::Id, "own-station");
+		scene.addItem(station);
+		QGraphicsItem* picked = nullptr;
+		int legacyClicks = 0;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnPreview, [&](QGraphicsItem* item) { picked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem*) { ++legacyClicks; });
+		sendLeftClick(scene, view, QPointF(40, -30));
+		ok &= expect(picked == artwork && legacyClicks == 0,
+			"canonical artwork identity takes precedence over semantic ancestor");
+		sendLeftClick(scene, view, QPointF());
+		ok &= expect(picked == station && legacyClicks == 0,
+			"tagged station square bypasses legacy pointer inspector");
+		QGraphicsItem* context = nullptr;
+		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { context = item; });
+		sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Mouse, QPointF(40, -30), QPoint());
+		ok &= expect(context == artwork, "context dispatcher retains artwork identity");
+		artwork->setParentItem(nullptr);
+		artwork->setPos(60, -40);
+		sendLeftClick(scene, view, QPointF(70, -30));
+		ok &= expect(picked == artwork, "position-only tagged artwork fallback is selectable");
+	}
+	{
+		TrackLineItem arc(QLineF(0, 0, 20, 0));
+		ConnectionItem connection(QLineF(0, 0, 20, 0));
+		ok &= expect(arc.track == -1 && arc.arc == nullptr && connection.connection == nullptr,
+			"semantic infrastructure constructors have safe preview backing defaults");
+	}
+
 	if (!ok)
 		return 1;
 

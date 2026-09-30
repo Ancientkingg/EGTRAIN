@@ -28,6 +28,10 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	const QPointF click = device.map(scenePos);
 	for (QGraphicsItem* item : hitItems) {
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
+			// Artwork owns its station identity even when its structural parent
+			// has a different last-wins station membership.
+			if (candidate->data(PreviewGraphics::Kind).toString() == "station")
+				return candidate;
 			if (auto* signal = qgraphicsitem_cast<SignalItem*>(candidate)) {
 				const QPointF local = signal->mapFromScene(scenePos);
 				if (signal->QGraphicsEllipseItem::shape().contains(local))
@@ -73,7 +77,9 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsScene::mousePressEvent(mouseEvent);
 
 	if (mouseEvent->button() == Qt::LeftButton) {
-		if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
+		if (item && item->data(PreviewGraphics::Kind).isValid())
+			emit MousePressedOnPreview(item);
+		else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
 			emit MousePressedOnNode(node);
 		else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
 			emit MousePressedOnStationNode(stationNode);

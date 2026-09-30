@@ -284,6 +284,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		if (!visibleTrack(first->second->trackId) || !visibleTrack(second->second->trackId))
 			continue;
 		TrackPreviewConnection preview;
+		preview.id = connection.id;
 		preview.firstTrackId = first->second->trackId;
 		preview.firstNodeId = first->second->id;
 		preview.secondTrackId = second->second->trackId;

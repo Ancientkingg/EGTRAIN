@@ -2,7 +2,7 @@
 
 // adjust value of selectionOffset to control the margin used when clicking on the line item
 TrackLineItem::TrackLineItem(const QLineF& line, QGraphicsItem* parent)
-	: QGraphicsLineItem(line, parent), selectionOffset(20), m_operationalState(TrackOperationalState::Free) {
+	: QGraphicsLineItem(line, parent), track(-1), arc(nullptr), selectionOffset(20), m_operationalState(TrackOperationalState::Free) {
 	createSelectionPolygon();
 }
 

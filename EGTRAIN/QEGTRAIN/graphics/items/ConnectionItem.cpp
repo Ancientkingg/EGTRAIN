@@ -2,7 +2,7 @@
 
 // adjust value of selectionOffset to control the margin used when clicking on the line item
 ConnectionItem::ConnectionItem(const QLineF& line, QGraphicsItem* parent)
-	: QGraphicsLineItem(line, parent), selectionOffset(20) {
+	: QGraphicsLineItem(line, parent), connection(nullptr), selectionOffset(20) {
 	createSelectionPolygon();
 }
 

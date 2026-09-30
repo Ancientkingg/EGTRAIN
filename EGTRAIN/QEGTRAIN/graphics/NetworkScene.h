@@ -24,6 +24,12 @@
 #include "graphics/items/TrainItemGroup.h"
 #include <QGraphicsTextItem>
 
+// Preview-only canonical identities. Roles 0..3 belong to signal decoration.
+// No model or native pointers are stored here; interaction resolves current data.
+namespace PreviewGraphics {
+enum Role { Kind = 100, Id, StationId, PlatformId, TrackId, Reversed };
+}
+
 using namespace std;
 
 class NetworkScene : public QGraphicsScene {
@@ -39,6 +45,7 @@ public:
 
 signals:
 	void MousePressedOnScene();
+	void MousePressedOnPreview(QGraphicsItem* item);
 	void MousePressedOnNode(NodeItem* Node);
 	void MousePressedOnStationNode(StationNodeItem* Node);
 	void MousePressedOnArc(TrackLineItem* Arc);

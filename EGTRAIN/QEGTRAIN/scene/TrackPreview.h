@@ -18,6 +18,7 @@ struct TrackPreviewLine {
 };
 
 struct TrackPreviewConnection {
+	std::string id; // Authored connection, including duplicate endpoint pairs.
 	std::string firstTrackId;
 	std::string firstNodeId;
 	std::string secondTrackId;
