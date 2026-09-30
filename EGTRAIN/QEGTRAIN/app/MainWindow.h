@@ -199,7 +199,7 @@ public:
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal scale = 1.0, QPointF decorationOffset = QPointF());
+		qreal presentationScale = 1.0, QPointF decorationOffset = QPointF());
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);
@@ -717,6 +717,7 @@ private:
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	bool maybeSaveScene();
 	const TrackPreviewLine* cachedTrackLine(int track) const;
+	qreal presentationScale() const;
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void clearPreviewInspection();
 	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id,
@@ -965,7 +966,7 @@ private:
 	void runEditorSmokeE2E();
 	void runCreatorAcceptanceE2E();
 	bool checkPreviewInfrastructureE2E(QString& failure);
-	bool checkPreviewRuntimeParityE2E(QString& failure);
+	bool checkPreviewRuntimeParityE2E(QString& failure, bool measuredPresentation = false);
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
 	void runLegacyImportE2E();

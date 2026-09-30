@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <utility>
 
 static bool expect(bool condition, const char* message) {
@@ -224,10 +225,92 @@ int main() {
 			&& std::fabs(normalizedSchematic.lines[0].points[1].x - 28000.0) < 1e-9
 			&& std::fabs(normalizedSchematic.lines[1].displayOffset - 120.0) < 1e-9,
 			"schematic normalization keeps two-level spacing in runtime units");
+
+	// Constant-latitude Paimpol equivalent: one degree is 100 km.
+	ok &= expect(std::fabs(normalizedSchematic.normalizationScale - 100000.0) < 1e-6
+		&& std::fabs(normalizedSchematic.presentationScale - 0.45) < 1e-12
+		&& normalizedSchematic.normalized
+		&& std::all_of(schematicResult.lines.begin(), schematicResult.lines.end(),
+			[](const auto& line) { return line.authoredStationProjection; }),
+		"schematic presentation uses measured historical construction units");
+	const auto repeated = normalizeTrackPreview(normalizedSchematic);
+	ok &= expect(repeated.normalizationScale == normalizedSchematic.normalizationScale
+		&& repeated.presentationScale == normalizedSchematic.presentationScale
+		&& repeated.lines[1].displayOffset == normalizedSchematic.lines[1].displayOffset
+		&& repeated.lines[0].points[1].x == normalizedSchematic.lines[0].points[1].x,
+		"repeat normalization preserves geometry and unit metadata without double scaling");
+	const double geographicScale = (normalized.lines[0].points[2].x - normalized.lines[0].points[0].x)
+		/ (result.lines[0].points[2].x - result.lines[0].points[0].x);
+	ok &= expect(std::fabs(normalized.normalizationScale - geographicScale) < 1e-6
+		&& std::fabs(normalized.presentationScale - geographicScale / (800000.0 * 100.0 / 360.0)) < 1e-12
+		&& result.lines[0].authoredStationProjection && result.lines[1].authoredStationProjection,
+		"geographic projection uses actual normalization, not a schematic case multiplier");
+	ok &= expect(schematic.nodes[1].xKm == 28.0 && schematic.nodes[1].yKm == 0.0
+		&& schematic.trackViews[1].level == 1 && schematic.stationViews[1].longitude == 0.28
+		&& normalizedSchematic.lines[0].points[1].rawX == 28.0,
+		"presentation metadata does not mutate authored coordinates, levels or chainage");
+	for (int fallback = 0; fallback < 7; ++fallback) {
+		SceneModel candidate = schematic;
+		if (fallback == 0) candidate.trackViews.clear();
+		if (fallback == 1) candidate.stationViews.clear();
+		if (fallback == 2) candidate.trackViews.pop_back(); // Mixed projected/raw scene.
+		if (fallback == 3) candidate.stationViews[1].latitude = 90.0;
+		if (fallback == 4) candidate.stationViews[1].regions[0].second = std::numeric_limits<double>::quiet_NaN();
+		if (fallback == 5) candidate.nodes[1].xKm = std::numeric_limits<double>::infinity();
+		if (fallback == 6) candidate.nodes[1].yKm = std::numeric_limits<double>::infinity();
+		ok &= expect(normalizeTrackPreview(loadTrackPreview(candidate)).presentationScale == 1.0,
+			"raw, absent, mixed, invalid or nonfinite projection retains whole-scene presentation units");
+	}
+	ok &= expect(normalizeTrackPreview({}).presentationScale == 1.0,
+		"empty normalization retains presentation factor one");
+	TrackPreviewResult degenerate = schematicResult;
+	for (auto& line : degenerate.lines) {
+		line.displayOffset = 0;
+		for (auto& point : line.points) point.x = point.y = 0;
+	}
+	ok &= expect(normalizeTrackPreview(degenerate).presentationScale == 1.0,
+		"degenerate normalization retains presentation factor one");
+	TrackPreviewResult overflow = schematicResult;
+	for (auto& line : overflow.lines) {
+		line.displayOffset = 0;
+		for (std::size_t i = 0; i < line.points.size(); ++i) {
+			line.points[i].x = 1e308;
+			line.points[i].y = static_cast<double>(i);
+		}
+	}
+	ok &= expect(normalizeTrackPreview(overflow).presentationScale == 1.0,
+		"nonfinite normalized coordinates retain presentation factor one");
+	SceneModel onlyVisible = schematic;
+	onlyVisible.trackViews[1].visible = false;
+	onlyVisible.trackViews[1].region = 99;
+	ok &= expect(std::fabs(normalizeTrackPreview(loadTrackPreview(onlyVisible)).presentationScale - 0.45) < 1e-12,
+		"unmapped hidden lines do not disqualify successful visible projection");
+
 	TrackPreviewPoint schematicStationPoint;
 	ok &= expect(trackPreviewPointAtNode(normalizedSchematic.lines[1], "B1.Ut", schematicStationPoint)
 			&& std::fabs(schematicStationPoint.x - normalizedSchematic.lines[1].points[0].x) < 1e-9,
 			"schematic point lookup resolves the second-level station anchor");
+	// Netherlands geographic corridor, with the committed endpoint latitudes/longitudes.
+	SceneModel netherlands;
+	netherlands.tracks = {{"corridor"}};
+	netherlands.nodes = {{"south", "corridor", 0.0, 0.0}, {"north", "corridor", 48.362, 0.0}};
+	netherlands.arcs = {{"corridor-arc", "corridor", "south", "north", 0.0, 0.0, 20.0}};
+	netherlands.trackViews = {{"corridor", 0, 0}};
+	netherlands.stationViews = {
+		{"south", 52.089722, 4.872837, {{0, 0.0}}, {}},
+		{"north", 52.378383, 5.310205, {{0, 48.362}}, {}}
+	};
+	const auto dutchProjection = loadTrackPreview(netherlands);
+	const auto dutchNormalized = normalizeTrackPreview(dutchProjection);
+	const double dutchSpan = std::max(5.310205 - 4.872837,
+		std::fabs(dutchProjection.lines[0].points[1].y - dutchProjection.lines[0].points[0].y));
+	const double dutchScale = 48362.0 / dutchSpan;
+	ok &= expect(dutchProjection.lines[0].authoredStationProjection
+		&& std::fabs(dutchNormalized.normalizationScale - dutchScale) < 1e-6
+		&& std::fabs(dutchNormalized.presentationScale - dutchScale / (800000.0 * 100.0 / 360.0)) < 1e-12
+		&& dutchNormalized.lines[0].points[1].rawX == 48.362
+		&& dutchNormalized.lines[0].points[0].x == 4.872837 * dutchScale,
+		"Netherlands geographic corridor retains physical anchors and derives its own presentation conversion");
 	SceneModel hidden = scene;
 	hidden.trackViews[1].visible = false;
 	hidden.stations.front().platforms.insert(hidden.stations.front().platforms.begin(),

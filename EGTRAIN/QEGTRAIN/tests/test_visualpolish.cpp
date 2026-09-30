@@ -10,6 +10,7 @@
 #include "graphics/SignalGeometry.h"
 
 #include <iostream>
+#include <cmath>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -140,6 +141,15 @@ int main(int argc, char* argv[]) {
 	ok &= expect(diagonal.reversedHead == QPointF(58, -6)
 		&& diagonal.forwardHead == QPointF(22, 46),
 		"non-horizontal endpoints preserve direction and authored normal");
+	const qreal presentationScale = 0.45;
+	const SignalGeometry measured = signalGeometry(QPointF(), QPointF(-8, 0),
+		QPointF(8, 0), QPointF(0, 1), 150 * presentationScale);
+	ok &= expect(measured.reversedHead.x() == -8 && measured.forwardHead.x() == 8
+		&& std::fabs(measured.reversedHead.y() + 13.5) < 1e-12
+		&& std::fabs(measured.forwardHead.y() - 13.5) < 1e-12
+		&& std::fabs(measured.forwardBase.length() - 13.5) < 1e-12
+		&& measured.forwardPost.length() == 8,
+		"historical presentation conversion affects lateral separation, not physical longitudinal signal points");
 	SignalItem head(QRectF(-10, -10, 20, 20));
 	head.setAspectCode(0);
 	ok &= expect(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),

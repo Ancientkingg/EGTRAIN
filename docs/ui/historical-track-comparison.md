@@ -50,3 +50,34 @@ Offscreen semantic, identity, lifetime and prepared-runtime checks are not
 calibrated visual acceptance. Matched-extent historical captures for Paimpol,
 Netherlands, Copenhagen and Assignment, plus complete manual interaction
 coverage, remain required. This infrastructure fix does not close that acceptance work.
+
+## Measured presentation units
+
+Historical projection construction used width 100, height 30 and `geo_scale`
+800000 in Paimpol, Netherlands and Copenhagen. The renderer uses that fixed
+reference convention, `Q_h = 800000 * 100 / 360`, not the current window size or
+Fit scale. TrackPreview records its actual coordinate normalization `S_c` and
+converts historical presentation distances by `k = S_c / Q_h`. On the committed
+scenes this gives Paimpol 0.45, Netherlands approximately 0.444237158 and Copenhagen
+approximately 0.397828422. Assignment has no historical capture reference.
+
+Conversion requires every visible nonempty line to complete the authored
+station-view projection, whether schematic or geographic. Raw coordinates,
+missing views, invalid anchors, mixed/partially mapped scenes, empty or degenerate
+extents and nonfinite normalization retain presentation factor 1 for the whole
+scene. Hidden lines do not qualify or disqualify the visible scene. Normalization
+is idempotent, including its unit metadata; edits rebuild from the scene model.
+
+Station artwork, its vertical gap, text metrics, derived annotation offsets and
+named nudges, structural nodes, signal heads/lateral separation, platforms,
+passenger adornments, train thickness and callout decoration use this shared
+conversion. Original font and pixmap metrics are retained with fractional item
+scaling. Authored coordinates, levels, track geometry, physical train head/tail
+and length, and signal center/longitudinal +/-8 metre anchors do not scale again.
+Track, connection and signal strokes stay cosmetic. Picking areas are preserved.
+The Paimpol historical blank mainline level and Guingamp anchor mismatch remain
+excluded layout/data differences, not presentation calibration inputs.
+
+Focused unit and offscreen preview/prepared-runtime fixtures verify these unit
+boundaries. They do not establish full historical visual acceptance or replace
+matched-extent application captures and manual interaction checks.
