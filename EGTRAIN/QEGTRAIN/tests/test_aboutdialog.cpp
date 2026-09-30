@@ -94,6 +94,18 @@ int main(int argc, char** argv)
         ok &= check(!dialog.isVisible(), "Close button must dismiss About");
     }
     QDesktopServices::unsetUrlHandler(QStringLiteral("https"));
+    // The offscreen platform has no browser launcher. Never exercise the real
+    // desktop handler when this test is run with a native platform plugin.
+    if (QGuiApplication::platformName() == QStringLiteral("offscreen")) {
+        AboutDialog dialog;
+        dialog.show();
+        dialog.findChild<QPushButton*>(QStringLiteral("aboutWebsite"))->click();
+        auto* status = dialog.findChild<QLabel*>(QStringLiteral("aboutLinkStatus"));
+        ok &= check(dialog.isVisible() && status && status->isVisible() &&
+                        status->text().contains(QStringLiteral("https://samuelbruin.com/")),
+                    "browser failure must preserve About and show the address");
+        dialog.close();
+    }
     return ok ? 0 : 1;
 }
 
