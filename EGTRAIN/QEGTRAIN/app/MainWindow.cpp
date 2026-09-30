@@ -20562,6 +20562,65 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		summaryPng->click();
 		process();
 
+		auto boundedResultDialog = [process](QDialog* dialog, QTableWidget* table,
+				QPushButton* secondary) {
+			if (!dialog || !table || !secondary) return false;
+			auto* scroll = dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+			auto* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
+			auto* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
+			auto* buttons = dialog->findChild<QDialogButtonBox*>();
+			if (!scroll || !context || !heading || !buttons || !buttons->button(QDialogButtonBox::Close)
+					|| !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
+					|| scroll->isAncestorOf(buttons) || !context->wordWrap()
+					|| context->textFormat() != Qt::PlainText || heading->textFormat() != Qt::PlainText)
+				return false;
+			QScreen* screen = QGuiApplication::screenAt(dialog->mapToGlobal(QPoint(0, 0)));
+			if (!screen) screen = QGuiApplication::primaryScreen();
+			if (!screen) return false;
+			const QRect available = screen->availableGeometry();
+			const auto bounded = [dialog, &available]() {
+				return dialog->width() <= available.width() * 9 / 10
+					&& dialog->height() <= available.height() * 4 / 5;
+			};
+			if (!bounded()) {
+				qWarning() << "Result dialog exceeds screen bounds:" << dialog->windowTitle()
+					<< dialog->size() << available;
+				return false;
+			}
+			const QString originalContext = context->text();
+			const int rows = table->rowCount();
+			const int columns = table->columnCount();
+			const QString firstCell = rows && columns && table->item(0, 0)
+				? table->item(0, 0)->text() : QString();
+			const QFont originalFont = dialog->font();
+			QFont largeFont = originalFont;
+			if (largeFont.pointSizeF() > 0) largeFont.setPointSizeF(largeFont.pointSizeF() * 1.5);
+			else largeFont.setPixelSize(qMax(18, largeFont.pixelSize() * 3 / 2));
+			dialog->setFont(largeFont);
+			context->setText(QStringLiteral("<case & scenario> ").repeated(400) + originalContext);
+			// Modal timer callbacks can leave nested layout requests queued. Settle
+			// both the content and viewport before checking the scroll range.
+			QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+			process();
+			QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+			const int scrollRange = scroll->verticalScrollBar()->maximum();
+			scroll->verticalScrollBar()->setValue(scrollRange);
+			const bool intact = bounded() && scrollRange > 0
+				&& buttons->button(QDialogButtonBox::Close)->isVisible()
+				&& buttons->geometry().bottom() <= dialog->height()
+				&& scroll->geometry().bottom() <= buttons->geometry().top()
+				&& table->rowCount() == rows && table->columnCount() == columns
+				&& (firstCell.isEmpty() || (table->item(0, 0) && table->item(0, 0)->text() == firstCell));
+			if (!intact)
+				qWarning() << "Result dialog stress check failed:" << dialog->windowTitle()
+					<< dialog->size() << available << "scroll range" << scrollRange
+					<< "Close visible" << buttons->button(QDialogButtonBox::Close)->isVisible();
+			context->setText(originalContext);
+			dialog->setFont(originalFont);
+			scroll->verticalScrollBar()->setValue(0);
+			process();
+			return intact;
+		};
 		QAction* capacityButton = findResultAction(QStringLiteral("Capacity"));
 		if (!capacityButton) {
 			fail(QStringLiteral("capacity result control is unavailable"));
@@ -20575,7 +20634,21 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			if (auto* dialog = qobject_cast<QDialog*>(widget))
 				if (!dialog->isModal() && dialog->windowTitle().contains(QStringLiteral("Capacity analysis")))
 					capacity = dialog;
-		if (!capacity
+		QPushButton* capacityExport = nullptr;
+		if (capacity)
+			for (QPushButton* button : capacity->findChildren<QPushButton*>())
+				if (button->text() == QStringLiteral("Export capacity CSV...")) capacityExport = button;
+		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
+		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
+		auto* compressionTable = capacityTabs && capacityTabs->count() > 1
+			? qobject_cast<QTableWidget*>(capacityTabs->widget(1)) : nullptr;
+		auto* criticalTable = capacityTabs && capacityTabs->count() > 2
+			? qobject_cast<QTableWidget*>(capacityTabs->widget(2)) : nullptr;
+		if (!capacity || !capacityTabs || capacityTabs->count() != 3 || !pairTable
+				|| pairTable->columnCount() != 9 || pairTable->rowCount() == 0
+				|| !compressionTable || compressionTable->columnCount() != 7
+				|| !criticalTable || criticalTable->columnCount() != 5
+				|| !boundedResultDialog(capacity, pairTable, capacityExport)
 				|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;
@@ -20595,7 +20668,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		for (QPushButton* candidate : capacity->findChildren<QPushButton*>())
 			if (candidate->text().contains(QStringLiteral("compressed blocking-time")))
 				compressedButton = candidate;
-		if (!compressedButton) {
+		if (!compressedButton || !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))
+				->isAncestorOf(compressedButton)) {
 			fail(QStringLiteral("compressed blocking-time control is unavailable"));
 			return;
 		}
@@ -20668,19 +20742,21 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		bool nonzeroComparisonSeen = false;
 		bool nonzeroComparisonOk = false;
 		acceptFileDialog(path("delay_comparison.csv"), false);
-		QTimer::singleShot(75, this, [this, &nonzeroComparisonSeen, &nonzeroComparisonOk]() {
+		QTimer::singleShot(75, this, [this, &nonzeroComparisonSeen, &nonzeroComparisonOk, &boundedResultDialog]() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
 				auto* dialog = qobject_cast<QDialog*>(widget);
 				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
 					continue;
 				nonzeroComparisonSeen = true;
-				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("delayComparisonContext"));
+				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
 				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
-				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("resultSummaryHeading"));
+				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
 				nonzeroComparisonOk = context && context->text().contains("Baseline:")
 					&& context->text().contains("Incident run:") && heading
 					&& heading->text().contains(QStringLiteral("positive additional final-arrival delay"), Qt::CaseInsensitive)
-					&& table && table->rowCount() > 0;
+					&& table && table->rowCount() > 0 && table->columnCount() == 13
+					&& boundedResultDialog(dialog, table,
+						dialog->findChild<QPushButton*>(QStringLiteral("delayComparisonExportCsvButton")));
 				for (QPushButton* button : dialog->findChildren<QPushButton*>())
 					if (button->text() == QStringLiteral("Export CSV...")) {
 						button->click();
@@ -20704,19 +20780,21 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		refreshRunResults();
 		bool zeroComparisonSeen = false;
 		bool zeroComparisonOk = false;
-		QTimer::singleShot(0, this, [this, &zeroComparisonSeen, &zeroComparisonOk]() {
+		QTimer::singleShot(0, this, [this, &zeroComparisonSeen, &zeroComparisonOk, &boundedResultDialog]() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
 				auto* dialog = qobject_cast<QDialog*>(widget);
 				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
 					continue;
 				zeroComparisonSeen = true;
-				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("delayComparisonContext"));
+				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
 				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
-				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("resultSummaryHeading"));
+				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
 				zeroComparisonOk = context && context->text().contains("Baseline:")
 					&& context->text().contains("Incident run:") && heading
 					&& heading->text().contains(QStringLiteral("zero positive additional final-arrival delay"))
-					&& table && table->rowCount() == 0;
+					&& table && table->rowCount() == 0 && table->columnCount() == 13
+					&& boundedResultDialog(dialog, table,
+						dialog->findChild<QPushButton*>(QStringLiteral("delayComparisonExportCsvButton")));
 				dialog->accept();
 				return;
 			}
@@ -22068,25 +22146,14 @@ void MainWindow::showDelayComparison() {
 
 	QDialog dialog(this);
 	dialog.setWindowTitle("Incident delay comparison");
-	dialog.resize(1000, 600);
-	QVBoxLayout* layout = new QVBoxLayout(&dialog);
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
 	const QString resultSummary = comparison.rows.empty()
 		? QStringLiteral("Success: zero positive additional final-arrival delay.")
 		: QString("Positive additional final-arrival delay: %1 s")
 			.arg(comparison.totalArrivalDelay.available
 				? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-"));
-	auto* resultHeading = new QLabel(resultSummary, &dialog);
-	resultHeading->setObjectName("resultSummaryHeading");
-	layout->addWidget(resultHeading);
-	QLabel* context = new QLabel(QString("Baseline: %1\nIncident run: %2")
-		.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance)), &dialog);
-	context->setObjectName("delayComparisonContext");
-	context->setTextFormat(Qt::PlainText);
-	context->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	context->setWordWrap(true);
-	context->setToolTip(context->text().toHtmlEscaped());
-	layout->addWidget(context);
-	QTableWidget* table = new QTableWidget(&dialog);
+	QTableWidget* table = new QTableWidget(body);
 	table->setObjectName("delayComparisonTable");
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -22119,7 +22186,7 @@ void MainWindow::showDelayComparison() {
 	table->resizeColumnsToContents();
 	layout->addWidget(table, 1);
 	QHBoxLayout* actions = new QHBoxLayout();
-	QPushButton* exportButton = new QPushButton("Export CSV...", &dialog);
+	QPushButton* exportButton = new QPushButton("Export CSV...", body);
 	exportButton->setObjectName("delayComparisonExportCsvButton");
 	const RunProvenance baselineProvenance = m_delayBaseline->provenance;
 	const RunProvenance scenarioProvenance = scenario.provenance;
@@ -22134,11 +22201,13 @@ void MainWindow::showDelayComparison() {
 			});
 	});
 	actions->addWidget(exportButton);
-	actions->addStretch();
+	layout->addLayout(actions);
 	QDialogButtonBox* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
 	connect(closeButtons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	actions->addWidget(closeButtons);
-	layout->addLayout(actions);
+	DialogLayout::install(dialog, resultSummary,
+		QString("Baseline: %1\nIncident run: %2")
+			.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance)),
+		body, closeButtons);
 	dialog.exec();
 }
 
@@ -26939,19 +27008,8 @@ void MainWindow::showCapacityAnalysis() {
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	dialog->setWindowTitle("Capacity analysis");
 	dialog->setModal(false);
-	dialog->resize(1000, 650);
-	auto* layout = new QVBoxLayout(dialog);
-	auto* heading = new QLabel(QString("Cycle: %1 s  |  %2% of period")
-		.arg(QString::number(result.cycleTime, 'f', 1),
-			QString::number(result.cyclePercentage, 'f', 1)), dialog);
-	heading->setObjectName("resultSummaryHeading");
-	layout->addWidget(heading);
-	auto* context = new QLabel(QString("Section: %1\nRun: %2")
-		.arg(sectionLabel, completedRunContext(provenance)), dialog);
-	context->setObjectName("resultContextText");
-	context->setWordWrap(true);
-	context->setToolTip(context->text().toHtmlEscaped());
-	layout->addWidget(context);
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
 	const QString percentage = QString::fromStdString(csv::formatDouble(result.cyclePercentage));
 	const QString cycle = QString::fromStdString(csv::formatDouble(result.cycleTime));
 	const QString period = QString::fromStdString(csv::formatDouble(result.periodSeconds));
@@ -26961,7 +27019,7 @@ void MainWindow::showCapacityAnalysis() {
 				return QString::fromStdString(result.referenceSources[index]);
 		return QString();
 	};
-	auto* detailsToggle = new QToolButton(dialog);
+	auto* detailsToggle = new QToolButton(body);
 	detailsToggle->setText("Calculation details");
 	detailsToggle->setCheckable(true);
 	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -26971,9 +27029,12 @@ void MainWindow::showCapacityAnalysis() {
 		"Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
 		.arg(cycle, period, percentage, QString::fromStdString(result.firstIdentity),
 			sourceFor(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
-			sourceFor(result.cycleEndIdentity)), dialog);
+			sourceFor(result.cycleEndIdentity)), body);
 	details->setObjectName("resultContextText");
+	details->setTextFormat(Qt::PlainText);
 	details->setWordWrap(true);
+	details->setMinimumWidth(0);
+	details->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	details->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	details->hide();
 	connect(detailsToggle, &QToolButton::toggled, dialog, [detailsToggle, details](bool shown) {
@@ -26983,7 +27044,7 @@ void MainWindow::showCapacityAnalysis() {
 	layout->addWidget(detailsToggle);
 	layout->addWidget(details);
 
-	auto* tabs = new QTabWidget(dialog);
+	auto* tabs = new QTabWidget(body);
 	const auto labelFor = [&result](const std::string& identity) {
 		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
 			if (result.trainIdentities[index] == identity && index < result.referenceLabels.size())
@@ -27052,8 +27113,8 @@ void MainWindow::showCapacityAnalysis() {
 		qobject_cast<QTableWidget*>(tabs->widget(index))->resizeColumnsToContents();
 	layout->addWidget(tabs, 1);
 
-	auto* buttons = new QHBoxLayout();
-	QPushButton* exportButton = new QPushButton("Export capacity CSV...", dialog);
+	auto* secondaryActions = new QHBoxLayout();
+	QPushButton* exportButton = new QPushButton("Export capacity CSV...", body);
 	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
 		const auto operation = captureTelemetryOperation();
 		saveCsvInteractive(this, "capacity_analysis.csv", operation,
@@ -27062,7 +27123,7 @@ void MainWindow::showCapacityAnalysis() {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
-	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", dialog);
+	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", body);
 	const RouteDiagramPath compressedReference = routeDiagramPath(train_route[scope.routeIndex], &m_sceneModel);
 	std::map<std::string, RouteDiagramProjection> compressedProjections;
 	for (int i = 0; i < numRegions; ++i) {
@@ -27083,13 +27144,18 @@ void MainWindow::showCapacityAnalysis() {
 		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance, compressedSegments,
 			routeStartKm, routeEndKm, referenceId);
 	});
-	QPushButton* closeButton = new QPushButton("Close", dialog);
-	connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
-	buttons->addWidget(exportButton);
-	buttons->addWidget(diagramButton);
-	buttons->addStretch();
-	buttons->addWidget(closeButton);
-	layout->addLayout(buttons);
+	secondaryActions->addWidget(exportButton);
+	secondaryActions->addWidget(diagramButton);
+	secondaryActions->addStretch();
+	layout->addLayout(secondaryActions);
+	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
+	connect(closeButtons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
+	DialogLayout::install(*dialog,
+		QString("Cycle: %1 s  |  %2% of period")
+			.arg(QString::number(result.cycleTime, 'f', 1),
+				QString::number(result.cyclePercentage, 'f', 1)),
+		QString("Section: %1\nRun: %2").arg(sectionLabel, completedRunContext(provenance)),
+		body, closeButtons);
 	dialog->show();
 }
 
