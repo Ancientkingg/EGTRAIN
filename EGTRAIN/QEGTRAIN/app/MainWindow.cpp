@@ -12068,24 +12068,7 @@ void MainWindow::rebuildRecentScenesMenu() {
 
 	m_recentScenesMenu->clear();
 	QSettings settings;
-	QStringList recent = settings.value(kRecentScenesKey).toStringList();
-	QStringList cleanedRecent;
-	bool pruned = false;
-	for (const QString& path : recent) {
-		const QFileInfo info(path);
-		const bool exists = info.isFile()
-			? info.exists() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0
-			: QFileInfo(QDir(path).filePath("scene.json")).exists();
-		if (!exists) {
-			pruned = true;
-		} else {
-			cleanedRecent.append(path);
-		}
-	}
-	if (pruned) {
-		settings.setValue(kRecentScenesKey, cleanedRecent);
-		recent = cleanedRecent;
-	}
+	const QStringList recent = settings.value(kRecentScenesKey).toStringList();
 	// Label entries by scene name; the full path stays in the status tip. When
 	// two checkouts share a scene name, a shortened parent path tells them apart.
 	QHash<QString, int> nameCount;
@@ -12101,7 +12084,11 @@ void MainWindow::rebuildRecentScenesMenu() {
 				parent = parent.left(20) + "..." + parent.right(20);
 			label = QString("%1 (%2)").arg(name, parent);
 		}
-		QAction* action = m_recentScenesMenu->addAction(label);
+		const bool exists = info.isFile()
+			? info.exists() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0
+			: QFileInfo(QDir(path).filePath("scene.json")).exists();
+		QAction* action = m_recentScenesMenu->addAction(exists ? label : QString("Unavailable: %1").arg(label));
+		action->setEnabled(exists);
 		action->setData(path);
 		action->setStatusTip(path);
 		action->setToolTip(path);
@@ -21801,9 +21788,87 @@ void MainWindow::showStartupChooser() {
 		}
 	}
 	const bool startupChooserE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_STARTUP_CHOOSER");
-	if (startupChooserE2E)
-		QTimer::singleShot(0, continueBtn, &QPushButton::click);
-	dialog.exec();
+	QVariantMap chooserContract;
+	if (startupChooserE2E) {
+		const auto rows = [list]() {
+			QVariantList result;
+			for (int row = 0; row < list->count(); ++row) {
+				const auto* item = list->item(row);
+				result.append(QVariantMap{{"title", item->text()}, {"path", item->data(Qt::UserRole)},
+					{"enabled", bool(item->flags() & Qt::ItemIsEnabled)},
+					{"selectable", bool(item->flags() & Qt::ItemIsSelectable)}, {"tooltip", item->toolTip()}});
+			}
+			return result;
+		};
+		chooserContract.insert("rows", rows());
+		chooserContract.insert("initialPath", selectedPath());
+		chooserContract.insert("loadedBefore", sceneDirBefore);
+		chooserContract.insert("defaultOpen", openBtn->isDefault());
+		QStringList menuTexts;
+		for (const auto* action : moreMenu->actions()) menuTexts.append(action->text());
+		chooserContract.insert("otherActions", menuTexts);
+		QVariantList recentActions;
+		if (m_recentScenesMenu) {
+			for (const auto* action : m_recentScenesMenu->actions())
+				recentActions.append(QVariantMap{{"title", action->text()}, {"path", action->data()},
+					{"enabled", action->isEnabled()}, {"tooltip", action->toolTip()}});
+		}
+		chooserContract.insert("recentActions", recentActions);
+		QTimer::singleShot(0, &dialog, [&]() {
+			const QString interaction = qEnvironmentVariable("QEGTRAIN_E2E_CHOOSER_INTERACTION");
+			const QString target = qEnvironmentVariable("QEGTRAIN_E2E_CHOOSER_PATH");
+			const auto key = [](QWidget* widget, int code) {
+				QKeyEvent press(QEvent::KeyPress, code, Qt::NoModifier);
+				QKeyEvent release(QEvent::KeyRelease, code, Qt::NoModifier);
+				QCoreApplication::sendEvent(widget, &press);
+				QCoreApplication::sendEvent(widget, &release);
+			};
+			const auto mouse = [](QWidget* widget, QEvent::Type type, const QPoint& point) {
+				QMouseEvent event(type, QPointF(point), Qt::LeftButton,
+					type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
+				QCoreApplication::sendEvent(widget, &event);
+			};
+			QListWidgetItem* targetItem = nullptr;
+			for (int row = 0; row < list->count(); ++row)
+				if (list->item(row)->data(Qt::UserRole).toString() == target && !target.isEmpty())
+					targetItem = list->item(row);
+			if (targetItem) {
+				list->setFocus();
+				if (interaction == "keyboard") {
+					key(list, Qt::Key_Home);
+					for (int step = 0; step < list->count() && list->currentItem() != targetItem; ++step)
+						key(list, Qt::Key_Down);
+				} else {
+					list->scrollToItem(targetItem);
+					const QPoint point = list->visualItemRect(targetItem).center();
+					mouse(list->viewport(), QEvent::MouseButtonPress, point);
+					mouse(list->viewport(), QEvent::MouseButtonRelease, point);
+				}
+			}
+			chooserContract.insert("selectedPath", selectedPath());
+			chooserContract.insert("openEnabled", openBtn->isEnabled());
+			chooserContract.insert("interaction", interaction);
+			if (interaction == "keyboard") {
+				key(list, Qt::Key_Return);
+			} else if (interaction == "doubleclick" && targetItem) {
+				const QPoint point = list->visualItemRect(targetItem).center();
+				mouse(list->viewport(), QEvent::MouseButtonDblClick, point);
+				mouse(list->viewport(), QEvent::MouseButtonRelease, point);
+			} else if (interaction == "open") {
+				mouse(openBtn, QEvent::MouseButtonPress, openBtn->rect().center());
+				mouse(openBtn, QEvent::MouseButtonRelease, openBtn->rect().center());
+			} else {
+				continueBtn->click();
+			}
+		});
+		// A failed event dispatch must fail the contract rather than hang the subprocess.
+		chooserContract.insert("timedOut", false);
+		QTimer::singleShot(5000, &dialog, [&]() {
+			chooserContract.insert("timedOut", true);
+			dialog.reject();
+		});
+	}
+	const int dialogResult = dialog.exec();
 
 	switch (choice) {
 		case OpenSelected:
@@ -21821,6 +21886,13 @@ void MainWindow::showStartupChooser() {
 		const auto marker = [](const char* name, const QString& value) {
 			std::fprintf(stdout, "%s=%s\n", name, value.toUtf8().constData());
 		};
+		chooserContract.insert("chosenAction", choice == OpenSelected ? "OpenSelected" : "ContinueCurrent");
+		chooserContract.insert("chosenPath", chosenPath);
+		chooserContract.insert("accepted", dialogResult == QDialog::Accepted);
+		chooserContract.insert("loadedAfter", m_sceneDir);
+		chooserContract.insert("loaded", m_sceneLoaded);
+		marker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(
+			QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
 		marker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
 		marker("E2E_STARTUP_CHOOSER_ACTION", continueBtn->text());
 		marker("E2E_STARTUP_CHOOSER_GROUP", list->item(0)->text());
