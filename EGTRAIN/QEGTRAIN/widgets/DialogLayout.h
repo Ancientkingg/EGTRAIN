@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFontMetrics>
@@ -71,6 +72,11 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
     scroll->setFrameShape(QFrame::NoFrame);
     scroll->setMinimumSize(0, 0);
     scroll->setWidget(content);
+    QObject::connect(qApp, &QApplication::focusChanged, scroll,
+                     [scroll, content](QWidget*, QWidget* focused) {
+        if (focused && content->isAncestorOf(focused))
+            scroll->ensureWidgetVisible(focused);
+    });
     layout->addWidget(scroll, 1);
     layout->addWidget(actions);
 

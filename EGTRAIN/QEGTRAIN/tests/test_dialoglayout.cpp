@@ -60,8 +60,14 @@ bool exercise(const QRect& screen, qreal scale)
                     context->textFormat() == Qt::PlainText &&
                     context->parentWidget() == scroll->widget(),
                 "heading scales, authored labels remain plain and context scrolls");
-    scroll->ensureWidgetVisible(lastField);
-    lastField->setFocus();
+    buttons->button(QDialogButtonBox::Ok)->setFocus();
+    scroll->verticalScrollBar()->setValue(0);
+    QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
+    QApplication::sendEvent(buttons->button(QDialogButtonBox::Ok), &backtab);
+    QApplication::processEvents();
+    const QRect fieldRect(lastField->mapTo(scroll->viewport(), QPoint()), lastField->size());
+    ok &= check(lastField->hasFocus() && scroll->viewport()->rect().contains(fieldRect),
+                "Backtab from footer must reveal the focused body field");
     QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
     QApplication::sendEvent(lastField, &tab);
     ok &= check(buttons->button(QDialogButtonBox::Ok)->hasFocus() ||
