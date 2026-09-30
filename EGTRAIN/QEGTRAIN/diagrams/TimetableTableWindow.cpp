@@ -222,6 +222,7 @@ void TimetableTableWindow::applyTrainVisibility() {
 }
 
 void TimetableTableWindow::exportCsv() {
+	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
 	const std::string content = m_csvProvider(m_trainsButton->visibleTrainIds());
@@ -238,12 +239,14 @@ void TimetableTableWindow::exportCsv() {
 	const bool written = m_hasRunProvenance
 		? writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_runProvenance)
 		: writeArtifact(path, content);
+	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the data and provenance to:\n%1").arg(path));
 }
 
 void TimetableTableWindow::exportPng() {
+	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	QString path = QFileDialog::getSaveFileName(this, "Export Table", "timetable.png", "PNG Image (*.png)");
 	if (path.isEmpty())
 		return;
@@ -253,6 +256,7 @@ void TimetableTableWindow::exportPng() {
 	QByteArray data;
 	QBuffer buffer(&data);
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
+		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
 		return;
@@ -261,6 +265,7 @@ void TimetableTableWindow::exportPng() {
 	const bool written = m_hasRunProvenance
 		? writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_runProvenance)
 		: writeArtifact(path, bytes);
+	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the image and provenance to:\n%1").arg(path));

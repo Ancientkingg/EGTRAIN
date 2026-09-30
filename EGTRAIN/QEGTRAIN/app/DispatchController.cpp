@@ -1,3 +1,4 @@
+#include <QElapsedTimer>
 #include "app/DispatchController.h"
 #include "io/RailMLParser.h"
 #include "scene/SceneValidator.h"
@@ -328,11 +329,16 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 void DispatchController::runSimulation() {
 
 	if (numRegions <= 0) {
+		emit executionRejected();
 		const std::string message = "ERROR: Cannot run simulation because zero trains were loaded.";
 		eglogger << message << std::endl;
 		std::cerr << message << std::endl;
 		return;
 	}
+
+	QElapsedTimer observationTimer;
+	observationTimer.start();
+	emit executionBegan();
 
 	cout << "\n\nSimulating Train Runs...\n\n";
 
@@ -344,6 +350,7 @@ void DispatchController::runSimulation() {
 
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
 
+	emit executionPostprocessing();
 	ComputeEnergyConsumptionForAllTrains(regional_train, numRegions);
 	ComputeTimetableEnergyConsumption(regional_train, numRegions, initial_variables.OutputMainFolder);
 
@@ -415,6 +422,8 @@ void DispatchController::runSimulation() {
 		regional_train[i].PrintTrajectory();
 	}
 	std::cout << "\n End of Simulation";
+	const auto* worker = SimulationWorker::active();
+	emit executionReturned(observationTimer.elapsed(), worker && worker->wasCancellationRequested());
 }
 
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {

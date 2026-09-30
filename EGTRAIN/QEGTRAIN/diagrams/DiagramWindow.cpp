@@ -560,6 +560,7 @@ void DiagramWindow::resetZoom() {
 }
 
 void DiagramWindow::exportPng() {
+	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", "diagram.png", "PNG Image (*.png)");
 	if (path.isEmpty())
 		return;  // cancelled: no file is written
@@ -569,6 +570,7 @@ void DiagramWindow::exportPng() {
 	QByteArray data;
 	QBuffer buffer(&data);
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
+		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
 		return;
@@ -577,12 +579,14 @@ void DiagramWindow::exportPng() {
 	const bool written = m_provenanceWriter
 		? m_provenanceWriter(path, "png", bytes)
 		: writeArtifact(path, bytes);
+	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the image and provenance to:\n%1").arg(path));
 }
 
 void DiagramWindow::exportCsv() {
+	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
 	const std::string content = m_csvProvider(visibleTrainIds());
@@ -600,6 +604,7 @@ void DiagramWindow::exportCsv() {
 	const bool written = m_provenanceWriter
 		? m_provenanceWriter(path, "csv", content)
 		: writeArtifact(path, content);
+	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the data and provenance to:\n%1").arg(path));

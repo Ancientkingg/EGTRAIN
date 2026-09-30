@@ -9,6 +9,8 @@
 
 struct SceneSaveResult {
 	bool wroteAll = false;
+	// Includes private staging; false until the first mutating filesystem attempt.
+	bool writeAttempted = false;
 	std::vector<SceneDiagnostic> diagnostics;
 	std::string inputSnapshot;
 	bool success() const;

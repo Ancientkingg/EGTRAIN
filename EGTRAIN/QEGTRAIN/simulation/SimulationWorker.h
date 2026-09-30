@@ -16,6 +16,8 @@ public:
 
 	// Thread-safe accessors for the simulation engine
 	bool isStopRequested() const { return m_stop; }
+	// Observation-only latch. Unlike engine controls, this is never reset by run().
+	bool wasCancellationRequested() const { return m_cancelled; }
 	bool isPauseRequested() const { return m_pause; }
 	int delayMs() const { return m_delayMs; }
 
@@ -35,6 +37,7 @@ signals:
 private:
 	static SimulationWorker* s_active;
 	std::atomic<bool> m_stop{false};
+	std::atomic<bool> m_cancelled{false};
 	std::atomic<bool> m_pause{false};
 	std::atomic<int> m_delayMs{0};
 };

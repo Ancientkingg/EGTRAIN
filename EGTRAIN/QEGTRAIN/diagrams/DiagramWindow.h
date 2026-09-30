@@ -2,6 +2,7 @@
 #define DIAGRAMWINDOW_H
 
 #include <QDialog>
+#include "telemetry/TelemetryOperation.h"
 #include <QHash>
 #include <QPen>
 #include <QBrush>
@@ -65,6 +66,9 @@ signals:
 protected:
 	bool eventFilter(QObject* obj, QEvent* ev) override;           // track mouse for hover
 
+public:
+	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+
 private slots:
 	void exportPng();
 	void exportCsv();
@@ -73,6 +77,7 @@ private slots:
 	void clearPin();
 
 private:
+	telemetry::CaptureOperation m_telemetryCapture;
 	struct SeriesGroup {
 		QString trainId;
 		QVector<QAbstractSeries*> members;

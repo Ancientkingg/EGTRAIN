@@ -126,6 +126,7 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 		addWriteError(result, filename, "Cannot serialize " + filename + ": " + error.what());
 		return false;
 	}
+	result.writeAttempted = true;
 	std::ofstream output(scenePath / filename, std::ios::binary);
 	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
@@ -747,6 +748,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".")
 			: destination.parent_path();
 	std::error_code ec;
+	result.writeAttempted = true;
 	fs::create_directories(parent, ec);
 	if (ec) {
 		addWriteError(result, parent.string(), "Cannot create scene parent directory: " + ec.message());
@@ -770,7 +772,9 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	}
 	if (hadDestination && !copyExistingSceneContents(destination, staging.path, result))
 		return result;
+	const bool stagingAttempted = result.writeAttempted;
 	result = writeSceneGeneration(scene, staging.path);
+	result.writeAttempted = result.writeAttempted || stagingAttempted;
 	if (!result.wroteAll || hasErrors(result.diagnostics))
 		return result;
 
