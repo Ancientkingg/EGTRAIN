@@ -19,20 +19,30 @@ def markers(output: str, prefix: str) -> dict:
 
 
 def launch(app: Path, settings: Path, scene: Optional[Path] = None,
-           cancellation: str = "button") -> dict:
+           cancellation: str = "button", enlarged: bool = False) -> dict:
     env = os.environ.copy()
     env.update(QT_QPA_PLATFORM="offscreen", QEGTRAIN_E2E_SETTINGS_DIR=str(settings))
     if scene:
         env.update(QEGTRAIN_AUTOSTART="1", QEGTRAIN_E2E_REVIEW_CANCEL=cancellation)
+        if enlarged:
+            env["QEGTRAIN_E2E_REVIEW_ENLARGED"] = "1"
+        else:
+            env.pop("QEGTRAIN_E2E_REVIEW_ENLARGED", None)
         args = [str(app), "--scene", str(scene)]
         prefix = "E2E_RUN_REVIEW_"
     else:
         env["QEGTRAIN_E2E_STARTUP_CHOOSER"] = "1"
         args = [str(app)]
         prefix = "E2E_STARTUP_CHOOSER_"
-    result = subprocess.run(args, cwd=ROOT / "EGTRAIN/QEGTRAIN", env=env,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            text=True, timeout=90, check=False)
+    try:
+        result = subprocess.run(args, cwd=ROOT / "EGTRAIN/QEGTRAIN", env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True, timeout=90, check=False)
+    except subprocess.TimeoutExpired as error:
+        output = error.stdout or b""
+        if isinstance(output, bytes):
+            output = output.decode(errors="replace")
+        raise AssertionError(f"dialog subprocess timed out: {output[-3000:]}") from error
     if result.returncode:
         raise AssertionError(f"dialog subprocess exited {result.returncode}: {result.stdout[-3000:]}")
     values = markers(result.stdout, prefix)
@@ -76,7 +86,15 @@ def expected_review(scene: Path) -> tuple:
     return summary, details, warnings
 
 
-def check_review(review: dict, scene: Path, advanced: bool, cancellation: str) -> None:
+def contains(outer: list, inner: list) -> bool:
+    x, y, width, height = outer
+    ix, iy, iw, ih = inner
+    return width > 0 and height > 0 and iw > 0 and ih > 0 and (x <= ix and y <= iy
+            and ix + iw <= x + width and iy + ih <= y + height)
+
+
+def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
+                 enlarged: bool = False) -> None:
     rendered = json.loads(review["E2E_RUN_REVIEW_RENDERED"])
     summary, details, warnings = expected_review(scene)
     assert rendered["summary"] == summary, rendered
@@ -89,8 +107,39 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str) -
         assert "Validation" not in actual, actual
         assert "Incident configuration" not in actual, actual
         assert "Entrance delay configuration" not in actual, actual
+    scenarios = json.loads((scene / "scenarios.json").read_text())
+    scenario = next(item for item in scenarios["scenarios"] if item["id"] == details["Scenario"])
     if advanced and int(details["Incidents"]):
-        assert "Incident configuration" in actual, actual
+        for incident in scenario["incidents"]:
+            expected = (f"id={incident['id']} type={incident['type']} target={incident['target']} "
+                        f"start={incident['start_seconds']:g} window={incident['end_seconds']:g} "
+                        f"occurrence={incident.get('occurrence', 'all')}")
+            assert expected in actual["Incident configuration"], actual
+    assert rendered["context"] == f"{details['Case study']} / {details['Scenario']}", rendered
+    assert rendered["plainContext"] and rendered["plainDetails"], rendered
+    # Inspect default semantics without pressing Enter and starting a simulation.
+    assert rendered["initialFocus"] == "run" and rendered["runDefault"], rendered
+    assert not rendered["cancelDefault"], rendered
+    for state in ("collapsedGeometry", "expandedGeometry", "scrolledGeometry", "recollapsedGeometry"):
+        geometry = rendered[state]
+        dialog, footer, scroll = geometry["dialog"], geometry["footer"], geometry["scroll"]
+        assert dialog[2] <= geometry["maximum"][0] and dialog[3] <= geometry["maximum"][1], geometry
+        screen_width, screen_height = rendered["availableScreen"]
+        assert dialog[2] <= screen_width * 9 // 10 and dialog[3] <= screen_height * 4 // 5, geometry
+        assert geometry["footerVisible"] and contains(dialog, footer), geometry
+        assert contains(footer, geometry["run"]) and contains(footer, geometry["cancel"]), geometry
+        assert contains(dialog, scroll) and scroll[1] + scroll[3] <= footer[1], geometry
+        if enlarged:
+            assert geometry["fontPoints"] == 18 and dialog[2] <= 560 and dialog[3] <= 420, geometry
+            assert geometry["controlFontPoints"] == [18, 18, 18, 18], geometry
+    assert rendered["expandedGeometry"]["footer"] == rendered["scrolledGeometry"]["footer"], rendered
+    keyboard = rendered["keyboard"]
+    assert keyboard["bodyFocus"] == (["Loaded Data", "Validation"] if advanced else []), keyboard
+    assert keyboard["tabReachedFooter"] and keyboard["backtabReturned"], keyboard
+    assert contains(keyboard["viewport"], keyboard["focusedBodyRect"]), keyboard
+    if enlarged:
+        assert rendered["expandedGeometry"]["scrollMaximum"] > 0, rendered
+        assert keyboard["scrollValue"] > 0, keyboard
     for state in ("collapsed", "recollapsed"):
         assert rendered[state] == {"checked": False, "visible": False, "arrow": "right"}, rendered
     assert rendered["expanded"] == {"checked": True, "visible": True, "arrow": "down"}, rendered
@@ -121,7 +170,7 @@ def main() -> None:
         assert chooser["E2E_STARTUP_CHOOSER_OPEN_ENABLED"] == "yes", chooser
         assert chooser["E2E_STARTUP_CHOOSER_ACTION"] == "Continue", chooser
         assert chooser["E2E_STARTUP_CHOOSER_UNCHANGED"] == "yes", chooser
-        for variant in ("baseline", "boundaries", "zero-in-period", "warning", "incidents"):
+        for variant in ("baseline", "boundaries", "zero-in-period", "warning", "incidents", "long-context"):
             fixture = settings / variant
             shutil.copytree(scene, fixture)
             services_path = fixture / "services.json"
@@ -141,10 +190,19 @@ def main() -> None:
             elif variant == "warning":
                 stop = service["stops"][0]
                 stop["dwell_seconds"] = stop["planned_departure_seconds"] - stop["planned_arrival_seconds"] + 1
-            elif variant == "incidents":
+            elif variant in ("incidents", "long-context"):
                 scenarios_path = fixture / "scenarios.json"
                 scenarios = json.loads(scenarios_path.read_text())
-                scenarios["default_scenario_id"] = next(item["id"] for item in scenarios["scenarios"] if item["incidents"])
+                selected = next(item for item in scenarios["scenarios"] if item["incidents"])
+                if variant == "long-context":
+                    manifest_path = fixture / "scene.json"
+                    manifest = json.loads(manifest_path.read_text())
+                    manifest["name"] = ("Case authored & " + "long railway context " * 9).rstrip()
+                    manifest_path.write_text(json.dumps(manifest))
+                    selected["id"] = "scenario-<authored>-&-" + "long-context-" * 14
+                    for incident in selected["incidents"]:
+                        incident["id"] += "-<authored>-&-" + "long-incident-context-" * 40
+                scenarios["default_scenario_id"] = selected["id"]
                 scenarios_path.write_text(json.dumps(scenarios))
             services_path.write_text(json.dumps(services))
             for advanced in (False, True):
@@ -153,8 +211,10 @@ def main() -> None:
                     ini = run_settings / "EGTRAIN/EGTRAIN.ini"
                     ini.parent.mkdir(parents=True, exist_ok=True)
                     ini.write_text(f"[General]\nadvancedDetails={'true' if advanced else 'false'}\n")
-                    check_review(launch(app, run_settings, fixture, cancellation), fixture, advanced, cancellation)
-            print(f"{variant}: normal/advanced details, readiness, Cancel and Escape passed")
+                    enlarged = variant == "long-context"
+                    check_review(launch(app, run_settings, fixture, cancellation, enlarged),
+                                 fixture, advanced, cancellation, enlarged)
+            print(f"{variant}: normal/advanced details, geometry, keyboard, readiness, Cancel and Escape passed")
     print("chooser and run-review presentation contract passed")
 
 
