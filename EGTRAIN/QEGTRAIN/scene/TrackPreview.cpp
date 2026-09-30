@@ -15,6 +15,9 @@ namespace {
 constexpr double kVirtualSwitchSpanKm = 0.030;
 constexpr double kVirtualSwitchToleranceKm = 0.0001;
 constexpr double kGeographicTrackSeparation = 0.0006;
+// Measured historical projection-time width was 100 in all three reference cases.
+// This fixed convention is independent of the current widget and Fit transform.
+constexpr double kHistoricalDegreeUnits = 800000.0 * 100.0 / 360.0;
 constexpr double kPi = 3.14159265358979323846;
 
 bool mapPreviewX(double rawX, const std::vector<std::pair<double, double>>& anchors,
@@ -222,6 +225,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				if (valid) {
 					for (std::size_t index = 0; index < line.points.size(); ++index)
 						line.points[index].x = displayXs[index];
+					line.authoredStationProjection = true;
 					line.displayOffset *= 8.0 * std::fabs((uniqueXAnchors.back().second
 							- uniqueXAnchors.front().second) / (uniqueXAnchors.back().first
 							- uniqueXAnchors.front().first));
@@ -261,6 +265,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				}
 				if (valid) {
 					line.displayOffset = 0.0;
+					line.authoredStationProjection = true;
 					for (std::size_t index = 0; index < line.points.size(); ++index) {
 						line.points[index].x = displayPoints[index].first;
 						line.points[index].y = displayPoints[index].second;
@@ -388,19 +393,31 @@ bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
 }
 
 TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
+	if (preview.normalized)
+		return preview;
 	TrackPreviewResult normalized = preview;
+	normalized.normalized = true;
+	normalized.normalizationScale = 1.0;
+	normalized.presentationScale = 1.0;
+	bool degreeProjection = !preview.lines.empty();
 	double rawChainageSpan = 0.0;
 	double minX = std::numeric_limits<double>::infinity();
 	double maxX = -std::numeric_limits<double>::infinity();
 	double minY = std::numeric_limits<double>::infinity();
 	double maxY = -std::numeric_limits<double>::infinity();
 	for (const auto& line : preview.lines) {
+		if (!line.points.empty() && !line.authoredStationProjection)
+			degreeProjection = false;
+		if (!std::isfinite(line.displayOffset))
+			degreeProjection = false;
 		double lineMinRawX = std::numeric_limits<double>::infinity();
 		double lineMaxRawX = -std::numeric_limits<double>::infinity();
 		for (const auto& point : line.points) {
 			if (!std::isfinite(point.rawX) || !std::isfinite(point.x)
-					|| !std::isfinite(point.y))
+					|| !std::isfinite(point.y)) {
+				degreeProjection = false;
 				continue;
+			}
 			lineMinRawX = std::min(lineMinRawX, point.rawX);
 			lineMaxRawX = std::max(lineMaxRawX, point.rawX);
 			minX = std::min(minX, point.x);
@@ -417,11 +434,19 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 		: 1000.0;
 	if (!std::isfinite(scale) || scale <= 0.0)
 		return normalized;
+	normalized.normalizationScale = scale;
+	if (degreeProjection && std::isfinite(projectedSpan) && projectedSpan > 0.0
+			&& std::isfinite(rawChainageSpan) && rawChainageSpan > 0.0)
+		normalized.presentationScale = scale / kHistoricalDegreeUnits;
 	for (auto& line : normalized.lines) {
 		line.displayOffset *= scale;
+		if (!std::isfinite(line.displayOffset))
+			normalized.presentationScale = 1.0;
 		for (auto& point : line.points) {
 			point.x *= scale;
 			point.y *= scale;
+			if (!std::isfinite(point.x) || !std::isfinite(point.y + line.displayOffset))
+				normalized.presentationScale = 1.0;
 		}
 	}
 	return normalized;

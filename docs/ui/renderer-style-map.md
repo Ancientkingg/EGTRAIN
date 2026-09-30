@@ -12,7 +12,7 @@ case-specific drawing branches.
 | Connection | White cosmetic width 2. |
 | Segment/switch node | Shared preview/runtime scene-sized light-gray circular dot, without a device-pixel minimum. The current runnable-chain rule uses an ordinary first point and zero painted size for ordinary starts on four-node tracks; the final endpoint remains visible. Transparent device-space hit geometry retains semantic picking without painting a minimum dot. |
 | Station/platform node | Shared preview/runtime square at later station endpoints, with the historical platform/interchange/ordinary colors. White platform bars follow passenger-GUI mode; preview has no passenger counters. Station and name layers do not hide structural squares. |
-| Station name and pictogram | White name, scene-sized font (`station_size / 5`) centered at the authored station anchor. A white station-building SVG above it at scene scale, parented to its authored structural node where available for artwork hits. Preview artwork keeps its own canonical station identity; position-only artwork has no invented node. The map key and menus use the same shape in a dark variant. |
+| Station name and pictogram | White name, scene-sized font (`station_size / 5`) centered at the authored station anchor plus its derived decoration offset. A white station-building SVG above it at scene scale, parented to its authored structural node where available for artwork hits. Preview artwork keeps its own canonical station identity; position-only artwork has no invented node. The map key and menus use the same shape in a dark variant. |
 | Signal | Each authored direction has its own scene-sized aspect head (red Stop, yellow Caution, green Proceed), white cosmetic post and white base. No viewport slots, grouping, sectors, multiplicity labels or direction ticks. Transparent device-space hit geometry retains signal inspection at Fit. Selection does not overwrite aspects. |
 | Train and passengers | Historical train polygons (passenger yellow, sprinter green, intercity yellow, high-speed blue, freight brown) and original scene-sized `pax_icon.png` passenger glyph, also used by the map key. Passenger information callouts remain separate operational overlays; no train category badge is drawn. |
 
@@ -27,3 +27,14 @@ section and direction, plus any authored signal IDs, not a numeric runtime
 placeholder. Runtime numeric inspection remains separate. Expanded hit shapes
 do not determine preview topology bounds or Fit. These implementation and
 semantic checks do not establish matched-scale historical visual acceptance.
+
+Scene-space presentation distances use the fixed measured historical
+construction convention `Q_h = 800000 * 100 / 360`, converted by TrackPreview's
+actual normalization `S_c / Q_h`. This includes artwork/text geometry and
+annotation nudges, node/signal dimensions, platform/passenger adornments, train
+lateral thickness and callouts. It does not rescale physical interpolation or
+cosmetic strokes. Fonts retain their original metrics through fractional item
+scaling. Only wholly successful visible authored station-view projections enable
+conversion; raw, mixed, invalid, empty, degenerate or nonfinite scenes keep factor
+1. See [Historical track presentation](historical-track-comparison.md) for the
+reference convention and remaining visual acceptance limits.

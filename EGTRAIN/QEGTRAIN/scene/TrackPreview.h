@@ -15,6 +15,7 @@ struct TrackPreviewLine {
 	std::string id;
 	std::vector<TrackPreviewPoint> points;
 	double displayOffset = 0.0;
+	bool authoredStationProjection = false; // Set only after the entire line maps successfully.
 };
 
 struct TrackPreviewConnection {
@@ -41,6 +42,11 @@ struct TrackPreviewSignal {
 };
 
 struct TrackPreviewResult {
+	bool normalized = false; // Normalization is idempotent; reload after scene edits.
+	double normalizationScale = 1.0; // Projected coordinates to normalized scene coordinates.
+	// Degree-derived conversion requires successful authored projection on every
+	// visible nonempty line; raw/mixed/invalid or degenerate scenes retain one.
+	double presentationScale = 1.0; // Historical presentation distances to scene coordinates.
 	std::vector<TrackPreviewLine> lines;
 	std::vector<TrackPreviewConnection> connections;
 	std::vector<TrackPreviewStation> stations;

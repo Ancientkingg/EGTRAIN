@@ -4342,6 +4342,10 @@ const TrackPreviewLine* MainWindow::cachedTrackLine(int track) const {
 	return line == m_cachedTrackPreview.lines.end() ? nullptr : &*line;
 }
 
+qreal MainWindow::presentationScale() const {
+	return m_cachedTrackPreview.presentationScale;
+}
+
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	clearPreviewInspection();
 	m_previewFitBounds = QRectF();
@@ -4529,8 +4533,9 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			// Current runnable-chain presentation: first point is ordinary;
 			// four-node ordinary starts paint zero size, but the terminal dot remains.
 			const bool station = index > 0 && membership != memberships.end();
-			const int size = station ? station_node_size
-				: (line.points.size() == 4 && index + 1 < line.points.size() ? 0 : node_size);
+			const qreal size = (station ? station_node_size
+				: (line.points.size() == 4 && index + 1 < line.points.size() ? 0 : node_size))
+				* presentationScale();
 			QRectF rect(0, 0, size, size);
 			rect.moveCenter(QPointF(point.x, point.y + line.displayOffset));
 			QAbstractGraphicsShapeItem* item;
@@ -4643,8 +4648,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				if (!previewPointAtX(line, station.x, line.displayOffset, anchor))
 					break;
 			}
-			paintStationOverlay(anchor, classifyStation(), station.name, 0.75,
-				stationDecorationOffset(sceneModel.stationViews, station.id, station.name));
+			paintStationOverlay(anchor, classifyStation(), station.name, presentationScale(),
+				stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale());
 			auto* overlay = m_stationOverlays.back();
 			tagPreviewItem(overlay, "station", station.id);
 			const auto bind = [&](QGraphicsItem* decoration, bool artwork) {
@@ -4691,7 +4696,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			|| !previewPointAtX(*track->second.first, signal.rawX + 0.008,
 				track->second.second, after))
 			continue;
-		const SignalGeometry geometry = signalGeometry(center, before, after, normal, track_separation);
+		const SignalGeometry geometry = signalGeometry(center, before, after, normal, track_separation * presentationScale());
 		for (const bool reversed : {true, false}) {
 			const QLineF base = reversed ? geometry.reversedBase : geometry.forwardBase;
 			const QLineF post = reversed ? geometry.reversedPost : geometry.forwardPost;
@@ -4707,8 +4712,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				m_signalDecorations.push_back(line);
 				line->setVisible(m_signalLayerVisible);
 			}
-			auto* glyph = new SignalItem(QRectF(-node_size / 2.0, -node_size / 2.0,
-				node_size, node_size));
+			auto* glyph = new SignalItem(QRectF(-node_size * presentationScale() / 2.0, -node_size * presentationScale() / 2.0,
+				node_size * presentationScale(), node_size * presentationScale()));
 			tagPreviewItem(glyph, "signal", signal.sectionId);
 			glyph->setData(PreviewGraphics::TrackId, QString::fromStdString(signal.trackId));
 			glyph->setData(PreviewGraphics::Reversed, reversed);
@@ -12628,6 +12633,15 @@ void MainWindow::runStationOverlayE2E() {
 				marker("E2E_STATION_BINDING_KBHALLEN_OK");
 			}
 		}
+		// Independent case evidence, not a per-case product multiplier.
+		const qreal expectedScale = caseName == "Paimpol" ? 0.45
+			: (caseName == "Netherlands" ? 0.444237158416
+				: (caseName == "Copenhagen" ? 0.397828421659 : presentationScale()));
+		if (qAbs(presentationScale() - expectedScale) > 1e-6)
+			failures << "authored projection presentation factor mismatch";
+		marker(QString("E2E_PRESENTATION_UNITS_%1_S_%2_K_%3").arg(caseName)
+			.arg(m_cachedTrackPreview.normalizationScale, 0, 'f', 6)
+			.arg(presentationScale(), 0, 'f', 9));
 		const QRectF topologyBounds = networkView->topologyBounds();
 		for (const auto& zoom : {std::make_pair(1.0, "FIT"), std::make_pair(3.0, "3X"),
 				std::make_pair(12.0, "12X")}) {
@@ -12647,7 +12661,8 @@ void MainWindow::runStationOverlayE2E() {
 				foundPicture = true;
 				if (picture->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
 						|| picture->pixmap().width() != station_size
-						|| picture->sceneBoundingRect().height() != picture->pixmap().height()
+						|| qAbs(picture->sceneBoundingRect().height() - picture->pixmap().height() * presentationScale()) > 1e-6
+						|| qAbs(picture->scale() - presentationScale()) > 1e-12
 						|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
 					failures << QString("%1 artwork lost scene scale or station identity").arg(zoom.second);
 				break;
@@ -19885,7 +19900,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PREVIEW_ONLY")) {
 			if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PREVIEW_PARITY")
-					&& !checkPreviewRuntimeParityE2E(previewFailure)) {
+					&& (!checkPreviewRuntimeParityE2E(previewFailure)
+						|| !checkPreviewRuntimeParityE2E(previewFailure, true))) {
 				fail(previewFailure);
 				return;
 			}
@@ -21041,10 +21057,10 @@ void MainWindow::setupGUI() {
 		if (sharedStationPoint(i, sharedPoint)) {
 			paintStationOverlay(sharedPoint,
 				classifyStation(),
-				StationArray[i].stationName, 0.75,
+				StationArray[i].stationName, presentationScale(),
 				stationDecorationOffset(m_sceneModel.stationViews,
 					m_sceneModel.stations[static_cast<std::size_t>(i)].id,
-					StationArray[i].stationName));
+					StationArray[i].stationName) * presentationScale());
 			continue;
 		}
 
@@ -23141,7 +23157,8 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	pen.setCosmetic(true);
 
 	// center the station marker on its network coordinate
-	QRectF rect = QRectF(0, 0, size, size);
+	const qreal diameter = size * (cachedTrackLine(track) ? presentationScale() : 1.0);
+	QRectF rect = QRectF(0, 0, diameter, diameter);
 	rect.moveCenter(coord);
 
 	NodeItem* el = new NodeItem(rect);
@@ -23165,7 +23182,8 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 	pen.setCosmetic(true);
 
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
-	QRectF rect = QRectF(0, 0, size, size);
+	const qreal diameter = size * (cachedTrackLine(track) ? presentationScale() : 1.0);
+	QRectF rect = QRectF(0, 0, diameter, diameter);
 	rect.moveCenter(coord);
 
 	StationNodeItem* el = new StationNodeItem(rect);
@@ -23180,9 +23198,9 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 	scene->addItem(el);
 }
 
-// Draw the fixed-size station symbol and label as one scene-owned item.
+// Keep native font/pixmap metrics and scale their scene-space presentation.
 void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal scale, QPointF decorationOffset) {
+		qreal presentationScale, QPointF decorationOffset) {
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
@@ -23194,13 +23212,14 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	overlay->setVisible(m_stationLayerVisible);
 
 	// Keep picking/source identity at coord; only artwork and text move.
-	Q_UNUSED(scale);
 	const QPointF artworkCoord = coord + decorationOffset;
 	const int symbolSize = station_size;
 	const QPixmap symbol = QIcon(visual.iconResource).pixmap(symbolSize, symbolSize);
 	if (!symbol.isNull()) {
 		auto* picture = scene->addPixmap(symbol);
-		picture->setPos(artworkCoord.x() - symbolSize / 2.0, artworkCoord.y() - station_size / 2.0 - symbolSize / 2.0);
+		picture->setScale(presentationScale);
+		picture->setPos(artworkCoord.x() - symbolSize * presentationScale / 2.0,
+			artworkCoord.y() - (station_size + symbolSize) * presentationScale / 2.0);
 		picture->setTransformationMode(Qt::SmoothTransformation);
 		picture->setAcceptedMouseButtons(Qt::NoButton);
 		m_stationDecorations.push_back(picture);
@@ -23211,9 +23230,10 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	font.setPixelSize(station_size / 5);
 	auto* label = scene->addText(StationOverlayItem::displayName(sname), font);
 	label->setDefaultTextColor(Qt::white);
+	label->setScale(presentationScale);
 	label->setZValue(3);
-	label->setPos(artworkCoord - QPointF(label->boundingRect().width() / 2.0,
-		label->boundingRect().height() / 2.0));
+	label->setPos(artworkCoord - QPointF(label->boundingRect().width() * presentationScale / 2.0,
+		label->boundingRect().height() * presentationScale / 2.0));
 	label->setAcceptedMouseButtons(Qt::NoButton);
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
@@ -23226,10 +23246,11 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 	pen.setCosmetic(true);
 
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
-	QRectF rect = QRectF(0, 0, 5 * size, 0.9 * size);
+	const qreal diameter = size * presentationScale();
+	QRectF rect = QRectF(0, 0, 5 * diameter, 0.9 * diameter);
 
 	// platform on top of station Node
-	coord.setY(coord.y() - 1.15 * size);
+	coord.setY(coord.y() - 1.15 * diameter);
 
 	rect.moveCenter(coord);
 
@@ -23263,7 +23284,8 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 	auto* textItem = new QGraphicsTextItem(text);
 	textItem->setDefaultTextColor(Qt::white);
 	textItem->setFont(font);
-	textItem->setPos(QPointF(platformItem->sceneBoundingRect().center().x() - textItem->boundingRect().width() / 2, platformItem->sceneBoundingRect().top() - textItem->boundingRect().height()));
+	textItem->setScale(presentationScale());
+	textItem->setPos(QPointF(platformItem->sceneBoundingRect().center().x() - textItem->boundingRect().width() * presentationScale() / 2, platformItem->sceneBoundingRect().top() - textItem->boundingRect().height() * presentationScale()));
 	textItem->setZValue(3); // draw on top of every item
 
 	// add textItem pointer to rect item
@@ -23294,7 +23316,7 @@ void MainWindow::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	QPointF start = frontUp + frontDown;
 	start /= 2;
 	qreal dx = 0;
-	qreal dy = -1 * track_separation;
+	qreal dy = -1 * track_separation * presentationScale();
 	QPointF end = start + QPointF(dx, dy);
 
 	// paint line
@@ -23323,17 +23345,21 @@ void MainWindow::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	text->setPlainText(QString::fromStdString(ss.str())); // text without background
 	text->setDefaultTextColor(Qt::black);
 	text->setFont(font);
+	text->setScale(presentationScale());
 
 	// draw box around text
 	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	textBox->setRect(QRectF(0, 0, 1.15 * text->boundingRect().width(), 1.15 * text->boundingRect().height())); // box 15% bigger than text rect on both directions
+	textBox->setRect(QRectF(0, 0, 1.15 * (text->boundingRect().width() * presentationScale()), 1.15 * (text->boundingRect().height() * presentationScale()))); // box 15% bigger than text rect on both directions
 	textBox->setBrush(QColor(242, 161, 106));
+	QPen boxPen = textBox->pen();
+	boxPen.setWidthF(presentationScale());
+	textBox->setPen(boxPen);
 	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
 
 	// set text position (center of text box)
 	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - text->boundingRect().width());
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
+	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
+	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
 	text->setPos(textPos);
 
 	// create group
@@ -23356,7 +23382,7 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	// create line from icon to message
 	QPointF start = QPointF(paxItem->sceneBoundingRect().center().x(), paxItem->sceneBoundingRect().top());
 	qreal dx = 0;
-	qreal dy = -0.75 * track_separation;
+	qreal dy = -0.75 * track_separation * presentationScale();
 	QPointF end = start + QPointF(dx, dy);
 
 	// paint line
@@ -23401,17 +23427,21 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	text->setPlainText(QString::fromStdString(ss.str())); // text without background
 	text->setDefaultTextColor(Qt::black);
 	text->setFont(font);
+	text->setScale(presentationScale());
 
 	// draw box around text
 	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	textBox->setRect(QRectF(0, 0, 1.15 * text->boundingRect().width(), 1.15 * text->boundingRect().height())); // box 15% bigger than text rect on both directions
+	textBox->setRect(QRectF(0, 0, 1.15 * (text->boundingRect().width() * presentationScale()), 1.15 * (text->boundingRect().height() * presentationScale()))); // box 15% bigger than text rect on both directions
 	textBox->setBrush(QColor(242, 161, 106));
+	QPen boxPen = textBox->pen();
+	boxPen.setWidthF(presentationScale());
+	textBox->setPen(boxPen);
 	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
 
 	// set text position (center of text box)
 	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - text->boundingRect().width());
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
+	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
+	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
 	text->setPos(textPos);
 
 	// create group
@@ -23498,7 +23528,8 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 			StationArray[index].signalDeltaY[blockSets[track].region]);
 	}
 	const SignalGeometry geometry = signalGeometry(QPointF(centerX, centerY),
-		QPointF(beforeX, beforeY), QPointF(afterX, afterY), normal, track_separation);
+		QPointF(beforeX, beforeY), QPointF(afterX, afterY), normal,
+		track_separation * (previewLine ? presentationScale() : 1.0));
 
 	// post/basis
 	QPen penPost = QPen(Qt::white);
@@ -23509,7 +23540,8 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	QPen penPlate = QPen();
 	penPlate.setWidth(0);
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
-	QRectF rect = QRectF(0, 0, size, size);
+	const qreal diameter = size * (previewLine ? presentationScale() : 1.0);
+	QRectF rect = QRectF(0, 0, diameter, diameter);
 	rect.moveCenter(QPointF(0.0, 0.0));
 
 	// post #1
@@ -23610,7 +23642,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width) {
 	TrainVisual visual = classifyTrainType(train.type, train.description);
 	QPen pen = QPen(visual.outline);
-	pen.setWidthF(3);
+	pen.setWidthF(3 * presentationScale());
 
 	// create train polygon item list
 	QList<TrainBodyItem*>* trainPolygonItemList = new QList<TrainBodyItem*>();
@@ -24105,7 +24137,8 @@ void MainWindow::handleCloseInfoDockWidget() {
 	updateViewportOverlays();
 }
 
-bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure) {
+bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPresentation) {
+	const SceneModel originalFixture = m_sceneModel;
 	// Only this optional, bounded Run fixture prepares native infrastructure.
 	// Add a fourth authored point on a directed runnable chain, not a fallback.
 	auto arc = std::find_if(m_sceneModel.arcs.begin(), m_sceneModel.arcs.end(),
@@ -24124,8 +24157,91 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure) {
 	m_sceneModel.nodes.push_back({"parity-midpoint", "creator-main", 0.5, 0.125});
 	m_sceneModel.stations.push_back({"parity-first-station", "First", false, 0,
 		{{"parity-first-platform", {"creator-main-node-0"}}}});
+
+	if (measuredPresentation) {
+		// Paimpol-equivalent presentation fixture, still using the authored projection path.
+		for (auto& node : m_sceneModel.nodes) node.yKm = 0.0;
+		m_sceneModel.trackViews = {{"creator-main", 0, 0}, {"creator-yard", 1, 0}};
+		m_sceneModel.stations[0].name = "Koge"; // Exercise the named presentation nudge too.
+		m_sceneModel.stationViews = {
+			{m_sceneModel.stations[0].id, 1.0, 0.0, {{0, 0.0}}, {}},
+			{m_sceneModel.stations[1].id, 1.0, 0.02, {{0, 2.0}}, {}}
+		};
+	}
+	const qreal expectedScale = 0.45;
+	const auto checkPresentation = [&]() {
+		const auto near = [](qreal a, qreal b) { return qAbs(a - b) < 1e-6; };
+		if (!near(m_cachedTrackPreview.presentationScale, expectedScale)) return false;
+		int squares = 0, dots = 0, heads = 0, platforms = 0;
+		for (auto* item : scene->items()) {
+			if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
+				if (!near(square->rect().width(), station_node_size * expectedScale)) return false;
+				++squares;
+			} else if (auto* node = qgraphicsitem_cast<NodeItem*>(item)) {
+				if (node->rect().width() != 0 && !near(node->rect().width(), node_size * expectedScale)) return false;
+				++dots;
+			} else if (auto* head = qgraphicsitem_cast<SignalItem*>(item)) {
+				if (!near(head->rect().width(), node_size * expectedScale)) return false;
+				const auto line = std::find_if(m_cachedTrackPreview.lines.begin(), m_cachedTrackPreview.lines.end(),
+					[&](const auto& candidate) {
+						return m_showingTrackPreview ? candidate.id == head->data(PreviewGraphics::TrackId).toString().toStdString()
+							: &candidate == cachedTrackLine(head->trackID);
+					});
+				if (line == m_cachedTrackPreview.lines.end()) return false;
+				QPointF center, before, after, normal;
+				if (!previewPointAtX(*line, head->X, line->displayOffset, center)
+					|| !previewPointAtX(*line, head->X - 0.008, line->displayOffset, before)
+					|| !previewPointAtX(*line, head->X + 0.008, line->displayOffset, after)
+					|| !previewSignalNormal(*line, head->X, normal)) return false;
+				const bool reversed = m_showingTrackPreview ? head->data(PreviewGraphics::Reversed).toBool() : head->reversedDirection;
+				const QPointF expected = (reversed ? before : after)
+					+ normal * (reversed ? -30.0 : 30.0) * expectedScale;
+				if (QLineF(head->scenePos(), expected).length() > 1e-6) return false;
+				// The +/- 0.008 km endpoints remain eight physical metres away.
+				if (!near(qAbs(after.x() - center.x()), 8.0)
+					|| !near(qAbs(before.x() - center.x()), 8.0)) return false;
+				++heads;
+			}
+			if (auto* platform = qgraphicsitem_cast<PlatformItem*>(item)) {
+				if (!near(platform->rect().width(), 5 * station_node_size * expectedScale)
+					|| !near(platform->rect().height(), 0.9 * station_node_size * expectedScale)) return false;
+				if (platform->textIcon && !near(platform->textIcon->scale(), expectedScale)) return false;
+				++platforms;
+			}
+			if (auto* track = qgraphicsitem_cast<TrackLineItem*>(item))
+				if (!track->pen().isCosmetic()
+					|| track->pen().width() != (track->pen().color() == QColor(Qt::blue) ? 4 : 2)) return false;
+			if (auto* connection = qgraphicsitem_cast<ConnectionItem*>(item))
+				if (!connection->pen().isCosmetic() || connection->pen().width() != 2) return false;
+			if (auto* stroke = qgraphicsitem_cast<QGraphicsLineItem*>(item))
+				if (stroke->pen().width() > 0 && !stroke->pen().isCosmetic()) return false;
+		}
+		if (!squares || !dots || !heads || (initial_variables.PAX_GUI && !platforms) || m_stationPictures.isEmpty()
+			|| m_stationLabels.size() != m_stationOverlays.size()) return false;
+		for (int i = 0; i < m_stationOverlays.size(); ++i) {
+			const auto* overlay = m_stationOverlays[i];
+			const auto* picture = m_stationPictures.value(m_stationOverlays[i], nullptr);
+			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(m_stationLabels[i]);
+			const auto source = std::find_if(m_sceneModel.stations.begin(), m_sceneModel.stations.end(),
+				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
+			if (source == m_sceneModel.stations.end() || !picture || !label) return false;
+			const QPointF textCenter = overlay->stableAnchor()
+				+ stationDecorationOffset(m_sceneModel.stationViews, source->id, source->name) * expectedScale;
+			if (!near(picture->sceneBoundingRect().width(), station_size * expectedScale)
+				|| !near(picture->scale(), expectedScale) || !near(label->scale(), expectedScale)
+				|| label->font().pixelSize() != station_size / 5
+				|| QLineF(label->mapToScene(label->boundingRect().center()), textCenter).length() > 1e-6
+				|| QLineF(picture->sceneBoundingRect().center(), textCenter - QPointF(0, station_size * expectedScale / 2)).length() > 1e-6)
+				return false;
+		}
+		return true;
+	};
 	markSceneDirty();
 	renderTrackPreview(m_sceneModel);
+	if (measuredPresentation && !checkPresentation()) {
+		failure = "preview measured presentation dimensions or physical signal endpoints mismatch";
+		return false;
+	}
 	struct Primitive { int type; QRectF rect; QColor fill; QColor outline; };
 	std::vector<Primitive> boundaries;
 	for (auto* item : scene->items()) {
@@ -24145,6 +24261,30 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure) {
 			|| !m_previewSelectedStationId.isEmpty() || !nodeIDText->text().isEmpty()) {
 		failure = "preview-to-prepared-runtime did not clear canonical state/actions";
 		return false;
+	}
+	if (measuredPresentation && !checkPresentation()) {
+		failure = "prepared-runtime measured presentation mismatch";
+		clearSimulationWorker(true);
+		return false;
+	}
+	if (measuredPresentation) {
+		// A diagnostic wagon in one physical section: presentation affects width, not length.
+		GuiTrainState wagon;
+		wagon.routeIndex = 0;
+		wagon.wagonCount = 0;
+		wagon.length = 100;
+		wagon.routeAxisPosition = 800;
+		wagon.wagonHeadPositions = {0.8};
+		wagon.wagonTailPositions = {0.7};
+		QPolygonF polygon;
+		getTrainPolygon(&polygon, 0, wagon);
+		if (polygon.size() != 4 || qAbs(polygon.boundingRect().width() - 100) > 1e-6
+			|| qAbs(polygon.boundingRect().height() - 30 * expectedScale) > 1e-6
+			|| wagon.length != 100 || wagon.wagonHeadPositions[0] != 0.8 || wagon.wagonTailPositions[0] != 0.7) {
+			failure = "train presentation thickness changed physical wagon length/head/tail";
+			clearSimulationWorker(true);
+			return false;
+		}
 	}
 	for (const auto& expected : boundaries) {
 		bool found = false;
@@ -24180,6 +24320,9 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure) {
 			return false;
 		}
 	clearSimulationWorker(true);
+	m_sceneModel = originalFixture;
+	if (measuredPresentation)
+		std::fprintf(stdout, "\nE2E_MEASURED_PRESENTATION_PARITY_OK\n");
 	std::fprintf(stdout, "\nE2E_PREVIEW_PREPARED_RUNTIME_PARITY_OK\n");
 	std::fflush(stdout);
 	return true;
@@ -25426,7 +25569,7 @@ void MainWindow::updatePlatforms(int t) {
 		platformIcon->textIcon->setPlainText(text);
 		platformIcon->textIcon->setVisible(paxTextVisible());
 		auto newCenter = platformIcon->textIcon->boundingRect().center();
-		auto delta = originalCenter - newCenter;
+		auto delta = (originalCenter - newCenter) * presentationScale();
 		platformIcon->textIcon->moveBy(delta.x(), delta.y());
 
 		// add icons
@@ -25435,8 +25578,9 @@ void MainWindow::updatePlatforms(int t) {
 			qreal iconX = platformIcon->sceneBoundingRect().left() + iconSpacing / 2;
 
 			for (const std::string& paxID : passengerIds) {
-				const int iconSize = pax_pixmap_scaled.width();
+				const qreal iconSize = pax_pixmap_scaled.width() * presentationScale();
 				auto* item = new PassengerItem(pax_pixmap_scaled);
+				item->setScale(presentationScale());
 				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
 				item->setTransformationMode(Qt::SmoothTransformation);
 
@@ -25746,7 +25890,7 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 		QPointF normal;
 		if (!line || !previewSignalNormal(*line, rawX, normal))
 			return false;
-		const QPointF offset = normal * (0.10 * track_separation);
+		const QPointF offset = normal * (0.10 * track_separation * presentationScale());
 		trainPointsUp.push_back(point - offset);
 		trainPointsDown.push_front(point + offset);
 		trainPointsStIndex.push_back(-1);
@@ -25877,6 +26021,7 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					const TrackPreviewLine* previewLine1 = cachedTrackLine(BS1->trackLineId);
 					const TrackPreviewLine* previewLine2 = cachedTrackLine(BS2->trackLineId);
 					const bool hasPreview = !m_cachedTrackPreview.lines.empty();
+					const qreal lateralSeparation = track_separation * (hasPreview ? presentationScale() : 1.0);
 					if ((hasPreview && (!previewLine1 || !previewLine2))
 							|| (!hasPreview && (!hasTrackGeometry(BS1->trackLineId)
 									|| !hasTrackGeometry(BS2->trackLineId))))
@@ -25957,15 +26102,15 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 						// non-reversed route (add first connection 2)
 						if (!train.reversedDirection) {
 							if (headX > connectionX2 && tailX < connectionX2) {
-								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() - connectionEndShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() + connectionEndShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
 								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 							}
 							if (headX > connectionX1 && tailX < connectionX1) {
-								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() - connectionStartShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() + connectionStartShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
 								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
@@ -25974,15 +26119,15 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 						// reversed route (add first connection 1)
 						else {
 							if (tailX > connectionX1 && headX < connectionX1) {
-								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() - connectionStartShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() + connectionStartShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
 								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 							}
 							if (tailX > connectionX2 && headX < connectionX2) {
-								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() - connectionEndShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() + connectionEndShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
 								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
@@ -26002,8 +26147,8 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 						ptTrainEdge.setY(y1 + (((posX[j] - connectionX1) / (connectionX2 - connectionX1)) * (y2 - y1)));
 
 						// train polygon
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - connectionDeltaX * 0.10 * track_separation, ptTrainEdge.y() - connectionDeltaY * 0.10 * track_separation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + connectionDeltaX * 0.10 * track_separation, ptTrainEdge.y() + connectionDeltaY * 0.10 * track_separation));
+						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - connectionDeltaX * 0.10 * lateralSeparation, ptTrainEdge.y() - connectionDeltaY * 0.10 * lateralSeparation));
+						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + connectionDeltaX * 0.10 * lateralSeparation, ptTrainEdge.y() + connectionDeltaY * 0.10 * lateralSeparation));
 						trainPointsStIndex.push_back(-1);
 						trainPointsStRegion.push_back(-1);
 						trainPointsGraphID.push_back(INT_MIN);
@@ -26021,15 +26166,15 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 						// non-reversed route (add first connection 2)
 						if (!train.reversedDirection) {
 							if (headX > connectionX2 && tailX < connectionX2) {
-								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() - connectionEndShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() + connectionEndShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
 								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
 							}
 							if (headX > connectionX1 && tailX < connectionX1) {
-								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() - connectionStartShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() + connectionStartShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
 								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
@@ -26038,15 +26183,15 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 						// reversed route (add first connection 1)
 						else {
 							if (tailX > connectionX1 && headX < connectionX1) {
-								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() - connectionStartShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * track_separation, ptConnection1.y() + connectionStartShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection1.x() - connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() - connectionStartShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection1.x() + connectionStartShiftX * 0.10 * lateralSeparation, ptConnection1.y() + connectionStartShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection1);
 								trainPointsStRegion.push_back(blockSets[BS1->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS1->trackLineId].graphID);
 							}
 							if (tailX > connectionX2 && headX < connectionX2) {
-								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() - connectionEndShiftY * 0.10 * track_separation));
-								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * track_separation, ptConnection2.y() + connectionEndShiftY * 0.10 * track_separation));
+								trainPointsUp.push_back(QPointF(ptConnection2.x() - connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() - connectionEndShiftY * 0.10 * lateralSeparation));
+								trainPointsDown.push_front(QPointF(ptConnection2.x() + connectionEndShiftX * 0.10 * lateralSeparation, ptConnection2.y() + connectionEndShiftY * 0.10 * lateralSeparation));
 								trainPointsStIndex.push_back(revPrevIndexConnection2);
 								trainPointsStRegion.push_back(blockSets[BS2->trackLineId].region);
 								trainPointsGraphID.push_back(blockSets[BS2->trackLineId].graphID);
@@ -26139,7 +26284,7 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 
 	QPointF start = frontUp + frontDown;
 	start /= 2;
-	QPointF end = start + QPointF(0, -2 * track_separation);
+	QPointF end = start + QPointF(0, -2 * track_separation * presentationScale());
 
 	QPen pen = QPen(QColor(242, 161, 106));
 	pen.setWidth(line_width);
@@ -26180,14 +26325,18 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	text->setPlainText(QString::fromStdString(message));
 	text->setDefaultTextColor(Qt::white);
 	text->setFont(font);
+	text->setScale(presentationScale());
 
-	textBox->setRect(QRectF(0, 0, 1.25 * text->boundingRect().width(), 1.25 * text->boundingRect().height()));
+	textBox->setRect(QRectF(0, 0, 1.25 * (text->boundingRect().width() * presentationScale()), 1.25 * (text->boundingRect().height() * presentationScale())));
 	textBox->setBrush(QColor(242, 161, 106));
+	QPen boxPen = textBox->pen();
+	boxPen.setWidthF(presentationScale());
+	textBox->setPen(boxPen);
 	textBox->setPos(end.x() - (textBox->boundingRect().width() / 2), end.y() - textBox->boundingRect().height());
 
 	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - text->boundingRect().width());
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - text->boundingRect().height());
+	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
+	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
 	text->setPos(textPos);
 	msgGroup->setVisible(true);
 }
