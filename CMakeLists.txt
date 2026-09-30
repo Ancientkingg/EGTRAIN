@@ -159,6 +159,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/telemetry/TelemetryEvent.cpp
     ${SRC_DIR}/telemetry/TelemetryQueue.cpp
     ${SRC_DIR}/telemetry/TelemetrySender.cpp
+    ${SRC_DIR}/telemetry/TelemetryOperation.cpp
 	${SRC_DIR}/update/UpdatePreparation.cpp
 	${SRC_DIR}/update/SelfUpdater.cpp
 	${SRC_DIR}/scene/SceneDiagnostic.cpp
@@ -410,6 +411,7 @@ target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json egtrain_mi
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
+    target_sources(QEGTRAIN PRIVATE ${SRC_DIR}/app/TelemetrySmokeSupport.cpp)
     target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_SENDER_TEST_HOOK=1 EGTRAIN_ISOLATED_TELEMETRY_SMOKE=1)
 endif()
 if(EGTRAIN_BUILD_TESTS)
@@ -465,6 +467,18 @@ if(EGTRAIN_BUILD_TESTS)
     target_compile_definitions(test_telemetrysender PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
     target_link_libraries(test_telemetrysender PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
     add_test(NAME test_telemetrysender COMMAND test_telemetrysender)
+
+    add_executable(test_telemetryoperations
+        ${SRC_DIR}/tests/test_telemetryoperations.cpp
+        ${SRC_DIR}/telemetry/TelemetryOperation.cpp
+        ${SRC_DIR}/telemetry/TelemetrySender.cpp
+        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
+    target_compile_definitions(test_telemetryoperations PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
+    target_link_libraries(test_telemetryoperations PRIVATE Qt5::Widgets Qt5::Network)
+    add_test(NAME test_telemetryoperations COMMAND test_telemetryoperations)
+    set_tests_properties(test_telemetryoperations PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_telemetrynetwork
         ${SRC_DIR}/tests/test_telemetrynetwork.cpp
@@ -578,12 +592,17 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_routediagramcoordinates COMMAND test_routediagramcoordinates)
 
     add_executable(test_diagramwindow
+        ${SRC_DIR}/telemetry/TelemetryOperation.cpp
+        ${SRC_DIR}/telemetry/TelemetrySender.cpp
+        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsent.cpp
         ${SRC_DIR}/tests/test_diagramwindow.cpp
         ${SRC_DIR}/diagrams/DiagramWindow.cpp
         ${SRC_DIR}/diagrams/TrainFilterButton.cpp
         ${SRC_DIR}/util/TimeFormat.cpp)
     target_include_directories(test_diagramwindow PRIVATE ${SRC_DIR})
-    target_link_libraries(test_diagramwindow PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    target_link_libraries(test_diagramwindow PRIVATE Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     target_compile_definitions(test_diagramwindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     add_test(NAME test_diagramwindow COMMAND test_diagramwindow)
@@ -591,6 +610,11 @@ if(EGTRAIN_BUILD_TESTS)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_timetabletablewindow
+        ${SRC_DIR}/telemetry/TelemetryOperation.cpp
+        ${SRC_DIR}/telemetry/TelemetrySender.cpp
+        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsent.cpp
         ${SRC_DIR}/tests/test_timetabletablewindow.cpp
         ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
         ${SRC_DIR}/diagrams/TrainFilterButton.cpp
@@ -598,7 +622,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/scene/SceneModel.cpp
         ${SRC_DIR}/util/TrajectoryUtil.cpp
         ${SRC_DIR}/util/TimeFormat.cpp)
-    target_link_libraries(test_timetabletablewindow PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets nlohmann_json::nlohmann_json)
+    target_link_libraries(test_timetabletablewindow PRIVATE Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets nlohmann_json::nlohmann_json)
     target_compile_definitions(test_timetabletablewindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     if(EGTRAIN_OPENMP_INCLUDE)

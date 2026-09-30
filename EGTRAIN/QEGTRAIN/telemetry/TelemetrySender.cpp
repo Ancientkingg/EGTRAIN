@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <limits>
 #include <new>
+#include <mutex>
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 #include <QFileInfo>
 #include <filesystem>
@@ -102,6 +103,10 @@ struct TelemetrySender::Shared {
     bool gate[2] = {false, false};
     quint64 epoch[2] = {1, 1};
     std::atomic<bool> stop{false};
+    std::atomic<bool> interactiveSessionRequested{false};
+    // Category-specific serials close the gap when invalidation cannot take ingress.
+    // The existing global permit version still guards worker/network reservations.
+    std::atomic<quint64> invalidation[2]{};
     std::atomic<unsigned> flags{0}; // usage, diagnostics, receiver, refresh
     // High bits count invalidations; low bits publish gates in the same atomic word.
     std::atomic<quint64> permits{0};
@@ -130,7 +135,7 @@ TelemetrySender::TelemetrySender(TelemetryContext context, Application applicati
     if (!context.capable() || !validApplication(application) || directory.isEmpty() ||
         context.endpoint.toUtf8().size() > 2048) return;
 #ifdef EGTRAIN_SENDER_TEST_HOOK
-    if (tests.settingsFactory || tests.utcNow || tests.monotonicMs || tests.jitterPercent || tests.afterReservation || tests.onWorkerExit || tests.afterCompletion || tests.afterPoll || tests.afterOwnershipAttempt || tests.failConstruction || tests.post || tests.loopbackTrust || tests.requestTimeoutMs != 10000) {
+    if (tests.settingsFactory || tests.utcNow || tests.monotonicMs || tests.jitterPercent || tests.afterReservation || tests.onWorkerExit || tests.afterCompletion || tests.afterPoll || tests.afterOperationCaptureLocked || tests.beforeSessionAttempt || tests.afterOwnershipAttempt || tests.failConstruction || tests.post || tests.loopbackTrust || tests.requestTimeoutMs != 10000) {
         const QUrl url(context.endpoint);
         const QString host = url.host();
         if (!tests.settingsFactory || (host != QStringLiteral("127.0.0.1") && host != QStringLiteral("::1"))) return;
@@ -155,6 +160,49 @@ TelemetrySender::TelemetrySender(TelemetryContext context, Application applicati
     } catch (...) { m_shared.reset(); } // Telemetry must not prevent application startup.
 }
 TelemetrySender::~TelemetrySender() { stop(); }
+TelemetrySender::OperationToken TelemetrySender::captureOperation() noexcept {
+    OperationToken token;
+    auto s = m_shared;
+    if (!s || s->stop.load(std::memory_order_acquire)) return token;
+    try {
+        if (!s->mutex.tryLock()) return token;
+        std::unique_lock<QMutex> lock(s->mutex, std::adopt_lock);
+        token.sender = s;
+        for (int i = 0; i < 2; ++i) {
+            token.invalidation[i] = s->invalidation[i].load(std::memory_order_acquire);
+            token.epoch[i] = s->epoch[i];
+            token.eligible[i] = !s->stop.load(std::memory_order_acquire) && s->gate[i] &&
+                (s->permits.load(std::memory_order_acquire) & (quint64(1) << i)) &&
+                !(s->flags.load(std::memory_order_acquire) & ((1u << i) | 4u));
+        }
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+        if (s->tests.afterOperationCaptureLocked) s->tests.afterOperationCaptureLocked();
+#endif
+        return token;
+    } catch (...) { return {}; }
+}
+bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input, const OperationToken& token) noexcept {
+    auto s = m_shared;
+    if (!s || token.sender.lock() != s || s->stop.load(std::memory_order_acquire)) return false;
+    try {
+        const Category category = categoryOf(input);
+        const int idx = category == Category::Usage ? 0 : 1;
+        if (!token.eligible[idx] || !validInput(input, category) || !s->mutex.tryLock()) return false;
+        std::unique_lock<QMutex> lock(s->mutex, std::adopt_lock);
+        if (s->stop.load(std::memory_order_acquire) || !s->gate[idx] ||
+            !(s->permits.load(std::memory_order_acquire) & (quint64(1) << idx)) ||
+            (s->flags.load(std::memory_order_acquire) & ((1u << idx) | 4u)) ||
+            token.epoch[idx] != s->epoch[idx] ||
+            token.invalidation[idx] != s->invalidation[idx].load(std::memory_order_acquire) || s->count >= kIngress) return false;
+        s->ring[(s->head + s->count) % kIngress] = {input, utcNow(), s->epoch[idx]};
+        ++s->count;
+        return true;
+    } catch (...) { return false; }
+}
+void TelemetrySender::requestInteractiveSession() noexcept {
+    if (m_shared && m_shared->context.interactive)
+        m_shared->interactiveSessionRequested.store(true, std::memory_order_release);
+}
 bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input) noexcept {
     auto s = m_shared;
     if (!s || s->stop.load(std::memory_order_acquire)) return false;
@@ -178,6 +226,8 @@ bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input) noexcept {
 void TelemetrySender::invalidateConsent(bool usage, bool diagnostics) noexcept {
     auto s = m_shared;
     if (!s) return;
+    for (int i = 0; i < 2; ++i) if (i == 0 ? usage : diagnostics)
+        s->invalidation[i].fetch_add(1, std::memory_order_acq_rel);
     s->permits.fetch_add(4, std::memory_order_acq_rel);
     s->permits.fetch_and(~quint64((usage ? 1u : 0u) | (diagnostics ? 2u : 0u)), std::memory_order_release);
     if (s->mutex.tryLock()) {
@@ -224,6 +274,7 @@ public:
     QString stamp[2];
     quint64 mappedEpoch[2] = {0, 0};
     bool observed[2] = {false, false};
+    bool sessionAttempted = false;
     PreparedBatch active;
     QString requestEndpoint;
     qint64 responseBytes = 0;
@@ -292,6 +343,36 @@ public:
                                                           std::memory_order_release, std::memory_order_acquire)) {}
             }
         }
+    }
+    void attemptInteractiveSession() {
+        if (sessionAttempted || !s->interactiveSessionRequested.load(std::memory_order_acquire) ||
+            !owner || !observed[0] || !observed[1]) return;
+        quint64 epoch;
+        QString selectedStamp;
+        {
+            QMutexLocker lock(&s->mutex);
+            if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || stamp[0].isEmpty() ||
+                !(s->permits.load(std::memory_order_acquire) & 1u) ||
+                (s->flags.load(std::memory_order_acquire) & 5u)) return;
+            // This is a lifetime attempt, not a retryable producer intent.
+            sessionAttempted = true;
+            epoch = s->epoch[0];
+            selectedStamp = stamp[0];
+        }
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+        if (s->tests.beforeSessionAttempt) s->tests.beforeSessionAttempt();
+#endif
+        const auto occurred = now();
+        auto event = createEvent({}, occurred);
+        refresh();
+        if (!owner) return;
+        {
+            QMutexLocker lock(&s->mutex);
+            if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || s->epoch[0] != epoch ||
+                stamp[0] != selectedStamp || !(s->permits.load(std::memory_order_acquire) & 1u) ||
+                (s->flags.load(std::memory_order_acquire) & 5u)) return;
+        }
+        if (!queue.enqueueUsage({event, selectedStamp}, now()) && !queue.healthy()) disable();
     }
     bool authorized(int index, const QString& selectedStamp, quint64 epoch, quint64 permitVersion) {
         refresh(); // Read-only cross-process consent observation after all storage operations.
@@ -495,6 +576,10 @@ public:
             if (owner && s->tests.afterPoll) s->tests.afterPoll();
 #endif
         }
+        if (!owner) return;
+        // Initial diagnostics observation can clear ingress, so sessions bypass it
+        // only after a complete successful two-category refresh.
+        attemptInteractiveSession();
         if (!owner) return;
         // Move at most the fixed ring capacity per tick. No producer event creates a Qt event.
         for (int n = 0; n < kIngress; ++n) {

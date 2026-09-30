@@ -357,7 +357,29 @@ int main(int argc, char** argv) {
 	}
 	const fs::path firstBundle = temp.path / "first.egscene";
 	const fs::path secondBundle = temp.path / "second.egscene";
+	SceneModel unsupported = source.scene;
+	++unsupported.schemaVersion;
+	ok &= expect(!saveSceneBundle(unsupported, firstBundle.string()).writeAttempted,
+			"unsupported schema rejects before private staging");
+	ok &= expect(!saveSceneBundle(source.scene, "").writeAttempted,
+			"empty bundle path rejects before private staging");
+#ifndef _WIN32
+	const char* previousTemp = std::getenv("TMPDIR");
+	const std::optional<std::string> savedTemp = previousTemp
+			? std::optional<std::string>(previousTemp) : std::nullopt;
+	const std::string missingTemp = (temp.path / "missing-temporary-root").string();
+	const bool changedTemp = setenv("TMPDIR", missingTemp.c_str(), 1) == 0;
+	const SceneSaveResult missingTempResult = saveSceneBundle(source.scene, firstBundle.string());
+	if (savedTemp) setenv("TMPDIR", savedTemp->c_str(), 1);
+	else unsetenv("TMPDIR");
+	ok &= expect(changedTemp && !missingTempResult.success() && !missingTempResult.writeAttempted,
+			"temporary-root lookup failure does not claim a staging write attempt");
+#endif
+	const SceneSaveResult stagingFailure = saveSceneBundle(source.scene, temp.path.string());
+	ok &= expect(!stagingFailure.success() && stagingFailure.writeAttempted,
+			"directory target failure retains nested private staging attempt");
 	const SceneSaveResult firstSave = saveSceneBundle(source.scene, firstBundle.string());
+	ok &= expect(firstSave.writeAttempted, "bundle success retains private staging attempt");
 	ok &= expect(firstSave.success(), "canonical directory packs");
 	const std::string firstBundleBytes = readBytes(firstBundle);
 	ok &= expect(!firstSave.inputSnapshot.empty() && firstSave.inputSnapshot == firstBundleBytes,

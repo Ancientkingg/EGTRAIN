@@ -48,6 +48,11 @@ signals:
 	void iterationFinished(int timestep);
 	void snapshotAvailable();
 	void simulationFinished();
+	// Execution-thread observations, independent of GUI result availability.
+	void executionRejected();
+	void executionBegan();
+	void executionReturned(qint64 elapsedMs, bool cancelled);
+	void executionPostprocessing();
 
 private:
 	void beginScenePreparation();

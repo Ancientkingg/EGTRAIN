@@ -28,6 +28,7 @@ void SimulationWorker::run() {
 }
 
 void SimulationWorker::requestStop() {
+	m_cancelled = true;
 	m_stop = true;
 	m_pause = false; // unpause so the worker thread can see the stop flag
 }

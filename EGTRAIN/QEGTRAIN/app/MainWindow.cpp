@@ -1,4 +1,7 @@
 #include "app/MainWindow.h"
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+#include "app/TelemetrySmokeSupport.h"
+#endif
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
@@ -311,6 +314,135 @@ QString completedRunContext(const RunProvenance& provenance) {
 	if (scenario.isEmpty())
 		return caseName;
 	return QStringLiteral("%1 / %2").arg(caseName, scenario);
+}
+
+std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<SceneDiagnostic>& diagnostics) {
+	std::optional<telemetry::Error> selected;
+	const auto priority = [](telemetry::Error error) {
+		switch (error) {
+		case telemetry::Error::UnsupportedFormat: return 0;
+		case telemetry::Error::InvalidInput: return 1;
+		case telemetry::Error::IoFailure: return 2;
+		case telemetry::Error::InternalFailure: return 3;
+		}
+		return 4;
+	};
+	static const char* invalidCodes[] = {
+		"scene.arc.curvature.invalid",
+		"scene.arc.gradient.invalid",
+		"scene.arc.speed.invalid",
+		"scene.basetime.invalid",
+		"scene.basetime.missing",
+		"scene.block.length.invalid",
+		"scene.buffer.invalid",
+		"scene.capacity.runtime",
+		"scene.compatibility.schema",
+		"scene.composition.empty",
+		"scene.connection.speed.invalid",
+		"scene.delay.invalid",
+		"scene.duration.invalid",
+		"scene.duration.missing",
+		"scene.dwell.exceeds_window",
+		"scene.dwell.invalid",
+		"scene.entrance.conflict",
+		"scene.entrance.occurrence.out_of_horizon",
+		"scene.entrance.station",
+		"scene.entrance.timetable",
+		"scene.field.missing",
+		"scene.id.duplicate",
+		"scene.id.empty",
+		"scene.id.reserved",
+		"scene.incident.fields",
+		"scene.incident.speed",
+		"scene.incident.type",
+		"scene.incident.window",
+		"scene.item.invalid",
+		"scene.json.parse",
+		"scene.name.path",
+		"scene.native.block.clipped",
+		"scene.node.coordinate.invalid",
+		"scene.occurrence.invalid",
+		"scene.passenger.continuity",
+		"scene.passenger.leg.order",
+		"scene.passenger.leg.stop",
+		"scene.passenger.legs.empty",
+		"scene.passenger.occurrence.out_of_horizon",
+		"scene.passenger.window",
+		"scene.performance.invalid",
+		"scene.platform.capacity.invalid",
+		"scene.platform.length.invalid",
+		"scene.platform.node.conflict",
+		"scene.platform.nodes.none",
+		"scene.platform.width.invalid",
+		"scene.platforms.none",
+		"scene.recovery.invalid",
+		"scene.ref.ambiguous",
+		"scene.ref.platform",
+		"scene.ref.platform.route",
+		"scene.ref.stop.order",
+		"scene.ref.stop.route",
+		"scene.ref.unresolved",
+		"scene.repeat.count.invalid",
+		"scene.repeat.invalid",
+		"scene.repeat.step.invalid",
+		"scene.route.direction",
+		"scene.route.disconnected",
+		"scene.route.empty",
+		"scene.route.region_jump",
+		"scene.route_choice.passengers.none",
+		"scene.routes.none",
+		"scene.scenario.default.missing",
+		"scene.scenarios.none",
+		"scene.section.missing",
+		"scene.services.none",
+		"scene.signal.binding.missing",
+		"scene.signal.binding.unresolved",
+		"scene.signalling_area.conflict",
+		"scene.signalling_area.level",
+		"scene.signalling_area.range",
+		"scene.speed.invalid",
+		"scene.station.anchor.missing",
+		"scene.station.position.invalid",
+		"scene.stations.none",
+		"scene.stop.off_route.context",
+		"scene.time.departure.missing",
+		"scene.time.entry.invalid",
+		"scene.time.invalid",
+		"scene.time.order",
+		"scene.topology.ambiguous",
+		"scene.topology.arcs.missing",
+		"scene.topology.arcs.none",
+		"scene.topology.blocks.missing",
+		"scene.topology.blocks.none",
+		"scene.topology.disconnected",
+		"scene.topology.loop",
+		"scene.topology.nodes.missing",
+		"scene.topology.nodes.none",
+		"scene.topology.order",
+		"scene.topology.track",
+		"scene.topology.tracks.none",
+		"scene.train.physical.missing",
+		"scene.train.traction.empty",
+		"scene.train.traction.interval",
+		"scene.train.traction.order",
+		"scene.train.traction.overlap",
+		"scene.trains.none",
+		"scene.version.missing",
+	};
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.severity != SceneSeverity::Error) continue;
+		std::optional<telemetry::Error> error;
+		if (diagnostic.code == "scene.version.unsupported" || diagnostic.code == "scene.units.unsupported")
+			error = telemetry::Error::UnsupportedFormat;
+		else if (std::any_of(std::begin(invalidCodes), std::end(invalidCodes),
+				[&](const char* code) { return diagnostic.code == code; }))
+			error = telemetry::Error::InvalidInput;
+		else if (diagnostic.code == "scene.bundle.file.read" || diagnostic.code == "scene.bundle.temp")
+			error = telemetry::Error::IoFailure;
+		// Ambiguous compatibility.manifest/bundle.schema/save.write/bundle.write codes are omitted.
+		if (error && (!selected || priority(*error) < priority(*selected))) selected = error;
+	}
+	return selected;
 }
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
@@ -1455,8 +1587,10 @@ bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
 
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
 // failure never leaves a partial file behind.
-void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std::string& content,
+void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
+		const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
 		const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
+	const std::string content = provider();
 	if (content.empty()) {
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
@@ -1466,7 +1600,9 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const std
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
 		path += ".csv";
-	if (!artifactWriter(path, content)) {
+	const bool written = artifactWriter(path, content);
+	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
+	if (!written) {
 		QMessageBox::warning(parent, "Export failed",
 			QString("Could not export the data and provenance to:\n%1").arg(path));
 	}
@@ -2638,7 +2774,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_caseSettingsDock->setWidget(caseSettingsWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_caseSettingsDock);
 	m_caseSettingsDock->hide();
-	editorsMenu()->addAction(m_caseSettingsDock->toggleViewAction());
+	registerEditorDock(m_caseSettingsDock);
 	connect(m_caseNameEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
 	connect(m_caseDescriptionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
 	connect(m_caseBaseTimeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
@@ -2744,7 +2880,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureDock->setWidget(infrastructureWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
 	m_infrastructureDock->hide();
-	editorsMenu()->addAction(m_infrastructureDock->toggleViewAction());
+	registerEditorDock(m_infrastructureDock);
 	connect(m_infrastructureFacetCombo, &QComboBox::currentTextChanged, this,
 			[this](const QString&) {
 				m_infrastructureSelectionId.clear();
@@ -2907,7 +3043,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_trainUnitDock->setWidget(trainUnitWidget);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
-	editorsMenu()->addAction(m_trainUnitDock->toggleViewAction());
+	registerEditorDock(m_trainUnitDock);
 	connect(m_trainUnitListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateTrainUnitDetailPanel();
 	});
@@ -3022,7 +3158,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
 	m_compositionDock->hide();
 	tabifyDockWidget(m_trainUnitDock, m_compositionDock);
-	editorsMenu()->addAction(m_compositionDock->toggleViewAction());
+	registerEditorDock(m_compositionDock);
 
 	connect(m_compositionListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateCompositionDetailPanel();
@@ -3237,7 +3373,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
 	m_serviceDock->hide();
 	tabifyDockWidget(m_compositionDock, m_serviceDock);
-	editorsMenu()->addAction(m_serviceDock->toggleViewAction());
+	registerEditorDock(m_serviceDock);
 
 	connect(m_serviceListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateServiceDetailPanel();
@@ -3460,7 +3596,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentDock->hide();
 	m_trainUnitDock->hide();
 	tabifyDockWidget(m_serviceDock, m_incidentDock);
-	editorsMenu()->addAction(m_incidentDock->toggleViewAction());
+	registerEditorDock(m_incidentDock);
 
 	connect(m_incidentListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateIncidentDetailPanel();
@@ -3682,7 +3818,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
 	tabifyDockWidget(m_serviceDock, m_passengerDock);
-	editorsMenu()->addAction(m_passengerDock->toggleViewAction());
+	registerEditorDock(m_passengerDock);
 
 	connect(m_passengerListWidget, &QListWidget::currentRowChanged, this,
 		[this](int) { updatePassengerDetailPanel(); });
@@ -3841,6 +3977,7 @@ void MainWindow::dropEvent(QDropEvent* event) {
 }
 
 void MainWindow::newScene() {
+	const auto operation = captureTelemetryOperation();
 	if (!maybeSaveScene())
 		return;
 
@@ -3884,41 +4021,74 @@ void MainWindow::newScene() {
 	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
-	if (m_caseSettingsDock) {
-		m_caseSettingsDock->show();
-		m_caseSettingsDock->raise();
-	}
-	if (m_infrastructureDock) {
-		m_infrastructureDock->show();
-		m_infrastructureDock->raise();
-	}
+	telemetry::revealEditor(m_caseSettingsDock, operation);
+	telemetry::revealEditor(m_infrastructureDock, operation);
 }
 
 void MainWindow::openSceneDialog() {
+	const auto operation = captureTelemetryOperation();
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
 	const QString path = QFileDialog::getOpenFileName(this, "Open Case Study", startDir,
 		"EGTRAIN Case Study (*.egscene)");
 	if (path.isEmpty())
 		return;
 
-	requestOpenScene(path);
+	requestOpenScene(path, operation);
 }
 
 void MainWindow::openSceneFolderDialog() {
+	const auto operation = captureTelemetryOperation();
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
 	const QString dir = QFileDialog::getExistingDirectory(this, "Open Scene Folder", startDir);
 	if (!dir.isEmpty())
-		requestOpenScene(dir);
+		requestOpenScene(dir, operation);
+}
+
+telemetry::OperationObservation MainWindow::captureTelemetryOperation() const noexcept {
+	return telemetry::OperationObservation(m_telemetrySender.get());
+}
+
+void MainWindow::registerEditorDock(QDockWidget* dock) {
+	m_editorActions.insert(dock, telemetry::registerEditor(dock, editorsMenu(),
+		[this] { return captureTelemetryOperation(); }));
+}
+
+QMenu* MainWindow::createPopupMenu() {
+	QMenu* menu = QMainWindow::createPopupMenu();
+	if (!menu) return nullptr;
+	for (auto it = m_editorActions.cbegin(); it != m_editorActions.cend(); ++it) {
+		QAction* original = it.key()->toggleViewAction();
+		if (!menu->actions().contains(original)) continue;
+		menu->insertAction(original, it.value());
+		menu->removeAction(original);
+	}
+	return menu;
+}
+
+void MainWindow::revealEditorDock(QDockWidget* dock) {
+	revealEditorDock(dock, captureTelemetryOperation());
+}
+
+void MainWindow::revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation) {
+	if (dock == m_caseSettingsDock || dock == m_infrastructureDock || dock == m_trainUnitDock
+			|| dock == m_compositionDock || dock == m_serviceDock || dock == m_incidentDock
+			|| dock == m_passengerDock)
+		telemetry::revealEditor(dock, operation);
+	else if (dock) { dock->show(); dock->raise(); }
 }
 
 bool MainWindow::requestOpenScene(const QString& path) {
+	return requestOpenScene(path, captureTelemetryOperation());
+}
+
+bool MainWindow::requestOpenScene(const QString& path, const telemetry::OperationObservation& operation) {
 	if (path.isEmpty())
 		return false;
 	if (!maybeSaveScene()) {
 		statusBar()->showMessage("Open canceled. Current scene retained.", 8000);
 		return false;
 	}
-	if (openSceneDirectory(path))
+	if (openSceneDirectory(path, operation))
 		return true;
 	statusBar()->showMessage(QString("Scene unchanged: %1 could not be opened.")
 		.arg(QFileInfo(path).fileName()), 8000);
@@ -3926,6 +4096,10 @@ bool MainWindow::requestOpenScene(const QString& path) {
 }
 
 bool MainWindow::openSceneDirectory(const QString& dir) {
+	return openSceneDirectory(dir, captureTelemetryOperation());
+}
+
+bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::OperationObservation& operation) {
 	const QString scenePath = QFileInfo(dir).absoluteFilePath();
 	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(scenePath.toStdString());
 	const auto compatibilityMessage = [&compatibility]() {
@@ -3983,15 +4157,17 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		const SceneMigrationResult migrated = migrateSceneCopy(scenePath.toStdString(),
 			destination.toStdString());
 		if (!migrated.success()) {
+			operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(migrated.diagnostics));
 			QString message = firstDiagnosticMessage(migrated.diagnostics);
 			if (message.isEmpty())
 				message = compatibilityMessage();
 			showBlockingError(this, "Cannot Upgrade Scene", message);
 			return false;
 		}
-		return openSceneDirectory(destination);
+		return openSceneDirectory(destination, operation);
 	}
 	if (compatibility.classification == SceneCompatibilityClass::OlderUnsupported) {
+		operation.failure(telemetry::Operation::SceneOpen, telemetry::Error::UnsupportedFormat);
 		if (!noCompatibilityDialogs)
 			showBlockingError(this, "Older Scene Not Supported",
 				"This scene uses an older schema or bundle layout with no registered migration path.\n\n"
@@ -4000,6 +4176,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	}
 	if (compatibility.classification == SceneCompatibilityClass::Newer) {
 		if (noCompatibilityDialogs) {
+			operation.failure(telemetry::Operation::SceneOpen, telemetry::Error::UnsupportedFormat);
 			statusBar()->showMessage("Newer scene format requires a newer EGTRAIN version");
 			return false;
 		}
@@ -4016,11 +4193,14 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		QPushButton* updates = dialog.addButton("Check for Updates...", QMessageBox::AcceptRole);
 		dialog.addButton("Cancel", QMessageBox::RejectRole);
 		dialog.exec();
-		if (dialog.clickedButton() == updates)
+		if (dialog.clickedButton() == updates) {
+			operation.failure(telemetry::Operation::SceneOpen, telemetry::Error::UnsupportedFormat);
 			startUpdateCheck(true);
+		}
 		return false;
 	}
 	if (compatibility.classification == SceneCompatibilityClass::Malformed) {
+		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(compatibility.diagnostics));
 		if (!noCompatibilityDialogs)
 			showBlockingError(this, "Cannot Open Scene", compatibilityMessage());
 		return false;
@@ -4040,6 +4220,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 			QStringLiteral("MainWindow::openSceneDirectory"), timingIdentityOk);
 	int errorCount = errorDiagnosticCount(result.diagnostics);
 	if (errorCount > 0) {
+		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(result.diagnostics));
 		QString message = firstDiagnosticMessage(result.diagnostics);
 		if (message.isEmpty())
 			message = "Scene could not be opened.";
@@ -4111,6 +4292,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 		m_loadedDataDock->show();
 		m_loadedDataDock->raise();
 	}
+	operation.sceneOpened(sceneIsBundle ? telemetry::SceneKind::Bundled : telemetry::SceneKind::Local);
 	return true;
 }
 
@@ -4509,7 +4691,14 @@ void MainWindow::saveScene() {
 	saveSceneToCurrentDir();
 }
 
-bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
+bool MainWindow::finishSceneSave(const SceneSaveResult& result,
+		const telemetry::OperationObservation& operation, std::optional<telemetry::ExportKind> kind) {
+	auto error = telemetryDiagnosticError(result.diagnostics);
+	// The bundle save boundary checks this typed value before any filesystem attempt.
+	if (kind == telemetry::ExportKind::SceneBundle && !result.success() && !result.writeAttempted
+			&& m_sceneModel.schemaVersion != kCurrentSceneSchemaVersion)
+		error = telemetry::Error::UnsupportedFormat;
+	operation.exportFinished(kind, result.success(), result.writeAttempted, error);
 	if (!result.success()) {
 		QString message = firstDiagnosticMessage(result.diagnostics);
 		if (message.isEmpty())
@@ -4537,16 +4726,18 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result) {
 }
 
 bool MainWindow::saveSceneToCurrentDir() {
+	const auto operation = captureTelemetryOperation();
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingEditorValues();
 	if (m_sceneDir.isEmpty())
-		return saveSceneAsToBundle();
+		return saveSceneAsToBundle(operation);
 
 	auto result = m_sceneIsBundle
 		? saveSceneBundle(m_sceneModel, m_sceneDir.toStdString())
 		: ::saveScene(m_sceneModel, m_sceneDir.toStdString());
-	return finishSceneSave(result);
+	return finishSceneSave(result, operation, m_sceneIsBundle
+		? std::optional<telemetry::ExportKind>(telemetry::ExportKind::SceneBundle) : std::nullopt);
 }
 
 void MainWindow::saveSceneAs() {
@@ -4554,6 +4745,10 @@ void MainWindow::saveSceneAs() {
 }
 
 bool MainWindow::saveSceneAsToBundle() {
+	return saveSceneAsToBundle(captureTelemetryOperation());
+}
+
+bool MainWindow::saveSceneAsToBundle(const telemetry::OperationObservation& operation) {
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingEditorValues();
@@ -4570,16 +4765,17 @@ bool MainWindow::saveSceneAsToBundle() {
 
 	auto result = saveSceneBundle(m_sceneModel, targetPath.toStdString());
 	if (!result.success())
-		return finishSceneSave(result);
+		return finishSceneSave(result, operation, telemetry::ExportKind::SceneBundle);
 
 	m_sceneDir = targetPath;
 	m_sceneIsBundle = true;
 	m_sceneBundleVersion = kCurrentSceneBundleVersion;
 	addRecentScene(targetPath);
-	return finishSceneSave(result);
+	return finishSceneSave(result, operation, telemetry::ExportKind::SceneBundle);
 }
 
 bool MainWindow::saveSceneAsToDirectory() {
+	const auto operation = captureTelemetryOperation();
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingEditorValues();
@@ -4606,21 +4802,21 @@ bool MainWindow::saveSceneAsToDirectory() {
 		}
 	}
 
-	if (!copyScenePassthroughFiles(targetPath))
+	if (!copyScenePassthroughFiles(targetPath, operation))
 		return false;
 
 	auto result = ::saveScene(m_sceneModel, targetPath.toStdString());
 	if (!result.success())
-		return finishSceneSave(result);
+		return finishSceneSave(result, operation, std::nullopt);
 
 	m_sceneDir = targetPath;
 	m_sceneIsBundle = false;
 	m_sceneBundleVersion.reset();
 	addRecentScene(targetPath);
-	return finishSceneSave(result);
+	return finishSceneSave(result, operation, std::nullopt);
 }
 
-bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
+bool MainWindow::copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation) {
 	if (m_sceneDir.isEmpty() || m_sceneIsBundle || !QFileInfo(m_sceneDir).isDir())
 		return true;
 
@@ -4629,6 +4825,7 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 
 	QDir target(targetPath);
 	if (!target.exists() && !QDir().mkpath(targetPath)) {
+		operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
 		QMessageBox::critical(this, "Cannot Save Scene", "Cannot create target scene directory.");
 		return false;
 	}
@@ -4649,6 +4846,7 @@ bool MainWindow::copyScenePassthroughFiles(const QString& targetDir) {
 		QString targetViews = target.filePath("views.json");
 		QFile::remove(targetViews);
 		if (!QFile::copy(sourceViews, targetViews)) {
+			operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
 			QMessageBox::critical(this, "Cannot Save Scene", "Cannot copy views.json.");
 			return false;
 		}
@@ -4762,6 +4960,223 @@ bool MainWindow::privacyDialogTestHook() const {
 #endif
 }
 
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+void MainWindow::runTelemetrySmoke(int stage) {
+	if (!m_telemetrySmokeState || !m_telemetrySender) return;
+	const QString root = QDir(qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE")).canonicalPath();
+	const QString mode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE", "mixed");
+	const auto later = [this](int next, int delay = 500) {
+		QTimer::singleShot(delay, this, [this, next] { runTelemetrySmoke(next); });
+	};
+	if (stage == 0) {
+		if ((mode != "retired_restart" && m_telemetrySmokeState->polls.load() < 1)
+				|| (mode == "retired" && m_telemetrySmokeState->posts.load() < 1)) { later(0, 20); return; }
+		telemetry_smoke::dismissMessages();
+		if (mode == "import_late" || mode == "import_revoke") {
+			if (mode == "import_revoke" && m_telemetrySmokeState->posts.load() < 1) { later(0, 20); return; }
+			const int poll = m_telemetrySmokeState->polls.load();
+			telemetry_smoke::chooseDirectory(root + "/private-legacy", "Select Legacy Case Folder",
+				[this, mode, poll, changed = false]() mutable {
+					if (!changed) {
+						changed = true;
+						if (mode == "import_revoke") m_telemetryConsent->save(false, false);
+						m_telemetryConsent->save(true, true);
+						m_telemetrySender->requestConsentRefresh();
+					}
+					return m_telemetrySmokeState->polls.load() > poll;
+				});
+			telemetry_smoke::chooseDirectory(root + "/imported", "Select Scene Destination");
+			actionLoad_Network();
+			if (m_sceneDir != QFileInfo(root + "/imported").canonicalFilePath()) {
+				std::fprintf(stderr, "E2E_TELEMETRY_IMPORT_FAILED\n");
+				QCoreApplication::exit(2); return;
+			}
+			std::fprintf(stdout, "E2E_TELEMETRY_IMPORTED\n");
+		} else if (mode == "late") {
+			// Real actions while disabled must not be reconstructed after enable.
+			openSceneDirectory(m_sceneDir);
+			m_caseSettingsDock->hide();
+			revealEditorDock(m_caseSettingsDock);
+			const int poll = m_telemetrySmokeState->polls.load();
+			saveSceneBundle(m_sceneModel, (root + "/historical.egscene").toStdString());
+			telemetry_smoke::chooseFile(root + "/historical.egscene", [this, poll, changed = false]() mutable {
+				if (!changed) {
+					changed = true;
+					m_telemetryConsent->save(true, true);
+					m_telemetrySender->requestConsentRefresh();
+				}
+				return m_telemetrySmokeState->polls.load() > poll;
+			});
+			openSceneDialog();
+		} else if (mode == "revoke") {
+			if (m_telemetrySmokeState->posts.load() < 1) { later(0, 20); return; }
+			DiagramWindow diagram("Private in-flight chart", this);
+			diagram.setTelemetryCapture([this] { return captureTelemetryOperation(); });
+			diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n"); }, "stale.csv");
+			attachRunProvenance(&diagram, captureRunProvenance());
+			QDir().mkpath(root + "/stale.csv.provenance.json");
+			const int poll = m_telemetrySmokeState->polls.load();
+			telemetry_smoke::chooseFile(root + "/stale.csv", [this, poll, changed = false]() mutable {
+				if (!changed) {
+					changed = true;
+					m_telemetryConsent->save(false, false);
+					m_telemetryConsent->save(true, true);
+					m_telemetrySender->requestConsentRefresh();
+				}
+				return m_telemetrySmokeState->polls.load() > poll;
+			});
+			QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
+		}
+		later(1);
+		return;
+	}
+	if (stage == 1) {
+		const QString scenePath = root + "/case";
+		openSceneDirectory(scenePath);
+		openSceneDirectory(scenePath); // Successful reload is a separate occurrence.
+		openSceneDirectory(root + "/invalid");
+		openSceneDirectory(root + "/ambiguous");
+		if (mode == "unsupported") openSceneDirectory(root + "/newer");
+		if (mode == "malformed_bundle") {
+			openSceneDirectory(root + "/missing-schema.egscene");
+			openSceneDirectory(root + "/noninteger-schema.egscene");
+		}
+		telemetry_smoke::chooseFile(QString());
+		openSceneDialog();
+		for (auto it = m_editorActions.cbegin(); it != m_editorActions.cend(); ++it) {
+			it.key()->hide();
+			it.value()->trigger(); // Built-in QAction ordering must not hide the prior state.
+			revealEditorDock(it.key()); // Focus/tab activation is not another open.
+		}
+		hide(); show(); // Parent visibility never counts editor opens.
+		DiagramWindow diagram("Private chart name", this);
+		diagram.setTelemetryCapture([this] { return captureTelemetryOperation(); });
+		diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n1,2\n"); }, "chart.csv");
+		attachRunProvenance(&diagram, captureRunProvenance());
+		for (int repeat = 0; repeat < 2; ++repeat) {
+			telemetry_smoke::chooseFile(root + "/chart.csv");
+			QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
+		}
+		telemetry_smoke::chooseFile(QString());
+		QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
+		QDir().mkpath(root + "/blocked.csv.provenance.json");
+		telemetry_smoke::chooseFile(root + "/blocked.csv");
+		QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
+		telemetry_smoke::chooseFile(root + "/chart.png");
+		QMetaObject::invokeMethod(&diagram, "exportPng", Qt::DirectConnection);
+		TimetableTableWindow table({}, m_startOffsetSeconds,
+			[](const QStringList&) { return std::string("private,table\n"); }, this);
+		table.setTelemetryCapture([this] { return captureTelemetryOperation(); });
+		table.setRunProvenance(captureRunProvenance());
+		telemetry_smoke::chooseFile(root + "/table.csv");
+		QMetaObject::invokeMethod(&table, "exportCsv", Qt::DirectConnection);
+		telemetry_smoke::chooseFile(root + "/table.png");
+		QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
+		telemetry_smoke::chooseFile(QString());
+		QMetaObject::invokeMethod(&table, "exportCsv", Qt::DirectConnection);
+		telemetry_smoke::chooseFile(QString());
+		QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
+		if (mode == "table_failure") {
+			QDir().mkpath(root + "/blocked_table.png.provenance.json");
+			telemetry_smoke::chooseFile(root + "/blocked_table.png");
+			QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
+		}
+		saveSceneToCurrentDir(); // Directory save has no usage kind.
+		QDir(root + "/failed.egscene").removeRecursively();
+		telemetry_smoke::chooseFile(root + "/failed.egscene", {}, [root] {
+			QDir().mkpath(root + "/failed.egscene");
+		});
+		saveSceneAsToBundle(); // Failed Save As still requests scene_bundle, not current directory kind.
+		telemetry_smoke::chooseFile(root + "/saved.egscene");
+		saveSceneAsToBundle();
+		telemetry_smoke::chooseFile(QString());
+		saveSceneAsToBundle();
+		++m_sceneModel.schemaVersion;
+		telemetry_smoke::chooseFile(root + "/schema.egscene");
+		saveSceneAsToBundle(); // Unsupported schema before staging: diagnostics only.
+		--m_sceneModel.schemaVersion;
+		if (mode == "bundle") openSceneDirectory(root + "/saved.egscene");
+		openSceneDirectory(scenePath);
+		const auto services = m_sceneModel.services;
+		m_sceneModel.services.clear();
+		runScene(); // Handled preflight failure: no usage run pair.
+		m_sceneModel.services = services;
+		later(2);
+		return;
+	}
+	if (stage == 2) {
+		if (mode == "install_failure") m_telemetrySmokeState->installFailurePoint = 0;
+		if (mode == "run_revoke" || mode == "discard") {
+			m_speedSlider->setValue(kMaxStepDelayMs - 10);
+			auto* timer = new QTimer(this);
+			timer->setInterval(20);
+			connect(timer, &QTimer::timeout, this, [this, timer, mode] {
+				if (!m_telemetrySmokeState->startedPosts.load()) return;
+				timer->stop(); timer->deleteLater();
+				if (mode == "discard") { markSceneDirty(); return; }
+				m_telemetryConsent->save(false, false);
+				m_telemetryConsent->save(true, true);
+				m_telemetrySender->requestConsentRefresh();
+			});
+			timer->start();
+		}
+		if (mode == "zero") {
+			teardownGUI();
+			simulation.resetState();
+			startSimulation(captureTelemetryOperation());
+		} else runCurrent();
+		if (mode == "teardown" || mode == "replacement") clearSimulationWorker(true);
+		if (mode == "replacement") {
+			openSceneDirectory(root + "/case");
+			runCurrent(); // A queued GUI completion for the joined worker is stale.
+		}
+		later(3, 50);
+		return;
+	}
+	if (stage == 3 || stage == 5) {
+		if (m_worker) { later(stage, 50); return; }
+		if (mode == "install_failure") {
+			extern InitialParameters initial_variables;
+			const int ordinal = m_telemetrySmokeState->completedProbeRuns;
+			if (!m_resultsAvailable || !telemetry_smoke::recordRun(root, ordinal,
+					buildRunSummaryCsv(m_completedRunResults),
+					QString::fromStdString(initial_variables.OutputMainFolder) + "/EnergyConsumptionPerTrain.txt")) {
+				std::fprintf(stderr, "E2E_TELEMETRY_INSTALL_RUN_FAILED\n");
+				QCoreApplication::exit(2); return;
+			}
+			++m_telemetrySmokeState->completedProbeRuns;
+			if (ordinal < 4) {
+				teardownGUI();
+				simulation.resetState();
+				simulation.runSimulation(); // Zero-train guard probes any orphaned rejection observer.
+				m_telemetrySmokeState->installFailurePoint = ordinal < 3 ? ordinal + 1 : -1;
+				runCurrent();
+				later(3, 50); return;
+			}
+			std::fprintf(stdout, "E2E_TELEMETRY_INSTALL_PROBES runs=%d failures=%d\n",
+				m_telemetrySmokeState->completedProbeRuns, m_telemetrySmokeState->installFailures);
+		}
+		if (stage == 3 && mode == "repeat") {
+			runCurrent();
+			later(5, 50);
+			return;
+		}
+		if (m_resultsAvailable && mode != "teardown") {
+			telemetry_smoke::chooseFile(root + "/summary.csv");
+			if (auto* button = findChild<QPushButton*>("resultView_ExportCSV")) button->click();
+			telemetry_smoke::chooseFile(root + "/summary.png");
+			if (auto* button = findChild<QPushButton*>("resultView_ExportPNG")) button->click();
+		}
+		later(4, 2000);
+		return;
+	}
+	std::fprintf(stdout, "E2E_TELEMETRY_ACTIONS_DONE mode=%s posts=%d\n",
+		mode.toUtf8().constData(), m_telemetrySmokeState->posts.load());
+	std::fflush(stdout);
+	QCoreApplication::quit();
+}
+#endif
+
 void MainWindow::startTelemetryAfterInitialConsent() {
 	if (m_telemetrySender) return;
 	try {
@@ -4791,7 +5206,9 @@ void MainWindow::startTelemetryAfterInitialConsent() {
 			m_telemetrySettings.reset(new QSettings);
 		m_telemetryConsent.reset(new TelemetryConsent(*m_telemetrySettings, context));
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		if (isolated && !m_telemetryConsent->save(true, false)) {
+		const QString smokeMode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE", "mixed");
+		if (isolated && !m_telemetryConsent->save(smokeMode != "diagnostics" && smokeMode != "late" && smokeMode != "import_late",
+				smokeMode != "usage" && smokeMode != "late" && smokeMode != "import_late")) {
 			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=consent_storage_failure\n");
 			return;
 		}
@@ -4800,37 +5217,16 @@ void MainWindow::startTelemetryAfterInitialConsent() {
 		metadata.version = QCoreApplication::applicationVersion();
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 		if (isolated) {
-			telemetry::TelemetrySender::TestOptions options;
-			const QString settingsFile = m_telemetrySettings->fileName();
-			options.settingsFactory = [settingsFile] {
-				return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat));
-			};
-			auto elapsed = std::make_shared<QElapsedTimer>();
-			elapsed->start();
-			options.monotonicMs = [elapsed] { return elapsed->elapsed() * 100; };
-			options.requestTimeoutMs = 1500;
+			m_telemetrySmokeState = std::make_shared<telemetry_smoke::State>();
 			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
-				QDir(isolatedDir).filePath("queue"), options));
-			auto* injectionTimer = new QTimer(this);
-			injectionTimer->setInterval(100);
-			connect(injectionTimer, &QTimer::timeout, this, [this, injectionTimer, attempts = 0]() mutable {
-				if (!m_telemetrySender || ++attempts > 100 ||
-					m_telemetrySender->tryEnqueue({telemetry::Name::SessionStarted})) {
-					if (attempts <= 100 && m_telemetrySender)
-						std::fprintf(stdout, "E2E_TELEMETRY_MOCK_ACCEPTED\n");
-					else
-						std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=gate_unavailable\n");
-					std::fflush(stdout);
-					injectionTimer->stop();
-					injectionTimer->deleteLater();
-				}
-			});
-			injectionTimer->start();
+				QDir(isolatedDir).filePath("queue"), telemetry_smoke::options(isolatedDir, smokeMode, m_telemetrySmokeState)));
+			QTimer::singleShot(0, this, [this] { runTelemetrySmoke(0); });
 		} else
 #endif
 			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
 				QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
 					.filePath(QStringLiteral("Telemetry"))));
+		m_telemetrySender->requestInteractiveSession();
 		connect(m_telemetryConsent.get(), &TelemetryConsent::revoked, this,
 			[this](bool usage, bool diagnostics) {
 				if (m_telemetrySender) m_telemetrySender->invalidateConsent(usage, diagnostics);
@@ -5255,18 +5651,14 @@ void MainWindow::refreshLoadedDataTree() {
 }
 
 void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
+	const auto operation = captureTelemetryOperation();
 	if (!item)
 		return;
 	const QString targetType = item->data(0, kLoadedDataTargetTypeRole).toString();
 	const QString targetId = item->text(0);
 	if (targetType.isEmpty())
 		return;
-	auto raiseDock = [](QDockWidget* dock) {
-		if (dock) {
-			dock->show();
-			dock->raise();
-		}
-	};
+	auto raiseDock = [this, operation](QDockWidget* dock) { revealEditorDock(dock, operation); };
 	if (targetType == "network") {
 		if (networkView) {
 			networkView->setFocus(Qt::OtherFocusReason);
@@ -8790,6 +9182,7 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	QChart* chart = buildInputTractionChart(unit);
 
 	DiagramWindow* win = new DiagramWindow("Input traction characteristic", this);
+	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setProperty("inputTrainUnitId", QString::fromStdString(unit.id));
 	win->setChart(chart);
 	win->setPresentation("Input traction characteristic", inputTractionContext(unit),
@@ -10939,6 +11332,7 @@ void MainWindow::deleteScenario() {
 }
 
 void MainWindow::exportScenario() {
+	const auto operation = captureTelemetryOperation();
 	const SceneScenario* scenario = selectedScenario();
 	if (!scenario)
 		return;
@@ -10950,6 +11344,7 @@ void MainWindow::exportScenario() {
 		path += ".json";
 	const SceneSaveResult result = saveScenarioJson(*scenario, path.toStdString());
 	if (!result.success()) {
+		operation.failure(telemetry::Operation::Export, telemetryDiagnosticError(result.diagnostics));
 		showBlockingError(this, "Scenario export failed", firstDiagnosticMessage(result.diagnostics), true);
 		return;
 	}
@@ -20246,6 +20641,10 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 		m_workerThread->quit();
 		m_workerThread->wait();
 	}
+	for (auto& observation : m_simulationObservations) {
+		QObject::disconnect(observation);
+		observation = QMetaObject::Connection();
+	}
 	// The mailbox can still contain the last worker publication after the
 	// thread has stopped. Drop it with the other transient playback state so a
 	// queued snapshotAvailable callback cannot repaint an old run.
@@ -20724,7 +21123,10 @@ void MainWindow::showEvent(QShowEvent* e) {
 			- qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS"));
 		QTimer::singleShot(1500, this, &MainWindow::runCurrent);
 	} else if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
-		QTimer::singleShot(1500, this, &MainWindow::runCurrent);
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+		if (!qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
+#endif
+			QTimer::singleShot(1500, this, &MainWindow::runCurrent);
 	}
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
 		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
@@ -21546,7 +21948,9 @@ void MainWindow::showDelayComparison() {
 	const RunProvenance scenarioProvenance = scenario.provenance;
 	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison,
 			baselineProvenance, scenarioProvenance]() {
-		saveCsvInteractive(this, "delay_comparison.csv", delayComparisonCsv(*m_delayBaseline, scenario, comparison),
+		const auto operation = captureTelemetryOperation();
+		saveCsvInteractive(this, "delay_comparison.csv", operation,
+			[this, scenario, comparison] { return delayComparisonCsv(*m_delayBaseline, scenario, comparison); },
 			[baselineProvenance, scenarioProvenance](const QString& path, const std::string& bytes) {
 				return writeDelayArtifactWithProvenance(path.toStdString(), "csv", bytes,
 					baselineProvenance, scenarioProvenance);
@@ -21562,7 +21966,7 @@ void MainWindow::showDelayComparison() {
 }
 
 // starts EGTRAIN simulation on a worker thread
-void MainWindow::startSimulation() {
+void MainWindow::startSimulation(const telemetry::OperationObservation& operation) {
 	if (m_worker)
 		return; // already running
 
@@ -21592,6 +21996,59 @@ void MainWindow::startSimulation() {
 	connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
 	connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
 
+	if (m_telemetrySender) {
+		const auto rollback = [this]() noexcept {
+			for (auto& connection : m_simulationObservations) {
+				QObject::disconnect(connection);
+				connection = QMetaObject::Connection();
+			}
+		};
+		// Telemetry is optional. Its allocation/connection failures cannot stop Run.
+		try {
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 0);
+#endif
+			auto observation = std::make_shared<telemetry::SimulationObservation>(operation);
+			m_simulationObservations[0] = connect(&simulation, &DispatchController::executionRejected,
+				&simulation, [observation] { observation->reject(telemetry::Error::InvalidInput); }, Qt::DirectConnection);
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 1);
+#endif
+			m_simulationObservations[1] = connect(&simulation, &DispatchController::executionBegan,
+				&simulation, [observation] { observation->begin(); }, Qt::DirectConnection);
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 2);
+#endif
+			m_simulationObservations[2] = connect(&simulation, &DispatchController::executionReturned,
+				&simulation, [observation](qint64 elapsedMs, bool cancelled) {
+					observation->finish(cancelled ? telemetry::SimulationObservation::Outcome::Cancelled
+						: telemetry::SimulationObservation::Outcome::Completed, elapsedMs);
+				}, Qt::DirectConnection);
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 3);
+#endif
+			if (!m_simulationObservations[0] || !m_simulationObservations[1] || !m_simulationObservations[2])
+				rollback();
+		} catch (...) {
+			rollback();
+		}
+	}
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	const QString smokeMode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE");
+	if (m_telemetrySmokeState && smokeMode == "stop_before")
+		connect(m_worker, &SimulationWorker::simulationStarted, m_worker,
+			&SimulationWorker::requestStop, Qt::DirectConnection);
+	if (m_telemetrySmokeState && smokeMode == "completion_stop") {
+		auto* worker = m_worker.data();
+		m_simulationObservations[3] = connect(&simulation, &DispatchController::executionReturned,
+			&simulation, [worker](qint64, bool) { worker->requestStop(); }, Qt::DirectConnection);
+	}
+	if (m_telemetrySmokeState && smokeMode == "stop_postprocessing") {
+		auto* worker = m_worker.data();
+		m_simulationObservations[4] = connect(&simulation, &DispatchController::executionPostprocessing,
+			&simulation, [worker] { worker->requestStop(); }, Qt::DirectConnection);
+	}
+#endif
 	m_workerThread->start();
 	ui->actionSimulationPause->setEnabled(true);
 	ui->actionSimulationStop->setEnabled(true);
@@ -22291,6 +22748,7 @@ void MainWindow::setStartTime() {
 }
 
 void MainWindow::runScene() {
+	const auto operation = captureTelemetryOperation();
 	extern InitialParameters initial_variables;
 	if (!m_sceneLoaded)
 		return;
@@ -22317,6 +22775,7 @@ void MainWindow::runScene() {
 
 	refreshValidationPanel();
 	if (hasErrors(m_sceneDiagnostics)) {
+		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(m_sceneDiagnostics));
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
 		showBlockingError(this, "Cannot Run Scene",
 						  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
@@ -22326,6 +22785,7 @@ void MainWindow::runScene() {
 	m_lastRunTotalOccurrences = totalServiceOccurrences();
 	m_lastRunSelectedOccurrences = selectedServiceOccurrences();
 	if (m_lastRunSelectedOccurrences <= 0) {
+		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
 		showBlockingError(this, "Cannot Run Scene", "Select at least one generated service occurrence before running.", true);
 		return;
 	}
@@ -22367,6 +22827,7 @@ void MainWindow::runScene() {
 			timingIdentityOk);
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
+		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(diagnostics));
 		m_runtimeStatus = QStringLiteral("Failed");
 		updateSceneActions();
 		refreshValidationPanel();
@@ -22428,11 +22889,12 @@ void MainWindow::runScene() {
 
 	m_runtimeStatus = QStringLiteral("Running");
 	refreshLoadedDataTree();
-	startSimulation();
+	startSimulation(operation);
 	statusBar()->showMessage(QString("Running scene: %1").arg(QString::fromStdString(m_sceneModel.name)));
 }
 
 void MainWindow::actionLoad_Network() {
+	const auto operation = captureTelemetryOperation();
 	const bool e2e = qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT");
 	QString sourceDir;
 	QString destinationDir;
@@ -22508,7 +22970,7 @@ void MainWindow::actionLoad_Network() {
 	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
 	showBlockingError(this, "Legacy Import Diagnostics", diagnosticSummary(diagnostics), true);
-	openSceneDirectory(destinationPath);
+	openSceneDirectory(destinationPath, operation);
 }
 
 // draws a Node
@@ -23123,8 +23585,10 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
+		const auto operation = captureTelemetryOperation();
 		const RunProvenance provenance = m_completedRunProvenance;
-		saveCsvInteractive(this, "run_summary.csv", buildRunSummaryCsv(m_completedRunResults),
+		saveCsvInteractive(this, "run_summary.csv", operation,
+			[this] { return buildRunSummaryCsv(m_completedRunResults); },
 			[provenance](const QString& path, const std::string& bytes) {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
@@ -23133,6 +23597,7 @@ void MainWindow::setupRunResultsDock() {
 	exportPngBtn->setObjectName("resultView_ExportPNG");
 	exportPngBtn->setToolTip("Save the table as an image");
 	connect(exportPngBtn, &QPushButton::clicked, this, [this]() {
+		const auto operation = captureTelemetryOperation();
 		QString path = QFileDialog::getSaveFileName(this, "Export Table", "run_summary.png", "PNG Image (*.png)");
 		if (path.isEmpty())
 			return;
@@ -23141,11 +23606,14 @@ void MainWindow::setupRunResultsDock() {
 		QByteArray data;
 		QBuffer buffer(&data);
 		if (!buffer.open(QIODevice::WriteOnly) || !m_runResultsTable->grab().save(&buffer, "PNG")) {
+			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
 			return;
 		}
 		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
-		if (!writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_completedRunProvenance))
+		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_completedRunProvenance);
+		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
+		if (!written)
 			QMessageBox::warning(this, "Export failed",
 				QString("Could not export the image and provenance to:\n%1").arg(path));
 		});
@@ -23254,10 +23722,7 @@ void MainWindow::refreshRunResults() {
 			m_runResultsTable->rowCount(), static_cast<int>(results.trains.size()),
 			m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
-			QTimer::singleShot(3000, this, [] { QCoreApplication::quit(); });
-#endif
+
 	}
 }
 
@@ -25176,6 +25641,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
 	DiagramWindow* win = new DiagramWindow(title, this);
+	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "trajectory.csv");
 	attachRunProvenance(win, m_completedRunProvenance);
@@ -25207,6 +25673,7 @@ void MainWindow::showTimetableTable() {
 
 	auto* window = new TimetableTableWindow(m_completedTimetableResults,
 									m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
+	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	window->setRunProvenance(m_completedRunProvenance);
 	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(m_completedRunProvenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
@@ -25253,6 +25720,7 @@ void MainWindow::showDelayDiagram() {
 	}
 
 	DiagramWindow* win = new DiagramWindow(title, this);
+	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
 	attachRunProvenance(win, m_completedRunProvenance);
@@ -25428,6 +25896,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(label, this);
+	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setPresentation(timetable ? "Timetable" : "Train paths",
 		QString("Reference: %1 | %2").arg(QString::fromStdString(reference.ID),
@@ -25617,6 +26086,7 @@ void MainWindow::showBlockingTimeDiagram() {
 	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
 
 	DiagramWindow* win = new DiagramWindow("Blocking time: envelopes and trajectories", this);
+	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
 	const QString note = QString("Reference: %1. 0 s = run start. Calculated envelope: approach - setup - sight reaction through clearance + release + run margin, not independently observed occupation. "
 		"Unmapped endpoints/events omitted: %2; incomplete or missing-clearance blocks are also omitted. "
@@ -25801,7 +26271,9 @@ void MainWindow::showCapacityAnalysis() {
 	auto* buttons = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export capacity CSV...", dialog);
 	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
-		saveCsvInteractive(this, "capacity_analysis.csv", buildCapacityAnalysisCsv(result, sectionLabel),
+		const auto operation = captureTelemetryOperation();
+		saveCsvInteractive(this, "capacity_analysis.csv", operation,
+			[result, sectionLabel] { return buildCapacityAnalysisCsv(result, sectionLabel); },
 			[provenance](const QString& path, const std::string& bytes) {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
@@ -25871,6 +26343,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	axisY->setReverse(true);
 	axisY->setRange(std::min(0.0, axisY->min()), std::max(1.0, axisY->max()));
 	DiagramWindow* window = new DiagramWindow("Compressed blocking-time diagram", this);
+	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	window->setChart(chart);
 	const QString note = QString("Reference: %1. Shifted calculated envelopes only, not recorded train movement. "
 		"Unmapped or incomplete blocks omitted; no extrapolation.").arg(referenceId);

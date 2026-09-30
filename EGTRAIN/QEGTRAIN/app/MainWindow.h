@@ -3,6 +3,8 @@
 
 #define PI 3.14159265
 
+#include "telemetry/TelemetryOperation.h"
+
 #ifdef signals
 #define EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #undef signals
@@ -106,6 +108,9 @@ class SelfUpdater;
 class TelemetryConsent;
 class QSettings;
 namespace telemetry { class TelemetrySender; }
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+namespace telemetry_smoke { struct State; }
+#endif
 class QProgressDialog;
 class QPlainTextEdit;
 struct UpdateCheckResult;
@@ -275,7 +280,7 @@ public slots:
 	void updateBlockOccupationStatus(const GuiTrainState& train);
 	void clearOperationalTrackStates();
 	void updateTrainPosition(int t);
-	void startSimulation();
+	void startSimulation(const telemetry::OperationObservation& operation);
 	void runCurrent();
 	void onSimulationFinished();
 	void newScene();
@@ -377,6 +382,8 @@ private:
 	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.
 	QPointer<SimulationWorker> m_worker;
 	QPointer<QThread> m_workerThread;
+	// Three product observations and two isolated cancellation probes.
+	std::array<QMetaObject::Connection, 5> m_simulationObservations{};
 	QSlider* m_speedSlider;
 	QLabel* m_speedLabel;
 	QAction* m_followAction = nullptr;
@@ -421,6 +428,7 @@ private:
 	long long m_startOffsetSeconds = 0; // simulation start, seconds since midnight
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
+	QHash<QDockWidget*, QAction*> m_editorActions;
 	QMenu* m_editorsMenu = nullptr;		// Editors top-level menu (dock toggles)
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
@@ -675,6 +683,10 @@ private:
 	void setupUpdateActions();
 	void showPrivacySettings(bool initialPrompt);
 	void startTelemetryAfterInitialConsent();
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	std::shared_ptr<telemetry_smoke::State> m_telemetrySmokeState;
+	void runTelemetrySmoke(int stage);
+#endif
 	bool privacyDialogTestHook() const;
 	void maybePromptForUpdateChecks();
 	void startUpdateCheck(bool manual);
@@ -694,14 +706,23 @@ private:
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
 	bool requestOpenScene(const QString& path);
+	bool requestOpenScene(const QString& path, const telemetry::OperationObservation& operation);
+	bool openSceneDirectory(const QString& path, const telemetry::OperationObservation& operation);
+	telemetry::OperationObservation captureTelemetryOperation() const noexcept;
+	void registerEditorDock(QDockWidget* dock);
+	QMenu* createPopupMenu() override;
+	void revealEditorDock(QDockWidget* dock);
+	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	bool maybeSaveScene();
 	const TrackPreviewLine* cachedTrackLine(int track) const;
 	void renderTrackPreview(const SceneModel& sceneModel);
-	bool finishSceneSave(const SceneSaveResult& result);
+	bool finishSceneSave(const SceneSaveResult& result, const telemetry::OperationObservation& operation,
+		std::optional<telemetry::ExportKind> kind);
 	bool saveSceneToCurrentDir();
 	bool saveSceneAsToBundle();
+	bool saveSceneAsToBundle(const telemetry::OperationObservation& operation);
 	bool saveSceneAsToDirectory();
-	bool copyScenePassthroughFiles(const QString& targetDir);
+	bool copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void updateSceneWindowTitle();
 	void updateCaseLayersPanel();
 	void refreshCaseSettingsPanel();

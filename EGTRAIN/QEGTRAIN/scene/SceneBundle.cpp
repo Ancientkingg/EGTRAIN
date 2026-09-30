@@ -143,12 +143,14 @@ static bool specialArchiveFile(const mz_zip_archive_file_stat& stat) {
 	return (stat.m_external_attr & (0x008U | 0x010U | 0x040U | 0x400U)) != 0;
 }
 
-static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix, fs::path& result) {
+static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix, fs::path& result,
+		bool* writeAttempted = nullptr) {
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
 		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		ec.clear();
+		if (writeAttempted) *writeAttempted = true;
 		if (fs::create_directory(candidate, ec)) {
 			ec.clear();
 			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
@@ -166,10 +168,11 @@ static bool createUniqueDirectory(const fs::path& parent, const std::string& pre
 	return false;
 }
 
-static bool makeTempDirectory(TempDirectory& temp, std::vector<SceneDiagnostic>& diagnostics) {
+static bool makeTempDirectory(TempDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
+		bool* writeAttempted = nullptr) {
 	std::error_code ec;
 	const fs::path root = fs::temp_directory_path(ec);
-	if (ec || root.empty() || !createUniqueDirectory(root, "egscene-", temp.path)) {
+	if (ec || root.empty() || !createUniqueDirectory(root, "egscene-", temp.path, writeAttempted)) {
 		addDiagnostic(diagnostics, "scene.bundle.temp", "Cannot create a private temporary directory");
 		return false;
 	}
@@ -610,9 +613,10 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	}
 
 	TempDirectory temp;
-	if (!makeTempDirectory(temp, result.diagnostics))
+	if (!makeTempDirectory(temp, result.diagnostics, &result.writeAttempted))
 		return result;
 	SceneSaveResult directoryResult = saveScene(scene, temp.path.string());
+	result.writeAttempted = result.writeAttempted || directoryResult.writeAttempted;
 	result.diagnostics = directoryResult.diagnostics;
 	if (!directoryResult.success())
 		return result;

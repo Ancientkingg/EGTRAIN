@@ -4,6 +4,7 @@
 #include "diagrams/RunResults.h"
 
 #include <QDialog>
+#include "telemetry/TelemetryOperation.h"
 #include <QPointer>
 #include <QStringList>
 
@@ -26,12 +27,16 @@ public:
 	void setRunProvenance(RunProvenance provenance);
 	void setPresentation(const QString& heading, const QString& context);
 
+public:
+	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+
 private slots:
 	void applyTrainVisibility();
 	void exportCsv();
 	void exportPng();
 
 private:
+	telemetry::CaptureOperation m_telemetryCapture;
 	void fillTable();
 
 	std::vector<TimetableResultRow> m_rows;

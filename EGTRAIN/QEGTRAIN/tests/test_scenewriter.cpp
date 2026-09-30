@@ -217,7 +217,8 @@ int main() {
 	source.services[0].operatingCodeStep = 2;
 	SceneSaveResult saved = saveScene(source, temp.path.string());
 	printErrors(saved.diagnostics, "save");
-	ok &= expect(saved.success(), "complete canonical scene saves");
+	ok &= expect(saved.success() && saved.writeAttempted, "complete canonical scene saves after a write attempt");
+	ok &= expect(!saveScene(source, "").writeAttempted, "empty destination rejects before filesystem mutation");
 	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
 			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"})
 		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
@@ -247,7 +248,7 @@ int main() {
 	SceneModel malformed = source;
 	malformed.passengers[0].journeys[0].activity = std::string("\xC3\x28", 2);
 	const SceneSaveResult failedSave = saveScene(malformed, temp.path.string());
-	ok &= expect(!failedSave.success() && hasErrors(failedSave.diagnostics),
+	ok &= expect(!failedSave.success() && failedSave.writeAttempted && hasErrors(failedSave.diagnostics),
 			"malformed UTF-8 fails without publishing a partial generation");
 	ok &= expect(readDirectoryBytes(temp.path) == originalGeneration,
 			"failed save preserves every byte of the previous generation");
@@ -345,7 +346,7 @@ int main() {
 
 	const fs::path standaloneScenarioPath = temp.path / "baseline-scenario.json";
 	const SceneSaveResult standaloneSave = saveScenarioJson(source.scenarios[0], standaloneScenarioPath.string());
-	ok &= expect(standaloneSave.success(), "standalone scenario JSON saves");
+	ok &= expect(standaloneSave.success() && standaloneSave.writeAttempted, "standalone scenario JSON saves after a write attempt");
 	json standaloneScenario;
 	{
 		std::ifstream input(standaloneScenarioPath);
