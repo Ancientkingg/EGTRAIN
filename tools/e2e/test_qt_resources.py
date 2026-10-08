@@ -47,6 +47,13 @@ def main() -> None:
         if f'":/{alias}"' not in source_text and alias != "icons/station.svg":
             raise SystemExit(f"application and graphics source do not reference :/{alias}")
 
+    stylesheet = (SOURCE_ROOT / "resources/styles/egtrain.qss").read_text(encoding="utf-8")
+    for alias in re.findall(r"url\(:/([^)]+)\)", stylesheet):
+        if qrc_entries.get(alias) != f"../resources/{alias}":
+            raise SystemExit(f"stylesheet references a resource missing from the qrc: {alias}")
+        if not (SOURCE_ROOT / "resources" / alias).is_file():
+            raise SystemExit(f"stylesheet references a missing asset: {alias}")
+
     if not any(f'":/{alias}"' in source_text for alias in ENTITY_ASSETS):
         raise SystemExit("application and graphics source do not reference an SVG resource")
 

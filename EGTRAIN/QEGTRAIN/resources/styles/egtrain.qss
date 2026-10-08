@@ -108,6 +108,31 @@ QCheckBox {
     padding: 5px 2px;
 }
 
+QListView::indicator, QTableView::indicator, QTreeView::indicator {
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    border: 1px solid #5b6871;
+    border-radius: 2px;
+}
+
+QListView::indicator:checked, QTableView::indicator:checked, QTreeView::indicator:checked {
+    background: #315a70;
+    border-color: #315a70;
+    image: url(:/icons/check-mark.svg);
+}
+
+QListView::indicator:disabled, QTableView::indicator:disabled, QTreeView::indicator:disabled {
+    background: #e4e8eb;
+    border-color: #c9d3db;
+}
+
+QListView::indicator:checked:disabled, QTableView::indicator:checked:disabled,
+QTreeView::indicator:checked:disabled {
+    background: #9aa5ab;
+    border-color: #9aa5ab;
+}
+
 QCheckBox[secondaryLayerToggle="true"] {
     color: #5b6871;
     margin-left: 16px;

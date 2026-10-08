@@ -2,11 +2,18 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QFileInfo>
+#include <QHeaderView>
+#include <QImage>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QTableWidget>
 
+#include <algorithm>
+#include <cstdlib>
 #include <iostream>
 
 namespace {
@@ -15,6 +22,79 @@ bool check(bool condition, const char* message)
     if (!condition)
         std::cerr << message << '\n';
     return condition;
+}
+
+// Counts pixels in the leftmost 40 px of an item row that differ clearly from the row background,
+// and reports the largest difference. Items have no text, so only the indicator is in that strip.
+struct Indicator {
+    int strongPixels = 0;
+    int maxDifference = 0;
+};
+
+Indicator measureIndicator(const QImage& image, const QRect& row)
+{
+    const int background = qGray(image.pixel(row.left() + 90, row.center().y()));
+    Indicator result;
+    for (int y = row.top(); y <= row.bottom(); ++y) {
+        for (int x = row.left(); x < row.left() + 40; ++x) {
+            const int difference = std::abs(qGray(image.pixel(x, y)) - background);
+            result.maxDifference = std::max(result.maxDifference, difference);
+            result.strongPixels += difference >= 90 ? 1 : 0;
+        }
+    }
+    return result;
+}
+
+bool checkIndicators(const QImage& image, const QRect& unchecked, const QRect& alternate,
+                     const QRect& selected, const QRect& checked, const char* surface)
+{
+    const Indicator plain = measureIndicator(image, unchecked);
+    const Indicator striped = measureIndicator(image, alternate);
+    const Indicator highlighted = measureIndicator(image, selected);
+    const Indicator ticked = measureIndicator(image, checked);
+    bool ok = check(plain.maxDifference >= 90, surface);
+    ok &= check(striped.maxDifference >= 90, surface);
+    ok &= check(highlighted.maxDifference >= 90, surface);
+    ok &= check(ticked.strongPixels >= 2 * plain.strongPixels && plain.strongPixels > 0, surface);
+    return ok;
+}
+
+bool exerciseItemViewIndicators()
+{
+    const Qt::CheckState states[] = {Qt::Unchecked, Qt::Unchecked, Qt::Checked, Qt::Unchecked};
+    QListWidget list;
+    list.setAlternatingRowColors(true);
+    list.resize(200, 160);
+    QTableWidget table(4, 1);
+    table.setAlternatingRowColors(true);
+    table.setColumnWidth(0, 120);
+    table.horizontalHeader()->hide();
+    table.verticalHeader()->hide();
+    table.resize(200, 160);
+    for (int row = 0; row < 4; ++row) {
+        auto* listItem = new QListWidgetItem(&list);
+        listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
+        listItem->setCheckState(states[row]);
+        auto* tableItem = new QTableWidgetItem;
+        tableItem->setFlags(tableItem->flags() | Qt::ItemIsUserCheckable);
+        tableItem->setCheckState(states[row]);
+        table.setItem(row, 0, tableItem);
+    }
+    list.setCurrentRow(3);
+    table.setCurrentCell(3, 0);
+    list.show();
+    table.show();
+    QApplication::processEvents();
+
+    const QImage listImage = list.viewport()->grab().toImage();
+    const QImage tableImage = table.viewport()->grab().toImage();
+    auto listRow = [&](int row) { return list.visualItemRect(list.item(row)); };
+    auto tableRow = [&](int row) { return table.visualItemRect(table.item(row, 0)); };
+    bool ok = checkIndicators(listImage, listRow(0), listRow(1), listRow(3), listRow(2),
+                              "list item indicators are not clearly visible");
+    ok &= checkIndicators(tableImage, tableRow(0), tableRow(1), tableRow(3), tableRow(2),
+                          "table item indicators are not clearly visible");
+    return ok;
 }
 
 bool exercise(const QRect& screen, qreal scale)
@@ -104,9 +184,14 @@ int main(int argc, char** argv)
         std::cerr << "cannot load application QSS\n";
         return 1;
     }
-    app.setStyleSheet(QString::fromUtf8(qss.readAll()));
+    // The test binary has no Qt resources, so point the stylesheet at the icon files.
+    QString styleSheet = QString::fromUtf8(qss.readAll());
+    styleSheet.replace(QStringLiteral(":/icons/"),
+                       QFileInfo(qss).absolutePath() + QStringLiteral("/../icons/"));
+    app.setStyleSheet(styleSheet);
     const bool small = exercise(QRect(0, 0, 1280, 800), 1.0);
     const bool scaledSmall = exercise(QRect(0, 0, 1280, 800), 1.5);
     const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
-    return small && scaledSmall && large ? 0 : 1;
+    const bool indicators = exerciseItemViewIndicators();
+    return small && scaledSmall && large && indicators ? 0 : 1;
 }
