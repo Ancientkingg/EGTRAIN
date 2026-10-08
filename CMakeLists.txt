@@ -432,6 +432,8 @@ if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
 endif()
 if(EGTRAIN_BUILD_TESTS)
     enable_testing()
+    find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+    message(STATUS "Python3: ${Python3_EXECUTABLE}")
     add_executable(test_timeformat
         ${SRC_DIR}/tests/test_timeformat.cpp
         ${SRC_DIR}/util/TimeFormat.cpp)
@@ -491,7 +493,7 @@ if(EGTRAIN_BUILD_TESTS)
     target_compile_definitions(test_telemetrynetwork PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
     target_link_libraries(test_telemetrynetwork PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
     foreach(mode reject trusted)
-        add_test(NAME test_telemetrynetwork_${mode} COMMAND python3
+        add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
             $<TARGET_FILE:test_telemetrynetwork>
             ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
@@ -713,7 +715,7 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_playbackprofiler PRIVATE nlohmann_json::nlohmann_json)
     add_test(NAME test_playbackprofiler COMMAND test_playbackprofiler)
     add_test(NAME test_playback_profile
-        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py)
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py)
 
     add_executable(test_networkview
         ${SRC_DIR}/tests/test_networkview.cpp
@@ -798,9 +800,9 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_consolestream COMMAND test_consolestream)
 
     add_test(NAME test_qt_resources
-        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
     add_test(NAME test_app_icon_config
-        COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/e2e/test_app_icon_config.py)
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/e2e/test_app_icon_config.py)
     add_executable(test_qt_resource_images
         ${SRC_DIR}/tests/test_qt_resource_images.cpp
         ${EGTRAIN_RESOURCES})
@@ -954,17 +956,21 @@ if(EGTRAIN_BUILD_TESTS)
 		TIMEOUT 30)
 
 	add_test(NAME test_headless_smoke_decode
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
 	add_test(NAME test_scene_tool_diagnostics
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_scene_tool_diagnostics.py $<TARGET_FILE:scene_tool>)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_scene_tool_diagnostics.py $<TARGET_FILE:scene_tool>)
 	add_test(NAME test_startup_launch_contract
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
 	# Cover two 60-second child launches, two 8-second PTY checks, and cleanup.
 	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 150)
-	add_test(NAME test_case_chooser_contract
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/case_chooser_contract.py
-			$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/Scenes/Paimpol)
-	set_tests_properties(test_case_chooser_contract PROPERTIES TIMEOUT 120)
+	if(NOT WIN32)
+		add_test(NAME test_case_chooser_contract
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/case_chooser_contract.py
+				$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/Scenes/Paimpol)
+		set_tests_properties(test_case_chooser_contract PROPERTIES TIMEOUT 120)
+	else()
+		message(STATUS "Windows: skipping test_case_chooser_contract (path forms, INI escapes, directory symlink)")
+	endif()
 	add_test(NAME test_scene_drop
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_scene_drop PROPERTIES
@@ -972,51 +978,84 @@ if(EGTRAIN_BUILD_TESTS)
 		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
 		TIMEOUT 60)
 	add_test(NAME test_native_startup_without_legacy
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_native_startup_without_legacy PROPERTIES
 		ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 		TIMEOUT 120)
 	add_test(NAME test_runtime_memory_safety
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/runtime_memory_safety_smoke.py $<TARGET_FILE:QEGTRAIN>)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/runtime_memory_safety_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_runtime_memory_safety PROPERTIES
 		ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 		TIMEOUT 240)
 	add_test(NAME test_simulation_determinism
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/simulation_determinism_smoke.py $<TARGET_FILE:QEGTRAIN>)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/simulation_determinism_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_simulation_determinism PROPERTIES TIMEOUT 300)
 	add_test(NAME test_gui_autostart_smoke
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	# Release completes in seconds; the ceiling exists for the instrumented
 	# sanitizer job, which needs room for the full run plus a short liveness hold.
 	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)
-	add_test(NAME test_csv_export_smoke
-		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
-	set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
-	add_test(NAME test_lebanon_scene_smoke
-		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
-	set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)
-	add_test(NAME test_creator_acceptance_smoke
-		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh)
-	set_tests_properties(test_creator_acceptance_smoke PROPERTIES TIMEOUT 240)
+	if(UNIX)
+		add_test(NAME test_csv_export_smoke
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
+		set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
+		add_test(NAME test_lebanon_scene_smoke
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
+		set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)
+		add_test(NAME test_creator_acceptance_smoke
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh)
+		set_tests_properties(test_creator_acceptance_smoke PROPERTIES TIMEOUT 240)
+		set_tests_properties(test_csv_export_smoke test_lebanon_scene_smoke test_creator_acceptance_smoke
+			PROPERTIES ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>")
+	else()
+		message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_lebanon_scene_smoke, test_creator_acceptance_smoke)")
+	endif()
 	if(APPLE)
 		add_test(NAME test_package_contents_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh)
 		set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 420)
 	endif()
 	add_test(NAME test_release_version
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_version.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_version.py)
 	add_test(NAME test_ci_workflow
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py)
 	add_test(NAME test_windows_subsystem_config
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
 	add_test(NAME test_raii_contract
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_raii_contract.py)
 	add_test(NAME test_ownership_inventory
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
-	add_test(NAME test_measure_peak_rss
-		COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_measure_peak_rss.py)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_ownership_inventory.py)
+	if(NOT WIN32)
+		add_test(NAME test_measure_peak_rss
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/memory/test_measure_peak_rss.py)
+	else()
+		message(STATUS "Windows: skipping test_measure_peak_rss (macOS /usr/bin/time collector)")
+	endif()
+
+	# Headless run of a built scene. The scene path is relative to the executable.
+	if(APPLE)
+		set(EGTRAIN_SMOKE_APP_SCENE "../Resources/Scenes/Paimpol")
+	else()
+		set(EGTRAIN_SMOKE_APP_SCENE "Scenes/Paimpol")
+	endif()
+	add_test(NAME test_headless_scene_smoke
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
+			$<TARGET_FILE:QEGTRAIN> ${EGTRAIN_SMOKE_APP_SCENE})
+	set_tests_properties(test_headless_scene_smoke PROPERTIES TIMEOUT 150)
+
+	# A Windows EXE image near 2 GiB fails to start, so the limit is checked on every Windows build.
+	if(WIN32)
+		set(EGTRAIN_MAX_PE_IMAGE_BYTES 2040109465 CACHE STRING
+			"Fail test_windows_image_size when QEGTRAIN.exe SizeOfImage exceeds this many bytes")
+		add_test(NAME test_windows_image_size
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/pe_image_size.py
+				$<TARGET_FILE:QEGTRAIN> --max-bytes ${EGTRAIN_MAX_PE_IMAGE_BYTES}
+				--machine x64 --subsystem windows)
+	endif()
+	add_test(NAME test_pe_image_size
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_image_size.py)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
@@ -1025,6 +1064,63 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
 	set_tests_properties(test_scenebundle test_scenecompatibility PROPERTIES LABELS "scene-v2")
+
+	# Every test is either `unit` (in-process or a static check) or `integration`
+	# (starts or inspects a built program, or talks to a loopback server).
+	# `gui` needs a Qt platform plugin and `slow` takes more than 20 s locally.
+	# APPEND keeps the scene labels above. Names not registered on this platform are skipped.
+	function(egtrain_label_tests label)
+		foreach(name IN LISTS ARGN)
+			if(TEST ${name})
+				set_property(TEST ${name} APPEND PROPERTY LABELS ${label})
+			endif()
+		endforeach()
+	endfunction()
+	egtrain_label_tests(unit
+		test_updatepreparation test_timeformat test_version test_telemetryconsent test_telemetryqueue
+		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
+		test_guisimulationsnapshot test_trackpreview test_speedformat test_trajectory test_runresults
+		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
+		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
+		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview
+		test_compactdoublespinbox test_aboutdialog test_dialoglayout test_timeprogressbar
+		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
+		test_app_icon_config test_qt_resource_images test_scenevalidator test_sceneimporter
+		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
+		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version
+		test_ci_workflow test_signalling_bounds test_windows_subsystem_config test_raii_contract
+		test_ownership_inventory test_measure_peak_rss test_pe_image_size)
+	egtrain_label_tests(integration
+		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper
+		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
+		test_startup_launch_contract test_case_chooser_contract test_scene_drop
+		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism
+		test_gui_autostart_smoke test_csv_export_smoke test_lebanon_scene_smoke
+		test_creator_acceptance_smoke test_package_contents_smoke test_headless_scene_smoke
+		test_windows_image_size)
+	egtrain_label_tests(gui
+		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
+		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
+		test_networkview test_compactdoublespinbox test_aboutdialog test_dialoglayout
+		test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
+		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
+		test_csv_export_smoke test_creator_acceptance_smoke test_package_contents_smoke)
+	egtrain_label_tests(slow test_gui_autostart_smoke test_ownership_inventory)
+
+	# Fail configuration unless a test has exactly one of the unit and integration labels.
+	get_property(egtrain_all_tests DIRECTORY PROPERTY TESTS)
+	foreach(name IN LISTS egtrain_all_tests)
+		get_test_property(${name} LABELS egtrain_test_labels)
+		set(egtrain_kind_count 0)
+		foreach(kind unit integration)
+			if(egtrain_test_labels MATCHES "(^|;)${kind}(;|$)")
+				math(EXPR egtrain_kind_count "${egtrain_kind_count} + 1")
+			endif()
+		endforeach()
+		if(NOT egtrain_kind_count EQUAL 1)
+			message(FATAL_ERROR "Test ${name} needs exactly one of the labels unit and integration")
+		endif()
+	endforeach()
 endif()
 
 # Install

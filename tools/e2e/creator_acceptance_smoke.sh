@@ -7,8 +7,8 @@ if [[ "${1:-}" == "--preview-infrastructure" ]]; then
 	PREVIEW_ONLY=1
 	export QEGTRAIN_E2E_PREVIEW_ONLY=1 QEGTRAIN_E2E_PREVIEW_PARITY=1
 fi
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-SCENE_TOOL="$ROOT/build/scene_tool"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
+SCENE_TOOL="${QEGTRAIN_SCENE_TOOL:-$ROOT/build/scene_tool}"
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2

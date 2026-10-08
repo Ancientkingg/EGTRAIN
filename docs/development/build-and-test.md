@@ -10,6 +10,9 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 - Qt 5 Core, Gui, Widgets, Charts, and Svg
 - OpenMP runtime
 - ZeroMQ, cppzmq, and nlohmann-json
+- Python 3.9 or newer, found by `find_package(Python3)` at configure time;
+  CTest runs its Python tests with that interpreter. On Windows, set
+  `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8.
 
 `Qt5::Svg` is required by the application and must be available with the
 other Qt 5 modules.
@@ -63,11 +66,11 @@ directory; EGTRAIN then writes `<override>/Output/<scene>`.
 ctest --test-dir build --output-on-failure
 ```
 
-Current tests cover time formatting, speed formatting, trajectory accessors,
-blocking-time diagram data, visual classification, scene validation, explicit
-legacy import/export, scene writing, both native runtime builders, canonical
-TrackPreview rendering, transparent scene bundle round-trips/security limits,
-and smoke output decoding.
+With a multi-config generator such as Visual Studio, build and test the same
+configuration, for example `cmake --build build --config Release` and
+`ctest --test-dir build -C Release`. `ctest -N` lists the tests registered on
+the current platform.
+
 Scene compatibility tests cover manifest probing, independent schema/bundle
 classification, hostile newer bundles, and transactional test-only migration
 chains. The production migration registry is empty; `scene_tool migrate` is a
@@ -77,7 +80,31 @@ The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs
 both enter the same `DispatchController::prepareScene` path.
 
-Scene tests use CTest labels:
+### Test labels
+
+Every test has exactly one of `unit` or `integration`. Configuration fails
+when a test has neither or both.
+
+- `unit`: runs in-process or is a static check. It starts no QEGTRAIN,
+  `scene_tool`, update helper, or socket server.
+- `integration`: starts or inspects a built program (`QEGTRAIN`, `scene_tool`,
+  `egtrain_update_helper`) or talks to a loopback server.
+- `gui`: needs a Qt platform plugin (the tests use `offscreen`) or launches
+  QEGTRAIN in GUI mode. Combine it with either of the labels above.
+- `slow`: takes more than 20 seconds on a development machine.
+
+```bash
+ctest --test-dir build -L unit --output-on-failure
+ctest --test-dir build -L unit -LE gui --output-on-failure
+ctest --test-dir build -L unit -LE slow --output-on-failure
+ctest --test-dir build -L integration --output-on-failure
+ctest --test-dir build -LE slow --output-on-failure
+ctest --test-dir build -L gui --output-on-failure
+```
+
+On Windows add `-C Release` to each command.
+
+Scene tests use CTest labels too:
 
 ```bash
 ctest --test-dir build -L scene-v1 --output-on-failure
@@ -93,6 +120,40 @@ Run the focused bundle test with:
 
 ```bash
 ctest --test-dir build -L scene-v2 --output-on-failure
+```
+
+### Platform coverage
+
+CMake prints one `Windows: skipping ...` status line at configure time for each
+group of tests it leaves out. `yes` below means the test is registered on that
+platform.
+
+| Test | macOS | Linux | Windows | Reason |
+| --- | --- | --- | --- | --- |
+| `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
+| `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
+| `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
+| `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
+| `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
+| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
+
+The three Bash smokes read the application and `scene_tool` paths from
+`QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL`; CTest sets both from the build
+targets. Run by hand without them, they use the macOS paths under `build/`.
+
+`test_headless_scene_smoke` and `test_pe_image_size` run on every platform.
+`test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and
+checks the exit code, the `End of Simulation` line and the energy output.
+QEGTRAIN is a GUI-subsystem program on Windows, so its output exists only on
+redirected handles; the test reads them from Python.
+
+`test_windows_image_size` fails when the `SizeOfImage` of `QEGTRAIN.exe` is
+above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 2040109465), or when the
+executable is not x64 and a Windows-subsystem program. Windows does not start
+an EXE image near 2 GiB. To check a build by hand:
+
+```bash
+python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 2040109465
 ```
 
 ## Simulation Smoke Test

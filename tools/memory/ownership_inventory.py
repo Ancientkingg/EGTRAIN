@@ -116,7 +116,7 @@ def numeric_constants(files):
         ),
     )
     for path in files:
-        cleaned = clean_cpp_code(path.read_text(errors="replace"))
+        cleaned = clean_cpp_code(path.read_text(encoding="utf-8", errors="replace"))
         for pattern in patterns:
             for name, value in pattern.findall(cleaned):
                 constants[name] = int(value)
@@ -149,8 +149,8 @@ def scan_codebase(repo_root):
 
     for path in files:
         relative = path.relative_to(root).as_posix()
-        original_lines = path.read_text(errors="replace").splitlines()
-        cleaned_lines = clean_cpp_code(path.read_text(errors="replace")).splitlines()
+        original_lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        cleaned_lines = clean_cpp_code(path.read_text(encoding="utf-8", errors="replace")).splitlines()
         observers = CONFIRMED_OBSERVERS.get(relative, set())
         for line_number, (original, cleaned) in enumerate(zip(original_lines, cleaned_lines), 1):
             evidence = (relative, line_number, original.strip())

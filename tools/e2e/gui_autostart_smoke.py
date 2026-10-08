@@ -53,6 +53,14 @@ def fail(message: str, log_path: Path, exit_code: int = 1) -> None:
 def terminate_process_group(proc: subprocess.Popen[bytes]) -> None:
     if proc.poll() is not None:
         return
+    if os.name == "nt":
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=5)
+        return
     try:
         os.killpg(proc.pid, signal.SIGTERM)
     except ProcessLookupError:

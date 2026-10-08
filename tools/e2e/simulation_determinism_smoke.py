@@ -75,6 +75,8 @@ def main() -> None:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     timeout=RUN_TIMEOUT,
                 )
             except subprocess.TimeoutExpired as exc:
