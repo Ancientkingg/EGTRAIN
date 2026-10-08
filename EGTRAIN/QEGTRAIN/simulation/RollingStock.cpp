@@ -115,12 +115,6 @@ Train::Train() {
 		StationDisturbance[i] = 0;
 	}
 
-	for (int i = 0; i < 100; i++) {
-		for (int j = 0; j < 1000; j++) {
-			HwMatrix[i][j] = -999999;
-		}
-	}
-
 	prevIntendedDepTime = 0; // initialized as 0 to print from t=0 in the 1st service
 	reservedPlatform = -1;
 
@@ -1437,94 +1431,6 @@ void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double 
 
 	// Print the Files
 	PrintTrainBlockingTimes(OutputFolder);
-}
-
-// Function that determines the correct departure headway to avoid conflicts (with this function we put blockingTime A always below Blocking Time blockSets)
-double ComputeDepartureTimesToSolveConflicts(BlockingTimes A, BlockingTimes blockSets, double DepTimeTrain1, double DepTimeTrain2) {
-	double ShiftedDepTime = -1;
-	double overlap = -1;
-	// with this function we move always train A below train blockSets
-	overlap = blockSets.EndOccTime - A.StartOccTime;
-	ShiftedDepTime = DepTimeTrain1 + overlap; // Add the overlap from the arrival distance
-
-	return ShiftedDepTime;
-}
-
-double ComputeHWForLocationToDepartureTime(BlockingTimes A, BlockingTimes blockSets, double DepTimeTrain1, double DepTimeTrain2) {
-	double Hw = -1;
-	double overlap = -1;
-	double DepartureTimeDistance = abs(DepTimeTrain1 - DepTimeTrain2);
-
-	if (DepTimeTrain1 <= DepTimeTrain2) {	 // if train A enters the block before train blockSets
-		if (A.EndOccTime > blockSets.StartOccTime) { // if the blocks overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = DepartureTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								  // if the blocks do not overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = DepartureTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-
-	else {									 // if train A departs after train blockSets
-		if (blockSets.EndOccTime > A.StartOccTime) { // if the blocks overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = DepartureTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								  // if the blocks do not overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = DepartureTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-	return Hw;
-}
-
-// Function to Compute the Headway with another on a block section or a location
-double ComputeHwForLocation(BlockingTimes A, BlockingTimes blockSets) {
-	double Hw = -1;
-	double overlap = -1;
-	double ArrivalTimeDistance = abs(A.StartRunTime - blockSets.StartRunTime);
-
-	if (A.StartRunTime <= blockSets.StartRunTime) {	 // if train A enters the block before train blockSets
-		if (A.EndOccTime > blockSets.StartOccTime) { // if the blocks overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = ArrivalTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								// if the blocks do not overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = ArrivalTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-
-	else {									 // if train A enters the block after train blockSets
-		if (blockSets.EndOccTime > A.StartOccTime) { // if the blocks overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = ArrivalTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								// if the blocks do not overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = ArrivalTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-	return Hw;
-}
-
-// Function to Compute the Headway with another on a block section or a location (in this function we move blocking time blockSets always below blocking time A)
-double ComputeHwForLocationByShiftingBBelowA(BlockingTimes A, BlockingTimes blockSets) {
-	double Hw = -1;
-	double overlap = -1;
-	// With this function we move always train A above train blockSets
-	overlap = A.EndOccTime - blockSets.StartOccTime;
-	Hw = abs(blockSets.StartRunTime - A.StartRunTime + overlap);
-
-	return Hw;
-}
-
-// Function to Compute the Headway with another on a block section or a location (in this function we move blocking time blockSets always below blocking time A)
-double ComputeShiftAtTimetablePointsByShiftingBBelowA(BlockingTimes A, BlockingTimes blockSets, double timeB) {
-	double ShiftedTimeB = -1;
-	double overlap = -1;
-	// With this function we move always train A above train blockSets
-	overlap = A.EndOccTime - blockSets.StartOccTime;
-	ShiftedTimeB = timeB + overlap;
-
-	return ShiftedTimeB;
 }
 
 // Debug Activate Signalling Function
