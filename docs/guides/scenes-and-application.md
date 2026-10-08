@@ -165,6 +165,40 @@ with zero positive rows is still a success and is labelled **zero positive
 additional final-arrival delay**; positive contribution rows otherwise sum
 exactly to total arrival delay.
 
+### Timetable graphs and train paths
+
+These two **Diagrams** and **Run Results > Open result view...** actions use the
+same reference-route distance axis, but show different data:
+
+- **Timetable graph (planned vs simulated stops)** connects available planned
+  and simulated station arrivals and departures in separate series and shows
+  dwell at each stop as a vertical segment. Planned lines are dashed, simulated
+  lines solid. Connections between stops are not continuous train movement.
+- **Train paths (simulated movement)** plots recorded position samples against
+  simulation time. It does not plot planned timetable events.
+
+Both ask for a reference route. Distance increases to the right; time increases
+downward, with clock labels offset by the case base time (elapsed `0 s` is run
+start). Other routes are projected using shared node/station anchors. Ambiguous
+or unmapped portions are omitted without extrapolation; lines break at missing
+events or unprojectable samples. Train filtering, selection, zoom, and CSV/PNG
+export remain available. Diagrams have no Technical details panels. A concise,
+word-wrapped warning strip above the plot keeps scientific qualifications
+separate from the bounded run/reference identity context.
+
+Blocking-time diagrams show calculated envelopes, not independently observed
+occupation. The envelope extends from approach minus setup and sight reaction
+through clearance plus release and run margin. Incomplete, missing-clearance,
+or unprojectable blocks are omitted. Recorded movement is sampled only within
+the scoped envelopes; planned station references are a separate dashed layer.
+Compressed blocking-time diagrams shift calculated envelopes, not recorded
+movement. Neither view extrapolates missing route projections.
+
+Input traction plots show rolling-stock input, not simulated effort. Their
+warning remains visible when a curve contains negative effort below the default
+`0 kN` lower bound; those values remain in the input, not removed or clamped by
+the plot.
+
 ## Portable bundles
 
 V2 `.egscene` files package canonical V1 JSON in a deterministic ZIP archive.
