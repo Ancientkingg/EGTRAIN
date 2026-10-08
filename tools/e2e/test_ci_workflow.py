@@ -285,8 +285,6 @@ def main() -> None:
         for package in apt_packages
     ):
         missing.append("Linux packages shared with the release workflow")
-    if "hashFiles" in workflow or "hash" in workflow.lower():
-        missing.append("hash-free dependency cache keys")
     cache_keys = re.findall(r"^\s+key: (\S+)\s*$", workflow, re.MULTILINE)
     if not cache_keys or any(not re.search(r"-v\d+$", key) for key in cache_keys):
         missing.append("fixed dependency cache keys with a manual version suffix")

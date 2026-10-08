@@ -142,6 +142,7 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
+      # Prints SizeOfImage in the job summary. test_windows_image_size enforces the limit.
       - name: Report Windows image size
         if: runner.os == 'Windows'
         shell: pwsh

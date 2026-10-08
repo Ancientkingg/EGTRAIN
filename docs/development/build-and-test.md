@@ -23,7 +23,8 @@ Supported toolchains, as used by CI:
 - Windows 10 or 11, x64 only: MSVC (Visual Studio 2019 or newer), Qt 5.15
   `msvc2019_64` with QtCharts, and vcpkg `zeromq cppzmq nlohmann-json` for the
   `x64-windows` triplet. 32-bit Windows is not supported.
-- Linux: Ubuntu 24.04 with the apt packages in the configure example below.
+- Linux: Ubuntu (the `ubuntu-latest` runner image) with the apt packages in
+  the configure example below.
 
 ## Configure
 
