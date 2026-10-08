@@ -22028,13 +22028,25 @@ bool MainWindow::showRunReview() {
 	auto* status = new QLabel(body);
 	status->setObjectName("runReviewStatus");
 	const bool noServicesInPeriod = selectedInPeriod == 0;
+	// The validator message names the route sections and tracks without a signalling level.
+	QString unsignalledSections;
+	for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics) {
+		if (diagnostic.code == "scene.signalling.level.missing") {
+			unsignalledSections = QString::fromStdString(diagnostic.message);
+			unsignalledSections[0] = unsignalledSections[0].toLower();
+			break;
+		}
+	}
 	status->setText(noServicesInPeriod
 		? QStringLiteral("Ready to run, but no selected services enter during this period.")
+		: !unsignalledSections.isEmpty()
+			? QString("Ready to run, but %1.").arg(unsignalledSections)
 		: detailsEnabled && counts.warnings > 0
 			? QString("Ready to run. Review %1 validation %2 if needed.")
 				.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings")
 			: QStringLiteral("Ready to run."));
-	status->setProperty("warning", noServicesInPeriod || (detailsEnabled && counts.warnings > 0));
+	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty()
+		|| (detailsEnabled && counts.warnings > 0));
 	status->setWordWrap(true);
 	layout->addWidget(status);
 

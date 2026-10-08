@@ -512,6 +512,16 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "ref.unresolved"),
 			"unknown arc endpoint returns an actionable infrastructure diagnostic");
 	ok &= expect(Blocks == blocksBeforeInvalidTopology, "invalid topology is rejected before runtime mutation");
+	SceneModel partialArea = tinyScene();
+	partialArea.signallingAreas = {{"partial-area", 0.0, 1.5, 2, {}}};
+	diagnostics = buildInfrastructureAndSignallingFromScene(partialArea);
+	ok &= expect(!hasErrors(diagnostics) && Blocks == 2, "partial signalling area scene builds");
+	if (!hasErrors(diagnostics) && Blocks == 2) {
+		constexpr int unsetLevel = -99999999;
+		ok &= expect(signalling_block_sections[0].SignallingLevel == 2
+				&& signalling_block_sections[1].SignallingLevel == unsetLevel,
+				"only sections inside an area get a level, the others keep the unset default");
+	}
 	return ok;
 }
 

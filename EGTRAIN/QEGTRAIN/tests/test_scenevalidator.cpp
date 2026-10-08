@@ -3,6 +3,7 @@
 #include "scene/SceneValidator.h"
 #include "simulation/RuntimeLimits.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <limits>
@@ -42,6 +43,18 @@ static bool hasCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics, cons
 	return false;
 }
 
+static const SceneDiagnostic* findCode(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code) {
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.code == code)
+			return &diagnostic;
+	}
+	return nullptr;
+}
+
+static bool contains(const std::string& text, const std::string& part) {
+	return text.find(part) != std::string::npos;
+}
+
 static SceneModel completeScene() {
 	SceneModel scene;
 	scene.schemaVersion = 1;
@@ -72,6 +85,7 @@ static SceneModel completeScene() {
 
 	scene.signals.push_back({"signal-1", "block-1"});
 	scene.routes.push_back({"route-1", {"block-1", "block-2"}, false, "", false});
+	scene.signallingAreas.push_back({"area-1", 0.0, 2.0, 0, {}});
 
 	SceneTrainUnit unit;
 	unit.id = "unit-1";
@@ -567,6 +581,102 @@ int main(int argc, char** argv) {
 	ok &= expect(hasCode(validateRunnableScene(conflictingDerivedAreas),
 			"scene.signalling_area.conflict"),
 			"different track scopes cannot conflict on one derived switch section");
+
+	const std::string levelMissing = "scene.signalling.level.missing";
+	SceneModel noAreas = clean;
+	noAreas.signallingAreas.clear();
+	const auto noAreaDiagnostics = validateRunnableScene(noAreas);
+	const SceneDiagnostic* noAreaWarning = findCode(noAreaDiagnostics, levelMissing);
+	ok &= expect(noAreaWarning != nullptr && noAreaWarning->severity == SceneSeverity::Warning
+			&& noAreaWarning->file == "signalling.json" && noAreaWarning->path == "signalling_areas"
+			&& noAreaWarning->message.rfind("No signalling area is defined. 2 of 2 route sections", 0) == 0
+			&& contains(noAreaWarning->message, "(track track-1)")
+			&& contains(noAreaWarning->suggestedFix, "0.000000 to 2.000000 km"),
+			"route sections without any signalling area produce one warning");
+	ok &= expect(!hasErrors(noAreaDiagnostics) && !hasCode(validateScene(noAreas), levelMissing),
+			"missing signalling level is a runnable-only warning");
+	ok &= expect(!hasCode(validateRunnableScene(clean), levelMissing),
+			"a network-wide area covering all route sections removes the warning");
+
+	SceneModel partialArea = clean;
+	partialArea.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
+	const auto partialDiagnostics = validateRunnableScene(partialArea);
+	const SceneDiagnostic* partialWarning = findCode(partialDiagnostics, levelMissing);
+	ok &= expect(partialWarning != nullptr && contains(partialWarning->message, "1 of 2 route sections has no signalling level and runs")
+			&& contains(partialWarning->message, "block-2") && !contains(partialWarning->message, "block-1")
+			&& !contains(partialWarning->message, "No signalling area")
+			&& contains(partialWarning->suggestedFix, "1.000000 to 2.000000 km"),
+			"a partial area names only the route sections it does not contain");
+
+	SceneModel scopedArea = conflictingDerivedAreas;
+	const SceneSectionInventory scopedInventory = buildSceneSectionInventory(scopedArea);
+	std::string derivedSectionId;
+	for (const auto& section : scopedInventory.sections) {
+		if (section.connectionDerived)
+			derivedSectionId = section.id;
+	}
+	scopedArea.routes[0].blocks = {"block-1", "block-2", derivedSectionId, "block-3"};
+	scopedArea.signallingAreas = {{"scoped", 0.0, 10.0, 2, "track-1"}};
+	const auto scopedDiagnostics = validateRunnableScene(scopedArea);
+	const SceneDiagnostic* scopedWarning = findCode(scopedDiagnostics, levelMissing);
+	ok &= expect(!derivedSectionId.empty() && scopedWarning != nullptr
+			&& contains(scopedWarning->message, "1 of 4 route sections")
+			&& contains(scopedWarning->message, "block-3") && contains(scopedWarning->message, "(track track-2)")
+			&& !contains(scopedWarning->message, derivedSectionId),
+			"a track-scoped area covers its tracks and the derived section that touches them");
+
+	SceneModel unusedSection = clean;
+	unusedSection.routes[0].blocks = {"block-1"};
+	unusedSection.signallingAreas.clear();
+	const auto unusedDiagnostics = validateRunnableScene(unusedSection);
+	const SceneDiagnostic* unusedWarning = findCode(unusedDiagnostics, levelMissing);
+	ok &= expect(unusedWarning != nullptr && contains(unusedWarning->message, "1 of 1 route sections")
+			&& !contains(unusedWarning->message, "block-2"), "sections on no route are not reported");
+	SceneModel noRoutes = clean;
+	noRoutes.routes.clear();
+	noRoutes.signallingAreas.clear();
+	ok &= expect(!hasCode(validateRunnableScene(noRoutes), levelMissing),
+			"a scene without routes has no route sections to report");
+
+	SceneModel longRoute = clean;
+	longRoute.nodes.clear();
+	longRoute.arcs.clear();
+	longRoute.blocks.clear();
+	longRoute.connections.clear();
+	longRoute.routes[0].blocks.clear();
+	longRoute.signallingAreas.clear();
+	for (int index = 0; index <= 200; ++index)
+		longRoute.nodes.push_back({"n" + std::to_string(index), "track-1", static_cast<double>(index), 0.0});
+	for (int index = 0; index < 200; ++index) {
+		longRoute.arcs.push_back({"a" + std::to_string(index), "track-1", "n" + std::to_string(index),
+				"n" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+		longRoute.blocks.push_back({"b" + std::to_string(index), "track-1", 1.0});
+		longRoute.routes[0].blocks.push_back("b" + std::to_string(index));
+	}
+	const auto longDiagnostics = validateRunnableScene(longRoute);
+	const SceneDiagnostic* longWarning = findCode(longDiagnostics, levelMissing);
+	ok &= expect(std::count_if(longDiagnostics.begin(), longDiagnostics.end(), [&](const SceneDiagnostic& d) {
+		return d.code == levelMissing;
+	}) == 1 && longWarning != nullptr && contains(longWarning->message, "200 of 200 route sections")
+			&& contains(longWarning->message, "@b4@ and 195 more") && !contains(longWarning->message, "@b5@")
+			&& contains(longWarning->message, "(track track-1)"),
+			"a long route gets one warning that names at most five sections");
+
+	SceneModel negativeChainage = clean;
+	negativeChainage.nodes = {{"node-1", "track-1", -2.0, 0.0}, {"node-2", "track-1", -1.0, 0.0},
+			{"node-3", "track-1", 0.0, 0.0}};
+	negativeChainage.connections.clear();
+	negativeChainage.signallingAreas.clear();
+	const auto negativeDiagnostics = validateRunnableScene(negativeChainage);
+	const SceneDiagnostic* negativeWarning = findCode(negativeDiagnostics, levelMissing);
+	ok &= expect(negativeWarning != nullptr
+			&& contains(negativeWarning->suggestedFix, "-2.000000 to 0.000000 km"),
+			"the suggested area range reports negative chainage");
+
+	const auto conflictDiagnostics = validateRunnableScene(conflictingNetworkAreas);
+	ok &= expect(hasCode(conflictDiagnostics, "scene.signalling_area.conflict")
+			&& !hasCode(conflictDiagnostics, levelMissing),
+			"a section with conflicting areas does not also get the missing level warning");
 
 	struct FailureCase {
 		const char* name;
