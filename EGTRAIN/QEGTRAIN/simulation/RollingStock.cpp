@@ -1521,10 +1521,6 @@ void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin) {
 	}
 }
 
-// This is the function to set the departure sequence of trains at checkpoint nodes of a block section considering whether the OrderList refers to a Merging or a diverging Junction.
-//  Whether the OL refers to a Merging or Diverging Junction shall be evaluated looking at the shape of the junction following the Km progressive in the same direction of
-// IMPORTANT NOTE: When applying the function below the OL point should be coinciding with the last switch of a merging junction or the very first switch of a diverging junction (looking at the infrastructure layout when following the same abscissa direction which was used to intialise the infrastructure)
-
 // check train arrival/departure at/from destination/origin
 void Train::checkTrainArrDep(int trainIdx, int t) {
 	if (numStations <= 0 || Stations == nullptr)

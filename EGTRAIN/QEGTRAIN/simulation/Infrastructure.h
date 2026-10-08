@@ -297,8 +297,6 @@ public:
 	string MinimumTrainCouple;
 	string CriticalTrainCouple;
 
-
 };
-
 
 #endif

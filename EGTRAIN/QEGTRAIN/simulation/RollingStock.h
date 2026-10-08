@@ -164,7 +164,7 @@ public:
 		return *this;
 	}
 
-	// This function is a much more elegant way of expressing the function above: DetermineLastStatusOfInfraElement, so better to use this one
+	// Check that the last recorded status of the infrastructure element is in line with what the train needs
 	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string TrainName, list<InfraEvent> ListAllInfraEvents) {
 		bool IsStatusInfraElementFound = false; // this variable becomes true only when we have found the status of the infrastructure element we are computing the blocking times for, given a train
 		string NameOfInfraElement;
@@ -694,15 +694,6 @@ public:
 			Condition_To_Stop_Train = false;
 		return Condition_To_Stop_Train;
 	}
-
-	// Function to make the trains respect the order given by the Order List in the nodes where a given train order must be respected
-	/**The aim of this function is to set to 0 the speedInBraking of the Arc terminating with these nodes, when the previous train in the OL has not passed yet*/
-
-	// Function to make the trains respect the order given by the Order List in the nodes where a given train order must be respected
-	/** The aim of this function is to set to 0 the speedInBraking of the Arc terminating with these nodes, when the previous train in the OL has not passed yet */
-
-	// Function to Reset to the initial conditionsthe speedInBraking of the Nodes connected to the OL lists.
-	/**This function is needed to avoid that other trains are conditioned by the same instances that a specific train has to respect to satisfy the given orders */
 
 	// Function to Update the LastEntered Train for the all OrderLists OL in the network
 	void Update_LastEnteredTrain_For_All_OL_Improved(int i, const Section& BS) {
@@ -3299,7 +3290,7 @@ public:
 	}
 
 	// Function to setup the station arrivals of the trains based on the computed arrivals/departures at the timetabling points
-	// This function replaces those functions above "Actual_Arrivals_NewVersion" and "Actual_Arrivals"
+	// This function replaces the function above "Actual_Arrivals"
 	void Determine_Actual_Station_Arrivals() {
 		if (!this->TimetablePoints.empty()) {
 			for (int s = 0; s < numStations; s++) {
@@ -3524,9 +3515,6 @@ public:
 	void recordEarliestActiveTrajectoryIndex(int index) {
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
-
-	// signalling functions that need train info to occupy specific signalling_block_sections
-	/** function to occupy entire single track*/
 
 	// unlock single track (unlock signalling_block_sections for a train passing a single track)
 	void unlockSingleTrack(Section* BS, int Blocks, int t);

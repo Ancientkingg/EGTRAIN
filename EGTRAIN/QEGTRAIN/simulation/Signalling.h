@@ -464,6 +464,4 @@ public:
 
 extern std::vector<StationBoundarySection> stationBoundarySections;
 
-// Save signal aspect from previous timestep (prevents signalling function interference)
-
 #endif

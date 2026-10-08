@@ -4613,8 +4613,6 @@ void StationBoundarySection::protectEntrance(int sectionIndex, int routeIndex, b
 // vector containing the station entrance sections
 std::vector<StationBoundarySection> stationBoundarySections;
 
-// dictionary to save signal aspect from previous timestep (used to avoid messing signalling functions)
-
 std::vector<SimulationIncident> simulationIncidents;
 
 namespace {

@@ -234,9 +234,6 @@ void Detect_Implemented_Order_For_All_OL() {
 	}
 }
 
-// Function to draw stochastic Train Delays from a Gaussian Distribution, the St Dev of the delays Perc_Std_Dev must be expressed as a percentage of the scheduled dwell time at stations (e.g. if it is the 20% put Perc_Std_Dev=0.2)
-
-
 // Function to Print all the trajectories
 void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
 	string FileName;
