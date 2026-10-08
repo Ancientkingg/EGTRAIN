@@ -152,6 +152,21 @@ jobs:
         shell: bash
         run: ctest --test-dir build -C Release --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
 
+      # The same files as the Windows release package, started with only the operating
+      # system directories on PATH: a DLL or plugin missing from the package fails here.
+      - name: Start an assembled Windows package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = "$env:RUNNER_TEMP/package/QEGTRAIN"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          Copy-Item build/Release/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
+          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
+          python tools/release/package_start_smoke.py $dist
+
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

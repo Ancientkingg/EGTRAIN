@@ -311,6 +311,22 @@ def main() -> None:
         re.DOTALL,
     ):
         missing.append("Windows image size CTest")
+    package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
+    package_assembly = (
+        'installed/x64-windows/bin/*.dll" $dist/',
+        'windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"',
+        'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"',
+    )
+    if (
+        "tools/release/package_start_smoke.py $dist" not in package_step
+        or any(entry not in package_step or entry not in release_workflow for entry in package_assembly)
+    ):
+        missing.append("Windows package start check with the assembly commands of the release workflow")
+    if not re.search(
+        r"if\(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4\)\s*message\(FATAL_ERROR",
+        cmake,
+    ):
+        missing.append("64-bit Windows configure check")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 

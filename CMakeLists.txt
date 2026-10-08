@@ -5,6 +5,12 @@ if(NOT EGTRAIN_VERSION MATCHES "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-
 endif()
 project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES C CXX)
 
+# The application and the Qt and vcpkg packages it is built with are 64-bit only on Windows.
+if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+    message(FATAL_ERROR "EGTRAIN supports 64-bit Windows (x64) only. Configure for x64: "
+        "-A x64 with a Visual Studio generator, or an x64 configuration in Visual Studio.")
+endif()
+
 # The project version is the single application-version source for every
 # target and package surface.
 add_compile_definitions(EGTRAIN_APP_VERSION=\"${PROJECT_VERSION}\")
@@ -120,7 +126,7 @@ endif()
 find_package(cppzmq REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-# --- Sources (mirrors QEGTRAIN.vcxproj ClCompile items) ---
+# --- Sources ---
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
@@ -1111,6 +1117,15 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_pe_image_size
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_image_size.py)
+	# A 32-bit configure stops with the message that names the supported platform.
+	if(WIN32 AND CMAKE_GENERATOR MATCHES "Visual Studio")
+		add_test(NAME test_win32_configure_rejected
+			COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}
+				-B ${CMAKE_CURRENT_BINARY_DIR}/win32-configure-check -G ${CMAKE_GENERATOR} -A Win32)
+		set_tests_properties(test_win32_configure_rejected PROPERTIES
+			PASS_REGULAR_EXPRESSION "EGTRAIN supports 64-bit Windows"
+			TIMEOUT 300)
+	endif()
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
@@ -1152,7 +1167,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism
 		test_gui_autostart_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_package_contents_smoke test_headless_scene_smoke
-		test_windows_image_size)
+		test_windows_image_size test_win32_configure_rejected)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
