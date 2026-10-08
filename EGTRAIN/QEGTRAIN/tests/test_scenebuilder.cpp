@@ -526,7 +526,45 @@ static bool runTinyBuilderChecks() {
 }
 
 
+static bool runLongTrackChecks() {
+	bool ok = true;
+	constexpr int arcCount = 1600;
+	constexpr int arcsPerBlock = 16;
+	SceneModel scene;
+	scene.name = "long-track";
+	scene.tracks = {{"track.long"}};
+	for (int index = 0; index <= arcCount; ++index)
+		scene.nodes.push_back({"node." + std::to_string(index), "track.long", static_cast<double>(index), 0.0});
+	for (int index = 0; index < arcCount; ++index)
+		scene.arcs.push_back({"arc." + std::to_string(index), "track.long", "node." + std::to_string(index),
+				"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
+	for (int index = 0; index < arcCount / arcsPerBlock; ++index)
+		scene.blocks.push_back({"block." + std::to_string(index), "track.long",
+				static_cast<double>(arcsPerBlock)});
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	ok &= expect(!hasErrors(diagnostics), "a track with more than 1500 nodes and arcs builds");
+	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == arcCount + 1 && blockSets[0].arcs == arcCount
+			&& blockSets[0].len == arcCount, "the long track keeps all nodes and arcs");
+	ok &= expect(blockSets[0].N.size() == static_cast<std::size_t>(arcCount + 1)
+			&& blockSets[0].A.size() == static_cast<std::size_t>(arcCount)
+			&& blockSets[0].member.size() == static_cast<std::size_t>(arcCount),
+			"the track buffers are sized from the scene");
+	if (blockSets[0].member.size() == static_cast<std::size_t>(arcCount)) {
+		ok &= expect(blockSets[0].member.front().startNode.X == 0.0
+				&& blockSets[0].member.back().endNode.X == static_cast<double>(arcCount),
+				"the long track keeps its first and last coordinates");
+		ok &= expect(blockSets[0].A.back().endNode.X == static_cast<double>(arcCount),
+				"the long track keeps its arcs past the former limit");
+	}
+	ok &= expect(Blocks == arcCount / arcsPerBlock, "the long track yields one section per block");
+	resetNativeInfrastructureState();
+	ok &= expect(blockSets[0].N.capacity() == 0 && blockSets[0].A.capacity() == 0
+			&& blockSets[0].member.capacity() == 0, "the runtime reset releases the track buffers");
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
+	ok &= runLongTrackChecks();
 	return ok ? 0 : 1;
 }
