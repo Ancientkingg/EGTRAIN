@@ -110,12 +110,12 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_tooltip->setAttribute(Qt::WA_TransparentForMouseEvents);
 	m_tooltip->hide();
 	installEventFilter(this);
+	// The shortcuts belong to the chart view, so they only take keys while the chart has focus.
 	for (const auto key : {Qt::Key_Plus, Qt::Key_Equal, Qt::Key_Minus, Qt::Key_0, Qt::Key_Home,
 		Qt::Key_Left, Qt::Key_Right, Qt::Key_Up, Qt::Key_Down}) {
-		auto* shortcut = new QShortcut(QKeySequence(key), this);
+		auto* shortcut = new QShortcut(QKeySequence(key), m_view);
 		shortcut->setContext(Qt::WidgetWithChildrenShortcut);
 		connect(shortcut, &QShortcut::activated, this, [this, key] {
-			if (!m_view->hasFocus() && !m_view->viewport()->hasFocus()) return;
 			if (key == Qt::Key_0 || key == Qt::Key_Home) { resetZoom(); return; }
 			QPointF pan;
 			if (key == Qt::Key_Left) pan.setX(40);
