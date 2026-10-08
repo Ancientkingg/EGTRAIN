@@ -7,10 +7,11 @@
 #include <QGraphicsRectItem>
 #include <QImage>
 #include <QNativeGestureEvent>
-#include <QPainter>
+#include <QScrollBar>
 #include <QWheelEvent>
 #include <cmath>
 #include <iostream>
+#include <string>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -30,29 +31,82 @@ static bool endpointInside(const NetworkView& view, const QPointF& point) {
 		&& mapped.y() <= viewport.height() - 24;
 }
 
-class TestNetworkView : public NetworkView {
-public:
-	using NetworkView::drawBackground;
-};
+static const QColor kCanvas(0x10, 0x1a, 0x22);
+static const QColor kGrid(0x18, 0x28, 0x32);
+
+// Columns (or rows) of the image that are mostly grid-coloured.
+static QList<int> gridLines(const QImage& image, bool vertical) {
+	QList<int> lines;
+	const int outer = vertical ? image.width() : image.height();
+	const int inner = vertical ? image.height() : image.width();
+	for (int i = 0; i < outer; ++i) {
+		int hits = 0;
+		for (int j = 0; j < inner; ++j)
+			hits += (vertical ? image.pixelColor(i, j) : image.pixelColor(j, i)) == kGrid ? 1 : 0;
+		if (hits * 10 > inner * 9)
+			lines.append(i);
+	}
+	return lines;
+}
+
+static bool spacingWithinBand(const QList<int>& lines) {
+	if (lines.size() < 3)
+		return false;
+	for (int i = 1; i < lines.size(); ++i) {
+		const int gap = lines[i] - lines[i - 1];
+		if (gap < 23 || gap > 97)
+			return false;
+	}
+	const qreal mean = qreal(lines.last() - lines.first()) / (lines.size() - 1);
+	return mean >= 24.0 - 0.5 && mean <= 96.0 + 0.5;
+}
+
+static QImage renderBackground(NetworkView& view) {
+	QApplication::processEvents();
+	return view.viewport()->grab().toImage().convertToFormat(QImage::Format_RGB32);
+}
+
+static bool checkBackgroundGrid(NetworkView& view, const char* zoom) {
+	bool ok = true;
+	const std::string label = zoom;
+	const QImage image = renderBackground(view);
+	const QList<int> columns = gridLines(image, true);
+	const QList<int> rows = gridLines(image, false);
+	ok &= expect(!columns.isEmpty() && !rows.isEmpty(), (label + ": grid lines exist").c_str());
+	ok &= expect(spacingWithinBand(columns) && spacingWithinBand(rows),
+		(label + ": grid spacing is 24 to 96 pixels").c_str());
+
+	int freeX = -1;
+	for (int x = 0; x < image.width() && freeX < 0; ++x)
+		if (!columns.contains(x))
+			freeX = x;
+	int freeY = -1;
+	for (int y = 0; y < image.height() && freeY < 0; ++y)
+		if (!rows.contains(y))
+			freeY = y;
+	ok &= expect(freeX >= 0 && freeY >= 0 && image.pixelColor(freeX, freeY) == kCanvas,
+		(label + ": canvas colour between grid lines").c_str());
+
+	// A pan that is not a multiple of the spacing moves every line by the same amount.
+	QScrollBar* bar = view.horizontalScrollBar();
+	const int pan = 7;
+	const int before = bar->value();
+	bar->setValue(before + pan);
+	const int moved = bar->value() - before;
+	const QList<int> shifted = gridLines(renderBackground(view), true);
+	bool followed = moved != 0 && !shifted.isEmpty();
+	for (int column : columns) {
+		const int target = column - moved;
+		if (target >= 0 && target < image.width() && !shifted.contains(target))
+			followed = false;
+	}
+	ok &= expect(followed, (label + ": panning moves the grid with the scene").c_str());
+	bar->setValue(before);
+	return ok;
+}
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
-	TestNetworkView backgroundView;
-	QImage background(160, 160, QImage::Format_RGB32);
-	background.fill(Qt::magenta);
-	{
-		QPainter painter(&background);
-		backgroundView.drawBackground(&painter, QRectF(0.0, 0.0, 160.0, 160.0));
-	}
-	bool hasCanvas = false;
-	bool hasGrid = false;
-	for (int y = 0; y < background.height(); ++y) {
-		for (int x = 0; x < background.width(); ++x) {
-			const QColor pixel = background.pixelColor(x, y);
-			hasCanvas |= pixel == QColor(Qt::black);
-			hasGrid |= pixel != QColor(Qt::black);
-		}
-	}
 	NetworkView view;
 	QGraphicsScene scene;
 	view.setScene(&scene);
@@ -70,7 +124,19 @@ int main(int argc, char** argv) {
 	farOverlay->setFlag(QGraphicsItem::ItemIgnoresTransformations);
 
 	bool ok = true;
-	ok &= expect(hasCanvas && !hasGrid, "historical canvas is uniformly black");
+	{
+		NetworkView gridView;
+		QGraphicsScene gridScene;
+		gridView.setScene(&gridScene);
+		gridView.setFrameShape(QFrame::NoFrame);
+		gridView.resize(640, 480);
+		gridView.show();
+		gridView.fitToBounds(QRectF(0.0, 0.0, 1000.0, 600.0));
+		gridView.zoomBy(3.0);
+		ok &= checkBackgroundGrid(gridView, "3x");
+		gridView.zoomBy(20.0 / 3.0);
+		ok &= checkBackgroundGrid(gridView, "20x");
+	}
 	view.fitToTopology();
 	const QRectF topology = view.topologyBounds();
 	const qreal fittedScale = view.fittedScale();
