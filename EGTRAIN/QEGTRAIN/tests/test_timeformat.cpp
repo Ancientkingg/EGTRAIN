@@ -2,6 +2,7 @@
 #include "util/TimeFormat.h"
 #include "util/timeutil.hpp"
 
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <limits>
