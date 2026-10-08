@@ -6,8 +6,16 @@ This guide records the conventions that new code follows. The newer modules (`sc
 `std::list` containers; new code follows the newer modules, including when it is added to
 `simulation/`. These rules do not ask for a rename of legacy code.
 
-Formatting follows `.clang-format` and `.editorconfig` in the repository root. The
-vendored code in `io/third_party/` is not reformatted.
+Formatting follows `.clang-format` and `.editorconfig` in the repository root.
+`clang-format --dry-run --Werror <files>` reports where a file differs from the style.
+The vendored code in `io/third_party/` is listed in `.clang-format-ignore` and is not
+reformatted.
+
+`.clang-tidy` selects the static checks. CMake writes `build/compile_commands.json` with
+the Makefile and Ninja generators, and `clang-tidy -p build <file>` reads it. With the
+Homebrew LLVM on macOS, add `--extra-arg=-isysroot --extra-arg=$(xcrun --show-sdk-path)`
+so that the standard library headers are found. `io/third_party/` has its own
+`.clang-tidy` that switches the analysis off.
 
 ## File layout
 
