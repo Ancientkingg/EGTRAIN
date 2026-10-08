@@ -23,6 +23,8 @@ SCENES = {
 
 ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
 ASSERT_STATION_ARRIVALS = {1, 2, 3, 4, 5}
+# Cases whose committed scene gives every route section a signalling level.
+SIGNALLING_COVERED = {2, 6}
 
 # d3f5c7005c7030ba3745c8a41b0572e61974bd15 is the last pre-cutover
 # runtime baseline. These checks keep one representative observable per
@@ -151,6 +153,8 @@ def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> Non
         raise SystemExit(f"case {case_id} failed with {proc.returncode}; see {log}")
     if case_id == 3 and (errors := route_errors(proc.stdout)):
         raise SystemExit(f"case 3 reported {len(errors)} broken route transitions; see {log}")
+    if case_id in SIGNALLING_COVERED and "[scene.signalling.level.missing]" in proc.stdout:
+        raise SystemExit(f"case {case_id} has route sections without a signalling level; see {log}")
     print(f"PASS case {case_id} exited cleanly")
 
 
