@@ -17,6 +17,14 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 `Qt5::Svg` is required by the application and must be available with the
 other Qt 5 modules.
 
+Supported toolchains, as used by CI:
+
+- macOS: Homebrew Qt 5 and the packages in the configure example below.
+- Windows 10 or 11, x64 only: MSVC (Visual Studio 2019 or newer), Qt 5.15
+  `msvc2019_64` with QtCharts, and vcpkg `zeromq cppzmq nlohmann-json` for the
+  `x64-windows` triplet. 32-bit Windows is not supported.
+- Linux: Ubuntu 24.04 with the apt packages in the configure example below.
+
 ## Configure
 
 ```bash
@@ -30,11 +38,38 @@ brew install qt@5 libomp zeromq cppzmq nlohmann-json
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
 ```
 
+On Ubuntu:
+
+```bash
+sudo apt-get install -y build-essential cmake \
+  qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+  libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+```
+
+On Windows, from a Visual Studio developer PowerShell, with the vcpkg
+packages installed and the Qt 5.15 `msvc2019_64` directory as
+`CMAKE_PREFIX_PATH`:
+
+```powershell
+vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
+  -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+  -DVCPKG_TARGET_TRIPLET=x64-windows `
+  -DCMAKE_PREFIX_PATH="C:/Qt/5.15.2/msvc2019_64"
+```
+
+The Visual Studio generator is multi-config: choose the configuration when
+building and testing, as in the next two sections.
+
 ## Build
 
 ```bash
 cmake --build build
 ```
+
+With a multi-config generator, add the configuration:
+`cmake --build build --config Release`.
 
 ## Run a local build
 
@@ -146,17 +181,45 @@ targets. Run by hand without them, they use the macOS paths under `build/`.
 `test_headless_scene_smoke` and `test_pe_image_size` run on every platform.
 `test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and
 checks the exit code, the `End of Simulation` line and the energy output.
-QEGTRAIN is a GUI-subsystem program on Windows, so its output exists only on
-redirected handles; the test reads them from Python.
 
-`test_windows_image_size` fails when the `SizeOfImage` of `QEGTRAIN.exe` is
-above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 2040109465), or when the
-executable is not x64 and a Windows-subsystem program. Windows does not start
-an EXE image near 2 GiB. To check a build by hand:
+### Windows headless runs
+
+QEGTRAIN is a GUI-subsystem program on Windows (`WIN32_EXECUTABLE`). With
+`-g 0` it opens no window and reports only through redirected output handles
+and its exit code (0 on success, 1 for bad arguments or scene errors). Started
+from a terminal it prints nothing, and `& QEGTRAIN.exe` in PowerShell does not
+wait for it. Start it from a program that creates the process and reads the
+pipes, such as `tools/e2e/headless_scene_smoke.py`, or from PowerShell with
+`Start-Process`; the two output files must differ:
+
+```powershell
+$dir = Resolve-Path .\build\Release
+$p = Start-Process -Wait -PassThru -NoNewWindow -WorkingDirectory $dir `
+  -FilePath "$dir\QEGTRAIN.exe" `
+  -ArgumentList '--scene','Scenes/Paimpol','-h','300','-g','0','-pax','0','-TSM','0','-RC','0' `
+  -RedirectStandardOutput "$PWD\out.txt" -RedirectStandardError "$PWD\err.txt"
+$p.ExitCode
+```
+
+The working directory is the one that holds `QEGTRAIN.exe`, where the build
+copies `Scenes/`. Set `QEGTRAIN_OUTPUT_DIR` to keep the output out of the
+profile directory.
+
+### Windows image size
+
+Windows maps an EXE as one image whose size is `SizeOfImage` in the PE header,
+and does not start an image near 2 GiB (it reports that the file is not a valid
+Win32 application). `test_windows_image_size` fails when `SizeOfImage` of
+`QEGTRAIN.exe` is above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 2040109465), or
+when the executable is not x64 and a Windows-subsystem program. Set the
+variable at configure time to change the limit. To check a build by hand:
 
 ```bash
 python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 2040109465
 ```
+
+The first output line shows the measured size. The CI workflow prints the same
+line in the job summary.
 
 ## Simulation Smoke Test
 
@@ -217,8 +280,10 @@ Run this after UI or rendering changes.
 
 ## Smoke artifacts
 
-Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`. GitHub
-Actions routes `TMPDIR` to `$RUNNER_TEMP` (`runner.temp`) for CI diagnostics.
+Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows
+the temporary directory comes from `TEMP` and `TMP`. GitHub Actions routes
+`TMPDIR` (macOS, Linux) or `TEMP` and `TMP` (Windows) to `$RUNNER_TEMP`
+(`runner.temp`) for CI diagnostics.
 The visual and render smoke artifacts include:
 
 - `qegtrain-visual-polish-e2e.png` and `qegtrain-visual-polish-e2e.log`
@@ -229,7 +294,12 @@ The visual and render smoke artifacts include:
 ## CI and release branches
 
 - `main` is the validation branch. Pushes and pull requests build the project
-  and run CTest unless every changed file matches the documentation filters.
+  and run the whole CTest suite on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
+  x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
+  documentation filters. The three legs run independently (`fail-fast: false`)
+  and share the same filters. A failed leg uploads `ctest.log` and the GUI
+  autostart log as an artifact named after the leg. Do not make any of these
+  legs a required check; see the branch-protection note below.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
@@ -259,7 +329,26 @@ Do not require these path-filtered workflows as branch-protection checks:
 GitHub leaves skipped required workflows pending, which would block
 documentation-only pull requests.
 
+### Dependency caches
+
+The Windows leg caches the Qt install (through `jurplel/install-qt-action`,
+with the same cache entries as the release workflow) and the vcpkg binary
+archives in `runner.temp/vcpkg-binary-cache`. The vcpkg cache key is fixed,
+`vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1`, and is saved only when the
+restore missed. To invalidate it, for example after changing the vcpkg
+package list, raise the `-v1` suffix by hand in the restore and save steps.
+An existing key is never overwritten. Homebrew and apt packages are not
+cached.
+
+A pull request can restore caches written on `main`, not caches written by
+other branches. The first run after a key change is therefore cold, and the
+push to `main` after the merge writes the caches that later pull requests use.
+
 ## Verification Gates
+
+To run what CI runs, use `ctest --test-dir build --output-on-failure` (add
+`-C Release` with a multi-config generator). For a quick check, use
+`ctest --test-dir build -L unit -LE slow --output-on-failure`.
 
 For UI changes:
 
