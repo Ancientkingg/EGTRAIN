@@ -484,29 +484,33 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 			// round to 2 decimals
 			double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
-			double trainSpeed = std::ceil((regional_train[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
-			jsmsg["trains"][regional_train[n].trainDescription]["km-point"] = xPosition;
-			jsmsg["trains"][regional_train[n].trainDescription]["speed"] = trainSpeed;
-
-			jsmsg["trains"][regional_train[n].trainDescription]["BlockOccupied"] = regional_train[n].Bs.ID;
-			jsmsg["trains"][regional_train[n].trainDescription]["lastOccTime"] = regional_train[n].ComputeLastOccupationTime_real_time(t, regional_train[n].Bs.ID, 10);
-			jsmsg["trains"][regional_train[n].trainDescription]["direction"] = train_route[regional_train[n].indexOfRoute].reversed_direction;
-
 			for (int j = 0; j < regional_train[n].Bs.total_arcs; j++) {
 				if ((xPosition < regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX * 1000) && (xPosition >= regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX * 1000)) { // Selection of the right Arc of the Block Section
 					owl << "99Train " << regional_train[n].trainDescription << " is in blocksection " << regional_train[n].Bs.ID << " so it is in TDS " << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbId << " and next is " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
 					owl << "+++++" << xPosition << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX << " , " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX << std::endl;
 				}
 			}
-			jsmsg["trains"][regional_train[n].trainDescription]["depTime"] = regional_train[n].departure_time;
-			if (regional_train[n].departure_time <= t) {
-				char c = '-';
-				int index = regional_train[n].Bs.ID.find(c);
 
-				jsmsg["trains"][regional_train[n].trainDescription]["trackID"] = regional_train[n].Bs.ID.substr(index + 1, regional_train[n].Bs.ID.length() - index - 2);
-				jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 1;
-			} else
-				jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
+			// The traffic-state payload is only built when it is shared (-TSM 1)
+			if (initial_variables.TSM) {
+				double trainSpeed = std::ceil((regional_train[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
+				jsmsg["trains"][regional_train[n].trainDescription]["km-point"] = xPosition;
+				jsmsg["trains"][regional_train[n].trainDescription]["speed"] = trainSpeed;
+
+				jsmsg["trains"][regional_train[n].trainDescription]["BlockOccupied"] = regional_train[n].Bs.ID;
+				jsmsg["trains"][regional_train[n].trainDescription]["lastOccTime"] = regional_train[n].ComputeLastOccupationTime_real_time(t, regional_train[n].Bs.ID, 10);
+				jsmsg["trains"][regional_train[n].trainDescription]["direction"] = train_route[regional_train[n].indexOfRoute].reversed_direction;
+
+				jsmsg["trains"][regional_train[n].trainDescription]["depTime"] = regional_train[n].departure_time;
+				if (regional_train[n].departure_time <= t) {
+					char c = '-';
+					int index = regional_train[n].Bs.ID.find(c);
+
+					jsmsg["trains"][regional_train[n].trainDescription]["trackID"] = regional_train[n].Bs.ID.substr(index + 1, regional_train[n].Bs.ID.length() - index - 2);
+					jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 1;
+				} else
+					jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
+			}
 
 		}
 		}
@@ -518,10 +522,9 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
 		}
 
-		jsmsg["time"] = t;
-
 		// for the ZeroMQbroker
 		if (initial_variables.TSM) {
+			jsmsg["time"] = t;
 			const std::string xml = trafficStateMonitoring_xml(jsmsg);
 			std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
 					  << xml << std::flush;
