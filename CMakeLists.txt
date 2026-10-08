@@ -1066,7 +1066,7 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_scenebundle test_scenecompatibility PROPERTIES LABELS "scene-v2")
 
 	# Every test is either `unit` (in-process or a static check) or `integration`
-	# (starts QEGTRAIN, scene_tool, the update helper or a loopback server).
+	# (starts or inspects a built program, or talks to a loopback server).
 	# `gui` needs a Qt platform plugin and `slow` takes more than 20 s locally.
 	# APPEND keeps the scene labels above. Names not registered on this platform are skipped.
 	function(egtrain_label_tests label)
@@ -1107,12 +1107,18 @@ if(EGTRAIN_BUILD_TESTS)
 		test_csv_export_smoke test_creator_acceptance_smoke test_package_contents_smoke)
 	egtrain_label_tests(slow test_gui_autostart_smoke test_ownership_inventory)
 
-	# Fail configuration when a test has neither a unit nor an integration label.
+	# Fail configuration unless a test has exactly one of the unit and integration labels.
 	get_property(egtrain_all_tests DIRECTORY PROPERTY TESTS)
 	foreach(name IN LISTS egtrain_all_tests)
 		get_test_property(${name} LABELS egtrain_test_labels)
-		if(NOT egtrain_test_labels MATCHES "(^|;)(unit|integration)(;|$)")
-			message(FATAL_ERROR "Test ${name} needs a unit or integration label")
+		set(egtrain_kind_count 0)
+		foreach(kind unit integration)
+			if(egtrain_test_labels MATCHES "(^|;)${kind}(;|$)")
+				math(EXPR egtrain_kind_count "${egtrain_kind_count} + 1")
+			endif()
+		endforeach()
+		if(NOT egtrain_kind_count EQUAL 1)
+			message(FATAL_ERROR "Test ${name} needs exactly one of the labels unit and integration")
 		endif()
 	endforeach()
 endif()

@@ -83,12 +83,12 @@ both enter the same `DispatchController::prepareScene` path.
 ### Test labels
 
 Every test has exactly one of `unit` or `integration`. Configuration fails
-when a test has neither.
+when a test has neither or both.
 
 - `unit`: runs in-process or is a static check. It starts no QEGTRAIN,
   `scene_tool`, update helper, or socket server.
-- `integration`: starts the built `QEGTRAIN`, `scene_tool`,
-  `egtrain_update_helper`, or a loopback server.
+- `integration`: starts or inspects a built program (`QEGTRAIN`, `scene_tool`,
+  `egtrain_update_helper`) or talks to a loopback server.
 - `gui`: needs a Qt platform plugin (the tests use `offscreen`) or launches
   QEGTRAIN in GUI mode. Combine it with either of the labels above.
 - `slow`: takes more than 20 seconds on a development machine.
@@ -125,8 +125,8 @@ ctest --test-dir build -L scene-v2 --output-on-failure
 ### Platform coverage
 
 CMake prints one `Windows: skipping ...` status line at configure time for each
-group of tests it leaves out. Registered tests: macOS 73, Linux 72, Windows 68.
-`yes` below means the test is registered on that platform.
+group of tests it leaves out. `yes` below means the test is registered on that
+platform.
 
 | Test | macOS | Linux | Windows | Reason |
 | --- | --- | --- | --- | --- |
