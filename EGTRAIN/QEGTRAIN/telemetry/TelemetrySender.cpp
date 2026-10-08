@@ -253,6 +253,7 @@ void TelemetrySender::requestConsentRefresh() noexcept {
 void TelemetrySender::stop() noexcept {
     auto s = m_shared;
     if (!s) return;
+    // The stop request comes first: pump() reads the flags before it.
     s->stop.store(true, std::memory_order_release);
     s->flags.fetch_or(4u, std::memory_order_release);
 }
@@ -305,6 +306,9 @@ public:
     void refresh() {
         if (!owner) return;
         for (int i = 0; i < 2; ++i) {
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+            if (i && s->tests.betweenObservations) s->tests.betweenObservations();
+#endif
             const quint64 version = s->permits.load(std::memory_order_acquire) & ~quint64(3);
             QString value;
             TelemetryConsent::ObservationStatus status;
@@ -323,10 +327,12 @@ public:
             }
             QMutexLocker lock(&s->mutex);
             if (!observed[i] || stamp[i] != value) {
+                // A category's gate stays closed until its first observation, so the ring
+                // then holds only intents of the other category. They stay queued.
+                if (observed[i]) s->count = 0;
                 observed[i] = true;
                 stamp[i] = value; ++s->epoch[i];
                 s->gate[i] = false;
-                s->count = 0;
                 lock.unlock();
                 const Category category = i ? Category::Diagnostics : Category::Usage;
                 const bool purged = value.isEmpty() ? queue.purgeCategory(category) : queue.purgeOtherStamps(category, value);
@@ -513,8 +519,13 @@ public:
         reserve(60000, 0);
     }
     void pump() {
-        if (s->stop.load(std::memory_order_acquire)) { close(); tick.stop(); loop.quit(); return; }
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+        if (s->tests.beforeFlagsRead) s->tests.beforeFlagsRead();
+#endif
+        // stop() raises the receiver flag after its stop request. The flags are read
+        // first, so a pump that sees that flag also sees the stop and purges nothing.
         const unsigned flags = s->flags.exchange(0, std::memory_order_acq_rel);
+        if (s->stop.load(std::memory_order_acquire)) { close(); tick.stop(); loop.quit(); return; }
         if (flags & 7u) {
             { QMutexLocker lock(&s->mutex);
               for (int i = 0; i < 2; ++i) if (flags & (1u << i) || flags & 4u) {
@@ -577,8 +588,8 @@ public:
 #endif
         }
         if (!owner) return;
-        // Initial diagnostics observation can clear ingress, so sessions bypass it
-        // only after a complete successful two-category refresh.
+        // Sessions bypass ingress, and only after a complete successful
+        // two-category refresh.
         attemptInteractiveSession();
         if (!owner) return;
         // Move at most the fixed ring capacity per tick. No producer event creates a Qt event.
