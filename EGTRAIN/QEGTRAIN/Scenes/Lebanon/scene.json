@@ -1,5 +1,6 @@
 {
     "base_time": "06:00:00",
+    "description": "Signalling: one network-wide area, level 0. Placeholder conventional fixed-block signalling, not the national system.",
     "import_report": [
         {
             "category": "legacy_root",
@@ -67,6 +68,7 @@
         }
     ],
     "name": "Lebanon",
+    "saved_with_app_version": "1.0.0",
     "schema_version": 1,
     "simulation_settings": {
         "buffer_time_seconds": 0.0,
