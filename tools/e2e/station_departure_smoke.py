@@ -3,9 +3,11 @@
 
 usage: station_departure_smoke.py PATH_TO_QEGTRAIN
 
-Before the stopping test tolerated rounding, a train parked at some stop
-coordinates never ended its dwell. Weesp on route30 is one of them on targets
-that fuse multiply and add.
+A train parked at a stop must end its dwell and depart even when the parked
+position rounds one unit in the last place below the braking point. That
+rounding needs fused multiply and add, which arm64 compilers use; it happens at
+Weesp on route30. On other targets this script passes without exercising it,
+and the helper case in test_operationsbuilder covers the comparison there.
 """
 import json
 import os

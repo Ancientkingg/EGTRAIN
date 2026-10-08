@@ -324,7 +324,8 @@ extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Train
 // scene validation.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
-// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point. The
+// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point (the
+// parking assignments below write the same 0.0001 as a literal). The
 // parked position and the braking point are rounded differently on targets that fuse multiply and
 // add, so they can differ by a few units in the last place. The tolerance is far above that error
 // and far below any real distance, and keeps a parked train from being treated as short of its
