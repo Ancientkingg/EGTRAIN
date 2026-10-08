@@ -135,6 +135,6 @@ void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, list<Pass
 
 void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, list<Passenger> ALL_PAX);
 
-void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, list<StationPlatform> ALLPLATFORMS);
+void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS);
 
 #endif

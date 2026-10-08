@@ -786,7 +786,7 @@ void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_
 	}
 }
 
-void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, list<StationPlatform> ALLPLATFORMS) {
+void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS) {
 	// if the train is stopped for a service stop
 	if (T.StoppedForServiceStop == 1) {
 		int N_AlightPax = 0;
@@ -919,21 +919,23 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 		}
 		// Specifying Boarding procedure
 		// Boarding procedure will follow the order at which passengers arrived at the platform
-		for (list<StationPlatform>::iterator Platform = ALLPLATFORMS.begin(); Platform != ALLPLATFORMS.end(); Platform++) {
-			if ((Platform->StationID == T.CurrentServiceStop) && (Platform->ID == T.CurrentServiceStopPlatform)) {
+		for (list<StationPlatform>::const_iterator PlatformIt = ALLPLATFORMS.begin(); PlatformIt != ALLPLATFORMS.end(); PlatformIt++) {
+			if ((PlatformIt->StationID == T.CurrentServiceStop) && (PlatformIt->ID == T.CurrentServiceStopPlatform)) {
+				// Boarding refreshes the waiting list and counts on a local copy; the shared platform list is not modified here
+				StationPlatform Platform = *PlatformIt;
 
 				// Update the list of passengers currently waiting at the platform
 				// it would be possible to update the list of passenger waiting at the platform only when a train approaches a stop and not at every single time instant
 				// NOTE: if you want to show the list of passengers updating on the platform at every time instant then you should comment the line below and uncommnet ,hence use the function "UPdateList of Waiting PAssengers at all platforms" in the "Train_Simulation_Mixed_Signalling_With_Passengersfunction"
 				if (!initial_variables.PAX_GUI) {
-					Update_List_Passengers_Waiting_At_Platform(*Platform, AllDailyPassengers);
+					Update_List_Passengers_Waiting_At_Platform(Platform, AllDailyPassengers);
 				}
 
 				// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
-				CurrentPlatformOccupationRate = (Platform->Current_N_Passengers + N_AlightPax) / Platform->Max_Passenger_Volume;
+				CurrentPlatformOccupationRate = (Platform.Current_N_Passengers + N_AlightPax) / Platform.Max_Passenger_Volume;
 
-				if (Platform->Current_List_Pax_On_Platform.empty() != 1) {
-					for (list<pair<string, double>>::iterator Pax = Platform->Current_List_Pax_On_Platform.begin(); Pax != Platform->Current_List_Pax_On_Platform.end(); Pax++) {
+				if (Platform.Current_List_Pax_On_Platform.empty() != 1) {
+					for (list<pair<string, double>>::iterator Pax = Platform.Current_List_Pax_On_Platform.begin(); Pax != Platform.Current_List_Pax_On_Platform.end(); Pax++) {
 						for (list<Passenger>::iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
 							// iterating through the list of All passengers in the order in which passengers have appeared and arrived at the platform
 							// if the ID of the passenger is the same ID of the one in the listo of passengers on the platform and the passenger p needs to board the current train then
