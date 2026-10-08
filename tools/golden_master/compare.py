@@ -33,7 +33,6 @@ SKIP_PATTERNS = [
     r'.*[Ll]ogging?.*',     # Log files
     r'.*\.log$',            # Log files
     r'stdout\.txt',          # stdout (contains run-specific timestamps/paths)
-    r'rand1\.seed',          # Seed file (overwritten by each run)
 ]
 
 

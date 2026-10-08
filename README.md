@@ -153,7 +153,14 @@ Useful options include:
 -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
 --scene path/to/case.egscene
 --interactive
+--seed 789350715
 ```
+
+`--seed` sets the seed of the random draws for passenger time windows and
+passenger-dependent dwell times. It takes a whole number from 1 to
+2147483646 and defaults to 789350715. Runs of the same scene with the same
+seed give the same results, and the seed is recorded in the provenance file
+that is written next to exported results.
 
 By default, runtime output is written to
 `<Qt AppDataLocation>/Output/<scene>`, not necessarily to a repository

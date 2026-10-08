@@ -13,9 +13,8 @@
 
 class NumberGenerator {
 public:
-	NumberGenerator(void);
-	NumberGenerator(unsigned long inSeed);
-	~NumberGenerator(void);
+	// Seeds from 1 to kMaxRandomSeed are valid. 0 and IM are fixed points of the recurrence.
+	explicit NumberGenerator(unsigned long inSeed);
 
 	int operator()(unsigned long inValue) { return getUniformInteger(0, inValue - 1); }
 
@@ -37,6 +36,11 @@ private:
 	double gset;
 };
 
-extern NumberGenerator rand1;
+constexpr unsigned long kMaxRandomSeed = IM - 1;
+
+// The generator that drives the passenger sampling of the prepared run.
+NumberGenerator& runNumberGenerator();
+// Restarts the run generator from inSeed. Scene preparation calls it, so every run starts from the same state.
+void seedRunNumberGenerator(unsigned long inSeed);
 
 #endif

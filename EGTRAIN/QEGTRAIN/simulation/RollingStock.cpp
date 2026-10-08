@@ -191,7 +191,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 
 	if (BoardingPassengersInACar.empty() != 1) {
 		for (list<int>::iterator BoardInCar = BoardingPassengersInACar.begin(); BoardInCar != BoardingPassengersInACar.end(); BoardInCar++) {
-			NumberGenerator N;
+			NumberGenerator& N = runNumberGenerator();
 			// The number of people boarding from the first door is drawn according to a Gaussian with mean equal to the total number of passenger boarding from that car/2 and standard deviation being 20% of the mean.
 			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20));
 			int Nboarding_SecondDoorInACar = *BoardInCar - Nboarding_FirstDoorInACar;
@@ -202,7 +202,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	}
 	if (AlightingPassengersInACar.empty() != 1) {
 		for (list<int>::iterator AlightFromCar = AlightingPassengersInACar.begin(); AlightFromCar != AlightingPassengersInACar.end(); AlightFromCar++) {
-			NumberGenerator N;
+			NumberGenerator& N = runNumberGenerator();
 			// The number of people alighting from the first door is drawn according to a Gaussian with mean equal to the total number of passenger aligthing from that car/2 and standard deviation being 20% of the mean.
 			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20));
 			int NAlight_SecondDoorInACar = *AlightFromCar - NAlight_FirstDoorInACar;
@@ -559,6 +559,8 @@ void resetNativeOperationsState() {
 
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
+	// The passenger windows below and every draw of the run come from this generator.
+	seedRunNumberGenerator(initial_variables.randomSeed);
 	std::vector<SceneDiagnostic> diagnostics;
 	nativeIndexById(scene.trainUnits, diagnostics, "trains.json", "train_unit");
 	nativeIndexById(scene.compositions, diagnostics, "trains.json", "composition");
@@ -1346,7 +1348,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		return diagnostics;
 
 	const auto sampleWindow = [](double minimum, double maximum) {
-		return minimum + static_cast<double>(std::rand()) / RAND_MAX * (maximum - minimum);
+		return runNumberGenerator().getUniformFloat(minimum, maximum);
 	};
 	for (const ScenePassenger& sourcePassenger : scene.passengers) {
 		const auto stagedPassenger = std::find_if(stagedPassengers.begin(), stagedPassengers.end(),

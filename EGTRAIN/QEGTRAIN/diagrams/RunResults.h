@@ -1,6 +1,8 @@
 #ifndef RUNRESULTS_H
 #define RUNRESULTS_H
 
+#include "simulation/InitialParameters.h"
+
 #include <string>
 #include <vector>
 
@@ -35,6 +37,7 @@ struct RunProvenance {
 	int paxMode = 0;
 	int tsmMode = 0;
 	int routeChoiceMode = 0;
+	unsigned long randomSeed = kDefaultRandomSeed;
 	std::vector<RunOccurrenceProvenance> selectedOccurrences;
 };
 

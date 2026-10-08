@@ -22313,6 +22313,7 @@ RunProvenance MainWindow::captureRunProvenance() const {
 	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
 	provenance.tsmMode = initial_variables.TSM;
 	provenance.routeChoiceMode = initial_variables.RChoice;
+	provenance.randomSeed = initial_variables.randomSeed;
 	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
 	for (int index = 0; index < numRegions; ++index) {
 		const Train& train = regional_train[index];

@@ -563,9 +563,6 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 // here, so the next run starts from whatever prepareScene resets.
 RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool checkInvariants) {
 	RunOutcome outcome;
-	// Scenes with passengers draw from std::rand while they are prepared, so
-	// every run starts from the same generator state.
-	std::srand(12345);
 	SceneLoadResult loaded = loadScene(sceneDir);
 	if (hasErrors(loaded.diagnostics)) {
 		for (const SceneDiagnostic& diagnostic : loaded.diagnostics)

@@ -198,6 +198,17 @@ int main(int argc, char* argv[]) {
 	}
 	parseCmdOptions(argc, argv);
 
+	if (cmdOptionEntered(argv, argv + argc, "--seed")) {
+		const char* seedArgument = getCmdOption(argv, argv + argc, "--seed");
+		bool seedValid = false;
+		const qlonglong seed = seedArgument ? QString::fromLocal8Bit(seedArgument).toLongLong(&seedValid) : 0;
+		if (!seedValid || seed < 1 || seed > static_cast<qlonglong>(kMaxRandomSeed)) {
+			std::cerr << "ERROR: --seed requires a whole number from 1 to " << kMaxRandomSeed << ".\n";
+			return 1;
+		}
+		initial_variables.randomSeed = static_cast<unsigned long>(seed);
+	}
+
 	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");
 	const bool sceneOption = cmdOptionEntered(argv, argv + argc, "--scene");
 	if (sceneOption && (!sceneArgument || sceneArgument[0] == '-')) {

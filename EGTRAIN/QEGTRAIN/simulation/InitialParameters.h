@@ -3,6 +3,9 @@
 
 #include <string>
 
+// The default seed of the run generator.
+constexpr unsigned long kDefaultRandomSeed = 789350715;
+
 class InitialParameters {
 public:
 	std::string name;
@@ -26,6 +29,8 @@ public:
 	bool recoveryTimeOverride = false;
 	bool enabled_log = true;
 	bool log_to_file = true;
+	// Seeds the passenger sampling of a run. Equal seeds give equal runs.
+	unsigned long randomSeed = kDefaultRandomSeed;
 
 	explicit InitialParameters(int caseStudy);
 	void set_case(int caseStudy);
