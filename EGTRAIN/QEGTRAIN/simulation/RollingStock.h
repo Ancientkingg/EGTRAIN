@@ -2832,11 +2832,7 @@ public:
 	}
 
 	// Function to Compute the Blocking Times in Virtual Coupling (EntryTime is the time the train actually enters the network in the simulation)
-	/**This function uses a principle of max safety where trains are spaced out of an absolute braking distance at any switch is approached*/
-
-	// Function to Compute the Blocking Times in Virtual Coupling (EntryTime is the time the train actually enters the network in the simulation)
 	/**This function uses a principle of max capacity where trains travel at a minimum safety distance from each other over the entire shared route, splitting apart by an absolute braking distance only at those junctions where they diverge or converge*/
-
 	void ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement) {
 
 		list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
