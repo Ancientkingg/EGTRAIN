@@ -3,13 +3,10 @@
 #include <cfloat>
 
 extern Logger owl;
-int t[40000];
 double timestep = 1;
 // double times = 0;
 double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling System Speed Codes (for Track Circuit Sisgnalling System: blockSets.A.connections.connections.)
 int numTrackLines = 0;				   // This is the total number of TrackLines
-int Headway = 0;
-int HeadwayD = 0; // This Headway is calculated on the basis of Block Section Length (indipendently of the signalling system this headway consents the train to start his run (from BS[0]) only when green light is on) Headway is for the Even Track while HeadwayD for the Odd Track
 
 list<StationPlatform> AllStationPlatforms; // This is a global list containing all Station platforms existing in the modelled network
 int numAllStationPlatforms = 0;			   // This variable provides the total number of station platforms in the modelled network (it is the size of the list AllStationPlatforms)
@@ -139,23 +136,6 @@ Stations DisturbanceInput;
 Stations Final_Station; // Fittitious Station to measure train delays at their own Final Station
 int numStations = 0;
 
-// Print Station Names for All the TrackLines
-void printStations() {
-	ofstream output;
-	string FileName;
-	FileName = InputMainFolder + "/TrackLines/TrackandStations.txt";
-	output.open((char*)FileName.c_str(), ios::binary);
-	for (int i = 0; i < numTrackLines; i++) {
-		output << "\n"
-			   << blockSets[i].ID << "\n";
-		for (int j = 0; j < blockSets[i].len; j++) {
-			if (blockSets[i].member[j].endNode.stationName.empty() != 1)
-				output << blockSets[i].member[j].endNode.stationName << " ";
-		}
-	}
-	output.close();
-}
-
 void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 	ofstream FileOutput;
 	string FileOutName;
@@ -220,101 +200,3 @@ void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 
 	FileOutput.close();
 }
-
-
-// The constructor class of Location class
-Location::Location() {
-	Name = "None";
-	MaxHW = -1;
-	CriticalTrainCouple = "None";
-	MinHW = -1;
-	MinimumTrainCouple = "None";
-	Position = 0;
-}
-
-// Function to see if two locations are the same or not
-bool Location::areLocationsEqual(Location blockSets) {
-	bool AreTheSameLocation = false; // This variable turns to true only if the Locations are the same
-	if (this->Name.empty() != 1) {	 // if the name is not null
-		string NameA, StationA, firstBlockA, secondBlockA;
-		NameA = this->Name;
-		istringstream Line(NameA);
-		string tok;
-		list<string> TokensA;
-
-		while (getline(Line, tok, '/')) {
-			if (tok.size() > 0)
-				TokensA.push_back(tok);
-		}
-
-		// Now checking the blockSets
-		string NameB, StationB, firstBlockB, secondBlockB;
-		NameB = blockSets.Name;
-		istringstream LineB(NameB);
-		string tok2;
-		list<string> TokensB;
-
-		while (getline(LineB, tok2, '/')) {
-			if (tok2.size() > 0)
-				TokensB.push_back(tok2);
-		}
-
-		// The two Locations can be compared only if they have the same number of tokens in the name otherwise they are different by definition
-		if (TokensA.size() == TokensB.size()) {
-
-			if (TokensA.size() == 1) {
-				list<string>::iterator p = TokensA.begin();
-				firstBlockA = *p;
-				// Do the same for Location blockSets
-				list<string>::iterator k = TokensB.begin();
-				firstBlockB = *k;
-
-				if (firstBlockA == firstBlockB)
-					AreTheSameLocation = true;
-
-			} else if (TokensA.size() == 2) {
-				list<string>::iterator p = TokensA.begin();
-				firstBlockA = *p;
-				p++; // advance p of one position
-				secondBlockA = *p;
-
-				// Do the same for Location blockSets
-				list<string>::iterator k = TokensB.begin();
-				firstBlockB = *k;
-				k++;
-				secondBlockB = *k;
-
-				if (((firstBlockA == firstBlockB) && (secondBlockA == secondBlockB)) || ((firstBlockA == secondBlockB) && (secondBlockA == firstBlockB)))
-					AreTheSameLocation = true;
-			} else if (TokensA.size() == 3) {
-				list<string>::iterator p = TokensA.begin();
-				StationA = *p;
-				p++;
-				firstBlockA = *p;
-				p++; // advance p of one position
-				secondBlockA = *p;
-
-				// Do the same for Location blockSets
-				list<string>::iterator k = TokensB.begin();
-				StationB = *k;
-				k++;
-				firstBlockB = *k;
-				k++;
-				secondBlockB = *k;
-				if (((StationA == StationB) && (firstBlockA == firstBlockB) && (secondBlockA == secondBlockB)) || ((StationA == StationB) && (firstBlockA == secondBlockB) && (secondBlockA == firstBlockB)))
-					AreTheSameLocation = true;
-			}
-
-			else {
-				cout << "\n\nERROR: The Location " << this->Name << "has an anomaly in the number of elements in its name\n\n";
-			}
-		}
-	}
-
-	if (AreTheSameLocation == 1)
-		return true;
-	else
-		return false;
-}
-
-list<Location> AllLocations; // This is the list containing all the Locations of the networks (i.e. all possible block sections and/or all possible sections for ETCS level 3);

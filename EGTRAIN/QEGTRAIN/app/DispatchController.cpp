@@ -286,9 +286,6 @@ void DispatchController::beginScenePreparation() {
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
 	ETCS_MA.clear();
-	AllLocations.clear();
-	All_Topology_Sequences.clear();
-	signalAspects.clear();
 }
 
 // Reset all native runtime state before loading another canonical scene.
@@ -299,9 +296,6 @@ void DispatchController::resetState() {
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
 	ETCS_MA.clear();
-	AllLocations.clear();
-	All_Topology_Sequences.clear();
-	signalAspects.clear();
 }
 
 std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationSnapshot() {

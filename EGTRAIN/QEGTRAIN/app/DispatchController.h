@@ -4,7 +4,6 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 #include "simulation/Optimisation.h"
-#include "simulation/Rescheduling.h"
 
 #include <QObject>
 #include <utility>

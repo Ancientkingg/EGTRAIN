@@ -76,9 +76,6 @@ public:
 	}
 };
 
-// Order TrainEvent list chronologically
-bool orderTrainEvents(TrainEvent A, TrainEvent blockSets);
-
 // Order trains in a list when time events are also equal
 void orderListOfTrainEvents(list<TrainEvent>& OutputList);
 
@@ -247,29 +244,10 @@ public:
 	void reverseBlockSection(Section blockSets, double RouteLength);
 
 
-	// Set node coordinates relative to start node
-	void setRelativeCoordinatesToStartNode();
-
-	// Reset block coordinate origin (used after setRelativeCoordinatesToStartNode when composing routes)
-	void resetBlockCoordinatesToDifferentOrigin(double OriginX);
-
-	friend void defSection(Section* BS, int Blocks, BlockSet blockSets);
 	friend void SetBlockSpeed();
 };
 
 extern Section signalling_block_sections[6000]; // Global block sections array
-
-// Define block section characteristics
-void defSection(Section* BS, int N_Block_Previous, BlockSet blockSets);
-
-// Dynamically change block section configuration during optimization
-void SetEquiBlock(double L, Section* BS, int& Blocks, BlockSet blockSets);
-
-// Create equal-length block sections for a single track line
-void createEquiBlockSections(double L, Section* BS, int& Blocks, BlockSet blockSets);
-
-// Generate all block sections with equal length
-void generateAllBlocksWithEquiLength(double L, Section* BS, int& Blocks);
 
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
@@ -298,15 +276,6 @@ void createTds(Section* Blocks, int N_Blocks, int N_TDS_On_Straight_Blocks, list
 // Set geo coordinates for all block sections
 void setGeoCoordinates(Section* BS, int N_BS);
 
-// Print all block section IDs to file (useful for route creation)
-void printAllBlocksId();
-
-
-// Returns true if BS2 start node coincides with BS1 end node
-bool orderBlocks(Section BS1, Section BS2);
-
-// Order block sections in reverse direction
-bool reverseOrderBlocks(Section BS1, Section BS2);
 
 // --- Route: train route as sequence of block sections ---
 extern int N_Routes; // Total number of routes (from input files in Routes folder)
@@ -345,14 +314,6 @@ extern std::vector<Route> train_route;
 // Set up all routes from canonical scene model.
 void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& routeDirections = {});
 
-// Print block sections of a route with start/end nodes (for verification)
-void printRoutesBlocks(const Route& R, string FolderName, int IndexOfRoute);
-
-void printAllRoutes(string FolderName);
-
-
-// Verify route validity
-void verifyRouteValidity(const Route& R, int IndexRoute);
 
 // --- InfraElementsList: set up list of infrastructure element events ---
 void setListAllInfrastructureElementsFromRoutes(vector<Route>& R, int N_Routes);
@@ -478,13 +439,6 @@ void releaseMixedSignallingSystem();
 // Release last block section in mixed signalling
 void relLastSectionMixedSignalling(string blockID);
 
-// Debug: print block codes at time t
-void debugFunctionBlockCodes(int t, string BSID, const Route& R);
-
-void showElement(int t, list<string> blockSets);
-
-void showElementInEtcsMa(int t);
-
 
 // Set mid-signals of double switches as virtual signals
 void setVirtualSignals();
@@ -511,9 +465,5 @@ public:
 extern std::vector<StationBoundarySection> stationBoundarySections;
 
 // Save signal aspect from previous timestep (prevents signalling function interference)
-extern std::map<std::string, int> signalAspects;
-
-// Print signal aspect changes over time for offline visualizer
-void saveSignalAspectChanges(int t, std::string FolderName);
 
 #endif

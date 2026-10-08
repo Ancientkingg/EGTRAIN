@@ -144,7 +144,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
     ${SRC_DIR}/io/third_party/pugixml.cpp
-    ${SRC_DIR}/simulation/Rescheduling.cpp
     ${SRC_DIR}/simulation/RollingStock.cpp
     ${SRC_DIR}/simulation/Signalling.cpp
     ${SRC_DIR}/graphics/items/SignalItem.cpp
@@ -222,7 +221,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Passengers.h
     ${SRC_DIR}/graphics/items/PlatformItem.h
     ${SRC_DIR}/util/portability.h
-    ${SRC_DIR}/simulation/Rescheduling.h
     ${SRC_DIR}/simulation/RollingStock.h
     ${SRC_DIR}/simulation/Signalling.h
     ${SRC_DIR}/graphics/items/SignalItem.h

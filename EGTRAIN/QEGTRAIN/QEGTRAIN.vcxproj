@@ -170,7 +170,6 @@
     <ClCompile Include="Passengers.cpp" />
     <ClCompile Include="platformQGraphicsItem.cpp" />
     <ClCompile Include="pugixml.cpp" />
-    <ClCompile Include="Rescheduling.cpp" />
     <ClCompile Include="RollingStock.cpp" />
     <ClCompile Include="Signalling.cpp" />
     <ClCompile Include="signallingQGraphicsEllipseItem.cpp" />
@@ -214,7 +213,6 @@
     <ClInclude Include="passengerQGraphicsPixmapItem.h" />
     <ClInclude Include="Passengers.h" />
     <ClInclude Include="platformQGraphicsRectItem.h" />
-    <ClInclude Include="Rescheduling.h" />
     <QtMoc Include="timeQProgressBar.h" />
     <ClInclude Include="timeutil.hpp" />
     <ClInclude Include="trainQGraphicsItemGroup.h">

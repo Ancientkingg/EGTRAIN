@@ -22,12 +22,9 @@
 
 using namespace std;
 
-extern int t[40000];
 extern double timestep;
 extern double signalCode1, signalCode2, signalCode3; // Signalling system speed codes (for Track Circuit B.A.C.C.)
 extern int numTrackLines;
-extern int Headway;
-extern int HeadwayD; // Headway for the Odd Track (Headway is for Even Track). Based on block section length; train starts only when green light is on.
 
 extern string InputMainFolder; // Root input folder for EGTRAIN
 
@@ -287,7 +284,6 @@ extern Stations DisturbanceInput;
 extern Stations Final_Station;      // Fictitious station to measure delays at trains' final stations
 extern int numStations;
 
-void printStations();
 void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay);
 
 // --- Location: can correspond to a block section or a section ---
@@ -301,11 +297,8 @@ public:
 	string MinimumTrainCouple;
 	string CriticalTrainCouple;
 
-	Location();
 
-	bool areLocationsEqual(Location blockSets);
 };
 
-extern list<Location> AllLocations; // All possible block sections / sections (e.g. for ETCS level 3)
 
 #endif
