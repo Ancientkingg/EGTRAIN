@@ -3,10 +3,16 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QScreen>
 #include <QCategoryAxis>
 #include <QLabel>
 #include <QKeyEvent>
+#include <QImage>
+#include <QLineEdit>
+#include <QMenu>
+#include <QStyle>
+#include <QStyleOptionViewItem>
 #include <QGestureEvent>
 #include <QPinchGesture>
 #include <QShortcut>
@@ -45,12 +51,254 @@ static void wheel(QChartView* view, QPoint pixels, QPoint angles, Qt::KeyboardMo
 	QApplication::sendEvent(view->viewport(), &event);
 }
 
+// Check box rectangle of one train filter row, in viewport coordinates.
+static QRect checkBoxRect(const QListWidget* list, const QListWidgetItem* item) {
+	QStyleOptionViewItem option;
+	option.initFrom(list->viewport());
+	option.widget = list;
+	option.rect = list->visualItemRect(item);
+	option.features = QStyleOptionViewItem::HasCheckIndicator | QStyleOptionViewItem::HasDisplay;
+	option.checkState = item->checkState();
+	option.text = item->text();
+	if (!item->icon().isNull()) {
+		option.features |= QStyleOptionViewItem::HasDecoration;
+		option.icon = item->icon();
+		option.decorationSize = item->icon().actualSize(list->iconSize().isValid() ? list->iconSize() : QSize(16, 16));
+	}
+	return list->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option, list);
+}
+
+static void clickAt(QListWidget* list, const QPoint& point) {
+	QMouseEvent press(QEvent::MouseButtonPress, point, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, point, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(list->viewport(), &press);
+	QApplication::sendEvent(list->viewport(), &release);
+}
+
+static void pressKey(QWidget* widget, Qt::Key key, const QString& text = QString()) {
+	QKeyEvent press(QEvent::KeyPress, key, Qt::NoModifier, text);
+	QKeyEvent release(QEvent::KeyRelease, key, Qt::NoModifier, text);
+	QApplication::sendEvent(widget, &press);
+	QApplication::sendEvent(widget, &release);
+}
+
+// Pixels inside one check box that differ clearly from the row background, at the pixel density of the image.
+static int checkBoxPixels(const QImage& image, const QRect& box, const QRect& row) {
+	const qreal ratio = image.devicePixelRatio();
+	const int background = qGray(image.pixel(qRound((row.right() - 4) * ratio), qRound(row.center().y() * ratio)));
+	int strong = 0;
+	for (int y = qRound(box.top() * ratio); y < qRound((box.bottom() + 1) * ratio); ++y)
+		for (int x = qRound(box.left() * ratio); x < qRound((box.right() + 1) * ratio); ++x)
+			strong += std::abs(qGray(image.pixel(x, y)) - background) >= 90 ? 1 : 0;
+	return strong;
+}
+
+// The train filter popup: rows and their check boxes, toggling by mouse and keyboard, search,
+// All and None, reopening, and the train ids it reports.
+static bool exerciseTrainFilter() {
+	TrainFilterButton filter;
+	int changes = 0;
+	QObject::connect(&filter, &TrainFilterButton::selectionChanged, [&changes]() { ++changes; });
+	QMenu* menu = filter.menu();
+	auto* list = menu ? menu->findChild<QListWidget*>() : nullptr;
+	auto* search = menu ? menu->findChild<QLineEdit*>() : nullptr;
+	QPushButton* all = nullptr;
+	QPushButton* none = nullptr;
+	if (menu) {
+		for (QPushButton* button : menu->findChildren<QPushButton*>()) {
+			if (button->text() == "All") all = button;
+			if (button->text() == "None") none = button;
+		}
+	}
+	if (!expect(list && search && all && none, "train filter has a list, a search field, All and None"))
+		return false;
+	bool ok = true;
+
+	ok &= expect(filter.text() == "Trains" && filter.visibleTrainIds().isEmpty() && filter.isTrainVisible("IC 1000"),
+		"an empty train filter shows no count and hides no train");
+	menu->popup(QPoint(40, 40));
+	QApplication::processEvents();
+	ok &= expect(menu->isVisible() && list->count() == 0, "an empty train filter opens");
+	menu->hide();
+
+	filter.setTrains({{"IC 1000", QColor(Qt::red)}});
+	ok &= expect(filter.text() == "Trains (1/1)" && filter.visibleTrainIds() == QStringList{"IC 1000"} && changes == 0,
+		"one train is listed checked and setting trains is not a selection change");
+
+	QVector<QPair<QString, QColor>> trains;
+	QStringList ids;
+	for (int i = 0; i < 120; ++i) {
+		const QString id = QString("%1 %2").arg(i % 3 == 0 ? "IC" : "SPR").arg(1000 + i);
+		ids.append(id);
+		trains.append({id, i % 2 ? QColor(Qt::blue) : QColor()});
+	}
+	filter.setTrains(trains);
+	ok &= expect(filter.text() == "Trains (120/120)" && filter.visibleTrainIds() == ids,
+		"all trains start visible and are reported in list order");
+
+	menu->popup(QPoint(40, 40));
+	QApplication::processEvents();
+	const QRect viewport = list->viewport()->rect();
+	bool boxesInsideRows = true;
+	int rowsOnScreen = 0;
+	for (int row = 0; row < list->count(); ++row) {
+		const QRect rowRect = list->visualItemRect(list->item(row));
+		if (!viewport.contains(rowRect))
+			continue;
+		++rowsOnScreen;
+		const QRect box = checkBoxRect(list, list->item(row));
+		boxesInsideRows &= box.width() >= 12 && box.height() >= 12 && rowRect.contains(box) && viewport.contains(box.center());
+	}
+	ok &= expect(rowsOnScreen >= 8 && boxesInsideRows, "every row on screen has a check box inside the row");
+
+	// Row 0 is checked, row 1 gets unchecked by a click; both are drawn at one and two device pixels per pixel.
+	clickAt(list, checkBoxRect(list, list->item(1)).center());
+	ok &= expect(list->item(1)->checkState() == Qt::Unchecked && changes == 1 && !filter.isTrainVisible(ids.at(1)) &&
+		filter.isTrainVisible(ids.at(0)) && filter.text() == "Trains (119/120)",
+		"a click on a check box hides that train only");
+	QApplication::processEvents();
+	for (const qreal ratio : {1.0, 2.0}) {
+		QImage image(list->viewport()->size() * ratio, QImage::Format_ARGB32_Premultiplied);
+		image.setDevicePixelRatio(ratio);
+		image.fill(Qt::white);
+		list->viewport()->render(&image);
+		const int checked = checkBoxPixels(image, checkBoxRect(list, list->item(0)), list->visualItemRect(list->item(0)));
+		const int unchecked = checkBoxPixels(image, checkBoxRect(list, list->item(1)), list->visualItemRect(list->item(1)));
+		ok &= expect(unchecked >= 24 * ratio && checked >= 2 * unchecked,
+			"unchecked and checked boxes are both drawn in the train filter");
+	}
+
+	const QRect secondRow = list->visualItemRect(list->item(2));
+	clickAt(list, QPoint(secondRow.right() - 6, secondRow.center().y()));
+	ok &= expect(list->item(2)->checkState() == Qt::Checked && changes == 1, "a click beside the check box changes nothing");
+
+	list->scrollToBottom();
+	QApplication::processEvents();
+	clickAt(list, checkBoxRect(list, list->item(119)).center());
+	ok &= expect(list->item(119)->checkState() == Qt::Unchecked && list->item(1)->checkState() == Qt::Unchecked &&
+		changes == 2 && filter.text() == "Trains (118/120)", "a row reached by scrolling toggles and earlier choices stay");
+
+	list->setFocus(Qt::MouseFocusReason);
+	QApplication::processEvents();
+	pressKey(list, Qt::Key_Home);
+	pressKey(list, Qt::Key_Space, " ");
+	ok &= expect(list->currentRow() == 0 && list->item(0)->checkState() == Qt::Unchecked && changes == 3,
+		"Home and Space toggle the first row");
+	pressKey(list, Qt::Key_Down);
+	pressKey(list, Qt::Key_Space, " ");
+	ok &= expect(list->item(1)->checkState() == Qt::Checked && list->item(0)->checkState() == Qt::Unchecked && changes == 4,
+		"Down and Space toggle the next row");
+
+	// Unchecked now: rows 0 (IC) and 119 (SPR).
+	search->setText("ic");
+	int shown = 0;
+	bool onlyMatchesShown = true;
+	for (int row = 0; row < list->count(); ++row) {
+		const bool match = ids.at(row).startsWith("IC");
+		onlyMatchesShown &= list->item(row)->isHidden() == !match;
+		shown += list->item(row)->isHidden() ? 0 : 1;
+	}
+	ok &= expect(shown == 40 && onlyMatchesShown && changes == 4 && filter.visibleTrainIds().size() == 118,
+		"search narrows the rows without changing which trains are visible");
+	none->click();
+	ok &= expect(changes == 5 && filter.visibleTrainIds().size() == 79 && filter.text() == "Trains (79/120)" &&
+		filter.isTrainVisible(ids.at(1)) && !filter.isTrainVisible(ids.at(3)) && !filter.isTrainVisible(ids.at(119)),
+		"None unchecks the rows that the search shows and reports one change");
+	all->click();
+	ok &= expect(changes == 6 && filter.visibleTrainIds().size() == 119 && filter.isTrainVisible(ids.at(0)) &&
+		!filter.isTrainVisible(ids.at(119)), "All checks the rows that the search shows and leaves the others");
+	search->clear();
+	bool noneHidden = true;
+	for (int row = 0; row < list->count(); ++row)
+		noneHidden &= !list->item(row)->isHidden();
+	ok &= expect(noneHidden && changes == 6 && filter.visibleTrainIds().size() == 119,
+		"clearing the search shows every row with its state");
+
+	menu->hide();
+	QApplication::processEvents();
+	menu->popup(QPoint(40, 40));
+	QApplication::processEvents();
+	QStringList expected = ids;
+	expected.removeAt(119);
+	ok &= expect(menu->isVisible() && filter.visibleTrainIds() == expected && list->item(119)->checkState() == Qt::Unchecked &&
+		filter.text() == "Trains (119/120)" && changes == 6, "reopening keeps the selection and the reported train ids");
+
+	filter.setTrains({{"A", QColor()}, {"B", QColor()}});
+	ok &= expect(filter.text() == "Trains (2/2)" && filter.visibleTrainIds() == QStringList({"A", "B"}) &&
+		filter.isTrainVisible("B") && changes == 6, "a new train list starts with every train visible");
+	menu->hide();
+	return ok;
+}
+
+// Inside a diagram window the chart shortcuts leave the keys of the open train filter alone.
+static bool exerciseTrainFilterKeysInWindow() {
+	DiagramWindow window("Train filter keys");
+	auto* chart = new QChart;
+	QLineSeries* first = nullptr;
+	for (const char* id : {"A", "B", "C"}) {
+		auto* series = new QLineSeries;
+		series->setName(QString("Train %1").arg(id));
+		series->setProperty("trainId", id);
+		series->append(10, 10);
+		series->append(60, 60);
+		chart->addSeries(series);
+		if (!first) first = series;
+	}
+	chart->createDefaultAxes();
+	window.setChart(chart);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* filter = window.findChild<TrainFilterButton*>();
+	QMenu* menu = filter ? filter->menu() : nullptr;
+	auto* list = menu ? menu->findChild<QListWidget*>() : nullptr;
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	if (!expect(view && list && x && list->count() == 3, "a diagram window lists its three trains"))
+		return false;
+	bool ok = true;
+	const double fullSpan = x->max() - x->min();
+	view->setFocus();
+	pressKey(view, Qt::Key_Plus, "+");
+	const double zoomedSpan = x->max() - x->min();
+	ok &= expect(zoomedSpan < fullSpan, "plus zooms the chart before the filter opens");
+
+	menu->popup(window.mapToGlobal(QPoint(20, 60)));
+	QApplication::processEvents();
+	list->setFocus(Qt::MouseFocusReason);
+	QApplication::processEvents();
+	pressKey(list, Qt::Key_Down);
+	pressKey(list, Qt::Key_End);
+	ok &= expect(list->currentRow() == 2, "Down and End move to the last train of the open filter");
+	pressKey(list, Qt::Key_Home);
+	ok &= expect(list->currentRow() == 0 && x->max() - x->min() == zoomedSpan,
+		"Home moves to the first train of the open filter and leaves the chart zoom alone");
+	pressKey(list, Qt::Key_0, "0");
+	pressKey(list, Qt::Key_Minus, "-");
+	ok &= expect(x->max() - x->min() == zoomedSpan, "typing in the open filter list does not zoom the chart");
+	pressKey(list, Qt::Key_Home);
+	pressKey(list, Qt::Key_Space, " ");
+	ok &= expect(list->item(0)->checkState() == Qt::Unchecked && filter->text() == "Trains (2/3)" &&
+		!first->isVisible() && filter->visibleTrainIds() == QStringList({"B", "C"}),
+		"Space in the open filter hides the first train of the diagram");
+	menu->hide();
+	QApplication::processEvents();
+
+	view->setFocus();
+	pressKey(view, Qt::Key_Home);
+	ok &= expect(x->max() - x->min() == fullSpan && !first->isVisible(), "Home still resets the zoom with chart focus and keeps the filter");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
 	QFile stylesheet(QStringLiteral(EGTRAIN_DIALOG_QSS));
 	if (!stylesheet.open(QIODevice::ReadOnly)) return 1;
-	app.setStyleSheet(QString::fromUtf8(stylesheet.readAll()));
+	// The test binary has no Qt resources, so point the stylesheet at the icon files.
+	QString styleSheet = QString::fromUtf8(stylesheet.readAll());
+	styleSheet.replace(QStringLiteral(":/icons/"),
+		QFileInfo(stylesheet).absolutePath() + QStringLiteral("/../icons/"));
+	app.setStyleSheet(styleSheet);
 	bool ok = true;
 	DiagramWindow window("Diagram navigation");
 	auto* chart = new QChart;
@@ -498,6 +746,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
 	window.setPresentation("No context", QString());
 	ok &= expect(window.findChild<QLabel*>("diagramContext")->isHidden(), "empty context stays hidden");
+	ok &= exerciseTrainFilter();
+	ok &= exerciseTrainFilterKeysInWindow();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;
