@@ -46,6 +46,8 @@ def assert_startup_timing_contract(app: Path) -> None:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=LAUNCH_TIMEOUT_SECONDS,
             )
         except subprocess.TimeoutExpired as exc:
@@ -78,6 +80,8 @@ def assert_no_argument_chooser_continuation(app: Path) -> None:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=LAUNCH_TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired as exc:
@@ -219,13 +223,6 @@ def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> No
 
 
 def main() -> None:
-    if os.name == "nt":
-        print("startup launch PTY test skipped on Windows")
-        return
-
-    global pty
-    import pty
-
     if len(sys.argv) != 2:
         raise SystemExit("usage: startup_launch_contract.py PATH_TO_QEGTRAIN")
 
@@ -241,6 +238,12 @@ def main() -> None:
             raise SystemExit(f"{name} refits the growing startup scene instead of deferring one final fit")
     assert_startup_timing_contract(app)
     assert_no_argument_chooser_continuation(app)
+    if os.name == "nt":
+        print("startup launch PTY checks skipped on Windows")
+        return
+    global pty
+    import pty
+
     assert_launch_reaches_defaults(app, [], "no-argument launch")
     assert_launch_reaches_defaults(app, ["-n", "1", "-g", "1"], "partial-argument launch")
 

@@ -6,8 +6,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def main() -> None:
-    simulation = (ROOT / "EGTRAIN/QEGTRAIN/simulation/Simulation.cpp").read_text()
-    dispatch_controller = (ROOT / "EGTRAIN/QEGTRAIN/app/DispatchController.cpp").read_text()
+    simulation = (ROOT / "EGTRAIN/QEGTRAIN/simulation/Simulation.cpp").read_text(encoding="utf-8")
+    dispatch_controller = (ROOT / "EGTRAIN/QEGTRAIN/app/DispatchController.cpp").read_text(encoding="utf-8")
 
     delay_functions = simulation[: simulation.index("void calculateDelayStatsForAllStations")]
     station_delay_functions = simulation[

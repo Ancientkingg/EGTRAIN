@@ -32,12 +32,12 @@ def main() -> None:
         for element in ET.parse(qrc_path).iterfind(".//file")
     }
     source_text = "\n".join(
-        path.read_text(errors="replace")
+        path.read_text(encoding="utf-8", errors="replace")
         for source_root in (SOURCE_ROOT / "app", SOURCE_ROOT / "graphics", SOURCE_ROOT / "widgets")
         for path in source_root.rglob("*")
         if path.suffix in {".cpp", ".h"}
     )
-    cmake = (ROOT / "CMakeLists.txt").read_text()
+    cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
 
     for alias, relative_path in ASSETS.items():
         if not (SOURCE_ROOT / relative_path).is_file():
@@ -55,7 +55,7 @@ def main() -> None:
     if "Qt5::Svg" not in cmake:
         raise SystemExit("CMake does not link Qt5::Svg")
 
-    release = (ROOT / ".github/workflows/release.yml").read_text()
+    release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     if re.search(r"^\s*modules:.*\bqtsvg\b", release, re.MULTILINE):
         raise SystemExit("Windows release job lists qtsvg as an optional module")
     for requirement in ("Qt5Svg.dll", '$dist/imageformats/qsvg.dll'):
@@ -106,7 +106,7 @@ def main() -> None:
     )
     for path in SOURCE_ROOT.rglob("*"):
         if path.suffix in {".cpp", ".h", ".ui", ".qss"}:
-            source = path.read_text(errors="replace")
+            source = path.read_text(encoding="utf-8", errors="replace")
             for pattern in bare_load_patterns:
                 match = pattern.search(source)
                 if match:

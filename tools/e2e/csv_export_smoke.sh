@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
 OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e"
 LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.log"

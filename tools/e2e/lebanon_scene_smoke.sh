@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TOOL="$ROOT/build/scene_tool"
+TOOL="${QEGTRAIN_SCENE_TOOL:-$ROOT/build/scene_tool}"
 SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Lebanon"
 
 if [[ ! -x "$TOOL" ]]; then
@@ -34,7 +34,7 @@ test -f "$EXPORT_DIR/Trains/LB-1.txt"
 
 # Run a copied canonical scene with isolated output.
 cp -R "$SCENE" "$SCENE_COPY"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 LOG="$WORK/lebanon.log"
 QEGTRAIN_OUTPUT_DIR="$WORK" \
 "$APP" --scene "$SCENE_COPY" -h 100 -g 0 -TSM 0 -RC 0 >"$LOG" 2>&1
