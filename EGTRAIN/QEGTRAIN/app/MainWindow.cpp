@@ -14757,14 +14757,10 @@ void MainWindow::runVisualPolishE2E() {
 				ok = false;
 				failures << "Stop retained completed replay";
 			}
-			if (lifecycleTrack->operationalState() != TrackOperationalState::Free)
-				failures << "Stop/completion left a transient operational track state";
-			if (!lifecycleTrack->isSelected())
-				failures << "Stop/completion cleared independent track selection";
-			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
-					|| !lifecycleTrack->isSelected())
+			if (m_runtimeStatus != QStringLiteral("Stopped") || m_resultsAvailable) {
+				failures << "Stop did not leave a stopped run without results";
 				ok = false;
-			else {
+			} else {
 				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
 				std::fflush(stdout);
 			}

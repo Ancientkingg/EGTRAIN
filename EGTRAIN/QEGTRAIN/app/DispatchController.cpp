@@ -322,6 +322,8 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 
 void DispatchController::runSimulation() {
 
+	runCompleted_ = false;
+
 	if (numRegions <= 0) {
 		emit executionRejected();
 		const std::string message = "ERROR: Cannot run simulation because zero trains were loaded.";
@@ -329,8 +331,6 @@ void DispatchController::runSimulation() {
 		std::cerr << message << std::endl;
 		return;
 	}
-
-	runCompleted_ = false;
 
 	QElapsedTimer observationTimer;
 	observationTimer.start();

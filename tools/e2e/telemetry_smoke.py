@@ -125,7 +125,7 @@ def assert_counts(mode, counts):
         if mode == "zero":
             del expected[("usage", "simulation.started", ())]
             del expected[("usage", "simulation.completed", ())]
-        if mode in ("teardown", "zero", "discard"):
+        if mode in ("stop_before", "stop_postprocessing", "teardown", "zero", "discard"):
             expected[("usage", "export.completed", (("export_kind", "csv"),))] -= 1
             expected[("usage", "export.completed", (("export_kind", "png"),))] -= 1
     if mode != "usage":
