@@ -2694,9 +2694,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// file menu: output folder chooser
 	if (ui->menuFile) {
-		QAction* outAction = new QAction("Set Output Folder...", this);
-		connect(outAction, &QAction::triggered, this, &MainWindow::chooseOutputFolder);
-		ui->menuFile->addAction(outAction);
+		m_outputFolderAction = new QAction("Set Output Folder...", this);
+		connect(m_outputFolderAction, &QAction::triggered, this, &MainWindow::chooseOutputFolder);
+		ui->menuFile->addAction(m_outputFolderAction);
 	}
 
 	// in-app logging pane (ConsoleWidget installs its own streambuf on construction)
@@ -14727,6 +14727,10 @@ void MainWindow::runVisualPolishE2E() {
 				break;
 			}
 		}
+		if (!m_outputFolderAction || m_outputFolderAction->isEnabled() || ui->actionStartTime->isEnabled()) {
+			ok = false;
+			failures << "the output folder or the start time can be changed during a run";
+		}
 		if (!lifecycleTrack) {
 			ok = false;
 			failures << "operational track lifecycle fixture has no active state";
@@ -14752,6 +14756,10 @@ void MainWindow::runVisualPolishE2E() {
 			if (m_worker) {
 				ok = false;
 				failures << "Stop did not complete through the worker lifecycle";
+			} else if (!m_outputFolderAction || !m_outputFolderAction->isEnabled()
+					|| !ui->actionStartTime->isEnabled()) {
+				ok = false;
+				failures << "the output folder and the start time stayed disabled after the run";
 			}
 			if (!m_completedReplay.empty() || m_replayTimer->isActive()) {
 				ok = false;
@@ -20903,6 +20911,10 @@ void MainWindow::clearSimulationWorker(bool requestStop) {
 	}
 	if (ui->actionSimulationStop)
 		ui->actionSimulationStop->setEnabled(false);
+	if (m_outputFolderAction)
+		m_outputFolderAction->setEnabled(true);
+	if (ui->actionStartTime)
+		ui->actionStartTime->setEnabled(true);
 }
 
 void MainWindow::stopTrainAnimation(int train) {
@@ -22520,6 +22532,10 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 	m_workerThread->start();
 	ui->actionSimulationPause->setEnabled(true);
 	ui->actionSimulationStop->setEnabled(true);
+	// A run keeps the output folder and the start time it was prepared with.
+	if (m_outputFolderAction)
+		m_outputFolderAction->setEnabled(false);
+	ui->actionStartTime->setEnabled(false);
 }
 
 // handle simulation completion on the main thread
@@ -23197,14 +23213,17 @@ void MainWindow::teardownGUI() {
 		networkView->fitToTopology();
 }
 
+// The choice is stored in the controller and applied when the next run is prepared, so the
+// folder of a run that is already active never changes.
 void MainWindow::chooseOutputFolder() {
 	extern InitialParameters initial_variables;
+	const std::string& chosen = simulation.nextRunOutputFolder();
 	QString dir = QFileDialog::getExistingDirectory(this, "Choose Output Folder",
-													QString::fromStdString(initial_variables.OutputMainFolder));
+			QString::fromStdString(chosen.empty() ? initial_variables.OutputMainFolder : chosen));
 	if (dir.isEmpty())
 		return;
 	QDir().mkpath(dir);
-	initial_variables.OutputMainFolder = dir.toStdString();
+	simulation.setNextRunOutputFolder(dir.toStdString());
 	statusBar()->showMessage(QString("Output folder: %1").arg(dir), 4000);
 }
 

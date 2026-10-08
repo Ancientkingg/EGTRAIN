@@ -463,6 +463,7 @@ private:
 	QAction* m_saveSceneAsFolderAction = nullptr;
 	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
+	QAction* m_outputFolderAction = nullptr;
 	QMenu* m_recentScenesMenu = nullptr;
 	QDockWidget* m_validationDock = nullptr;
 	QTableWidget* m_validationTable = nullptr;

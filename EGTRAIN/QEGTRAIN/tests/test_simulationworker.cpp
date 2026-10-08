@@ -10,6 +10,7 @@
 #endif
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QObject>
@@ -51,8 +52,10 @@ struct RunObservation {
 };
 
 // Runs the prepared scene the way MainWindow::startSimulation does and requests
-// the stop at the given point.
-void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, RunObservation& observed) {
+// the stop at the given point. A folder in chosenDuringRun is set as the output
+// folder of the next run once the worker thread has started.
+void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, RunObservation& observed,
+		const QString& chosenDuringRun = QString()) {
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
@@ -98,6 +101,8 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	if (stopAt == StopAt::BeforeStart)
 		worker->requestStop();
 	thread.start();
+	if (!chosenDuringRun.isEmpty())
+		simulation.setNextRunOutputFolder(chosenDuringRun.toStdString());
 	loop.exec();
 	thread.quit();
 	thread.wait();
@@ -200,6 +205,27 @@ int main(int argc, char** argv) {
 		ok &= expect(observed.stopRequested, "stop after completion: stop request kept");
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("stop after completion: ") + file);
+	}
+
+	{
+		// Last, because the chosen folder stays in the controller for later runs.
+		QTemporaryDir output;
+		QTemporaryDir chosen;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::Never, observed, chosen.path());
+		ok &= expect(observed.prepared && observed.completed, "folder chosen during a run: run completed");
+		ok &= expect(initial_variables.OutputMainFolder == output.path().toStdString(),
+				"folder chosen during a run: the run keeps its folder");
+		ok &= expect(exists(output, kEnergyFile), std::string("folder chosen during a run: ") + kEnergyFile);
+		for (const char* file : kLateFiles)
+			ok &= expect(exists(output, file), std::string("folder chosen during a run: ") + file);
+		ok &= expect(QDir(chosen.path()).isEmpty(), "folder chosen during a run: nothing written there");
+
+		ok &= expect(!hasErrors(simulation.prepareScene(loaded.scene)), "next run: scene prepared");
+		ok &= expect(initial_variables.OutputMainFolder == chosen.path().toStdString(),
+				"next run: uses the chosen folder");
+		ok &= expect(exists(chosen, "TrainTrajectories"), "next run: output tree created in the chosen folder");
+		simulation.setNextRunOutputFolder({});
 	}
 
 	if (ok)
