@@ -253,6 +253,7 @@ void TelemetrySender::requestConsentRefresh() noexcept {
 void TelemetrySender::stop() noexcept {
     auto s = m_shared;
     if (!s) return;
+    // The stop request comes first: pump() reads the flags before it.
     s->stop.store(true, std::memory_order_release);
     s->flags.fetch_or(4u, std::memory_order_release);
 }
@@ -518,8 +519,13 @@ public:
         reserve(60000, 0);
     }
     void pump() {
-        if (s->stop.load(std::memory_order_acquire)) { close(); tick.stop(); loop.quit(); return; }
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+        if (s->tests.beforeFlagsRead) s->tests.beforeFlagsRead();
+#endif
+        // stop() raises the receiver flag after its stop request. The flags are read
+        // first, so a pump that sees that flag also sees the stop and purges nothing.
         const unsigned flags = s->flags.exchange(0, std::memory_order_acq_rel);
+        if (s->stop.load(std::memory_order_acquire)) { close(); tick.stop(); loop.quit(); return; }
         if (flags & 7u) {
             { QMutexLocker lock(&s->mutex);
               for (int i = 0; i < 2; ++i) if (flags & (1u << i) || flags & 4u) {

@@ -605,6 +605,42 @@ static void testStartupIngress(const telemetry::Application& metadata, Telemetry
     assert(exited.tryAcquire(1, 3000));
 }
 
+static void testStopKeepsStoredEvents(const telemetry::Application& metadata, TelemetryContext context) {
+    // stop() raises the same flag as a receiver change. A stop that arrives while
+    // a pump starts must not purge the stored events.
+    QTemporaryDir directory;
+    assert(directory.isValid());
+    const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+    QSettings settings(settingsFile, QSettings::IniFormat);
+    TelemetryConsent consent(settings, context);
+    assert(consent.save(true, false));
+    QSemaphore polled, proceed, settled, atPump, resume, exited;
+    std::atomic<bool> hold{false};
+    telemetry::TelemetrySender::TestOptions options;
+    options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+    options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
+    options.afterPoll = [&] {
+        polled.release(); assert(proceed.tryAcquire(1, 3000));
+        QTimer::singleShot(0, [&] { settled.release(); });
+    };
+    options.beforeFlagsRead = [&] {
+        if (!hold.exchange(false)) return;
+        atPump.release(); assert(resume.tryAcquire(1, 3000));
+    };
+    options.onWorkerExit = [&] { exited.release(); };
+    telemetry::TelemetrySender sender(context, metadata, directory.filePath(QStringLiteral("queue")), options);
+    assert(polled.tryAcquire(1, 3000));
+    assert(sender.tryEnqueue({}));
+    proceed.release(); assert(settled.tryAcquire(1, 3000));
+    assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 1);
+    hold = true;
+    assert(atPump.tryAcquire(1, 3000));
+    sender.stop();
+    resume.release();
+    assert(exited.tryAcquire(1, 3000));
+    assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 1);
+}
+
 static void testPreparationBarrier(const telemetry::Application& metadata, TelemetryContext context) {
     for (int action = 0; action < 3; ++action) {
         QTemporaryDir directory;
@@ -1083,6 +1119,7 @@ int main(int argc, char** argv) {
     testBackoffSaturation(metadata, context);
     testOutcomes(metadata, context);
     testStartupIngress(metadata, context);
+    testStopKeepsStoredEvents(metadata, context);
     testPreparationBarrier(metadata, context);
     testInterruptedBackoff(metadata, context);
     testTimeoutAndExceptions(metadata, context);
