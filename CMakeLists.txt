@@ -943,6 +943,9 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
+	# Behaviour characterization of the simulation core (see tests/characterization).
+	add_subdirectory(EGTRAIN/QEGTRAIN/tests/characterization)
+
 	add_executable(test_railmlparser
 		${SRC_DIR}/tests/test_railmlparser.cpp
 		${SRC_DIR}/io/RailMLParser.cpp
