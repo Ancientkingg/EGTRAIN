@@ -208,13 +208,6 @@ void callRoma(string instancename, double inittime, double PH) {
 	system((char*)Name_Of_Batch_Plus_Data.c_str());
 }
 
-// Function to compute the critical headways for all the trains
-void ComputeCriticalHeadwaysForLocationsForAllTrains(Train* T, int numTrains) {
-	for (int i = 0; i < numTrains; i++) {
-		T[i].DetermineCriticalHWForAllLocations();
-	}
-}
-
 // Function to compute Energy consumption for all the trains in the network
 void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 	for (int i = 0; i < numTrains; i++) {
@@ -226,19 +219,6 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 			continue;
 		// Compute the Energy Consumption for all the trains in the network
 		Trains[i].TotalEnergyConsumptionWithAndWithoutRegBraking(0.8, 0.7); // we are using as default an efficiency of 0.8 for the substation and 0.7 for regenerative braking (but these values are actually a feature of the substation and the train respectively)
-	}
-}
-
-// Function to compute the headways of all the trains
-void ComputeHwMatrixForAllTrains(Train* T, int numTrains, string MainFolder) {
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int i = 0; i < numTrains; i++) {
-			T[i].SetLocationNames();
-			T[i].ComputeHwMatrix(T, numTrains);
-			T[i].PrintHeadwayMatrix(MainFolder);
-		}
 	}
 }
 

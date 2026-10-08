@@ -99,12 +99,6 @@ extern OrderList TrainEntranceOrder;
 
 void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceOrder);
 
-// Function to compute the headways of all the trains
-void ComputeHwMatrixForAllTrains(Train* T, int numTrains, string MainFolder);
-
-// Function to compute the critical headways for all the trains
-void ComputeCriticalHeadwaysForLocationsForAllTrains(Train* T, int numTrains);
-
 // Function to Initialize all the Locations in the infrastructure in order to Identify all the HWs
 void SetAllLocations(Train* T, int N_Train);
 
