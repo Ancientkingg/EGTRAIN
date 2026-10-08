@@ -61,9 +61,6 @@
     <ClCompile Include="RollingStock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rescheduling.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dispDecision.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -202,9 +199,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Simulation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rescheduling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dispDecision.h">

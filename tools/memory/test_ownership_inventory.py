@@ -19,7 +19,6 @@ class TestOwnershipInventory(unittest.TestCase):
         observer_lines = "\n".join(item[2] for item in results["Non-owning pointers"])
         self.assertIn("trainPaxItem", observer_lines)
         self.assertIn("paxIconItem", observer_lines)
-        self.assertIn("TDS_arc", observer_lines)
         self.assertTrue(results["Unclassified raw pointers"])
         for entries in results.values():
             self.assertEqual(entries, sorted(entries, key=lambda item: (item[0], item[1])))

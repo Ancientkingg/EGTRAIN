@@ -30,7 +30,6 @@ CONFIRMED_OBSERVERS = {
         "paxIconInfoItem",
         "paxIconItem",
     },
-    "EGTRAIN/QEGTRAIN/simulation/Rescheduling.h": {"TDS_arc"},
     "EGTRAIN/QEGTRAIN/simulation/SimulationWorker.h": {"s_active"},
     "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr"},
 }

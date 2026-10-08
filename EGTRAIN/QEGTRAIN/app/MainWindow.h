@@ -146,8 +146,6 @@ struct StableRelease;
 #include "app/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 
-#include "simulation/Rescheduling.h"
-
 #include <QThread>
 #include <QToolBar>
 

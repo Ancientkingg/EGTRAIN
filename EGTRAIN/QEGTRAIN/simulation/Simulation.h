@@ -9,31 +9,6 @@
 #include "simulation/Passengers.h"
 #include <vector>
 
-// Function to draw stochastic Train Delays from a Gaussian Distribution, the St Dev of the delays Perc_Std_Dev must be expressed as a percentage of the scheduled dwell time at stations (e.g. if it is the 20% put Perc_Std_Dev=0.2)
-
-void drawGaussianTrainDwellTimes(double Perc_Std_Dev, int index_scenario);
-
-// Function to Generate Multiple disturbed scenarios with stochastic Dwell times
-void Generate_Multiple_Train_Dwell_Times_From_Gaussian(int Number_of_Scenarios);
-
-// Function to Load the Stochastic Dwell Times drawn from the Previous function and assign it to the StopTime Variable of the trains
-void Load_And_Set_Stoc_Dwell_Times(char* FileName);
-
-// Load Files of a given disturbed scenario identified by its index and saved in the Folder
-void Load_Dwell_Time_Disturbed_Scenario(string Folder, int index);
-
-// Function to Load Departure Delays from a station identified by the name which is given as input
-void Load_Departure_Delay_At_Station(char* FileName, string stationName);
-
-// Function to receive the entrance delays affected by an error distributed according to a Gaussian variable with standard deviation Std_Dev. Index is the Index of the scenario
-void Generate_Entrance_Delays_Affected_By_Error(string Folder, double Std_Dev, int index);
-
-// Function to Generate the Entrance Delays affected by Error for all the Scenarios
-void Generate_Entrance_Delays_With_Error_For_All_Scenarios(string Folder, double Std_Dev, int Number_Of_Scenarios);
-
-// Function to Load the Scenario of Entrance delays (from station stationName)identified by its index and saved in Folder
-void Load_Entrance_Delay_Disturbed_Scenario(string Folder, string stationName, int index);
-
 // Function to Detect the implemented Order for all the OL in the network
 void Detect_Implemented_Order_For_All_OL();
 
@@ -64,49 +39,11 @@ void calculateDelayStatsForAllStations();
 // Function to calculate positive and negative train delay statistics for all stations
 void calculatePosAndNegDelayStatsForAllStations();
 
-void Print_Trajectories_Of_All_Trains_At_Instant(int t, string FolderName);
-
-// Function to print the trajectory of the trains in a PNG image by using Powershell that activates a macro in the excel file TrajROMA-EGTRAIN
-//  To use This script it is necessary that the ExecutionPolicy of PowerShell is put on RemoteSigned both for the 32 and the x86 (i.e. 64 bit) versions of Powershell
-//  if it does not accept the function Set-ExecutionPolicy RemoteSigned, go in regedit-> HKEY LocalMAchine-> Microsoft-> PowerShell->ShellIDs and create a string variable called ExecutionPolicy whose value is RemoteSigned (do the same also for the Wow6432 version of the Powershell)
-void Print_Trajectories_As_Image(string InstanceName, char* Resch_Int, char* Pred_Hor);
-
 extern double Comp_Time_EGTRAIN, Comp_Time_ROMA; // variable to measure the computation times of EGTRAIN and ROMA
-
-extern int Resched_Interval;	 // Variable that set the time to gather train information from EGTRAIN to ROMA
-extern int Time_To_Collect_Info; // Variable to measure the time passed from the last information update
-extern double PH;				 // This is the Prediction Horizon Set in ROMA and must be used to initialize the ROMA batch call and the corresponding char
-extern char Init_Time[20], Pred_Hor[20];
-extern string InstanceName;		// This is the name of the instance that must be run in both ROMA and EGTRAIN
-extern int InstanceIndex;		// This is the index of the instance
-extern int DelayDispatcherImpl; // This is the delay in [s] with which the dispatcher implements the solution obtained from the ROMA tool*/
-
-extern string Name_Of_Integ_Folder; // Name of the batch file of ROMA
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
 void Print_Computing_Times(string FolderName);
 
-// Function to call and launch ROMA for computing a new rescheduling plan
-void callRoma(string instancename, double inittime, double PH);
-
-// Function to Implement the ROMA Solution in EGTRAIN
-void Implement_ROMA_Solution(string InstanceName, int Instant_Sol_Returned, double PH);
-
-extern OrderList TrainEntranceOrder;
-
-void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceOrder);
-
-// Function to Initialize all the Locations in the infrastructure in order to Identify all the HWs
-void SetAllLocations(Train* T, int N_Train);
-
-// Function to Determine the Max and the min Headway for all locations
-void DetermineMaxHW_MinHWForAllLocations(Train* T, int N_Train);
-
-// Function to print out all the Results of a network Location
-void PrintLocationHeadways(string MainFolder);
-
-// Function to Initialize all the Locations in the Network, i.e. the Location list AllLocations
-void InitializeAndComputeMaxHwForAllLocations(Train* T, int N_Train, string MainFolder);
 
 // Function to Print all the trajectories
 void PrintTrainPathDiagram(Train* S, int N_S, string FolderName);
@@ -116,15 +53,6 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
 // Function to Compute the Energy Consumption for the Timetable
 void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder);
-
-
-// Function to initialise all StationPlatforms for the simulation of passenger flows
-// The function takes as input all the Array and number of all block sections, the array and number of all trains, the array of all defined rutes, as well as the length and width of the platforms
-// Length and width of the platforms are assumed to be the same for all platforms in this function. If different dimensions needs to be assigned to each and every platform then the function should be extended with possibility to gather such a varying design from an external data input (manual entry or file)
-
-void Initialise_All_Station_Platforms(list<StationPlatform>& ALLPLATFORMS, int& N_ALLPLATFORMS, Section* Blocks, int N_Blocks, Train* Trains, int numTrains, vector<Route> All_Routes, double platform_length, double platform_width);
-
-void Update_List_Trains_Stopping_At_Platforms(list<StationPlatform>& ALLPLATFORMS, int& N_ALLPLATFORMS, Train* Trains, int numTrains, vector<Route> All_Routes);
 
 void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<Passenger>& SIMUL_PAX);
 
