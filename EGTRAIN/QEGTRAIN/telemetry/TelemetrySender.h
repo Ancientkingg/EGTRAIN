@@ -43,6 +43,8 @@ public:
         std::function<void()> onWorkerExit;
         std::function<void()> afterCompletion;
         std::function<void()> afterPoll;
+        // Called in each refresh after the usage observation, before the diagnostics one.
+        std::function<void()> betweenObservations;
         std::function<void()> afterOperationCaptureLocked; // Isolated contention tests only.
         std::function<void()> beforeSessionAttempt; // After the lifetime latch, before allocation/storage.
         std::function<void(bool)> afterOwnershipAttempt; // True only when this worker owns storage.

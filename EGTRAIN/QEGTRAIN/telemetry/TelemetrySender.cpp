@@ -305,6 +305,9 @@ public:
     void refresh() {
         if (!owner) return;
         for (int i = 0; i < 2; ++i) {
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+            if (i && s->tests.betweenObservations) s->tests.betweenObservations();
+#endif
             const quint64 version = s->permits.load(std::memory_order_acquire) & ~quint64(3);
             QString value;
             TelemetryConsent::ObservationStatus status;
@@ -323,10 +326,12 @@ public:
             }
             QMutexLocker lock(&s->mutex);
             if (!observed[i] || stamp[i] != value) {
+                // A category's gate stays closed until its first observation, so the ring
+                // then holds only intents of the other category. They stay queued.
+                if (observed[i]) s->count = 0;
                 observed[i] = true;
                 stamp[i] = value; ++s->epoch[i];
                 s->gate[i] = false;
-                s->count = 0;
                 lock.unlock();
                 const Category category = i ? Category::Diagnostics : Category::Usage;
                 const bool purged = value.isEmpty() ? queue.purgeCategory(category) : queue.purgeOtherStamps(category, value);
@@ -577,8 +582,8 @@ public:
 #endif
         }
         if (!owner) return;
-        // Initial diagnostics observation can clear ingress, so sessions bypass it
-        // only after a complete successful two-category refresh.
+        // Sessions bypass ingress, and only after a complete successful
+        // two-category refresh.
         attemptInteractiveSession();
         if (!owner) return;
         // Move at most the fixed ring capacity per tick. No producer event creates a Qt event.

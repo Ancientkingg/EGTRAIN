@@ -567,6 +567,44 @@ static void testOutcomes(const telemetry::Application& metadata, TelemetryContex
     }
 }
 
+static void testStartupIngress(const telemetry::Application& metadata, TelemetryContext context) {
+    // The usage gate opens before the first diagnostics observation. An event
+    // accepted in between is still sent.
+    QTemporaryDir directory;
+    assert(directory.isValid());
+    const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
+    QSettings settings(settingsFile, QSettings::IniFormat);
+    TelemetryConsent consent(settings, context);
+    assert(consent.save(true, false));
+    auto clock = std::make_shared<std::atomic<qint64>>(0);
+    const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+    QSemaphore opened, proceed, posted, completed, exited;
+    std::atomic<bool> first{true};
+    telemetry::TelemetrySender::TestOptions options;
+    options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+    options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+    options.monotonicMs = [clock] { return clock->load(); };
+    options.betweenObservations = [&] {
+        if (!first.exchange(false)) return;
+        opened.release();
+        assert(proceed.tryAcquire(1, 3000));
+    };
+    options.afterCompletion = [&completed] { completed.release(); };
+    options.onWorkerExit = [&exited] { exited.release(); };
+    options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+        posted.release();
+        return new ScriptedReply(request, 202, &manager);
+    };
+    telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), options);
+    assert(opened.tryAcquire(1, 3000));
+    assert(sender.tryEnqueue({}));
+    proceed.release();
+    *clock = 60001;
+    assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+    sender.stop();
+    assert(exited.tryAcquire(1, 3000));
+}
+
 static void testPreparationBarrier(const telemetry::Application& metadata, TelemetryContext context) {
     for (int action = 0; action < 3; ++action) {
         QTemporaryDir directory;
@@ -1044,6 +1082,7 @@ int main(int argc, char** argv) {
     testPathIsolation(metadata, context);
     testBackoffSaturation(metadata, context);
     testOutcomes(metadata, context);
+    testStartupIngress(metadata, context);
     testPreparationBarrier(metadata, context);
     testInterruptedBackoff(metadata, context);
     testTimeoutAndExceptions(metadata, context);
