@@ -819,13 +819,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					joinPath(path, key));
 			return false;
 		}
-		try {
-			output = object[key].get<int>();
-		} catch (const json::exception&) {
-			addError("scene.field.missing", file, std::string("Invalid ") + key,
-					joinPath(path, key));
+		int value = 0;
+		if (!readJsonInt(object[key], INT_MIN, INT_MAX, value)) {
+			addError("scene.field.missing", file, std::string("Invalid ") + key
+					+ ": integer out of range", joinPath(path, key));
 			return false;
 		}
+		output = value;
 		return true;
 	};
 	auto isSimulationResultField = [](const std::string& name) {
@@ -863,13 +863,11 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	if (sceneOk) {
 		if (!sceneJson.contains("schema_version")) {
 			addError("scene.version.missing", "scene.json", "Missing schema_version", "schema_version");
-		} else if (!sceneJson["schema_version"].is_number_integer()
-				|| sceneJson["schema_version"].get<int>() != kCurrentSceneSchemaVersion) {
+		} else if (!readJsonInt(sceneJson["schema_version"], kCurrentSceneSchemaVersion,
+						kCurrentSceneSchemaVersion, result.scene.schemaVersion)) {
 			addError("scene.version.unsupported", "scene.json",
 					"Unsupported schema_version, must be the current integer "
 						+ std::to_string(kCurrentSceneSchemaVersion), "schema_version");
-		} else {
-			result.scene.schemaVersion = sceneJson["schema_version"].get<int>();
 		}
 		stringField(sceneJson, "name", "scene.json", "", result.scene.name);
 		stringField(sceneJson, "saved_with_app_version", "scene.json", "",
@@ -1077,9 +1075,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					}
 					SceneTrackView view;
 					view.trackId = value["track"].get<std::string>();
+					if (!readJsonInt(value["level"], INT_MIN, INT_MAX, view.level)
+							|| !readJsonInt(value["region"], INT_MIN, INT_MAX, view.region)) {
+						viewWarning(path, "Invalid track display row; row skipped");
+						continue;
+					}
 					try {
-						view.level = value["level"].get<int>();
-						view.region = value["region"].get<int>();
 						if (value.contains("visible"))
 							view.visible = value["visible"].get<bool>();
 					} catch (const json::exception&) {
@@ -1144,8 +1145,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							validRegions = false;
 							break;
 						}
+						int regionId = 0;
+						if (!readJsonInt(regionValue["id"], INT_MIN, INT_MAX, regionId)) {
+							validRegions = false;
+							break;
+						}
 						try {
-							const int regionId = regionValue["id"].get<int>();
 							const double positionKm = regionValue["position_km"].get<double>();
 							if (regionId < 0 || !std::isfinite(positionKm) || !regionIds.insert(regionId).second) {
 								validRegions = false;

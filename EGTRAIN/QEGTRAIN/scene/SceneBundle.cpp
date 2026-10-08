@@ -7,6 +7,7 @@
 #include <array>
 #include <chrono>
 #include <cctype>
+#include <climits>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -376,8 +377,18 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			addDiagnostic(diagnostics, "scene.bundle.schema", "scene.json schema_version must be an integer", "scene.json");
 			return false;
 		}
-		manifest.bundleVersion = manifestJson["bundle_version"].get<int>();
-		manifest.schemaVersion = manifestJson["schema_version"].get<int>();
+		int bundleVersion = 0;
+		if (!readJsonInt(manifestJson["bundle_version"], INT_MIN, INT_MAX, bundleVersion)) {
+			addDiagnostic(diagnostics, "scene.bundle.version",
+					"scene.json bundle_version is outside the supported integer range", "scene.json");
+			return false;
+		}
+		if (!readJsonInt(manifestJson["schema_version"], INT_MIN, INT_MAX, manifest.schemaVersion)) {
+			addDiagnostic(diagnostics, "scene.bundle.schema",
+					"scene.json schema_version is outside the supported integer range", "scene.json");
+			return false;
+		}
+		manifest.bundleVersion = bundleVersion;
 		if (manifestJson.contains("saved_with_app_version")) {
 			if (!manifestJson["saved_with_app_version"].is_string()) {
 				addDiagnostic(diagnostics, "scene.bundle.manifest",

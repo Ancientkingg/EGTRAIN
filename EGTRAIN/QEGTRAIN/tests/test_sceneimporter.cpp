@@ -1,9 +1,12 @@
 #include "scene/SceneImporter.h"
+#include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
 
 #include <chrono>
+#include <climits>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
@@ -58,6 +61,16 @@ static void writeUtf16Le(const fs::path& path, const std::string& content) {
 		output.put(static_cast<char>(value));
 		output.put('\0');
 	}
+}
+
+static bool hasDiagAt(const std::vector<SceneDiagnostic>& diagnostics, const std::string& file,
+		const std::string& path) {
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.file == file && diagnostic.path == path
+				&& (diagnostic.severity == SceneSeverity::Error || diagnostic.severity == SceneSeverity::Warning))
+			return true;
+	}
+	return false;
 }
 
 static bool readJson(const fs::path& path, json& value) {
@@ -246,6 +259,100 @@ int main() {
 					&& passengers["passengers"].size() == 1
 					&& passengers["passengers"][0]["journeys"][0]["legs"].size() == 1,
 					"Full legacy import reuses the passenger conversion seam");
+
+			// Integer fields must be rejected, not narrowed, when the JSON number does not fit an int.
+			const auto loadMutated = [&](const char* file, const std::function<void(json&)>& mutate) {
+				TempDir copyRoot;
+				const fs::path copy = fs::path(copyRoot.dir) / "scene";
+				std::error_code copyError;
+				fs::copy(output.dir, copy, fs::copy_options::recursive, copyError);
+				json value;
+				if (copyError || !readJson(copy / file, value))
+					return SceneLoadResult();
+				mutate(value);
+				std::ofstream out(copy / file, std::ios::trunc);
+				out << value.dump(2) << "\n";
+				out.close();
+				return loadScene(copy.string());
+			};
+			const auto unmodified = loadMutated("scene.json", [](json&) {});
+			ok &= expect(!unmodified.scene.sourceFiles.empty() && !hasErrors(unmodified.diagnostics),
+					"Unmodified synthetic scene loads without errors");
+			const long long beyondInt = static_cast<long long>(INT_MAX) + 1;
+			for (const json& badVersion : {json(4294967297LL), json(beyondInt), json(-1), json(1.5), json("1"),
+					json(18446744073709551615ULL)}) {
+				const auto loaded = loadMutated("scene.json", [&](json& value) { value["schema_version"] = badVersion; });
+				ok &= expect(hasDiag(loaded.diagnostics, "scene.version.unsupported", SceneSeverity::Error)
+						&& hasDiagAt(loaded.diagnostics, "scene.json", "schema_version")
+						&& loaded.scene.schemaVersion == 0,
+						"Unsupported or out-of-range schema_version is rejected: " + badVersion.dump());
+			}
+			for (const json& badCount : {json(4294967297LL), json(beyondInt), json(-beyondInt - 1), json(1.5),
+					json("2")}) {
+				const auto loaded = loadMutated("services.json", [&](json& value) {
+					value["services"][0]["repeat"] = {{"headway_seconds", 600.0}, {"count", badCount}};
+				});
+				ok &= expect(hasDiag(loaded.diagnostics, "scene.field.missing", SceneSeverity::Error)
+						&& hasDiagAt(loaded.diagnostics, "services.json", "services[0].repeat.count"),
+						"Invalid repeat count is rejected: " + badCount.dump());
+			}
+			const auto maxCount = loadMutated("services.json", [](json& value) {
+				value["services"][0]["repeat"] = {{"headway_seconds", 600.0}, {"count", INT_MAX}};
+			});
+			ok &= expect(!hasErrors(maxCount.diagnostics) && maxCount.scene.services[0].repeatCount == INT_MAX,
+					"Repeat count at the int limit is read unchanged");
+			const auto minStep = loadMutated("services.json", [](json& value) {
+				value["services"][0]["repeat"] = {{"headway_seconds", 600.0}, {"operating_code_step", INT_MIN}};
+			});
+			ok &= expect(!hasErrors(minStep.diagnostics) && minStep.scene.services[0].operatingCodeStep == INT_MIN,
+					"Operating code step at the int minimum is read unchanged");
+			const auto stepBelowMin = loadMutated("services.json", [&](json& value) {
+				value["services"][0]["repeat"] = {{"headway_seconds", 600.0}, {"operating_code_step", -beyondInt - 1}};
+			});
+			ok &= expect(hasDiagAt(stepBelowMin.diagnostics, "services.json", "services[0].repeat.operating_code_step"),
+					"Operating code step below the int minimum is rejected");
+			for (const json& badOccurrence : {json(4294967298LL), json(beyondInt)}) {
+				const auto loaded = loadMutated("passengers.json", [&](json& value) {
+					value["passengers"][0]["journeys"][0]["legs"][0]["occurrence"] = badOccurrence;
+				});
+				ok &= expect(hasDiag(loaded.diagnostics, "scene.field.missing", SceneSeverity::Error)
+						&& hasDiagAt(loaded.diagnostics, "passengers.json",
+								"passengers[0].journeys[0].legs[0].occurrence"),
+						"Out-of-range leg occurrence is rejected: " + badOccurrence.dump());
+			}
+			const auto maxOccurrence = loadMutated("passengers.json", [](json& value) {
+				value["passengers"][0]["journeys"][0]["legs"][0]["occurrence"] = INT_MAX;
+			});
+			ok &= expect(!hasErrors(maxOccurrence.diagnostics)
+					&& maxOccurrence.scene.passengers[0].journeys[0].legs[0].occurrence == INT_MAX,
+					"Leg occurrence at the int limit is read unchanged");
+			const auto negativeOccurrence = loadMutated("passengers.json", [](json& value) {
+				value["passengers"][0]["journeys"][0]["legs"][0]["occurrence"] = -1;
+			});
+			ok &= expect(hasDiag(validateScene(negativeOccurrence.scene), "scene.occurrence.invalid",
+					SceneSeverity::Error), "Negative leg occurrence is reported by validation");
+			const auto wrappedDelay = loadMutated("scenarios.json", [](json& value) {
+				value["scenarios"][1]["entrance_delays"][0]["occurrence"] = 4294967297LL;
+			});
+			ok &= expect(hasDiagAt(wrappedDelay.diagnostics, "scenarios.json",
+					"scenarios[1].entrance_delays[0].occurrence"),
+					"Out-of-range entrance delay occurrence is rejected");
+			const auto wrappedReport = loadMutated("scene.json", [](json& value) {
+				value["import_report"][0]["source_count"] = 4294967297LL;
+			});
+			ok &= expect(hasDiagAt(wrappedReport.diagnostics, "scene.json", "import_report[0].source_count"),
+					"Out-of-range import report count is rejected");
+			const auto wrappedView = loadMutated("views.json", [](json& value) {
+				value["tracks"][0]["level"] = 4294967296LL;
+			});
+			ok &= expect(hasDiag(wrappedView.diagnostics, "scene.views.row", SceneSeverity::Warning)
+					&& wrappedView.scene.trackViews.size() == 1,
+					"Out-of-range track display level skips the row");
+			const auto wrappedRegion = loadMutated("views.json", [](json& value) {
+				value["stations"][0]["regions"][0]["id"] = 4294967296LL;
+			});
+			ok &= expect(hasDiag(wrappedRegion.diagnostics, "scene.views.row", SceneSeverity::Warning),
+					"Out-of-range station region id skips the row");
 		}
 		fs::remove(legacy / "Passengers/RouteChoiceFC_EQ1.csv");
 		const auto partialResult = importLegacyScene(legacyDir.dir, partialOutput.dir, "Paimpol");

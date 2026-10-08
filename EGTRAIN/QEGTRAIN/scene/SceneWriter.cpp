@@ -1,6 +1,7 @@
 #include "scene/SceneWriter.h"
 
 #include <chrono>
+#include <climits>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -379,13 +380,13 @@ static bool scenarioInteger(const json& object, const char* key, ScenarioLoadRes
 				std::string("Invalid ") + key, path + "." + key);
 		return false;
 	}
-	try {
-		output = object[key].get<int>();
-	} catch (const json::exception&) {
+	int value = 0;
+	if (!readJsonInt(object[key], INT_MIN, INT_MAX, value)) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
+				std::string("Invalid ") + key + ": integer out of range", path + "." + key);
 		return false;
 	}
+	output = value;
 	return true;
 }
 

@@ -3,6 +3,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneMigration.h"
 
+#include <climits>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -109,7 +110,11 @@ SceneCompatibilityProbeResult probeDirectory(const std::string& path,
 					"scene.json schema_version must be an integer", "scene.json");
 			return result;
 		}
-		result.schemaVersion = manifest["schema_version"].get<int>();
+		if (!readJsonInt(manifest["schema_version"], INT_MIN, INT_MAX, result.schemaVersion)) {
+			addDiagnostic(result.diagnostics, "scene.compatibility.schema",
+					"scene.json schema_version is outside the supported integer range", "scene.json");
+			return result;
+		}
 		if (manifest.contains("saved_with_app_version")) {
 			if (!manifest["saved_with_app_version"].is_string()) {
 				addDiagnostic(result.diagnostics, "scene.compatibility.provenance",
