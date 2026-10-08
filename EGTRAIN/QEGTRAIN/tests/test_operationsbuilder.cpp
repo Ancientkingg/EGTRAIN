@@ -191,7 +191,7 @@ static bool passengerRateTests() {
 	train.Current_OnBoard_Passengers = 0;
 	const double lowPlatform = seededDwellTime(train, 0.6);
 	const double highPlatform = seededDwellTime(train, 0.7);
-	ok &= expect(near(highPlatform - lowPlatform, beta1 + beta3),
+	ok &= expect(near(highPlatform - lowPlatform, static_cast<double>(beta1) + beta3),
 			"platform congestion above 0.65 adds its terms to the dwell time");
 
 	ok &= expect(QDir::setCurrent(previousDir), "working directory restored");
