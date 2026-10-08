@@ -494,17 +494,22 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
     target_compile_definitions(test_telemetrynetwork PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
     target_link_libraries(test_telemetrynetwork PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
-    foreach(mode reject trusted)
-        add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
-            $<TARGET_FILE:test_telemetrynetwork>
-            ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
-            ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
-            ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
-            ${mode})
-        set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
-    endforeach()
-    set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
+    # Qt 5.15 loads OpenSSL 1.1 at run time. Windows does not provide it, so Qt has no TLS there.
+    if(NOT WIN32)
+        foreach(mode reject trusted)
+            add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
+                $<TARGET_FILE:test_telemetrynetwork>
+                ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
+                ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
+                ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
+                ${mode})
+            set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
+        endforeach()
+        set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
+    else()
+        message(STATUS "Windows: skipping test_telemetrynetwork_reject and test_telemetrynetwork_trusted (no TLS library for Qt 5.15)")
+    endif()
 
     add_executable(test_updatechecker
         ${SRC_DIR}/tests/test_updatechecker.cpp

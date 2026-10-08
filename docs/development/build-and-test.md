@@ -22,10 +22,7 @@ Supported toolchains, as used by CI:
 - macOS: Homebrew Qt 5 and the packages in the configure example below.
 - Windows 10 or 11, x64 only: MSVC (Visual Studio 2019 or newer), Qt 5.15
   `msvc2019_64` with QtCharts, and vcpkg `zeromq cppzmq nlohmann-json` for the
-  `x64-windows` triplet. 32-bit Windows is not supported. Qt 5.15 loads
-  OpenSSL 1.1 at run time: the two telemetry network tests need
-  `libssl-1_1-x64.dll` and `libcrypto-1_1-x64.dll` on `PATH` (CI takes them
-  from Qt's `tools_openssl_x64` package).
+  `x64-windows` triplet. 32-bit Windows is not supported.
 - Linux: Ubuntu (the `ubuntu-latest` runner image) with the apt packages in
   the configure example below.
 
@@ -175,6 +172,7 @@ platform.
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
+| `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
