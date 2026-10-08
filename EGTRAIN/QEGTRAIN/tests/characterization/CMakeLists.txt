@@ -66,9 +66,42 @@ add_test(NAME characterization_repeatable
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 list(APPEND EGTRAIN_CHARACTERIZATION_TESTS characterization_repeatable)
 
+# Committed scenes run back to back in one process. A scene that runs again,
+# directly or after another scene, must give the same result as its first run.
+set(EGTRAIN_COMMITTED_SCENES ${SRC_DIR}/Scenes)
+add_test(NAME characterization_repeat_paimpol
+	COMMAND test_characterization --repeat
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME characterization_repeat_lebanon_milano
+	COMMAND test_characterization --repeat
+		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
+		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME characterization_repeat_netherlands
+	COMMAND test_characterization --repeat
+		${EGTRAIN_COMMITTED_SCENES}/Netherlands
+		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Netherlands
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(EGTRAIN_CHARACTERIZATION_SCENE_TESTS
+	characterization_repeat_paimpol
+	characterization_repeat_lebanon_milano
+	characterization_repeat_netherlands)
+
 # One OpenMP thread: the braking-point search in RollingStock.h writes shared
 # variables outside its critical section, so the thread count must not vary.
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT 60
 	ENVIRONMENT "OMP_NUM_THREADS=1;QT_QPA_PLATFORM=offscreen")
+set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
+	LABELS "characterization;unit"
+	TIMEOUT 300
+	ENVIRONMENT "OMP_NUM_THREADS=1;QT_QPA_PLATFORM=offscreen")
+set_property(TEST characterization_repeat_netherlands APPEND PROPERTY LABELS slow)

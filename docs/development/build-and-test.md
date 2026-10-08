@@ -283,6 +283,13 @@ build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
 A step is a scene directory, optionally followed by `#` and a case name. Without
 a case name the scene runs as committed.
 
+Three more entries run committed scenes this way: `characterization_repeat_paimpol`
+(Paimpol twice, then Assignment, then Paimpol again),
+`characterization_repeat_lebanon_milano` (Lebanon and Milano-Brescia, alternating)
+and `characterization_repeat_netherlands` (Netherlands, Lebanon, Netherlands, labelled
+`slow`). They fail when a run leaves state behind that changes a later run of the
+same scene, which is what a change to the global runtime arrays can cause.
+
 ### Reading a golden file
 
 Golden files are in `tests/characterization/expected/<case>.txt`. Lines starting
