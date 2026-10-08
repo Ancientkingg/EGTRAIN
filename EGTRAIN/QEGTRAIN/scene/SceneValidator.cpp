@@ -123,6 +123,61 @@ void collectIds(const std::vector<T>& items, const std::string& file, const std:
 	}
 }
 
+// Runtime sections on a route that no signalling area covers keep the unset
+// signalling level, so trains there run without signalling.
+void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInventory& inventory,
+		const std::unordered_set<std::string>& coveredSectionIds, DiagnosticBuilder& diagnostics) {
+	std::unordered_set<std::string> seenSectionIds;
+	std::vector<const SceneSectionDescriptor*> uncovered;
+	std::size_t routeSectionCount = 0;
+	for (const SceneRoute& route : scene.routes) {
+		for (const std::string& token : route.blocks) {
+			const SceneSectionDescriptor* section = inventory.resolve(token);
+			if (section == nullptr || !seenSectionIds.insert(section->id).second)
+				continue;
+			++routeSectionCount;
+			if (coveredSectionIds.find(section->id) == coveredSectionIds.end())
+				uncovered.push_back(section);
+		}
+	}
+	if (uncovered.empty())
+		return;
+
+	static constexpr std::size_t kNamedItems = 5;
+	std::vector<std::string> trackIds;
+	double minimumStart = uncovered.front()->startKm;
+	double maximumEnd = uncovered.front()->endKm;
+	for (const SceneSectionDescriptor* section : uncovered) {
+		minimumStart = std::min(minimumStart, section->startKm);
+		maximumEnd = std::max(maximumEnd, section->endKm);
+		for (const std::string* trackId : {&section->firstTrackId, &section->secondTrackId}) {
+			if (!trackId->empty() && std::find(trackIds.begin(), trackIds.end(), *trackId) == trackIds.end())
+				trackIds.push_back(*trackId);
+		}
+	}
+	auto names = [](const std::vector<std::string>& values) {
+		std::string text;
+		for (std::size_t index = 0; index < std::min(values.size(), kNamedItems); ++index)
+			text += (index == 0 ? "" : ", ") + values[index];
+		if (values.size() > kNamedItems)
+			text += " and " + std::to_string(values.size() - kNamedItems) + " more";
+		return text;
+	};
+	std::vector<std::string> sectionIds;
+	for (const SceneSectionDescriptor* section : uncovered)
+		sectionIds.push_back(section->id);
+	std::string message = scene.signallingAreas.empty() ? "No signalling area is defined. " : "";
+	message += std::to_string(uncovered.size()) + " of " + std::to_string(routeSectionCount)
+			+ " route sections have no signalling level and run without signalling: " + names(sectionIds);
+	if (!trackIds.empty())
+		message += " (tracks " + names(trackIds) + ")";
+	diagnostics.warning("scene.signalling.level.missing", message, "signalling.json", "scene", scene.name,
+			"signalling_areas", uncovered.front()->id,
+			"In Infrastructure > Signalling area add a network-wide area covering "
+			+ formatSceneSectionCoordinate(minimumStart) + " to " + formatSceneSectionCoordinate(maximumEnd)
+			+ " km, or a track-scoped area for each track listed");
+}
+
 std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable,
 		const SceneRunSelection& selectedOccurrences = {},
 		std::optional<double> effectiveDurationOverride = std::nullopt) {
@@ -1341,6 +1396,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				const auto* section = sectionInventory.resolve(reference);
 				return section == nullptr ? std::string() : section->id;
 			};
+			std::unordered_set<std::string> signallingCoveredSectionIds;
 			for (const PlannedSignallingSection& section : plannedSignallingSections) {
 				for (const bool trackScoped : {false, true}) {
 					const SceneSignallingArea* matched = nullptr;
@@ -1369,8 +1425,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 							break;
 						}
 					}
+					if (matched)
+						signallingCoveredSectionIds.insert(section.id);
 				}
 			}
+			reportUncoveredRouteSections(scene, sectionInventory, signallingCoveredSectionIds, diagnostics);
 			if (plannedSectionIds.size() > kNativeMaxBaseBlocks)
 				runtimeCapacity("Base blocks and derived switch sections exceed runtime capacity",
 						"infrastructure.json", "block", "", "blocks",

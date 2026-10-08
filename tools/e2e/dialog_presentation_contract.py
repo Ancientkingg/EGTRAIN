@@ -52,7 +52,7 @@ def launch(app: Path, settings: Path, scene: Optional[Path] = None,
 
 
 def expected_review(scene: Path) -> tuple:
-    """Fixture-derived expectations, including its sole warning variant (excess dwell)."""
+    """Fixture-derived expectations: the excess dwell warning and the missing signalling level warning."""
     manifest = json.loads((scene / "scene.json").read_text())
     services = json.loads((scene / "services.json").read_text())["services"]
     stock = json.loads((scene / "rolling_stock.json").read_text())
@@ -71,6 +71,12 @@ def expected_review(scene: Path) -> tuple:
         for stop in service["stops"]:
             if "planned_arrival_seconds" in stop and "planned_departure_seconds" in stop:
                 warnings += int(stop["dwell_seconds"] > stop["planned_departure_seconds"] - stop["planned_arrival_seconds"])
+    signalling = json.loads((scene / "signalling.json").read_text())
+    unsignalled = 0
+    if not signalling.get("signalling_areas"):
+        # Without any area, every distinct route section is reported once.
+        unsignalled = len({block for route in signalling["routes"] for block in route["blocks"]})
+        warnings += 1
     in_period = sum(0 <= entry < duration for entry in entries)
     counts = {"Service definitions": len(services), "Configured total": len(entries),
               "Number of services in sim.": in_period, "Selected": len(entries),
@@ -83,7 +89,7 @@ def expected_review(scene: Path) -> tuple:
     details = {"Case study": manifest["name"], "Scenario": scenario["id"],
                **{label: str(value) for label, value in counts.items()},
                "Counting rule": f"scheduled entry ≥ 0 and < {duration:g} s; these are configured identities, not observed trains."}
-    return summary, details, warnings
+    return summary, details, warnings, unsignalled
 
 
 def contains(outer: list, inner: list) -> bool:
@@ -96,7 +102,7 @@ def contains(outer: list, inner: list) -> bool:
 def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
                  enlarged: bool = False) -> None:
     rendered = json.loads(review["E2E_RUN_REVIEW_RENDERED"])
-    summary, details, warnings = expected_review(scene)
+    summary, details, warnings, unsignalled = expected_review(scene)
     assert rendered["summary"] == summary, rendered
     actual = dict(line.split(": ", 1) for line in rendered["details"].splitlines())
     for label, value in details.items():
@@ -145,10 +151,12 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     assert rendered["expanded"] == {"checked": True, "visible": True, "arrow": "down"}, rendered
     zero = summary["Selected in period"] == "0"
     status = ("Ready to run, but no selected services enter during this period." if zero else
+              f"Ready to run, but {unsignalled} route {'section has' if unsignalled == 1 else 'sections have'} "
+              "no signalling level. Trains there run without signalling." if unsignalled else
               f"Ready to run. Review {warnings} validation {'warning' if warnings == 1 else 'warnings'} if needed."
               if advanced and warnings else "Ready to run.")
     assert rendered["status"] == status, rendered
-    assert rendered["warning"] == (zero or (advanced and warnings > 0)), rendered
+    assert rendered["warning"] == (zero or unsignalled > 0 or (advanced and warnings > 0)), rendered
     assert rendered["runEnabled"] and rendered["rejected"] and not rendered["workerStarted"], rendered
     assert rendered["cancellation"] == cancellation, rendered
     assert review["E2E_RUN_REVIEW_ADVANCED"] == str(int(advanced)), review
@@ -170,7 +178,8 @@ def main() -> None:
         assert chooser["E2E_STARTUP_CHOOSER_OPEN_ENABLED"] == "yes", chooser
         assert chooser["E2E_STARTUP_CHOOSER_ACTION"] == "Continue", chooser
         assert chooser["E2E_STARTUP_CHOOSER_UNCHANGED"] == "yes", chooser
-        for variant in ("baseline", "boundaries", "zero-in-period", "warning", "incidents", "long-context"):
+        for variant in ("baseline", "boundaries", "zero-in-period", "warning", "incidents", "long-context",
+                        "no-signalling-area"):
             fixture = settings / variant
             shutil.copytree(scene, fixture)
             services_path = fixture / "services.json"
@@ -187,6 +196,11 @@ def main() -> None:
                     for field in ("planned_arrival_seconds", "planned_departure_seconds"):
                         if field in stop:
                             stop[field] += shift
+            elif variant == "no-signalling-area":
+                signalling_path = fixture / "signalling.json"
+                signalling = json.loads(signalling_path.read_text())
+                del signalling["signalling_areas"]
+                signalling_path.write_text(json.dumps(signalling))
             elif variant == "warning":
                 stop = service["stops"][0]
                 stop["dwell_seconds"] = stop["planned_departure_seconds"] - stop["planned_arrival_seconds"] + 1

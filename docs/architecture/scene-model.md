@@ -215,6 +215,7 @@ Canonical signalling areas assign levels to the base and derived switch
 sections before route construction copies those sections. An area has a
 complete chainage span, a level from 0 through 5, and optional canonical track
 scope. Track-scoped areas override a network-wide area; conflicting values for
-one section are rejected. Missing coverage keeps the native unset value. Normal
+one section are rejected. Missing coverage keeps the native unset value, and
+runnable validation warns about the route sections it leaves unset. Normal
 runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
 conventional or ETCS default.

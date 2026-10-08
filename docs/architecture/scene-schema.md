@@ -111,7 +111,9 @@ Either connected track matches a derived switch section. Different values at
 the same precedence tier that cover one section are invalid. The builder
 applies areas after base and switch sections exist and before routes copy them.
 A section with no matching area retains the unset signalling value. The loader
-and writer never create a default level.
+and writer never create a default level. Runnable validation reports the route
+sections without a level in one `scene.signalling.level.missing` warning;
+sections that are on no route are not reported.
 
 Section references are resolved from the transient section inventory derived
 from the authored tracks, blocks, arcs, and connections. Route order is
