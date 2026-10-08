@@ -14760,6 +14760,11 @@ void MainWindow::runVisualPolishE2E() {
 			if (m_runtimeStatus != QStringLiteral("Stopped") || m_resultsAvailable) {
 				failures << "Stop did not leave a stopped run without results";
 				ok = false;
+			} else if (!m_showingTrackPreview || !allArcs.isEmpty() || !allTrains.isEmpty()) {
+				// The stopped run is replaced by the track preview, so the queued delivery
+				// has no runtime track or train left to paint.
+				failures << "a stopped run left runtime graphics on the canvas";
+				ok = false;
 			} else {
 				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
 				std::fflush(stdout);
