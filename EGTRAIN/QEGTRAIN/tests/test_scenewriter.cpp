@@ -388,6 +388,25 @@ int main() {
 	ok &= expect(!invalidScenario.success() && hasErrors(invalidScenario.diagnostics)
 			&& !invalidScenario.diagnostics.empty(),
 			"standalone scenario parser diagnoses structural and type errors");
+	for (const char* occurrence : {"4294967298", "2147483648", "-2147483649", "1.5"}) {
+		{
+			std::ofstream output(invalidScenarioPath, std::ios::trunc);
+			output << R"({"id":"wide","name":"wide","incidents":[],"entrance_delays":[{"service":"s","station":"t","delay_seconds":1,"occurrence":)"
+				   << occurrence << "}]}";
+		}
+		const ScenarioLoadResult wideScenario = loadScenarioJson(invalidScenarioPath.string());
+		ok &= expect(!wideScenario.success() && !wideScenario.diagnostics.empty()
+				&& wideScenario.diagnostics.front().path == "entrance_delays[0].occurrence",
+				"standalone scenario rejects an occurrence that is not an int");
+	}
+	{
+		std::ofstream output(invalidScenarioPath, std::ios::trunc);
+		output << R"({"id":"edge","name":"edge","incidents":[],"entrance_delays":[{"service":"s","station":"t","delay_seconds":1,"occurrence":2147483647}]})";
+	}
+	const ScenarioLoadResult edgeScenario = loadScenarioJson(invalidScenarioPath.string());
+	ok &= expect(edgeScenario.success() && edgeScenario.scenario.entranceDelays.size() == 1
+			&& edgeScenario.scenario.entranceDelays[0].occurrence == 2147483647,
+			"standalone scenario reads an occurrence at the int limit");
 	json passengers;
 	{
 		std::ifstream input(temp.path / "passengers.json");

@@ -6,6 +6,7 @@
 #include "io/third_party/miniz/miniz.h"
 
 #include <chrono>
+#include <climits>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -33,7 +34,7 @@ struct TempDir {
 	}
 };
 
-static bool writeManifest(const fs::path& path, int schemaVersion) {
+static bool writeManifest(const fs::path& path, const json& schemaVersion) {
 	std::ifstream input(path / "scene.json");
 	json manifest;
 	input >> manifest;
@@ -58,7 +59,8 @@ static bool writeNewerBundle(const fs::path& path, const char* unsafeName = null
 	return ok;
 }
 
-static bool writeBundleVersion(const fs::path& path, const fs::path& source, int bundleVersion) {
+static bool writeBundleVersion(const fs::path& path, const fs::path& source, const json& bundleVersion,
+		const json& schemaVersion = json()) {
 	mz_zip_archive writer{};
 	if (!mz_zip_writer_init_file(&writer, path.string().c_str(), 0))
 		return false;
@@ -74,6 +76,8 @@ static bool writeBundleVersion(const fs::path& path, const fs::path& source, int
 				json manifest = json::parse(contents);
 				manifest["format"] = "egscene";
 				manifest["bundle_version"] = bundleVersion;
+				if (!schemaVersion.is_null())
+					manifest["schema_version"] = schemaVersion;
 				contents = manifest.dump(4) + "\n";
 			} catch (const json::exception&) {
 				ok = false;
@@ -133,6 +137,23 @@ int main(int argc, char** argv) {
 	ok &= expect(writeManifest(source, kCurrentSceneSchemaVersion + 1), "newer fixture writes");
 	const SceneCompatibilityProbeResult newer = probeSceneCompatibility(source.string());
 	ok &= expect(newer.classification == SceneCompatibilityClass::Newer, "newer schema is reported");
+	const long long wrapsToCurrent = (1LL << 32) + kCurrentSceneSchemaVersion;
+	for (const json& badVersion : {json(wrapsToCurrent), json(static_cast<long long>(INT_MAX) + 1),
+			json(1.5), json("1"), json(18446744073709551615ULL)}) {
+		ok &= expect(writeManifest(source, badVersion), "out-of-range schema fixture writes");
+		const SceneCompatibilityProbeResult badProbe = probeSceneCompatibility(source.string());
+		ok &= expect(badProbe.classification == SceneCompatibilityClass::Malformed
+				&& !badProbe.diagnostics.empty()
+				&& badProbe.diagnostics.front().code == "scene.compatibility.schema"
+				&& badProbe.diagnostics.front().file == "scene.json",
+				"schema_version outside the int range or not an integer is rejected");
+	}
+	ok &= expect(writeManifest(source, INT_MAX), "int limit schema fixture writes");
+	ok &= expect(probeSceneCompatibility(source.string()).classification == SceneCompatibilityClass::Newer,
+			"schema_version at the int limit is still read");
+	ok &= expect(writeManifest(source, -1), "negative schema fixture writes");
+	ok &= expect(probeSceneCompatibility(source.string()).classification
+			== SceneCompatibilityClass::OlderUnsupported, "negative schema_version is read as older");
 	{
 		std::ofstream output(source / "scene.json", std::ios::binary | std::ios::trunc);
 		output << "not json\n";
@@ -277,6 +298,21 @@ int main(int argc, char** argv) {
 	const SceneCompatibilityProbeResult hostileProbe = probeSceneCompatibility(hostileNewerBundle.string());
 	ok &= expect(hostileProbe.classification == SceneCompatibilityClass::Malformed,
 			"newer bundle keeps generic ZIP path safety");
+	const fs::path hugeBundle = temp.path / "huge-version.egscene";
+	ok &= expect(writeBundleVersion(hugeBundle, bundleSource, (1LL << 32) + kCurrentSceneBundleVersion),
+			"oversized bundle version fixture writes");
+	const SceneCompatibilityProbeResult hugeBundleProbe = probeSceneCompatibility(hugeBundle.string());
+	ok &= expect(hugeBundleProbe.classification == SceneCompatibilityClass::Malformed
+			&& !hugeBundleProbe.diagnostics.empty()
+			&& hugeBundleProbe.diagnostics.front().code == "scene.bundle.version",
+			"oversized bundle_version is rejected");
+	ok &= expect(writeBundleVersion(hugeBundle, bundleSource, kCurrentSceneBundleVersion,
+			(1LL << 32) + kCurrentSceneSchemaVersion), "oversized bundle schema fixture writes");
+	const SceneCompatibilityProbeResult hugeSchemaProbe = probeSceneCompatibility(hugeBundle.string());
+	ok &= expect(hugeSchemaProbe.classification == SceneCompatibilityClass::Malformed
+			&& !hugeSchemaProbe.diagnostics.empty()
+			&& hugeSchemaProbe.diagnostics.front().code == "scene.bundle.schema",
+			"oversized bundle schema_version is rejected");
 	ok &= expect(productionSceneMigrationRegistry().schemaSteps().empty()
 			&& productionSceneMigrationRegistry().bundleSteps().empty(),
 			"production migration registry starts empty");
