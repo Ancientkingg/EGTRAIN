@@ -270,6 +270,37 @@ public:
 	}
 };
 
+// Blocking times of one train, indexed like an array. Writing past the end
+// grows the list with default-constructed entries; growing never moves existing
+// entries. Reading through a const list never grows it.
+class BlockingTimeList {
+public:
+	BlockingTimes& operator[](int index) {
+		checkIndex(index);
+		if (index >= static_cast<int>(entries.size()))
+			entries.resize(static_cast<std::size_t>(index) + 1);
+		return entries[static_cast<std::size_t>(index)];
+	}
+
+	const BlockingTimes& operator[](int index) const {
+		checkIndex(index);
+		static const BlockingTimes unset;
+		if (index >= static_cast<int>(entries.size()))
+			return unset;
+		return entries[static_cast<std::size_t>(index)];
+	}
+
+private:
+	static void checkIndex(int index) {
+		if (index < 0) {
+			std::fprintf(stderr, "BlockTime index %d is negative\n", index);
+			std::abort();
+		}
+	}
+
+	std::deque<BlockingTimes> entries;
+};
+
 /**************************************************************************************************************************
 *
 Declaration of Train class
@@ -365,7 +396,7 @@ public:
 	string LeadingTrainInFollowingMode; // This is the trainDescription of the leading train when this train is in following mode
 	double Xobmin, Vobmin;
 	std::vector<double> Xob, Vob;
-	double Sbrak[2000] = {}, Vbrak[2000] = {}; // Vector Sbrak: Vector of curviline abscissas belonging to a braking curve;  Vector Vbrak: Vector of speeds belonging to a braking curve
+	std::vector<double> Sbrak = std::vector<double>(2000, 0.0), Vbrak = std::vector<double>(2000, 0.0); // Vector Sbrak: Vector of curviline abscissas belonging to a braking curve;  Vector Vbrak: Vector of speeds belonging to a braking curve
 	int BrakStep;
 	bool BrakingForEoA = false;					  // When this is true it means that the train is braking because of an ETCS End of Authority on the route
 	MovementAuthority Predicted_MA_To_CoupleAt;	  // This is the Movement Authority where the train is predicted to virtually couple to a train ahead
@@ -374,7 +405,7 @@ public:
 	MovementAuthority Predicted_MA_To_DecoupleAt; // This is the movement authority where the train is predicted to decouple from the train ahead
 	std::vector<int> Eq;						  // Number of speed interval of theTraction curve function
 	int RunStartTime;							  // Represents the time instant in which the train start his run from the beginning (In normal conditions it's equal to Train headway, but when the first light is red, this variable assumes a value higher than Headway)
-	BlockingTimes BlockTime[1000];				  // This represents the blocking time of the train
+	BlockingTimeList BlockTime;					  // This represents the blocking time of the train
 	int N_BlockSections;						  // This is the total Number of BlockSections and therefore Blocking Times
 	int N_BlockTimeComplete;
 	int numOverlaps; // This is the number of train overlaps
@@ -2755,7 +2786,7 @@ public:
 					}
 
 					if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-						cout << "Warning 987: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime->ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+						cout << "Warning 987: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
 					}
 					// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 					BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
@@ -3080,7 +3111,7 @@ public:
 					}
 
 					if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-						cout << "Warning: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime->ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+						cout << "Warning: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
 					}
 					// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 					BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
@@ -3564,6 +3595,9 @@ public:
 		return *this;
 	}
 };
+
+// Functions take Train* and are called with the Regional array, so both must have the same size.
+static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
 
 extern Regional regional_train[Max_N_Reg];
 

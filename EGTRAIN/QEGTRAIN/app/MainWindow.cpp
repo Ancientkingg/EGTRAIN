@@ -799,8 +799,8 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 	for (int i = 0; i < numRegions; ++i) {
 		const Train& t = regional_train[i];
 		std::vector<BlockingTimeDiagramInput> blocks;
-		blocks.reserve(static_cast<std::size_t>(std::max(0, std::min(t.N_BlockSections, 1000))));
-		for (int j = 0; j < std::min(t.N_BlockSections, 1000); ++j) {
+		blocks.reserve(static_cast<std::size_t>(std::max(0, t.N_BlockSections)));
+		for (int j = 0; j < t.N_BlockSections; ++j) {
 			BlockingTimeDiagramInput block;
 			block.blockId = t.BlockTime[j].BlockID;
 			block.startOccTime = t.BlockTime[j].StartOccTime;
@@ -1198,7 +1198,7 @@ CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAn
 		return result;
 
 	const BlockingTimes* reference = nullptr;
-	for (int blockIndex = 0; blockIndex < std::min(train.N_BlockSections, 1000); ++blockIndex) {
+	for (int blockIndex = 0; blockIndex < train.N_BlockSections; ++blockIndex) {
 		const BlockingTimes& source = train.BlockTime[blockIndex];
 		const BlockingTimeDiagramInput occupation = capacityOccupation(source);
 		if (!validBlockingTimeDiagramInput(occupation))
