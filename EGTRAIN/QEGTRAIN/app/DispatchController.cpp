@@ -330,9 +330,20 @@ void DispatchController::runSimulation() {
 		return;
 	}
 
+	runCompleted_ = false;
+
 	QElapsedTimer observationTimer;
 	observationTimer.start();
 	emit executionBegan();
+
+	// A stopped run reports its cancellation here and skips the remaining stages.
+	const auto stoppedHere = [&] {
+		const auto* worker = SimulationWorker::active();
+		if (!worker || !worker->isStopRequested())
+			return false;
+		emit executionReturned(observationTimer.elapsed(), true);
+		return true;
+	};
 
 	cout << "\n\nSimulating Train Runs...\n\n";
 
@@ -344,14 +355,23 @@ void DispatchController::runSimulation() {
 
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
 
+	if (stoppedHere())
+		return;
+
 	emit executionPostprocessing();
 	ComputeEnergyConsumptionForAllTrains(regional_train, numRegions);
 	ComputeTimetableEnergyConsumption(regional_train, numRegions, initial_variables.OutputMainFolder);
+
+	if (stoppedHere())
+		return;
 
 	clock_t StartRun = clock();
 
 	// sorting recorded events of all infrastructure elements in chronological order
 	SortRecordedEventsForAllInfrastructureElements(InfraElementsList);
+
+	if (stoppedHere())
+		return;
 
 	cout << "Computing Blocking Times....\n";
 
@@ -362,9 +382,11 @@ void DispatchController::runSimulation() {
 	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC);
 	cout << "TimeElapsed is : " << TimeElapsed;
 
-	for (int i = 0; i < numRegions; i++)
+	for (int i = 0; i < numRegions; i++) {
+		if (stoppedHere())
+			return;
 		regional_train[i].PrintTrajectory();
-
+	}
 
 	Print_Implemented_Order_For_All_OL(Folder_RI_PH);
 
@@ -400,6 +422,9 @@ void DispatchController::runSimulation() {
 	Print_Computing_Times(Folder_RI_PH); // Printing the total computation time of ROMA and EGTRAIN
 
 
+	if (stoppedHere())
+		return;
+
 	cout << "\n\n Computing Train Blocking Times....\n\n";
 
 	ComputeBlockingTimesInMixedSignallingForAllTrains(5, (3 + bufferTime), 0.5, 50, Folder_RI_PH, 0, recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
@@ -412,12 +437,16 @@ void DispatchController::runSimulation() {
 
 	// print trajectories
 	// before in Regional destructor - moved here because vectors are deleted automatically in the destructor and it is no longer possible to use them there
+	if (stoppedHere())
+		return;
 	for (int i = 0; i < numRegions; i++) {
+		if (stoppedHere())
+			return;
 		regional_train[i].PrintTrajectory();
 	}
 	std::cout << "\n End of Simulation";
-	const auto* worker = SimulationWorker::active();
-	emit executionReturned(observationTimer.elapsed(), worker && worker->wasCancellationRequested());
+	runCompleted_ = true;
+	emit executionReturned(observationTimer.elapsed(), false);
 }
 
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {

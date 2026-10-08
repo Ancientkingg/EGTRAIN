@@ -22533,9 +22533,12 @@ void MainWindow::onSimulationFinished() {
 	}
 	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
 	m_sceneChangedDuringRun = false;
-	const bool stopped = m_worker && m_worker->isStopRequested();
-	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
-	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed") : QStringLiteral("Failed");
+	// A stop that arrives after the last stage leaves a completed run.
+	const bool stopped = m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
+	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
+	m_resultsAvailable = !sceneChangedDuringRun && !stopped && hasRawRunResults();
+	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
+		: stoppedByUser ? QStringLiteral("Stopped") : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
 		const auto trains = runResultTrainPointers();
 		// Freeze result values before a subsequent run replaces the runtime trains.
@@ -22549,11 +22552,12 @@ void MainWindow::onSimulationFinished() {
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
-			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: Failed%3")
-				.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(),
+			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: %3%4")
+				.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(), m_runtimeStatus,
 					sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
 		if (m_runResultsDock) {
-			m_runResultsDock->setWindowTitle(QString("Run Results — %1 (failed)").arg(scenarioContext()));
+			m_runResultsDock->setWindowTitle(QString("Run Results — %1 (%2)").arg(scenarioContext(),
+					stoppedByUser ? QStringLiteral("stopped") : QStringLiteral("failed")));
 			m_runResultsDock->hide();
 		}
 	}
@@ -22642,12 +22646,14 @@ void MainWindow::onSimulationFinished() {
 	}
 
 	// print last services
-	simulation.printLastTrainServicePathDiagram();
+	if (!stopped)
+		simulation.printLastTrainServicePathDiagram();
 
 	// hide progress bar
 	progressBar->hide();
 	statusBar()->showMessage(sceneChangedDuringRun
 		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
+		: stopped ? QStringLiteral("Simulation stopped")
 		: hadFollowTarget
 			? QStringLiteral("Simulation complete - Follow disabled")
 			: QStringLiteral("Simulation complete - open the Diagrams menu for results"));

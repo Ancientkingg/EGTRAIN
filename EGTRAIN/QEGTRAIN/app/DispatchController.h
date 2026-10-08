@@ -6,6 +6,7 @@
 #include "simulation/Optimisation.h"
 
 #include <QObject>
+#include <atomic>
 #include <utility>
 
 #ifdef signals
@@ -22,7 +23,7 @@ class DispatchController : public QObject {
 	Q_OBJECT
 
 public:
-	DispatchController(QObject* parent = 0) : QObject() {}
+	explicit DispatchController(QObject* parent = nullptr) : QObject(parent) {}
 
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
 			const std::string& selectedScenarioId = {},
@@ -42,6 +43,8 @@ public:
 	// Only call these on the GUI thread before launch or after the worker has joined.
 	void resetReplayCandidate() { replayCandidate_.clear(); }
 	GuiReplayHistory takeReplayCandidate() { return std::exchange(replayCandidate_, GuiReplayHistory()); }
+	// True when the last run executed every stage, also if a stop arrived after its last check.
+	bool lastRunCompleted() const { return runCompleted_; }
 
 signals:
 	void iterationFinished(int timestep);
@@ -59,6 +62,7 @@ private:
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
 	GuiReplayHistory replayCandidate_;
+	std::atomic<bool> runCompleted_{false};
 };
 
 // simulation object (global variable)

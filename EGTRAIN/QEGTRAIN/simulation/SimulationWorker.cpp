@@ -19,10 +19,9 @@ SimulationWorker::~SimulationWorker() {
 
 void SimulationWorker::run() {
 	emit simulationStarted();
-	m_stop = false;
-	m_pause = false;
-	// m_delayMs is intentionally NOT reset here so the slider value set
-	// before clicking Start is preserved (see MainWindow::startSimulation).
+	// Each run uses a new worker, so a stop or pause requested before or during
+	// simulationStarted is kept. m_delayMs keeps the slider value set before
+	// clicking Start (see MainWindow::startSimulation).
 	simulation.runSimulation();
 	emit simulationFinished();
 }
