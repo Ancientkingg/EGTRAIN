@@ -123,6 +123,8 @@ cmake --build build
 
 Windows (MSVC, Qt 5.15, vcpkg x64) and Linux (Ubuntu apt packages) configure
 commands are in the [build and test guide](docs/development/build-and-test.md).
+Windows builds are 64-bit only, and there is no Visual Studio solution file:
+open the folder as a CMake project.
 Python 3.9 or newer is needed to run the tests.
 
 ## Run a local build

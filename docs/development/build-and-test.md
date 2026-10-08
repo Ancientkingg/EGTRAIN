@@ -63,6 +63,13 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
 The Visual Studio generator is multi-config: choose the configuration when
 building and testing, as in the next two sections.
 
+The repository has no Visual Studio solution or project file. To work in Visual
+Studio, open the repository folder as a CMake project (File > Open > Folder)
+and give its CMake settings the toolchain file, the triplet and the prefix path
+of the command above. Choose an x64 configuration and `QEGTRAIN.exe` as the
+startup item. A configure for 32-bit Windows stops with a message that names
+x64 as the only supported platform.
+
 ## Build
 
 ```bash
@@ -174,6 +181,7 @@ platform.
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
 | `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
+| `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
 The three Bash smokes read the application and `scene_tool` paths from
@@ -220,6 +228,18 @@ $p.ExitCode
 The working directory is the one that holds `QEGTRAIN.exe`, where the build
 copies `Scenes/`. Set `QEGTRAIN_OUTPUT_DIR` to keep the output out of the
 profile directory.
+
+### Windows package start
+
+After the tests, the Windows CI leg assembles the files of the release package
+in a temporary directory: `QEGTRAIN.exe`, the vcpkg DLLs, the Qt DLLs and
+plugins that `windeployqt` adds, and the scenes. It then runs
+`tools/release/package_start_smoke.py` on that directory. The script removes
+the Qt and vcpkg variables from the environment and leaves only the Windows
+directories on `PATH`, so a DLL or plugin that is missing from the package
+fails the launch. It starts the packaged program twice: headless on Paimpol to
+the end of a 120 s run, and with a window in startup timing mode, where the
+program opens the scene, prepares a run, paints it and exits.
 
 ### Windows image size
 
