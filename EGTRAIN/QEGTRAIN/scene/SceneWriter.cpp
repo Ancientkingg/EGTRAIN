@@ -171,6 +171,12 @@ static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path
 			return false;
 		}
 	}
+	// A rename replaces a file that cannot be opened for writing, so that is refused first.
+	ec.clear();
+	if (fs::is_regular_file(target, ec) && !std::ofstream(target, std::ios::binary | std::ios::app)) {
+		addWriteError(result, filename, "Cannot open " + filename + " for writing");
+		return false;
+	}
 	fs::path temporary;
 	if (!uniqueSiblingPath(target.parent_path(), target.filename().string() + ".tmp-", temporary)) {
 		addWriteError(result, filename, "Cannot create a temporary file for " + filename);

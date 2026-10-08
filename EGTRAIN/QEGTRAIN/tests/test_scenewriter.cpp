@@ -534,6 +534,17 @@ int main() {
 		fs::permissions(failing.path, fs::perms::owner_all, fs::perm_options::replace);
 		ok &= expect(hasOnlyFile(failing.path, "scenario.json"),
 				"read-only directory leaves no temporary file");
+
+		// A read-only file is not replaced. This does not apply to root.
+		fs::permissions(scenarioPath, fs::perms::owner_read, fs::perm_options::replace);
+		if (access(scenarioPath.c_str(), W_OK) != 0) {
+			const SceneSaveResult readOnlyFile = saveScenarioJson(scenario, scenarioPath.string());
+			ok &= expect(!readOnlyFile.success() && hasErrors(readOnlyFile.diagnostics),
+					"standalone scenario save reports a read-only file");
+			ok &= expect(readBytes(scenarioPath) == original && hasOnlyFile(failing.path, "scenario.json"),
+					"read-only file keeps its content and no temporary file remains");
+		}
+		fs::permissions(scenarioPath, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace);
 	}
 #endif
 	json passengers;
