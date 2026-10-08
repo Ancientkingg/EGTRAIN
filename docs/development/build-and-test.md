@@ -191,6 +191,13 @@ The offscreen Qt platform has no fonts of its own on Windows. CTest sets
 label. Set it yourself when you start a GUI test or QEGTRAIN with
 `QT_QPA_PLATFORM=offscreen` by hand.
 
+Qt 5.15 crashes when a `QMessageBox` is shown on the offscreen platform on
+Windows: `QMessageBox::showEvent` asks for a native window handle through an
+interface that this platform does not have. `test_scene_drop` needs the
+unsaved-changes prompt, so CTest runs it with `QT_QPA_PLATFORM=windows` there.
+A scripted run that reaches any other message box on the offscreen platform
+fails the same way on Windows.
+
 ### Windows headless runs
 
 QEGTRAIN is a GUI-subsystem program on Windows (`WIN32_EXECUTABLE`). With

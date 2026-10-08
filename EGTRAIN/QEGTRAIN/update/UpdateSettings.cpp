@@ -27,10 +27,15 @@ bool shouldCheckForUpdates(UpdateCheckState state, bool manual) {
 	return manual || state == UpdateCheckState::Enabled;
 }
 
+// Scripted launches have nobody to answer the consent prompt and must not reach the network:
+// the explicit switch, the autostart hook, the startup timing and playback profile modes, and
+// every end-to-end hook.
 bool updatesSuppressedByEnvironment() {
 	const QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
 	if (environment.contains(QStringLiteral("QEGTRAIN_DISABLE_UPDATES"))
-		|| environment.contains(QStringLiteral("QEGTRAIN_AUTOSTART")))
+		|| environment.contains(QStringLiteral("QEGTRAIN_AUTOSTART"))
+		|| environment.value(QStringLiteral("QEGTRAIN_STARTUP_TIMING")) == QLatin1String("1")
+		|| environment.value(QStringLiteral("QEGTRAIN_PLAYBACK_PROFILE")) == QLatin1String("1"))
 		return true;
 	for (const QString& key : environment.keys())
 		if (key.startsWith(QStringLiteral("QEGTRAIN_E2E_")))

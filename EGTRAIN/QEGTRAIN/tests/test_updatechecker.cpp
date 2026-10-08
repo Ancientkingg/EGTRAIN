@@ -1,6 +1,7 @@
 #include "update/ReleaseInfo.h"
 #include "update/UpdateSettings.h"
 
+#include <QProcessEnvironment>
 #include <QCoreApplication>
 #include <QSettings>
 #include <QTemporaryDir>
@@ -44,13 +45,34 @@ int main(int argc, char** argv) {
 	ok &= expect(!shouldCheckForUpdates(UpdateCheckState::Disabled, false)
 		&& shouldCheckForUpdates(UpdateCheckState::Disabled, true),
 		"manual checks remain available while automatic checks are disabled");
-	const QByteArray previousSuppression = qgetenv("QEGTRAIN_DISABLE_UPDATES");
-	qputenv("QEGTRAIN_DISABLE_UPDATES", "1");
-	ok &= expect(updatesSuppressedByEnvironment(), "automation can suppress update UI and network");
-	if (previousSuppression.isNull())
-		qunsetenv("QEGTRAIN_DISABLE_UPDATES");
-	else
-		qputenv("QEGTRAIN_DISABLE_UPDATES", previousSuppression);
+	// Each variable alone suppresses update UI and network; the test starts from none of them set.
+	const char* const suppressing[] = {"QEGTRAIN_DISABLE_UPDATES", "QEGTRAIN_AUTOSTART",
+		"QEGTRAIN_STARTUP_TIMING", "QEGTRAIN_PLAYBACK_PROFILE", "QEGTRAIN_E2E_SCENE_DROP"};
+	QByteArray previous[5];
+	for (int i = 0; i < 5; ++i) {
+		previous[i] = qgetenv(suppressing[i]);
+		qunsetenv(suppressing[i]);
+	}
+	// Another end-to-end hook in the caller's environment suppresses updates too; the two
+	// negative checks only hold without one.
+	bool otherHook = false;
+	for (const QString& key : QProcessEnvironment::systemEnvironment().keys())
+		otherHook = otherHook || key.startsWith(QStringLiteral("QEGTRAIN_E2E_"));
+	ok &= expect(otherHook || !updatesSuppressedByEnvironment(), "an interactive launch does not suppress updates");
+	for (const char* name : suppressing) {
+		qputenv(name, "1");
+		ok &= expect(updatesSuppressedByEnvironment(), "a scripted launch suppresses update UI and network");
+		qunsetenv(name);
+	}
+	qputenv("QEGTRAIN_STARTUP_TIMING", "0");
+	qputenv("QEGTRAIN_PLAYBACK_PROFILE", "0");
+	ok &= expect(otherHook || !updatesSuppressedByEnvironment(),
+		"a measurement mode that is switched off does not suppress updates");
+	qunsetenv("QEGTRAIN_STARTUP_TIMING");
+	qunsetenv("QEGTRAIN_PLAYBACK_PROFILE");
+	for (int i = 0; i < 5; ++i)
+		if (!previous[i].isNull())
+			qputenv(suppressing[i], previous[i]);
 
 	const auto current = parseStableVersion("1.9.0");
 	const auto release = parseLatestStableRelease(releaseJson("v1.10.0"));

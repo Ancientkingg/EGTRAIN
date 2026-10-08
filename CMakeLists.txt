@@ -980,10 +980,17 @@ if(EGTRAIN_BUILD_TESTS)
 	else()
 		message(STATUS "Windows: skipping test_case_chooser_contract (path forms, INI escapes, directory symlink)")
 	endif()
+	# This test needs the unsaved-changes prompt. Qt 5.15 crashes when a QMessageBox is shown on
+	# the offscreen platform on Windows, so the test uses the native platform there.
+	if(WIN32)
+		set(egtrain_scene_drop_platform windows)
+	else()
+		set(egtrain_scene_drop_platform offscreen)
+	endif()
 	add_test(NAME test_scene_drop
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_scene_drop PROPERTIES
-		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
+		ENVIRONMENT "QT_QPA_PLATFORM=${egtrain_scene_drop_platform};QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
 		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
 		TIMEOUT 60)
 	add_test(NAME test_native_startup_without_legacy
