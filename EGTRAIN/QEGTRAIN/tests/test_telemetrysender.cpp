@@ -23,6 +23,21 @@
 #endif
 #include <cassert>
 
+// Longest time a test waits for the worker thread. A passing run never gets
+// near it, and a busy machine does not turn a slow hand-over into a failure.
+constexpr int kWaitMs = 30000;
+
+template <typename Predicate>
+static bool waitUntil(Predicate done) {
+    QElapsedTimer timer;
+    timer.start();
+    while (!done()) {
+        if (timer.elapsed() > kWaitMs) return false;
+        QThread::msleep(10);
+    }
+    return true;
+}
+
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 class ScriptedReply : public QNetworkReply {
 public:
@@ -78,11 +93,8 @@ static QJsonArray readDurableEvents(const QString& path) {
 }
 
 static bool waitForGate(telemetry::TelemetrySender& sender, const telemetry::TelemetryEventInput& input) {
-    for (int i = 0; i < 100; ++i) {
-        if (sender.tryEnqueue(input)) return true;
-        QThread::msleep(10); // Startup readiness only; interleaving tests use semaphores.
-    }
-    return false;
+    // Startup readiness only; interleaving tests use semaphores.
+    return waitUntil([&] { return sender.tryEnqueue(input); });
 }
 
 static void testOperationTokens(const telemetry::Application& metadata, TelemetryContext context) {
@@ -97,15 +109,15 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
     options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
     options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
     options.afterPoll = [&] {
-        polled.release(); assert(proceed.tryAcquire(1, 3000));
+        polled.release(); assert(proceed.tryAcquire(1, kWaitMs));
         QTimer::singleShot(0, [&] { settled.release(); });
     };
     options.onWorkerExit = [&] { exited.release(); };
     telemetry::TelemetrySender sender(context, metadata, storage, options);
-    assert(polled.tryAcquire(1, 3000));
+    assert(polled.tryAcquire(1, kWaitMs));
     const auto cycle = [&] {
-        proceed.release(); assert(settled.tryAcquire(1, 3000));
-        sender.requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
+        proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+        sender.requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
     };
     telemetry::TelemetryEventInput usage, diagnostic;
     usage.name = telemetry::Name::SceneOpened;
@@ -155,11 +167,9 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
     assert(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString() == QStringLiteral("scene.opened"));
     sender.invalidateReceiver();
     assert(!sender.tryEnqueue(usage, token) && !sender.tryEnqueue(diagnostic, token));
-    proceed.release(); assert(settled.tryAcquire(1, 3000));
-    for (int i = 0; i < 100 && !readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty(); ++i)
-        QThread::msleep(10);
-    assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-    sender.stop(); assert(exited.tryAcquire(1, 3000));
+    proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+    assert(waitUntil([&] { return readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty(); }));
+    sender.stop(); assert(exited.tryAcquire(1, kWaitMs));
 }
 
 static void testTokenLifetimeAndContention(const telemetry::Application& metadata, TelemetryContext context) {
@@ -174,24 +184,24 @@ static void testTokenLifetimeAndContention(const telemetry::Application& metadat
     options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
     options.monotonicMs = [] { return 0; };
     options.afterPoll = [&] {
-        polled.release(); assert(proceed.tryAcquire(1, 3000));
+        polled.release(); assert(proceed.tryAcquire(1, kWaitMs));
         QTimer::singleShot(0, [&] { settled.release(); });
     };
     options.afterOperationCaptureLocked = [&] {
         if (throwCapture) throw std::bad_alloc();
-        if (holdCapture) { captured.release(); assert(unlock.tryAcquire(1, 3000)); }
+        if (holdCapture) { captured.release(); assert(unlock.tryAcquire(1, kWaitMs)); }
     };
     options.onWorkerExit = [&] { exited.release(); };
     // Placement reuse also exercises the sender identity without relying on allocator luck.
     alignas(telemetry::TelemetrySender) unsigned char facade[sizeof(telemetry::TelemetrySender)];
     auto* sender = new (facade) telemetry::TelemetrySender(context, metadata, directory.filePath(QStringLiteral("queue")), options);
-    assert(polled.tryAcquire(1, 3000));
+    assert(polled.tryAcquire(1, kWaitMs));
     telemetry::TelemetryEventInput usage; usage.name = telemetry::Name::SceneOpened;
     const auto original = sender->captureOperation();
     telemetry::TelemetrySender::OperationToken contended;
     holdCapture = true;
     std::thread producer([&] { contended = sender->captureOperation(); });
-    assert(captured.tryAcquire(1, 3000));
+    assert(captured.tryAcquire(1, kWaitMs));
     QElapsedTimer timer; timer.start();
     const auto dropped = sender->captureOperation();
     const bool admitted = sender->tryEnqueue(usage, original);
@@ -205,17 +215,17 @@ static void testTokenLifetimeAndContention(const telemetry::Application& metadat
     throwCapture = true;
     const auto failed = sender->captureOperation(); throwCapture = false;
     assert(!sender->tryEnqueue(usage, failed));
-    proceed.release(); assert(settled.tryAcquire(1, 3000));
-    sender->requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
+    proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+    sender->requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
     assert(!sender->tryEnqueue(usage, original));
     const auto fresh = sender->captureOperation();
     assert(sender->tryEnqueue(usage, fresh));
-    proceed.release(); assert(settled.tryAcquire(1, 3000));
-    sender->stop(); assert(exited.tryAcquire(1, 3000));
+    proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+    sender->stop(); assert(exited.tryAcquire(1, kWaitMs));
     sender->~TelemetrySender();
     assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 1);
     sender = new (facade) telemetry::TelemetrySender(context, metadata, directory.filePath(QStringLiteral("queue")), options);
-    assert(polled.tryAcquire(1, 3000));
+    assert(polled.tryAcquire(1, kWaitMs));
     assert(!sender->tryEnqueue(usage, original));
     assert(!sender->tryEnqueue(usage, fresh));
     const auto replacement = sender->captureOperation();
@@ -223,20 +233,20 @@ static void testTokenLifetimeAndContention(const telemetry::Application& metadat
     QSemaphore foreignPolled, foreignProceed, foreignSettled, foreignExited;
     auto foreignOptions = options;
     foreignOptions.afterPoll = [&] {
-        foreignPolled.release(); assert(foreignProceed.tryAcquire(1, 3000));
+        foreignPolled.release(); assert(foreignProceed.tryAcquire(1, kWaitMs));
         QTimer::singleShot(0, [&] { foreignSettled.release(); });
     };
     foreignOptions.onWorkerExit = [&] { foreignExited.release(); };
     telemetry::TelemetrySender foreign(context, metadata, directory.filePath(QStringLiteral("foreign")), foreignOptions);
-    assert(foreignPolled.tryAcquire(1, 3000));
+    assert(foreignPolled.tryAcquire(1, kWaitMs));
     assert(!foreign.tryEnqueue(usage, replacement));
     assert(!sender->tryEnqueue(usage, foreign.captureOperation()));
-    foreignProceed.release(); assert(foreignSettled.tryAcquire(1, 3000));
-    foreign.stop(); assert(foreignExited.tryAcquire(1, 3000));
+    foreignProceed.release(); assert(foreignSettled.tryAcquire(1, kWaitMs));
+    foreign.stop(); assert(foreignExited.tryAcquire(1, kWaitMs));
     assert(readDurableEvents(directory.filePath(QStringLiteral("foreign/usage.json"))).isEmpty());
     assert(sender->tryEnqueue(usage, replacement));
-    proceed.release(); assert(settled.tryAcquire(1, 3000));
-    sender->stop(); assert(exited.tryAcquire(1, 3000));
+    proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+    sender->stop(); assert(exited.tryAcquire(1, kWaitMs));
     assert(!sender->tryEnqueue(usage, replacement));
     sender->~TelemetrySender();
     assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 2);
@@ -261,11 +271,11 @@ static void testInteractiveSessions(const telemetry::Application& metadata, Tele
         options.utcNow = [base, clock] { return base.addMSecs(clock->load()); };
         options.monotonicMs = [clock] { return clock->load(); };
         options.afterPoll = [&] {
-            polled.release(); assert(proceed.tryAcquire(1, 3000));
+            polled.release(); assert(proceed.tryAcquire(1, kWaitMs));
             QTimer::singleShot(0, [&] { settled.release(); });
         };
         options.afterOwnershipAttempt = [&](bool owner) {
-            assert(owner); opened.release(); assert(allowObservations.tryAcquire(1, 3000));
+            assert(owner); opened.release(); assert(allowObservations.tryAcquire(1, kWaitMs));
         };
         options.beforeSessionAttempt = [&] { ++sessionAttempts; };
         options.onWorkerExit = [&] { exited.release(); };
@@ -281,7 +291,7 @@ static void testInteractiveSessions(const telemetry::Application& metadata, Tele
             return new ScriptedReply(request, 202, &manager);
         };
         telemetry::TelemetrySender sender(context, metadata, storage, options);
-        assert(opened.tryAcquire(1, 3000));
+        assert(opened.tryAcquire(1, kWaitMs));
         assert(sessionAttempts == 0);
         const auto beforeObservation = sender.captureOperation();
         assert(!sender.tryEnqueue({}, beforeObservation));
@@ -289,12 +299,12 @@ static void testInteractiveSessions(const telemetry::Application& metadata, Tele
         // A startup request precedes BOTH initial observations. Initial diagnostics
         // ring clearing must finish before the worker attempts the session.
         allowObservations.release();
-        assert(polled.tryAcquire(1, 3000));
+        assert(polled.tryAcquire(1, kWaitMs));
         assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
         if (scenario != 3) { sender.requestInteractiveSession(); sender.requestInteractiveSession(); }
         const auto cycle = [&] {
-            proceed.release(); assert(settled.tryAcquire(1, 3000));
-            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
+            proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
         };
         cycle();
         assert(sessionAttempts == (scenario == 0 ? 1 : 0));
@@ -308,7 +318,7 @@ static void testInteractiveSessions(const telemetry::Application& metadata, Tele
         if (scenario < 2) {
             assert(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString() == QStringLiteral("session.started"));
             *clock = 60001; cycle(); cycle();
-            assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+            assert(posted.tryAcquire(1, kWaitMs) && completed.tryAcquire(1, kWaitMs));
             assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
             assert(consent.save(false, true)); sender.invalidateConsent(true, false); cycle();
             assert(consent.save(true, true)); sender.requestInteractiveSession(); cycle(); cycle();
@@ -318,8 +328,8 @@ static void testInteractiveSessions(const telemetry::Application& metadata, Tele
             assert(sessionAttempts == 0);
             assert(!posted.tryAcquire(1, 0));
         }
-        proceed.release(); assert(settled.tryAcquire(1, 3000));
-        sender.stop(); assert(exited.tryAcquire(1, 3000));
+        proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+        sender.stop(); assert(exited.tryAcquire(1, kWaitMs));
     }
 }
 
@@ -337,18 +347,18 @@ static void testSessionAttemptLoss(const telemetry::Application& metadata, Telem
         options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
         options.monotonicMs = [] { return 0; };
         options.afterPoll = [&] {
-            polled.release(); assert(proceed.tryAcquire(1, 3000));
+            polled.release(); assert(proceed.tryAcquire(1, kWaitMs));
             QTimer::singleShot(0, [&] { settled.release(); });
         };
         options.beforeSessionAttempt = [&] {
-            ++attempts; attempted.release(); assert(resume.tryAcquire(1, 3000));
+            ++attempts; attempted.release(); assert(resume.tryAcquire(1, kWaitMs));
             if (failure == 1) throw std::bad_alloc();
         };
         options.onWorkerExit = [&] { exited.release(); };
         telemetry::TelemetrySender sender(context, metadata, storage, options);
-        assert(polled.tryAcquire(1, 3000));
+        assert(polled.tryAcquire(1, kWaitMs));
         sender.requestInteractiveSession(); proceed.release();
-        assert(attempted.tryAcquire(1, 3000));
+        assert(attempted.tryAcquire(1, kWaitMs));
         if (failure == 0) {
             // Lose authorization after the latch and before storing. Re-enable is
             // not a reason to replay that session or any prior operation.
@@ -361,24 +371,24 @@ static void testSessionAttemptLoss(const telemetry::Application& metadata, Telem
         }
         resume.release();
         if (failure == 0) {
-            assert(settled.tryAcquire(1, 3000));
-            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
-            proceed.release(); assert(settled.tryAcquire(1, 3000));
+            assert(settled.tryAcquire(1, kWaitMs));
+            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
+            proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
             assert(consent.save(true, false)); sender.requestInteractiveSession();
-            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
-            proceed.release(); assert(settled.tryAcquire(1, 3000));
-            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
+            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
+            proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
+            sender.requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
             assert(attempts == 1);
             assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-            proceed.release(); assert(settled.tryAcquire(1, 3000));
+            proceed.release(); assert(settled.tryAcquire(1, kWaitMs));
             sender.stop();
         } else if (failure == 2) {
             // Storage failure disables this worker without re-attempting.
-            assert(settled.tryAcquire(1, 3000));
+            assert(settled.tryAcquire(1, kWaitMs));
             sender.requestInteractiveSession(); sender.requestConsentRefresh();
             sender.stop();
         }
-        assert(exited.tryAcquire(1, 3000));
+        assert(exited.tryAcquire(1, kWaitMs));
         assert(attempts == 1 && !sender.tryEnqueue({}, sender.captureOperation()));
         if (failure == 1)
             assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
@@ -421,13 +431,13 @@ static void testBackoffSaturation(const telemetry::Application& metadata, Teleme
             return new ScriptedReply(request, 503, &manager);
         };
         telemetry::TelemetrySender sender(context, metadata, storage, options);
-        assert(ready.tryAcquire(1, 3000));
+        assert(ready.tryAcquire(1, kWaitMs));
         *clock = 60001;
-        assert(completed.tryAcquire(1, 3000));
+        assert(completed.tryAcquire(1, kWaitMs));
         const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
         const auto next = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
         assert(base.addMSecs(clock->load()).msecsTo(next) == qMin(86400000LL, 86400000LL * jitter / 100));
-        sender.stop(); assert(exited.tryAcquire(1, 3000));
+        sender.stop(); assert(exited.tryAcquire(1, kWaitMs));
     }
 }
 
@@ -469,7 +479,7 @@ static void testPathIsolation(const telemetry::Application& metadata, TelemetryC
             assert(false && "invalid isolation must not dispatch"); return nullptr;
         };
         telemetry::TelemetrySender sender(context, metadata, paths.queue, options);
-        if (paths.worker) assert(exited.tryAcquire(1, 3000));
+        if (paths.worker) assert(exited.tryAcquire(1, kWaitMs));
         else QThread::msleep(100);
         assert(!sender.tryEnqueue({}));
         assert(!QFile::exists(queue) && !QFile::exists(outside) && !QFile::exists(outside + QStringLiteral(".ini")));
@@ -484,7 +494,7 @@ static void testPathIsolation(const telemetry::Application& metadata, TelemetryC
     };
     options.onWorkerExit = [&] { exited.release(); };
     telemetry::TelemetrySender sender(context, metadata, queue, options);
-    assert(exited.tryAcquire(1, 3000));
+    assert(exited.tryAcquire(1, kWaitMs));
     assert(QDir(queue).entryList(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot).isEmpty());
 }
 
@@ -550,7 +560,7 @@ static void testOutcomes(const telemetry::Application& metadata, TelemetryContex
         telemetry::TelemetryEventInput input;
         for (int i = 0; i < scenario.events; ++i) assert(waitForGate(sender, input));
         *clock = 60001;
-        assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+        assert(posted.tryAcquire(1, kWaitMs) && completed.tryAcquire(1, kWaitMs));
         const auto control = readObject(storage + QStringLiteral("/control.json"));
         const auto retry = control.value(QStringLiteral("retry")).toObject();
         assert(retry.value(QStringLiteral("failures")).toInt() == scenario.failures);
@@ -563,7 +573,7 @@ static void testOutcomes(const telemetry::Application& metadata, TelemetryContex
         assert(usage.value(QStringLiteral("events")).toArray().size() ==
                (scenario.retained ? scenario.events : 0));
         sender.stop();
-        assert(exited.tryAcquire(1, 3000));
+        assert(exited.tryAcquire(1, kWaitMs));
     }
 }
 
@@ -584,7 +594,7 @@ static void testPreparationBarrier(const telemetry::Application& metadata, Telem
         options.monotonicMs = [clock] { return clock->load(); };
         options.afterReservation = [&] {
             QTimer::singleShot(0, [&] { settled.release(); });
-            reserved.release(); assert(proceed.tryAcquire(1, 3000));
+            reserved.release(); assert(proceed.tryAcquire(1, kWaitMs));
         };
         options.onWorkerExit = [&] { exited.release(); };
         options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
@@ -594,7 +604,7 @@ static void testPreparationBarrier(const telemetry::Application& metadata, Telem
         telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), options);
         assert(waitForGate(sender, {}));
         *clock = 60001;
-        assert(reserved.tryAcquire(1, 3000));
+        assert(reserved.tryAcquire(1, kWaitMs));
         if (action == 0) sender.invalidateConsent(true, false);
         if (action == 1) sender.invalidateReceiver();
         if (action == 2) {
@@ -603,11 +613,11 @@ static void testPreparationBarrier(const telemetry::Application& metadata, Telem
         }
         proceed.release();
         if (action != 2) {
-            assert(settled.tryAcquire(1, 3000)); // Dispatch boundary ran without stop masking invalidation.
+            assert(settled.tryAcquire(1, kWaitMs)); // Dispatch boundary ran without stop masking invalidation.
             assert(posts == 0);
             sender.stop();
         }
-        assert(exited.tryAcquire(1, 3000));
+        assert(exited.tryAcquire(1, kWaitMs));
         assert(posts == 0);
     }
 }
@@ -633,7 +643,7 @@ static void testInterruptedBackoff(const telemetry::Application& metadata, Telem
         QSemaphore reserved, proceed, exited, posted, completed;
         auto options = optionsBase();
         if (attempt < 3) {
-            options.afterReservation = [&] { reserved.release(); assert(proceed.tryAcquire(1, 3000)); };
+            options.afterReservation = [&] { reserved.release(); assert(proceed.tryAcquire(1, kWaitMs)); };
             options.post = [](QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&) -> QNetworkReply* {
                 assert(false && "interrupted preparation must not transmit"); return nullptr;
             };
@@ -652,7 +662,7 @@ static void testInterruptedBackoff(const telemetry::Application& metadata, Telem
         if (attempt == 1) assert(waitForGate(sender, {}));
         *clock = attempt == 1 ? 60001 : attempt == 2 ? 120002 : 300003;
         if (attempt < 3) {
-            assert(reserved.tryAcquire(1, 3000));
+            assert(reserved.tryAcquire(1, kWaitMs));
             const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
             assert(retry.value(QStringLiteral("failures")).toInt() == attempt);
             const auto deadline = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
@@ -664,11 +674,11 @@ static void testInterruptedBackoff(const telemetry::Application& metadata, Telem
             if (attempt == 1) originalId = id; else assert(id == originalId);
             sender.stop(); proceed.release();
         } else {
-            assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+            assert(posted.tryAcquire(1, kWaitMs) && completed.tryAcquire(1, kWaitMs));
             assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
             sender.stop();
         }
-        assert(exited.tryAcquire(1, 3000));
+        assert(exited.tryAcquire(1, kWaitMs));
     }
 }
 
@@ -712,32 +722,32 @@ static void testTimeoutAndExceptions(const telemetry::Application& metadata, Tel
         assert(waitForGate(sender, {}));
         *clock = 60001;
         if (scenario == 3) {
-            assert(exited.tryAcquire(1, 3000));
+            assert(exited.tryAcquire(1, kWaitMs));
             assert(!posted.tryAcquire(1, 0));
             assert(!sender.tryEnqueue({}));
             continue;
         }
-        assert(posted.tryAcquire(1, 3000));
+        assert(posted.tryAcquire(1, kWaitMs));
         if (scenario == 4) {
             assert(delayed && !completed.tryAcquire(1, 0));
             *clock = 60501;
             QMetaObject::invokeMethod(delayed, [delayed] { delayed->complete(); }, Qt::QueuedConnection);
         }
-        assert(completed.tryAcquire(1, 3000));
+        assert(completed.tryAcquire(1, kWaitMs));
         const auto records = readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray();
         assert(records.size() == (scenario == 0 ? 1 : 0));
         const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
         assert(retry.value(QStringLiteral("failures")).toInt() == (scenario == 0 ? 1 : 0));
         if (scenario == 0) {
             *clock = 120002;
-            assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+            assert(posted.tryAcquire(1, kWaitMs) && completed.tryAcquire(1, kWaitMs));
             assert(requests == 2);
             assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
             assert(readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry"))
                    .toObject().value(QStringLiteral("failures")).toInt() == 0);
         }
         sender.stop();
-        assert(exited.tryAcquire(1, 3000));
+        assert(exited.tryAcquire(1, kWaitMs));
     }
 }
 
@@ -774,12 +784,12 @@ static void testExpiryAndActiveRevocation(const telemetry::Application& metadata
         };
         telemetry::TelemetrySender sender(context, metadata, storage, options);
         if (scenario != 0) assert(waitForGate(sender, {}));
-        else assert(polled.tryAcquire(1, 3000));
+        else assert(polled.tryAcquire(1, kWaitMs));
         *utcClock = 60001;
         *clock = 60001;
-        assert(posted.tryAcquire(1, 3000));
+        assert(posted.tryAcquire(1, kWaitMs));
         if (scenario == 0) {
-            assert(completed.tryAcquire(1, 3000));
+            assert(completed.tryAcquire(1, kWaitMs));
             const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
             assert(retry.value(QStringLiteral("failures")).toInt() == 0);
             const auto uploadDeadline = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
@@ -790,11 +800,11 @@ static void testExpiryAndActiveRevocation(const telemetry::Application& metadata
             assert(base.addMSecs(utcClock->load()) < uploadDeadline);
             assert(clock->load() < 60001 + 86400000);
             sender.requestConsentRefresh();
-            assert(polled.tryAcquire(1, 3000));
+            assert(polled.tryAcquire(1, kWaitMs));
             // Poll notification can include the startup poll; drain and observe the actual file condition.
             for (int i = 0; i < 100 && !readObject(storage + QStringLiteral("/usage.json"))
                      .value(QStringLiteral("events")).toArray().isEmpty(); ++i) {
-                assert(polled.tryAcquire(1, 3000));
+                assert(polled.tryAcquire(1, kWaitMs));
                 *clock += 1001;
             }
             assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
@@ -810,12 +820,12 @@ static void testExpiryAndActiveRevocation(const telemetry::Application& metadata
                 assert(otherConsent.save(true, false));
                 sender.requestConsentRefresh();
             }
-            assert(completed.tryAcquire(1, 3000));
+            assert(completed.tryAcquire(1, kWaitMs));
             sender.requestConsentRefresh();
             *clock = 61002;
             bool removed = false;
             for (int i = 0; i < 100; ++i) {
-                assert(polled.tryAcquire(1, 3000));
+                assert(polled.tryAcquire(1, kWaitMs));
                 removed = readObject(storage + QStringLiteral("/usage.json"))
                     .value(QStringLiteral("events")).toArray().isEmpty();
                 if (removed) break;
@@ -824,7 +834,7 @@ static void testExpiryAndActiveRevocation(const telemetry::Application& metadata
             assert(removed && calls == 1);
         }
         sender.stop();
-        assert(exited.tryAcquire(1, 3000));
+        assert(exited.tryAcquire(1, kWaitMs));
     }
 }
 
@@ -843,7 +853,7 @@ static void testConstructionAndWorkerExceptions(const telemetry::Application& me
     };
     options.onWorkerExit = [&] { exited.release(); };
     telemetry::TelemetrySender worker(context, metadata, directory.path() + QStringLiteral("/worker"), options);
-    assert(invoked.tryAcquire(1, 3000) && exited.tryAcquire(1, 3000));
+    assert(invoked.tryAcquire(1, kWaitMs) && exited.tryAcquire(1, kWaitMs));
     assert(!worker.tryEnqueue({}));
     worker.stop();
 }
@@ -877,7 +887,7 @@ static void testFollowerTakeover(const telemetry::Application& metadata, Telemet
     telemetry::TelemetrySender first(context, metadata, storage, firstOptions);
     assert(waitForGate(first, {}));
     *clock = 60001;
-    assert(firstPosted.tryAcquire(1, 3000) && !id.isEmpty());
+    assert(firstPosted.tryAcquire(1, kWaitMs) && !id.isEmpty());
     auto secondOptions = optionsBase();
     secondOptions.onWorkerExit = [&] { secondExited.release(); };
     secondOptions.afterOwnershipAttempt = [&](bool owner) { if (!owner) followerAttempt.release(); };
@@ -890,15 +900,15 @@ static void testFollowerTakeover(const telemetry::Application& metadata, Telemet
         return new ScriptedReply(request, 202, &manager);
     };
     telemetry::TelemetrySender second(context, metadata, storage, secondOptions);
-    assert(followerAttempt.tryAcquire(1, 3000));
+    assert(followerAttempt.tryAcquire(1, kWaitMs));
     assert(!second.tryEnqueue({})); // The follower does not buffer producer intents.
     first.stop();
-    assert(firstExited.tryAcquire(1, 3000));
+    assert(firstExited.tryAcquire(1, kWaitMs));
     *clock = 120002;
-    assert(secondPosted.tryAcquire(1, 3000) && secondCompleted.tryAcquire(1, 3000));
+    assert(secondPosted.tryAcquire(1, kWaitMs) && secondCompleted.tryAcquire(1, kWaitMs));
     assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
     second.stop();
-    assert(secondExited.tryAcquire(1, 3000));
+    assert(secondExited.tryAcquire(1, kWaitMs));
 }
 
 static void testRetirementWithQueuedWork(const telemetry::Application& metadata, TelemetryContext context) {
@@ -926,12 +936,12 @@ static void testRetirementWithQueuedWork(const telemetry::Application& metadata,
     telemetry::TelemetrySender sender(context, metadata, storage, options);
     assert(waitForGate(sender, {}));
     *clock = 60001;
-    assert(posted.tryAcquire(1, 3000) && pending);
+    assert(posted.tryAcquire(1, kWaitMs) && pending);
     assert(sender.tryEnqueue({})); // A second event arrives while the first request is outstanding.
     QMetaObject::invokeMethod(pending, [pending] { pending->complete(); }, Qt::QueuedConnection);
-    assert(completed.tryAcquire(1, 3000));
+    assert(completed.tryAcquire(1, kWaitMs));
     sender.stop();
-    assert(exited.tryAcquire(1, 3000));
+    assert(exited.tryAcquire(1, kWaitMs));
     assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
     telemetry::TelemetryQueue reopened;
     assert(reopened.open(storage, context.endpoint, context.termsVersion, base.addMSecs(60001)) ==
@@ -978,12 +988,12 @@ static void testSplitRetainsIds(const telemetry::Application& metadata, Telemetr
     assert(sender.tryEnqueue({}));
     for (qint64 moment : {60001LL, 90002LL, 150003LL}) {
         *clock = moment;
-        assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+        assert(posted.tryAcquire(1, kWaitMs) && completed.tryAcquire(1, kWaitMs));
     }
     assert(attempts == 3 && acknowledged == ids);
     assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
     sender.stop();
-    assert(exited.tryAcquire(1, 3000));
+    assert(exited.tryAcquire(1, kWaitMs));
 }
 #endif
 
@@ -1082,36 +1092,26 @@ int main(int argc, char** argv) {
                                  attempt == 1 ? QByteArray("120") : QByteArray());
     };
     telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), tests);
-    bool accepted = false;
-    for (int i = 0; i < 100 && !accepted; ++i) {
-        QThread::msleep(20);
-        accepted = sender.tryEnqueue(input);
-    }
-    assert(accepted);
+    assert(waitUntil([&] { return sender.tryEnqueue(input); }));
     sender.invalidateConsent(true, false);
     assert(!sender.tryEnqueue(input));
     QThread::msleep(100);
     sender.requestConsentRefresh();
-    accepted = false;
-    for (int i = 0; i < 100 && !accepted; ++i) {
-        QThread::msleep(20);
-        accepted = sender.tryEnqueue(input);
-    }
-    assert(accepted);
+    assert(waitUntil([&] { return sender.tryEnqueue(input); }));
     *clock = 60001;
-    for (int i = 0; i < 100 && *posts < 1; ++i) QThread::msleep(20);
+    assert(waitUntil([&] { return *posts >= 1; }));
     assert(*posts == 1);
     QThread::msleep(100);
     *clock = 120002;
     QThread::msleep(100);
     assert(*posts == 1); // Retry-After wins over one-minute backoff.
     *clock = 180003;
-    for (int i = 0; i < 100 && *posts < 2; ++i) QThread::msleep(20);
+    assert(waitUntil([&] { return *posts >= 2; }));
     assert(*posts == 2 && *stableId);
     QThread::msleep(100);
     assert(sender.tryEnqueue(input));
     *clock = 240004;
-    for (int i = 0; i < 100 && *posts < 3; ++i) QThread::msleep(20);
+    assert(waitUntil([&] { return *posts >= 3; }));
     assert(*posts == 3);
     QThread::msleep(100);
     sender.stop();

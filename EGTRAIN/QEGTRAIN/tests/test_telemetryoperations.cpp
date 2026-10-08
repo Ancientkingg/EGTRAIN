@@ -15,6 +15,10 @@
 #endif
 #include <cassert>
 
+// Longest time a test waits for the worker thread. A passing run never gets
+// near it, and a busy machine does not turn a slow hand-over into a failure.
+constexpr int kWaitMs = 30000;
+
 using namespace telemetry;
 
 static QJsonArray records(const QString& path) {
@@ -59,17 +63,17 @@ int main(int argc, char** argv) {
     options.monotonicMs = [] { return 0; }; // Durable observation, not transport.
     options.afterPoll = [&] {
         polled.release();
-        assert(proceed.tryAcquire(1, 10000));
+        assert(proceed.tryAcquire(1, kWaitMs));
         QTimer::singleShot(0, [&] { drained.release(); });
     };
     options.onWorkerExit = [&] { exited.release(); };
     TelemetrySender sender(context, {"1.2.3", "macos", "arm64"}, directory.filePath("queue"), options);
     QObject::connect(&consent, &TelemetryConsent::revoked, &consent,
         [&](bool usage, bool diagnostic) { sender.invalidateConsent(usage, diagnostic); }, Qt::DirectConnection);
-    assert(polled.tryAcquire(1, 3000));
+    assert(polled.tryAcquire(1, kWaitMs));
     const auto cycle = [&] {
-        proceed.release(); assert(drained.tryAcquire(1, 3000));
-        sender.requestConsentRefresh(); assert(polled.tryAcquire(1, 3000));
+        proceed.release(); assert(drained.tryAcquire(1, kWaitMs));
+        sender.requestConsentRefresh(); assert(polled.tryAcquire(1, kWaitMs));
     };
     const auto historical = OperationObservation(&sender);
     assert(consent.save(true, true)); cycle();
@@ -147,5 +151,5 @@ int main(int argc, char** argv) {
     assert(records(usagePath).isEmpty());
     assert(records(diagnosticPath).size() == 1); // Unrelated usage revocation preserves diagnostics.
     sender.stop(); proceed.release();
-    assert(exited.tryAcquire(1, 3000));
+    assert(exited.tryAcquire(1, kWaitMs));
 }
