@@ -73,9 +73,6 @@ void Print_Trajectories_As_Image(string InstanceName, char* Resch_Int, char* Pre
 
 extern double Comp_Time_EGTRAIN, Comp_Time_ROMA; // variable to measure the computation times of EGTRAIN and ROMA
 
-// Function to simulate the trains in free flow to be used for computing the Headways
-void TrainSimulationForComputingHW(double v1, double v2, double v3);
-
 extern int Resched_Interval;	 // Variable that set the time to gather train information from EGTRAIN to ROMA
 extern int Time_To_Collect_Info; // Variable to measure the time passed from the last information update
 extern double PH;				 // This is the Prediction Horizon Set in ROMA and must be used to initialize the ROMA batch call and the corresponding char

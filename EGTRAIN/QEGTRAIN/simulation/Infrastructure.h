@@ -26,7 +26,6 @@ extern int t[40000];
 extern double timestep;
 extern double signalCode1, signalCode2, signalCode3; // Signalling system speed codes (for Track Circuit B.A.C.C.)
 extern int numTrackLines;
-extern int Signalling_Level; // 0 = ETCS-Level 0 (Track Circuit), 1 = ETCS-Level 1, etc.
 extern int Headway;
 extern int HeadwayD; // Headway for the Odd Track (Headway is for Even Track). Based on block section length; train starts only when green light is on.
 
