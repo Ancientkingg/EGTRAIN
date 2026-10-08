@@ -14,8 +14,8 @@ trim_trailing_whitespace = true
 indent_style = tab
 indent_size = 4
 
-# Vendored third-party library — leave its existing style untouched.
-[{pugixml.cpp,pugixml.hpp}]
+# Vendored third-party code keeps its own style.
+[EGTRAIN/QEGTRAIN/io/third_party/**]
 indent_style = unset
 indent_size = unset
 trim_trailing_whitespace = false

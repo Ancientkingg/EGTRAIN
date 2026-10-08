@@ -1,0 +1,8 @@
+# Vendored third-party code is not analysed. clang-tidy requires at least one
+# enabled check, so this file enables one that only looks at headers and gives
+# it a header extension that no file here has.
+Checks: '-*,misc-definitions-in-headers'
+HeaderFilterRegex: ''
+CheckOptions:
+  - key: misc-definitions-in-headers.HeaderFileExtensions
+    value: 'x'

@@ -6,8 +6,8 @@
 #   - Braces on the same line as the function/control statement (K&R-ish)
 #   - C++17, Qt5 widgets/graphics-view code
 #
-# pugixml.{cpp,hpp} is a vendored third-party library and is excluded
-# via .clang-format-ignore — do not reformat it.
+# Vendored code under EGTRAIN/QEGTRAIN/io/third_party/ is excluded through
+# .clang-format-ignore.
 
 BasedOnStyle: LLVM
 Language: Cpp

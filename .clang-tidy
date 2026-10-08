@@ -1,15 +1,15 @@
 # clang-tidy configuration for EGTRAIN.
 #
-# This is a large legacy C++14/17 simulation codebase (see project documentation for
-# known issues: god files, raw arrays, global state,
-# Windows-only code). The check selection below favours checks that find
-# *real bugs* (bugprone-*, correctness-related clang-analyzer-*) over
-# checks that would demand a wholesale style rewrite (modernize-*,
-# cppcoreguidelines-* are mostly disabled — they'd produce thousands of
-# findings unrelated to correctness in code this size).
+# The selection favours checks that find real bugs (bugprone-*,
+# clang-analyzer-*, performance-*) over checks that would demand a style
+# rewrite of the legacy simulation code (most of modernize-* and
+# cppcoreguidelines-*).
 #
-# Run with:
-#   clang-tidy -p build_mac <file> --config-file=.clang-tidy
+# Configure once so that build/compile_commands.json exists, then run for example:
+#   clang-tidy -p build EGTRAIN/QEGTRAIN/scene/SceneModel.cpp
+#
+# Vendored code under EGTRAIN/QEGTRAIN/io/third_party/ has its own .clang-tidy
+# that switches the analysis off, and the header filter below does not match it.
 #
 Checks: >
   -*,
@@ -28,7 +28,7 @@ Checks: >
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: '(Capacity|Infrastructure|IOClass|NumberGenerator|Optimisation|Owl|Passengers|Rescheduling|RollingStock|Signalling|Simulation|Util)\.(h|hpp)$'
+HeaderFilterRegex: 'EGTRAIN/QEGTRAIN/(app|diagrams|graphics|graphics/items|io|scene|simulation|telemetry|update|util|widgets)/[^/]+\.(h|hpp)$'
 
 FormatStyle: file
 
