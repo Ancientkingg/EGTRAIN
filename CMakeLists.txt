@@ -38,6 +38,10 @@ add_compile_definitions(_USE_MATH_DEFINES)
 # _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused).
 if(MSVC)
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX NOGDI _HAS_STD_BYTE=0)
+    # MainWindow.cpp exceeds the section limit of a standard object file in RelWithDebInfo builds.
+    add_compile_options(/bigobj)
+    # Qt 5.15 headers need a macro override to compile with Visual Studio 2026.
+    add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/FI${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN/util/QtMsvcCompat.h>")
 endif()
 
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
@@ -492,17 +496,22 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
     target_compile_definitions(test_telemetrynetwork PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
     target_link_libraries(test_telemetrynetwork PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
-    foreach(mode reject trusted)
-        add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
-            $<TARGET_FILE:test_telemetrynetwork>
-            ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
-            ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
-            ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
-            ${mode})
-        set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
-    endforeach()
-    set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
+    # Qt 5.15 loads OpenSSL 1.1 at run time. Windows does not provide it, so Qt has no TLS there.
+    if(NOT WIN32)
+        foreach(mode reject trusted)
+            add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
+                $<TARGET_FILE:test_telemetrynetwork>
+                ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
+                ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
+                ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
+                ${mode})
+            set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
+        endforeach()
+        set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
+    else()
+        message(STATUS "Windows: skipping test_telemetrynetwork_reject and test_telemetrynetwork_trusted (no TLS library for Qt 5.15)")
+    endif()
 
     add_executable(test_updatechecker
         ${SRC_DIR}/tests/test_updatechecker.cpp
@@ -971,10 +980,17 @@ if(EGTRAIN_BUILD_TESTS)
 	else()
 		message(STATUS "Windows: skipping test_case_chooser_contract (path forms, INI escapes, directory symlink)")
 	endif()
+	# This test needs the unsaved-changes prompt. Qt 5.15 crashes when a QMessageBox is shown on
+	# the offscreen platform on Windows, so the test uses the native platform there.
+	if(WIN32)
+		set(egtrain_scene_drop_platform windows)
+	else()
+		set(egtrain_scene_drop_platform offscreen)
+	endif()
 	add_test(NAME test_scene_drop
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_scene_drop PROPERTIES
-		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
+		ENVIRONMENT "QT_QPA_PLATFORM=${egtrain_scene_drop_platform};QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
 		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
 		TIMEOUT 60)
 	add_test(NAME test_native_startup_without_legacy
@@ -1047,7 +1063,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# A Windows EXE image near 2 GiB fails to start, so the limit is checked on every Windows build.
 	if(WIN32)
-		set(EGTRAIN_MAX_PE_IMAGE_BYTES 2040109465 CACHE STRING
+		set(EGTRAIN_MAX_PE_IMAGE_BYTES 1600000000 CACHE STRING
 			"Fail test_windows_image_size when QEGTRAIN.exe SizeOfImage exceeds this many bytes")
 		add_test(NAME test_windows_image_size
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/pe_image_size.py
@@ -1121,6 +1137,17 @@ if(EGTRAIN_BUILD_TESTS)
 			message(FATAL_ERROR "Test ${name} needs exactly one of the labels unit and integration")
 		endif()
 	endforeach()
+
+	# The offscreen Qt platform has no fonts of its own on Windows, so GUI tests read the system fonts.
+	if(WIN32)
+		file(TO_CMAKE_PATH "$ENV{WINDIR}/Fonts" egtrain_windows_fonts)
+		foreach(name IN LISTS egtrain_all_tests)
+			get_test_property(${name} LABELS egtrain_test_labels)
+			if(egtrain_test_labels MATCHES "(^|;)gui(;|$)")
+				set_property(TEST ${name} APPEND PROPERTY ENVIRONMENT "QT_QPA_FONTDIR=${egtrain_windows_fonts}")
+			endif()
+		endforeach()
+	endif()
 endif()
 
 # Install

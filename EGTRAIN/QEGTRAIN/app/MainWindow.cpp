@@ -21679,9 +21679,14 @@ void MainWindow::showStartupChooser() {
 		item->setToolTip(path.toHtmlEscaped());
 		return true;
 	};
+	// Bundled scenes: below the working directory, next to the executable (Windows
+	// and Linux builds), in the macOS bundle, or in a Linux install prefix.
+	const QString applicationDir = QCoreApplication::applicationDirPath();
 	const QStringList sceneRoots = {
 		QDir::currentPath() + "/Scenes",
-		QCoreApplication::applicationDirPath() + "/../Resources/Scenes"};
+		applicationDir + "/Scenes",
+		applicationDir + "/../Resources/Scenes",
+		applicationDir + "/../share/EGTRAIN/Scenes"};
 	QSet<QString> bundledNames;
 	bool bundledHeader = false;
 	for (const QString& root : sceneRoots) {
@@ -24456,18 +24461,18 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 	}
 	const qreal expectedScale = 0.45;
 	const auto checkPresentation = [&]() {
-		const auto near = [](qreal a, qreal b) { return qAbs(a - b) < 1e-6; };
-		if (!near(m_cachedTrackPreview.presentationScale, expectedScale)) return false;
+		const auto closeTo = [](qreal a, qreal b) { return qAbs(a - b) < 1e-6; };
+		if (!closeTo(m_cachedTrackPreview.presentationScale, expectedScale)) return false;
 		int squares = 0, dots = 0, heads = 0, platforms = 0;
 		for (auto* item : scene->items()) {
 			if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
-				if (!near(square->rect().width(), station_node_size * expectedScale)) return false;
+				if (!closeTo(square->rect().width(), station_node_size * expectedScale)) return false;
 				++squares;
 			} else if (auto* node = qgraphicsitem_cast<NodeItem*>(item)) {
-				if (node->rect().width() != 0 && !near(node->rect().width(), node_size * expectedScale)) return false;
+				if (node->rect().width() != 0 && !closeTo(node->rect().width(), node_size * expectedScale)) return false;
 				++dots;
 			} else if (auto* head = qgraphicsitem_cast<SignalItem*>(item)) {
-				if (!near(head->rect().width(), node_size * expectedScale)) return false;
+				if (!closeTo(head->rect().width(), node_size * expectedScale)) return false;
 				const auto line = std::find_if(m_cachedTrackPreview.lines.begin(), m_cachedTrackPreview.lines.end(),
 					[&](const auto& candidate) {
 						return m_showingTrackPreview ? candidate.id == head->data(PreviewGraphics::TrackId).toString().toStdString()
@@ -24484,14 +24489,14 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 					+ normal * (reversed ? -30.0 : 30.0) * expectedScale;
 				if (QLineF(head->scenePos(), expected).length() > 1e-6) return false;
 				// The +/- 0.008 km endpoints remain eight physical metres away.
-				if (!near(qAbs(after.x() - center.x()), 8.0)
-					|| !near(qAbs(before.x() - center.x()), 8.0)) return false;
+				if (!closeTo(qAbs(after.x() - center.x()), 8.0)
+					|| !closeTo(qAbs(before.x() - center.x()), 8.0)) return false;
 				++heads;
 			}
 			if (auto* platform = qgraphicsitem_cast<PlatformItem*>(item)) {
-				if (!near(platform->rect().width(), 5 * station_node_size * expectedScale)
-					|| !near(platform->rect().height(), 0.9 * station_node_size * expectedScale)) return false;
-				if (platform->textIcon && !near(platform->textIcon->scale(), expectedScale)) return false;
+				if (!closeTo(platform->rect().width(), 5 * station_node_size * expectedScale)
+					|| !closeTo(platform->rect().height(), 0.9 * station_node_size * expectedScale)) return false;
+				if (platform->textIcon && !closeTo(platform->textIcon->scale(), expectedScale)) return false;
 				++platforms;
 			}
 			if (auto* track = qgraphicsitem_cast<TrackLineItem*>(item))
@@ -24513,8 +24518,8 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 			if (source == m_sceneModel.stations.end() || !picture || !label) return false;
 			const QPointF textCenter = overlay->stableAnchor()
 				+ stationDecorationOffset(m_sceneModel.stationViews, source->id, source->name) * expectedScale;
-			if (!near(picture->sceneBoundingRect().width(), station_size * expectedScale)
-				|| !near(picture->scale(), expectedScale) || !near(label->scale(), expectedScale)
+			if (!closeTo(picture->sceneBoundingRect().width(), station_size * expectedScale)
+				|| !closeTo(picture->scale(), expectedScale) || !closeTo(label->scale(), expectedScale)
 				|| label->font().pixelSize() != station_size / 5
 				|| QLineF(label->mapToScene(label->boundingRect().center()), textCenter).length() > 1e-6
 				|| QLineF(picture->sceneBoundingRect().center(), textCenter - QPointF(0, station_size * expectedScale / 2)).length() > 1e-6)

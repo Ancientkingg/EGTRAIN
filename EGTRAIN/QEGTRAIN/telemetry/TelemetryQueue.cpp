@@ -132,8 +132,11 @@ bool TelemetryQueue::loadCategory(Category category) {
     if (!keys(obj, {"format", "endpoint", "terms", "events"}) || obj.value(QStringLiteral("format")).toInt(-1) != 1 ||
         !obj.value(QStringLiteral("endpoint")).isString() || !obj.value(QStringLiteral("terms")).isString() ||
         !obj.value(QStringLiteral("events")).isArray()) return false;
-    if (obj.value(QStringLiteral("endpoint")).toString() != m_endpoint || obj.value(QStringLiteral("terms")).toString() != m_terms)
+    if (obj.value(QStringLiteral("endpoint")).toString() != m_endpoint || obj.value(QStringLiteral("terms")).toString() != m_terms) {
+        // Windows cannot replace a file that is still open.
+        file.close();
         return saveCategory(category);
+    }
     const auto array = obj.value(QStringLiteral("events")).toArray();
     if (array.size() > 512) return false;
     QSet<QString> ids;

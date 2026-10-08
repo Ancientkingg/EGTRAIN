@@ -1,6 +1,6 @@
 # Playback profiling
 
-Playback profiling is an opt-in measurement tool for Copenhagen GUI playback. It does not run unless `QEGTRAIN_PLAYBACK_PROFILE=1` is set. Startup timing and playback profiling cannot run together.
+Playback profiling is an opt-in measurement tool for Copenhagen GUI playback. It does not run unless `QEGTRAIN_PLAYBACK_PROFILE=1` is set. Startup timing and playback profiling cannot run together. Neither mode asks about automatic update checks or contacts the update server.
 
 ## Recorded protocol
 

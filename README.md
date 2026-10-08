@@ -121,6 +121,10 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/o
 cmake --build build
 ```
 
+Windows (MSVC, Qt 5.15, vcpkg x64) and Linux (Ubuntu apt packages) configure
+commands are in the [build and test guide](docs/development/build-and-test.md).
+Python 3.9 or newer is needed to run the tests.
+
 ## Run a local build
 
 Run the application from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
@@ -170,8 +174,11 @@ tools/e2e/visual_polish_smoke.sh
 
 The smoke tests cover all six scenes and check application startup, train
 movement, trajectory samples, served-station output, and the graphical
-interface. See the [build and test guide](docs/development/build-and-test.md)
-for focused labels, round-trip checks, CI branch roles, and failure artifacts.
+interface. CI runs the same CTest suite on macOS, Windows, and Linux. Select a
+subset with test labels, for example `ctest --test-dir build -L unit -LE slow`.
+See the [build and test guide](docs/development/build-and-test.md) for labels,
+platform exclusions, round-trip checks, CI branch roles, and failure
+artifacts.
 
 ## Documentation
 
