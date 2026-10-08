@@ -151,11 +151,16 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     assert rendered["expanded"] == {"checked": True, "visible": True, "arrow": "down"}, rendered
     zero = summary["Selected in period"] == "0"
     status = ("Ready to run, but no selected services enter during this period." if zero else
-              f"Ready to run, but {unsignalled} route {'section has' if unsignalled == 1 else 'sections have'} "
-              "no signalling level. Trains there run without signalling." if unsignalled else
               f"Ready to run. Review {warnings} validation {'warning' if warnings == 1 else 'warnings'} if needed."
               if advanced and warnings else "Ready to run.")
-    assert rendered["status"] == status, rendered
+    if unsignalled and not zero:
+        # The status repeats the validator message, which names the sections and tracks.
+        prefix = (f"Ready to run, but no signalling area is defined. {unsignalled} of {unsignalled} route sections "
+                  f"{'has' if unsignalled == 1 else 'have'} no signalling level and "
+                  f"{'runs' if unsignalled == 1 else 'run'} without signalling: ")
+        assert rendered["status"].startswith(prefix) and rendered["status"].endswith(")."), rendered
+    else:
+        assert rendered["status"] == status, rendered
     assert rendered["warning"] == (zero or unsignalled > 0 or (advanced and warnings > 0)), rendered
     assert rendered["runEnabled"] and rendered["rejected"] and not rendered["workerStarted"], rendered
     assert rendered["cancellation"] == cancellation, rendered

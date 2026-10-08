@@ -22028,25 +22028,24 @@ bool MainWindow::showRunReview() {
 	auto* status = new QLabel(body);
 	status->setObjectName("runReviewStatus");
 	const bool noServicesInPeriod = selectedInPeriod == 0;
-	int unsignalledSections = 0;
+	// The validator message names the route sections and tracks without a signalling level.
+	QString unsignalledSections;
 	for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics) {
-		if (diagnostic.code != "scene.signalling.level.missing")
-			continue;
-		const auto sectionCount = QRegularExpression("(\\d+) of \\d+ route sections")
-			.match(QString::fromStdString(diagnostic.message));
-		unsignalledSections = sectionCount.hasMatch() ? sectionCount.captured(1).toInt() : 1;
-		break;
+		if (diagnostic.code == "scene.signalling.level.missing") {
+			unsignalledSections = QString::fromStdString(diagnostic.message);
+			unsignalledSections[0] = unsignalledSections[0].toLower();
+			break;
+		}
 	}
 	status->setText(noServicesInPeriod
 		? QStringLiteral("Ready to run, but no selected services enter during this period.")
-		: unsignalledSections > 0
-			? QString("Ready to run, but %1 route %2 no signalling level. Trains there run without signalling.")
-				.arg(unsignalledSections).arg(unsignalledSections == 1 ? "section has" : "sections have")
+		: !unsignalledSections.isEmpty()
+			? QString("Ready to run, but %1.").arg(unsignalledSections)
 		: detailsEnabled && counts.warnings > 0
 			? QString("Ready to run. Review %1 validation %2 if needed.")
 				.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings")
 			: QStringLiteral("Ready to run."));
-	status->setProperty("warning", noServicesInPeriod || unsignalledSections > 0
+	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty()
 		|| (detailsEnabled && counts.warnings > 0));
 	status->setWordWrap(true);
 	layout->addWidget(status);

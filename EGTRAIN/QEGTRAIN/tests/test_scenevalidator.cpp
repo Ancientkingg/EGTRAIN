@@ -3,6 +3,7 @@
 #include "scene/SceneValidator.h"
 #include "simulation/RuntimeLimits.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <limits>
@@ -589,7 +590,7 @@ int main(int argc, char** argv) {
 	ok &= expect(noAreaWarning != nullptr && noAreaWarning->severity == SceneSeverity::Warning
 			&& noAreaWarning->file == "signalling.json" && noAreaWarning->path == "signalling_areas"
 			&& noAreaWarning->message.rfind("No signalling area is defined. 2 of 2 route sections", 0) == 0
-			&& contains(noAreaWarning->message, "(tracks track-1)")
+			&& contains(noAreaWarning->message, "(track track-1)")
 			&& contains(noAreaWarning->suggestedFix, "0.000000 to 2.000000 km"),
 			"route sections without any signalling area produce one warning");
 	ok &= expect(!hasErrors(noAreaDiagnostics) && !hasCode(validateScene(noAreas), levelMissing),
@@ -601,7 +602,7 @@ int main(int argc, char** argv) {
 	partialArea.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
 	const auto partialDiagnostics = validateRunnableScene(partialArea);
 	const SceneDiagnostic* partialWarning = findCode(partialDiagnostics, levelMissing);
-	ok &= expect(partialWarning != nullptr && contains(partialWarning->message, "1 of 2 route sections")
+	ok &= expect(partialWarning != nullptr && contains(partialWarning->message, "1 of 2 route sections has no signalling level and runs")
 			&& contains(partialWarning->message, "block-2") && !contains(partialWarning->message, "block-1")
 			&& !contains(partialWarning->message, "No signalling area")
 			&& contains(partialWarning->suggestedFix, "1.000000 to 2.000000 km"),
@@ -620,7 +621,7 @@ int main(int argc, char** argv) {
 	const SceneDiagnostic* scopedWarning = findCode(scopedDiagnostics, levelMissing);
 	ok &= expect(!derivedSectionId.empty() && scopedWarning != nullptr
 			&& contains(scopedWarning->message, "1 of 4 route sections")
-			&& contains(scopedWarning->message, "block-3") && contains(scopedWarning->message, "(tracks track-2)")
+			&& contains(scopedWarning->message, "block-3") && contains(scopedWarning->message, "(track track-2)")
 			&& !contains(scopedWarning->message, derivedSectionId),
 			"a track-scoped area covers its tracks and the derived section that touches them");
 
@@ -658,7 +659,7 @@ int main(int argc, char** argv) {
 		return d.code == levelMissing;
 	}) == 1 && longWarning != nullptr && contains(longWarning->message, "200 of 200 route sections")
 			&& contains(longWarning->message, "@b4@ and 195 more") && !contains(longWarning->message, "@b5@")
-			&& contains(longWarning->message, "(tracks track-1)"),
+			&& contains(longWarning->message, "(track track-1)"),
 			"a long route gets one warning that names at most five sections");
 
 	SceneModel negativeChainage = clean;

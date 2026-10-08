@@ -168,9 +168,11 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 		sectionIds.push_back(section->id);
 	std::string message = scene.signallingAreas.empty() ? "No signalling area is defined. " : "";
 	message += std::to_string(uncovered.size()) + " of " + std::to_string(routeSectionCount)
-			+ " route sections have no signalling level and run without signalling: " + names(sectionIds);
+			+ (uncovered.size() == 1 ? " route sections has no signalling level and runs without signalling: "
+					: " route sections have no signalling level and run without signalling: ")
+			+ names(sectionIds);
 	if (!trackIds.empty())
-		message += " (tracks " + names(trackIds) + ")";
+		message += (trackIds.size() == 1 ? " (track " : " (tracks ") + names(trackIds) + ")";
 	diagnostics.warning("scene.signalling.level.missing", message, "signalling.json", "scene", scene.name,
 			"signalling_areas", uncovered.front()->id,
 			"In Infrastructure > Signalling area add a network-wide area covering "
