@@ -771,9 +771,16 @@ int main() {
 	trajectoryPerformance.services[0].performancePercent = 100.0;
 	const auto trajectoryFullInfrastructure = buildInfrastructureAndSignallingFromScene(trajectoryPerformance);
 	const auto trajectoryFullOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
+	// Runs the first train through the live movement step that the dispatch loop uses.
+	const auto simulateFirstTrainMovement = [&]() {
+		for (int t = 0; t < initial_variables.times; t++) {
+			regional_train[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+			regional_train[0].recordEarliestActiveTrajectoryIndex(t);
+		}
+	};
 	int fullPerformanceEnd = -1;
 	if (!hasErrors(trajectoryFullInfrastructure) && !hasErrors(trajectoryFullOperations) && numRegions == 1) {
-		TrainSimulationForComputingHW(signalCode1, signalCode2, signalCode3);
+		simulateFirstTrainMovement();
 		fullPerformanceEnd = regional_train[0].End_Time;
 	}
 	trajectoryPerformance.services[0].performancePercent = 50.0;
@@ -781,7 +788,7 @@ int main() {
 	const auto trajectoryReducedOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
 	int reducedPerformanceEnd = -1;
 	if (!hasErrors(trajectoryReducedInfrastructure) && !hasErrors(trajectoryReducedOperations) && numRegions == 1) {
-		TrainSimulationForComputingHW(signalCode1, signalCode2, signalCode3);
+		simulateFirstTrainMovement();
 		reducedPerformanceEnd = regional_train[0].End_Time;
 	}
 	ok &= expect(fullPerformanceEnd >= 0 && reducedPerformanceEnd > fullPerformanceEnd,

@@ -463,7 +463,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				"worker/playback_step/compute");
 			// Simulate train movement at each simulation step
 			for (int j = 0; j < numRegions; j++) {
-				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3); // originally we shall call the function Trajectory_Block_Section_Free_Flow
+				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
 				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 				regional_train[j].recordStationPassagesAtTime(t);
 

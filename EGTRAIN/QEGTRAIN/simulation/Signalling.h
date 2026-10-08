@@ -425,51 +425,6 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 // Lock switches while trains traverse in diverging position
 void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, const string& typePart);
 
-// --- BACC: coded track circuits, cab-signalling (ETCS Level 0, 1 block free behind train) ---
-void mTrackCircuitSs1(Section* BS, int Blocks);
-
-// Set permitted speeds at block section nodes (BACC, 1 free block behind)
-void setBlockSpeed1(double V_75, double V_751, double V_0, Section* BLS, int Blocks);
-
-// Release block sections when train has passed (for connected blocks and train exit)
-void releaseBlocksBacc(Section* BS, int Blocks);
-
-
-// --- ETCS Level 1: Italian SCMT ---
-void mEtcsLev1(Section* BS, int Blocks);
-
-// Set permitted speeds at block section nodes (ETCS L1 SCMT)
-void setBlockSpeedEtcsLev1(double V_0, Section* BS, int Blocks);
-
-// Release block sections when train has passed
-void releaseBlocksEtcsLev1(Section* BS, int Blocks);
-
-
-// --- ATB: Dutch National Signalling System (Signalling_Level=2) ---
-void mAtb(Section* BS, int Blocks);
-
-// Set permitted speeds at block section nodes (ATB)
-void setBlockSpeedAtb(double V_75, double V_0, Section* BS, int Blocks);
-
-// Release block sections when train has passed
-void releaseBlocksAtb(Section* BS, int Blocks);
-
-
-// --- ETCS Level 3: RBC Movement Authorities ---
-// Simulate MAs from RBC to train routes
-void rbcSendsMasToRoute(Route& R);
-
-void setInfraSpeedInEtcs3(Section* BS, int Blocks);
-
-// Clear previous RBC MAs before updating
-void clearPreviousRbcMasForNewUpdating(Route& R);
-
-// Activate signalling system based on train positions at time t
-void activateSignallingSystem();
-
-// Release blocks occupied only by connection (not by actual train presence)
-void releaseBlockConnections();
-
 // --- Mixed Signalling: multi-system signalling areas ---
 // Set infrastructure speed limits (from infrastructure, not signalling)
 void setInfraSpeedLimits(Section* BS, int Blocks);

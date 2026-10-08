@@ -647,17 +647,6 @@ void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceO
 	}
 }
 
-// Function to simulate the trains in free flow to be used for computing the Headways
-void TrainSimulationForComputingHW(double v1, double v2, double v3) {
-	for (int i = 0; i < numRegions; i++) {
-		activateSignallingSystem();
-		for (int t = 0; t < initial_variables.times; t++) {
-			regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
-			regional_train[i].recordEarliestActiveTrajectoryIndex(t);
-		}
-	}
-}
-
 // Function to initialise all StationPlatforms for the simulation of passenger flows
 // The function takes as input all the Array and number of all block sections, the array and number of all trains, the array of all defined rutes, as well as the length and width of the platforms (to be expressed in meters)
 // Length and width of the platforms are assumed to be the same for all platforms in this function. If different dimensions needs to be assigned to each and every platform then the function should be extended with possibility to gather such a varying design from an external data input (manual entry or file)

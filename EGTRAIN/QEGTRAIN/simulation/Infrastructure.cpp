@@ -8,7 +8,6 @@ double timestep = 1;
 // double times = 0;
 double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling System Speed Codes (for Track Circuit Sisgnalling System: blockSets.A.connections.connections.)
 int numTrackLines = 0;				   // This is the total number of TrackLines
-int Signalling_Level = 0;			   // This variable set the type of signalling system implemented: if it is set to 0-> ETCS-Level 0 (Track Circuit), if it is set to 1-> ETCS-Level 1, and so on.
 int Headway = 0;
 int HeadwayD = 0; // This Headway is calculated on the basis of Block Section Length (indipendently of the signalling system this headway consents the train to start his run (from BS[0]) only when green light is on) Headway is for the Even Track while HeadwayD for the Odd Track
 

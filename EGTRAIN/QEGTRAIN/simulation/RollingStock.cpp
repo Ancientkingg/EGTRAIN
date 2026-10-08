@@ -1433,19 +1433,6 @@ void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double 
 	PrintTrainBlockingTimes(OutputFolder);
 }
 
-// Debug Activate Signalling Function
-void Debug_Activate_Signalling() {
-	for (int t = 825; t < initial_variables.times; t++) {
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		releaseBlockConnections();  // Release Blocks connected with the one really occupied by a train
-		activateSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
-		BlocksOccupied.clear();		  // Clear the list BlocksOccupied
-		BlocksConnected.clear();	  // Clear the list BlocksConnected
-	}
-}
-
 void DetectConflictsForAllTrains(Train* Trains, int numTrains) {
 	for (int i = 0; i < numTrains; i++) {
 		Trains[i].DetectConflictsWithPreviousDepartingTrains(Trains, numTrains);
