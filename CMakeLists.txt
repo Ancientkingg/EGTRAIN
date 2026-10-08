@@ -586,6 +586,42 @@ if(EGTRAIN_BUILD_TESTS)
     endif()
     add_test(NAME test_runresults COMMAND test_runresults)
 
+    add_executable(test_simulationworker
+        ${SRC_DIR}/tests/test_simulationworker.cpp
+        ${SRC_DIR}/app/DispatchController.cpp
+        ${SRC_DIR}/io/RailMLParser.cpp
+        ${SRC_DIR}/io/third_party/pugixml.cpp
+        ${SRC_DIR}/scene/SceneDiagnostic.cpp
+        ${SRC_DIR}/scene/SceneModel.cpp
+        ${SRC_DIR}/scene/SceneValidator.cpp
+        ${SRC_DIR}/scene/SectionInventory.cpp
+        ${SRC_DIR}/simulation/Infrastructure.cpp
+        ${SRC_DIR}/simulation/InitialParameters.cpp
+        ${SRC_DIR}/simulation/NumberGenerator.cpp
+        ${SRC_DIR}/simulation/Optimisation.cpp
+        ${SRC_DIR}/simulation/Passengers.cpp
+        ${SRC_DIR}/simulation/RollingStock.cpp
+        ${SRC_DIR}/simulation/Signalling.cpp
+        ${SRC_DIR}/simulation/Simulation.cpp
+        ${SRC_DIR}/simulation/SimulationWorker.cpp
+        ${SRC_DIR}/util/Logger.cpp
+        ${SRC_DIR}/util/PlaybackProfiler.cpp
+        ${SRC_DIR}/util/TrajectoryUtil.cpp)
+    target_include_directories(test_simulationworker PRIVATE ${SRC_DIR})
+    target_link_libraries(test_simulationworker PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+    if(EGTRAIN_OPENMP_INCLUDE)
+        target_include_directories(test_simulationworker PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
+    endif()
+    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
+        target_compile_options(test_simulationworker PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
+    endif()
+    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
+        target_link_libraries(test_simulationworker PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
+    elseif(OpenMP_CXX_FOUND)
+        target_link_libraries(test_simulationworker PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    add_test(NAME test_simulationworker COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut)
+
     add_executable(test_blockingtimediagram
         ${SRC_DIR}/tests/test_blockingtimediagram.cpp
         ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
@@ -1098,7 +1134,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(unit
 		test_updatepreparation test_timeformat test_version test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
-		test_guisimulationsnapshot test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
 		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview

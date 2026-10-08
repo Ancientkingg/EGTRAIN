@@ -14757,14 +14757,16 @@ void MainWindow::runVisualPolishE2E() {
 				ok = false;
 				failures << "Stop retained completed replay";
 			}
-			if (lifecycleTrack->operationalState() != TrackOperationalState::Free)
-				failures << "Stop/completion left a transient operational track state";
-			if (!lifecycleTrack->isSelected())
-				failures << "Stop/completion cleared independent track selection";
-			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
-					|| !lifecycleTrack->isSelected())
+			if (m_runtimeStatus != QStringLiteral("Stopped") || m_resultsAvailable
+					|| statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
+				failures << "Stop did not leave a stopped run without results";
 				ok = false;
-			else {
+			} else if (!m_showingTrackPreview || !allArcs.isEmpty() || !allTrains.isEmpty()) {
+				// The stopped run is replaced by the track preview, so the queued delivery
+				// has no runtime track or train left to paint.
+				failures << "a stopped run left runtime graphics on the canvas";
+				ok = false;
+			} else {
 				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
 				std::fflush(stdout);
 			}
@@ -22533,9 +22535,12 @@ void MainWindow::onSimulationFinished() {
 	}
 	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
 	m_sceneChangedDuringRun = false;
-	const bool stopped = m_worker && m_worker->isStopRequested();
-	m_resultsAvailable = !sceneChangedDuringRun && hasRawRunResults();
-	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed") : QStringLiteral("Failed");
+	// A stop that arrives after the last stage leaves a completed run.
+	const bool stopped = m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
+	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
+	m_resultsAvailable = !sceneChangedDuringRun && !stopped && hasRawRunResults();
+	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
+		: stoppedByUser ? QStringLiteral("Stopped") : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
 		const auto trains = runResultTrainPointers();
 		// Freeze result values before a subsequent run replaces the runtime trains.
@@ -22549,11 +22554,12 @@ void MainWindow::onSimulationFinished() {
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
-			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: Failed%3")
-				.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(),
+			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: %3%4")
+				.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(), m_runtimeStatus,
 					sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
 		if (m_runResultsDock) {
-			m_runResultsDock->setWindowTitle(QString("Run Results — %1 (failed)").arg(scenarioContext()));
+			m_runResultsDock->setWindowTitle(QString("Run Results — %1 (%2)").arg(scenarioContext(),
+					stoppedByUser ? QStringLiteral("stopped") : QStringLiteral("failed")));
 			m_runResultsDock->hide();
 		}
 	}
@@ -22642,12 +22648,14 @@ void MainWindow::onSimulationFinished() {
 	}
 
 	// print last services
-	simulation.printLastTrainServicePathDiagram();
+	if (!stopped)
+		simulation.printLastTrainServicePathDiagram();
 
 	// hide progress bar
 	progressBar->hide();
 	statusBar()->showMessage(sceneChangedDuringRun
 		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
+		: stopped ? QStringLiteral("Simulation stopped")
 		: hadFollowTarget
 			? QStringLiteral("Simulation complete - Follow disabled")
 			: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
@@ -22678,6 +22686,9 @@ void MainWindow::onSimulationFinished() {
 	refreshIncidentPanel();
 	updateSceneActions();
 	processTrainUnitSourceChanges();
+	// The track preview that replaces a stopped run wrote its own status message.
+	if (stoppedByUser)
+		statusBar()->showMessage(QStringLiteral("Simulation stopped"));
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
 		const QStringList labels = m_networkLegendWidget ? m_networkLegendWidget->entryLabels() : QStringList();

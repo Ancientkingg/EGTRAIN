@@ -16,7 +16,7 @@ public:
 
 	// Thread-safe accessors for the simulation engine
 	bool isStopRequested() const { return m_stop; }
-	// Observation-only latch. Unlike engine controls, this is never reset by run().
+	// Observation-only latch; set by requestStop() and never cleared.
 	bool wasCancellationRequested() const { return m_cancelled; }
 	bool isPauseRequested() const { return m_pause; }
 	int delayMs() const { return m_delayMs; }

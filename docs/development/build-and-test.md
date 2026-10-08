@@ -407,7 +407,8 @@ seek explicitly restores historical operational overlays; normal completion does
 not. A new run or scene/scenario edit clears replay and returns active replay to
 the authoring preview. Train, station and signal inspections remain selected
 across seeks; future or exited trains do not appear on layer toggles or drive
-Follow station emphasis. Unsuccessful and stopped runs have no replay.
+Follow station emphasis. Unsuccessful and stopped runs have no replay, and a
+stopped run keeps no results either.
 Passenger journey details are unavailable in replay; snapshot scalar counts
 and statuses remain visible.
 
