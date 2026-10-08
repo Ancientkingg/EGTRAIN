@@ -237,6 +237,138 @@ python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 160
 The first output line shows the measured size. The CI workflow prints the same
 line in the job summary.
 
+## Characterization tests
+
+The characterization tests pin what the simulation core does today, so that
+refactors of movement, signalling and global state show up as a reviewable
+diff. They drive the real `DispatchController` in the test process on the small
+scene `EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line` ("Characterization Line"):
+one track of 16 km in eight blocks of 2 km, three stations, five services and
+three scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`).
+All railway and rolling-stock values are copied from the committed Assignment
+scene. The signalling level is not part of the scene. The test sets it with one
+network-wide signalling area, so one scene covers levels 0 to 5 and "none".
+
+A case is a scenario, a set of services and a level. The case table is in
+`tests/characterization/test_characterization.cpp`:
+
+| Cases | Run |
+| --- | --- |
+| `single-train` | train `T1` alone, no signalling area |
+| `follow-level-none`, `follow-level-0` to `-5` | trains `F1` and `F2` following each other |
+| `sf-forward-level-none`, `-0` to `-5` | the same trains with a signal failure from 400 s to 1000 s |
+| `sf-reverse-level-none`, `-0` to `-5` | trains `R1` and `R2` in the opposite direction, same failure window |
+
+The cases that run in CTest are listed in
+`tests/characterization/CMakeLists.txt`. Any case in the table can be run by
+hand with `--case`. Each case is its own CTest entry and process, labelled
+`characterization` and `unit`:
+
+```bash
+cmake --build build --target test_characterization
+ctest --test-dir build -L characterization --output-on-failure
+```
+
+`characterization_repeatable` runs several cases in one process and then the
+first one again. The two runs of that case must be identical, with no
+tolerance. It fails when state from an earlier run leaks into a later one.
+The same executable can run any scene directories back to back:
+
+```bash
+build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
+    --repeat EGTRAIN/QEGTRAIN/Scenes/Paimpol EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut \
+    EGTRAIN/QEGTRAIN/Scenes/Paimpol
+```
+
+A step is a scene directory, optionally followed by `#` and a case name. Without
+a case name the scene runs as committed.
+
+### Reading a golden file
+
+Golden files are in `tests/characterization/expected/<case>.txt`. Lines starting
+with `#` are comments. The header names the case and the run. Every other line is
+one fact: some key words, then `name=value` fields.
+
+- `train <id> sample`: time `t` (s), route position `x` (m) and speed `v` (m/s),
+  every 60 s from the first to the last step the train is in the network.
+- `train <id> stop`: a stretch of at least 5 s below 0.001 m/s, with its first and
+  last step, position and `dwell` (last minus first step).
+- `train <id> braking`: the last step at the speed before a stop that is
+  followed by a continuous speed decrease down to that stop.
+- `separation <lead>><follower>`: the smallest distance between the rear of the
+  leading train and the head of the one behind it, and when. Negative means
+  overlap.
+- `aspect <route> <section>`: the signal aspect code of the section as `step:code`
+  at every change, starting at step 0 (270 clear, 180, 75, 0 stop, 751 BACC).
+- `result`, `run_result`, `network`: timetable and run results as the application
+  reports them. `n/a` means the value is not available.
+- `blocktime`: the blocking-time records of a train.
+- `incident`, `boundary`, `authority`: the incident definition, and for the steps
+  just before and after its start and end, how many signal-failure authorities
+  exist and which sections are blocked.
+- `stats`: the rows of `TrainTrajectories/Stats_Stations.txt`, which holds six
+  significant digits.
+
+Integers and strings must match exactly. Floats match within an absolute
+tolerance of 1e-4 and a relative tolerance of 1e-9, and the statistics rows
+within 1e-5 relative. A failure prints the first 20 differing lines with the
+expected and the actual line, and writes the actual output to
+`<case>.actual.txt` in the test's build directory.
+
+Each run also checks facts that do not come from the golden file, so a
+re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
+backward movement, acceleration and braking within what the rolling stock can do,
+no faster run to station B than the top speed allows, planned dwell and
+departure times kept, stops only at a platform, a block boundary or behind
+another train, and no overlap of two trains.
+
+### Changing an expectation deliberately
+
+Run the case with the update switch, then review the diff before committing:
+
+```bash
+EGTRAIN_UPDATE_EXPECTATIONS=1 ctest --test-dir build -L characterization
+git diff EGTRAIN/QEGTRAIN/tests/characterization/expected
+```
+
+For a case that CTest does not run, call the executable directly:
+
+```bash
+EGTRAIN_UPDATE_EXPECTATIONS=1 build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
+    --fixture EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line \
+    --expect EGTRAIN/QEGTRAIN/tests/characterization/expected --case follow-level-3
+```
+
+The switch rewrites the golden file and passes. It is refused when the `CI`
+environment variable is set, and it writes nothing when a check above fails.
+Read the whole diff and check that every changed number is a consequence of the
+change you made and still physically plausible. Commit the new golden file in
+the same commit as the behaviour change and give the reason in the commit
+message. Do not edit the scene fixture to make a case pass. Changing it changes
+every golden file, so add a service or scenario instead.
+
+### Known-wrong behaviour
+
+Some current behaviour is wrong. The golden file still pins it, so a refactor
+cannot change it unnoticed, and it is marked. The golden header carries
+`# known-wrong: #<issue> <reason>` and the case table carries the same text. The
+test fails when the two differ and prints `KNOWN-WRONG #<issue>` on every run.
+A marked case is exempt from the checks on stops, separation and timetable. The
+change that fixes the bug updates the golden file and removes the marker in one
+commit. List the marked cases with:
+
+```bash
+grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
+```
+
+### One OpenMP thread
+
+The tests run on one OpenMP thread (`omp_set_num_threads(1)` and
+`OMP_NUM_THREADS=1`). The braking-point search in `RollingStock.h` writes
+`Xobmin` and `Vobmin` outside its `omp critical` section, so with several threads
+the chosen braking point could depend on thread timing. Results must not depend
+on the machine, and this keeps them from doing so.
+
 ## Simulation Smoke Test
 
 ```bash
