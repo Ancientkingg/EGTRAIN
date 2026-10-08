@@ -2274,17 +2274,20 @@ public:
 					DepartureTime = (t - 1) * timestep;
 				}
 			}
-			// When both the arrival and departure times are found then we assign them to the TrainEvent
-			if ((IsArrivalFound == 1) && (IsDepartureFound == 1)) {
-				PassingPoint.Time = ArrivalTime;
-				PassingPoint.Time2 = DepartureTime;
-				// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
-				if (train_route[indexOfRoute].reversed_direction == 1) {
-					PassingPoint.Position = train_route[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
-				} else {
-					PassingPoint.Position = LocationPosition;
-				}
+			if ((IsArrivalFound == 1) && (IsDepartureFound == 1))
 				break; // if both arrival and depature of the train have been found we can break the for loop over the time t
+		}
+		// A train that reached the location is reported. It has no departure when it stays there
+		// until the end of the run, as at its last stop.
+		if (IsArrivalFound == 1) {
+			PassingPoint.Time = ArrivalTime;
+			if (IsDepartureFound == 1)
+				PassingPoint.Time2 = DepartureTime;
+			// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
+			if (train_route[indexOfRoute].reversed_direction == 1) {
+				PassingPoint.Position = train_route[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
+			} else {
+				PassingPoint.Position = LocationPosition;
 			}
 		}
 	}

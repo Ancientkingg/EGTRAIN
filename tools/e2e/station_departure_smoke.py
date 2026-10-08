@@ -149,7 +149,10 @@ def main() -> None:
 
         if f"{TRAIN} is stopping at Brn" not in process.stdout:
             raise SystemExit(f"{TRAIN} never arrived at Brn\n{process.stdout[-4000:]}")
-        print(f"PASS {TRAIN} arrived at Brn")
+        # The last stop has an arrival and, because the train stays there, no departure.
+        if arrivals[-1] == NOT_RECORDED or departures[-1] != NOT_RECORDED:
+            raise SystemExit(f"{TRAIN} has no arrival without departure at Brn:\n" + "\n".join(lines[:6]))
+        print(f"PASS {TRAIN} arrived at Brn at {arrivals[-1]:.0f} s")
 
 
 if __name__ == "__main__":

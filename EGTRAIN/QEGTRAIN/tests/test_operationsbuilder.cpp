@@ -1064,6 +1064,19 @@ int main() {
 					&& isPastStopHoldback(stoppingPoint + kStopHoldbackM, stoppingPoint),
 					"a parked position is at the stop and the position after the stop is past it");
 		}
+		{
+			// A last stop: the train arrives and stays until the end of the run.
+			Train terminating;
+			terminating.indexOfRoute = regional_train[0].indexOfRoute;
+			terminating.departure_time = 1.0;
+			terminating.instant_spatial_position.assign(60, exact);
+			for (int second = 0; second < 10; ++second)
+				terminating.instant_spatial_position[second] = stoppingPoint - 1000.0 + 100.0 * second;
+			TrainEvent point;
+			terminating.computeArrivalAndDepartureAtLocation(stoppingPoint, point);
+			ok &= expect(point.Time == 9.0 * timestep && point.Time2 == TrainEvent().Time2,
+					"a timetable point reports the arrival at a last stop and no departure");
+		}
 		initial_variables.times = savedTimes;
 	}
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
