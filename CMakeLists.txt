@@ -356,14 +356,6 @@ if(MSVC)
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-if(EGTRAIN_PACKAGED_BUILD)
-    enable_testing()
-    add_executable(test_updatehelper
-        ${SRC_DIR}/tests/test_updatehelper.cpp)
-    target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
-    add_test(NAME test_updatehelper COMMAND test_updatehelper $<TARGET_FILE:egtrain_update_helper>)
-endif()
-
 # Platform-specific settings
 if(APPLE)
     set_target_properties(QEGTRAIN PROPERTIES
@@ -439,6 +431,29 @@ if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
     target_link_libraries(test_updatepreparation PRIVATE Qt5::Core)
     add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
 
+    # Stand-ins for an installed application, which the update helper test installs and relaunches.
+    add_executable(egtrain_update_probe ${SRC_DIR}/tests/update_probe.cpp)
+    set(UPDATEHELPER_TEST_ARGS $<TARGET_FILE:egtrain_update_helper> $<TARGET_FILE:egtrain_update_probe>)
+    if(WIN32)
+        add_library(egtrain_update_probe_dll SHARED ${SRC_DIR}/tests/update_probe_dll.cpp)
+        add_executable(egtrain_update_dllprobe ${SRC_DIR}/tests/update_dllprobe.cpp)
+        target_link_libraries(egtrain_update_dllprobe PRIVATE egtrain_update_probe_dll)
+        list(APPEND UPDATEHELPER_TEST_ARGS
+            $<TARGET_FILE:egtrain_update_dllprobe> $<TARGET_FILE:egtrain_update_probe_dll>)
+    endif()
+    if(MSVC)
+        # Static runtime like the helper, so a copied probe needs no runtime DLLs.
+        foreach(probe egtrain_update_probe egtrain_update_probe_dll egtrain_update_dllprobe)
+            if(TARGET ${probe})
+                set_property(TARGET ${probe} PROPERTY
+                    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+            endif()
+        endforeach()
+    endif()
+    add_executable(test_updatehelper ${SRC_DIR}/tests/test_updatehelper.cpp)
+    target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
+    add_test(NAME test_updatehelper COMMAND test_updatehelper ${UPDATEHELPER_TEST_ARGS})
+    set_tests_properties(test_updatehelper PROPERTIES TIMEOUT 120)
 endif()
 if(EGTRAIN_BUILD_TESTS)
     enable_testing()
@@ -531,13 +546,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_updatestaging.cpp)
     target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
     add_test(NAME test_updatestaging COMMAND test_updatestaging)
-
-    if(NOT TARGET test_updatehelper)
-        add_executable(test_updatehelper
-            ${SRC_DIR}/tests/test_updatehelper.cpp)
-        target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
-        add_test(NAME test_updatehelper COMMAND test_updatehelper $<TARGET_FILE:egtrain_update_helper>)
-    endif()
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
