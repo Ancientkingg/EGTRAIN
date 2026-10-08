@@ -16,35 +16,146 @@ on:
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
 
+# A newer push to the same pull request replaces its running checks. Every push to main keeps its own run.
+concurrency:
+  group: cmake-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
-    runs-on: macos-latest
+    name: build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            jobs: 3
+          - name: Windows
+            os: windows-latest
+            jobs: 4
+          - name: Linux
+            os: ubuntu-latest
+            jobs: 4
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
+      PYTHONUTF8: "1"
 
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       # CTest GUI checks write logs to the platform temp dir; point it at
       # runner.temp so failure diagnostics can find them.
       - name: Route temp files to runner.temp
+        if: runner.os != 'Windows'
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt
+      - name: Route temp files to runner.temp (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "TEMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "TMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: Install Qt (macOS)
+        if: runner.os == 'macOS'
         run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
 
-      - name: Configure
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
+
+      - name: Install Qt (Windows)
+        if: runner.os == 'Windows'
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          modules: qtcharts
+          cache: true
+
+      - name: Set up MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Restore vcpkg binary cache
+        if: runner.os == 'Windows'
+        id: vcpkg-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1
+
+      - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $cache = "$env:RUNNER_TEMP/vcpkg-binary-cache"
+          New-Item -ItemType Directory -Force -Path $cache | Out-Null
+          $env:VCPKG_DEFAULT_BINARY_CACHE = $cache
+          vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
+
+      - name: Save vcpkg binary cache
+        if: runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1
+
+      - name: Add runtime DLL directories to PATH (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+          "$env:QT_ROOT_DIR/bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
         run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: >
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --config Release
+
+      - name: Report Windows image size
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
+        shell: bash
+        run: ctest --test-dir build -C Release --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
 
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.job }}-diagnostics
+          name: ${{ github.job }}-${{ matrix.name }}-diagnostics
           path: |
             ${{ runner.temp }}/ctest.log
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log

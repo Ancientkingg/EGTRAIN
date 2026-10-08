@@ -262,6 +262,57 @@ def main() -> None:
         )
     ):
         missing.append("release update manifest and exact package checksums")
+    if (
+        any(f"os: {runner}\n" not in workflow for runner in ("macos-latest", "windows-latest", "ubuntu-latest"))
+        or "      fail-fast: false\n" not in workflow
+    ):
+        missing.append("independent macOS, Windows and Linux validation legs")
+    windows_toolchain = (
+        "version: '5.15.2'",
+        "arch: win64_msvc2019_64",
+        "modules: qtcharts",
+        "ilammy/msvc-dev-cmd@v1",
+        "vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows",
+        "-DVCPKG_TARGET_TRIPLET=x64-windows",
+        "scripts/buildsystems/vcpkg.cmake",
+    )
+    if any(entry not in workflow or entry not in release_workflow for entry in windows_toolchain):
+        missing.append("Windows toolchain shared with the release workflow")
+    apt_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
+    apt_packages = apt_install.group(1).replace("\\", " ").split() if apt_install else []
+    if not apt_packages or any(
+        not re.search(rf"(?<![\w.+-]){re.escape(package)}(?![\w.+-])", release_workflow)
+        for package in apt_packages
+    ):
+        missing.append("Linux packages shared with the release workflow")
+    if "hashFiles" in workflow or "hash" in workflow.lower():
+        missing.append("hash-free dependency cache keys")
+    cache_keys = re.findall(r"^\s+key: (\S+)\s*$", workflow, re.MULTILINE)
+    if not cache_keys or any(not re.search(r"-v\d+$", key) for key in cache_keys):
+        missing.append("fixed dependency cache keys with a manual version suffix")
+    test_step = test_steps[0] if test_steps else ""
+    build_step = next((block for block in blocks if block.startswith("name: Build\n")), "")
+    if "ctest --test-dir build -C Release" not in test_step:
+        missing.append("multi-config CTest configuration")
+    if "cmake --build build --config Release" not in build_step:
+        missing.append("multi-config build configuration")
+    if "COMMAND python3" in cmake or "Python3_EXECUTABLE" not in cmake:
+        missing.append("CTest uses the configured Python interpreter")
+    for bash_command in re.finditer(r"COMMAND bash", cmake):
+        guards = re.findall(
+            r"^\s*(if\(.*\)|else\(\)|elseif\(.*\)|endif\(\))\s*$",
+            cmake[: bash_command.start()],
+            re.MULTILINE,
+        )
+        if not guards or guards[-1] not in ("if(UNIX)", "if(APPLE)"):
+            missing.append("bash CTest commands only on UNIX")
+            break
+    if not re.search(
+        r"if\(WIN32\)(?:(?!endif\(\)).)*?pe_image_size\.py(?:(?!endif\(\)).)*?--max-bytes",
+        cmake,
+        re.DOTALL,
+    ):
+        missing.append("Windows image size CTest")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 
