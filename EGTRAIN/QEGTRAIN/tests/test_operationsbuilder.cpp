@@ -1038,6 +1038,34 @@ int main() {
 		ok &= expect(isShortOfBrakingPoint(brakingPoint - 0.001, brakingPoint),
 				"a train 1 mm short of the braking point still accelerates");
 	}
+	{
+		// A stop of 20 s at a point whose parked position is exact, one unit in the last place
+		// low or one high: the timetable point reports the same arrival and departure each time.
+		const double stoppingPoint = 46181.0;
+		const double exact = stoppingPoint - kStopHoldbackM;
+		const int savedTimes = initial_variables.times;
+		initial_variables.times = 60;
+		for (const double parked : {exact, std::nextafter(exact, 0.0),
+				std::nextafter(exact, std::numeric_limits<double>::infinity())}) {
+			Train stopping;
+			stopping.indexOfRoute = regional_train[0].indexOfRoute;
+			stopping.departure_time = 1.0;
+			stopping.instant_spatial_position.assign(60, stoppingPoint + 500.0);
+			for (int second = 0; second < 10; ++second)
+				stopping.instant_spatial_position[second] = stoppingPoint - 1000.0 + 100.0 * second;
+			for (int second = 10; second < 30; ++second)
+				stopping.instant_spatial_position[second] = parked;
+			stopping.instant_spatial_position[30] = stoppingPoint + kStopHoldbackM;
+			TrainEvent point;
+			stopping.computeArrivalAndDepartureAtLocation(stoppingPoint, point);
+			ok &= expect(point.Time == 9.0 * timestep && point.Time2 == 29.0 * timestep,
+					"a timetable point reports arrival and departure of a stop whatever the last place of the parked position");
+			ok &= expect(!isShortOfBrakingPoint(parked, stoppingPoint) && !isPastStopHoldback(parked, stoppingPoint)
+					&& isPastStopHoldback(stoppingPoint + kStopHoldbackM, stoppingPoint),
+					"a parked position is at the stop and the position after the stop is past it");
+		}
+		initial_variables.times = savedTimes;
+	}
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

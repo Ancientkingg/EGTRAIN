@@ -324,16 +324,19 @@ extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Train
 // scene validation.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
-// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point (the
-// parking assignments below write the same 0.0001 as a literal). The
-// parked position and the braking point are rounded differently on targets that fuse multiply and
-// add, so they can differ by a few units in the last place. The tolerance is far above that error
-// and far below any real distance, and keeps a parked train from being treated as short of its
-// braking point.
+// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point; the
+// parking assignments below write the same 0.0001 as a literal. The parked position and a
+// stopping point that is compared with it are rounded differently on targets that fuse multiply
+// and add, so they can differ by a few units in the last place in either direction. The tolerance
+// is far above that error and far below any real distance. A position within the tolerance of the
+// hold-back position is at the stop: it is neither short of it nor past it.
 inline constexpr double kStopHoldbackM = 0.0001;
 inline constexpr double kStopHoldbackToleranceM = 1e-6;
 inline bool isShortOfBrakingPoint(double position, double brakingPoint) {
 	return position < brakingPoint - kStopHoldbackM - kStopHoldbackToleranceM;
+}
+inline bool isPastStopHoldback(double position, double stoppingPoint) {
+	return position > stoppingPoint - kStopHoldbackM + kStopHoldbackToleranceM;
 }
 
 class Train {
@@ -2260,13 +2263,13 @@ public:
 		bool IsDepartureFound = false;
 		for (int t = TrainEntryTime; t < initial_variables.times; t++) {
 			if (IsArrivalFound == 0) {
-				if ((instant_spatial_position[t - 1] < LocationPosition - 0.0001) && (instant_spatial_position[t] >= LocationPosition - 0.0001)) {
+				if (isShortOfBrakingPoint(instant_spatial_position[t - 1], LocationPosition) && !isShortOfBrakingPoint(instant_spatial_position[t], LocationPosition)) {
 					IsArrivalFound = true;
 					ArrivalTime = (t - 1) * timestep;
 				}
 			}
 			if (IsDepartureFound == 0) {
-				if ((instant_spatial_position[t - 1] <= LocationPosition - 0.0001) && (instant_spatial_position[t] > LocationPosition - 0.0001)) { // Try to put just the following line to better retrieve departure if (instant_spatial_position[t]>LocationPosition - 0.0001)
+				if (!isPastStopHoldback(instant_spatial_position[t - 1], LocationPosition) && isPastStopHoldback(instant_spatial_position[t], LocationPosition)) {
 					IsDepartureFound = true;
 					DepartureTime = (t - 1) * timestep;
 				}
