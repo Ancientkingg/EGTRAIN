@@ -118,27 +118,83 @@ static bool inspectDestination(const fs::path& destination, bool& exists,
 	return true;
 }
 
-static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
-		const std::string& filename, const json& value) {
-	std::string bytes;
+static bool serializeJson(SceneSaveResult& result, const std::string& filename,
+		const json& value, std::string& bytes) {
 	try {
 		bytes = value.dump(4) + "\n";
 	} catch (const json::exception& error) {
 		addWriteError(result, filename, "Cannot serialize " + filename + ": " + error.what());
 		return false;
 	}
-	result.writeAttempted = true;
-	std::ofstream output(scenePath / filename, std::ios::binary);
+	return true;
+}
+
+static bool writeBytes(SceneSaveResult& result, const std::string& filename, const fs::path& path,
+		const std::string& bytes) {
+	std::ofstream output(path, std::ios::binary);
 	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
 		return false;
 	}
 	output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+	output.close();
 	if (!output) {
 		addWriteError(result, filename, "Cannot write " + filename);
 		return false;
 	}
 	return true;
+}
+
+// Writes into a scene directory that is private to the save, so truncating is safe.
+static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
+		const std::string& filename, const json& value) {
+	std::string bytes;
+	if (!serializeJson(result, filename, value, bytes))
+		return false;
+	result.writeAttempted = true;
+	return writeBytes(result, filename, scenePath / filename, bytes);
+}
+
+// Writes a file that may already exist: the old content stays until the new content is complete.
+static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path,
+		const json& value) {
+	const std::string filename = path.filename().string();
+	std::string bytes;
+	if (!serializeJson(result, filename, value, bytes))
+		return false;
+	fs::path target = path;
+	std::error_code ec;
+	if (fs::is_symlink(path, ec)) {
+		target = fs::canonical(path, ec);
+		if (ec) {
+			addWriteError(result, filename, "Cannot resolve " + filename + ": " + ec.message());
+			return false;
+		}
+	}
+	fs::path temporary;
+	if (!uniqueSiblingPath(target.parent_path(), target.filename().string() + ".tmp-", temporary)) {
+		addWriteError(result, filename, "Cannot create a temporary file for " + filename);
+		return false;
+	}
+	result.writeAttempted = true;
+	bool published = false;
+	if (writeBytes(result, filename, temporary, bytes)) {
+		ec.clear();
+		const fs::file_status existing = fs::status(target, ec);
+		if (!ec && fs::is_regular_file(existing))
+			fs::permissions(temporary, existing.permissions(), fs::perm_options::replace, ec);
+		ec.clear();
+		fs::rename(temporary, target, ec);
+		if (ec)
+			addWriteError(result, filename, "Cannot replace " + filename + ": " + ec.message());
+		else
+			published = true;
+	}
+	if (!published) {
+		ec.clear();
+		fs::remove(temporary, ec);
+	}
+	return published;
 }
 
 static bool copyExistingSceneContents(const fs::path& source, const fs::path& staging,
@@ -438,9 +494,7 @@ static void parseScenarioEntranceDelay(const json& value, std::size_t index,
 
 SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath) {
 	SceneSaveResult result;
-	const fs::path path(filePath);
-	result.wroteAll = writeJsonFile(result, path.parent_path(), path.filename().string(),
-		writeScenarioValue(scenario));
+	result.wroteAll = writeJsonFileReplacing(result, fs::path(filePath), writeScenarioValue(scenario));
 	return result;
 }
 
