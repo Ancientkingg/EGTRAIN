@@ -93,6 +93,8 @@ when a test has neither or both.
   QEGTRAIN in GUI mode. Combine it with either of the labels above.
 - `slow`: takes more than 20 seconds on a development machine.
 
+To add a test and register its labels, see [Coding guidelines](coding-guidelines.md#tests).
+
 ```bash
 ctest --test-dir build -L unit --output-on-failure
 ctest --test-dir build -L unit -LE gui --output-on-failure

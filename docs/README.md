@@ -23,6 +23,7 @@ use the canonical model.
 ## Develop or contribute
 
 - [Build and test guide](development/build-and-test.md)
+- [Coding guidelines](development/coding-guidelines.md)
 - [Scene model design](architecture/scene-model.md)
 - [Scene schema reference](architecture/scene-schema.md)
 - [Scene bundle format](architecture/scene-bundle.md)
