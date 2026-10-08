@@ -1049,7 +1049,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# A Windows EXE image near 2 GiB fails to start, so the limit is checked on every Windows build.
 	if(WIN32)
-		set(EGTRAIN_MAX_PE_IMAGE_BYTES 2040109465 CACHE STRING
+		set(EGTRAIN_MAX_PE_IMAGE_BYTES 1600000000 CACHE STRING
 			"Fail test_windows_image_size when QEGTRAIN.exe SizeOfImage exceeds this many bytes")
 		add_test(NAME test_windows_image_size
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/pe_image_size.py
@@ -1123,6 +1123,17 @@ if(EGTRAIN_BUILD_TESTS)
 			message(FATAL_ERROR "Test ${name} needs exactly one of the labels unit and integration")
 		endif()
 	endforeach()
+
+	# The offscreen Qt platform has no fonts of its own on Windows, so GUI tests read the system fonts.
+	if(WIN32)
+		file(TO_CMAKE_PATH "$ENV{WINDIR}/Fonts" egtrain_windows_fonts)
+		foreach(name IN LISTS egtrain_all_tests)
+			get_test_property(${name} LABELS egtrain_test_labels)
+			if(egtrain_test_labels MATCHES "(^|;)gui(;|$)")
+				set_property(TEST ${name} APPEND PROPERTY ENVIRONMENT "QT_QPA_FONTDIR=${egtrain_windows_fonts}")
+			endif()
+		endforeach()
+	endif()
 endif()
 
 # Install

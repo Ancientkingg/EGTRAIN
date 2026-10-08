@@ -22,7 +22,10 @@ Supported toolchains, as used by CI:
 - macOS: Homebrew Qt 5 and the packages in the configure example below.
 - Windows 10 or 11, x64 only: MSVC (Visual Studio 2019 or newer), Qt 5.15
   `msvc2019_64` with QtCharts, and vcpkg `zeromq cppzmq nlohmann-json` for the
-  `x64-windows` triplet. 32-bit Windows is not supported.
+  `x64-windows` triplet. 32-bit Windows is not supported. Qt 5.15 loads
+  OpenSSL 1.1 at run time: the two telemetry network tests need
+  `libssl-1_1-x64.dll` and `libcrypto-1_1-x64.dll` on `PATH` (CI takes them
+  from Qt's `tools_openssl_x64` package).
 - Linux: Ubuntu (the `ubuntu-latest` runner image) with the apt packages in
   the configure example below.
 
@@ -183,6 +186,13 @@ targets. Run by hand without them, they use the macOS paths under `build/`.
 `test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and
 checks the exit code, the `End of Simulation` line and the energy output.
 
+### Windows GUI tests
+
+The offscreen Qt platform has no fonts of its own on Windows. CTest sets
+`QT_QPA_FONTDIR` to the system font directory for every test with the `gui`
+label. Set it yourself when you start a GUI test or QEGTRAIN with
+`QT_QPA_PLATFORM=offscreen` by hand.
+
 ### Windows headless runs
 
 QEGTRAIN is a GUI-subsystem program on Windows (`WIN32_EXECUTABLE`). With
@@ -211,12 +221,12 @@ profile directory.
 Windows maps an EXE as one image whose size is `SizeOfImage` in the PE header,
 and does not start an image near 2 GiB (it reports that the file is not a valid
 Win32 application). `test_windows_image_size` fails when `SizeOfImage` of
-`QEGTRAIN.exe` is above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 2040109465), or
+`QEGTRAIN.exe` is above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 1600000000), or
 when the executable is not x64 and a Windows-subsystem program. Set the
 variable at configure time to change the limit. To check a build by hand:
 
 ```bash
-python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 2040109465
+python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 1600000000
 ```
 
 The first output line shows the measured size. The CI workflow prints the same
