@@ -12,8 +12,8 @@ vendored code in `io/third_party/` is not reformatted.
 ## File layout
 
 [Source layout](../architecture/source-layout.md) describes the folders and the include
-convention but not `update/` or `telemetry/`. Use this table to decide where a new file
-goes. Paths are relative to `EGTRAIN/QEGTRAIN/` unless noted.
+convention. Use this table to decide where a new file goes. Paths are relative to
+`EGTRAIN/QEGTRAIN/` unless noted.
 
 | Folder | Put here |
 | --- | --- |
