@@ -15,7 +15,6 @@ add_executable(test_characterization
 	${SRC_DIR}/simulation/NumberGenerator.cpp
 	${SRC_DIR}/simulation/Optimisation.cpp
 	${SRC_DIR}/simulation/Passengers.cpp
-	${SRC_DIR}/simulation/Rescheduling.cpp
 	${SRC_DIR}/simulation/RollingStock.cpp
 	${SRC_DIR}/simulation/Signalling.cpp
 	${SRC_DIR}/simulation/Simulation.cpp
