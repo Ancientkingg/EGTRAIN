@@ -38,6 +38,8 @@ add_compile_definitions(_USE_MATH_DEFINES)
 # _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused).
 if(MSVC)
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX NOGDI _HAS_STD_BYTE=0)
+    # MainWindow.cpp exceeds the section limit of a standard object file in RelWithDebInfo builds.
+    add_compile_options(/bigobj)
     # Qt 5.15 headers need a macro override to compile with Visual Studio 2026.
     add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/FI${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN/util/QtMsvcCompat.h>")
 endif()
