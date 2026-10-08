@@ -120,7 +120,7 @@ endif()
 find_package(cppzmq REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-# --- Sources (mirrors QEGTRAIN.vcxproj ClCompile items) ---
+# --- Sources ---
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
