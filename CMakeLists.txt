@@ -1059,6 +1059,9 @@ if(EGTRAIN_BUILD_TESTS)
 	# Release completes in seconds; the ceiling exists for the instrumented
 	# sanitizer job, which needs room for the full run plus a short liveness hold.
 	set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)
+	add_test(NAME test_close_during_run_smoke
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/close_during_run_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_close_during_run_smoke PROPERTIES TIMEOUT 240)
 	if(UNIX)
 		add_test(NAME test_csv_export_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
@@ -1168,7 +1171,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
-		test_gui_autostart_smoke test_csv_export_smoke test_lebanon_scene_smoke
+		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_package_contents_smoke test_headless_scene_smoke
 		test_windows_image_size test_win32_configure_rejected)
 	egtrain_label_tests(gui
@@ -1177,7 +1180,8 @@ if(EGTRAIN_BUILD_TESTS)
 		test_networkview test_compactdoublespinbox test_aboutdialog test_dialoglayout
 		test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
-		test_csv_export_smoke test_creator_acceptance_smoke test_package_contents_smoke)
+		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke
+		test_package_contents_smoke)
 	egtrain_label_tests(slow test_gui_autostart_smoke test_ownership_inventory)
 
 	# Fail configuration unless a test has exactly one of the unit and integration labels.

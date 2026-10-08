@@ -61,6 +61,7 @@
 #include <QTimer>
 #include <QTime>
 #include <algorithm>
+#include <functional>
 #include <limits>
 #include <QVBoxLayout>
 #include <list>
@@ -382,6 +383,11 @@ private:
 	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.
 	QPointer<SimulationWorker> m_worker;
 	QPointer<QThread> m_workerThread;
+	// What Close, New or Open asked for while a run was active. It runs when the worker has finished.
+	std::function<void()> m_afterRunAction;
+	// Set only for the close() that follows a stopped run. The question about unsaved changes
+	// was answered when the close was requested.
+	bool m_closeConfirmed = false;
 	// Three product observations and two isolated cancellation probes.
 	std::array<QMetaObject::Connection, 5> m_simulationObservations{};
 	QSlider* m_speedSlider;
@@ -710,6 +716,8 @@ private:
 	void rebuildRecentScenesMenu();
 	bool requestOpenScene(const QString& path);
 	bool requestOpenScene(const QString& path, const telemetry::OperationObservation& operation);
+	bool openRequestedScene(const QString& path, const telemetry::OperationObservation& operation);
+	void createNewScene(const telemetry::OperationObservation& operation);
 	bool openSceneDirectory(const QString& path, const telemetry::OperationObservation& operation);
 	telemetry::OperationObservation captureTelemetryOperation() const noexcept;
 	void registerEditorDock(QDockWidget* dock);
@@ -977,6 +985,8 @@ private:
 		const std::string* inputSnapshot = nullptr) const;
 	void failStartupTiming(const QString& message);
 	void clearSimulationWorker(bool requestStop);
+	bool deferUntilRunStopped(std::function<void()> action);
+	void runDeferredAction();
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
 	void clearReplay();

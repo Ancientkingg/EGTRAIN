@@ -3910,7 +3910,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
 	connect(ui->actionFitView, &QAction::triggered, this, &MainWindow::fitToView);
 	ui->actionFitView->setToolTip("Restore the full network view (Ctrl+0)");
-	connect(ui->actionQuit, &QAction::triggered, this, &QApplication::quit);
+	// Quit closes the window, so it asks about unsaved changes and stops a running simulation
+	// like the close button does. The application exits when its last window has closed.
+	connect(ui->actionQuit, &QAction::triggered, this, &QWidget::close);
 
 	// Diagrams menu
 	m_diagramsMenu = menuBar()->addMenu("Diagrams");
@@ -3968,12 +3970,19 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-	if (maybeSaveScene()) {
-		clearSimulationWorker(true);
-		QMainWindow::closeEvent(event);
-	} else {
+	const bool confirmed = m_closeConfirmed;
+	m_closeConfirmed = false;
+	if (!confirmed && !maybeSaveScene()) {
 		event->ignore();
+		return;
 	}
+	// A running simulation is stopped first. The window closes when its worker has finished.
+	if (deferUntilRunStopped([this] { m_closeConfirmed = true; close(); })) {
+		event->ignore();
+		return;
+	}
+	clearSimulationWorker(true);
+	QMainWindow::closeEvent(event);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
@@ -4015,7 +4024,12 @@ void MainWindow::newScene() {
 	const auto operation = captureTelemetryOperation();
 	if (!maybeSaveScene())
 		return;
+	if (deferUntilRunStopped([this, operation] { createNewScene(operation); }))
+		return;
+	createNewScene(operation);
+}
 
+void MainWindow::createNewScene(const telemetry::OperationObservation& operation) {
 	m_excludedSceneOccurrences.clear();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
@@ -4123,6 +4137,13 @@ bool MainWindow::requestOpenScene(const QString& path, const telemetry::Operatio
 		statusBar()->showMessage("Open canceled. Current scene retained.", 8000);
 		return false;
 	}
+	// The request is accepted here. The scene opens when the running simulation has stopped.
+	if (deferUntilRunStopped([this, path, operation] { openRequestedScene(path, operation); }))
+		return true;
+	return openRequestedScene(path, operation);
+}
+
+bool MainWindow::openRequestedScene(const QString& path, const telemetry::OperationObservation& operation) {
 	if (openSceneDirectory(path, operation))
 		return true;
 	statusBar()->showMessage(QString("Scene unchanged: %1 could not be opened.")
@@ -20224,6 +20245,16 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				break;
 			}
 		}
+		// The reload waits for the paused run to stop. Until then the run and the scene are kept.
+		if (!m_worker || !m_afterRunAction || ui->actionSimulationStop->isEnabled()
+				|| statusBar()->currentMessage() != QStringLiteral("Stopping simulation...")) {
+			fail(QStringLiteral("reloading during a run did not wait for the run to stop"));
+			return;
+		}
+		QElapsedTimer reloadWait;
+		reloadWait.start();
+		while ((m_worker || m_afterRunAction) && reloadWait.elapsed() < 15000)
+			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		process();
 		if (m_worker || m_resultsAvailable || m_runtimeStatus != "Not built"
 				|| m_followAction->isChecked() || followButton->isChecked() || m_followTrainIndex != -1
@@ -22471,6 +22502,7 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 		// A stopped run can leave a queued completion after another case opens.
 		if (worker && worker == m_worker)
 			onSimulationFinished();
+		runDeferredAction();
 	});
 	// clean up when thread finishes
 	connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
@@ -22536,6 +22568,28 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 	if (m_outputFolderAction)
 		m_outputFolderAction->setEnabled(false);
 	ui->actionStartTime->setEnabled(false);
+}
+
+// With a run active: asks it to stop, shows the stopping state and keeps the action for the
+// moment its worker has finished. The last request replaces an earlier one. Returns false
+// without a run; the caller then acts at once.
+bool MainWindow::deferUntilRunStopped(std::function<void()> action) {
+	if (!m_worker)
+		return false;
+	m_afterRunAction = std::move(action);
+	m_worker->requestStop();
+	ui->actionSimulationPause->setEnabled(false);
+	ui->actionSimulationStop->setEnabled(false);
+	statusBar()->showMessage(QStringLiteral("Stopping simulation..."));
+	return true;
+}
+
+void MainWindow::runDeferredAction() {
+	if (m_worker || !m_afterRunAction)
+		return;
+	const std::function<void()> action = std::move(m_afterRunAction);
+	m_afterRunAction = nullptr;
+	action();
 }
 
 // handle simulation completion on the main thread
@@ -23467,6 +23521,8 @@ void MainWindow::actionLoad_Network() {
 	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
 	showBlockingError(this, "Legacy Import Diagnostics", diagnosticSummary(diagnostics), true);
+	if (deferUntilRunStopped([this, destinationPath, operation] { openSceneDirectory(destinationPath, operation); }))
+		return;
 	openSceneDirectory(destinationPath, operation);
 }
 
@@ -25733,6 +25789,17 @@ void MainWindow::waitForUpdates() {
 		std::fprintf(stdout, "E2E_GUI_AUTOSTART_RUNNING timestep=%d\n", timestep);
 		std::fflush(stdout);
 		autostartProgressReported = true;
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_CLOSE_DURING_RUN")) {
+			// The close request returns with the run still stopping and the window open.
+			// The window closes by itself when the worker has finished.
+			QTimer::singleShot(0, this, [this]() {
+				close();
+				const bool deferred = m_worker && isVisible()
+					&& statusBar()->currentMessage() == QStringLiteral("Stopping simulation...");
+				std::fprintf(stdout, "E2E_CLOSE_DURING_RUN deferred=%d\n", deferred ? 1 : 0);
+				std::fflush(stdout);
+			});
+		}
 	}
 	updateTimeline(timestep, snapshot->totalTimesteps);
 

@@ -446,6 +446,16 @@ container nodes or shared-pointer control blocks, so 64 MiB is **not** a precise
 resident-memory limit. If one frame exceeds the payload limit, replay is
 unavailable with an explanation; the simulation continues.
 
+## Close, New and Open during a run
+
+Close, New Case Study, the Open commands and Load Legacy Case first ask a
+running simulation to stop. The status bar shows "Stopping simulation..." and
+the window stays usable. The command continues when the worker has finished,
+and the current scene is replaced only then, so an open that fails leaves it in
+place. `test_close_during_run_smoke` closes the window during an autostarted
+run: the close request has to return with the run still stopping, and the
+application has to exit by itself afterwards.
+
 ## GUI Smoke Test
 
 ```bash
