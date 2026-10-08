@@ -324,6 +324,21 @@ extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Train
 // scene validation.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
+// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point; the
+// parking assignments below write the same 0.0001 as a literal. The parked position and a
+// stopping point that is compared with it are rounded differently on targets that fuse multiply
+// and add, so they can differ by a few units in the last place in either direction. The tolerance
+// is far above that error and far below any real distance. A position within the tolerance of the
+// hold-back position is at the stop: it is neither short of it nor past it.
+inline constexpr double kStopHoldbackM = 0.0001;
+inline constexpr double kStopHoldbackToleranceM = 1e-6;
+inline bool isShortOfBrakingPoint(double position, double brakingPoint) {
+	return position < brakingPoint - kStopHoldbackM - kStopHoldbackToleranceM;
+}
+inline bool isPastStopHoldback(double position, double stoppingPoint) {
+	return position > stoppingPoint - kStopHoldbackM + kStopHoldbackToleranceM;
+}
+
 class Train {
 public:
 	double number_of_wagons = 0.0; /*!< number of Wagons*/
@@ -1554,7 +1569,7 @@ public:
 					train_route[indexOfRoute].N_Block_Sections);
 
 				// Acceleration phase
-				if (((instant_spatial_position[time_seconds - 1] < (Braking_Distance - 0.0001)) &&
+				if ((isShortOfBrakingPoint(instant_spatial_position[time_seconds - 1], Braking_Distance) &&
 					 (instant_train_speed[time_seconds - 1] < V_lim)) /*||((instant_spatial_position[i-1]>Braking_Distance)&&(instant_train_speed[i-1]<Vobmin))*/) {
 
 					// The one below in between comments is the previous/original version of the code which did not consider the train crusing when instead the Traction Surplus with respect to the resistance is equal to 0
@@ -2248,28 +2263,31 @@ public:
 		bool IsDepartureFound = false;
 		for (int t = TrainEntryTime; t < initial_variables.times; t++) {
 			if (IsArrivalFound == 0) {
-				if ((instant_spatial_position[t - 1] < LocationPosition - 0.0001) && (instant_spatial_position[t] >= LocationPosition - 0.0001)) {
+				if (isShortOfBrakingPoint(instant_spatial_position[t - 1], LocationPosition) && !isShortOfBrakingPoint(instant_spatial_position[t], LocationPosition)) {
 					IsArrivalFound = true;
 					ArrivalTime = (t - 1) * timestep;
 				}
 			}
 			if (IsDepartureFound == 0) {
-				if ((instant_spatial_position[t - 1] <= LocationPosition - 0.0001) && (instant_spatial_position[t] > LocationPosition - 0.0001)) { // Try to put just the following line to better retrieve departure if (instant_spatial_position[t]>LocationPosition - 0.0001)
+				if (!isPastStopHoldback(instant_spatial_position[t - 1], LocationPosition) && isPastStopHoldback(instant_spatial_position[t], LocationPosition)) {
 					IsDepartureFound = true;
 					DepartureTime = (t - 1) * timestep;
 				}
 			}
-			// When both the arrival and departure times are found then we assign them to the TrainEvent
-			if ((IsArrivalFound == 1) && (IsDepartureFound == 1)) {
-				PassingPoint.Time = ArrivalTime;
-				PassingPoint.Time2 = DepartureTime;
-				// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
-				if (train_route[indexOfRoute].reversed_direction == 1) {
-					PassingPoint.Position = train_route[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
-				} else {
-					PassingPoint.Position = LocationPosition;
-				}
+			if ((IsArrivalFound == 1) && (IsDepartureFound == 1))
 				break; // if both arrival and depature of the train have been found we can break the for loop over the time t
+		}
+		// A train that reached the location is reported. It has no departure when it stays there
+		// until the end of the run, as at its last stop.
+		if (IsArrivalFound == 1) {
+			PassingPoint.Time = ArrivalTime;
+			if (IsDepartureFound == 1)
+				PassingPoint.Time2 = DepartureTime;
+			// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
+			if (train_route[indexOfRoute].reversed_direction == 1) {
+				PassingPoint.Position = train_route[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
+			} else {
+				PassingPoint.Position = LocationPosition;
 			}
 		}
 	}
