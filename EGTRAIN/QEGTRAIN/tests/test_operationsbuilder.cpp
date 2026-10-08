@@ -1030,6 +1030,14 @@ int main() {
 		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
 	}
 	ok &= passengerRateTests();
+	{
+		const double brakingPoint = 46181.0;
+		const double parked = std::nextafter(brakingPoint - kStopHoldbackM, 0.0);
+		ok &= expect(!isShortOfBrakingPoint(parked, brakingPoint),
+				"a train parked one ulp below its hold-back position is not short of the braking point");
+		ok &= expect(isShortOfBrakingPoint(brakingPoint - 0.001, brakingPoint),
+				"a train 1 mm short of the braking point still accelerates");
+	}
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

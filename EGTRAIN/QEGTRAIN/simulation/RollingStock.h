@@ -324,6 +324,17 @@ extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Train
 // scene validation.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
+// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point. The
+// parked position and the braking point are rounded differently on targets that fuse multiply and
+// add, so they can differ by a few units in the last place. The tolerance is far above that error
+// and far below any real distance, and keeps a parked train from being treated as short of its
+// braking point.
+inline constexpr double kStopHoldbackM = 0.0001;
+inline constexpr double kStopHoldbackToleranceM = 1e-6;
+inline bool isShortOfBrakingPoint(double position, double brakingPoint) {
+	return position < brakingPoint - kStopHoldbackM - kStopHoldbackToleranceM;
+}
+
 class Train {
 public:
 	double number_of_wagons = 0.0; /*!< number of Wagons*/
@@ -1554,7 +1565,7 @@ public:
 					train_route[indexOfRoute].N_Block_Sections);
 
 				// Acceleration phase
-				if (((instant_spatial_position[time_seconds - 1] < (Braking_Distance - 0.0001)) &&
+				if ((isShortOfBrakingPoint(instant_spatial_position[time_seconds - 1], Braking_Distance) &&
 					 (instant_train_speed[time_seconds - 1] < V_lim)) /*||((instant_spatial_position[i-1]>Braking_Distance)&&(instant_train_speed[i-1]<Vobmin))*/) {
 
 					// The one below in between comments is the previous/original version of the code which did not consider the train crusing when instead the Traction Surplus with respect to the resistance is equal to 0

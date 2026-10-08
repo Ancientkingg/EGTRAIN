@@ -1045,6 +1045,9 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_simulation_determinism
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/simulation_determinism_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_simulation_determinism PROPERTIES TIMEOUT 300)
+	add_test(NAME test_station_departure
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/station_departure_smoke.py $<TARGET_FILE:QEGTRAIN>)
+	set_tests_properties(test_station_departure PROPERTIES TIMEOUT 300)
 	add_test(NAME test_gui_autostart_smoke
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	# Release completes in seconds; the ceiling exists for the instrumented
@@ -1149,7 +1152,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
-		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism
+		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_package_contents_smoke test_headless_scene_smoke
 		test_windows_image_size)
