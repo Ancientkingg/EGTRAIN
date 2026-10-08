@@ -7,7 +7,7 @@ case-specific drawing branches.
 
 | Primitive | Presentation |
 | --- | --- |
-| Canvas | Solid black. |
+| Canvas | Background `#101a22` with a faint `#182832` grid in preview, live simulation and replay. Grid lines are cosmetic one-device-pixel lines on multiples of the spacing in scene coordinates, so they move with the scene while panning. Spacing starts at 80 scene units and is doubled or halved until it is 24 to 96 pixels on screen. |
 | Speed-class track | At least 200 km/h: RGB (30,130,210), cosmetic width 4; at least 120: RGB (80,80,80), width 3; otherwise RGB (120,120,120), width 2. |
 | Connection | White cosmetic width 2. |
 | Segment/switch node | Shared preview/runtime scene-sized light-gray circular dot, without a device-pixel minimum. The current runnable-chain rule uses an ordinary first point and zero painted size for ordinary starts on four-node tracks; the final endpoint remains visible. Transparent device-space hit geometry retains semantic picking without painting a minimum dot. |
@@ -15,6 +15,20 @@ case-specific drawing branches.
 | Station name and pictogram | White name, scene-sized font (`station_size / 5`) centered at the authored station anchor plus its derived decoration offset. A white station-building SVG above it at scene scale, parented to its authored structural node where available for artwork hits. Preview artwork keeps its own canonical station identity; position-only artwork has no invented node. The map key and menus use the same shape in a dark variant. |
 | Signal | Each authored direction has its own scene-sized aspect head (red Stop, yellow Caution, green Proceed), white cosmetic post and white base. No viewport slots, grouping, sectors, multiplicity labels or direction ticks. Transparent device-space hit geometry retains signal inspection at Fit. Selection does not overwrite aspects. |
 | Train and passengers | Historical train polygons (passenger yellow, sprinter green, intercity yellow, high-speed blue, freight brown) and original scene-sized `pax_icon.png` passenger glyph, also used by the map key. Passenger information callouts remain separate operational overlays; no train category badge is drawn. |
+
+Contrast against the canvas `#101a22` (WCAG relative-luminance contrast ratio,
+(L1 + 0.05) / (L2 + 0.05)). The grid is deliberately close to the canvas (1.16:1).
+
+| Primitive | Colour | Contrast |
+| --- | --- | --- |
+| Track at least 200 km/h | (30,130,210) | 4.34 |
+| Track at least 120 km/h | (80,80,80) | 2.18 |
+| Other track | (120,120,120) | 3.99 |
+| Connection, station name | White | 17.60 |
+| Selected track | Blue (0,0,255) | 2.05 |
+| Signal Stop, Caution, Proceed | Red, yellow, green | 4.40, 16.39, 12.83 |
+| Train high-speed, sprinter, intercity, passenger, freight | (40,130,210), (40,170,110), (235,190,45), (235,210,55), (120,95,70) | 4.37, 5.92, 10.01, 11.57, 2.95 |
+| Track state prepared, occupied, blocked | `#4C8DAE`, `#D05A47`, `#D6A13A` | 4.80, 4.39, 7.56 |
 
 Operational prepared, occupied and blocked states remain in scene data and
 inspectors, but do not change ordinary historical track paint. Selection paints

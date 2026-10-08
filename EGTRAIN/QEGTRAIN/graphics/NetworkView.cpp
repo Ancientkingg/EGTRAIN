@@ -11,7 +11,11 @@
 
 namespace {
 constexpr qreal kFitPadding = 24.0;
-const QColor kCanvasColor(Qt::black);
+const QColor kCanvasColor(0x10, 0x1a, 0x22);
+const QColor kGridColor(0x18, 0x28, 0x32);
+constexpr qreal kGridBaseSpacing = 80.0;
+constexpr qreal kGridMinPixels = 24.0;
+constexpr qreal kGridMaxPixels = 96.0;
 }
 
 NetworkView::NetworkView(QWidget* parent)
@@ -283,6 +287,33 @@ bool NetworkView::viewportEvent(QEvent* event) {
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
 	QEGTRAIN_PROFILE_SCOPE("render/viewport_paint/background", "render", "render/viewport_paint");
 	painter->fillRect(rect, kCanvasColor);
+
+	const qreal viewScale = qAbs(transform().m11());
+	if (!std::isfinite(viewScale) || viewScale <= 0.0)
+		return;
+
+	qreal spacing = kGridBaseSpacing;
+	while (spacing * viewScale < kGridMinPixels)
+		spacing *= 2.0;
+	while (spacing * viewScale > kGridMaxPixels)
+		spacing /= 2.0;
+
+	// Lines sit on multiples of the spacing in scene coordinates, so they move with the
+	// scene while panning. Without antialiasing each one is exactly one device pixel.
+	QVector<QLineF> lines;
+	for (qint64 i = qint64(std::ceil(rect.left() / spacing)); i * spacing <= rect.right(); ++i)
+		lines.append(QLineF(i * spacing, rect.top(), i * spacing, rect.bottom()));
+	for (qint64 i = qint64(std::ceil(rect.top() / spacing)); i * spacing <= rect.bottom(); ++i)
+		lines.append(QLineF(rect.left(), i * spacing, rect.right(), i * spacing));
+
+	QPen gridPen(kGridColor);
+	gridPen.setCosmetic(true);
+	gridPen.setWidth(0);
+	painter->save();
+	painter->setRenderHint(QPainter::Antialiasing, false);
+	painter->setPen(gridPen);
+	painter->drawLines(lines);
+	painter->restore();
 }
 
 void NetworkView::resizeEvent(QResizeEvent* event) {
