@@ -8,6 +8,12 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
+#ifndef _WIN32
+#include <csignal>
+#include <sys/resource.h>
+#include <unistd.h>
+#endif
+
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
@@ -48,6 +54,40 @@ static void printErrors(const std::vector<SceneDiagnostic>& diagnostics, const c
 			std::cerr << label << ": " << toDisplayText(diagnostic) << "\n";
 	}
 }
+
+static bool hasOnlyFile(const fs::path& directory, const std::string& filename) {
+	size_t count = 0;
+	bool found = false;
+	for (const auto& entry : fs::directory_iterator(directory)) {
+		++count;
+		found = found || entry.path().filename() == filename;
+	}
+	return count == 1 && found;
+}
+
+#ifndef _WIN32
+// Limits the size of files the process can grow, so that a write fails part way.
+struct FileSizeLimit {
+	rlimit previous{};
+	bool active = false;
+	void (*previousHandler)(int) = SIG_DFL;
+
+	explicit FileSizeLimit(rlim_t bytes) {
+		if (getrlimit(RLIMIT_FSIZE, &previous) != 0)
+			return;
+		previousHandler = std::signal(SIGXFSZ, SIG_IGN);
+		rlimit limit = previous;
+		limit.rlim_cur = bytes;
+		active = setrlimit(RLIMIT_FSIZE, &limit) == 0;
+	}
+
+	~FileSizeLimit() {
+		if (active)
+			setrlimit(RLIMIT_FSIZE, &previous);
+		std::signal(SIGXFSZ, previousHandler);
+	}
+};
+#endif
 
 struct TempDir {
 	fs::path path;
@@ -407,6 +447,106 @@ int main() {
 	ok &= expect(edgeScenario.success() && edgeScenario.scenario.entranceDelays.size() == 1
 			&& edgeScenario.scenario.entranceDelays[0].occurrence == 2147483647,
 			"standalone scenario reads an occurrence at the int limit");
+
+	{
+		const std::string standaloneBytes = readBytes(standaloneScenarioPath);
+		ok &= expect(standaloneBytes == json::parse(standaloneBytes).dump(4) + "\n",
+				"standalone scenario JSON keeps four-space indentation and a final newline");
+		SceneScenario minimal;
+		minimal.id = "min";
+		minimal.name = "Minimal";
+		const fs::path minimalPath = temp.path / "minimal-scenario.json";
+		ok &= expect(saveScenarioJson(minimal, minimalPath.string()).success(),
+				"minimal standalone scenario saves");
+		ok &= expect(readBytes(minimalPath) == "{\n"
+				"    \"entrance_delays\": [],\n"
+				"    \"id\": \"min\",\n"
+				"    \"incidents\": [],\n"
+				"    \"name\": \"Minimal\"\n"
+				"}\n", "standalone scenario bytes match the expected file");
+
+		const std::string previousBytes = readBytes(standaloneScenarioPath);
+		SceneScenario replacement = minimal;
+		replacement.id = "replacement";
+		ok &= expect(saveScenarioJson(replacement, standaloneScenarioPath.string()).success(),
+				"standalone scenario replaces an existing file");
+		ok &= expect(loadScenarioJson(standaloneScenarioPath.string()).scenario.id == "replacement"
+				&& readBytes(standaloneScenarioPath) != previousBytes,
+				"replaced standalone scenario holds the new content");
+		ok &= expect(!hasSiblingArtifact(standaloneScenarioPath, "tmp"),
+				"standalone scenario save leaves no temporary file after success");
+	}
+	{
+		TempDir failing;
+		const fs::path blockedPath = failing.path / "blocked.json";
+		fs::create_directory(blockedPath);
+		{
+			std::ofstream output(blockedPath / "keep.txt");
+			output << "keep";
+		}
+		SceneScenario scenario;
+		scenario.id = "blocked";
+		scenario.name = "Blocked";
+		const SceneSaveResult blocked = saveScenarioJson(scenario, blockedPath.string());
+		ok &= expect(!blocked.success() && !blocked.wroteAll && hasErrors(blocked.diagnostics),
+				"standalone scenario save reports a destination that cannot be replaced");
+		ok &= expect(fs::is_directory(blockedPath) && readBytes(blockedPath / "keep.txt") == "keep"
+				&& !hasSiblingArtifact(blockedPath, "tmp"),
+				"failed replace leaves the destination and no temporary file");
+
+		const SceneSaveResult missing = saveScenarioJson(scenario,
+				(failing.path / "missing" / "scenario.json").string());
+		ok &= expect(!missing.success() && hasErrors(missing.diagnostics)
+				&& !fs::exists(failing.path / "missing"),
+				"standalone scenario save reports a missing directory");
+	}
+#ifndef _WIN32
+	{
+		TempDir failing;
+		const fs::path scenarioPath = failing.path / "scenario.json";
+		const std::string original = "original scenario\n";
+		{
+			std::ofstream output(scenarioPath, std::ios::binary);
+			output << original;
+		}
+		SceneScenario scenario = source.scenarios[0];
+		{
+			// The write exceeds the limit part way and fails.
+			const FileSizeLimit limit(16);
+			ok &= expect(limit.active, "file size limit can be applied");
+			const SceneSaveResult truncated = saveScenarioJson(scenario, scenarioPath.string());
+			ok &= expect(!truncated.success() && hasErrors(truncated.diagnostics),
+					"standalone scenario save reports a write that cannot complete");
+		}
+		ok &= expect(readBytes(scenarioPath) == original && hasOnlyFile(failing.path, "scenario.json"),
+				"failed write leaves the original scenario and no temporary file");
+
+		// A read-only directory refuses the temporary file. This does not apply to root.
+		fs::permissions(failing.path, fs::perms::owner_read | fs::perms::owner_exec,
+				fs::perm_options::replace);
+		if (access(failing.path.c_str(), W_OK) != 0) {
+			const SceneSaveResult readOnly = saveScenarioJson(scenario, scenarioPath.string());
+			ok &= expect(!readOnly.success() && hasErrors(readOnly.diagnostics),
+					"standalone scenario save reports a read-only directory");
+			ok &= expect(readBytes(scenarioPath) == original,
+					"read-only directory leaves the original scenario");
+		}
+		fs::permissions(failing.path, fs::perms::owner_all, fs::perm_options::replace);
+		ok &= expect(hasOnlyFile(failing.path, "scenario.json"),
+				"read-only directory leaves no temporary file");
+
+		// A read-only file is not replaced. This does not apply to root.
+		fs::permissions(scenarioPath, fs::perms::owner_read, fs::perm_options::replace);
+		if (access(scenarioPath.c_str(), W_OK) != 0) {
+			const SceneSaveResult readOnlyFile = saveScenarioJson(scenario, scenarioPath.string());
+			ok &= expect(!readOnlyFile.success() && hasErrors(readOnlyFile.diagnostics),
+					"standalone scenario save reports a read-only file");
+			ok &= expect(readBytes(scenarioPath) == original && hasOnlyFile(failing.path, "scenario.json"),
+					"read-only file keeps its content and no temporary file remains");
+		}
+		fs::permissions(scenarioPath, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace);
+	}
+#endif
 	json passengers;
 	{
 		std::ifstream input(temp.path / "passengers.json");
