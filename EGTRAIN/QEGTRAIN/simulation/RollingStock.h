@@ -14,6 +14,9 @@
 #include "util/TrajectoryUtil.h"
 
 // GUI - Virtual Coupling notifications
+#include <cstdio>
+#include <cstdlib>
+#include <deque>
 #include <vector>
 extern vector<int> VCmsgTimestep;
 extern vector<string> VCmsgTrain;
@@ -270,9 +273,9 @@ public:
 	}
 };
 
-// Blocking times of one train, indexed like an array. Writing past the end
-// grows the list with default-constructed entries; growing never moves existing
-// entries. Reading through a const list never grows it.
+// Blocking times of one train, indexed like an array. Indexing a non-const list
+// past the end grows it with default-constructed entries; growing never moves
+// existing entries. Indexing a const list never grows it.
 class BlockingTimeList {
 public:
 	BlockingTimes& operator[](int index) {
