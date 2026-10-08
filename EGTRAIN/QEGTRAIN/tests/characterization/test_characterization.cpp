@@ -355,9 +355,10 @@ bool parseReal(const std::string& text, double& value) {
 
 // Rows of Stats_Stations.txt whose name starts with a letter, keyed by the
 // header names. The file has six significant digits.
-Observation readStationStats(const std::string& path) {
-	Observation lines;
+bool readStationStats(const std::string& path, Observation& lines) {
 	std::ifstream in(path);
+	if (!in)
+		return false;
 	std::string text;
 	std::vector<std::string> header;
 	while (std::getline(in, text)) {
@@ -382,7 +383,7 @@ Observation readStationStats(const std::string& path) {
 		}
 		lines.push_back(std::move(line));
 	}
-	return lines;
+	return true;
 }
 
 std::vector<Stop> findStops(const TrainTrack& train) {
@@ -514,11 +515,11 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				if (v[t - 1] - v[t] > kMaxDeceleration)
 					fail(at + ": deceleration " + formatReal(v[t - 1] - v[t]) + " m/s2 above the braking limit");
 			}
-			if (reachedStation < 0.0 && x[t] >= kStationBegin)
+			if (reachedStation < 0.0 && x[t] >= kStationBegin - 1.0)
 				reachedStation = t;
 		}
-		if (reachedStation >= 0.0 && reachedStation - track.first < kStationBegin / kTopSpeed)
-			fail(track.name + ": reaches 8000 m faster than the top speed allows");
+		if (reachedStation >= 0.0 && reachedStation - track.first < (kStationBegin - 1.0) / kTopSpeed)
+			fail(track.name + ": reaches station B faster than the top speed allows");
 		if (waived)
 			continue;
 		for (const Stop& stop : findStops(track)) {
@@ -562,6 +563,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 // here, so the next run starts from whatever prepareScene resets.
 RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool checkInvariants) {
 	RunOutcome outcome;
+	// Scenes with passengers draw from std::rand while they are prepared, so
+	// every run starts from the same generator state.
+	std::srand(12345);
 	SceneLoadResult loaded = loadScene(sceneDir);
 	if (hasErrors(loaded.diagnostics)) {
 		for (const SceneDiagnostic& diagnostic : loaded.diagnostics)
@@ -753,8 +757,10 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 				integerField("reversed", authority.reversed ? 1 : 0)});
 	}
 
-	const Observation stats = readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Stats_Stations.txt");
-	obs.insert(obs.end(), stats.begin(), stats.end());
+	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Stats_Stations.txt", obs)) {
+		outcome.error = "the run wrote no TrainTrajectories/Stats_Stations.txt\n";
+		return outcome;
+	}
 
 	if (checkInvariants)
 		outcome.invariantFailures = findInvariantViolations(spec, tracks, separations, rows);
@@ -793,6 +799,7 @@ std::string trim(const std::string& text) {
 struct Golden {
 	bool found = false;
 	std::string caseName;
+	std::string run;
 	std::string knownWrong;
 	std::vector<std::string> lines;
 };
@@ -809,6 +816,8 @@ Golden readGolden(const std::string& path) {
 			text.pop_back();
 		if (text.rfind("# case:", 0) == 0)
 			golden.caseName = trim(text.substr(7));
+		else if (text.rfind("# run:", 0) == 0)
+			golden.run = trim(text.substr(6));
 		else if (text.rfind("# known-wrong:", 0) == 0)
 			golden.knownWrong = trim(text.substr(14));
 		if (trim(text).empty() || trim(text)[0] == '#')
@@ -858,10 +867,13 @@ std::string compareLine(const Line& actual, const std::string& expectedText) {
 	return "";
 }
 
-bool compareWithGolden(const CaseSpec& spec, const Golden& golden, const Observation& observation) {
+bool compareWithGolden(const CaseSpec& spec, int horizon, const Golden& golden, const Observation& observation) {
 	std::vector<std::string> problems;
 	if (golden.caseName != spec.name)
 		problems.push_back("golden file is for case '" + golden.caseName + "', not '" + spec.name + "'");
+	if (golden.run != describeRun(spec, horizon))
+		problems.push_back("golden file was recorded for '" + golden.run + "', the case runs '"
+			+ describeRun(spec, horizon) + "'");
 	if (golden.knownWrong != knownWrongText(spec))
 		problems.push_back("known-wrong marker differs: golden says '" + golden.knownWrong
 			+ "', case table says '" + knownWrongText(spec) + "'");
@@ -940,7 +952,7 @@ int runGoldenMode(const std::string& fixture, const std::string& expectDir, cons
 		return 1;
 	}
 	std::cerr.flush();
-	if (!compareWithGolden(*spec, golden, outcome.observation)) {
+	if (!compareWithGolden(*spec, outcome.steps, golden, outcome.observation)) {
 		const std::string actualPath = caseName + ".actual.txt";
 		writeText(actualPath, rendered);
 		std::cerr << "FAIL " << caseName << ": output differs from " << goldenPath << "\n  actual output written to "
@@ -1008,7 +1020,6 @@ int runRepeatMode(const std::vector<std::string>& steps) {
 
 int main(int argc, char** argv) {
 	omp_set_num_threads(1);
-	std::srand(12345);
 	QCoreApplication application(argc, argv);
 
 	std::string fixture, expect, caseName;
