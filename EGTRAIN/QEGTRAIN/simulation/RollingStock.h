@@ -40,6 +40,13 @@ void prepareNativeOperationsState();
 // Release native train-owned arrays and operation globals between scene runs.
 void resetNativeOperationsState();
 
+// Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.
+int trainPassengerCapacity(double numberOfWagons);
+
+// Occupancy as a ratio of passengers to capacity. An unknown capacity (zero or
+// negative) gives 0, so it never counts as congested.
+double passengerOccupancyRatio(int passengers, int capacity);
+
 class OrderList {
 public:
 	string ID;
@@ -3536,6 +3543,7 @@ public:
 	// Overloading = Operator  (Useful to create more trains belonging to the same line)
 	Regional& operator=(const Regional& ob2) {
 		number_of_wagons = ob2.number_of_wagons;
+		MAX_OnBoard_Passengers = trainPassengerCapacity(number_of_wagons);
 		massFactor = ob2.massFactor;
 		mass_of_traction_unit = ob2.mass_of_traction_unit;
 		mass_of_a_wagon = ob2.mass_of_a_wagon;

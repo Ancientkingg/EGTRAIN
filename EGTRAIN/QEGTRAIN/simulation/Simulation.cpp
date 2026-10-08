@@ -474,7 +474,7 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 				}
 
 				// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
-				CurrentPlatformOccupationRate = (Platform.Current_N_Passengers + N_AlightPax) / Platform.Max_Passenger_Volume;
+				CurrentPlatformOccupationRate = passengerOccupancyRatio(Platform.Current_N_Passengers + N_AlightPax, Platform.Max_Passenger_Volume);
 
 				if (Platform.Current_List_Pax_On_Platform.empty() != 1) {
 					for (list<pair<string, double>>::iterator Pax = Platform.Current_List_Pax_On_Platform.begin(); Pax != Platform.Current_List_Pax_On_Platform.end(); Pax++) {

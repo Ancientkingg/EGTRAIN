@@ -103,8 +103,8 @@ Train::Train() {
 	TotalEnergySubstRequestWithRegBrak = 0;
 	EnergyForAuxiliaries = 0;
 	numOverlaps = 0;
-	MAX_OnBoard_Passengers = 300 + 300 * number_of_wagons; // By default it is considered that a carriage can transport maximum 300 passengers so it is 300 pax for the traction unit and 300 pax for each carriage / wagon
-	Current_OnBoard_Passengers = 0;						   // It is considered that the train starts with no passengers onboard
+	MAX_OnBoard_Passengers = trainPassengerCapacity(number_of_wagons);
+	Current_OnBoard_Passengers = 0; // It is considered that the train starts with no passengers onboard
 	for (int i = 0; i < kMaxTimetableStations; i++) {
 		StationArrivals[i] = -1;
 		StationArrivalNames[i] = "None";
@@ -121,6 +121,17 @@ Train::Train() {
 	}
 }
 
+// By default it is considered that a carriage can transport maximum 300 passengers so it is 300 pax for the traction unit and 300 pax for each carriage / wagon
+int trainPassengerCapacity(double numberOfWagons) {
+	return static_cast<int>(300 + 300 * numberOfWagons);
+}
+
+double passengerOccupancyRatio(int passengers, int capacity) {
+	if (capacity <= 0)
+		return 0.0;
+	return static_cast<double>(passengers) / capacity;
+}
+
 // Function to compute dwell times based on the interaction with passengers
 // By default the dwell time is computed based on the microscopic dwell time model by Fernandez et al. (2007) which extends the model by Gibson et al. (1989)
 double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7) {
@@ -131,7 +142,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		delta1 = 1;
 
 	// delta 3 measures the degree of congestion on board of the train. It becomes 1 if the onboard occupancy rate is larger than 0.7
-	double OnboardOccupancyrate = this->Current_OnBoard_Passengers / this->MAX_OnBoard_Passengers;
+	double OnboardOccupancyrate = passengerOccupancyRatio(this->Current_OnBoard_Passengers, this->MAX_OnBoard_Passengers);
 
 	if (OnboardOccupancyrate > 0.7)
 		delta3 = 1;
@@ -478,6 +489,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
 	train.number_of_wagons = plan.physical.number_of_wagons;
+	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
 	train.max_train_speed = plan.appliedMaximumSpeedMs;
 	train.max_train_decelaration = plan.physical.max_deceleration_ms2;
 	train.frontal_wagon_area = plan.physical.frontal_area_m2;
