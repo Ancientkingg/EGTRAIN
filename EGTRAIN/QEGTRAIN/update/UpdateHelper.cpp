@@ -206,7 +206,7 @@ void restoreBackup(const Arguments& arguments) {
 		removePath(failed);
 		launch(arguments.launch, 0);
 	} else {
-		movePath(failed, arguments.current);
+		movePathWithRetries(failed, arguments.current);
 	}
 }
 

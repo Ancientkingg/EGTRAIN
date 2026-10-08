@@ -62,6 +62,10 @@ static bool waitForLogLine(const QString& log, const QString& line, int timeoutM
 	return false;
 }
 
+// Window for the scenarios in which the new version fails at once. The helper returns as soon
+// as the process has ended, so a long window only gives a slow machine room.
+constexpr int kFailureObserveMs = 10000;
+
 struct HelperRun {
 	int exitCode = -1;
 	qint64 milliseconds = 0;
@@ -99,7 +103,7 @@ static bool testEarlyFailureRollsBack(const QString& helper, const QString& prog
 	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
 		&& writeInstallation(QDir(root).filePath("stage"), program, "new", log, "mode=exit\ncode=3"),
 		"early failure fixtures are writable");
-	const HelperRun run = runHelper(helper, root, 1500);
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs);
 	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version exits with an error");
 	ok &= expect(installationIs(root, "install", "label=old"), "early failure restores the previous installation");
 	ok &= expect(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old")), "early failure consumes the backup");
@@ -162,7 +166,7 @@ static bool testCrashRollsBack(const QString& helper, const QString& program, co
 	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
 		&& writeInstallation(QDir(root).filePath("stage"), program, "new", log, "mode=crash"),
 		"crash fixtures are writable");
-	const HelperRun run = runHelper(helper, root, 1500);
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs);
 	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version crashes");
 	ok &= expect(installationIs(root, "install", "label=old"), "crash restores the previous installation");
 	ok &= expect(waitForLogLine(log, "old started"), "crash starts the previous version again");
@@ -181,7 +185,7 @@ static bool testMissingDllRollsBack(const QString& helper, const QString& dllPro
 		&& QFile::copy(dllProbe, directory.filePath("stage/app.exe"))
 		&& writeFile(directory.filePath("stage/new-marker"), "new"),
 		"missing DLL fixtures are writable");
-	const HelperRun run = runHelper(helper, root, 1500);
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs);
 	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version cannot load a DLL");
 	ok &= expect(QFileInfo::exists(directory.filePath("install/" + dllName)),
 		"loader failure restores the previous installation");
