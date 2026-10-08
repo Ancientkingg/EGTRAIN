@@ -14757,7 +14757,8 @@ void MainWindow::runVisualPolishE2E() {
 				ok = false;
 				failures << "Stop retained completed replay";
 			}
-			if (m_runtimeStatus != QStringLiteral("Stopped") || m_resultsAvailable) {
+			if (m_runtimeStatus != QStringLiteral("Stopped") || m_resultsAvailable
+					|| statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
 				failures << "Stop did not leave a stopped run without results";
 				ok = false;
 			} else if (!m_showingTrackPreview || !allArcs.isEmpty() || !allTrains.isEmpty()) {
@@ -22685,6 +22686,9 @@ void MainWindow::onSimulationFinished() {
 	refreshIncidentPanel();
 	updateSceneActions();
 	processTrainUnitSourceChanges();
+	// The track preview that replaces a stopped run wrote its own status message.
+	if (stoppedByUser)
+		statusBar()->showMessage(QStringLiteral("Simulation stopped"));
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
 		const QStringList labels = m_networkLegendWidget ? m_networkLegendWidget->entryLabels() : QStringList();
