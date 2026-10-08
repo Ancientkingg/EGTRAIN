@@ -21679,9 +21679,14 @@ void MainWindow::showStartupChooser() {
 		item->setToolTip(path.toHtmlEscaped());
 		return true;
 	};
+	// Bundled scenes: below the working directory, next to the executable (Windows
+	// and Linux builds), in the macOS bundle, or in a Linux install prefix.
+	const QString applicationDir = QCoreApplication::applicationDirPath();
 	const QStringList sceneRoots = {
 		QDir::currentPath() + "/Scenes",
-		QCoreApplication::applicationDirPath() + "/../Resources/Scenes"};
+		applicationDir + "/Scenes",
+		applicationDir + "/../Resources/Scenes",
+		applicationDir + "/../share/EGTRAIN/Scenes"};
 	QSet<QString> bundledNames;
 	bool bundledHeader = false;
 	for (const QString& root : sceneRoots) {
