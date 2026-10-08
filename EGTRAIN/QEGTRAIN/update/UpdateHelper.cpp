@@ -182,22 +182,31 @@ bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 }
 #endif
 
+// Renames a path, retrying while a scanner or a dying process still holds a file in it.
+bool movePathWithRetries(const std::filesystem::path& from, const std::filesystem::path& to) {
+	for (int attempt = 0; attempt < 15; ++attempt) {
+		if (attempt > 0)
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		if (movePath(from, to))
+			return true;
+	}
+	return false;
+}
+
 // Replaces the installation that failed to start with the backup. The failed one is
 // renamed aside first, so a file that is still locked cannot leave a half-deleted
-// installation: either the rename happens or both installations stay as they are.
+// installation. If the backup cannot be renamed back, the failed one is put back.
 void restoreBackup(const Arguments& arguments) {
 	std::filesystem::path failed = arguments.backup;
 	failed += ".failed";
 	removePath(failed);
-	bool movedAside = false;
-	for (int attempt = 0; attempt < 15 && !movedAside; ++attempt) {
-		if (attempt > 0)
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		movedAside = movePath(arguments.current, failed);
-	}
-	if (movedAside && movePath(arguments.backup, arguments.current)) {
+	if (!movePathWithRetries(arguments.current, failed))
+		return;
+	if (movePathWithRetries(arguments.backup, arguments.current)) {
 		removePath(failed);
 		launch(arguments.launch, 0);
+	} else {
+		movePath(failed, arguments.current);
 	}
 }
 

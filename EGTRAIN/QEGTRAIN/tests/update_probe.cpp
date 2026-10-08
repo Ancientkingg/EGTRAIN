@@ -48,7 +48,7 @@ std::map<std::string, std::string> readBehavior(const std::filesystem::path& fil
 void appendLog(const std::string& log, const std::string& text) {
 	if (log.empty())
 		return;
-	std::ofstream output(log, std::ios::app);
+	std::ofstream output(log, std::ios::app | std::ios::binary);
 	output << text << "\n";
 }
 
