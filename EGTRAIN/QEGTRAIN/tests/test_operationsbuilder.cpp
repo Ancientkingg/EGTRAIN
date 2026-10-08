@@ -9,6 +9,7 @@
 #undef signals
 #endif
 
+#include <QDir>
 #include <QTemporaryDir>
 
 #include <algorithm>
@@ -144,6 +145,59 @@ static SceneModel completeScene() {
 	return scene;
 }
 
+static bool near(double a, double b) {
+	return std::fabs(a - b) < 1e-9;
+}
+
+// Dwell time of a fixed boarding and alighting flow. The passenger split at the
+// doors is drawn from rand1.seed in the working directory, so the seed file is
+// rewritten before each call to give every call the same draws.
+static double seededDwellTime(Train& train, double platformRate) {
+	std::ofstream("rand1.seed") << 123456789;
+	return train.computePaxDependentDwellTimeAtStations(40, 20, platformRate,
+			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+}
+
+static bool passengerRateTests() {
+	bool ok = true;
+	ok &= expect(near(passengerOccupancyRatio(0, 600), 0.0), "occupancy ratio at 0 percent");
+	ok &= expect(near(passengerOccupancyRatio(300, 600), 0.5), "occupancy ratio at 50 percent");
+	ok &= expect(near(passengerOccupancyRatio(480, 600), 0.8), "occupancy ratio at 80 percent");
+	ok &= expect(near(passengerOccupancyRatio(600, 600), 1.0), "occupancy ratio at 100 percent");
+	ok &= expect(near(passengerOccupancyRatio(7, 0), 0.0) && near(passengerOccupancyRatio(7, -1), 0.0),
+			"occupancy ratio of an unknown capacity is zero");
+	ok &= expect(trainPassengerCapacity(0.0) == 300, "capacity of a train without wagons");
+	ok &= expect(trainPassengerCapacity(1.0) == 600, "capacity of a train with one wagon");
+	ok &= expect(trainPassengerCapacity(3.0) == 1200, "capacity of a train with three wagons");
+
+	QTemporaryDir workDir;
+	const QString previousDir = QDir::currentPath();
+	if (!expect(workDir.isValid() && QDir::setCurrent(workDir.path()), "temporary working directory"))
+		return false;
+
+	Train train;
+	train.number_of_wagons = 3.0;
+	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	const float beta1 = 0.32f, beta3 = 0.564f, beta7 = 0.562f;
+
+	train.Current_OnBoard_Passengers = 600; // 50 percent of 1200
+	const double lowOnboard = seededDwellTime(train, 0.5);
+	ok &= expect(near(lowOnboard, seededDwellTime(train, 0.5)), "equal seeds give equal dwell times");
+	train.Current_OnBoard_Passengers = 960; // 80 percent of 1200
+	const double highOnboard = seededDwellTime(train, 0.5);
+	ok &= expect(near(highOnboard - lowOnboard, beta7),
+			"on-board congestion above 0.7 adds its term to the dwell time");
+
+	train.Current_OnBoard_Passengers = 0;
+	const double lowPlatform = seededDwellTime(train, 0.6);
+	const double highPlatform = seededDwellTime(train, 0.7);
+	ok &= expect(near(highPlatform - lowPlatform, static_cast<double>(beta1) + beta3),
+			"platform congestion above 0.65 adds its terms to the dwell time");
+
+	ok &= expect(QDir::setCurrent(previousDir), "working directory restored");
+	return ok;
+}
+
 int main() {
 	std::srand(12345);
 	bool ok = true;
@@ -232,6 +286,10 @@ int main() {
 			+ std::to_string(regional_train[0].number_of_wagons) + ", mass="
 			+ std::to_string(regional_train[0].total_train_mass) + ", bands="
 			+ std::to_string(regional_train[0].velocityIntervals) + ")");
+	ok &= expect(regional_train[0].MAX_OnBoard_Passengers == 1200
+			&& regional_train[0].Current_OnBoard_Passengers == 0,
+			"built train capacity follows the aggregated wagon count (capacity="
+			+ std::to_string(regional_train[0].MAX_OnBoard_Passengers) + ")");
 	ok &= expect(regional_train[0].scheduled_departure_time == 100.0
 			&& regional_train[1].scheduled_departure_time == 130.0
 			&& regional_train[2].scheduled_departure_time == 160.0, "canonical entry times remain scheduled times");
@@ -971,6 +1029,7 @@ int main() {
 		}
 		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
 	}
+	ok &= passengerRateTests();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }
