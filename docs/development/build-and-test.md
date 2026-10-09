@@ -205,6 +205,11 @@ ctest --test-dir build -LE legacy-compat --output-on-failure
 explicit importer/exporter boundary; normal simulation is not in that label.
 `scene-v2` covers `.egscene` container round-trips and hostile-archive checks.
 
+`test_scenewriter` saves each committed scene and the `line` and `minimal`
+fixtures, loads the result and saves it again, and requires the two saves to be
+equal byte for byte. It never compares a save with the committed bytes, because
+a committed file need not be in the writer's form.
+
 Run the focused bundle test with:
 
 ```bash
