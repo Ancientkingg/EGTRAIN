@@ -194,7 +194,8 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 
 void removeStaleUpdateStaging(const QString& installationParent, std::chrono::minutes minimumAge) {
 	const QStringList pattern = {QStringLiteral(".qegtrain-update-*")};
-	const QDir::Filters filters = QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden;
+	// Without CaseSensitive the name filter would also match a folder that differs in case.
+	const QDir::Filters filters = QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden | QDir::CaseSensitive;
 	const QFileInfoList folders = QDir(installationParent).entryInfoList(pattern, filters);
 	const QDateTime limit = QDateTime::currentDateTime().addSecs(-std::chrono::seconds(minimumAge).count());
 	for (const QFileInfo& folder : folders) {

@@ -35,9 +35,10 @@ permissions instead.
 An update is prepared in a hidden `.qegtrain-update-*` folder next to the
 installation, and the updated application starts in its own directory. After a
 successful update the folder is removed. On Windows the update helper cannot
-delete itself, so the application removes the rest at the latest about a minute
-after it started. Folders left by an interrupted update are removed at the next
-start once they are older than an hour.
+delete itself, so the application removes the rest about 20 seconds after it
+started, or at its next start when it was closed before that. Folders left by an
+interrupted update are removed at a start of the application once they are older
+than an hour.
 
 Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt

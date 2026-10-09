@@ -88,12 +88,14 @@ static bool testStaleStagingSweep(const QString& base) {
 	const QString stale = parent.filePath(".qegtrain-update-stale");
 	const QString empty = parent.filePath(".qegtrain-update-empty");
 	const QString other = parent.filePath("other");
+	const QString upper = parent.filePath(".QEGTRAIN-UPDATE-upper");
 	const QString file = parent.filePath(".qegtrain-update-file");
 	const QString target = parent.filePath("target");
 	const QString link = parent.filePath(".qegtrain-update-link");
 	bool ok = expect(QDir().mkpath(stale + "/extract") && QDir().mkpath(empty) && QDir().mkpath(other)
 			&& QDir().mkpath(target) && writeFile(stale + "/package.zip", "p") && writeFile(stale + "/extract/file", "f")
-			&& writeFile(other + "/file", "o") && writeFile(file, "f") && writeFile(target + "/keep", "k")
+			&& writeFile(other + "/file", "o") && QDir().mkpath(upper) && writeFile(upper + "/file", "u") && writeFile(file, "f")
+			&& writeFile(target + "/keep", "k")
 			&& QFile::link(target, link),
 		"sweep fixtures are writable");
 
@@ -106,6 +108,7 @@ static bool testStaleStagingSweep(const QString& base) {
 	ok &= expect(!QFileInfo::exists(stale), "an old staging folder is removed with its content");
 	ok &= expect(!QFileInfo::exists(empty), "an old empty staging folder is removed");
 	ok &= expect(QFileInfo::exists(other + "/file"), "a folder with another name is kept");
+	ok &= expect(QFileInfo::exists(upper + "/file"), "a folder whose name differs in case is kept");
 	ok &= expect(QFileInfo::exists(file), "a file with the name of a staging folder is kept");
 	ok &= expect(QFileInfo::exists(target + "/keep"), "the target of a symbolic link is kept");
 // QFile::link makes a shortcut file on Windows, so a symbolic link is only covered elsewhere.
