@@ -156,8 +156,12 @@ the runner.
 
 Scene compatibility tests cover manifest probing, independent schema/bundle
 classification, hostile newer bundles, and transactional test-only migration
-chains. The production migration registry is empty on purpose: every scene
-written so far has version number 1, so there is no number to convert from.
+chains. They also cover the validation of an upgraded copy, a source scene that
+cannot be loaded, and a refused write. The refused-write case skips itself when
+a new directory can still be created in a read-only one, for example for a
+process with root rights. The production migration registry is empty on
+purpose: every scene written so far has version number 1, so there is no
+number to convert from.
 `scene_tool` has no `migrate` command; it offers `import`, `pack`, `unpack`,
 `export` and `validate`. The
 [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
