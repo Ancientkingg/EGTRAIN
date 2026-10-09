@@ -331,8 +331,7 @@ void reportSteepRouteGradients(const SceneModel& scene, const SceneSectionInvent
 	for (const RouteUse& use : uses) {
 		const RouteArcs& arcs = routeArcs.at(use.route->id);
 		const CompositionLimits& limits = compositionLimits.at(use.compositionId);
-		const double effortN = use.bestPerformancePercent == 100.0 ? limits.standstillEffortN
-				: limits.standstillEffortN * use.bestPerformancePercent / 100.0;
+		const double effortN = limits.standstillEffortN * use.bestPerformancePercent / 100.0;
 		const double startingGradient = effortN / limits.weightN;
 		const double smallerLimit = std::min(limits.brakingGradient, startingGradient);
 
@@ -366,7 +365,7 @@ void reportSteepRouteGradients(const SceneModel& scene, const SceneSectionInvent
 		diagnostics.warning("scene.route.gradient.steep", message, "infrastructure.json", "route",
 				use.route->id, "arcs[].gradient_percent", use.compositionId,
 				"Check the gradient_percent of the named arcs: the simulation applies it as rise per length "
-				"(0.01 is a 1 percent slope), not as a percentage");
+				"(0.01 is a 1 percent slope)");
 	}
 }
 
