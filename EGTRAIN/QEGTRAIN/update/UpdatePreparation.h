@@ -6,6 +6,7 @@
 #include <QMetaType>
 #include <QObject>
 #include <QString>
+#include <chrono>
 #include <functional>
 
 // Inputs for preparing a downloaded update package. Everything is copied so
@@ -33,6 +34,11 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 
 // Stage a package after download verification has succeeded.
 QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error = nullptr);
+
+// Removes the staging folders ".qegtrain-update-*" in installationParent that an update left
+// behind: directories that are not symbolic links and in which no entry changed within
+// minimumAge. Failures are ignored.
+void removeStaleUpdateStaging(const QString& installationParent, std::chrono::minutes minimumAge);
 
 class UpdatePreparationWorker : public QObject {
 	Q_OBJECT

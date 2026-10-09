@@ -2,6 +2,7 @@
 
 #include <QCryptographicHash>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
@@ -10,6 +11,7 @@
 #include <QThread>
 #include <QTimer>
 
+#include <chrono>
 #include <functional>
 #include <iostream>
 
@@ -74,6 +76,63 @@ static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 		std::cerr << "failed: preparation thread stopped\n";
 	delete thread;
 	return outcome;
+}
+
+static bool setModificationTime(const QString& path, const QDateTime& time) {
+	QFile file(path);
+	return file.open(QIODevice::ReadWrite | QIODevice::ExistingOnly) && file.setFileTime(time, QFileDevice::FileModificationTime);
+}
+
+static bool testStaleStagingSweep(const QString& base) {
+	const QDir parent(QDir(base).filePath("sweep"));
+	const QString stale = parent.filePath(".qegtrain-update-stale");
+	const QString empty = parent.filePath(".qegtrain-update-empty");
+	const QString other = parent.filePath("other");
+	const QString upper = parent.filePath(".QEGTRAIN-UPDATE-upper");
+	const QString file = parent.filePath(".qegtrain-update-file");
+	const QString target = parent.filePath("target");
+	const QString link = parent.filePath(".qegtrain-update-link");
+	bool ok = expect(QDir().mkpath(stale + "/extract") && QDir().mkpath(empty) && QDir().mkpath(other)
+			&& QDir().mkpath(target) && writeFile(stale + "/package.zip", "p") && writeFile(stale + "/extract/file", "f")
+			&& writeFile(other + "/file", "o") && QDir().mkpath(upper) && writeFile(upper + "/file", "u") && writeFile(file, "f")
+			&& writeFile(target + "/keep", "k")
+			&& QFile::link(target, link),
+		"sweep fixtures are writable");
+
+	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(60));
+	ok &= expect(QFileInfo::exists(stale) && QFileInfo::exists(empty),
+		"a staging folder that changed within the minimum age is kept");
+
+	QThread::msleep(20);
+	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(0));
+	ok &= expect(!QFileInfo::exists(stale), "an old staging folder is removed with its content");
+	ok &= expect(!QFileInfo::exists(empty), "an old empty staging folder is removed");
+	ok &= expect(QFileInfo::exists(other + "/file"), "a folder with another name is kept");
+	ok &= expect(QFileInfo::exists(upper + "/file"), "a folder whose name differs in case is kept");
+	ok &= expect(QFileInfo::exists(file), "a file with the name of a staging folder is kept");
+	ok &= expect(QFileInfo::exists(target + "/keep"), "the target of a symbolic link is kept");
+// QFile::link makes a shortcut file on Windows, so a symbolic link is only covered elsewhere.
+#if !defined(Q_OS_WIN)
+	ok &= expect(QFileInfo(link).isSymLink(), "a symbolic link with the name of a staging folder is kept");
+#endif
+
+	// The folder time is now. Only the age of the entries counts.
+	const QString oldEntries = parent.filePath(".qegtrain-update-old-entries");
+	const QString recentInside = parent.filePath(".qegtrain-update-recent-inside");
+	const QDateTime twoHoursAgo = QDateTime::currentDateTime().addSecs(-2 * 3600);
+	ok &= expect(QDir().mkpath(oldEntries) && writeFile(oldEntries + "/package.zip", "p")
+			&& QDir().mkpath(recentInside + "/extract") && writeFile(recentInside + "/package.zip", "p")
+			&& writeFile(recentInside + "/extract/file", "f"),
+		"age fixtures are writable");
+	ok &= expect(setModificationTime(oldEntries + "/package.zip", twoHoursAgo) && setModificationTime(recentInside + "/package.zip", twoHoursAgo),
+		"age fixtures can be dated");
+	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(60));
+	ok &= expect(!QFileInfo::exists(oldEntries), "a folder whose entries are old is removed although the folder itself changed");
+	ok &= expect(QFileInfo::exists(recentInside), "a recent entry in a subfolder keeps the folder");
+
+	removeStaleUpdateStaging(QDir(base).filePath("missing"), std::chrono::minutes(0));
+	ok &= expect(!QFileInfo::exists(QDir(base).filePath("missing")), "a missing parent is left alone");
+	return ok;
 }
 
 int main(int argc, char** argv) {
@@ -149,6 +208,8 @@ int main(int argc, char** argv) {
 		"preparation completion is delivered on the application thread");
 	ok &= expect(prepared.heartbeatTicks >= 4,
 		"the event loop keeps processing events while preparation runs");
+
+	ok &= testStaleStagingSweep(temp.path());
 
 	return ok ? 0 : 1;
 }

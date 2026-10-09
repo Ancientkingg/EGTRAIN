@@ -3,6 +3,8 @@
 #include "app/MainWindow.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneValidator.h"
+#include "update/SelfUpdater.h"
+#include "update/UpdateSettings.h"
 #include <algorithm>
 #include <optional>
 #include "util/portability.h"
@@ -12,6 +14,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStringList>
+#include <QTimer>
 
 //
 extern InitialParameters initial_variables;
@@ -237,6 +240,11 @@ int main(int argc, char* argv[]) {
 
 	if (gui) {
 		QApplication application(argc, argv);
+		if (!updatesSuppressedByEnvironment()) {
+			// The second sweep also removes the staging folder that a Windows update helper keeps while it runs.
+			SelfUpdater::cleanupStaleStaging();
+			QTimer::singleShot(20000, &application, []() { SelfUpdater::cleanupStaleStaging(); });
+		}
 		if (creatorAcceptance) {
 			const QString output = QFileInfo(qEnvironmentVariable("QEGTRAIN_E2E_OUT")).absoluteFilePath();
 			if (output.isEmpty() || output == QFileInfo(QString()).absoluteFilePath()) {

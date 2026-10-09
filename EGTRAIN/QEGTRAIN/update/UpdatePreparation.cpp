@@ -3,7 +3,9 @@
 #include "update/WindowsStaging.h"
 
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
@@ -38,6 +40,22 @@ bool runProcess(const QString& program, const QStringList& arguments, int timeou
 		return false;
 	}
 	return true;
+}
+
+// The newest modification time of the entries in a directory and below it, or of the directory
+// itself when it is empty. The time of the directory alone is not used: it changes whenever the
+// update helper removes an entry, although the entries that remain are old.
+QDateTime newestModification(const QString& directory) {
+	QDateTime newest;
+	QDirIterator entries(directory, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System,
+		QDirIterator::Subdirectories);
+	while (entries.hasNext()) {
+		entries.next();
+		const QDateTime modified = entries.fileInfo().lastModified();
+		if (modified.isValid() && (!newest.isValid() || modified > newest))
+			newest = modified;
+	}
+	return newest.isValid() ? newest : QFileInfo(directory).lastModified();
 }
 
 bool validElf(const QString& path) {
@@ -172,6 +190,19 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 		return false;
 	}
 	return true;
+}
+
+void removeStaleUpdateStaging(const QString& installationParent, std::chrono::minutes minimumAge) {
+	const QStringList pattern = {QStringLiteral(".qegtrain-update-*")};
+	// Without CaseSensitive the name filter would also match a folder that differs in case.
+	const QDir::Filters filters = QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden | QDir::CaseSensitive;
+	const QFileInfoList folders = QDir(installationParent).entryInfoList(pattern, filters);
+	const QDateTime limit = QDateTime::currentDateTime().addSecs(-std::chrono::seconds(minimumAge).count());
+	for (const QFileInfo& folder : folders) {
+		const QDateTime newest = newestModification(folder.absoluteFilePath());
+		if (newest.isValid() && newest <= limit)
+			QDir(folder.absoluteFilePath()).removeRecursively();
+	}
 }
 
 void UpdatePreparationWorker::setPlatformStager(PlatformStager stager) {

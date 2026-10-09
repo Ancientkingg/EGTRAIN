@@ -1,12 +1,15 @@
 #include "update/SelfUpdater.h"
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
 #include <QTemporaryDir>
+
+#include <chrono>
 
 #ifndef EGTRAIN_PACKAGED_BUILD
 #define EGTRAIN_PACKAGED_BUILD 0
@@ -16,6 +19,8 @@ namespace {
 
 constexpr int kDownloadTimeoutMs = 30000;
 constexpr qint64 kMaxManifestBytes = 128 * 1024;
+// A staging folder newer than this may belong to a download that another instance is running.
+constexpr std::chrono::minutes kStaleStagingAge{60};
 
 [[maybe_unused]] QString executableName() {
 #if defined(Q_OS_WIN)
@@ -65,7 +70,7 @@ SelfUpdater::~SelfUpdater() {
 	}
 }
 
-SelfUpdateCapability SelfUpdater::capability() const {
+SelfUpdateCapability SelfUpdater::capability() {
 	SelfUpdateCapability result;
 #if !EGTRAIN_PACKAGED_BUILD
 	result.reason = QStringLiteral("Self-update is available only in packaged release builds.");
@@ -122,6 +127,12 @@ SelfUpdateCapability SelfUpdater::capability() const {
 	result.supported = true;
 	return result;
 #endif
+}
+
+void SelfUpdater::cleanupStaleStaging() {
+	const SelfUpdateCapability current = capability();
+	if (current.supported)
+		removeStaleUpdateStaging(QFileInfo(current.currentPath).absolutePath(), kStaleStagingAge);
 }
 
 bool SelfUpdater::canSelfUpdate(const StableRelease& release) const {
@@ -396,13 +407,28 @@ void SelfUpdater::clearStaging() {
 bool SelfUpdater::restart() {
 	if (!m_ready || m_stagedPath.isEmpty())
 		return false;
+	if (startHelper())
+		return true;
+	clearStaging();
+	m_ready = false;
+	return false;
+}
+
+bool SelfUpdater::startHelper() {
 	const QString helperCopy = QDir(m_stagingRoot).filePath(helperName());
 	QFile::remove(helperCopy);
 	if (!QFile::copy(m_helperPath, helperCopy))
 		return false;
 #if !defined(Q_OS_WIN)
-	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions() | QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
+	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions() | QFile::WriteOwner | QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
 #endif
+	// The copy is the only file that stays in the staging folder on Windows. An old time lets the
+	// sweep of the new version remove the folder at once. Qt changes the time of an open file only.
+	QFile helperFile(helperCopy);
+	if (helperFile.open(QIODevice::ReadWrite | QIODevice::ExistingOnly)) {
+		helperFile.setFileTime(QDateTime::fromSecsSinceEpoch(0), QFileDevice::FileModificationTime);
+		helperFile.close();
+	}
 	QString backup = m_currentPath + QStringLiteral(".egtrain-old");
 	const QFileInfo previousBackup(backup);
 	if (previousBackup.isSymLink())
@@ -420,10 +446,5 @@ bool SelfUpdater::restart() {
 		QStringLiteral("--staged"), m_stagedPath,
 		QStringLiteral("--backup"), backup,
 		QStringLiteral("--launch"), m_launchPath};
-	if (!QProcess::startDetached(helperCopy, arguments)) {
-		clearStaging();
-		m_ready = false;
-		return false;
-	}
-	return true;
+	return QProcess::startDetached(helperCopy, arguments);
 }

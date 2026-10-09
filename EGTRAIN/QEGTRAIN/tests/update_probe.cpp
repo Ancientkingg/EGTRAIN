@@ -1,7 +1,7 @@
 // Stand-in for an installed application in the update helper test. It reads
 // behavior.txt from its own directory (key=value lines) and acts on it:
 //   label=NAME   name written to the log
-//   log=PATH     file that receives "NAME started" when the probe starts
+//   log=PATH     file that receives "NAME cwd DIRECTORY" and then "NAME started" when the probe starts
 //   mode=exit    exit with code=N (default 0)
 //   mode=sleep   wait ms=N, write "NAME done", exit 0
 //   mode=crash   write through a null pointer (Windows only)
@@ -62,6 +62,7 @@ int main(int, char** argv) {
 	const std::string label = behavior["label"];
 	const std::string log = behavior["log"];
 	const std::string mode = behavior["mode"];
+	appendLog(log, label + " cwd " + std::filesystem::current_path().u8string());
 	appendLog(log, label + " started");
 	if (mode == "exit")
 		return behavior["code"].empty() ? 0 : std::stoi(behavior["code"]);
