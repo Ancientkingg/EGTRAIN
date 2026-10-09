@@ -391,8 +391,8 @@ public:
 	int numStations;					   // Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
 	static constexpr int kMaxTimetableStations = RuntimeLimits::kMaxTimetableStops; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
 	static int clampStationCount(int requested, const string& trainId); // Clamps a served-station count to kMaxTimetableStations, warning once per train
-	int stationBlockSection[kMaxTimetableStations];		// Cached block section index for each station (avoids full-route scan every timestep)
-	int stationArc[kMaxTimetableStations];				   // Cached Arc index within block section for each station
+	int stationBlockSection[kMaxTimetableStations] = {};		// Cached block section index for each station (avoids full-route scan every timestep)
+	int stationArc[kMaxTimetableStations] = {};				   // Cached Arc index within block section for each station
 	bool ServiceStopBehindATrain = false; // Never set. A train that waits behind another train at a platform makes its own stop there once the train ahead has left.
 	bool StoppedForServiceStop = false;   // This variable is true when the train is stopping at a station to perform a service stop
 	string CurrentServiceStop;		   // This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true

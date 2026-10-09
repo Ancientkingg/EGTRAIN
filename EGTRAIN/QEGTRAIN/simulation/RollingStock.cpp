@@ -1384,8 +1384,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	if (!initial_variables.recoveryTimeOverride)
 		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
 	N_OrderLists = 0;
+	// The new storage exists before the old trains are released.
+	std::vector<Regional> storage(trains.size());
 	nativeClearRegionalTrains();
-	regional_train = std::vector<Regional>(trains.size());
+	regional_train = std::move(storage);
 	numRegions = static_cast<int>(trains.size());
 	N_Train = 0;
 	N_TrainD = 0;
