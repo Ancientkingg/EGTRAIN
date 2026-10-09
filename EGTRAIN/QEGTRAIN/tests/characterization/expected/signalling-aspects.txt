@@ -8,7 +8,9 @@
 # Parameters: levels has one character per section (u = no level, 0 to 5 = the level) and a second route follows after '/';
 #   shape is the number of arcs of the sections (1 = one each, 21 = 2 1 2 1 ..., 12 = 1 2 1 2 ...);
 #   occ lists the occupied sections by index, connected lists the ids in BlocksConnected, left is the id given to
-#   relLastSectionMixedSignalling, held is singleTrackHeld, signals are signalCode1/signalCode2.
+#   relLastSectionMixedSignalling, held is singleTrackHeld, signals are signalCode1/signalCode2;
+#   b is the number of sections at the start of a route with two levels that have the first level,
+#   step counts the steps of a train that moves through the route.
 # The ids of the sections are s0, s1 ... in route order. A second route lists the ids in reverse order; ' || ' separates the routes.
 # Start states. Clean: code 270, state green, signal speed limit 999 on every arc, braking 0, exit 0.
 #   Dirty: code 11, state ?, signal speed limit 7 on every arc, braking 0, exit 5.
@@ -1229,19 +1231,33 @@ E levels=110055 shape=1 left=s5 | 11:?:7:0:5 11:?:7:0:5 270:?:7:0:5 270:?:7:0:5 
 E levels=000000 shape=1 left=s9 | 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 => connected=-
 E levels=000000/555555 shape=1 left=s5 | 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 270:?:7:0:5 270:?:7:0:5 270:?:7:0:5 || 270:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 => connected=s5
 # V: signalCode1 = 14.5 and signalCode2 = 3.5, dirty start
+V levels=uuuuuu shape=1 occ=1 signals=14.5/3.5 | 11:?:7:33:5 11:?:7:30:5 11:?:7:8:5 11:?:7:27:5 11:?:7:24:5 11:?:7:24:5
 V levels=uuuuuu shape=1 occ=2 signals=14.5/3.5 | 11:?:7:33:5 11:?:7:30:5 11:?:7:8:5 11:?:7:27:5 11:?:7:24:5 11:?:7:24:5
+V levels=uuuuuu shape=1 occ=3 signals=14.5/3.5 | 11:?:7:33:5 11:?:7:30:5 11:?:7:8:5 11:?:7:27:5 11:?:7:24:5 11:?:7:24:5
 V levels=uuuuuu shape=1 occ=5 signals=14.5/3.5 | 11:?:7:33:5 11:?:7:30:5 11:?:7:8:5 11:?:7:27:5 11:?:7:24:5 11:?:7:24:5
+V levels=000000 shape=1 occ=1 signals=14.5/3.5 | 75:R:14.5:0:5 0:?:7:7:30 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
 V levels=000000 shape=1 occ=2 signals=14.5/3.5 | 180:Y:999:14.5:5 75:R:14.5:0:5 0:?:7:7:8 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
+V levels=000000 shape=1 occ=3 signals=14.5/3.5 | 270:G:999:33:5 180:Y:999:14.5:5 75:R:14.5:0:5 0:?:7:7:27 11:?:7:7:5 11:?:7:24:5
 V levels=000000 shape=1 occ=5 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:30:5 270:G:999:8:5 180:Y:999:14.5:5 75:R:14.5:0:5 0:?:7:24:24
+V levels=111111 shape=1 occ=1 signals=14.5/3.5 | 75:R:999:0:5 0:?:7:7:30 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
 V levels=111111 shape=1 occ=2 signals=14.5/3.5 | 180:Y:999:33:5 75:R:999:0:5 0:?:7:7:8 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
+V levels=111111 shape=1 occ=3 signals=14.5/3.5 | 270:G:999:33:5 180:Y:999:30:5 75:R:999:0:5 0:?:7:7:27 11:?:7:7:5 11:?:7:24:5
 V levels=111111 shape=1 occ=5 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:30:5 270:G:999:8:5 180:Y:999:27:5 75:R:999:0:5 0:?:7:24:24
+V levels=222222 shape=1 occ=1 signals=14.5/3.5 | 75:R:999:0:5 0:?:7:7:30 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
 V levels=222222 shape=1 occ=2 signals=14.5/3.5 | 180:Y:999:33:5 75:R:999:0:5 0:?:7:7:8 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
+V levels=222222 shape=1 occ=3 signals=14.5/3.5 | 270:G:999:33:5 180:Y:999:30:5 75:R:999:0:5 0:?:7:7:27 11:?:7:7:5 11:?:7:24:5
 V levels=222222 shape=1 occ=5 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:30:5 270:G:999:8:5 180:Y:999:27:5 75:R:999:0:5 0:?:7:24:24
+V levels=333333 shape=1 occ=1 signals=14.5/3.5 | 11:?:7:7:5 0:?:7:7:30 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
 V levels=333333 shape=1 occ=2 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:7:5 0:?:7:7:8 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
+V levels=333333 shape=1 occ=3 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 0:?:7:7:27 11:?:7:7:5 11:?:7:24:5
 V levels=333333 shape=1 occ=5 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 0:?:7:24:24
+V levels=444444 shape=1 occ=1 signals=14.5/3.5 | 11:?:7:7:5 0:?:7:7:30 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
 V levels=444444 shape=1 occ=2 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:7:5 0:?:7:7:8 11:?:7:7:5 11:?:7:7:5 11:?:7:24:5
+V levels=444444 shape=1 occ=3 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 0:?:7:7:27 11:?:7:7:5 11:?:7:24:5
 V levels=444444 shape=1 occ=5 signals=14.5/3.5 | 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 11:?:7:7:5 0:?:7:24:24
+V levels=555555 shape=1 occ=1 signals=14.5/3.5 | 751:RR:3.5:0:5 0:G:999:30:30 270:G:999:8:5 270:G:999:27:5 270:G:999:24:5 270:G:999:24:5
 V levels=555555 shape=1 occ=2 signals=14.5/3.5 | 75:R:14.5:3.5:5 751:RR:3.5:0:5 0:G:999:8:8 270:G:999:27:5 270:G:999:24:5 270:G:999:24:5
+V levels=555555 shape=1 occ=3 signals=14.5/3.5 | 180:Y:999:14.5:5 75:R:14.5:3.5:5 751:RR:3.5:0:5 0:G:999:27:27 270:G:999:24:5 270:G:999:24:5
 V levels=555555 shape=1 occ=5 signals=14.5/3.5 | 270:G:999:33:5 270:G:999:30:5 180:Y:999:8:5 75:R:14.5:3.5:5 751:RR:3.5:0:5 0:G:999:24:24
 # K: single-track zone s1 to s4 held in direction held=, nothing occupied, dirty start
 # route 0 runs s0 to s5 and route 1 runs s5 to s0 against the holder at held=1; the routes against the holder see s1 to s4 occupied

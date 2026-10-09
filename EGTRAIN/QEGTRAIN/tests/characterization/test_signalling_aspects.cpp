@@ -114,29 +114,29 @@ public:
 		train_route.clear();
 	}
 	~SavedGlobals() {
-		train_route = std::move(routes_);
-		N_Routes = routeCount_;
-		BlocksOccupied = occupied_;
-		BlocksConnected = connected_;
-		signalCode1 = signalCode1_;
-		signalCode2 = signalCode2_;
-		singleTrackLimits = limits_;
+		train_route = std::move(m_routes);
+		N_Routes = m_routeCount;
+		BlocksOccupied = m_occupied;
+		BlocksConnected = m_connected;
+		signalCode1 = m_signalCode1;
+		signalCode2 = m_signalCode2;
+		singleTrackLimits = m_limits;
 		resetSingleTrackLocks();
-		singleTrackHeld = held_;
+		singleTrackHeld = m_held;
 	}
 	SavedGlobals(const SavedGlobals&) = delete;
 	SavedGlobals& operator=(const SavedGlobals&) = delete;
 
 private:
 	// The members take the values when the object is made; the route list is emptied for the test.
-	std::vector<Route> routes_ = std::move(train_route);
-	int routeCount_ = N_Routes;
-	Ids occupied_ = BlocksOccupied;
-	Ids connected_ = BlocksConnected;
-	double signalCode1_ = signalCode1;
-	double signalCode2_ = signalCode2;
-	std::vector<std::tuple<std::string, std::string, std::string, std::string>> limits_ = singleTrackLimits;
-	std::vector<int> held_ = singleTrackHeld;
+	std::vector<Route> m_routes = std::move(train_route);
+	int m_routeCount = N_Routes;
+	Ids m_occupied = BlocksOccupied;
+	Ids m_connected = BlocksConnected;
+	double m_signalCode1 = signalCode1;
+	double m_signalCode2 = signalCode2;
+	std::vector<std::tuple<std::string, std::string, std::string, std::string>> m_limits = singleTrackLimits;
+	std::vector<int> m_held = singleTrackHeld;
 };
 
 void setRoutes(std::vector<Route>&& routes) {
@@ -461,7 +461,8 @@ void checkAnchors(Report& report) {
 		report.expect(actual == tokens, name + ": expected " + tokens + ", actual " + actual);
 	}
 
-	// No routine writes a section without a level, so its code, state, signal speed limit and exit speed stay as they were.
+	// On a route without any level no routine writes a section, so the code, state, signal speed limit and exit speed stay as
+	// they were.
 	installRoutes({routeSpec(uniform(kNoLevel, kLongRoute))});
 	report.expect(runStep(idsOf({3}), Ids()), "the lists changed in the step of the anchor without a level and dirty start");
 	for (const Section& section : sectionsOf(0))
@@ -660,7 +661,7 @@ void groupSignalSpeeds(Report& report) {
 	setSignalSpeeds({kOtherSignalCode1, kOtherSignalCode2});
 	const std::string signals = " signals=" + numberText(kOtherSignalCode1) + "/" + numberText(kOtherSignalCode2);
 	for (const int level : kAllLevels)
-		for (const std::size_t h : {std::size_t{2}, std::size_t{5}})
+		for (const std::size_t h : {std::size_t{1}, std::size_t{2}, std::size_t{3}, std::size_t{5}})
 			stepLine(report, "V", routeSpec(uniform(level, kShortRoute)), {h}, signals);
 	setSignalSpeeds(saved);
 }
@@ -697,7 +698,9 @@ void writeHeader(Report& report) {
 	report.comment("Parameters: levels has one character per section (u = no level, 0 to 5 = the level) and a second route follows after '/';");
 	report.comment("  shape is the number of arcs of the sections (1 = one each, 21 = 2 1 2 1 ..., 12 = 1 2 1 2 ...);");
 	report.comment("  occ lists the occupied sections by index, connected lists the ids in BlocksConnected, left is the id given to");
-	report.comment("  relLastSectionMixedSignalling, held is singleTrackHeld, signals are signalCode1/signalCode2.");
+	report.comment("  relLastSectionMixedSignalling, held is singleTrackHeld, signals are signalCode1/signalCode2;");
+	report.comment("  b is the number of sections at the start of a route with two levels that have the first level,");
+	report.comment("  step counts the steps of a train that moves through the route.");
 	report.comment("The ids of the sections are s0, s1 ... in route order. A second route lists the ids in reverse order; ' || ' separates the routes.");
 	report.comment("Start states. Clean: code 270, state green, signal speed limit 999 on every arc, braking 0, exit 0.");
 	report.comment("  Dirty: code " + numberText(kDirtyCode) + ", state " + kDirtyState + ", signal speed limit " + numberText(kDirtySignalSpeed)

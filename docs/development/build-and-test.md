@@ -506,8 +506,8 @@ case, with the group, the parameters, a `|` and one token
 The groups are uniform levels, two levels with a border, three or more levels,
 sweeps of a moving train that carry the state from step to step, the release
 functions, other signal speeds and a held single-track zone. The cases are in
-the file. The speed limits of the sections are numbers of the test, not railway
-data. The test also checks, without the golden file, the aspects of one step for
+the file, and the comparison is exact text, without a tolerance. The speed
+limits of the sections are numbers of the test, not railway data. The test also checks, without the golden file, the aspects of one step for
 every level, and that a step leaves the lists of occupied and connected sections
 as they were. A change of the aspect routines that is not meant to change
 behaviour has to leave the file as it is. The file has no `# case:` line and no
