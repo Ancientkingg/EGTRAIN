@@ -272,7 +272,8 @@ private:
 // Checks the signal states of every snapshot against the section codes of all
 // routes, which is what the canvas is given: one entry per section and
 // direction, the most restrictive code of the route copies, the level of the
-// section, and the failure flag exactly inside the incident window.
+// section, and the failure flag exactly inside the incident window. The blocked
+// flag of the sections has to follow the same window.
 class SnapshotSignalChecker {
 public:
 	void check(const GuiSimulationSnapshot& snapshot) {
@@ -313,6 +314,15 @@ public:
 				&& (!hasEnd || snapshot.timestep <= incident.endSeconds))
 				failedIds.insert(incident.resolvedSectionIDs.begin(), incident.resolvedSectionIDs.end());
 		}
+		failedIds.erase("");
+		// The sections of an active failure are drawn as blocked, and no other section is.
+		std::set<std::string> blockedIds;
+		for (const GuiSectionState& section : snapshot.sectionStates)
+			if (section.blocked)
+				blockedIds.insert(section.sectionId);
+		if (blockedIds != failedIds)
+			fail(snapshot.timestep,
+				"the blocked sections are [" + joined(blockedIds) + "], the active signal failures have [" + joined(failedIds) + "]");
 		std::set<std::pair<std::string, bool>> seen;
 		for (const GuiSignalState& state : snapshot.signalStates) {
 			const auto key = std::make_pair(state.sectionId, state.reversedDirection);
@@ -358,6 +368,13 @@ private:
 
 	static std::string describe(const std::pair<std::string, bool>& key) {
 		return key.first + (key.second ? " (reversed)" : " (forward)");
+	}
+
+	static std::string joined(const std::set<std::string>& ids) {
+		std::string text;
+		for (const std::string& id : ids)
+			text += (text.empty() ? "" : ",") + id;
+		return text;
 	}
 
 	void fail(int step, const std::string& text) {
