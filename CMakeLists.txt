@@ -1054,6 +1054,22 @@ if(EGTRAIN_BUILD_TESTS)
 		endif()
 	endforeach()
 
+	# These tests start the application with its user settings, which hold the list of recent cases.
+	# Each gets a settings folder of its own, so that tests can run side by side without sharing
+	# or changing the settings of the user.
+	foreach(name IN ITEMS test_startup_launch_contract test_scene_drop test_gui_autostart_smoke
+			test_close_during_run_smoke test_csv_export_smoke)
+		if(TEST ${name})
+			set_property(TEST ${name} APPEND PROPERTY ENVIRONMENT
+				"QEGTRAIN_E2E_SETTINGS_DIR=${CMAKE_CURRENT_BINARY_DIR}/settings/${name}")
+		endif()
+	endforeach()
+
+	# The longest tests start first, so that a parallel run does not end waiting for one of them.
+	# Without the timings of an earlier run, ctest orders tests by this cost.
+	set_tests_properties(test_gui_autostart_smoke PROPERTIES COST 80)
+	set_tests_properties(test_ownership_inventory PROPERTIES COST 60)
+
 	# The offscreen Qt platform has no fonts of its own on Windows, so GUI tests read the system fonts.
 	if(WIN32)
 		file(TO_CMAKE_PATH "$ENV{WINDIR}/Fonts" egtrain_windows_fonts)
