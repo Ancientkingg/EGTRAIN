@@ -1,7 +1,6 @@
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "scene/SceneModel.h"
-#include "simulation/RollingStock.h"
-#include "simulation/Signalling.h"
+#include "diagrams/SimulationHeaders.h"
 #include <cmath>
 #include <map>
 

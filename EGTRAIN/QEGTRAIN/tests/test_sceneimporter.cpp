@@ -365,6 +365,23 @@ int main() {
 		ok &= expect(noPassengerResult.success()
 				&& !fs::exists(fs::path(noPassengerOutput.dir) / "passengers.json"),
 				"Whole legacy import keeps absent passenger files optional");
+
+		// A UTF-16LE file that ends in an unpaired surrogate cannot be converted, so none
+		// of its rows is imported, not even the valid row before the surrogate.
+		{
+			std::ofstream invalid(legacy / "TrackLines/B1/BlockCumPari.txt", std::ios::binary | std::ios::trunc);
+			const unsigned char bytes[] = {0xff, 0xfe, '8', 0, '8', 0, ' ', 0, '-', 0, '0', 0, '.', 0, '6', 0,
+				'\r', 0, '\n', 0, 0x00, 0xd8};
+			invalid.write(reinterpret_cast<const char*>(bytes), sizeof(bytes));
+		}
+		TempDir invalidOutput;
+		const auto invalidResult = importLegacyScene(legacyDir.dir, invalidOutput.dir, "Paimpol");
+		json invalidInfrastructure;
+		bool importedInvalidBlock = false;
+		if (invalidResult.wroteScene && readJson(fs::path(invalidOutput.dir) / "infrastructure.json", invalidInfrastructure))
+			for (const auto& block : invalidInfrastructure["blocks"])
+				importedInvalidBlock = importedInvalidBlock || block["id"] == "0-B1";
+		ok &= expect(!importedInvalidBlock, "A UTF-16LE file with an unpaired surrogate is not imported");
 	}
 
 	// Passenger-only import accepts either case-root or passenger-directory input,
@@ -388,8 +405,8 @@ int main() {
 		SceneModel scene;
 		scene.stations = {{"origin", "Origin", false, 0.0, {}}, {"destination", "Destination", false, 1.0, {}}};
 		scene.services.push_back({"Guin-Paim-EXPRESS-1", "Guin-Paim-EXPRESS-1", {}, {}, 100.0, false, 0.0, false, false, 0.0,
-			false, 0.0, false, 0, false, 0, {}});
-		scene.services[0].stops = {{"origin"}, {"destination"}};
+			false, 0.0, false, 0, false, 0, {}, {}, {}});
+		scene.services[0].stops = {{"origin", ""}, {"destination", ""}};
 		const ScenePassengerImportResult imported = importLegacyPassengers(root.dir, scene);
 		ok &= expect(imported.success() && imported.passengers.size() == 3
 				&& imported.passengers[0].journeys[0].legs.size() == 1
@@ -443,7 +460,7 @@ int main() {
 		ok &= expect(sawDasRowPath && sawRouteChoiceRowPath,
 				"Passenger-only import diagnostics retain CSV source paths");
 		SceneModel orderMismatchScene = scene;
-		orderMismatchScene.services[0].stops = {{"destination"}, {"origin"}};
+		orderMismatchScene.services[0].stops = {{"destination", ""}, {"origin", ""}};
 		const ScenePassengerImportResult orderMismatch = importLegacyPassengers(root.dir, orderMismatchScene);
 		bool knownServiceMarkedUnresolved = false;
 		bool knownServiceRowDiagnostic = false;
@@ -474,7 +491,7 @@ int main() {
 				"alias,Tregonnau Squiffiec,0,,Guin-Paim_EXPRESS-1-1\n");
 		SceneModel aliasScene = scene;
 		aliasScene.stations.push_back({"Tregonneau_Squiffiec", "Tregonneau_Squiffiec", false, 2.0, {}});
-		aliasScene.services[0].stops = {{"origin"}, {"Tregonneau_Squiffiec"}};
+		aliasScene.services[0].stops = {{"origin", ""}, {"Tregonneau_Squiffiec", ""}};
 		const ScenePassengerImportResult spellingAlias = importLegacyPassengers(aliasRoot.dir, aliasScene);
 		ok &= expect(spellingAlias.success() && spellingAlias.passengers.size() == 1
 				&& spellingAlias.passengers[0].journeys[0].legs.size() == 1

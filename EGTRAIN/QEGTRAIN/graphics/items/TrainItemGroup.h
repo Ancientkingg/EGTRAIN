@@ -43,7 +43,7 @@ public:
 
 	// to allow cast
 	enum { Type = UserType + 8 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}

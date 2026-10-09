@@ -1,6 +1,5 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
-#include <codecvt>
 #include <filesystem>
 #include <fstream>
 #include <locale>
@@ -135,6 +134,38 @@ static bool isSwitchTransitionRouteToken(const std::string& token) {
 	return isPositionedRouteEndpoint(token.substr(0, slash)) && isPositionedRouteEndpoint(token.substr(slash + 1));
 }
 
+// Converts UTF-16 to UTF-8. An unpaired surrogate fails the conversion.
+static bool utf16ToUtf8(const std::u16string& in, std::string& out) {
+	out.clear();
+	for (std::size_t i = 0; i < in.size(); ++i) {
+		char32_t c = in[i];
+		if (c >= 0xd800 && c <= 0xdbff) {
+			if (i + 1 >= in.size() || in[i + 1] < 0xdc00 || in[i + 1] > 0xdfff)
+				return false;
+			c = 0x10000 + ((c - 0xd800) << 10) + (in[i + 1] - 0xdc00);
+			++i;
+		} else if (c >= 0xdc00 && c <= 0xdfff) {
+			return false;
+		}
+		if (c < 0x80) {
+			out.push_back(static_cast<char>(c));
+		} else if (c < 0x800) {
+			out.push_back(static_cast<char>(0xc0 | (c >> 6)));
+			out.push_back(static_cast<char>(0x80 | (c & 0x3f)));
+		} else if (c < 0x10000) {
+			out.push_back(static_cast<char>(0xe0 | (c >> 12)));
+			out.push_back(static_cast<char>(0x80 | ((c >> 6) & 0x3f)));
+			out.push_back(static_cast<char>(0x80 | (c & 0x3f)));
+		} else {
+			out.push_back(static_cast<char>(0xf0 | (c >> 18)));
+			out.push_back(static_cast<char>(0x80 | ((c >> 12) & 0x3f)));
+			out.push_back(static_cast<char>(0x80 | ((c >> 6) & 0x3f)));
+			out.push_back(static_cast<char>(0x80 | (c & 0x3f)));
+		}
+	}
+	return true;
+}
+
 static bool readFile(const fs::path& path, std::string& content) {
 	std::ifstream f(path, std::ios::binary);
 	if (!f.good())
@@ -149,9 +180,7 @@ static bool readFile(const fs::path& path, std::string& content) {
 			utf16.push_back(static_cast<char16_t>(static_cast<unsigned char>(content[i])
 					| (static_cast<unsigned int>(static_cast<unsigned char>(content[i + 1])) << 8)));
 		}
-		try {
-			content = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(utf16);
-		} catch (...) {
+		if (!utf16ToUtf8(utf16, content)) {
 			content.clear();
 			return false;
 		}

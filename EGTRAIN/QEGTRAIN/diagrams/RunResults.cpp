@@ -1,7 +1,7 @@
 #include "diagrams/RunResults.h"
 
 #include "scene/SceneModel.h"
-#include "simulation/RollingStock.h"
+#include "diagrams/SimulationHeaders.h"
 #include "util/TrajectoryUtil.h"
 
 #include <QCryptographicHash>

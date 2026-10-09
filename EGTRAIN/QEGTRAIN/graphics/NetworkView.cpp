@@ -29,7 +29,7 @@ NetworkView::NetworkView(QWidget* parent)
 	setMouseTracking(true);
 	setSceneRect(QRectF(0, 0, 0, 0));
 	setBackgroundBrush(kCanvasColor);
-	setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 	setResizeAnchor(QGraphicsView::AnchorViewCenter);

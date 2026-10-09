@@ -67,7 +67,7 @@ std::optional<QString> macBundleVersion(const QString& bundlePath) {
 	return std::nullopt;
 }
 
-QString stageMacPackage(const UpdatePreparationInput& input, QString* error) {
+[[maybe_unused]] QString stageMacPackage(const UpdatePreparationInput& input, QString* error) {
 	const QString root = input.stagingRoot;
 	const QString extract = QDir(root).filePath(QStringLiteral("extract"));
 	if (!QDir().mkpath(extract))
@@ -100,7 +100,7 @@ QString stageMacPackage(const UpdatePreparationInput& input, QString* error) {
 	return stagedPath;
 }
 
-QString stageWindowsPackage(const UpdatePreparationInput& input, QString* error) {
+[[maybe_unused]] QString stageWindowsPackage(const UpdatePreparationInput& input, QString* error) {
 	const QString root = input.stagingRoot;
 	const QString extract = QDir(root).filePath(QStringLiteral("extract"));
 	if (!QDir().mkpath(extract))
@@ -121,7 +121,7 @@ QString stageWindowsPackage(const UpdatePreparationInput& input, QString* error)
 	return stagedPath;
 }
 
-QString stageLinuxPackage(const UpdatePreparationInput& input, QString* error) {
+[[maybe_unused]] QString stageLinuxPackage(const UpdatePreparationInput& input, QString* error) {
 	const QString root = input.stagingRoot;
 	const QString stagedPath = QDir(root).filePath(QStringLiteral("ready.AppImage"));
 	if (!QFile::copy(input.packagePath, stagedPath)) {

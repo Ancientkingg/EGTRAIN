@@ -99,6 +99,19 @@ configuration, because the hooks change the layout of the telemetry classes.
 `test_telemetryconsent` for the same reason. See
 [Source layout](../architecture/source-layout.md#libraries).
 
+### Warnings
+
+The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and
+to `egtrain_dispatch`. The cache option `EGTRAIN_WARNINGS_AS_ERRORS` is OFF by
+default. With `-DEGTRAIN_WARNINGS_AS_ERRORS=ON` a warning in a strict target
+fails the build:
+
+```bash
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
+```
+
+The targets are listed in [Coding guidelines](coding-guidelines.md#warnings).
+
 ## Run a local build
 
 From `EGTRAIN/QEGTRAIN`, use the executable produced by the selected generator:
