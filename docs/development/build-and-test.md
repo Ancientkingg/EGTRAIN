@@ -149,9 +149,10 @@ configuration, for example `cmake --build build --config Release` and
 the current platform.
 
 Tests can run side by side: `ctest --test-dir build -j N --output-on-failure`.
-Tests that start the application keep their user settings in a folder of their
-own below `build/settings`, so none of them reads or changes the settings of
-the user. CI runs `ctest --parallel` with the number of cores of the runner.
+A test that starts the application keeps its user settings in a folder of its
+own, most of them below `build/settings`, so none of them reads or changes the
+settings of the user. CI runs `ctest --parallel` with the number of cores of
+the runner.
 
 Scene compatibility tests cover manifest probing, independent schema/bundle
 classification, hostile newer bundles, and transactional test-only migration
@@ -596,8 +597,8 @@ The visual and render smoke artifacts include:
   Stable production releases then appear in the application's update checks.
 
 Automatic pull requests to `main` and pushes and pull requests to `production`
-skip their workflows when changes are limited to Markdown files (`**.md`), `docs/`, the
-root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
+skip their workflows when changes are limited to Markdown files (`**.md`),
+`docs/`, the root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
 workflow, as do changes to source, tests, scenes, build settings, or workflows.
 Documentation-only production pushes do not publish a new release. Updated
 packaged guides ship with the next release; `v*` tags and manual release runs
@@ -627,7 +628,8 @@ keeps the entries in use.
 ## Verification Gates
 
 To run what CI runs, use `ctest --test-dir build --output-on-failure` (add
-`-C Release` with a multi-config generator, and `-j N` to run tests side by side). For a quick check, use
+`-C Release` with a multi-config generator, and `-j N` to run tests side by
+side). For a quick check, use
 `ctest --test-dir build -L unit -LE slow --output-on-failure`.
 
 For UI changes:

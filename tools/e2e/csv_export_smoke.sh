@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
 OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e"
+RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-run"
 LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.log"
 
 if [[ ! -x "$APP" ]]; then
@@ -14,12 +15,13 @@ if [[ ! -x "$APP" ]]; then
 	exit 1
 fi
 
-rm -rf "$OUTDIR"
+rm -rf "$OUTDIR" "$RUN_OUTPUT"
 mkdir -p "$OUTDIR"
 
 cd "$ROOT/EGTRAIN/QEGTRAIN"
 QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_OUTPUT_DIR="${QEGTRAIN_OUTPUT_DIR:-$RUN_OUTPUT}" \
 QEGTRAIN_E2E_EXPORT_DIR="$OUTDIR" \
 "$APP" --scene "$SCENE" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
 
