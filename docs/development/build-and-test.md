@@ -327,7 +327,8 @@ All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
 network-wide signalling area, so one scene covers levels 0 to 5 and "none". The
 border cases use two areas that meet at 8 km, the edge between `3-B0` and `4-B0`
-at station B.
+at station B. In `border-0-2-near-fwd` and `border-0-1-near-fwd` they meet at
+4 km, the edge between `1-B0` and `2-B0`.
 [Signalling levels](../architecture/signalling-levels.md) says what each level
 does and cites these cases.
 
@@ -356,8 +357,9 @@ A case is a scenario, a set of services and a level. The case table is in
 | `border-2-0-fwd`, `border-2-0-rev` | the same trains with level 2 from A to 8 km and level 0 from 8 km to C |
 | `border-0-3-fwd`, `border-0-3-rev` | the same trains with level 0 from A to 8 km and level 3 from 8 km to C |
 | `border-0-1-fwd` | trains `F1` and `F2` with level 0 from A to 8 km and level 1 from 8 km to C |
+| `border-0-2-near-fwd`, `border-0-1-near-fwd` | trains `F1` and `F2` with level 0 from A to 4 km and level 2 or level 1 from 4 km to C, so that the head of a train in `2-B0` has the level 0 sections `1-B0` and `0-B0` behind it |
 
-All 71 cases run in CTest. They are listed in
+All 73 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -484,23 +486,21 @@ every golden file, so add a service or scenario instead.
 
 ### Known-wrong behaviour
 
-Some current behaviour is wrong. The golden file still pins it, so a refactor
-cannot change it unnoticed, and it is marked. The golden header carries
-`# known-wrong: #<issue> <reason>` and the case table carries the same text. The
-test fails when the two differ and prints `KNOWN-WRONG #<issue>` on every run.
-A marked case is exempt from the checks on stops, separation and timetable. The
-change that fixes the bug updates the golden file and removes the marker in one
-commit. The markers are in the `kKnownWrong` table of
+Behaviour that is known to be wrong can be pinned and marked. The golden file
+still pins it, so a refactor cannot change it unnoticed. The golden header
+carries `# known-wrong: #<issue> <reason>` and the case table carries the same
+text. The test fails when the two differ and prints `KNOWN-WRONG #<issue>` on
+every run. A marked case is exempt from the checks on stops, separation and
+timetable. The change that fixes the bug updates the golden file and removes the
+marker in one commit. The markers are in the `kKnownWrong` table of
 `test_characterization.cpp`. List the marked cases with:
 
 ```bash
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The marker names one open issue: #602 covers a border from level 0 to level 1
-or 2, where the block before the border shows 75 while a train is in it
-(`border-0-1-fwd`, `border-0-2-fwd`, `border-2-0-rev`). The checks apply to every
-unmarked case.
+No case carries a marker. The table is empty, every golden header says
+`# known-wrong: none`, the grep lists nothing and the checks apply to every case.
 
 ## Simulation Smoke Test
 

@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SignallingLevelNames.h"
 #include "simulation/Passengers.h"
 #include "simulation/Optimisation.h"
 #include "simulation/RollingStock.h"
@@ -595,6 +596,66 @@ static std::vector<Section> boundarySections(int n) {
 		section.arcs_in_signalling_block_section[0].speedLimit = 36.111111111111;
 	}
 	return sections;
+}
+
+// Sections 0 to 3 of the level west and 4 to 7 of the level east, after the routines of levels 0, 1 and 2 have run, in
+// the order of a step, for a train whose tail is in the section tail and whose head is in the next one.
+static std::vector<Section> borderAspects(int west, int east, int tail) {
+	std::vector<Section> sections = boundarySections(8);
+	for (int i = 0; i < 8; ++i) {
+		sections[i].SignallingLevel = i < 4 ? west : east;
+		sections[i].code = 270;
+		sections[i].arcs_in_signalling_block_section[0].signalSpeedLimit = 999;
+	}
+	BlocksOccupied = {sections[tail].ID, sections[tail + 1].ID};
+	atbMixedSignalling(signalCode1, signalCode3, sections.data(), 8);
+	etcsLev1MixedSignalling(signalCode3, sections.data(), 8);
+	etcsLev2MixedSignalling(signalCode3, sections.data(), 8);
+	return sections;
+}
+
+// At a border between level 0 and level 1 or 2 an occupied section keeps code 0 and the sections behind it get the
+// chain of their own level, on both sides of the border.
+static bool levelBorderAspectTests() {
+	bool ok = true;
+	const auto savedOccupied = BlocksOccupied;
+	const auto limit = [](const Section& section) { return section.arcs_in_signalling_block_section[0].signalSpeedLimit; };
+	const auto chain = [](const std::vector<Section>& sections, int first, int last) {
+		std::string codes;
+		for (int i = first; i <= last; ++i)
+			codes += std::to_string(static_cast<int>(sections[i].code)) + " ";
+		return codes;
+	};
+	for (int level : {1, 2}) {
+		const std::string name = "level " + std::to_string(level);
+		// The tail is in the last section of level 0 and the head in the first section of the other level.
+		std::vector<Section> sections = borderAspects(0, level, 3);
+		ok &= expect(chain(sections, 0, 4) == "270 180 75 0 0 " && limit(sections[2]) == signalCode1 && limit(sections[1]) == 999,
+			"a section of level 0 keeps code 0 while the head of its train is in " + name);
+		// The train is two sections past the border, so only the chain behind it crosses the border.
+		sections = borderAspects(0, level, 5);
+		ok &= expect(chain(sections, 2, 6) == "270 180 75 0 0 " && limit(sections[4]) == 999 && limit(sections[3]) == 999,
+			"a section of level 0 behind an occupied section of " + name + " keeps the chain of level 0");
+		// The same two positions with the levels the other way round.
+		sections = borderAspects(level, 0, 3);
+		ok &= expect(chain(sections, 0, 4) == "270 180 75 0 0 " && limit(sections[2]) == 999,
+			"a section of " + name + " keeps code 0 while the head of its train is in level 0");
+		sections = borderAspects(level, 0, 4);
+		ok &= expect(chain(sections, 1, 5) == "270 180 75 0 0 ",
+			"a section of " + name + " before an occupied section of level 0 shows 75");
+		sections = borderAspects(level, 0, 5);
+		ok &= expect(chain(sections, 2, 6) == "270 180 75 0 0 ",
+			"the sections of " + name + " continue the chain behind a section of level 0 with code 75");
+		ok &= expect(limit(sections[4]) == signalCode1 && limit(sections[3]) == 999 && limit(sections[2]) == 999,
+			"the routine of " + name + " leaves the speed limit of a level 0 section with code 75");
+		// A section without a level takes the chain of an occupied section of level 1 or 2 and of no other level.
+		sections = borderAspects(kSignallingLevelUnset, level, 4);
+		ok &= expect(chain(sections, 1, 5) == "270 180 75 0 0 ", "a section without a level takes the chain behind an occupied section of " + name);
+	}
+	std::vector<Section> sections = borderAspects(kSignallingLevelUnset, 0, 4);
+	ok &= expect(chain(sections, 1, 5) == "270 270 270 0 0 ", "a section without a level takes no chain behind an occupied section of level 0");
+	BlocksOccupied = savedOccupied;
+	return ok;
 }
 
 // A train whose delayed position at index 1 is headPosition.
@@ -1875,6 +1936,7 @@ int main() {
 	ok &= seedTests(completeScene());
 	ok &= noFileAccessTests(completeScene());
 	ok &= routeBoundaryTests();
+	ok &= levelBorderAspectTests();
 	ok &= regionalTrainStorageTests();
 	ok &= singleTrackLockTests();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
