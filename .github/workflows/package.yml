@@ -186,6 +186,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -233,7 +237,8 @@ jobs:
           # ZeroMQ + libsodium runtime DLLs from vcpkg
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/ -ErrorAction SilentlyContinue
           # Qt runtime: DLLs + platform/imageformat plugins next to the exe
-          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
+          # The application draws with the raster engine: no software OpenGL, ANGLE, Direct3D compiler, Qt Quick or virtual keyboard files are deployed.
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime --no-opengl-sw --no-angle --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"
           # Canonical scenes ship beside the executable for packaged defaults.
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           # Presentation package: the command-line tool, the canonical scenes, and
@@ -255,12 +260,38 @@ jobs:
           }
           if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
           if (-not (Test-Path "$dist/imageformats/qsvg.dll")) { throw "missing imageformats/qsvg.dll" }
+          if (-not (Test-Path "$dist/iconengines/qsvgicon.dll")) { throw "missing iconengines/qsvgicon.dll" }
+          if (-not (Test-Path "$dist/styles/qwindowsvistastyle.dll")) { throw "missing styles/qwindowsvistastyle.dll" }
           if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
           if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
           if (-not (Test-Path "$dist/Scenes/Paimpol/scene.json")) { throw "missing canonical Paimpol scene" }
           if (-not (Test-Path "$dist/Scenes/Lebanon/scenarios.json")) { throw "missing canonical Lebanon scene" }
           if (-not (Test-Path "$dist/lebanon-case-study.md")) { throw "missing Lebanon guide" }
-          Write-Host "OK: exe, Qt runtime, libzmq, canonical scenes, scene_tool, and guide are present"
+          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*")) {
+            $found = @(Get-ChildItem "$dist" -Recurse -File -Filter $name)
+            if ($found.Count -gt 0) { throw "unexpected $name in the package: $($found[0].FullName)" }
+          }
+          Write-Host "OK: exe, Qt runtime, libzmq, canonical scenes, scene_tool, and guide are present; the OpenGL, ANGLE, Direct3D compiler, Qt Quick, QML and virtual keyboard files are absent"
+
+      - name: Report package size
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = @(Get-ChildItem dist/QEGTRAIN -Recurse -File)
+          $bytes = ($files | Measure-Object -Property Length -Sum).Sum
+          "Windows package: $($files.Count) files, $bytes bytes" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+
+      - name: Start the package
+        # The program writes files next to itself, so it starts from a copy and the directory that is zipped stays as built.
+        shell: pwsh
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $start = "$env:RUNNER_TEMP/package-start/QEGTRAIN"
+          New-Item -ItemType Directory -Force -Path $start | Out-Null
+          Copy-Item -Recurse dist/QEGTRAIN/* $start
+          python tools/release/package_start_smoke.py "$start"
 
       - name: Zip
         shell: pwsh

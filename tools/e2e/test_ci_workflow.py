@@ -34,6 +34,10 @@ def job_block(text: str, job: str) -> str:
     return match.group(0).rstrip("\n") + "\n" if match else ""
 
 
+def step_block(job: str, name: str) -> str:
+    return next((block for block in job.split("\n      - ") if block.startswith(f"name: {name}\n")), "")
+
+
 def main() -> None:
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
@@ -387,7 +391,8 @@ def main() -> None:
     package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
     package_assembly = (
         'installed/x64-windows/bin/*.dll" $dist/',
-        'windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"',
+        'windeployqt.exe" --release --no-translations --compiler-runtime --no-opengl-sw --no-angle'
+        ' --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"',
         'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"',
     )
     if (
@@ -450,6 +455,53 @@ def main() -> None:
             or release_only.count(f"            artifacts/{artifact}/{file}\n") != 2
         ):
             missing.append(f"package artifact {artifact} downloaded by the release job")
+    # The application draws with the raster engine, so the Windows package job leaves out the software OpenGL, ANGLE,
+    # Direct3D compiler, Qt Quick, QML and virtual keyboard files, fails when one is present and starts a copy of the package.
+    windows_job = job_block(package_only, "package-windows")
+    verify_step = step_block(windows_job, "Verify the package is complete")
+    forbidden_files = (
+        '          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*")) {\n'
+        '            $found = @(Get-ChildItem "$dist" -Recurse -File -Filter $name)\n'
+        '            if ($found.Count -gt 0) { throw "unexpected $name in the package: $($found[0].FullName)" }\n'
+        "          }\n"
+    )
+    if forbidden_files not in verify_step or verify_step.find(forbidden_files) > verify_step.find("Write-Host"):
+        missing.append("Windows package check that forbids the OpenGL, ANGLE, Direct3D compiler, Qt Quick, QML and virtual keyboard files")
+    for required_file in ("iconengines/qsvgicon.dll", "styles/qwindowsvistastyle.dll"):
+        if f'          if (-not (Test-Path "$dist/{required_file}")) {{ throw "missing {required_file}" }}\n' not in verify_step:
+            missing.append(f"Windows package check that requires {required_file}")
+    deploy_options = ("--no-opengl-sw", "--no-angle", "--no-system-d3d-compiler", "--no-virtualkeyboard", "--no-quick-import")
+    package_deploy = [line.strip() for line in windows_job.splitlines() if "windeployqt.exe" in line]
+    start_deploy = [line.strip() for line in package_step.splitlines() if "windeployqt.exe" in line]
+    if len(package_deploy) != 1 or any(option not in package_deploy[0] for option in deploy_options):
+        missing.append("windeployqt options of the Windows package job that leave out the OpenGL, ANGLE, Direct3D compiler, Qt Quick and virtual keyboard files")
+    if package_deploy != start_deploy:
+        missing.append("the same windeployqt line in the Windows package job and in the Windows package start check")
+    windows_steps = ("Assemble package", "Verify the package is complete", "Report package size", "Start the package", "Zip", "Upload artifact")
+    windows_step_names = re.findall(r"^      - name: (.+)$", windows_job, re.MULTILINE)
+    step_positions = [windows_step_names.index(name) if name in windows_step_names else -1 for name in windows_steps]
+    if -1 in step_positions or step_positions != sorted(step_positions):
+        missing.append("Windows package steps in the order " + ", ".join(windows_steps))
+    size_step = step_block(windows_job, "Report package size")
+    if (
+        "Get-ChildItem dist/QEGTRAIN -Recurse -File" not in size_step
+        or '"Windows package: $($files.Count) files, $bytes bytes" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY' not in size_step
+    ):
+        missing.append("Windows package size in the job summary")
+    start_step = step_block(windows_job, "Start the package")
+    python_setup = next((block for block in windows_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
+    if (
+        not start_step.strip().endswith('python tools/release/package_start_smoke.py "$start"')
+        or '$start = "$env:RUNNER_TEMP/package-start/QEGTRAIN"' not in start_step
+        or "Copy-Item -Recurse dist/QEGTRAIN/* $start" not in start_step
+        or start_step.count("dist/QEGTRAIN") != 1
+        or 'PYTHONUTF8: "1"' not in start_step
+        or "python-version: '3.12'" not in python_setup
+        or not 0 <= windows_job.find("uses: actions/setup-python@v5") < windows_job.find("name: Start the package")
+    ):
+        missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
+    if "Compress-Archive -Path dist/QEGTRAIN/* -DestinationPath QEGTRAIN-windows-x64.zip" not in step_block(windows_job, "Zip"):
+        missing.append("Windows package zip of the directory that is built")
     package_check_paths = (
         ".github/workflows/package-check.yml",
         ".github/workflows/package.yml",
