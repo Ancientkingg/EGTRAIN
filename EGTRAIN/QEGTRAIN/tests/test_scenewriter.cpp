@@ -498,7 +498,8 @@ static bool checkCommittedSceneCodecs(fs::path scenes) {
 		if (entry->is_directory(error) && entry->path().filename().string().front() != '.')
 			directories.insert(entry->path());
 	}
-	bool ok = expect(!directories.empty(), "scene codec: the Scenes directory holds scene directories");
+	bool ok = expect(!error, "scene codec: the Scenes directory can be read");
+	ok &= expect(!directories.empty(), "scene codec: the Scenes directory holds scene directories");
 	std::vector<std::pair<std::string, fs::path>> sources;
 	for (const fs::path& directory : directories)
 		sources.emplace_back(directory.filename().string(), directory);
