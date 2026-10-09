@@ -36,6 +36,7 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
 #include "scene/SectionInventory.h"
+#include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
 #include "update/ReleaseInfo.h"
@@ -1805,31 +1806,6 @@ QString stationDisplayName(const SceneModel& model, const std::string& stationId
 	return stationId.empty() ? QStringLiteral("(missing station)") : QString::fromStdString(stationId);
 }
 
-SceneRouteTraversal serviceTraversal(const SceneModel& model, const SceneService& service) {
-	for (const auto& route : model.routes)
-		if (route.id == service.route)
-			return buildSceneRouteTraversal(model, route);
-	return {};
-}
-
-SceneRouteTraversal remainingStopTraversal(const SceneModel& model, const SceneService& service,
-		std::size_t stopIndex) {
-	auto traversal = serviceTraversal(model, service);
-	SceneService prefix = service;
-	prefix.stops.resize(std::min(stopIndex, prefix.stops.size()));
-	std::size_t cursor = 0;
-	for (const auto& resolution : resolveSceneServiceStops(model, prefix, traversal)) {
-		if (resolution.status == SceneStopResolutionStatus::Resolved)
-			cursor = resolution.visitIndex + 1;
-		else if (resolution.status != SceneStopResolutionStatus::OffRouteContext) {
-			traversal.visits.clear();
-			return traversal;
-		}
-	}
-	traversal.visits.erase(traversal.visits.begin(), traversal.visits.begin() + cursor);
-	return traversal;
-}
-
 QString stopResolutionText(SceneStopResolutionStatus status) {
 	switch (status) {
 	case SceneStopResolutionStatus::Resolved: return "Reachable ordered route visit";
@@ -3364,19 +3340,22 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_stopTableWidget->verticalHeader()->setVisible(false);
 	m_stopTableWidget->horizontalHeader()->setStretchLastSection(true);
 	serviceDetailLayout->addWidget(m_stopTableWidget);
-	QHBoxLayout* stopButtonLayout = new QHBoxLayout();
+	QGridLayout* stopButtonLayout = new QGridLayout();
 	m_addStopButton = new QPushButton("Add Stop", serviceDetailPane);
 	m_addStopButton->setObjectName("addTimetableStopButton");
+	m_insertStopAfterButton = new QPushButton("Insert After Selected", serviceDetailPane);
+	m_insertStopAfterButton->setObjectName("insertTimetableStopAfterButton");
 	m_removeStopButton = new QPushButton("Remove Stop", serviceDetailPane);
 	m_removeStopButton->setObjectName("removeTimetableStopButton");
 	m_moveStopUpButton = new QPushButton("Move Up", serviceDetailPane);
 	m_moveStopUpButton->setObjectName("moveTimetableStopUpButton");
 	m_moveStopDownButton = new QPushButton("Move Down", serviceDetailPane);
 	m_moveStopDownButton->setObjectName("moveTimetableStopDownButton");
-	stopButtonLayout->addWidget(m_addStopButton);
-	stopButtonLayout->addWidget(m_removeStopButton);
-	stopButtonLayout->addWidget(m_moveStopUpButton);
-	stopButtonLayout->addWidget(m_moveStopDownButton);
+	stopButtonLayout->addWidget(m_addStopButton, 0, 0);
+	stopButtonLayout->addWidget(m_insertStopAfterButton, 0, 1);
+	stopButtonLayout->addWidget(m_removeStopButton, 1, 0);
+	stopButtonLayout->addWidget(m_moveStopUpButton, 1, 1);
+	stopButtonLayout->addWidget(m_moveStopDownButton, 1, 2);
 	serviceDetailLayout->addLayout(stopButtonLayout);
 
 	serviceDetailLayout->addStretch();
@@ -3465,6 +3444,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	}
 	connect(m_stopTableWidget, &QTableWidget::currentCellChanged, this, &MainWindow::updateStopActions);
 	connect(m_addStopButton, &QPushButton::clicked, this, &MainWindow::addStop);
+	connect(m_insertStopAfterButton, &QPushButton::clicked, this, &MainWindow::insertStopAfterSelected);
 	connect(m_removeStopButton, &QPushButton::clicked, this, &MainWindow::removeStop);
 	connect(m_moveStopUpButton, &QPushButton::clicked, this, &MainWindow::moveStopUp);
 	connect(m_moveStopDownButton, &QPushButton::clicked, this, &MainWindow::moveStopDown);
@@ -10550,7 +10530,7 @@ void MainWindow::refreshStopList() {
 		std::vector<SceneStopResolution> resolutions;
 		if (hasService)
 			resolutions = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
-				serviceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]));
+				sceneServiceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]));
 		if (hasService) {
 			const auto& stops = m_sceneModel.services[serviceRow].stops;
 			for (int row = 0; row < static_cast<int>(stops.size()); ++row) {
@@ -10599,6 +10579,8 @@ void MainWindow::updateStopActions() {
 		&& selectedRow < m_stopTableWidget->rowCount();
 	if (m_addStopButton)
 		m_addStopButton->setEnabled(editorAvailable);
+	if (m_insertStopAfterButton)
+		m_insertStopAfterButton->setEnabled(hasSelection);
 	if (m_removeStopButton)
 		m_removeStopButton->setEnabled(hasSelection);
 	if (m_moveStopUpButton)
@@ -10608,7 +10590,7 @@ void MainWindow::updateStopActions() {
 			&& selectedRow + 1 < m_stopTableWidget->rowCount());
 }
 
-void MainWindow::editStop(int row) {
+void MainWindow::editStop(int row, int insertIndex) {
 	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
 		return;
 	const int serviceRow = m_serviceListWidget->currentRow();
@@ -10618,13 +10600,25 @@ void MainWindow::editStop(int row) {
 	const bool append = row < 0;
 	if (!append && row >= static_cast<int>(service.stops.size()))
 		return;
-	const std::size_t stopIndex = append ? service.stops.size() : static_cast<std::size_t>(row);
-	const SceneRouteTraversal traversal = remainingStopTraversal(m_sceneModel, service, stopIndex);
-	if (append && traversal.visits.empty()) {
-		QMessageBox::information(this, "No reachable stop",
-			"No station visit remains after the current stops. Check the route and stop order before adding a stop.");
-		return;
-	}
+	// The position of a new stop in the timetable, or the row of the stop being edited.
+	std::size_t stopIndex = !append ? static_cast<std::size_t>(row)
+		: insertIndex < 0 ? service.stops.size()
+		: std::min(static_cast<std::size_t>(insertIndex), service.stops.size());
+	// The route visits offered for the stop at `stopIndex`. A new stop is offered only
+	// the visits between its neighbours; `windowProblem` says why there are none.
+	SceneRouteTraversal traversal;
+	std::string windowProblem;
+	const auto updateWindow = [&]() {
+		const auto window = sceneStopInsertionWindow(m_sceneModel, service, stopIndex);
+		traversal = window.ok ? window.visits : SceneRouteTraversal();
+		windowProblem = window.ok ? std::string() : window.problem;
+		if (window.ok && traversal.visits.empty())
+			windowProblem = "No station visit is available at this position between the neighbouring stops.";
+	};
+	if (append)
+		updateWindow();
+	else
+		traversal = sceneRemainingStopTraversal(m_sceneModel, service, stopIndex);
 
 	SceneStop draft = append ? SceneStop() : service.stops[stopIndex];
 	if (append && !traversal.visits.empty()) {
@@ -10645,19 +10639,43 @@ void MainWindow::editStop(int row) {
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
+	ChoiceComboBox* positionCombo = nullptr;
+	if (append) {
+		positionCombo = new ChoiceComboBox(&dialog);
+		positionCombo->setObjectName("stopEditorPositionCombo");
+		positionCombo->setAccessibleName("Timetable stop position");
+		positionCombo->addItem("At the start of the timetable", 0);
+		for (std::size_t index = 0; index < service.stops.size(); ++index) {
+			const SceneStop& stop = service.stops[index];
+			QString label = QString("After stop %1: %2").arg(index + 1)
+				.arg(stationDisplayName(m_sceneModel, stop.stationId));
+			if (!stop.platformId.empty())
+				label += QString(" [%1]").arg(QString::fromStdString(stop.platformId));
+			positionCombo->addItem(label, static_cast<int>(index + 1));
+		}
+		positionCombo->setCurrentIndex(static_cast<int>(stopIndex));
+		form->addRow("Insert position", positionCombo);
+	}
 	auto* stationCombo = new ChoiceComboBox(&dialog);
 	stationCombo->setObjectName("stopEditorStationCombo");
 	stationCombo->setAccessibleName("Timetable stop station");
-	const auto addStationChoice = [&](const std::string& stationId) {
-		if (stationId.empty() || stationCombo->findData(QString::fromStdString(stationId)) >= 0)
-			return;
-		stationCombo->addItem(stationDisplayName(m_sceneModel, stationId), QString::fromStdString(stationId));
+	const auto fillStationChoices = [&]() {
+		const QSignalBlocker blocker(stationCombo);
+		stationCombo->clear();
+		const auto addStationChoice = [&](const std::string& stationId) {
+			if (stationId.empty() || stationCombo->findData(QString::fromStdString(stationId)) >= 0)
+				return;
+			stationCombo->addItem(stationDisplayName(m_sceneModel, stationId), QString::fromStdString(stationId));
+		};
+		for (const auto& visit : traversal.visits)
+			addStationChoice(visit.stationId);
+		if (!append)
+			addStationChoice(draft.stationId);
+		if (stationCombo->count() == 0)
+			stationCombo->addItem(append ? "(no reachable station here)" : "(missing station)", QString());
+		stationCombo->setEnabled(!append || !traversal.visits.empty());
 	};
-	for (const auto& visit : traversal.visits)
-		addStationChoice(visit.stationId);
-	addStationChoice(draft.stationId);
-	if (stationCombo->count() == 0)
-		stationCombo->addItem("(missing station)", QString());
+	fillStationChoices();
 	form->addRow("Station", stationCombo);
 	auto* platformCombo = new ChoiceComboBox(&dialog);
 	platformCombo->setObjectName("stopEditorPlatformCombo");
@@ -10742,13 +10760,17 @@ void MainWindow::editStop(int row) {
 			[&](const auto& visit) { return visit.stationId == stationId; });
 	};
 	const auto updateEligibility = [&]() {
+		if (!windowProblem.empty()) {
+			eligibilityLabel->setText(QString::fromStdString(windowProblem));
+			return SceneStopResolutionStatus::UnresolvedRoute;
+		}
 		SceneService candidate = service;
 		if (append)
-			candidate.stops.push_back(draft);
+			candidate.stops.insert(candidate.stops.begin() + stopIndex, draft);
 		else
 			candidate.stops[stopIndex] = draft;
 		const auto resolutions = resolveSceneServiceStops(m_sceneModel, candidate,
-			serviceTraversal(m_sceneModel, candidate));
+			sceneServiceTraversal(m_sceneModel, candidate));
 		const auto status = stopIndex < resolutions.size() ? resolutions[stopIndex].status
 			: SceneStopResolutionStatus::UnresolvedRoute;
 		eligibilityLabel->setText(stopResolutionText(status));
@@ -10789,6 +10811,31 @@ void MainWindow::editStop(int row) {
 	refreshPlatforms();
 	updateEligibility();
 	DialogLayout::fitWidthToContent(dialog);
+	if (positionCombo) {
+		connect(positionCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
+			if (index < 0)
+				return;
+			stopIndex = static_cast<std::size_t>(positionCombo->itemData(index).toInt());
+			updateWindow();
+			fillStationChoices();
+			int stationIndex = stationCombo->findData(QString::fromStdString(draft.stationId));
+			if (stationIndex < 0)
+				stationIndex = 0;
+			const std::string stationId = stationCombo->itemData(stationIndex).toString().toStdString();
+			const bool platformOffered = std::any_of(traversal.visits.begin(), traversal.visits.end(),
+				[&](const auto& visit) { return visit.stationId == stationId && visit.platformId == draft.platformId; });
+			if (stationId != draft.stationId || !platformOffered)
+				draft.platformId.clear();
+			draft.stationId = stationId;
+			{
+				const QSignalBlocker blocker(stationCombo);
+				stationCombo->setCurrentIndex(stationIndex);
+			}
+			refreshPlatforms();
+			updateEligibility();
+			errorLabel->clear();
+		});
+	}
 	connect(stationCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
 		if (index < 0)
 			return;
@@ -10854,6 +10901,12 @@ void MainWindow::editStop(int row) {
 	});
 	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+		if (!windowProblem.empty()) {
+			errorLabel->setText(QString::fromStdString(windowProblem));
+			if (positionCombo)
+				positionCombo->setFocus();
+			return;
+		}
 		std::optional<double> arrival = optionalArrival();
 		std::optional<double> departure = optionalDeparture();
 		if (!parseField(arrivalPresent, arrivalEdit, dialogClockMode, arrival)) {
@@ -10890,26 +10943,51 @@ void MainWindow::editStop(int row) {
 		if (draft.hasPlannedDeparture)
 			draft.plannedDepartureSeconds = *departure;
 		draft.dwellSeconds = dwell;
+		if (append) {
+			const auto result = insertSceneStop(m_sceneModel, service, stopIndex, draft);
+			if (!result.inserted) {
+				errorLabel->setText(QString::fromStdString(result.error));
+				return;
+			}
+		}
 		dialog.accept();
 	});
 
 	if (dialog.exec() != QDialog::Accepted)
 		return;
-	if (append)
-		service.stops.push_back(draft);
-	else
+	if (!append)
 		service.stops[stopIndex] = draft;
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshStopList();
 	if (m_stopTableWidget)
-		m_stopTableWidget->setCurrentCell(static_cast<int>(append ? service.stops.size() - 1 : stopIndex), 0);
+		m_stopTableWidget->setCurrentCell(static_cast<int>(stopIndex), 0);
 	refreshValidationPanel();
 }
 
 void MainWindow::addStop() {
-	editStop(-1);
+	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
+		return;
+	const int serviceRow = m_serviceListWidget->currentRow();
+	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	const SceneService& service = m_sceneModel.services[static_cast<std::size_t>(serviceRow)];
+	for (std::size_t position = service.stops.size() + 1; position-- > 0;) {
+		const auto window = sceneStopInsertionWindow(m_sceneModel, service, position);
+		if (window.ok && !window.visits.visits.empty()) {
+			editStop(-1, static_cast<int>(position));
+			return;
+		}
+	}
+	QMessageBox::information(this, "No reachable stop",
+		"No station visit is available between any of the current stops. Check the route and stop order before adding a stop.");
+}
+
+void MainWindow::insertStopAfterSelected() {
+	const int row = m_stopTableWidget ? m_stopTableWidget->currentRow() : -1;
+	if (row >= 0 && row < m_stopTableWidget->rowCount())
+		editStop(-1, row + 1);
 }
 
 void MainWindow::removeStop() {
@@ -15143,7 +15221,8 @@ void MainWindow::runEditorSmokeE2E() {
 			}
 		});
 	};
-	auto editStopDialog = [this](int row, const std::function<void(QDialog*)>& edit) {
+	auto editStopDialog = [this](int row, const std::function<void(QDialog*)>& edit,
+			QPushButton* opener = nullptr, const std::function<void(QDialog*)>& afterAccept = nullptr) {
 		bool accepted = false;
 		QTimer timer;
 		timer.setSingleShot(true);
@@ -15153,10 +15232,12 @@ void MainWindow::runEditorSmokeE2E() {
 			edit(dialog);
 			dialog->findChild<QPushButton*>("stopEditorAcceptButton")->click();
 			accepted = dialog->result() == QDialog::Accepted;
+			if (afterAccept) afterAccept(dialog);
 			if (!accepted) dialog->reject();
 		});
 		timer.start(0);
-		if (row < 0) m_addStopButton->click();
+		if (opener) opener->click();
+		else if (row < 0) m_addStopButton->click();
 		else editStop(row);
 		activateWindow();
 		QApplication::processEvents();
@@ -17661,7 +17742,7 @@ void MainWindow::runEditorSmokeE2E() {
 				m_sceneModel.services[serviceRow].stops.front() = before;
 				const auto savedStops = m_sceneModel.services[serviceRow].stops;
 				const auto savedStations = m_sceneModel.stations;
-				const auto traversal = serviceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]);
+				const auto traversal = sceneServiceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]);
 				if (!traversal.visits.empty()) {
 					const auto& visit = traversal.visits.front();
 					for (auto& station : m_sceneModel.stations) {
@@ -17690,7 +17771,7 @@ void MainWindow::runEditorSmokeE2E() {
 			// station, instead of calling the same consumed node twice.
 			SceneStop finalStop = m_sceneModel.services[serviceRow].stops.back();
 			const auto finalResolution = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
-				serviceTraversal(m_sceneModel, m_sceneModel.services[serviceRow])).back();
+				sceneServiceTraversal(m_sceneModel, m_sceneModel.services[serviceRow])).back();
 			if (finalStop.platformId.empty() && finalResolution.candidatePlatformIds.size() == 1)
 				finalStop.platformId = finalResolution.candidatePlatformIds.front();
 			for (auto& station : m_sceneModel.stations)
@@ -17751,10 +17832,190 @@ void MainWindow::runEditorSmokeE2E() {
 				m_stopTableWidget->setCurrentCell(originalStopCount, 0);
 				moveStopUp();
 			}
-			cancelConfirmation();
-			addStop();
-			if (static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1)
-				facetFailure(facetOk, "timetable", "exhausted route accepted an extra stop");
+			// Insertion positions. Each prepared timetable leaves out one stop of the full
+			// timetable, so the position where it belongs has a free station.
+			{
+				auto& stops = m_sceneModel.services[serviceRow].stops;
+				const std::vector<SceneStop> fullStops = stops;
+				const bool dirtySaved = m_sceneDirty;
+				const auto prepare = [&](std::vector<SceneStop> prepared) {
+					stops = std::move(prepared);
+					m_sceneDirty = false;
+					refreshStopList();
+				};
+				const auto without = [&](std::size_t index) {
+					std::vector<SceneStop> prepared = fullStops;
+					prepared.erase(prepared.begin() + static_cast<std::ptrdiff_t>(index));
+					return prepared;
+				};
+				const auto sameStopList = [&](const std::vector<SceneStop>& left, const std::vector<SceneStop>& right) {
+					return left.size() == right.size() && std::equal(left.begin(), left.end(), right.begin(), sameStop);
+				};
+				// Opens the dialog through `opener`, runs `inspect`, and cancels.
+				const auto cancelStopDialog = [&](QPushButton* opener, const std::function<void(QDialog*)>& inspect) {
+					bool opened = false;
+					cancelConfirmation();
+					QTimer timer;
+					timer.setSingleShot(true);
+					connect(&timer, &QTimer::timeout, this, [&]() {
+						auto* dialog = findChild<QDialog*>("stopEditorDialog");
+						if (!dialog) return;
+						opened = true;
+						inspect(dialog);
+						dialog->findChild<QPushButton*>("stopEditorCancelButton")->click();
+					});
+					timer.start(0);
+					opener->click();
+					QApplication::processEvents();
+					return opened;
+				};
+				// Sets the position (when given) and the stop's values in the open dialog.
+				const auto fillStop = [&](QDialog* dialog, const SceneStop& stop, int position) {
+					if (position >= 0) {
+						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
+						if (!positionCombo || positionCombo->findData(position) < 0) {
+							facetFailure(facetOk, "timetable", "position choice missing in the insert dialog");
+							return;
+						}
+						positionCombo->setCurrentIndex(positionCombo->findData(position));
+					}
+					auto* station = dialog->findChild<QComboBox*>("stopEditorStationCombo");
+					auto* platform = dialog->findChild<QComboBox*>("stopEditorPlatformCombo");
+					const int stationIndex = station->findData(QString::fromStdString(stop.stationId));
+					if (stationIndex < 0) {
+						facetFailure(facetOk, "timetable", "station of the inserted stop is not offered at its position");
+						return;
+					}
+					station->setCurrentIndex(stationIndex);
+					if (!stop.platformId.empty())
+						platform->setCurrentIndex(platform->findData(QString::fromStdString(stop.platformId)));
+					dialog->findChild<QComboBox*>("stopEditorTimeModeCombo")->setCurrentIndex(0);
+					dialog->findChild<QCheckBox*>("stopEditorArrivalPresent")->setChecked(stop.hasPlannedArrival);
+					if (stop.hasPlannedArrival)
+						dialog->findChild<QLineEdit*>("stopEditorArrivalEdit")->setText(QString::number(stop.plannedArrivalSeconds));
+					dialog->findChild<QCheckBox*>("stopEditorDeparturePresent")->setChecked(stop.hasPlannedDeparture);
+					if (stop.hasPlannedDeparture)
+						dialog->findChild<QLineEdit*>("stopEditorDepartureEdit")->setText(QString::number(stop.plannedDepartureSeconds));
+					dialog->findChild<QLineEdit*>("stopEditorDwellEdit")->setText(QString::number(stop.dwellSeconds));
+				};
+				// Inserts `stop` through the dialog and checks that it lands at `index` while
+				// every earlier stop is unchanged and in the same order. `opener` null uses
+				// Add Stop with the position `position`; otherwise the dialog must open at
+				// `position`.
+				const auto insertStop = [&](const char* what, QPushButton* opener, int position,
+						const SceneStop& stop, std::size_t index) {
+					const std::vector<SceneStop> before = stops;
+					const quint64 revisionBefore = m_sceneRevision;
+					SceneStop entered = stop;
+					const bool accepted = editStopDialog(-1, [&](QDialog* dialog) {
+						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
+						if (opener && (!positionCombo || positionCombo->currentData().toInt() != position))
+							facetFailure(facetOk, "timetable", QString("%1: dialog did not open at the expected position").arg(what));
+						fillStop(dialog, stop, opener ? -1 : position);
+						// A unique reachable platform is already chosen by the dialog.
+						entered.platformId = dialog->findChild<QComboBox*>("stopEditorPlatformCombo")
+							->currentData().toString().toStdString();
+						if (!stop.platformId.empty() && entered.platformId != stop.platformId)
+							facetFailure(facetOk, "timetable", QString("%1: the platform of the inserted stop is not offered").arg(what));
+					}, opener);
+					if (!accepted || stops.size() != before.size() + 1) {
+						facetFailure(facetOk, "timetable", QString("%1: insert was not applied").arg(what));
+						return;
+					}
+					if (!sameStop(stops[index], entered))
+						facetFailure(facetOk, "timetable", QString("%1: inserted stop is not at the chosen index or lost its values").arg(what));
+					for (std::size_t i = 0; i < before.size(); ++i)
+						if (!sameStop(stops[i < index ? i : i + 1], before[i]))
+							facetFailure(facetOk, "timetable", QString("%1: an existing stop changed or moved out of order").arg(what));
+					if (!m_sceneDirty || m_sceneRevision == revisionBefore
+							|| m_stopTableWidget->currentRow() != static_cast<int>(index))
+						facetFailure(facetOk, "timetable", QString("%1: scene not marked modified or new row not selected").arg(what));
+				};
+				if (fullStops.size() < 4 || fullStops[2].stationId != fullStops[3].stationId
+						|| fullStops[1].stationId == fullStops[2].stationId) {
+					facetFailure(facetOk, "timetable", "insert fixture needs a free station before a repeated final station");
+				} else {
+					// Add Stop on a timetable whose destination is present opens the dialog at a
+					// position that has choices; Cancel changes nothing.
+					prepare(without(1));
+					const std::vector<SceneStop> gapStops = stops;
+					const quint64 revisionBefore = m_sceneRevision;
+					const bool opened = cancelStopDialog(m_addStopButton, [&](QDialog* dialog) {
+						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
+						auto* station = dialog->findChild<QComboBox*>("stopEditorStationCombo");
+						if (!positionCombo || positionCombo->currentData().toInt() != 1
+								|| positionCombo->count() != static_cast<int>(gapStops.size()) + 1
+								|| positionCombo->itemText(0) != "At the start of the timetable"
+								|| station->findData(QString::fromStdString(fullStops[1].stationId)) < 0)
+							facetFailure(facetOk, "timetable", "Add Stop did not open at a position with choices");
+						// A station that occurs twice gives two position entries with their own index.
+						if (positionCombo && positionCombo->count() == 4
+								&& (positionCombo->itemData(2).toInt() != 2 || positionCombo->itemData(3).toInt() != 3
+									|| positionCombo->itemText(2) == positionCombo->itemText(3)
+									|| !positionCombo->itemText(2).startsWith("After stop 2: ")
+									|| !positionCombo->itemText(3).startsWith("After stop 3: ")))
+							facetFailure(facetOk, "timetable", "repeated station did not give distinct position entries");
+					});
+					if (!opened || !sameStopList(stops, gapStops) || m_sceneDirty || m_sceneRevision != revisionBefore)
+						facetFailure(facetOk, "timetable", "Add Stop on a present destination failed or Cancel changed the timetable");
+
+					// A position with no station visit blocks OK and leaves the timetable unchanged.
+					QString eligibilityText;
+					QString blockedError;
+					bool stationDisabled = false;
+					bool stayedOpen = false;
+					const bool blocked = !editStopDialog(-1, [&](QDialog* dialog) {
+						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
+						auto* station = dialog->findChild<QComboBox*>("stopEditorStationCombo");
+						positionCombo->setCurrentIndex(positionCombo->findData(static_cast<int>(gapStops.size())));
+						stationDisabled = !station->isEnabled() && station->count() == 1
+							&& station->currentText() == "(no reachable station here)";
+						eligibilityText = dialog->findChild<QLabel*>("stopEditorEligibilityLabel")->text();
+					}, nullptr, [&](QDialog* dialog) {
+						stayedOpen = dialog->isVisible();
+						blockedError = dialog->findChild<QLabel*>("stopEditorErrorLabel")->text();
+					});
+					if (!blocked || !stationDisabled || !stayedOpen || eligibilityText.isEmpty()
+							|| blockedError != eligibilityText || !sameStopList(stops, gapStops) || m_sceneDirty
+							|| m_sceneRevision != revisionBefore)
+						facetFailure(facetOk, "timetable", "a position without a station visit did not block OK");
+
+					// Insert at the start, between two stops and after the last stop.
+					prepare(without(0));
+					insertStop("insert at the start", nullptr, 0, fullStops[0], 0);
+					prepare(without(1));
+					insertStop("insert between stops", nullptr, 1, fullStops[1], 1);
+					prepare(without(fullStops.size() - 1));
+					insertStop("insert after the last stop", nullptr, static_cast<int>(fullStops.size()) - 1,
+						fullStops.back(), fullStops.size() - 1);
+
+					// Insert After Selected on row 0 inserts between rows 0 and 1.
+					prepare({});
+					if (m_insertStopAfterButton->isEnabled() || !m_addStopButton->isEnabled())
+						facetFailure(facetOk, "timetable", "Insert After Selected is enabled without a selected row");
+					prepare(without(1));
+					m_stopTableWidget->setCurrentCell(0, 0);
+					if (!m_insertStopAfterButton->isEnabled())
+						facetFailure(facetOk, "timetable", "Insert After Selected is disabled with a selected row");
+					insertStop("Insert After Selected", m_insertStopAfterButton, 1, fullStops[1], 1);
+
+					// The inserted order and planned times survive save and reload.
+					QTemporaryDir reloadDir;
+					const QString reloadPath = QDir(reloadDir.path()).filePath("inserted_stop_scene");
+					const SceneSaveResult saved = ::saveScene(m_sceneModel, reloadPath.toStdString());
+					const SceneLoadResult reloaded = ::loadScene(reloadPath.toStdString());
+					const auto reloadedService = std::find_if(reloaded.scene.services.begin(), reloaded.scene.services.end(),
+						[&](const SceneService& candidate) { return candidate.id == editedServiceId; });
+					if (!saved.success() || reloadedService == reloaded.scene.services.end()
+							|| reloadedService->stops.size() != stops.size()
+							|| !std::equal(stops.begin(), stops.end(), reloadedService->stops.begin(), sameStop))
+						facetFailure(facetOk, "timetable", "inserted stop order or planned times changed after save and reload");
+				}
+				stops = fullStops;
+				m_sceneDirty = dirtySaved;
+				refreshStopList();
+				updateSceneWindowTitle();
+			}
 			// Loaded invalid drafts remain removable; adding through the UI above
 			// must not create one.
 			m_sceneModel.services[serviceRow].stops.push_back(editedStop);
