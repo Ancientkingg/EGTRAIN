@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 		return built ? QString() : stageError;
 	};
 	const auto missingMessage = [](const QString& name) {
-		return QStringLiteral("The Windows update package is missing required runtime files: %1.")
+		return QStringLiteral("The Windows update package is missing a required file: %1.")
 			.arg(name);
 	};
 	const QString libzmq = QStringLiteral("libzmq-mt-4_3_5.dll");
