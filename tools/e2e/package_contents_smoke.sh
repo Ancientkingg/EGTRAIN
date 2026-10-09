@@ -75,6 +75,7 @@ set +e
 cd "$ROOT/EGTRAIN/QEGTRAIN"
 env -i HOME="$HOME_DIR" PATH="/usr/bin:/bin:/usr/sbin:/sbin" \
 	QT_QPA_PLATFORM=offscreen \
+	QEGTRAIN_E2E_SETTINGS_DIR="$HOME_DIR/settings" \
 	QEGTRAIN_E2E_TRACK_PREVIEW=1 \
 	QEGTRAIN_E2E_SCENE="$SCENE_COPY" \
 	"$PKG/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$PKG/Scenes/Lebanon" -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1

@@ -33,6 +33,7 @@ CONFIRMED_OBSERVERS = {
     "EGTRAIN/QEGTRAIN/simulation/SimulationWorker.h": {"s_active"},
     "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr"},
 }
+RAW_STRING_START = re.compile(r'R"([^\s()\\]{0,16})\(')
 
 
 def clean_cpp_code(content: str) -> str:
@@ -64,10 +65,11 @@ def clean_cpp_code(content: str) -> str:
                 state = "code" if char == quote else state
                 i += 1
         else:
-            raw = re.match(r'R"([^\s()\\]{0,16})\(', content[i:])
+            # Matching at a position keeps the scan linear; a slice per character copied the rest of the file each time.
+            raw = RAW_STRING_START.match(content, i) if char == "R" and following == '"' else None
             if raw:
                 terminator = f'){raw.group(1)}"'
-                end = content.find(terminator, i + raw.end())
+                end = content.find(terminator, raw.end())
                 end = len(content) if end < 0 else end + len(terminator)
                 cleaned.extend("\n" if value == "\n" else " " for value in content[i:end])
                 i = end

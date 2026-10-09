@@ -148,6 +148,12 @@ configuration, for example `cmake --build build --config Release` and
 `ctest --test-dir build -C Release`. `ctest -N` lists the tests registered on
 the current platform.
 
+Tests can run side by side: `ctest --test-dir build -j N --output-on-failure`.
+A test that starts the application keeps its user settings in a folder of its
+own, most of them below `build/settings`, so none of them reads or changes the
+settings of the user. CI runs `ctest --parallel` with the number of cores of
+the runner.
+
 Scene compatibility tests cover manifest probing, independent schema/bundle
 classification, hostile newer bundles, and transactional test-only migration
 chains. The production migration registry is empty; `scene_tool migrate` is a
@@ -557,13 +563,19 @@ The visual and render smoke artifacts include:
 
 ## CI and release branches
 
-- `main` is the validation branch. Pushes and pull requests build the project
-  and run the whole CTest suite on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
+- `main` is the validation branch. Pull requests build the project and run
+  the whole CTest suite, in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
   x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
-  documentation filters. The three legs run independently (`fail-fast: false`)
-  and share the same filters. A failed leg uploads `ctest.log` and the GUI
-  autostart log as an artifact named after the leg. Do not make any of these
-  legs a required check; see the branch-protection note below.
+  documentation filters. The same checks run on `main` once a night (02:17 UTC)
+  and when started by hand from the Actions tab (`workflow_dispatch`); both
+  ignore the filters. A push to `main` starts no run. A scheduled workflow runs
+  on the default branch only, and GitHub pauses schedules in a repository
+  without activity for 60 days. The three legs run independently
+  (`fail-fast: false`) and share the same filters. A newer push to a pull
+  request cancels its running checks; a scheduled or manual run is never
+  cancelled. A failed leg uploads `ctest.log` and the GUI autostart log as an
+  artifact named after the leg. Do not make any of these legs a required
+  check; see the branch-protection note below.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
@@ -586,9 +598,9 @@ The visual and render smoke artifacts include:
 - Releases remain drafts until every package and scene bundle is uploaded.
   Stable production releases then appear in the application's update checks.
 
-Automatic pushes and pull requests to `main` and `production` skip their
-workflows when changes are limited to Markdown files (`**.md`), `docs/`, the
-root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
+Automatic pull requests to `main` and pushes and pull requests to `production`
+skip their workflows when changes are limited to Markdown files (`**.md`),
+`docs/`, the root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
 workflow, as do changes to source, tests, scenes, build settings, or workflows.
 Documentation-only production pushes do not publish a new release. Updated
 packaged guides ship with the next release; `v*` tags and manual release runs
@@ -611,12 +623,15 @@ cached.
 
 A pull request can restore caches written on `main`, not caches written by
 other branches. The first run after a key change is therefore cold, and the
-push to `main` after the merge writes the caches that later pull requests use.
+next nightly or manual run on `main` writes the caches that later pull requests
+use. GitHub removes a cache that no run has used for seven days; the nightly run
+keeps the entries in use.
 
 ## Verification Gates
 
 To run what CI runs, use `ctest --test-dir build --output-on-failure` (add
-`-C Release` with a multi-config generator). For a quick check, use
+`-C Release` with a multi-config generator, and `-j N` to run tests side by
+side). For a quick check, use
 `ctest --test-dir build -L unit -LE slow --output-on-failure`.
 
 For UI changes:

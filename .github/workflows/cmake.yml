@@ -1,13 +1,6 @@
 name: CMake
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'LICENSE'
-      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
     branches: [main]
     paths-ignore:
@@ -15,10 +8,15 @@ on:
       - 'docs/**'
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
+  # One run a night on main. A scheduled run uses the default branch and ignores the path filters.
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
 
-# A newer push to the same pull request replaces its running checks. Every push to main keeps its own run.
+# A newer push to the same pull request replaces its running checks. A scheduled or manual run has
+# a group of its own and no other run cancels it.
 concurrency:
-  group: cmake-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  group: cmake-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -152,7 +150,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: ctest --test-dir build -C Release --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
+        run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
 
       # The same files as the Windows release package, started with only the operating
       # system directories on PATH: a DLL or plugin missing from the package fails here.

@@ -72,10 +72,21 @@ def main() -> None:
     ):
         missing.append("build job failure logs")
     validation_trigger = workflow.split("\njobs:", 1)[0]
-    if "  push:\n    branches: [main]\n" not in validation_trigger:
-        missing.append("main validation trigger")
+    if re.search(r"^  push:", validation_trigger, re.MULTILINE):
+        missing.append("no run for a push to main")
     if "  pull_request:\n    branches: [main]\n" not in validation_trigger:
         missing.append("main pull request validation trigger")
+    nightly = re.search(r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", validation_trigger, re.MULTILINE)
+    if not nightly or nightly.group(1) == "0":
+        missing.append("one nightly run at a minute that is not on the hour")
+    if not re.search(r"^  workflow_dispatch:\n(?!    )", validation_trigger, re.MULTILINE):
+        missing.append("manual start without inputs")
+    concurrency = workflow.split("\nconcurrency:\n", 1)[-1].split("\njobs:", 1)[0]
+    if (
+        "github.event_name == 'pull_request' && github.ref || github.run_id" not in concurrency
+        or "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" not in concurrency
+    ):
+        missing.append("only a newer push to a pull request cancels a run")
     if "paths:" in validation_trigger:
         missing.append("main validation must not use a code allowlist")
     release_trigger = release_workflow.split("\njobs:", 1)[0]
@@ -86,8 +97,11 @@ def main() -> None:
     if "paths:" in release_trigger:
         missing.append("production release must not use a code allowlist")
     expected_ignored_paths = {"**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"}
-    for name, trigger in (("main", validation_trigger), ("production", release_trigger)):
-        for event in ("push", "pull_request"):
+    for name, trigger, events in (
+        ("main", validation_trigger, ("pull_request",)),
+        ("production", release_trigger, ("push", "pull_request")),
+    ):
+        for event in events:
             event_match = re.search(
                 rf"^  {event}:\n((?:    .*\n|\n)*)", trigger, re.MULTILINE
             )
@@ -311,6 +325,8 @@ def main() -> None:
     build_step = next((block for block in blocks if block.startswith("name: Build\n")), "")
     if "ctest --test-dir build -C Release" not in test_step:
         missing.append("multi-config CTest configuration")
+    if "--parallel ${{ matrix.jobs }}" not in test_step or "--output-on-failure" not in test_step:
+        missing.append("parallel CTest run with the jobs of the matrix")
     if "cmake --build build --config Release" not in build_step:
         missing.append("multi-config build configuration")
     if "COMMAND python3" in cmake or "Python3_EXECUTABLE" not in cmake:
