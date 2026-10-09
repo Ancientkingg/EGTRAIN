@@ -358,7 +358,7 @@ EGTRAIN_UPDATE_EXPECTATIONS=1 ctest --test-dir build -L characterization
 git diff EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-For a case that CTest does not run, call the executable directly:
+To run one case directly, call the executable:
 
 ```bash
 EGTRAIN_UPDATE_EXPECTATIONS=1 build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
@@ -393,7 +393,13 @@ The markers name two open issues. #437 covers two trains at one position
 (`follow-level-none`, `sf-forward-level-none`, `sf-reverse-level-none`) and
 trains that stay stopped after a signal failure at levels 0 to 2. #499 covers
 a following train that reports a departure from B before its planned
-departure at levels 3 and 4. The other cases have no marker, so the checks apply.
+departure at levels 3 and 4.
+
+#498 covers trains that stand until the end of the run on a clear line at
+level 5 (`follow-level-5`, `sf-forward-level-5`, `sf-reverse-level-5`). These
+cases have no marker, because every stop is at a block boundary or a platform
+and no check fails. Their golden files pin that behaviour all the same. The
+other unmarked cases show no known-wrong behaviour, so the checks apply.
 
 ## Simulation Smoke Test
 
