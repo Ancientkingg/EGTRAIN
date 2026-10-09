@@ -546,7 +546,8 @@ return to proceed), `failure` (the same, and failed heads exactly while a sectio
 is blocked), `none` (every head unavailable) or `any`. Every rendered snapshot is
 checked against the heads. `QEGTRAIN_E2E_PAUSE_STEPS` (for example `100,500,900`)
 pauses the run at those steps and checks that the canvas shows the last delivered
-snapshot. After the run the final frame and every replay second, backwards and
+snapshot; a run with pause steps waits 2 ms after every step, so that it cannot
+end before a pause takes effect. After the run the final frame and every replay second, backwards and
 forwards, are checked. The marker is `E2E_SIGNAL_HEADS_OK mode=<name>`. The script
 makes three line scenes from `tests/fixtures/scenes/line` (levels, failure,
 none) and also runs Paimpol, Assignment and Lebanon.

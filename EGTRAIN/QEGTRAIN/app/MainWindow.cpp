@@ -22450,6 +22450,9 @@ void MainWindow::showEvent(QShowEvent* e) {
 #endif
 			QTimer::singleShot(1500, this, &MainWindow::runCurrent);
 	}
+	// At full speed a short run can end before a pause of the signal head check takes effect.
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PAUSE_STEPS"))
+		m_speedSlider->setValue(kMaxStepDelayMs - 2);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
 		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS"))
@@ -26931,8 +26934,9 @@ void MainWindow::waitForUpdates() {
 			m_trailingRenderTimer->stop();
 		checkSignalHeadsE2E();
 	} else {
-		// The render limit skipped this snapshot. The worker may pause or finish
-		// before it publishes another one, so draw the newest when the limit is over.
+		// The render limit skipped this snapshot. The worker may pause before it
+		// publishes another one, so draw the newest when the limit is over. The last
+		// step of a run is always drawn by the branch above.
 		if (!m_trailingRenderTimer) {
 			m_trailingRenderTimer = new QTimer(this);
 			m_trailingRenderTimer->setSingleShot(true);
