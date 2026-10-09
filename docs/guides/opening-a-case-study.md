@@ -34,9 +34,10 @@ report a scene that does not open:
   scene or bundle, or loading the scene reports errors. The message names the
   first problem; keep it.
 
-Scenes saved before 2026-08-08 use an older layout under the same version
-number and are not supported; use the current case studies, or convert the
-original legacy input folder again with **File > Load Legacy Case...**.
+Scenes written by builds before 2026-08-08 use an older layout under the same
+version number and are not supported: they may open with errors or not open at
+all. Use the current case studies, or convert the original legacy input folder
+again with **File > Load Legacy Case...**.
 
 See the [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
 for the full list of which scenes open.
