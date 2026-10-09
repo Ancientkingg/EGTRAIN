@@ -1037,7 +1037,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke
 		test_package_contents_smoke)
-	egtrain_label_tests(slow test_gui_autostart_smoke test_ownership_inventory)
+	egtrain_label_tests(slow test_gui_autostart_smoke)
 
 	# Fail configuration unless a test has exactly one of the unit and integration labels.
 	get_property(egtrain_all_tests DIRECTORY PROPERTY TESTS)
@@ -1068,7 +1068,6 @@ if(EGTRAIN_BUILD_TESTS)
 	# The longest tests start first, so that a parallel run does not end waiting for one of them.
 	# Without the timings of an earlier run, ctest orders tests by this cost.
 	set_tests_properties(test_gui_autostart_smoke PROPERTIES COST 80)
-	set_tests_properties(test_ownership_inventory PROPERTIES COST 60)
 
 	# The offscreen Qt platform has no fonts of its own on Windows, so GUI tests read the system fonts.
 	if(WIN32)
