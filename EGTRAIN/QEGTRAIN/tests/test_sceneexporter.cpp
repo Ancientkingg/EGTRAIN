@@ -47,8 +47,9 @@ static bool hasDiagMessage(const std::vector<SceneDiagnostic>& diags, const std:
 	return false;
 }
 
+// The file as text, so that the line ends of the platform read as "\n".
 static std::string readText(const fs::path& path) {
-	std::ifstream in(path, std::ios::binary);
+	std::ifstream in(path);
 	return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 }
 
