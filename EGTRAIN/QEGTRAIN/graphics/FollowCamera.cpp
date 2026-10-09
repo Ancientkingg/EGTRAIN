@@ -142,8 +142,8 @@ void FollowCamera::tick() {
 	const QSizeF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect().size();
 	const qreal maxLag = kMaxLagFraction * std::min(visible.width(), visible.height());
 	const QPointF delta = m_target - m_position;
-	const QPointF free(m_stall.x ? 0.0 : delta.x(), m_stall.y ? 0.0 : delta.y());
-	const qreal distance = std::hypot(free.x(), free.y());
+	const QPointF freeDelta(m_stall.x ? 0.0 : delta.x(), m_stall.y ? 0.0 : delta.y());
+	const qreal distance = std::hypot(freeDelta.x(), freeDelta.y());
 
 	// The part of the free distance that is left after this step. A clamped axis asks for the target.
 	qreal remainingFraction = 0.0;
@@ -156,7 +156,7 @@ void FollowCamera::tick() {
 		else if (remaining < reached)
 			remainingFraction = 0.0;
 	}
-	const Stall stall = moveTo(m_target - free * remainingFraction);
+	const Stall stall = moveTo(m_target - freeDelta * remainingFraction);
 	m_stall = stall;
 	if (distanceToTarget(stall) <= maxLag)
 		m_withinLag = true;
