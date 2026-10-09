@@ -231,6 +231,13 @@ int main(int argc, char** argv) {
 			"#12345\xB2", "#1234\xC3\xA9"})
 		ok &= expect(!sceneParseVisualizationColor(value, &red, &green, &blue) && red == -1 && green == -1
 				&& blue == -1, "malformed colour text is rejected and leaves outputs unchanged");
+	SceneModel lookup = clean;
+	lookup.services[0].visualizationColor = "#3c8dd2";
+	ok &= expect(sceneServiceVisualizationColor(lookup, "service-1") == "#3c8dd2"
+			&& sceneServiceVisualizationColor(clean, "service-1").empty()
+			&& sceneServiceVisualizationColor(lookup, "service-9").empty()
+			&& sceneServiceVisualizationColor(lookup, "").empty(),
+			"service colour lookup returns the stored text, or empty for none or an unknown id");
 	SceneModel timetable = clean;
 	timetable.services[0].stops[0].hasPlannedArrival = true;
 	timetable.services[0].stops[0].plannedArrivalSeconds = 90.0;

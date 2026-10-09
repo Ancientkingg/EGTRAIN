@@ -17,6 +17,7 @@ struct GuiTrainState {
 	std::string type;
 	std::string description;
 	std::string operatingCode;
+	std::string serviceId;
 	int routeIndex = -1;
 	bool reversedDirection = false;
 	int wagonCount = 0;

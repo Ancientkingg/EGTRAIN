@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <map>
-#include <set>
+#include <vector>
 
 namespace {
 
@@ -138,14 +138,52 @@ NetworkLegendEntry trainEntry(const QString& label, const QString& toolTip, cons
 	return entry;
 }
 
+// Natural order: a run of digits compares by value, so "S2" comes before "S10".
+bool serviceIdLess(const QString& a, const QString& b) {
+	int i = 0;
+	int j = 0;
+	while (i < a.size() && j < b.size()) {
+		if (!a.at(i).isDigit() || !b.at(j).isDigit()) {
+			if (a.at(i) != b.at(j))
+				return a.at(i) < b.at(j);
+			++i;
+			++j;
+			continue;
+		}
+		int iEnd = i;
+		int jEnd = j;
+		while (iEnd < a.size() && a.at(iEnd).isDigit())
+			++iEnd;
+		while (jEnd < b.size() && b.at(jEnd).isDigit())
+			++jEnd;
+		// the longer number is the larger one once leading zeros are skipped
+		while (i < iEnd - 1 && a.at(i) == QLatin1Char('0'))
+			++i;
+		while (j < jEnd - 1 && b.at(j) == QLatin1Char('0'))
+			++j;
+		if (iEnd - i != jEnd - j)
+			return iEnd - i < jEnd - j;
+		const int order = a.mid(i, iEnd - i).compare(b.mid(j, jEnd - j));
+		if (order != 0)
+			return order < 0;
+		i = iEnd;
+		j = jEnd;
+	}
+	if (i == a.size() && j == b.size())
+		return a < b;
+	return i == a.size();
+}
+
 // One "Train" row for the default colour, then one row per other fill colour,
-// labelled with the services that use it. A long list of services is shortened
-// in the label; the tooltip has all of them.
+// labelled with the services that use it and ordered by the smallest service
+// id of each row. A long list of services is shortened in the label; the
+// tooltip has all of them.
 QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trains) {
 	constexpr int maxListedServices = 3;
 	struct CustomColour {
+		QColor fill;
 		QColor outline;
-		std::set<QString> serviceIds;
+		QStringList serviceIds;
 	};
 	bool hasDefault = false;
 	std::map<QRgb, CustomColour> custom;
@@ -155,29 +193,31 @@ QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trai
 			continue;
 		}
 		CustomColour& group = custom[train.fill.rgb()];
+		group.fill = train.fill;
 		group.outline = train.outline;
-		if (!train.serviceId.isEmpty())
-			group.serviceIds.insert(train.serviceId);
+		if (!train.serviceId.isEmpty() && !group.serviceIds.contains(train.serviceId))
+			group.serviceIds << train.serviceId;
 	}
 
-	QVector<NetworkLegendEntry> customEntries;
-	for (const auto& item : custom) {
-		QStringList ids;
-		for (const QString& id : item.second.serviceIds)
-			ids << id;
-		QString label = ids.isEmpty() ? QString("Custom colour") : ids.mid(0, maxListedServices).join(", ");
-		if (ids.size() > maxListedServices)
-			label += QString(" and %1 more").arg(ids.size() - maxListedServices);
-		customEntries << trainEntry(label, ids.join(", "), QColor(item.first), item.second.outline);
+	std::vector<CustomColour> groups;
+	for (auto& item : custom) {
+		std::sort(item.second.serviceIds.begin(), item.second.serviceIds.end(), serviceIdLess);
+		groups.push_back(std::move(item.second));
 	}
-	std::sort(customEntries.begin(), customEntries.end(), [](const NetworkLegendEntry& a, const NetworkLegendEntry& b) {
-		return a.label < b.label;
+	std::sort(groups.begin(), groups.end(), [](const CustomColour& a, const CustomColour& b) {
+		return serviceIdLess(a.serviceIds.value(0), b.serviceIds.value(0));
 	});
 
 	QVector<NetworkLegendEntry> entries;
 	if (hasDefault)
 		entries << trainEntry("Train", QString(), defaultTrainFill(), defaultTrainOutline());
-	return entries + customEntries;
+	for (const CustomColour& group : groups) {
+		QString label = group.serviceIds.mid(0, maxListedServices).join(", ");
+		if (group.serviceIds.size() > maxListedServices)
+			label += QString(" and %1 more").arg(group.serviceIds.size() - maxListedServices);
+		entries << trainEntry(label, group.serviceIds.join(", "), group.fill, group.outline);
+	}
+	return entries;
 }
 
 NetworkLegendEntry stationEntry(const StationVisual& visual) {

@@ -207,6 +207,29 @@ int main(int argc, char* argv[]) {
 			&& !containsColor(onlyCustomImage, defaultTrainFill()),
 		"the first swatch is the custom colour when there is no Train row");
 
+	// Rows are ordered by the smallest service id of each row, in natural order,
+	// whatever the colour values or the order of the trains.
+	const QColor red(200, 60, 50);
+	const QColor redOutline = red.darker(200);
+	trainContent.trains = {{blue, blueOutline, "S10"}, {green, greenOutline, "S2"}};
+	trainLegend.setCaseContent(trainContent);
+	ok &= expect(trainLegend.entryLabels() == QStringList({"S2", "S10"}) && trainRows(trainLegend).at(0).color == green,
+		"services S2 and S10 are ordered by number, not by text");
+	trainContent.trains = {{green, greenOutline, "S2"}, {blue, blueOutline, "S10"}};
+	trainLegend.setCaseContent(trainContent);
+	ok &= expect(trainLegend.entryLabels() == QStringList({"S2", "S10"}),
+		"the row order does not depend on the order of the trains");
+	trainContent.trains = {{red, redOutline, "S10"}, {green, greenOutline, "S2"}, {red, redOutline, "S3"}};
+	trainLegend.setCaseContent(trainContent);
+	rows = trainRows(trainLegend);
+	ok &= expect(trainLegend.entryLabels() == QStringList({"S2", "S3, S10"}) && rows.at(0).color == green
+			&& rows.at(1).color == red,
+		"a row is placed by its smallest service id and lists its ids in the same order");
+	trainContent.trains = {defaultTrain, {red, redOutline, "201-10"}, {green, greenOutline, "201-9"}};
+	trainLegend.setCaseContent(trainContent);
+	ok &= expect(trainLegend.entryLabels() == QStringList({"Train", "201-9", "201-10"}),
+		"the Train row stays first and occurrence numbers sort by value");
+
 	trainContent.trains.clear();
 	for (const char* id : {"S6", "S1", "S4", "S2", "S5", "S3"})
 		trainContent.trains << NetworkLegendTrain{blue, blueOutline, id};

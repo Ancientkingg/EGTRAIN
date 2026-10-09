@@ -270,6 +270,17 @@ visible until you choose a replacement. This label does not change train
 performance, composition or stops. It survives duplication and folder/bundle
 saves, but not legacy export.
 
+Service visualization colour, directly below Category, sets the colour of the
+service's trains. Choose... opens a colour dialog; Default removes the colour.
+Without a colour, every train is drawn in the default yellow. The colour applies
+to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
+replay, and the Map key lists it with the service id. A stored value that is not
+a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept until
+you choose a colour or press Default; trains of that service use the default
+yellow. Changing the colour counts as a scene edit, so it discards the run
+results and replay like any other service edit. It survives duplication and
+folder/bundle saves, but not legacy export.
+
 The route chooser shows endpoints and direction. Its tooltip lists stations
 passed by the route, not stopping calls. Add Stop chooses a remaining station
 visit and its unique reachable platform; if several platforms are reachable,

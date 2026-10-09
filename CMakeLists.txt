@@ -181,6 +181,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/TrackLineItem.cpp
     ${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
     ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
+    ${SRC_DIR}/widgets/ColorChoiceButton.cpp
     ${SRC_DIR}/graphics/items/IconItem.cpp
     ${SRC_DIR}/graphics/items/StationNodeItem.cpp
     ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
@@ -235,6 +236,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/items/TrackLineItem.h
     ${SRC_DIR}/graphics/items/TrainBadgeItem.h
     ${SRC_DIR}/widgets/NetworkLegendWidget.h
+    ${SRC_DIR}/widgets/ColorChoiceButton.h
     ${SRC_DIR}/graphics/items/IconItem.h
     ${SRC_DIR}/graphics/items/StationNodeItem.h
     ${SRC_DIR}/graphics/items/StationOverlayItem.h
@@ -694,6 +696,14 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_compactdoublespinbox COMMAND test_compactdoublespinbox)
     set_tests_properties(test_compactdoublespinbox PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_colorchoicebutton
+        ${SRC_DIR}/tests/test_colorchoicebutton.cpp
+        ${SRC_DIR}/widgets/ColorChoiceButton.cpp
+        ${SRC_DIR}/graphics/VisualPolish.cpp)
+    target_link_libraries(test_colorchoicebutton PRIVATE egtrain_scene Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_colorchoicebutton COMMAND test_colorchoicebutton)
+    set_tests_properties(test_colorchoicebutton PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_aboutdialog
         ${SRC_DIR}/tests/test_aboutdialog.cpp
         ${SRC_DIR}/widgets/AboutDialog.cpp)
@@ -989,7 +999,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview
-		test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo test_timeprogressbar
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
@@ -1007,7 +1017,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-		test_networkview test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo
+		test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo
 		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke

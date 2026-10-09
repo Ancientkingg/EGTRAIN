@@ -114,6 +114,7 @@ namespace telemetry_smoke { struct State; }
 #endif
 class QProgressDialog;
 class AboutDialog;
+class ColorChoiceButton;
 class QPlainTextEdit;
 struct UpdateCheckResult;
 struct StableRelease;
@@ -574,6 +575,7 @@ private:
 	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
 	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
 	QComboBox* m_serviceCategoryCombo = nullptr;
+	ColorChoiceButton* m_serviceColorButton = nullptr; // optional display colour, "#rrggbb"
 	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
 	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
@@ -878,6 +880,7 @@ private:
 	void commitServiceIdEdit();
 	void commitServiceOperatingCode();
 	void commitServiceCategory(int index);
+	void commitServiceVisualizationColor(const QString& text);
 	void commitServiceComposition(const QString& text);
 	void commitServiceRoute(int index);
 	void commitServiceHasEntryTime(bool checked);

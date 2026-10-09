@@ -10,6 +10,7 @@
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/ChoiceComboBox.h"
+#include "widgets/ColorChoiceButton.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CompactDoubleSpinBox.h"
@@ -3263,6 +3264,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_serviceCategoryCombo = new QComboBox(serviceDetailPane);
 	m_serviceCategoryCombo->setObjectName("serviceCategoryCombo");
 	serviceDetailLayout->addWidget(m_serviceCategoryCombo);
+	serviceDetailLayout->addWidget(new QLabel("Service visualization colour", serviceDetailPane));
+	m_serviceColorButton = new ColorChoiceButton(serviceDetailPane);
+	serviceDetailLayout->addWidget(m_serviceColorButton);
 	serviceDetailLayout->addWidget(new QLabel("Composition", serviceDetailPane));
 	m_serviceCompositionCombo = new QComboBox(serviceDetailPane);
 	serviceDetailLayout->addWidget(m_serviceCompositionCombo);
@@ -3428,6 +3432,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_serviceOperatingCodeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceOperatingCode);
 	connect(m_serviceCategoryCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
 		&MainWindow::commitServiceCategory);
+	connect(m_serviceColorButton, &ColorChoiceButton::colorChanged, this,
+		&MainWindow::commitServiceVisualizationColor);
 	connect(m_serviceCompositionCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceComposition);
 	connect(m_serviceRouteCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWindow::commitServiceRoute);
 	connect(m_serviceHasEntryTimeCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasEntryTime);
@@ -9633,6 +9639,11 @@ void MainWindow::updateServiceDetailPanel() {
 		m_serviceCategoryCombo->setEnabled(editorAvailable);
 	}
 
+	if (m_serviceColorButton) {
+		m_serviceColorButton->setColor(hasSelection ? m_sceneModel.services[row].visualizationColor : std::string());
+		m_serviceColorButton->setEnabled(editorAvailable);
+	}
+
 	if (m_serviceCompositionCombo) {
 		const QSignalBlocker blocker(m_serviceCompositionCombo);
 		m_serviceCompositionCombo->clear();
@@ -10167,6 +10178,19 @@ void MainWindow::commitServiceCategory(int index) {
 	if (value == m_sceneModel.services[row].category)
 		return;
 	m_sceneModel.services[row].category = value;
+	markSceneDirty();
+}
+
+void MainWindow::commitServiceVisualizationColor(const QString& text) {
+	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
+		return;
+	const int row = m_serviceListWidget->currentRow();
+	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
+		return;
+	const std::string value = text.toStdString();
+	if (value == m_sceneModel.services[row].visualizationColor)
+		return;
+	m_sceneModel.services[row].visualizationColor = value;
 	markSceneDirty();
 }
 
@@ -12821,6 +12845,25 @@ void MainWindow::runVisualPolishE2E() {
 		QTimer::singleShot(500, this, &MainWindow::runVisualPolishE2E);
 		return;
 	}
+	// The colours that the services ask for. When there are some, the check below
+	// needs trains of a coloured and of another service on the canvas, so wait for
+	// them until the run ends; every rendered frame calls this function again.
+	QHash<QString, QColor> serviceColors;
+	for (const SceneService& service : m_sceneModel.services) {
+		int red = 0, green = 0, blue = 0;
+		if (sceneParseVisualizationColor(service.visualizationColor, &red, &green, &blue))
+			serviceColors.insert(QString::fromStdString(service.id), QColor(red, green, blue));
+	}
+	if (!serviceColors.isEmpty() && m_snapshot && m_snapshot->timestep < m_snapshot->totalTimesteps - 1) {
+		const auto isColored = [&serviceColors](const TrainItemGroup* train) {
+			return train && serviceColors.contains(QString::fromStdString(train->serviceId));
+		};
+		const bool anyColored = std::any_of(allTrains.cbegin(), allTrains.cend(), isColored);
+		const bool anyDefault = std::any_of(allTrains.cbegin(), allTrains.cend(),
+			[&isColored](const TrainItemGroup* train) { return train && !isColored(train); });
+		if (!anyColored || !anyDefault)
+			return;
+	}
 	m_e2eFinished = true;
 
 	bool ok = true;
@@ -12902,15 +12945,50 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "map key still has rows named after train kinds";
 	}
-	if (!allTrains.isEmpty()) {
-		const TrainItemGroup* firstTrain = allTrains.first();
-		const TrainBodyItem* firstBody = firstTrain && firstTrain->trainPolygonItemList
-				&& !firstTrain->trainPolygonItemList->isEmpty()
-			? firstTrain->trainPolygonItemList->first() : nullptr;
-		if (!firstBody || firstBody->brush().color() != defaultTrainFill()) {
+	// Each train body is painted in the colour of its service, or in the default
+	// colour. The expected colours were read from the services themselves.
+	int coloredTrains = 0;
+	int defaultTrains = 0;
+	QSet<QString> coloredTrainServices;
+	for (const TrainItemGroup* train : allTrains) {
+		const TrainBodyItem* body = train && train->trainPolygonItemList && !train->trainPolygonItemList->isEmpty()
+			? train->trainPolygonItemList->first() : nullptr;
+		const QString serviceId = train ? QString::fromStdString(train->serviceId) : QString();
+		const bool custom = serviceColors.contains(serviceId);
+		const QColor expectedFill = custom ? serviceColors.value(serviceId) : defaultTrainFill();
+		const QColor expectedOutline = custom ? expectedFill.darker(200) : defaultTrainOutline();
+		if (!body || body->brush().color() != expectedFill || body->pen().color() != expectedOutline) {
 			ok = false;
-			failures << "train body is not painted in the default fill";
+			failures << (custom ? QString("train body of service %1 is not painted in its colour").arg(serviceId)
+				: QStringLiteral("train body is not painted in the default fill"));
+			break;
 		}
+		if (custom) {
+			++coloredTrains;
+			coloredTrainServices.insert(serviceId);
+		} else {
+			++defaultTrains;
+		}
+	}
+	if (!serviceColors.isEmpty()) {
+		if (coloredTrains == 0 || defaultTrains == 0) {
+			ok = false;
+			failures << QString("the scene needs trains of coloured and of other services (%1 coloured, %2 default, %3 coloured services)")
+				.arg(coloredTrains).arg(defaultTrains).arg(serviceColors.size());
+		}
+		for (const QString& serviceId : coloredTrainServices) {
+			const bool hasRow = std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
+				[&](const NetworkLegendEntry& entry) {
+					return entry.kind == NetworkLegendEntryKind::Train && entry.color == serviceColors.value(serviceId)
+						&& entry.toolTip.split(QStringLiteral(", ")).contains(serviceId);
+				});
+			if (!hasRow) {
+				ok = false;
+				failures << QString("map key has no row for the colour of service %1").arg(serviceId);
+			}
+		}
+		if (ok)
+			std::fprintf(stdout, "E2E_VISUAL_POLISH_SERVICE_COLOR_OK %d coloured, %d default\n", coloredTrains, defaultTrains);
 	}
 	const auto hasOperationalLegendEntry = [&mapKeyEntriesBeforeFit](const QString& label) {
 		return std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
@@ -15105,7 +15183,7 @@ void MainWindow::runEditorSmokeE2E() {
 		if (left.size() != right.size())
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [&](const SceneService& a, const SceneService& b) {
-			if (a.id != b.id || a.operatingCode != b.operatingCode || a.category != b.category || a.composition != b.composition || a.route != b.route
+			if (a.id != b.id || a.operatingCode != b.operatingCode || a.category != b.category || a.visualizationColor != b.visualizationColor || a.composition != b.composition || a.route != b.route
 					|| a.performancePercent != b.performancePercent || a.hasMaximumSpeed != b.hasMaximumSpeed
 					|| a.maximumSpeedKmh != b.maximumSpeedKmh || a.through != b.through
 					|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
@@ -17126,6 +17204,14 @@ void MainWindow::runEditorSmokeE2E() {
 		if (!m_serviceCategoryCombo || m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
 				|| !m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
 			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
+		const std::string storedColor = "#3c8dd2";
+		m_sceneModel.services[0].visualizationColor = storedColor;
+		expectedServices[0].visualizationColor = storedColor;
+		updateServiceDetailPanel();
+		if (!m_serviceColorButton || !m_serviceColorButton->isEnabled()
+				|| m_serviceColorButton->valueText() != QString::fromStdString(storedColor)
+				|| m_serviceColorButton->swatchColor() != QColor(0x3C, 0x8D, 0xD2))
+			facetFailure(facetOk, "service colour", "stored colour is not shown in the editor");
 		const auto originalService = m_sceneModel.services[0];
 		const auto sourceRoute = std::find_if(m_sceneModel.routes.begin(), m_sceneModel.routes.end(),
 			[&](const SceneRoute& route) { return route.id == originalService.route; });
@@ -17156,6 +17242,8 @@ void MainWindow::runEditorSmokeE2E() {
 			SceneService categoryExpected = m_sceneModel.services[1];
 			if (categoryExpected.category != unknownCategory)
 				facetFailure(facetOk, "service", "duplicate lost category");
+			if (categoryExpected.visualizationColor != storedColor)
+				facetFailure(facetOk, "service colour", "duplicate lost the colour");
 			if (m_serviceCategoryCombo) {
 				for (const QString& category : {QString(), QStringLiteral("Intercity"), QStringLiteral("Regional"),
 						QStringLiteral("High speed/international"), QStringLiteral("Freight"),
@@ -17166,6 +17254,65 @@ void MainWindow::runEditorSmokeE2E() {
 					if (index < 0 || !sameServices({categoryExpected}, {m_sceneModel.services[1]}))
 						facetFailure(facetOk, "service", "category selection changed other service settings");
 				}
+			}
+			if (m_serviceColorButton) {
+				auto* defaultColorButton = m_serviceColorButton->findChild<QPushButton*>("serviceColorDefaultButton");
+				const bool dirtyBeforeColor = m_sceneDirty;
+				// an edit changes the colour and marks the scene modified; an equal value changes nothing
+				const auto colorStep = [&](const char* what, const std::function<void()>& action,
+						const std::string& expectedColor) {
+					m_sceneDirty = false;
+					const quint64 revisionBefore = m_sceneRevision;
+					const SceneService before = m_sceneModel.services[1];
+					action();
+					SceneService expected = before;
+					expected.visualizationColor = expectedColor;
+					const bool changed = expectedColor != before.visualizationColor;
+					if (!sameServices({expected}, {m_sceneModel.services[1]}) || m_sceneDirty != changed
+							|| (m_sceneRevision != revisionBefore) != changed)
+						facetFailure(facetOk, "service colour",
+							QString("%1 gave the wrong model or dirty state").arg(QLatin1String(what)));
+				};
+				// the comparison used below sees a colour that differs alone
+				SceneService withColor = m_sceneModel.services[1];
+				withColor.visualizationColor = "#112233";
+				SceneService withoutColor = withColor;
+				withoutColor.visualizationColor.clear();
+				if (sameServices({withColor}, {withoutColor}))
+					facetFailure(facetOk, "service colour", "service comparison ignores the colour");
+				if (!defaultColorButton)
+					facetFailure(facetOk, "service colour", "Default button unavailable");
+				else {
+					colorStep("choosing a colour", [&]() { m_serviceColorButton->chooseColor(QColor(0xAB, 0xCD, 0xEF)); },
+						"#abcdef");
+					colorStep("choosing the same colour again", [&]() { m_serviceColorButton->chooseColor(QColor(0xAB, 0xCD, 0xEF)); },
+						"#abcdef");
+					colorStep("Default", [&]() { defaultColorButton->click(); }, "");
+					colorStep("Default without a colour", [&]() { defaultColorButton->click(); }, "");
+					if (m_serviceColorButton->valueText() != "Default")
+						facetFailure(facetOk, "service colour", "Default did not show the default look");
+					// a stored text that is not a colour is shown and kept until changed
+					m_sceneModel.services[1].visualizationColor = "not-a-colour";
+					updateServiceDetailPanel();
+					m_serviceListWidget->setCurrentRow(0);
+					m_serviceListWidget->setCurrentRow(1);
+					if (m_serviceColorButton->valueText() != "Invalid: not-a-colour"
+							|| m_sceneModel.services[1].visualizationColor != "not-a-colour")
+						facetFailure(facetOk, "service colour", "invalid stored colour is not shown as invalid and kept");
+					colorStep("choosing a colour over an invalid text",
+						[&]() { m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
+					m_sceneModel.services[1].visualizationColor = "not-a-colour";
+					updateServiceDetailPanel();
+					colorStep("Default over an invalid text", [&]() { defaultColorButton->click(); }, "");
+					// the colour stays on the service for the save and reload below
+					colorStep("choosing the final colour",
+						[&]() { m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
+					if (m_serviceColorButton->valueText() != QString::fromStdString(storedColor))
+						facetFailure(facetOk, "service colour", "chosen colour is not shown");
+				}
+				m_sceneDirty = dirtyBeforeColor;
+			} else {
+				facetFailure(facetOk, "service colour", "colour control unavailable");
 			}
 			const std::string oldServiceId = m_sceneModel.services[1].id;
 			int referenceScenarioRow = -1;
@@ -17931,6 +18078,11 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
 				} else if (!sameServices(expectedServices, m_sceneModel.services)) {
 					facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
+				} else if (!std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+						[&](const SceneService& service) {
+							return service.id == editedServiceId && service.visualizationColor == "#3c8dd2";
+						})) {
+					facetFailure(facetOk, "save/reload", "service colour changed after reload");
 				} else if (!sameStations(expectedStations, m_sceneModel.stations)) {
 					facetFailure(facetOk, "save/reload", "platform geometry changed after reload");
 				} else if (!samePassengers(expectedPassengers, m_sceneModel.passengers)) {
@@ -24084,7 +24236,12 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 
 // draws a train
 void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width) {
-	TrainVisual visual = resolveTrainVisual(train.type, train.description);
+	// The scene in the window is the scene that was run: an edit discards the results.
+	QColor serviceColor;
+	int red = 0, green = 0, blue = 0;
+	if (sceneParseVisualizationColor(sceneServiceVisualizationColor(m_sceneModel, train.serviceId), &red, &green, &blue))
+		serviceColor = QColor(red, green, blue);
+	TrainVisual visual = resolveTrainVisual(train.type, train.description, serviceColor);
 	QPen pen = QPen(visual.outline);
 	pen.setWidthF(3 * presentationScale());
 
@@ -24125,6 +24282,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	trainPolygonGroup->trainType = train.type;
 	trainPolygonGroup->fillColor = visual.fill;
 	trainPolygonGroup->outlineColor = visual.outline;
+	trainPolygonGroup->serviceId = train.serviceId;
 	trainPolygonGroup->trainLength = train.length;
 	trainPolygonGroup->wagonCount = train.wagonCount;
 	trainPolygonGroup->currentOnboardPassengers = train.currentOnboardPassengers;

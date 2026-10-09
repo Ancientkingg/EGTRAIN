@@ -205,6 +205,12 @@ bool sceneParseVisualizationColor(const std::string& text, int* red, int* green,
 	return true;
 }
 
+std::string sceneServiceVisualizationColor(const SceneModel& model, const std::string& serviceId) {
+	const auto service = std::find_if(model.services.begin(), model.services.end(),
+			[&serviceId](const SceneService& candidate) { return candidate.id == serviceId; });
+	return service == model.services.end() ? std::string() : service->visualizationColor;
+}
+
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence) {
 	const double entry = service.hasEntryTime ? service.entryTimeSeconds
 			: (!service.stops.empty() && service.stops.front().hasPlannedDeparture
