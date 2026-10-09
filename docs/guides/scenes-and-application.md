@@ -276,7 +276,9 @@ malformed rows, and preserved source anomalies in `scene.json.import_report`.
 In particular, a timetable
 sentinel of `-1` means the corresponding planned arrival or departure is
 absent; the importer neither synthesizes a result nor changes an inconsistent
-source time.
+source time. A `TrackLines/AreasCaseStudy.txt` is reported in `import_report`
+and in a warning, but its rows are not converted: add the signalling areas in
+Infrastructure > Signalling area.
 
 Example:
 
@@ -392,7 +394,9 @@ files; edits to that export do not flow back into canonical JSON. The exporter
 generates legacy infrastructure, signalling constraints, rolling stock,
 timetables, and supported passenger CSVs from canonical data. It reports an
 error when a canonical passenger window cannot be represented by the legacy
-half-hour bucket format instead of silently changing it.
+half-hour bucket format instead of silently changing it. The signalling areas of
+the scene are exported to `TrackLines/AreasCaseStudy.txt`; an edit of that file
+does not flow back.
 
 ## Scope
 
