@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QString>
+#include <QStringList>
 #include <QUrl>
 #include <optional>
 
@@ -30,6 +31,7 @@ struct UpdateManifest {
 	QString assetName;
 	QString sha256;
 	qint64 assetSize = 0;
+	QStringList files;
 };
 
 QString updatePlatformKey();

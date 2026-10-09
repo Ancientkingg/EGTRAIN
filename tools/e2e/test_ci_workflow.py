@@ -262,6 +262,16 @@ def main() -> None:
         )
     ):
         missing.append("release update manifest and exact package checksums")
+    if any(
+        value not in release_workflow
+        for value in (
+            "unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\\\' '/' | grep -v '/$'",
+            "jq -e 'index(\"QEGTRAIN.exe\")' <<< \"$windows_files\"",
+            '--argjson windows_files "$windows_files"',
+            "size:$windows_size,files:$windows_files}",
+        )
+    ):
+        missing.append("Windows package file list in the update manifest")
     if (
         any(f"os: {runner}\n" not in workflow for runner in ("macos-latest", "windows-latest", "ubuntu-latest"))
         or "      fail-fast: false\n" not in workflow

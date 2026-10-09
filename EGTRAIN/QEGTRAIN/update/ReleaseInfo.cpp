@@ -45,6 +45,36 @@ void setManifestError(QString* error, const QString& message) {
 		*error = message;
 }
 
+// Reads the optional package file list of a manifest entry. Backslashes
+// become forward slashes. Every path must be relative, free of drive and
+// stream colons and of empty, "." and ".." segments, and the list must name
+// QEGTRAIN.exe. A missing key is an empty list.
+bool parseManifestFiles(const QJsonObject& entry, QStringList* files) {
+	constexpr int kMaxFiles = 4096;
+	constexpr int kMaxPathLength = 260;
+	files->clear();
+	const QString key = QStringLiteral("files");
+	if (!entry.contains(key))
+		return true;
+	const QJsonValue raw = entry.value(key);
+	if (!raw.isArray() || raw.toArray().size() > kMaxFiles)
+		return false;
+	for (const QJsonValue& value : raw.toArray()) {
+		if (!value.isString())
+			return false;
+		const QString path = value.toString().replace(QLatin1Char('\\'), QLatin1Char('/'));
+		if (path.isEmpty() || path.size() > kMaxPathLength || path.contains(QLatin1Char(':'))
+			|| path.contains(QChar(0)))
+			return false;
+		for (const QString& segment : path.split(QLatin1Char('/'))) {
+			if (segment.isEmpty() || segment == QLatin1String(".") || segment == QLatin1String(".."))
+				return false;
+		}
+		files->append(path);
+	}
+	return files->contains(QStringLiteral("QEGTRAIN.exe"));
+}
+
 } // namespace
 
 const ReleaseAsset* StableRelease::asset(const QString& name) const {
@@ -194,7 +224,12 @@ std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
 		setManifestError(error, QStringLiteral("Update manifest has an invalid package size."));
 		return std::nullopt;
 	}
-	return UpdateManifest{expectedVersion, platform, asset, sha256, static_cast<qint64>(rawSize)};
+	QStringList files;
+	if (!parseManifestFiles(entry, &files)) {
+		setManifestError(error, QStringLiteral("Update manifest has an invalid file list."));
+		return std::nullopt;
+	}
+	return UpdateManifest{expectedVersion, platform, asset, sha256, static_cast<qint64>(rawSize), files};
 }
 
 bool isUpdateAvailable(const SemanticVersion& current, const StableRelease& release) {

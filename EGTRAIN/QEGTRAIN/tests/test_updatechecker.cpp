@@ -7,6 +7,7 @@
 #include <QTemporaryDir>
 
 #include <iostream>
+#include <string>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -132,5 +133,71 @@ int main(int argc, char** argv) {
 	ok &= expect(!parseUpdateManifest(uppercaseManifest,
 		QStringLiteral("v1.10.0"), QStringLiteral("linux-x86_64")),
 		"manifest hash must be lowercase hexadecimal");
+
+	// Package file list of the manifest entry.
+	const auto manifestWithFiles = [&](const QByteArray& filesMember) {
+		return QByteArray("{\"version\":\"1.10.0\",\"assets\":{\"windows-x64\":{"
+			"\"name\":\"QEGTRAIN-windows-x64.zip\",\"sha256\":\"") + validHash
+			+ QByteArray("\",\"size\":12345") + filesMember + QByteArray("}}}");
+	};
+	const auto parseWindows = [&](const QByteArray& filesMember, QString* error = nullptr) {
+		return parseUpdateManifest(manifestWithFiles(filesMember), QStringLiteral("v1.10.0"),
+			QStringLiteral("windows-x64"), error);
+	};
+	const auto parsedList = parseWindows(QByteArray(
+		",\"files\":[\"QEGTRAIN.exe\",\"platforms/qwindows.dll\",\"Scenes/Paimpol/scene.json\"]"));
+	ok &= expect(parsedList && parsedList->files == QStringList({QStringLiteral("QEGTRAIN.exe"),
+		QStringLiteral("platforms/qwindows.dll"), QStringLiteral("Scenes/Paimpol/scene.json")}),
+		"manifest file list is retained");
+	const auto parsedBackslash = parseWindows(QByteArray(
+		",\"files\":[\"QEGTRAIN.exe\",\"platforms\\\\qwindows.dll\"]"));
+	ok &= expect(parsedBackslash && parsedBackslash->files.contains(
+		QStringLiteral("platforms/qwindows.dll")), "manifest file list uses forward slashes");
+	const auto parsedWithoutList = parseWindows(QByteArray());
+	ok &= expect(parsedWithoutList && parsedWithoutList->files.isEmpty(),
+		"a manifest without a file list stays valid");
+
+	const QByteArray executable = "\"QEGTRAIN.exe\"";
+	QByteArray manyFiles = ",\"files\":[" + executable;
+	for (int index = 0; index < 4096; ++index)
+		manyFiles += ",\"f" + QByteArray::number(index) + ".dll\"";
+	QByteArray maxFiles = ",\"files\":[" + executable;
+	for (int index = 0; index < 4095; ++index)
+		maxFiles += ",\"f" + QByteArray::number(index) + ".dll\"";
+	const QByteArray longName = "\"" + QByteArray(257, 'a') + ".dll\"";
+	const QByteArray maxName = "\"" + QByteArray(256, 'a') + ".dll\"";
+	struct InvalidListCase {
+		const char* label;
+		QByteArray filesMember;
+	};
+	const QList<InvalidListCase> invalidLists = {
+		{"a file list that is not an array", ",\"files\":\"QEGTRAIN.exe\""},
+		{"a null file list", ",\"files\":null"},
+		{"a file list with a non-string entry", ",\"files\":[" + executable + ",7]"},
+		{"a file list with more than 4096 entries", manyFiles + "]"},
+		{"an empty entry", ",\"files\":[" + executable + ",\"\"]"},
+		{"an entry longer than 260 characters", ",\"files\":[" + executable + "," + longName + "]"},
+		{"an absolute path", ",\"files\":[" + executable + ",\"/abs/file.dll\"]"},
+		{"a drive colon", ",\"files\":[" + executable + ",\"C:/dir/x.dll\"]"},
+		{"a stream colon", ",\"files\":[" + executable + ",\"a.dll:stream\"]"},
+		{"a NUL character", ",\"files\":[" + executable + ",\"a\\u0000.dll\"]"},
+		{"an empty segment", ",\"files\":[" + executable + ",\"a//b.dll\"]"},
+		{"a trailing slash", ",\"files\":[" + executable + ",\"a/\"]"},
+		{"a dot segment", ",\"files\":[" + executable + ",\"./a.dll\"]"},
+		{"a parent segment", ",\"files\":[" + executable + ",\"a/../b.dll\"]"},
+		{"a backslash parent segment", ",\"files\":[" + executable + ",\"..\\\\b.dll\"]"},
+		{"a file list without QEGTRAIN.exe", ",\"files\":[\"Qt5Core.dll\"]"},
+		{"an empty file list", ",\"files\":[]"}};
+	for (const InvalidListCase& invalid : invalidLists) {
+		QString listError;
+		ok &= expect(!parseWindows(invalid.filesMember, &listError)
+			&& listError == QStringLiteral("Update manifest has an invalid file list."),
+			(std::string("manifest rejects ") + invalid.label).c_str());
+	}
+	ok &= expect(parseWindows(maxFiles + "]").has_value(),
+		"manifest accepts 4096 file entries");
+	ok &= expect(parseWindows(",\"files\":[" + executable + "," + maxName + "]").has_value(),
+		"manifest accepts a 260 character entry");
+
 	return ok ? 0 : 1;
 }
