@@ -12,9 +12,9 @@ follow the [release testing checklist](release-testing-checklist.md).
 | --- | --- |
 | Commit |  |
 | Source (run URL or release tag) |  |
-| Version shown in Help > About EGTRAIN, macOS |  |
-| Version shown in Help > About EGTRAIN, Windows |  |
-| Version shown in Help > About EGTRAIN, Linux |  |
+| Version shown by About EGTRAIN, macOS |  |
+| Version shown by About EGTRAIN, Windows |  |
+| Version shown by About EGTRAIN, Linux |  |
 
 ## Assets
 

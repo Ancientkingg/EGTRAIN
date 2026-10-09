@@ -27,8 +27,8 @@ from one of two sources.
   updater never offers it, and its version is the number before the hyphen.
 
 A manual run and the run of a pull request build the CMake baseline version, not
-a release number. The version shown in **Help > About EGTRAIN** for such a
-candidate is therefore the baseline. Record that version.
+a release number. The version shown by **About EGTRAIN** for such a candidate
+is therefore the baseline. Record that version; step 1 says where the entry is.
 
 A fix after a failed row needs a new candidate and a new record.
 
@@ -140,6 +140,8 @@ therefore saved only through step 5, **Save Case Study As...**.
    category counts, scenarios, validation, runtime, and result readiness.
 4. Select or edit a scenario and confirm the run review names that scenario.
 5. Use **Save Case Study As...** to write a working copy outside the package.
+   The dialog proposes the downloaded bundle itself: give the copy a new name
+   in another folder.
    Confirm the downloaded source bundle is unchanged. Compare the original with
    the copy from before step 2 and check the modification time of the original
    against the one you noted. On macOS and Linux, run `cmp <original> <copy>`,
@@ -158,21 +160,22 @@ therefore saved only through step 5, **Save Case Study As...**.
 ## Further checks on the packages built today
 
 Run these rows on each platform. R7 is seen at the first launch of step 1, R3
-runs after step 5, and R9 runs last, because it replaces the installation. Every
-row applies to all three platforms.
+runs after step 9, and R9 runs last, because it replaces the installation. Run
+R2 to R6 with the working copy open or with no pending edit, never with the
+downloaded bundle open and edited.
 
 | Row | What to do | What must be seen or recorded | Platforms |
 | --- | --- | --- | --- |
 | R1 Run from a second location | Move or copy the unpacked package to another writable folder and repeat steps 1 and 2. On macOS, copy the `QEGTRAIN-Lebanon` folder with Finder or `ditto`, not file by file out of the app. On Windows, copy the folder that holds `QEGTRAIN.exe`. On Linux, copy the AppImage. | The application starts from the new location and opens a bundle. | All |
 | R2 Drop a bundle onto the open window | Drag one `.egscene` file from the file manager onto the open main window. | It opens like **File > Open Case Study...**. The application accepts exactly one local `.egscene` file. | All |
-| R3 Unsaved changes | Run it after step 5, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose **File > Open Case Study...**. The **Unsaved Scene** message follows the choice of a file in the file dialog. Then repeat with **File > Quit**. | The message offers **Save**, **Discard** and **Cancel**. Answer **Cancel** first and record that the edit and the open case stay. For the open request the status bar then shows `Open canceled. Current scene retained.` Then answer **Save** and **Discard** once each, and record what happened to the working copy. Afterwards the downloaded bundle must still equal its copy. | All |
+| R3 Unsaved changes | Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose **File > Open Case Study...**. In the file dialog choose another copy of a bundle, never the downloaded bundle. The **Unsaved Scene** message follows the choice of a file. Then repeat with **File > Quit** (on macOS, **Quit** in the application menu). Make the change again before each repeat, and reopen the working copy after **Discard**. | The message offers **Save**, **Discard** and **Cancel**. Answer **Cancel** first and record that the edit and the open case stay. For the open request the status bar then shows `Open canceled. Current scene retained.` Then answer **Save** and **Discard** once each, and record what happened to the working copy. Afterwards the downloaded bundle must still equal its copy. | All |
 | R4 Damaged file | Rename a plain text file to `something.egscene` and open it with **File > Open Case Study...**. | Record the message title and text, and whether the case that was open before is still shown. The application must not crash and must not change the file. | All |
 | R5 Non-ASCII path | Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. Open it, save a working copy into such a folder, and reopen the copy. | The bundle opens, the copy is saved, and the copy reopens. Record what appears. | All |
 | R6 Assignment bundle | Open `Assignment_Gvc_Gdg_Ut.egscene`. | Its current data loads. Known station and rolling-stock fidelity gaps belong to #182, #228, and #181; they are not packaging failures. | All |
 | R7 First start | Launch as in step 1 on an account whose update question has never been answered, and close the case chooser. | A question **Automatically Check for EGTRAIN Updates?** appears once, after the case chooser has been closed, with the buttons **Check Automatically** and **Don't Check Automatically**. Record the choice. **Help** then shows **Check for Updates...** and **Automatically Check for Updates**. | All |
-| R8 Manual update check | Choose **Help > Check for Updates...**. | The message reads `EGTRAIN <version> is up to date.`, or a dialog titled `EGTRAIN <version> is Available` offers a newer stable release with the buttons **Update and Restart** (only where the installation can update itself), **Open Release Page**, **Later** and **Stop Checking**. Record the text. | All |
+| R8 Manual update check | Choose **Help > Check for Updates...**. | The message reads `EGTRAIN <version> is up to date.`, or a dialog titled `EGTRAIN <version> is Available` offers a newer stable release with the buttons **Update and Restart** (only where the installation can update itself), **Open Release Page**, **Later** and **Stop Checking**. A check that fails shows a warning titled `Check for Updates`. Record the text. | All |
 | R9 In-app update | Run it last on a platform. Meet the precondition below, then choose **Update and Restart**. | The application restarts and **About EGTRAIN** shows the newer version. The hidden folder `.qegtrain-update-*` next to the installation is gone. On Windows the update helper cannot delete itself, so the application removes the rest about 20 seconds after it started. One backup of the previous installation, named like the installation plus `.egtrain-old`, stays next to it until the next update. If the dialog says the installation is not writable although the folder is writable, record the path and the text. | All |
-| R10 Installation that cannot be updated in place | Under the same precondition as R9, place the installation where the folder that holds it cannot be written by the test account. That folder is the parent of `QEGTRAIN.app`, of the Windows application folder or of the AppImage. Choose **Help > Check for Updates...**. | The update dialog has no **Update and Restart** button. Its text says `The packaged installation is not writable. Use the release page to update manually.` | All |
+| R10 Installation that cannot be updated in place | First confirm the precondition of R9 in a writable folder. Then place the installation where the folder that holds it cannot be written by the test account. That folder is the parent of `QEGTRAIN.app`, of the Windows application folder or of the AppImage. Choose **Help > Check for Updates...** again. | The update dialog has no **Update and Restart** button. Its text says `The packaged installation is not writable. Use the release page to update manually.` | All |
 
 Notes on the update rows:
 
@@ -194,7 +197,8 @@ Notes on the update rows:
   **Update and Restart**. The installation under test is the candidate itself
   when its version is lower than the latest stable release. That is so for a
   manual run whenever a stable release newer than the baseline exists. Otherwise
-  install an older stable release from its downloaded asset. Put the
+  install an older stable release from its downloaded asset: it is the one
+  exception to the rule of one source, so record its tag. Put the
   installation in a folder the test account can write to. Run R10 before R9, or
   on a separate copy of the package, because R9 replaces the installation.
 - R9 installs the latest published stable release, not the candidate. It shows
