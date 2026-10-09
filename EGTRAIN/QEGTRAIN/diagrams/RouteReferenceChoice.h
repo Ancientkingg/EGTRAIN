@@ -1,7 +1,16 @@
 #ifndef ROUTEREFERENCECHOICE_H
 #define ROUTEREFERENCECHOICE_H
 
+// The scene model has a member named "signals".
+#ifdef signals
+#define EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#undef signals
+#endif
 #include "scene/SceneModel.h"
+#ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#endif
 
 #include <QDialog>
 #include <QString>
