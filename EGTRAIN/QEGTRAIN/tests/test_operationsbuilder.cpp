@@ -591,6 +591,9 @@ static bool singleTrackLockTests() {
 	const auto savedConnected = BlocksConnected;
 	const auto savedHeld = singleTrackHeld;
 	const int savedRegions = numRegions;
+	// Two trains of its own, whatever the last build left in the storage.
+	std::vector<Regional> savedTrains(2);
+	savedTrains.swap(regional_train);
 	const double savedTimestep = timestep;
 	const double savedDelay = S_delay;
 	timestep = 1.0;
@@ -727,6 +730,7 @@ static bool singleTrackLockTests() {
 	timestep = savedTimestep;
 	S_delay = savedDelay;
 	numRegions = savedRegions;
+	regional_train.swap(savedTrains);
 	singleTrackLimits = savedLimits;
 	singleTrackHeld = savedHeld;
 	BlocksOccupied = savedOccupied;
