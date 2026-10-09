@@ -190,6 +190,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/ConsoleWidget.h
     ${SRC_DIR}/widgets/AboutDialog.h
     ${SRC_DIR}/widgets/DialogLayout.h
+    ${SRC_DIR}/widgets/ChoiceComboBox.h
     ${SRC_DIR}/app/DispatchController.h
     ${SRC_DIR}/widgets/InfoDockWidget.h
     ${SRC_DIR}/simulation/Infrastructure.h
@@ -726,6 +727,14 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_dialoglayout COMMAND test_dialoglayout)
     set_tests_properties(test_dialoglayout PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_choicecombo
+        ${SRC_DIR}/tests/test_choicecombo.cpp)
+    target_link_libraries(test_choicecombo PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    target_compile_definitions(test_choicecombo PRIVATE
+        EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
+    add_test(NAME test_choicecombo COMMAND test_choicecombo)
+    set_tests_properties(test_choicecombo PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_timeprogressbar
         ${SRC_DIR}/tests/test_timeprogressbar.cpp
         ${SRC_DIR}/widgets/TimeProgressBar.cpp
@@ -1051,7 +1060,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview
-		test_compactdoublespinbox test_aboutdialog test_dialoglayout test_timeprogressbar
+		test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_sceneimporter
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
@@ -1069,7 +1078,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-		test_networkview test_compactdoublespinbox test_aboutdialog test_dialoglayout
+		test_networkview test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo
 		test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke
