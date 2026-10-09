@@ -16,6 +16,10 @@ launch fail here as it would on a machine without a developer setup.
 Before the launches it checks that no file of the package is an OpenMP runtime
 library or names one. QEGTRAIN does not use OpenMP, and the package ships no
 such library, so an executable that asks for one would not start everywhere.
+For a package with QEGTRAIN.app it also checks the dependencies of the bundle:
+everything that a Mach-O file loads is a system library or a file of the app,
+and every Mach-O file of the app is loaded by some other file, or is the
+program or a plugin, which Qt loads by name.
 
 --platform sets QT_QPA_PLATFORM for the second launch. Without it the platform
 plugin of the package is used, which is what a user gets.
@@ -34,6 +38,13 @@ HORIZON_SECONDS = "120"
 DEVELOPER_PREFIXES = ("QT_", "QML", "QT5", "VCPKG", "CMAKE_")
 # File names of the OpenMP runtime of MSVC, LLVM, Intel and GCC.
 OPENMP_RUNTIME = re.compile(rb"vcomp\d+d?\.dll|lib(?:i?omp|gomp)[\w.]*?\.(?:dll|dylib|so)", re.IGNORECASE)
+# The first four bytes of a 64-bit Mach-O file and of a universal one.
+MACHO_MAGIC = (b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe")
+# Load commands that name a library the file needs at load time.
+DEPENDENCY_COMMANDS = ("LC_LOAD_DYLIB", "LC_LOAD_WEAK_DYLIB", "LC_REEXPORT_DYLIB", "LC_LOAD_UPWARD_DYLIB")
+SYSTEM_LIBRARY_PREFIXES = ("/System/Library/", "/usr/lib/")
+LOAD_COMMAND = re.compile(r"^\s*cmd (\w+)\s*$")
+LOAD_COMMAND_PATH = re.compile(r"^\s*(?:name|path) (.+) \(offset \d+\)\s*$")
 
 
 def find_package_layout(package: Path):
@@ -59,6 +70,106 @@ def check_no_openmp_runtime(package: Path) -> None:
         if named:
             raise SystemExit(f"{path} names the OpenMP runtime library {named.group().decode()}")
     print(f"PASS no OpenMP runtime library in {package}")
+
+
+def find_app_bundle(package: Path):
+    """Returns QEGTRAIN.app of a macOS package, or None for a package without it."""
+    app = package / "QEGTRAIN.app"
+    return app if app.is_dir() else None
+
+
+def parse_load_commands(text: str):
+    """Returns the dependencies and the rpaths that the text printed by otool -l names."""
+    dependencies, rpaths = [], []
+    command = ""
+    for line in text.splitlines():
+        started = LOAD_COMMAND.match(line)
+        if started:
+            command = started.group(1)
+            continue
+        named = LOAD_COMMAND_PATH.match(line)
+        if not named:
+            continue
+        if command in DEPENDENCY_COMMANDS:
+            dependencies.append(named.group(1))
+        elif command == "LC_RPATH":
+            rpaths.append(named.group(1))
+    return dependencies, rpaths
+
+
+def otool_load_info(path: Path):
+    try:
+        proc = subprocess.run(["/usr/bin/otool", "-l", str(path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except OSError as exc:
+        raise SystemExit(f"cannot run /usr/bin/otool to read the load commands of {path}: {exc}") from exc
+    if proc.returncode != 0:
+        raise SystemExit(f"otool -l {path} exited with {proc.returncode}\n{proc.stderr.decode('utf-8', errors='replace')}")
+    return parse_load_commands(proc.stdout.decode("utf-8", errors="replace"))
+
+
+def is_macho_file(path: Path) -> bool:
+    if path.is_symlink() or not path.is_file():
+        return False
+    with path.open("rb") as handle:
+        return handle.read(4) in MACHO_MAGIC
+
+
+def expand_path(name: str, holder: Path, root: Path) -> Path:
+    """Replaces a leading @executable_path or @loader_path of a load command."""
+    if name.startswith("@executable_path/"):
+        return root / "Contents/MacOS" / name[len("@executable_path/"):]
+    if name.startswith("@loader_path/"):
+        return holder.parent / name[len("@loader_path/"):]
+    return Path(name)
+
+
+def find_dependency(name: str, holder: Path, rpaths, root: Path):
+    """Returns the file inside the app that a load command names, and the reason when there is none."""
+    if name.startswith("@rpath/"):
+        candidates = [expand_path(entry, holder, root) / name[len("@rpath/"):] for entry in rpaths]
+    elif name.startswith(("@executable_path/", "@loader_path/")):
+        candidates = [expand_path(name, holder, root)]
+    else:
+        return None, "is neither a system library nor a file of the app"
+    target = next((candidate.resolve() for candidate in candidates if candidate.is_file()), None)
+    if target is None:
+        return None, "does not exist inside the app"
+    if root not in target.parents:
+        return None, f"is outside the app, at {target}"
+    return target, ""
+
+
+def check_bundle_closure(app: Path, load_info=otool_load_info) -> None:
+    """Fails unless every library that a Mach-O file of the app loads is a system library or a file of the
+    app, and every Mach-O file of the app is the program, a plugin, or loaded by another file."""
+    root = app.resolve()
+    macho = []
+    for directory, _, names in os.walk(root):
+        macho.extend(path for path in (Path(directory) / name for name in sorted(names)) if is_macho_file(path))
+    if not macho:
+        raise SystemExit(f"no Mach-O file in {app}")
+    known = set(macho)
+    starts = (root / "Contents/MacOS", root / "Contents/PlugIns")
+    queue = [path for path in sorted(macho) if any(top in path.parents for top in starts)]
+    reached = set(queue)
+    problems = []
+    while queue:
+        holder = queue.pop(0)
+        label = holder.relative_to(root).as_posix()
+        dependencies, rpaths = load_info(holder)
+        for name in dependencies:
+            if name.startswith(SYSTEM_LIBRARY_PREFIXES):
+                continue
+            target, problem = find_dependency(name, holder, rpaths, root)
+            if problem:
+                problems.append(f"{label}: {name} {problem}")
+            elif target in known and target not in reached:
+                reached.add(target)
+                queue.append(target)
+    problems.extend(f"{path.relative_to(root).as_posix()} is loaded by no file of the app" for path in sorted(known - reached))
+    if problems:
+        raise SystemExit(f"the dependencies of {app} do not close:\n" + "\n".join(problems))
+    print(f"PASS dependency closure of {app}: {len(macho)} Mach-O files")
 
 
 def clean_environment() -> dict:
@@ -96,6 +207,9 @@ def main() -> None:
     if not (scene / "scene.json").is_file():
         raise SystemExit(f"the package has no Paimpol scene at {scene}")
     check_no_openmp_runtime(package)
+    app = find_app_bundle(package)
+    if app:
+        check_bundle_closure(app)
 
     with tempfile.TemporaryDirectory(prefix="qegtrain-package-") as temp:
         env = clean_environment()
