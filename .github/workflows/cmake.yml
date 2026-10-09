@@ -115,6 +115,7 @@ jobs:
           path: ${{ runner.temp }}/vcpkg-binary-cache
           key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1
 
+      # The tests find the vcpkg and Qt DLLs here, so the build copies none next to each executable.
       - name: Add runtime DLL directories to PATH (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -137,6 +138,7 @@ jobs:
           cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DVCPKG_APPLOCAL_DEPS=OFF
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 
       - name: Build
