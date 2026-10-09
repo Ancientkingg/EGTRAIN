@@ -62,6 +62,14 @@ struct SceneRouteTraversal {
 	std::vector<SceneRouteVisit> visits;
 };
 
+// The stations a route passes in travel order. Consecutive visits of the same
+// station count once; a station visited again later is listed again.
+struct SceneRouteStations {
+	bool resolved = false;
+	int direction = 0; // as SceneRouteTraversal::direction
+	std::vector<std::string> stationIds;
+};
+
 enum class SceneStopResolutionStatus {
 	Resolved,
 	AmbiguousPlatform,
@@ -90,6 +98,8 @@ bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double le
 		const std::string& rightId, double rightStart, double rightEnd);
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route);
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route,
+		const SceneSectionInventory& inventory);
+SceneRouteStations sceneRouteStations(const SceneModel& scene, const SceneRoute& route,
 		const SceneSectionInventory& inventory);
 std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
 		const SceneService& service, const SceneRouteTraversal& traversal);

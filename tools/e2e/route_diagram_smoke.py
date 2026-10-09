@@ -2,7 +2,9 @@
 """Offscreen native-builder and route-chart regression for route diagrams."""
 from pathlib import Path
 import csv
+import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -37,6 +39,39 @@ with tempfile.TemporaryDirectory(prefix="route-diagram-") as directory:
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
     if result.returncode or "E2E_ROUTE_DIAGRAM_OK" not in result.stdout:
         sys.exit(f"route diagram run failed:\n{(result.stdout + result.stderr)[-5000:]}")
+    # The reference-route chooser lists the stations each used route passes, in travel order.
+    scene_stations = {station["id"] for station in json.loads(
+        (scene / "stations.json").read_text(encoding="utf-8"))["stations"]}
+    services = json.loads((scene / "services.json").read_text(encoding="utf-8"))["services"]
+    choices = [line[len("E2E_ROUTE_CHOICE "):] for line in result.stdout.splitlines()
+               if line.startswith("E2E_ROUTE_CHOICE ")]
+    if not choices:
+        sys.exit("no E2E_ROUTE_CHOICE line in the route diagram run")
+    listed = set()
+    for label in choices:
+        match = re.fullmatch(r"(\S+) --> (.+)", label)
+        if not match:
+            sys.exit(f"route choice is not '<route id> --> <stations>': {label!r}")
+        route_id, stations = match.group(1), match.group(2).split(" - ")
+        listed.add(route_id)
+        unknown = [station for station in stations if station not in scene_stations]
+        if unknown:
+            sys.exit(f"route choice {label!r} lists stations missing from stations.json: {unknown}")
+        for service in services:
+            if service["route"] != route_id:
+                continue
+            position = 0
+            for stop in service["stops"]:
+                if stop["station"] not in stations[position:]:
+                    sys.exit(f"stops of {service['id']} are not in order in {label!r}")
+                position = stations.index(stop["station"], position) + 1
+    served = {service["route"] for service in services}
+    if listed != served:
+        sys.exit(f"route choices {sorted(listed)} differ from the routes the services use {sorted(served)}")
+    chooser_png = Path(directory, "route_reference_chooser.png")
+    if not chooser_png.is_file() or chooser_png.stat().st_size == 0:
+        sys.exit(f"missing route chooser PNG: {chooser_png}")
+    print(f"PASS route chooser lists {len(choices)} routes with their stations in service order")
     expected = ["Train", "Reference route", "Source route", "Event", "Station",
                 "Journey order", "Call", "Elapsed time[s]", "Reference route X[km]"]
     plotted = {}

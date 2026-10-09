@@ -16,6 +16,7 @@
 #include <QScrollBar>
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "util/TrajectoryUtil.h"
@@ -1843,16 +1844,12 @@ QString stopResolutionText(SceneStopResolutionStatus status) {
 
 void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route,
 		const SceneSectionInventory& inventory) {
-	const auto traversal = buildSceneRouteTraversal(model, route, inventory);
+	const SceneRouteStations traversal = sceneRouteStations(model, route, inventory);
 	QStringList stations;
-	std::string previousStation;
-	for (const auto& visit : traversal.visits) {
-		if (visit.stationId == previousStation)
-			continue;
-		previousStation = visit.stationId;
-		QString name = QString::fromStdString(visit.stationId);
+	for (const std::string& stationId : traversal.stationIds) {
+		QString name = QString::fromStdString(stationId);
 		for (const auto& station : model.stations)
-			if (station.id == visit.stationId && !station.name.empty()) {
+			if (station.id == stationId && !station.name.empty()) {
 				name = QString::fromStdString(station.name);
 				break;
 			}
@@ -1869,6 +1866,19 @@ void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const Scen
 		traversal.resolved ? QString("Traversed stations (not scheduled calls): %1")
 			.arg(stations.isEmpty() ? QStringLiteral("none") : stations.join(" → "))
 			: QStringLiteral("Station order unavailable: fix the route topology."), Qt::ToolTipRole);
+}
+
+// The routes the run used, as (runtime index, route id) in first-use order.
+std::vector<std::pair<int, std::string>> usedRouteReferences() {
+	std::vector<std::pair<int, std::string>> used;
+	for (int i = 0; i < numRegions; ++i) {
+		const int index = regional_train[i].indexOfRoute;
+		if (index >= 0 && index < static_cast<int>(train_route.size())
+				&& std::none_of(used.begin(), used.end(),
+					[index](const auto& route) { return route.first == index; }))
+			used.emplace_back(index, train_route[index].ID);
+	}
+	return used;
 }
 
 bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPath) {
@@ -22715,6 +22725,13 @@ void MainWindow::onSimulationFinished() {
 					ok &= view->grab().save(file);
 				}
 			}
+			const QVector<RouteReferenceChoice> choices =
+				buildRouteReferenceChoices(m_sceneModel, usedRouteReferences());
+			for (const RouteReferenceChoice& choice : choices)
+				std::fprintf(stdout, "E2E_ROUTE_CHOICE %s\n", choice.label.toStdString().c_str());
+			RouteReferenceDialog chooser(choices, "train paths", this);
+			ok &= !choices.isEmpty() && chooser.grab().save(
+				qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/route_reference_chooser.png");
 		}
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_ROUTE_DIAGRAM_OK\n" : "E2E_ROUTE_DIAGRAM_FAIL\n");
 		std::fflush(ok ? stdout : stderr);
@@ -26674,29 +26691,17 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 }
 
 // Choose a reference from routes that were actually used in this run.
-int chooseRouteDiagramReference(QWidget* parent, const QString& purpose) {
-	QStringList routeIds;
-	std::vector<int> used;
-	for (int i = 0; i < numRegions; ++i) {
-		const int index = regional_train[i].indexOfRoute;
-		if (index >= 0 && index < static_cast<int>(train_route.size())
-				&& std::find(used.begin(), used.end(), index) == used.end()) {
-			used.push_back(index);
-			routeIds.append(QString::fromStdString(train_route[index].ID));
-		}
-	}
-	if (used.empty()) return -1;
-	bool accepted = true;
-	const QString selected = e2eDialogsSuppressed() ? routeIds.first()
-		: QInputDialog::getItem(parent, "Reference route", "Reference route for " + purpose + ":",
-			routeIds, 0, false, &accepted);
-	const int choice = routeIds.indexOf(selected);
-	return accepted && choice >= 0 ? used[choice] : -1;
+int chooseRouteDiagramReference(QWidget* parent, const SceneModel& model, const QString& purpose) {
+	const QVector<RouteReferenceChoice> choices = buildRouteReferenceChoices(model, usedRouteReferences());
+	if (choices.isEmpty()) return -1;
+	if (e2eDialogsSuppressed()) return choices.first().runtimeIndex;
+	RouteReferenceDialog dialog(choices, purpose, parent);
+	return dialog.exec() == QDialog::Accepted ? dialog.selectedRuntimeIndex() : -1;
 }
 
 void MainWindow::displayTrainPathDiagrams() {
 	if (!hasRunResults()) return;
-	const int reference = chooseRouteDiagramReference(this, "train paths");
+	const int reference = chooseRouteDiagramReference(this, m_sceneModel, "train paths");
 	if (reference >= 0) buildRouteDiagram(false, reference);
 }
 
@@ -26954,7 +26959,7 @@ void MainWindow::showDelayDiagram() {
 
 void MainWindow::showTimetableGraph() {
 	if (!hasRunResults()) return;
-	const int reference = chooseRouteDiagramReference(this, "timetable");
+	const int reference = chooseRouteDiagramReference(this, m_sceneModel, "timetable");
 	if (reference >= 0) buildRouteDiagram(true, reference);
 }
 
