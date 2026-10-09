@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import package_start_smoke
@@ -216,6 +217,50 @@ class AppBundleTests(unittest.TestCase):
             package = Path(temp)
             (package / "QEGTRAIN.exe").write_bytes(b"MZ")
             self.assertIsNone(package_start_smoke.find_app_bundle(package))
+
+
+class MainTests(unittest.TestCase):
+    """main() runs with the two launches and the closure check replaced, so no application starts."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.package = Path(self.temp.name).resolve()
+        self.calls = []
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def add_package(self, executable, scenes):
+        (self.package / executable).parent.mkdir(parents=True, exist_ok=True)
+        (self.package / executable).write_bytes(b"program")
+        (self.package / scenes / "Paimpol").mkdir(parents=True)
+        (self.package / scenes / "Paimpol" / "scene.json").write_text("{}")
+
+    def launch(self, command, cwd, env, what):
+        self.calls.append(what)
+        if what != "headless run":
+            return "first_runtime_paint"
+        output = Path(env["QEGTRAIN_OUTPUT_DIR"]) / "Output" / "Paimpol"
+        output.mkdir(parents=True)
+        (output / "EnergyConsumptionPerTrain.txt").write_text("")
+        return "End of Simulation"
+
+    def run_main(self):
+        with mock.patch.object(package_start_smoke, "launch", self.launch), \
+                mock.patch.object(package_start_smoke, "check_bundle_closure", lambda app: self.calls.append(app)), \
+                mock.patch.object(sys, "argv", ["package_start_smoke.py", str(self.package)]), \
+                contextlib.redirect_stdout(io.StringIO()):
+            package_start_smoke.main()
+
+    def test_app_bundle_is_checked_before_the_launches(self):
+        self.add_package("QEGTRAIN.app/Contents/MacOS/QEGTRAIN", "QEGTRAIN.app/Contents/Resources/Scenes")
+        self.run_main()
+        self.assertEqual(self.calls, [self.package / "QEGTRAIN.app", "headless run", "window start"])
+
+    def test_package_without_an_app_bundle_is_only_launched(self):
+        self.add_package("QEGTRAIN.exe", "Scenes")
+        self.run_main()
+        self.assertEqual(self.calls, ["headless run", "window start"])
 
 
 if __name__ == "__main__":

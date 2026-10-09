@@ -312,11 +312,12 @@ package**).
 For a package with an app bundle, the script first reads the load commands of
 every Mach-O file with `otool -l`. It fails unless every dependency is a system
 library (under `/System/Library/` or `/usr/lib/`) or a file inside the app, and
-every library inside the app is loaded by some file. The program in
-`Contents/MacOS` and the plugins in `Contents/PlugIns` need no loader, because
-Qt loads plugins by name. The script then starts the app twice as for Windows,
-with the cocoa platform plugin of the bundle: headless on Paimpol, and with a
-window in startup timing mode.
+every library inside the app is loaded by some file. The search starts at the
+files in `Contents/MacOS` and `Contents/PlugIns`, which no load command names:
+the system starts a program, and Qt finds a plugin by its directory. The script
+then starts the app twice as for Windows: headless on Paimpol, and with a window
+in startup timing mode. Only the window start loads the cocoa platform plugin of
+the bundle.
 
 The macOS package keeps `QtDBus` and `QtPrintSupport`, which the cocoa platform
 plugin loads, the print support and bearer plugins, and the image format

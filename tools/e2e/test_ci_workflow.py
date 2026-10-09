@@ -548,7 +548,8 @@ def main() -> None:
         if trimming and not any(line.startswith("rm -") and removed in line for line in trimming):
             missing.append(f"macOS package step that removes {removed} between the two size lines")
     # The cocoa platform plugin loads QtDBus and QtPrintSupport, so they stay, as do the print support and bearer plugins.
-    if any(kept in line for line in trimming for kept in ("QtDBus", "QtPrintSupport", "printsupport", "bearer")):
+    removal_commands = [line for line in removal_step.splitlines() if not line.lstrip().startswith("#")]
+    if any(kept in line for line in removal_commands for kept in ("QtDBus", "QtPrintSupport", "printsupport", "bearer")):
         missing.append("macOS package step that keeps QtDBus, QtPrintSupport and the print support and bearer plugins")
     macos_verify = step_block(macos_job, "Verify the app is self-contained")
     required_plugins = (
