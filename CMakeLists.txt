@@ -110,6 +110,28 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
 find_package(cppzmq REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
+# --- Warnings ---
+# egtrain_target_warnings(<target> [STRICT]) adds -Wall -Wextra (/W4 on MSVC) to the C++ sources
+# of one target. The flags are PRIVATE, so a target that links the library does not get them.
+# STRICT also turns a warning into an error when EGTRAIN_WARNINGS_AS_ERRORS is ON.
+option(EGTRAIN_WARNINGS_AS_ERRORS "Treat warnings in the strict targets as errors" OFF)
+function(egtrain_target_warnings target)
+    cmake_parse_arguments(ARG "STRICT" "" "" ${ARGN})
+    if(MSVC)
+        set(egtrain_warning_flags /W4)
+        set(egtrain_error_flags /WX)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        set(egtrain_warning_flags -Wall -Wextra)
+        set(egtrain_error_flags -Werror)
+    else()
+        return()
+    endif()
+    if(ARG_STRICT AND EGTRAIN_WARNINGS_AS_ERRORS)
+        list(APPEND egtrain_warning_flags ${egtrain_error_flags})
+    endif()
+    target_compile_options(${target} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${egtrain_warning_flags}>")
+endfunction()
+
 # --- Model libraries ---
 # Each source below is compiled once. The libraries are static, so a target that links one gets
 # only the objects it references. A target that pulls in Infrastructure,
@@ -277,6 +299,22 @@ foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update ${EGTRAIN_TE
         AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
 endforeach()
 
+# Warning flags per target. Strict targets build without a warning, so a new warning is an error
+# when EGTRAIN_WARNINGS_AS_ERRORS is ON.
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_diagrams
+        egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
+    egtrain_target_warnings(${egtrain_lib} STRICT)
+endforeach()
+# Flags only: egtrain_dispatch has no warning of its own. The 57 warning lines of its build come
+# from the simulation headers.
+egtrain_target_warnings(egtrain_dispatch)
+# No flags:
+#   egtrain_pugixml, egtrain_miniz  vendored code
+#   egtrain_sim, egtrain_railml     legacy code with 104 and 4 warning lines, see #453, #454 and #482
+#   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
+#                                   from the simulation headers, until the window is split up
+# A test executable that uses the simulation has no flags either.
+
 # --- Sources ---
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/main.cpp
@@ -398,6 +436,7 @@ message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
 
 add_executable(egtrain_update_helper
 	${SRC_DIR}/update/UpdateHelper.cpp)
+egtrain_target_warnings(egtrain_update_helper STRICT)
 if(MSVC)
     set_property(TARGET egtrain_update_helper PROPERTY
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -458,6 +497,7 @@ endif()
 add_executable(scene_tool ${SRC_DIR}/scene/SceneTool.cpp)
 target_link_libraries(scene_tool PRIVATE egtrain_scene)
 set_target_properties(scene_tool PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
+egtrain_target_warnings(scene_tool STRICT)
 
 # --- Unit tests (opt-in) ---
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
@@ -498,6 +538,9 @@ if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
     target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
     add_test(NAME test_updatehelper COMMAND test_updatehelper ${UPDATEHELPER_TEST_ARGS})
     set_tests_properties(test_updatehelper PROPERTIES TIMEOUT 120)
+    foreach(egtrain_test test_updatepreparation test_updatehelper)
+        egtrain_target_warnings(${egtrain_test} STRICT)
+    endforeach()
 endif()
 if(EGTRAIN_BUILD_TESTS)
     enable_testing()
@@ -920,6 +963,24 @@ if(EGTRAIN_BUILD_TESTS)
 			PASS_REGULAR_EXPRESSION "EGTRAIN supports 64-bit Windows"
 			TIMEOUT 300)
 	endif()
+
+	# Test executables that use only strict libraries are strict as well.
+	foreach(egtrain_test
+			test_timeformat test_version test_speedformat test_trajectory test_csvwriter
+			test_playbackprofiler
+			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
+			test_telemetrynetwork test_updatechecker test_updatestaging
+			test_trackpreview test_routestations test_scenevalidator test_stopinsertion
+			test_sceneimporter test_scenewriter test_sceneexporter test_scenebundle
+			test_scenecompatibility
+			test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
+			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
+			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
+			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
+			test_dialoglayout test_choicecombo test_timeprogressbar test_highlighteffect
+			test_consolestream test_qt_resource_images)
+		egtrain_target_warnings(${egtrain_test} STRICT)
+	endforeach()
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
