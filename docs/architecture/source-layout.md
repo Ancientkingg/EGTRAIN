@@ -5,6 +5,22 @@ Before the reorganization tracked in #91, all 108 sources sat in that one
 directory with names taken from their Qt base class. This document records the
 folders and the renames so the next reader does not have to reconstruct them.
 
+## Repository layout
+
+```text
+EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
+EGTRAIN/QEGTRAIN/Scenes/  The committed case studies
+EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
+tools/e2e/                Smoke tests and Python tests
+tools/release/            Version and package check scripts
+tools/memory/             Peak-memory measurement and the ownership inventory
+tools/performance/        Startup timing and playback profiling scripts
+tools/golden_master/      Token-wise comparison of output files against a baseline directory
+tools/format.py           Checks or applies the code format of the C++ sources
+docs/                     Guides and architecture, development, product, telemetry and UI documentation
+.github/workflows/        GitHub Actions workflows: build and test, format, packages, releases and the telemetry contract check
+```
+
 ## Folders
 
 | Folder | Holds |
