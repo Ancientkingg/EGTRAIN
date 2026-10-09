@@ -111,7 +111,8 @@ find_package(nlohmann_json REQUIRED)
 
 # --- Model libraries ---
 # Each source below is compiled once. The libraries are static, so a target that links one gets
-# only the objects it references. A target that links egtrain_sim defines `Logger owl` itself.
+# only the objects it references. A target that pulls in Infrastructure,
+# Signalling or RollingStock from egtrain_sim must define `Logger owl`.
 add_library(egtrain_pugixml STATIC ${SRC_DIR}/io/third_party/pugixml.cpp)
 
 add_library(egtrain_util STATIC
@@ -138,8 +139,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SectionInventory.cpp
     ${SRC_DIR}/scene/TrackPreview.cpp)
 target_link_libraries(egtrain_scene
-    PUBLIC nlohmann_json::nlohmann_json
-    PRIVATE egtrain_miniz)
+    PUBLIC nlohmann_json::nlohmann_json egtrain_miniz)
 
 add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Infrastructure.cpp

@@ -85,9 +85,10 @@ libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_railml`
 and the vendored `egtrain_pugixml`. `QEGTRAIN`, `scene_tool` and the tests that
 exercise this code link them instead of listing its sources, so each file is
 compiled once. A test gets only the library members it references. The
-application and every test that links `egtrain_sim` define the global
-`Logger owl`. The sources of the UI, diagrams, widgets, telemetry and update
-folders are still compiled in each target that uses them. See
+application and every test that pulls in Infrastructure, Signalling or
+RollingStock from `egtrain_sim` define the global `Logger owl`. The sources of
+the UI, diagrams, widgets, telemetry and update folders are still compiled in
+each target that uses them. See
 [Source layout](../architecture/source-layout.md#libraries).
 
 ## Run a local build
