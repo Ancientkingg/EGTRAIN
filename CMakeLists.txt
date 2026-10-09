@@ -941,10 +941,11 @@ if(EGTRAIN_BUILD_TESTS)
 			$<TARGET_FILE:QEGTRAIN> ${EGTRAIN_SMOKE_APP_SCENE})
 	set_tests_properties(test_headless_scene_smoke PROPERTIES TIMEOUT 150)
 
-	# A Windows EXE image near 2 GiB fails to start, so the limit is checked on every Windows build.
+	# A Windows EXE image near 2 GiB fails to start, and fixed-size static storage is what makes an
+	# image large. The limit is checked on every Windows build, so such storage is noticed early.
 	# The stack reserve is checked with it: the application has its own, scene_tool the linker default.
 	if(WIN32)
-		set(EGTRAIN_MAX_PE_IMAGE_BYTES 1600000000 CACHE STRING
+		set(EGTRAIN_MAX_PE_IMAGE_BYTES 100000000 CACHE STRING
 			"Fail test_windows_image_size when QEGTRAIN.exe SizeOfImage exceeds this many bytes")
 		add_test(NAME test_windows_image_size
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/pe_image_size.py

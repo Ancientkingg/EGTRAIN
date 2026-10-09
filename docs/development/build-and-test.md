@@ -283,12 +283,14 @@ names one (`vcomp140.dll` on Windows): the package ships none.
 Windows maps an EXE as one image whose size is `SizeOfImage` in the PE header,
 and does not start an image near 2 GiB (it reports that the file is not a valid
 Win32 application). `test_windows_image_size` fails when `SizeOfImage` of
-`QEGTRAIN.exe` is above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 1600000000), or
-when the executable is not x64 and a Windows-subsystem program. Set the
-variable at configure time to change the limit. To check a build by hand:
+`QEGTRAIN.exe` is above `EGTRAIN_MAX_PE_IMAGE_BYTES` (default 100000000), or
+when the executable is not x64 and a Windows-subsystem program. A Release build
+has an image of about 6 MB and a Debug build of about 18 MB, so the limit is
+reached only when fixed-size static storage comes back. Set the variable at
+configure time to change the limit. To check a build by hand:
 
 ```bash
-python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 1600000000
+python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 100000000
 ```
 
 The first output line shows the measured size. The CI workflow prints the same
