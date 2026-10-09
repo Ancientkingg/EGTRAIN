@@ -10,6 +10,7 @@ Choose the route that matches your task.
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [Amsterdam to Hilversum student case](guides/amsterdam-hilversum-student-case.md)
 - [How delays are calculated](guides/delay-analysis.md)
+- [How capacity is analysed](guides/capacity-analysis.md)
 
 ## Create or edit scenes
 

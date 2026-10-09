@@ -538,8 +538,9 @@ areas it writes no file and leaves a copy from the `legacy/` folder of the
 scene as it is. The legacy import reports the file and converts none of its
 rows (see [Known limits](#known-limits-and-open-issues)).
 
-What a capacity-analysis area is, and how it relates to the signalling areas, is
-the subject of #444.
+The Capacity analysis window uses a route and a block range as its scope, not
+signalling areas; [How capacity is analysed](../guides/capacity-analysis.md)
+describes the scope and the area calculation that older versions had.
 
 Signals and track detection sections are a fourth thing. `signals[]` bind to a
 section only to resolve signal failures. See the
