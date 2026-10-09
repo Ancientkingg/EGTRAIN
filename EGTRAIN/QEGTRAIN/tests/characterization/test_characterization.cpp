@@ -190,7 +190,7 @@ const struct {
 	const char* marker;
 } kKnownWrong[] = {
 	{"sf-first-level-none", "#539 F1 and F2 stop at 2 km and stay there after the failure ends"},
-	{"same-entry-level-4", "#534 F1 stops at the position of T1 at B"},
+	{"same-entry-level-4", "#564 F1 stops at the position of T1 at B"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
 	{"single-track-level-3", "#551 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
