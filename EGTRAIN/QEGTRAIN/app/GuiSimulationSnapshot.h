@@ -70,6 +70,16 @@ inline bool guiSignalHasLevel(int level) {
 	return level >= 0 && level <= 5;
 }
 
+// Display code of a head that has no signalling data to show.
+constexpr int kGuiSignalUnavailable = -1;
+
+// The code a head shows for this state. A section without a signalling level
+// keeps its initial code 270, which is not a clear signal, so it shows as
+// unavailable.
+inline int guiSignalDisplayCode(const GuiSignalState& state) {
+	return guiSignalHasLevel(state.level) ? state.code : kGuiSignalUnavailable;
+}
+
 // Rank of a section code, lowest is most restrictive. 0 is an occupied or failed
 // section, 751 the section behind it in BACC (red_red, speed limit V_751), 75
 // caution, 180 approach and 270 clear. A code that is none of these ranks last.

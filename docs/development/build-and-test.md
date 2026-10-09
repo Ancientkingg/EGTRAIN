@@ -540,6 +540,17 @@ tools/e2e/visual_polish_smoke.sh
 
 Run this after UI or rendering changes.
 
+The script also runs the signal head checks. `QEGTRAIN_E2E_SIGNAL_HEADS` names
+what the run must show: `levels` (heads take stop, caution and proceed and
+return to proceed), `failure` (the same, and failed heads exactly while a section
+is blocked), `none` (every head unavailable) or `any`. Every rendered snapshot is
+checked against the heads. `QEGTRAIN_E2E_PAUSE_STEPS` (for example `100,500,900`)
+pauses the run at those steps and checks that the canvas shows the last delivered
+snapshot. After the run the final frame and every replay second, backwards and
+forwards, are checked. The marker is `E2E_SIGNAL_HEADS_OK mode=<name>`. The script
+makes three line scenes from `tests/fixtures/scenes/line` (levels, failure,
+none) and also runs Paimpol, Assignment and Lebanon.
+
 ## Smoke artifacts
 
 Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows

@@ -81,9 +81,32 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Signal) {
+			// Same marks as SignalItem draws on the canvas.
+			const QRectF head(17.0, 3.0, 12.0, 12.0);
+			const QPointF c = head.center();
+			const qreal r = head.width() / 2.0;
+			if (m_entry.signalLook == NetworkLegendSignalLook::Unavailable) {
+				painter.setPen(QPen(m_entry.color, 1.5));
+				painter.setBrush(Qt::NoBrush);
+				painter.drawEllipse(head);
+				painter.drawLine(QLineF(c.x() - 0.4 * r, c.y(), c.x() + 0.4 * r, c.y()));
+				return;
+			}
 			painter.setPen(QPen(Qt::white, 1.0));
 			painter.setBrush(m_entry.color);
-			painter.drawEllipse(QRectF(17.0, 3.0, 12.0, 12.0));
+			painter.drawEllipse(head);
+			if (m_entry.signalLook == NetworkLegendSignalLook::Failed) {
+				painter.setPen(QPen(Qt::white, 1.5));
+				painter.drawLine(QLineF(c.x() - 0.5 * r, c.y() - 0.5 * r, c.x() + 0.5 * r, c.y() + 0.5 * r));
+				painter.drawLine(QLineF(c.x() - 0.5 * r, c.y() + 0.5 * r, c.x() + 0.5 * r, c.y() - 0.5 * r));
+			} else if (m_entry.signalCue == SignalCueKind::Stop) {
+				painter.setPen(QPen(QColor(30, 30, 30), 1.5));
+				painter.drawLine(QLineF(c.x() - 0.6 * r, c.y(), c.x() + 0.6 * r, c.y()));
+			} else if (m_entry.signalCue == SignalCueKind::Caution) {
+				painter.setPen(QPen(QColor(30, 30, 30), 1.5));
+				painter.setBrush(QColor(30, 30, 30));
+				painter.drawEllipse(c, 0.2 * r, 0.2 * r);
+			}
 			return;
 		}
 
@@ -240,6 +263,19 @@ NetworkLegendEntry signalEntry(const QString& label, int aspect) {
 	return entry;
 }
 
+NetworkLegendEntry unavailableSignalEntry() {
+	NetworkLegendEntry entry = signalEntry("Unavailable signal", -1);
+	entry.color = QColor(150, 150, 150);
+	entry.signalLook = NetworkLegendSignalLook::Unavailable;
+	return entry;
+}
+
+NetworkLegendEntry failedSignalEntry() {
+	NetworkLegendEntry entry = signalEntry("Failed signal", 0);
+	entry.signalLook = NetworkLegendSignalLook::Failed;
+	return entry;
+}
+
 } // namespace
 
 NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
@@ -299,7 +335,9 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	if (content.hasSignals) {
 		m_entries << signalEntry("Stop signal", 0)
 				  << signalEntry("Caution signal", 75)
-				  << signalEntry("Proceed signal", 180);
+				  << signalEntry("Proceed signal", 180)
+				  << unavailableSignalEntry()
+				  << failedSignalEntry();
 	}
 	if (content.hasPassengers) {
 		NetworkLegendEntry entry;

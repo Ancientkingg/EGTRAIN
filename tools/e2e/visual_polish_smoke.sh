@@ -27,10 +27,11 @@ COLOR_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.log"
 COLOR_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.png"
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-settings.XXXXXX")"
 COLOR_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-color-scene.XXXXXX")"
+SIGNAL_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-signal-scene.XXXXXX")"
 cleanup() {
 	local exit_code=$?
 	trap - EXIT
-	rm -rf "$SETTINGS_DIR" "$COLOR_SCENE_DIR"
+	rm -rf "$SETTINGS_DIR" "$COLOR_SCENE_DIR" "$SIGNAL_SCENE_DIR"
 	exit "$exit_code"
 }
 trap cleanup EXIT
@@ -149,6 +150,54 @@ QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
 	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$COMPLETION_OUT" 2>&1
 grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
 echo "operational completion and rerun e2e passed"
+
+# Signal heads on three copies of the line fixture with two services: one with a
+# level 0 signalling area (heads take stop, caution and proceed and return), one
+# in which a signal fails from 400 s to 1000 s, and one without any signalling
+# area (every head unavailable). Each run pauses at three steps, then seeks the
+# replay. Paimpol has sections that several routes share.
+python3 - "$ROOT/EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line" "$SIGNAL_SCENE_DIR" <<'PY'
+import json, shutil, sys
+for name, scenario, level in (("levels", "baseline", 0), ("failure", "signal-failure-forward", 0), ("none", "baseline", None)):
+    target = sys.argv[2] + "/" + name
+    shutil.copytree(sys.argv[1], target)
+    def edit(file, change):
+        with open(target + "/" + file) as handle:
+            data = json.load(handle)
+        change(data)
+        with open(target + "/" + file, "w") as handle:
+            json.dump(data, handle, indent=2)
+    edit("services.json", lambda data: data.update(services=[s for s in data["services"] if s["id"] in ("F1", "F2")]))
+    edit("scenarios.json", lambda data: data.update(default_scenario_id=scenario))
+    if level is not None:
+        edit("signalling.json", lambda data: data.update(signalling_areas=[{"id": "area.all", "level": level, "start_km": 0.0, "end_km": 16.0}]))
+PY
+SIGNAL_HEADS_OUT="${TMPDIR:-/tmp}/qegtrain-signal-heads-e2e.log"
+for SIGNAL_MODE in levels failure none; do
+QT_QPA_PLATFORM=offscreen \
+QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_E2E_SIGNAL_HEADS="$SIGNAL_MODE" \
+QEGTRAIN_E2E_PAUSE_STEPS=100,500,900 \
+	"$APP" --scene "$SIGNAL_SCENE_DIR/$SIGNAL_MODE" -h 1500 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
+grep -q "E2E_SIGNAL_HEADS_OK mode=$SIGNAL_MODE" "$SIGNAL_HEADS_OUT"
+done
+QT_QPA_PLATFORM=offscreen \
+QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_E2E_SIGNAL_HEADS=levels \
+QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
+	"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
+grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$SIGNAL_HEADS_OUT"
+# Assignment has no signalling area and heads that no route reaches; Lebanon has
+# a level 0 area and mostly heads that no route reaches.
+for SIGNAL_CASE in Assignment_Gvc_Gdg_Ut:none Lebanon:any; do
+QT_QPA_PLATFORM=offscreen \
+QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_E2E_SIGNAL_HEADS="${SIGNAL_CASE#*:}" \
+QEGTRAIN_E2E_PAUSE_STEPS=100,300 \
+	"$APP" --scene "$SCENE_ROOT/${SIGNAL_CASE%:*}" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
+grep -q "E2E_SIGNAL_HEADS_OK mode=${SIGNAL_CASE#*:}" "$SIGNAL_HEADS_OUT"
+done
+echo "signal heads e2e passed"
 
 DISCARD_OUT="${TMPDIR:-/tmp}/qegtrain-operational-discard-e2e.log"
 QT_QPA_PLATFORM=offscreen \

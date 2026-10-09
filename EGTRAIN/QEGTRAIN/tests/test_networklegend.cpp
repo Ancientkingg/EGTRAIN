@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 9, "case content produces stable deduplicated entries");
+	ok &= expect(entries.size() == 11, "case content produces stable deduplicated entries");
 	ok &= expect(entries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
 			&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
 			&& entries.at(2).color == freeTrackVisual().color
@@ -79,6 +79,20 @@ int main(int argc, char* argv[]) {
 	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
 	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red)),
 		"signal swatch renders the historical red plate");
+	// Rows 5 to 7 are the aspects, 8 an unavailable and 9 a failed signal, 10 the passenger count.
+	ok &= expect(entries.at(5).label == "Stop signal" && entries.at(6).label == "Caution signal"
+			&& entries.at(7).label == "Proceed signal" && entries.at(8).label == "Unavailable signal"
+			&& entries.at(9).label == "Failed signal" && entries.at(10).label == "Passenger count",
+		"signal rows follow the station row and precede the passenger row");
+	auto* unavailableSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
+	const QImage unavailableImage = unavailableSwatch ? unavailableSwatch->grab().toImage() : QImage();
+	ok &= expect(unavailableSwatch && containsColor(unavailableImage, QColor(150, 150, 150))
+			&& !containsColor(unavailableImage, QColor(Qt::red)) && !containsColor(unavailableImage, QColor(Qt::green)),
+		"unavailable signal swatch is an empty gray ring");
+	auto* failedSwatch = legend.findChild<QWidget*>("mapKeySwatch9");
+	const QImage failedImage = failedSwatch ? failedSwatch->grab().toImage() : QImage();
+	ok &= expect(failedSwatch && containsColor(failedImage, QColor(Qt::red)) && containsColor(failedImage, QColor(Qt::white)),
+		"failed signal swatch is a red lamp with a white cross");
 
 	int trainCount = 0;
 	int stationCount = 0;
@@ -135,7 +149,7 @@ int main(int argc, char* argv[]) {
 	previewContent.hasSignals = true;
 	legend.setCaseContent(previewContent);
 	const QVector<NetworkLegendEntry> previewEntries = legend.entries();
-	ok &= expect(previewEntries.size() == 8
+	ok &= expect(previewEntries.size() == 10
 			&& previewEntries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
 			&& previewEntries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
 			&& previewEntries.at(2).color == classifyTrackSpeed(0.0).color
@@ -143,7 +157,9 @@ int main(int argc, char* argv[]) {
 			&& previewEntries.at(4).label == "Station"
 			&& previewEntries.at(5).label == "Stop signal"
 			&& previewEntries.at(6).label == "Caution signal"
-			&& previewEntries.at(7).label == "Proceed signal",
+			&& previewEntries.at(7).label == "Proceed signal"
+			&& previewEntries.at(8).label == "Unavailable signal"
+			&& previewEntries.at(9).label == "Failed signal",
 		"preview key explains every operational signal aspect");
 	ok &= expect(previewEntries.at(3).color == QColor(Qt::blue)
 			&& previewEntries.at(3).lineWidth == 4,

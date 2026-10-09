@@ -121,7 +121,8 @@ TrainVisual resolveTrainVisual(const std::string& type, const std::string& descr
 }
 
 SignalCueKind classifySignalCue(int code) {
-	if (code == 0)
+	// 751 is the second red of BACC: the train has to stop.
+	if (code == 0 || code == 751)
 		return SignalCueKind::Stop;
 	if (code == 75)
 		return SignalCueKind::Caution;
@@ -131,7 +132,7 @@ SignalCueKind classifySignalCue(int code) {
 }
 
 SignalVisual classifySignalAspect(int code) {
-	if (code == 0)
+	if (code == 0 || code == 751)
 		return {QColor(Qt::red), classifySignalCue(code), ":/icons/signal-stop.svg"};
 	if (code == 75)
 		return {QColor(Qt::yellow), classifySignalCue(code), ":/icons/signal-caution.svg"};

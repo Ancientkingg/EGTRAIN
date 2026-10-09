@@ -146,6 +146,17 @@ status bar reports that Follow is waiting for departure. Follow is cleared when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 
+Signal heads on the canvas show what the simulation holds for the displayed
+time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
+(green), Unavailable (an empty gray ring) or Failed (a red lamp with a white
+cross). A head is unavailable when its section has no signalling area, so a scene
+without one shows rings for the whole run. A head is failed on every signal of a
+section for as long as a signal failure incident is active. The marks appear when
+a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
+canvas shows the last snapshot the simulation delivered, and after the run the
+replay slider shows the heads of the selected time. The tooltip and the signalling
+inspector name the state, and the Map key lists all five.
+
 A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.

@@ -36,6 +36,43 @@ static QByteArray renderStrokeMask(int width, Qt::PenStyle style) {
 			mask.append(image.pixelColor(x, y).alpha() > 0 ? '1' : '0');
 	return mask;
 }
+
+// Paints a head that is `size` device pixels wide on a black background. The
+// image is 4 pixels wider than the head and the head is in its middle.
+static QImage renderHead(int code, bool failed, int size) {
+	SignalItem head(QRectF(-10, -10, 20, 20));
+	head.setAspectCode(code);
+	head.setFailed(failed);
+	QImage image(size + 4, size + 4, QImage::Format_ARGB32_Premultiplied);
+	image.fill(Qt::black);
+	QPainter painter(&image);
+	painter.setRenderHint(QPainter::Antialiasing, false);
+	painter.translate(image.width() / 2.0, image.height() / 2.0);
+	painter.scale(size / 20.0, size / 20.0);
+	head.paint(&painter, nullptr, nullptr);
+	return image;
+}
+
+// Number of pixels of the mark colour (dark, or white for the failed cross) on
+// the face of the lamp, away from its outline.
+static int markPixels(const QImage& image, bool light = false) {
+	const double c = image.width() / 2.0, r = (image.width() - 4) / 2.0 * 0.9;
+	const QColor markColor = light ? QColor(Qt::white) : QColor(30, 30, 30);
+	int count = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			count += std::hypot(x + 0.5 - c, y + 0.5 - c) <= r && image.pixelColor(x, y) == markColor;
+	return count;
+}
+
+static int pixelsOfColor(const QImage& image, const QColor& color) {
+	int count = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			count += image.pixelColor(x, y) == color;
+	return count;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QGuiApplication app(argc, argv);
@@ -80,6 +117,11 @@ int main(int argc, char* argv[]) {
 	ok &= expect(cautionSignal.lamp == QColor(Qt::yellow) && cautionSignal.cue == SignalCueKind::Caution, "yellow caution signal cue");
 	ok &= expect(proceed180Signal.lamp == QColor(Qt::green) && proceed180Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 180");
 	ok &= expect(proceed270Signal.lamp == QColor(Qt::green) && proceed270Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 270");
+	ok &= expect(classifySignalAspect(751).lamp == QColor(Qt::red) && classifySignalAspect(751).cue == SignalCueKind::Stop
+			&& classifySignalAspect(751).iconResource == ":/icons/signal-stop.svg" && classifySignalCue(751) == SignalCueKind::Stop,
+		"code 751 is a stop");
+	ok &= expect(classifySignalCue(-1) == SignalCueKind::Neutral && classifySignalCue(42) == SignalCueKind::Neutral,
+		"unknown codes are neither stop, caution nor proceed");
 	ok &= expect(classifySignalAspect(-1).iconResource == ":/icons/signal-neutral.svg", "neutral signal icon");
 	ok &= expect(classifySignalAspect(0).iconResource == ":/icons/signal-stop.svg", "stop signal icon");
 	ok &= expect(classifySignalAspect(75).iconResource == ":/icons/signal-caution.svg", "caution signal icon");
@@ -179,8 +221,53 @@ int main(int argc, char* argv[]) {
 		painter.translate(24, 24);
 		head.paint(&painter, nullptr, nullptr);
 	}
-	ok &= expect(signalImage.pixelColor(24, 24) == QColor(Qt::red),
+	// The stop mark is a bar through the centre, so sample beside it.
+	ok &= expect(signalImage.pixelColor(24, 24 - 5) == QColor(Qt::red),
 		"individual stop head paints its own aspect without sectors or direction ticks");
+
+	// Every state can be told apart without colour where a mark fits, and only
+	// the colour is left below 6 device pixels.
+	const QImage stop = renderHead(0, false, 48), bacc = renderHead(751, false, 48);
+	const QImage caution = renderHead(75, false, 48), proceed = renderHead(180, false, 48);
+	const QImage clear = renderHead(270, false, 48), unavailable = renderHead(-1, false, 48);
+	const QImage failed = renderHead(270, true, 48);
+	const int c = stop.width() / 2;
+	ok &= expect(stop.pixelColor(c, c - 10) == QColor(Qt::red) && bacc.pixelColor(c, c - 10) == QColor(Qt::red),
+		"stop and BACC second red heads are red");
+	ok &= expect(caution.pixelColor(c, c - 10) == QColor(Qt::yellow), "caution head is yellow");
+	ok &= expect(proceed.pixelColor(c, c - 10) == QColor(Qt::green) && clear.pixelColor(c, c - 10) == QColor(Qt::green),
+		"codes 180 and 270 are green");
+	ok &= expect(markPixels(proceed) == 0 && markPixels(clear) == 0, "a proceed head has no mark");
+	ok &= expect(stop.pixelColor(c, c) == QColor(30, 30, 30) && stop.pixelColor(c + 10, c) == QColor(30, 30, 30) && stop.pixelColor(c + 10, c - 4) == QColor(Qt::red),
+		"a stop head has a bar through its centre");
+	ok &= expect(caution.pixelColor(c, c) == QColor(30, 30, 30) && caution.pixelColor(c + 10, c) == QColor(Qt::yellow),
+		"a caution head has a dot in its centre and no bar");
+	ok &= expect(markPixels(stop) > 0 && markPixels(caution) > 0 && markPixels(stop) != markPixels(caution),
+		"stop and caution heads carry different marks");
+	ok &= expect(stop == bacc, "code 751 is painted like code 0");
+	ok &= expect(unavailable.pixelColor(c, c - 10) == QColor(Qt::black)
+			&& pixelsOfColor(unavailable, QColor(Qt::red)) + pixelsOfColor(unavailable, QColor(Qt::yellow))
+					+ pixelsOfColor(unavailable, QColor(Qt::green))
+				== 0
+			&& pixelsOfColor(unavailable, QColor(150, 150, 150)) > 40 && unavailable.pixelColor(c, c) == QColor(150, 150, 150),
+		"an unavailable head is an empty gray ring with a dash");
+	ok &= expect(renderHead(42, false, 48) == unavailable, "a code that no aspect uses is painted as unavailable");
+	ok &= expect(failed.pixelColor(c, c - 10) == QColor(Qt::red) && failed.pixelColor(c + 10, c) == QColor(Qt::red)
+			&& failed.pixelColor(c + 6, c + 6) == QColor(Qt::white) && failed.pixelColor(c - 6, c + 6) == QColor(Qt::white)
+			&& failed.pixelColor(c + 6, c - 6) == QColor(Qt::white) && failed.pixelColor(c - 6, c - 6) == QColor(Qt::white),
+		"a failed head is red with a white cross, whatever its code");
+	ok &= expect(renderHead(-1, true, 48) == failed && renderHead(0, true, 48) == failed, "a failed head ignores its code");
+	ok &= expect(markPixels(failed, true) > 0 && markPixels(stop, true) == 0, "a failed head differs from a stop head without colour");
+	for (const int code : {0, 75})
+		ok &= expect(markPixels(renderHead(code, false, 6)) > 0 && markPixels(renderHead(code, false, 5)) == 0,
+			"marks appear at 6 device pixels and not below");
+	ok &= expect(renderHead(-1, false, 6).pixelColor(5, 5) == QColor(150, 150, 150)
+			&& renderHead(-1, false, 5).pixelColor(4, 4) == QColor(Qt::black)
+			&& markPixels(renderHead(75, true, 5), true) == 0 && markPixels(renderHead(75, true, 6), true) > 0,
+		"the dash and the cross follow the same 6 pixel rule");
+	ok &= expect(renderHead(0, false, 5).pixelColor(3, 3) == QColor(Qt::red) && renderHead(75, false, 5).pixelColor(3, 3) == QColor(Qt::yellow)
+			&& renderHead(180, false, 5).pixelColor(3, 3) == QColor(Qt::green),
+		"colour remains below 6 device pixels");
 	if (!ok)
 		return 1;
 
