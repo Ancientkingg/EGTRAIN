@@ -1,4 +1,5 @@
 #include "simulation/Infrastructure.h"
+#include "scene/SectionInventory.h"
 #include <cstdio>
 #include <cfloat>
 
@@ -54,9 +55,8 @@ void Node::initialiseIdConnectedBlocks(string* IDConnectedBSofBlock, int N_IDCon
 	if (this->numConnections > 0) {
 		for (int i = 0; i < this->numConnections; i++) {
 			string NameToSearch;
-			char blockSetId[100], XNode[100];
-			snprintf(blockSetId, sizeof(blockSetId), "%d", this->connectIdBlockSet[i]);
-			snprintf(XNode, sizeof(XNode), "%f", this->connectXNode[i]);
+			const std::string blockSetId = std::to_string(this->connectIdBlockSet[i]);
+			const std::string XNode = formatSceneSectionCoordinate(this->connectXNode[i]);
 
 			NameToSearch = NameToSearch + "-B" + blockSetId + "@-" + XNode;
 			if (N_IDConnectedBSofBlock > 0) {

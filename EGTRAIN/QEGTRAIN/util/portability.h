@@ -30,10 +30,6 @@ static inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
 #include <unistd.h> // isatty, STDIN_FILENO
 
 // MSVC _s functions are not standard C/C++. Map them to safe equivalents.
-// sprintf_s(buf, ...) -> snprintf(buf, sizeof(buf), ...)
-// Note: sizeof(buf) is correct for stack-allocated arrays, less so for pointers.
-#define sprintf_s(buf, ...) snprintf(buf, sizeof(buf), __VA_ARGS__)
-
 // strcpy_s(dst, src) -> strcpy(dst, src)
 #define strcpy_s(dst, src) strcpy(dst, src)
 

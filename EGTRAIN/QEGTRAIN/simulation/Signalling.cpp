@@ -858,7 +858,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 							name_start = BS[i].start_node.tdsbId;
 						}
 						if (BS[i].arcs_in_signalling_block_section[j].endNode.numConnections > 0) {
-							char pointcoord[20];
 							string NameTDSB; // Define name variables
 							// In case this Node coincides with the last Node of the Block Section, then change also the ID of the last Node of the block section itself
 							if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].end_node.X) {
@@ -870,7 +869,7 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 								}
 								BS[i].end_node.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId; // Changing also the name of Node end_node of signalling_block_sections[i]
 							} else {
-								sprintf_s(pointcoord, "%f", BS[i].arcs_in_signalling_block_section[j].endNode.X);
+								const std::string pointcoord = formatSceneSectionCoordinate(BS[i].arcs_in_signalling_block_section[j].endNode.X);
 								if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "Point"; // Keep the same name if the Node already has a name and add that is a Point
 								else {
@@ -886,7 +885,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 
 					} else { // if it is not the initial member of the block section
 						if (BS[i].arcs_in_signalling_block_section[j].endNode.numConnections > 0) {
-							char pointcoord[20];
 							string NameTDSB; // Define name variables
 							// In case this Node coincides with the last Node of the Block Section, then change also the ID of the last Node of the block section itself
 							if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].end_node.X) {
@@ -898,7 +896,7 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 								}
 								BS[i].end_node.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId; // Changing also the name of Node end_node of signalling_block_sections[i]
 							} else {
-								sprintf_s(pointcoord, "%f", BS[i].arcs_in_signalling_block_section[j].endNode.X);
+								const std::string pointcoord = formatSceneSectionCoordinate(BS[i].arcs_in_signalling_block_section[j].endNode.X);
 								if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "Point";
 								else {
@@ -925,11 +923,8 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 				for (int j = 0; j < BS[i].total_arcs; j++) {
 					if (j == 0) { // if the start of switch is the first Node of the Arc
 						if (BS[i].arcs_in_signalling_block_section[j].startNode.X == BS[i].XStartSwitch) {
-							char pointcoord1[20];
 							string NameTDSB;
-							char pointcoord2[20];
-							sprintf_s(pointcoord1, "%f", BS[i].XStartSwitch);
-							sprintf_s(pointcoord2, "%f", BS[i].XEndSwitch);
+							const std::string pointcoord2 = formatSceneSectionCoordinate(BS[i].XEndSwitch);
 							// Setting ID for start_node of arcs_in_signalling_block_section[j]
 							if (BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId.empty() != 1) {
 								NameTDSB = NameTDSB + BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId + "/@" + pointcoord2 + "-" + *u + "@Point-Start";
@@ -974,12 +969,10 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 					}
 					// Now look just at the end nodes of the arcs
 					if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].XStartSwitch) {
-						char pointcoord1[20];
 						string NameTDSB;
 						bool NoNameOfNode = false; // NoNameOfNode becomes true when the Node has not already a name
-						char pointcoord2[20];
-						sprintf_s(pointcoord1, "%f", BS[i].XStartSwitch);
-						sprintf_s(pointcoord2, "%f", BS[i].XEndSwitch);
+						const std::string pointcoord1 = formatSceneSectionCoordinate(BS[i].XStartSwitch);
+						const std::string pointcoord2 = formatSceneSectionCoordinate(BS[i].XEndSwitch);
 						// Setting ID for end_node of arcs_in_signalling_block_section[j]
 						if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
 							NameTDSB = NameTDSB + BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "/@" + pointcoord2 + "-" + *u + "@Point-Start";
@@ -1008,12 +1001,10 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 					}
 
 					else if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].XEndSwitch) {
-						char pointcoord1[20];
 						string NameTDSB;
 						bool NoNameOfNode = false; // NoNameOfNode becomes true when the Node has not already a name
-						char pointcoord2[20];
-						sprintf_s(pointcoord1, "%f", BS[i].XStartSwitch);
-						sprintf_s(pointcoord2, "%f", BS[i].XEndSwitch);
+						const std::string pointcoord1 = formatSceneSectionCoordinate(BS[i].XStartSwitch);
+						const std::string pointcoord2 = formatSceneSectionCoordinate(BS[i].XEndSwitch);
 						// Setting ID for end_node of arcs_in_signalling_block_section[j]
 						if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1) {
 							NameTDSB = NameTDSB + "@" + pointcoord1 + "-" + *it + "@/" + BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "Point-End";
@@ -1041,11 +1032,10 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 
 					if (BS[i].arcs_in_signalling_block_section[j].endNode.numConnections > 0) {
 						if ((BS[i].arcs_in_signalling_block_section[j].endNode.X != BS[i].XStartSwitch) && (BS[i].arcs_in_signalling_block_section[j].endNode.X != BS[i].XEndSwitch)) {
-							char pointcoord[20];
 							string NameTDSB;
 							bool NoNameOfNode = false; // NoNameOfNode becomes true when the Node has not already a name
 
-							sprintf_s(pointcoord, "%f", BS[i].arcs_in_signalling_block_section[j].endNode.X);
+							const std::string pointcoord = formatSceneSectionCoordinate(BS[i].arcs_in_signalling_block_section[j].endNode.X);
 
 							if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
 								BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "Point"; // Allocating the name to start_node of arcs_in_signalling_block_section
