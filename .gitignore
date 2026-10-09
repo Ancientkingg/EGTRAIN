@@ -29,8 +29,6 @@ DriverSaves/
 *.bak
 *.log
 *.log.txt
-rand1.seed
-**/rand1.seed
 *.actual.txt
 
 # Archives and installers

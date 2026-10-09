@@ -21,7 +21,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCENE = ROOT / "EGTRAIN/QEGTRAIN/Scenes/Netherlands"
-FIXED_SEED = ROOT / "tools/golden_master/fixed_seed.seed"
 RUN_TIMEOUT = 240
 NOT_RECORDED = -10000.0
 TRAIN = "SPR_461-1"
@@ -69,8 +68,6 @@ def main() -> None:
         raise SystemExit(f"QEGTRAIN executable not found: {app}")
     if not SCENE.is_dir():
         raise SystemExit(f"canonical scene not found: {SCENE}")
-    if not FIXED_SEED.is_file():
-        raise SystemExit(f"fixed seed not found: {FIXED_SEED}")
 
     with tempfile.TemporaryDirectory(prefix="qegtrain-departure-") as temp:
         temp_root = Path(temp)
@@ -84,7 +81,6 @@ def main() -> None:
         run_root = temp_root / "run"
         output = run_root / "output"
         output.mkdir(parents=True)
-        shutil.copyfile(FIXED_SEED, run_root / "rand1.seed")
 
         env = os.environ.copy()
         env.update(

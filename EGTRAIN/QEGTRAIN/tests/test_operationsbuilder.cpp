@@ -248,7 +248,7 @@ static bool seedTests(const SceneModel& scene) {
 	return ok;
 }
 
-// Neither the dwell computation nor the scene preparation reads or writes files.
+// Neither the dwell computation nor the scene preparation leaves a file in the working directory.
 static bool noFileAccessTests(const SceneModel& scene) {
 	QTemporaryDir workDir;
 	const QString previousDir = QDir::currentPath();
@@ -258,9 +258,9 @@ static bool noFileAccessTests(const SceneModel& scene) {
 	train.number_of_wagons = 3.0;
 	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
 	seededDwellTime(train, 0.5, 800, 800);
-	sampledWindows(scene, kSeedA);
+	bool ok = expect(!sampledWindows(scene, kSeedA).empty(), "the scene is prepared in the temporary directory");
 	const QStringList entries = QDir(workDir.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
-	bool ok = expect(entries.isEmpty(), "no file appears in the working directory (found: " + entries.join(",").toStdString() + ")");
+	ok &= expect(entries.isEmpty(), "no file appears in the working directory (found: " + entries.join(",").toStdString() + ")");
 	ok &= expect(QDir::setCurrent(previousDir), "working directory restored");
 	return ok;
 }

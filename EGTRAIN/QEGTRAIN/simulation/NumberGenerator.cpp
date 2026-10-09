@@ -1,6 +1,5 @@
 #include "simulation/NumberGenerator.h"
 #include "simulation/InitialParameters.h"
-#include <stdlib.h>
 #include <math.h>
 
 NumberGenerator::NumberGenerator(unsigned long inSeed) {
@@ -62,16 +61,6 @@ double NumberGenerator::getGaussianFloat(double inMean,
 		iset = 0;
 		return gset * inStdDev + inMean;
 	}
-}
-
-// Function to generate random number in a range between Min and Max
-double NumberGenerator::generateRandomNumberInRange(double Min, double Max) {
-	// generate random number in range Min - Max using std function rand
-	double randomNum = -1;
-
-	randomNum = Min + ((double)rand() / ((double)RAND_MAX - 0)) * (Max - Min);
-	// return generated number
-	return randomNum;
 }
 
 NumberGenerator& runNumberGenerator() {
