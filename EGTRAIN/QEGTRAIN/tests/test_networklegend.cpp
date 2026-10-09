@@ -25,6 +25,12 @@ static bool containsColor(const QImage& image, const QColor& color) {
 	return false;
 }
 
+// Colour of the swatch pixel at a position in widget coordinates.
+static QColor swatchPixel(const QImage& image, int x, int y) {
+	const qreal scale = image.devicePixelRatio();
+	return image.pixelColor(static_cast<int>(x * scale), static_cast<int>(y * scale));
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -86,12 +92,22 @@ int main(int argc, char* argv[]) {
 		"signal rows follow the station row and precede the passenger row");
 	auto* unavailableSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
 	const QImage unavailableImage = unavailableSwatch ? unavailableSwatch->grab().toImage() : QImage();
+	// The lamp is a 12 pixel disc centred at (23, 9). The ring leaves the area inside it as the plain background.
 	ok &= expect(unavailableSwatch && containsColor(unavailableImage, QColor(150, 150, 150))
-			&& !containsColor(unavailableImage, QColor(Qt::red)) && !containsColor(unavailableImage, QColor(Qt::green)),
+			&& !containsColor(unavailableImage, QColor(Qt::red)) && !containsColor(unavailableImage, QColor(Qt::green))
+			&& swatchPixel(unavailableImage, 23, 6) == swatchPixel(unavailableImage, 0, 0)
+			&& swatchPixel(unavailableImage, 23, 12) == swatchPixel(unavailableImage, 0, 0),
 		"unavailable signal swatch is an empty gray ring");
 	auto* failedSwatch = legend.findChild<QWidget*>("mapKeySwatch9");
 	const QImage failedImage = failedSwatch ? failedSwatch->grab().toImage() : QImage();
-	ok &= expect(failedSwatch && containsColor(failedImage, QColor(Qt::red)) && containsColor(failedImage, QColor(Qt::white)),
+	// Pixels at the four arm ends of the cross are white and the pixels between the arms are red.
+	ok &= expect(failedSwatch && containsColor(failedImage, QColor(Qt::red))
+			&& swatchPixel(failedImage, 20, 6).rgb() == QColor(Qt::white).rgb()
+			&& swatchPixel(failedImage, 25, 6).rgb() == QColor(Qt::white).rgb()
+			&& swatchPixel(failedImage, 20, 11).rgb() == QColor(Qt::white).rgb()
+			&& swatchPixel(failedImage, 25, 11).rgb() == QColor(Qt::white).rgb()
+			&& swatchPixel(failedImage, 23, 5).rgb() == QColor(Qt::red).rgb()
+			&& swatchPixel(failedImage, 27, 9).rgb() == QColor(Qt::red).rgb(),
 		"failed signal swatch is a red lamp with a white cross");
 
 	int trainCount = 0;
