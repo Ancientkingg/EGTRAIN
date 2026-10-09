@@ -339,6 +339,13 @@ bool resolveScenePassengerLegStops(const SceneService& service, const ScenePasse
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
 		SceneCompositionRuntime& result, std::string& diagnostic);
 
+// Gravitational acceleration [m/s^2] that the gradient and braking limits are
+// derived from.
+inline constexpr double kSceneGravityMs2 = 9.81;
+
+// Factor on the total train mass in the equation of motion.
+double sceneTrainMassFactor(const SceneTrainPhysical& physical);
+
 // GUI/editor callers use the preferred scenario without a duplicate flat
 // incident vector in SceneModel.
 SceneScenario* defaultScenario(SceneModel& scene);

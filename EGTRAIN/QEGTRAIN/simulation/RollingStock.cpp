@@ -260,7 +260,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 }
 
 Regional::Regional() {
-	g = 9.81;
+	g = kSceneGravityMs2;
 	ID = 0;
 	mass_of_traction_unit = 0;
 	mass_of_a_wagon = 0;
@@ -272,7 +272,7 @@ Regional::Regional() {
 	Jerk = 0;
 	train_length = 0;
 	massPerWagonAxle = mass_of_a_wagon * number_of_wagons;
-	massFactor = (1.09 * mass_of_traction_unit + 1.06 * massPerWagonAxle) / (mass_of_traction_unit + massPerWagonAxle);
+	massFactor = sceneTrainMassFactor(SceneTrainPhysical());
 	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
 }
 
@@ -464,7 +464,7 @@ void nativeClearRegionalTrain(Regional& train) {
 }
 
 void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vectorSize) {
-	train.g = 9.81;
+	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
 	train.type = plan.type;
 	train.operatingCode = plan.operatingCode;
@@ -498,8 +498,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.train_length = plan.physical.length_m;
 	train.massPerWagonAxle = train.mass_of_a_wagon * train.number_of_wagons;
 	train.total_train_mass = train.mass_of_traction_unit + train.massPerWagonAxle;
-	train.massFactor = (1.09 * train.mass_of_traction_unit + 1.06 * train.massPerWagonAxle)
-			/ train.total_train_mass;
+	train.massFactor = sceneTrainMassFactor(plan.physical);
 	train.velocityIntervals = static_cast<int>(plan.tractionCurve.size());
 	for (int index = 0; index < train.velocityIntervals; ++index) {
 		train.Vlb[index] = plan.tractionCurve[index][0];

@@ -67,7 +67,8 @@ empty or omitted on input and are emitted by the writer.
 - `tracks[]`: `{ "id": string }`.
 - `nodes[]`: `id`, `track`, numeric `x_km`, numeric `y_km`.
 - `arcs[]`: `id`, `track`, `from`, `to`, numeric `curvature_radius_m`,
-  `gradient_percent`, and `speed_limit_ms`.
+  `gradient_percent`, and `speed_limit_ms`. The simulation uses
+  `gradient_percent` unchanged as rise per length.
 - `blocks[]`: `id`, `track`, numeric `length_km`. Block IDs cannot contain `/`,
   which is reserved as the separator in connection-derived section identities.
 - `connections[]`: `id`, `from`, `to`, and optional numeric `speed_limit_ms`.
@@ -114,6 +115,17 @@ A section with no matching area retains the unset signalling value. The loader
 and writer never create a default level. Runnable validation reports the route
 sections without a level in one `scene.signalling.level.missing` warning;
 sections that are on no route are not reported.
+
+Validation reports the arcs of a route that its trains cannot brake or start on
+in one `scene.route.gradient.steep` warning per route and composition that a
+service uses. The braking limit of a composition is
+`mass_factor * max_deceleration_ms2 / g`, applied to descents. The starting
+limit is the tractive effort at 0 m/s divided by `g * total_train_mass`,
+applied to ascents; other resistances are ignored. Both limits are in the unit
+of `gradient_percent`. A route driven in reverse sees the opposite sign of each
+stored value. The warning names the steepest arcs with their stored values. A
+route whose direction cannot be resolved is compared by absolute value with the
+smaller limit.
 
 Section references are resolved from the transient section inventory derived
 from the authored tracks, blocks, arcs, and connections. Route order is

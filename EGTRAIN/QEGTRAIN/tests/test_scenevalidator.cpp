@@ -136,6 +136,52 @@ static SceneModel completeScene() {
 	return scene;
 }
 
+// Rolling stock of the Lebanon scene (lebanon-teaching-unit). The limits are
+// 1.09 * 0.75 / 9.81 = 0.08333 for braking and 209000 / (9.81 * 151000) = 0.1411
+// for starting.
+static SceneTrainUnit lebanonUnit() {
+	SceneTrainUnit unit;
+	unit.id = "unit-1";
+	unit.hasPhysical = true;
+	unit.physical.mass_of_traction_unit_kg = 151000.0;
+	unit.physical.max_speed_ms = 36.111111111111;
+	unit.physical.max_deceleration_ms2 = 0.75;
+	unit.tractionCurve.push_back({{0.0, 8.611111111111, 209000.0, 0.0, 0.0}});
+	unit.tractionCurve.push_back({{8.611111111111, 36.111111111111, 324607.2915, -17671.4923, 292.9005}});
+	return unit;
+}
+
+// Rolling stock of the Paimpol scene (Draisy). Its larger deceleration gives
+// a braking limit of 0.1643.
+static SceneTrainUnit paimpolUnit() {
+	SceneTrainUnit unit;
+	unit.id = "unit-2";
+	unit.hasPhysical = true;
+	unit.physical.mass_of_traction_unit_kg = 19000.0;
+	unit.physical.mass_of_a_wagon_kg = 19000.0;
+	unit.physical.number_of_wagons = 1.0;
+	unit.physical.max_speed_ms = 27.7778;
+	unit.physical.max_deceleration_ms2 = 1.5;
+	unit.tractionCurve.push_back({{0.0, 6.111, 50000.0, 0.0, 0.0}});
+	unit.tractionCurve.push_back({{6.111, 16.6667, 100439.0, -10241.0, 318.41}});
+	return unit;
+}
+
+// The first block holds arc-1 and the second block arc-2.
+static SceneModel steepGradientScene(double firstGradient, double secondGradient) {
+	SceneModel scene = completeScene();
+	scene.trainUnits = {lebanonUnit()};
+	scene.arcs[0].gradientPercent = firstGradient;
+	scene.arcs[1].gradientPercent = secondGradient;
+	return scene;
+}
+
+static int steepGradientWarningCount(const SceneModel& scene) {
+	const auto diagnostics = validateScene(scene);
+	return static_cast<int>(std::count_if(diagnostics.begin(), diagnostics.end(),
+			[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "scene.route.gradient.steep"; }));
+}
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage: test_scenevalidator <fixture_dir>\n";
@@ -637,6 +683,69 @@ int main(int argc, char** argv) {
 	noRoutes.signallingAreas.clear();
 	ok &= expect(!hasCode(validateRunnableScene(noRoutes), levelMissing),
 			"a scene without routes has no route sections to report");
+
+	const std::string steepCode = "scene.route.gradient.steep";
+	const SceneModel steepDescent = steepGradientScene(-0.09, 0.0);
+	const auto steepDescentDiagnostics = validateScene(steepDescent);
+	const SceneDiagnostic* steepDescentWarning = findCode(steepDescentDiagnostics, steepCode);
+	ok &= expect(steepDescentWarning != nullptr && steepDescentWarning->severity == SceneSeverity::Warning
+			&& steepDescentWarning->file == "infrastructure.json"
+			&& contains(steepDescentWarning->message, "Route route-1 with composition composition-1: 1 of 2 arcs is")
+			&& contains(steepDescentWarning->message, "arc-1 (-0.09)")
+			&& contains(steepDescentWarning->message, "limit 0.08333")
+			&& contains(steepDescentWarning->message, "limit 0.1411")
+			&& contains(steepDescentWarning->message, "rise per length")
+			&& contains(steepDescentWarning->suggestedFix, "gradient_percent")
+			&& !hasErrors(steepDescentDiagnostics),
+			"a descent steeper than the braking limit gives a warning that names the arc and both limits");
+	ok &= expect(hasCode(validateRunnableScene(steepDescent), steepCode),
+			"runnable validation reports the steep gradient too");
+	ok &= expect(steepGradientWarningCount(steepGradientScene(0.0, 0.15)) == 1,
+			"an ascent steeper than the starting limit gives a warning");
+	ok &= expect(steepGradientWarningCount(steepGradientScene(0.0, 0.09)) == 0,
+			"an ascent above the braking limit but below the starting limit gives no warning");
+	ok &= expect(steepGradientWarningCount(steepGradientScene(-0.08, 0.14)) == 0,
+			"arcs just below both limits give no warning");
+
+	SceneModel reversedRoute = steepGradientScene(0.09, 0.0);
+	reversedRoute.routes[0].blocks = {"block-2", "block-1"};
+	ok &= expect(buildSceneRouteTraversal(reversedRoute, reversedRoute.routes[0]).direction == -1
+			&& steepGradientWarningCount(reversedRoute) == 1,
+			"an ascent in the stored direction is a descent on a reversed route");
+	reversedRoute = steepGradientScene(-0.09, 0.0);
+	reversedRoute.routes[0].blocks = {"block-2", "block-1"};
+	ok &= expect(steepGradientWarningCount(reversedRoute) == 0,
+			"a descent in the stored direction is an ascent below the starting limit on a reversed route");
+
+	SceneModel twoServices = steepDescent;
+	twoServices.services.push_back(twoServices.services.front());
+	twoServices.services.back().id = "service-2";
+	ok &= expect(steepGradientWarningCount(twoServices) == 1,
+			"services with the same route and composition share one warning");
+
+	SceneModel twoCompositions = steepGradientScene(-0.1, 0.0);
+	twoCompositions.trainUnits.push_back(paimpolUnit());
+	twoCompositions.compositions.push_back({"composition-2", {"unit-2"}});
+	twoCompositions.services.push_back(twoCompositions.services.front());
+	twoCompositions.services.back().id = "service-2";
+	twoCompositions.services.back().composition = "composition-2";
+	const auto twoCompositionDiagnostics = validateScene(twoCompositions);
+	ok &= expect(steepGradientWarningCount(twoCompositions) == 1
+			&& contains(findCode(twoCompositionDiagnostics, steepCode)->message, "composition-1")
+			&& !contains(findCode(twoCompositionDiagnostics, steepCode)->message, "composition-2"),
+			"a composition with a larger deceleration is judged on its own limit");
+	twoCompositions.arcs[0].gradientPercent = -0.2;
+	ok &= expect(steepGradientWarningCount(twoCompositions) == 2,
+			"each composition on the route gets its own warning");
+
+	SceneModel unknownComposition = steepDescent;
+	unknownComposition.services[0].composition = "missing";
+	ok &= expect(steepGradientWarningCount(unknownComposition) == 0,
+			"a service without a resolvable composition gets no gradient warning");
+	SceneModel unknownRoute = steepDescent;
+	unknownRoute.routes[0].blocks = {"missing-block"};
+	ok &= expect(steepGradientWarningCount(unknownRoute) == 0,
+			"a route without resolvable sections gets no gradient warning");
 
 	SceneModel longRoute = clean;
 	longRoute.nodes.clear();
