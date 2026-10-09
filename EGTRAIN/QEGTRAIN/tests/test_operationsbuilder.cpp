@@ -886,6 +886,46 @@ static bool singleTrackLockTests() {
 	place(0, 0, 100.0, false);
 	updateSingleTrackLocks(1);
 
+	// A held section gives the routes against the holder an End of Authority in front of the zone at level 3 and 4,
+	// once per step, and none for the holder's direction.
+	singleTrackLimits.clear();
+	singleTrackLimits.emplace_back("lock.2", "lock.3", "", "lock.1", "lock.4");
+	resetSingleTrackLocks();
+	const auto savedAuthorities = ETCS_MA;
+	auto setLevel = [](int level) {
+		for (Route& route : train_route)
+			for (Section& section : route.sequence_of_block_sections)
+				section.SignallingLevel = level;
+	};
+	setLevel(3);
+	place(0, 0, 3500.0, true); // forward, in lock.1
+	place(1, 1, 3000.0, false);
+	ETCS_MA.clear();
+	updateSingleTrackLocks(1);
+	Apply_Single_Track_Authorities_Mixed_Signalling();
+	Apply_Single_Track_Authorities_Mixed_Signalling();
+	ok &= expect(ETCS_MA.size() == 1 && ETCS_MA.front().BSID == "lock.5" && ETCS_MA.front().ReversedDirection
+			&& ETCS_MA.front().type == "SignalFailure" && ETCS_MA.front().TrainInfo.trainDescription == "single_track:lock.2",
+		"a forward holder gives the reversed route one authority in front of the zone");
+	setLevel(2);
+	ETCS_MA.clear();
+	Apply_Single_Track_Authorities_Mixed_Signalling();
+	ok &= expect(ETCS_MA.empty(), "a zone of fixed-block sections is held by its aspects and gets no authority");
+	setLevel(4);
+	place(0, 0, 3500.0, false);
+	place(1, 1, 3500.0, true); // reversed, in lock.4
+	updateSingleTrackLocks(1);
+	ETCS_MA.clear();
+	Apply_Single_Track_Authorities_Mixed_Signalling();
+	ok &= expect(ETCS_MA.size() == 1 && ETCS_MA.front().BSID == "lock.0" && !ETCS_MA.front().ReversedDirection,
+		"a reversed holder gives the forward route an authority in front of the zone");
+	place(1, 1, 3500.0, false);
+	updateSingleTrackLocks(1);
+	ETCS_MA.clear();
+	Apply_Single_Track_Authorities_Mixed_Signalling();
+	ok &= expect(singleTrackHeld[0] == 0 && ETCS_MA.empty(), "a free section gives no authority");
+	ETCS_MA = savedAuthorities;
+
 	// A zone with gaps keeps one interval per run of neighbouring sections, and a train in a gap is not inside.
 	singleTrackLimits.clear();
 	singleTrackLimits.emplace_back("lock.2", "lock.3", "", "lock.0", "lock.5");

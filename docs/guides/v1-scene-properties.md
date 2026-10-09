@@ -79,8 +79,8 @@ Use these optional arrays for explicit signalling relationships:
 - `block_dependencies`: `{ "block": "...", "depends_on": "..." }`.
 - `single_track_restrictions`: `start_block`, `end_block`,
   `protected_start_block`, and `protected_end_block`. While a train is in the
-  stretch, trains of the opposite direction wait in front of it. This acts at
-  signalling levels 0, 1, 2 and 5; see the
+  stretch, trains of the opposite direction wait in front of it. This needs a
+  signalling level; see the
   [scene schema](../architecture/scene-schema.md#single-track-restrictions).
 - `station_boundaries`: `entrance_block`, optional `exit_block`, and optional
   boolean `direction`.

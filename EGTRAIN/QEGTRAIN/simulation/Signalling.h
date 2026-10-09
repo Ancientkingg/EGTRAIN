@@ -38,6 +38,7 @@ extern std::vector<SimulationIncident> simulationIncidents;
 bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
 const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, int timestepIndex);
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex);
+void Apply_Single_Track_Authorities_Mixed_Signalling();
 
 // --- TrainEvent: ordered train events (departures, arrivals, etc.) ---
 class TrainEvent {

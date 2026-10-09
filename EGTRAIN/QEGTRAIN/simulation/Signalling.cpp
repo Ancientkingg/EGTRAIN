@@ -4783,6 +4783,42 @@ bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
 	return incident != nullptr && !incident->hasReducedSpeed;
 }
 
+// Gives the route an End of Authority in front of its section b, for the trains of the direction of the route.
+// The authority is anchored on the section before b, at its end node: a train braking for it stops inside that
+// section, and the stopped-at-EoA release check only fires when the train's current section matches the MA's BSID.
+// description names what the authority stands for. The authority lasts for the current step only: the list is
+// cleared at the start of every step.
+static void addEndOfAuthorityBeforeSection(const Route& route, int b, const std::string& description) {
+	const Section& section = route.sequence_of_block_sections[b];
+	const int anchorIndex = (b > 0) ? b - 1 : b;
+	const Section& anchor = route.sequence_of_block_sections[anchorIndex];
+	const double anchorDist = (b > 0)
+		? (anchor.end_node.X - anchor.start_node.X) * 1000
+		: 0;
+	MovementAuthority MA;
+	MA.BSID = anchor.ID;
+	MA.type = "SignalFailure";
+	MA.typePart = "Front";
+	MA.ReversedDirection = route.reversed_direction;
+	MA.EoA_Dist_From_BSID_Beg = anchorDist;
+	// The EVC maps a reversed-route EoA back through GeoXBegNode,
+	// so store the value that resolves to the failed entry.
+	MA.AbsPosEoA = route.reversed_direction
+		? anchor.GeoXBegNode - anchorDist
+		: anchor.start_node.X * 1000 + anchorDist;
+	MA.TrainInfo.trainDescription = description;
+	MA.TrainInfo.Position = MA.AbsPosEoA;
+	MA.TrainInfo.TrainSpeed = 0;
+	MA.TrainInfo.Acceleration = 0;
+	MA.TrainInfo.CurrentSectionID = anchor.ID;
+	MA.TrainInfo.NextSectionID = section.ID;
+	for (const auto& existing : ETCS_MA)
+		if (existing.BSID == MA.BSID && abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
+			&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription)
+			return;
+	ETCS_MA.push_back(MA);
+}
+
 // Apply active signal_failure incidents to the mixed signalling state. The
 // failed sections join BlocksOccupied so aspect-driven levels turn red, and
 // each one gets an End-of-Authority at its entry so moving-block trains brake
@@ -4814,48 +4850,43 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 
 			for (int r = 0; r < N_Routes; r++) {
 				for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
-					const Section& section = train_route[r].sequence_of_block_sections[b];
-					if (section.ID != secID)
+					if (train_route[r].sequence_of_block_sections[b].ID != secID)
 						continue;
-					// Anchor the EoA on the section BEFORE the failed one, at its
-					// end node: a train braking for the failure stops inside that
-					// section, and the stopped-at-EoA release check only fires
-					// when the train's current section matches the MA's BSID.
-					const int anchorIndex = (b > 0) ? b - 1 : b;
-					const Section& anchor = train_route[r].sequence_of_block_sections[anchorIndex];
-					const double anchorDist = (b > 0)
-						? (anchor.end_node.X - anchor.start_node.X) * 1000
-						: 0;
-					MovementAuthority MA;
-					MA.BSID = anchor.ID;
-					MA.type = "SignalFailure";
-					MA.typePart = "Front";
-					MA.ReversedDirection = train_route[r].reversed_direction;
-					MA.EoA_Dist_From_BSID_Beg = anchorDist;
-					// The EVC maps a reversed-route EoA back through GeoXBegNode,
-					// so store the value that resolves to the failed entry.
-					MA.AbsPosEoA = train_route[r].reversed_direction
-						? anchor.GeoXBegNode - anchorDist
-						: anchor.start_node.X * 1000 + anchorDist;
-					MA.TrainInfo.trainDescription = "signal_failure:"
-						+ (inc.id.empty() ? inc.target : inc.id);
-					MA.TrainInfo.Position = MA.AbsPosEoA;
-					MA.TrainInfo.TrainSpeed = 0;
-					MA.TrainInfo.Acceleration = 0;
-					MA.TrainInfo.CurrentSectionID = anchor.ID;
-					MA.TrainInfo.NextSectionID = section.ID;
-					bool alreadyThere = false;
-					for (const auto& existing : ETCS_MA) {
-						if (existing.BSID == MA.BSID && abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
-							&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription) {
-							alreadyThere = true;
-							break;
-						}
-					}
-					if (!alreadyThere)
-						ETCS_MA.push_back(MA);
+					addEndOfAuthorityBeforeSection(train_route[r], b, "signal_failure:" + (inc.id.empty() ? inc.target : inc.id));
 					break;
 				}
+			}
+		}
+	}
+}
+
+// A single-track section that is held (singleTrackHeld) gets an End of Authority in front of its sections on every
+// route that runs against the holder, in the way of a signal failure, so that level 3 and 4 trains of the other
+// direction wait in front of it. Fixed-block trains wait for the aspects that the lock sets. Trains of the holder's
+// direction ignore the authority, because it is made for the direction of the other routes. Where a route has
+// several separate stretches of the section, each gets one. The sections of the stretch must have level 3 or 4.
+void Apply_Single_Track_Authorities_Mixed_Signalling() {
+	for (std::size_t l = 0; l < singleTrackHeld.size() && l < singleTrackLimits.size(); ++l) {
+		if (singleTrackHeld[l] == 0)
+			continue;
+		const std::string description = "single_track:" + std::get<0>(singleTrackLimits[l]);
+		for (int r = 0; r < static_cast<int>(train_route.size()); r++) {
+			const Route& route = train_route[r];
+			if ((route.reversed_direction ? -1 : 1) == singleTrackHeld[l])
+				continue;
+			// the zone lists its sections of this route in route order
+			const std::vector<std::string>& zone = singleTrackZone(l, r).sectionIDs;
+			std::size_t next = 0;
+			bool previousInZone = false;
+			for (int b = 0; b < route.N_Block_Sections && next < zone.size(); b++) {
+				const Section& section = route.sequence_of_block_sections[b];
+				const bool inZone = section.ID == zone[next];
+				if (inZone) {
+					++next;
+					if (!previousInZone && (section.SignallingLevel == 3 || section.SignallingLevel == 4))
+						addEndOfAuthorityBeforeSection(route, b, description);
+				}
+				previousInZone = inZone;
 			}
 		}
 	}

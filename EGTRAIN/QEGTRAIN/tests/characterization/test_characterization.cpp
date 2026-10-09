@@ -193,8 +193,6 @@ const struct {
 	const char* marker;
 } kKnownWrong[] = {
 	{"same-entry-level-4", "#564 F1 stops at the position of T1 at B"},
-	{"single-track-level-3", "#551 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
-	{"single-track-level-4", "#551 R1 and S1 meet on the single-track section, level 4 ignores the restriction"},
 };
 
 std::string knownWrongMarker(const std::string& name) {

@@ -623,6 +623,9 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				// aspect-driven and moving-block trains react to the incident
 				Apply_Signal_Failures_Mixed_Signalling(t);
 
+				// Held single-track sections give trains of the other direction an End of Authority at levels 3 and 4
+				Apply_Single_Track_Authorities_Mixed_Signalling();
+
 				// Only for level>=3
 				ReportAllTrainPositionsToRBC(t, 50);
 

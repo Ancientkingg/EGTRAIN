@@ -175,20 +175,22 @@ before keeps it, and the forward direction holds it when nobody did. The stretch
 is released when the last train of the holding direction has left it, and then
 passes to the other direction if a train of that direction is inside.
 
-The restriction acts through the signal aspects of fixed-block signalling, so
-it has an effect on sections with signalling level 0, 1, 2 or 5. Without a
-signalling level and at levels 3 and 4 it does not keep opposing trains apart
-and they can still meet. On a section of level 3 or 4 it only sets the aspect
-that the section shows, and a level 3 or 4 train in front of a held section of
-another level stops at the end of its own section. A train that has to wait
-needs a route that gives it somewhere to wait outside the stretch, such as the
-loop track of a station. On a route without one it stops on the track that the
-other train needs.
+At signalling levels 0, 1, 2 and 5 the restriction acts through the signal
+aspects of the sections. At levels 3 and 4 a train does not follow the aspects,
+so each route against the holder gets an end of authority at the end of the
+section before the first section of the stretch on that route, as long as the
+stretch is held and that first section has level 3 or 4. The train stops there
+and continues when the stretch is released. Without a signalling level the
+restriction does not keep opposing trains apart and they can still meet. A
+level 3 or 4 train in front of a held section of another level stops at the end
+of its own section. A train that has to wait needs a route that gives it
+somewhere to wait outside the stretch, such as the loop track of a station. On
+a route without one it stops on the track that the other train needs.
 
 Runnable validation reports each restriction whose start, end or protected
-blocks have no signalling level or level 3 or 4 in one
-`scene.single_track.no_effect` warning. The warning names the restriction by
-its index in `single_track_restrictions` and lists the blocks and their levels.
+blocks have no signalling level in one `scene.single_track.no_effect` warning.
+The warning names the restriction by its index in `single_track_restrictions`
+and lists the blocks that have no level.
 
 ## `rolling_stock.json`
 

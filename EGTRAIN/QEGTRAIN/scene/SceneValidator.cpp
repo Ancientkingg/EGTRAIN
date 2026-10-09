@@ -370,8 +370,9 @@ void reportSignallingAreaShapes(const SceneModel& scene, const SceneSectionInven
 	}
 }
 
-// A single-track restriction closes its sections to trains of the opposite direction through the signal
-// aspects of fixed-block signalling, so it needs signalling level 0, 1, 2 or 5 where it lies.
+// A single-track restriction closes its sections to trains of the opposite direction through the signal aspects of
+// fixed-block signalling and through an end of authority at levels 3 and 4, so it needs a signalling level where it
+// lies.
 void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneSectionInventory& inventory,
 	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	for (std::size_t index = 0; index < scene.singleTrackRestrictions.size(); ++index) {
@@ -389,12 +390,9 @@ void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneS
 			if (section == nullptr)
 				continue;
 			const SceneSectionSignalling* sectionSignalling = signalling.section(section->id);
-			const int level = sectionSignalling == nullptr ? kSignallingLevelUnset : sectionSignalling->level;
-			if (level != kSignallingLevelUnset && level != 3 && level != 4)
+			if (sectionSignalling != nullptr && sectionSignalling->level != kSignallingLevelUnset)
 				continue;
-			reasons += (reasons.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second
-				+ (level == kSignallingLevelUnset ? " has no signalling level"
-												  : " has level " + std::to_string(level));
+			reasons += (reasons.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second + " has no signalling level";
 			if (firstReason.empty())
 				firstReason = *role.second;
 		}
@@ -402,10 +400,10 @@ void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneS
 			continue;
 		diagnostics.warning("scene.single_track.no_effect",
 			"Single-track restriction " + std::to_string(index) + " (" + blocks
-				+ ") has no effect where the signalling level is not 0, 1, 2 or 5: " + reasons,
+				+ ") has no effect where there is no signalling level: " + reasons,
 			"signalling.json", "single_track_restriction", restriction.startBlock,
 			"single_track_restrictions[" + std::to_string(index) + "]", firstReason,
-			"In Infrastructure > Signalling area give these blocks level 0, 1, 2 or 5");
+			"In Infrastructure > Signalling area give these blocks a signalling level");
 	}
 }
 
