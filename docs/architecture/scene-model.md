@@ -212,9 +212,12 @@ bundle is never downgraded. Older inputs are migratable only through explicit
 incremental registry steps; the production registry is currently empty.
 
 An upgrade always writes a copy through private staging and the existing
-transactional writer. The source directory or bundle remains unchanged on
-success and failure. Directory scenes and transparent bundles share the same
-current model, and a newer EGTRAIN release is required for newer formats.
+transactional writer. Before the copy is written, the upgraded scene is loaded
+and checked with `validateScene`, the semantic checks and not the runnable
+ones. An error stops the upgrade and no copy is written; warnings do not stop
+it. The source directory or bundle remains unchanged on success and failure.
+Directory scenes and transparent bundles share the same current model, and a
+newer EGTRAIN release is required for newer formats.
 
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed

@@ -2,15 +2,18 @@
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneMigration.h"
 #include "scene/SceneModel.h"
+#include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 #include "io/third_party/miniz/miniz.h"
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <system_error>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -101,6 +104,38 @@ static std::string readFileBytes(const fs::path& path) {
 	return std::string((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 }
 
+static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
+	SceneSeverity severity) {
+	return std::any_of(diagnostics.begin(), diagnostics.end(), [&](const SceneDiagnostic& diagnostic) {
+		return diagnostic.code == code && diagnostic.severity == severity;
+	});
+}
+
+static std::string firstErrorCode(const std::vector<SceneDiagnostic>& diagnostics) {
+	for (const SceneDiagnostic& diagnostic : diagnostics) {
+		if (diagnostic.severity == SceneSeverity::Error)
+			return diagnostic.code;
+	}
+	return {};
+}
+
+// True when nothing was created at the destination or next to it in its folder.
+static bool leavesNoCopy(const fs::path& destination) {
+	std::error_code ec;
+	const bool exists = fs::exists(destination, ec);
+	fs::directory_iterator folder(destination.parent_path(), ec);
+	return !exists && !ec && folder == fs::directory_iterator();
+}
+
+// Gives a directory its write permission back, so that the temporary directory can be removed.
+struct RestorePermissions {
+	fs::path path;
+	~RestorePermissions() {
+		std::error_code ec;
+		fs::permissions(path, fs::perms::owner_all, fs::perm_options::replace, ec);
+	}
+};
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage: test_scenecompatibility <scene-directory>\n";
@@ -111,6 +146,9 @@ int main(int argc, char** argv) {
 	const fs::path source = temp.path / "source";
 	const SceneLoadResult loaded = loadScene(argv[1]);
 	ok &= expect(!hasErrors(loaded.diagnostics), "fixture scene loads");
+	const SceneLoadResult validLoaded = loadScene((fs::path(argv[1]).parent_path() / "line").string());
+	ok &= expect(!hasErrors(validLoaded.diagnostics), "valid fixture scene loads");
+	ok &= expect(!hasErrors(validateScene(validLoaded.scene)), "valid fixture scene passes semantic validation");
 	ok &= expect(saveScene(loaded.scene, source.string()).success(), "fixture scene saves");
 	const SceneCompatibilityProbeResult current = probeSceneCompatibility(source.string());
 	ok &= expect(current.classification == SceneCompatibilityClass::Current,
@@ -165,7 +203,7 @@ int main(int argc, char** argv) {
 		"malformed manifest is reported");
 
 	const fs::path migrationSource = temp.path / "migration-source";
-	ok &= expect(saveScene(loaded.scene, migrationSource.string()).success(), "migration source saves");
+	ok &= expect(saveScene(validLoaded.scene, migrationSource.string()).success(), "migration source saves");
 	ok &= expect(writeManifest(migrationSource, 0), "test-only migration fixture writes");
 	const std::string originalMigrationBytes = readSceneDirectorySnapshot(migrationSource.string()).bytes;
 	SceneMigrationRegistry registry;
@@ -194,6 +232,9 @@ int main(int argc, char** argv) {
 	ok &= expect(migrated.success() && fs::is_directory(destination), "migration publishes a copy");
 	ok &= expect(readSceneDirectorySnapshot(migrationSource.string()).bytes == originalMigrationBytes,
 		"successful migration leaves source bytes unchanged");
+	const SceneLoadResult reopened = loadScenePath(destination.string());
+	ok &= expect(!hasErrors(reopened.diagnostics) && !hasErrors(validateScene(reopened.scene)),
+		"upgraded directory copy reopens without errors");
 	const fs::path failedDestination = temp.path / "failed-upgrade";
 	SceneMigrationRegistry failingRegistry;
 	failingRegistry.addSchemaStep(SceneMigrationStep(0, kCurrentSceneSchemaVersion,
@@ -256,7 +297,7 @@ int main(int argc, char** argv) {
 		"current bundle version propagates through the normal loader");
 	const fs::path olderBundle = temp.path / "older.egscene";
 	const fs::path bundleSource = temp.path / "bundle-source";
-	ok &= expect(saveScene(loaded.scene, bundleSource.string()).success(), "bundle migration source saves");
+	ok &= expect(saveScene(validLoaded.scene, bundleSource.string()).success(), "bundle migration source saves");
 	ok &= expect(writeBundleVersion(olderBundle, bundleSource, kCurrentSceneBundleVersion - 1),
 		"older bundle fixture writes");
 	const SceneCompatibilityProbeResult olderBundleProbe = probeSceneCompatibility(olderBundle.string());
@@ -284,6 +325,9 @@ int main(int argc, char** argv) {
 		"bundle-only migration repackages a current bundle");
 	ok &= expect(readFileBytes(olderBundle) == originalOlderBundleBytes,
 		"bundle migration leaves source bytes unchanged");
+	const SceneLoadResult reopenedBundle = loadScenePath(upgradedBundle.string());
+	ok &= expect(!hasErrors(reopenedBundle.diagnostics) && !hasErrors(validateScene(reopenedBundle.scene)),
+		"upgraded bundle copy reopens without errors");
 	const fs::path newerBundle = temp.path / "newer.egscene";
 	ok &= expect(writeNewerBundle(newerBundle), "newer bundle fixture writes");
 	const SceneCompatibilityProbeResult newerBundleProbe = probeSceneCompatibility(newerBundle.string());
@@ -313,6 +357,120 @@ int main(int argc, char** argv) {
 	ok &= expect(productionSceneMigrationRegistry().schemaSteps().empty()
 			&& productionSceneMigrationRegistry().bundleSteps().empty(),
 		"production migration registry starts empty");
+
+	// Every stopped upgrade below runs into a folder of its own that must stay empty.
+	const std::string invalidErrorCode = firstErrorCode(validateScene(loaded.scene));
+	ok &= expect(!invalidErrorCode.empty(), "minimal fixture scene has a validation error");
+
+	const fs::path invalidFolder = temp.path / "invalid-result";
+	fs::create_directories(invalidFolder);
+	const fs::path invalidSource = temp.path / "invalid-source";
+	ok &= expect(saveScene(loaded.scene, invalidSource.string()).success(), "invalid model saves");
+	ok &= expect(writeManifest(invalidSource, 0), "invalid model fixture writes");
+	const std::string originalInvalidBytes = readSceneDirectorySnapshot(invalidSource.string()).bytes;
+	const fs::path invalidDestination = invalidFolder / "upgraded";
+	const SceneMigrationResult invalidUpgrade = migrateSceneCopy(invalidSource.string(), invalidDestination.string(), registry);
+	ok &= expect(!invalidUpgrade.success() && hasDiagnostic(invalidUpgrade.diagnostics, invalidErrorCode, SceneSeverity::Error),
+		"upgrade of an invalid result reports the validation error");
+	ok &= expect(leavesNoCopy(invalidDestination), "upgrade of an invalid result leaves no copy");
+	ok &= expect(readSceneDirectorySnapshot(invalidSource.string()).bytes == originalInvalidBytes,
+		"upgrade of an invalid result leaves source bytes unchanged");
+
+	const fs::path invalidBundleFolder = temp.path / "invalid-bundle-result";
+	fs::create_directories(invalidBundleFolder);
+	const fs::path invalidBundleSource = temp.path / "invalid-bundle-source";
+	ok &= expect(saveScene(loaded.scene, invalidBundleSource.string()).success(), "invalid bundle model saves");
+	const fs::path invalidBundle = temp.path / "invalid.egscene";
+	ok &= expect(writeBundleVersion(invalidBundle, invalidBundleSource, kCurrentSceneBundleVersion - 1),
+		"invalid older bundle fixture writes");
+	const std::string originalInvalidBundleBytes = readFileBytes(invalidBundle);
+	const fs::path invalidBundleDestination = invalidBundleFolder / "upgraded.egscene";
+	const SceneMigrationResult invalidBundleUpgrade = migrateSceneCopy(invalidBundle.string(),
+		invalidBundleDestination.string(), bundleRegistry);
+	ok &= expect(!invalidBundleUpgrade.success()
+			&& hasDiagnostic(invalidBundleUpgrade.diagnostics, invalidErrorCode, SceneSeverity::Error),
+		"bundle upgrade of an invalid result reports the validation error");
+	ok &= expect(leavesNoCopy(invalidBundleDestination), "bundle upgrade of an invalid result leaves no copy");
+	ok &= expect(readFileBytes(invalidBundle) == originalInvalidBundleBytes,
+		"bundle upgrade of an invalid result leaves source bytes unchanged");
+
+	const std::string colorCode = "scene.service.color.invalid";
+	const bool hasService = expect(!validLoaded.scene.services.empty(), "valid fixture scene has a service");
+	ok &= hasService;
+	if (hasService) {
+		SceneModel coloredScene = validLoaded.scene;
+		const std::string coloredId = coloredScene.services.front().id;
+		coloredScene.services.front().visualizationColor = "red";
+		const std::vector<SceneDiagnostic> coloredDiagnostics = validateScene(coloredScene);
+		ok &= expect(!hasDiagnostic(validateScene(validLoaded.scene), colorCode, SceneSeverity::Warning),
+			"valid fixture scene has no service colour warning");
+		ok &= expect(hasDiagnostic(coloredDiagnostics, colorCode, SceneSeverity::Warning) && !hasErrors(coloredDiagnostics),
+			"an invalid service colour is only a warning");
+		const fs::path coloredSource = temp.path / "colored-source";
+		ok &= expect(saveScene(coloredScene, coloredSource.string()).success(), "colored model saves");
+		ok &= expect(writeManifest(coloredSource, 0), "colored model fixture writes");
+		const fs::path coloredDestination = temp.path / "colored-upgraded";
+		const SceneMigrationResult coloredUpgrade = migrateSceneCopy(coloredSource.string(), coloredDestination.string(), registry);
+		ok &= expect(coloredUpgrade.success() && fs::is_directory(coloredDestination),
+			"a warning does not stop the upgrade");
+		ok &= expect(hasDiagnostic(coloredUpgrade.diagnostics, colorCode, SceneSeverity::Warning),
+			"the warning stays in the upgrade diagnostics");
+		const SceneLoadResult reopenedColored = loadScenePath(coloredDestination.string());
+		const auto coloredService = std::find_if(reopenedColored.scene.services.begin(),
+			reopenedColored.scene.services.end(), [&](const SceneService& service) { return service.id == coloredId; });
+		ok &= expect(coloredService != reopenedColored.scene.services.end() && coloredService->visualizationColor == "red",
+			"the upgraded copy keeps the service colour");
+	}
+
+	const fs::path brokenFolder = temp.path / "broken-input";
+	fs::create_directories(brokenFolder);
+	const fs::path brokenSource = temp.path / "broken-source";
+	ok &= expect(saveScene(validLoaded.scene, brokenSource.string()).success(), "broken input source saves");
+	{
+		std::ofstream brokenServices(brokenSource / "services.json", std::ios::binary | std::ios::trunc);
+		brokenServices << "not json\n";
+	}
+	ok &= expect(writeManifest(brokenSource, 0), "broken input fixture writes");
+	const std::string originalBrokenBytes = readSceneDirectorySnapshot(brokenSource.string()).bytes;
+	ok &= expect(!originalBrokenBytes.empty(), "broken input snapshot is read");
+	const fs::path brokenDestination = brokenFolder / "upgraded";
+	const SceneMigrationResult brokenUpgrade = migrateSceneCopy(brokenSource.string(), brokenDestination.string(), registry);
+	ok &= expect(!brokenUpgrade.success() && hasDiagnostic(brokenUpgrade.diagnostics, "scene.json.parse", SceneSeverity::Error),
+		"upgrade of an unloadable source reports the loader error");
+	ok &= expect(!hasDiagnostic(brokenUpgrade.diagnostics, "scene.services.none", SceneSeverity::Error),
+		"a model whose load failed is not validated");
+	ok &= expect(leavesNoCopy(brokenDestination), "upgrade of an unloadable source leaves no copy");
+	ok &= expect(readSceneDirectorySnapshot(brokenSource.string()).bytes == originalBrokenBytes,
+		"upgrade of an unloadable source leaves source bytes unchanged");
+
+	const fs::path readOnlyFolder = temp.path / "read-only";
+	fs::create_directories(readOnlyFolder);
+	RestorePermissions restoreReadOnly{readOnlyFolder};
+	std::error_code permissionError;
+	fs::permissions(readOnlyFolder, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace, permissionError);
+	ok &= expect(!permissionError, "destination folder becomes read-only");
+	const fs::path writeProbe = readOnlyFolder / "probe";
+	std::error_code probeError;
+	if (fs::create_directory(writeProbe, probeError)) {
+		fs::remove(writeProbe, probeError);
+		std::cerr << "skipped: refused-write case, a new directory can be created in a read-only directory\n";
+	} else {
+		std::cout << "refused-write case runs\n";
+		const fs::path refusedDestination = readOnlyFolder / "upgraded";
+		const SceneMigrationResult refused = migrateSceneCopy(migrationSource.string(), refusedDestination.string(), registry);
+		ok &= expect(!refused.success() && hasDiagnostic(refused.diagnostics, "scene.save.write", SceneSeverity::Error),
+			"refused write is reported by the scene writer");
+		ok &= expect(leavesNoCopy(refusedDestination), "refused write leaves no copy");
+		ok &= expect(readSceneDirectorySnapshot(migrationSource.string()).bytes == originalMigrationBytes,
+			"refused write leaves source bytes unchanged");
+		const fs::path refusedBundleDestination = readOnlyFolder / "upgraded.egscene";
+		const SceneMigrationResult refusedBundle = migrateSceneCopy(olderBundle.string(), refusedBundleDestination.string(), bundleRegistry);
+		ok &= expect(!refusedBundle.success() && hasDiagnostic(refusedBundle.diagnostics, "scene.bundle.write", SceneSeverity::Error),
+			"refused bundle write is reported by the bundle writer");
+		ok &= expect(leavesNoCopy(refusedBundleDestination), "refused bundle write leaves no copy");
+		ok &= expect(readFileBytes(olderBundle) == originalOlderBundleBytes,
+			"refused bundle write leaves source bytes unchanged");
+	}
 
 	if (!ok)
 		return 1;

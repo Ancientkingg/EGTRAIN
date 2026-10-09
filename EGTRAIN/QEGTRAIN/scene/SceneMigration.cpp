@@ -1,6 +1,7 @@
 #include "scene/SceneMigration.h"
 
 #include "scene/SceneBundle.h"
+#include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 
 #include <algorithm>
@@ -319,6 +320,11 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 	const SceneLoadResult loaded = loadScene(staging.string());
 	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
 	if (hasErrors(loaded.diagnostics))
+		return result;
+	// The copy is written only when the upgraded scene has no validation error.
+	const std::vector<SceneDiagnostic> validation = validateScene(loaded.scene);
+	result.diagnostics.insert(result.diagnostics.end(), validation.begin(), validation.end());
+	if (hasErrors(validation))
 		return result;
 	std::string extension = destination.extension().string();
 	std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char value) {
