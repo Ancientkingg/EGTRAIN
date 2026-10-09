@@ -447,7 +447,7 @@ void setVirtualSignals();
 void setRouteVirtualSignals();
 
 // Single track limits: (first plain block ID, last plain block ID, unused, protected block ID at the first end,
-// protected block ID at the last end). The first and last IDs are oriented with X increasing.
+// protected block ID at the last end).
 extern std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string>> singleTrackLimits;
 
 // Single-track sections. While a train is in the section of limit l, the section is closed to trains of the

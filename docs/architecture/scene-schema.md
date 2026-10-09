@@ -141,7 +141,7 @@ second topology model.
 
 A restriction keeps trains of opposite directions out of a single-track
 stretch. `start_block` and `end_block` are the first and last plain sections of
-the stretch, given with the coordinate increasing. `protected_start_block` and
+the stretch, in either order. `protected_start_block` and
 `protected_end_block` are the sections at its two ends where a passing loop
 joins it. The stretch consists of these four sections and every section between
 `start_block` and `end_block` on a route that contains both. A route is affected

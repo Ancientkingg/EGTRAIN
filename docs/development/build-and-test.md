@@ -369,12 +369,12 @@ re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
 backward movement, acceleration and braking within what the rolling stock can do,
 no faster run to station B than the top speed allows, planned dwell and
 departure times kept, stops only at a platform, a block boundary or behind
-another train, and no overlap of two trains. A case without a signalling area is
-not checked for overlap: a scene without a signalling level does not separate
-trains, and validation warns about it (`scene.signalling.level.missing`). The
-`-level-none` goldens therefore show trains at one position. In an unmarked
-single-track case `S1` and `R1` are never inside the restricted section at the
-same time.
+another train, and no overlap of two trains. In a single-track case `S1` and
+`R1` are never inside the restricted section at the same time. A case without a
+signalling area is not checked for overlap or for the single-track section: a
+scene without a signalling level does not separate trains, and validation warns
+about it (`scene.signalling.level.missing`, `scene.single_track.no_effect`).
+The `-level-none` goldens therefore show trains at one position.
 
 ### Changing an expectation deliberately
 
@@ -422,11 +422,12 @@ the position of the leading train at the last station at level 4
 at 2 km and stay there after a failure on the first section has ended, without
 a signalling level (`sf-first-level-none`). #540 covers two trains that wait at
 the entry of a route and enter in the same second (`sf-first-level-0` to `-2`).
-#530 covers the single-track cases in which `R1` is not held in front of the
-restricted section because the restriction has no effect there: without a
-signalling level and at levels 3 and 4 (`single-track-level-none`, `-3`, `-4`).
-Without their markers the cases of #534 and #540 fail the check for overlapping
-trains. The checks apply to every unmarked case.
+#551 covers the single-track cases in which `R1` is not held in front of the
+restricted section because the restriction has no effect at levels 3 and 4
+(`single-track-level-3`, `-4`). Without their markers the cases of #534 and
+#540 fail the check for overlapping trains, and those of #551 the check that
+opposing trains are not inside a single-track section together. The checks
+apply to every unmarked case.
 
 ## Simulation Smoke Test
 

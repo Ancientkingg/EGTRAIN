@@ -195,9 +195,8 @@ const struct {
 	{"sf-first-level-2", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
-	{"single-track-level-none", "#530 R1 and S1 meet on the single-track section, nothing separates them without a signalling level"},
-	{"single-track-level-3", "#530 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
-	{"single-track-level-4", "#530 R1 and S1 meet on the single-track section, level 4 ignores the restriction"},
+	{"single-track-level-3", "#551 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
+	{"single-track-level-4", "#551 R1 and S1 meet on the single-track section, level 4 ignores the restriction"},
 };
 
 std::string knownWrongMarker(const std::string& name) {
@@ -584,9 +583,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (separation.overlap && separation.gap < 0.0)
 				fail(separation.follower + " overlaps " + separation.leader + " by "
 					+ formatReal(-separation.gap) + " m at t=" + std::to_string(separation.step));
-	if (spec.singleTrack && !waived) {
+	if (spec.singleTrack && !waived && spec.level != kNoSignallingArea) {
 		// S1 runs on routeAB and R1 on route1, so the check above does not pair them. The restricted section with its
-		// protected sections is 0-B0 to 5-B0: positions 0 to 12000 m for S1 and 4000 to 16000 m for R1.
+		// protected sections is 0-B0 to 5-B0: the whole of routeAB (0 to 8000 m) for S1 and 4000 to 16000 m for R1.
 		const TrainTrack* forward = nullptr;
 		const TrainTrack* reversed = nullptr;
 		for (const TrainTrack& track : tracks) {
