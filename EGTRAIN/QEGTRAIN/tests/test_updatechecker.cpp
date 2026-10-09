@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 		"{\"name\":\"untrusted.zip\",\"browser_download_url\":\"https://example.com/untrusted.zip\"}]}]");
 	const auto packaged = parseLatestStableRelease(packagedRelease);
 	ok &= expect(packaged && packaged->asset(updateManifestAssetName())
-			&& packaged->asset(updatePackageName(QStringLiteral("linux-x86_64"))),
+			&& packaged->asset(QStringLiteral("QEGTRAIN-linux-x86_64.AppImage")),
 		"only exact release package assets are retained");
 	ok &= expect(packaged && !packaged->asset(QStringLiteral("untrusted.zip")),
 		"untrusted release assets are ignored");
@@ -134,6 +134,96 @@ int main(int argc, char** argv) {
 	ok &= expect(!parseUpdateManifest(uppercaseManifest,
 					 QStringLiteral("v1.10.0"), QStringLiteral("linux-x86_64")),
 		"manifest hash must be lowercase hexadecimal");
+
+	// Asset names: the names of the released versions and the renamed ones.
+	const auto manifestFor = [&](const char* distribution, const QByteArray& name) {
+		return QByteArray("{\"version\":\"1.10.0\",\"assets\":{\"") + distribution + "\":{\"name\":\"" + name
+			+ "\",\"sha256\":\"" + validHash + "\",\"size\":12345}}}";
+	};
+	const auto selectedName = [&](const char* distribution, const QByteArray& name) {
+		const auto parsed = parseUpdateManifest(manifestFor(distribution, name), QStringLiteral("v1.10.0"),
+			QString::fromLatin1(distribution));
+		return parsed ? parsed->assetName : QString();
+	};
+	struct NameCase {
+		const char* distribution;
+		const char* name;
+	};
+	const NameCase acceptedNames[] = {
+		{"windows-x64", "QEGTRAIN-windows-x64.zip"},
+		{"windows-x64", "EGTRAIN-Portable-1.10.0-x64.zip"},
+		{"windows-x64-installer", "EGTRAIN-Setup-1.10.0-x64.exe"},
+		{"macos-arm64", "QEGTRAIN-macos-arm64.zip"},
+		{"macos-arm64", "EGTRAIN-1.10.0-macOS-arm64.dmg"},
+		{"linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage"}};
+	for (const NameCase& accepted : acceptedNames)
+		ok &= expect(selectedName(accepted.distribution, accepted.name) == QString::fromLatin1(accepted.name),
+			(std::string("manifest selects ") + accepted.name + " for " + accepted.distribution).c_str());
+	const NameCase rejectedNames[] = {
+		{"windows-x64", "EGTRAIN-Portable-1.9.0-x64.zip"},
+		{"windows-x64", "EGTRAIN-Portable-1.10.0-x64.exe"},
+		{"windows-x64", "EGTRAIN-Setup-1.10.0-x64.exe"},
+		{"windows-x64", "QEGTRAIN-windows-x64.exe"},
+		{"windows-x64-installer", "EGTRAIN-Setup-1.9.0-x64.exe"},
+		{"windows-x64-installer", "EGTRAIN-Portable-1.10.0-x64.zip"},
+		{"windows-x64-installer", "QEGTRAIN-windows-x64.zip"},
+		{"windows-x64-installer", "EGTRAIN-Setup-1.10.0-x64.zip"},
+		{"macos-arm64", "EGTRAIN-1.9.0-macOS-arm64.dmg"},
+		{"macos-arm64", "QEGTRAIN-windows-x64.zip"},
+		{"linux-x86_64", "QEGTRAIN-macos-arm64.zip"},
+		{"linux-x86_64", "../QEGTRAIN-linux-x86_64.AppImage"},
+		{"linux-x86_64", "dir/QEGTRAIN-linux-x86_64.AppImage"},
+		{"linux-x86_64", "dir\\\\QEGTRAIN-linux-x86_64.AppImage"},
+		{"linux-x86_64", "unknown.AppImage"},
+		{"linux-x86_64", "QEGTRAIN-Linux-x86_64.AppImage"},
+		{"linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage "},
+		{"linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage.exe"},
+		{"windows-x64", ""},
+		{"windows-x64-portable", "QEGTRAIN-windows-x64.zip"}};
+	for (const NameCase& rejected : rejectedNames)
+		ok &= expect(selectedName(rejected.distribution, rejected.name).isEmpty(),
+			(std::string("manifest rejects ") + rejected.name + " for " + rejected.distribution).c_str());
+	ok &= expect(!isUpdateAssetName(QStringLiteral("windows-x64"), QStringLiteral("EGTRAIN-Portable--x64.zip"), QString()),
+		"an empty version never matches a versioned name");
+	ok &= expect(!parseUpdateManifest(manifestFor("windows-x64", "QEGTRAIN-windows-x64.zip"), QStringLiteral("v1.10.0"),
+					 QStringLiteral("windows-x64-installer")),
+		"a manifest without an entry for the distribution key is rejected");
+
+	// Package selection in a release.
+	const auto releaseWith = [&](const QList<const char*>& names) {
+		QByteArray assets;
+		for (const char* name : names) {
+			if (!assets.isEmpty())
+				assets += ',';
+			assets += QByteArray("{\"name\":\"") + name
+				+ "\",\"browser_download_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/download/v1.10.0/" + name + "\"}";
+		}
+		return parseLatestStableRelease(
+			QByteArray("[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,\"assets\":[") + assets + "]}]");
+	};
+	const auto renamed = releaseWith({"update-manifest.json", "EGTRAIN-Portable-1.10.0-x64.zip", "EGTRAIN-Setup-1.10.0-x64.exe",
+		"EGTRAIN-1.10.0-macOS-arm64.dmg", "QEGTRAIN-linux-x86_64.AppImage", "EGTRAIN-Portable-1.9.0-x64.zip",
+		"EGTRAIN-Setup-1.10.0-x64.zip", "notes.txt", "Paimpol.egscene"});
+	ok &= expect(renamed && renamed->assets.size() == 5 && renamed->asset(QStringLiteral("EGTRAIN-Setup-1.10.0-x64.exe"))
+			&& renamed->asset(QStringLiteral("EGTRAIN-1.10.0-macOS-arm64.dmg")),
+		"the release filter keeps manifest and known package names of the release version");
+	ok &= expect(renamed && !renamed->asset(QStringLiteral("EGTRAIN-Portable-1.9.0-x64.zip"))
+			&& !renamed->asset(QStringLiteral("EGTRAIN-Setup-1.10.0-x64.zip")) && !renamed->asset(QStringLiteral("notes.txt")),
+		"the release filter ignores unknown names and names of another version");
+	ok &= expect(renamed && releaseHasUpdatePackage(*renamed, QStringLiteral("windows-x64"))
+			&& releaseHasUpdatePackage(*renamed, QStringLiteral("windows-x64-installer"))
+			&& releaseHasUpdatePackage(*renamed, QStringLiteral("macos-arm64"))
+			&& releaseHasUpdatePackage(*renamed, QStringLiteral("linux-x86_64")),
+		"a release with renamed packages offers a package for every key");
+	const auto legacy = releaseWith({"update-manifest.json", "QEGTRAIN-windows-x64.zip", "QEGTRAIN-macos-arm64.zip"});
+	ok &= expect(legacy && releaseHasUpdatePackage(*legacy, QStringLiteral("windows-x64"))
+			&& releaseHasUpdatePackage(*legacy, QStringLiteral("macos-arm64"))
+			&& !releaseHasUpdatePackage(*legacy, QStringLiteral("windows-x64-installer"))
+			&& !releaseHasUpdatePackage(*legacy, QStringLiteral("linux-x86_64")),
+		"a release offers only the packages of the key");
+	const auto wrongKind = releaseWith({"update-manifest.json", "EGTRAIN-Setup-1.10.0-x64.exe"});
+	ok &= expect(wrongKind && !releaseHasUpdatePackage(*wrongKind, QStringLiteral("windows-x64")),
+		"an installer is not a package for the portable key");
 
 	// Package file list of the manifest entry.
 	const auto manifestWithFiles = [&](const QByteArray& filesMember) {

@@ -138,7 +138,7 @@ void SelfUpdater::cleanupStaleStaging() {
 bool SelfUpdater::canSelfUpdate(const StableRelease& release) const {
 	const SelfUpdateCapability current = capability();
 	return current.supported && release.asset(updateManifestAssetName())
-		&& release.asset(updatePackageName());
+		&& releaseHasUpdatePackage(release, updateDistributionKey());
 }
 
 void SelfUpdater::start(const StableRelease& release) {
@@ -149,7 +149,7 @@ void SelfUpdater::start(const StableRelease& release) {
 		emit finished(false, current.reason);
 		return;
 	}
-	if (!release.asset(updateManifestAssetName()) || !release.asset(updatePackageName())) {
+	if (!release.asset(updateManifestAssetName()) || !releaseHasUpdatePackage(release, updateDistributionKey())) {
 		emit finished(false, QStringLiteral("This release does not provide a verified update package."));
 		return;
 	}
@@ -294,7 +294,7 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 		}
 		QString error;
 		const std::optional<UpdateManifest> manifest = parseUpdateManifest(
-			m_manifestData, m_release.tag, updatePlatformKey(), &error);
+			m_manifestData, m_release.tag, updateDistributionKey(), &error);
 		m_manifestData.clear();
 		reply->deleteLater();
 		if (!manifest) {
