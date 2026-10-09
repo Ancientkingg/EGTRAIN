@@ -19,6 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies
         run: brew install qt@5 zeromq cppzmq nlohmann-json
 
@@ -45,6 +49,26 @@ jobs:
           "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
           cp build/egtrain_update_helper build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
           chmod +x build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
+
+      - name: Remove unused Qt modules and plugins
+        run: |
+          set -euo pipefail
+          APP="build/QEGTRAIN.app"
+          report_size() {
+            files="$(find "$APP" -type f | wc -l | tr -d ' ')"
+            bytes="$(find "$APP" -type f -exec /usr/bin/stat -f %z {} + | awk '{ sum += $1 } END { print sum }')"
+            echo "macOS app $1: $files files, $bytes bytes" | tee -a "$GITHUB_STEP_SUMMARY"
+          }
+          report_size "before trimming"
+          # The application is a Widgets program that draws with the raster engine, loads no QML, WebP or TIFF file and takes
+          # keyboard input from the system. macdeployqt deploys the virtual keyboard input plugin with the Quick and QML
+          # frameworks it links, and the WebP and TIFF image plugins with their libraries.
+          rm -rf "$APP/Contents/PlugIns/virtualkeyboard" "$APP/Contents/PlugIns/platforminputcontexts"
+          rm -rf "$APP/Contents/PlugIns/imageformats/libqwebp.dylib" "$APP/Contents/PlugIns/imageformats/libqtiff.dylib"
+          rm -rf "$APP/Contents/Frameworks/QtVirtualKeyboard.framework" "$APP/Contents/Frameworks/QtQuick.framework" \
+            "$APP/Contents/Frameworks/QtQml.framework" "$APP/Contents/Frameworks/QtQmlModels.framework"
+          rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib "$APP"/Contents/Frameworks/liblzma*.dylib
+          report_size "after trimming"
 
       - name: Ad-hoc code sign
         # macdeployqt rewrites install names with install_name_tool, which
@@ -79,9 +103,16 @@ jobs:
             fi
           done < <(find "$APP" -type f -name '*.dylib')
           [ "$leak" = 0 ] || exit 1
+          for plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do
+            test -f "$APP/Contents/PlugIns/$plugin" || { echo "ERROR: missing $plugin"; exit 1; }
+          done
+          for name in virtualkeyboard platforminputcontexts 'QtVirtualKeyboard*' 'QtQuick*' 'QtQml*' 'libqwebp*' 'libqtiff*' 'libwebp*' 'libtiff*'; do
+            found="$(find "$APP" -name "$name")"
+            if [ -n "$found" ]; then echo "ERROR: unexpected $name in the app:"; echo "$found"; exit 1; fi
+          done
           # The signature must be valid, or Apple Silicon kills the app at launch.
           codesign --verify --deep --strict --verbose=2 "$APP"
-          echo "OK: app is self-contained and signed"
+          echo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"
 
       - name: Assemble presentation package
         run: |
@@ -137,6 +168,18 @@ jobs:
             exit 1
           fi
           echo "OK: presentation package holds the app, scene_tool, canonical scenes, and guide"
+
+      - name: Start the package
+        # The program may write files next to itself, so it starts from a copy and the package that is zipped stays as built.
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          set -euo pipefail
+          start="$RUNNER_TEMP/package-start"
+          rm -rf "$start"
+          mkdir -p "$start"
+          ditto build/dist/QEGTRAIN-Lebanon/QEGTRAIN.app "$start/QEGTRAIN.app"
+          python3 tools/release/package_start_smoke.py "$start"
 
       - name: Generate scene bundles
         run: |

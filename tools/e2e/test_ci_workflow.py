@@ -502,6 +502,87 @@ def main() -> None:
         missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
     if "Compress-Archive -Path dist/QEGTRAIN/* -DestinationPath QEGTRAIN-windows-x64.zip" not in step_block(windows_job, "Zip"):
         missing.append("Windows package zip of the directory that is built")
+    # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
+    # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
+    # macdeployqt and before the ad hoc signature, fails when one of them is in the app, and starts a copy of the package.
+    macos_job = job_block(package_only, "package-macos")
+    macos_steps = (
+        "Bundle Qt and dependencies into the app",
+        "Remove unused Qt modules and plugins",
+        "Ad-hoc code sign",
+        "Verify the app is self-contained",
+        "Verify the presentation package",
+        "Start the package",
+        "Package zip",
+        "Upload artifact",
+    )
+    macos_step_names = re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)
+    macos_positions = [macos_step_names.index(name) if name in macos_step_names else -1 for name in macos_steps]
+    if -1 in macos_positions or macos_positions != sorted(macos_positions):
+        missing.append("macOS package steps in the order " + ", ".join(macos_steps))
+    removal_step = step_block(macos_job, "Remove unused Qt modules and plugins")
+    trim_start = removal_step.find('          report_size "before trimming"\n')
+    trim_end = removal_step.find('          report_size "after trimming"\n')
+    if (
+        "          report_size() {\n" not in removal_step
+        or '            echo "macOS app $1: $files files, $bytes bytes" | tee -a "$GITHUB_STEP_SUMMARY"\n' not in removal_step
+        or not 0 <= trim_start < trim_end
+    ):
+        missing.append("macOS package size lines in the job summary before and after the removal")
+    trimming = removal_step[trim_start:trim_end] if 0 <= trim_start < trim_end else ""
+    trimming = [line.strip() for line in trimming.replace("\\\n", " ").splitlines() if not line.lstrip().startswith("#")]
+    removed_paths = (
+        '"$APP/Contents/PlugIns/virtualkeyboard"',
+        '"$APP/Contents/PlugIns/platforminputcontexts"',
+        '"$APP/Contents/PlugIns/imageformats/libqwebp.dylib"',
+        '"$APP/Contents/PlugIns/imageformats/libqtiff.dylib"',
+        '"$APP/Contents/Frameworks/QtVirtualKeyboard.framework"',
+        '"$APP/Contents/Frameworks/QtQuick.framework"',
+        '"$APP/Contents/Frameworks/QtQml.framework"',
+        '"$APP/Contents/Frameworks/QtQmlModels.framework"',
+        '"$APP"/Contents/Frameworks/libwebp*.dylib',
+        '"$APP"/Contents/Frameworks/libtiff*.dylib',
+        '"$APP"/Contents/Frameworks/liblzma*.dylib',
+    )
+    for removed in removed_paths:
+        if trimming and not any(line.startswith("rm -") and removed in line for line in trimming):
+            missing.append(f"macOS package step that removes {removed} between the two size lines")
+    # The cocoa platform plugin loads QtDBus and QtPrintSupport, so they stay, as do the print support and bearer plugins.
+    removal_commands = [line for line in removal_step.splitlines() if not line.lstrip().startswith("#")]
+    if any(kept in line for line in removal_commands for kept in ("QtDBus", "QtPrintSupport", "printsupport", "bearer")):
+        missing.append("macOS package step that keeps QtDBus, QtPrintSupport and the print support and bearer plugins")
+    macos_verify = step_block(macos_job, "Verify the app is self-contained")
+    required_plugins = (
+        "          for plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do\n"
+        '            test -f "$APP/Contents/PlugIns/$plugin" || { echo "ERROR: missing $plugin"; exit 1; }\n'
+        "          done\n"
+    )
+    forbidden_macos_files = (
+        "          for name in virtualkeyboard platforminputcontexts 'QtVirtualKeyboard*' 'QtQuick*' 'QtQml*' 'libqwebp*' 'libqtiff*'"
+        " 'libwebp*' 'libtiff*'; do\n"
+        '            found="$(find "$APP" -name "$name")"\n'
+        '            if [ -n "$found" ]; then echo "ERROR: unexpected $name in the app:"; echo "$found"; exit 1; fi\n'
+        "          done\n"
+    )
+    macos_verified = macos_verify.find('          echo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"\n')
+    if macos_verified < 0:
+        missing.append("macOS package check that ends with a message that names the files it forbids")
+    if required_plugins not in macos_verify or not 0 <= macos_verify.find(required_plugins) < macos_verified:
+        missing.append("macOS package check that requires the cocoa platform plugin, the SVG icon engine and the macOS style")
+    if forbidden_macos_files not in macos_verify or not 0 <= macos_verify.find(forbidden_macos_files) < macos_verified:
+        missing.append("macOS package check that forbids the virtual keyboard, QML, WebP and TIFF files")
+    macos_start = step_block(macos_job, "Start the package")
+    macos_python = next((block for block in macos_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
+    if (
+        not macos_start.strip().endswith('python3 tools/release/package_start_smoke.py "$start"')
+        or 'start="$RUNNER_TEMP/package-start"\n' not in macos_start
+        or 'ditto build/dist/QEGTRAIN-Lebanon/QEGTRAIN.app "$start/QEGTRAIN.app"\n' not in macos_start
+        or macos_start.count("build/dist") != 1
+        or 'PYTHONUTF8: "1"' not in macos_start
+        or "python-version: '3.12'" not in macos_python
+        or not 0 <= macos_job.find("uses: actions/setup-python@v5") < macos_job.find("name: Start the package")
+    ):
+        missing.append("macOS package start of a copy under RUNNER_TEMP with Python set up")
     package_check_paths = (
         ".github/workflows/package-check.yml",
         ".github/workflows/package.yml",

@@ -65,10 +65,19 @@ What the jobs prove today:
   CTest and the end-to-end smoke tests. The Sanitizers job runs CTest again in
   a debug build with sanitizers.
 - In the Package macOS job, the app has no Homebrew dependency and a valid ad
-  hoc signature. The package holds the app, `scene_tool`, `Scenes/Lebanon` and
-  the guide. `scene_tool` validates the packaged Lebanon scene, and the packaged
-  app runs Paimpol without the GUI from `Contents/Resources/Scenes` to
-  `End of Simulation`. The job also packs and validates the seven bundles.
+  hoc signature. The job removes the virtual keyboard input plugin with the Quick
+  and QML frameworks, and the WebP and TIFF plugins with their libraries, from
+  the app before the signature, and fails when one of them is in the app or when
+  the cocoa platform plugin, the SVG icon engine or the macOS style is missing.
+  The package holds the app, `scene_tool`, `Scenes/Lebanon` and the guide.
+  `scene_tool` validates the packaged Lebanon scene, and the packaged app runs
+  Paimpol without the GUI from `Contents/Resources/Scenes` to
+  `End of Simulation`. The job starts a copy of the app with
+  `tools/release/package_start_smoke.py` (step **Start the package**), which
+  first checks that every dependency of the app is a system library or a file
+  inside the app and that every library inside the app is loaded by some file.
+  The job prints the number of files and bytes of the app before and after the
+  removal in its job summary. It also packs and validates the seven bundles.
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
   `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
   `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
@@ -83,7 +92,8 @@ What the jobs prove today:
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
-- The Package Windows job starts a copy of the directory it zips, with
+- The Package macOS job starts a copy of the app in the directory it zips, and
+  the Package Windows job starts a copy of the directory it zips, both with
   `tools/release/package_start_smoke.py` (step **Start the package**). The
   Package Linux job does not start the application from the package it builds.
   The Windows leg of the CMake workflow starts a Windows package assembled in

@@ -304,6 +304,29 @@ The assembly uses the same `windeployqt` options as the Windows package job
 two command lines equal. The Windows package keeps `vc_redist.x64.exe` (from
 `--compiler-runtime`), the `bearer` plugin and the image format plugins.
 
+### macOS package start
+
+The macOS package job removes the virtual keyboard input plugin with the Quick
+and QML frameworks that it links, and the WebP and TIFF image plugins with
+their libraries, from the app after `macdeployqt` and before the ad hoc
+signature. The CMake workflow assembles no macOS package. The package job runs
+`tools/release/package_start_smoke.py` on a copy of the app (step **Start the
+package**).
+
+For a package with an app bundle, the script first reads the load commands of
+every Mach-O file with `otool -l`. It fails unless every dependency is a system
+library (under `/System/Library/` or `/usr/lib/`) or a file inside the app, and
+every library inside the app is loaded by some file. The search starts at the
+files in `Contents/MacOS` and `Contents/PlugIns`, which no load command names:
+the system starts a program, and Qt finds a plugin by its directory. The script
+then starts the app twice as for Windows: headless on Paimpol, and with a window
+in startup timing mode. Only the window start loads the cocoa platform plugin of
+the bundle.
+
+The macOS package keeps `QtDBus` and `QtPrintSupport`, which the cocoa platform
+plugin loads, the print support and bearer plugins, and the image format
+plugins other than WebP and TIFF.
+
 ### Windows image size
 
 Windows maps an EXE as one image whose size is `SizeOfImage` in the PE header,
@@ -804,7 +827,12 @@ The visual and render smoke artifacts include:
   OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
   keyboard files are in the package, starts a copy of the package with
   `tools/release/package_start_smoke.py`, and prints the number of files and
-  bytes of the package in its job summary. After the three packages are built,
+  bytes of the package in its job summary. The macOS package job removes the
+  virtual keyboard input plugin with the Quick and QML frameworks, and the WebP
+  and TIFF plugins with their libraries, from the app before the signature,
+  fails when one of them is in the app, starts a copy of the app with the same
+  script, and prints the number of files and bytes of the app before and
+  after the removal in its job summary. After the three packages are built,
   the job `release-assets` downloads the artifacts, unpacks the Windows zip into
   a directory, runs `tools/release/build_release_assets.py` on them and compares
   the Windows file list of the manifest it wrote with the member list of the
