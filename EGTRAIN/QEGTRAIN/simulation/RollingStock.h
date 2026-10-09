@@ -2371,8 +2371,8 @@ public:
 				// the entrance should only be limited to trains on the dingle track if they have opposite direction
 				// occupySingleTrack(BS, Blocks, hTail, hHead, i);
 
-				// release double switch when train leaves it
-				if (hTail > 0 && BS[hTail - 1].start_node.virtualSignal) {
+				// release double switch when train leaves it (its first half is the section before the one that starts with the virtual signal)
+				if (hTail > 1 && BS[hTail - 1].start_node.virtualSignal) {
 					releaseDoubleSwitch(BS[hTail - 1], BS[hTail - 2]);
 				}
 				// check if train is crossing a double switch
