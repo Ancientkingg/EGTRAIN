@@ -47,9 +47,6 @@ public:
 	double Time;
 	double Time2; // Additional time for recording a different event time
 	double Position;
-	bool StoppedForServiceStop;	  // Train is stopped for a service stop
-	bool ServiceStopBehindATrain; // Train is stopped behind another train
-	string CurrentStoppedStation; // Station the train is currently stopped at
 	string SuccessorID;
 	string CurrentSectionID;
 	string NextSectionID;
@@ -63,9 +60,6 @@ public:
 		this->trainDescription = ob2.trainDescription;
 		this->Time = ob2.Time;
 		this->Time2 = ob2.Time2;
-		this->ServiceStopBehindATrain = ob2.ServiceStopBehindATrain;
-		this->StoppedForServiceStop = ob2.StoppedForServiceStop;
-		this->CurrentStoppedStation = ob2.CurrentStoppedStation;
 		Position = ob2.Position;
 		SuccessorID = ob2.SuccessorID;
 		TrainSpeed = ob2.TrainSpeed;
@@ -447,9 +441,9 @@ void setVirtualSignals();
 // Set virtual signals on routes from original block sections (info lost during route creation)
 void setRouteVirtualSignals();
 
-// Single track limits: (first plain block ID, last plain block ID, unused, protected block ID at the first end,
+// Single track limits: (first plain block ID, last plain block ID, protected block ID at the first end,
 // protected block ID at the last end).
-extern std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string>> singleTrackLimits;
+extern std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
 
 // Single-track sections. While a train is in the section of limit l, the section is closed to trains of the
 // opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed

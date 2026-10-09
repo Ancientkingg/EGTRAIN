@@ -174,7 +174,7 @@ static bool runTinyBuilderChecks() {
 		"explicit block dependency is applied without a hard-coded case dependency");
 	ok &= expect(singleTrackLimits.size() == 1
 			&& std::get<0>(singleTrackLimits.front()) == "@block.a@"
-			&& std::get<3>(singleTrackLimits.front()) == "@block.a@",
+			&& std::get<2>(singleTrackLimits.front()) == "@block.a@",
 		"single-track references resolve to runtime block IDs");
 	ok &= expect(stationBoundarySections.size() == 1
 			&& stationBoundarySections.front().entrance->ID == "@block.a@"

@@ -69,10 +69,9 @@ bool resolveDoubleSwitchSections(const Section& current, const Section& previous
 TrainEvent::TrainEvent() {
 	Time = Time2 = Position = Acceleration = -10000;
 	trainDescription = "None";
-	CurrentStoppedStation = SuccessorID = CurrentSectionID = NextSectionID = "None";
+	SuccessorID = CurrentSectionID = NextSectionID = "None";
 	TrainSpeed = -1;
 	InfraElemStatus = "None";
-	StoppedForServiceStop = ServiceStopBehindATrain = false;
 }
 
 // Function to order Trains in a list where time events are also equal
@@ -2874,7 +2873,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				"signalling.json", "single_track_restriction", restriction.startBlock);
 			continue;
 		}
-		singleTrackLimits.emplace_back(signalling_block_sections[start].ID, signalling_block_sections[end].ID, "",
+		singleTrackLimits.emplace_back(signalling_block_sections[start].ID, signalling_block_sections[end].ID,
 			signalling_block_sections[protectedStart].ID, signalling_block_sections[protectedEnd].ID);
 	}
 	for (const auto& boundary : scene.stationBoundaries) {
@@ -4584,8 +4583,8 @@ void setRouteVirtualSignals() {
 	}
 }
 
-// vector containing the limits of single tracks (pair of first/last plain signalling_block_sections IDs, train occupying single track, signalling_block_sections IDs to block)
-std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string>> singleTrackLimits;
+// vector containing the limits of single tracks (first plain block ID, last plain block ID, protected block ID at the first end, protected block ID at the last end)
+std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
 
 std::vector<int> singleTrackHeld;
 static std::vector<SingleTrackZone> singleTrackZones; // index: limit * route count + route
@@ -4609,7 +4608,7 @@ const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex) {
 		singleTrackRouteZone.assign(singleTrackZoneRoutes, 0);
 		for (std::size_t k = 0; k < singleTrackZoneLimits; ++k) {
 			const auto& limit = singleTrackLimits[k];
-			std::unordered_set<std::string> zone{std::get<0>(limit), std::get<1>(limit), std::get<3>(limit), std::get<4>(limit)};
+			std::unordered_set<std::string> zone{std::get<0>(limit), std::get<1>(limit), std::get<2>(limit), std::get<3>(limit)};
 			for (const Route& route : train_route) {
 				int first = -1, last = -1;
 				for (int b = 0; b < route.N_Block_Sections; ++b) {

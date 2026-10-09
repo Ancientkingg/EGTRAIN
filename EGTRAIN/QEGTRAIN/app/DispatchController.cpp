@@ -633,13 +633,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 				unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
 
-				for (int i = 0; i < numRegions; i++) {
-					regional_train[i].unlockSingleTrack(
-						train_route[regional_train[i].indexOfRoute].sequence_of_block_sections.data(),
-						train_route[regional_train[i].indexOfRoute].N_Block_Sections,
-						t);
-				} // unlock occupied single tracks
-
 				BlocksOccupied.clear();	 // Clear the list BlocksOccupied
 				BlocksConnected.clear(); // Clear the list BlocksConnected
 
