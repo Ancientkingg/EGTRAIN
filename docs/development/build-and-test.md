@@ -749,15 +749,20 @@ After a successful, unchanged full run, the Replay row appears under the network
 Start, End, Play/Pause, the slider, its arrow keys and mouse wheel seek only the
 latest completed run. Play advances one requested simulation second per wall
 second; each selection displays the last recorded frame at or before that time,
-not interpolated positions. The label reports the selected frame time, five-second
-sampling cadence and actual coverage, including earlier-frame eviction. A replay
-seek explicitly restores historical operational overlays; normal completion does
-not. A new run or scene/scenario edit clears replay and returns active replay to
-the authoring preview. Train, station and signal inspections remain selected
-across seeks; future or exited trains do not appear on layer toggles or drive
-Follow station emphasis. Follow stays on after the followed train has left at the
-displayed time and continues when the replay goes back; in a live run it is
-switched off at that point. Unsuccessful and stopped runs have no replay, and a
+not interpolated positions. The label reports the selected frame time, the interval
+that is kept and the five-second sampling cadence; the slider covers exactly that
+interval and Start goes to its first time. When the run is larger than the replay
+memory and the oldest frames were dropped, the label says from which time the replay
+starts, as a clock time and in seconds, and that the earlier part was not kept because
+the run is larger than the replay memory, and the tooltip of Start says that it goes to
+the first kept time. When not even one frame fits, the row says that there is no replay
+and the slider and Play are disabled. A replay seek explicitly restores historical
+operational overlays; normal completion does not. A new run or scene/scenario edit
+clears replay and returns active replay to the authoring preview. Train, station and
+signal inspections remain selected across seeks; future or exited trains do not appear
+on layer toggles or drive Follow station emphasis. Follow stays on after the followed
+train has left at the displayed time and continues when the replay goes back; in a live
+run it is switched off at that point. Unsuccessful and stopped runs have no replay, and a
 stopped run keeps no results either.
 Passenger journey details are unavailable in replay; snapshot scalar counts
 and statuses remain visible.
@@ -779,15 +784,18 @@ the field is stored.
 
 The budget is 128 MiB of accounted payload and there is no frame count limit. When
 a run does not fit, the oldest frames are dropped and the history reports the
-interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting
-includes the layouts, the string table and the capacities of the frame arrays,
-not allocator bookkeeping, container nodes, shared-pointer control blocks or the
-rebuilt snapshots that callers hold, so 128 MiB is **not** a precise
-resident-memory limit; for the scenes below the heap in use was 1.1 times the
-accounted bytes. If one frame, with its layout and strings, exceeds the budget,
-replay is unavailable with an explanation; the simulation continues. A run without
-a window (`-g 0`) builds no snapshots and no replay frames, because nothing reads
-them.
+interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`).
+`app/ReplayCoverage.h` turns that into the words of the row for a whole run, for a run
+whose first part was dropped and for a run that cannot be replayed, and into the
+tooltip of Start; the window reads the history, asks for the text and writes it into the
+label and the tooltip. Accounting includes the layouts, the string table and the
+capacities of the frame arrays, not allocator bookkeeping, container nodes,
+shared-pointer control blocks or the rebuilt snapshots that callers hold, so 128 MiB is
+**not** a precise resident-memory limit; for the scenes below the heap in use was 1.1
+times the accounted bytes. If one frame, with its layout and strings, exceeds the
+budget, replay is unavailable with an explanation; the simulation continues. A run
+without a window (`-g 0`) builds no snapshots and no replay frames, because nothing
+reads them.
 
 Measured on a full run of each committed scene at the default horizon (`-g 1`,
 `-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
@@ -805,7 +813,9 @@ committed Milano_Brescia and Copenhagen scenes have one.
 | Netherlands | 1601 | 0-7999 | 32.7 MiB | 346 MiB |
 
 Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
-of heap in use, so a run of about 13000 simulated seconds fills the budget.
+of heap in use, so a run of about 13000 simulated seconds fills the budget. Copenhagen
+with a horizon of 20000 s (`-h 20000`) is larger than the budget, and shows the row for a
+run whose first part was dropped.
 Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
 30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
 34 microseconds on the interface thread.
@@ -876,6 +886,22 @@ end before a pause takes effect. After the run the final frame and every replay 
 forwards, are checked. The marker is `E2E_SIGNAL_HEADS_OK mode=<name>`. The script
 makes three line scenes from `tests/fixtures/scenes/line` (levels, failure,
 none) and also runs Paimpol, Assignment and Lebanon.
+
+The replay row is checked in the Assignment run of the script, in the same window code as
+the other replay checks. `E2E_REPLAY_ROW_WHOLE_OK`: the slider covers 0 to the last time,
+the label says that the whole run is kept and from where to where, Start has no tooltip and
+goes to 0 s, and the label names the selected frame. `E2E_REPLAY_ROW_DROPPED_OK`: the
+product has no setting for the budget, so the check builds a second history from the frames
+of the run, with a budget that holds about half of them, and hands it to the code that
+fills the row after a run. The slider covers the kept interval, the label gives the start as
+a clock time and in seconds and says why the earlier part is missing, the tooltip of Start
+says that it goes to the first kept time, Start, a time before the kept interval and the
+end of the slider select the frames of that interval, and a change of the start time moves
+the clock in the sentence and in the tooltip. The history of the run is put back afterwards. `E2E_REPLAY_ROW_UNAVAILABLE_OK`: a history that kept no frame, because one frame
+did not fit its budget, gives the sentence "No replay" and a slider and Play that are disabled.
+The wording is covered by `test_replaycoverage`: a whole run, a run whose first part was
+dropped, a run that cannot be replayed, a first kept time of 0, a run of one frame and a clock
+that wraps over midnight.
 
 The explanation of Follow is checked by several smoke scripts. `app/FollowAvailability.h`
 decides whether the control is offered, whether Follow can be switched on, whether it has

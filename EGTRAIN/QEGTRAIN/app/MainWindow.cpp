@@ -2,6 +2,7 @@
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 #include "app/TelemetrySmokeSupport.h"
 #endif
+#include "app/ReplayCoverage.h"
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
@@ -2262,7 +2263,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_replayBar->setObjectName("completedReplayBar");
 	auto* replayLayout = new QHBoxLayout(m_replayBar);
 	replayLayout->setContentsMargins(4, 2, 4, 2);
-	auto* replayStart = new QPushButton("Start", m_replayBar);
+	m_replayStartButton = new QPushButton("Start", m_replayBar);
 	auto* replayEnd = new QPushButton("End", m_replayBar);
 	m_replayPlayButton = new QPushButton("Play", m_replayBar);
 	m_replaySlider = new ReplaySlider(m_replayBar);
@@ -2273,7 +2274,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_replayLabel = new QLabel(m_replayBar);
 	m_replayLabel->setWordWrap(true);
 	m_replayLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	replayLayout->addWidget(replayStart);
+	replayLayout->addWidget(m_replayStartButton);
 	replayLayout->addWidget(m_replayPlayButton);
 	replayLayout->addWidget(replayEnd);
 	replayLayout->addWidget(m_replaySlider, 1);
@@ -2283,7 +2284,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_replayTimer = new QTimer(this);
 	m_replayTimer->setInterval(1000); // One simulated second per wall second.
 	connect(m_replaySlider, &QSlider::valueChanged, this, &MainWindow::seekReplay);
-	connect(replayStart, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
+	connect(m_replayStartButton, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
 	connect(replayEnd, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.lastTime()); });
 	connect(m_replayPlayButton, &QPushButton::clicked, this, [this]() {
 		if (m_replayTimer->isActive()) m_replayTimer->stop();
@@ -12588,6 +12589,9 @@ void MainWindow::setStartOffset(long long seconds) {
 	// The entries of the trains that have not entered show clock times.
 	m_followRowShown.clear();
 	updateFollowAvailability();
+	// The replay row names the first kept time as a clock time.
+	if (m_replayBar && m_replayBar->isVisible() && !m_completedReplay.empty())
+		writeReplayText(m_replayActive && m_snapshot ? std::optional<int>(m_snapshot->timestep) : std::nullopt);
 }
 
 bool MainWindow::trainHasGeometry(int trainIndex) const {
@@ -13452,6 +13456,138 @@ void MainWindow::checkSignalHeadsE2E() {
 		pause.pausing = false;
 		ui->actionSimulationPause->trigger();
 	});
+}
+
+// Checks the replay row of the finished run: the row of the whole run as the completion wrote it,
+// the sentence while a frame is selected, and the row for a history that dropped its first part
+// and for one that kept no frame. Those histories are built here, the first from the frames of
+// the run with a budget that holds about half of them, and go through the code that fills the row
+// after a run. The history of the run is put back, and the window shows the frame at the middle
+// again.
+bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
+	const int first = m_completedReplay.firstTime();
+	const int last = m_completedReplay.lastTime();
+	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
+	const auto fail = [&failure](const QString& why) {
+		failure = why;
+		return false;
+	};
+	const auto sliderCovers = [this](int from, int to) {
+		return m_replaySlider->minimum() == from && m_replaySlider->maximum() == to && m_replaySlider->value() == to
+			&& m_replaySlider->isEnabled() && m_replayPlayButton->isEnabled();
+	};
+
+	// The whole run: the row as the completion wrote it, and the sentence for a selected frame.
+	const QString whole = QStringLiteral("whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
+	if (first != 0 || m_completedReplay.truncated() || !sliderCovers(0, last))
+		return fail(QStringLiteral("the slider of a whole run does not cover 0 to %1 s").arg(last));
+	if (m_replayLabel->text() != QStringLiteral("Replay: ") + whole || !m_replayStartButton->toolTip().isEmpty())
+		return fail(QStringLiteral("the row of a whole run says '%1' with the tooltip '%2'").arg(m_replayLabel->text(), m_replayStartButton->toolTip()));
+	const QString wholeText = m_replayLabel->text();
+	m_replaySlider->setValue(middle);
+	const auto shown = m_completedReplay.atOrBefore(middle);
+	if (m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(shown->timestep) + whole)
+		return fail(QStringLiteral("a whole run says '%1' for the frame at %2 s").arg(m_replayLabel->text()).arg(shown->timestep));
+	m_replayStartButton->click();
+	if (m_replayRequestedTime != 0 || !m_snapshot || m_snapshot->timestep != 0 || m_replaySlider->value() != 0
+		|| m_replayLabel->text() != QStringLiteral("Replay at 0 s: ") + whole)
+		return fail(QStringLiteral("Start of a whole run did not go to 0 s, the row says '%1'").arg(m_replayLabel->text()));
+	std::fprintf(stdout, "E2E_REPLAY_ROW_WHOLE_OK label=\"%s\"\n", qPrintable(wholeText));
+	std::fflush(stdout);
+
+	// The same run with its first part dropped.
+	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;
+	for (int time = first; time < last; time += GuiReplayHistory::cadenceSeconds)
+		frames.push_back(m_completedReplay.atOrBefore(time));
+	frames.push_back(m_completedReplay.atOrBefore(last));
+	GuiReplayHistory everything;
+	for (const auto& frame : frames)
+		everything.record(frame);
+	GuiReplayHistory kept(everything.payloadBytes() / 2);
+	for (const auto& frame : frames)
+		kept.record(frame);
+	if (everything.truncated() || !kept.truncated() || kept.size() < 2 || kept.firstTime() <= first || kept.lastTime() != last)
+		return fail(QStringLiteral("a history with half the budget did not drop only its first part"));
+
+	GuiReplayHistory run = std::move(m_completedReplay);
+	m_completedReplay = std::move(kept);
+	showReplayBar();
+	const auto droppedRow = [this, last, &cadence, &sliderCovers]() -> QString {
+		const int from = m_completedReplay.firstTime();
+		const QString memory = QString::fromStdString(replayMemoryText(m_completedReplay.budgetBytes()));
+		// The sentence after "Replay: " and the tooltip of Start for a start clock.
+		const auto words = [from, last, &cadence, &memory](long long offset) {
+			const QString start = QString::fromStdString(formatSimTime(from, offset)) + QStringLiteral(" (%1 s)").arg(from);
+			const QString sentence = QStringLiteral("starts at %1, ends at %2 s, a frame every %3 s. The earlier part was not kept because the run is "
+													"larger than the replay memory (%4).")
+										 .arg(start)
+										 .arg(last)
+										 .arg(cadence, memory);
+			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
+		};
+		const auto [dropped, tip] = words(m_startOffsetSeconds);
+		if (!sliderCovers(from, last))
+			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
+		if (m_replayLabel->text() != QStringLiteral("Replay: ") + dropped)
+			return QStringLiteral("the row says '%1'").arg(m_replayLabel->text());
+		if (m_replayStartButton->toolTip() != tip)
+			return QStringLiteral("Start says '%1'").arg(m_replayStartButton->toolTip());
+		const QString row = m_replayLabel->text();
+		m_replayStartButton->click();
+		if (m_replayRequestedTime != from || !m_snapshot || m_snapshot->timestep != from || m_replaySlider->value() != from
+			|| m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(from) + dropped)
+			return QStringLiteral("Start did not go to %1 s, the row says '%2'").arg(from).arg(m_replayLabel->text());
+		seekReplay(0);
+		if (m_replayRequestedTime != from || m_snapshot->timestep != from)
+			return QStringLiteral("a time before the kept interval did not select %1 s").arg(from);
+		m_replaySlider->setValue(last);
+		if (m_replayRequestedTime != last || m_snapshot->timestep != last || m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(last) + dropped)
+			return QStringLiteral("the end of the slider did not select %1 s, the row says '%2'").arg(last).arg(m_replayLabel->text());
+		// A change of the start time moves the clock in the sentence and in the tooltip.
+		const long long offsetBefore = m_startOffsetSeconds;
+		setStartOffset(offsetBefore + 3600);
+		const auto [movedSentence, movedTip] = words(offsetBefore + 3600);
+		const bool moved = m_replayLabel->text() == QStringLiteral("Replay at %1 s: ").arg(last) + movedSentence && m_replayStartButton->toolTip() == movedTip
+			&& movedTip != tip;
+		setStartOffset(offsetBefore);
+		if (!moved || m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(last) + dropped || m_replayStartButton->toolTip() != tip)
+			return QStringLiteral("a change of the start time did not move the clock in the row");
+		std::fprintf(stdout, "E2E_REPLAY_ROW_DROPPED_OK from=%d label=\"%s\" start_tooltip=\"%s\"\n", from, qPrintable(row), qPrintable(tip));
+		std::fflush(stdout);
+		return QString();
+	};
+	QString problem = droppedRow();
+
+	// A run of which not one frame fits.
+	const auto unavailableRow = [this]() -> QString {
+		GuiReplayHistory refused(1u << 20);
+		auto large = std::make_shared<GuiSimulationSnapshot>();
+		large->passengers.resize(1);
+		large->passengers.front().id = std::string(2u << 20, 'x');
+		refused.record(large);
+		m_completedReplay = std::move(refused);
+		showReplayBar();
+		const QString expected = QStringLiteral("No replay: one moment of this run needs more than the replay memory (1 MiB).");
+		if (!m_completedReplay.oversize() || !m_completedReplay.empty() || !m_replayBar->isVisible() || m_replayLabel->text() != expected
+			|| m_replaySlider->isEnabled() || m_replayPlayButton->isEnabled() || !m_replayStartButton->toolTip().isEmpty())
+			return QStringLiteral("the row says '%1', the slider is %2, Play is %3, Start says '%4'")
+				.arg(m_replayLabel->text(), m_replaySlider->isEnabled() ? "enabled" : "disabled", m_replayPlayButton->isEnabled() ? "enabled" : "disabled", m_replayStartButton->toolTip());
+		std::fprintf(stdout, "E2E_REPLAY_ROW_UNAVAILABLE_OK label=\"%s\"\n", qPrintable(expected));
+		std::fflush(stdout);
+		return QString();
+	};
+	if (!problem.isEmpty()) {
+		problem = QStringLiteral("history with a dropped first part: ") + problem;
+	} else {
+		problem = unavailableRow();
+		if (!problem.isEmpty())
+			problem = QStringLiteral("history that cannot be replayed: ") + problem;
+	}
+
+	m_completedReplay = std::move(run);
+	showReplayBar();
+	seekReplay(middle);
+	return problem.isEmpty() ? true : fail(problem);
 }
 
 // Checks the signal heads against the frames of the replay once the run is
@@ -22845,6 +22981,30 @@ void MainWindow::clearReplay() {
 	simulation.resetReplayCandidate();
 }
 
+// Writes the sentence of the replay row and the tooltip of Start for the history of the run, with
+// the time of the displayed frame when there is one. It returns whether the slider and Play can be used.
+bool MainWindow::writeReplayText(std::optional<int> shownTime) {
+	const ReplayBarText bar = replayBarText(replayCoverageOf(m_completedReplay, m_startOffsetSeconds), shownTime);
+	m_replayLabel->setText(QString::fromStdString(bar.label));
+	m_replayStartButton->setToolTip(QString::fromStdString(bar.startTip));
+	return bar.usable;
+}
+
+// Writes the replay row for the history of the finished run: the interval of the slider, the
+// sentence, the tooltip of Start and whether the slider and Play can be used.
+void MainWindow::showReplayBar() {
+	if (!m_completedReplay.empty()) {
+		m_replayRequestedTime = m_completedReplay.lastTime();
+		const QSignalBlocker blocker(m_replaySlider);
+		m_replaySlider->setRange(m_completedReplay.firstTime(), m_completedReplay.lastTime());
+		m_replaySlider->setValue(m_replayRequestedTime);
+	}
+	const bool usable = writeReplayText(std::nullopt);
+	m_replaySlider->setEnabled(usable);
+	m_replayPlayButton->setEnabled(usable);
+	m_replayBar->show();
+}
+
 void MainWindow::clearSimulationWorker(bool requestStop) {
 	if (m_worker && requestStop)
 		m_worker->requestStop();
@@ -24725,25 +24885,10 @@ void MainWindow::onSimulationFinished() {
 	clearSimulationWorker(false);
 	if (m_resultsAvailable && !stopped) {
 		m_completedReplay = simulation.takeReplayCandidate();
-		if (!m_completedReplay.empty()) {
-			m_replayRequestedTime = m_completedReplay.lastTime();
-			const QSignalBlocker blocker(m_replaySlider);
-			m_replaySlider->setRange(m_completedReplay.firstTime(), m_completedReplay.lastTime());
-			m_replaySlider->setValue(m_replayRequestedTime);
-			m_replayLabel->setText(QString("Replay available: %1–%2 s | every %3 s%4")
-					.arg(m_completedReplay.firstTime())
-					.arg(m_completedReplay.lastTime())
-					.arg(GuiReplayHistory::cadenceSeconds)
-					.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
-			m_replayBar->show();
-			if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
+		if (!m_completedReplay.empty() || m_completedReplay.oversize()) {
+			showReplayBar();
+			if (!m_completedReplay.empty() && qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
 				QTimer::singleShot(0, this, &MainWindow::runReplaySignalsE2E);
-		} else if (m_completedReplay.oversize()) {
-			m_replayLabel->setText(QString("Replay unavailable: one frame exceeded the %1 MiB payload budget")
-					.arg(GuiReplayHistory::payloadLimit / (1024u * 1024u)));
-			m_replayBar->show();
-			m_replaySlider->setEnabled(false);
-			m_replayPlayButton->setEnabled(false);
 		}
 	} else simulation.resetReplayCandidate();
 	// A completed run can be replayed, so a train that has left can be followed in it.
@@ -24796,6 +24941,12 @@ void MainWindow::onSimulationFinished() {
 		const int middle = first + (last - first) / 2;
 		const RunResults completedResults = m_completedRunResults;
 		const auto completedTimetable = m_completedTimetableResults;
+		QString rowProblem;
+		if (!checkReplayRowE2E(middle, rowProblem)) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: replay row, %s\n", qPrintable(rowProblem));
+			QCoreApplication::exit(2);
+			return;
+		}
 		m_replaySlider->setValue(middle);
 		const auto expected = m_completedReplay.atOrBefore(middle);
 		const auto analyticsUnchanged = [this, &completedResults, &completedTimetable]() {
@@ -28113,12 +28264,7 @@ void MainWindow::seekReplay(int requestedTime) {
 		const QSignalBlocker blocker(m_replaySlider);
 		m_replaySlider->setValue(m_replayRequestedTime);
 	}
-	m_replayLabel->setText(QString("Replay %1 s | available %2–%3 s | every %4 s%5")
-			.arg(frame->timestep)
-			.arg(m_completedReplay.firstTime())
-			.arg(m_completedReplay.lastTime())
-			.arg(GuiReplayHistory::cadenceSeconds)
-			.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+	writeReplayText(frame->timestep);
 	renderSnapshot(true);
 	if (trainPaxItem && !replayTrainHasPosition(trainPaxItem->index))
 		removeTrainPaxInfoIcon();

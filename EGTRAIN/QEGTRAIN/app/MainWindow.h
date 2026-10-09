@@ -26,6 +26,7 @@
 #include <QGraphicsScene>
 #include <QPen>
 #include <array>
+#include <optional>
 #include <QGraphicsEllipseItem>
 #include <QPoint>
 #include <QSizePolicy>
@@ -696,6 +697,7 @@ private:
 	QWidget* m_replayBar = nullptr;
 	QSlider* m_replaySlider = nullptr;
 	QLabel* m_replayLabel = nullptr;
+	QPushButton* m_replayStartButton = nullptr;
 	QPushButton* m_replayPlayButton = nullptr;
 	QTimer* m_replayTimer = nullptr;
 	bool m_replayActive = false;
@@ -1005,6 +1007,7 @@ private:
 	void runVisualPolishE2E();
 	void checkSignalHeadsE2E();
 	void runReplaySignalsE2E();
+	bool checkReplayRowE2E(int middle, QString& failure);
 	void runStationOverlayE2E();
 	void runEditorSmokeE2E();
 	void runCreatorAcceptanceE2E();
@@ -1024,6 +1027,8 @@ private:
 	void stopTrainAnimation(int train);
 	void stopTrainAnimations();
 	void clearReplay();
+	void showReplayBar();
+	bool writeReplayText(std::optional<int> shownTime);
 	void seekReplay(int requestedTime);
 	void renderSnapshot(bool historical);
 	bool replayTrainHasPosition(int trainIndex) const;

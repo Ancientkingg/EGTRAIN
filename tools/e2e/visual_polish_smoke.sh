@@ -53,6 +53,8 @@ FOLLOW_REPLAY_MARKERS=(
 	E2E_FOLLOW_REPLAY_BEFORE_OK E2E_FOLLOW_REPLAY_DURING_OK E2E_FOLLOW_CAMERA_REPLAY_OK E2E_FOLLOW_REPLAY_LAYER_OK
 	E2E_FOLLOW_SELECT_ON_OK E2E_FOLLOW_REPLAY_AFTER_OK E2E_FOLLOW_SELECT_OK E2E_FOLLOW_RESET_OK
 )
+# The replay row of the Assignment run: the whole run, a history that dropped its first part and one that kept no frame.
+REPLAY_ROW_MARKERS=(E2E_REPLAY_ROW_WHOLE_OK E2E_REPLAY_ROW_DROPPED_OK E2E_REPLAY_ROW_UNAVAILABLE_OK)
 require_markers() {
 	local log="$1" marker
 	shift
@@ -180,7 +182,7 @@ QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
 	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$COMPLETION_OUT" 2>&1
 grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
-require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}"
+require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MARKERS[@]}"
 echo "operational completion and rerun e2e passed"
 
 # Signal heads on three copies of the line fixture with two services: one with a
