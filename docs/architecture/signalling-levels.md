@@ -197,7 +197,7 @@ code 0 the code 270 and exit speed 0, and the section before it state `green`.
 The section after the double switch is not held by that lock: when it shares a
 plain block with the double switch, as the first half of a second double switch
 does, `Train::Det_Section_Occupied_By_Train` takes it out again if only the lock
-put it there. `test_crossover_chain` runs two double switches in a row; see
+put it there. The crossover chain test runs two double switches in a row; see
 [Characterization tests](../development/build-and-test.md#characterization-tests).
 
 ## Levels

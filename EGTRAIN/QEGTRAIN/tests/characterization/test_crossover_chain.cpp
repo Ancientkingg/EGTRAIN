@@ -56,8 +56,8 @@ struct Trajectory {
 // What one run of the fixture leaves behind.
 struct Outcome {
 	std::vector<Trajectory> trains;
-	// Positions along the route of the trains, in m: the platforms, the route end, the second half of the first crossover and the second
-	// crossover.
+	// Positions along the route of the trains, in m. platforms holds the start and the end of the route and the platforms between them.
+	// exitStart is the start of the second half of the first crossover; secondStart and secondEnd bound the second crossover.
 	std::vector<double> platforms;
 	double routeEnd = 0.0;
 	double exitStart = 0.0;
@@ -246,6 +246,11 @@ void checkFollower(const std::string& fixture, int level, std::vector<std::strin
 		return;
 	const Trajectory& leader = outcome.trains[0];
 	const Trajectory& follower = outcome.trains[1];
+	// The checks below take the first train of the run as the leader.
+	if (leader.name != "F1-1" || follower.name != "F2-1") {
+		failures.push_back(assertion + ": the trains of the run are " + leader.name + " and " + follower.name + ", not F1-1 and F2-1");
+		return;
+	}
 	expectReachesEnd(assertion + ", both reach the last platform", outcome, leader, failures);
 	expectReachesEnd(assertion + ", both reach the last platform", outcome, follower, failures);
 

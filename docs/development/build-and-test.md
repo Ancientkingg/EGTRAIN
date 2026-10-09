@@ -365,7 +365,7 @@ has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
 
 ```bash
-cmake --build build --target test_characterization
+cmake --build build --target test_characterization test_crossover_chain
 ctest --test-dir build -L characterization --output-on-failure
 ```
 
