@@ -14,7 +14,6 @@
 #include <map>
 #include <algorithm>
 #include "simulation/NumberGenerator.h"
-#include <omp.h>
 #include <vector>
 #include "util/portability.h"
 #include "simulation/InitialParameters.h"
