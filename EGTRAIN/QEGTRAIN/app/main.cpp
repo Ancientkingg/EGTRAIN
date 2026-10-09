@@ -309,6 +309,8 @@ int main(int argc, char* argv[]) {
 	printSceneDiagnostics(diagnostics);
 	if (hasErrors(diagnostics))
 		return 1;
+	// No window reads the snapshots of this run.
+	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
 	if (numRegions <= 0)
 		return 1;

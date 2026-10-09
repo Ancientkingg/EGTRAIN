@@ -181,6 +181,24 @@ int main(int argc, char** argv) {
 		ok &= expect(exists(output, kEnergyFile), std::string("control run: ") + kEnergyFile);
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("control run: ") + file);
+		ok &= expect(!simulation.takeReplayCandidate().empty(), "control run: replay history recorded");
+	}
+	{
+		// A run that nothing draws: no snapshot and no replay history, the same stages and files.
+		QTemporaryDir output;
+		RunObservation observed;
+		simulation.setSnapshotsEnabled(false);
+		runScene(loaded.scene, output.path(), StopAt::Never, observed);
+		simulation.setSnapshotsEnabled(true);
+		ok &= expect(observed.prepared, "run without snapshots: scene prepared with trains");
+		ok &= expect(observed.snapshots == 0 && !simulation.takeSimulationSnapshot(),
+				"run without snapshots: no step published");
+		ok &= expect(simulation.takeReplayCandidate().empty(), "run without snapshots: no replay history");
+		ok &= expect(observed.postprocessing == 1 && observed.returned == 1 && observed.completed,
+				"run without snapshots: one pass through the stages, completed");
+		ok &= expect(exists(output, kEnergyFile), std::string("run without snapshots: ") + kEnergyFile);
+		for (const char* file : kLateFiles)
+			ok &= expect(exists(output, file), std::string("run without snapshots: ") + file);
 	}
 	{
 		QTemporaryDir output;
