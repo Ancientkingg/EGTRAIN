@@ -487,10 +487,7 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The marker names one open issue: #564 covers a level 4 train that enters right
-behind another one and stops at its platform position (`same-entry-level-4`).
-Without its marker the case fails the check for overlapping trains. The checks
-apply to every unmarked case.
+No case is marked at present, so the checks apply to every case.
 
 ## Simulation Smoke Test
 
