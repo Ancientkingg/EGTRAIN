@@ -649,6 +649,8 @@ public:
 		const bool separated = BS[0].SignallingLevel >= 0;
 		if (waiting && separated && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), BS[0].ID) != BlocksOccupied.end())
 			return;
+		if (waiting && isFirstSectionFailed(BS[0])) // enters when the failure has ended, at any signalling level
+			return;
 		string PreviousTrain = "None"; // the previous Train according to the list
 		int IndexOL = BS[0].arcs_in_signalling_block_section[0].startNode.indexOrderList;
 
@@ -667,7 +669,7 @@ public:
 					if (ETCS_MA.size() > 0) {
 						for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
 							// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
-							if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription)) {
+							if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
 								IsRouteStartingPointOccupied = true;
 								break;
 							}
@@ -695,7 +697,7 @@ public:
 				if (ETCS_MA.size() > 0) {
 					for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
 						// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
-						if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription)) {
+						if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
 							IsRouteStartingPointOccupied = true;
 							break;
 						}
@@ -790,6 +792,21 @@ public:
 				}
 			}
 		}
+	}
+
+	// A signal failure makes an End of Authority for every route copy of the failed section. Its position is
+	// expressed for the direction of its route, so only trains of that direction obey it.
+	bool obeysAuthority(const MovementAuthority& authority) const {
+		return authority.type != "SignalFailure" || authority.ReversedDirection == train_route[indexOfRoute].reversed_direction;
+	}
+
+	// True while a signal failure of the first section of the route holds this train at its entry
+	bool isFirstSectionFailed(const Section& firstSection) const {
+		for (const MovementAuthority& authority : ETCS_MA)
+			if (authority.type == "SignalFailure" && authority.BSID == firstSection.ID && obeysAuthority(authority)
+				&& abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
+				return true;
+		return false;
 	}
 
 	// Function to check if the End of Authority given by the RBC for ETCS 3 is still valid
@@ -1118,7 +1135,7 @@ public:
 			// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
 			bool hasSignalFailureMa = false;
 			for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-				if ((it->type == "SignalFailure") && (it->BSID == BS[z + BlockPos].ID)) {
+				if ((it->type == "SignalFailure") && (it->BSID == BS[z + BlockPos].ID) && obeysAuthority(*it)) {
 					hasSignalFailureMa = true;
 					break;
 				}
@@ -1139,7 +1156,7 @@ public:
 				// Now identifying braking points due to ETCS MA
 				if (ETCS_MA.size() > 0) {
 					for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-						if ((it->BSID == BS[z + BlockPos].ID) && (it->TrainInfo.trainDescription != trainDescription)) {
+						if ((it->BSID == BS[z + BlockPos].ID) && (it->TrainInfo.trainDescription != trainDescription) && obeysAuthority(*it)) {
 							double AbscissaToBrakeAtForEoA = -1;	// This is the progressive the train needs to start braking at to meet the EoA
 							double SpeedForEoA = -1;				// This is the speed to be met to respect the MA
 							bool BrakingForEoAModified = false;		// This variable is true when we modify the BrakingPoint because of a prediction distance to allow the train to couple with the one ahead

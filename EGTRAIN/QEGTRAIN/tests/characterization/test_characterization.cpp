@@ -189,7 +189,6 @@ const struct {
 	const char* name;
 	const char* marker;
 } kKnownWrong[] = {
-	{"sf-first-level-none", "#539 F1 and F2 stop at 2 km and stay there after the failure ends"},
 	{"same-entry-level-4", "#564 F1 stops at the position of T1 at B"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
@@ -211,7 +210,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		const char* prefix;
 		const char* scenario;
 		std::vector<std::string> services;
-		int lastLevel; // The last level run besides "none".
+		int lastLevel; // The last level run besides "none"; -1 runs "none" only.
 	} groups[] = {
 		{"follow", "baseline", {"F1", "F2"}, 5},
 		{"sf-forward", "signal-failure-forward", {"F1", "F2"}, 5},
@@ -220,6 +219,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2},
 		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2},
 		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2},
+		{"sf-entered", "signal-failure-entered", {"F1", "F2"}, -1},
 		{"same-entry", "baseline", {"T1", "F1"}, 5},
 	};
 	for (const auto& group : groups) {

@@ -104,6 +104,20 @@
                 }
             ],
             "name": "Signal failure first"
+        },
+        {
+            "entrance_delays": [],
+            "id": "signal-failure-entered",
+            "incidents": [
+                {
+                    "end_seconds": 400.0,
+                    "id": "inc.entered",
+                    "start_seconds": 90.0,
+                    "target": "0-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure entered"
         }
     ]
 }
