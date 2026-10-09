@@ -32,10 +32,10 @@ int main(int argc, char* argv[]) {
 
 	NetworkLegendContent content;
 	content.hasTracks = true;
-	content.trainVisuals = {
-		classifyTrainType("IC", "IC 2201"),
-		classifyTrainType("", "sprinter 301"),
-		classifyTrainType("IC", "IC 2202")};
+	content.trains = {
+		{defaultTrainFill(), defaultTrainOutline(), QString()},
+		{defaultTrainFill(), defaultTrainOutline(), QString()},
+		{defaultTrainFill(), defaultTrainOutline(), QString()}};
 	content.stationVisuals = {
 		classifyStation(),
 		classifyStation(),
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 10, "case content produces stable deduplicated entries");
+	ok &= expect(entries.size() == 9, "case content produces stable deduplicated entries");
 	ok &= expect(entries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
 		&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
 		&& entries.at(2).color == freeTrackVisual().color
@@ -69,25 +69,26 @@ int main(int argc, char* argv[]) {
 	}), "nonvisual operational states have no map-key swatches");
 	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
 	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
-	ok &= expect(trainSwatch && containsColor(trainImage, classifyTrainType("IC", "IC 2201").fill),
+	ok &= expect(trainSwatch && containsColor(trainImage, defaultTrainFill()),
 		"train swatch mirrors historical locomotive fill");
-	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch5");
+	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch4");
 	ok &= expect(stationSwatch && stationSwatch->size() == QSize(46, 18),
 		"station swatch keeps its compact map-key footprint");
-	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
+	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch5");
 	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
 	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red)),
 		"signal swatch renders the historical red plate");
 
-	int intercityCount = 0;
+	int trainCount = 0;
 	int stationCount = 0;
 	bool stopSignalFound = false;
 	bool passengerFound = false;
 	for (const NetworkLegendEntry& entry : entries) {
-		if (entry.trainKind == TrainVisualKind::Intercity) {
-			++intercityCount;
-			ok &= expect(entry.color == classifyTrainType("IC", "IC 2201").fill,
-				"train entry uses renderer classification");
+		if (entry.kind == NetworkLegendEntryKind::Train) {
+			++trainCount;
+			ok &= expect(entry.label == "Train" && entry.color == defaultTrainFill()
+				&& entry.outlineColor == defaultTrainOutline(),
+				"trains with the default colour share one Train row");
 		}
 		if (entry.kind == NetworkLegendEntryKind::Station) {
 			++stationCount;
@@ -106,7 +107,7 @@ int main(int argc, char* argv[]) {
 				"passenger entry uses the renderer icon");
 		}
 	}
-	ok &= expect(intercityCount == 1, "duplicate train categories are removed");
+	ok &= expect(trainCount == 1, "duplicate train colours are removed");
 	ok &= expect(stationCount == 1, "duplicate station markers are removed");
 	ok &= expect(stopSignalFound, "signal cues are included");
 	ok &= expect(passengerFound, "passenger-load cue is included");
@@ -146,6 +147,81 @@ int main(int argc, char* argv[]) {
 	ok &= expect(previewEntries.at(3).color == QColor(Qt::blue)
 			&& previewEntries.at(3).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");
+
+	// Train rows: one "Train" row for the default colour, then one row per other colour.
+	const auto trainRows = [](const NetworkLegendWidget& widget) {
+		QVector<NetworkLegendEntry> rows;
+		for (const NetworkLegendEntry& entry : widget.entries())
+			if (entry.kind == NetworkLegendEntryKind::Train)
+				rows << entry;
+		return rows;
+	};
+	const QColor blue(40, 130, 210);
+	const QColor green(40, 170, 110);
+	const QColor blueOutline = blue.darker(200);
+	const QColor greenOutline = green.darker(200);
+	const NetworkLegendTrain defaultTrain{defaultTrainFill(), defaultTrainOutline(), QString()};
+
+	NetworkLegendWidget trainLegend;
+	NetworkLegendContent trainContent;
+	trainContent.trains = {defaultTrain, defaultTrain};
+	trainLegend.setCaseContent(trainContent);
+	QVector<NetworkLegendEntry> rows = trainRows(trainLegend);
+	ok &= expect(trainLegend.entryLabels() == QStringList{"Train"}
+			&& rows.size() == 1 && rows.at(0).color == defaultTrainFill()
+			&& rows.at(0).outlineColor == defaultTrainOutline(),
+		"trains that all use the default colour give one Train row");
+
+	trainContent.trains = {{blue, blueOutline, "201-2"}, defaultTrain, {green, greenOutline, "105-1"}, defaultTrain};
+	trainLegend.setCaseContent(trainContent);
+	rows = trainRows(trainLegend);
+	ok &= expect(trainLegend.entryLabels() == QStringList({"Train", "105-1", "201-2"}) && rows.size() == 3
+			&& rows.at(0).color == defaultTrainFill() && rows.at(1).color == green
+			&& rows.at(1).outlineColor == greenOutline && rows.at(2).color == blue
+			&& rows.at(2).outlineColor == blueOutline,
+		"default plus two custom colours give three rows labelled with the service ids");
+	trainLegend.show();
+	QApplication::processEvents();
+	const QColor swatchColors[] = {defaultTrainFill(), green, blue};
+	for (int row = 0; row < 3; ++row) {
+		auto* swatch = trainLegend.findChild<QWidget*>(QString("mapKeySwatch%1").arg(row));
+		const QImage image = swatch ? swatch->grab().toImage() : QImage();
+		ok &= expect(swatch && containsColor(image, swatchColors[row]),
+			"train swatch is filled with the colour of its row");
+		ok &= expect(swatch && (row == 0 || !containsColor(image, defaultTrainFill())),
+			"custom train swatch does not use the default fill");
+	}
+
+	trainContent.trains = {{blue, blueOutline, "201-2"}, {blue, blueOutline, "201-1"},
+		{blue, blueOutline, "201-1"}};
+	trainLegend.setCaseContent(trainContent);
+	rows = trainRows(trainLegend);
+	ok &= expect(rows.size() == 1 && rows.at(0).label == "201-1, 201-2" && rows.at(0).color == blue,
+		"services with the same colour share one row, each id once and sorted");
+
+	ok &= expect(trainLegend.entryLabels() == QStringList{"201-1, 201-2"},
+		"custom colours alone give no Train row");
+	auto* onlyCustomSwatch = trainLegend.findChild<QWidget*>("mapKeySwatch0");
+	const QImage onlyCustomImage = onlyCustomSwatch ? onlyCustomSwatch->grab().toImage() : QImage();
+	ok &= expect(onlyCustomSwatch && containsColor(onlyCustomImage, blue)
+			&& !containsColor(onlyCustomImage, defaultTrainFill()),
+		"the first swatch is the custom colour when there is no Train row");
+
+	trainContent.trains.clear();
+	for (const char* id : {"S6", "S1", "S4", "S2", "S5", "S3"})
+		trainContent.trains << NetworkLegendTrain{blue, blueOutline, id};
+	trainLegend.setCaseContent(trainContent);
+	rows = trainRows(trainLegend);
+	ok &= expect(rows.size() == 1 && rows.at(0).label == "S1, S2, S3 and 3 more"
+			&& rows.at(0).toolTip == "S1, S2, S3, S4, S5, S6",
+		"a long list of service ids is shortened in the label and complete in the tooltip");
+	auto* longLabel = trainLegend.findChild<QLabel*>("mapKeyEntry0");
+	ok &= expect(longLabel && longLabel->toolTip() == "S1, S2, S3, S4, S5, S6",
+		"the row tooltip lists every service id");
+
+	trainContent.trains.clear();
+	trainLegend.setCaseContent(trainContent);
+	ok &= expect(trainRows(trainLegend).isEmpty(), "no trains give no train rows");
 
 	// Resizing the rail or changing the font must not clip wrapped speed ranges.
 	QScrollArea rail;

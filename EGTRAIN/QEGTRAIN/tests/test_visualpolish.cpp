@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -93,20 +94,32 @@ int main(int argc, char* argv[]) {
 	const TrainVisual intercity = classifyTrainType("IC", "IC 2201");
 	const TrainVisual sprinter = classifyTrainType("", "sprinter 301");
 	const TrainVisual freight = classifyTrainType("freight", "F01");
-	const TrainVisual highSpeed = classifyTrainType("", "ICE 10");
-	const TrainVisual passenger = classifyTrainType("", "regional");
-	ok &= expect(passenger.fill == QColor(235, 210, 55) && passenger.outline == QColor(110, 90, 20),
-		"passenger train uses historical yellow");
-	ok &= expect(sprinter.fill == QColor(40, 170, 110) && sprinter.outline == QColor(20, 90, 60),
-		"sprinter train uses historical green");
-	ok &= expect(intercity.fill == QColor(235, 190, 45) && intercity.outline == QColor(120, 90, 20),
-		"intercity train uses historical yellow");
-	ok &= expect(highSpeed.fill == QColor(40, 130, 210) && highSpeed.outline == QColor(15, 70, 120),
-		"high-speed train uses historical blue");
-	ok &= expect(freight.fill == QColor(120, 95, 70) && freight.outline == QColor(70, 55, 40),
-		"freight train uses historical brown");
-	ok &= expect(intercity.fill != sprinter.fill && intercity.fill != freight.fill && sprinter.fill != freight.fill,
-		"train category contrast");
+	ok &= expect(defaultTrainFill() == QColor(235, 210, 55) && defaultTrainOutline() == QColor(110, 90, 20),
+		"default train colours");
+	const std::pair<const char*, const char*> trainInputs[] = {
+		{"freight", "F01"}, {"IC", "IC 2201"}, {"", "sprinter 301"}, {"", "ICE 10"}, {"", "regional"}};
+	for (const auto& input : trainInputs) {
+		const TrainVisual classified = classifyTrainType(input.first, input.second);
+		const TrainVisual resolved = resolveTrainVisual(input.first, input.second);
+		const TrainVisual invalid = resolveTrainVisual(input.first, input.second, QColor());
+		ok &= expect(classified.fill == QColor(235, 210, 55) && classified.outline == QColor(110, 90, 20),
+			"classified train uses the default colours whatever its type");
+		ok &= expect(resolved.fill == QColor(235, 210, 55) && resolved.outline == QColor(110, 90, 20),
+			"resolved train without a service colour uses the default colours");
+		ok &= expect(invalid.fill == QColor(235, 210, 55) && invalid.outline == QColor(110, 90, 20),
+			"invalid service colour gives the default colours");
+		ok &= expect(resolved.kind == classified.kind && resolved.shape == classified.shape
+			&& resolved.iconResource == classified.iconResource,
+			"resolved train keeps the classified kind, shape and icon");
+	}
+	const QColor serviceColor(40, 130, 210);
+	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColor);
+	ok &= expect(coloured.fill == serviceColor && coloured.outline == serviceColor.darker(200)
+		&& coloured.outline != coloured.fill,
+		"service colour sets the fill and a darker outline");
+	ok &= expect(coloured.kind == TrainVisualKind::Intercity
+		&& coloured.iconResource == ":/icons/train-intercity.svg",
+		"service colour keeps the classified kind and icon");
 	ok &= expect(intercity.shape == TrainBadgeShape::Capsule, "intercity badge shape");
 	ok &= expect(sprinter.shape == TrainBadgeShape::Rounded, "sprinter badge shape");
 	ok &= expect(freight.shape == TrainBadgeShape::Square, "freight badge shape");

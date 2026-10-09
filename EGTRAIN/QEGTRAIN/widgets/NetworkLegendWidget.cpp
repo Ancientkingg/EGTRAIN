@@ -7,6 +7,8 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include <algorithm>
+#include <map>
 #include <set>
 
 namespace {
@@ -103,22 +105,6 @@ private:
 	NetworkLegendEntry m_entry;
 };
 
-QString trainLabel(TrainVisualKind kind) {
-	switch (kind) {
-	case TrainVisualKind::Sprinter:
-		return "Sprinter";
-	case TrainVisualKind::Intercity:
-		return "Intercity";
-	case TrainVisualKind::HighSpeed:
-		return "High-speed train";
-	case TrainVisualKind::Freight:
-		return "Freight";
-	case TrainVisualKind::Passenger:
-	default:
-		return "Passenger train";
-	}
-}
-
 QString stationLabel() {
 	return "Station";
 }
@@ -142,16 +128,56 @@ NetworkLegendEntry trackEntry(const QString& label, TrackOperationalState state)
 	return entry;
 }
 
-NetworkLegendEntry trainEntry(const TrainVisual& visual) {
+NetworkLegendEntry trainEntry(const QString& label, const QString& toolTip, const QColor& fill, const QColor& outline) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Train;
-	entry.label = trainLabel(visual.kind);
-	entry.color = visual.fill;
-	entry.outlineColor = visual.outline;
-	entry.trainKind = visual.kind;
-	entry.trainShape = visual.shape;
-	entry.iconResource = visual.iconResource;
+	entry.label = label;
+	entry.toolTip = toolTip;
+	entry.color = fill;
+	entry.outlineColor = outline;
 	return entry;
+}
+
+// One "Train" row for the default colour, then one row per other fill colour,
+// labelled with the services that use it. A long list of services is shortened
+// in the label; the tooltip has all of them.
+QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trains) {
+	constexpr int maxListedServices = 3;
+	struct CustomColour {
+		QColor outline;
+		std::set<QString> serviceIds;
+	};
+	bool hasDefault = false;
+	std::map<QRgb, CustomColour> custom;
+	for (const NetworkLegendTrain& train : trains) {
+		if (train.fill.rgb() == defaultTrainFill().rgb()) {
+			hasDefault = true;
+			continue;
+		}
+		CustomColour& group = custom[train.fill.rgb()];
+		group.outline = train.outline;
+		if (!train.serviceId.isEmpty())
+			group.serviceIds.insert(train.serviceId);
+	}
+
+	QVector<NetworkLegendEntry> customEntries;
+	for (const auto& item : custom) {
+		QStringList ids;
+		for (const QString& id : item.second.serviceIds)
+			ids << id;
+		QString label = ids.isEmpty() ? QString("Custom colour") : ids.mid(0, maxListedServices).join(", ");
+		if (ids.size() > maxListedServices)
+			label += QString(" and %1 more").arg(ids.size() - maxListedServices);
+		customEntries << trainEntry(label, ids.join(", "), QColor(item.first), item.second.outline);
+	}
+	std::sort(customEntries.begin(), customEntries.end(), [](const NetworkLegendEntry& a, const NetworkLegendEntry& b) {
+		return a.label < b.label;
+	});
+
+	QVector<NetworkLegendEntry> entries;
+	if (hasDefault)
+		entries << trainEntry("Train", QString(), defaultTrainFill(), defaultTrainOutline());
+	return entries + customEntries;
 }
 
 NetworkLegendEntry stationEntry(const StationVisual& visual) {
@@ -225,11 +251,7 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		}
 	}
 
-	std::set<int> trainKinds;
-	for (const TrainVisual& visual : content.trainVisuals) {
-		if (trainKinds.insert(static_cast<int>(visual.kind)).second)
-			m_entries << trainEntry(visual);
-	}
+	m_entries += trainEntries(content.trains);
 
 	if (!content.stationVisuals.isEmpty())
 		m_entries << stationEntry(content.stationVisuals.first());
@@ -289,7 +311,7 @@ void NetworkLegendWidget::rebuildRows() {
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);
-		label->setToolTip(entry.label);
+		label->setToolTip(entry.toolTip.isEmpty() ? entry.label : entry.toolTip);
 		rowLayout->addWidget(label, 1);
 		layout->addWidget(row);
 	}

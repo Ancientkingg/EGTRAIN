@@ -1,6 +1,7 @@
 #ifndef TRAINITEMGROUP_H
 #define TRAINITEMGROUP_H
 
+#include <QColor>
 #include <QGraphicsItemGroup>
 #include <string>
 
@@ -17,6 +18,11 @@ public:
 	int index;
 	std::string trainDescription;
 	std::string trainType;
+	// fill and outline of the train bodies; serviceId names the service that
+	// supplies a custom colour (empty for the default colour)
+	QColor fillColor;
+	QColor outlineColor;
+	std::string serviceId;
 	double trainId;
 	double trainLength;
 	int wagonCount;
