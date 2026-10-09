@@ -23851,7 +23851,8 @@ void MainWindow::onSimulationFinished() {
 			if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
 				QTimer::singleShot(0, this, &MainWindow::runReplaySignalsE2E);
 		} else if (m_completedReplay.oversize()) {
-			m_replayLabel->setText("Replay unavailable: one frame exceeded the 64 MiB payload budget");
+			m_replayLabel->setText(QString("Replay unavailable: one frame exceeded the %1 MiB payload budget")
+					.arg(GuiReplayHistory::payloadLimit / (1024u * 1024u)));
 			m_replayBar->show();
 			m_replaySlider->setEnabled(false);
 			m_replayPlayButton->setEnabled(false);

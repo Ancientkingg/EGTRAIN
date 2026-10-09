@@ -269,6 +269,7 @@ endforeach()
 # They need `Logger owl` from the target, like egtrain_sim.
 add_library(egtrain_dispatch STATIC
     ${SRC_DIR}/app/DispatchController.cpp
+    ${SRC_DIR}/app/GuiReplayHistory.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp)
 target_link_libraries(egtrain_dispatch
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_railml egtrain_sim)
@@ -612,6 +613,7 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
+    target_link_libraries(test_guisimulationsnapshot PRIVATE egtrain_dispatch)
     target_include_directories(test_guisimulationsnapshot PRIVATE ${SRC_DIR})
     add_test(NAME test_guisimulationsnapshot COMMAND test_guisimulationsnapshot)
 

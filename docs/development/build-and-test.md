@@ -544,14 +544,51 @@ stopped run keeps no results either.
 Passenger journey details are unavailable in replay; snapshot scalar counts
 and statuses remain visible.
 
-The producer retains at most 8192 shared immutable frames and 64 MiB of
-accounted payload, evicting oldest frames to keep a recent window. Accounting
-includes nested vector and string capacities, not allocator bookkeeping,
-container nodes or shared-pointer control blocks, so 64 MiB is **not** a precise
-resident-memory limit. If one frame exceeds the payload limit, replay is
-unavailable with an explanation; the simulation continues. A run without a
-window (`-g 0`) builds no snapshots and no replay frames, because nothing
-reads them.
+The history (`app/GuiReplayHistory`) records every fifth simulated second and the
+last one, in a compact form. What is the same for the whole run (identity and
+static data of trains, the section and direction of each signal, section ids,
+platforms) is stored once per run in a layout. Each frame stores only flat arrays
+of the values that change: train positions, speeds and occupied arcs, signal codes,
+levels and failure flags, section flags, platform queues, passenger states. Strings
+that vary are stored once in a string table. `atOrBefore` rebuilds an ordinary
+snapshot from this form, so the window uses the same snapshot type as in a live
+run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds
+is not rebuilt, so asking again for the same frame returns the same object. A
+change of the static data between frames (a different number of trains, a renamed
+train) starts a new layout; older frames keep theirs. Adding a field to a snapshot
+type stops the build of `GuiReplayHistory.cpp` and of the round-trip test until
+the field is stored.
+
+The budget is 128 MiB of accounted payload and there is no frame count limit. When
+a run does not fit, the oldest frames are dropped and the history reports the
+interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting
+includes the layouts, the string table and the capacities of the frame arrays,
+not allocator bookkeeping, container nodes, shared-pointer control blocks or the
+rebuilt snapshots that callers hold, so 128 MiB is **not** a precise
+resident-memory limit; for the scenes below the heap in use was 1.1 times the
+accounted bytes. If one frame, with its layout and strings, exceeds the budget,
+replay is unavailable with an explanation; the simulation continues. A run without
+a window (`-g 0`) builds no snapshots and no replay frames, because nothing reads
+them.
+
+Measured on a full run of each committed scene at the default horizon (`-g 1`,
+`-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
+frames would need as ordinary snapshot objects.
+
+| Scene | Frames | Covers (s) | Accounted | As complete snapshots |
+|---|---|---|---|---|
+| Lebanon | 721 | 0-3599 | 0.6 MiB | 10.8 MiB |
+| Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.7 MiB | 32.5 MiB |
+| Paimpol | 1801 | 0-8999 | 12.1 MiB | 155 MiB |
+| Milano_Brescia | 801 | 0-3999 | 13.1 MiB | 68.8 MiB |
+| Copenhagen | 1601 | 0-7999 | 78.9 MiB | 489 MiB |
+| Netherlands | 1601 | 0-7999 | 32.7 MiB | 346 MiB |
+
+Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
+of heap in use, so a run of about 13000 simulated seconds fills the budget.
+Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
+30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
+34 microseconds on the interface thread.
 
 ## Close, New and Open during a run
 
