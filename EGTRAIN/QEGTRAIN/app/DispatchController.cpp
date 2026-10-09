@@ -121,9 +121,9 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			}
 		}
 	}
+	// A failed section is blocked and its signals fail in both directions, for as long as the failure is active.
 	for (const SimulationIncident& incident : simulationIncidents) {
-		if (incident.type != "signal_failure"
-			|| timestep < incident.startSeconds || timestep > incident.endSeconds)
+		if (!signalFailureActive(incident, timestep))
 			continue;
 		for (const std::string& id : incident.resolvedSectionIDs) {
 			if (id.empty())
@@ -131,13 +131,8 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			auto& state = sectionStates[id];
 			state.sectionId = id;
 			state.blocked = true;
+			signalStates.fail(id);
 		}
-	}
-	// A failed section fails in both directions.
-	for (const SimulationIncident& incident : simulationIncidents) {
-		if (signalFailureActive(incident, timestep))
-			for (const std::string& id : incident.resolvedSectionIDs)
-				signalStates.fail(id);
 	}
 	snapshot.signalStates = signalStates.take();
 	snapshot.sectionStates.reserve(sectionStates.size());
