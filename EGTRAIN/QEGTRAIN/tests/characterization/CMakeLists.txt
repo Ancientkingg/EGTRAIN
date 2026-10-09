@@ -4,26 +4,8 @@ add_executable(test_characterization
 	${SRC_DIR}/tests/characterization/test_characterization.cpp
 	${SRC_DIR}/app/DispatchController.cpp
 	${SRC_DIR}/diagrams/RunResults.cpp
-	${SRC_DIR}/io/RailMLParser.cpp
-	${SRC_DIR}/io/third_party/pugixml.cpp
-	${SRC_DIR}/scene/SceneDiagnostic.cpp
-	${SRC_DIR}/scene/SceneModel.cpp
-	${SRC_DIR}/scene/SceneValidator.cpp
-	${SRC_DIR}/scene/SectionInventory.cpp
-	${SRC_DIR}/simulation/Infrastructure.cpp
-	${SRC_DIR}/simulation/InitialParameters.cpp
-	${SRC_DIR}/simulation/NumberGenerator.cpp
-	${SRC_DIR}/simulation/Optimisation.cpp
-	${SRC_DIR}/simulation/Passengers.cpp
-	${SRC_DIR}/simulation/RollingStock.cpp
-	${SRC_DIR}/simulation/Signalling.cpp
-	${SRC_DIR}/simulation/Simulation.cpp
-	${SRC_DIR}/simulation/SimulationWorker.cpp
-	${SRC_DIR}/util/Logger.cpp
-	${SRC_DIR}/util/PlaybackProfiler.cpp
-	${SRC_DIR}/util/TrajectoryUtil.cpp)
-target_include_directories(test_characterization PRIVATE ${SRC_DIR})
-target_link_libraries(test_characterization PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+	${SRC_DIR}/simulation/SimulationWorker.cpp)
+target_link_libraries(test_characterization PRIVATE egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 
 set(EGTRAIN_CHARACTERIZATION_FIXTURE ${SRC_DIR}/tests/fixtures/scenes/line)
 set(EGTRAIN_CHARACTERIZATION_EXPECTED ${CMAKE_CURRENT_SOURCE_DIR}/expected)

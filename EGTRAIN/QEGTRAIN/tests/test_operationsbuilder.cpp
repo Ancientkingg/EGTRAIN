@@ -5,12 +5,13 @@
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+
+// The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
+#include <QDir>
+#include <QTemporaryDir>
 #ifdef signals
 #undef signals
 #endif
-
-#include <QDir>
-#include <QTemporaryDir>
 
 #include <algorithm>
 #include <cmath>

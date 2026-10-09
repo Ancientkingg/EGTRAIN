@@ -35,6 +35,24 @@ Includes are path-qualified against the source root, for example:
 `include_directories(${SRC_DIR})`, so those paths resolve for the main target,
 `scene_tool`, and every test.
 
+## Libraries
+
+`CMakeLists.txt` builds the model code once, as static libraries. The application,
+`scene_tool` and the tests link them.
+
+| Library | Sources | Depends on |
+| --- | --- | --- |
+| `egtrain_scene` | `scene/` except `SceneTool.cpp` | nlohmann-json, `egtrain_miniz` |
+| `egtrain_sim` | `simulation/` except `SimulationWorker` | `egtrain_scene`, `egtrain_util` |
+| `egtrain_util` | `util/*.cpp` | nlohmann-json |
+| `egtrain_railml` | `io/RailMLParser.cpp` | `egtrain_pugixml`, cppzmq |
+| `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
+
+`egtrain_miniz` holds the vendored zip code. The five libraries and `scene_tool` use no Qt.
+`SimulationWorker` is a `QObject` and stays with the application. The code
+in `graphics/`, `widgets/`, `diagrams/`, `telemetry/` and `update/` is compiled
+in each target that uses it.
+
 ## Renames
 
 The graphics classes were named after their Qt base type. They are now named
