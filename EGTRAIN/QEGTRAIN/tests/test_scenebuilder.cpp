@@ -114,10 +114,10 @@ static SceneModel multiRegionRouteScene() {
 }
 
 static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics, SceneSeverity severity,
-		const std::string& file, const std::string& codePart) {
+	const std::string& file, const std::string& codePart) {
 	for (const auto& diagnostic : diagnostics)
 		if (diagnostic.severity == severity && diagnostic.file == file
-				&& diagnostic.code.find(codePart) != std::string::npos)
+			&& diagnostic.code.find(codePart) != std::string::npos)
 			return true;
 	return false;
 }
@@ -128,24 +128,25 @@ static bool runTinyBuilderChecks() {
 	auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(diagnostics), "complete scene builds without errors");
 	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == 3 && blockSets[0].arcs == 2,
-			"track nodes and arcs retain canonical topology");
+		"track nodes and arcs retain canonical topology");
 	ok &= expect(blockSets[0].hasGraphLayout && blockSets[0].graphID == -1
 			&& blockSets[0].region == 2,
-			"authored track layout retains a valid negative display level");
+		"authored track layout retains a valid negative display level");
 	ok &= expect(Blocks == 2, "two canonical blocks become two straight runtime sections");
 	ok &= expect(signalling_block_sections[0].ID == "@block.a@"
-			&& signalling_block_sections[1].ID == "@block.b@", "block IDs use the runtime boundary form");
+			&& signalling_block_sections[1].ID == "@block.b@",
+		"block IDs use the runtime boundary form");
 	ok &= expect(numStations == 2 && numAllStationPlatforms == 2, "station and platform counts are bound");
 	ok &= expect(StationArray[0].X == 1.0, "platform node anchors a station without a separate position");
 	ok &= expect(StationArray[0].latitude == 1.0 && StationArray[0].longitude == 0.1
 			&& StationArray[0].regions == std::vector<int>({2})
 			&& StationArray[0].regionX[2] == 1.0
 			&& StationArray[0].corridors == std::vector<std::string>({"corridor.tiny"}),
-			"authored station layout reaches the runtime station model");
+		"authored station layout reaches the runtime station model");
 	if (!AllStationPlatforms.empty()) {
 		const auto& platform = AllStationPlatforms.front();
 		ok &= expect(platform.ID == "platform.1" && platform.StationID == "station.tiny",
-				"platform retains canonical station binding");
+			"platform retains canonical station binding");
 		ok &= expect(platform.BlockSectionID == "@block.a@", "platform resolves to its canonical block section");
 	}
 	if (AllStationPlatforms.size() == 2) {
@@ -158,23 +159,23 @@ static bool runTinyBuilderChecks() {
 	if (!train_route.empty()) {
 		const Route& route = train_route.front();
 		ok &= expect(route.ID == "route.tiny" && route.corridor == "corridor.tiny",
-				"route retains canonical ID and corridor");
+			"route retains canonical ID and corridor");
 		ok &= expect(route.N_Block_Sections == 2
 				&& route.sequence_of_block_sections[0].ID == "@block.a@"
 				&& route.sequence_of_block_sections[1].ID == "@block.b@",
-				"route retains every canonical block reference");
+			"route retains every canonical block reference");
 	}
 	ok &= expect(signalling_block_sections[0].N_ConnectedBS == 1
 			&& signalling_block_sections[0].IDConnectedBS[0] == "@block.b@",
-			"explicit block dependency is applied without a hard-coded case dependency");
+		"explicit block dependency is applied without a hard-coded case dependency");
 	ok &= expect(singleTrackLimits.size() == 1
 			&& std::get<0>(singleTrackLimits.front()) == "@block.a@"
 			&& std::get<3>(singleTrackLimits.front()) == "@block.a@",
-			"single-track references resolve to runtime block IDs");
+		"single-track references resolve to runtime block IDs");
 	ok &= expect(stationBoundarySections.size() == 1
 			&& stationBoundarySections.front().entrance->ID == "@block.a@"
 			&& stationBoundarySections.front().exit->ID == "@block.b@",
-			"station boundary references resolve to runtime sections");
+		"station boundary references resolve to runtime sections");
 	const int blocksBeforeReservedId = Blocks;
 	const std::string firstSectionBeforeReservedId = signalling_block_sections[0].ID;
 	SceneModel reservedBlockId = tinyScene();
@@ -188,14 +189,14 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.reserved")
 			&& Blocks == blocksBeforeReservedId
 			&& signalling_block_sections[0].ID == firstSectionBeforeReservedId,
-			"reserved block-id delimiters are rejected before native mutation");
+		"reserved block-id delimiters are rejected before native mutation");
 
 	SceneModel segmentedRegionRoute = tinyScene();
 	segmentedRegionRoute.tracks.push_back({"region.track"});
 	segmentedRegionRoute.nodes.push_back({"region.0", "region.track", 100.0, 0.0});
 	segmentedRegionRoute.nodes.push_back({"region.1", "region.track", 101.0, 0.0});
 	segmentedRegionRoute.arcs.push_back(
-			{"region.arc", "region.track", "region.0", "region.1", 0.0, 0.0, 20.0});
+		{"region.arc", "region.track", "region.0", "region.1", 0.0, 0.0, 20.0});
 	segmentedRegionRoute.blocks.push_back({"region.block.1", "region.track", 0.5});
 	segmentedRegionRoute.blocks.push_back({"region.block.2", "region.track", 0.5});
 	segmentedRegionRoute.routes[0].blocks = {
@@ -204,22 +205,22 @@ static bool runTinyBuilderChecks() {
 	diagnostics = buildInfrastructureAndSignallingFromScene(segmentedRegionRoute);
 	ok &= expect(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& N_Routes == 1 && train_route.size() == 1 && !train_route[0].reversed_direction,
-			"native route direction follows the first connected legacy regional segment");
+		"native route direction follows the first connected legacy regional segment");
 
 	diagnostics = buildInfrastructureAndSignallingFromScene(stableConnectionScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3, "stable-ID connection scene builds one switch section");
 	if (!hasErrors(diagnostics) && Blocks == 3) {
 		const Section& source = signalling_block_sections[0];
 		ok &= expect(source.ID == "@alpha.block@" && source.N_ConnectedBS == 1,
-				"switch dependency is derived without numeric track naming");
+			"switch dependency is derived without numeric track naming");
 		ok &= expect(!source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.empty()
 				&& source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.front()
 					== "@alpha.block@-1.000000/@beta.block@-2.000000",
-				"connection nodes resolve switch sections through stable runtime references");
+			"connection nodes resolve switch sections through stable runtime references");
 		bool hasCanonicalSwitchSpeed = false;
 		for (int index = 0; index < signalling_block_sections[2].total_arcs; ++index)
 			hasCanonicalSwitchSpeed = hasCanonicalSwitchSpeed
-					|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
+				|| signalling_block_sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
 		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
 		Section creatorNamedSwitch = signalling_block_sections[2];
 		creatorNamedSwitch.ID = "@creator@main-block@-1.000000/@creator-yard@block@-2.000000";
@@ -229,11 +230,11 @@ static bool runTinyBuilderChecks() {
 		BlocksConnected.clear();
 		activateBlocksWithSwitchesDivFixedBlock(creatorNamedSwitch, 0, -1.0);
 		ok &= expect(creatorNamedSwitch.ID
-				== "@creator@main-block@-1.000000/@creator-yard@block@-2.000000"
+					== "@creator@main-block@-1.000000/@creator-yard@block@-2.000000"
 				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator@main-block@")
-						!= BlocksOccupied.end()
+					!= BlocksOccupied.end()
 				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator-yard@block@")
-						!= BlocksOccupied.end(),
+					!= BlocksOccupied.end(),
 			"switch occupation preserves creator section IDs containing hyphens and wrapper characters");
 		BlocksOccupied = {"occupied.before"};
 		BlocksConnected = {"connected.before"};
@@ -276,7 +277,7 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
 			&& Blocks == blocksBeforeDisconnectedRoute
 			&& signalling_block_sections[0].ID == firstSectionBeforeDisconnectedRoute,
-			"direct native-builder callers reject disconnected routes before runtime mutation");
+		"direct native-builder callers reject disconnected routes before runtime mutation");
 	SceneModel epsilonConnection = stableConnectionScene();
 	epsilonConnection.nodes[2].xKm = 1.0 + 5e-9;
 	epsilonConnection.nodes[3].xKm = 2.0 + 5e-9;
@@ -285,7 +286,7 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3
 			&& epsilonInventory.sections.size() == 3
 			&& signalling_block_sections[2].ID == epsilonInventory.sections[2].id,
-			"sub-tolerance connection spacing retains inventory and native section-ID parity");
+		"sub-tolerance connection spacing retains inventory and native section-ID parity");
 	SceneModel derivedUTurn = switchChainScene();
 	derivedUTurn.blocks = {{"a.block", "switch-a", 1.0}, {"b.left", "switch-b", 1.0},
 		{"b.right", "switch-b", 1.0}, {"c.block", "switch-c", 1.0}};
@@ -306,14 +307,14 @@ static bool runTinyBuilderChecks() {
 			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& Blocks == blocksBeforeDerivedUTurn
 			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
-			"legacy provenance cannot hide a connection-derived U-turn from native preflight");
+		"legacy provenance cannot hide a connection-derived U-turn from native preflight");
 	SceneModel mixedDerivedUTurn = derivedUTurn;
 	mixedDerivedUTurn.routes = {{"mixed-switch-u-turn", {"b.left", bToC, aToB}, false, {}, false}};
 	diagnostics = buildInfrastructureAndSignallingFromScene(mixedDerivedUTurn);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& Blocks == blocksBeforeDerivedUTurn
 			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
-			"mixed route evidence cannot hide a legacy derived U-turn before native mutation");
+		"mixed route evidence cannot hide a legacy derived U-turn before native mutation");
 	SceneModel legacyFork = switchChainScene();
 	legacyFork.connections.push_back({"a-to-c", "a.1", "c.0", false, 0.0});
 	legacyFork.nodes[0].xKm = 100.0;
@@ -337,20 +338,20 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(!bToA.empty() && !cToA.empty()
 			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
 			&& Blocks == blocksBeforeLegacyFork,
-			"legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation");
+		"legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation");
 	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
-			"signalling areas apply before route construction");
+		"signalling areas apply before route construction");
 	if (!hasErrors(diagnostics) && Blocks == 3) {
 		const Section& alpha = signalling_block_sections[0];
 		const Section& beta = signalling_block_sections[1];
 		const Section& derived = signalling_block_sections[2];
 		ok &= expect(alpha.SignallingLevel == 3 && beta.SignallingLevel == 1
 				&& derived.SignallingLevel == 3,
-				"network and track-scoped levels reach base and derived switch sections");
+			"network and track-scoped levels reach base and derived switch sections");
 		ok &= expect(!train_route.empty() && train_route.front().N_Block_Sections == 1
 				&& train_route.front().sequence_of_block_sections[0].SignallingLevel == 3,
-				"signalling level is copied into the derived route section");
+			"signalling level is copied into the derived route section");
 	}
 	const int blocksBeforeConflict = Blocks;
 	std::vector<std::string> sectionIdsBeforeConflict;
@@ -368,46 +369,46 @@ static bool runTinyBuilderChecks() {
 	for (std::size_t index = 0; sectionIdsUnchanged && index < sectionIdsBeforeConflict.size(); ++index)
 		sectionIdsUnchanged = signalling_block_sections[index].ID == sectionIdsBeforeConflict[index];
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "signalling_area.conflict")
-				&& sectionIdsUnchanged,
-			"same-tier conflicting track areas are rejected before replacing the prior runtime");
+			&& sectionIdsUnchanged,
+		"same-tier conflicting track areas are rejected before replacing the prior runtime");
 	SceneModel invalidSwitchReference = stableConnectionScene();
 	invalidSwitchReference.blockDependencies.push_back(
-			{"alpha.block", "@alpha.block@-9.000000/@beta.block@-10.000000"});
+		{"alpha.block", "@alpha.block@-9.000000/@beta.block@-10.000000"});
 	diagnostics = buildInfrastructureAndSignallingFromScene(invalidSwitchReference);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
-			"invalid switch references are rejected before replacing the existing runtime");
+		"invalid switch references are rejected before replacing the existing runtime");
 	SceneModel duplicateSwitchSection = stableConnectionScene();
 	duplicateSwitchSection.connections.push_back(
-			{"switch.duplicate", "alpha.end", "beta.start", true, 7.5});
+		{"switch.duplicate", "alpha.end", "beta.start", true, 7.5});
 	diagnostics = buildInfrastructureAndSignallingFromScene(duplicateSwitchSection);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
-			"duplicate switch sections are rejected before fixed-capacity runtime mutation");
+		"duplicate switch sections are rejected before fixed-capacity runtime mutation");
 	SceneModel oversizedSwitchSection;
 	oversizedSwitchSection.tracks = {{"long.alpha"}, {"long.beta"}};
 	for (int index = 0; index <= 10; ++index) {
 		oversizedSwitchSection.nodes.push_back({"alpha." + std::to_string(index), "long.alpha",
-				static_cast<double>(index), 0.0});
+			static_cast<double>(index), 0.0});
 		oversizedSwitchSection.nodes.push_back({"beta." + std::to_string(index), "long.beta",
-				static_cast<double>(index + 11), 0.0});
+			static_cast<double>(index + 11), 0.0});
 		if (index == 0)
 			continue;
 		oversizedSwitchSection.arcs.push_back({"alpha.arc." + std::to_string(index), "long.alpha",
-				"alpha." + std::to_string(index - 1), "alpha." + std::to_string(index),
-				0.0, 0.0, 10.0});
+			"alpha." + std::to_string(index - 1), "alpha." + std::to_string(index),
+			0.0, 0.0, 10.0});
 		oversizedSwitchSection.arcs.push_back({"beta.arc." + std::to_string(index), "long.beta",
-				"beta." + std::to_string(index - 1), "beta." + std::to_string(index),
-				0.0, 0.0, 10.0});
+			"beta." + std::to_string(index - 1), "beta." + std::to_string(index),
+			0.0, 0.0, 10.0});
 	}
 	oversizedSwitchSection.blocks = {{"long.alpha.block", "long.alpha", 10.0},
 		{"long.beta.block", "long.beta", 10.0}};
 	oversizedSwitchSection.connections.push_back(
-			{"long.switch", "alpha.10", "beta.0", false, 0.0});
+		{"long.switch", "alpha.10", "beta.0", false, 0.0});
 	diagnostics = buildInfrastructureAndSignallingFromScene(oversizedSwitchSection);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "capacity")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
-			"derived switch arc capacity is rejected before runtime mutation");
+		"derived switch arc capacity is rejected before runtime mutation");
 	SceneModel runtimeBlockIdCollision = scene;
 	runtimeBlockIdCollision.blocks[1].id = "@block.a@";
 	runtimeBlockIdCollision.routes.front().blocks[1] = "@block.a@";
@@ -418,7 +419,7 @@ static bool runTinyBuilderChecks() {
 	diagnostics = buildInfrastructureAndSignallingFromScene(runtimeBlockIdCollision);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
-			"canonical block IDs that collapse to one runtime ID are rejected before mutation");
+		"canonical block IDs that collapse to one runtime ID are rejected before mutation");
 	SceneModel excessiveDependencies = scene;
 	for (int index = 0; index < 10; ++index) {
 		const std::string suffix = std::to_string(index);
@@ -436,7 +437,7 @@ static bool runTinyBuilderChecks() {
 	diagnostics = buildInfrastructureAndSignallingFromScene(excessiveDependencies);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "capacity")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
-			"dependency overflow is rejected before replacing the existing runtime");
+		"dependency overflow is rejected before replacing the existing runtime");
 
 	SceneModel explicitReversed = scene;
 	explicitReversed.routes.front().reversed = true;
@@ -444,36 +445,36 @@ static bool runTinyBuilderChecks() {
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
 			&& train_route.front().reversed_direction
 			&& train_route.front().OriginalRefReversedRoute == train_route.front().x_of_end_node * 1000.0,
-			"explicit reverse metadata retains the joined-route reference coordinate");
+		"explicit reverse metadata retains the joined-route reference coordinate");
 
 	SceneModel descendingRoute = scene;
 	descendingRoute.routes.front().blocks = {"block.b", "block.a"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(descendingRoute);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
 			&& train_route.front().reversed_direction,
-			"descending canonical block order retains the runtime reverse direction");
+		"descending canonical block order retains the runtime reverse direction");
 	diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
 	SceneModel regionalDirection = stableConnectionScene();
 	regionalDirection.nodes[2].xKm = 0.0;
 	regionalDirection.nodes[3].xKm = 1.0;
 	regionalDirection.routes.push_back(
-			{"route.regional", {"alpha.block", "beta.block"}, false, {}, false});
+		{"route.regional", {"alpha.block", "beta.block"}, false, {}, false});
 	diagnostics = buildInfrastructureAndSignallingFromScene(regionalDirection);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
 			&& !train_route.front().reversed_direction
 			&& train_route.front().sequence_of_block_sections[0].ID == "@alpha.block@"
 			&& train_route.front().sequence_of_block_sections[1].ID == "@beta.block@",
-			"declared route topology controls direction across regional coordinate references");
+		"declared route topology controls direction across regional coordinate references");
 
 	const int blocksBeforeInvalid = Blocks;
 	SceneModel invalidReference = scene;
 	invalidReference.routes.front().blocks = {"missing.block"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(invalidReference);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"),
-			"unknown route block returns an actionable signalling diagnostic");
+		"unknown route block returns an actionable signalling diagnostic");
 	ok &= expect(Blocks == blocksBeforeInvalid && train_route.size() == 1,
-			"invalid route does not mutate or silently truncate the existing runtime");
+		"invalid route does not mutate or silently truncate the existing runtime");
 
 	const int routesBeforeMalformed = N_Routes;
 	const std::string routeIdBeforeMalformed = train_route.front().ID;
@@ -485,24 +486,24 @@ static bool runTinyBuilderChecks() {
 			&& Blocks == blocksBeforeInvalid && N_Routes == routesBeforeMalformed
 			&& train_route.size() == 1 && train_route.front().ID == routeIdBeforeMalformed
 			&& train_route.front().N_Block_Sections == routeBlocksBeforeMalformed,
-			"malformed decorated route references are rejected before replacing the existing runtime");
+		"malformed decorated route references are rejected before replacing the existing runtime");
 
 	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && N_Routes == 1 && train_route.size() == 1,
-			"multi-region route builds with a multi-arc middle block");
+		"multi-region route builds with a multi-arc middle block");
 	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3) {
 		ok &= expect(train_route.front().sequence_of_block_sections[0].ID == "@a.block@"
 				&& train_route.front().sequence_of_block_sections[1].ID == "@b.block@"
 				&& train_route.front().sequence_of_block_sections[2].ID == "@c.block@",
-				"native route construction retains authored order across coordinate regions");
+			"native route construction retains authored order across coordinate regions");
 		const Section& later = train_route.front().sequence_of_block_sections[1];
 		const bool kilometerEndpoints = later.total_arcs == 2
-				&& std::fabs(later.arcs_in_signalling_block_section[0].startNode.X - 1.0) < 1e-9
-				&& std::fabs(later.arcs_in_signalling_block_section[0].endNode.X - 2.0) < 1e-9
-				&& std::fabs(later.arcs_in_signalling_block_section[1].startNode.X - 2.0) < 1e-9
-				&& std::fabs(later.arcs_in_signalling_block_section[1].endNode.X - 3.0) < 1e-9;
+			&& std::fabs(later.arcs_in_signalling_block_section[0].startNode.X - 1.0) < 1e-9
+			&& std::fabs(later.arcs_in_signalling_block_section[0].endNode.X - 2.0) < 1e-9
+			&& std::fabs(later.arcs_in_signalling_block_section[1].startNode.X - 2.0) < 1e-9
+			&& std::fabs(later.arcs_in_signalling_block_section[1].endNode.X - 3.0) < 1e-9;
 		ok &= expect(kilometerEndpoints,
-				"route normalization keeps native multi-arc lengths in kilometres");
+			"route normalization keeps native multi-arc lengths in kilometres");
 	}
 
 	const int blocksBeforeInvalidTopology = Blocks;
@@ -510,7 +511,7 @@ static bool runTinyBuilderChecks() {
 	invalidTopology.arcs.front().toNodeId = "missing.node";
 	diagnostics = buildInfrastructureAndSignallingFromScene(invalidTopology);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "ref.unresolved"),
-			"unknown arc endpoint returns an actionable infrastructure diagnostic");
+		"unknown arc endpoint returns an actionable infrastructure diagnostic");
 	ok &= expect(Blocks == blocksBeforeInvalidTopology, "invalid topology is rejected before runtime mutation");
 	SceneModel partialArea = tinyScene();
 	partialArea.signallingAreas = {{"partial-area", 0.0, 1.5, 2, {}}};
@@ -520,7 +521,7 @@ static bool runTinyBuilderChecks() {
 		constexpr int unsetLevel = -99999999;
 		ok &= expect(signalling_block_sections[0].SignallingLevel == 2
 				&& signalling_block_sections[1].SignallingLevel == unsetLevel,
-				"only sections inside an area get a level, the others keep the unset default");
+			"only sections inside an area get a level, the others keep the unset default");
 	}
 	return ok;
 }
@@ -537,29 +538,31 @@ static bool runLongTrackChecks() {
 		scene.nodes.push_back({"node." + std::to_string(index), "track.long", static_cast<double>(index), 0.0});
 	for (int index = 0; index < arcCount; ++index)
 		scene.arcs.push_back({"arc." + std::to_string(index), "track.long", "node." + std::to_string(index),
-				"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
+			"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
 	for (int index = 0; index < arcCount / arcsPerBlock; ++index)
 		scene.blocks.push_back({"block." + std::to_string(index), "track.long",
-				static_cast<double>(arcsPerBlock)});
+			static_cast<double>(arcsPerBlock)});
 	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(diagnostics), "a track with more than 1500 nodes and arcs builds");
 	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == arcCount + 1 && blockSets[0].arcs == arcCount
-			&& blockSets[0].len == arcCount, "the long track keeps all nodes and arcs");
+			&& blockSets[0].len == arcCount,
+		"the long track keeps all nodes and arcs");
 	ok &= expect(blockSets[0].N.size() == static_cast<std::size_t>(arcCount + 1)
 			&& blockSets[0].A.size() == static_cast<std::size_t>(arcCount)
 			&& blockSets[0].member.size() == static_cast<std::size_t>(arcCount),
-			"the track buffers are sized from the scene");
+		"the track buffers are sized from the scene");
 	if (blockSets[0].member.size() == static_cast<std::size_t>(arcCount)) {
 		ok &= expect(blockSets[0].member.front().startNode.X == 0.0
 				&& blockSets[0].member.back().endNode.X == static_cast<double>(arcCount),
-				"the long track keeps its first and last coordinates");
+			"the long track keeps its first and last coordinates");
 		ok &= expect(blockSets[0].A.back().endNode.X == static_cast<double>(arcCount),
-				"the long track keeps its arcs past the former limit");
+			"the long track keeps its arcs past the former limit");
 	}
 	ok &= expect(Blocks == arcCount / arcsPerBlock, "the long track yields one section per block");
 	resetNativeInfrastructureState();
 	ok &= expect(blockSets[0].N.capacity() == 0 && blockSets[0].A.capacity() == 0
-			&& blockSets[0].member.capacity() == 0, "the runtime reset releases the track buffers");
+			&& blockSets[0].member.capacity() == 0,
+		"the runtime reset releases the track buffers");
 	return ok;
 }
 
@@ -573,20 +576,20 @@ static bool runManySectionsChecks() {
 		scene.nodes.push_back({"node." + std::to_string(index), "track.many", static_cast<double>(index), 0.0});
 	for (int index = 0; index < blockCount; ++index)
 		scene.arcs.push_back({"arc." + std::to_string(index), "track.many", "node." + std::to_string(index),
-				"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
+			"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
 	for (int index = 0; index < blockCount; ++index)
 		scene.blocks.push_back({"block." + std::to_string(index), "track.many", 1.0});
 	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(diagnostics), "a scene with more than 6000 sections builds");
 	ok &= expect(Blocks == blockCount && signalling_block_sections.size() == static_cast<std::size_t>(blockCount),
-			"the section storage is sized from the scene");
+		"the section storage is sized from the scene");
 	if (signalling_block_sections.size() == static_cast<std::size_t>(blockCount))
 		ok &= expect(signalling_block_sections.front().ID == "@block.0@"
 				&& signalling_block_sections.back().ID == "@block.6000@",
-				"the sections past the former limit are built");
+			"the sections past the former limit are built");
 	resetNativeInfrastructureState();
 	ok &= expect(Blocks == 0 && signalling_block_sections.capacity() == 0,
-			"the runtime reset releases the section storage");
+		"the runtime reset releases the section storage");
 	return ok;
 }
 
@@ -596,7 +599,7 @@ static bool runRouteStorageChecks() {
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && !train_route.front().reversed_direction
 			&& train_route.front().N_Block_Sections == 2
 			&& train_route.front().sequence_of_block_sections.size() == 2,
-			"a route holds exactly the sections of its route");
+		"a route holds exactly the sections of its route");
 
 	SceneModel reversed = tinyScene();
 	reversed.routes.front().blocks = {"block.b", "block.a"};
@@ -604,12 +607,12 @@ static bool runRouteStorageChecks() {
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
 			&& train_route.front().N_Block_Sections == 2
 			&& train_route.front().sequence_of_block_sections.size() == 2,
-			"a reversed route holds exactly the sections of its route");
+		"a reversed route holds exactly the sections of its route");
 
 	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3
 			&& train_route.front().sequence_of_block_sections.size() == 3,
-			"a route over several regions holds exactly the sections of its route");
+		"a route over several regions holds exactly the sections of its route");
 
 	resetNativeInfrastructureState();
 	ok &= expect(N_Routes == 0 && train_route.empty(), "the runtime reset removes the routes");

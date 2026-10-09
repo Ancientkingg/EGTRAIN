@@ -22,7 +22,7 @@ struct TrackChain {
 };
 
 TrackChain chainForTrack(const SceneModel& scene, const SceneTrack& track,
-		const std::unordered_map<std::string, const SceneNode*>& nodesById) {
+	const std::unordered_map<std::string, const SceneNode*>& nodesById) {
 	TrackChain result;
 	for (const auto& node : scene.nodes)
 		if (node.trackId == track.id)
@@ -101,7 +101,7 @@ std::string sectionBoundaryNode(const SceneSectionDescriptor& section, bool forw
 }
 
 bool sectionBoundaryJoins(const SceneModel& scene, const SceneSectionDescriptor& left,
-		const SceneSectionDescriptor& right, bool forward) {
+	const SceneSectionDescriptor& right, bool forward) {
 	const double leftCoordinate = forward ? left.endKm : left.startKm;
 	const double rightCoordinate = forward ? right.startKm : right.endKm;
 	const std::string leftTrack = forward ? sectionEndTrack(left) : sectionStartTrack(left);
@@ -116,20 +116,20 @@ bool sectionBoundaryJoins(const SceneModel& scene, const SceneSectionDescriptor&
 		if (connection.id == left.sourceConnectionId || connection.id == right.sourceConnectionId)
 			continue;
 		if ((connection.fromNodeId == leftNode && connection.toNodeId == rightNode)
-				|| (connection.toNodeId == leftNode && connection.fromNodeId == rightNode))
+			|| (connection.toNodeId == leftNode && connection.fromNodeId == rightNode))
 			return true;
 	}
 	return false;
 }
 
 bool sectionBoundaryIsRegionJump(const SceneSectionDescriptor& left,
-		const SceneSectionDescriptor& right, bool forward) {
+	const SceneSectionDescriptor& right, bool forward) {
 	const double leftCoordinate = forward ? left.endKm : left.startKm;
 	const double rightCoordinate = forward ? right.startKm : right.endKm;
 	const std::string leftTrack = forward ? sectionEndTrack(left) : sectionStartTrack(left);
 	const std::string rightTrack = forward ? sectionStartTrack(right) : sectionEndTrack(right);
 	return leftTrack != rightTrack
-			&& std::fabs(leftCoordinate - rightCoordinate) > kCoordinateTolerance;
+		&& std::fabs(leftCoordinate - rightCoordinate) > kCoordinateTolerance;
 }
 
 std::vector<std::string> nativeSectionTokens(const std::string& sectionId) {
@@ -143,15 +143,15 @@ std::vector<std::string> nativeSectionTokens(const std::string& sectionId) {
 }
 
 std::vector<std::string> filterSectionNodes(const SceneSectionDescriptor& section,
-		const std::unordered_map<std::string, const SceneNode*>& nodesById,
-		double startKm, double endKm) {
+	const std::unordered_map<std::string, const SceneNode*>& nodesById,
+	double startKm, double endKm) {
 	std::vector<std::string> result;
 	for (const std::string& nodeId : section.nodeIds) {
 		const auto node = nodesById.find(nodeId);
 		if (node == nodesById.end())
 			continue;
 		if (node->second->xKm >= startKm - kCoordinateTolerance
-				&& node->second->xKm <= endKm + kCoordinateTolerance)
+			&& node->second->xKm <= endKm + kCoordinateTolerance)
 			result.push_back(nodeId);
 	}
 	return result;
@@ -192,7 +192,7 @@ bool SceneSectionInventory::ambiguous(const std::string& reference) const {
 	for (const auto& section : sections) {
 		const bool exactMatch = section.id == reference;
 		const bool baseAlias = reference.find('/') == std::string::npos
-				&& (section.sourceBlockId == reference || section.id == wrapped);
+			&& (section.sourceBlockId == reference || section.id == wrapped);
 		if (exactMatch || baseAlias)
 			++count;
 	}
@@ -219,28 +219,27 @@ const SceneSectionDescriptor* SceneSectionInventory::resolve(const std::string& 
 }
 
 SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
-		const SceneSectionDescriptor& left, const SceneSectionDescriptor& right) {
+	const SceneSectionDescriptor& left, const SceneSectionDescriptor& right) {
 	SceneSectionTransition transition;
 	transition.joinsForward = sectionBoundaryJoins(scene, left, right, true);
 	transition.joinsReverse = sectionBoundaryJoins(scene, left, right, false);
 	if (left.connectionDerived && right.connectionDerived) {
 		const bool switchForward = left.secondBlockId == right.firstBlockId
-						&& left.secondTrackId == right.firstTrackId
-						&& left.secondConnectionKm <= right.firstConnectionKm + kCoordinateTolerance;
+			&& left.secondTrackId == right.firstTrackId
+			&& left.secondConnectionKm <= right.firstConnectionKm + kCoordinateTolerance;
 		const bool switchReverse = left.firstBlockId == right.secondBlockId
-						&& left.firstTrackId == right.secondTrackId
-						&& right.secondConnectionKm <= left.firstConnectionKm + kCoordinateTolerance;
+			&& left.firstTrackId == right.secondTrackId
+			&& right.secondConnectionKm <= left.firstConnectionKm + kCoordinateTolerance;
 		transition.joinsForward = transition.joinsForward || switchForward;
 		transition.joinsReverse = transition.joinsReverse || switchReverse;
 	}
 	const auto rightUsesBlock = [&right](const std::string& id) {
-		return !id.empty() && (right.sourceBlockId == id
-				|| right.firstBlockId == id || right.secondBlockId == id);
+		return !id.empty() && (right.sourceBlockId == id || right.firstBlockId == id || right.secondBlockId == id);
 	};
 	const bool sharesSourceBlock = rightUsesBlock(left.sourceBlockId)
-			|| rightUsesBlock(left.firstBlockId) || rightUsesBlock(left.secondBlockId);
+		|| rightUsesBlock(left.firstBlockId) || rightUsesBlock(left.secondBlockId);
 	transition.regionJump = !sharesSourceBlock && !transition.joinsForward && !transition.joinsReverse
-			&& (sectionBoundaryIsRegionJump(left, right, true)
+		&& (sectionBoundaryIsRegionJump(left, right, true)
 			|| sectionBoundaryIsRegionJump(left, right, false));
 	return transition;
 }
@@ -254,8 +253,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 	orderedTracks.reserve(scene.tracks.size());
 	for (const auto& track : scene.tracks)
 		orderedTracks.push_back(&track);
-	std::sort(orderedTracks.begin(), orderedTracks.end(), [](const SceneTrack* left,
-			const SceneTrack* right) { return left->id < right->id; });
+	std::sort(orderedTracks.begin(), orderedTracks.end(), [](const SceneTrack* left, const SceneTrack* right) { return left->id < right->id; });
 	std::unordered_map<std::string, TrackChain> chains;
 	for (const SceneTrack* track : orderedTracks)
 		chains.emplace(track->id, chainForTrack(scene, *track, nodesById));
@@ -286,7 +284,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 			double end = cursor + block->lengthKm;
 			const bool overshootsTrack = end > trackEnd + kCoordinateTolerance;
 			const bool clippedToTrackEnd = overshootsTrack && block == blocks.back()
-					&& cursor < trackEnd - kCoordinateTolerance;
+				&& cursor < trackEnd - kCoordinateTolerance;
 			if (clippedToTrackEnd)
 				end = trackEnd;
 			plans.push_back({block, &chainIt->second, cursor, std::min(end, trackEnd)});
@@ -296,7 +294,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 			plans.back().clippedToTrackEnd = clippedToTrackEnd;
 		}
 		if (cursor < trackEnd - kCoordinateTolerance && !plans.empty()
-				&& plans.back().chain == &chainIt->second) {
+			&& plans.back().chain == &chainIt->second) {
 			plans.back().endKm = trackEnd;
 			plans.back().trackCoverageGap = true;
 		}
@@ -316,13 +314,13 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 		section.endNodeId = nodeAt(*plan.chain, plan.endKm);
 		for (const SceneNode* node : plan.chain->nodes)
 			if (node->xKm >= plan.startKm - kCoordinateTolerance
-					&& node->xKm <= plan.endKm + kCoordinateTolerance)
+				&& node->xKm <= plan.endKm + kCoordinateTolerance)
 				section.nodeIds.push_back(node->id);
 		for (const SceneArc* arc : plan.chain->arcs)
 			if (arc->toNodeId.empty() == false && arc->fromNodeId.empty() == false
-					&& nodesById.count(arc->fromNodeId) != 0 && nodesById.count(arc->toNodeId) != 0
-					&& nodesById.at(arc->toNodeId)->xKm > plan.startKm + kCoordinateTolerance
-					&& nodesById.at(arc->fromNodeId)->xKm < plan.endKm - kCoordinateTolerance)
+				&& nodesById.count(arc->fromNodeId) != 0 && nodesById.count(arc->toNodeId) != 0
+				&& nodesById.at(arc->toNodeId)->xKm > plan.startKm + kCoordinateTolerance
+				&& nodesById.at(arc->fromNodeId)->xKm < plan.endKm - kCoordinateTolerance)
 				++section.arcCount;
 		inventory.sections.push_back(std::move(section));
 	}
@@ -342,17 +340,17 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 		const std::string secondX = formatSceneSectionCoordinate(second->xKm);
 		for (const BlockPlan& firstPlan : plans) {
 			if (firstPlan.source->trackId != first->trackId
-					|| first->xKm < firstPlan.startKm - kCoordinateTolerance
-					|| first->xKm > firstPlan.endKm + kCoordinateTolerance)
+				|| first->xKm < firstPlan.startKm - kCoordinateTolerance
+				|| first->xKm > firstPlan.endKm + kCoordinateTolerance)
 				continue;
 			for (const BlockPlan& secondPlan : plans) {
 				if (secondPlan.source->trackId != second->trackId
-						|| second->xKm < secondPlan.startKm - kCoordinateTolerance
-						|| second->xKm > secondPlan.endKm + kCoordinateTolerance)
+					|| second->xKm < secondPlan.startKm - kCoordinateTolerance
+					|| second->xKm > secondPlan.endKm + kCoordinateTolerance)
 					continue;
 				SceneSectionDescriptor section;
 				section.id = runtimeBlockId(firstPlan.source->id) + "-" + firstX + "/"
-						+ runtimeBlockId(secondPlan.source->id) + "-" + secondX;
+					+ runtimeBlockId(secondPlan.source->id) + "-" + secondX;
 				section.sourceConnectionId = connection.id;
 				section.firstBlockId = firstPlan.source->id;
 				section.secondBlockId = secondPlan.source->id;
@@ -366,12 +364,12 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 				section.endNodeId = nodeAt(*secondPlan.chain, secondPlan.endKm);
 				for (const SceneNode* node : firstPlan.chain->nodes)
 					if (node->xKm <= first->xKm + kCoordinateTolerance
-							&& node->xKm >= firstPlan.startKm - kCoordinateTolerance)
+						&& node->xKm >= firstPlan.startKm - kCoordinateTolerance)
 						section.nodeIds.push_back(node->id);
 				section.nodeIds.push_back(second->id);
 				for (const SceneNode* node : secondPlan.chain->nodes)
 					if (node->xKm > second->xKm + kCoordinateTolerance
-							&& node->xKm <= secondPlan.endKm + kCoordinateTolerance)
+						&& node->xKm <= secondPlan.endKm + kCoordinateTolerance)
 						section.nodeIds.push_back(node->id);
 				section.connectionDerived = true;
 				section.arcCount = 1;
@@ -379,14 +377,14 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 					const double begin = std::max(firstPlan.startKm, nodesById.at(arc->fromNodeId)->xKm);
 					const double end = std::min(firstPlan.endKm, nodesById.at(arc->toNodeId)->xKm);
 					if (end > begin + kCoordinateTolerance
-							&& end <= first->xKm + kCoordinateTolerance)
+						&& end <= first->xKm + kCoordinateTolerance)
 						++section.arcCount;
 				}
 				for (const SceneArc* arc : secondPlan.chain->arcs) {
 					const double begin = std::max(secondPlan.startKm, nodesById.at(arc->fromNodeId)->xKm);
 					const double end = std::min(secondPlan.endKm, nodesById.at(arc->toNodeId)->xKm);
 					if (end > begin + kCoordinateTolerance
-							&& end > second->xKm + kCoordinateTolerance)
+						&& end > second->xKm + kCoordinateTolerance)
 						++section.arcCount;
 				}
 				inventory.sections.push_back(std::move(section));
@@ -397,7 +395,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 }
 
 bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double leftEnd,
-		const std::string& rightId, double rightStart, double rightEnd) {
+	const std::string& rightId, double rightStart, double rightEnd) {
 	if (!((rightStart >= leftStart && rightStart < leftEnd)
 			|| (leftStart >= rightStart && leftStart < rightEnd)))
 		return false;
@@ -409,19 +407,19 @@ bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double le
 }
 
 int sceneRouteDirection(const SceneModel& scene,
-		const std::vector<const SceneSectionDescriptor*>& sections) {
+	const std::vector<const SceneSectionDescriptor*>& sections) {
 	if (sections.empty())
 		return 0;
 	if (sections.size() == 1)
 		return 1;
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
-			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
+		[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
 	bool forward = false;
 	bool reverse = false;
 	int preferredDirection = 0;
 	for (std::size_t index = 1; index < sections.size(); ++index) {
 		const SceneSectionTransition transition = classifySceneSectionTransition(scene,
-				*sections[index - 1], *sections[index]);
+			*sections[index - 1], *sections[index]);
 		forward = forward || transition.joinsForward;
 		reverse = reverse || transition.joinsReverse;
 		if (forward && reverse)
@@ -449,7 +447,7 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 }
 
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route,
-		const SceneSectionInventory& inventory) {
+	const SceneSectionInventory& inventory) {
 	SceneRouteTraversal traversal;
 	std::vector<const SceneSectionDescriptor*> sections;
 	sections.reserve(route.blocks.size());
@@ -476,13 +474,14 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 	}
 	for (std::size_t index = 1; index < sections.size(); ++index) {
 		if (!sections[index - 1]->connectionDerived || !sections[index]->connectionDerived
-				|| !sceneSectionsOverlap(sections[index - 1]->id, starts[index - 1], ends[index - 1],
-						sections[index]->id, starts[index], ends[index]))
+			|| !sceneSectionsOverlap(sections[index - 1]->id, starts[index - 1], ends[index - 1],
+				sections[index]->id, starts[index], ends[index]))
 			continue;
 		double cuttingPosition = 0.0;
 		if (traversal.direction > 0) {
 			cuttingPosition = (sections[index]->firstConnectionKm
-					- sections[index - 1]->secondConnectionKm) / 2.0
+								  - sections[index - 1]->secondConnectionKm)
+					/ 2.0
 				+ sections[index - 1]->secondConnectionKm;
 			if (cuttingPosition > starts[index - 1] && cuttingPosition < ends[index - 1])
 				ends[index - 1] = cuttingPosition;
@@ -490,7 +489,8 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 				starts[index] = cuttingPosition;
 		} else {
 			cuttingPosition = (sections[index - 1]->firstConnectionKm
-					- sections[index]->secondConnectionKm) / 2.0
+								  - sections[index]->secondConnectionKm)
+					/ 2.0
 				+ sections[index]->secondConnectionKm;
 			if (cuttingPosition > starts[index - 1] && cuttingPosition < ends[index - 1])
 				starts[index - 1] = cuttingPosition;
@@ -516,7 +516,7 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 	std::string previousRawNodeId;
 	for (std::size_t sectionIndex = 0; sectionIndex < sections.size(); ++sectionIndex) {
 		std::vector<std::string> nodeIds = filterSectionNodes(*sections[sectionIndex], nodesById,
-				starts[sectionIndex], ends[sectionIndex]);
+			starts[sectionIndex], ends[sectionIndex]);
 		if (traversal.direction < 0)
 			std::reverse(nodeIds.begin(), nodeIds.end());
 		for (const std::string& nodeId : nodeIds) {
@@ -537,7 +537,7 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 			}
 			for (const auto& binding : bindings) {
 				traversal.visits.push_back({sections[sectionIndex]->id, nodeId,
-						binding.first, binding.second, sectionIndex});
+					binding.first, binding.second, sectionIndex});
 			}
 			previousRawNodeId = nodeId;
 		}
@@ -547,7 +547,7 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 }
 
 SceneRouteStations sceneRouteStations(const SceneModel& scene, const SceneRoute& route,
-		const SceneSectionInventory& inventory) {
+	const SceneSectionInventory& inventory) {
 	const SceneRouteTraversal traversal = buildSceneRouteTraversal(scene, route, inventory);
 	SceneRouteStations result;
 	result.resolved = traversal.resolved;
@@ -563,7 +563,7 @@ SceneRouteStations sceneRouteStations(const SceneModel& scene, const SceneRoute&
 }
 
 std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
-		const SceneService& service, const SceneRouteTraversal& traversal) {
+	const SceneService& service, const SceneRouteTraversal& traversal) {
 	std::vector<SceneStopResolution> result;
 	result.reserve(service.stops.size());
 	std::size_t cursor = 0;
@@ -575,7 +575,7 @@ std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scen
 			continue;
 		}
 		const bool stationKnown = std::any_of(scene.stations.begin(), scene.stations.end(),
-				[&stop](const SceneStation& station) { return station.id == stop.stationId; });
+			[&stop](const SceneStation& station) { return station.id == stop.stationId; });
 		if (!stationKnown) {
 			resolution.status = SceneStopResolutionStatus::UnknownStation;
 			result.push_back(std::move(resolution));
@@ -594,7 +594,7 @@ std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scen
 		}
 		for (const std::size_t index : after)
 			addCandidatePlatform(resolution.candidatePlatformIds,
-					traversal.visits[index].platformId);
+				traversal.visits[index].platformId);
 		if (stop.platformId.empty()) {
 			if (resolution.candidatePlatformIds.size() > 1) {
 				resolution.status = SceneStopResolutionStatus::AmbiguousPlatform;
@@ -627,12 +627,12 @@ std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scen
 			}
 			if (resolution.status != SceneStopResolutionStatus::Resolved) {
 				const bool seenPlatform = std::any_of(traversal.visits.begin(), traversal.visits.end(),
-						[&stop](const SceneRouteVisit& visit) {
-							return visit.stationId == stop.stationId && visit.platformId == stop.platformId;
-						});
+					[&stop](const SceneRouteVisit& visit) {
+						return visit.stationId == stop.stationId && visit.platformId == stop.platformId;
+					});
 				resolution.status = seenPlatform && !before.empty()
-						? SceneStopResolutionStatus::OutOfOrder
-						: SceneStopResolutionStatus::InvalidPlatform;
+					? SceneStopResolutionStatus::OutOfOrder
+					: SceneStopResolutionStatus::InvalidPlatform;
 			}
 		}
 		if (resolution.status == SceneStopResolutionStatus::Resolved)

@@ -32,8 +32,7 @@ PlaybackProfiler& PlaybackProfiler::instance() {
 
 PlaybackProfiler::PlaybackProfiler()
 	: m_enabled(gate("QEGTRAIN_PLAYBACK_PROFILE")),
-	  m_conflict(m_enabled && (gate("QEGTRAIN_STARTUP_TIMING")
-		  || gate("QEGTRAIN_STARTUP_NATIVE_DETAIL"))) {
+	  m_conflict(m_enabled && (gate("QEGTRAIN_STARTUP_TIMING") || gate("QEGTRAIN_STARTUP_NATIVE_DETAIL"))) {
 }
 
 bool PlaybackProfiler::enabled() {
@@ -66,13 +65,13 @@ PlaybackProfiler::Scope::Scope(const char* path, const char* lane, const char* p
 		tree.records.clear();
 		tree.scopes.clear();
 	} else if (!tree.active || tree.epoch != epoch || tree.scopes.empty()
-			|| std::strcmp(parent, tree.scopes.back()) != 0) {
+		|| std::strcmp(parent, tree.scopes.back()) != 0) {
 		return;
 	} else {
 		m_rootGeneration = tree.rootGeneration;
 	}
 	if (!profiler.m_measuring.load(std::memory_order_acquire)
-			|| profiler.m_epoch.load(std::memory_order_acquire) != epoch) {
+		|| profiler.m_epoch.load(std::memory_order_acquire) != epoch) {
 		if (m_root) {
 			tree.active = false;
 			tree.scopes.clear();
@@ -89,7 +88,8 @@ PlaybackProfiler::Scope::~Scope() {
 	if (!m_active)
 		return;
 	const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
-		std::chrono::steady_clock::now() - m_started).count();
+		std::chrono::steady_clock::now() - m_started)
+							 .count();
 	auto& profiler = PlaybackProfiler::instance();
 	auto& tree = profiler.pendingTree();
 	if (!tree.active || tree.epoch != m_epoch || tree.rootGeneration != m_rootGeneration)
@@ -178,13 +178,13 @@ void PlaybackProfiler::Aggregate::add(std::uint64_t nanoseconds) {
 }
 
 void PlaybackProfiler::commitTree(std::uint64_t epoch,
-		const std::vector<PendingRecord>& records) {
+	const std::vector<PendingRecord>& records) {
 	if (!m_measuring.load(std::memory_order_acquire)
-			|| m_epoch.load(std::memory_order_acquire) != epoch)
+		|| m_epoch.load(std::memory_order_acquire) != epoch)
 		return;
 	std::lock_guard<std::mutex> lock(m_mutex);
 	if (!m_measuring.load(std::memory_order_relaxed)
-			|| m_epoch.load(std::memory_order_relaxed) != epoch)
+		|| m_epoch.load(std::memory_order_relaxed) != epoch)
 		return;
 	for (const auto& record : records) {
 		const std::string key = std::string(record.lane) + '\n' + record.path;
@@ -228,8 +228,7 @@ void PlaybackProfiler::emitRecords(bool cleanStop) {
 	if (!m_enabled || m_emitted.exchange(true) || !m_frozen.load())
 		return;
 	std::lock_guard<std::mutex> lock(m_mutex);
-	output({
-		{"type", "run"}, {"schema", 1}, {"trial", m_config.trial}, {"view", m_config.view},
+	output({{"type", "run"}, {"schema", 1}, {"trial", m_config.trial}, {"view", m_config.view},
 		{"platform", m_config.platform}, {"architecture", m_config.architecture},
 		{"qt_platform", m_config.qtPlatform}, {"build_type", m_config.buildType},
 		{"case", m_config.caseName}, {"requested_scenario", m_config.requestedScenario},
@@ -239,8 +238,7 @@ void PlaybackProfiler::emitRecords(bool cleanStop) {
 		{"passenger_gui", m_config.passengerGui}, {"tsm", m_config.tsm},
 		{"route_choice", m_config.routeChoice}, {"horizon", m_config.horizon},
 		{"clock", "steady_clock_ns"}, {"scope", "post_startup_playback"},
-		{"mode", m_config.structural ? "structural" : "recorded"}
-	});
+		{"mode", m_config.structural ? "structural" : "recorded"}});
 	std::vector<const Aggregate*> ordered;
 	for (const auto& entry : m_aggregates)
 		ordered.push_back(&entry.second);
@@ -250,20 +248,16 @@ void PlaybackProfiler::emitRecords(bool cleanStop) {
 	for (const Aggregate* aggregate : ordered) {
 		auto samples = aggregate->samples;
 		std::sort(samples.begin(), samples.end());
-		output({
-			{"type", "aggregate"}, {"path", aggregate->path}, {"lane", aggregate->lane},
+		output({{"type", "aggregate"}, {"path", aggregate->path}, {"lane", aggregate->lane},
 			{"parent", aggregate->parent}, {"calls", aggregate->calls},
 			{"total_ns", aggregate->total}, {"min_ns", aggregate->minimum},
 			{"median_ns", percentile(samples, 0.5)}, {"p95_ns", percentile(samples, 0.95)},
-			{"max_ns", aggregate->maximum}
-		});
+			{"max_ns", aggregate->maximum}});
 	}
-	output({
-		{"type", "completion"}, {"observed_ns", m_observedNs},
+	output({{"type", "completion"}, {"observed_ns", m_observedNs},
 		{"start_timestep", m_startTimestep}, {"end_timestep", m_endTimestep},
 		{"timesteps", m_timesteps}, {"deliveries", m_deliveries},
 		{"rendered_updates", m_renderedUpdates}, {"paints", m_paints},
-		{"clean_stop", cleanStop}, {"validation", "complete"}, {"post_freeze_records", 0}
-	});
+		{"clean_stop", cleanStop}, {"validation", "complete"}, {"post_freeze_records", 0}});
 	std::fflush(stdout);
 }

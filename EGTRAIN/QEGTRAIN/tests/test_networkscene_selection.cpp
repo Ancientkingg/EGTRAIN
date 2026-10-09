@@ -169,15 +169,15 @@ int main(int argc, char* argv[]) {
 		signal.sectionAheadLength = 125.0;
 		signal.sectionAheadTrackId = 4;
 		ok &= expect(signal.rect() == QRectF(-6.0, -8.0, 12.0, 16.0)
-			&& signal.aspectCode() == 75 && signal.reversedDirection
-			&& signal.trackID == 3 && signal.sectionAheadId == "protected"
-			&& signal.sectionAheadLength == 125.0 && signal.sectionAheadTrackId == 4,
+				&& signal.aspectCode() == 75 && signal.reversedDirection
+				&& signal.trackID == 3 && signal.sectionAheadId == "protected"
+				&& signal.sectionAheadLength == 125.0 && signal.sectionAheadTrackId == 4,
 			"signal marker keeps scene bounds and inspector metadata");
 		ok &= expect(!signal.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 			"signal head follows scene zoom without a device-sized minimum");
 		signal.setPos(40.0, -80.0);
 		TrainBodyItem train(QPolygonF() << QPointF(-10.0, -6.0) << QPointF(10.0, -6.0)
-			<< QPointF(10.0, 6.0) << QPointF(-10.0, 6.0));
+										<< QPointF(10.0, 6.0) << QPointF(-10.0, 6.0));
 		train.setPos(80.0, -80.0);
 		QPixmap passengerPixmap(14, 14);
 		passengerPixmap.fill(Qt::white);
@@ -209,8 +209,8 @@ int main(int argc, char* argv[]) {
 		train.setFlag(QGraphicsItem::ItemIsSelectable);
 
 		auto expectContext = [&](QGraphicsItem* expectedItem, const QPointF& expectedScenePos,
-			const QPoint& expectedScreenPos, QGraphicsSceneContextMenuEvent::Reason reason,
-			const char* message) {
+								 const QPoint& expectedScreenPos, QGraphicsSceneContextMenuEvent::Reason reason,
+								 const char* message) {
 			const int before = contextRequests;
 			const bool accepted = sendContextMenu(scene, view, reason, expectedScenePos, expectedScreenPos);
 			ok &= expect(accepted, "context event is accepted");
@@ -453,8 +453,8 @@ int main(int argc, char* argv[]) {
 			return image.pixelColor(24, 20);
 		};
 		for (const TrackOperationalState state : {TrackOperationalState::Free,
-				TrackOperationalState::Prepared, TrackOperationalState::Occupied,
-				TrackOperationalState::Blocked}) {
+				 TrackOperationalState::Prepared, TrackOperationalState::Occupied,
+				 TrackOperationalState::Blocked}) {
 			track.setOperationalState(state);
 			ok &= expect(paintTrack() == speed.color(),
 				"ordinary track keeps historical speed color in every operational state");

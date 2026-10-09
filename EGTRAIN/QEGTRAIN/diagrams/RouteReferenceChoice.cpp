@@ -27,7 +27,7 @@ QString elideMiddle(const QString& text, int maxChars) {
 } // namespace
 
 QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene,
-		const std::vector<std::pair<int, std::string>>& usedRoutes) {
+	const std::vector<std::pair<int, std::string>>& usedRoutes) {
 	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
 	QVector<RouteReferenceChoice> choices;
 	for (const auto& used : usedRoutes) {
@@ -37,11 +37,12 @@ QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene
 		const auto sceneRoute = std::find_if(scene.routes.begin(), scene.routes.end(),
 			[&used](const SceneRoute& route) { return route.id == used.second; });
 		const SceneRouteStations stations = sceneRoute == scene.routes.end()
-			? SceneRouteStations() : sceneRouteStations(scene, *sceneRoute, inventory);
+			? SceneRouteStations()
+			: sceneRouteStations(scene, *sceneRoute, inventory);
 		if (!stations.resolved) {
 			choice.label = QString("%1 (station order unavailable)").arg(choice.routeId);
 			choice.toolTip = QString("%1: station order unavailable. The route is not in the scene or its topology does not resolve.")
-				.arg(choice.routeId);
+								 .arg(choice.routeId);
 		} else if (stations.stationIds.empty()) {
 			choice.label = QString("%1 (no stations on this route)").arg(choice.routeId);
 			choice.toolTip = choice.label;
@@ -59,7 +60,7 @@ QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene
 }
 
 RouteReferenceDialog::RouteReferenceDialog(const QVector<RouteReferenceChoice>& choices,
-		const QString& purpose, QWidget* parent)
+	const QString& purpose, QWidget* parent)
 	: QDialog(parent) {
 	setObjectName(QStringLiteral("routeReferenceDialog"));
 	setWindowTitle(QStringLiteral("Reference route"));

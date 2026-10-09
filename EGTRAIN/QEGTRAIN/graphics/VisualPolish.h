@@ -6,10 +6,22 @@
 #include <QString>
 #include <string>
 
-enum class TrainVisualKind { Passenger, Sprinter, Intercity, HighSpeed, Freight };
-enum class TrainBadgeShape { Rounded, Capsule, Square };
-enum class TrackOperationalState { Free, Prepared, Occupied, Blocked };
-enum class SignalCueKind { Neutral, Stop, Caution, Proceed };
+enum class TrainVisualKind { Passenger,
+	Sprinter,
+	Intercity,
+	HighSpeed,
+	Freight };
+enum class TrainBadgeShape { Rounded,
+	Capsule,
+	Square };
+enum class TrackOperationalState { Free,
+	Prepared,
+	Occupied,
+	Blocked };
+enum class SignalCueKind { Neutral,
+	Stop,
+	Caution,
+	Proceed };
 
 struct TrackVisual {
 	QColor color;

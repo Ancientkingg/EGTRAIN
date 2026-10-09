@@ -27,7 +27,12 @@
 // Preview-only canonical identities. Roles 0..3 belong to signal decoration.
 // No model or native pointers are stored here; interaction resolves current data.
 namespace PreviewGraphics {
-enum Role { Kind = 100, Id, StationId, PlatformId, TrackId, Reversed };
+enum Role { Kind = 100,
+	Id,
+	StationId,
+	PlatformId,
+	TrackId,
+	Reversed };
 }
 
 using namespace std;

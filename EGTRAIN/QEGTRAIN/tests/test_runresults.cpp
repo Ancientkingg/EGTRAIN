@@ -53,7 +53,7 @@ static QJsonObject readJsonObject(const QString& path) {
 }
 
 static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
-																					const std::vector<std::string>& stations) {
+	const std::vector<std::string>& stations) {
 	auto train = std::make_unique<Train>();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
@@ -66,7 +66,7 @@ static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
 }
 
 static std::unique_ptr<Regional> makeRegionalTimetableTrain(const std::string& id,
-																							const std::vector<std::string>& stations) {
+	const std::vector<std::string>& stations) {
 	auto train = std::make_unique<Regional>();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
@@ -87,7 +87,7 @@ static TrainEvent makeTimetableEvent(const std::string& station, double arrival,
 }
 
 static std::unique_ptr<Train> makeTrain(const std::string& id, int first, int last, double energy,
-										 double regen, double substation, double substationRegen) {
+	double regen, double substation, double substationRegen) {
 	auto train = std::make_unique<Train>();
 	train->trainDescription = id;
 	train->earliestActiveTrajectoryIndex = first;
@@ -116,9 +116,9 @@ int main() {
 		Train train;
 		const double zeroSpeedResistancePower = train.total_train_resistances(0.0, 0.0, 0.0) * 0.0;
 		ok &= expect(train.curvature_resistances(0.0) == 0.0,
-					 "zero curvature has no curvature resistance");
+			"zero curvature has no curvature resistance");
 		ok &= expect(std::isfinite(zeroSpeedResistancePower),
-					 "zero-speed total-resistance power remains finite");
+			"zero-speed total-resistance power remains finite");
 	}
 	{
 		const int savedBlocks = Blocks;
@@ -171,7 +171,7 @@ int main() {
 		for (const auto& authority : ETCS_MA)
 			outOfRouteAuthority |= authority.BSID == sections[1].ID;
 		ok &= expect(!outOfRouteAuthority,
-					 "reporting uses the supplied route section bound");
+			"reporting uses the supplied route section bound");
 		bool foundEntranceAuthority = false;
 		double entrancePosition = std::numeric_limits<double>::quiet_NaN();
 		for (const auto& authority : ETCS_MA) {
@@ -182,15 +182,15 @@ int main() {
 			}
 		}
 		ok &= expect(foundEntranceAuthority,
-					 "reporting creates a TrainEnd/Tale authority for the first section entrance");
+			"reporting creates a TrainEnd/Tale authority for the first section entrance");
 		ok &= expect(foundEntranceAuthority && std::fabs(entrancePosition - sections[0].GeoXBegNode) < 0.001,
-					 "first-section entrance authority uses the geographic start coordinate");
+			"first-section entrance authority uses the geographic start coordinate");
 
 		ETCS_MA.clear();
 		S_delay = 2;
 		train.ReportPositionToRBC(1, sections, 1, 50);
 		ok &= expect(ETCS_MA.empty(),
-					 "reporting skips delayed samples before the trajectory");
+			"reporting skips delayed samples before the trajectory");
 
 		Blocks = savedBlocks;
 		timestep = savedTimestep;
@@ -210,28 +210,22 @@ int main() {
 		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 1, "one timetable station row");
 		ok &= expect(rows[0].callIndex == 1 && rows[0].stationId == "Central",
-					 "timetable row keeps station occurrence identity");
+			"timetable row keeps station occurrence identity");
 		ok &= expect(rows[0].operatingCode == "R100" && rows[0].serviceId == "service-1"
-					 && rows[0].occurrence == 3,
-					 "timetable row carries service provenance");
-		ok &= expect(rows[0].plannedArrivalSeconds.available &&
-					 closeTo(rows[0].plannedArrivalSeconds.value, 100.0),
-					 "planned arrival is preserved");
-		ok &= expect(rows[0].plannedDepartureSeconds.available &&
-					 closeTo(rows[0].plannedDepartureSeconds.value, 130.0),
-					 "planned departure is preserved");
-		ok &= expect(rows[0].simulatedArrivalSeconds.available &&
-					 closeTo(rows[0].simulatedArrivalSeconds.value, 112.0),
-					 "simulated arrival uses TrainEvent::Time");
-		ok &= expect(rows[0].simulatedDepartureSeconds.available &&
-					 closeTo(rows[0].simulatedDepartureSeconds.value, 145.0),
-					 "simulated departure uses TrainEvent::Time2");
-		ok &= expect(rows[0].arrivalDelaySeconds.available &&
-					 closeTo(rows[0].arrivalDelaySeconds.value, 12.0),
-					 "arrival delay is simulated minus planned");
-		ok &= expect(rows[0].departureDelaySeconds.available &&
-					 closeTo(rows[0].departureDelaySeconds.value, 15.0),
-					 "departure delay is simulated minus planned");
+				&& rows[0].occurrence == 3,
+			"timetable row carries service provenance");
+		ok &= expect(rows[0].plannedArrivalSeconds.available && closeTo(rows[0].plannedArrivalSeconds.value, 100.0),
+			"planned arrival is preserved");
+		ok &= expect(rows[0].plannedDepartureSeconds.available && closeTo(rows[0].plannedDepartureSeconds.value, 130.0),
+			"planned departure is preserved");
+		ok &= expect(rows[0].simulatedArrivalSeconds.available && closeTo(rows[0].simulatedArrivalSeconds.value, 112.0),
+			"simulated arrival uses TrainEvent::Time");
+		ok &= expect(rows[0].simulatedDepartureSeconds.available && closeTo(rows[0].simulatedDepartureSeconds.value, 145.0),
+			"simulated departure uses TrainEvent::Time2");
+		ok &= expect(rows[0].arrivalDelaySeconds.available && closeTo(rows[0].arrivalDelaySeconds.value, 12.0),
+			"arrival delay is simulated minus planned");
+		ok &= expect(rows[0].departureDelaySeconds.available && closeTo(rows[0].departureDelaySeconds.value, 15.0),
+			"departure delay is simulated minus planned");
 	}
 
 	{
@@ -245,7 +239,7 @@ int main() {
 		const std::vector<const Train*> trains{train.get()};
 		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 2 && rows[0].callIndex == 1 && rows[1].callIndex == 2,
-					 "repeated station calls remain ordered rows");
+			"repeated station calls remain ordered rows");
 		ok &= expect(
 			rows[0].simulatedArrivalSeconds.available && closeTo(rows[0].simulatedArrivalSeconds.value, 11.0)
 				&& rows[1].simulatedArrivalSeconds.available && closeTo(rows[1].simulatedArrivalSeconds.value, 22.0),
@@ -283,9 +277,8 @@ int main() {
 		const std::vector<const Train*> trains{train.get()};
 		const auto rows = buildTimetableResults(trains);
 		ok &= expect(rows.size() == 2, "missing events remain station rows");
-		ok &= expect(rows[0].plannedArrivalSeconds.available &&
-					 closeTo(rows[0].plannedArrivalSeconds.value, 0.0),
-					 "valid planned timestamp zero remains available");
+		ok &= expect(rows[0].plannedArrivalSeconds.available && closeTo(rows[0].plannedArrivalSeconds.value, 0.0),
+			"valid planned timestamp zero remains available");
 		ok &= expect(
 			!rows[0].simulatedArrivalSeconds.available && rows[0].simulatedDepartureSeconds.available
 				&& closeTo(rows[0].simulatedDepartureSeconds.value, 5.0) && !rows[0].arrivalDelaySeconds.available
@@ -322,18 +315,15 @@ int main() {
 		const std::vector<const Train*> trains{train.get()};
 		const auto rows = buildTimetableResults(trains);
 		ok &= expect(static_cast<int>(rows.size()) == Train::kMaxTimetableStations,
-					 "over-cap train yields exactly kMaxTimetableStations rows");
+			"over-cap train yields exactly kMaxTimetableStations rows");
 	}
 
-	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations - 6, "under") ==
-					 Train::kMaxTimetableStations - 6,
-				 "clampStationCount keeps under-cap counts");
-	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations, "at") ==
-					 Train::kMaxTimetableStations,
-				 "clampStationCount keeps at-cap counts");
-	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations + 5, "over") ==
-					 Train::kMaxTimetableStations,
-				 "clampStationCount truncates over-cap counts");
+	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations - 6, "under") == Train::kMaxTimetableStations - 6,
+		"clampStationCount keeps under-cap counts");
+	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations, "at") == Train::kMaxTimetableStations,
+		"clampStationCount keeps at-cap counts");
+	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations + 5, "over") == Train::kMaxTimetableStations,
+		"clampStationCount truncates over-cap counts");
 
 	auto delayed = makeTrain("delayed", 3, 7, 10.0, 20.0, 30.0, 40.0);
 	delayed->operatingCode = "1725";
@@ -349,51 +339,45 @@ int main() {
 	const auto delayedResults = buildRunResults(delayedTrains, 0.5);
 	ok &= expect(delayedResults.trains.size() == 1, "one train result");
 	ok &= expect(delayedResults.trains[0].directIncidentIds.empty()
-				 && !delayedResults.trains[0].firstDirectIncidentTime.available
-				 && !delayedResults.trains[0].firstDirectIncidentLocation.available,
-				 "missing direct incident evidence stays unavailable");
+			&& !delayedResults.trains[0].firstDirectIncidentTime.available
+			&& !delayedResults.trains[0].firstDirectIncidentLocation.available,
+		"missing direct incident evidence stays unavailable");
 	ok &= expect(delayedResults.trains[0].operatingCode == "1725"
-				 && delayedResults.trains[0].serviceId == "service.native"
-				 && delayedResults.trains[0].occurrence == 2
-				 && closeTo(delayedResults.trains[0].performancePercent, 75.0)
-				 && delayedResults.trains[0].hasConfiguredMaximumSpeed
-				 && closeTo(delayedResults.trains[0].configuredMaximumSpeedKmh, 120.0)
-				 && closeTo(delayedResults.trains[0].compositionMaximumSpeedMs, 40.0)
-				 && closeTo(delayedResults.trains[0].appliedMaximumSpeedMs, 25.0)
-				 && closeTo(delayedResults.trains[0].appliedMaximumSpeedKmh, 90.0),
-				 "run result carries operating, service, performance, and speed provenance");
-	ok &= expect(delayedResults.trains[0].startSeconds.available &&
-					 closeTo(delayedResults.trains[0].startSeconds.value, 1.5),
-					 "delayed active start uses first valid sample");
-	ok &= expect(delayedResults.trains[0].endSeconds.available &&
-					 closeTo(delayedResults.trains[0].endSeconds.value, 3.5),
-					 "end time uses last valid sample");
-	ok &= expect(delayedResults.trains[0].travelSeconds.available &&
-					 closeTo(delayedResults.trains[0].travelSeconds.value, 2.0),
-					 "travel time spans active bounds");
+			&& delayedResults.trains[0].serviceId == "service.native"
+			&& delayedResults.trains[0].occurrence == 2
+			&& closeTo(delayedResults.trains[0].performancePercent, 75.0)
+			&& delayedResults.trains[0].hasConfiguredMaximumSpeed
+			&& closeTo(delayedResults.trains[0].configuredMaximumSpeedKmh, 120.0)
+			&& closeTo(delayedResults.trains[0].compositionMaximumSpeedMs, 40.0)
+			&& closeTo(delayedResults.trains[0].appliedMaximumSpeedMs, 25.0)
+			&& closeTo(delayedResults.trains[0].appliedMaximumSpeedKmh, 90.0),
+		"run result carries operating, service, performance, and speed provenance");
+	ok &= expect(delayedResults.trains[0].startSeconds.available && closeTo(delayedResults.trains[0].startSeconds.value, 1.5),
+		"delayed active start uses first valid sample");
+	ok &= expect(delayedResults.trains[0].endSeconds.available && closeTo(delayedResults.trains[0].endSeconds.value, 3.5),
+		"end time uses last valid sample");
+	ok &= expect(delayedResults.trains[0].travelSeconds.available && closeTo(delayedResults.trains[0].travelSeconds.value, 2.0),
+		"travel time spans active bounds");
 	delayed->directIncidentIds = {"incident.breakdown"};
 	delayed->firstDirectIncidentTime = 2.0;
 	delayed->firstDirectIncidentLocation = 30.0;
 	const auto directResults = buildRunResults(delayedTrains, 0.5);
 	ok &= expect(directResults.trains[0].firstDirectIncidentTime.available
-				 && closeTo(directResults.trains[0].firstDirectIncidentTime.value, 2.0)
-				 && directResults.trains[0].firstDirectIncidentLocation.available
-				 && closeTo(directResults.trains[0].firstDirectIncidentLocation.value, 30.0),
-				 "recorded direct incident evidence remains available");
+			&& closeTo(directResults.trains[0].firstDirectIncidentTime.value, 2.0)
+			&& directResults.trains[0].firstDirectIncidentLocation.available
+			&& closeTo(directResults.trains[0].firstDirectIncidentLocation.value, 30.0),
+		"recorded direct incident evidence remains available");
 
 	auto gap = makeTrain("gap", 1, 5, 11.0, 21.0, 31.0, 41.0);
 	gap->instant_spatial_position[3] = -9999.0;
 	const std::vector<const Train*> gapTrains{gap.get()};
 	const auto gapResults = buildRunResults(gapTrains, 2.0);
-	ok &= expect(gapResults.trains[0].startSeconds.available &&
-					 closeTo(gapResults.trains[0].startSeconds.value, 2.0),
-					 "internal gap keeps first valid start");
-	ok &= expect(gapResults.trains[0].endSeconds.available &&
-					 closeTo(gapResults.trains[0].endSeconds.value, 10.0),
-					 "internal gap keeps final valid end");
-	ok &= expect(gapResults.trains[0].travelSeconds.available &&
-					 closeTo(gapResults.trains[0].travelSeconds.value, 8.0),
-					 "internal gap keeps overall travel bounds");
+	ok &= expect(gapResults.trains[0].startSeconds.available && closeTo(gapResults.trains[0].startSeconds.value, 2.0),
+		"internal gap keeps first valid start");
+	ok &= expect(gapResults.trains[0].endSeconds.available && closeTo(gapResults.trains[0].endSeconds.value, 10.0),
+		"internal gap keeps final valid end");
+	ok &= expect(gapResults.trains[0].travelSeconds.available && closeTo(gapResults.trains[0].travelSeconds.value, 8.0),
+		"internal gap keeps overall travel bounds");
 
 	auto missingTrajectory = makeTrain("missing", 0, 2, 1.0, 2.0, 3.0, 4.0);
 	missingTrajectory->earliestActiveTrajectoryIndex = -1;
@@ -432,13 +416,13 @@ int main() {
 	const auto allResults = buildRunResults(allTrains, 1.0);
 	const auto& row = allResults.trains[0];
 	ok &= expect(row.energyConsumedKWh.available && closeTo(row.energyConsumedKWh.value, 0.27778),
-					 "energy consumed converts MJ to kWh");
+		"energy consumed converts MJ to kWh");
 	ok &= expect(row.energyWithRegenKWh.available && closeTo(row.energyWithRegenKWh.value, 0.55556),
-					 "regenerative energy converts MJ to kWh");
+		"regenerative energy converts MJ to kWh");
 	ok &= expect(row.substationKWh.available && closeTo(row.substationKWh.value, 0.83334),
-					 "substation energy converts MJ to kWh");
+		"substation energy converts MJ to kWh");
 	ok &= expect(row.substationWithRegenKWh.available && closeTo(row.substationWithRegenKWh.value, 1.11112),
-					 "regenerative substation energy converts MJ to kWh");
+		"regenerative substation energy converts MJ to kWh");
 
 	auto second = makeTrain("second", 0, 1, 5.0, 6.0, 7.0, 8.0);
 	auto trains = std::make_unique<Train[]>(2);
@@ -447,9 +431,8 @@ int main() {
 	const std::vector<const Train*> totalTrains{&trains[0], &trains[1]};
 	const auto totalResults = buildRunResults(totalTrains, 1.0);
 	ok &= expect(totalResults.trains.size() + 1 == 3, "results table has one row per train plus totals");
-	ok &= expect(totalResults.energyConsumedKWh.available &&
-					 closeTo(totalResults.energyConsumedKWh.value, 1.66668),
-					 "network energy total sums available rows");
+	ok &= expect(totalResults.energyConsumedKWh.available && closeTo(totalResults.energyConsumedKWh.value, 1.66668),
+		"network energy total sums available rows");
 	auto incomplete = std::make_unique<Train>(*second);
 	incomplete->instant_train_power_consumption.resize(1);
 	trains[0] = *allFields;
@@ -465,27 +448,26 @@ int main() {
 	terminalPower->departure_time = 1;
 	terminalPower->instant_train_power_consumption[3] = std::numeric_limits<double>::quiet_NaN();
 	terminalPower->TotalEnergyConsumptionWithAndWithoutRegBraking(0.8, 0.7);
-	ok &= expect(std::isfinite(terminalPower->TotalEnergyConsWithRegBrak) &&
-					 std::isfinite(terminalPower->TotalEnergySubstRequestWithRegBrak),
-					"terminal nonfinite power does not poison regenerative totals");
+	ok &= expect(std::isfinite(terminalPower->TotalEnergyConsWithRegBrak) && std::isfinite(terminalPower->TotalEnergySubstRequestWithRegBrak),
+		"terminal nonfinite power does not poison regenerative totals");
 	ok &= expect(terminalPower->instant_train_power_consumption[3] == 0.0,
-					"energy calculation zeroes the terminal nonfinite sample");
+		"energy calculation zeroes the terminal nonfinite sample");
 
 	{
 		auto nanSample = makeTrain("sanitize-nan", 1, 3, 0.0, 0.0, 0.0, 0.0);
 		nanSample->instant_train_power_consumption[3] = std::numeric_limits<double>::quiet_NaN();
 		nanSample->sanitizeTerminalPowerSample();
 		ok &= expect(nanSample->instant_train_power_consumption[3] == 0.0,
-					 "sanitize zeroes a nonfinite sample at End_Time");
+			"sanitize zeroes a nonfinite sample at End_Time");
 		ok &= expect(closeTo(nanSample->instant_train_power_consumption[2], 100.0),
-					 "sanitize leaves samples before End_Time untouched");
+			"sanitize leaves samples before End_Time untouched");
 	}
 
 	{
 		auto finiteSample = makeTrain("sanitize-finite", 1, 3, 0.0, 0.0, 0.0, 0.0);
 		finiteSample->sanitizeTerminalPowerSample();
 		ok &= expect(closeTo(finiteSample->instant_train_power_consumption[3], 100.0),
-					 "sanitize keeps an in-range finite sample");
+			"sanitize keeps an in-range finite sample");
 	}
 
 	{
@@ -494,11 +476,11 @@ int main() {
 		outOfRange->End_Time = 4;
 		outOfRange->sanitizeTerminalPowerSample();
 		ok &= expect(std::isnan(outOfRange->instant_train_power_consumption[3]),
-					 "sanitize does not write past the series end");
+			"sanitize does not write past the series end");
 		outOfRange->End_Time = -1;
 		outOfRange->sanitizeTerminalPowerSample();
 		ok &= expect(std::isnan(outOfRange->instant_train_power_consumption[3]),
-					 "sanitize does not write for a negative End_Time");
+			"sanitize does not write for a negative End_Time");
 	}
 
 	{
@@ -507,9 +489,9 @@ int main() {
 		networkEnergy->instant_train_power_consumption[3] = std::numeric_limits<double>::quiet_NaN();
 		ComputeEnergyConsumptionForAllTrains(networkEnergy.get(), 1);
 		ok &= expect(networkEnergy->instant_train_power_consumption[3] == 0.0,
-					 "network energy pass sanitizes the terminal sample");
+			"network energy pass sanitizes the terminal sample");
 		ok &= expect(closeTo(networkEnergy->TotalEnergyConsumed, 220.0),
-					 "network energy pass still computes totals");
+			"network energy pass still computes totals");
 	}
 
 	{
@@ -553,7 +535,7 @@ int main() {
 		scenario.hasIncidents = true;
 
 		const auto addIdentity = [](RunResults& results, const std::string& service, int occurrence,
-				const std::string& code, const std::vector<std::string>& incidentIds = {}) {
+									 const std::string& code, const std::vector<std::string>& incidentIds = {}) {
 			TrainRunResult train;
 			train.trainId = service + "-" + std::to_string(occurrence);
 			train.serviceId = service;
@@ -592,13 +574,13 @@ int main() {
 				&& comparison.rows[0].attribution == "primary"
 				&& comparison.rows[1].attribution == "secondary"
 				&& closeTo(comparison.totalArrivalDelay.value, 17.0),
-				"delay comparison keeps primary plus following-secondary rows and exact total");
+			"delay comparison keeps primary plus following-secondary rows and exact total");
 		ok &= expect(comparison.rows[0].incidentIds == std::vector<std::string>{"signal-failure-1"}
 				&& comparison.rows[0].firstDirectTime.available
 				&& closeTo(comparison.rows[0].firstDirectTime.value, 80.0)
 				&& comparison.rows[0].destinationTerminationRequested
 				&& comparison.rows[0].destinationTerminated,
-				"signal-failure direct evidence and destination outcome reach comparison rows");
+			"signal-failure direct evidence and destination outcome reach comparison rows");
 		DelayRunSnapshot zeroScenario = scenario;
 		zeroScenario.scenarioId = "incident-zero-delay";
 		zeroScenario.timetable[0].simulatedArrivalSeconds = {true, 100.0};
@@ -608,7 +590,7 @@ int main() {
 		ok &= expect(zeroResult.valid && zeroResult.rows.empty()
 				&& zeroResult.totalArrivalDelay.available
 				&& closeTo(zeroResult.totalArrivalDelay.value, 0.0),
-				"delay comparison accepts zero positive additional final-arrival delay without rows");
+			"delay comparison accepts zero positive additional final-arrival delay without rows");
 
 		DelayRunSnapshot mismatched = scenario;
 		mismatched.run.trains.pop_back();
@@ -632,7 +614,7 @@ int main() {
 		incompleteScenario.timetable.push_back(missingScenarioDestination);
 		const DelayComparisonResult incompleteResult = compareDelayRuns(incompleteBaseline, incompleteScenario);
 		ok &= expect(!incompleteResult.valid,
-				"delay comparison rejects an unavailable final destination arrival");
+			"delay comparison rejects an unavailable final destination arrival");
 	}
 
 	{
@@ -648,81 +630,82 @@ int main() {
 				"accepted scene input is written");
 		const std::string directoryHash = hashSceneDirectory(sceneDir.toStdString());
 		ok &= expect(!directoryHash.empty() && directoryHash == hashSceneDirectory(sceneDir.toStdString()),
-				"directory hash is deterministic");
+			"directory hash is deterministic");
 		const SceneInputSnapshot directorySnapshot = readSceneDirectorySnapshot(sceneDir.toStdString());
 		ok &= expect(directorySnapshot.reason.empty()
 				&& hashSceneInputSnapshot(directorySnapshot.bytes) == directoryHash,
-				"directory snapshot hash uses the shared exact-byte framing");
+			"directory snapshot hash uses the shared exact-byte framing");
 		const QString scenariosPath = QDir(sceneDir).filePath("scenarios.json");
 		const QString incidentsPath = QDir(sceneDir).filePath("incidents.json");
 		ok &= expect(QFile::remove(scenariosPath) && QFile::remove(incidentsPath)
 				&& !hashSceneDirectory(sceneDir.toStdString()).empty(),
-				"a compatible scene without scenario files remains reproducible");
+			"a compatible scene without scenario files remains reproducible");
 		ok &= expect(writeBytes(scenariosPath, "{scenarios.json}")
 				&& writeBytes(incidentsPath, "{incidents.json}"),
-				"scenario compatibility fixture is restored");
+			"scenario compatibility fixture is restored");
 		const QString passengerPath = QDir(sceneDir).filePath("passengers.json");
 		ok &= expect(QFile::remove(passengerPath) && QDir().mkpath(passengerPath)
 				&& hashSceneDirectory(sceneDir.toStdString()).empty(),
-				"an unreadable optional canonical input cannot be ignored");
+			"an unreadable optional canonical input cannot be ignored");
 		ok &= expect(QDir(passengerPath).removeRecursively()
 				&& writeBytes(passengerPath, "{passengers.json}"),
-				"optional-input failure fixture is restored");
+			"optional-input failure fixture is restored");
 		ok &= expect(writeBytes(QDir(sceneDir).filePath("services.json"), "{services changed}"),
-				"directory input can be changed");
+			"directory input can be changed");
 		ok &= expect(directoryHash != hashSceneDirectory(sceneDir.toStdString()),
-				"directory hash changes when an accepted file changes");
+			"directory hash changes when an accepted file changes");
 		const RunInputProvenance changedDirectory = captureSavedInput(
 			sceneDir.toStdString(), "directory", false, directoryHash);
 		ok &= expect(!changedDirectory.reproducible
 				&& changedDirectory.sha256 == directoryHash
 				&& changedDirectory.reason.find("changed since") != std::string::npos,
-				"externally changed directory is tied to the loaded hash and marked non-reproducible");
+			"externally changed directory is tied to the loaded hash and marked non-reproducible");
 
 		const QString bundlePath = temp.filePath("case.egscene");
 		ok &= expect(writeBytes(bundlePath, "bundle bytes\n"), "bundle input is written");
 		const std::string bundleHash = hashSceneBundle(bundlePath.toStdString());
 		ok &= expect(!bundleHash.empty() && bundleHash == hashSceneBundle(bundlePath.toStdString()),
-				"bundle hash is deterministic");
+			"bundle hash is deterministic");
 		QFile bundleFile(bundlePath);
 		ok &= expect(bundleFile.open(QIODevice::ReadOnly)
 				&& hashSceneInputSnapshot(bundleFile.readAll().toStdString()) == bundleHash,
-				"bundle snapshot hash uses the exact archive bytes");
+			"bundle snapshot hash uses the exact archive bytes");
 		ok &= expect(writeBytes(bundlePath, "bundle bytes changed\n"), "bundle input can be changed");
 		ok &= expect(bundleHash != hashSceneBundle(bundlePath.toStdString()),
-				"bundle hash changes when exact bytes change");
+			"bundle hash changes when exact bytes change");
 		const RunInputProvenance changedBundle = captureSavedInput(
 			bundlePath.toStdString(), "bundle", false, bundleHash);
 		ok &= expect(!changedBundle.reproducible
 				&& changedBundle.sha256 == bundleHash
 				&& changedBundle.reason.find("changed since") != std::string::npos,
-				"externally changed bundle is tied to the loaded hash and marked non-reproducible");
+			"externally changed bundle is tied to the loaded hash and marked non-reproducible");
 
 		const std::string currentDirectoryHash = hashSceneDirectory(sceneDir.toStdString());
 		const RunInputProvenance clean = captureSavedInput(
 			sceneDir.toStdString(), "directory", false, currentDirectoryHash);
 		ok &= expect(clean.reproducible && clean.status == "reproducible"
 				&& clean.path == QFileInfo(sceneDir).absoluteFilePath().toStdString()
-				&& !clean.sha256.empty(), "clean saved directory is reproducible with an absolute path");
+				&& !clean.sha256.empty(),
+			"clean saved directory is reproducible with an absolute path");
 		const RunInputProvenance unverified = captureSavedInput(
 			sceneDir.toStdString(), "directory", false, {});
 		ok &= expect(!unverified.reproducible
 				&& unverified.reason.find("could not be verified") != std::string::npos,
-				"saved input without a load/save hash is not labeled reproducible");
+			"saved input without a load/save hash is not labeled reproducible");
 		const RunInputProvenance dirty = captureSavedInput(
 			sceneDir.toStdString(), "directory", true, currentDirectoryHash);
 		ok &= expect(!dirty.reproducible && dirty.dirty && dirty.status == "non-reproducible"
 				&& dirty.reason.find("dirty") != std::string::npos,
-				"dirty saved input is marked non-reproducible with a reason");
+			"dirty saved input is marked non-reproducible with a reason");
 		const RunInputProvenance unsaved = captureSavedInput({}, "directory", false, {});
 		ok &= expect(unsaved.kind == "unsaved" && !unsaved.reproducible
 				&& unsaved.reason.find("unsaved") != std::string::npos,
-				"unsaved input is marked non-reproducible with a reason");
+			"unsaved input is marked non-reproducible with a reason");
 		const RunInputProvenance unreadable = captureSavedInput(temp.filePath("missing").toStdString(),
 			"directory", false, {});
 		ok &= expect(!unreadable.reproducible
 				&& unreadable.reason.find("missing or unreadable") != std::string::npos,
-				"unreadable saved input is marked non-reproducible with a reason");
+			"unreadable saved input is marked non-reproducible with a reason");
 
 		RunProvenance provenance;
 		provenance.caseName = "Case \"quoted\" \\ path";
@@ -741,11 +724,11 @@ int main() {
 		provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
 		const QString artifactPath = temp.filePath("result.csv");
 		ok &= expect(writeRunArtifactWithProvenance(
-				artifactPath.toStdString(), "csv", "header\nrow\n", provenance),
-				"normal artifact and provenance sidecar are written together");
+						 artifactPath.toStdString(), "csv", "header\nrow\n", provenance),
+			"normal artifact and provenance sidecar are written together");
 		QByteArray artifactBytes;
 		ok &= expect(readBytes(artifactPath, artifactBytes) && artifactBytes == "header\nrow\n",
-				"paired export preserves exact artifact bytes");
+			"paired export preserves exact artifact bytes");
 		const QJsonObject sidecar = readJsonObject(artifactPath + ".provenance.json");
 		const QJsonObject run = sidecar.value("run").toObject();
 		const QJsonObject input = run.value("input").toObject();
@@ -753,44 +736,44 @@ int main() {
 		ok &= expect(sidecar.value("schema_version").toInt() == 1
 				&& sidecar.value("artifact").toObject().value("kind").toString() == "csv"
 				&& sidecar.value("artifact").toObject().value("file_name").toString() == "result.csv",
-				"normal sidecar has schema and artifact fields");
+			"normal sidecar has schema and artifact fields");
 		ok &= expect(run.value("case_name").toString() == QString::fromStdString(provenance.caseName)
 				&& run.value("applied_scenario").toString() == QString::fromStdString(provenance.appliedScenario)
 				&& input.value("path").toString() == QString::fromStdString(clean.path)
 				&& input.value("sha256").toString() == QString::fromStdString(clean.sha256),
-				"sidecar preserves escaped JSON fields and saved-input fields");
+			"sidecar preserves escaped JSON fields and saved-input fields");
 		ok &= expect(run.value("random_seed").toDouble() == 123456789.0,
-				"sidecar records the random seed of the run");
+			"sidecar records the random seed of the run");
 		ok &= expect(occurrences.size() == 2
 				&& occurrences.at(0).toObject().value("service_id").toString() == "service-A"
 				&& occurrences.at(0).toObject().value("occurrence").toInt() == 2
 				&& occurrences.at(0).toObject().value("operating_code").toString() == "A\\\"2",
-				"sidecar preserves exact selected occurrence identities");
+			"sidecar preserves exact selected occurrence identities");
 		const QString failedArtifact = temp.filePath("failed.csv");
 		ok &= expect(QDir().mkpath(failedArtifact + ".provenance.json"),
-				"sidecar failure path is occupied by a directory");
+			"sidecar failure path is occupied by a directory");
 		ok &= expect(!writeRunArtifactWithProvenance(
-				failedArtifact.toStdString(), "csv", "header\n", provenance)
+						 failedArtifact.toStdString(), "csv", "header\n", provenance)
 				&& !QFileInfo::exists(failedArtifact),
-				"sidecar failure does not publish the artifact");
+			"sidecar failure does not publish the artifact");
 
 		RunProvenance scenario = provenance;
 		scenario.appliedScenario = "incident";
 		const QString delayArtifact = temp.filePath("delay.csv");
 		ok &= expect(writeDelayArtifactWithProvenance(
-				delayArtifact.toStdString(), "csv", "header\n", provenance, scenario),
-				"delay artifact and sidecar are written with two runs");
+						 delayArtifact.toStdString(), "csv", "header\n", provenance, scenario),
+			"delay artifact and sidecar are written with two runs");
 		const QJsonObject delaySidecar = readJsonObject(delayArtifact + ".provenance.json");
 		ok &= expect(delaySidecar.value("baseline_run").toObject().value("applied_scenario").toString() == "scenario/\\quoted"
 				&& delaySidecar.value("scenario_run").toObject().value("applied_scenario").toString() == "incident",
-				"delay sidecar keeps baseline and scenario provenance distinct");
+			"delay sidecar keeps baseline and scenario provenance distinct");
 		const QString failedDelayArtifact = temp.filePath("failed-delay.csv");
 		ok &= expect(QDir().mkpath(failedDelayArtifact + ".provenance.json"),
-				"delay sidecar failure path is occupied by a directory");
+			"delay sidecar failure path is occupied by a directory");
 		ok &= expect(!writeDelayArtifactWithProvenance(
-				failedDelayArtifact.toStdString(), "csv", "header\n", provenance, scenario)
+						 failedDelayArtifact.toStdString(), "csv", "header\n", provenance, scenario)
 				&& !QFileInfo::exists(failedDelayArtifact),
-				"delay sidecar failure does not publish the artifact");
+			"delay sidecar failure does not publish the artifact");
 	}
 
 	if (!ok)

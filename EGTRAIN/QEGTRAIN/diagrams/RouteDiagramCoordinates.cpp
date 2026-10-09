@@ -12,11 +12,11 @@ std::map<std::string, std::optional<double>> anchors(const RouteDiagramPath& pat
 	for (const auto& node : path.nodes) {
 		if (!std::isfinite(node.positionKm)) continue;
 		for (const auto& key : {node.nodeId.empty() ? std::string() : "node:" + node.nodeId,
-				node.stationId.empty() ? std::string() : "station:" + node.stationId}) {
+				 node.stationId.empty() ? std::string() : "station:" + node.stationId}) {
 			if (key.empty()) continue;
 			auto inserted = result.emplace(key, node.positionKm);
 			if (!inserted.second && inserted.first->second
-					&& std::abs(*inserted.first->second - node.positionKm) > 1e-7)
+				&& std::abs(*inserted.first->second - node.positionKm) > 1e-7)
 				inserted.first->second.reset();
 		}
 	}
@@ -47,17 +47,18 @@ RouteDiagramProjection buildRouteDiagramProjection(const RouteDiagramPath& sourc
 	std::sort(pairs.begin(), pairs.end());
 	pairs.erase(std::unique(pairs.begin(), pairs.end(), [](const auto& a, const auto& b) {
 		return std::abs(a.first - b.first) < 1e-7 && std::abs(a.second - b.second) < 1e-7;
-	}), pairs.end());
+	}),
+		pairs.end());
 	if (pairs.size() < 2) return {};
 	// A source coordinate cannot identify two different reference positions.
 	for (std::size_t i = 1; i < pairs.size(); ++i)
 		if (std::abs(pairs[i].first - pairs[i - 1].first) < 1e-7
-				&& std::abs(pairs[i].second - pairs[i - 1].second) >= 1e-7)
+			&& std::abs(pairs[i].second - pairs[i - 1].second) >= 1e-7)
 			return {};
 	const bool reverse = pairs.back().second < pairs.front().second;
 	for (std::size_t i = 1; i < pairs.size(); ++i) {
 		if (pairs[i].first <= pairs[i - 1].first
-				|| (reverse ? pairs[i].second >= pairs[i - 1].second : pairs[i].second <= pairs[i - 1].second))
+			|| (reverse ? pairs[i].second >= pairs[i - 1].second : pairs[i].second <= pairs[i - 1].second))
 			return {};
 	}
 	return {false, std::move(pairs)};
@@ -88,7 +89,8 @@ std::string buildRouteDiagramCsv(const std::vector<std::vector<std::string>>& ro
 		if (!row.empty() && std::find(visibleTrainIds.begin(), visibleTrainIds.end(), row.front()) != visibleTrainIds.end())
 			filtered.push_back(row);
 	return csv::makeDocument({"Train", "Reference route", "Source route", "Event", "Station",
-		"Journey order", "Call", "Elapsed time[s]", "Reference route X[km]"}, filtered);
+								 "Journey order", "Call", "Elapsed time[s]", "Reference route X[km]"},
+		filtered);
 }
 
 std::map<double, std::string> routeDiagramStationLabels(const RouteDiagramPath& path) {

@@ -36,8 +36,7 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
-	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") ||
-		cmdOptionEntered(argv, argv + argc, "-interactive");
+	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") || cmdOptionEntered(argv, argv + argc, "-interactive");
 	const bool creatorAcceptance = qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE");
 
 	// no options entered
@@ -153,8 +152,7 @@ QString resolveScenePath(const QString& requested, const std::string& defaultNam
 		QDir(applicationDir).filePath("Scenes/" + name),
 		QDir(applicationDir).filePath("../Resources/Scenes/" + name),
 		QDir(applicationDir).filePath("../share/EGTRAIN/Scenes/" + name),
-		QDir(applicationDir).filePath("../../EGTRAIN/QEGTRAIN/Scenes/" + name)
-	};
+		QDir(applicationDir).filePath("../../EGTRAIN/QEGTRAIN/Scenes/" + name)};
 	for (const QString& candidate : candidates)
 		if (QDir(candidate).exists())
 			return QDir(candidate).absolutePath();
@@ -230,7 +228,8 @@ int main(int argc, char* argv[]) {
 
 	const bool gui = initial_variables.GUI != 0;
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
-			? std::optional<double>(initial_variables.times) : std::nullopt;
+		? std::optional<double>(initial_variables.times)
+		: std::nullopt;
 	if (gui)
 		std::cout << "Graphical user interface (GUI): 1\n";
 	else
@@ -271,7 +270,7 @@ int main(int argc, char* argv[]) {
 		if (hasErrors(loaded.diagnostics)) {
 			printSceneDiagnostics(loaded.diagnostics);
 			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
-								  QString::fromStdString(toDisplayText(loaded.diagnostics.front())));
+				QString::fromStdString(toDisplayText(loaded.diagnostics.front())));
 			return 1;
 		}
 		setStartupTimingPreloadIdentity(scenePath, loaded);

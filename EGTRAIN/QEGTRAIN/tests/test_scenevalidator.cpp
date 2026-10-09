@@ -25,7 +25,7 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 }
 
 static bool hasCodeAndSeverity(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-		SceneSeverity severity) {
+	SceneSeverity severity) {
 	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.code == code && diagnostic.severity == severity)
 			return true;
@@ -34,10 +34,10 @@ static bool hasCodeAndSeverity(const std::vector<SceneDiagnostic>& diagnostics, 
 }
 
 static bool hasCodeAndPath(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-		const std::string& path) {
+	const std::string& path) {
 	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.severity == SceneSeverity::Error
-				&& diagnostic.code == code && diagnostic.path == path)
+			&& diagnostic.code == code && diagnostic.path == path)
 			return true;
 	}
 	return false;
@@ -179,7 +179,7 @@ static SceneModel steepGradientScene(double firstGradient, double secondGradient
 static int steepGradientWarningCount(const SceneModel& scene) {
 	const auto diagnostics = validateScene(scene);
 	return static_cast<int>(std::count_if(diagnostics.begin(), diagnostics.end(),
-			[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "scene.route.gradient.steep"; }));
+		[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "scene.route.gradient.steep"; }));
 }
 
 int main(int argc, char** argv) {
@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
 	bool ok = true;
 	const SceneModel clean = completeScene();
 	ok &= expect(!hasCode(validateScene(clean), "scene.topology.tracks.none"),
-			"semantic validation does not reject complete topology");
+		"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
 	const std::string colorCode = "scene.service.color.invalid";
@@ -199,7 +199,7 @@ int main(int argc, char** argv) {
 		SceneModel colored = clean;
 		colored.services[0].visualizationColor = value;
 		ok &= expect(!hasCode(validateScene(colored), colorCode) && validateScene(colored).empty(),
-				"unset and valid service colours give no diagnostic");
+			"unset and valid service colours give no diagnostic");
 	}
 	for (const char* value : {"#fff", "#12345g", "red", "#1234567", " #112233", "#112233 "}) {
 		SceneModel colored = clean;
@@ -212,32 +212,36 @@ int main(int argc, char** argv) {
 				&& invalidColor->path == "services[service-1].visualization_color"
 				&& invalidColor->relatedId == value && contains(invalidColor->message, "default train colour")
 				&& contains(invalidColor->suggestedFix, "#3C8DD2"),
-				"invalid service colour gives one warning naming the service and field");
+			"invalid service colour gives one warning naming the service and field");
 		ok &= expect(!hasErrors(diagnostics) && validateRunnableScene(colored).size() == 1,
-				"invalid service colour does not block a run");
+			"invalid service colour does not block a run");
 	}
 	int red = -1, green = -1, blue = -1;
 	ok &= expect(sceneParseVisualizationColor("#3C8DD2", &red, &green, &blue)
-			&& red == 0x3C && green == 0x8D && blue == 0xD2, "upper-case colour parses to its channels");
+			&& red == 0x3C && green == 0x8D && blue == 0xD2,
+		"upper-case colour parses to its channels");
 	red = green = blue = -1;
 	ok &= expect(sceneParseVisualizationColor("#3c8dd2", &red, &green, &blue)
-			&& red == 0x3C && green == 0x8D && blue == 0xD2, "lower-case colour parses to its channels");
+			&& red == 0x3C && green == 0x8D && blue == 0xD2,
+		"lower-case colour parses to its channels");
 	ok &= expect(sceneParseVisualizationColor("#000000", &red, &green, &blue) && red == 0 && green == 0 && blue == 0
 			&& sceneParseVisualizationColor("#FFffFF", &red, &green, &blue) && red == 255 && green == 255
-			&& blue == 255 && sceneParseVisualizationColor("#112233"), "colour bounds parse without outputs too");
+			&& blue == 255 && sceneParseVisualizationColor("#112233"),
+		"colour bounds parse without outputs too");
 	red = green = blue = -1;
 	for (const char* value : {"", "#", "#fff", "#ffff", "#fffff", "#fffffff", "#AARRGGBB", "#80112233", "112233",
-			"#11223g", "#11 233", " #112233", "#112233 ", "#112233\n", "red", "#+12233", "#-12233", "#0x1233",
-			"#12345\xB2", "#1234\xC3\xA9"})
+			 "#11223g", "#11 233", " #112233", "#112233 ", "#112233\n", "red", "#+12233", "#-12233", "#0x1233",
+			 "#12345\xB2", "#1234\xC3\xA9"})
 		ok &= expect(!sceneParseVisualizationColor(value, &red, &green, &blue) && red == -1 && green == -1
-				&& blue == -1, "malformed colour text is rejected and leaves outputs unchanged");
+				&& blue == -1,
+			"malformed colour text is rejected and leaves outputs unchanged");
 	SceneModel lookup = clean;
 	lookup.services[0].visualizationColor = "#3c8dd2";
 	ok &= expect(sceneServiceVisualizationColor(lookup, "service-1") == "#3c8dd2"
 			&& sceneServiceVisualizationColor(clean, "service-1").empty()
 			&& sceneServiceVisualizationColor(lookup, "service-9").empty()
 			&& sceneServiceVisualizationColor(lookup, "").empty(),
-			"service colour lookup returns the stored text, or empty for none or an unknown id");
+		"service colour lookup returns the stored text, or empty for none or an unknown id");
 	SceneModel timetable = clean;
 	timetable.services[0].stops[0].hasPlannedArrival = true;
 	timetable.services[0].stops[0].plannedArrivalSeconds = 90.0;
@@ -245,25 +249,27 @@ int main(int argc, char** argv) {
 	timetable.services[0].hasEntryTime = true;
 	timetable.services[0].entryTimeSeconds = 100.0;
 	ok &= expect(hasCodeAndSeverity(validateScene(timetable), "scene.time.order", SceneSeverity::Error),
-			"first arrival before explicit entry blocks Run");
+		"first arrival before explicit entry blocks Run");
 	timetable.services[0].stops[0].plannedDepartureSeconds = 95.0;
 	const auto beforeEntry = validateScene(timetable);
 	ok &= expect(std::count_if(beforeEntry.begin(), beforeEntry.end(), [](const SceneDiagnostic& d) {
 		return d.code == "scene.time.order";
-	}) == 2, "each event before entry is diagnosed without regressing the ordering cursor");
+	}) == 2,
+		"each event before entry is diagnosed without regressing the ordering cursor");
 	timetable.services[0].entryTimeSeconds = 0.0;
 	timetable.services[0].stops[0].hasPlannedDeparture = false;
 	timetable.services[0].stops[1].plannedArrivalSeconds = 80.0;
 	ok &= expect(hasCodeAndSeverity(validateScene(timetable), "scene.time.order", SceneSeverity::Error),
-			"arrival-only row constrains the next event");
+		"arrival-only row constrains the next event");
 	timetable = clean;
 	timetable.services[0].stops[0].hasPlannedArrival = true;
 	timetable.services[0].stops[0].plannedArrivalSeconds = 90.0;
 	timetable.services[0].stops[0].dwellSeconds = 20.0;
 	ok &= expect(hasCodeAndSeverity(validateScene(timetable), "scene.dwell.exceeds_window", SceneSeverity::Warning)
-			&& !hasErrors(validateScene(timetable)), "short dwell window remains advisory for historical schedules");
+			&& !hasErrors(validateScene(timetable)),
+		"short dwell window remains advisory for historical schedules");
 	for (const double invalid : {-1.0, std::numeric_limits<double>::infinity(),
-			std::numeric_limits<double>::quiet_NaN()}) {
+			 std::numeric_limits<double>::quiet_NaN()}) {
 		timetable = clean;
 		timetable.services[0].hasEntryTime = true;
 		timetable.services[0].entryTimeSeconds = invalid;
@@ -271,12 +277,13 @@ int main(int argc, char** argv) {
 		timetable.services[0].stops[0].dwellSeconds = invalid;
 		const auto errors = validateScene(timetable);
 		ok &= expect(hasCode(errors, "scene.time.entry.invalid") && hasCode(errors, "scene.time.invalid")
-				&& hasCode(errors, "scene.dwell.invalid"), "entry, planned times and dwell reject invalid numbers");
+				&& hasCode(errors, "scene.dwell.invalid"),
+			"entry, planned times and dwell reject invalid numbers");
 	}
 	timetable = clean;
 	timetable.stations.push_back({"context", "Outside", true, 10.0, {}});
 	timetable.services[0].stops.insert(timetable.services[0].stops.begin(),
-			{"context", "", true, true, -20.0, -10.0, 0.0});
+		{"context", "", true, true, -20.0, -10.0, 0.0});
 	timetable.services[0].hasEntryTime = true;
 	timetable.services[0].entryTimeSeconds = 100.0;
 	ok &= expect(!hasErrors(validateScene(timetable)), "negative off-route context does not constrain runnable chronology");
@@ -336,95 +343,101 @@ int main(int argc, char** argv) {
 		const std::string component = sceneOutputDirectoryComponent(outputName.first);
 		const std::filesystem::path joined = outputRoot / component;
 		ok &= expect(component == outputName.second && joined.lexically_normal().parent_path() == outputRoot,
-				("scene output component is safe for " + outputName.first).c_str());
+			("scene output component is safe for " + outputName.first).c_str());
 	}
 	SceneModel unsafeSceneName = clean;
 	unsafeSceneName.name = "../outside";
 	ok &= expect(hasCodeAndPath(validateRunnableScene(unsafeSceneName), "scene.name.path", "name"),
-			"runnable validation rejects unsafe scene output names");
+		"runnable validation rejects unsafe scene output names");
 	SceneModel reservedSceneName = clean;
 	reservedSceneName.name = "CON.txt";
 	ok &= expect(hasCodeAndPath(validateRunnableScene(reservedSceneName), "scene.name.path", "name"),
-			"runnable validation rejects reserved scene output names");
+		"runnable validation rejects reserved scene output names");
 	SceneModel stopLimit = clean;
 	while (stopLimit.services[0].stops.size() < static_cast<std::size_t>(RuntimeLimits::kMaxTimetableStops))
 		stopLimit.services[0].stops.push_back(stopLimit.services[0].stops.back());
 	ok &= expect(!hasCode(validateRunnableScene(stopLimit), "scene.capacity.runtime"),
-			"runnable validation accepts the exact timetable stop limit");
+		"runnable validation accepts the exact timetable stop limit");
 	SceneModel tooManyStops = stopLimit;
 	tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
 	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyStops), "scene.capacity.runtime",
-				"services[service-1].stops"), "runnable validation rejects one stop above the limit");
+					 "services[service-1].stops"),
+		"runnable validation rejects one stop above the limit");
 	SceneModel trainLimit = clean;
 	trainLimit.services[0].hasRepeat = true;
 	trainLimit.services[0].headwaySeconds = 1.0;
 	trainLimit.services[0].hasRepeatCount = true;
 	trainLimit.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains;
 	ok &= expect(!hasCode(validateRunnableScene(trainLimit), "scene.capacity.runtime"),
-			"runnable validation accepts the exact expanded train limit");
+		"runnable validation accepts the exact expanded train limit");
 	SceneModel tooManyTrains = trainLimit;
 	tooManyTrains.services[0].repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
 	ok &= expect(hasCodeAndPath(validateRunnableScene(tooManyTrains), "scene.capacity.runtime", "services"),
-			"runnable validation rejects one expanded train above the limit");
+		"runnable validation rejects one expanded train above the limit");
 	SceneModel horizonTrainLimit = clean;
 	horizonTrainLimit.services[0].hasRepeat = true;
 	horizonTrainLimit.services[0].headwaySeconds = 1.0;
 	ok &= expect(hasCode(validateRunnableScene(horizonTrainLimit), "scene.capacity.runtime"),
-			"runnable validation rejects saved-horizon train expansion above the limit");
+		"runnable validation rejects saved-horizon train expansion above the limit");
 	ok &= expect(!hasCode(validateRunnableScene(horizonTrainLimit, {}, std::optional<double>(1.0)),
-				"scene.capacity.runtime"),
-			"runnable validation uses an effective duration override for train capacity");
+					 "scene.capacity.runtime"),
+		"runnable validation uses an effective duration override for train capacity");
 	const SceneRunSelection sparseSelection{{tooManyTrains.services[0].id,
 		RuntimeLimits::kMaxExpandedTrains + 1}};
 	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, sparseSelection), "scene.capacity.runtime"),
-			"runnable validation applies train capacity to a sparse selected run");
+		"runnable validation applies train capacity to a sparse selected run");
 	const SceneRunSelection invalidSelections{{tooManyTrains.services[0].id,
-		RuntimeLimits::kMaxExpandedTrains + 2}, {"service-missing", 1}};
+												  RuntimeLimits::kMaxExpandedTrains + 2},
+		{"service-missing", 1}};
 	ok &= expect(!hasCode(validateRunnableScene(tooManyTrains, invalidSelections), "scene.capacity.runtime"),
-			"invalid selected rows do not fall back to all-scene train capacity");
+		"invalid selected rows do not fall back to all-scene train capacity");
 	SceneModel invalidPlatformLength = clean;
 	invalidPlatformLength.stations[0].platforms[0].hasLength = true;
 	invalidPlatformLength.stations[0].platforms[0].lengthM = std::numeric_limits<double>::infinity();
 	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformLength), "scene.platform.length.invalid",
-			"stations[0].platforms[0].length_m"), "explicit non-finite platform length is rejected at its field");
+					 "stations[0].platforms[0].length_m"),
+		"explicit non-finite platform length is rejected at its field");
 	SceneModel invalidPlatformWidth = clean;
 	invalidPlatformWidth.stations[0].platforms[0].hasWidth = true;
 	invalidPlatformWidth.stations[0].platforms[0].widthM = 0.0;
 	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformWidth), "scene.platform.width.invalid",
-			"stations[0].platforms[0].width_m"), "explicit non-positive platform width is rejected at its field");
+					 "stations[0].platforms[0].width_m"),
+		"explicit non-positive platform width is rejected at its field");
 	SceneModel invalidPlatformCapacity = clean;
 	invalidPlatformCapacity.stations[0].platforms[0].hasLength = true;
 	invalidPlatformCapacity.stations[0].platforms[0].lengthM = 0.01;
 	invalidPlatformCapacity.stations[0].platforms[0].hasWidth = true;
 	invalidPlatformCapacity.stations[0].platforms[0].widthM = 0.01;
 	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformCapacity), "scene.platform.capacity.invalid",
-			"stations[0].platforms[0]"), "platform geometry must produce a usable integer capacity");
+					 "stations[0].platforms[0]"),
+		"platform geometry must produce a usable integer capacity");
 	SceneModel nonFinitePassengerWindow = clean;
 	nonFinitePassengerWindow.passengers[0].journeys[0].plannedArrivalEndSeconds =
-			std::numeric_limits<double>::quiet_NaN();
+		std::numeric_limits<double>::quiet_NaN();
 	ok &= expect(hasCodeAndPath(validateScene(nonFinitePassengerWindow), "scene.passenger.window",
-			"passengers[0].journeys[0].planned_arrival"), "non-finite passenger windows are rejected");
+					 "passengers[0].journeys[0].planned_arrival"),
+		"non-finite passenger windows are rejected");
 	SceneModel passengerMissingStop = clean;
 	passengerMissingStop.services[0].stops.pop_back();
 	const auto passengerStopDiagnostics = validateScene(passengerMissingStop);
 	ok &= expect(hasCodeAndPath(passengerStopDiagnostics, "scene.passenger.leg.stop",
-			"passengers[0].journeys[0].legs[0].destination"),
-			"passenger leg destination must be a stop of its service");
+					 "passengers[0].journeys[0].legs[0].destination"),
+		"passenger leg destination must be a stop of its service");
 	SceneModel reversePassengerLeg = clean;
 	reversePassengerLeg.passengers[0].journeys[0].originStationId = "station-2";
 	reversePassengerLeg.passengers[0].journeys[0].destinationStationId = "station-1";
 	reversePassengerLeg.passengers[0].journeys[0].legs[0].originStationId = "station-2";
 	reversePassengerLeg.passengers[0].journeys[0].legs[0].destinationStationId = "station-1";
 	ok &= expect(hasCodeAndPath(validateScene(reversePassengerLeg), "scene.passenger.leg.order",
-			"passengers[0].journeys[0].legs[0].destination"),
-			"passenger leg rejects a reverse ordered service pair");
+					 "passengers[0].journeys[0].legs[0].destination"),
+		"passenger leg rejects a reverse ordered service pair");
 	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
 	legacyReversePassengerLeg.importReport.push_back({"legacy_root", ""});
 	const auto legacyReverseDiagnostics = validateScene(legacyReversePassengerLeg);
 	ok &= expect(hasCodeAndSeverity(legacyReverseDiagnostics, "scene.passenger.leg.order", SceneSeverity::Warning)
-				&& !hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
-					"passengers[0].journeys[0].legs[0].destination"),
-			"legacy reverse passenger legs remain loadable with an actionable warning");
+			&& !hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
+				"passengers[0].journeys[0].legs[0].destination"),
+		"legacy reverse passenger legs remain loadable with an actionable warning");
 	SceneModel repeatedPassengerStops = clean;
 	repeatedPassengerStops.services[0].stops = {
 		{"station-2", "platform-2", true, true, 100.0, 110.0, 0.0},
@@ -432,32 +445,32 @@ int main(int argc, char** argv) {
 		{"station-2", "platform-2", true, true, 140.0, 150.0, 0.0}};
 	SceneServiceStopPair repeatedPair;
 	ok &= expect(resolveScenePassengerLegStops(repeatedPassengerStops.services[0],
-				 repeatedPassengerStops.passengers[0].journeys[0].legs[0], repeatedPair)
-				&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
-				&& !hasCode(validateScene(repeatedPassengerStops), "scene.passenger.leg.order"),
-				"repeated service stations resolve to an ordered stop pair");
+					 repeatedPassengerStops.passengers[0].journeys[0].legs[0], repeatedPair)
+			&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
+			&& !hasCode(validateScene(repeatedPassengerStops), "scene.passenger.leg.order"),
+		"repeated service stations resolve to an ordered stop pair");
 	const SceneSectionInventory inventory = buildSceneSectionInventory(clean);
 	ok &= expect(inventory.sections.size() == 4
-				&& inventory.sections[0].id == "@block-1@"
-				&& inventory.sections[1].id == "@block-2@"
-				&& inventory.sections[2].id == "@block-1@-0.000000/@block-1@-1.000000"
-				&& inventory.sections[3].id == "@block-1@-0.000000/@block-2@-1.000000",
-				"section inventory derives canonical base and connection section IDs");
+			&& inventory.sections[0].id == "@block-1@"
+			&& inventory.sections[1].id == "@block-2@"
+			&& inventory.sections[2].id == "@block-1@-0.000000/@block-1@-1.000000"
+			&& inventory.sections[3].id == "@block-1@-0.000000/@block-2@-1.000000",
+		"section inventory derives canonical base and connection section IDs");
 	ok &= expect(inventory.resolve("block-1") != nullptr
-				&& inventory.resolve("block-1")->id == "@block-1@"
-				&& inventory.resolve("@block-1@-0.000000/@block-2@-1.000000") != nullptr
-				&& inventory.resolve("@block-1@-10/@block-2@-20") == nullptr,
-				"section resolver accepts base aliases but rejects unknown compound tokens");
+			&& inventory.resolve("block-1")->id == "@block-1@"
+			&& inventory.resolve("@block-1@-0.000000/@block-2@-1.000000") != nullptr
+			&& inventory.resolve("@block-1@-10/@block-2@-20") == nullptr,
+		"section resolver accepts base aliases but rejects unknown compound tokens");
 	SceneModel duplicateSection = clean;
 	duplicateSection.blocks.push_back({"block-1", "track-1", 0.5});
 	const SceneSectionInventory duplicateInventory = buildSceneSectionInventory(duplicateSection);
 	ok &= expect(duplicateInventory.ambiguous("block-1")
-				&& duplicateInventory.resolve("block-1") == nullptr,
-				"duplicate base IDs are not resolved ambiguously");
+			&& duplicateInventory.resolve("block-1") == nullptr,
+		"duplicate base IDs are not resolved ambiguously");
 	SceneModel disconnectedRoute = clean;
 	disconnectedRoute.routes[0].blocks = {"block-1", "block-1"};
 	ok &= expect(hasCode(validateScene(disconnectedRoute), "scene.route.disconnected"),
-				"authored disconnected route order is rejected");
+		"authored disconnected route order is rejected");
 	SceneModel reverseRoute = clean;
 	reverseRoute.routes[0].blocks = {"block-2", "block-1"};
 	ok &= expect(hasCode(validateScene(reverseRoute), "scene.ref.stop.order"),
@@ -465,15 +478,15 @@ int main(int argc, char** argv) {
 	std::reverse(reverseRoute.services[0].stops.begin(), reverseRoute.services[0].stops.end());
 	const auto reverseTraversal = buildSceneRouteTraversal(reverseRoute, reverseRoute.routes[0]);
 	ok &= expect(reverseTraversal.resolved && reverseTraversal.direction == -1
-		&& reverseTraversal.visits.front().stationId == "station-2"
-		&& !hasCode(validateScene(reverseRoute), "scene.ref.stop.order"),
+			&& reverseTraversal.visits.front().stationId == "station-2"
+			&& !hasCode(validateScene(reverseRoute), "scene.ref.stop.order"),
 		"reversed stops resolve on a reversed route");
 	ok &= expect(!hasCode(validateScene(reverseRoute), "scene.route.disconnected"),
-				"coherent reverse route order remains valid");
+		"coherent reverse route order remains valid");
 	SceneModel directionChange = clean;
 	directionChange.routes[0].blocks = {"block-1", "block-2", "block-1"};
 	ok &= expect(hasCode(validateScene(directionChange), "scene.route.direction"),
-				"a route cannot change direction between connected sections");
+		"a route cannot change direction between connected sections");
 	SceneModel switchTopology;
 	switchTopology.tracks = {{"switch-a"}, {"switch-b"}, {"switch-c"}};
 	switchTopology.nodes = {{"a.0", "switch-a", 0.0, 0.0}, {"a.1", "switch-a", 1.0, 0.0},
@@ -507,20 +520,20 @@ int main(int argc, char** argv) {
 		{"C", "C", false, 0.0, {{"C.p", {"c.1"}}}}};
 	const auto switchTraversal = buildSceneRouteTraversal(switchChain, switchChain.routes[0]);
 	ok &= expect(switchTraversal.resolved && switchTraversal.visits.size() == 4
-		&& switchTraversal.visits[1].nodeId == "b.0" && switchTraversal.visits[1].sectionIndex == 0
-		&& switchTraversal.visits[2].nodeId == "b.1" && switchTraversal.visits[2].sectionIndex == 1,
+			&& switchTraversal.visits[1].nodeId == "b.0" && switchTraversal.visits[1].sectionIndex == 0
+			&& switchTraversal.visits[2].nodeId == "b.1" && switchTraversal.visits[2].sectionIndex == 1,
 		"overlapping connection sections retain only their clipped platform anchors");
 	ok &= expect(sceneSectionsOverlap("@A@same", 0.0, 2.0, "@B@same", 1.0, 3.0)
-		&& !sceneSectionsOverlap("@A@", 0.0, 1.0, "@A@", 1.0, 2.0),
+			&& !sceneSectionsOverlap("@A@", 0.0, 1.0, "@A@", 1.0, 2.0),
 		"legacy section token matching is shared and touching intervals do not overlap");
 	ok &= expect(!aToB.empty() && !bToC.empty()
-				&& !hasCode(switchChainDiagnostics, "scene.route.disconnected")
-				&& !hasCode(switchChainDiagnostics, "scene.route.direction"),
-				"connection-derived sections join through the shared exit and entry block");
+			&& !hasCode(switchChainDiagnostics, "scene.route.disconnected")
+			&& !hasCode(switchChainDiagnostics, "scene.route.direction"),
+		"connection-derived sections join through the shared exit and entry block");
 	SceneModel forkedSwitchChain = switchTopology;
 	forkedSwitchChain.routes.push_back({"forked-route", {aToB, aToC}, false, "", false});
 	ok &= expect(!aToC.empty() && hasCode(validateScene(forkedSwitchChain), "scene.route.disconnected"),
-				"overlapping switch sections on the wrong branch are rejected");
+		"overlapping switch sections on the wrong branch are rejected");
 	SceneModel reversedFork = switchTopology;
 	reversedFork.nodes[0].xKm = 100.0;
 	reversedFork.nodes[1].xKm = 101.0;
@@ -540,14 +553,14 @@ int main(int argc, char** argv) {
 	reversedFork.importReport.push_back({"legacy_root", ""});
 	reversedFork.routes.push_back({"reversed-fork", {bToA, cToA}, false, "", false});
 	ok &= expect(!bToA.empty() && !cToA.empty()
-				&& hasCode(validateScene(reversedFork), "scene.route.disconnected"),
-			"legacy compatibility cannot turn a wrong-branch switch fork into a regional jump");
+			&& hasCode(validateScene(reversedFork), "scene.route.disconnected"),
+		"legacy compatibility cannot turn a wrong-branch switch fork into a regional jump");
 	SceneModel switchDirectionChange = switchTopology;
 	switchDirectionChange.importReport.push_back({"legacy_root", ""});
 	switchDirectionChange.routes.push_back(
-			{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});
+		{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});
 	ok &= expect(hasCode(validateScene(switchDirectionChange), "scene.route.direction"),
-			"legacy provenance cannot hide a connection-derived route reversal");
+		"legacy provenance cannot hide a connection-derived route reversal");
 	SceneModel regionalSwitchDirectionChange = switchTopology;
 	regionalSwitchDirectionChange.blocks = {{"a.block", "switch-a", 1.0},
 		{"b.left", "switch-b", 1.0}, {"b.right", "switch-b", 1.0},
@@ -562,28 +575,28 @@ int main(int argc, char** argv) {
 	}
 	regionalSwitchDirectionChange.importReport.push_back({"legacy_root", ""});
 	regionalSwitchDirectionChange.routes.push_back(
-			{"regional-switch-u-turn", {regionalAToB, regionalBToC, regionalAToB}, false, "", false});
+		{"regional-switch-u-turn", {regionalAToB, regionalBToC, regionalAToB}, false, "", false});
 	ok &= expect(!regionalAToB.empty() && !regionalBToC.empty()
 			&& hasCode(validateScene(regionalSwitchDirectionChange), "scene.route.direction"),
-			"legacy regional bridges cannot suppress both directions of a derived U-turn");
+		"legacy regional bridges cannot suppress both directions of a derived U-turn");
 	SceneModel mixedRegionalDirectionChange = regionalSwitchDirectionChange;
 	mixedRegionalDirectionChange.routes = {{"mixed-regional-switch-u-turn",
 		{"b.left", regionalBToC, regionalAToB}, false, "", false}};
 	ok &= expect(hasCode(validateScene(mixedRegionalDirectionChange), "scene.route.direction"),
-			"an ordinary transition cannot hide an opposing legacy derived-section direction");
+		"an ordinary transition cannot hide an opposing legacy derived-section direction");
 	SceneModel regionJump = clean;
 	regionJump.tracks.push_back({"region-track"});
 	regionJump.nodes.push_back({"region-node-1", "region-track", 100.0, 0.0});
 	regionJump.nodes.push_back({"region-node-2", "region-track", 101.0, 0.0});
 	regionJump.arcs.push_back({"region-arc", "region-track", "region-node-1", "region-node-2",
-			0.0, 0.0, 20.0});
+		0.0, 0.0, 20.0});
 	regionJump.blocks.push_back({"region-block", "region-track", 1.0});
 	regionJump.routes.push_back({"region-route", {"block-2", "region-block"}, false, "", false});
 	regionJump.importReport.push_back({"legacy_root", ""});
 	const auto regionJumpDiagnostics = validateScene(regionJump);
 	ok &= expect(hasCode(regionJumpDiagnostics, "scene.route.region_jump")
-				&& !hasCode(regionJumpDiagnostics, "scene.route.disconnected"),
-				"legacy cross-region coordinate discontinuities remain visible and compatible");
+			&& !hasCode(regionJumpDiagnostics, "scene.route.disconnected"),
+		"legacy cross-region coordinate discontinuities remain visible and compatible");
 	SceneModel segmentedRegionJump = regionJump;
 	segmentedRegionJump.blocks.back().lengthKm = 0.5;
 	segmentedRegionJump.blocks.push_back({"region-block-2", "region-track", 0.5});
@@ -592,85 +605,86 @@ int main(int argc, char** argv) {
 	const auto segmentedRegionDiagnostics = validateScene(segmentedRegionJump);
 	ok &= expect(hasCode(segmentedRegionDiagnostics, "scene.route.region_jump")
 			&& !hasCode(segmentedRegionDiagnostics, "scene.route.direction"),
-			"legacy route direction is checked independently on each connected regional segment");
+		"legacy route direction is checked independently on each connected regional segment");
 	regionJump.importReport.clear();
 	ok &= expect(hasCode(validateScene(regionJump), "scene.route.disconnected"),
-			"new canonical scenes reject undeclared cross-region route jumps");
+		"new canonical scenes reject undeclared cross-region route jumps");
 	SceneModel unboundSignal = clean;
 	unboundSignal.signals[0].protectedSection.clear();
 	ok &= expect(hasCode(validateScene(unboundSignal), "scene.signal.binding.missing"),
-				"unbound signals produce an actionable binding diagnostic");
+		"unbound signals produce an actionable binding diagnostic");
 	SceneModel invalidSignalBinding = clean;
 	invalidSignalBinding.signals[0].protectedSection = "@block-1@-10/@block-2@-20";
 	ok &= expect(hasCode(validateScene(invalidSignalBinding), "scene.signal.binding.unresolved"),
-				"malformed signal section bindings are rejected");
+		"malformed signal section bindings are rejected");
 	SceneModel directBlockIncident = clean;
 	directBlockIncident.scenarios[0].incidents[0].target = "block-2";
 	ok &= expect(validateScene(directBlockIncident).empty(),
-				"direct base-block signal-failure targets remain compatible");
+		"direct base-block signal-failure targets remain compatible");
 	SceneModel ambiguousSignalTarget = clean;
 	ambiguousSignalTarget.signals[0].id = "block-1";
 	ambiguousSignalTarget.scenarios[0].incidents[0].target = "block-1";
 	ok &= expect(hasCode(validateScene(ambiguousSignalTarget), "scene.ref.ambiguous"),
-				"signal failures reject an ID that identifies both a signal and section");
+		"signal failures reject an ID that identifies both a signal and section");
 	SceneModel validAreas = clean;
 	validAreas.signallingAreas = {
 		{"network-area", 0.0, 2.0, 2, {}},
 		{"track-area", 0.25, 1.75, 4, "track-1"},
 	};
 	ok &= expect(validateScene(validAreas).empty(),
-			"network-wide and track-scoped signalling areas validate");
+		"network-wide and track-scoped signalling areas validate");
 	SceneModel duplicateArea = clean;
 	duplicateArea.signallingAreas = {{"area", 0.0, 1.0, 2, {}}, {"area", 1.0, 2.0, 2, {}}};
 	ok &= expect(hasCode(validateScene(duplicateArea), "scene.id.duplicate"),
-			"signalling area IDs must be unique");
+		"signalling area IDs must be unique");
 	SceneModel invalidAreaRange = clean;
 	invalidAreaRange.signallingAreas = {{"area", 1.0, 1.0, 2, {}}};
 	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
-			"signalling area ranges must increase");
+		"signalling area ranges must increase");
 	invalidAreaRange.signallingAreas[0].startKm = std::numeric_limits<double>::quiet_NaN();
 	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
-			"signalling area coordinates must be finite");
+		"signalling area coordinates must be finite");
 	SceneModel invalidAreaLevel = clean;
 	invalidAreaLevel.signallingAreas = {{"area", 0.0, 1.0, 6, {}}};
 	ok &= expect(hasCode(validateScene(invalidAreaLevel), "scene.signalling_area.level"),
-			"signalling area levels must be between zero and five");
+		"signalling area levels must be between zero and five");
 	SceneModel unknownAreaTrack = clean;
 	unknownAreaTrack.signallingAreas = {{"area", 0.0, 1.0, 2, "missing-track"}};
 	ok &= expect(hasCodeAndPath(validateScene(unknownAreaTrack), "scene.ref.unresolved",
-			"signalling_areas[0].track"), "signalling area track references must resolve");
+					 "signalling_areas[0].track"),
+		"signalling area track references must resolve");
 	SceneModel overlapWithoutSharedSection = clean;
 	overlapWithoutSharedSection.signallingAreas = {
 		{"first", 0.0, 1.5, 2, {}}, {"second", 1.0, 2.0, 3, {}}};
 	ok &= expect(!hasCode(validateRunnableScene(overlapWithoutSharedSection),
-			"scene.signalling_area.conflict"),
-			"coordinate overlap is allowed when no complete section receives both levels");
+					 "scene.signalling_area.conflict"),
+		"coordinate overlap is allowed when no complete section receives both levels");
 	SceneModel conflictingNetworkAreas = clean;
 	conflictingNetworkAreas.signallingAreas = {
 		{"first", 0.0, 2.0, 2, {}}, {"second", 0.0, 2.0, 3, {}}};
 	ok &= expect(hasCode(validateRunnableScene(conflictingNetworkAreas),
-			"scene.signalling_area.conflict"),
-			"network-wide areas cannot assign different levels to one runtime section");
+					 "scene.signalling_area.conflict"),
+		"network-wide areas cannot assign different levels to one runtime section");
 	SceneModel conflictingTrackAreas = clean;
 	conflictingTrackAreas.signallingAreas = {
 		{"first", 0.0, 2.0, 2, "track-1"}, {"second", 0.0, 2.0, 3, "track-1"}};
 	ok &= expect(hasCode(validateRunnableScene(conflictingTrackAreas),
-			"scene.signalling_area.conflict"),
-			"same-track areas cannot assign different levels to one runtime section");
+					 "scene.signalling_area.conflict"),
+		"same-track areas cannot assign different levels to one runtime section");
 	SceneModel conflictingDerivedAreas = clean;
 	conflictingDerivedAreas.tracks.push_back({"track-2"});
 	conflictingDerivedAreas.nodes.push_back({"node-4", "track-2", 3.0, 0.0});
 	conflictingDerivedAreas.nodes.push_back({"node-5", "track-2", 4.0, 0.0});
 	conflictingDerivedAreas.arcs.push_back(
-			{"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
+		{"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
 	conflictingDerivedAreas.blocks.push_back({"block-3", "track-2", 1.0});
 	conflictingDerivedAreas.connections = {
 		{"connection-1", "node-3", "node-4", false, 0.0}};
 	conflictingDerivedAreas.signallingAreas = {
 		{"first", 0.0, 4.0, 2, "track-1"}, {"second", 0.0, 4.0, 3, "track-2"}};
 	ok &= expect(hasCode(validateRunnableScene(conflictingDerivedAreas),
-			"scene.signalling_area.conflict"),
-			"different track scopes cannot conflict on one derived switch section");
+					 "scene.signalling_area.conflict"),
+		"different track scopes cannot conflict on one derived switch section");
 
 	const std::string levelMissing = "scene.signalling.level.missing";
 	SceneModel noAreas = clean;
@@ -682,11 +696,11 @@ int main(int argc, char** argv) {
 			&& noAreaWarning->message.rfind("No signalling area is defined. 2 of 2 route sections", 0) == 0
 			&& contains(noAreaWarning->message, "(track track-1)")
 			&& contains(noAreaWarning->suggestedFix, "0.000000 to 2.000000 km"),
-			"route sections without any signalling area produce one warning");
+		"route sections without any signalling area produce one warning");
 	ok &= expect(!hasErrors(noAreaDiagnostics) && !hasCode(validateScene(noAreas), levelMissing),
-			"missing signalling level is a runnable-only warning");
+		"missing signalling level is a runnable-only warning");
 	ok &= expect(!hasCode(validateRunnableScene(clean), levelMissing),
-			"a network-wide area covering all route sections removes the warning");
+		"a network-wide area covering all route sections removes the warning");
 
 	SceneModel partialArea = clean;
 	partialArea.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
@@ -696,7 +710,7 @@ int main(int argc, char** argv) {
 			&& contains(partialWarning->message, "block-2") && !contains(partialWarning->message, "block-1")
 			&& !contains(partialWarning->message, "No signalling area")
 			&& contains(partialWarning->suggestedFix, "1.000000 to 2.000000 km"),
-			"a partial area names only the route sections it does not contain");
+		"a partial area names only the route sections it does not contain");
 
 	SceneModel scopedArea = conflictingDerivedAreas;
 	const SceneSectionInventory scopedInventory = buildSceneSectionInventory(scopedArea);
@@ -713,7 +727,7 @@ int main(int argc, char** argv) {
 			&& contains(scopedWarning->message, "1 of 4 route sections")
 			&& contains(scopedWarning->message, "block-3") && contains(scopedWarning->message, "(track track-2)")
 			&& !contains(scopedWarning->message, derivedSectionId),
-			"a track-scoped area covers its tracks and the derived section that touches them");
+		"a track-scoped area covers its tracks and the derived section that touches them");
 
 	SceneModel unusedSection = clean;
 	unusedSection.routes[0].blocks = {"block-1"};
@@ -721,12 +735,13 @@ int main(int argc, char** argv) {
 	const auto unusedDiagnostics = validateRunnableScene(unusedSection);
 	const SceneDiagnostic* unusedWarning = findCode(unusedDiagnostics, levelMissing);
 	ok &= expect(unusedWarning != nullptr && contains(unusedWarning->message, "1 of 1 route sections")
-			&& !contains(unusedWarning->message, "block-2"), "sections on no route are not reported");
+			&& !contains(unusedWarning->message, "block-2"),
+		"sections on no route are not reported");
 	SceneModel noRoutes = clean;
 	noRoutes.routes.clear();
 	noRoutes.signallingAreas.clear();
 	ok &= expect(!hasCode(validateRunnableScene(noRoutes), levelMissing),
-			"a scene without routes has no route sections to report");
+		"a scene without routes has no route sections to report");
 
 	const std::string noEffect = "scene.single_track.no_effect";
 	SceneModel restricted = clean;
@@ -734,7 +749,7 @@ int main(int argc, char** argv) {
 	for (const int level : {0, 1, 2, 5}) {
 		restricted.signallingAreas = {{"network", 0.0, 2.0, level, {}}};
 		ok &= expect(!hasCode(validateRunnableScene(restricted), noEffect),
-				"a single-track restriction at level 0, 1, 2 or 5 acts and gets no warning");
+			"a single-track restriction at level 0, 1, 2 or 5 acts and gets no warning");
 	}
 	for (const int level : {3, 4}) {
 		restricted.signallingAreas = {{"network", 0.0, 2.0, level, {}}};
@@ -744,11 +759,11 @@ int main(int argc, char** argv) {
 		ok &= expect(levelWarning != nullptr && levelWarning->severity == SceneSeverity::Warning
 				&& levelWarning->file == "signalling.json" && levelWarning->path == "single_track_restrictions[0]"
 				&& contains(levelWarning->message, "Single-track restriction 0 (start_block block-1, end_block block-2, "
-						"protected_start_block block-1, protected_end_block block-2)")
+												   "protected_start_block block-1, protected_end_block block-2)")
 				&& contains(levelWarning->message, "start_block block-1 " + levelText)
 				&& contains(levelWarning->message, "protected_end_block block-2 " + levelText)
 				&& contains(levelWarning->suggestedFix, "level 0, 1, 2 or 5") && !hasErrors(levelDiagnostics),
-				"a single-track restriction at level 3 or 4 warns that it has no effect");
+			"a single-track restriction at level 3 or 4 warns that it has no effect");
 		ok &= expect(!hasCode(validateScene(restricted), noEffect), "the restriction warning is runnable-only");
 	}
 	restricted.signallingAreas.clear();
@@ -756,7 +771,7 @@ int main(int argc, char** argv) {
 	const SceneDiagnostic* unsignalledWarning = findCode(unsignalledDiagnostics, noEffect);
 	ok &= expect(unsignalledWarning != nullptr && contains(unsignalledWarning->message, "end_block block-2 has no signalling level")
 			&& hasCode(unsignalledDiagnostics, levelMissing),
-			"a single-track restriction without a signalling level warns that it has no effect");
+		"a single-track restriction without a signalling level warns that it has no effect");
 	restricted.singleTrackRestrictions = {{"block-1", "block-2", "block-1", "block-2"}, {"block-2", "block-1", "block-2", "block-1"}};
 	std::size_t noEffectCount = 0;
 	for (const SceneDiagnostic& diagnostic : validateRunnableScene(restricted))
@@ -768,7 +783,7 @@ int main(int argc, char** argv) {
 	const SceneDiagnostic* partialRestrictionWarning = findCode(partialRestrictionDiagnostics, noEffect);
 	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "end_block block-2 has no signalling level")
 			&& !contains(partialRestrictionWarning->message, "start_block block-1 has"),
-			"the warning names only the blocks where the restriction cannot act");
+		"the warning names only the blocks where the restriction cannot act");
 	restricted.singleTrackRestrictions.clear();
 	restricted.signallingAreas.clear();
 	ok &= expect(!hasCode(validateRunnableScene(restricted), noEffect), "a scene without restrictions has nothing to warn about");
@@ -786,31 +801,31 @@ int main(int argc, char** argv) {
 			&& contains(steepDescentWarning->message, "rise per length")
 			&& contains(steepDescentWarning->suggestedFix, "gradient_percent")
 			&& !hasErrors(steepDescentDiagnostics),
-			"a descent steeper than the braking limit gives a warning that names the arc and both limits");
+		"a descent steeper than the braking limit gives a warning that names the arc and both limits");
 	ok &= expect(hasCode(validateRunnableScene(steepDescent), steepCode),
-			"runnable validation reports the steep gradient too");
+		"runnable validation reports the steep gradient too");
 	ok &= expect(steepGradientWarningCount(steepGradientScene(0.0, 0.15)) == 1,
-			"an ascent steeper than the starting limit gives a warning");
+		"an ascent steeper than the starting limit gives a warning");
 	ok &= expect(steepGradientWarningCount(steepGradientScene(0.0, 0.09)) == 0,
-			"an ascent above the braking limit but below the starting limit gives no warning");
+		"an ascent above the braking limit but below the starting limit gives no warning");
 	ok &= expect(steepGradientWarningCount(steepGradientScene(-0.08, 0.14)) == 0,
-			"arcs just below both limits give no warning");
+		"arcs just below both limits give no warning");
 
 	SceneModel reversedRoute = steepGradientScene(0.09, 0.0);
 	reversedRoute.routes[0].blocks = {"block-2", "block-1"};
 	ok &= expect(buildSceneRouteTraversal(reversedRoute, reversedRoute.routes[0]).direction == -1
 			&& steepGradientWarningCount(reversedRoute) == 1,
-			"an ascent in the stored direction is a descent on a reversed route");
+		"an ascent in the stored direction is a descent on a reversed route");
 	reversedRoute = steepGradientScene(-0.09, 0.0);
 	reversedRoute.routes[0].blocks = {"block-2", "block-1"};
 	ok &= expect(steepGradientWarningCount(reversedRoute) == 0,
-			"a descent in the stored direction is an ascent below the starting limit on a reversed route");
+		"a descent in the stored direction is an ascent below the starting limit on a reversed route");
 
 	SceneModel twoServices = steepDescent;
 	twoServices.services.push_back(twoServices.services.front());
 	twoServices.services.back().id = "service-2";
 	ok &= expect(steepGradientWarningCount(twoServices) == 1,
-			"services with the same route and composition share one warning");
+		"services with the same route and composition share one warning");
 
 	SceneModel twoCompositions = steepGradientScene(-0.1, 0.0);
 	twoCompositions.trainUnits.push_back(paimpolUnit());
@@ -822,19 +837,19 @@ int main(int argc, char** argv) {
 	ok &= expect(steepGradientWarningCount(twoCompositions) == 1
 			&& contains(findCode(twoCompositionDiagnostics, steepCode)->message, "composition-1")
 			&& !contains(findCode(twoCompositionDiagnostics, steepCode)->message, "composition-2"),
-			"a composition with a larger deceleration is judged on its own limit");
+		"a composition with a larger deceleration is judged on its own limit");
 	twoCompositions.arcs[0].gradientPercent = -0.2;
 	ok &= expect(steepGradientWarningCount(twoCompositions) == 2,
-			"each composition on the route gets its own warning");
+		"each composition on the route gets its own warning");
 
 	SceneModel unknownComposition = steepDescent;
 	unknownComposition.services[0].composition = "missing";
 	ok &= expect(steepGradientWarningCount(unknownComposition) == 0,
-			"a service without a resolvable composition gets no gradient warning");
+		"a service without a resolvable composition gets no gradient warning");
 	SceneModel unknownRoute = steepDescent;
 	unknownRoute.routes[0].blocks = {"missing-block"};
 	ok &= expect(steepGradientWarningCount(unknownRoute) == 0,
-			"a route without resolvable sections gets no gradient warning");
+		"a route without resolvable sections gets no gradient warning");
 
 	SceneModel longRoute = clean;
 	longRoute.nodes.clear();
@@ -847,7 +862,7 @@ int main(int argc, char** argv) {
 		longRoute.nodes.push_back({"n" + std::to_string(index), "track-1", static_cast<double>(index), 0.0});
 	for (int index = 0; index < 200; ++index) {
 		longRoute.arcs.push_back({"a" + std::to_string(index), "track-1", "n" + std::to_string(index),
-				"n" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+			"n" + std::to_string(index + 1), 0.0, 0.0, 40.0});
 		longRoute.blocks.push_back({"b" + std::to_string(index), "track-1", 1.0});
 		longRoute.routes[0].blocks.push_back("b" + std::to_string(index));
 	}
@@ -867,38 +882,38 @@ int main(int argc, char** argv) {
 		longTrack.nodes.push_back({"node-" + std::to_string(index), "track-1", static_cast<double>(index - 1), 0.0});
 	for (int index = 3; index <= 1600; ++index)
 		longTrack.arcs.push_back({"arc-" + std::to_string(index), "track-1", "node-" + std::to_string(index),
-				"node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+			"node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
 	for (int index = 3; index <= 96; ++index)
 		longTrack.blocks.push_back({"block-" + std::to_string(index), "track-1", 17.0});
 	ok &= expect(!hasCode(validateRunnableScene(longTrack), "scene.capacity.runtime"),
-			"a track with more than 1500 nodes and arcs is not rejected for size");
+		"a track with more than 1500 nodes and arcs is not rejected for size");
 
 	SceneModel manySections = clean;
 	for (int index = 4; index <= 6002; ++index)
 		manySections.nodes.push_back({"node-" + std::to_string(index), "track-1", static_cast<double>(index - 1), 0.0});
 	for (int index = 3; index <= 6001; ++index) {
 		manySections.arcs.push_back({"arc-" + std::to_string(index), "track-1", "node-" + std::to_string(index),
-				"node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+			"node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
 		manySections.blocks.push_back({"block-" + std::to_string(index), "track-1", 1.0});
 	}
 	ok &= expect(!hasCode(validateRunnableScene(manySections), "scene.capacity.runtime"),
-			"a scene with more than 6000 sections is not rejected for size");
+		"a scene with more than 6000 sections is not rejected for size");
 
 	SceneModel negativeChainage = clean;
 	negativeChainage.nodes = {{"node-1", "track-1", -2.0, 0.0}, {"node-2", "track-1", -1.0, 0.0},
-			{"node-3", "track-1", 0.0, 0.0}};
+		{"node-3", "track-1", 0.0, 0.0}};
 	negativeChainage.connections.clear();
 	negativeChainage.signallingAreas.clear();
 	const auto negativeDiagnostics = validateRunnableScene(negativeChainage);
 	const SceneDiagnostic* negativeWarning = findCode(negativeDiagnostics, levelMissing);
 	ok &= expect(negativeWarning != nullptr
 			&& contains(negativeWarning->suggestedFix, "-2.000000 to 0.000000 km"),
-			"the suggested area range reports negative chainage");
+		"the suggested area range reports negative chainage");
 
 	const auto conflictDiagnostics = validateRunnableScene(conflictingNetworkAreas);
 	ok &= expect(hasCode(conflictDiagnostics, "scene.signalling_area.conflict")
 			&& !hasCode(conflictDiagnostics, levelMissing),
-			"a section with conflicting areas does not also get the missing level warning");
+		"a section with conflicting areas does not also get the missing level warning");
 
 	struct FailureCase {
 		const char* name;
@@ -908,162 +923,174 @@ int main(int argc, char** argv) {
 	};
 	const FailureCase cases[] = {
 		{"empty track id", [](SceneModel& scene) { scene.tracks[0].id.clear(); }, "scene.id.empty",
-				"tracks[0].id"},
+			"tracks[0].id"},
 		{"empty node id", [](SceneModel& scene) { scene.nodes[0].id.clear(); }, "scene.id.empty",
-				"nodes[0].id"},
+			"nodes[0].id"},
 		{"empty arc id", [](SceneModel& scene) { scene.arcs[0].id.clear(); }, "scene.id.empty",
-				"arcs[0].id"},
+			"arcs[0].id"},
 		{"empty block id", [](SceneModel& scene) { scene.blocks[0].id.clear(); }, "scene.id.empty",
-				"blocks[0].id"},
+			"blocks[0].id"},
 		{"empty connection id", [](SceneModel& scene) { scene.connections[0].id.clear(); }, "scene.id.empty",
-				"connections[0].id"},
+			"connections[0].id"},
 		{"empty station id", [](SceneModel& scene) { scene.stations[0].id.clear(); }, "scene.id.empty",
-				"stations[0].id"},
+			"stations[0].id"},
 		{"empty platform id", [](SceneModel& scene) { scene.stations[0].platforms[0].id.clear(); }, "scene.id.empty",
-				"stations[0].platforms[0].id"},
+			"stations[0].platforms[0].id"},
 		{"duplicate route id", [](SceneModel& scene) { scene.routes.push_back(scene.routes[0]); },
-				"scene.id.duplicate"},
+			"scene.id.duplicate"},
 		{"unknown composition unit", [](SceneModel& scene) { scene.compositions[0].units[0] = "missing-unit"; },
-				"scene.ref.unresolved"},
+			"scene.ref.unresolved"},
 		{"unknown stop platform", [](SceneModel& scene) { scene.services[0].stops[0].platformId = "missing-platform"; },
-				"scene.ref.platform"},
+			"scene.ref.platform"},
 		{"unknown scenario incident target", [](SceneModel& scene) {
-				scene.scenarios[0].incidents[0].target = "missing-signal";
-			}, "scene.ref.unresolved"},
+			 scene.scenarios[0].incidents[0].target = "missing-signal";
+		 },
+			"scene.ref.unresolved"},
 		{"missing base time", [](SceneModel& scene) { scene.baseTime.clear(); }, "scene.basetime.missing"},
-		{"out-of-range base time", [](SceneModel& scene) { scene.baseTime = "24:00:00"; },
-				"scene.basetime.invalid"},
-		{"non-positive duration", [](SceneModel& scene) { scene.settings.durationSeconds = 0.0; },
-				"scene.duration.invalid"},
+		{"out-of-range base time", [](SceneModel& scene) { scene.baseTime = "24:00:00"; }, "scene.basetime.invalid"},
+		{"non-positive duration", [](SceneModel& scene) { scene.settings.durationSeconds = 0.0; }, "scene.duration.invalid"},
 		{"non-finite duration", [](SceneModel& scene) {
-				scene.settings.durationSeconds = std::numeric_limits<double>::quiet_NaN();
-			}, "scene.duration.invalid"},
+			 scene.settings.durationSeconds = std::numeric_limits<double>::quiet_NaN();
+		 },
+			"scene.duration.invalid"},
 		{"performance below range", [](SceneModel& scene) {
-				scene.services[0].performancePercent = 0.5;
-			}, "scene.performance.invalid", "services[service-1].performance_percent"},
+			 scene.services[0].performancePercent = 0.5;
+		 },
+			"scene.performance.invalid", "services[service-1].performance_percent"},
 		{"non-finite maximum speed", [](SceneModel& scene) {
-				scene.services[0].hasMaximumSpeed = true;
-				scene.services[0].maximumSpeedKmh = std::numeric_limits<double>::infinity();
-			}, "scene.speed.invalid", "services[service-1].maximum_speed_kmh"},
+			 scene.services[0].hasMaximumSpeed = true;
+			 scene.services[0].maximumSpeedKmh = std::numeric_limits<double>::infinity();
+		 },
+			"scene.speed.invalid", "services[service-1].maximum_speed_kmh"},
 		{"non-positive repeat count", [](SceneModel& scene) {
-				scene.services[0].hasRepeat = true;
-				scene.services[0].headwaySeconds = 30.0;
-				scene.services[0].hasRepeatCount = true;
-				scene.services[0].repeatCount = 0;
-			}, "scene.repeat.count.invalid", "services[service-1].repeat.count"},
+			 scene.services[0].hasRepeat = true;
+			 scene.services[0].headwaySeconds = 30.0;
+			 scene.services[0].hasRepeatCount = true;
+			 scene.services[0].repeatCount = 0;
+		 },
+			"scene.repeat.count.invalid", "services[service-1].repeat.count"},
 		{"non-decimal operating-code step", [](SceneModel& scene) {
-				scene.services[0].operatingCode = "R100";
-				scene.services[0].hasRepeat = true;
-				scene.services[0].headwaySeconds = 30.0;
-				scene.services[0].hasOperatingCodeStep = true;
-				scene.services[0].operatingCodeStep = 2;
-			}, "scene.repeat.step.invalid", "services[service-1].repeat.operating_code_step"},
+			 scene.services[0].operatingCode = "R100";
+			 scene.services[0].hasRepeat = true;
+			 scene.services[0].headwaySeconds = 30.0;
+			 scene.services[0].hasOperatingCodeStep = true;
+			 scene.services[0].operatingCodeStep = 2;
+		 },
+			"scene.repeat.step.invalid", "services[service-1].repeat.operating_code_step"},
 		{"overflowing operating-code step", [](SceneModel& scene) {
-				scene.services[0].operatingCode = "9223372036854775806";
-				scene.services[0].hasRepeat = true;
-				scene.services[0].headwaySeconds = 30.0;
-				scene.services[0].hasRepeatCount = true;
-				scene.services[0].repeatCount = 2;
-				scene.services[0].hasOperatingCodeStep = true;
-				scene.services[0].operatingCodeStep = 2;
-			}, "scene.repeat.step.invalid", "services[service-1].repeat.operating_code_step"},
+			 scene.services[0].operatingCode = "9223372036854775806";
+			 scene.services[0].hasRepeat = true;
+			 scene.services[0].headwaySeconds = 30.0;
+			 scene.services[0].hasRepeatCount = true;
+			 scene.services[0].repeatCount = 2;
+			 scene.services[0].hasOperatingCodeStep = true;
+			 scene.services[0].operatingCodeStep = 2;
+		 },
+			"scene.repeat.step.invalid", "services[service-1].repeat.operating_code_step"},
 		{"entrance delay beyond explicit pattern", [](SceneModel& scene) {
-				scene.services[0].hasRepeat = true;
-				scene.services[0].headwaySeconds = 30.0;
-				scene.services[0].hasRepeatCount = true;
-				scene.services[0].repeatCount = 1;
-				scene.scenarios[0].entranceDelays[0].occurrence = 2;
-			}, "scene.entrance.occurrence.out_of_horizon", "scenarios[0].entrance_delays[0].occurrence"},
+			 scene.services[0].hasRepeat = true;
+			 scene.services[0].headwaySeconds = 30.0;
+			 scene.services[0].hasRepeatCount = true;
+			 scene.services[0].repeatCount = 1;
+			 scene.scenarios[0].entranceDelays[0].occurrence = 2;
+		 },
+			"scene.entrance.occurrence.out_of_horizon", "scenarios[0].entrance_delays[0].occurrence"},
 		{"non-finite entrance delay", [](SceneModel& scene) {
-				scene.scenarios[0].entranceDelays[0].delaySeconds
-						= std::numeric_limits<double>::quiet_NaN();
-			}, "scene.delay.invalid", "scenarios[0].entrance_delays[0].delay_seconds"},
+			 scene.scenarios[0].entranceDelays[0].delaySeconds = std::numeric_limits<double>::quiet_NaN();
+		 },
+			"scene.delay.invalid", "scenarios[0].entrance_delays[0].delay_seconds"},
 		{"entrance delay station outside service stops", [](SceneModel& scene) {
-				scene.stations.push_back({"station-3", "Unused", false, 0.0, {}});
-				scene.scenarios[0].entranceDelays[0].stationId = "station-3";
-			}, "scene.entrance.station", "scenarios[0].entrance_delays[0].station"},
+			 scene.stations.push_back({"station-3", "Unused", false, 0.0, {}});
+			 scene.scenarios[0].entranceDelays[0].stationId = "station-3";
+		 },
+			"scene.entrance.station", "scenarios[0].entrance_delays[0].station"},
 		{"entrance delay stop without departure", [](SceneModel& scene) {
-				scene.scenarios[0].entranceDelays[0].stationId = "station-2";
-			}, "scene.entrance.timetable", "scenarios[0].entrance_delays[0].station"},
+			 scene.scenarios[0].entranceDelays[0].stationId = "station-2";
+		 },
+			"scene.entrance.timetable", "scenarios[0].entrance_delays[0].station"},
 		{"conflicting entrance delays", [](SceneModel& scene) {
-				scene.scenarios[0].entranceDelays.push_back({"service-1", 1, "station-1", 20.0});
-			}, "scene.entrance.conflict", "scenarios[0].entrance_delays[1].delay_seconds"},
+			 scene.scenarios[0].entranceDelays.push_back({"service-1", 1, "station-1", 20.0});
+		 },
+			"scene.entrance.conflict", "scenarios[0].entrance_delays[1].delay_seconds"},
 		{"non-finite node coordinate", [](SceneModel& scene) {
-				scene.nodes[0].xKm = std::numeric_limits<double>::quiet_NaN();
-			}, "scene.node.coordinate.invalid", "nodes[0].x_km"},
+			 scene.nodes[0].xKm = std::numeric_limits<double>::quiet_NaN();
+		 },
+			"scene.node.coordinate.invalid", "nodes[0].x_km"},
 		{"negative arc curvature", [](SceneModel& scene) {
-				scene.arcs[0].curvatureRadiusM = -1.0;
-			}, "scene.arc.curvature.invalid", "arcs[0].curvature_radius_m"},
-		{"non-positive arc speed", [](SceneModel& scene) { scene.arcs[0].speedLimitMs = 0.0; },
-				"scene.arc.speed.invalid", "arcs[0].speed_limit_ms"},
-		{"non-positive block length", [](SceneModel& scene) { scene.blocks[0].lengthKm = 0.0; },
-				"scene.block.length.invalid", "blocks[0].length_km"},
+			 scene.arcs[0].curvatureRadiusM = -1.0;
+		 },
+			"scene.arc.curvature.invalid", "arcs[0].curvature_radius_m"},
+		{"non-positive arc speed", [](SceneModel& scene) { scene.arcs[0].speedLimitMs = 0.0; }, "scene.arc.speed.invalid", "arcs[0].speed_limit_ms"},
+		{"non-positive block length", [](SceneModel& scene) { scene.blocks[0].lengthKm = 0.0; }, "scene.block.length.invalid", "blocks[0].length_km"},
 		{"invalid optional connection speed", [](SceneModel& scene) {
-				scene.connections[0].hasSpeedLimit = true;
-				scene.connections[0].speedLimitMs = 0.0;
-			}, "scene.connection.speed.invalid", "connections[0].speed_limit_ms"},
+			 scene.connections[0].hasSpeedLimit = true;
+			 scene.connections[0].speedLimitMs = 0.0;
+		 },
+			"scene.connection.speed.invalid", "connections[0].speed_limit_ms"},
 		{"arc endpoint on another track", [](SceneModel& scene) {
-				scene.tracks.push_back({"track-2"});
-				scene.nodes[1].trackId = "track-2";
-			}, "scene.topology.track", "arcs[0].to"},
-		{"arc self-loop", [](SceneModel& scene) { scene.arcs[0].toNodeId = "node-1"; },
-				"scene.topology.loop", "arcs[0].to"},
-		{"ambiguous outgoing arc", [](SceneModel& scene) { scene.arcs[1].fromNodeId = "node-1"; },
-				"scene.topology.ambiguous", "tracks[0].nodes"},
+			 scene.tracks.push_back({"track-2"});
+			 scene.nodes[1].trackId = "track-2";
+		 },
+			"scene.topology.track", "arcs[0].to"},
+		{"arc self-loop", [](SceneModel& scene) { scene.arcs[0].toNodeId = "node-1"; }, "scene.topology.loop", "arcs[0].to"},
+		{"ambiguous outgoing arc", [](SceneModel& scene) { scene.arcs[1].fromNodeId = "node-1"; }, "scene.topology.ambiguous", "tracks[0].nodes"},
 		{"disconnected node", [](SceneModel& scene) {
-				scene.nodes.push_back({"node-4", "track-1", 3.0, 0.0});
-			}, "scene.topology.disconnected", "tracks[0].nodes"},
-		{"descending chain order", [](SceneModel& scene) { scene.nodes[1].xKm = -1.0; },
-				"scene.topology.order", "arcs[0].to"},
+			 scene.nodes.push_back({"node-4", "track-1", 3.0, 0.0});
+		 },
+			"scene.topology.disconnected", "tracks[0].nodes"},
+		{"descending chain order", [](SceneModel& scene) { scene.nodes[1].xKm = -1.0; }, "scene.topology.order", "arcs[0].to"},
 		{"empty tracks", [](SceneModel& scene) { scene.tracks.clear(); }, "scene.topology.tracks.none"},
 		{"empty nodes", [](SceneModel& scene) { scene.nodes.clear(); }, "scene.topology.nodes.none"},
 		{"empty arcs", [](SceneModel& scene) { scene.arcs.clear(); }, "scene.topology.arcs.none"},
 		{"empty blocks", [](SceneModel& scene) { scene.blocks.clear(); }, "scene.topology.blocks.none"},
 		{"empty routes", [](SceneModel& scene) { scene.routes.clear(); }, "scene.routes.none"},
 		{"unbound platform", [](SceneModel& scene) {
-				scene.stations[0].platforms[0].nodeIds.clear();
-			}, "scene.platform.nodes.none", "stations[0].platforms[0].nodes"},
-		{"unanchored station", [](SceneModel& scene) { scene.stations[0].platforms.clear(); },
-				"scene.station.anchor.missing", "stations[0]"},
+			 scene.stations[0].platforms[0].nodeIds.clear();
+		 },
+			"scene.platform.nodes.none", "stations[0].platforms[0].nodes"},
+		{"unanchored station", [](SceneModel& scene) { scene.stations[0].platforms.clear(); }, "scene.station.anchor.missing", "stations[0]"},
 		{"non-finite station position", [](SceneModel& scene) {
-				scene.stations[0].hasPosition = true;
-				scene.stations[0].positionKm = std::numeric_limits<double>::quiet_NaN();
-			}, "scene.station.position.invalid", "stations[0].position_km"},
+			 scene.stations[0].hasPosition = true;
+			 scene.stations[0].positionKm = std::numeric_limits<double>::quiet_NaN();
+		 },
+			"scene.station.position.invalid", "stations[0].position_km"},
 		{"conflicting platform node", [](SceneModel& scene) {
-				scene.stations[1].platforms[0].nodeIds = {"node-1"};
-			}, "scene.platform.node.conflict", "stations[1].platforms[0].nodes[0]"},
+			 scene.stations[1].platforms[0].nodeIds = {"node-1"};
+		 },
+			"scene.platform.node.conflict", "stations[1].platforms[0].nodes[0]"},
 		{"platform outside service route", [](SceneModel& scene) {
-				scene.tracks.push_back({"track-2"});
-				scene.nodes.push_back({"node-4", "track-2", 0.0, 1.0});
-				scene.nodes.push_back({"node-5", "track-2", 1.0, 1.0});
-				scene.arcs.push_back({"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
-				scene.blocks.push_back({"block-3", "track-2", 1.0});
-				scene.stations[1].platforms[0].nodeIds = {"node-5"};
-			}, "scene.ref.platform.route", "services[service-1].stops[1].platform"},
+			 scene.tracks.push_back({"track-2"});
+			 scene.nodes.push_back({"node-4", "track-2", 0.0, 1.0});
+			 scene.nodes.push_back({"node-5", "track-2", 1.0, 1.0});
+			 scene.arcs.push_back({"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
+			 scene.blocks.push_back({"block-3", "track-2", 1.0});
+			 scene.stations[1].platforms[0].nodeIds = {"node-5"};
+		 },
+			"scene.ref.platform.route", "services[service-1].stops[1].platform"},
 		{"platform outside composite switch route", [](SceneModel& scene) {
-				scene.tracks = {{"track-A"}, {"track-B"}};
-				scene.nodes = {
-					{"a-0", "track-A", 0.0, 0.0}, {"a-05", "track-A", 0.5, 0.0},
-					{"a-2", "track-A", 2.0, 0.0}, {"b-0", "track-B", 0.0, 1.0},
-					{"b-15", "track-B", 1.5, 1.0}, {"b-2", "track-B", 2.0, 1.0}};
-				scene.arcs = {
-					{"a-1", "track-A", "a-0", "a-05", 0.0, 0.0, 40.0},
-					{"a-2", "track-A", "a-05", "a-2", 0.0, 0.0, 40.0},
-					{"b-1", "track-B", "b-0", "b-15", 0.0, 0.0, 40.0},
-					{"b-2", "track-B", "b-15", "b-2", 0.0, 0.0, 40.0}};
-				scene.blocks = {{"A", "track-A", 2.0}, {"B", "track-B", 2.0}};
-				scene.connections = {{"switch", "a-05", "b-15", false, 0.0}};
-				scene.stations[0].platforms[0].nodeIds = {"a-0"};
-				scene.stations[1].platforms[0].nodeIds = {"a-2"};
-				scene.routes[0].blocks = {"@A@-0.500000/@B@-1.500000"};
-			}, "scene.ref.platform.route", "services[service-1].stops[1].platform"},
-		{"unknown route block", [](SceneModel& scene) { scene.routes[0].blocks[0] = "missing-block"; },
-				"scene.ref.unresolved"},
-		{"unknown default scenario", [](SceneModel& scene) { scene.defaultScenarioId = "missing"; },
-				"scene.ref.unresolved"},
+			 scene.tracks = {{"track-A"}, {"track-B"}};
+			 scene.nodes = {
+				 {"a-0", "track-A", 0.0, 0.0}, {"a-05", "track-A", 0.5, 0.0},
+				 {"a-2", "track-A", 2.0, 0.0}, {"b-0", "track-B", 0.0, 1.0},
+				 {"b-15", "track-B", 1.5, 1.0}, {"b-2", "track-B", 2.0, 1.0}};
+			 scene.arcs = {
+				 {"a-1", "track-A", "a-0", "a-05", 0.0, 0.0, 40.0},
+				 {"a-2", "track-A", "a-05", "a-2", 0.0, 0.0, 40.0},
+				 {"b-1", "track-B", "b-0", "b-15", 0.0, 0.0, 40.0},
+				 {"b-2", "track-B", "b-15", "b-2", 0.0, 0.0, 40.0}};
+			 scene.blocks = {{"A", "track-A", 2.0}, {"B", "track-B", 2.0}};
+			 scene.connections = {{"switch", "a-05", "b-15", false, 0.0}};
+			 scene.stations[0].platforms[0].nodeIds = {"a-0"};
+			 scene.stations[1].platforms[0].nodeIds = {"a-2"};
+			 scene.routes[0].blocks = {"@A@-0.500000/@B@-1.500000"};
+		 },
+			"scene.ref.platform.route", "services[service-1].stops[1].platform"},
+		{"unknown route block", [](SceneModel& scene) { scene.routes[0].blocks[0] = "missing-block"; }, "scene.ref.unresolved"},
+		{"unknown default scenario", [](SceneModel& scene) { scene.defaultScenarioId = "missing"; }, "scene.ref.unresolved"},
 		{"discontinuous passenger leg", [](SceneModel& scene) {
-				scene.passengers[0].journeys[0].legs[0].destinationStationId = "station-1";
-			}, "scene.passenger.continuity"},
+			 scene.passengers[0].journeys[0].legs[0].destinationStationId = "station-1";
+		 },
+			"scene.passenger.continuity"},
 	};
 	for (const auto& test : cases) {
 		SceneModel broken = clean;
@@ -1081,7 +1108,7 @@ int main(int argc, char** argv) {
 	const auto reservedBlockIdDiagnostics = validateRunnableScene(reservedBlockId);
 	ok &= expect(reservedBlockIdDiagnostics.size() == 1
 			&& hasCodeAndPath(reservedBlockIdDiagnostics, "scene.id.reserved", "blocks[0].id"),
-			"reserved slash in block id reports one actionable validation error");
+		"reserved slash in block id reports one actionable validation error");
 	SceneModel reducedBreakdown = clean;
 	SceneIncident& reducedIncident = reducedBreakdown.scenarios[0].incidents[0];
 	reducedIncident.type = "train_breakdown";
@@ -1094,7 +1121,7 @@ int main(int argc, char** argv) {
 	reducedIncident.hasOccurrence = true;
 	reducedIncident.occurrence = 1;
 	ok &= expect(validateRunnableScene(reducedBreakdown).empty(),
-			"reduced-speed breakdown may omit recovery end");
+		"reduced-speed breakdown may omit recovery end");
 	SceneModel extendedOccurrence = reducedBreakdown;
 	extendedOccurrence.settings.durationSeconds = 1.0;
 	extendedOccurrence.services[0].hasRepeat = true;
@@ -1104,23 +1131,23 @@ int main(int argc, char** argv) {
 	const auto savedHorizonDiagnostics = validateRunnableScene(extendedOccurrence);
 	ok &= expect(hasCode(savedHorizonDiagnostics, "scene.occurrence.invalid")
 			&& hasCode(savedHorizonDiagnostics, "scene.entrance.occurrence.out_of_horizon"),
-			"saved horizon rejects occurrence-specific rows outside its repeat pattern");
+		"saved horizon rejects occurrence-specific rows outside its repeat pattern");
 	const auto extendedHorizonDiagnostics = validateRunnableScene(
-			extendedOccurrence, {}, std::optional<double>(20.0));
+		extendedOccurrence, {}, std::optional<double>(20.0));
 	ok &= expect(!hasCode(extendedHorizonDiagnostics, "scene.occurrence.invalid")
 			&& !hasCode(extendedHorizonDiagnostics, "scene.entrance.occurrence.out_of_horizon"),
-			"duration override applies to breakdown and entrance-delay occurrences");
+		"duration override applies to breakdown and entrance-delay occurrences");
 
 	SceneModel fullHoldWithoutEnd = reducedBreakdown;
 	fullHoldWithoutEnd.scenarios[0].incidents[0].hasReducedSpeed = false;
 	fullHoldWithoutEnd.scenarios[0].incidents[0].reducedSpeedKmh = 0.0;
 	ok &= expect(hasCode(validateRunnableScene(fullHoldWithoutEnd), "scene.incident.window"),
-			"legacy full-hold breakdown requires an end");
+		"legacy full-hold breakdown requires an end");
 
 	SceneModel invalidBreakdown = reducedBreakdown;
 	invalidBreakdown.scenarios[0].incidents[0].occurrence = 0;
 	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.occurrence.invalid"),
-			"breakdown occurrence must be positive");
+		"breakdown occurrence must be positive");
 	invalidBreakdown = reducedBreakdown;
 	invalidBreakdown.services[0].hasRepeat = true;
 	invalidBreakdown.services[0].headwaySeconds = 30.0;
@@ -1128,22 +1155,22 @@ int main(int argc, char** argv) {
 	invalidBreakdown.services[0].repeatCount = 1;
 	invalidBreakdown.scenarios[0].incidents[0].occurrence = 2;
 	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.occurrence.invalid"),
-			"breakdown occurrence must be inside the configured repeat range");
+		"breakdown occurrence must be inside the configured repeat range");
 	invalidBreakdown = reducedBreakdown;
 	invalidBreakdown.scenarios[0].incidents[0].reducedSpeedKmh = 0.0;
 	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.speed"),
-			"reduced breakdown speed must be positive");
+		"reduced breakdown speed must be positive");
 	invalidBreakdown = reducedBreakdown;
 	invalidBreakdown.scenarios[0].incidents[0].hasEndSeconds = true;
 	invalidBreakdown.scenarios[0].incidents[0].endSeconds = 300.0;
 	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.window"),
-			"breakdown recovery end must be after start");
+		"breakdown recovery end must be after start");
 	invalidBreakdown = reducedBreakdown;
 	invalidBreakdown.scenarios[0].incidents[0].terminateAtDestination = true;
 	invalidBreakdown.scenarios[0].incidents[0].type = "signal_failure";
 	invalidBreakdown.scenarios[0].incidents[0].target = "signal-1";
 	ok &= expect(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.fields"),
-			"signal failures reject breakdown-only fields");
+		"signal failures reject breakdown-only fields");
 	SceneService repeated = clean.services[0];
 	repeated.operatingCode = "1723";
 	repeated.hasRepeat = true;
@@ -1153,16 +1180,16 @@ int main(int argc, char** argv) {
 	repeated.hasOperatingCodeStep = true;
 	repeated.operatingCodeStep = 2;
 	ok &= expect(sceneServiceOccurrenceCount(repeated, 1.0) == 3,
-			"explicit repeat count overrides the duration horizon");
+		"explicit repeat count overrides the duration horizon");
 	ok &= expect(sceneServiceOccurrenceOperatingCode(repeated, 1) == "1723"
-				&& sceneServiceOccurrenceOperatingCode(repeated, 2) == "1725"
-				&& sceneServiceOccurrenceOperatingCode(repeated, 3) == "1727",
-			"decimal operating-code step expands occurrences predictably");
+			&& sceneServiceOccurrenceOperatingCode(repeated, 2) == "1725"
+			&& sceneServiceOccurrenceOperatingCode(repeated, 3) == "1727",
+		"decimal operating-code step expands occurrences predictably");
 	SceneService readableRepeat = clean.services[0];
 	readableRepeat.hasRepeat = true;
 	readableRepeat.headwaySeconds = 30.0;
 	ok &= expect(sceneServiceOccurrenceOperatingCode(readableRepeat, 2) == "service-1-2",
-			"repeated services without a step expose readable occurrence codes");
+		"repeated services without a step expose readable occurrence codes");
 	SceneModel negativeGradient = clean;
 	negativeGradient.arcs[0].gradientPercent = -100.0;
 	ok &= expect(validateScene(negativeGradient).empty(), "negative arc gradient is allowed");
@@ -1173,11 +1200,11 @@ int main(int argc, char** argv) {
 	SceneModel overflowingBlocks = clean;
 	overflowingBlocks.blocks[0].lengthKm = 2.1;
 	ok &= expect(hasCode(validateRunnableScene(overflowingBlocks), "scene.capacity.runtime"),
-			"block layout overflow is rejected");
+		"block layout overflow is rejected");
 	SceneModel clippedFinalBlock = clean;
 	clippedFinalBlock.blocks[1].lengthKm = 1.5;
 	ok &= expect(hasCode(validateRunnableScene(clippedFinalBlock), "scene.native.block.clipped"),
-			"an overlong final block retains its compatibility clipping warning");
+		"an overlong final block retains its compatibility clipping warning");
 
 	SceneModel twentyOneArcBlock = clean;
 	std::string previousNode = twentyOneArcBlock.nodes.back().id;
@@ -1185,12 +1212,12 @@ int main(int argc, char** argv) {
 		const std::string node = "long-node-" + std::to_string(index);
 		twentyOneArcBlock.nodes.push_back({node, "track-1", static_cast<double>(index), 0.0});
 		twentyOneArcBlock.arcs.push_back({"long-arc-" + std::to_string(index), "track-1",
-				previousNode, node, 0.0, 0.0, 35.0});
+			previousNode, node, 0.0, 0.0, 35.0});
 		previousNode = node;
 	}
 	twentyOneArcBlock.blocks[0].lengthKm = 21.0;
 	ok &= expect(hasCode(validateRunnableScene(twentyOneArcBlock), "scene.capacity.runtime"),
-			"block section arc capacity is enforced");
+		"block section arc capacity is enforced");
 
 	SceneModel derivedIdCollision = clean;
 	derivedIdCollision.tracks.push_back({"track-2"});
@@ -1201,31 +1228,31 @@ int main(int argc, char** argv) {
 	derivedIdCollision.connections.push_back({"switch-1", "node-2", "node-4", false, 0.0});
 	derivedIdCollision.connections.push_back({"switch-2", "node-2", "node-4", false, 0.0});
 	ok &= expect(hasCode(validateRunnableScene(derivedIdCollision), "scene.capacity.runtime"),
-			"derived switch section ID collisions are rejected");
+		"derived switch section ID collisions are rejected");
 
 	SceneModel runtimeIdCollision = clean;
 	runtimeIdCollision.blocks[0].id = "block.a";
 	runtimeIdCollision.blocks[1].id = "@block.a@";
 	runtimeIdCollision.routes[0].blocks = {"block.a", "@block.a@"};
 	ok &= expect(hasCode(validateRunnableScene(runtimeIdCollision), "scene.capacity.runtime"),
-			"runtime block ID normalization rejects collisions");
+		"runtime block ID normalization rejects collisions");
 	SceneModel incompleteRuntimeIdCollision = runtimeIdCollision;
 	incompleteRuntimeIdCollision.trainUnits.clear();
 	incompleteRuntimeIdCollision.compositions.clear();
 	incompleteRuntimeIdCollision.services.clear();
 	ok &= expect(hasCode(validateRunnableScene(incompleteRuntimeIdCollision), "scene.capacity.runtime"),
-			"unrelated incomplete authoring does not hide infrastructure runtime errors");
+		"unrelated incomplete authoring does not hide infrastructure runtime errors");
 
 	SceneModel routeCapacity = clean;
 	routeCapacity.routes[0].blocks.assign(601, "block-1");
 	ok &= expect(hasCode(validateRunnableScene(routeCapacity), "scene.capacity.runtime"),
-			"route block-token capacity is enforced");
+		"route block-token capacity is enforced");
 
 	SceneModel endpointFanout = clean;
 	for (int index = 0; index < 6; ++index)
 		endpointFanout.connections.push_back({"fanout-" + std::to_string(index), "node-1", "node-3", false, 0.0});
 	ok &= expect(hasCode(validateRunnableScene(endpointFanout), "scene.capacity.runtime"),
-			"node endpoint fanout capacity is enforced");
+		"node endpoint fanout capacity is enforced");
 
 	SceneModel dependencyFanout = clean;
 	dependencyFanout.blocks[0].lengthKm = 0.2;
@@ -1237,14 +1264,14 @@ int main(int argc, char** argv) {
 		dependencyFanout.blockDependencies.push_back({"block-1", target});
 	}
 	ok &= expect(hasCode(validateRunnableScene(dependencyFanout), "scene.capacity.runtime"),
-			"derived and explicit dependency fanout capacity is enforced");
+		"derived and explicit dependency fanout capacity is enforced");
 
 	// Composite route entries resolve each basic block after stripping @...@ positions.
 	SceneModel composite = clean;
 	composite.routes[0].blocks = {"@block-1@-0.000000/@block-2@-1.000000"};
 	composite.blockDependencies.push_back({"@block-1@-0.000000/@block-2@-1.000000", "block-1"});
 	composite.singleTrackRestrictions.push_back({"block-1", "block-2",
-			"block-1", "block-2"});
+		"block-1", "block-2"});
 	composite.stationBoundaries.push_back({"block-1", true, "block-2", false});
 	ok &= expect(validateScene(composite).empty(), "composite route block components validate");
 	composite.scenarios[0].incidents[0].target = "block-2";
@@ -1264,24 +1291,25 @@ int main(int argc, char** argv) {
 	counted.hasEntryTime = true;
 	counted.entryTimeSeconds = -60.0;
 	ok &= expect(sceneServiceScheduledEntry(counted, 2) == 0.0
-		&& sceneServiceInWindowCount(counted, 180.0) == 3,
+			&& sceneServiceInWindowCount(counted, 180.0) == 3,
 		"explicit entry wins and negative entries are outside the horizon");
 	ok &= expect(sceneServiceInWindowCount(counted, 180.0,
-		{{"counted", 1}, {"counted", 2}, {"counted", 5}, {"other", 2}}) == 1,
+					 {{"counted", 1}, {"counted", 2}, {"counted", 5}, {"other", 2}})
+			== 1,
 		"selected in-period count retains stable identity and horizon limits");
 	counted.repeatCount = std::numeric_limits<int>::max();
 	ok &= expect(sceneServiceInWindowCount(counted, 180.0) == 3
-		&& sceneServiceOccurrenceCount(counted, 180.0) == counted.repeatCount,
+			&& sceneServiceOccurrenceCount(counted, 180.0) == counted.repeatCount,
 		"large configured totals stay intact while window counting is bounded");
 
 	const std::string fixtureDir = argv[1];
 	ok &= expect(!hasErrors(validateSceneStructure(fixtureDir)),
-			"historical fixture remains structurally loadable");
+		"historical fixture remains structurally loadable");
 	const auto runnableFixture = validateRunnableSceneDirectory(fixtureDir);
 	ok &= expect(hasCode(runnableFixture, "scene.topology.tracks.none"),
-			"incomplete historical fixture fails runnable validation");
+		"incomplete historical fixture fails runnable validation");
 	ok &= expect(hasCode(validateSceneStructure("/no/such/scene/dir"), "scene.dir.missing"),
-			"missing directory reports structural error");
+		"missing directory reports structural error");
 
 	if (!ok)
 		return 1;

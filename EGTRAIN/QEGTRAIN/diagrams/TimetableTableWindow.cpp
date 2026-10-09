@@ -55,9 +55,9 @@ SortableItem* makeItem(const QString& text, bool available, double sortKey) {
 } // namespace
 
 TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
-										   long long startOffsetSeconds,
-										   std::function<std::string(const QStringList&)> csvProvider,
-										   QWidget* parent)
+	long long startOffsetSeconds,
+	std::function<std::string(const QStringList&)> csvProvider,
+	QWidget* parent)
 	: QDialog(parent),
 	  m_rows(std::move(rows)),
 	  m_startOffset(startOffsetSeconds),
@@ -71,7 +71,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 
 	m_trainsButton = new TrainFilterButton(this);
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
-			this, &TimetableTableWindow::applyTrainVisibility);
+		this, &TimetableTableWindow::applyTrainVisibility);
 
 	QPushButton* csvButton = new QPushButton("Export CSV...", this);
 	csvButton->setToolTip("Write the rows of the visible trains to a CSV file");
@@ -90,8 +90,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 
 	m_table = new QTableWidget(this);
 	m_table->setColumnCount(9);
-	m_table->setHorizontalHeaderLabels({
-		"Train/service", "Station", "Journey order", "Planned arrival", "Planned departure",
+	m_table->setHorizontalHeaderLabels({"Train/service", "Station", "Journey order", "Planned arrival", "Planned departure",
 		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 	m_table->setAlternatingRowColors(true);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -133,7 +132,7 @@ void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
 	setPresentation(QStringLiteral("Timetable: planned vs simulated"),
 		QStringLiteral("Case: %1 | Scenario: %2")
 			.arg(QString::fromStdString(m_runProvenance.caseName),
-			     QString::fromStdString(m_runProvenance.appliedScenario)));
+				QString::fromStdString(m_runProvenance.appliedScenario)));
 }
 
 void TimetableTableWindow::setPresentation(const QString& heading, const QString& context) {
@@ -176,12 +175,9 @@ void TimetableTableWindow::fillTable() {
 		auto* trainItem = makeItem(trainId, true, 0.0);
 		trainItem->setData(Qt::UserRole, trainId);
 		m_table->setItem(row, 0, trainItem);
-		m_table->setItem(row, 1, makeItem(QString::fromStdString(result.stationId), true,
-			static_cast<double>(result.journeyIndex)));
-		m_table->setItem(row, 2, makeItem(QString::number(result.journeyIndex), true,
-			static_cast<double>(result.journeyIndex)));
-		m_table->setItem(row, 3, makeItem(timeText(result.plannedArrivalSeconds),
-			result.plannedArrivalSeconds.available, result.plannedArrivalSeconds.value));
+		m_table->setItem(row, 1, makeItem(QString::fromStdString(result.stationId), true, static_cast<double>(result.journeyIndex)));
+		m_table->setItem(row, 2, makeItem(QString::number(result.journeyIndex), true, static_cast<double>(result.journeyIndex)));
+		m_table->setItem(row, 3, makeItem(timeText(result.plannedArrivalSeconds), result.plannedArrivalSeconds.available, result.plannedArrivalSeconds.value));
 		m_table->setItem(row, 4,
 			makeItem(timeText(result.plannedDepartureSeconds), result.plannedDepartureSeconds.available,
 				result.plannedDepartureSeconds.value));
@@ -231,7 +227,7 @@ void TimetableTableWindow::exportCsv() {
 	const std::string content = m_csvProvider(m_trainsButton->visibleTrainIds());
 	if (content.empty()) {
 		QMessageBox::information(this, "Nothing to export",
-								 "There is no data to export for the visible trains.");
+			"There is no data to export for the visible trains.");
 		return;
 	}
 	QString path = QFileDialog::getSaveFileName(this, "Export Data", "timetable.csv", "CSV File (*.csv)");
@@ -261,7 +257,7 @@ void TimetableTableWindow::exportPng() {
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
-							 QString("Could not write the image to:\n%1").arg(path));
+			QString("Could not write the image to:\n%1").arg(path));
 		return;
 	}
 	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));

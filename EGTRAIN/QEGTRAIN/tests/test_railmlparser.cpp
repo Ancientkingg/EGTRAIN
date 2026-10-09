@@ -66,7 +66,7 @@ int main() {
 	std::cerr.rdbuf(oldErrors);
 	const bool parseErrorReported = errors.str().find("RTTP XML parse error") != std::string::npos;
 	if (!parsedPayload || !parseErrorReported || sentWithoutListener
-			|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope) {
+		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope) {
 		std::cerr << "railmlparser test failed: parsed=" << parsedPayload
 				  << " parse_error=" << parseErrorReported
 				  << " absent_peer_sent=" << sentWithoutListener

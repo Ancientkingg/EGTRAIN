@@ -6,7 +6,11 @@
 #include <QVector>
 #include <QWidget>
 
-enum class NetworkLegendEntryKind { Track, Train, Station, Signal, Passenger };
+enum class NetworkLegendEntryKind { Track,
+	Train,
+	Station,
+	Signal,
+	Passenger };
 
 struct NetworkLegendEntry {
 	NetworkLegendEntryKind kind = NetworkLegendEntryKind::Track;

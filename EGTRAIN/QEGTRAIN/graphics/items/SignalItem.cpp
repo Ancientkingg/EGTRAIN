@@ -58,7 +58,8 @@ QString SignalItem::inspectionIdentity() const {
 	if (!m_inspectionIdentity.isEmpty())
 		return m_inspectionIdentity;
 	return QStringLiteral("Track %1 at %2 km; ahead %3; behind %4")
-		.arg(trackID).arg(X, 0, 'g', 10)
+		.arg(trackID)
+		.arg(X, 0, 'g', 10)
 		.arg(QString::fromStdString(sectionAheadId.empty() ? "none" : sectionAheadId))
 		.arg(QString::fromStdString(sectionBehindId.empty() ? "none" : sectionBehindId));
 }

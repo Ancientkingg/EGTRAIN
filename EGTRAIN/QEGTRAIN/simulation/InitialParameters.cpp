@@ -11,8 +11,7 @@ InitialParameters::InitialParameters(int caseStudy)
 
 void InitialParameters::set_case(int caseStudy) {
 	static const char* names[] = {
-		"", "Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut", "Lebanon"
-	};
+		"", "Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut", "Lebanon"};
 	if (caseStudy < 1 || caseStudy >= static_cast<int>(sizeof(names) / sizeof(names[0]))) {
 		name.clear();
 		std::cout << "No case selected";

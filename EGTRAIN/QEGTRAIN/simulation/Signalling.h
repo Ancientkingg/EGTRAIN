@@ -46,14 +46,14 @@ public:
 	double Time;
 	double Time2; // Additional time for recording a different event time
 	double Position;
-	bool StoppedForServiceStop;   // Train is stopped for a service stop
+	bool StoppedForServiceStop;	  // Train is stopped for a service stop
 	bool ServiceStopBehindATrain; // Train is stopped behind another train
 	string CurrentStoppedStation; // Station the train is currently stopped at
 	string SuccessorID;
 	string CurrentSectionID;
 	string NextSectionID;
-	double TrainSpeed;    // Train speed at the position given by Position
-	double Acceleration;  // Train acceleration (or equation number used by the train)
+	double TrainSpeed;		// Train speed at the position given by Position
+	double Acceleration;	// Train acceleration (or equation number used by the train)
 	string InfraElemStatus; // Status of a signal or switch at train passage
 
 	TrainEvent();
@@ -114,13 +114,13 @@ void SortRecordedEventsForAllInfrastructureElements(list<InfraEvent>& ListOfAllI
 class TDS {
 public:
 	string blocksection_ID; // Block section this TDS belongs to (fictional in diverging blocks)
-	string ID;              // TDS identifier
-	int TracklineID;        // Track line identifier
-	double length;          // TDS length
-	Node start_node;        // Starting node
-	Node end_node;          // End node
-	Node connection_node;   // Switch node
-	Node node_on_switch;    // Third node for switches (replaces third_node)
+	string ID;				// TDS identifier
+	int TracklineID;		// Track line identifier
+	double length;			// TDS length
+	Node start_node;		// Starting node
+	Node end_node;			// End node
+	Node connection_node;	// Switch node
+	Node node_on_switch;	// Third node for switches (replaces third_node)
 
 	bool occupied;
 
@@ -135,31 +135,31 @@ extern int Blocks; // Total number of block sections in the network
 class Section {
 public:
 	string ID;
-	int trackLineId;                               // Track line ID this block belongs to
-	int FirstConnectedTrackLineID;                 // First track line connected by diverging switch (when withSwitchDiv=true)
-	int SecondConnectedTrackLineID;                // Second track line connected by diverging switch (when withSwitchDiv=true)
-	Arc arcs_in_signalling_block_section[20];      // Arcs composing the block section
-	Node start_node, end_node;                     // Start and end nodes
+	int trackLineId;							   // Track line ID this block belongs to
+	int FirstConnectedTrackLineID;				   // First track line connected by diverging switch (when withSwitchDiv=true)
+	int SecondConnectedTrackLineID;				   // Second track line connected by diverging switch (when withSwitchDiv=true)
+	Arc arcs_in_signalling_block_section[20];	   // Arcs composing the block section
+	Node start_node, end_node;					   // Start and end nodes
 	Node* nodelist_of_nodes_in_signalling_section; // Nodes composing the block section
-	int total_nodes;                               // Number of nodes in the block section
-	int total_arcs;                                // Number of arcs in the block section
-	double length;                                 // Block section length
-	double exit_speed;                             // Exit speed controlled by signalling system
+	int total_nodes;							   // Number of nodes in the block section
+	int total_arcs;								   // Number of arcs in the block section
+	double length;								   // Block section length
+	double exit_speed;							   // Exit speed controlled by signalling system
 	double code;
-	double XStartSwitch;               // Abscissa where train starts diverging switch (nonzero only when withSwitchDiv=true)
-	double XEndSwitch;                 // Final abscissa of diverging switch (nonzero only when withSwitchDiv=true)
-	double GeoXBegNode;                // Geographic X coordinate of start node
-	double GeoXEndNode;                // Geographic X coordinate of end node
-	int SignallingLevel;               // Signalling level: 0=conventional, 1=ETCS L1, 2=ETCS L2, 3=ETCS L3 (default -99999999)
-	double ETCS3BrakingPoints[40];     // ETCS L3 braking points (max 2 per train, up to 40 = 20 trains simultaneous)
+	double XStartSwitch;				  // Abscissa where train starts diverging switch (nonzero only when withSwitchDiv=true)
+	double XEndSwitch;					  // Final abscissa of diverging switch (nonzero only when withSwitchDiv=true)
+	double GeoXBegNode;					  // Geographic X coordinate of start node
+	double GeoXEndNode;					  // Geographic X coordinate of end node
+	int SignallingLevel;				  // Signalling level: 0=conventional, 1=ETCS L1, 2=ETCS L2, 3=ETCS L3 (default -99999999)
+	double ETCS3BrakingPoints[40];		  // ETCS L3 braking points (max 2 per train, up to 40 = 20 trains simultaneous)
 	string ETCS3BrakingPointsTrainID[40]; // Train IDs for each ETCS3 braking point
-	int N_ETCS3BrakingPoints;          // Number of ETCS3 braking points on this section
-	char state[20];                    // Main signal aspect
-	bool Occupied;                     // Block section occupied by a train
-	bool Occup_By_Train;               // Distinguishes train-on-section (true) from switch-occupied (false)
-	bool withSwitchDiv;                // Block section contains a diverging switch
-	string IDConnectedBS[10];          // IDs of block sections connected by switches
-	int N_ConnectedBS;                 // Number of connected block sections
+	int N_ETCS3BrakingPoints;			  // Number of ETCS3 braking points on this section
+	char state[20];						  // Main signal aspect
+	bool Occupied;						  // Block section occupied by a train
+	bool Occup_By_Train;				  // Distinguishes train-on-section (true) from switch-occupied (false)
+	bool withSwitchDiv;					  // Block section contains a diverging switch
+	string IDConnectedBS[10];			  // IDs of block sections connected by switches
+	int N_ConnectedBS;					  // Number of connected block sections
 	list<TDS*> TDS_in_block;
 
 	Section();
@@ -283,17 +283,17 @@ extern int N_Routes; // Total number of routes (from input files in Routes folde
 class Route {
 public:
 	string ID;
-	int N_Block_Sections;                  // Number of block sections composing the route
+	int N_Block_Sections;							 // Number of block sections composing the route
 	std::vector<Section> sequence_of_block_sections; // Sequence of block sections, N_Block_Sections elements once the route is built
-	double x_of_start_node;                // Start abscissa (initial node of route)
-	double x_of_end_node;                  // End abscissa (final node of route)
-	bool reversed_direction;               // True when train runs opposite to route definition direction;
-	                                       // instant_spatial_position = TotalRouteLength - instant_spatial_position for reversed trains
-	double OriginalRefReversedRoute;       // Original end_node abscissa of last block (non-reversed); used to shift abscissas on reversed routes
-	list<InfraElement> InfrastructureElements; // Infrastructure elements along the route (switches, station stop boards, TDS borders)
-	std::string corridor;                  // Corridor identifier (for multi-region, up to 2 corridors)
-	std::pair<double, double> diffRegionsJumpX;  // (jump length, jump lower bound) across regions
-	std::pair<double, double> diffRegionsJumpX2; // Second connection point across regions
+	double x_of_start_node;							 // Start abscissa (initial node of route)
+	double x_of_end_node;							 // End abscissa (final node of route)
+	bool reversed_direction;						 // True when train runs opposite to route definition direction;
+													 // instant_spatial_position = TotalRouteLength - instant_spatial_position for reversed trains
+	double OriginalRefReversedRoute;				 // Original end_node abscissa of last block (non-reversed); used to shift abscissas on reversed routes
+	list<InfraElement> InfrastructureElements;		 // Infrastructure elements along the route (switches, station stop boards, TDS borders)
+	std::string corridor;							 // Corridor identifier (for multi-region, up to 2 corridors)
+	std::pair<double, double> diffRegionsJumpX;		 // (jump length, jump lower bound) across regions
+	std::pair<double, double> diffRegionsJumpX2;	 // Second connection point across regions
 	Route();
 
 	// Initialize infrastructure element list for route; each element includes its block section ID
@@ -321,15 +321,15 @@ void setListAllInfrastructureElementsFromRoutes(vector<Route>& R, int N_Routes);
 // --- MovementAuthority: ETCS Level 3 Movement Authority ---
 class MovementAuthority {
 public:
-	string BSID;                   // Block section ID
-	string type;                   // MA type: locked switch, train, or other element
-	string typePart;               // MA refers to Front or Tail of train
-	bool ReversedDirection;        // Train traverses block sections opposite to specification direction
-	double AbsPosEoA;              // Absolute X position of End of Authority
-	double RelativePosEoA;         // Relative EoA position on train route
+	string BSID;				   // Block section ID
+	string type;				   // MA type: locked switch, train, or other element
+	string typePart;			   // MA refers to Front or Tail of train
+	bool ReversedDirection;		   // Train traverses block sections opposite to specification direction
+	double AbsPosEoA;			   // Absolute X position of End of Authority
+	double RelativePosEoA;		   // Relative EoA position on train route
 	double EoA_Dist_From_BSID_Beg; // Distance of EoA from BSID start node in train's direction of travel.
-	                               // If reversed: measured from BSID end node. If forward: from BSID start node.
-	TrainEvent TrainInfo;          // Train info for this EoA: position, speed, description
+								   // If reversed: measured from BSID end node. If forward: from BSID start node.
+	TrainEvent TrainInfo;		   // Train info for this EoA: position, speed, description
 
 	MovementAuthority();
 
@@ -349,8 +349,8 @@ public:
 // --- Signalling System Functions ---
 extern double S_delay; // Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep)
 
-extern list<string> BlocksOccupied;  // All blocks occupied by trains (directly occupied + connected)
-extern list<string> BlocksConnected; // Blocks connected to occupied blocks (released when train leaves)
+extern list<string> BlocksOccupied;		// All blocks occupied by trains (directly occupied + connected)
+extern list<string> BlocksConnected;	// Blocks connected to occupied blocks (released when train leaves)
 extern list<MovementAuthority> ETCS_MA; // Movement authorities provided by RBC where ETCS is active
 
 // Occupy a block section and all connected blocks
@@ -482,8 +482,8 @@ public:
 	void protectEntrance(int sectionIndex, int routeIndex, bool platformBooked);
 
 	Section* entrance; // Entrance section
-	bool direction;    // Direction to observe
-	Section* exit;     // Exit section (unused at end of lines)
+	bool direction;	   // Direction to observe
+	Section* exit;	   // Exit section (unused at end of lines)
 };
 
 extern std::vector<StationBoundarySection> stationBoundarySections;

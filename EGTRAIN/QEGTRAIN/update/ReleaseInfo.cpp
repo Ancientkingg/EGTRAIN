@@ -88,15 +88,18 @@ QString updatePlatformKey() {
 #if defined(Q_OS_MACOS)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("arm64") || architecture == QStringLiteral("aarch64")
-		? QStringLiteral("macos-arm64") : QString();
+		? QStringLiteral("macos-arm64")
+		: QString();
 #elif defined(Q_OS_WIN)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("x86_64") || architecture == QStringLiteral("amd64")
-		? QStringLiteral("windows-x64") : QString();
+		? QStringLiteral("windows-x64")
+		: QString();
 #elif defined(Q_OS_LINUX)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("x86_64") || architecture == QStringLiteral("amd64")
-		? QStringLiteral("linux-x86_64") : QString();
+		? QStringLiteral("linux-x86_64")
+		: QString();
 #else
 	return {};
 #endif
@@ -112,8 +115,7 @@ QString updateManifestAssetName() {
 
 bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url) {
 	return validHttpsGitHubUrl(url)
-		&& url.path() == QStringLiteral("/Ancientkingg/EGTRAIN/releases/download/%1/%2")
-			.arg(tag, name);
+		&& url.path() == QStringLiteral("/Ancientkingg/EGTRAIN/releases/download/%1/%2").arg(tag, name);
 }
 
 std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QString* error) {
@@ -238,5 +240,7 @@ bool isUpdateAvailable(const SemanticVersion& current, const StableRelease& rele
 
 QString formatSemanticVersion(const SemanticVersion& version) {
 	return QStringLiteral("%1.%2.%3")
-		.arg(version.major).arg(version.minor).arg(version.patch);
+		.arg(version.major)
+		.arg(version.minor)
+		.arg(version.patch);
 }

@@ -242,7 +242,7 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 	Arguments arguments;
 	if (!parseArguments(argc, argv, arguments)) {
 		std::cerr << "usage: egtrain_update_helper --parent-pid PID --current PATH "
-			"--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS]\n";
+					 "--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS]\n";
 		return 2;
 	}
 	std::error_code workingDirectoryError;

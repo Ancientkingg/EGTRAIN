@@ -73,7 +73,7 @@ std::optional<QString> macBundleVersion(const QString& bundlePath) {
 	if (!QDir().mkpath(extract))
 		return {};
 	if (!runProcess(QStringLiteral("/usr/bin/ditto"),
-		{QStringLiteral("-x"), QStringLiteral("-k"), input.packagePath, extract}, 60000, error))
+			{QStringLiteral("-x"), QStringLiteral("-k"), input.packagePath, extract}, 60000, error))
 		return {};
 	const QString source = QDir(extract).filePath(QStringLiteral("QEGTRAIN-Lebanon/QEGTRAIN.app"));
 	const QFileInfo app(source);
@@ -88,8 +88,8 @@ std::optional<QString> macBundleVersion(const QString& bundlePath) {
 	if (!runProcess(QStringLiteral("/usr/bin/ditto"), {source, stagedPath}, 60000, error))
 		return {};
 	if (!runProcess(QStringLiteral("/usr/bin/codesign"),
-		{QStringLiteral("--verify"), QStringLiteral("--deep"), QStringLiteral("--strict"), stagedPath},
-		60000, error))
+			{QStringLiteral("--verify"), QStringLiteral("--deep"), QStringLiteral("--strict"), stagedPath},
+			60000, error))
 		return {};
 	const std::optional<QString> version = macBundleVersion(stagedPath);
 	if (!version || *version != input.manifest.version) {
@@ -112,8 +112,8 @@ std::optional<QString> macBundleVersion(const QString& bundlePath) {
 		"$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:EGTRAIN_UPDATE_ZIP "
 		"-DestinationPath $env:EGTRAIN_UPDATE_DEST -Force");
 	if (!runProcess(QStringLiteral("powershell.exe"),
-		{QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"), QStringLiteral("-Command"), script},
-		60000, error, &environment))
+			{QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"), QStringLiteral("-Command"), script},
+			60000, error, &environment))
 		return {};
 	const QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
 	if (!WindowsStaging::buildStage(extract, stagedPath, input.manifest.files, error))

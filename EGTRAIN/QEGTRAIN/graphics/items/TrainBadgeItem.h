@@ -10,7 +10,9 @@
 
 class TrainBadgeItem : public QGraphicsItem {
 public:
-	enum class Presentation { Overview, Identity, Detailed };
+	enum class Presentation { Overview,
+		Identity,
+		Detailed };
 
 	TrainBadgeItem(QGraphicsItem* parent = nullptr);
 	void setIdentifier(const QString& identifier);
@@ -40,7 +42,8 @@ public:
 	static Presentation presentationForZoom(qreal zoom, bool promoted);
 	static qreal maximumWidth(Presentation presentation) {
 		return presentation == Presentation::Identity ? 88.0
-			: presentation == Presentation::Detailed ? 132.0 : 18.0;
+			: presentation == Presentation::Detailed  ? 132.0
+													  : 18.0;
 	}
 
 	QRectF badgeRect() const;

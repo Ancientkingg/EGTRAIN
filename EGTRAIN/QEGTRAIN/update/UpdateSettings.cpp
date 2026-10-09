@@ -11,7 +11,8 @@ UpdateCheckState readUpdateCheckState(const QSettings& settings) {
 	if (!settings.contains(QString::fromLatin1(kAutomaticUpdateChecksKey)))
 		return UpdateCheckState::Unknown;
 	return settings.value(QString::fromLatin1(kAutomaticUpdateChecksKey)).toBool()
-		? UpdateCheckState::Enabled : UpdateCheckState::Disabled;
+		? UpdateCheckState::Enabled
+		: UpdateCheckState::Disabled;
 }
 
 void writeUpdateCheckState(QSettings& settings, UpdateCheckState state) {

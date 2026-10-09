@@ -7,8 +7,8 @@
 #include <nlohmann/json.hpp>
 
 enum class SceneSeverity { Info,
-						   Warning,
-						   Error };
+	Warning,
+	Error };
 
 struct SceneDiagnostic {
 	SceneSeverity severity = SceneSeverity::Error;

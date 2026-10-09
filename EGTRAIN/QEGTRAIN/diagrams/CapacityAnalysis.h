@@ -65,8 +65,8 @@ struct CapacityCriticalBlock {
 };
 
 struct CapacityAnalysisResult {
-	std::vector<CapacityPairRow> pairs;      // Adjacent rows in supplied order.
-	std::vector<CapacityPairRow> allPairs;   // Every earlier/later constraint.
+	std::vector<CapacityPairRow> pairs;	   // Adjacent rows in supplied order.
+	std::vector<CapacityPairRow> allPairs; // Every earlier/later constraint.
 	std::vector<CapacityCompressionRow> compression;
 	std::vector<std::vector<BlockingTimeDiagramInput>> compressedOccupations;
 	std::vector<std::string> trainIdentities;
@@ -85,6 +85,6 @@ struct CapacityAnalysisResult {
 // Ordered, deterministic capacity chain for one explicit sequence. Inputs are
 // copied; neither train occupations nor canonical timetable data are changed.
 CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>& trains,
-	 double periodSeconds = -1.0, const std::string& cycleEndIdentity = {});
+	double periodSeconds = -1.0, const std::string& cycleEndIdentity = {});
 
 #endif // CAPACITYANALYSIS_H

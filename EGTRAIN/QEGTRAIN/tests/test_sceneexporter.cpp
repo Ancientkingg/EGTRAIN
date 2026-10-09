@@ -28,8 +28,7 @@ struct TempDir {
 	TempDir() {
 		static int counter = 0;
 		auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		fs::path temp = fs::temp_directory_path() /
-						("scene_exporter_test_" + std::to_string(stamp) + "_" + std::to_string(counter++));
+		fs::path temp = fs::temp_directory_path() / ("scene_exporter_test_" + std::to_string(stamp) + "_" + std::to_string(counter++));
 		fs::create_directories(temp);
 		dir = temp.string();
 	}
@@ -85,7 +84,7 @@ int main() {
 		ok &= expect(line == "st\t0\t-1\t0", "nonempty stops export despite historical through flag, retaining absent arrival");
 		ok &= expect(fs::exists(fs::path(outDir.dir) / "TimeTable" / "empty.txt")
 				&& fs::file_size(fs::path(outDir.dir) / "TimeTable" / "empty.txt") == 0,
-				"zero stops export as an empty legacy timetable without a flag");
+			"zero stops export as an empty legacy timetable without a flag");
 	}
 
 	// 7b. A service display colour has no place in the legacy format and is left out of the export.
@@ -138,7 +137,7 @@ int main() {
 			<< "\n";
 		std::ofstream services(scene / "services.json");
 		services << R"({"services":[{"id":"svc","composition":"comp","route":")" << nonAsciiRouteId
-			 << R"(","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})" << "\n";
+				 << R"(","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})" << "\n";
 		services.close();
 
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
@@ -385,7 +384,7 @@ int main() {
 			std::string line;
 			std::getline(sc, line);
 			ok &= expect(line == "C\t1\t0.64000000000000001\t1\t100",
-						 ("Mirrored C listed first still maps to lon 0.64: " + line).c_str());
+				("Mirrored C listed first still maps to lon 0.64: " + line).c_str());
 		}
 	}
 
@@ -443,19 +442,19 @@ int main() {
 			std::getline(inf, l5);
 			std::getline(inf, l6);
 			ok &= expect(l1 == "signal_failure\t0-B0\t100\t300",
-					("Bound signal exports its protected legacy block: " + l1).c_str());
+				("Bound signal exports its protected legacy block: " + l1).c_str());
 			ok &= expect(l2 == "signal_failure\t0-B0\t301\t302",
-					("Direct canonical block target remains supported: " + l2).c_str());
+				("Direct canonical block target remains supported: " + l2).c_str());
 			ok &= expect(l3 == "signal_failure\t1-B0\t303\t304",
-					("Legacy export maps the exact slash-containing block reference: " + l3).c_str());
+				("Legacy export maps the exact slash-containing block reference: " + l3).c_str());
 			ok &= expect(l4 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l4).c_str());
 			ok &= expect(l5 == "train_breakdown\tlegacy-svc\t25\t35",
-					("Breakdown uses the active operating code: " + l5).c_str());
+				("Breakdown uses the active operating code: " + l5).c_str());
 			ok &= expect(l6.empty(), "Non-default scenario incident is not exported");
 		}
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning),
-				"Connection-derived signal target reports the legacy format limit");
+			"Connection-derived signal target reports the legacy format limit");
 
 		std::ofstream(scene / "signalling.json")
 			<< R"({"signals":[{"id":"canonical-block","protected_section":"canonical-other"}],"routes":[{"id":"route0","blocks":["canonical-block","canonical-other"]}]})"
@@ -467,7 +466,7 @@ int main() {
 		auto ambiguous = exportLegacyScene(sceneDir.dir, ambiguousOut.dir);
 		ok &= expect(!ambiguous.success(), "Ambiguous incident export fails");
 		ok &= expect(hasDiag(ambiguous.diagnostics, "scene.ref.ambiguous"),
-				"Ambiguous signal and section target is diagnosed during export");
+			"Ambiguous signal and section target is diagnosed during export");
 		std::ifstream ambiguousIncidents(fs::path(ambiguousOut.dir) / "Incidents.txt");
 		std::string ambiguousLine;
 		std::getline(ambiguousIncidents, ambiguousLine);
@@ -591,7 +590,7 @@ int main() {
 		std::ifstream restriction(fs::path(outDir.dir) / "GUI" / "singleTrackLimits.txt");
 		std::getline(restriction, line);
 		ok &= expect(line == "@0-B0@\t@0-B0@\t@0-B0@-1\t@0-B0@-2",
-				"Restriction uses the generated legacy block ID");
+			"Restriction uses the generated legacy block ID");
 		std::ifstream boundary(fs::path(outDir.dir) / "GUI" / "stationBoundarySections.txt");
 		std::getline(boundary, line);
 		ok &= expect(line == "@0-B0@\t@0-B0@\t1", "Boundary uses the generated legacy block ID");

@@ -66,7 +66,7 @@ protected:
 		if (m_entry.kind == NetworkLegendEntryKind::Train) {
 			QPolygonF body;
 			body << QPointF(4, 5) << QPointF(38, 5) << QPointF(43, 9)
-				<< QPointF(38, 13) << QPointF(4, 13);
+				 << QPointF(38, 13) << QPointF(4, 13);
 			painter.setPen(QPen(m_entry.outlineColor, 1.2));
 			painter.setBrush(m_entry.color);
 			painter.drawPolygon(body);

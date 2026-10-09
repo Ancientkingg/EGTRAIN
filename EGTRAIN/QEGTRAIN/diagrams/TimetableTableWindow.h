@@ -21,9 +21,9 @@ class TimetableTableWindow : public QDialog {
 	Q_OBJECT
 public:
 	TimetableTableWindow(std::vector<TimetableResultRow> rows,
-						 long long startOffsetSeconds,
-						 std::function<std::string(const QStringList&)> csvProvider,
-						 QWidget* parent = nullptr);
+		long long startOffsetSeconds,
+		std::function<std::string(const QStringList&)> csvProvider,
+		QWidget* parent = nullptr);
 	void setRunProvenance(RunProvenance provenance);
 	void setPresentation(const QString& heading, const QString& context);
 

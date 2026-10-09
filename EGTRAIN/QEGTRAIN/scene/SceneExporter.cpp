@@ -36,7 +36,7 @@ static bool isPositionedRouteEndpoint(const std::string& token) {
 	size_t first = token.find('@');
 	size_t last = token.rfind('@');
 	if (first != 0 || last == std::string::npos || first == last
-			|| last + 2 >= token.length() || token[last + 1] != '-')
+		|| last + 2 >= token.length() || token[last + 1] != '-')
 		return false;
 	std::string position = token.substr(last + 2);
 	size_t i = 0;
@@ -77,7 +77,7 @@ static std::unordered_map<std::string, std::string> buildLegacyTrackIds(const Sc
 	std::unordered_set<std::string> used;
 	for (const auto& track : scene.tracks) {
 		if (track.id.size() > 1 && track.id.front() == 'B'
-				&& std::all_of(track.id.begin() + 1, track.id.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+			&& std::all_of(track.id.begin() + 1, track.id.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
 			used.insert(track.id);
 	}
 
@@ -86,7 +86,7 @@ static std::unordered_map<std::string, std::string> buildLegacyTrackIds(const Sc
 	for (const auto& track : scene.tracks) {
 		std::string id = track.id;
 		if (id.size() < 2 || id.front() != 'B'
-				|| !std::all_of(id.begin() + 1, id.end(), [](unsigned char c) { return std::isdigit(c) != 0; })) {
+			|| !std::all_of(id.begin() + 1, id.end(), [](unsigned char c) { return std::isdigit(c) != 0; })) {
 			do id = "B" + std::to_string(fallback++);
 			while (used.count(id) != 0);
 			used.insert(id);
@@ -97,7 +97,7 @@ static std::unordered_map<std::string, std::string> buildLegacyTrackIds(const Sc
 }
 
 static std::unordered_map<std::string, std::string> buildLegacyBlockIds(const SceneModel& scene,
-		const std::unordered_map<std::string, std::string>& trackIds) {
+	const std::unordered_map<std::string, std::string>& trackIds) {
 	std::unordered_map<std::string, std::string> ids;
 	for (const auto& track : scene.tracks) {
 		std::size_t index = 0;
@@ -110,7 +110,7 @@ static std::unordered_map<std::string, std::string> buildLegacyBlockIds(const Sc
 }
 
 static std::string mapLegacyBlockReference(const std::string& reference,
-		const std::unordered_map<std::string, std::string>& blockIds) {
+	const std::unordered_map<std::string, std::string>& blockIds) {
 	const auto direct = blockIds.find(reference);
 	if (direct != blockIds.end())
 		return direct->second;
@@ -120,7 +120,7 @@ static std::string mapLegacyBlockReference(const std::string& reference,
 	while (begin <= reference.size()) {
 		const std::size_t slash = reference.find('/', begin);
 		std::string part = reference.substr(begin,
-				slash == std::string::npos ? std::string::npos : slash - begin);
+			slash == std::string::npos ? std::string::npos : slash - begin);
 		std::size_t idBegin = 0;
 		std::size_t idEnd = part.find('@');
 		if (!part.empty() && part.front() == '@') {
@@ -201,7 +201,7 @@ static void synthesizeSignallingAreas(const std::string& outDir, SceneExportResu
 }
 
 static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std::string& outDir,
-		const std::unordered_map<std::string, std::string>& outputTracks, SceneExportResult& result) {
+	const std::unordered_map<std::string, std::string>& outputTracks, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
 		d.severity = sev;
@@ -251,7 +251,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 		fs::create_directories(trackDir, ec);
 		if (ec) {
 			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to create trackline directory: " + ec.message(),
-					trackDir.string());
+				trackDir.string());
 			result.wroteAll = false;
 			continue;
 		}
@@ -312,7 +312,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 
 	auto trackNumber = [](const std::string& track) {
 		if (track.size() > 1 && track.front() == 'B'
-				&& std::all_of(track.begin() + 1, track.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+			&& std::all_of(track.begin() + 1, track.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
 			return track.substr(1);
 		return track;
 	};
@@ -321,7 +321,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 	fs::create_directories(tracklinesDir, ec);
 	if (ec) {
 		addDiag(SceneSeverity::Error, "scene.export.write", "Failed to create TrackLines directory: " + ec.message(),
-				tracklinesDir.string());
+			tracklinesDir.string());
 		result.wroteAll = false;
 		return;
 	}
@@ -423,8 +423,8 @@ static bool passengerWindowToken(double start, double end, std::string& token) {
 }
 
 static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std::string& outDir,
-		const std::unordered_map<std::string, int>& routeIndices,
-		const std::unordered_map<std::string, std::string>& blockIds, SceneExportResult& result) {
+	const std::unordered_map<std::string, int>& routeIndices,
+	const std::unordered_map<std::string, std::string>& blockIds, SceneExportResult& result) {
 	auto addError = [&](const std::string& code, const std::string& message, const std::string& file = "") {
 		SceneDiagnostic d;
 		d.severity = SceneSeverity::Error;
@@ -479,31 +479,25 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 		}
 		corridorRows.emplace_back(routeIt->second, route.corridor);
 	}
-	writeIfMissing(fs::path(outDir) / "GUI" / "caseStudyRouteCorridors.txt",
-			[&](std::ofstream& out) {
+	writeIfMissing(fs::path(outDir) / "GUI" / "caseStudyRouteCorridors.txt", [&](std::ofstream& out) {
 				for (const auto& row : corridorRows)
-					out << row.first << "\t" << row.second << "\n";
-			}, !corridorRows.empty());
+					out << row.first << "\t" << row.second << "\n"; }, !corridorRows.empty());
 
-	writeIfMissing(fs::path(outDir) / "GUI" / "singleTrackLimits.txt",
-			[&](std::ofstream& out) {
+	writeIfMissing(fs::path(outDir) / "GUI" / "singleTrackLimits.txt", [&](std::ofstream& out) {
 				for (const auto& restriction : scene.singleTrackRestrictions) {
 					out << legacyBoundaryToken(mapLegacyBlockReference(restriction.startBlock, blockIds)) << "\t"
 						<< legacyBoundaryToken(mapLegacyBlockReference(restriction.endBlock, blockIds)) << "\t"
 						<< mapLegacyBlockReference(restriction.protectedStartBlock, blockIds) << "\t"
 						<< mapLegacyBlockReference(restriction.protectedEndBlock, blockIds) << "\n";
-				}
-			}, !scene.singleTrackRestrictions.empty());
+				} }, !scene.singleTrackRestrictions.empty());
 
-	writeIfMissing(fs::path(outDir) / "GUI" / "stationBoundarySections.txt",
-			[&](std::ofstream& out) {
+	writeIfMissing(fs::path(outDir) / "GUI" / "stationBoundarySections.txt", [&](std::ofstream& out) {
 				for (const auto& boundary : scene.stationBoundaries) {
 					out << legacyBoundaryToken(mapLegacyBlockReference(boundary.entranceBlock, blockIds)) << "\t";
 					if (boundary.hasExitBlock)
 						out << legacyBoundaryToken(mapLegacyBlockReference(boundary.exitBlock, blockIds));
 					out << "\t" << (boundary.direction ? 1 : 0) << "\n";
-				}
-			}, !scene.stationBoundaries.empty());
+				} }, !scene.stationBoundaries.empty());
 
 	if (scene.passengers.empty())
 		return;
@@ -514,14 +508,14 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 	const bool hasRouteChoice = fs::exists(routeChoicePath, routeChoiceEc);
 	if (dasEc || routeChoiceEc) {
 		addWriteError("Could not inspect legacy passenger compatibility files",
-				(dasEc ? dasPath : routeChoicePath).string());
+			(dasEc ? dasPath : routeChoicePath).string());
 		return;
 	}
 	if (hasDas && hasRouteChoice)
 		return;
 	if (hasDas != hasRouteChoice) {
 		addUnsupported("Existing legacy passenger data is missing its paired CSV",
-				(hasDas ? routeChoicePath : dasPath).string());
+			(hasDas ? routeChoicePath : dasPath).string());
 		return;
 	}
 
@@ -550,10 +544,14 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 	bool valid = true;
 	std::size_t tripNo = 1;
 	for (const auto& passenger : scene.passengers) {
-		if (passenger.id.empty() || passenger.id.find_first_of(",\r\n") != std::string::npos)
-			{ addUnsupported("Passenger id cannot be represented in legacy CSV", "passengers.json"); valid = false; }
-		if (!passengerIds.insert(passenger.id).second)
-			{ addUnsupported("Duplicate passenger id cannot be represented in legacy CSV: " + passenger.id, "passengers.json"); valid = false; }
+		if (passenger.id.empty() || passenger.id.find_first_of(",\r\n") != std::string::npos) {
+			addUnsupported("Passenger id cannot be represented in legacy CSV", "passengers.json");
+			valid = false;
+		}
+		if (!passengerIds.insert(passenger.id).second) {
+			addUnsupported("Duplicate passenger id cannot be represented in legacy CSV: " + passenger.id, "passengers.json");
+			valid = false;
+		}
 		if (passenger.journeys.empty()) {
 			addUnsupported("Passenger has no journeys and cannot be represented in legacy CSV: " + passenger.id, "passengers.json");
 			valid = false;
@@ -574,8 +572,8 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 			const std::string origin = legacyStationName(scene, journey.originStationId);
 			const std::string destination = legacyStationName(scene, journey.destinationStationId);
 			if (journey.activity.find_first_of(",\r\n") != std::string::npos
-					|| origin.find_first_of(",\r\n") != std::string::npos
-					|| destination.find_first_of(",\r\n") != std::string::npos) {
+				|| origin.find_first_of(",\r\n") != std::string::npos
+				|| destination.find_first_of(",\r\n") != std::string::npos) {
 				addUnsupported("Passenger CSV field contains a comma or newline: " + journey.id, "passengers.json");
 				valid = false;
 			}
@@ -589,8 +587,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 				addUnsupported("Passenger departure window is not representable by legacy DAS buckets: " + journey.id, "passengers.json");
 				valid = false;
 			}
-			dasRows.push_back({{
-				std::to_string(tripNo++), passenger.id, "1", journey.activity, suffix, journey.activity,
+			dasRows.push_back({{std::to_string(tripNo++), passenger.id, "1", journey.activity, suffix, journey.activity,
 				destination, "", "PT", "TRUE", arrivalToken, "", origin, "", departureToken, "1"}});
 
 			const auto groupKey = std::make_pair(passenger.id, destination);
@@ -612,7 +609,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 				const std::string legOrigin = legacyStationName(scene, leg.originStationId);
 				const std::string legDestination = legacyStationName(scene, leg.destinationStationId);
 				if (legOrigin.find_first_of(",\r\n") != std::string::npos
-						|| legDestination.find_first_of(",\r\n") != std::string::npos) {
+					|| legDestination.find_first_of(",\r\n") != std::string::npos) {
 					addUnsupported("Passenger CSV field contains a comma or newline: " + journey.id, "passengers.json");
 					valid = false;
 				}
@@ -650,8 +647,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 			for (std::size_t i = 0; i < row.fields.size(); ++i)
 				out << (i == 0 ? "" : ",") << row.fields[i];
 			out << "\n";
-		}
-	}, true);
+		} }, true);
 	writeIfMissing(routeChoicePath, [&](std::ofstream& out) {
 		out << "person_id,destination,nb_transfers";
 		for (std::size_t i = 0; i < maxTransfers; ++i)
@@ -666,8 +662,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 			for (std::size_t i = 0; i < maxLegs; ++i)
 				out << "," << (i < row.services.size() ? row.services[i] : "Null");
 			out << "\n";
-		}
-	}, true);
+		} }, true);
 }
 
 static void synthesizeGuiLayout(const std::string& outDir, SceneExportResult& result) {
@@ -945,7 +940,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	if (conforming != scene.routes.size()) {
 		if (conforming > 0) {
 			addDiag(SceneSeverity::Error, "scene.export.unsupported",
-					"Route ids mix the route<N> pattern with other names; rename them consistently", "signalling.json");
+				"Route ids mix the route<N> pattern with other names; rename them consistently", "signalling.json");
 			return result;
 		}
 		routeIndices.clear();
@@ -992,7 +987,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 		if (fname != sFile + ".txt") {
 			addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-					"Service file name collided after sanitizing; using " + fname, svc.id);
+				"Service file name collided after sanitizing; using " + fname, svc.id);
 		}
 		trainFiles.push_back(fname);
 
@@ -1144,34 +1139,35 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			for (const auto& inc : incidents) {
 				if (inc.type != "signal_failure" && inc.type != "train_breakdown") {
 					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-							"Incident type " + inc.type + " is not supported and was skipped", inc.id);
+						"Incident type " + inc.type + " is not supported and was skipped", inc.id);
 					continue;
 				}
 				if (inc.type == "train_breakdown"
-						&& (inc.hasOccurrence || inc.occurrence != 1
-							|| inc.hasReducedSpeed || inc.reducedSpeedKmh != 0.0
-							|| inc.terminateAtDestination
-							|| (!inc.hasEndSeconds && inc.endSeconds == 0.0))) {
+					&& (inc.hasOccurrence || inc.occurrence != 1
+						|| inc.hasReducedSpeed || inc.reducedSpeedKmh != 0.0
+						|| inc.terminateAtDestination
+						|| (!inc.hasEndSeconds && inc.endSeconds == 0.0))) {
 					addDiag(SceneSeverity::Warning, "scene.export.compatibility",
-							"Enhanced breakdown " + inc.id + " was skipped because the legacy four-column exporter cannot represent its occurrence, speed, recovery, or destination semantics",
-							inc.id);
+						"Enhanced breakdown " + inc.id + " was skipped because the legacy four-column exporter cannot represent its occurrence, speed, recovery, or destination semantics",
+						inc.id);
 					continue;
 				}
 				std::string target = inc.target;
 				if (inc.type == "signal_failure") {
 					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
-							[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
+						[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
 					if (signal != scene.signals.end() && sectionInventory.resolve(inc.target) != nullptr) {
 						addDiag(SceneSeverity::Error, "scene.ref.ambiguous",
-								"Signal failure target matches both a signal and a section", inc.id);
+							"Signal failure target matches both a signal and a section", inc.id);
 						continue;
 					}
 					if (signal != scene.signals.end() && !signal->protectedSection.empty())
 						target = signal->protectedSection;
 					const bool wrappedReference = target.size() > 2
-							&& target.front() == '@' && target.back() == '@';
+						&& target.front() == '@' && target.back() == '@';
 					const std::string unwrapped = wrappedReference
-							? target.substr(1, target.size() - 2) : std::string();
+						? target.substr(1, target.size() - 2)
+						: std::string();
 					bool exactBaseBlock = legacyBlockIds.find(target) != legacyBlockIds.end();
 					if (!exactBaseBlock && wrappedReference) {
 						if (legacyBlockIds.find(unwrapped) != legacyBlockIds.end()) {
@@ -1181,23 +1177,23 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 					}
 					if (!exactBaseBlock && target.find('/') != std::string::npos) {
 						addDiag(SceneSeverity::Warning, "scene.export.compatibility",
-								"Signal failure " + inc.id + " was skipped because legacy incidents cannot target compound sections",
-								inc.id);
+							"Signal failure " + inc.id + " was skipped because legacy incidents cannot target compound sections",
+							inc.id);
 						continue;
 					}
 					if (!exactBaseBlock && wrappedReference)
 						target = unwrapped;
 					const bool routeContainsTarget = routeBlockTokens.find(target) != routeBlockTokens.end()
-							|| routeBlockTokens.find("@" + target + "@") != routeBlockTokens.end();
+						|| routeBlockTokens.find("@" + target + "@") != routeBlockTokens.end();
 					if (!routeContainsTarget)
 						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-								"Signal failure target " + target + " matches no route block so the failure will have no effect", inc.id);
+							"Signal failure target " + target + " matches no route block so the failure will have no effect", inc.id);
 					target = mapLegacyBlockReference(target, legacyBlockIds);
 				} else if (inc.type == "train_breakdown") {
 					const auto service = serviceOperatingCodes.find(inc.target);
 					if (service == serviceOperatingCodes.end()) {
 						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-								"Service id " + inc.target + " matches no service so the breakdown will have no effect", inc.id);
+							"Service id " + inc.target + " matches no service so the breakdown will have no effect", inc.id);
 					} else {
 						target = service->second;
 					}

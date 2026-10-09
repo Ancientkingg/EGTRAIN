@@ -10,7 +10,7 @@ nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timeste
 		if (!passenger.IsIntheNetwork)
 			continue;
 		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
-				[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
+			[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
 		if (journey == passenger.Journeys.end())
 			continue;
 		payload["passengers"][passenger.ID + "--1.0"] = {

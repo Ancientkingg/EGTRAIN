@@ -24,8 +24,7 @@ static bool expect(bool condition, const char* message) {
 struct TempDir {
 	fs::path path;
 	TempDir() {
-		path = fs::temp_directory_path() / ("scene_compatibility_test_"
-				+ std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+		path = fs::temp_directory_path() / ("scene_compatibility_test_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
 		fs::create_directories(path);
 	}
 	~TempDir() {
@@ -49,24 +48,25 @@ static bool writeNewerBundle(const fs::path& path, const char* unsafeName = null
 	if (!mz_zip_writer_init_file(&writer, path.string().c_str(), 0))
 		return false;
 	const std::string manifest = json({{"format", "egscene"},
-		{"bundle_version", kCurrentSceneBundleVersion + 1},
-		{"schema_version", kCurrentSceneSchemaVersion}}).dump();
+										  {"bundle_version", kCurrentSceneBundleVersion + 1},
+										  {"schema_version", kCurrentSceneSchemaVersion}})
+									 .dump();
 	const char* futureName = unsafeName ? unsafeName : "future-layout.json";
 	bool ok = mz_zip_writer_add_mem(&writer, "scene.json", manifest.data(), manifest.size(), MZ_BEST_COMPRESSION)
-			&& mz_zip_writer_add_mem(&writer, futureName, "future", 6, MZ_BEST_COMPRESSION)
-			&& mz_zip_writer_finalize_archive(&writer);
+		&& mz_zip_writer_add_mem(&writer, futureName, "future", 6, MZ_BEST_COMPRESSION)
+		&& mz_zip_writer_finalize_archive(&writer);
 	ok = mz_zip_writer_end(&writer) && ok;
 	return ok;
 }
 
 static bool writeBundleVersion(const fs::path& path, const fs::path& source, const json& bundleVersion,
-		const json& schemaVersion = json()) {
+	const json& schemaVersion = json()) {
 	mz_zip_archive writer{};
 	if (!mz_zip_writer_init_file(&writer, path.string().c_str(), 0))
 		return false;
 	bool ok = true;
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json",
-			"signalling.json", "rolling_stock.json", "services.json", "scenarios.json"}) {
+			 "signalling.json", "rolling_stock.json", "services.json", "scenarios.json"}) {
 		std::ifstream input(source / name, std::ios::binary);
 		std::string contents((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 		if (!input)
@@ -114,9 +114,9 @@ int main(int argc, char** argv) {
 	ok &= expect(saveScene(loaded.scene, source.string()).success(), "fixture scene saves");
 	const SceneCompatibilityProbeResult current = probeSceneCompatibility(source.string());
 	ok &= expect(current.classification == SceneCompatibilityClass::Current,
-			"current directory is current");
+		"current directory is current");
 	ok &= expect(current.savedWithAppVersion == EGTRAIN_APP_VERSION,
-			"saved-with provenance is reported");
+		"saved-with provenance is reported");
 	json manifest;
 	{
 		std::ifstream input(source / "scene.json");
@@ -129,46 +129,47 @@ int main(int argc, char** argv) {
 	}
 	const SceneCompatibilityProbeResult withoutProvenance = probeSceneCompatibility(source.string());
 	ok &= expect(withoutProvenance.classification == SceneCompatibilityClass::Current
-			&& withoutProvenance.savedWithAppVersion.empty(), "missing provenance remains valid");
+			&& withoutProvenance.savedWithAppVersion.empty(),
+		"missing provenance remains valid");
 	ok &= expect(writeManifest(source, 0), "older fixture writes");
 	const SceneCompatibilityProbeResult older = probeSceneCompatibility(source.string());
 	ok &= expect(older.classification == SceneCompatibilityClass::OlderUnsupported,
-			"empty production registry rejects older schema");
+		"empty production registry rejects older schema");
 	ok &= expect(writeManifest(source, kCurrentSceneSchemaVersion + 1), "newer fixture writes");
 	const SceneCompatibilityProbeResult newer = probeSceneCompatibility(source.string());
 	ok &= expect(newer.classification == SceneCompatibilityClass::Newer, "newer schema is reported");
 	const long long wrapsToCurrent = (1LL << 32) + kCurrentSceneSchemaVersion;
 	for (const json& badVersion : {json(wrapsToCurrent), json(static_cast<long long>(INT_MAX) + 1),
-			json(1.5), json("1"), json(18446744073709551615ULL)}) {
+			 json(1.5), json("1"), json(18446744073709551615ULL)}) {
 		ok &= expect(writeManifest(source, badVersion), "out-of-range schema fixture writes");
 		const SceneCompatibilityProbeResult badProbe = probeSceneCompatibility(source.string());
 		ok &= expect(badProbe.classification == SceneCompatibilityClass::Malformed
 				&& !badProbe.diagnostics.empty()
 				&& badProbe.diagnostics.front().code == "scene.compatibility.schema"
 				&& badProbe.diagnostics.front().file == "scene.json",
-				"schema_version outside the int range or not an integer is rejected");
+			"schema_version outside the int range or not an integer is rejected");
 	}
 	ok &= expect(writeManifest(source, INT_MAX), "int limit schema fixture writes");
 	ok &= expect(probeSceneCompatibility(source.string()).classification == SceneCompatibilityClass::Newer,
-			"schema_version at the int limit is still read");
+		"schema_version at the int limit is still read");
 	ok &= expect(writeManifest(source, -1), "negative schema fixture writes");
 	ok &= expect(probeSceneCompatibility(source.string()).classification
-			== SceneCompatibilityClass::OlderUnsupported, "negative schema_version is read as older");
+			== SceneCompatibilityClass::OlderUnsupported,
+		"negative schema_version is read as older");
 	{
 		std::ofstream output(source / "scene.json", std::ios::binary | std::ios::trunc);
 		output << "not json\n";
 	}
 	const SceneCompatibilityProbeResult malformed = probeSceneCompatibility(source.string());
 	ok &= expect(malformed.classification == SceneCompatibilityClass::Malformed,
-			"malformed manifest is reported");
+		"malformed manifest is reported");
 
 	const fs::path migrationSource = temp.path / "migration-source";
 	ok &= expect(saveScene(loaded.scene, migrationSource.string()).success(), "migration source saves");
 	ok &= expect(writeManifest(migrationSource, 0), "test-only migration fixture writes");
 	const std::string originalMigrationBytes = readSceneDirectorySnapshot(migrationSource.string()).bytes;
 	SceneMigrationRegistry registry;
-	registry.addSchemaStep(SceneMigrationStep(0, kCurrentSceneSchemaVersion,
-		[](const fs::path& staged, std::vector<SceneDiagnostic>& diagnostics) {
+	registry.addSchemaStep(SceneMigrationStep(0, kCurrentSceneSchemaVersion, [](const fs::path& staged, std::vector<SceneDiagnostic>& diagnostics) {
 			std::ifstream input(staged / "scene.json");
 			json value;
 			try {
@@ -184,25 +185,24 @@ int main(int argc, char** argv) {
 			value["schema_version"] = kCurrentSceneSchemaVersion;
 			std::ofstream output(staged / "scene.json", std::ios::binary | std::ios::trunc);
 			output << value.dump(4) << "\n";
-			return static_cast<bool>(output);
-		}, "test-only-step-zero-to-one"));
+			return static_cast<bool>(output); }, "test-only-step-zero-to-one"));
 	const SceneCompatibilityProbeResult migratable = probeSceneCompatibility(migrationSource.string(), registry);
 	ok &= expect(migratable.classification == SceneCompatibilityClass::OlderMigratable,
-			"registered schema chain is migratable");
+		"registered schema chain is migratable");
 	const fs::path destination = temp.path / "upgraded";
 	const SceneMigrationResult migrated = migrateSceneCopy(migrationSource.string(), destination.string(), registry);
 	ok &= expect(migrated.success() && fs::is_directory(destination), "migration publishes a copy");
 	ok &= expect(readSceneDirectorySnapshot(migrationSource.string()).bytes == originalMigrationBytes,
-			"successful migration leaves source bytes unchanged");
+		"successful migration leaves source bytes unchanged");
 	const fs::path failedDestination = temp.path / "failed-upgrade";
 	SceneMigrationRegistry failingRegistry;
 	failingRegistry.addSchemaStep(SceneMigrationStep(0, kCurrentSceneSchemaVersion,
 		[](const fs::path&, std::vector<SceneDiagnostic>&) { return false; }));
 	const SceneMigrationResult failed = migrateSceneCopy(migrationSource.string(), failedDestination.string(), failingRegistry);
 	ok &= expect(!failed.success() && !failed.diagnostics.empty() && !fs::exists(failedDestination),
-			"failed migration leaves no destination");
+		"failed migration leaves no destination");
 	ok &= expect(readSceneDirectorySnapshot(migrationSource.string()).bytes == originalMigrationBytes,
-			"failed migration leaves source bytes unchanged");
+		"failed migration leaves source bytes unchanged");
 	const fs::path existingDestination = temp.path / "existing-upgrade";
 	fs::create_directories(existingDestination);
 	const fs::path existingMarker = existingDestination / "keep.txt";
@@ -221,21 +221,17 @@ int main(int argc, char** argv) {
 		marker << "1";
 	}
 	SceneMigrationRegistry chainRegistry;
-	chainRegistry.addSchemaStep(SceneMigrationStep(1, 2,
-		[](const fs::path& staged, std::vector<SceneDiagnostic>&) {
+	chainRegistry.addSchemaStep(SceneMigrationStep(1, 2, [](const fs::path& staged, std::vector<SceneDiagnostic>&) {
 			std::ofstream output(staged / "chain.txt", std::ios::app);
 			output << "2";
-			return static_cast<bool>(output);
-		}, "test-only-chain-1-to-2"));
-	chainRegistry.addSchemaStep(SceneMigrationStep(2, 3,
-		[](const fs::path& staged, std::vector<SceneDiagnostic>&) {
+			return static_cast<bool>(output); }, "test-only-chain-1-to-2"));
+	chainRegistry.addSchemaStep(SceneMigrationStep(2, 3, [](const fs::path& staged, std::vector<SceneDiagnostic>&) {
 			std::ofstream output(staged / "chain.txt", std::ios::app);
 			output << "3";
-			return static_cast<bool>(output);
-		}, "test-only-chain-2-to-3"));
+			return static_cast<bool>(output); }, "test-only-chain-2-to-3"));
 	std::vector<SceneDiagnostic> chainDiagnostics;
 	ok &= expect(applySceneMigrationChain(chainRegistry, SceneMigrationStepKind::Schema,
-			1, 3, chainStage, chainDiagnostics)
+					 1, 3, chainStage, chainDiagnostics)
 			&& readFileBytes(chainStage / "chain.txt") == "123",
 		"test-only migration chain applies 1 to 2 to 3");
 	SceneMigrationRegistry branchingRegistry;
@@ -253,11 +249,11 @@ int main(int argc, char** argv) {
 	const SceneCompatibilityProbeResult bundled = probeSceneCompatibility(bundle.string());
 	ok &= expect(bundled.classification == SceneCompatibilityClass::Current
 			&& bundled.bundleVersion && *bundled.bundleVersion == kCurrentSceneBundleVersion,
-			"current bundle reports its actual version");
+		"current bundle reports its actual version");
 	const SceneLoadResult loadedBundle = loadScenePath(bundle.string());
 	ok &= expect(!hasErrors(loadedBundle.diagnostics) && loadedBundle.bundleVersion
 			&& *loadedBundle.bundleVersion == kCurrentSceneBundleVersion,
-			"current bundle version propagates through the normal loader");
+		"current bundle version propagates through the normal loader");
 	const fs::path olderBundle = temp.path / "older.egscene";
 	const fs::path bundleSource = temp.path / "bundle-source";
 	ok &= expect(saveScene(loaded.scene, bundleSource.string()).success(), "bundle migration source saves");
@@ -267,7 +263,7 @@ int main(int argc, char** argv) {
 	ok &= expect(olderBundleProbe.classification == SceneCompatibilityClass::OlderUnsupported
 			&& olderBundleProbe.schemaVersion == kCurrentSceneSchemaVersion
 			&& olderBundleProbe.bundleVersion && *olderBundleProbe.bundleVersion == kCurrentSceneBundleVersion - 1,
-			"older bundle is independent from current schema support");
+		"older bundle is independent from current schema support");
 	SceneMigrationRegistry bundleRegistry;
 	bundleRegistry.addBundleStep(SceneMigrationStep(
 		kCurrentSceneBundleVersion - 1, kCurrentSceneBundleVersion,
@@ -285,37 +281,38 @@ int main(int argc, char** argv) {
 	const SceneCompatibilityProbeResult upgradedBundleProbe = probeSceneCompatibility(upgradedBundle.string());
 	ok &= expect(migratedBundle.success() && upgradedBundleProbe.classification == SceneCompatibilityClass::Current
 			&& upgradedBundleProbe.bundleVersion && *upgradedBundleProbe.bundleVersion == kCurrentSceneBundleVersion,
-			"bundle-only migration repackages a current bundle");
+		"bundle-only migration repackages a current bundle");
 	ok &= expect(readFileBytes(olderBundle) == originalOlderBundleBytes,
-			"bundle migration leaves source bytes unchanged");
+		"bundle migration leaves source bytes unchanged");
 	const fs::path newerBundle = temp.path / "newer.egscene";
 	ok &= expect(writeNewerBundle(newerBundle), "newer bundle fixture writes");
 	const SceneCompatibilityProbeResult newerBundleProbe = probeSceneCompatibility(newerBundle.string());
 	ok &= expect(newerBundleProbe.classification == SceneCompatibilityClass::Newer,
-			"newer bundle layout is classified without extraction");
+		"newer bundle layout is classified without extraction");
 	const fs::path hostileNewerBundle = temp.path / "hostile-newer.egscene";
 	ok &= expect(writeNewerBundle(hostileNewerBundle, "../future.json"), "hostile newer bundle fixture writes");
 	const SceneCompatibilityProbeResult hostileProbe = probeSceneCompatibility(hostileNewerBundle.string());
 	ok &= expect(hostileProbe.classification == SceneCompatibilityClass::Malformed,
-			"newer bundle keeps generic ZIP path safety");
+		"newer bundle keeps generic ZIP path safety");
 	const fs::path hugeBundle = temp.path / "huge-version.egscene";
 	ok &= expect(writeBundleVersion(hugeBundle, bundleSource, (1LL << 32) + kCurrentSceneBundleVersion),
-			"oversized bundle version fixture writes");
+		"oversized bundle version fixture writes");
 	const SceneCompatibilityProbeResult hugeBundleProbe = probeSceneCompatibility(hugeBundle.string());
 	ok &= expect(hugeBundleProbe.classification == SceneCompatibilityClass::Malformed
 			&& !hugeBundleProbe.diagnostics.empty()
 			&& hugeBundleProbe.diagnostics.front().code == "scene.bundle.version",
-			"oversized bundle_version is rejected");
+		"oversized bundle_version is rejected");
 	ok &= expect(writeBundleVersion(hugeBundle, bundleSource, kCurrentSceneBundleVersion,
-			(1LL << 32) + kCurrentSceneSchemaVersion), "oversized bundle schema fixture writes");
+					 (1LL << 32) + kCurrentSceneSchemaVersion),
+		"oversized bundle schema fixture writes");
 	const SceneCompatibilityProbeResult hugeSchemaProbe = probeSceneCompatibility(hugeBundle.string());
 	ok &= expect(hugeSchemaProbe.classification == SceneCompatibilityClass::Malformed
 			&& !hugeSchemaProbe.diagnostics.empty()
 			&& hugeSchemaProbe.diagnostics.front().code == "scene.bundle.schema",
-			"oversized bundle schema_version is rejected");
+		"oversized bundle schema_version is rejected");
 	ok &= expect(productionSceneMigrationRegistry().schemaSteps().empty()
 			&& productionSceneMigrationRegistry().bundleSteps().empty(),
-			"production migration registry starts empty");
+		"production migration registry starts empty");
 
 	if (!ok)
 		return 1;

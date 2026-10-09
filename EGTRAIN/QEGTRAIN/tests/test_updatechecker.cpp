@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 	ok &= expect(readUpdateCheckState(settings) == UpdateCheckState::Enabled,
 		"automatic checking can be re-enabled");
 	ok &= expect(!shouldCheckForUpdates(UpdateCheckState::Disabled, false)
-		&& shouldCheckForUpdates(UpdateCheckState::Disabled, true),
+			&& shouldCheckForUpdates(UpdateCheckState::Disabled, true),
 		"manual checks remain available while automatic checks are disabled");
 	// Each variable alone suppresses update UI and network; the test starts from none of them set.
 	const char* const suppressing[] = {"QEGTRAIN_DISABLE_UPDATES", "QEGTRAIN_AUTOSTART",
@@ -82,11 +82,11 @@ int main(int argc, char** argv) {
 	ok &= expect(release && !isUpdateAvailable(release->version, *release), "same version is up to date");
 
 	for (const QByteArray& malformed : {QByteArray("not json"), QByteArray("{}"),
-		QByteArray("[{\"tag_name\":\"v1.0.0\",\"draft\":false,\"prerelease\":true}]"),
-		QByteArray("[{\"tag_name\":\"v1.0.0\",\"draft\":true,\"prerelease\":false}]"),
-		QByteArray("[{\"tag_name\":\"1.0.0\",\"draft\":false,\"prerelease\":false}]"),
-		QByteArray("[{\"tag_name\":\"v1.0\",\"draft\":false,\"prerelease\":false}]"),
-		QByteArray("[{\"tag_name\":\"v1.0.0\",\"draft\":false}]")}) {
+			 QByteArray("[{\"tag_name\":\"v1.0.0\",\"draft\":false,\"prerelease\":true}]"),
+			 QByteArray("[{\"tag_name\":\"v1.0.0\",\"draft\":true,\"prerelease\":false}]"),
+			 QByteArray("[{\"tag_name\":\"1.0.0\",\"draft\":false,\"prerelease\":false}]"),
+			 QByteArray("[{\"tag_name\":\"v1.0\",\"draft\":false,\"prerelease\":false}]"),
+			 QByteArray("[{\"tag_name\":\"v1.0.0\",\"draft\":false}]")}) {
 		ok &= expect(!parseLatestStableRelease(malformed), "invalid release is ignored");
 	}
 
@@ -99,9 +99,9 @@ int main(int argc, char** argv) {
 		"latest stable release is selected without package information");
 	const auto wrongPage = parseLatestStableRelease(
 		QByteArray("[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,"
-			"\"html_url\":\"https://example.com/phishing\"}]") );
+				   "\"html_url\":\"https://example.com/phishing\"}]"));
 	ok &= expect(wrongPage && wrongPage->releasePage.host() == QStringLiteral("github.com")
-		&& wrongPage->releasePage.path().startsWith(QStringLiteral("/Ancientkingg/EGTRAIN/")),
+			&& wrongPage->releasePage.path().startsWith(QStringLiteral("/Ancientkingg/EGTRAIN/")),
 		"release page is constrained to the expected GitHub repository");
 	const QByteArray packagedRelease = QByteArray(
 		"[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,"
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 		"{\"name\":\"untrusted.zip\",\"browser_download_url\":\"https://example.com/untrusted.zip\"}]}]");
 	const auto packaged = parseLatestStableRelease(packagedRelease);
 	ok &= expect(packaged && packaged->asset(updateManifestAssetName())
-		&& packaged->asset(updatePackageName(QStringLiteral("linux-x86_64"))),
+			&& packaged->asset(updatePackageName(QStringLiteral("linux-x86_64"))),
 		"only exact release package assets are retained");
 	ok &= expect(packaged && !packaged->asset(QStringLiteral("untrusted.zip")),
 		"untrusted release assets are ignored");
@@ -126,18 +126,20 @@ int main(int argc, char** argv) {
 	ok &= expect(parsedManifest && parsedManifest->assetSize == 12345,
 		"manifest package size is retained");
 	ok &= expect(!parseUpdateManifest(manifest, QStringLiteral("v1.10.1"),
-		QStringLiteral("linux-x86_64")), "manifest version must equal the stable tag");
+					 QStringLiteral("linux-x86_64")),
+		"manifest version must equal the stable tag");
 	QByteArray uppercaseManifest = manifest;
 	uppercaseManifest.replace("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 	ok &= expect(!parseUpdateManifest(uppercaseManifest,
-		QStringLiteral("v1.10.0"), QStringLiteral("linux-x86_64")),
+					 QStringLiteral("v1.10.0"), QStringLiteral("linux-x86_64")),
 		"manifest hash must be lowercase hexadecimal");
 
 	// Package file list of the manifest entry.
 	const auto manifestWithFiles = [&](const QByteArray& filesMember) {
 		return QByteArray("{\"version\":\"1.10.0\",\"assets\":{\"windows-x64\":{"
-			"\"name\":\"QEGTRAIN-windows-x64.zip\",\"sha256\":\"") + validHash
+						  "\"name\":\"QEGTRAIN-windows-x64.zip\",\"sha256\":\"")
+			+ validHash
 			+ QByteArray("\",\"size\":12345") + filesMember + QByteArray("}}}");
 	};
 	const auto parseWindows = [&](const QByteArray& filesMember, QString* error = nullptr) {
@@ -154,8 +156,7 @@ int main(int argc, char** argv) {
 		"manifest file list is retained");
 	const auto parsedBackslash = parseWindows(QByteArray(
 		",\"files\":[\"QEGTRAIN.exe\",\"platforms\\\\qwindows.dll\"]"));
-	ok &= expect(parsedBackslash && parsedBackslash->files.contains(
-		QStringLiteral("platforms/qwindows.dll")), "manifest file list uses forward slashes");
+	ok &= expect(parsedBackslash && parsedBackslash->files.contains(QStringLiteral("platforms/qwindows.dll")), "manifest file list uses forward slashes");
 	const auto parsedWithoutList = parseWindows(QByteArray());
 	ok &= expect(parsedWithoutList && parsedWithoutList->files.isEmpty(),
 		"a manifest without a file list stays valid");
@@ -194,7 +195,7 @@ int main(int argc, char** argv) {
 	for (const InvalidListCase& invalid : invalidLists) {
 		QString listError;
 		ok &= expect(!parseWindows(invalid.filesMember, &listError)
-			&& listError == QStringLiteral("Update manifest has an invalid file list."),
+				&& listError == QStringLiteral("Update manifest has an invalid file list."),
 			(std::string("manifest rejects ") + invalid.label).c_str());
 	}
 	ok &= expect(parseWindows(maxFiles + "]").has_value(),

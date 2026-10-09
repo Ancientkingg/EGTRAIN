@@ -35,14 +35,14 @@ struct RouteReferenceChoice {
 // the stations each passes in travel order: "route0 --> Gvc - Gdg - Ut". A long
 // label is shortened in the middle and the tooltip keeps the full text.
 QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene,
-		const std::vector<std::pair<int, std::string>>& usedRoutes);
+	const std::vector<std::pair<int, std::string>>& usedRoutes);
 
 class RouteReferenceDialog : public QDialog {
 	Q_OBJECT
 public:
 	// purpose completes "Reference route for <purpose>:".
 	RouteReferenceDialog(const QVector<RouteReferenceChoice>& choices, const QString& purpose,
-			QWidget* parent = nullptr);
+		QWidget* parent = nullptr);
 
 	// Runtime index of the selected row, or -1 when nothing is selected.
 	int selectedRuntimeIndex() const;

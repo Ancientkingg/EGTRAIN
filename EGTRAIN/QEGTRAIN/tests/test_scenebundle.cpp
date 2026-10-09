@@ -51,7 +51,7 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const char*
 }
 
 static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics,
-		const char* code, const char* file) {
+	const char* code, const char* file) {
 	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.code == code && diagnostic.file == file)
 			return true;
@@ -85,7 +85,7 @@ static std::string rawArchive(const std::vector<RawEntry>& entries) {
 	for (const auto& entry : entries) {
 		offsets.push_back(static_cast<std::uint32_t>(output.size()));
 		crcs.push_back(static_cast<std::uint32_t>(mz_crc32(MZ_CRC32_INIT,
-				reinterpret_cast<const unsigned char*>(entry.data.data()), entry.data.size())));
+			reinterpret_cast<const unsigned char*>(entry.data.data()), entry.data.size())));
 		put32(output, 0x04034b50U);
 		put16(output, 20);
 		put16(output, 0);
@@ -94,8 +94,7 @@ static std::string rawArchive(const std::vector<RawEntry>& entries) {
 		put16(output, 0);
 		put32(output, crcs.back());
 		put32(output, static_cast<std::uint32_t>(entry.data.size()));
-		put32(output, entry.reportedUncompressedSize == 0 ? static_cast<std::uint32_t>(entry.data.size())
-				: entry.reportedUncompressedSize);
+		put32(output, entry.reportedUncompressedSize == 0 ? static_cast<std::uint32_t>(entry.data.size()) : entry.reportedUncompressedSize);
 		put16(output, static_cast<unsigned int>(entry.name.size()));
 		put16(output, 0);
 		output.append(entry.name);
@@ -113,8 +112,7 @@ static std::string rawArchive(const std::vector<RawEntry>& entries) {
 		put16(output, 0);
 		put32(output, crcs[index]);
 		put32(output, static_cast<std::uint32_t>(entry.data.size()));
-		put32(output, entry.reportedUncompressedSize == 0 ? static_cast<std::uint32_t>(entry.data.size())
-				: entry.reportedUncompressedSize);
+		put32(output, entry.reportedUncompressedSize == 0 ? static_cast<std::uint32_t>(entry.data.size()) : entry.reportedUncompressedSize);
 		put16(output, static_cast<unsigned int>(entry.name.size()));
 		put16(output, 0);
 		put16(output, 0);
@@ -200,14 +198,14 @@ static bool testExtractionCleanup(const SceneModel& source) {
 		return false;
 	std::vector<RawEntry> entries;
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json"}) {
+			 "rolling_stock.json", "services.json", "scenarios.json"}) {
 		std::string data = readBytes(canonical / name);
 		if (std::string(name) == "scene.json") {
 			const std::size_t openingBrace = data.find('{');
 			if (!expect(openingBrace != std::string::npos, "cleanup manifest fixture is JSON"))
 				return false;
 			data.insert(openingBrace + 1,
-					"\n    \"format\": \"egscene\",\n    \"bundle_version\": 1,");
+				"\n    \"format\": \"egscene\",\n    \"bundle_version\": 1,");
 		} else if (std::string(name) == "infrastructure.json") {
 			data = "not-json";
 		}
@@ -225,7 +223,7 @@ static bool testExtractionCleanup(const SceneModel& source) {
 	std::error_code error;
 	const fs::path routedRoot = fs::temp_directory_path(error);
 	const bool routed = environment.configured && !error
-			&& fs::equivalent(routedRoot, extractionRoot, error) && !error;
+		&& fs::equivalent(routedRoot, extractionRoot, error) && !error;
 	if (!expect(routed, "bundle extraction uses the private temporary root"))
 		return false;
 
@@ -233,15 +231,15 @@ static bool testExtractionCleanup(const SceneModel& source) {
 	ok &= expect(!hasErrors(successful.diagnostics), "cleanup fixture bundle loads successfully");
 	error.clear();
 	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
-			"successful bundle load removes private extraction state");
+		"successful bundle load removes private extraction state");
 
 	const SceneLoadResult failed = loadSceneBundle(malformedBundle.string());
 	ok &= expect(hasErrors(failed.diagnostics)
 			&& hasDiagnostic(failed.diagnostics, "scene.json.parse", "infrastructure.json"),
-			"malformed canonical entry reaches parser and names infrastructure.json");
+		"malformed canonical entry reaches parser and names infrastructure.json");
 	error.clear();
 	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
-			"failed bundle load removes private extraction state");
+		"failed bundle load removes private extraction state");
 	return ok;
 }
 
@@ -253,7 +251,7 @@ static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second
 	if (!firstSave.success() || !secondSave.success())
 		return false;
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"}) {
+			 "rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"}) {
 		const fs::path firstPath = firstDir / name;
 		const fs::path secondPath = secondDir / name;
 		const bool firstExists = fs::exists(firstPath);
@@ -301,7 +299,7 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 	ok &= expect(!hasErrors(bundleLoad.diagnostics), "new scene bundle has no structural diagnostics");
 	ok &= expect(bundleLoad.scene.trackViews.size() == 1
 			&& bundleLoad.scene.stationViews.size() == 1,
-			"bundle preserves authored display layout");
+		"bundle preserves authored display layout");
 	ok &= expect(folderLoad.scene.stations.size() == 1
 			&& folderLoad.scene.stations[0].platforms[0].hasLength
 			&& folderLoad.scene.stations[0].platforms[0].lengthM == 135.0
@@ -311,16 +309,16 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 			&& folderLoad.scene.stations[0].platforms[1].lengthM == 100.0
 			&& !folderLoad.scene.stations[0].platforms[1].hasWidth
 			&& folderLoad.scene.stations[0].platforms[1].widthM == 2.5,
-			"bundle preserves explicit platform geometry and absent defaults");
+		"bundle preserves explicit platform geometry and absent defaults");
 	ok &= expect(sameCanonicalFiles(expected, folderLoad.scene, root / "folder-semantics"),
-			"new scene folder preserves canonical case data");
+		"new scene folder preserves canonical case data");
 	ok &= expect(sameCanonicalFiles(expected, bundleLoad.scene, root / "bundle-semantics"),
-			"new scene bundle preserves canonical case data");
+		"new scene bundle preserves canonical case data");
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json"})
+			 "rolling_stock.json", "services.json", "scenarios.json"})
 		ok &= expect(fs::is_regular_file(folder / name), "new scene folder remains canonical");
 	ok &= expect(fs::is_regular_file(bundle) && bundle.extension() == ".egscene",
-			"new scene bundle remains an egscene container");
+		"new scene bundle remains an egscene container");
 	return ok;
 }
 
@@ -342,16 +340,16 @@ int main(int argc, char** argv) {
 		const fs::path categoryFolder = temp.path / "category";
 		const fs::path categoryBundle = temp.path / "category.egscene";
 		for (const char* category : {"", "Intercity", "Regional", "High speed/international",
-				"Freight", "Metro/urban", "Suburban", " Regional heritage / custom "}) {
+				 "Freight", "Metro/urban", "Suburban", " Regional heritage / custom "}) {
 			categoryScene.services.front().category = category;
 			ok &= expect(saveScene(categoryScene, categoryFolder.string()).success()
 					&& saveSceneBundle(categoryScene, categoryBundle.string()).success(),
-					"category fixtures save as folder and bundle");
+				"category fixtures save as folder and bundle");
 			for (const fs::path& path : {categoryFolder, categoryBundle}) {
 				const SceneLoadResult loaded = loadScenePath(path.string());
 				ok &= expect(!hasErrors(loaded.diagnostics) && !loaded.scene.services.empty()
 						&& loaded.scene.services.front().category == category,
-						"missing, preset and unknown category values round-trip exactly");
+					"missing, preset and unknown category values round-trip exactly");
 			}
 		}
 		categoryScene.services.front().category.clear();
@@ -361,12 +359,12 @@ int main(int argc, char** argv) {
 			categoryScene.services.front().visualizationColor = color;
 			ok &= expect(saveScene(categoryScene, colorFolder.string()).success()
 					&& saveSceneBundle(categoryScene, colorBundle.string()).success(),
-					"colour fixtures save as folder and bundle");
+				"colour fixtures save as folder and bundle");
 			for (const fs::path& path : {colorFolder, colorBundle}) {
 				const SceneLoadResult loaded = loadScenePath(path.string());
 				ok &= expect(!hasErrors(loaded.diagnostics) && !loaded.scene.services.empty()
 						&& loaded.scene.services.front().visualizationColor == color,
-						"missing, valid and invalid service colours round-trip exactly");
+					"missing, valid and invalid service colours round-trip exactly");
 			}
 		}
 	}
@@ -375,47 +373,48 @@ int main(int argc, char** argv) {
 	SceneModel unsupported = source.scene;
 	++unsupported.schemaVersion;
 	ok &= expect(!saveSceneBundle(unsupported, firstBundle.string()).writeAttempted,
-			"unsupported schema rejects before private staging");
+		"unsupported schema rejects before private staging");
 	ok &= expect(!saveSceneBundle(source.scene, "").writeAttempted,
-			"empty bundle path rejects before private staging");
+		"empty bundle path rejects before private staging");
 #ifndef _WIN32
 	const char* previousTemp = std::getenv("TMPDIR");
 	const std::optional<std::string> savedTemp = previousTemp
-			? std::optional<std::string>(previousTemp) : std::nullopt;
+		? std::optional<std::string>(previousTemp)
+		: std::nullopt;
 	const std::string missingTemp = (temp.path / "missing-temporary-root").string();
 	const bool changedTemp = setenv("TMPDIR", missingTemp.c_str(), 1) == 0;
 	const SceneSaveResult missingTempResult = saveSceneBundle(source.scene, firstBundle.string());
 	if (savedTemp) setenv("TMPDIR", savedTemp->c_str(), 1);
 	else unsetenv("TMPDIR");
 	ok &= expect(changedTemp && !missingTempResult.success() && !missingTempResult.writeAttempted,
-			"temporary-root lookup failure does not claim a staging write attempt");
+		"temporary-root lookup failure does not claim a staging write attempt");
 #endif
 	const SceneSaveResult stagingFailure = saveSceneBundle(source.scene, temp.path.string());
 	ok &= expect(!stagingFailure.success() && stagingFailure.writeAttempted,
-			"directory target failure retains nested private staging attempt");
+		"directory target failure retains nested private staging attempt");
 	const SceneSaveResult firstSave = saveSceneBundle(source.scene, firstBundle.string());
 	ok &= expect(firstSave.writeAttempted, "bundle success retains private staging attempt");
 	ok &= expect(firstSave.success(), "canonical directory packs");
 	const std::string firstBundleBytes = readBytes(firstBundle);
 	ok &= expect(!firstSave.inputSnapshot.empty() && firstSave.inputSnapshot == firstBundleBytes,
-			"successful bundle save retains the exact staged archive bytes");
+		"successful bundle save retains the exact staged archive bytes");
 	const SceneLoadResult firstLoad = loadScenePath(firstBundle.string());
 	ok &= expect(!hasErrors(firstLoad.diagnostics) && firstLoad.inputSnapshot == firstBundleBytes,
-			"bundle load retains the exact archive bytes it parsed");
+		"bundle load retains the exact archive bytes it parsed");
 	ok &= expect(writeBytes(firstBundle, "external replacement"),
-			"external bundle replacement writes");
+		"external bundle replacement writes");
 	ok &= expect(firstSave.inputSnapshot == firstBundleBytes
 			&& firstLoad.inputSnapshot == firstBundleBytes
 			&& readBytes(firstBundle) != firstBundleBytes,
-			"external bundle replacement does not mutate retained snapshots");
+		"external bundle replacement does not mutate retained snapshots");
 	ok &= expect(saveSceneBundle(source.scene, firstBundle.string()).success(),
-			"bundle replacement restores the external test fixture");
+		"bundle replacement restores the external test fixture");
 	const SceneSaveResult secondSave = saveSceneBundle(source.scene, secondBundle.string());
 	ok &= expect(secondSave.success(), "canonical directory packs twice");
 	ok &= expect(readBytes(firstBundle) == readBytes(secondBundle), "bundle bytes are deterministic");
 	const SceneSaveResult replacementSave = saveSceneBundle(source.scene, firstBundle.string());
 	ok &= expect(replacementSave.success() && readBytes(firstBundle) == readBytes(secondBundle),
-			"existing bundle is atomically replaced");
+		"existing bundle is atomically replaced");
 	const std::string originalBundleBytes = readBytes(firstBundle);
 	SceneModel editedScene = source.scene;
 	editedScene.description += " (edited)";
@@ -424,44 +423,44 @@ int main(int argc, char** argv) {
 	ok &= expect(saveAsResult.success()
 			&& readBytes(firstBundle) == originalBundleBytes
 			&& readBytes(saveAsBundle) != originalBundleBytes,
-			"Save As writes a second bundle without changing the original bytes");
+		"Save As writes a second bundle without changing the original bytes");
 	SceneModel boundScene = source.scene;
 	if (!boundScene.signals.empty())
 		boundScene.signals.front().protectedSection = "@sig.section@";
 	const fs::path boundBundle = temp.path / "bound.egscene";
 	ok &= expect(saveSceneBundle(boundScene, boundBundle.string()).success(),
-				"bundle with a protected-section binding saves");
+		"bundle with a protected-section binding saves");
 	const SceneLoadResult boundLoad = loadScenePath(boundBundle.string());
 	ok &= expect(!hasErrors(boundLoad.diagnostics) && !boundLoad.scene.signals.empty()
-				&& boundLoad.scene.signals.front().protectedSection == "@sig.section@",
-				"bundle preserves a present protected-section binding");
+			&& boundLoad.scene.signals.front().protectedSection == "@sig.section@",
+		"bundle preserves a present protected-section binding");
 
 	const SceneLoadResult bundled = loadScenePath(firstBundle.string());
 	ok &= expect(!hasErrors(bundled.diagnostics), "bundle loads through shared path dispatch");
 	ok &= expect(!bundled.scene.signals.empty() && bundled.scene.signals.front().protectedSection.empty(),
-				"ID-only signals remain unbound after bundle round-trip");
+		"ID-only signals remain unbound after bundle round-trip");
 	ok &= expect(sameCanonicalFiles(source.scene, bundled.scene, temp.path / "model-compare"),
-			"bundle model matches directory model");
+		"bundle model matches directory model");
 
 	const fs::path unpacked = temp.path / "unpacked";
 	const SceneSaveResult unpackResult = unpackSceneBundle(firstBundle.string(), unpacked.string());
 	ok &= expect(unpackResult.success(), "bundle unpacks atomically");
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json"})
+			 "rolling_stock.json", "services.json", "scenarios.json"})
 		ok &= expect(fs::is_regular_file(unpacked / name), "unpacked canonical entry exists");
 	ok &= expect(!fs::exists(unpacked / "views.json") && !fs::exists(unpacked / "legacy"),
-			"bundle omits absent views and legacy outputs");
+		"bundle omits absent views and legacy outputs");
 	const SceneLoadResult unpackedLoad = loadScene(unpacked.string());
 	ok &= expect(!hasErrors(unpackedLoad.diagnostics)
 			&& sameCanonicalFiles(source.scene, unpackedLoad.scene, temp.path / "unpacked-compare"),
-			"unpacked scene reloads");
+		"unpacked scene reloads");
 	const fs::path existingDestination = temp.path / "existing-destination";
 	fs::create_directory(existingDestination);
 	ok &= expect(writeBytes(existingDestination / "keep.txt", "keep"), "existing destination fixture writes");
 	const SceneSaveResult existingResult = unpackSceneBundle(firstBundle.string(), existingDestination.string());
 	ok &= expect(!existingResult.success() && hasCode(existingResult.diagnostics, "scene.bundle.publish")
 			&& readBytes(existingDestination / "keep.txt") == "keep",
-			"unpack refuses and preserves an existing destination");
+		"unpack refuses and preserves an existing destination");
 
 	const struct MalformedCase {
 		const char* name;
@@ -491,7 +490,7 @@ int main(int argc, char** argv) {
 	ok &= expect(writeBytes(truncatedPath, truncated), "truncated archive fixture writes");
 	const SceneLoadResult truncatedResult = loadSceneBundle(truncatedPath.string());
 	ok &= expect(hasErrors(truncatedResult.diagnostics) && hasCode(truncatedResult.diagnostics, "scene.bundle.archive"),
-			"truncated archive");
+		"truncated archive");
 
 	if (!ok)
 		return 1;

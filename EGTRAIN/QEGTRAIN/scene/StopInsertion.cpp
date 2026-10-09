@@ -37,19 +37,19 @@ std::string stationLabel(const SceneModel& model, const std::string& stationId) 
 
 std::string stopLabel(const SceneModel& model, const SceneService& service, std::size_t index) {
 	return "stop " + std::to_string(index + 1) + " ("
-			+ stationLabel(model, service.stops[index].stationId) + ")";
+		+ stationLabel(model, service.stops[index].stationId) + ")";
 }
 
 const char* statusProblem(SceneStopResolutionStatus status) {
 	switch (status) {
-	case SceneStopResolutionStatus::Resolved: return "";
-	case SceneStopResolutionStatus::AmbiguousPlatform:
-		return "has more than one reachable platform; choose a platform";
-	case SceneStopResolutionStatus::OffRouteContext: return "is not on the route";
-	case SceneStopResolutionStatus::OutOfOrder: return "is before or at an already used route visit";
-	case SceneStopResolutionStatus::InvalidPlatform: return "uses a platform the route does not reach";
-	case SceneStopResolutionStatus::UnknownStation: return "uses a station that does not exist";
-	case SceneStopResolutionStatus::UnresolvedRoute: return "cannot be matched because the route is unresolved";
+		case SceneStopResolutionStatus::Resolved: return "";
+		case SceneStopResolutionStatus::AmbiguousPlatform:
+			return "has more than one reachable platform; choose a platform";
+		case SceneStopResolutionStatus::OffRouteContext: return "is not on the route";
+		case SceneStopResolutionStatus::OutOfOrder: return "is before or at an already used route visit";
+		case SceneStopResolutionStatus::InvalidPlatform: return "uses a platform the route does not reach";
+		case SceneStopResolutionStatus::UnknownStation: return "uses a station that does not exist";
+		case SceneStopResolutionStatus::UnresolvedRoute: return "cannot be matched because the route is unresolved";
 	}
 	return "";
 }
@@ -71,12 +71,12 @@ SceneRouteTraversal sceneServiceTraversal(const SceneModel& model, const SceneSe
 }
 
 SceneRouteTraversal sceneRemainingStopTraversal(const SceneModel& model, const SceneService& service,
-		std::size_t stopIndex) {
+	std::size_t stopIndex) {
 	auto traversal = sceneServiceTraversal(model, service);
 	SceneService prefix = service;
 	prefix.stops.resize(std::min(stopIndex, prefix.stops.size()));
 	const LowerBound bound = lowerBound(resolveSceneServiceStops(model, prefix, traversal),
-			prefix.stops.size());
+		prefix.stops.size());
 	if (bound.blockingStop != SceneStopInsertionWindow::kNoStop) {
 		traversal.visits.clear();
 		return traversal;
@@ -86,20 +86,20 @@ SceneRouteTraversal sceneRemainingStopTraversal(const SceneModel& model, const S
 }
 
 SceneStopInsertionWindow sceneStopInsertionWindow(const SceneModel& model,
-		const SceneService& service, std::size_t insertIndex) {
+	const SceneService& service, std::size_t insertIndex) {
 	if (insertIndex > service.stops.size())
 		return failedWindow(SceneStopInsertionWindow::kNoStop,
-				"The position is beyond the end of the timetable.");
+			"The position is beyond the end of the timetable.");
 	SceneRouteTraversal traversal = sceneServiceTraversal(model, service);
 	if (!traversal.resolved)
 		return failedWindow(SceneStopInsertionWindow::kNoStop,
-				"The route of this service cannot be resolved; choose a valid route first.");
+			"The route of this service cannot be resolved; choose a valid route first.");
 	const auto resolutions = resolveSceneServiceStops(model, service, traversal);
 	const LowerBound lower = lowerBound(resolutions, insertIndex);
 	if (lower.blockingStop != SceneStopInsertionWindow::kNoStop) {
 		const SceneStopResolution& resolution = resolutions[lower.blockingStop];
 		return failedWindow(lower.blockingStop,
-				"Cannot insert after " + stopLabel(model, service, lower.blockingStop) + ": it "
+			"Cannot insert after " + stopLabel(model, service, lower.blockingStop) + ": it "
 				+ statusProblem(resolution.status) + ". Fix that stop first.");
 	}
 	std::size_t upper = traversal.visits.size();
@@ -118,7 +118,7 @@ SceneStopInsertionWindow sceneStopInsertionWindow(const SceneModel& model,
 }
 
 SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& service,
-		std::size_t insertIndex, const SceneStop& stop) {
+	std::size_t insertIndex, const SceneStop& stop) {
 	SceneStopInsertionResult result;
 	if (insertIndex > service.stops.size()) {
 		result.error = "The position is beyond the end of the timetable.";
@@ -137,7 +137,7 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 	const SceneStopResolutionStatus newStatus = after[insertIndex].status;
 	if (newStatus != SceneStopResolutionStatus::Resolved) {
 		result.error = "The new stop (" + stationLabel(model, stop.stationId) + ") "
-				+ statusProblem(newStatus) + ".";
+			+ statusProblem(newStatus) + ".";
 		if (newStatus != SceneStopResolutionStatus::AmbiguousPlatform)
 			result.error += " Choose another position, station or platform.";
 		return result;
@@ -148,14 +148,14 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 			continue;
 		const std::size_t newIndex = index < insertIndex ? index : index + 1;
 		if (after[newIndex].status == SceneStopResolutionStatus::Resolved
-				&& after[newIndex].visitIndex == before[index].visitIndex)
+			&& after[newIndex].visitIndex == before[index].visitIndex)
 			continue;
 		damaged += (damaged.empty() ? "" : ", ") + stopLabel(model, service, index);
 	}
 	if (!damaged.empty()) {
 		result.error = "Inserting " + stationLabel(model, stop.stationId)
-				+ " here would move these stops to another route visit or leave them without one: "
-				+ damaged + ". Choose an earlier position or another station.";
+			+ " here would move these stops to another route visit or leave them without one: "
+			+ damaged + ". Choose an earlier position or another station.";
 		return result;
 	}
 	service.stops = std::move(candidate.stops);

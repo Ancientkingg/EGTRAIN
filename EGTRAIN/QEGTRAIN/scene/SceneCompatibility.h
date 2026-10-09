@@ -33,6 +33,6 @@ struct SceneCompatibilityProbeResult {
 
 SceneCompatibilityProbeResult probeSceneCompatibility(const std::string& path);
 SceneCompatibilityProbeResult probeSceneCompatibility(const std::string& path,
-		const SceneMigrationRegistry& registry);
+	const SceneMigrationRegistry& registry);
 
 #endif // SCENECOMPATIBILITY_H
