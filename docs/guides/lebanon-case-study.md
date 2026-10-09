@@ -89,7 +89,7 @@ Do not save into the package folder. Keep the supplied scene as your clean start
 
 ## Run the simulation
 
-Choose Simulation > Start, or press Ctrl+R. The progress bar shows the run. Use Simulation > Pause and Simulation > Stop to control it.
+Choose Simulation > Start, or press Ctrl+R. The progress bar shows the run. Use Simulation > Pause and Simulation > Stop to control it. Closing the window or opening another case during a run stops the run first.
 
 When the run finishes, the status bar reads Simulation complete and the Run Results dock fills in.
 
