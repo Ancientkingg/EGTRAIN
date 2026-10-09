@@ -1,5 +1,7 @@
 #include "widgets/NetworkLegendWidget.h"
 
+#include "graphics/items/SelectionCueItem.h"
+
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -321,7 +323,7 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		m_entries << high << main << trackEntry("Local track", TrackOperationalState::Free);
 		if (content.hasSelectedTrack) {
 			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
-			selected.color = Qt::blue;
+			selected.color = kSelectionCueColor;
 			selected.lineWidth = 4;
 			m_entries << selected;
 		}

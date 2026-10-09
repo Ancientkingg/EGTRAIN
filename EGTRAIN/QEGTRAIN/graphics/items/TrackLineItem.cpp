@@ -49,9 +49,6 @@ void TrackLineItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	QPen stroke = pen();
-	if (graphicsEffect())
-		stroke.setColor(Qt::blue);
-	painter->setPen(stroke);
+	painter->setPen(pen());
 	painter->drawLine(line());
 }

@@ -157,6 +157,13 @@ status bar reports that Follow is waiting for departure. Follow is cleared when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 
+Click a track, connection, node, station, signal, train or passenger on the
+canvas to select it, in the preview as well as during a run. The matching
+inspector opens and a light blue ring marks the item. The ring keeps its size at
+every zoom and neither covers nor recolours the item. It follows a moving train and
+disappears with the layer of its item. Clicking another item moves the ring;
+clicking an empty part of the canvas or closing the inspector removes it.
+
 Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
 (green), Unavailable (an empty gray ring) or Failed (a red lamp with a white

@@ -1,8 +1,9 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/HighlightEffect.h"
+
 #include <QApplication>
 #include <QContextMenuEvent>
-#include <QGraphicsColorizeEffect>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsTextItem>
@@ -459,9 +460,46 @@ int main(int argc, char* argv[]) {
 			ok &= expect(paintTrack() == speed.color(),
 				"ordinary track keeps historical speed color in every operational state");
 		}
-		track.setGraphicsEffect(new QGraphicsColorizeEffect);
-		ok &= expect(paintTrack() == QColor(Qt::blue),
-			"selected track paints historical blue instead of an operational underlay");
+		track.setGraphicsEffect(new HighlightEffect(Qt::blue, 1.0));
+		ok &= expect(paintTrack() == speed.color(), "a selected track keeps its speed colour");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		scaleView(view);
+		auto* node = new NodeItem(QRectF(-4.5, -4.5, 9.0, 9.0));
+		auto* track = new TrackLineItem(QLineF(-60, 0, 60, 0));
+		auto* station = new StationNodeItem(QRectF(30, -10, 20, 20));
+		scene.addItem(track);
+		scene.addItem(node);
+		scene.addItem(station);
+		const QList<QPointF> points = {QPointF(0, 0), QPointF(0, 12), QPointF(40, 0), QPointF(-40, 10), QPointF(80, 80)};
+		QString clicked;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem*) { clicked += "node "; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem*) { clicked += "station "; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnArc, [&](TrackLineItem*) { clicked += "arc "; });
+		QObject::connect(&scene, &NetworkScene::DisableHighlight, [&]() { clicked += "none "; });
+		const auto pick = [&]() {
+			clicked.clear();
+			for (const QPointF& point : points)
+				sendLeftClick(scene, view, point);
+			return clicked;
+		};
+		const QString before = pick();
+		ok &= expect(before.contains("node") && before.contains("station") && before.contains("arc") && before.contains("none"),
+			"the clicks reach every kind of item");
+		auto* effect = new HighlightEffect(Qt::blue, 1.0);
+		node->setGraphicsEffect(effect);
+		ok &= expect(pick() == before, "a cue on a node does not change what a click picks");
+		effect->setViewScale(2.0);
+		track->setGraphicsEffect(effect);
+		station->setGraphicsEffect(effect);
+		ok &= expect(pick() == before, "a cue does not change what a click picks");
+		ok &= expect(effect->cue() && effect->cue()->shape().isEmpty(), "the cue has no shape");
+		QList<QGraphicsItem*> underCue = scene.items(effect->cue()->targetRect().center(), Qt::IntersectsItemShape,
+			Qt::DescendingOrder, view.viewportTransform());
+		ok &= expect(!underCue.contains(effect->cue()), "the cue is not found by a hit test");
 	}
 
 	{

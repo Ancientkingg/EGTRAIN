@@ -4580,7 +4580,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 							&& candidate.fromNodeId == line.points[point].nodeId));
 			});
 			const TrackVisual visual = classifyTrackSpeed(arc == sceneModel.arcs.end() ? 0.0 : arc->speedLimitMs);
-			QPen pen(selectedTrackIds.count(line.id) > 0 ? QColor(Qt::blue) : visual.color);
+			QPen pen(selectedTrackIds.count(line.id) > 0 ? kSelectionCueColor : visual.color);
 			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
 			pen.setCosmetic(true);
 			auto* item = new TrackLineItem(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
@@ -13939,6 +13939,70 @@ void MainWindow::runVisualPolishE2E() {
 						.arg(defaultNetworkWidth)
 						.arg(caseDockWidth);
 	}
+	const auto viewImage = [this]() {
+		QApplication::processEvents();
+		return networkView->viewport()->grab().toImage().convertToFormat(QImage::Format_ARGB32);
+	};
+	// The part of the image that shows a rectangle of the scene, grown by margin pixels.
+	const auto imageWindow = [this](const QImage& image, const QRectF& sceneRect, int margin) {
+		const qreal ratio = image.devicePixelRatioF();
+		const QRect area = networkView->mapFromScene(sceneRect).boundingRect().adjusted(-margin, -margin, margin, margin);
+		return QRect(QPoint(qRound(area.left() * ratio), qRound(area.top() * ratio)),
+			QSize(qRound(area.width() * ratio), qRound(area.height() * ratio)))
+			.intersected(image.rect());
+	};
+	const auto selectionCueCount = [this]() {
+		int count = 0;
+		if (scene)
+			for (const QGraphicsItem* item : scene->items())
+				if (item->type() == SelectionCueItem::Type)
+					++count;
+		return count;
+	};
+	// The selected item has a cue that is seen around it, is gone when its opacity is zero and
+	// leaves the picture of the item itself as it is.
+	const auto checkCueSeen = [&](const char* what, const QRectF& sceneRect, int* seen, int* withoutCue) {
+		SelectionCueItem* cue = effect ? effect->cue() : nullptr;
+		if (!cue || !cue->isVisible()) {
+			ok = false;
+			failures << QString("%1 has no visible selection cue").arg(what);
+			return false;
+		}
+		const QImage with = viewImage();
+		cue->setOpacity(0.0);
+		const QImage without = viewImage();
+		cue->setOpacity(1.0);
+		const QRect around = imageWindow(with, sceneRect, 24);
+		*seen = 0;
+		*withoutCue = 0;
+		for (int y = around.top(); y <= around.bottom(); ++y) {
+			for (int x = around.left(); x <= around.right(); ++x) {
+				const auto isCue = [](const QColor& pixel) {
+					return qAbs(pixel.red() - kSelectionCueColor.red()) <= 12 && qAbs(pixel.green() - kSelectionCueColor.green()) <= 12
+						&& qAbs(pixel.blue() - kSelectionCueColor.blue()) <= 12;
+				};
+				*seen += isCue(with.pixelColor(x, y)) ? 1 : 0;
+				*withoutCue += isCue(without.pixelColor(x, y)) ? 1 : 0;
+			}
+		}
+		const QRect inside = imageWindow(with, sceneRect, 0);
+		bool untouched = true;
+		for (int y = inside.top(); y <= inside.bottom(); ++y)
+			for (int x = inside.left(); x <= inside.right(); ++x)
+				untouched = untouched && with.pixel(x, y) == without.pixel(x, y);
+		const qreal ringPixels = cue->ringRect().width() * qAbs(networkView->transform().m11());
+		if (*seen < 24 || *withoutCue != 0 || ringPixels < SelectionCueItem::MinPixels - 0.01 || !untouched) {
+			ok = false;
+			failures << QString("%1 selection cue is not right (%2 pixels with it, %3 without, ring %4 px, item %5)")
+							.arg(what)
+							.arg(*seen)
+							.arg(*withoutCue)
+							.arg(ringPixels, 0, 'f', 1)
+							.arg(untouched ? "untouched" : "painted over");
+			return false;
+		}
+		return true;
+	};
 	if (!scene || !networkView) {
 		ok = false;
 		failures << "cannot click a train without a scene and viewport";
@@ -14067,6 +14131,115 @@ void MainWindow::runVisualPolishE2E() {
 	}
 	handleCloseInfoDockWidget();
 	infoDockWidget->hide();
+
+	// Every kind of item gets one cue; another selection or a click on empty canvas removes it.
+	if (scene) {
+		NodeItem* nodeItem = nullptr;
+		ConnectionItem* connectionItem = nullptr;
+		for (auto* item : scene->items()) {
+			auto* node = qgraphicsitem_cast<NodeItem*>(item);
+			if (node && node->node && !nodeItem)
+				nodeItem = node;
+			auto* connection = qgraphicsitem_cast<ConnectionItem*>(item);
+			if (connection && connection->connection && !connectionItem)
+				connectionItem = connection;
+		}
+		struct Selection {
+			const char* what;
+			QGraphicsItem* item;
+			std::function<void()> select;
+		};
+		QList<Selection> selections;
+		if (!allArcs.isEmpty() && allArcs.first() && allArcs.first()->arc)
+			selections.push_back({"arc", allArcs.first(), [this]() { displayArcInfo(allArcs.first()); }});
+		if (nodeItem)
+			selections.push_back({"node", nodeItem, [this, nodeItem]() { displayNodeInfo(nodeItem); }});
+		if (connectionItem)
+			selections.push_back({"connection", connectionItem, [this, connectionItem]() { displayConnectionInfo(connectionItem); }});
+		if (stationItem && stationItem->node)
+			selections.push_back({"station node", stationItem, [this, stationItem]() { displayStationNodeInfo(stationItem); }});
+		if (inspectorSignal)
+			selections.push_back({"signal", inspectorSignal, [this, inspectorSignal]() { displaySignallingInfo(inspectorSignal); }});
+		if (selectedTrain && selectedTrainBody)
+			selections.push_back({"train", selectedTrain, [this, selectedTrainBody]() { displayTrainDetails(selectedTrainBody, false); }});
+		bool cueOk = selections.size() >= 4;
+		if (!cueOk)
+			failures << "too few kinds of item to check the selection cue";
+		for (const Selection& selection : selections) {
+			selection.select();
+			QApplication::processEvents();
+			SelectionCueItem* cue = effect ? effect->cue() : nullptr;
+			if (cue)
+				cue->sync();
+			const QRectF itemRect = selection.item->sceneBoundingRect().adjusted(-1, -1, 1, 1);
+			const bool around = cue
+				&& (cue->followsLine() ? itemRect.contains(cue->targetLine().center())
+									   : cue->targetRect().adjusted(-1, -1, 1, 1).intersects(itemRect));
+			if (!cue || selectionCueCount() != 1 || !around || selection.item->graphicsEffect() != effect) {
+				cueOk = false;
+				failures << QString("selecting a %1 does not give exactly one cue around it (cue %2, count %3, around %4, own effect %5)")
+								.arg(selection.what)
+								.arg(cue != nullptr)
+								.arg(selectionCueCount())
+								.arg(around)
+								.arg(selection.item->graphicsEffect() == effect);
+			}
+			// A station node is surrounded together with the pictogram of its station.
+			if (cue && selection.item == stationItem) {
+				bool pictogramSurrounded = false;
+				for (const StationOverlayItem* overlay : m_stationOverlays) {
+					const QGraphicsItem* picture = overlay && overlay->hasSourceIdentity()
+							&& overlay->matchesSourceIdentity(stationItem->node->ID, stationItem->track)
+						? overlay->pictureItem()
+						: nullptr;
+					if (picture && picture->isVisible() && cue->targetRect().contains(picture->sceneBoundingRect()))
+						pictogramSurrounded = true;
+				}
+				if (!pictogramSurrounded) {
+					cueOk = false;
+					failures << "the selection cue of a station node leaves out its pictogram";
+				}
+			}
+		}
+		handleDisableHighlight();
+		QApplication::processEvents();
+		if (selectionCueCount() != 0 || effect) {
+			cueOk = false;
+			failures << "a click on empty canvas left a selection cue";
+		}
+		// The cue follows the layer of the item it marks.
+		if (selectedTrain && selectedTrainBody && m_trainLayerCheck) {
+			displayTrainDetails(selectedTrainBody, false);
+			QApplication::processEvents();
+			SelectionCueItem* cue = effect ? effect->cue() : nullptr;
+			// The scene emits its change signal some events after an item changes.
+			const auto settle = []() {
+				for (int pass = 0; pass < 3; ++pass)
+					QApplication::processEvents();
+			};
+			m_trainLayerCheck->setChecked(false);
+			settle();
+			const bool hidden = cue && !cue->isVisible();
+			m_trainLayerCheck->setChecked(true);
+			settle();
+			if (!hidden || !cue || !cue->isVisible()) {
+				cueOk = false;
+				failures << "the selection cue does not follow the train layer";
+			}
+			handleDisableHighlight();
+			QApplication::processEvents();
+			if (selectionCueCount() != 0) {
+				cueOk = false;
+				failures << "the selection cue stayed after the train was deselected";
+			}
+		}
+		if (cueOk) {
+			std::fprintf(stdout, "E2E_SELECTION_CUE_CLEAR_OK kinds=%d\n", static_cast<int>(selections.size()));
+			std::fflush(stdout);
+		} else {
+			ok = false;
+		}
+	}
 
 	if (!networkView || !m_incidentDock) {
 		ok = false;
@@ -14395,6 +14568,24 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "cannot create selected-train Fit capture";
 	}
 	captureScreenshot("QEGTRAIN_E2E_SELECTED_SCREENSHOT", "selected Fit");
+	if (networkView && selectedTrain && selectedTrainBody) {
+		// The cue of a selected train is seen at Fit.
+		int seen = 0;
+		int withoutCue = 0;
+		if (checkCueSeen("selected train at Fit", selectedTrain->sceneBoundingRect(), &seen, &withoutCue)) {
+			std::fprintf(stdout, "E2E_SELECTION_CUE_FIT_OK pixels=%d without=%d\n", seen, withoutCue);
+			std::fflush(stdout);
+		}
+		// It keeps its size on screen and does not paint over the train at detail zoom.
+		networkView->zoomBy(12.0);
+		networkView->centerOn(selectedTrain->sceneBoundingRect().center());
+		updateViewportOverlays();
+		QApplication::processEvents();
+		if (checkCueSeen("selected train at detail zoom", selectedTrain->sceneBoundingRect(), &seen, &withoutCue)) {
+			std::fprintf(stdout, "E2E_SELECTION_CUE_DETAIL_OK pixels=%d without=%d\n", seen, withoutCue);
+			std::fflush(stdout);
+		}
+	}
 	if (networkView) {
 		networkView->fitToTopology();
 		networkView->zoomBy(TrainBadgeItem::detailedZoomThreshold());
@@ -19812,6 +20003,54 @@ void MainWindow::runTrackPreviewE2E() {
 			else
 				marker("E2E_TRACK_PREVIEW_SIGNAL_IDENTITY_OK");
 		}
+	}
+
+	// A click on a preview item selects it with a cue; a click on empty canvas removes the cue.
+	if (m_sceneLoaded && scene && networkView) {
+		const auto cueCount = [this]() {
+			int count = 0;
+			for (const QGraphicsItem* item : scene->items())
+				if (item->type() == SelectionCueItem::Type)
+					++count;
+			return count;
+		};
+		const auto clickAt = [this](const QPointF& scenePos) {
+			QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
+			event.setButton(Qt::LeftButton);
+			event.setButtons(Qt::LeftButton);
+			event.setScenePos(scenePos);
+			event.setWidget(networkView->viewport());
+			scene->mousePressEvent(&event);
+			QApplication::processEvents();
+		};
+		int clicked = 0;
+		bool cuesOk = true;
+		for (const char* kind : {"arc", "connection", "node", "station-node", "signal"}) {
+			QGraphicsItem* target = nullptr;
+			for (auto* item : scene->items())
+				if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == kind)
+					target = item;
+			if (!target)
+				continue;
+			const auto* lineItem = dynamic_cast<const QGraphicsLineItem*>(target);
+			clickAt(lineItem ? target->mapToScene(lineItem->line().pointAt(0.5)) : target->sceneBoundingRect().center());
+			++clicked;
+			SelectionCueItem* cue = effect ? effect->cue() : nullptr;
+			if (!cue || !cue->isVisible() || cueCount() != 1 || !infoDockWidget->isVisible()) {
+				cuesOk = false;
+				fail("selection", QString("a click on a preview %1 gives no single cue").arg(kind));
+			}
+		}
+		const QRectF bounds = networkView->topologyBounds();
+		clickAt(bounds.bottomRight() + QPointF(bounds.width() + 1000.0, bounds.height() + 1000.0));
+		if (cueCount() != 0 || effect) {
+			cuesOk = false;
+			fail("selection", "a click on empty preview canvas left a cue");
+		}
+		if (clicked < 2)
+			fail("selection", "the preview has too few kinds of item to click");
+		else if (cuesOk)
+			marker("E2E_SELECTION_CUE_PREVIEW_OK");
 	}
 
 	if (ok) {
@@ -25699,7 +25938,7 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 			}
 			if (auto* track = qgraphicsitem_cast<TrackLineItem*>(item))
 				if (!track->pen().isCosmetic()
-					|| track->pen().width() != (track->pen().color() == QColor(Qt::blue) ? 4 : 2)) return false;
+					|| track->pen().width() != (track->pen().color() == kSelectionCueColor ? 4 : 2)) return false;
 			if (auto* connection = qgraphicsitem_cast<ConnectionItem*>(item))
 				if (!connection->pen().isCosmetic() || connection->pen().width() != 2) return false;
 			if (auto* stroke = qgraphicsitem_cast<QGraphicsLineItem*>(item))
@@ -26236,6 +26475,12 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 	}
 	infoDockWidget->setWindowTitle("Preview: " + title + " (not running)");
 	infoDockWidget->show();
+
+	// effect on clicked item
+	if (!effect) {
+		effect = new HighlightEffect(Qt::blue, 1);
+	}
+	item->setGraphicsEffect(effect);
 	updateViewportOverlays();
 	// Do not recolor boundary dots/squares or neutral signal heads on inspection.
 }
@@ -26561,6 +26806,12 @@ void MainWindow::displayPassengerInfo(PassengerItem* paxItem) {
 
 	// show pax info
 	paintPassengerInfoIcon(paxItem);
+
+	// effect on clicked item
+	if (!effect) {
+		effect = new HighlightEffect(Qt::blue, 1);
+	}
+	paxItem->setGraphicsEffect(effect);
 }
 
 void MainWindow::handleDisableHighlight() {
@@ -27097,12 +27348,16 @@ void MainWindow::updatePlatforms(int t) {
 
 		// remove existing pax icons
 		std::string currentlyHighlightedPaxID;
+		bool selectionCueLost = false;
 		for (auto* icon : platformIcon->passengerIcons) {
 			// if icon had a message, store its pax ID
 			if (icon == paxIconItem) {
 				currentlyHighlightedPaxID = icon->passengerId;
 				paxIconItem = nullptr;
 			}
+			// the icon deletes its highlight effect
+			if (effect && icon->graphicsEffect() == effect)
+				selectionCueLost = true;
 
 			scene->removeItem(icon);
 		}
@@ -27147,6 +27402,11 @@ void MainWindow::updatePlatforms(int t) {
 				}
 
 				scene->addItem(item);
+				if (selectionCueLost && item->passengerId == currentlyHighlightedPaxID) {
+					effect = new HighlightEffect(Qt::blue, 1);
+					item->setGraphicsEffect(effect);
+					selectionCueLost = false;
+				}
 				item->setVisible(m_passengerLayerVisible);
 				platformIcon->passengerIcons.push_back(item);
 
@@ -28978,6 +29238,8 @@ void MainWindow::updateViewportOverlays() {
 	if (nearestFollowed)
 		nearestFollowed->setFollowed(true);
 	const qreal viewScale = std::abs(networkView->transform().m11());
+	if (effect)
+		effect->setViewScale(viewScale);
 	for (auto* overlay : m_stationOverlays)
 		if (overlay)
 			overlay->applyViewScale(viewScale);
