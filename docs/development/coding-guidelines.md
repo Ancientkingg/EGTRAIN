@@ -161,13 +161,14 @@ command-line code. Do not add `eglogger` or `owl` calls or a new logging helper.
 
 C++ tests live in `EGTRAIN/QEGTRAIN/tests/` as `test_<name>.cpp`, one executable each, with
 shared data in `tests/fixtures/`. Register one in the `if(EGTRAIN_BUILD_TESTS)` block of the
-root `CMakeLists.txt`. The executable lists the sources it tests instead of linking the
-application, and the CTest name equals the target name:
+root `CMakeLists.txt`. The executable links the library that holds the code it tests
+([Libraries](../architecture/source-layout.md#libraries)), or lists the sources itself when
+they are in no library, instead of linking the application. The CTest name equals the target
+name:
 
 ```cmake
-add_executable(test_timeformat
-    ${SRC_DIR}/tests/test_timeformat.cpp
-    ${SRC_DIR}/util/TimeFormat.cpp)
+add_executable(test_timeformat ${SRC_DIR}/tests/test_timeformat.cpp)
+target_link_libraries(test_timeformat PRIVATE egtrain_util)
 add_test(NAME test_timeformat COMMAND test_timeformat)
 ```
 

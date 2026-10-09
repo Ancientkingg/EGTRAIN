@@ -1,10 +1,6 @@
 #ifndef Simulation_hpp
 #define Simulation_hpp
 
-#include <QApplication>
-#include <QEventLoop>
-#include <QTimer>
-
 #include "simulation/RollingStock.h"
 #include "simulation/Passengers.h"
 #include <vector>

@@ -151,9 +151,10 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Signalling.cpp
     ${SRC_DIR}/simulation/Simulation.cpp)
 target_link_libraries(egtrain_sim
-    PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json
-    PRIVATE Qt5::Widgets)  # Simulation.h includes QApplication, QEventLoop and QTimer
+    PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
+# RailMLParser.cpp uses `initial_variables`, which egtrain_sim or the target itself defines.
+# List egtrain_railml before egtrain_sim.
 add_library(egtrain_railml STATIC ${SRC_DIR}/io/RailMLParser.cpp)
 target_link_libraries(egtrain_railml
     PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
