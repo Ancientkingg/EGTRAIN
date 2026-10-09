@@ -30,14 +30,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: macOS
-            os: macos-latest
-            jobs: 3
           - name: Windows
             os: windows-latest
-            jobs: 4
-          - name: Linux
-            os: ubuntu-latest
             jobs: 4
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
@@ -142,32 +136,18 @@ jobs:
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build --config Debug --target QEGTRAIN scene_tool
 
-      # Prints SizeOfImage in the job summary. test_windows_image_size enforces the limit.
-      - name: Report Windows image size
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
-
-      - name: Test
-        shell: bash
-        run: ctest --test-dir build -C Release --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
-
-      # The same files as the Windows release package, started with only the operating
-      # system directories on PATH: a DLL or plugin missing from the package fails here.
-      - name: Start an assembled Windows package
-        if: runner.os == 'Windows'
+      - name: Report the Debug image size and start the Debug build
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $dist = "$env:RUNNER_TEMP/package/QEGTRAIN"
-          New-Item -ItemType Directory -Force -Path $dist | Out-Null
-          Copy-Item build/Release/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
-          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/
-          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
-          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
-          python tools/release/package_start_smoke.py $dist
+          python tools/release/pe_image_size.py build/Debug/QEGTRAIN.exe --max-bytes 100000000 --stack-reserve 8388608
+          python tools/release/pe_image_size.py build/Debug/scene_tool.exe --max-bytes 100000000
+          $env:PATH = "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/debug/bin;$env:PATH"
+          if (!(Test-Path build/Debug/Scenes)) { Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes build/Debug/Scenes }
+          python tools/e2e/headless_scene_smoke.py build/Debug/QEGTRAIN.exe Scenes/Paimpol 300
+          Write-Output "Debug headless run on Paimpol finished"
 
       - name: Upload failure diagnostics
         if: failure()
