@@ -137,6 +137,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SceneValidator.cpp
     ${SRC_DIR}/scene/SceneWriter.cpp
     ${SRC_DIR}/scene/SectionInventory.cpp
+    ${SRC_DIR}/scene/StopInsertion.cpp
     ${SRC_DIR}/scene/TrackPreview.cpp)
 target_link_libraries(egtrain_scene
     PUBLIC nlohmann_json::nlohmann_json egtrain_miniz)
@@ -264,6 +265,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
+	${SRC_DIR}/scene/StopInsertion.h
 	${SRC_DIR}/scene/SceneBundle.h
 	${SRC_DIR}/scene/SceneCompatibility.h
 	${SRC_DIR}/scene/SceneMigration.h
@@ -776,6 +778,10 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_scenevalidator
         COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
+    add_executable(test_stopinsertion ${SRC_DIR}/tests/test_stopinsertion.cpp)
+    target_link_libraries(test_stopinsertion PRIVATE egtrain_scene)
+    add_test(NAME test_stopinsertion COMMAND test_stopinsertion)
+
     add_executable(test_sceneimporter ${SRC_DIR}/tests/test_sceneimporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE egtrain_scene)
 	add_test(NAME test_sceneimporter COMMAND test_sceneimporter)
@@ -958,7 +964,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_routestations test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
+	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
@@ -985,7 +991,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview
 		test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
-		test_app_icon_config test_qt_resource_images test_scenevalidator test_sceneimporter
+		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
 		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version
 		test_ci_workflow test_signalling_bounds test_windows_subsystem_config test_raii_contract
