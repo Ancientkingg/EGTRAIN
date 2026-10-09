@@ -188,8 +188,17 @@ struct CaseSpec {
 	// Empty, or "#<issue> <reason>" for behaviour that is pinned but wrong.
 	// The golden file carries the same text in its header.
 	std::string knownWrong;
-	// Declares the single-track restriction blocks 1-B0 to 4-B0, protected by 0-B0 and 5-B0.
+	// Declares the single-track restriction given by restriction.
 	bool singleTrack = false;
+	// The blocks of the restriction: start, end, protected start and protected end. The default is 1-B0 to 4-B0,
+	// protected by 0-B0 and 5-B0.
+	std::vector<std::string> restriction = {"1-B0", "4-B0", "0-B0", "5-B0"};
+	// The restriction lies over a stub track, which a train enters and leaves at one end. The case adds the routes
+	// routeStubIn and routeStubOut and the services U1 (runs into the stub) and D1 (runs out of it) to the scene, due
+	// at these times in seconds. Each route lies inside the stub.
+	bool stub = false;
+	double arrivalEntry = 0.0;
+	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
 	// The border has to lie on a section edge.
 	double borderKm = kNoBorder;
@@ -257,6 +266,26 @@ std::vector<CaseSpec> buildCaseTable() {
 	// F1 holds the restricted section and F2 follows it in the same direction: the restriction does not delay F2.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
+	// The stub is the line from station B (8 km) to its closed end at station C. U1 runs into it and D1 out of it, so
+	// they meet head to head. The stub has no passing loop, so the protected end block repeats the end block. The
+	// first train of a case is due 100 s before the second. Without the restriction the two trains meet at a block
+	// edge and stand there until the end of the run.
+	const struct {
+		const char* name;
+		std::vector<std::string> services;
+		double arrivalEntry, departureEntry;
+	} stubs[] = {
+		{"stub-departure-first-level-0", {"D1", "U1"}, 160.0, 60.0},
+		{"stub-arrival-first-level-0", {"U1", "D1"}, 60.0, 160.0},
+	};
+	for (const auto& stub : stubs) {
+		CaseSpec spec{stub.name, "baseline", stub.services, 0, knownWrongMarker(stub.name), true};
+		spec.restriction = {"5-B0", "7-B0", "4-B0", "7-B0"};
+		spec.stub = true;
+		spec.arrivalEntry = stub.arrivalEntry;
+		spec.departureEntry = stub.departureEntry;
+		cases.push_back(spec);
+	}
 	// Two following services over a border between two levels, at station B (8 km) unless the entry gives another
 	// position. The names give the level on the A side and on the C side; fwd runs from A to C, rev from C to A.
 	const struct {
@@ -764,7 +793,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (reachedStation < 0.0 && x[t] >= kStationBegin - 1.0)
 				reachedStation = t;
 		}
-		if (reachedStation >= 0.0 && reachedStation - track.first < (kStationBegin - 1.0) / kTopSpeed)
+		// A train that starts at station B or beyond does not run to it.
+		if (x[track.first] < kStationBegin - 1.0 && reachedStation >= 0.0
+			&& reachedStation - track.first < (kStationBegin - 1.0) / kTopSpeed)
 			fail(track.name + ": reaches station B faster than the top speed allows");
 		if (waived)
 			continue;
@@ -789,7 +820,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (separation.overlap && separation.gap < 0.0)
 				fail(separation.follower + " overlaps " + separation.leader + " by "
 					+ formatReal(-separation.gap) + " m at t=" + std::to_string(separation.step));
-	if (spec.singleTrack && !waived && spec.level != kNoSignallingArea) {
+	if (spec.singleTrack && !spec.stub && !waived && spec.level != kNoSignallingArea) {
 		// S1 runs on routeAB and R1 on route1, so the check above does not pair them. The restricted section with its
 		// protected sections is 0-B0 to 5-B0: the whole of routeAB (0 to 8000 m) for S1 and 4000 to 16000 m for R1.
 		const TrainTrack* forward = nullptr;
@@ -809,6 +840,24 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 					fail("S1 and R1 are inside the single-track section together at t=" + std::to_string(t));
 					break;
 				}
+			}
+	}
+	if (spec.stub && !waived) {
+		// Both trains reach their last stop. Each route lies completely inside the stub, so a train is in the stub from
+		// its entry to its last step, and the two are never in it together.
+		for (const TrainTrack& track : tracks) {
+			const TimetableResultRow* last = nullptr;
+			for (const TimetableResultRow& row : rows)
+				if (row.trainId == track.name)
+					last = &row;
+			if (last == nullptr || !last->simulatedArrivalSeconds.available)
+				fail(track.name + " does not reach its last stop");
+		}
+		for (size_t i = 0; i < tracks.size(); ++i)
+			for (size_t j = i + 1; j < tracks.size(); ++j) {
+				const int together = std::max(tracks[i].first, tracks[j].first);
+				if (together <= std::min(tracks[i].last, tracks[j].last))
+					fail(tracks[i].name + " and " + tracks[j].name + " are inside the stub together at t=" + std::to_string(together));
 			}
 	}
 	for (const TimetableResultRow& row : rows) {
@@ -854,8 +903,43 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 			loaded.scene.signallingAreas.push_back(east);
 		}
 	}
+	if (spec.stub) {
+		// The routes and services are made here and not in the fixture: a route with 4-B0 or 5-B0 in the fixture would add
+		// a movement authority to the cases with a signal failure on those sections.
+		auto stubService = [](const std::string& id, const std::string& route, double entry, const std::string& from, const std::string& to) {
+			SceneService service;
+			service.id = id;
+			service.operatingCode = id;
+			service.composition = "SLT_Sprinter";
+			service.route = route;
+			service.hasEntryTime = true;
+			service.entryTimeSeconds = entry;
+			SceneStop first;
+			first.stationId = from;
+			first.platformId = from + ".platform.1";
+			first.hasPlannedDeparture = true;
+			first.plannedDepartureSeconds = entry + 60.0;
+			SceneStop last;
+			last.stationId = to;
+			last.platformId = to + ".platform.1";
+			last.hasPlannedArrival = true;
+			last.plannedArrivalSeconds = entry + 310.0;
+			service.stops = {first, last};
+			return service;
+		};
+		SceneRoute in;
+		in.id = "routeStubIn";
+		in.blocks = {"4-B0", "5-B0", "6-B0", "7-B0"};
+		SceneRoute out;
+		out.id = "routeStubOut";
+		out.blocks = {in.blocks.rbegin(), in.blocks.rend()};
+		loaded.scene.routes.push_back(in);
+		loaded.scene.routes.push_back(out);
+		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
+		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
+	}
 	if (spec.singleTrack)
-		loaded.scene.singleTrackRestrictions = {{"1-B0", "4-B0", "0-B0", "5-B0"}};
+		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	SceneRunSelection selection;
 	for (const std::string& service : spec.services)
 		selection.insert({service, 1});
@@ -1062,10 +1146,18 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 // Golden files
 // ---------------------------------------------------------------------------
 
+// The words of the run description that name the restriction of the case.
+std::string describeRestriction(const CaseSpec& spec) {
+	if (spec.stub)
+		return " stub=" + joinSet(spec.restriction) + " arrival_entry=" + formatReal(spec.arrivalEntry)
+			+ " departure_entry=" + formatReal(spec.departureEntry);
+	return spec.singleTrack ? " single_track=1" : "";
+}
+
 std::string describeRun(const CaseSpec& spec, int horizon) {
 	return "scenario=" + spec.scenario + " services=" + joinSet(spec.services)
 		+ " level=" + (spec.level == kNoSignallingArea ? std::string("none") : std::to_string(spec.level))
-		+ (spec.singleTrack ? " single_track=1" : "")
+		+ describeRestriction(spec)
 		+ (spec.borderKm == kNoBorder ? std::string()
 									  : " border_km=" + formatReal(spec.borderKm) + " level_after=" + std::to_string(spec.secondLevel))
 		+ " horizon=" + std::to_string(horizon);

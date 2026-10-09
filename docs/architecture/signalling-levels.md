@@ -186,7 +186,7 @@ copies of the other direction (`updateSingleTrackLocks`,
 `occupySingleTrackForRoute`). The stretch is described in
 [Single-track restrictions](scene-schema.md#single-track-restrictions). What this
 does to a train depends on the level, as the sections below say. Cases:
-`single-track-level-*`.
+`single-track-level-*`, and `stub-*` for a restriction over a stub track.
 
 **Double switches.** A double switch is two route sections: a first half with a
 virtual signal at its end and a second half with one at its start. A train that
@@ -267,7 +267,9 @@ ahead of `F2` and stands at the station at 8 km while `F2` arrives
   when the head of the train enters the section before it
   (`ComputeBlockingTimeForSingleLocation`).
 - **Single-track restriction.** Has an effect. In `single-track-level-0`, `R1`
-  waits 41 s in front of the stretch.
+  waits 41 s in front of the stretch. In `stub-departure-first-level-0`, `U1`
+  waits 221 s at the entry of its route until `D1` has left the stub, and in
+  `stub-arrival-first-level-0` `D1` waits 220 s until `U1` has left it.
 - **Window.** The heads show red, yellow, green, green behind an occupied
   section.
 
@@ -567,6 +569,10 @@ Open on this version:
 - #439: the legacy import reports `TrackLines/AreasCaseStudy.txt` in the import
   report and in a warning and does not convert its rows, so a scene imported
   from such a case has no signalling area until the user adds one.
+- #590: without a restriction, trains of opposite directions on a stub track
+  pass through each other or, when they meet at a block edge, stand head to head
+  until the end of the run. The restriction keeps them apart (`stub-*` cases).
+  `Copenhagen` has no area and no restriction yet.
 
 Limits that no issue tracks:
 
