@@ -564,8 +564,9 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 		importReport.status = "Warning";
 		scene.loadedData.back().status = "Warning";
 	}
-	add("infrastructure", "infrastructure.json", static_cast<int>(scene.tracks.size() + scene.nodes.size()
-			+ scene.arcs.size() + scene.blocks.size() + scene.connections.size()));
+	add("infrastructure", "infrastructure.json",
+		static_cast<int>(scene.tracks.size() + scene.nodes.size() + scene.arcs.size() + scene.blocks.size()
+			+ scene.connections.size()));
 	scene.loadedData.back().targetType = "network";
 	const std::string infrastructureStatus = scene.loadedData.back().status;
 	addChild("tracks", "infrastructure.json", static_cast<int>(scene.tracks.size()), infrastructureStatus).targetType = "network";
@@ -634,8 +635,9 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 	addChild("signalling_areas", "signalling.json", static_cast<int>(scene.signallingAreas.size()), signallingStatus).targetType = "network";
 	addChild("routes", "signalling.json", static_cast<int>(scene.routes.size()), signallingStatus).targetType = "network";
 	addChild("dependencies", "signalling.json", static_cast<int>(scene.blockDependencies.size()), signallingStatus).targetType = "network";
-	addChild("restrictions", "signalling.json", static_cast<int>(scene.singleTrackRestrictions.size()
-			+ scene.stationBoundaries.size()), signallingStatus).targetType = "network";
+	addChild("restrictions", "signalling.json",
+		static_cast<int>(scene.singleTrackRestrictions.size() + scene.stationBoundaries.size()), signallingStatus)
+		.targetType = "network";
 
 	int incidentCount = 0;
 	int entranceDelayCount = 0;
@@ -1168,7 +1170,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					view.longitude = value["longitude"].get<double>();
 					if (!std::isfinite(view.latitude) || !std::isfinite(view.longitude)
 							|| stationIds.count(view.stationId) == 0) {
-						viewWarning(path, stationIds.count(view.stationId) == 0
+						viewWarning(path,
+							stationIds.count(view.stationId) == 0
 								? "Station display row refers to an unknown station; row skipped"
 								: "Station display row has non-finite coordinates; row skipped");
 						continue;

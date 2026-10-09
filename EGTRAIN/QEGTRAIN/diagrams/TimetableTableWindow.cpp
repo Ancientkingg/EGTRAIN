@@ -182,12 +182,15 @@ void TimetableTableWindow::fillTable() {
 			static_cast<double>(result.journeyIndex)));
 		m_table->setItem(row, 3, makeItem(timeText(result.plannedArrivalSeconds),
 			result.plannedArrivalSeconds.available, result.plannedArrivalSeconds.value));
-		m_table->setItem(row, 4, makeItem(timeText(result.plannedDepartureSeconds),
-			result.plannedDepartureSeconds.available, result.plannedDepartureSeconds.value));
-		m_table->setItem(row, 5, makeItem(timeText(result.simulatedArrivalSeconds),
-			result.simulatedArrivalSeconds.available, result.simulatedArrivalSeconds.value));
-		m_table->setItem(row, 6, makeItem(timeText(result.simulatedDepartureSeconds),
-			result.simulatedDepartureSeconds.available, result.simulatedDepartureSeconds.value));
+		m_table->setItem(row, 4,
+			makeItem(timeText(result.plannedDepartureSeconds), result.plannedDepartureSeconds.available,
+				result.plannedDepartureSeconds.value));
+		m_table->setItem(row, 5,
+			makeItem(timeText(result.simulatedArrivalSeconds), result.simulatedArrivalSeconds.available,
+				result.simulatedArrivalSeconds.value));
+		m_table->setItem(row, 6,
+			makeItem(timeText(result.simulatedDepartureSeconds), result.simulatedDepartureSeconds.available,
+				result.simulatedDepartureSeconds.value));
 		auto* arrivalDelayItem = makeItem(delayText(result.arrivalDelaySeconds),
 			result.arrivalDelaySeconds.available, result.arrivalDelaySeconds.value);
 		auto* departureDelayItem = makeItem(delayText(result.departureDelaySeconds),

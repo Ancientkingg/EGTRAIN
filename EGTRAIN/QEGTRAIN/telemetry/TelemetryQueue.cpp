@@ -28,10 +28,10 @@ bool keys(const QJsonObject& obj, std::initializer_list<const char*> expected) {
     return true;
 }
 bool validRetry(const RetryState& state) {
-    return state.failures >= 0 && state.failures <= 31 &&
-        state.usageBatchLimit >= 1 && state.usageBatchLimit <= 50 &&
-        state.diagnosticsBatchLimit >= 1 && state.diagnosticsBatchLimit <= 50 &&
-        (!state.nextEligibleUtc.isValid() || utc(state.nextEligibleUtc));
+    return state.failures >= 0 && state.failures <= 31
+        && state.usageBatchLimit >= 1 && state.usageBatchLimit <= 50
+        && state.diagnosticsBatchLimit >= 1 && state.diagnosticsBatchLimit <= 50
+        && (!state.nextEligibleUtc.isValid() || utc(state.nextEligibleUtc));
 }
 }
 TelemetryQueue::~TelemetryQueue() { close(); }
@@ -73,8 +73,8 @@ bool TelemetryQueue::replace(const QString& file, const QByteArray& data, qint64
 #endif
     QSaveFile output(m_dir + QLatin1Char('/') + file);
     output.setDirectWriteFallback(false);
-    if (!output.open(QIODevice::WriteOnly) || !output.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner) ||
-        output.write(data) != data.size() || !output.commit() || !checkSpace()) return fail();
+    if (!output.open(QIODevice::WriteOnly) || !output.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)
+        || output.write(data) != data.size() || !output.commit() || !checkSpace()) return fail();
     return true;
 }
 bool TelemetryQueue::loadControl() {
@@ -84,10 +84,10 @@ bool TelemetryQueue::loadControl() {
     const QJsonDocument doc = QJsonDocument::fromJson(file.read(kControlBytes + 1));
     if (!doc.isObject()) return false;
     const auto obj = doc.object();
-    if (!keys(obj, {"format", "retired", "last_seen", "retry", "endpoint", "terms"}) ||
-        obj.value(QStringLiteral("format")).toInt(-1) != 1 || !obj.value(QStringLiteral("retired")).isArray() ||
-        !obj.value(QStringLiteral("retry")).isObject() || !obj.value(QStringLiteral("endpoint")).isString() ||
-        !obj.value(QStringLiteral("terms")).isString() || !obj.value(QStringLiteral("last_seen")).isString()) return false;
+    if (!keys(obj, {"format", "retired", "last_seen", "retry", "endpoint", "terms"})
+        || obj.value(QStringLiteral("format")).toInt(-1) != 1 || !obj.value(QStringLiteral("retired")).isArray()
+        || !obj.value(QStringLiteral("retry")).isObject() || !obj.value(QStringLiteral("endpoint")).isString()
+        || !obj.value(QStringLiteral("terms")).isString() || !obj.value(QStringLiteral("last_seen")).isString()) return false;
     for (const auto& value : obj.value(QStringLiteral("retired")).toArray()) {
         if (!value.isString() || value.toString().toUtf8().size() > 2048 || m_retired.contains(value.toString()) || m_retired.size() >= 16) return false;
         m_retired.append(value.toString());
@@ -96,9 +96,9 @@ bool TelemetryQueue::loadControl() {
     if (!last.isEmpty()) { m_lastSeen = QDateTime::fromString(last, Qt::ISODateWithMs); if (!utc(m_lastSeen) || !last.endsWith(QLatin1Char('Z'))) return false; }
     m_lastCheckpoint = m_lastSeen;
     const auto retry = obj.value(QStringLiteral("retry")).toObject();
-    if (!keys(retry, {"failures", "next", "usage_limit", "diagnostics_limit"}) ||
-        !retry.value(QStringLiteral("failures")).isDouble() || !retry.value(QStringLiteral("usage_limit")).isDouble() ||
-        !retry.value(QStringLiteral("diagnostics_limit")).isDouble() || !retry.value(QStringLiteral("next")).isString()) return false;
+    if (!keys(retry, {"failures", "next", "usage_limit", "diagnostics_limit"})
+        || !retry.value(QStringLiteral("failures")).isDouble() || !retry.value(QStringLiteral("usage_limit")).isDouble()
+        || !retry.value(QStringLiteral("diagnostics_limit")).isDouble() || !retry.value(QStringLiteral("next")).isString()) return false;
     m_retry.failures = retry.value(QStringLiteral("failures")).toInt(-1);
     m_retry.usageBatchLimit = retry.value(QStringLiteral("usage_limit")).toInt(-1);
     m_retry.diagnosticsBatchLimit = retry.value(QStringLiteral("diagnostics_limit")).toInt(-1);
@@ -129,9 +129,9 @@ bool TelemetryQueue::loadCategory(Category category) {
     const auto doc = QJsonDocument::fromJson(file.read(kCategoryBytes + 1));
     if (!doc.isObject()) return false;
     const auto obj = doc.object();
-    if (!keys(obj, {"format", "endpoint", "terms", "events"}) || obj.value(QStringLiteral("format")).toInt(-1) != 1 ||
-        !obj.value(QStringLiteral("endpoint")).isString() || !obj.value(QStringLiteral("terms")).isString() ||
-        !obj.value(QStringLiteral("events")).isArray()) return false;
+    if (!keys(obj, {"format", "endpoint", "terms", "events"}) || obj.value(QStringLiteral("format")).toInt(-1) != 1
+        || !obj.value(QStringLiteral("endpoint")).isString() || !obj.value(QStringLiteral("terms")).isString()
+        || !obj.value(QStringLiteral("events")).isArray()) return false;
     if (obj.value(QStringLiteral("endpoint")).toString() != m_endpoint || obj.value(QStringLiteral("terms")).toString() != m_terms) {
         // Windows cannot replace a file that is still open.
         file.close();
@@ -143,8 +143,8 @@ bool TelemetryQueue::loadCategory(Category category) {
     for (const auto& value : array) {
         if (!value.isObject()) return false;
         const auto item = value.toObject();
-        if (!keys(item, {"stamp", "event"}) || !item.value(QStringLiteral("stamp")).isString() || !item.value(QStringLiteral("event")).isObject() ||
-            QJsonDocument(item).toJson(QJsonDocument::Compact).size() > kRecordBytes) return false;
+        if (!keys(item, {"stamp", "event"}) || !item.value(QStringLiteral("stamp")).isString() || !item.value(QStringLiteral("event")).isObject()
+            || QJsonDocument(item).toJson(QJsonDocument::Compact).size() > kRecordBytes) return false;
         Stored stored;
         stored.stamp = item.value(QStringLiteral("stamp")).toString();
         if (category == Category::Usage ? !validUuid(stored.stamp) : stored.stamp.isEmpty()) return false;
@@ -168,8 +168,8 @@ bool TelemetryQueue::saveCategory(Category category) {
 TelemetryQueue::OpenResult TelemetryQueue::open(const QString& privateDirectory, const QString& exactEndpoint,
                                                    const QString& terms, const QDateTime& now) {
     close(); m_failed = false; m_retired.clear(); m_retry = {}; m_lastSeen = {}; m_lastCheckpoint = {};
-    if (!utc(now) || exactEndpoint.toUtf8().size() > 2048 || exactEndpoint.isEmpty() || terms.isEmpty() || terms.toUtf8().size() > 64 ||
-        privateDirectory.isEmpty() || QFileInfo(privateDirectory).isSymLink()) return OpenResult::Disabled;
+    if (!utc(now) || exactEndpoint.toUtf8().size() > 2048 || exactEndpoint.isEmpty() || terms.isEmpty() || terms.toUtf8().size() > 64
+        || privateDirectory.isEmpty() || QFileInfo(privateDirectory).isSymLink()) return OpenResult::Disabled;
     m_dir = privateDirectory; m_endpoint = exactEndpoint; m_terms = terms;
     if (!QDir().mkpath(m_dir) || !QFile::setPermissions(m_dir, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner)) return OpenResult::Disabled;
     m_lock.reset(new QLockFile(m_dir + QStringLiteral("/owner.lock")));
@@ -179,8 +179,8 @@ TelemetryQueue::OpenResult TelemetryQueue::open(const QString& privateDirectory,
     m_ownershipId = QUuid::createUuid().toString(QUuid::WithoutBraces);
     // Never interpret deleted control state as an empty retirement ledger if
     // category data already exists in this directory.
-    const bool missingControlWithData = !QFile::exists(m_dir + QStringLiteral("/control.json")) &&
-        (QFile::exists(m_dir + QStringLiteral("/usage.json")) || QFile::exists(m_dir + QStringLiteral("/diagnostics.json")));
+    const bool missingControlWithData = !QFile::exists(m_dir + QStringLiteral("/control.json"))
+        && (QFile::exists(m_dir + QStringLiteral("/usage.json")) || QFile::exists(m_dir + QStringLiteral("/diagnostics.json")));
     if (QFile::exists(m_dir + QStringLiteral("/disabled"))) {
         // Recovery only discards payloads. Never erase the disabled marker or retirement ledger.
         QFile::remove(m_dir + QStringLiteral("/usage.json"));
@@ -230,8 +230,8 @@ QDateTime TelemetryQueue::nextExpiryUtc() const {
     return earliest.isValid() ? earliest.addMSecs(kLifetimeMs) : QDateTime();
 }
 bool TelemetryQueue::enqueueUsage(const UsageRecord& record, const QDateTime& now) {
-    if (!healthy() || !validUuid(record.installationId) || eventObject(record.event, Category::Usage).isEmpty() ||
-        !utc(now) || record.event.occurredAt > now || record.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
+    if (!healthy() || !validUuid(record.installationId) || eventObject(record.event, Category::Usage).isEmpty()
+        || !utc(now) || record.event.occurredAt > now || record.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
     if (!prune(now)) return false;
     auto& list = m_usage;
     for (const auto& item : list) if (item.event.id == record.event.id) return false;
@@ -253,8 +253,8 @@ bool TelemetryQueue::enqueueUsage(const UsageRecord& record, const QDateTime& no
     return saveCategory(Category::Usage);
 }
 bool TelemetryQueue::enqueueDiagnostic(const DiagnosticRecord& record, const QDateTime& now) {
-    if (!healthy() || record.generation < 0 || record.generation == INT_MAX || eventObject(record.event, Category::Diagnostics).isEmpty() ||
-        !utc(now) || record.event.occurredAt > now || record.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
+    if (!healthy() || record.generation < 0 || record.generation == INT_MAX || eventObject(record.event, Category::Diagnostics).isEmpty()
+        || !utc(now) || record.event.occurredAt > now || record.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
     if (!prune(now)) return false;
     auto& list = m_diagnostics;
     for (const auto& item : list) if (item.event.id == record.event.id) return false;
@@ -301,8 +301,8 @@ bool TelemetryQueue::purgeEndpointData() {
 PreparedBatch TelemetryQueue::prepareBatch(Category category, const QString& stamp, const Application& app,
                                             const QDateTime& now, int maxEvents) const {
     PreparedBatch result;
-    if (!healthy() || !utc(now) || maxEvents < 1 || !validApplication(app) ||
-        (category == Category::Usage ? !validUuid(stamp) : stamp.isEmpty())) return result;
+    if (!healthy() || !utc(now) || maxEvents < 1 || !validApplication(app)
+        || (category == Category::Usage ? !validUuid(stamp) : stamp.isEmpty())) return result;
     result.token.category = category; result.token.stamp = stamp; result.token.ownershipId = m_ownershipId;
     QVector<TelemetryEvent> selected;
     const int cap = qMin(50, qMin(maxEvents, category == Category::Usage ? m_retry.usageBatchLimit : m_retry.diagnosticsBatchLimit));

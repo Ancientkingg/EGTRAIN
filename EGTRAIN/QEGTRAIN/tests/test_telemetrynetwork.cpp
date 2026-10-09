@@ -76,9 +76,9 @@ int main(int argc, char** argv) {
             [&](const QList<QSslError>& errors) {
                 for (const QSslError& error : errors) {
                     errorsSeen.append(error.errorString());
-                    if (error.error() == QSslError::SelfSignedCertificate ||
-                        error.error() == QSslError::CertificateUntrusted ||
-                        error.error() == QSslError::UnableToGetLocalIssuerCertificate)
+                    if (error.error() == QSslError::SelfSignedCertificate
+                        || error.error() == QSslError::CertificateUntrusted
+                        || error.error() == QSslError::UnableToGetLocalIssuerCertificate)
                         rejectedCertificate = true;
                 }
             });
@@ -88,9 +88,9 @@ int main(int argc, char** argv) {
         loop.exec();
         if (scenario == 0) assert(rejectedCertificate && probe->error() == QNetworkReply::SslHandshakeFailedError);
         else if (probe->error() != QNetworkReply::NoError) {
-            if (QSslSocket::sslLibraryVersionString().startsWith(QStringLiteral("Secure Transport")) &&
-                errorsSeen.size() == 1 &&
-                errorsSeen.first() == QStringLiteral("The root CA certificate is not trusted for this purpose")) {
+            if (QSslSocket::sslLibraryVersionString().startsWith(QStringLiteral("Secure Transport"))
+                && errorsSeen.size() == 1
+                && errorsSeen.first() == QStringLiteral("The root CA certificate is not trusted for this purpose")) {
                 fprintf(stderr, "UNSUPPORTED: Qt5 Secure Transport rejects request-local test CA: %s\n",
                     qPrintable(errorsSeen.first()));
                 return 77;

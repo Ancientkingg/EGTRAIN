@@ -988,9 +988,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 					valid = false;
 				}
 			} else {
-				if (hasOccurrence && (incident.occurrence < 1
-						|| repeatCounts.find(incident.target) == repeatCounts.end()
-						|| incident.occurrence > repeatCounts[incident.target])) {
+				if (hasOccurrence
+						&& (incident.occurrence < 1
+							|| repeatCounts.find(incident.target) == repeatCounts.end()
+							|| incident.occurrence > repeatCounts[incident.target])) {
 					addNativeDiagnostic(diagnostics, "scene.native.incident.occurrence",
 							"Breakdown occurrence is outside the configured service pattern", "scenarios.json",
 							"incident", incident.id, "incidents[" + incident.id + "].occurrence");
@@ -1790,8 +1791,8 @@ void protectStationAreas(int i) {
 		// cout << ">>>>>>>>>" << regional_train[k].trainDescription << "is OutOfSimulation" << regional_train[k].OutOfSimulation << endl;
 		if (!regional_train[k].OutOfSimulation) {
 			if ((i >= regional_train[k].departure_time) && regional_train[k].CanEnter) {
-				if (timestep <= 0 || i < 0 || i >= static_cast<int>(regional_train[k].instant_spatial_position.size()) ||
-					regional_train[k].indexOfRoute < 0 || regional_train[k].indexOfRoute >= static_cast<int>(train_route.size()))
+				if (timestep <= 0 || i < 0 || i >= static_cast<int>(regional_train[k].instant_spatial_position.size())
+					|| regional_train[k].indexOfRoute < 0 || regional_train[k].indexOfRoute >= static_cast<int>(train_route.size()))
 					continue;
 				const int delayedIndex = i - static_cast<int>(S_delay / timestep);
 				if (delayedIndex < 0 || delayedIndex >= static_cast<int>(regional_train[k].instant_spatial_position.size()))
@@ -1803,8 +1804,8 @@ void protectStationAreas(int i) {
 				// find signalling_block_sections occupied by head of train
 				int hHead = -1;
 				for (int h = 0; h < route.N_Block_Sections; h++) {
-					if ((regional_train[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000) &&
-						(regional_train[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
+					if ((regional_train[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000)
+						&& (regional_train[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
 						hHead = h;
 						break;
 					}
@@ -1826,23 +1827,23 @@ void protectStationAreas(int i) {
 							continue;
 						if (regional_train[tr].numStations <= 0 || regional_train[tr].Stations == nullptr)
 							continue;
-						if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == stationName &&
-							regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform)
+						if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == stationName
+							&& regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform)
 							return true;
 
 						// wait for trains leaving the station to prevent deadlocks
-						if (regional_train[tr].Stations[0].stationName != stationName ||
-							regional_train[tr].indexOfRoute < 0 ||
-							regional_train[tr].indexOfRoute >= static_cast<int>(train_route.size()) ||
-							i >= static_cast<int>(regional_train[tr].instant_spatial_position.size()))
+						if (regional_train[tr].Stations[0].stationName != stationName
+							|| regional_train[tr].indexOfRoute < 0
+							|| regional_train[tr].indexOfRoute >= static_cast<int>(train_route.size())
+							|| i >= static_cast<int>(regional_train[tr].instant_spatial_position.size()))
 							continue;
 						if (train_route[regional_train[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
 							// if the other train is not booking a platform, it is not at the platform - enough to check position
-							if (!route.reversed_direction && regional_train[tr].numStations > 1 &&
-								regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i))
+							if (!route.reversed_direction && regional_train[tr].numStations > 1
+								&& regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i))
 								return true;
-							if (route.reversed_direction && regional_train[tr].numStations > 1 &&
-								regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i))
+							if (route.reversed_direction && regional_train[tr].numStations > 1
+								&& regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i))
 								return true;
 						}
 					}
@@ -1855,8 +1856,8 @@ void protectStationAreas(int i) {
 						continue;
 					bool stationAreaHandled = false;
 					for (int offset : {1, 2}) {
-						if (hHead + offset >= route.N_Block_Sections ||
-							stationBoundarySections[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
+						if (hHead + offset >= route.N_Block_Sections
+							|| stationBoundarySections[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
 							continue;
 
 						if (offset == 2) {

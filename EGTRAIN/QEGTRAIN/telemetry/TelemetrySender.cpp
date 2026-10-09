@@ -90,8 +90,11 @@ Application normalized(Application app) {
     app.platform.clear();
 #endif
     const QString arch = QSysInfo::buildCpuArchitecture();
-    app.architecture = arch == QStringLiteral("arm64") || arch == QStringLiteral("aarch64") ? QStringLiteral("arm64") :
-        arch == QStringLiteral("x86_64") ? QStringLiteral("x86_64") : QString();
+    app.architecture = arch == QStringLiteral("arm64") || arch == QStringLiteral("aarch64")
+        ? QStringLiteral("arm64")
+        : arch == QStringLiteral("x86_64")
+            ? QStringLiteral("x86_64")
+            : QString();
     return app;
 }
 }
@@ -171,9 +174,9 @@ TelemetrySender::OperationToken TelemetrySender::captureOperation() noexcept {
         for (int i = 0; i < 2; ++i) {
             token.invalidation[i] = s->invalidation[i].load(std::memory_order_acquire);
             token.epoch[i] = s->epoch[i];
-            token.eligible[i] = !s->stop.load(std::memory_order_acquire) && s->gate[i] &&
-                (s->permits.load(std::memory_order_acquire) & (quint64(1) << i)) &&
-                !(s->flags.load(std::memory_order_acquire) & ((1u << i) | 4u));
+            token.eligible[i] = !s->stop.load(std::memory_order_acquire) && s->gate[i]
+                && (s->permits.load(std::memory_order_acquire) & (quint64(1) << i))
+                && !(s->flags.load(std::memory_order_acquire) & ((1u << i) | 4u));
         }
 #ifdef EGTRAIN_SENDER_TEST_HOOK
         if (s->tests.afterOperationCaptureLocked) s->tests.afterOperationCaptureLocked();
@@ -189,11 +192,12 @@ bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input, const Operati
         const int idx = category == Category::Usage ? 0 : 1;
         if (!token.eligible[idx] || !validInput(input, category) || !s->mutex.tryLock()) return false;
         std::unique_lock<QMutex> lock(s->mutex, std::adopt_lock);
-        if (s->stop.load(std::memory_order_acquire) || !s->gate[idx] ||
-            !(s->permits.load(std::memory_order_acquire) & (quint64(1) << idx)) ||
-            (s->flags.load(std::memory_order_acquire) & ((1u << idx) | 4u)) ||
-            token.epoch[idx] != s->epoch[idx] ||
-            token.invalidation[idx] != s->invalidation[idx].load(std::memory_order_acquire) || s->count >= kIngress) return false;
+        if (s->stop.load(std::memory_order_acquire) || !s->gate[idx]
+            || !(s->permits.load(std::memory_order_acquire) & (quint64(1) << idx))
+            || (s->flags.load(std::memory_order_acquire) & ((1u << idx) | 4u))
+            || token.epoch[idx] != s->epoch[idx]
+            || token.invalidation[idx] != s->invalidation[idx].load(std::memory_order_acquire)
+            || s->count >= kIngress) return false;
         s->ring[(s->head + s->count) % kIngress] = {input, utcNow(), s->epoch[idx]};
         ++s->count;
         return true;
@@ -212,8 +216,8 @@ bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input) noexcept {
         try {
             const int idx = category == Category::Usage ? 0 : 1;
             bool accepted = false;
-            if (!s->stop.load(std::memory_order_relaxed) && (s->permits.load(std::memory_order_acquire) & (quint64(1) << idx)) &&
-                s->gate[idx] && s->count < kIngress) {
+            if (!s->stop.load(std::memory_order_relaxed) && (s->permits.load(std::memory_order_acquire) & (quint64(1) << idx))
+                && s->gate[idx] && s->count < kIngress) {
                 s->ring[(s->head + s->count) % kIngress] = {input, utcNow(), s->epoch[idx]};
                 ++s->count;
                 accepted = true;
@@ -344,8 +348,8 @@ public:
             s->gate[i] = !value.isEmpty();
             if (!value.isEmpty() && !(s->flags.load(std::memory_order_acquire) & (1u << i))) {
                 quint64 expected = s->permits.load(std::memory_order_acquire);
-                while ((expected & ~quint64(3)) == version &&
-                       !s->permits.compare_exchange_weak(expected, expected | (quint64(1) << i),
+                while ((expected & ~quint64(3)) == version
+                       && !s->permits.compare_exchange_weak(expected, expected | (quint64(1) << i),
                                                           std::memory_order_release, std::memory_order_acquire)) {}
             }
         }
@@ -357,9 +361,9 @@ public:
         QString selectedStamp;
         {
             QMutexLocker lock(&s->mutex);
-            if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || stamp[0].isEmpty() ||
-                !(s->permits.load(std::memory_order_acquire) & 1u) ||
-                (s->flags.load(std::memory_order_acquire) & 5u)) return;
+            if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || stamp[0].isEmpty()
+                || !(s->permits.load(std::memory_order_acquire) & 1u)
+                || (s->flags.load(std::memory_order_acquire) & 5u)) return;
             // This is a lifetime attempt, not a retryable producer intent.
             sessionAttempted = true;
             epoch = s->epoch[0];
@@ -374,9 +378,9 @@ public:
         if (!owner) return;
         {
             QMutexLocker lock(&s->mutex);
-            if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || s->epoch[0] != epoch ||
-                stamp[0] != selectedStamp || !(s->permits.load(std::memory_order_acquire) & 1u) ||
-                (s->flags.load(std::memory_order_acquire) & 5u)) return;
+            if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || s->epoch[0] != epoch
+                || stamp[0] != selectedStamp || !(s->permits.load(std::memory_order_acquire) & 1u)
+                || (s->flags.load(std::memory_order_acquire) & 5u)) return;
         }
         if (!queue.enqueueUsage({event, selectedStamp}, now()) && !queue.healthy()) disable();
     }
@@ -385,9 +389,9 @@ public:
         if (!owner || s->stop.load(std::memory_order_acquire) ||
             (s->flags.load(std::memory_order_acquire) & 7u) || stamp[index] != selectedStamp) return false;
         QMutexLocker lock(&s->mutex);
-        return s->gate[index] && s->epoch[index] == epoch &&
-            (s->permits.load(std::memory_order_acquire) & ~quint64(3)) == permitVersion &&
-            (s->permits.load(std::memory_order_acquire) & (quint64(1) << index));
+        return s->gate[index] && s->epoch[index] == epoch
+            && (s->permits.load(std::memory_order_acquire) & ~quint64(3)) == permitVersion
+            && (s->permits.load(std::memory_order_acquire) & (quint64(1) << index));
     }
     bool reserve(qint64 delay, int failures, int usageLimit = -1, int diagnosticLimit = -1) {
         auto state = queue.retryState();
@@ -540,9 +544,11 @@ public:
                 disable(); return;
             }
             if (reply) reply->abort();
-            if (owner && (flags & 4u ? !queue.purgeEndpointData() :
-                          (flags & 1u && !queue.purgeCategory(Category::Usage)) ||
-                          (flags & 2u && !queue.purgeCategory(Category::Diagnostics)))) { disable(); return; }
+            if (owner
+                && (flags & 4u
+                    ? !queue.purgeEndpointData()
+                    : (flags & 1u && !queue.purgeCategory(Category::Usage))
+                        || (flags & 2u && !queue.purgeCategory(Category::Diagnostics)))) { disable(); return; }
             if (flags & 4u) { close(); disabled = true; return; }
         }
         if (disabled) return;
@@ -556,9 +562,9 @@ public:
                 const QString settingsPath = settings ? isolatedPath(settings->fileName()) : QString();
                 // Validate both paths before queue.open can create, chmod or lock storage.
                 const QString directory = isolatedPath(s->directory);
-                if (settingsPath.isEmpty() || directory.isEmpty() || settingsPath == directory ||
-                    settingsPath.startsWith(directory + QLatin1Char('/')) ||
-                    directory.startsWith(settingsPath + QLatin1Char('/'))) { failClosed(); return; }
+                if (settingsPath.isEmpty() || directory.isEmpty() || settingsPath == directory
+                    || settingsPath.startsWith(directory + QLatin1Char('/'))
+                    || directory.startsWith(settingsPath + QLatin1Char('/'))) { failClosed(); return; }
                 s->directory = directory;
             }
 #endif

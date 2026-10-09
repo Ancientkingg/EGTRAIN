@@ -1555,10 +1555,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				expandedServiceOccurrences += occurrenceCount;
 		}
 		if (expandedServiceOccurrences > maxExpandedTrains)
-			runtimeCapacity("Expanded service occurrences exceed the native train capacity of "
-					+ std::to_string(RuntimeLimits::kMaxExpandedTrains), "services.json", "scene", scene.name,
-					"services", "", "Reduce repeat counts or headways so total occurrences fit within "
-							+ std::to_string(RuntimeLimits::kMaxExpandedTrains) + " trains");
+			runtimeCapacity(
+					"Expanded service occurrences exceed the native train capacity of "
+						+ std::to_string(RuntimeLimits::kMaxExpandedTrains),
+					"services.json", "scene", scene.name, "services", "",
+					"Reduce repeat counts or headways so total occurrences fit within "
+						+ std::to_string(RuntimeLimits::kMaxExpandedTrains) + " trains");
 
 		if (infrastructureUsableForRuntimeChecks) {
 

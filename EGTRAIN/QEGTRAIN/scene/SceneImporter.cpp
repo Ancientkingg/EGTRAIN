@@ -913,9 +913,8 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 				}
 			}
 			if (legResolved)
-				resolvedLegs.push_back({
-						{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>()
-								+ ".leg." + std::to_string(i + 1)},
+				resolvedLegs.push_back(
+					{{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>() + ".leg." + std::to_string(i + 1)},
 						{"origin", origin}, {"destination", destinationStation},
 						{"service", serviceId}, {"occurrence", occurrence}});
 		}
@@ -1241,7 +1240,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	};
 	auto blockReferenceKnown = [&](const std::string& reference) {
 		const auto components = blockReferenceComponents(reference);
-		return !components.empty() && std::all_of(components.begin(), components.end(),
+		return !components.empty()
+			&& std::all_of(components.begin(), components.end(),
 				[&](const std::string& component) { return blockIds.count(component) != 0; });
 	};
 
@@ -2097,11 +2097,16 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.parse", "Train traction file has no valid rows", tractionPath.string());
 			continue;
 		}
-		trainUnits.push_back({{"id", relation.id},
-			{"physical", {{"mass_of_traction_unit_kg", physical[0]}, {"mass_of_a_wagon_kg", physical[1]},
-			{"number_of_wagons", physical[2]}, {"max_speed_ms", physical[3]}, {"max_deceleration_ms2", physical[4]},
-			{"frontal_area_m2", physical[5]}, {"resistance_coefficient", physical[6]}, {"jerk_ms3", physical[7]}, {"length_m", physical[8]}}},
-			{"traction_curve", curve}, {"source", {{"data_file", relation.dataPath}, {"traction_file", relation.tractionPath}}}});
+		trainUnits.push_back(
+			{{"id", relation.id},
+				{"physical",
+					{{"mass_of_traction_unit_kg", physical[0]}, {"mass_of_a_wagon_kg", physical[1]},
+						{"number_of_wagons", physical[2]}, {"max_speed_ms", physical[3]},
+						{"max_deceleration_ms2", physical[4]}, {"frontal_area_m2", physical[5]},
+						{"resistance_coefficient", physical[6]}, {"jerk_ms3", physical[7]},
+						{"length_m", physical[8]}}},
+				{"traction_curve", curve},
+				{"source", {{"data_file", relation.dataPath}, {"traction_file", relation.tractionPath}}}});
 		compositions.push_back({{"id", relation.id}, {"units", {relation.id}}});
 		report.source("rolling_stock.compositions", relation.id);
 		report.converted("rolling_stock.compositions", relation.id);

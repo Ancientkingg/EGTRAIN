@@ -807,8 +807,8 @@ static void testTimeoutAndExceptions(const telemetry::Application& metadata, Tel
             assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
             assert(requests == 2);
             assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
-            assert(readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry"))
-                   .toObject().value(QStringLiteral("failures")).toInt() == 0);
+            assert(
+                readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject().value(QStringLiteral("failures")).toInt() == 0);
         }
         sender.stop();
         assert(exited.tryAcquire(1, 3000));
@@ -957,8 +957,8 @@ static void testFollowerTakeover(const telemetry::Application& metadata, Telemet
     secondOptions.afterOwnershipAttempt = [&](bool owner) { if (!owner) followerAttempt.release(); };
     secondOptions.afterCompletion = [&] { secondCompleted.release(); };
     secondOptions.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& body) {
-        const auto reused = QJsonDocument::fromJson(body).object().value(QStringLiteral("events"))
-            .toArray().first().toObject().value(QStringLiteral("event_id")).toString();
+        const auto reused =
+            QJsonDocument::fromJson(body).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
         assert(reused == id);
         secondPosted.release();
         return new ScriptedReply(request, 202, &manager);
@@ -1149,8 +1149,8 @@ int main(int argc, char** argv) {
         assert(request.attribute(QNetworkRequest::RedirectPolicyAttribute).toInt() == QNetworkRequest::ManualRedirectPolicy);
         assert(request.attribute(QNetworkRequest::AuthenticationReuseAttribute).toInt() == QNetworkRequest::Manual);
         assert(body.size() <= 65536 && QJsonDocument::fromJson(body).isObject());
-        const QString id = QJsonDocument::fromJson(body).object().value(QStringLiteral("events"))
-            .toArray().first().toObject().value(QStringLiteral("event_id")).toString();
+        const QString id =
+            QJsonDocument::fromJson(body).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
         const int attempt = ++*posts;
         if (attempt == 1) *firstId = id;
         if (attempt == 2) *stableId = id == *firstId;

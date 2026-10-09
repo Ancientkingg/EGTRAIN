@@ -222,15 +222,15 @@ public:
 				break;
 			}
 		}
-		if ((ID == ob2.ID) && (total_nodes == ob2.total_nodes) &&
-			(total_arcs == ob2.total_arcs) &&
-			(length == ob2.length) &&
-			(start_node == ob2.start_node) &&
-			(nodelist_of_nodes_in_signalling_section == ob2.nodelist_of_nodes_in_signalling_section) &&
-			AreArcsEqual &&
-			(exit_speed == ob2.exit_speed) &&
-			(code == ob2.code) &&
-			(!strcmp(state, ob2.state)))
+		if ((ID == ob2.ID) && (total_nodes == ob2.total_nodes)
+			&& (total_arcs == ob2.total_arcs)
+			&& (length == ob2.length)
+			&& (start_node == ob2.start_node)
+			&& (nodelist_of_nodes_in_signalling_section == ob2.nodelist_of_nodes_in_signalling_section)
+			&& AreArcsEqual
+			&& (exit_speed == ob2.exit_speed)
+			&& (code == ob2.code)
+			&& (!strcmp(state, ob2.state)))
 			return true;
 		else
 			return false;

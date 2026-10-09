@@ -113,18 +113,18 @@ TelemetryConsent::ObservationStatus TelemetryConsent::observeState(State& state)
     if (error.error != QJsonParseError::NoError || !document.isObject()) return ObservationStatus::Error;
     const QJsonObject object = document.object();
     const QJsonValue generation = object.value(QStringLiteral("diagnosticsGeneration"));
-    if (!generation.isDouble() || generation.toDouble() < 0 ||
-        generation.toDouble() >= kGenerationLimit ||
-        generation.toDouble() != static_cast<int>(generation.toDouble())) return ObservationStatus::Error;
+    if (!generation.isDouble() || generation.toDouble() < 0
+        || generation.toDouble() >= kGenerationLimit
+        || generation.toDouble() != static_cast<int>(generation.toDouble())) return ObservationStatus::Error;
     state.diagnosticsGeneration = static_cast<int>(generation.toDouble());
     state.endpoint = object.value(QStringLiteral("endpoint")).toString();
     state.terms = object.value(QStringLiteral("terms")).toString();
     if (state.endpoint != m_context.endpoint || state.terms != m_context.termsVersion)
         return ObservationStatus::Mismatch;
-    if (!object.value(QStringLiteral("handled")).isBool() ||
-        !object.value(QStringLiteral("usage")).isBool() ||
-        !object.value(QStringLiteral("diagnostics")).isBool() ||
-        !object.value(QStringLiteral("id")).isString()) return ObservationStatus::Error;
+    if (!object.value(QStringLiteral("handled")).isBool()
+        || !object.value(QStringLiteral("usage")).isBool()
+        || !object.value(QStringLiteral("diagnostics")).isBool()
+        || !object.value(QStringLiteral("id")).isString()) return ObservationStatus::Error;
     state.handled = object.value(QStringLiteral("handled")).toBool();
     state.usage = object.value(QStringLiteral("usage")).toBool();
     state.diagnostics = object.value(QStringLiteral("diagnostics")).toBool();

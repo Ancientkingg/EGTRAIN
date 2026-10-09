@@ -159,11 +159,14 @@ int main() {
 				&& nodePoint.nodeId == "B0.Ut",
 				"node identity disambiguates equal-chainage runtime anchors");
 		TrackPreviewPoint interpolated;
-		ok &= expect(trackPreviewPointAtX(normalized.lines[0], 32.0, interpolated)
-				&& interpolated.rawX == 32.0
-				&& std::fabs(interpolated.x - (normalized.lines[0].points[1].x
-					+ (normalized.lines[0].points[2].x - normalized.lines[0].points[1].x) * 4.0 / 36.0)) < 1e-9,
-				"point lookup interpolates by raw chainage");
+		ok &= expect(
+			trackPreviewPointAtX(normalized.lines[0], 32.0, interpolated) && interpolated.rawX == 32.0
+				&& std::fabs(
+					interpolated.x
+					- (normalized.lines[0].points[1].x
+						+ (normalized.lines[0].points[2].x - normalized.lines[0].points[1].x) * 4.0 / 36.0))
+					< 1e-9,
+			"point lookup interpolates by raw chainage");
 	}
 	ok &= expect(result.lines.size() == 2, "preview renders both in-memory tracks without legacy files");
 	if (result.lines.size() == 2) {

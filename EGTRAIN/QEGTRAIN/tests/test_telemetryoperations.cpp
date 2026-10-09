@@ -64,7 +64,8 @@ int main(int argc, char** argv) {
     };
     options.onWorkerExit = [&] { exited.release(); };
     TelemetrySender sender(context, {"1.2.3", "macos", "arm64"}, directory.filePath("queue"), options);
-    QObject::connect(&consent, &TelemetryConsent::revoked, &consent,
+    QObject::connect(
+        &consent, &TelemetryConsent::revoked, &consent,
         [&](bool usage, bool diagnostic) { sender.invalidateConsent(usage, diagnostic); }, Qt::DirectConnection);
     assert(polled.tryAcquire(1, 3000));
     const auto cycle = [&] {

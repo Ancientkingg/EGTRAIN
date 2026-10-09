@@ -167,7 +167,8 @@ inline std::pair<double, double> annotationStationShift(
         std::sort(positions.begin(), positions.end(), [](const Position& a, const Position& b) {
             return a.chainage < b.chainage;
         });
-        if (stationId.empty() || std::adjacent_find(positions.begin(), positions.end(),
+        if (stationId.empty()
+            || std::adjacent_find(positions.begin(), positions.end(),
                 [](const Position& a, const Position& b) { return a.chainage == b.chainage; })
                 != positions.end())
             continue;
