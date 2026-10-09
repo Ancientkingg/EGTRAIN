@@ -326,6 +326,10 @@ std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationS
 }
 
 void DispatchController::publishSimulationSnapshot(int timestep) {
+	if (!snapshotsEnabled_) {
+		PlaybackProfiler::instance().noteTimestep(timestep);
+		return;
+	}
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish", "worker", "");
 	std::shared_ptr<const GuiSimulationSnapshot> snapshot;
 	{

@@ -40,6 +40,9 @@ public:
 	void setVectorSizesFromInput(int vec_size);
 
 	std::shared_ptr<const GuiSimulationSnapshot> takeSimulationSnapshot();
+	// A run that nothing draws needs no snapshots and no replay history. Off, the
+	// run builds neither. Call this before the run starts.
+	void setSnapshotsEnabled(bool enabled) { snapshotsEnabled_ = enabled; }
 	// Only call these on the GUI thread before launch or after the worker has joined.
 	void resetReplayCandidate() { replayCandidate_.clear(); }
 	GuiReplayHistory takeReplayCandidate() { return std::exchange(replayCandidate_, GuiReplayHistory()); }
@@ -66,6 +69,7 @@ private:
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
 	GuiReplayHistory replayCandidate_;
+	bool snapshotsEnabled_ = true;
 	std::atomic<bool> runCompleted_{false};
 	std::string nextRunOutputFolder_;
 };

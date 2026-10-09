@@ -505,7 +505,9 @@ accounted payload, evicting oldest frames to keep a recent window. Accounting
 includes nested vector and string capacities, not allocator bookkeeping,
 container nodes or shared-pointer control blocks, so 64 MiB is **not** a precise
 resident-memory limit. If one frame exceeds the payload limit, replay is
-unavailable with an explanation; the simulation continues.
+unavailable with an explanation; the simulation continues. A run without a
+window (`-g 0`) builds no snapshots and no replay frames, because nothing
+reads them.
 
 ## Close, New and Open during a run
 
