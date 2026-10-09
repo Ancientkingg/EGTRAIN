@@ -9,6 +9,7 @@
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CompactDoubleSpinBox.h"
@@ -10610,7 +10611,7 @@ void MainWindow::editStop(int row) {
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
-	auto* stationCombo = new QComboBox(&dialog);
+	auto* stationCombo = new ChoiceComboBox(&dialog);
 	stationCombo->setObjectName("stopEditorStationCombo");
 	stationCombo->setAccessibleName("Timetable stop station");
 	const auto addStationChoice = [&](const std::string& stationId) {
@@ -10624,7 +10625,7 @@ void MainWindow::editStop(int row) {
 	if (stationCombo->count() == 0)
 		stationCombo->addItem("(missing station)", QString());
 	form->addRow("Station", stationCombo);
-	auto* platformCombo = new QComboBox(&dialog);
+	auto* platformCombo = new ChoiceComboBox(&dialog);
 	platformCombo->setObjectName("stopEditorPlatformCombo");
 	platformCombo->setAccessibleName("Timetable stop platform");
 	form->addRow("Compatible platform", platformCombo);
@@ -10633,7 +10634,7 @@ void MainWindow::editStop(int row) {
 	eligibilityLabel->setWordWrap(true);
 	form->addRow(QString(), eligibilityLabel);
 
-	auto* modeCombo = new QComboBox(&dialog);
+	auto* modeCombo = new ChoiceComboBox(&dialog);
 	modeCombo->setObjectName("stopEditorTimeModeCombo");
 	modeCombo->addItem("Elapsed offsets (s)", false);
 	modeCombo->addItem("Clock time", true);
@@ -10701,6 +10702,11 @@ void MainWindow::editStop(int row) {
 	setTimeField(departurePresent, departureEdit, optionalDeparture());
 	dwellEdit->setText(QString::fromStdString(csv::formatDouble(draft.dwellSeconds)));
 
+	int invalidPlatformIndex = -1;
+	const auto stationOnRoute = [&](const std::string& stationId) {
+		return std::any_of(traversal.visits.begin(), traversal.visits.end(),
+			[&](const auto& visit) { return visit.stationId == stationId; });
+	};
 	const auto updateEligibility = [&]() {
 		SceneService candidate = service;
 		if (append)
@@ -10712,12 +10718,17 @@ void MainWindow::editStop(int row) {
 		const auto status = stopIndex < resolutions.size() ? resolutions[stopIndex].status
 			: SceneStopResolutionStatus::UnresolvedRoute;
 		eligibilityLabel->setText(stopResolutionText(status));
+		if (stationCombo->currentIndex() >= 0 && !stationOnRoute(draft.stationId))
+			stationCombo->setItemData(stationCombo->currentIndex(), eligibilityLabel->text(), Qt::ToolTipRole);
+		if (invalidPlatformIndex >= 0 && platformCombo->currentIndex() == invalidPlatformIndex)
+			platformCombo->setItemData(invalidPlatformIndex, eligibilityLabel->text(), Qt::ToolTipRole);
 		return status;
 	};
 	const auto refreshPlatforms = [&]() {
 		const std::string stationId = stationCombo->currentData().toString().toStdString();
 		const QSignalBlocker blocker(platformCombo);
 		platformCombo->clear();
+		invalidPlatformIndex = -1;
 		platformCombo->addItem(QStringLiteral("(no platform)"), QString());
 		std::vector<std::string> choices;
 		for (const auto& visit : traversal.visits)
@@ -10726,9 +10737,11 @@ void MainWindow::editStop(int row) {
 				choices.push_back(visit.platformId);
 		for (const auto& platform : choices)
 			platformCombo->addItem(QString::fromStdString(platform), QString::fromStdString(platform));
-		if (!draft.platformId.empty() && platformCombo->findData(QString::fromStdString(draft.platformId)) < 0)
+		if (!draft.platformId.empty() && platformCombo->findData(QString::fromStdString(draft.platformId)) < 0) {
+			invalidPlatformIndex = platformCombo->count();
 			platformCombo->addItem(QString("Invalid: %1").arg(QString::fromStdString(draft.platformId)),
 				QString::fromStdString(draft.platformId));
+		}
 		int index = platformCombo->findData(QString::fromStdString(draft.platformId));
 		platformCombo->setCurrentIndex(index < 0 ? 0 : index);
 		platformCombo->setEnabled(!stationId.empty());
@@ -10741,6 +10754,7 @@ void MainWindow::editStop(int row) {
 	}
 	refreshPlatforms();
 	updateEligibility();
+	DialogLayout::fitWidthToContent(dialog);
 	connect(stationCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
 		if (index < 0)
 			return;
@@ -17451,6 +17465,18 @@ void MainWindow::runEditorSmokeE2E() {
 						|| (stop.hasPlannedArrival && stop.plannedArrivalSeconds != arrivalText.toDouble()))
 						facetFailure(facetOk, "timetable", "modal lost fractional, zero or absent planned time");
 				}
+				m_sceneModel.services[serviceRow].stops.front().platformId = "unknown-platform";
+				const SceneStop unknownPlatform = m_sceneModel.services[serviceRow].stops.front();
+				bool unknownPlatformShown = false;
+				if (!editStopDialog(0, [&](QDialog* dialog) {
+						auto* platform = dialog->findChild<QComboBox*>("stopEditorPlatformCombo");
+						unknownPlatformShown = platform->currentText() == "Invalid: unknown-platform"
+							&& platform->currentData().toString() == "unknown-platform"
+							&& !platform->itemData(platform->currentIndex(), Qt::ToolTipRole).toString().isEmpty();
+					})
+					|| !unknownPlatformShown
+					|| !sameStop(unknownPlatform, m_sceneModel.services[serviceRow].stops.front()))
+					facetFailure(facetOk, "timetable", "unknown imported platform was replaced or not explained");
 				m_sceneModel.services[serviceRow].stops.front() = before;
 				const auto savedStops = m_sceneModel.services[serviceRow].stops;
 				const auto savedStations = m_sceneModel.stations;
