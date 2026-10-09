@@ -79,7 +79,8 @@ bool configure(const std::string& rules);
 // string when it is not set. The caller reports a false result: this code never prints.
 bool configureFromEnvironment();
 
-// One message. The destructor passes the collected text to the sink unless it is empty.
+// One message. The destructor passes the collected text to the sink unless it is empty. When an
+// argument of the stream expression throws, the text streamed before it is still passed.
 class Line {
 public:
 	Line(Category category, Level level);

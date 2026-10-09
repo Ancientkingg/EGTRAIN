@@ -240,7 +240,8 @@ to the console directly.
   (`cout`, `cerr`, `clog`, `printf`, `fprintf` to `stdout` or `stderr`, `owl` and `eglogger`)
   and compares them with the list `ALLOWED` in both directions. A new console write outside the
   deliberate files fails the test; when statements are removed, lower the entry of the file to
-  the new number and delete it at zero. Test markers (`E2E_` and `QEGTRAIN_` lines) are not
+  the new number and delete it at zero. Test markers (`E2E_` and `QEGTRAIN_` lines, and the
+  marker helpers of `app/MainWindow.cpp`, which print a name that the caller built) are not
   counted. The files that write the console on purpose are listed in `EXEMPT_FILES` with the
   reason. The test also checks that the code still writes the stdout lines that scripts read.
 

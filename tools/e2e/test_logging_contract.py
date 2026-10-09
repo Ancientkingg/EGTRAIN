@@ -158,6 +158,10 @@ COUNT_CASES = [
     ("a conditional format of two markers is not counted", r'fprintf(stdout, ok ? "E2E_A\n" : "\nQEGTRAIN_B\n");' + "\n", False, {}),
     ("a conditional format with a diagnostic is counted", r'fprintf(stdout, ok ? "E2E_A\n" : "problem\n");' + "\n", False, {"fprintf": 1}),
     ("a conditional stream is not counted", r'fprintf(ok ? stdout : stderr, "problem\n");' + "\n", False, {}),
+    ("cout.put is counted", "std::cout.put('x');\n", False, {"cout": 1}),
+    ("printf_s, vprintf, puts and putchar are counted", 'printf_s("x"); vprintf(f, a); puts("x"); putchar(1);\n', False, {"printf": 4}),
+    ("vfprintf to stderr is counted", "vfprintf(stderr, f, a);\n", False, {"fprintf": 1}),
+    ("fprintf to a file is not counted", 'fprintf(file, "x");\n', False, {}),
 ]
 
 
@@ -198,6 +202,12 @@ def check_counts(sources):
         for name in sorted(table):
             if name not in sources:
                 problems.append(f"{name}: listed in {label}, but no scanned file has this path")
+    for name in sorted(ALLOWED):
+        if name in EXEMPT_FILES:
+            problems.append(f"{name}: listed in ALLOWED and in EXEMPT_FILES. An exempt file is not counted: delete one entry.")
+        for kind, listed in sorted(ALLOWED[name].items()):
+            if listed <= 0:
+                problems.append(f"{name}: ALLOWED has {listed} for {kind}. Delete an entry at zero.")
     found = {}
     for name, text in sources.items():
         if name not in EXEMPT_FILES:
