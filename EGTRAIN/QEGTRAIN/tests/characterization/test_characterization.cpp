@@ -193,8 +193,6 @@ const struct {
 	const char* marker;
 } kKnownWrong[] = {
 	{"same-entry-level-4", "#564 F1 stops at the position of T1 at B"},
-	{"single-track-level-3", "#551 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
-	{"single-track-level-4", "#551 R1 and S1 meet on the single-track section, level 4 ignores the restriction"},
 };
 
 std::string knownWrongMarker(const std::string& name) {
@@ -245,6 +243,9 @@ std::vector<CaseSpec> buildCaseTable() {
 		const std::string name = "single-track-level-" + std::to_string(level);
 		cases.push_back({name, "baseline", {"S1", "R1"}, level, knownWrongMarker(name), true});
 	}
+	// F1 holds the restricted section and F2 follows it in the same direction: the restriction does not delay F2.
+	for (int level = 3; level <= 4; ++level)
+		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
 	return cases;
 }
 

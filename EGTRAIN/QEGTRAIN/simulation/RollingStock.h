@@ -793,8 +793,9 @@ public:
 		}
 	}
 
-	// A signal failure makes an End of Authority for every route copy of the failed section. Its position is
-	// expressed for the direction of its route, so only trains of that direction obey it.
+	// A signal failure makes an End of Authority for every route copy of the failed section, and a held single-track
+	// section makes one of the same type for the routes against its holder. Its position is expressed for the
+	// direction of its route, so only trains of that direction obey it.
 	bool obeysAuthority(const MovementAuthority& authority) const {
 		return authority.type != "SignalFailure" || authority.ReversedDirection == train_route[indexOfRoute].reversed_direction;
 	}
@@ -1169,7 +1170,7 @@ public:
 							}
 
 							if (it->type == "SignalFailure") {
-								// a failed signal is a stop target at every signalling level
+								// a failed signal or a held single-track section is a stop target at every signalling level
 								SpeedForEoA = 0;
 							} else if (BS[z + BlockPos].SignallingLevel == 3) {
 								SpeedForEoA = 0;

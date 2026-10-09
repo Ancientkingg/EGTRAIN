@@ -343,7 +343,7 @@ A case is a scenario, a set of services and a level. The case table is in
 | `same-entry-level-none`, `-0` to `-5` | trains `T1` and `F1`, both due at 60 s at the entry of the same route, without an incident; without a signalling level both enter at 60 s, as nothing separates trains there; at levels 0 to 5 `F1` enters after `T1` has moved on |
 | `entry-order-level-0` to `-2` | trains `F2` and `L1` on the `sf-first` scenario; `F2` is listed before `L1` in the scene but `L1` is due first, so `L1` enters first when the failure ends |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
-| `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; at levels 0, 1, 2 and 5 `R1` waits in front of the section while `S1` is in it |
+| `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; with a signalling level `R1` waits in front of the section while `S1` is in it |
 
 All 58 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
@@ -485,14 +485,10 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The markers name two open issues. #564 covers a level 4 train that enters right
+The marker names one open issue: #564 covers a level 4 train that enters right
 behind another one and stops at its platform position (`same-entry-level-4`).
-#551 covers the single-track cases in which `R1` is not held in front of the
-restricted section because the restriction has no effect at levels 3 and 4
-(`single-track-level-3`, `-4`). Without their markers the case of #564 fails
-the check for overlapping trains, and those of #551 the check that opposing
-trains are not inside a single-track section together. The checks apply to
-every unmarked case.
+Without its marker the case fails the check for overlapping trains. The checks
+apply to every unmarked case.
 
 ## Simulation Smoke Test
 
