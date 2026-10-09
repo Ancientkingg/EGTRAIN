@@ -325,7 +325,7 @@ jobs:
           "Windows package: $($files.Count) files, $bytes bytes" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
       - name: Start the package
-        # The program writes files next to itself, so it starts from a copy and the directory that is zipped stays as built.
+        # The program writes files next to itself, so it starts from a copy and the directory that is uploaded stays as built.
         shell: pwsh
         env:
           PYTHONUTF8: "1"
@@ -336,15 +336,12 @@ jobs:
           Copy-Item -Recurse dist/QEGTRAIN/* $start
           python tools/release/package_start_smoke.py "$start"
 
-      - name: Zip
-        shell: pwsh
-        run: Compress-Archive -Path dist/QEGTRAIN/* -DestinationPath QEGTRAIN-windows-x64.zip
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QEGTRAIN-windows-x64
-          path: QEGTRAIN-windows-x64.zip
+          name: QEGTRAIN-windows-x64-payload
+          path: dist/QEGTRAIN
+          include-hidden-files: true
           if-no-files-found: error
 
   package-linux:

@@ -13,13 +13,16 @@ from one of two sources.
 - One run of the `Release` workflow, either a manual run or the run of a
   pull request to `production`. The run has four artifacts:
   - `QEGTRAIN-macos-arm64`, holding `QEGTRAIN-macos-arm64.zip`
-  - `QEGTRAIN-windows-x64`, holding `QEGTRAIN-windows-x64.zip`
+  - `QEGTRAIN-windows-x64-payload`, holding the files of the Windows package
   - `QEGTRAIN-linux-x86_64`, holding `QEGTRAIN-linux-x86_64.AppImage`
   - `EGTRAIN-scenes`, holding the seven `.egscene` files
 
   The run page offers each artifact as a download that arrives in an outer zip.
-  Unpack that zip once to reach the file named above. A run has no release job,
-  so it has no `update-manifest.json` and publishes no release.
+  Unpack that zip once to reach the file named above. The outer zip of
+  `QEGTRAIN-windows-x64-payload` holds the files of the Windows package
+  themselves: unpack it into a new empty folder. A run has no release job, so it
+  has no `update-manifest.json`, no `QEGTRAIN-windows-x64.zip` (the release job
+  writes that archive from the Windows package) and publishes no release.
 - The assets of one published release, made by a push to `production` or by
   a `v*` tag. A release has exactly eleven files: the three packages, the seven
   bundles and `update-manifest.json`. It stays a draft until all of them are
@@ -93,7 +96,7 @@ What the jobs prove today:
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
 - The Package macOS job starts a copy of the app in the directory it zips, and
-  the Package Windows job starts a copy of the directory it zips, both with
+  the Package Windows job starts a copy of the directory it uploads, both with
   `tools/release/package_start_smoke.py` (step **Start the package**). The
   Package Linux job does not start the application from the package it builds.
   The Windows leg of the CMake workflow starts a Windows package assembled in
@@ -109,6 +112,10 @@ None of this shows the GUI student workflow.
 | macOS | `QEGTRAIN-macos-arm64.zip` | Unpacks to the folder `QEGTRAIN-Lebanon` with `QEGTRAIN.app`, `scene_tool`, `Scenes/Lebanon` and `lebanon-case-study.md`. The scene folders of the seven cases are inside the app, under `Contents/Resources/Scenes`. | `QEGTRAIN.app` |
 | Windows | `QEGTRAIN-windows-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
+
+A candidate from a run has no `QEGTRAIN-windows-x64.zip`. Its artifact
+`QEGTRAIN-windows-x64-payload` holds the same files at the top level: unpack
+the download into a new empty folder and launch `QEGTRAIN.exe` there.
 
 The packages hold scene folders, not `.egscene` bundles. The bundles are
 separate files of the candidate.
@@ -140,8 +147,8 @@ therefore saved only through step 5, **Save Case Study As...**.
    - the title of every dialog shown before the main window can be used;
    - anything you had to install or change to make the package start. On
      Windows, say whether the Visual C++ runtime was installed before the test.
-     The zip is built with `windeployqt --compiler-runtime` and the package job
-     lists no runtime file, so the job does not show whether a clean machine
+     The package is built with `windeployqt --compiler-runtime` and the package
+     job lists no runtime file, so the job does not show whether a clean machine
      starts without it.
 
    After the main window appears, the application shows the case chooser

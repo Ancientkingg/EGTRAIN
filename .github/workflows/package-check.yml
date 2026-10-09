@@ -67,24 +67,10 @@ jobs:
       - name: List downloaded files
         run: find artifacts -type f
 
-      # The Windows package artifact is a zip; the script reads it as a directory.
-      - name: Unpack the Windows package
-        run: |
-          set -euo pipefail
-          mkdir artifacts/QEGTRAIN-windows-x64-payload
-          unzip -q artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip -d artifacts/QEGTRAIN-windows-x64-payload
-
       - name: Build the release assets
         env:
           VERSION: ${{ needs.version.outputs.version }}
         run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets
-
-      - name: Compare the Windows file list with the artifact
-        run: |
-          set -euo pipefail
-          unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\' '/' | grep -v '/$' | LC_ALL=C sort > "$RUNNER_TEMP/zip-files.txt"
-          jq -r '.assets["windows-x64"].files[]' release-assets/update-manifest.json > "$RUNNER_TEMP/manifest-files.txt"
-          diff "$RUNNER_TEMP/zip-files.txt" "$RUNNER_TEMP/manifest-files.txt"
 
       - name: List the release assets
         run: ls -l release-assets

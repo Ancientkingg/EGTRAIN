@@ -224,61 +224,10 @@ jobs:
             echo "make_latest=$make_latest"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Generate update manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${{ needs.version.outputs.version }}"
-          test -n "$version"
-          mac_sha="$(sha256sum artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip | cut -d ' ' -f 1)"
-          windows_sha="$(sha256sum artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | cut -d ' ' -f 1)"
-          linux_sha="$(sha256sum artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage | cut -d ' ' -f 1)"
-          mac_size="$(stat -c %s artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip)"
-          windows_size="$(stat -c %s artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip)"
-          linux_size="$(stat -c %s artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage)"
-          windows_files="$(unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\' '/' | grep -v '/$' | jq -Rn '[inputs]')"
-          jq -e 'index("QEGTRAIN.exe")' <<< "$windows_files" > /dev/null
-          jq -n \
-            --arg version "$version" \
-            --arg mac_sha "$mac_sha" \
-            --arg windows_sha "$windows_sha" \
-            --arg linux_sha "$linux_sha" \
-            --argjson mac_size "$mac_size" \
-            --argjson windows_size "$windows_size" \
-            --argjson linux_size "$linux_size" \
-            --argjson windows_files "$windows_files" \
-            '{version:$version,assets:{"macos-arm64":{name:"QEGTRAIN-macos-arm64.zip",sha256:$mac_sha,size:$mac_size},"windows-x64":{name:"QEGTRAIN-windows-x64.zip",sha256:$windows_sha,size:$windows_size,files:$windows_files},"linux-x86_64":{name:"QEGTRAIN-linux-x86_64.AppImage",sha256:$linux_sha,size:$linux_size}}}' \
-            > artifacts/update-manifest.json
-          test -s artifacts/update-manifest.json
-
-      - name: Verify release assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          expected=(
-            artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
-            artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip
-            artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
-            artifacts/EGTRAIN-scenes/Netherlands.egscene
-            artifacts/EGTRAIN-scenes/Paimpol.egscene
-            artifacts/EGTRAIN-scenes/Copenhagen.egscene
-            artifacts/EGTRAIN-scenes/Milano_Brescia.egscene
-            artifacts/EGTRAIN-scenes/Assignment_Gvc_Gdg_Ut.egscene
-            artifacts/EGTRAIN-scenes/Lebanon.egscene
-            artifacts/EGTRAIN-scenes/Amsterdam_Hilversum_Student.egscene
-            artifacts/update-manifest.json
-          )
-
-          for file in "${expected[@]}"; do
-            test -s "$file"
-          done
-
-          count="$(find artifacts -type f | wc -l | tr -d ' ')"
-          if [[ "$count" != "11" ]]; then
-            echo "Expected exactly 11 release assets, found $count"
-            find artifacts -type f -print
-            exit 1
-          fi
+      - name: Build the release assets
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets
 
       - name: Prepare release
         uses: softprops/action-gh-release@v2
@@ -286,12 +235,7 @@ jobs:
           tag_name: ${{ steps.release-meta.outputs.tag }}
           target_commitish: ${{ github.sha }}
           name: ${{ steps.release-meta.outputs.name }}
-          files: |
-            artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
-            artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip
-            artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
-            artifacts/EGTRAIN-scenes/*.egscene
-            artifacts/update-manifest.json
+          files: release-assets/*
           prerelease: ${{ steps.release-meta.outputs.prerelease }}
           make_latest: ${{ steps.release-meta.outputs.make_latest }}
           fail_on_unmatched_files: true

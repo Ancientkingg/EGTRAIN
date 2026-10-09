@@ -22,10 +22,10 @@ can give is a field that reads Not recorded.
 
 The files are `QEGTRAIN.exe`, `egtrain_update_helper.exe`, `scene_tool.exe` and the Windows installer when it exists.
 The ZIP and the installer must contain the same signed program files, so signing happens before the ZIP is built and
-before the installer is compiled. The Generate update manifest step of the release job takes the SHA-256 and the size of
-the ZIP that the Windows package job uploads, so that ZIP must already hold the signed files. A ZIP file carries no
-Authenticode signature of its own. Signatures use SHA-256 and a trusted timestamp where the signing service supports
-them.
+before the installer is compiled. The release job writes the ZIP from the directory that the Windows package job uploads
+and takes the SHA-256 and the size of the ZIP it wrote, so that directory must already hold the signed files. A ZIP file
+carries no Authenticode signature of its own. Signatures use SHA-256 and a trusted timestamp where the signing service
+supports them.
 
 This project does not sign the Qt, ZeroMQ and other runtime libraries and plugins in the package; they keep whatever
 signature they have, which may be none. The scenes, the guide and the `.egscene` case studies are data and are never
