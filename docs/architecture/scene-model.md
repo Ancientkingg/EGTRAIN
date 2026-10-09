@@ -35,6 +35,13 @@ baseline `scenarios.json` even when there are no named scenarios. Runnable
 validation additionally requires populated infrastructure, routes, rolling
 stock, services, and positive simulation duration.
 
+The writer emits JSON with four-space indentation, sorted keys, and a final
+newline. It omits optional keys that are absent, always writes `scenarios.json`,
+and writes `views.json` and `passengers.json` only when the scene has views or
+passengers. A committed file in another form is rewritten by the next save. A
+scene that this version of the writer has saved gives the same bytes when it is
+loaded and saved again.
+
 ## Model ownership
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy

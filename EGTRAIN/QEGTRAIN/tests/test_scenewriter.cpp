@@ -2,11 +2,15 @@
 #include "scene/SceneWriter.h"
 #include "scene/StopInsertion.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <map>
 #include <iostream>
+#include <set>
+#include <string>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 #ifndef _WIN32
@@ -230,11 +234,546 @@ static SceneModel completeScene() {
 	return scene;
 }
 
+// Every field the writer can emit holds a value that differs from its default and from the other fields of its struct,
+// so that a dropped or swapped field changes the saved files. Fields that are not set here keep the value of
+// completeScene(). The values are arbitrary test data.
+static SceneModel populatedScene() {
+	SceneModel scene = completeScene();
+	scene.importReport[0] = {"stations", "legacy/stations.txt", 11, 7, 3, 2};
+
+	scene.tracks.push_back({"track-2"});
+	scene.trackViews.push_back({"track-2", 3, 4, true});
+	scene.nodes[0] = {"node-1", "track-1", 0.5, -0.25};
+	scene.nodes[1] = {"node-2", "track-2", 1.75, 0.625};
+	scene.arcs[0].curvatureRadiusM = 1250.5;
+	scene.arcs[0].gradientPercent = -1.5;
+	scene.blocks[0].lengthKm = 0.625;
+	scene.blocks[1].lengthKm = 1.125;
+	scene.blocks.push_back({"block-3", "track-1", 0.875});
+	scene.blocks.push_back({"block-4", "track-2", 1.25});
+
+	scene.stations[0].hasPosition = true;
+	scene.stations[0].positionKm = 12.5;
+	ScenePlatform& platform = scene.stations[0].platforms[0];
+	platform.nodeIds = {"node-1", "node-2"};
+	platform.hasLength = true;
+	platform.lengthM = 213.5;
+	platform.hasWidth = true;
+	platform.widthM = 4.25;
+
+	scene.singleTrackRestrictions[0] = {"block-1", "block-2", "block-3", "block-4"};
+	scene.stationBoundaries[0].direction = true;
+	scene.stationBoundaries.push_back({"block-3", false, "", false});
+
+	SceneTrainUnit& unit = scene.trainUnits[0];
+	unit.physical = {81234.5, 12345.25, 7.0, 44.5, 0.875, 9.75, 0.0125, 1.375, 63.5};
+	unit.tractionCurve.clear();
+	unit.tractionCurve.push_back({{1.5, 21.5, 91000.5, 410.25, 3.125}});
+	unit.tractionCurve.push_back({{21.5, 41.5, 81000.25, 320.75, 2.0625}});
+	unit.sourceTractionFile = "/TrainData/unit-1-traction.txt";
+
+	SceneService& service = scene.services[0];
+	service.performancePercent = 87.5;
+	service.hasMaximumSpeed = true;
+	service.maximumSpeedKmh = 137.5;
+	service.through = true;
+	service.category = "regional";
+	service.visualizationColor = "#1A2B3C";
+	service.hasRepeat = true;
+	service.headwaySeconds = 900.0;
+	service.hasRepeatCount = true;
+	service.repeatCount = 3;
+	service.hasOperatingCodeStep = true;
+	service.operatingCodeStep = 2;
+	service.stops[0].hasPlannedArrival = true;
+	service.stops[0].plannedArrivalSeconds = 80.0;
+	service.stops[0].dwellSeconds = 20.0;
+	service.stops[1].dwellSeconds = 45.0;
+
+	scene.defaultScenarioId = "alternate";
+	scene.scenarios[0].entranceDelays[0].occurrence = 3;
+	scene.scenarios[0].entranceDelays.push_back({"service-1", 1, "station-2", 12.5});
+	SceneIncident& breakdown = scene.scenarios[1].incidents[0];
+	breakdown.hasEndSeconds = true;
+	breakdown.endSeconds = 1500.0;
+	breakdown.reducedSpeedKmh = 35.5;
+
+	ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	journey.plannedDepartureStartSeconds = 15.5;
+	journey.plannedDepartureEndSeconds = 125.5;
+	journey.plannedArrivalStartSeconds = 185.25;
+	journey.plannedArrivalEndSeconds = 305.75;
+	journey.legs.push_back({"leg-2", "station-2", "station-1", "service-1", 2});
+	return scene;
+}
+
 static bool loadHasNoErrors(const fs::path& scenePath, SceneModel& scene) {
 	SceneLoadResult loaded = loadScene(scenePath.string());
 	printErrors(loaded.diagnostics, "load");
 	scene = loaded.scene;
 	return !hasErrors(loaded.diagnostics);
+}
+
+static const char* const kCanonicalSceneFiles[] = {"scene.json", "infrastructure.json", "stations.json",
+	"signalling.json", "rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"};
+
+// Every save writes these. passengers.json and views.json follow the content of the scene.
+static const char* const kAlwaysWrittenFiles[] = {"scene.json", "infrastructure.json", "stations.json",
+	"signalling.json", "rolling_stock.json", "services.json", "scenarios.json"};
+
+// The parsed content of a scene file, or an empty object when the file does not exist.
+static json readJsonFile(const fs::path& path) {
+	if (!fs::exists(path))
+		return json::object();
+	json value = json::parse(readBytes(path), nullptr, false);
+	return value.is_discarded() ? json::object() : value;
+}
+
+// Names every file that is in one directory only or has other bytes in the two.
+static bool sameDirectoryBytes(const fs::path& first, const fs::path& second, const std::string& label) {
+	const auto firstFiles = readDirectoryBytes(first);
+	const auto secondFiles = readDirectoryBytes(second);
+	bool same = true;
+	for (const auto& file : firstFiles) {
+		const auto other = secondFiles.find(file.first);
+		if (other == secondFiles.end()) {
+			std::cerr << "scene codec " << label << ": " << file.first << " is only in the first save\n";
+			same = false;
+		} else if (other->second != file.second) {
+			const auto difference = std::mismatch(file.second.begin(), file.second.end(), other->second.begin(),
+				other->second.end());
+			std::cerr << "scene codec " << label << ": " << file.first << " differs at byte "
+					  << (difference.first - file.second.begin()) << "\n";
+			same = false;
+		}
+	}
+	for (const auto& file : secondFiles) {
+		if (firstFiles.count(file.first) == 0) {
+			std::cerr << "scene codec " << label << ": " << file.first << " is only in the second save\n";
+			same = false;
+		}
+	}
+	return same;
+}
+
+// A save holds only canonical files, always the seven that every save writes, and never the flat incidents.json.
+static bool hasCanonicalFileNames(const fs::path& directory, const std::string& label) {
+	const auto files = readDirectoryBytes(directory);
+	bool canonical = true;
+	for (const auto& file : files) {
+		const std::string& name = file.first;
+		if (std::none_of(std::begin(kCanonicalSceneFiles), std::end(kCanonicalSceneFiles),
+				[&name](const char* known) { return name == known; })) {
+			std::cerr << "scene codec " << label << ": " << name << " is not a canonical scene file\n";
+			canonical = false;
+		}
+	}
+	for (const char* name : kAlwaysWrittenFiles) {
+		if (files.count(name) == 0) {
+			std::cerr << "scene codec " << label << ": " << name << " is missing\n";
+			canonical = false;
+		}
+	}
+	return canonical;
+}
+
+// The entries of the array at keys[depth], or, when deeper keys follow, of the arrays below each entry added up.
+// A missing file, key or array counts as zero.
+static std::size_t countEntries(const json& value, const std::vector<const char*>& keys, std::size_t depth = 0) {
+	if (!value.is_object() || !value.contains(keys[depth]) || !value[keys[depth]].is_array())
+		return 0;
+	const json& entries = value[keys[depth]];
+	if (depth + 1 == keys.size())
+		return entries.size();
+	std::size_t total = 0;
+	for (const json& entry : entries)
+		total += countEntries(entry, keys, depth + 1);
+	return total;
+}
+
+struct EntryCount {
+	const char* file;
+	std::vector<const char*> keys;
+};
+
+// Loads the source, saves it, loads the save and saves again. The second save must equal the first one, and the first
+// save must keep every entry of the source.
+static bool checkSceneCodec(const fs::path& source, const std::string& label, const TempDir& temp) {
+	const auto check = [&label](bool condition, const std::string& what) {
+		return expect(condition, ("scene codec " + label + ": " + what).c_str());
+	};
+	SceneModel model;
+	if (!check(loadHasNoErrors(source, model), "the source loads without errors"))
+		return false;
+	const fs::path first = temp.path / "first";
+	const SceneSaveResult firstSave = saveScene(model, first.string());
+	printErrors(firstSave.diagnostics, "first save");
+	if (!check(firstSave.success(), "the first save succeeds"))
+		return false;
+	SceneModel reloaded;
+	if (!check(loadHasNoErrors(first, reloaded) && reloaded.savedWithAppVersion == EGTRAIN_APP_VERSION,
+			"the first save loads without errors and records the current app version"))
+		return false;
+	const fs::path second = temp.path / "second";
+	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
+	printErrors(secondSave.diagnostics, "second save");
+	if (!check(secondSave.success(), "the second save succeeds"))
+		return false;
+	if (!check(sameDirectoryBytes(first, second, label), "the second save equals the first save byte for byte"))
+		return false;
+	if (!check(hasCanonicalFileNames(first, label), "the first save holds the canonical files and nothing else"))
+		return false;
+
+	std::map<std::string, json> sourceFiles;
+	std::map<std::string, json> savedFiles;
+	for (const char* name : kCanonicalSceneFiles) {
+		sourceFiles[name] = readJsonFile(source / name);
+		savedFiles[name] = readJsonFile(first / name);
+	}
+	// Without scenarios.json the loader creates one baseline scenario and takes its incidents from the flat incidents.json.
+	if (!fs::exists(source / "scenarios.json")) {
+		json baseline = {{"incidents", json::array()}, {"entrance_delays", json::array()}};
+		const json flatIncidents = readJsonFile(source / "incidents.json");
+		if (flatIncidents.contains("incidents"))
+			baseline["incidents"] = flatIncidents["incidents"];
+		sourceFiles["scenarios.json"] = {{"scenarios", json::array({baseline})}};
+	}
+	const std::vector<EntryCount> counts = {
+		{"scene.json", {"import_report"}},
+		{"infrastructure.json", {"tracks"}},
+		{"infrastructure.json", {"nodes"}},
+		{"infrastructure.json", {"arcs"}},
+		{"infrastructure.json", {"blocks"}},
+		{"infrastructure.json", {"connections"}},
+		{"stations.json", {"stations"}},
+		{"stations.json", {"stations", "platforms"}},
+		{"signalling.json", {"signals"}},
+		{"signalling.json", {"routes"}},
+		{"signalling.json", {"block_dependencies"}},
+		{"signalling.json", {"single_track_restrictions"}},
+		{"signalling.json", {"station_boundaries"}},
+		{"signalling.json", {"signalling_areas"}},
+		{"rolling_stock.json", {"train_units"}},
+		{"rolling_stock.json", {"compositions"}},
+		{"services.json", {"services"}},
+		{"services.json", {"services", "stops"}},
+		{"scenarios.json", {"scenarios"}},
+		{"scenarios.json", {"scenarios", "incidents"}},
+		{"scenarios.json", {"scenarios", "entrance_delays"}},
+		{"passengers.json", {"passengers"}},
+		{"passengers.json", {"passengers", "journeys"}},
+		{"passengers.json", {"passengers", "journeys", "legs"}},
+		{"views.json", {"tracks"}},
+		{"views.json", {"stations"}},
+	};
+	bool ok = true;
+	for (const EntryCount& count : counts) {
+		const std::size_t expected = countEntries(sourceFiles[count.file], count.keys);
+		const std::size_t actual = countEntries(savedFiles[count.file], count.keys);
+		std::string name = count.file;
+		for (const char* key : count.keys)
+			name += std::string(" ") + key;
+		ok &= check(expected == actual,
+			name + ": the source has " + std::to_string(expected) + " entries and the first save has " + std::to_string(actual));
+	}
+	const json& sourceScene = sourceFiles["scene.json"];
+	const json& savedScene = savedFiles["scene.json"];
+	for (const char* key : {"name", "description", "base_time", "schema_version", "simulation_settings"}) {
+		if (sourceScene.contains(key))
+			ok &= check(savedScene.contains(key) && savedScene[key] == sourceScene[key],
+				std::string("scene.json ") + key + " has the value of the source");
+	}
+	return ok;
+}
+
+// Checks every scene directory under the Scenes directory and the line and minimal fixtures that sit in
+// tests/fixtures/scenes next to it.
+static bool checkCommittedSceneCodecs(fs::path scenes) {
+	if (!scenes.has_filename())
+		scenes = scenes.parent_path();
+	const fs::path fixtures = scenes.parent_path() / "tests" / "fixtures" / "scenes";
+	std::set<fs::path> directories;
+	std::error_code error;
+	for (fs::directory_iterator entry(scenes, error), end; !error && entry != end; entry.increment(error)) {
+		if (entry->is_directory(error) && entry->path().filename().string().front() != '.')
+			directories.insert(entry->path());
+	}
+	bool ok = expect(!error, "scene codec: the Scenes directory can be read");
+	ok &= expect(!directories.empty(), "scene codec: the Scenes directory holds scene directories");
+	std::vector<std::pair<std::string, fs::path>> sources;
+	for (const fs::path& directory : directories)
+		sources.emplace_back(directory.filename().string(), directory);
+	sources.emplace_back("fixture line", fixtures / "line");
+	sources.emplace_back("fixture minimal", fixtures / "minimal");
+	for (const auto& source : sources) {
+		TempDir temp;
+		ok &= checkSceneCodec(source.second, source.first, temp);
+	}
+	std::cout << "scene codec: " << sources.size() << " scenes saved and loaded again\n";
+	return ok;
+}
+
+// The pointer with every array index replaced by "#", so that all entries of an array share one table row.
+static std::string withoutIndexes(const std::string& pointer) {
+	std::string result;
+	for (std::size_t position = 0; position < pointer.size();) {
+		const std::size_t end = std::min(pointer.find('/', position + 1), pointer.size());
+		const std::string token = pointer.substr(position + 1, end - position - 1);
+		const bool index = !token.empty() && token.find_first_not_of("0123456789") == std::string::npos;
+		result += "/" + (index ? std::string("#") : token);
+		position = end;
+	}
+	return result;
+}
+
+// Adds the pointer of every value that is neither an object nor an array of objects or arrays.
+static void collectLeaves(const json& value, const std::string& pointer, std::set<std::string>& leaves) {
+	if (value.is_object()) {
+		for (auto member = value.begin(); member != value.end(); ++member)
+			collectLeaves(member.value(), pointer + "/" + member.key(), leaves);
+	} else if (value.is_array()
+		&& std::any_of(value.begin(), value.end(), [](const json& item) { return item.is_structured(); })) {
+		for (std::size_t index = 0; index < value.size(); ++index)
+			collectLeaves(value[index], pointer + "/" + std::to_string(index), leaves);
+	} else {
+		leaves.insert(withoutIndexes(pointer));
+	}
+}
+
+// Saves the populated model, checks every key of the written files against a table of values, then loads the save and
+// saves again.
+static bool checkPopulatedScene(const TempDir& temp) {
+	const std::string label = "populated scene";
+	const SceneModel model = populatedScene();
+	const fs::path first = temp.path / "first";
+	const SceneSaveResult firstSave = saveScene(model, first.string());
+	printErrors(firstSave.diagnostics, "populated save");
+	if (!expect(firstSave.success(), "scene codec populated scene: the model saves"))
+		return false;
+
+	struct WrittenValue {
+		const char* file;
+		const char* pointer;
+		json expected;
+	};
+	// One row per key the writer can emit. The populated model sets every flag that makes the writer emit an optional key.
+	const std::vector<WrittenValue> table = {
+		{"scene.json", "/schema_version", 1},
+		{"scene.json", "/name", "Canonical complete scene"},
+		{"scene.json", "/description", "Writer round-trip"},
+		{"scene.json", "/base_time", "08:00:00"},
+		{"scene.json", "/saved_with_app_version", EGTRAIN_APP_VERSION},
+		{"scene.json", "/units/distance", "m"},
+		{"scene.json", "/units/time", "s"},
+		{"scene.json", "/units/speed", "m/s"},
+		{"scene.json", "/simulation_settings/duration_seconds", 3600.0},
+		{"scene.json", "/simulation_settings/buffer_time_seconds", 120.0},
+		{"scene.json", "/simulation_settings/recovery_time_percent", 5.0},
+		{"scene.json", "/import_report/0/category", "stations"},
+		{"scene.json", "/import_report/0/source_file", "legacy/stations.txt"},
+		{"scene.json", "/import_report/0/source_count", 11},
+		{"scene.json", "/import_report/0/converted_count", 7},
+		{"scene.json", "/import_report/0/skipped_count", 3},
+		{"scene.json", "/import_report/0/unresolved_references", 2},
+		{"infrastructure.json", "/tracks/0/id", "track-1"},
+		{"infrastructure.json", "/tracks/1/id", "track-2"},
+		{"infrastructure.json", "/nodes/0/id", "node-1"},
+		{"infrastructure.json", "/nodes/0/track", "track-1"},
+		{"infrastructure.json", "/nodes/0/x_km", 0.5},
+		{"infrastructure.json", "/nodes/0/y_km", -0.25},
+		{"infrastructure.json", "/nodes/1/id", "node-2"},
+		{"infrastructure.json", "/nodes/1/track", "track-2"},
+		{"infrastructure.json", "/nodes/1/x_km", 1.75},
+		{"infrastructure.json", "/nodes/1/y_km", 0.625},
+		{"infrastructure.json", "/arcs/0/id", "arc-1"},
+		{"infrastructure.json", "/arcs/0/track", "track-1"},
+		{"infrastructure.json", "/arcs/0/from", "node-1"},
+		{"infrastructure.json", "/arcs/0/to", "node-2"},
+		{"infrastructure.json", "/arcs/0/curvature_radius_m", 1250.5},
+		{"infrastructure.json", "/arcs/0/gradient_percent", -1.5},
+		{"infrastructure.json", "/arcs/0/speed_limit_ms", 40.0},
+		{"infrastructure.json", "/blocks/0/id", "block-1"},
+		{"infrastructure.json", "/blocks/0/track", "track-1"},
+		{"infrastructure.json", "/blocks/0/length_km", 0.625},
+		{"infrastructure.json", "/blocks/1/id", "block-2"},
+		{"infrastructure.json", "/blocks/1/length_km", 1.125},
+		{"infrastructure.json", "/blocks/2/id", "block-3"},
+		{"infrastructure.json", "/blocks/3/track", "track-2"},
+		{"infrastructure.json", "/blocks/3/length_km", 1.25},
+		{"infrastructure.json", "/connections/0/id", "connection-1"},
+		{"infrastructure.json", "/connections/0/from", "node-1"},
+		{"infrastructure.json", "/connections/0/to", "node-2"},
+		{"infrastructure.json", "/connections/0/speed_limit_ms", 30.0},
+		{"stations.json", "/stations/0/id", "station-1"},
+		{"stations.json", "/stations/0/name", "Origin"},
+		{"stations.json", "/stations/0/position_km", 12.5},
+		{"stations.json", "/stations/0/platforms/0/id", "platform-1"},
+		{"stations.json", "/stations/0/platforms/0/nodes", json::array({"node-1", "node-2"})},
+		{"stations.json", "/stations/0/platforms/0/length_m", 213.5},
+		{"stations.json", "/stations/0/platforms/0/width_m", 4.25},
+		{"stations.json", "/stations/1/id", "station-2"},
+		{"stations.json", "/stations/1/name", "Destination"},
+		{"stations.json", "/stations/1/platforms/0/id", "platform-2"},
+		{"stations.json", "/stations/1/platforms/0/nodes", json::array({"node-2"})},
+		{"signalling.json", "/signals/0/id", "signal-1"},
+		{"signalling.json", "/signals/0/protected_section", "@block-1@"},
+		{"signalling.json", "/signalling_areas/0/id", "area-1"},
+		{"signalling.json", "/signalling_areas/0/start_km", 0.25},
+		{"signalling.json", "/signalling_areas/0/end_km", 0.75},
+		{"signalling.json", "/signalling_areas/0/level", 4},
+		{"signalling.json", "/signalling_areas/0/track", "track-1"},
+		{"signalling.json", "/routes/0/id", "route-1"},
+		{"signalling.json", "/routes/0/blocks", json::array({"block-1", "block-2"})},
+		{"signalling.json", "/routes/0/corridor", "corridor-1"},
+		{"signalling.json", "/routes/0/reversed", true},
+		{"signalling.json", "/block_dependencies/0/block", "block-2"},
+		{"signalling.json", "/block_dependencies/0/depends_on", "block-1"},
+		{"signalling.json", "/single_track_restrictions/0/start_block", "block-1"},
+		{"signalling.json", "/single_track_restrictions/0/end_block", "block-2"},
+		{"signalling.json", "/single_track_restrictions/0/protected_start_block", "block-3"},
+		{"signalling.json", "/single_track_restrictions/0/protected_end_block", "block-4"},
+		{"signalling.json", "/station_boundaries/0/entrance_block", "block-1"},
+		{"signalling.json", "/station_boundaries/0/exit_block", "block-2"},
+		{"signalling.json", "/station_boundaries/0/direction", true},
+		{"signalling.json", "/station_boundaries/1/entrance_block", "block-3"},
+		{"signalling.json", "/station_boundaries/1/direction", false},
+		{"rolling_stock.json", "/train_units/0/id", "unit-1"},
+		{"rolling_stock.json", "/train_units/0/physical/mass_of_traction_unit_kg", 81234.5},
+		{"rolling_stock.json", "/train_units/0/physical/mass_of_a_wagon_kg", 12345.25},
+		{"rolling_stock.json", "/train_units/0/physical/number_of_wagons", 7.0},
+		{"rolling_stock.json", "/train_units/0/physical/max_speed_ms", 44.5},
+		{"rolling_stock.json", "/train_units/0/physical/max_deceleration_ms2", 0.875},
+		{"rolling_stock.json", "/train_units/0/physical/frontal_area_m2", 9.75},
+		{"rolling_stock.json", "/train_units/0/physical/resistance_coefficient", 0.0125},
+		{"rolling_stock.json", "/train_units/0/physical/jerk_ms3", 1.375},
+		{"rolling_stock.json", "/train_units/0/physical/length_m", 63.5},
+		{"rolling_stock.json", "/train_units/0/traction_curve/0", json::array({1.5, 21.5, 91000.5, 410.25, 3.125})},
+		{"rolling_stock.json", "/train_units/0/traction_curve/1", json::array({21.5, 41.5, 81000.25, 320.75, 2.0625})},
+		{"rolling_stock.json", "/train_units/0/source/data_file", "/TrainData/unit-1.txt"},
+		{"rolling_stock.json", "/train_units/0/source/traction_file", "/TrainData/unit-1-traction.txt"},
+		{"rolling_stock.json", "/compositions/0/id", "composition-1"},
+		{"rolling_stock.json", "/compositions/0/units", json::array({"unit-1"})},
+		{"services.json", "/services/0/id", "service-1"},
+		{"services.json", "/services/0/composition", "composition-1"},
+		{"services.json", "/services/0/route", "route-1"},
+		{"services.json", "/services/0/operating_code", "R100"},
+		{"services.json", "/services/0/category", "regional"},
+		{"services.json", "/services/0/visualization_color", "#1A2B3C"},
+		{"services.json", "/services/0/performance_percent", 87.5},
+		{"services.json", "/services/0/maximum_speed_kmh", 137.5},
+		{"services.json", "/services/0/through", true},
+		{"services.json", "/services/0/entry_time_seconds", 60.0},
+		{"services.json", "/services/0/repeat/headway_seconds", 900.0},
+		{"services.json", "/services/0/repeat/count", 3},
+		{"services.json", "/services/0/repeat/operating_code_step", 2},
+		{"services.json", "/services/0/stops/0/station", "station-1"},
+		{"services.json", "/services/0/stops/0/platform", "platform-1"},
+		{"services.json", "/services/0/stops/0/planned_arrival_seconds", 80.0},
+		{"services.json", "/services/0/stops/0/planned_departure_seconds", 100.0},
+		{"services.json", "/services/0/stops/0/dwell_seconds", 20.0},
+		{"services.json", "/services/0/stops/1/station", "station-2"},
+		{"services.json", "/services/0/stops/1/planned_arrival_seconds", 200.0},
+		{"services.json", "/services/0/stops/1/dwell_seconds", 45.0},
+		{"scenarios.json", "/default_scenario_id", "alternate"},
+		{"scenarios.json", "/scenarios/0/id", "baseline"},
+		{"scenarios.json", "/scenarios/0/name", "Baseline"},
+		{"scenarios.json", "/scenarios/0/description", "No disruption"},
+		{"scenarios.json", "/scenarios/0/incidents/0/id", "incident-1"},
+		{"scenarios.json", "/scenarios/0/incidents/0/type", "signal_failure"},
+		{"scenarios.json", "/scenarios/0/incidents/0/target", "signal-1"},
+		{"scenarios.json", "/scenarios/0/incidents/0/start_seconds", 300.0},
+		{"scenarios.json", "/scenarios/0/incidents/0/end_seconds", 600.0},
+		{"scenarios.json", "/scenarios/0/entrance_delays/0/service", "service-1"},
+		{"scenarios.json", "/scenarios/0/entrance_delays/0/occurrence", 3},
+		{"scenarios.json", "/scenarios/0/entrance_delays/0/station", "station-1"},
+		{"scenarios.json", "/scenarios/0/entrance_delays/0/delay_seconds", 30.0},
+		{"scenarios.json", "/scenarios/0/entrance_delays/1/occurrence", 1},
+		{"scenarios.json", "/scenarios/0/entrance_delays/1/station", "station-2"},
+		{"scenarios.json", "/scenarios/0/entrance_delays/1/delay_seconds", 12.5},
+		{"scenarios.json", "/scenarios/1/id", "alternate"},
+		{"scenarios.json", "/scenarios/1/name", "Alternate"},
+		{"scenarios.json", "/scenarios/1/entrance_delays", json::array()},
+		{"scenarios.json", "/scenarios/1/incidents/0/id", "breakdown-2"},
+		{"scenarios.json", "/scenarios/1/incidents/0/type", "train_breakdown"},
+		{"scenarios.json", "/scenarios/1/incidents/0/target", "service-1"},
+		{"scenarios.json", "/scenarios/1/incidents/0/start_seconds", 900.0},
+		{"scenarios.json", "/scenarios/1/incidents/0/end_seconds", 1500.0},
+		{"scenarios.json", "/scenarios/1/incidents/0/occurrence", 2},
+		{"scenarios.json", "/scenarios/1/incidents/0/reduced_speed_kmh", 35.5},
+		{"scenarios.json", "/scenarios/1/incidents/0/terminate_at_destination", true},
+		{"passengers.json", "/passengers/0/id", "passenger-1"},
+		{"passengers.json", "/passengers/0/journeys/0/id", "journey-1"},
+		{"passengers.json", "/passengers/0/journeys/0/activity", "commute"},
+		{"passengers.json", "/passengers/0/journeys/0/origin", "station-1"},
+		{"passengers.json", "/passengers/0/journeys/0/destination", "station-2"},
+		{"passengers.json", "/passengers/0/journeys/0/planned_departure/start_seconds", 15.5},
+		{"passengers.json", "/passengers/0/journeys/0/planned_departure/end_seconds", 125.5},
+		{"passengers.json", "/passengers/0/journeys/0/planned_arrival/start_seconds", 185.25},
+		{"passengers.json", "/passengers/0/journeys/0/planned_arrival/end_seconds", 305.75},
+		{"passengers.json", "/passengers/0/journeys/0/legs/0/id", "leg-1"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/0/origin", "station-1"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/0/destination", "station-2"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/0/service", "service-1"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/0/occurrence", 1},
+		{"passengers.json", "/passengers/0/journeys/0/legs/1/id", "leg-2"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/1/origin", "station-2"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/1/destination", "station-1"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/1/service", "service-1"},
+		{"passengers.json", "/passengers/0/journeys/0/legs/1/occurrence", 2},
+		{"views.json", "/tracks/0/track", "track-1"},
+		{"views.json", "/tracks/0/level", -2},
+		{"views.json", "/tracks/0/region", 1},
+		{"views.json", "/tracks/0/visible", false},
+		{"views.json", "/tracks/1/track", "track-2"},
+		{"views.json", "/tracks/1/level", 3},
+		{"views.json", "/tracks/1/region", 4},
+		{"views.json", "/stations/0/station", "station-1"},
+		{"views.json", "/stations/0/latitude", 55.6761},
+		{"views.json", "/stations/0/longitude", 12.5683},
+		{"views.json", "/stations/0/regions/0/id", 1},
+		{"views.json", "/stations/0/regions/0/position_km", 0.25},
+		{"views.json", "/stations/0/regions/1/id", 2},
+		{"views.json", "/stations/0/regions/1/position_km", 0.75},
+		{"views.json", "/stations/0/corridors", json::array({"main", "branch"})},
+	};
+	bool ok = true;
+	std::map<std::string, json> written;
+	std::set<std::string> leaves;
+	for (const char* name : kCanonicalSceneFiles) {
+		written[name] = readJsonFile(first / name);
+		collectLeaves(written[name], "/" + std::string(name), leaves);
+	}
+	std::size_t wrong = 0;
+	for (const WrittenValue& row : table) {
+		const json::json_pointer pointer(row.pointer);
+		const json& document = written[row.file];
+		if (!document.contains(pointer) || document.at(pointer) != row.expected) {
+			std::cerr << "scene codec " << label << ": " << row.file << " " << row.pointer << " should be "
+					  << row.expected.dump() << " but is "
+					  << (document.contains(pointer) ? document.at(pointer).dump() : std::string("missing")) << "\n";
+			++wrong;
+		}
+		leaves.erase(withoutIndexes("/" + std::string(row.file) + row.pointer));
+	}
+	for (const std::string& leaf : leaves)
+		std::cerr << "scene codec " << label << ": the written key " << leaf << " has no row in the table\n";
+	ok &= expect(wrong == 0, "scene codec populated scene: every key of the written files has the value of the model");
+	ok &= expect(leaves.empty(), "scene codec populated scene: the table has a row for every key of the written files");
+
+	SceneModel reloaded;
+	if (!expect(loadHasNoErrors(first, reloaded), "scene codec populated scene: the save loads without errors"))
+		return false;
+	ok &= expect(reloaded.trackViews.size() == model.trackViews.size()
+			&& reloaded.stationViews.size() == model.stationViews.size(),
+		"scene codec populated scene: the load keeps every track view and station view");
+	const fs::path second = temp.path / "second";
+	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
+	printErrors(secondSave.diagnostics, "populated second save");
+	if (!expect(secondSave.success(), "scene codec populated scene: the second save succeeds"))
+		return false;
+	ok &= expect(sameDirectoryBytes(first, second, label),
+		"scene codec populated scene: the second save equals the first save byte for byte");
+	return ok;
 }
 
 int main(int argc, char** argv) {
@@ -850,6 +1389,19 @@ int main(int argc, char** argv) {
 		}
 	} else {
 		std::cerr << "skipped: the committed-scene insertion check needs the Scenes directory argument\n";
+	}
+
+	// A save is compared with a save, because the committed files are not always in the writer's form (indent, key
+	// order) and the writer always writes scenarios.json. The entry counts and the identity keys of scene.json are
+	// compared with the source, so that a loader and a writer that both drop a field cannot pass.
+	if (argc > 1) {
+		ok &= checkCommittedSceneCodecs(fs::path(argv[1]));
+	} else {
+		std::cerr << "skipped: the scene codec checks of the committed scenes need the Scenes directory argument\n";
+	}
+	{
+		TempDir populatedTemp;
+		ok &= checkPopulatedScene(populatedTemp);
 	}
 
 	if (!ok)
