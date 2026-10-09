@@ -1,5 +1,6 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
+#include "scene/StopInsertion.h"
 
 #include <chrono>
 #include <filesystem>
@@ -237,7 +238,7 @@ static bool loadHasNoErrors(const fs::path& scenePath, SceneModel& scene) {
 	return !hasErrors(loaded.diagnostics);
 }
 
-int main() {
+int main(int argc, char** argv) {
 	bool ok = true;
 	TempDir temp;
 	SceneModel source = completeScene();
@@ -795,6 +796,59 @@ int main() {
 	SceneSaveResult resaved = saveScene(source, temp.path.string());
 	ok &= expect(resaved.success() && !fs::exists(temp.path / "incidents.json"),
 			"successful canonical save removes stale incidents after scenarios write");
+
+	// A stop inserted into a committed service keeps its place and every planned time through save and reload.
+	if (argc > 1) {
+		SceneModel committed;
+		ok &= expect(loadHasNoErrors(fs::path(argv[1]) / "Paimpol", committed),
+				"committed Paimpol scene loads");
+		SceneService* service = nullptr;
+		for (SceneService& candidate : committed.services)
+			if (candidate.id == "Guin-Paim-EXPRESS-1")
+				service = &candidate;
+		ok &= expect(service != nullptr && service->stops.size() == 3, "committed service has three stops");
+		if (service != nullptr && service->stops.size() == 3) {
+			const SceneStopInsertionWindow window = sceneStopInsertionWindow(committed, *service, 1);
+			ok &= expect(window.ok && !window.visits.visits.empty(),
+					"a route visit is free between the first two stops");
+			SceneStop inserted;
+			inserted.stationId = window.visits.visits.front().stationId;
+			inserted.platformId = window.visits.visits.front().platformId;
+			inserted.hasPlannedArrival = true;
+			inserted.plannedArrivalSeconds = 800.0;
+			inserted.hasPlannedDeparture = true;
+			inserted.plannedDepartureSeconds = 830.0;
+			inserted.dwellSeconds = 30.0;
+			const std::vector<SceneStop> original = service->stops;
+			const SceneStopInsertionResult insertion = insertSceneStop(committed, *service, 1, inserted);
+			ok &= expect(insertion.inserted, "a stop is inserted between the first two stops");
+			const fs::path insertDir = temp.path / "inserted-stop";
+			const SceneSaveResult insertSave = saveScene(committed, insertDir.string());
+			printErrors(insertSave.diagnostics, "insert save");
+			ok &= expect(insertSave.success(), "a scene with an inserted stop saves");
+			SceneModel reloadedInsert;
+			ok &= expect(loadHasNoErrors(insertDir, reloadedInsert), "a scene with an inserted stop reloads");
+			const SceneService* reloadedService = nullptr;
+			for (const SceneService& candidate : reloadedInsert.services)
+				if (candidate.id == "Guin-Paim-EXPRESS-1")
+					reloadedService = &candidate;
+			const std::vector<SceneStop> expected = {original[0], inserted, original[1], original[2]};
+			bool sameStops = reloadedService != nullptr && reloadedService->stops.size() == expected.size();
+			for (std::size_t index = 0; sameStops && index < expected.size(); ++index) {
+				const SceneStop& left = reloadedService->stops[index];
+				const SceneStop& right = expected[index];
+				sameStops = left.stationId == right.stationId && left.platformId == right.platformId
+						&& left.hasPlannedArrival == right.hasPlannedArrival
+						&& left.hasPlannedDeparture == right.hasPlannedDeparture
+						&& left.plannedArrivalSeconds == right.plannedArrivalSeconds
+						&& left.plannedDepartureSeconds == right.plannedDepartureSeconds
+						&& left.dwellSeconds == right.dwellSeconds;
+			}
+			ok &= expect(sameStops, "reload keeps the stop order and every planned time");
+		}
+	} else {
+		std::cerr << "skipped: the committed-scene insertion check needs the Scenes directory argument\n";
+	}
 
 	if (!ok)
 		return 1;
