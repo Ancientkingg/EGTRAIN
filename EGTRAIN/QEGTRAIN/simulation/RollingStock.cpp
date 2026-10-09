@@ -1433,7 +1433,7 @@ void Occupy_Block_Sections_Of_Route(int i) {
 	for (int j = 0; j < numRegions; j++) {
 		if ((regional_train[j].trainDescription == "B-Farum-HojeTaastrup_1-1") || (regional_train[j].trainDescription == "B-HojeTaastrup-Farum_2-1"))
 			owl << "Train : " << regional_train[j].trainDescription << std::endl;
-		regional_train[j].Det_Section_Occupied_By_Train(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections, train_route[regional_train[j].indexOfRoute].N_Block_Sections);
+		regional_train[j].Det_Section_Occupied_By_Train(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections.data(), train_route[regional_train[j].indexOfRoute].N_Block_Sections);
 	}
 	updateSingleTrackLocks(i);
 }
@@ -1589,7 +1589,7 @@ void PrintTrainBlockingTimes(string MainFolder) {
 // Function to report the position of the trains in ETCS Level 3
 void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin) {
 	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].ReportPositionToRBC(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections, train_route[regional_train[j].indexOfRoute].N_Block_Sections, ETCS3SafetyMargin);
+		regional_train[j].ReportPositionToRBC(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections.data(), train_route[regional_train[j].indexOfRoute].N_Block_Sections, ETCS3SafetyMargin);
 	}
 }
 

@@ -132,7 +132,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   number of trains of the scene (`extern` in `simulation/RollingStock.h`); `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Regional` owns
   its `Stations` buffer through a raw pointer, so the vector is created once per build and
-  never grown, copied or reallocated while the trains are live.
+  never grown, copied or reallocated while the trains are live. A `Route` holds the sections
+  of its route in a `std::vector<Section>` with exactly `N_Block_Sections` elements, set when
+  the route is built; code that takes a `Section*` and a count gets `data()` and that count.
 
 `tools/memory/ownership_inventory.py` lists owning allocations, Qt parent allocations,
 arrays of 100 or more elements and raw pointers, and its `CONFIRMED_OBSERVERS` table names

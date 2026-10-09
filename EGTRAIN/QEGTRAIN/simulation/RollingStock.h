@@ -1631,7 +1631,7 @@ public:
 			}
 
 			// Determine if the Train can enter the route
-			checkEntrance(time_seconds, train_route[indexOfRoute].sequence_of_block_sections);
+			checkEntrance(time_seconds, train_route[indexOfRoute].sequence_of_block_sections.data());
 			if ((time_seconds >= departure_time) && (CanEnter == 1)) {
 				double V_lim;
 				int U;
@@ -1713,7 +1713,7 @@ public:
 					instant_spatial_position[time_seconds - 1],
 					instant_train_speed[time_seconds - 1],
 					(time_seconds - 1),
-					train_route[indexOfRoute].sequence_of_block_sections,
+					train_route[indexOfRoute].sequence_of_block_sections.data(),
 					train_route[indexOfRoute].N_Block_Sections);
 
 				// Acceleration phase
@@ -1792,7 +1792,7 @@ public:
 						 (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000) &&
 						 (instant_train_speed[time_seconds - 1] > 0)) {
 
-					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
+					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections);
 
 					// if two braking curves are both restrictive
 					/*if ((Xobj!=Xobmin)||(Vobj!=Vobmin)||((Xobj!=Xobmin)&&(Vobj!=Vobmin))){counter=1;
@@ -2843,7 +2843,7 @@ public:
 
 					if (N_BlockSections > 0) {
 						if (FoundApprTimeETCS3 == 0) {																																																																	 // if the startApproach time of ETCS level 3 has not been found yet
-							double BrakingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections, train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
+							double BrakingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
 							if (instant_spatial_position[p] + BrakingDistance > BlockTime[N_BlockSections].PosStart) {																																																	 // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
 								BlockTime[N_BlockSections].StartApproachTime = p - 1;
 								FoundApprTimeETCS3 = true; // The StartApproachTime has been found that is why the variable goes to true
@@ -3123,7 +3123,7 @@ public:
 							// The if condition below means that an absolute braking distance is used if teh trains is the first train of a platoon or at junctions where the route diverges or converge with the route of the train ahead.
 							// This means that at switches that the train and the train ahead take in the same position a relative braking distance is used to compute the approaching time
 							if ((BlockTime[N_BlockSections].NamePreviousTrain == "None") || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																								  // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
-								ApproachingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections, train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
+								ApproachingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
 							}
 
 							else { // if the train has instead other trains in front of it, it is a follower and will need to coordinate its speed with the one of the train leader
@@ -3133,7 +3133,7 @@ public:
 										double SpeedCoordinationTime = 0;
 										IsInFollowingMode = true; // The train is in following mode
 										// Compute the time to accelerate the train to the speed of the train ahead
-										SpeedCoordinationTime = this->AccelerationTimeFollowingMode(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections, train_route[this->indexOfRoute].N_Block_Sections);
+										SpeedCoordinationTime = this->AccelerationTimeFollowingMode(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections);
 										// if the speedcoordination time is different from -99999 that means that is a positive value, as the function AccelerationTimeFollowingMode has been designed
 										// In this case the Approaching time is given by the time needed to accelerate + the time to cross the safety margin at the speed of the previous train
 										if (SpeedCoordinationTime != -99999) {
@@ -3148,7 +3148,7 @@ public:
 										ApproachingDistance = SafetyMargin;
 									}
 								} else if (V_At_SafetyMargin_From_Location > (BlockTime[N_BlockSections].SpeedPreviousTrain + 0.278)) {
-									ApproachingDistance = this->BrakingDistanceFastComputation(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections, train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin;
+									ApproachingDistance = this->BrakingDistanceFastComputation(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin;
 								} else if ((V_At_SafetyMargin_From_Location >= BlockTime[N_BlockSections].SpeedPreviousTrain - 0.278) && (V_At_SafetyMargin_From_Location <= BlockTime[N_BlockSections].SpeedPreviousTrain + 0.278)) {
 									ApproachingDistance = SafetyMargin;
 									// In this case Sight and Reaction time must be 0 since the train does not need ot react (i.e. braking or accelerrating) to the preceding train since they are at the same speed
