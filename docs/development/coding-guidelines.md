@@ -33,12 +33,14 @@ target that links a library does not get them.
 - These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
   `egtrain_sim` and `egtrain_railml`, `QEGTRAIN`, and the test executables that use the
   simulation. A comment next to the calls gives the number of warnings.
+- `update/SelfUpdater.cpp`, `update/UpdateChecker.cpp`, `app/main.cpp` and
+  `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
 
 To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
 `add_library` or `add_executable`, or add a test to the list of strict tests in the test block,
-and fix its warnings first. A source that includes `simulation/RollingStock.h` or
-`simulation/Signalling.h` in a strict target wraps the include in a diagnostic pragma, as
-`diagrams/RunResults.cpp` does, because those headers still give warnings. A function that a
+and fix its warnings first. A source in a strict target that needs `simulation/RollingStock.h`
+or `simulation/Signalling.h` includes `diagrams/SimulationHeaders.h` instead, because those
+headers still give warnings and that header keeps them out of the build. A function that a
 platform does not use, such as the update stagers in `update/UpdatePreparation.cpp`, is marked
 `[[maybe_unused]]`.
 

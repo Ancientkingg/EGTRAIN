@@ -312,7 +312,9 @@ egtrain_target_warnings(egtrain_dispatch)
 #   egtrain_pugixml, egtrain_miniz  vendored code
 #   egtrain_sim, egtrain_railml     legacy code with 104 and 4 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
-#                                   from the simulation headers, until the window is split up
+#                                   from the simulation headers, until the window is split up;
+#                                   app/main.cpp, update/SelfUpdater.cpp, update/UpdateChecker.cpp
+#                                   and telemetry/TelemetryConsentDialog.cpp build here too
 # A test executable that uses the simulation has no flags either.
 
 # --- Sources ---

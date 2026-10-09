@@ -1,21 +1,7 @@
 #include "diagrams/RunResults.h"
 
 #include "scene/SceneModel.h"
-// These simulation headers still give warnings (#453, #454, #482), so this strict target
-// does not report them.
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-#pragma GCC diagnostic ignored "-Wextra"
-#elif defined(_MSC_VER)
-#pragma warning(push, 0)
-#endif
-#include "simulation/RollingStock.h"
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+#include "diagrams/SimulationHeaders.h"
 #include "util/TrajectoryUtil.h"
 
 #include <QCryptographicHash>
