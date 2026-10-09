@@ -22,7 +22,7 @@
 using namespace std;
 
 extern double timestep;
-extern double signalCode1, signalCode2, signalCode3; // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is not used
+extern double signalCode1, signalCode2, signalCode3; // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
 extern int numTrackLines;
 
 extern string InputMainFolder; // Root input folder for EGTRAIN

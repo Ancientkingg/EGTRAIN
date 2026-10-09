@@ -140,7 +140,8 @@ Where the first section has a level, only one train enters a route per step: the
 train that enters puts the first section in `BlocksOccupied` at once, and the
 trains that wait are visited in the order in which they are due. A train waits
 while the first section is failed, at every level (`checkEntrance`). Cases:
-`same-entry-level-*`, `entry-order-level-*`, `sf-first-level-*`.
+`same-entry-level-*`, `entry-order-level-0`, `-1` and `-2`, and
+`sf-first-level-0`, `-1`, `-2` and `-none`.
 
 **Signal failure.** A `signal_failure` incident fails one or more sections from
 its start second to its end second, or to the end of the run if it has no end
@@ -156,14 +157,16 @@ second. In each step:
 - The authority is a stop target at every level, including none.
 - A train that waits to enter does not enter while the first section of its route
   is failed.
+- A train that is already inside the section when the failure starts is not
+  stopped: the authority lies behind it (`sf-entered-level-none`).
 - On the first step after the incident has ended, the failed sections are handed
   to the release function.
 - The signal heads ignore the failed flag and show the codes. The track of a
   failed section is drawn as blocked.
 
-Cases: `sf-forward-level-*`, `sf-reverse-level-*`, `sf-adjacent-level-*`,
-`sf-staggered-level-*`, `sf-last-level-*`, `sf-first-level-*`,
-`sf-entered-level-none`.
+Cases: `sf-forward-level-*` and `sf-reverse-level-*` for the levels 0 to 5 and
+none; `sf-adjacent-level-*`, `sf-staggered-level-*`, `sf-last-level-*` and
+`sf-first-level-*` for the levels 0, 1, 2 and none; `sf-entered-level-none`.
 
 **Single-track restrictions.** While a train of one direction is inside a
 single-track stretch, the sections of the stretch count as occupied for the route
@@ -352,8 +355,9 @@ failures. It adds a following mode.
 - **Platform and route entry.** As in
   [Common behaviour](#common-behaviour).
 - **Signal failure.** The chain is written behind the failed section. In
-  `sf-forward-level-5`, `F1` waits at the platform at 8 km from 331 s to 1002 s
-  because the state of that block is red.
+  `sf-forward-level-5`, `F1` stands at the platform at 8 km from 331 s to 1002 s.
+  After its dwell (661 s in `follow-level-5`) it is held by the red state of that
+  block, not by its timetable.
 - **Blocking times.** None.
 - **Single-track restriction.** Has an effect. In `single-track-level-5`, `R1`
   waits 129 s.
@@ -384,7 +388,9 @@ cases run at one level.
   code 0 and is not of level 3 or 4. This is the one place that compares
   neighbouring levels (`manageEtcs3TransitionsToOtherSignalling`).
 - An authority of level 3 or 4 is made only where its point lies in a section of
-  level 3 or 4. A train of any level reads authorities on its own section and the
+  level 3 or 4. The exception is a train whose tail is still before the start of
+  its route: it gets an authority on the first section of the route whatever the
+  level of that section (`ReportPositionToRBC`). A train of any level reads authorities on its own section and the
   eight after it where the section has level 3 or 4, or where a signal failure
   has made one.
 - The entry rule is the rule of the level of the first section of the route.
@@ -553,7 +559,7 @@ source about a real system:
   constants of the model;
 - whether level 5 matches a real system, and its double red block;
 - what a real traffic controller allows at a failed signal. The model lets no
-  train pass a failed section until the failure ends.
+  train enter a failed section until the failure ends.
 
 Where the code does not settle a point, this page says so. It does not describe
 how diverging switches are handled at levels 3 and 4
