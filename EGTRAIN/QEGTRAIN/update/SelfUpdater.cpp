@@ -8,6 +8,8 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
+#include <chrono>
+
 #ifndef EGTRAIN_PACKAGED_BUILD
 #define EGTRAIN_PACKAGED_BUILD 0
 #endif
@@ -16,6 +18,8 @@ namespace {
 
 constexpr int kDownloadTimeoutMs = 30000;
 constexpr qint64 kMaxManifestBytes = 128 * 1024;
+// A staging folder newer than this may belong to a download that another instance is running.
+constexpr std::chrono::minutes kStaleStagingAge{60};
 
 [[maybe_unused]] QString executableName() {
 #if defined(Q_OS_WIN)
@@ -65,7 +69,7 @@ SelfUpdater::~SelfUpdater() {
 	}
 }
 
-SelfUpdateCapability SelfUpdater::capability() const {
+SelfUpdateCapability SelfUpdater::capability() {
 	SelfUpdateCapability result;
 #if !EGTRAIN_PACKAGED_BUILD
 	result.reason = QStringLiteral("Self-update is available only in packaged release builds.");
@@ -122,6 +126,12 @@ SelfUpdateCapability SelfUpdater::capability() const {
 	result.supported = true;
 	return result;
 #endif
+}
+
+void SelfUpdater::cleanupStaleStaging() {
+	const SelfUpdateCapability current = capability();
+	if (current.supported)
+		removeStaleUpdateStaging(QFileInfo(current.currentPath).absolutePath(), kStaleStagingAge);
 }
 
 bool SelfUpdater::canSelfUpdate(const StableRelease& release) const {
@@ -396,6 +406,14 @@ void SelfUpdater::clearStaging() {
 bool SelfUpdater::restart() {
 	if (!m_ready || m_stagedPath.isEmpty())
 		return false;
+	if (startHelper())
+		return true;
+	clearStaging();
+	m_ready = false;
+	return false;
+}
+
+bool SelfUpdater::startHelper() {
 	const QString helperCopy = QDir(m_stagingRoot).filePath(helperName());
 	QFile::remove(helperCopy);
 	if (!QFile::copy(m_helperPath, helperCopy))
@@ -420,10 +438,5 @@ bool SelfUpdater::restart() {
 		QStringLiteral("--staged"), m_stagedPath,
 		QStringLiteral("--backup"), backup,
 		QStringLiteral("--launch"), m_launchPath};
-	if (!QProcess::startDetached(helperCopy, arguments)) {
-		clearStaging();
-		m_ready = false;
-		return false;
-	}
-	return true;
+	return QProcess::startDetached(helperCopy, arguments);
 }

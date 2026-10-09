@@ -29,7 +29,9 @@ public:
 	explicit SelfUpdater(QObject* parent = nullptr);
 	~SelfUpdater() override;
 
-	SelfUpdateCapability capability() const;
+	static SelfUpdateCapability capability();
+	// Removes staging folders that an earlier update left next to the installation.
+	static void cleanupStaleStaging();
 	bool canSelfUpdate(const StableRelease& release) const;
 	bool isBusy() const { return m_busy; }
 	bool isPreparing() const { return m_preparationThread != nullptr; }
@@ -52,6 +54,7 @@ private:
 	void fail(const QString& error);
 	void startPreparation();
 	void clearStaging();
+	bool startHelper();
 
 	QNetworkAccessManager m_network;
 	QPointer<QNetworkReply> m_reply;

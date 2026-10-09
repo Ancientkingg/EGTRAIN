@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <vector>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -30,6 +31,8 @@ constexpr unsigned kDefaultObserveMs = 3000;
 constexpr unsigned kDefaultObserveMs = 500;
 #endif
 constexpr unsigned long kMaxObserveMs = 10 * 60 * 1000;
+// Name prefix of the folder that SelfUpdater stages an update in; it holds the staged installation and this helper.
+constexpr char kStagingPrefix[] = ".qegtrain-update-";
 
 struct Arguments {
 	unsigned long long parentPid = 0;
@@ -127,12 +130,14 @@ bool movePath(const std::filesystem::path& from, const std::filesystem::path& to
 	return !error;
 }
 
-// Starts the application and watches it for observeMs. A process that exits with a
-// non-zero code inside the window failed to start. One that exits with code 0 or is
-// still running when the window ends started. observeMs == 0 does not watch.
+// Starts the application in the directory of its executable and watches it for observeMs.
+// A process that exits with a non-zero code inside the window failed to start. One that
+// exits with code 0 or is still running when the window ends started. observeMs == 0 does not watch.
 #if defined(_WIN32)
 bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 	const std::wstring path = executable.wstring();
+	const std::wstring directory = executable.parent_path().wstring();
+	const wchar_t* workingDirectory = directory.empty() ? nullptr : directory.c_str();
 	STARTUPINFOW startup{};
 	startup.cb = sizeof(startup);
 	PROCESS_INFORMATION process{};
@@ -141,7 +146,7 @@ bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 	const UINT previousMode = SetErrorMode(0);
 	SetErrorMode(previousMode | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 	const BOOL created = CreateProcessW(path.c_str(), nullptr, nullptr, nullptr, FALSE,
-		CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS, nullptr, nullptr, &startup, &process);
+		CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS, nullptr, workingDirectory, &startup, &process);
 	SetErrorMode(previousMode);
 	if (!created)
 		return false;
@@ -161,10 +166,13 @@ bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 }
 #else
 bool launch(const std::filesystem::path& executable, unsigned observeMs) {
+	const std::filesystem::path directory = executable.parent_path();
 	const pid_t child = fork();
 	if (child < 0)
 		return false;
 	if (child == 0) {
+		if (!directory.empty() && chdir(directory.c_str()) != 0)
+			_exit(127);
 		execl(executable.c_str(), executable.c_str(), static_cast<char*>(nullptr));
 		_exit(127);
 	}
@@ -192,6 +200,29 @@ bool movePathWithRetries(const std::filesystem::path& from, const std::filesyste
 			return true;
 	}
 	return false;
+}
+
+// Removes the staging folder of a successful update. On Windows the running helper cannot be
+// deleted and keeps its folder; the application removes that folder later.
+void removeStaging(const std::filesystem::path& staging) {
+	if (staging.filename().native().rfind(std::filesystem::path(kStagingPrefix).native(), 0) != 0)
+		return;
+#if defined(_WIN32)
+	wchar_t buffer[32768];
+	const DWORD length = GetModuleFileNameW(nullptr, buffer, 32768);
+	if (length == 0 || length >= 32768)
+		return;
+	const std::filesystem::path self(buffer);
+	std::vector<std::filesystem::path> entries;
+	std::error_code error;
+	for (const auto& entry : std::filesystem::directory_iterator(staging, error))
+		entries.push_back(entry.path());
+	for (const std::filesystem::path& entry : entries)
+		if (!std::filesystem::equivalent(entry, self, error))
+			removePath(entry);
+#else
+	removePath(staging);
+#endif
 }
 
 // Replaces the installation that failed to start with the backup. The failed one is
@@ -232,6 +263,7 @@ bool transactionalInstall(const Arguments& arguments) {
 		restoreBackup(arguments);
 		return false;
 	}
+	removeStaging(arguments.staged.parent_path());
 	// Keep one recoverable installation until a later update proves this one usable.
 	return true;
 }
@@ -246,7 +278,7 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 		return 2;
 	}
 	std::error_code workingDirectoryError;
-	std::filesystem::current_path(arguments.staged.parent_path(), workingDirectoryError);
+	std::filesystem::current_path(arguments.current.parent_path(), workingDirectoryError);
 	if (workingDirectoryError)
 		return 1;
 	if (!waitForParent(arguments.parentPid))
