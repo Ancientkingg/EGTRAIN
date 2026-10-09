@@ -408,6 +408,8 @@ tools/e2e/headless_smoke.py
 The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
 (`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), and Lebanon (`-n 6`). It
 checks clean native execution and the available trajectory/station evidence.
+For every scene it also requires that no train moves farther in one step than
+the highest maximum speed of the scene's rolling stock allows.
 
 ## Peak-memory measurement
 
