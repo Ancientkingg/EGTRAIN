@@ -149,6 +149,7 @@ jobs:
             Milano_Brescia
             Assignment_Gvc_Gdg_Ut
             Lebanon
+            Amsterdam_Hilversum_Student
           )
           for name in "${scenes[@]}"; do
             bundle="build/scene-bundles/$name.egscene"

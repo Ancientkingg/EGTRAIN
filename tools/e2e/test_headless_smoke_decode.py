@@ -4,7 +4,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from headless_smoke import check_scene_structure, case_command, route_errors, run_command, scene_output_dir
+from headless_smoke import check_scene_structure, case_command, occurrence_errors, route_errors, run_command, scene_output_dir
+
+
+def timetable_sample(*runs: tuple[str, list[str], list[int], list[int]]) -> str:
+    """Return TimetablePoints.txt text: six lines per train, with placeholder positions."""
+    return "".join(
+        f"{train} IC\n{' '.join(stations)} \n{'0 ' * len(stations)}\n{'0 ' * len(stations)}\n"
+        f"{' '.join(map(str, arrivals))} \n{' '.join(map(str, departures))} \n"
+        for train, stations, arrivals, departures in runs
+    )
 
 
 def main() -> None:
@@ -24,6 +33,33 @@ def main() -> None:
     errors = route_errors("ok\nERROR4 in Route r1\nERROR5 in Route r1\n")
     if errors != ["ERROR4 in Route r1", "ERROR5 in Route r1"]:
         raise SystemExit(f"route error detection failed: {errors}")
+
+    student_output = scene_output_dir(7, Path("/tmp/qegtrain-smoke"))
+    if student_output.name != "Amsterdam_Hilversum_Student":
+        raise SystemExit(f"headless output path ignores the name of the Amsterdam to Hilversum scene: {student_output}")
+
+    # Four runs 1800 s apart that stop at Asd and end at Hvs.
+    stations = ["Asd", "Hvs"]
+    runs = [
+        ("IC-1", stations, [120, 1500], [180, 1560]),
+        ("IC-2", stations, [1920, 3300], [1980, 3360]),
+        ("IC-3", stations, [3720, 5100], [3780, 5160]),
+        ("IC-4", stations, [5520, 6900], [5580, 6960]),
+    ]
+    errors = occurrence_errors(timetable_sample(*runs), 8000, "IC", 4)
+    if errors:
+        raise SystemExit(f"complete occurrences reported errors: {errors}")
+    errors = occurrence_errors(timetable_sample(runs[0], runs[1], runs[3]), 8000, "IC", 4)
+    if not errors or "IC-3" not in errors[0]:
+        raise SystemExit(f"missing occurrence 3 was not reported: {errors}")
+    wrong_end = ("IC-3", ["Hvs", "Asd"], [5100, 5400], [5160, 5460])
+    errors = occurrence_errors(timetable_sample(runs[0], runs[1], wrong_end, runs[3]), 8000, "IC", 4)
+    if not errors or "IC-3" not in errors[0]:
+        raise SystemExit(f"occurrence 3 that does not end at Hvs was not reported: {errors}")
+    early = ("IC-2", stations, [1920, 1400], [1980, 1460])
+    errors = occurrence_errors(timetable_sample(runs[0], early, runs[2], runs[3]), 8000, "IC", 4)
+    if not errors or "IC-2" not in errors[0]:
+        raise SystemExit(f"occurrence 2 that reaches Hvs before occurrence 1 was not reported: {errors}")
 
     proc = run_command(
         [

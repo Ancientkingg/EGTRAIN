@@ -509,10 +509,18 @@ tools/e2e/headless_smoke.py
 ```
 
 The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
-(`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), and Lebanon (`-n 6`). It
-checks clean native execution and the available trajectory/station evidence.
-For every scene it also requires that no train moves farther in one step than
-the highest maximum speed of the scene's rolling stock allows.
+(`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), Lebanon (`-n 6`), and
+Amsterdam_Hilversum_Student, which has no `-n` number and is case 7 of the
+script. It checks clean native execution and the available trajectory/station
+evidence. For every scene it also requires that no train moves farther in one
+step than the highest maximum speed of the scene's rolling stock allows.
+
+For Amsterdam_Hilversum_Student the script also checks that all four
+occurrences of its service reach Hilversum, one after the other, and that the
+five files `infrastructure.json`, `rolling_stock.json`, `scenarios.json`,
+`stations.json` and `views.json` equal the Netherlands files. Its
+`signalling.json` must equal the Netherlands file apart from the signalling
+areas.
 
 ## Peak-memory measurement
 
@@ -527,7 +535,7 @@ tools/e2e/roundtrip_smoke.py
 ```
 
 The roundtrip smoke validates, exports, reimports, and compares high-value
-entity counts for all six canonical scenes, then runs the small Assignment
+entity counts for all seven canonical scenes, then runs the small Assignment
 reimport. Normal runs still load the canonical source directory directly.
 
 ## Completed-run replay

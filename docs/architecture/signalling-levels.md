@@ -537,10 +537,12 @@ section only to resolve signal failures. See the
 | `Milano_Brescia` | one network-wide area, 0 to 79 km, level 0 | `0 ATB fixed block` |
 | `Paimpol` | one network-wide area, 0 to 38 km, level 0 | `0 ATB fixed block` |
 | `Lebanon` | one network-wide area, 0 to 121 km, level 0 | `0 ATB fixed block` |
+| `Amsterdam_Hilversum_Student` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 
 The scene descriptions of `Paimpol`, `Lebanon` and `Milano_Brescia` call their
-area a placeholder. The description of `Assignment_Gvc_Gdg_Ut` says that its
-level is a project decision. Assigning levels to the other two scenes is #459.
+area a placeholder. The descriptions of `Assignment_Gvc_Gdg_Ut` and
+`Amsterdam_Hilversum_Student` say that the level is a project decision.
+Assigning levels to the other two scenes is #459.
 
 ## Known limits and open issues
 

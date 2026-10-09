@@ -19,14 +19,19 @@ SCENES = {
     4: "Milano_Brescia",
     5: "Assignment_Gvc_Gdg_Ut",
     6: "Lebanon",
+    7: "Amsterdam_Hilversum_Student",
 }
 
-ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
+ASSERT_MOVEMENT = {1, 2, 3, 4, 5, 7}
 # The Netherlands scene has no planned arrival at any stop, so no station has an arrival delay.
-ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
+ASSERT_STATION_ARRIVALS = {2, 3, 4, 5, 7}
 ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {2, 4, 5, 6}
+SIGNALLING_COVERED = {2, 4, 5, 6, 7}
+# The files that the Amsterdam to Hilversum scene shares with the Netherlands scene.
+NETHERLANDS_FILES = ("infrastructure.json", "rolling_stock.json", "scenarios.json", "stations.json", "views.json")
+# The service of the Amsterdam to Hilversum scene whose runs must all reach Hilversum.
+OCCURRENCE_SERVICE = "IC_ASD_HVS_DEMO"
 # The arrival that TimetablePoints.txt holds for a stop the train did not reach.
 NO_ARRIVAL = -10000
 
@@ -130,8 +135,65 @@ def check_scene_structure(case_id: int) -> None:
     print(f"PASS case {case_id} matches the original-case structure baseline")
 
 
+def check_scene_matches_netherlands(case_id: int) -> None:
+    """The scene keeps the Netherlands network, and its signalling differs only by the signalling areas."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    netherlands_dir = SCENE_DIR / SCENES[1]
+    for name in NETHERLANDS_FILES:
+        if (scene_dir / name).read_bytes() != (netherlands_dir / name).read_bytes():
+            raise SystemExit(f"case {case_id} {name} differs from the Netherlands scene")
+    documents = [
+        json.loads((directory / "signalling.json").read_text(encoding="utf-8")) for directory in (scene_dir, netherlands_dir)
+    ]
+    for document in documents:
+        document.pop("signalling_areas", None)
+    if documents[0] != documents[1]:
+        raise SystemExit(f"case {case_id} signalling.json differs from the Netherlands scene by more than its signalling areas")
+    print(f"PASS case {case_id} matches the Netherlands scene")
+
+
 def route_errors(output: str) -> list[str]:
     return [line for line in output.splitlines() if line.startswith(("ERROR4 in Route", "ERROR5 in Route"))]
+
+
+def occurrence_errors(timetable_text: str, duration_seconds: float, service_id: str, count: int) -> list[str]:
+    """Check that every run of a service reaches Hvs, one after the other.
+
+    TimetablePoints.txt holds six lines per train: the train and its type, the
+    station ids, two position lines, the arrival times and the departure times,
+    all in seconds from the simulation origin. This checks presence and order,
+    not the values, because signalling can shift the arrivals of later runs.
+    """
+    lines = timetable_text.splitlines()
+    trains = {}
+    for index in range(0, len(lines) - 5, 6):
+        cells = lines[index].split()
+        if cells:
+            trains[cells[0]] = (lines[index + 1].split(), lines[index + 4].split(), lines[index + 5].split())
+    errors = []
+    previous_arrival = None
+    for run in range(1, count + 1):
+        train = f"{service_id}-{run}"
+        earlier_arrival, previous_arrival = previous_arrival, None
+        if train not in trains:
+            errors.append(f"{train} is missing")
+            continue
+        stations, arrivals, departures = trains[train]
+        if stations[-1:] != ["Hvs"]:
+            errors.append(f"{train} does not end at Hvs")
+            continue
+        if len(arrivals) < len(stations) or len(departures) < len(stations):
+            errors.append(f"{train} has fewer arrival or departure times than stations")
+            continue
+        arrival, departure = float(arrivals[len(stations) - 1]), float(departures[len(stations) - 1])
+        if not arrival > 0:
+            errors.append(f"{train} arrives at Hvs at {arrival}, which is not above 0")
+        if departure < arrival or not departure < duration_seconds:
+            errors.append(f"{train} departs from Hvs at {departure}, before its arrival {arrival} or not before {duration_seconds}")
+        if earlier_arrival is not None and not arrival > earlier_arrival:
+            errors.append(f"{train} arrives at Hvs at {arrival}, not after the arrival {earlier_arrival} of the run before")
+        previous_arrival = arrival
+    return errors
 
 
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
@@ -320,6 +382,22 @@ def check_no_position_jump(case_id: int, out_base: Path = RUN_DIR) -> None:
     print(f"PASS case {case_id} trains move at most their maximum speed per step")
 
 
+def check_amsterdam_hilversum_occurrences(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """Every run of the service reaches Hilversum before the run ends, one after the other."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    duration = json.loads((scene_dir / "scene.json").read_text(encoding="utf-8"))["simulation_settings"]["duration_seconds"]
+    services = json.loads((scene_dir / "services.json").read_text(encoding="utf-8"))["services"]
+    service = next((entry for entry in services if entry["id"] == OCCURRENCE_SERVICE), None)
+    if service is None:
+        raise SystemExit(f"case {case_id} has no service {OCCURRENCE_SERVICE}")
+    count = service["repeat"]["count"]
+    timetable = scene_output_dir(case_id, out_base) / "TrainTrajectories/TimetablePoints.txt"
+    errors = occurrence_errors(timetable.read_text(encoding="utf-8", errors="replace"), duration, service["id"], count)
+    if errors:
+        raise SystemExit(f"case {case_id} occurrences of {service['id']} failed: " + "; ".join(errors))
+    print(f"PASS case {case_id} all {count} occurrences of {service['id']} reach Hvs in order")
+
+
 def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     expected = ORIGINAL_CASE_PARITY[case_id]
     output_dir = scene_output_dir(case_id, out_base)
@@ -373,15 +451,19 @@ def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
 
 
 def main() -> None:
-    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4, 5, 6]
+    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4, 5, 6, 7]
     for case_id in selected:
         if case_id in ORIGINAL_CASE_PARITY:
             check_scene_structure(case_id)
+        if case_id == 7:
+            check_scene_matches_netherlands(case_id)
         run_case(case_id)
         check_finite_station_statistics(case_id)
         if case_id in ASSERT_MOVEMENT:
             check_movement(case_id)
         check_no_position_jump(case_id)
+        if case_id == 7:
+            check_amsterdam_hilversum_occurrences(case_id)
         if case_id in ORIGINAL_CASE_PARITY:
             check_original_case_runtime(case_id)
     for case_id in selected:

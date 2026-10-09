@@ -19,7 +19,7 @@ Download a platform package and one or more `.egscene` case studies from the
 [EGTRAIN releases page](https://github.com/Ancientkingg/EGTRAIN/releases).
 Unpack the application for your platform, launch `QEGTRAIN`, then choose
 **File > Open Case Study...** and **Run Scene**. The release page provides
-macOS, Windows, and Linux application packages plus the six canonical scenes.
+macOS, Windows, and Linux application packages plus the seven canonical scenes.
 The Windows package is not code signed, so Windows may warn before it starts the
 program; [Code signing](docs/development/code-signing.md) explains the state and
 how to check a download.
@@ -80,7 +80,7 @@ research project are available from
 
 ## Included case studies
 
-EGTRAIN includes six canonical railway scenes:
+EGTRAIN includes seven canonical railway scenes:
 
 - Netherlands
 - Paimpol, France
@@ -88,6 +88,7 @@ EGTRAIN includes six canonical railway scenes:
 - Milan to Brescia, Italy
 - Assignment Gvc-Gdg-Ut
 - Lebanon teaching baseline
+- Amsterdam to Hilversum student case (fictional timetable on the Netherlands network)
 
 Select them with the `-n` command-line option:
 
@@ -97,6 +98,10 @@ Select them with the `-n` command-line option:
 - `-n 4`: Milan to Brescia
 - `-n 5`: Assignment Gvc-Gdg-Ut
 - `-n 6`: Lebanon
+
+The Amsterdam to Hilversum student case has no `-n` number. Open it from the
+case chooser, or start it from `EGTRAIN/QEGTRAIN` with
+`--scene Scenes/Amsterdam_Hilversum_Student`.
 
 ## Build from source
 
@@ -183,13 +188,14 @@ tools/e2e/headless_smoke.py
 tools/e2e/visual_polish_smoke.sh
 ```
 
-The smoke tests cover all six scenes and check application startup, train
-movement, trajectory samples, served-station output, and the graphical
-interface. CI runs the same CTest suite on macOS, Windows, and Linux. Select a
-subset with test labels, for example `ctest --test-dir build -L unit -LE slow`.
-See the [build and test guide](docs/development/build-and-test.md) for labels,
-platform exclusions, round-trip checks, CI branch roles, and failure
-artifacts.
+The headless and roundtrip smoke tests cover all seven scenes, and the headless
+smoke test checks application startup, train movement, trajectory samples, and
+served-station output. The graphical interface smoke test covers the six scenes
+that have a `-n` number. CI runs the same CTest suite on macOS, Windows, and
+Linux. Select a subset with test labels, for example
+`ctest --test-dir build -L unit -LE slow`. See the
+[build and test guide](docs/development/build-and-test.md) for labels, platform
+exclusions, round-trip checks, CI branch roles, and failure artifacts.
 
 ## Documentation
 

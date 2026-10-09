@@ -68,7 +68,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
 
       - name: Run headless canonical scene smokes
-        run: python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6
+        run: python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6 7
 
       - name: Run editor smoke
         run: tools/e2e/editor_smoke.sh
@@ -265,6 +265,7 @@ jobs:
             artifacts/EGTRAIN-scenes/Milano_Brescia.egscene
             artifacts/EGTRAIN-scenes/Assignment_Gvc_Gdg_Ut.egscene
             artifacts/EGTRAIN-scenes/Lebanon.egscene
+            artifacts/EGTRAIN-scenes/Amsterdam_Hilversum_Student.egscene
             artifacts/update-manifest.json
           )
 
@@ -273,8 +274,8 @@ jobs:
           done
 
           count="$(find artifacts -type f | wc -l | tr -d ' ')"
-          if [[ "$count" != "10" ]]; then
-            echo "Expected exactly 10 release assets, found $count"
+          if [[ "$count" != "11" ]]; then
+            echo "Expected exactly 11 release assets, found $count"
             find artifacts -type f -print
             exit 1
           fi

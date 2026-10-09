@@ -24,9 +24,10 @@ Expected case-study assets:
 - `Milano_Brescia.egscene`
 - `Assignment_Gvc_Gdg_Ut.egscene`
 - `Lebanon.egscene`
+- `Amsterdam_Hilversum_Student.egscene`
 
-Confirm the workflow validates all six bundles and publishes exactly the three
-application assets plus the six case-study assets. The macOS job also runs a
+Confirm the workflow validates all seven bundles and publishes exactly the three
+application assets plus the seven case-study assets. The macOS job also runs a
 packaged headless case. These checks prove artifact construction, not the GUI
 student workflow.
 
