@@ -270,6 +270,7 @@ def main() -> None:
         "Milano_Brescia",
         "Assignment_Gvc_Gdg_Ut",
         "Lebanon",
+        "Amsterdam_Hilversum_Student",
     )
     if any(f"            {name}\n" not in release_workflow for name in scene_names) or any(
         command not in release_workflow
@@ -279,12 +280,14 @@ def main() -> None:
             "name: EGTRAIN-scenes",
         )
     ):
-        missing.append("six deterministic release scene bundles")
+        missing.append("seven deterministic release scene bundles")
     if any(
         f"artifacts/EGTRAIN-scenes/{name}.egscene" not in release_workflow
         for name in scene_names
     ) or "artifacts/EGTRAIN-scenes/*.egscene" not in release_workflow:
         missing.append("scene bundles in published release assets")
+    if "python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6 7" not in release_workflow:
+        missing.append("production headless smoke of all seven canonical scenes")
     if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
         missing.append("macOS Qt Network package verification")
     if '"Qt5Network.dll"' not in release_workflow:
@@ -309,7 +312,7 @@ def main() -> None:
             'QEGTRAIN-macos-arm64.zip",sha256:$mac_sha',
             'QEGTRAIN-windows-x64.zip",sha256:$windows_sha',
             'QEGTRAIN-linux-x86_64.AppImage",sha256:$linux_sha',
-            'if [[ "$count" != "10" ]]',
+            'if [[ "$count" != "11" ]]',
         )
     ):
         missing.append("release update manifest and exact package checksums")

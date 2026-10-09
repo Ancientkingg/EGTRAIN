@@ -18,6 +18,7 @@ CASES_INFO = [
     (4, "Milano_Brescia"),
     (5, "Assignment_Gvc_Gdg_Ut"),
     (6, "Lebanon"),
+    (7, "Amsterdam_Hilversum_Student"),
 ]
 
 IMPORT_NAMES = {4: "Brescia", 5: "Assignment"}
@@ -86,7 +87,7 @@ def main() -> None:
                 )
                 raise RuntimeError(f"case {case_id} compatibility count mismatch: {differences}")
 
-        # One executable round trip is enough after all six structural/count checks.
+        # One executable round trip is enough after all seven structural/count checks.
         reimported_dir = tmp_dir / "reimported_5"
         print("Running reimported Assignment scene...")
         env = os.environ.copy()
