@@ -207,6 +207,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
+    ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
     ${SRC_DIR}/diagrams/TrainFilterButton.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
@@ -279,6 +280,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/util/CsvWriter.h
     ${SRC_DIR}/diagrams/DiagramWindow.h
+    ${SRC_DIR}/diagrams/RouteReferenceChoice.h
     ${SRC_DIR}/diagrams/TrainFilterButton.h
     ${SRC_DIR}/diagrams/TimetableTableWindow.h
     ${SRC_DIR}/diagrams/RunResults.h
@@ -758,6 +760,17 @@ if(EGTRAIN_BUILD_TESTS)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+    add_executable(test_routestations ${SRC_DIR}/tests/test_routestations.cpp)
+    target_link_libraries(test_routestations PRIVATE egtrain_scene)
+    add_test(NAME test_routestations COMMAND test_routestations ${SRC_DIR}/Scenes)
+
+    add_executable(test_routereferencechoice
+        ${SRC_DIR}/tests/test_routereferencechoice.cpp
+        ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp)
+    target_link_libraries(test_routereferencechoice PRIVATE egtrain_scene Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_routereferencechoice COMMAND test_routereferencechoice ${SRC_DIR}/Scenes)
+    set_tests_properties(test_routereferencechoice PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_scenevalidator ${SRC_DIR}/tests/test_scenevalidator.cpp)
     target_link_libraries(test_scenevalidator PRIVATE egtrain_scene)
     add_test(NAME test_scenevalidator
@@ -945,7 +958,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
+	set_tests_properties(test_scenevalidator test_routestations test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
@@ -967,6 +980,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
 		test_guisimulationsnapshot test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
 		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
+		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview
 		test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo test_timeprogressbar
@@ -988,7 +1002,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 		test_networkview test_compactdoublespinbox test_aboutdialog test_dialoglayout test_choicecombo
-		test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
+		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke
 		test_package_contents_smoke)
