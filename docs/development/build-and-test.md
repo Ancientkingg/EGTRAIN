@@ -676,9 +676,9 @@ code and prints a marker:
 - In the live run of Copenhagen (`visual_polish_smoke.sh`):
   `E2E_FOLLOW_NOT_ENTERED_OK` (a train that has not entered shows its scheduled time in
   the label, the list entry, the tooltips and the accessible descriptions; such a train
-  has no item to move the view to in this run, so that the view stays where it is for
-  a train that has not entered is checked by `E2E_FOLLOW_REPLAY_BEFORE_OK`, which
-  requires the item of the train to exist),
+  has no item in this run, so there is nothing for the view to move to, and
+  `E2E_FOLLOW_REPLAY_BEFORE_OK`, which requires the item of the train to exist, checks
+  that the view stays where it is for a train that has not entered),
   `E2E_FOLLOW_STATUS_WIDTH_OK` (a sentence does not raise the width of the status bar),
   `E2E_FOLLOW_VISIBLE_OK` (at a window width of 1024 pixels the label still shows the
   state of the train and its scheduled time, and the list asks its popup for a width
