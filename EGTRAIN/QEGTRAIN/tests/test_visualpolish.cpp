@@ -112,9 +112,9 @@ int main(int argc, char* argv[]) {
 			&& resolved.iconResource == classified.iconResource,
 			"resolved train keeps the classified kind, shape and icon");
 	}
-	const QColor serviceColour(40, 130, 210);
-	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColour);
-	ok &= expect(coloured.fill == serviceColour && coloured.outline == serviceColour.darker(200)
+	const QColor serviceColor(40, 130, 210);
+	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColor);
+	ok &= expect(coloured.fill == serviceColor && coloured.outline == serviceColor.darker(200)
 		&& coloured.outline != coloured.fill,
 		"service colour sets the fill and a darker outline");
 	ok &= expect(coloured.kind == TrainVisualKind::Intercity

@@ -111,11 +111,11 @@ TrainVisual classifyTrainType(const std::string& type, const std::string& descri
 	return {TrainVisualKind::Passenger, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Passenger), ":/icons/train-passenger.svg"};
 }
 
-TrainVisual resolveTrainVisual(const std::string& type, const std::string& description, const QColor& serviceColour) {
+TrainVisual resolveTrainVisual(const std::string& type, const std::string& description, const QColor& serviceColor) {
 	TrainVisual visual = classifyTrainType(type, description);
-	if (serviceColour.isValid()) {
-		visual.fill = serviceColour;
-		visual.outline = serviceColour.darker(200);
+	if (serviceColor.isValid()) {
+		visual.fill = serviceColor;
+		visual.outline = serviceColor.darker(200);
 	}
 	return visual;
 }

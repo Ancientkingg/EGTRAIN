@@ -50,7 +50,7 @@ QColor defaultTrainFill();
 QColor defaultTrainOutline();
 TrainVisual classifyTrainType(const std::string& type, const std::string& description);
 TrainVisual resolveTrainVisual(const std::string& type, const std::string& description,
-	const QColor& serviceColour = QColor());
+	const QColor& serviceColor = QColor());
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
 int trainBadgeCornerRadius(TrainBadgeShape shape);
 SignalVisual classifySignalAspect(int code);

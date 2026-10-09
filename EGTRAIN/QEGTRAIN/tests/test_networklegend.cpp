@@ -182,11 +182,11 @@ int main(int argc, char* argv[]) {
 		"default plus two custom colours give three rows labelled with the service ids");
 	trainLegend.show();
 	QApplication::processEvents();
-	const QColor swatchColours[] = {defaultTrainFill(), green, blue};
+	const QColor swatchColors[] = {defaultTrainFill(), green, blue};
 	for (int row = 0; row < 3; ++row) {
 		auto* swatch = trainLegend.findChild<QWidget*>(QString("mapKeySwatch%1").arg(row));
 		const QImage image = swatch ? swatch->grab().toImage() : QImage();
-		ok &= expect(swatch && containsColor(image, swatchColours[row]),
+		ok &= expect(swatch && containsColor(image, swatchColors[row]),
 			"train swatch is filled with the colour of its row");
 		ok &= expect(swatch && (row == 0 || !containsColor(image, defaultTrainFill())),
 			"custom train swatch does not use the default fill");
