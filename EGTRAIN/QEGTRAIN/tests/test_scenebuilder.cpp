@@ -875,7 +875,7 @@ static void fillNode(Node& n, double id) {
 		n.connectIdBlockSet[i] = 40 + i;
 		n.connectXNode[i] = 50.5 + i;
 	}
-	n.isSignalled = n.station = n.respectOrder = n.virtualCouplingNode = true;
+	n.isSignalled = n.station = n.respectOrder = n.virtualCouplingNode = n.virtualSignal = true;
 	n.sceneNodeId = "node.sample";
 	n.stationName = "Sample";
 	n.stationPlatformId = "platform.sample";
@@ -931,7 +931,8 @@ static bool sameNode(const Node& a, const Node& b) {
 		&& std::equal(a.connectXNode, a.connectXNode + 6, b.connectXNode) && a.IDConnectedBlocks == b.IDConnectedBlocks
 		&& a.arcSpeedLimit == b.arcSpeedLimit && a.stationName == b.stationName && a.stationPlatformId == b.stationPlatformId
 		&& a.tdsbId == b.tdsbId && a.tdsbGeoCoordX == b.tdsbGeoCoordX && a.tdsbGeoCoordY == b.tdsbGeoCoordY
-		&& a.latitude == b.latitude && a.longitude == b.longitude && a.graphX == b.graphX && a.graphY == b.graphY;
+		&& a.latitude == b.latitude && a.longitude == b.longitude && a.graphX == b.graphX && a.graphY == b.graphY
+		&& a.virtualSignal == b.virtualSignal;
 }
 
 static bool sameArc(const Arc& a, const Arc& b) {
@@ -976,16 +977,19 @@ static bool runNodeValueChecks() {
 
 	Node copied(source);
 	ok &= expect(sameNode(copied, source), "a copied node holds the members and the block list of its source");
-	source.virtualSignal = true;
-	Node flagged(source);
-	ok &= expect(flagged.virtualSignal, "a copied node keeps the virtual signal flag");
-	source.virtualSignal = false;
+	ok &= expect(copied.virtualSignal, "a copied node keeps the virtual signal flag");
 
 	Node target;
 	target.IDConnectedBlocks = {"old.1", "old.2", "old.3"};
 	target = source;
 	ok &= expect(sameNode(target, source), "an assigned node holds the members and the block list of its source");
+	ok &= expect(target.virtualSignal, "an assigned node takes the virtual signal flag of its source");
 	ok &= expect(sameNode(source, reference), "assigning a node leaves its source unchanged");
+
+	Node stale, plain;
+	stale.virtualSignal = true;
+	stale = plain;
+	ok &= expect(!stale.virtualSignal, "an assigned node loses its virtual signal flag when its source has none");
 
 	Node& alias = source;
 	source = alias;
@@ -1063,6 +1067,14 @@ static bool runSectionValueChecks() {
 	Section& alias = source;
 	source = alias;
 	ok &= expect(sameSection(source, reference), "a section assigned to itself keeps its members, arcs and detection sections");
+
+	// The first half of a double switch has the virtual signal at its end.
+	Section firstHalf, assignedHalf;
+	fillSection(firstHalf, nodes, &tds);
+	firstHalf.start_node.virtualSignal = false;
+	assignedHalf = firstHalf;
+	ok &= expect(!assignedHalf.start_node.virtualSignal && assignedHalf.end_node.virtualSignal,
+		"an assigned section keeps which of its end nodes carries the virtual signal");
 
 	ok &= expect(source == reference && reference == source, "sections with the same members compare equal in both directions");
 	ok &= expect(sameSection(source, reference), "comparing equal sections leaves their arcs unchanged");
