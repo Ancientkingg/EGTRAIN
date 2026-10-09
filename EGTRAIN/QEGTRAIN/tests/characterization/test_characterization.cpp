@@ -190,9 +190,7 @@ const struct {
 	const char* marker;
 } kKnownWrong[] = {
 	{"sf-first-level-none", "#539 F1 and F2 stop at 2 km and stay there after the failure ends"},
-	{"sf-first-level-0", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
-	{"sf-first-level-1", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
-	{"sf-first-level-2", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
+	{"same-entry-level-4", "#564 F1 stops at the position of T1 at B"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
 	{"single-track-level-3", "#551 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
@@ -222,6 +220,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2},
 		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2},
 		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2},
+		{"same-entry", "baseline", {"T1", "F1"}, 5},
 	};
 	for (const auto& group : groups) {
 		const std::string none = std::string(group.prefix) + "-level-none";
@@ -231,6 +230,10 @@ std::vector<CaseSpec> buildCaseTable() {
 			cases.push_back({name, group.scenario, group.services, level, knownWrongMarker(name)});
 		}
 	}
+	// F2 is listed before L1 in the scene but L1 is due first (60 s against 120 s); both wait while the first section is
+	// blocked, so L1 has to enter first.
+	for (int level = 0; level <= 2; ++level)
+		cases.push_back({"entry-order-level-" + std::to_string(level), "signal-failure-first", {"F2", "L1"}, level, ""});
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});

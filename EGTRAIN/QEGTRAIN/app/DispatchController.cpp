@@ -7,6 +7,7 @@
 #include "util/portability.h"  // localtime_r shim on MSVC
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
+#include <numeric>
 #include <filesystem>
 #include <fstream>
 #include <regex>
@@ -479,6 +480,14 @@ void DispatchController::runSimulation() {
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
 	nlohmann::json jsmsg;
 
+	// The trains by departure time; trains due at the same time stay in the order of regional_train.
+	std::vector<int> dueOrder(numRegions);
+	std::iota(dueOrder.begin(), dueOrder.end(), 0);
+	std::stable_sort(dueOrder.begin(), dueOrder.end(), [&](int a, int b) {
+		return regional_train[a].departure_time < regional_train[b].departure_time;
+	});
+	std::vector<int> movementOrder;
+
 	for (int t = 0; t < initial_variables.times; t++) {
 		// pause/stop/speed from GUI
 		if (auto* sw = SimulationWorker::active()) {
@@ -512,7 +521,21 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
 				"worker/playback_step/compute");
 			// Simulate train movement at each simulation step
-			for (int j = 0; j < numRegions; j++) {
+			// Every train keeps its place in the order of regional_train, except that the trains that are due and still
+			// waiting to enter take the places of those trains in the order in which they are due. Of several trains
+			// waiting at the entry of a route the one due first then enters first.
+			movementOrder.resize(numRegions);
+			std::iota(movementOrder.begin(), movementOrder.end(), 0);
+			const auto dueAndWaiting = [&](int j) { return !regional_train[j].CanEnter && t >= regional_train[j].departure_time; };
+			auto nextDue = dueOrder.begin();
+			for (int& place : movementOrder) {
+				if (!dueAndWaiting(place))
+					continue;
+				while (!dueAndWaiting(*nextDue))
+					++nextDue;
+				place = *nextDue++;
+			}
+			for (const int j : movementOrder) {
 				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
 				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
 				regional_train[j].recordStationPassagesAtTime(t);

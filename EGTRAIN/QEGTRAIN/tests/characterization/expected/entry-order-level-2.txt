@@ -1,0 +1,93 @@
+# egtrain-characterization 1
+# case: entry-order-level-2
+# run: scenario=signal-failure-first services=F2,L1 level=2 horizon=1500
+# known-wrong: none
+run steps=1500 trains=2
+train F2-1 active start=542 end=1255
+train F2-1 sample t=542 x=0.615074 v=1.230149
+train F2-1 sample t=602 x=1278.266026 v=31.292706
+train F2-1 sample t=662 x=3394.638283 v=36.111111
+train F2-1 sample t=722 x=5493.366165 v=29.424127
+train F2-1 sample t=782 x=6714.956243 v=27.619364
+train F2-1 sample t=842 x=7999.208327 v=1.579862
+train F2-1 sample t=902 x=7999.999900 v=0.000000
+train F2-1 sample t=962 x=9154.918350 v=30.380830
+train F2-1 sample t=1022 x=11250.197152 v=36.111111
+train F2-1 sample t=1082 x=13370.437940 v=32.926466
+train F2-1 sample t=1142 x=14635.868453 v=27.047650
+train F2-1 sample t=1202 x=15992.095666 v=3.954417
+train F2-1 sample t=1255 x=16000.000100 v=0.000000
+train F2-1 stop t_first=844 t_last=905 x=7999.998000 dwell=61
+train F2-1 braking t=804 x=7377.029563 v=32.744997 stop_t=844
+train F2-1 stop t_first=1207 t_last=1255 x=15999.998000 dwell=48
+train F2-1 braking t=1167 x=15373.263721 v=32.850359 stop_t=1207
+train L1-1 active start=402 end=1107
+train L1-1 sample t=402 x=0.615074 v=1.230149
+train L1-1 sample t=462 x=1278.266026 v=31.292706
+train L1-1 sample t=522 x=3394.638283 v=36.111111
+train L1-1 sample t=582 x=5561.304949 v=36.111111
+train L1-1 sample t=642 x=7627.589337 v=25.137617
+train L1-1 sample t=702 x=7999.999900 v=0.000000
+train L1-1 sample t=762 x=8381.477027 v=22.268637
+train L1-1 sample t=822 x=10202.974930 v=36.111111
+train L1-1 sample t=882 x=12369.641596 v=36.111111
+train L1-1 sample t=942 x=14536.308263 v=36.111111
+train L1-1 sample t=1002 x=15995.257810 v=3.162144
+train L1-1 sample t=1062 x=15999.999900 v=0.000000
+train L1-1 sample t=1107 x=16000.000100 v=0.000000
+train L1-1 stop t_first=673 t_last=734 x=7999.998000 dwell=61
+train L1-1 braking t=629 x=7248.861328 v=36.111111 stop_t=673
+train L1-1 stop t_first=1006 t_last=1107 x=15999.998000 dwell=101
+train L1-1 braking t=962 x=15248.861328 v=36.111111 stop_t=1006
+separation L1-1>F2-1 min_gap_t=1107 min_gap=2013.275557
+aspect route0 @0-B0@ 0:0 401:270 402:0 486:75 541:180 542:0 626:75 681:180 755:270
+aspect route0 @1-B0@ 0:270 484:0 541:75 597:180 624:0 681:75 755:180 916:270
+aspect route0 @2-B0@ 0:270 539:0 597:75 679:0 755:75 916:180 990:270
+aspect route0 @3-B0@ 0:270 595:0 745:75 750:0 916:75 990:180 1045:270
+aspect route0 @4-B0@ 0:270 734:0 819:75 874:180 905:0 990:75 1045:180 1118:270
+aspect route0 @5-B0@ 0:270 817:0 874:75 930:180 988:0 1045:75 1118:180 1256:270
+aspect route0 @6-B0@ 0:270 872:0 930:75 1043:0 1118:75 1256:270
+aspect route0 @7-B0@ 0:270 928:0 1108:270 1114:0 1256:270
+result F2-1 A planned_arr=n/a planned_dep=180.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
+result F2-1 B planned_arr=660.000000 planned_dep=720.000000 sim_arr=844.000000 sim_dep=904.000000 arr_delay=184.000000 dep_delay=184.000000
+result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1207.000000 sim_dep=1254.000000 arr_delay=47.000000 dep_delay=n/a
+result L1-1 A planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
+result L1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=673.000000 sim_dep=733.000000 arr_delay=73.000000 dep_delay=73.000000
+result L1-1 C planned_arr=1100.000000 planned_dep=n/a sim_arr=1006.000000 sim_dep=1106.000000 arr_delay=-94.000000 dep_delay=n/a
+run_result F2-1 start=542.000000 end=1255.000000 travel=713.000000
+run_result L1-1 start=402.000000 end=1107.000000 travel=705.000000
+network start=402.000000 end=1255.000000 travel=853.000000
+train F2-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
+blocktime F2-1 n=8 complete=8
+blocktime F2-1 @0-B0@ level=-99999999 complete=1 start_occ=541.000000 end_occ=628.000000 start_run=541.000000 end_run=623.000000 end_clear=625.000000
+blocktime F2-1 @1-B0@ level=-99999999 complete=1 start_occ=597.500000 end_occ=683.000000 start_run=623.000000 end_run=678.000000 end_clear=680.000000
+blocktime F2-1 @2-B0@ level=-99999999 complete=1 start_occ=648.500000 end_occ=757.000000 start_run=678.000000 end_run=749.000000 end_clear=754.000000
+blocktime F2-1 @3-B0@ level=-99999999 complete=1 start_occ=704.500000 end_occ=918.000000 start_run=749.000000 end_run=904.000000 end_clear=915.000000
+blocktime F2-1 @4-B0@ level=-99999999 complete=1 start_occ=795.500000 end_occ=992.000000 start_run=904.000000 end_run=987.000000 end_clear=989.000000
+blocktime F2-1 @5-B0@ level=-99999999 complete=1 start_occ=961.500000 end_occ=1047.000000 start_run=987.000000 end_run=1042.000000 end_clear=1044.000000
+blocktime F2-1 @6-B0@ level=-99999999 complete=1 start_occ=1012.500000 end_occ=1120.000000 start_run=1042.000000 end_run=1113.000000 end_clear=1117.000000
+blocktime F2-1 @7-B0@ level=-99999999 complete=1 start_occ=1068.500000 end_occ=1257.000000 start_run=1113.000000 end_run=1254.000000 end_clear=1254.000000
+train L1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
+blocktime L1-1 n=8 complete=8
+blocktime L1-1 @0-B0@ level=-99999999 complete=1 start_occ=401.000000 end_occ=488.000000 start_run=401.000000 end_run=483.000000 end_clear=485.000000
+blocktime L1-1 @1-B0@ level=-99999999 complete=1 start_occ=457.500000 end_occ=543.000000 start_run=483.000000 end_run=538.000000 end_clear=540.000000
+blocktime L1-1 @2-B0@ level=-99999999 complete=1 start_occ=508.500000 end_occ=599.000000 start_run=538.000000 end_run=594.000000 end_clear=596.000000
+blocktime L1-1 @3-B0@ level=-99999999 complete=1 start_occ=564.500000 end_occ=747.000000 start_run=594.000000 end_run=733.000000 end_clear=744.000000
+blocktime L1-1 @4-B0@ level=-99999999 complete=1 start_occ=619.500000 end_occ=821.000000 start_run=733.000000 end_run=816.000000 end_clear=818.000000
+blocktime L1-1 @5-B0@ level=-99999999 complete=1 start_occ=790.500000 end_occ=876.000000 start_run=816.000000 end_run=871.000000 end_clear=873.000000
+blocktime L1-1 @6-B0@ level=-99999999 complete=1 start_occ=841.500000 end_occ=932.000000 start_run=871.000000 end_run=927.000000 end_clear=929.000000
+blocktime L1-1 @7-B0@ level=-99999999 complete=1 start_occ=897.500000 end_occ=1109.000000 start_run=927.000000 end_run=1106.000000 end_clear=1106.000000
+incident inc.first type=signal_failure target=0-B0 start=0.000000 has_end=1 end=400.000000 sections=@0-B0@
+boundary t=0 authorities=2 blocked=@0-B0@
+authority t=0 part=Front section=@0-B0@ pos=0.000000 reversed=0
+authority t=0 part=Front section=@1-B0@ pos=2000.000000 reversed=1
+boundary t=400 authorities=2 blocked=@0-B0@
+authority t=400 part=Front section=@0-B0@ pos=0.000000 reversed=0
+authority t=400 part=Front section=@1-B0@ pos=2000.000000 reversed=1
+boundary t=401 authorities=0 blocked=-
+stats Ent_Del+DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats Ent_Delays Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats B Av_Delay=124.500000 Std_Delay=78.488900 Total_Delay=249.000000 Max_Tot_Delay=180.000000 Cum_Cons_Delay=249.000000 Max_Cons_Delay=180.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=2.000000
+stats C Av_Delay=43.000000 Std_Delay=0.000000 Total_Delay=43.000000 Max_Tot_Delay=43.000000 Cum_Cons_Delay=43.000000 Max_Cons_Delay=43.000000 Perc_Delayed=50.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=1.000000
+stats TOTALS Av_Delay=83.750000 Std_Delay=39.244400 Total_Delay=292.000000 Max_Tot_Delay=180.000000 Cum_Cons_Delay=292.000000 Max_Cons_Delay=180.000000 Perc_Delayed=75.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
