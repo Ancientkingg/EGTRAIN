@@ -344,9 +344,10 @@ name a scene directory or bundle:
 
 The command preserves support for structurally valid, incomplete historical
 scenes. Run gating additionally uses `validateRunnableScene`; the equivalent
-directory helper is `validateRunnableSceneDirectory`. Structural loading is
-checked first so semantic reference diagnostics do not cascade from malformed
-JSON.
+directory helper is `validateRunnableSceneDirectory`. `scene_tool validate
+--runnable path/to/scene` prints the diagnostics of that run gating. Structural
+loading is checked first so semantic reference diagnostics do not cascade from
+malformed JSON.
 
 Before committing a scene, validate it and run the native scene path. Use
 `scene_tool export` only when a downstream legacy tool needs interoperability

@@ -141,13 +141,13 @@ If a run stops with an error:
 scene_tool import <legacyDir> <sceneDir> [sceneName]
 scene_tool pack <sceneDir> <output.egscene>
 scene_tool unpack <input.egscene> <sceneDir>
-scene_tool validate <scenePath>
+scene_tool validate [--runnable] <scenePath>
 scene_tool export <scenePath> <outDir>
 ```
 
 - `import` builds a scene from a legacy case folder. The Lebanon scene was built this way from the supplied network.
 - `pack` and `unpack` convert between an editable directory and a portable bundle.
-- `validate` prints the same errors the Validation dock shows.
+- `validate` prints the same errors the Validation dock shows. With `--runnable` it also runs the checks the application makes before a run.
 - `export` writes legacy interoperability files into a clean directory. Normal
   simulation does not read that export.
 

@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -796,6 +797,149 @@ int main(int argc, char** argv) {
 	edges.signallingAreas.push_back({"bridge", 0.5, 2.0, 3, {}});
 	ok &= expect(levelMissingMessage(edges).empty(),
 		"a third area that contains the straddling section removes the warning");
+
+	// The names of the signalling levels.
+	const std::pair<int, const char*> levelLabels[] = {
+		{kSignallingLevelUnset, "No signalling"}, {0, "0 ATB fixed block"},
+		{1, "1 ETCS Level 1 fixed block"}, {2, "2 ETCS Level 2 fixed block"},
+		{3, "3 ETCS Level 3 moving block"}, {4, "4 Virtual coupling"}, {5, "5 BACC track circuits"},
+		{-1, "Invalid level -1"}, {6, "Invalid level 6"}, {-99999998, "Invalid level -99999998"}};
+	std::vector<std::string> levelDescriptions;
+	for (const auto& entry : levelLabels) {
+		ok &= expect(signallingLevelName(entry.first) == entry.second, "a signalling level has its label");
+		levelDescriptions.push_back(signallingLevelDescription(entry.first));
+	}
+	ok &= expect(std::find(levelDescriptions.begin(), levelDescriptions.end(), "") == levelDescriptions.end(),
+		"every signalling level has a description");
+	ok &= expect(std::set<std::string>(levelDescriptions.begin(), levelDescriptions.begin() + 7).size() == 7
+			&& levelDescriptions[7] == "Valid levels are 0 to 5." && levelDescriptions[8] == levelDescriptions[7],
+		"the valid levels differ in description and the invalid ones say which levels are valid");
+
+	// Which area decides the level of each section.
+	auto analyze = [](const SceneModel& candidate) {
+		return analyzeSignallingAreas(candidate, buildSceneSectionInventory(candidate));
+	};
+	auto sectionOf = [](const SceneSignallingAnalysis& analysis, const char* id) {
+		const SceneSectionSignalling* section = analysis.section(id);
+		return section == nullptr ? SceneSectionSignalling() : *section;
+	};
+	const std::size_t none = SceneSectionSignalling::kNoArea;
+	const SceneSignallingAnalysis cleanAnalysis = analyze(clean);
+	ok &= expect(sectionOf(cleanAnalysis, "@block-1@").level == 0 && sectionOf(cleanAnalysis, "@block-1@").decidingArea == 0
+			&& sectionOf(cleanAnalysis, "@block-2@").level == 0 && sectionOf(cleanAnalysis, "@block-2@").onRoute
+			&& sectionOf(cleanAnalysis, "@block-1@").conflicts.empty(),
+		"a network-wide area decides the level of the sections it contains");
+	ok &= expect(cleanAnalysis.section("@no-such-block@") == nullptr, "an unknown section has no analysis");
+	ok &= expect(cleanAnalysis.areas.size() == 1 && cleanAnalysis.areas[0].sectionCount >= 2
+			&& cleanAnalysis.areas[0].routeSectionCount == 2
+			&& cleanAnalysis.areas[0].sectionsSplitByStart.empty() && cleanAnalysis.areas[0].sectionsSplitByEnd.empty(),
+		"an area that holds every section counts them and splits none");
+
+	SceneModel scoped = clean;
+	scoped.signallingAreas = {{"network", 0.0, 2.0, 1, {}}, {"track", 0.0, 1.0, 3, "track-1"},
+		{"elsewhere", 0.0, 2.0, 5, "track-2"}};
+	const SceneSignallingAnalysis scopedAnalysis = analyze(scoped);
+	ok &= expect(sectionOf(scopedAnalysis, "@block-1@").level == 3 && sectionOf(scopedAnalysis, "@block-1@").decidingArea == 1
+			&& sectionOf(scopedAnalysis, "@block-1@").conflicts.empty(),
+		"a track-scoped area overrides the network-wide area without a conflict");
+	ok &= expect(sectionOf(scopedAnalysis, "@block-2@").level == 1 && sectionOf(scopedAnalysis, "@block-2@").decidingArea == 0,
+		"the network-wide area decides where the track-scoped area does not reach");
+	ok &= expect(scopedAnalysis.areas[0].routeSectionCount == 2 && scopedAnalysis.areas[1].routeSectionCount == 1
+			&& scopedAnalysis.areas[2].sectionCount == 0,
+		"an area counts the sections it contains even when another area decides them, and none on another track");
+
+	SceneModel conflicting = clean;
+	conflicting.signallingAreas = {{"a", 0.0, 2.0, 2, {}}, {"b", 0.0, 1.0, 2, {}}, {"c", 0.0, 2.0, 3, {}},
+		{"d", 0.0, 2.0, 4, {}}, {"t1", 0.0, 2.0, 1, "track-1"}, {"t2", 1.0, 2.0, 5, "track-1"}};
+	const SceneSignallingAnalysis conflictAnalysis = analyze(conflicting);
+	const SceneSectionSignalling conflictOne = sectionOf(conflictAnalysis, "@block-1@");
+	ok &= expect(conflictOne.level == 1 && conflictOne.decidingArea == 4 && conflictOne.conflicts.size() == 2
+			&& conflictOne.conflicts[0].firstArea == 0 && conflictOne.conflicts[0].area == 2
+			&& !conflictOne.conflicts[0].trackScoped && conflictOne.conflicts[1].area == 3
+			&& !conflictOne.conflicts[1].trackScoped,
+		"areas that disagree with the first area of their scope are listed as conflicts in area order");
+	const SceneSectionSignalling conflictTwo = sectionOf(conflictAnalysis, "@block-2@");
+	ok &= expect(conflictTwo.level == 1 && conflictTwo.conflicts.size() == 3 && conflictTwo.conflicts[2].trackScoped
+			&& conflictTwo.conflicts[2].firstArea == 4 && conflictTwo.conflicts[2].area == 5,
+		"conflicts of the network-wide scope come before those of the track scope");
+	const auto conflictingRun = validateRunnableScene(conflicting);
+	std::vector<std::string> conflictErrors;
+	std::size_t conflictErrorCount = 0;
+	for (const SceneDiagnostic& diagnostic : conflictingRun) {
+		if (diagnostic.code != "scene.signalling_area.conflict")
+			continue;
+		++conflictErrorCount;
+		if (diagnostic.relatedId.find('/') == std::string::npos) // Leave out the switch sections.
+			conflictErrors.push_back(diagnostic.itemId + " " + diagnostic.path + " " + diagnostic.relatedId + " "
+				+ diagnostic.file + " " + diagnostic.itemType);
+	}
+	ok &= expect(conflictErrors == std::vector<std::string>{"c signalling_areas[2] a -> @block-1@ signalling.json signalling_area", "c signalling_areas[2] a -> @block-2@ signalling.json signalling_area", "t2 signalling_areas[5] t1 -> @block-2@ signalling.json signalling_area"}
+			&& conflictErrorCount >= 3,
+		"the validator reports the first conflict of each scope for each section");
+
+	SceneModel agreeing = clean;
+	agreeing.signallingAreas = {{"a", 0.0, 2.0, 2, {}}, {"b", 0.0, 1.5, 2, {}}};
+	ok &= expect(sectionOf(analyze(agreeing), "@block-1@").conflicts.empty() && sectionOf(analyze(agreeing), "@block-1@").decidingArea == 0,
+		"areas that give the same level do not conflict and the first one decides");
+
+	SceneModel splitting = clean;
+	splitting.signallingAreas = {{"head", 0.0, 1.5, 2, {}}, {"tail", 0.5, 2.0, 3, {}}};
+	const SceneSignallingAnalysis splitAnalysis = analyze(splitting);
+	auto listed = [](const std::vector<std::string>& ids, const char* id) {
+		return std::find(ids.begin(), ids.end(), id) != ids.end();
+	};
+	ok &= expect(listed(splitAnalysis.areas[0].sectionsSplitByEnd, "@block-2@")
+			&& !listed(splitAnalysis.areas[0].sectionsSplitByEnd, "@block-1@")
+			&& splitAnalysis.areas[0].sectionsSplitByStart.empty()
+			&& listed(splitAnalysis.areas[1].sectionsSplitByStart, "@block-1@")
+			&& !listed(splitAnalysis.areas[1].sectionsSplitByStart, "@block-2@")
+			&& splitAnalysis.areas[1].sectionsSplitByEnd.empty(),
+		"an area edge names the sections it cuts through");
+	ok &= expect(splitAnalysis.areas[0].routeSectionCount == 1 && splitAnalysis.areas[1].routeSectionCount == 1
+			&& sectionOf(splitAnalysis, "@block-1@").level == 2 && sectionOf(splitAnalysis, "@block-2@").level == 3,
+		"a section that crosses the edge of an area is not counted for it");
+	splitting.signallingAreas = {{"head", 0.0, 1.5, 2, {}}, {"tail", 1.5, 2.0, 3, {}}};
+	ok &= expect(sectionOf(analyze(splitting), "@block-2@").level == kSignallingLevelUnset
+			&& sectionOf(analyze(splitting), "@block-2@").decidingArea == none,
+		"a section cut by the edge between two areas has no level");
+
+	SceneModel tolerance = clean;
+	tolerance.signallingAreas = {{"in", 0.0, 1.0 - 5e-9, 2, {}}};
+	SceneSignallingAnalysis toleranceAnalysis = analyze(tolerance);
+	ok &= expect(sectionOf(toleranceAnalysis, "@block-1@").level == 2
+			&& !listed(toleranceAnalysis.areas[0].sectionsSplitByEnd, "@block-1@"),
+		"an area end just inside the tolerance holds the section and does not cut it");
+	tolerance.signallingAreas = {{"out", 0.0, 1.0 - 1e-7, 2, {}}};
+	toleranceAnalysis = analyze(tolerance);
+	ok &= expect(sectionOf(toleranceAnalysis, "@block-1@").level == kSignallingLevelUnset
+			&& listed(toleranceAnalysis.areas[0].sectionsSplitByEnd, "@block-1@"),
+		"an area end outside the tolerance cuts the section");
+	tolerance.signallingAreas = {{"in", 1.0 + 5e-9, 2.0, 2, {}}};
+	toleranceAnalysis = analyze(tolerance);
+	ok &= expect(sectionOf(toleranceAnalysis, "@block-2@").level == 2
+			&& !listed(toleranceAnalysis.areas[0].sectionsSplitByStart, "@block-2@"),
+		"an area start just inside the tolerance holds the section and does not cut it");
+
+	SceneModel unusable = clean;
+	unusable.signallingAreas = {{"inverted", 2.0, 0.0, 2, {}}, {"empty", 1.0, 1.0, 2, {}},
+		{"high", 0.0, 2.0, 6, {}}, {"low", 0.0, 2.0, -1, {}},
+		{"infinite", 0.0, std::numeric_limits<double>::infinity(), 2, {}}};
+	const SceneSignallingAnalysis unusableAnalysis = analyze(unusable);
+	bool unusableCounted = false;
+	for (const SceneAreaSignalling& area : unusableAnalysis.areas)
+		unusableCounted |= area.sectionCount != 0 || !area.sectionsSplitByStart.empty() || !area.sectionsSplitByEnd.empty();
+	ok &= expect(!unusableCounted && sectionOf(unusableAnalysis, "@block-1@").level == kSignallingLevelUnset
+			&& sectionOf(unusableAnalysis, "@block-1@").conflicts.empty(),
+		"areas with an empty range or a level outside 0 to 5 take no part");
+
+	SceneModel offRoute = clean;
+	offRoute.routes[0].blocks = {"block-1"};
+	const SceneSignallingAnalysis offRouteAnalysis = analyze(offRoute);
+	ok &= expect(sectionOf(offRouteAnalysis, "@block-1@").onRoute && !sectionOf(offRouteAnalysis, "@block-2@").onRoute
+			&& offRouteAnalysis.areas[0].routeSectionCount == 1 && offRouteAnalysis.areas[0].sectionCount >= 2,
+		"the route sections of an area are those of its sections that a route uses");
+	offRoute.routes[0].blocks = {"block-2", "block-1"};
+	ok &= expect(analyze(offRoute).areas[0].routeSectionCount == 2, "a route in decreasing chainage uses the same sections");
 
 	const std::string noEffect = "scene.single_track.no_effect";
 	SceneModel restricted = clean;

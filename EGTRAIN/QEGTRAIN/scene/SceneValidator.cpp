@@ -139,7 +139,7 @@ std::string namedItems(const std::vector<std::string>& values) {
 // Runtime sections on a route that no signalling area covers keep the unset
 // signalling level, so trains there run without signalling.
 void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInventory& inventory,
-	const std::unordered_set<std::string>& coveredSectionIds, DiagnosticBuilder& diagnostics) {
+	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	std::unordered_set<std::string> seenSectionIds;
 	std::vector<const SceneSectionDescriptor*> uncovered;
 	std::size_t routeSectionCount = 0;
@@ -149,7 +149,8 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 			if (section == nullptr || !seenSectionIds.insert(section->id).second)
 				continue;
 			++routeSectionCount;
-			if (coveredSectionIds.find(section->id) == coveredSectionIds.end())
+			const SceneSectionSignalling* sectionSignalling = signalling.section(section->id);
+			if (sectionSignalling == nullptr || sectionSignalling->level == kSignallingLevelUnset)
 				uncovered.push_back(section);
 		}
 	}
@@ -187,7 +188,7 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 // A single-track restriction closes its sections to trains of the opposite direction through the signal
 // aspects of fixed-block signalling, so it needs signalling level 0, 1, 2 or 5 where it lies.
 void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneSectionInventory& inventory,
-	const std::unordered_map<std::string, int>& sectionLevels, DiagnosticBuilder& diagnostics) {
+	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	for (std::size_t index = 0; index < scene.singleTrackRestrictions.size(); ++index) {
 		const SceneSingleTrackRestriction& restriction = scene.singleTrackRestrictions[index];
 		const std::array<std::pair<const char*, const std::string*>, 4> roles = {{
@@ -202,12 +203,13 @@ void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneS
 			const SceneSectionDescriptor* section = inventory.resolve(*role.second);
 			if (section == nullptr)
 				continue;
-			const auto level = sectionLevels.find(section->id);
-			if (level != sectionLevels.end() && level->second != 3 && level->second != 4)
+			const SceneSectionSignalling* sectionSignalling = signalling.section(section->id);
+			const int level = sectionSignalling == nullptr ? kSignallingLevelUnset : sectionSignalling->level;
+			if (level != kSignallingLevelUnset && level != 3 && level != 4)
 				continue;
 			reasons += (reasons.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second
-				+ (level == sectionLevels.end() ? " has no signalling level"
-												: " has level " + std::to_string(level->second));
+				+ (level == kSignallingLevelUnset ? " has no signalling level"
+												  : " has level " + std::to_string(level));
 			if (firstReason.empty())
 				firstReason = *role.second;
 		}
@@ -1580,14 +1582,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						+ " stations for the native runtime",
 					"stations.json", "station", "", "stations",
 					std::to_string(scene.stations.size()), "Reduce the number of stations");
-			struct PlannedSignallingSection {
-				std::string id;
-				double startX = 0.0;
-				double endX = 0.0;
-				std::string firstTrackId;
-				std::string secondTrackId;
-			};
-			std::vector<PlannedSignallingSection> plannedSignallingSections;
 			std::unordered_set<std::string> plannedSectionIds;
 			for (const auto& section : sectionInventory.sections) {
 				if (!plannedSectionIds.insert(section.id).second) {
@@ -1611,51 +1605,30 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						section.connectionDerived ? "connection" : "block",
 						section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
 						"sections", std::to_string(kNativeMaxSectionArcs), "Split the section");
-				plannedSignallingSections.push_back({section.id, section.startKm, section.endKm,
-					section.firstTrackId, section.secondTrackId});
 			}
 			auto plannedRuntimeId = [&](const std::string& reference) {
 				const auto* section = sectionInventory.resolve(reference);
 				return section == nullptr ? std::string() : section->id;
 			};
-			std::unordered_set<std::string> signallingCoveredSectionIds;
-			std::unordered_map<std::string, int> signallingSectionLevels;
-			for (const PlannedSignallingSection& section : plannedSignallingSections) {
+			const SceneSignallingAnalysis signalling = analyzeSignallingAreas(scene, sectionInventory);
+			for (const SceneSectionSignalling& section : signalling.sections) {
 				for (const bool trackScoped : {false, true}) {
-					const SceneSignallingArea* matched = nullptr;
-					for (std::size_t areaIndex = 0; areaIndex < scene.signallingAreas.size(); ++areaIndex) {
-						const SceneSignallingArea& area = scene.signallingAreas[areaIndex];
-						if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
-							|| !(area.startKm < area.endKm) || area.level < 0 || area.level > 5
-							|| area.trackId.empty() != !trackScoped
-							|| section.startX < area.startKm - kNativeCoordinateTolerance
-							|| section.endX > area.endKm + kNativeCoordinateTolerance)
-							continue;
-						if (trackScoped && area.trackId != section.firstTrackId
-							&& area.trackId != section.secondTrackId)
-							continue;
-						if (!matched) {
-							matched = &area;
-							continue;
-						}
-						if (matched->level != area.level) {
-							diagnostics.error("scene.signalling_area.conflict",
-								"Multiple signalling areas assign different levels to one runtime section",
-								"signalling.json", "signalling_area", area.id,
-								"signalling_areas[" + std::to_string(areaIndex) + "]",
-								matched->id + " -> " + section.id,
-								"Adjust area ranges, levels, or track scope");
-							break;
-						}
-					}
-					if (matched) {
-						signallingCoveredSectionIds.insert(section.id);
-						signallingSectionLevels[section.id] = matched->level;
-					}
+					const auto conflict = std::find_if(section.conflicts.begin(), section.conflicts.end(),
+						[trackScoped](const SceneSignallingAreaConflict& candidate) {
+							return candidate.trackScoped == trackScoped;
+						});
+					if (conflict == section.conflicts.end())
+						continue;
+					diagnostics.error("scene.signalling_area.conflict",
+						"Multiple signalling areas assign different levels to one runtime section",
+						"signalling.json", "signalling_area", scene.signallingAreas[conflict->area].id,
+						"signalling_areas[" + std::to_string(conflict->area) + "]",
+						scene.signallingAreas[conflict->firstArea].id + " -> " + section.sectionId,
+						"Adjust area ranges, levels, or track scope");
 				}
 			}
-			reportUncoveredRouteSections(scene, sectionInventory, signallingCoveredSectionIds, diagnostics);
-			reportInactiveSingleTrackRestrictions(scene, sectionInventory, signallingSectionLevels, diagnostics);
+			reportUncoveredRouteSections(scene, sectionInventory, signalling, diagnostics);
+			reportInactiveSingleTrackRestrictions(scene, sectionInventory, signalling, diagnostics);
 
 			std::unordered_map<std::string, std::size_t> endpointCounts;
 			for (const auto& connection : scene.connections) {

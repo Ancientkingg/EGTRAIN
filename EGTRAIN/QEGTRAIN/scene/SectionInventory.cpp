@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace {
 
@@ -638,6 +639,69 @@ std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scen
 		if (resolution.status == SceneStopResolutionStatus::Resolved)
 			cursor = resolution.visitIndex + 1;
 		result.push_back(std::move(resolution));
+	}
+	return result;
+}
+
+const SceneSectionSignalling* SceneSignallingAnalysis::section(const std::string& sectionId) const {
+	const auto found = sectionIndex.find(sectionId);
+	return found == sectionIndex.end() ? nullptr : &sections[found->second];
+}
+
+SceneSignallingAnalysis analyzeSignallingAreas(const SceneModel& scene, const SceneSectionInventory& inventory) {
+	SceneSignallingAnalysis result;
+	result.areas.resize(scene.signallingAreas.size());
+
+	std::unordered_set<std::string> routeSectionIds;
+	for (const SceneRoute& route : scene.routes) {
+		for (const std::string& token : route.blocks) {
+			const SceneSectionDescriptor* section = inventory.resolve(token);
+			if (section != nullptr)
+				routeSectionIds.insert(section->id);
+		}
+	}
+
+	std::unordered_set<std::string> seenSectionIds;
+	for (const SceneSectionDescriptor& section : inventory.sections) {
+		if (!seenSectionIds.insert(section.id).second)
+			continue;
+		SceneSectionSignalling entry;
+		entry.sectionId = section.id;
+		entry.onRoute = routeSectionIds.count(section.id) != 0;
+		for (const bool trackScoped : {false, true}) {
+			std::size_t first = SceneSectionSignalling::kNoArea;
+			for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
+				const SceneSignallingArea& area = scene.signallingAreas[index];
+				if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm) || !(area.startKm < area.endKm)
+					|| area.level < 0 || area.level > 5 || area.trackId.empty() == trackScoped)
+					continue;
+				if (trackScoped && area.trackId != section.firstTrackId && area.trackId != section.secondTrackId)
+					continue;
+				SceneAreaSignalling& areaResult = result.areas[index];
+				if (section.startKm < area.startKm - kCoordinateTolerance
+					&& section.endKm > area.startKm + kCoordinateTolerance)
+					areaResult.sectionsSplitByStart.push_back(section.id);
+				if (section.endKm > area.endKm + kCoordinateTolerance
+					&& section.startKm < area.endKm - kCoordinateTolerance)
+					areaResult.sectionsSplitByEnd.push_back(section.id);
+				if (section.startKm < area.startKm - kCoordinateTolerance
+					|| section.endKm > area.endKm + kCoordinateTolerance)
+					continue;
+				++areaResult.sectionCount;
+				if (entry.onRoute)
+					++areaResult.routeSectionCount;
+				if (first == SceneSectionSignalling::kNoArea)
+					first = index;
+				else if (scene.signallingAreas[first].level != area.level)
+					entry.conflicts.push_back({first, index, trackScoped});
+			}
+			if (first != SceneSectionSignalling::kNoArea) {
+				entry.decidingArea = first;
+				entry.level = scene.signallingAreas[first].level;
+			}
+		}
+		result.sectionIndex[entry.sectionId] = result.sections.size();
+		result.sections.push_back(std::move(entry));
 	}
 	return result;
 }
