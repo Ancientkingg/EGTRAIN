@@ -361,8 +361,8 @@ void DispatchController::runSimulation() {
 		return;
 
 	emit executionPostprocessing();
-	ComputeEnergyConsumptionForAllTrains(regional_train, numRegions);
-	ComputeTimetableEnergyConsumption(regional_train, numRegions, initial_variables.OutputMainFolder);
+	ComputeEnergyConsumptionForAllTrains(regional_train.data(), numRegions);
+	ComputeTimetableEnergyConsumption(regional_train.data(), numRegions, initial_variables.OutputMainFolder);
 
 	if (stoppedHere())
 		return;
@@ -393,7 +393,7 @@ void DispatchController::runSimulation() {
 	Print_Implemented_Order_For_All_OL(Folder_RI_PH);
 
 	// Compute passage times at timetable points
-	Compute_TimetablingPoints_For_All_Trains(regional_train, numRegions);
+	Compute_TimetablingPoints_For_All_Trains(regional_train.data(), numRegions);
 
 	// Calculate Train Delays
 	calculateArrivalDelayAllTrains();
@@ -431,7 +431,7 @@ void DispatchController::runSimulation() {
 
 	ComputeBlockingTimesInMixedSignallingForAllTrains(5, (3 + bufferTime), 0.5, 50, Folder_RI_PH, 0, recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
 
-	PrintTrainPathDiagram(regional_train, numRegions, Folder_RI_PH);
+	PrintTrainPathDiagram(regional_train.data(), numRegions, Folder_RI_PH);
 
 	PrintTrainBlockingTimes(Folder_RI_PH);
 

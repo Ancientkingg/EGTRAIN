@@ -12,7 +12,7 @@ void Detect_Implemented_Order_For_All_OL();
 void Print_Implemented_Order_For_All_OL(string FolderName);
 
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
-void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains);
+void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains);
 
 // Updated Function to Calculate the arrival delay at each station for each train
 void calculateArrivalDelayAllTrains();
@@ -42,13 +42,13 @@ void Print_Computing_Times(string FolderName);
 
 
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(Train* S, int N_S, string FolderName);
+void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName);
 
 // Function to compute Energy consumption for all the trains in the network
 void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
 // Function to Compute the Energy Consumption for the Timetable
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder);
+void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, string OutputFolder);
 
 void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<Passenger>& SIMUL_PAX);
 

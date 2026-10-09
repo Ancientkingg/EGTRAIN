@@ -549,6 +549,38 @@ static bool routeBoundaryTests() {
 	return ok;
 }
 
+// regional_train holds exactly the trains of the last build and is released by a reset.
+static bool regionalTrainStorageTests() {
+	bool ok = true;
+	const auto buildTrains = [](int count) {
+		SceneModel scene = completeScene();
+		scene.services[0].hasRepeatCount = true;
+		scene.services[0].repeatCount = count;
+		const auto infrastructure = buildInfrastructureAndSignallingFromScene(scene);
+		return hasErrors(infrastructure) ? infrastructure : buildOperationsFromScene(scene, "scenario.base");
+	};
+	for (const int count : {3, 5, 2}) {
+		ok &= expect(!hasErrors(buildTrains(count)), "train storage fixture builds");
+		ok &= expect(numRegions == count && regional_train.size() == static_cast<std::size_t>(count)
+				&& regional_train.capacity() == static_cast<std::size_t>(count),
+				"the train storage holds exactly the trains of the build");
+	}
+
+	const Regional* const keptStorage = regional_train.data();
+	SceneModel rejected = completeScene();
+	ok &= expect(hasErrors(buildOperationsFromScene(rejected, "scenario.missing"))
+			&& regional_train.data() == keptStorage && regional_train.size() == 2,
+			"a rejected build leaves the train storage untouched");
+
+	numRegions = 0;
+	ok &= expect(regional_train.size() == 2, "hiding the trains does not resize the train storage");
+
+	resetNativeOperationsState();
+	ok &= expect(numRegions == 0 && regional_train.empty() && regional_train.capacity() == 0,
+			"a reset releases the train storage");
+	return ok;
+}
+
 int main() {
 	bool ok = generatorTests();
 	SceneModel scene = completeScene();
@@ -1433,6 +1465,7 @@ int main() {
 	ok &= seedTests(completeScene());
 	ok &= noFileAccessTests(completeScene());
 	ok &= routeBoundaryTests();
+	ok &= regionalTrainStorageTests();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

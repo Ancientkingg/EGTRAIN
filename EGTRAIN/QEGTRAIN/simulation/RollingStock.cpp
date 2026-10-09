@@ -276,7 +276,7 @@ Regional::Regional() {
 	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
 }
 
-Regional regional_train[Max_N_Reg];
+std::vector<Regional> regional_train;
 
 namespace {
 
@@ -463,6 +463,16 @@ void nativeClearRegionalTrain(Regional& train) {
 	train.Stations = nullptr;
 }
 
+void nativeClearRegionalTrains() {
+	for (Regional& train : regional_train)
+		nativeClearRegionalTrain(train);
+}
+
+// Frees the Stations buffers before regional_train is destroyed at exit.
+struct RegionalTrainExitCleanup {
+	~RegionalTrainExitCleanup() { nativeClearRegionalTrains(); }
+} regionalTrainExitCleanup;
+
 void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vectorSize) {
 	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
@@ -549,11 +559,8 @@ void prepareNativeOperationsState() {
 
 void resetNativeOperationsState() {
 	prepareNativeOperationsState();
-	for (int index = 0; index < Max_N_Reg; ++index) {
-		nativeClearRegionalTrain(regional_train[index]);
-		regional_train[index].~Regional();
-		new (&regional_train[index]) Regional();
-	}
+	nativeClearRegionalTrains();
+	regional_train = std::vector<Regional>();
 }
 
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
@@ -1378,6 +1385,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	if (!initial_variables.recoveryTimeOverride)
 		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
 	N_OrderLists = 0;
+	nativeClearRegionalTrains();
+	regional_train = std::vector<Regional>(trains.size());
 	numRegions = static_cast<int>(trains.size());
 	N_Train = 0;
 	N_TrainD = 0;
@@ -1386,14 +1395,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			++N_TrainD;
 		else
 			++N_Train;
-	for (int index = 0; index < Max_N_Reg; ++index) {
-		nativeClearRegionalTrain(regional_train[index]);
-		regional_train[index].~Regional();
-		new (&regional_train[index]) Regional();
-	}
 	for (std::size_t index = 0; index < trains.size(); ++index)
 		nativeCopyTrainPlan(trains[index], regional_train[index], vectorSize);
-	changeTrainDepartureTimesForHourlyTimetabling(regional_train, numRegions);
+	changeTrainDepartureTimesForHourlyTimetabling(regional_train.data(), numRegions);
 	AllStationPlatforms = std::move(stagedPlatforms);
 	numAllStationPlatforms = static_cast<int>(AllStationPlatforms.size());
 	AllDailyPassengers = std::move(stagedPassengers);

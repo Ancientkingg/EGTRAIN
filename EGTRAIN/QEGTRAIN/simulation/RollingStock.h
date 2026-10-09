@@ -320,8 +320,8 @@ extern int numRegions; /*Number of Speed ranges in the characteristic Tractive e
 
 extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
 
-// Keep the historical name for native callers while sharing the limit with
-// scene validation.
+// Largest number of trains a scene may expand to. It is a validation and editor
+// limit, not a storage size: regional_train holds exactly the trains of the scene.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
 // A train that has braked into a stop is parked kStopHoldbackM short of the stopping point; the
@@ -3620,10 +3620,15 @@ public:
 	}
 };
 
-// Functions take Train* and are called with the Regional array, so both must have the same size.
+// ComputeEnergyConsumptionForAllTrains takes Train* and is called with regional_train.data(),
+// so both types must have the same size.
 static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
 
-extern Regional regional_train[Max_N_Reg];
+// One element per train of the loaded scene (numRegions of them, or more while numRegions is
+// masked). The storage is created once per build and never grows or reallocates while the
+// trains are live: a Regional owns its Stations buffer through a raw pointer, so it must not
+// be copied or moved.
+extern std::vector<Regional> regional_train;
 
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
 void Occupy_Block_Sections_Of_Route(int i);

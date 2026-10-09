@@ -164,10 +164,10 @@ def assert_deferred_success_path_resets() -> None:
         rolling.index("void resetNativeOperationsState()"):
         rolling.index("std::vector<SceneDiagnostic> buildOperationsFromScene(")
     ]
-    if "Max_N_Reg" in lightweight or "~Regional()" in lightweight:
-        raise SystemExit("lightweight operation preparation reconstructs regional_train slots")
-    if "prepareNativeOperationsState();" not in full_operations_reset or "Max_N_Reg" not in full_operations_reset:
-        raise SystemExit("full operation reset does not combine lightweight clearing with train reconstruction")
+    if "regional_train" in lightweight or "nativeClearRegionalTrains" in lightweight:
+        raise SystemExit("lightweight operation preparation releases the regional_train storage")
+    if "prepareNativeOperationsState();" not in full_operations_reset or "regional_train" not in full_operations_reset:
+        raise SystemExit("full operation reset does not combine lightweight clearing with releasing the trains")
 
 
 def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> None:
