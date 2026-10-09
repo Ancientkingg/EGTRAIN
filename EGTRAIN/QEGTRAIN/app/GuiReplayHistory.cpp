@@ -343,7 +343,6 @@ void GuiReplayHistory::record(std::shared_ptr<const GuiSimulationSnapshot> snaps
 	if (added)
 		layout = makeLayout(*snapshot);
 	Frame frame = compact(*snapshot, layout);
-	snapshot.reset();
 	const std::size_t needed = frame.bytes + (added ? layout->bytes : 0);
 	while (!frames_.empty() && payloadBytes() + needed > budget_) evictOldest();
 	if (added && frames_.empty()) {

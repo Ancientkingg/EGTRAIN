@@ -32,6 +32,11 @@ public:
 	static constexpr std::size_t payloadLimit = 128u * 1024u * 1024u;
 
 	explicit GuiReplayHistory(std::size_t budgetBytes = payloadLimit) : budget_(budgetBytes) {}
+	// The string table keys point into the table of the same object, so a copy would dangle.
+	GuiReplayHistory(const GuiReplayHistory&) = delete;
+	GuiReplayHistory& operator=(const GuiReplayHistory&) = delete;
+	GuiReplayHistory(GuiReplayHistory&&) = default;
+	GuiReplayHistory& operator=(GuiReplayHistory&&) = default;
 
 	void clear();
 	void record(std::shared_ptr<const GuiSimulationSnapshot> frame);

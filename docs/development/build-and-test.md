@@ -562,17 +562,17 @@ a window (`-g 0`) builds no snapshots and no replay frames, because nothing read
 them.
 
 Measured on a full run of each committed scene at the default horizon (`-g 1`,
-`-pax 0`, Apple silicon, release build). The old format held complete snapshot
-objects within 64 MiB and 8192 frames.
+`-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
+frames would need as ordinary snapshot objects.
 
-| Scene | Frames | Old: kept, covers (s), accounted | New: covers (s), accounted |
-|---|---|---|---|
-| Lebanon | 721 | 721, 0-3599, 10.8 MiB | 0-3599, 0.6 MiB |
-| Assignment_Gvc_Gdg_Ut | 2001 | 2001, 0-9999, 32.5 MiB | 0-9999, 4.6 MiB |
-| Paimpol | 1801 | 743, 5290-8999, 63.9 MiB (155 MiB needed) | 0-8999, 12.1 MiB |
-| Milano_Brescia | 801 | 744, 285-3999, 63.9 MiB (68.8 MiB needed) | 0-3999, 13.1 MiB |
-| Copenhagen | 1601 | 208, 6965-7999, 63.9 MiB (489 MiB needed) | 0-7999, 78.9 MiB |
-| Netherlands | 1601 | 294, 6535-7999, 63.9 MiB (346 MiB needed) | 0-7999, 32.7 MiB |
+| Scene | Frames | Covers (s) | Accounted | As complete snapshots |
+|---|---|---|---|---|
+| Lebanon | 721 | 0-3599 | 0.6 MiB | 10.8 MiB |
+| Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.6 MiB | 32.5 MiB |
+| Paimpol | 1801 | 0-8999 | 12.1 MiB | 155 MiB |
+| Milano_Brescia | 801 | 0-3999 | 13.1 MiB | 68.8 MiB |
+| Copenhagen | 1601 | 0-7999 | 78.9 MiB | 489 MiB |
+| Netherlands | 1601 | 0-7999 | 32.7 MiB | 346 MiB |
 
 Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
 of heap in use, so a run of about 13000 simulated seconds fills the budget.

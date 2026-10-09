@@ -443,6 +443,15 @@ int main() {
 			&& history.atOrBefore(300)->virtualCouplingMessages.size() == 2,
 		"stale wagon positions of an exited train or the messages were lost");
 
+	// The history itself keeps the frame it handed out last, so a caller that drops the result
+	// can ask again and gets the same object, and the cache moves with the latest request.
+	{
+		const std::weak_ptr<const GuiSimulationSnapshot> last = history.atOrBefore(100);
+		require(!last.expired() && last.lock() == history.atOrBefore(104), "the frame handed out last was not kept");
+		history.atOrBefore(105);
+		require(last.expired(), "the cache kept more than one frame");
+	}
+
 	// Asking for the same frame twice returns the same object, another frame another one.
 	{
 		const auto a = history.atOrBefore(100);
@@ -593,8 +602,20 @@ int main() {
 	passengersOnly.record(crowd);
 	require(passengersOnly.oversize() && passengersOnly.empty() && passengersOnly.payloadBytes() == 0 && !passengersOnly.atOrBefore(0),
 		"oversize frame did not disable replay");
-	crowd->timestep = 500;
-	passengersOnly.record(crowd);
-	require(passengersOnly.empty(), "a history without replay recorded a frame");
+	// A small frame is refused too once replay is off for the run.
+	auto tiny = std::make_shared<GuiSimulationSnapshot>();
+	tiny->timestep = 500;
+	passengersOnly.record(tiny);
+	require(passengersOnly.empty() && passengersOnly.oversize(), "a history without replay recorded a frame");
+
+	// There is no frame count limit: far more frames than any fixed limit stay.
+	GuiReplayHistory many;
+	for (int t = 0; t < 9000 * GuiReplayHistory::cadenceSeconds; t += GuiReplayHistory::cadenceSeconds) {
+		auto frame = std::make_shared<GuiSimulationSnapshot>();
+		frame->timestep = t;
+		frame->totalTimesteps = 9000 * GuiReplayHistory::cadenceSeconds + 1;
+		many.record(frame);
+	}
+	require(many.size() == 9000 && !many.truncated() && many.firstTime() == 0, "the number of frames is limited");
 	return 0;
 }
