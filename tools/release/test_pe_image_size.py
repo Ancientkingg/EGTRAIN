@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pe_image_size
 
 
-def make_pe(path, *, size_of_image, machine=0x8664, plus=True, subsystem=2, stack=10_000_000_000,
+def make_pe(path, *, size_of_image, machine=0x8664, plus=True, subsystem=2, stack=8_388_608,
             optional_size=None):
     """Write a minimal PE header: DOS stub pointer, COFF header, optional header."""
     optional = bytearray(240 if plus else 224)
@@ -46,7 +46,7 @@ class PeImageSizeTests(unittest.TestCase):
         info = pe_image_size.read_pe_header(self.exe)
         self.assertEqual(info["size_of_image"], 1_797_931_008)
         self.assertEqual((info["machine"], info["subsystem"]), ("x64", "windows"))
-        self.assertEqual(info["stack_reserve"], 10_000_000_000)
+        self.assertEqual(info["stack_reserve"], 8_388_608)
 
     def test_reads_pe32(self):
         make_pe(self.exe, size_of_image=123_456, machine=0x14C, plus=False)
@@ -65,6 +65,17 @@ class PeImageSizeTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("machine x86", err)
         self.assertIn("subsystem console", err)
+
+    def test_stack_reserve_expectation(self):
+        make_pe(self.exe, size_of_image=1, stack=10_000_000_000)
+        self.assertEqual(pe_image_size.read_pe_header(self.exe)["stack_reserve"], 10_000_000_000)
+        self.assertEqual(run(self.exe, "--max-bytes", "10")[0], 0)
+        self.assertEqual(run(self.exe, "--max-bytes", "10", "--stack-reserve", "10000000000")[0], 0)
+        code, _, err = run(self.exe, "--max-bytes", "10", "--stack-reserve", "8388608")
+        self.assertEqual(code, 1)
+        self.assertIn("stack reserve 10000000000 is not 8388608", err)
+        make_pe(self.exe, size_of_image=1, machine=0x14C, plus=False, stack=1_048_576)
+        self.assertEqual(run(self.exe, "--max-bytes", "10", "--stack-reserve", "1048576")[0], 0)
 
     def test_non_pe_and_missing_files_exit_2(self):
         self.exe.write_bytes(b"\x7fELF" + bytes(100))
