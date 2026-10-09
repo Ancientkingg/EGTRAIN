@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QScreen>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QVBoxLayout>
 #include <QtGlobal>
 
@@ -90,6 +91,19 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
                       qMin(maxHeight, qMax(layout->sizeHint().height(), lineHeight * 16)));
     }
     return scroll;
+}
+
+// Widens an installed dialog to show its body without clipping, up to the width limit
+// that install set. Call it after the body is filled; it never narrows the dialog.
+inline void fitWidthToContent(QDialog& dialog)
+{
+    auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+    if (!scroll || !dialog.layout())
+        return;
+    const QMargins margins = dialog.layout()->contentsMargins();
+    const int needed = margins.left() + margins.right() + 2 * scroll->frameWidth()
+        + scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
+    dialog.resize(qMin(dialog.maximumWidth(), qMax(dialog.width(), needed)), dialog.height());
 }
 
 } // namespace DialogLayout
