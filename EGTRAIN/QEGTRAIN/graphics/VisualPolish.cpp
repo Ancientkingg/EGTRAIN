@@ -36,55 +36,55 @@ TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond) {
 
 TrackStateVisual classifyTrackState(TrackOperationalState state) {
 	switch (state) {
-	case TrackOperationalState::Prepared:
-		return {QColor("#4C8DAE"), 5, Qt::DashDotLine};
-	case TrackOperationalState::Occupied:
-		return {QColor("#D05A47"), 6, Qt::SolidLine};
-	case TrackOperationalState::Blocked:
-		return {QColor("#D6A13A"), 5, Qt::DashLine};
-	case TrackOperationalState::Free:
-	default:
-		return {Qt::transparent, 0, Qt::NoPen};
+		case TrackOperationalState::Prepared:
+			return {QColor("#4C8DAE"), 5, Qt::DashDotLine};
+		case TrackOperationalState::Occupied:
+			return {QColor("#D05A47"), 6, Qt::SolidLine};
+		case TrackOperationalState::Blocked:
+			return {QColor("#D6A13A"), 5, Qt::DashLine};
+		case TrackOperationalState::Free:
+		default:
+			return {Qt::transparent, 0, Qt::NoPen};
 	}
 }
 
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind) {
 	switch (kind) {
-	case TrainVisualKind::Intercity:
-		return TrainBadgeShape::Capsule;
-	case TrainVisualKind::Freight:
-		return TrainBadgeShape::Square;
-	case TrainVisualKind::Passenger:
-	case TrainVisualKind::Sprinter:
-	case TrainVisualKind::HighSpeed:
-	default:
-		return TrainBadgeShape::Rounded;
+		case TrainVisualKind::Intercity:
+			return TrainBadgeShape::Capsule;
+		case TrainVisualKind::Freight:
+			return TrainBadgeShape::Square;
+		case TrainVisualKind::Passenger:
+		case TrainVisualKind::Sprinter:
+		case TrainVisualKind::HighSpeed:
+		default:
+			return TrainBadgeShape::Rounded;
 	}
 }
 
 int trainBadgeCornerRadius(TrainBadgeShape shape) {
 	switch (shape) {
-	case TrainBadgeShape::Capsule:
-		return 8;
-	case TrainBadgeShape::Rounded:
-		return 3;
-	case TrainBadgeShape::Square:
-	default:
-		return 0;
+		case TrainBadgeShape::Capsule:
+			return 8;
+		case TrainBadgeShape::Rounded:
+			return 3;
+		case TrainBadgeShape::Square:
+		default:
+			return 0;
 	}
 }
 
 int trackStatePriority(TrackOperationalState state) {
 	switch (state) {
-	case TrackOperationalState::Prepared:
-		return 1;
-	case TrackOperationalState::Occupied:
-		return 2;
-	case TrackOperationalState::Blocked:
-		return 3;
-	case TrackOperationalState::Free:
-	default:
-		return 0;
+		case TrackOperationalState::Prepared:
+			return 1;
+		case TrackOperationalState::Occupied:
+			return 2;
+		case TrackOperationalState::Blocked:
+			return 3;
+		case TrackOperationalState::Free:
+		default:
+			return 0;
 	}
 }
 

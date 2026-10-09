@@ -47,7 +47,8 @@ int main(int argc, char** argv) {
 	const QString current = QDir(temp.path()).filePath(QStringLiteral("current"));
 	populateInstallation(current, "old", "old");
 	ok &= expect(writeFile(QDir(current).filePath(QStringLiteral("obsolete-runtime-file.dll")),
-		"old-dll"), "old installation fixture is writable");
+					 "old-dll"),
+		"old installation fixture is writable");
 
 	const QString extract = QDir(temp.path()).filePath(QStringLiteral("extract"));
 	populateInstallation(extract, "new", "new");
@@ -58,23 +59,26 @@ int main(int argc, char** argv) {
 	ok &= expect(WindowsStaging::buildStage(extract, staged, {}, &error),
 		"staging builds from the extracted release package");
 	ok &= expect(readFile(QDir(staged).filePath(QStringLiteral("Scenes/marker.txt")))
-		== QByteArray("new"), "the new package owns the shipped Scenes");
+			== QByteArray("new"),
+		"the new package owns the shipped Scenes");
 	ok &= expect(!QFileInfo(QDir(staged).filePath(
-		QStringLiteral("obsolete-runtime-file.dll"))).exists(),
+								QStringLiteral("obsolete-runtime-file.dll")))
+					 .exists(),
 		"stale old installation files are dropped");
 	ok &= expect(readFile(QDir(staged).filePath(QStringLiteral("QEGTRAIN.exe")))
-		== QByteArray("new"), "staged runtime files come from the new package");
+			== QByteArray("new"),
+		"staged runtime files come from the new package");
 
 	error.clear();
 	ok &= expect(!WindowsStaging::buildStage(extract, staged, {}, &error)
-		&& error == QStringLiteral("The Windows update staging location is not empty."),
+			&& error == QStringLiteral("The Windows update staging location is not empty."),
 		"staging refuses to merge into an existing installation");
 
 	// Stages a fresh copy of the fixture package after the given changes and
 	// returns the staging error, or a null string when staging succeeded.
 	int packageCount = 0;
 	const auto stage = [&](const QStringList& removed, const QStringList& manifestFiles,
-		const QStringList& added = {}) {
+						   const QStringList& added = {}) {
 		const QString name = QStringLiteral("package-%1").arg(++packageCount);
 		const QString package = QDir(temp.path()).filePath(name);
 		populateInstallation(package, "new", "new");
@@ -118,22 +122,21 @@ int main(int argc, char** argv) {
 			qPrintable(QStringLiteral("staging names the missing %1").arg(missingCase.reported)));
 	}
 	ok &= expect(stage({QStringLiteral("Qt5Gui.dll"), QStringLiteral("Qt5Core.dll")}, {})
-		== missingMessage(QStringLiteral("Qt5Core.dll")),
+			== missingMessage(QStringLiteral("Qt5Core.dll")),
 		"staging names the first missing file in floor order");
 
 	ok &= expect(stage({libzmq}, {}, {QStringLiteral("libzmq-mt-5_0_0.dll")}).isNull(),
 		"the libzmq pattern accepts another version name");
 	ok &= expect(stage({libzmq}, {}, {QStringLiteral("zmq.dll")})
-		== missingMessage(QStringLiteral("libzmq*.dll")),
+			== missingMessage(QStringLiteral("libzmq*.dll")),
 		"the libzmq pattern needs the libzmq prefix");
 
 	const QStringList listed = {QStringLiteral("QEGTRAIN.exe"), QStringLiteral("d3dcompiler_47.dll"),
 		QStringLiteral("styles/qwindowsvistastyle.dll")};
-	ok &= expect(stage({}, listed, {QStringLiteral("d3dcompiler_47.dll"),
-		QStringLiteral("styles/qwindowsvistastyle.dll")}).isNull(),
+	ok &= expect(stage({}, listed, {QStringLiteral("d3dcompiler_47.dll"), QStringLiteral("styles/qwindowsvistastyle.dll")}).isNull(),
 		"a manifest list passes when every file is staged");
 	ok &= expect(stage({}, listed, {QStringLiteral("d3dcompiler_47.dll")})
-		== missingMessage(QStringLiteral("styles/qwindowsvistastyle.dll")),
+			== missingMessage(QStringLiteral("styles/qwindowsvistastyle.dll")),
 		"staging names the first manifest file that is missing");
 	ok &= expect(stage({}, {QStringLiteral("Scenes")}) == missingMessage(QStringLiteral("Scenes")),
 		"a manifest entry must be a file");
@@ -142,8 +145,8 @@ int main(int argc, char** argv) {
 	QDir().mkpath(noExecutable);
 	error.clear();
 	ok &= expect(!WindowsStaging::buildStage(noExecutable,
-		QDir(temp.path()).filePath(QStringLiteral("staged-no-executable")), {}, &error)
-		&& error == QStringLiteral("The Windows update package does not contain QEGTRAIN.exe."),
+					 QDir(temp.path()).filePath(QStringLiteral("staged-no-executable")), {}, &error)
+			&& error == QStringLiteral("The Windows update package does not contain QEGTRAIN.exe."),
 		"staging rejects a package without QEGTRAIN.exe");
 
 	return ok ? 0 : 1;

@@ -19,11 +19,11 @@ std::optional<SemanticVersion> parseStableVersion(const std::string& value) {
 	SemanticVersion result;
 	std::size_t position = 0;
 	if (!parseComponent(value, position, result.major)
-			|| position >= value.size() || value[position++] != '.'
-			|| !parseComponent(value, position, result.minor)
-			|| position >= value.size() || value[position++] != '.'
-			|| !parseComponent(value, position, result.patch)
-			|| position != value.size())
+		|| position >= value.size() || value[position++] != '.'
+		|| !parseComponent(value, position, result.minor)
+		|| position >= value.size() || value[position++] != '.'
+		|| !parseComponent(value, position, result.patch)
+		|| position != value.size())
 		return std::nullopt;
 	return result;
 }

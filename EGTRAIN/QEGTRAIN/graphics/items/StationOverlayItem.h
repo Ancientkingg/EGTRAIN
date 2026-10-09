@@ -14,7 +14,10 @@
 
 class StationOverlayItem : public QGraphicsItem {
 public:
-	enum class LabelSide { Right, Left, Above, Below };
+	enum class LabelSide { Right,
+		Left,
+		Above,
+		Below };
 	enum { Type = UserType + 13 };
 	struct ViewportPlacement {
 		LabelSide side = LabelSide::Right;

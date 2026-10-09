@@ -34,8 +34,8 @@ extern InitialParameters initial_variables;
 // delays, platforms, and passengers from an in-memory canonical scene.
 // The function is transactional: errors leave existing operation globals intact.
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
-		const std::string& selectedScenarioId = {},
-		const SceneRunSelection& selectedOccurrences = {});
+	const std::string& selectedScenarioId = {},
+	const SceneRunSelection& selectedOccurrences = {});
 
 // Clear operation metadata before preparing a scene without rebuilding train slots.
 void prepareNativeOperationsState();
@@ -87,7 +87,6 @@ public:
 		}
 		ImplementedOrder.close();
 	}
-
 };
 
 extern OrderList OL[20];
@@ -342,28 +341,28 @@ inline bool isPastStopHoldback(double position, double stoppingPoint) {
 class Train {
 public:
 	double number_of_wagons = 0.0; /*!< number of Wagons*/
-	double massFactor = 0.0;			   // mass factor
+	double massFactor = 0.0;	   // mass factor
 	double mass_of_traction_unit = 0.0, mass_of_a_wagon = 0.0, total_train_mass = 0.0, max_train_decelaration = 0.0, max_train_speed = 0.0, g = 0.0, frontal_wagon_area = 0.0, massPerWagonAxle = 0.0, Jerk = 0.0, train_length = 0.0;
 	// Mass of the Traction Unit(Kg), Mass of a Wagon(Kg), Total Mass(Kg), Maximum Train Deceleration(m/s2), Maximum Train Speed(m/s),Gravity Acceleration, Frontal Wagon Area , Jerk(m/s3), Length (m)
 	std::vector<double> instant_train_speed; // Istantaneous Train Speed Vector(m/s)
-	int velocityIntervals;								 // Number of intervals of speed for the Traction Unit of the Train
+	int velocityIntervals;					 // Number of intervals of speed for the Traction Unit of the Train
 	double Vlb[20] = {}, Vub[20] = {};		 // Traction Unit Characteristic Speeds (Lower Bound Speed, Upper Bound Speed)
 	double C0[20] = {}, C1[20] = {}, C2[20] = {};
-	double resistanceCoefficient = 0.0;							  // Traction Curve Coefficients, Resistance coefficients
+	double resistanceCoefficient = 0.0;			  // Traction Curve Coefficients, Resistance coefficients
 	std::vector<double> instant_spatial_position; // Vector of istantaneous Spatial position of the Train
 	std::vector<std::string> instant_block_section_occupied;
 	std::vector<double> instant_train_power_consumption;  // Vector of istantaneous Train Power Consumption [W]
-	std::vector<double> instant_train_tractive_effort;    // Branch-applied wheel effort [N], aligned with trajectory samples
+	std::vector<double> instant_train_tractive_effort;	  // Branch-applied wheel effort [N], aligned with trajectory samples
 	std::vector<double> instant_train_energy_consumption; // Vector of istantaneous Train Energy Consumption [MJ]
 	double TotalEnergyConsumed, TotalEnergySubstationRequest, TotalEnergyConsWithRegBrak, TotalEnergySubstRequestWithRegBrak;
 	// These values represent the total energy consumed by the train with no regenerative braking, the total energy requested to the SubStation, and the TotalEnergy consumed with regenerative braking;
-	double EnergyForAuxiliaries = 0.0; // this is the amount of energy needed by auxiliaries and it is assumed as the 10% of the total energy consumption
-	double departure_time = 0.0;	   // departure_time
-	int brakingPoint;						   // brakingPoint is the position of the braking step after the intersection point between acceleration and braking curve
+	double EnergyForAuxiliaries = 0.0;	   // this is the amount of energy needed by auxiliaries and it is assumed as the 10% of the total energy consumption
+	double departure_time = 0.0;		   // departure_time
+	int brakingPoint;					   // brakingPoint is the position of the braking step after the intersection point between acceleration and braking curve
 	double scheduled_departure_time = 0.0; // This is the departure time in the initial timetable not the actual scheduled_departure_time
-	int temp, stop, counter;		 // Temporary variables for simulating train movement(temp=instant of time in which train starts braking, stop=time instant in which train starts stopping at a station), counter: number of times in which it enters in braking condition equation
-	double ID = 0.0;				 // Train ID number
-	string type;					 // This specifies if it is an Intercity, a regional or a metro train
+	int temp, stop, counter;			   // Temporary variables for simulating train movement(temp=instant of time in which train starts braking, stop=time instant in which train starts stopping at a station), counter: number of times in which it enters in braking condition equation
+	double ID = 0.0;					   // Train ID number
+	string type;						   // This specifies if it is an Intercity, a regional or a metro train
 	string operatingCode;
 	string serviceId;
 	int serviceOccurrence = 1;
@@ -378,34 +377,34 @@ public:
 	double firstDirectIncidentLocation = -1.0;
 	bool destinationTerminationRequested = false;
 	bool destinationTerminated = false;
-	Arc As;							 // Temporary Arc object representing the Arc occupied by the train in a determined time instant
-	Section Bs;						 // Temporary Block Section Object representing the Block Section occupied by the Train in a certain time instant
-	double Start_Node_X = 0.0;		 // It represents the X of the Node from which the train starts its run
-	string TrainRouteID;			 // This is the ID of the Route that the train has to follow
-	int indexOfRoute;				 // This is the Index (ranging from 0 and N_Routes-1) of the Route with ID=TrainRouteID
-	string trainDescription;		 // This is the Description of the train which is the union between the Type and the ID: trainDescription = Type+ID
+	Arc As;					   // Temporary Arc object representing the Arc occupied by the train in a determined time instant
+	Section Bs;				   // Temporary Block Section Object representing the Block Section occupied by the Train in a certain time instant
+	double Start_Node_X = 0.0; // It represents the X of the Node from which the train starts its run
+	string TrainRouteID;	   // This is the ID of the Route that the train has to follow
+	int indexOfRoute;		   // This is the Index (ranging from 0 and N_Routes-1) of the Route with ID=TrainRouteID
+	string trainDescription;   // This is the Description of the train which is the union between the Type and the ID: trainDescription = Type+ID
 	bool direction;
 	bool GradientExceptionInBraking; // This variable is true when because of a too steep gradient the braking curve computed by the function DrawBrakingCurve has a point having a speed lower than the final speed V2 (in this case the train will first decrease its speed to this value lower than V2 and then reaccelerate to V2)
 	std::vector<double> BX;
 	Node* Stations = nullptr;
-	int numStations;					   // Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
+	int numStations;																// Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
 	static constexpr int kMaxTimetableStations = RuntimeLimits::kMaxTimetableStops; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
-	static int clampStationCount(int requested, const string& trainId); // Clamps a served-station count to kMaxTimetableStations, warning once per train
-	int stationBlockSection[kMaxTimetableStations] = {};		// Cached block section index for each station (avoids full-route scan every timestep)
-	int stationArc[kMaxTimetableStations] = {};				   // Cached Arc index within block section for each station
-	bool ServiceStopBehindATrain = false; // Never set. A train that waits behind another train at a platform makes its own stop there once the train ahead has left.
-	bool StoppedForServiceStop = false;   // This variable is true when the train is stopping at a station to perform a service stop
-	string CurrentServiceStop;		   // This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
-	string CurrentServiceStopPlatform; // Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
+	static int clampStationCount(int requested, const string& trainId);				// Clamps a served-station count to kMaxTimetableStations, warning once per train
+	int stationBlockSection[kMaxTimetableStations] = {};							// Cached block section index for each station (avoids full-route scan every timestep)
+	int stationArc[kMaxTimetableStations] = {};										// Cached Arc index within block section for each station
+	bool ServiceStopBehindATrain = false;											// Never set. A train that waits behind another train at a platform makes its own stop there once the train ahead has left.
+	bool StoppedForServiceStop = false;												// This variable is true when the train is stopping at a station to perform a service stop
+	string CurrentServiceStop;														// This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
+	string CurrentServiceStopPlatform;												// Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
 
-	double XCurrentServiceStop;	   // This is the relative abscissa on the route of the train of a service Stop when the train is stopping behind another train at the same platform
-	double StationArrivals[kMaxTimetableStations];	   // This variable is the time instant in which the train actually enters a station
-	string StationArrivalNames[kMaxTimetableStations]; // Preserves served station names for post-run arrival analysis.
-	double StationDelay[kMaxTimetableStations];	   // This variable represent the arrival delay of a train at a certain station
-	double StationConsecDelay[kMaxTimetableStations]; // This is the Consecutive delay at stations i.e. ArrivalDelay-Entrance Delay-Sum of disturbances at previous stations
-	double StationDisturbance[kMaxTimetableStations]; //  This variable represents the disturbance to dwell times at stations
-	int N_Station_Stopped;		   // This variable counts the number of stations at which the train has stopped
-	double ScheduledArrivals[kMaxTimetableStations] = {};  // This Array contains scheduled train arrival time at stations (it is necessary to calculate train deviations from timetable and therefore train delays)
+	double XCurrentServiceStop;							  // This is the relative abscissa on the route of the train of a service Stop when the train is stopping behind another train at the same platform
+	double StationArrivals[kMaxTimetableStations];		  // This variable is the time instant in which the train actually enters a station
+	string StationArrivalNames[kMaxTimetableStations];	  // Preserves served station names for post-run arrival analysis.
+	double StationDelay[kMaxTimetableStations];			  // This variable represent the arrival delay of a train at a certain station
+	double StationConsecDelay[kMaxTimetableStations];	  // This is the Consecutive delay at stations i.e. ArrivalDelay-Entrance Delay-Sum of disturbances at previous stations
+	double StationDisturbance[kMaxTimetableStations];	  //  This variable represents the disturbance to dwell times at stations
+	int N_Station_Stopped;								  // This variable counts the number of stations at which the train has stopped
+	double ScheduledArrivals[kMaxTimetableStations] = {}; // This Array contains scheduled train arrival time at stations (it is necessary to calculate train deviations from timetable and therefore train delays)
 	double ScheduledDepartures[kMaxTimetableStations] = {};
 	int delayed;						// This is a boolean parameter: if delayed =1 the train will experience a delay at a determined station, else if delayed=0 the train won't experience any delay
 	double TotalInputDelays = 0.0;		// Sum of the Entrance Delays +stochastic disturbances to dwell times
@@ -435,18 +434,18 @@ public:
 	int N_BlockTimeComplete;
 	int numOverlaps; // This is the number of train overlaps
 	double Final_Delay;
-	int End_Time;						// Time instant in which the train exits simulation
-	int earliestActiveTrajectoryIndex = -1;		// First simulation sample in the active run
-	list<Location> LocationNames;		// This LocationNames contain the name of block sections, or stations crossed by the train along its route
-	list<string> ConflictingTrains;		// These are the trains which have common block sections.
-	int N_ConflictingTrains;			// Number Of Conflicting Trains
-	double ETCS3StoppingPoint;			// This is the point in km where the train is stopped because of ETCS 3 Movement Authority
-	bool IsTrainStoppedForEoA;			// This boolean is true when the train is stopped because it reached the ETCS 3 End of Authority
-	list<TrainEvent> TimetablePoints;	// This lists contains the arrival and departure of the train at each interlocking area of the network either those where the train stops and those where they train does not stop at
-	int prevIntendedDepTime;			//  stores the previous intended dep time from dispatching tool
-	int dispLineID = -1;				//  lineID from dispatching tool
-	int arrivalPlatform = -1;			//  arrival platform from dispatching tool
-	int reservedPlatform;				//  variable to book platform at destination
+	int End_Time;							// Time instant in which the train exits simulation
+	int earliestActiveTrajectoryIndex = -1; // First simulation sample in the active run
+	list<Location> LocationNames;			// This LocationNames contain the name of block sections, or stations crossed by the train along its route
+	list<string> ConflictingTrains;			// These are the trains which have common block sections.
+	int N_ConflictingTrains;				// Number Of Conflicting Trains
+	double ETCS3StoppingPoint;				// This is the point in km where the train is stopped because of ETCS 3 Movement Authority
+	bool IsTrainStoppedForEoA;				// This boolean is true when the train is stopped because it reached the ETCS 3 End of Authority
+	list<TrainEvent> TimetablePoints;		// This lists contains the arrival and departure of the train at each interlocking area of the network either those where the train stops and those where they train does not stop at
+	int prevIntendedDepTime;				//  stores the previous intended dep time from dispatching tool
+	int dispLineID = -1;					//  lineID from dispatching tool
+	int arrivalPlatform = -1;				//  arrival platform from dispatching tool
+	int reservedPlatform;					//  variable to book platform at destination
 	// std::map<char, std::list<std::pair<int, double>>> trainCorrPosTime; // train position over time for each corridor
 
 	float GibsonDwellTimeParameters[8]; // this is a vector of floats to store the Gibson dwell time parameters of the trains
@@ -863,7 +862,7 @@ public:
 		for (int s = 0; s < numStations; s++) {
 			if (Stations[s].stationName == this->CurrentServiceStop) {
 				Stations[s].StepStopped++;
-			recordCurrentServiceStopArrival(t);
+				recordCurrentServiceStopArrival(t);
 				TimeStopped = Stations[s].StepStopped;
 				dep_time = ScheduledDepartures[s];
 				stoptime = Stations[s].StopTime;
@@ -1040,17 +1039,17 @@ public:
 				}
 				bool onArc = false;
 				{
-				const Section& Block = BS[BlockIdx];
-				for (int j = 0; j < Block.total_arcs; j++) {
-					if ((X[t - 1] < Block.arcs_in_signalling_block_section[j].endNode.X * 1000) && (X[t - 1] >= Block.arcs_in_signalling_block_section[j].startNode.X * 1000)) { // Selection of the right Arc of the Block Section
-						const Arc& Ab = Block.arcs_in_signalling_block_section[j];
-						// Inverse integration of the real Braking Curve
-						U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature)) * timestep / (total_train_mass * massFactor);
-						X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature));
-						onArc = true;
-						break;
+					const Section& Block = BS[BlockIdx];
+					for (int j = 0; j < Block.total_arcs; j++) {
+						if ((X[t - 1] < Block.arcs_in_signalling_block_section[j].endNode.X * 1000) && (X[t - 1] >= Block.arcs_in_signalling_block_section[j].startNode.X * 1000)) { // Selection of the right Arc of the Block Section
+							const Arc& Ab = Block.arcs_in_signalling_block_section[j];
+							// Inverse integration of the real Braking Curve
+							U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature)) * timestep / (total_train_mass * massFactor);
+							X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature));
+							onArc = true;
+							break;
+						}
 					}
-				}
 				}
 				if (!onArc) { // X[t - 1] is outside the route, so entry t is not written
 					if (X[t - 1] < BS[0].start_node.X * 1000)
@@ -1204,7 +1203,7 @@ public:
 													PredictedDistanceToCoupling = it->TrainInfo.TrainSpeed * TimeToBrake;
 													// With the statement below trains will always try to couple with a train ahead if that is possible
 													if ((ETCSBrakingPoint.X + PredictedDistanceToCoupling) <= train_route[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
-														ETCSBrakingPoint.X = ETCSBrakingPoint.X + PredictedDistanceToCoupling;											// Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
+														ETCSBrakingPoint.X = ETCSBrakingPoint.X + PredictedDistanceToCoupling;										  // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
 														BrakingForEoAModified = true;
 													}
 												}
@@ -1259,7 +1258,7 @@ public:
 				double BrakeDistToNode = -1;
 				double Xob, Vob;
 				bool TrainMustStop = Train_Must_Stop_For_OL_Order(n->respectOrder, n->indexOrderList); // Check if there is an order to respect
-																										// if there is an order to be respected at a given junction/station then compute the braking distance for the train to stop there
+																									   // if there is an order to be respected at a given junction/station then compute the braking distance for the train to stop there
 				if (TrainMustStop == 1) {
 
 					BrakeDistToNode = BrakDist_Block(V, 0, n->X * 1000, BS, Blocks);
@@ -1297,7 +1296,7 @@ public:
 				// If the GradientException is true and there is still the same target point as in the previous instant then
 				if ((this->GradientExceptionInBraking == 1) && (Xob == this->Xob[PreviousInstant]) && (Vob == this->Vob[PreviousInstant])) {
 					MinBX = this->Sbrak[brakingPoint + counter - 1]; // return the next braking point as braking distance
-					Xobmin = Xob;							// the target point does not change
+					Xobmin = Xob;									 // the target point does not change
 					Vobmin = Vob;
 					break; // break the for loop over the braking points
 				}
@@ -1308,7 +1307,7 @@ public:
 							MinBX = BrakeDistToNode;
 							Xobmin = Xob;
 							Vobmin = Vob;
-							this->BrakingForEoA = n->isSignalled;				// In case the train was braking for an ETCS Movement Authority then set BrakingForEoA of the train to true
+							this->BrakingForEoA = n->isSignalled;			// In case the train was braking for an ETCS Movement Authority then set BrakingForEoA of the train to true
 							this->IsTrainCoupling = n->virtualCouplingNode; // The train is set to IsTrainCoupling = true when it can follow the train ahead and the train is not already in the following mode
 							if (this->IsTrainInFollowingMode == 1) {
 								if (n->stationName == "DecoupleTrain") {
@@ -1561,11 +1560,11 @@ public:
 	}
 
 	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
-			double locationMeters) {
+		double locationMeters) {
 		if (incidentId.empty())
 			return;
 		if (std::find(directIncidentIds.begin(), directIncidentIds.end(), incidentId)
-				== directIncidentIds.end())
+			== directIncidentIds.end())
 			directIncidentIds.push_back(incidentId);
 		if (firstDirectIncidentTime < 0.0) {
 			firstDirectIncidentTime = timeSeconds;
@@ -1574,7 +1573,7 @@ public:
 	}
 
 	void recordDirectIncident(const SimulationIncident& incident, double timeSeconds,
-			double locationMeters) {
+		double locationMeters) {
 		recordDirectIncidentId(incident.id.empty() ? incident.target : incident.id,
 			timeSeconds, locationMeters);
 	}
@@ -1594,9 +1593,9 @@ public:
 		const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, timestepIndex);
 		const double cap = incident ? incident->reducedSpeedKmh / 3.6 : 0.0;
 		if (incident && incident->hasReducedSpeed && cap > 0.0 && std::isfinite(cap)
-				&& cap < candidate) {
+			&& cap < candidate) {
 			recordDirectIncident(*incident, timestepIndex * timestep,
-					instant_spatial_position.empty() ? 0.0 : instant_spatial_position[std::max(0, timestepIndex - 1)]);
+				instant_spatial_position.empty() ? 0.0 : instant_spatial_position[std::max(0, timestepIndex - 1)]);
 			return cap;
 		}
 		return candidate;
@@ -1718,7 +1717,7 @@ public:
 
 				// Acceleration phase
 				if ((isShortOfBrakingPoint(instant_spatial_position[time_seconds - 1], Braking_Distance)
-					 && (instant_train_speed[time_seconds - 1] < V_lim))
+						&& (instant_train_speed[time_seconds - 1] < V_lim))
 					/*||((instant_spatial_position[i-1]>Braking_Distance)&&(instant_train_speed[i-1]<Vobmin))*/) {
 
 					// The one below in between comments is the previous/original version of the code which did not consider the train crusing when instead the Traction Surplus with respect to the resistance is equal to 0
@@ -1791,8 +1790,8 @@ public:
 
 				// Braking Phase
 				else if ((instant_spatial_position[time_seconds - 1] >= Braking_Distance)
-						 && (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000)
-						 && (instant_train_speed[time_seconds - 1] > 0)) {
+					&& (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000)
+					&& (instant_train_speed[time_seconds - 1] > 0)) {
 
 					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections);
 
@@ -1807,9 +1806,9 @@ public:
 
 					instant_train_tractive_effort[time_seconds] =
 						-(brakingEffort((time_seconds - temp - 1) * timestep)
-						  + gradient_resistances(As.gradient)
-						  + curvature_resistances(As.curvature)
-						  - total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
+							+ gradient_resistances(As.gradient)
+							+ curvature_resistances(As.curvature)
+							- total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
 					instant_train_power_consumption[time_seconds] =
 						instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1]; /*Eq[i]=3;*/
 					train_energy_consumption(time_seconds);
@@ -2608,7 +2607,7 @@ public:
 		BlockTime[N_BlockSections].PosStart = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000;
 		BlockTime[N_BlockSections].PosEnd = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000;
 		BlockTime[N_BlockSections].GeoPosStart = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXBegNode; // This is in meter already
-		BlockTime[N_BlockSections].GeoPosEnd = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXEndNode;	 // This is in meter already
+		BlockTime[N_BlockSections].GeoPosEnd = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXEndNode;   // This is in meter already
 
 		BlockTime[N_BlockSections].trainDescription = this->trainDescription;
 
@@ -2635,8 +2634,8 @@ public:
 					}
 
 				} else if (SignallingType == "ETCS2") {
-					if (FoundApprTimeETCS2 == 0) {																														  // if the startApproach time of ETCS level 2 has not been fund yet
-						double BrakingDistance = pow(instant_train_speed[p], 2) / (2 * max_train_decelaration);															  // Computing the braking curve from the speed instant_train_speed[p]
+					if (FoundApprTimeETCS2 == 0) {																														// if the startApproach time of ETCS level 2 has not been fund yet
+						double BrakingDistance = pow(instant_train_speed[p], 2) / (2 * max_train_decelaration);															// Computing the braking curve from the speed instant_train_speed[p]
 						if (instant_spatial_position[p] + BrakingDistance > train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) { // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
 							BlockTime[N_BlockSections].StartApproachTime = p - 1;
 							FoundApprTimeETCS2 = true; // The StartApproachTime has been found that is why the variable goes to true
@@ -2844,9 +2843,9 @@ public:
 					}
 
 					if (N_BlockSections > 0) {
-						if (FoundApprTimeETCS3 == 0) {																																																																	 // if the startApproach time of ETCS level 3 has not been found yet
+						if (FoundApprTimeETCS3 == 0) {																																																																		// if the startApproach time of ETCS level 3 has not been found yet
 							double BrakingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
-							if (instant_spatial_position[p] + BrakingDistance > BlockTime[N_BlockSections].PosStart) {																																																	 // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
+							if (instant_spatial_position[p] + BrakingDistance > BlockTime[N_BlockSections].PosStart) {																																																		// if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
 								BlockTime[N_BlockSections].StartApproachTime = p - 1;
 								FoundApprTimeETCS3 = true; // The StartApproachTime has been found that is why the variable goes to true
 							}
@@ -3124,7 +3123,7 @@ public:
 							double ApproachingTimeInFollowingMode = 0;
 							// The if condition below means that an absolute braking distance is used if teh trains is the first train of a platoon or at junctions where the route diverges or converge with the route of the train ahead.
 							// This means that at switches that the train and the train ahead take in the same position a relative braking distance is used to compute the approaching time
-							if ((BlockTime[N_BlockSections].NamePreviousTrain == "None") || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																								  // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
+							if ((BlockTime[N_BlockSections].NamePreviousTrain == "None") || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																									 // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
 								ApproachingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
 							}
 
@@ -3394,7 +3393,7 @@ public:
 
 	// Function to calculate actual train arrival istants at each station
 	void Actual_Arrivals() {
-		for (int s = 0; s < numStations; s++) {	   // looping among the number of stations of the train
+		for (int s = 0; s < numStations; s++) {		// looping among the number of stations of the train
 			for (int h = 0; h < numStations; h++) { // looping among the total number of StationArray
 				if (Stations[s].stationName == StationArray[h].stationName)
 					StationArrivals[s] = Arrival_At_Station_NewVersion(StationArray[h]);
@@ -3504,8 +3503,7 @@ public:
 	}
 
 	bool stationIsOnRoute(int stationIndex, const vector<string>& allowedBlockIds = {}) const {
-		if (!Stations || stationIndex < 0 || stationIndex >= numStations ||
-			indexOfRoute < 0 || indexOfRoute >= static_cast<int>(train_route.size()))
+		if (!Stations || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(train_route.size()))
 			return false;
 		const string& stationName = Stations[stationIndex].stationName;
 		if (stationName.empty() || stationName == "None")
@@ -3516,8 +3514,7 @@ public:
 		const Route& route = train_route[indexOfRoute];
 		for (int h = 0; h < route.N_Block_Sections; ++h) {
 			const Section& section = route.sequence_of_block_sections[h];
-			if (!allowedBlockIds.empty() &&
-				std::find(allowedBlockIds.begin(), allowedBlockIds.end(), section.ID) == allowedBlockIds.end())
+			if (!allowedBlockIds.empty() && std::find(allowedBlockIds.begin(), allowedBlockIds.end(), section.ID) == allowedBlockIds.end())
 				continue;
 			if (matches(section.start_node) || matches(section.end_node))
 				return true;

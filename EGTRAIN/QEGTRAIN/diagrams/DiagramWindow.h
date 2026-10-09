@@ -41,7 +41,7 @@ class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
-	void setChart(QChart* chart);                                  // takes ownership
+	void setChart(QChart* chart); // takes ownership
 	// Presentation only: concise warning separate from bounded subject/run context.
 	void setPresentation(const QString& heading, const QString& context,
 		const QString& warning = QString());
@@ -56,15 +56,16 @@ public:
 	// trains currently visible so it can export only what the user is looking at.
 	// An empty return means there is nothing to export. Enables the CSV button.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
-						const QString& suggestedFileName);
+		const QString& suggestedFileName);
 	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
-		const char* artifactKind, const std::string& artifactBytes)> writer);
+			const char* artifactKind, const std::string& artifactBytes)>
+			writer);
 
 signals:
-	void trainSelected(const QString& trainId);  // scene linkage on click
+	void trainSelected(const QString& trainId); // scene linkage on click
 
 protected:
-	bool eventFilter(QObject* obj, QEvent* ev) override;           // track mouse for hover
+	bool eventFilter(QObject* obj, QEvent* ev) override; // track mouse for hover
 
 public:
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }

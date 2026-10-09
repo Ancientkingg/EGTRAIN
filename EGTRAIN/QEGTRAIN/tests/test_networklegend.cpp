@@ -57,16 +57,17 @@ int main(int argc, char* argv[]) {
 	const QVector<NetworkLegendEntry> entries = legend.entries();
 	ok &= expect(entries.size() == 9, "case content produces stable deduplicated entries");
 	ok &= expect(entries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
-		&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
-		&& entries.at(2).color == freeTrackVisual().color
-		&& entries.at(2).lineWidth == freeTrackVisual().width
-		&& entries.at(2).penStyle == Qt::SolidLine,
+			&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
+			&& entries.at(2).color == freeTrackVisual().color
+			&& entries.at(2).lineWidth == freeTrackVisual().width
+			&& entries.at(2).penStyle == Qt::SolidLine,
 		"speed-class entries use the renderer base styles");
 	legend.setFixedWidth(180);
 	QApplication::processEvents();
 	ok &= expect(std::none_of(entries.cbegin(), entries.cend(), [](const NetworkLegendEntry& entry) {
 		return entry.kind == NetworkLegendEntryKind::Track && entry.trackState != TrackOperationalState::Free;
-	}), "nonvisual operational states have no map-key swatches");
+	}),
+		"nonvisual operational states have no map-key swatches");
 	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
 	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
 	ok &= expect(trainSwatch && containsColor(trainImage, defaultTrainFill()),
@@ -87,13 +88,13 @@ int main(int argc, char* argv[]) {
 		if (entry.kind == NetworkLegendEntryKind::Train) {
 			++trainCount;
 			ok &= expect(entry.label == "Train" && entry.color == defaultTrainFill()
-				&& entry.outlineColor == defaultTrainOutline(),
+					&& entry.outlineColor == defaultTrainOutline(),
 				"trains with the default colour share one Train row");
 		}
 		if (entry.kind == NetworkLegendEntryKind::Station) {
 			++stationCount;
 			ok &= expect(entry.iconResource == ":/icons/station-dark.svg"
-				&& classifyStation().iconResource == ":/icons/station.svg",
+					&& classifyStation().iconResource == ":/icons/station.svg",
 				"station entry uses the light-surface variant of the shared pictogram");
 		}
 		if (entry.signalCue == SignalCueKind::Stop) {
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]) {
 	legend.setExpanded(true);
 	const QStringList labelsAfterExpand = legend.entryLabels();
 	ok &= expect(labelsAfterExpand.size() == labelsBeforeCollapse.size()
-		&& std::equal(labelsAfterExpand.cbegin(), labelsAfterExpand.cend(), labelsBeforeCollapse.cbegin()),
+			&& std::equal(labelsAfterExpand.cbegin(), labelsAfterExpand.cend(), labelsBeforeCollapse.cbegin()),
 		"collapsing does not change map key entries");
 
 	for (QLabel* row : legend.findChildren<QLabel*>(QRegularExpression("^mapKeyEntry")))

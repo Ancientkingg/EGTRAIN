@@ -15,8 +15,8 @@ struct SemanticVersion {
 	bool operator!=(const SemanticVersion& other) const { return !(*this == other); }
 	bool operator<(const SemanticVersion& other) const {
 		return major < other.major
-				|| (major == other.major && minor < other.minor)
-				|| (major == other.major && minor == other.minor && patch < other.patch);
+			|| (major == other.major && minor < other.minor)
+			|| (major == other.major && minor == other.minor && patch < other.patch);
 	}
 };
 

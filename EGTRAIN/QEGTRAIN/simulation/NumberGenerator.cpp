@@ -18,7 +18,7 @@ NumberGenerator::NumberGenerator(unsigned long inSeed) {
 }
 
 int NumberGenerator::getUniformInteger(int inFirst,
-									   int inLast) {
+	int inLast) {
 	int lNumber = (int)(inFirst + (inLast - inFirst + 1) * getUniformFloat());
 	if (lNumber > inLast)
 		lNumber = inLast;
@@ -26,7 +26,7 @@ int NumberGenerator::getUniformInteger(int inFirst,
 }
 
 double NumberGenerator::getUniformFloat(double inFirst,
-										double inLast) {
+	double inLast) {
 	double lTmp, lNumber;
 
 	long k = idum / IQ;
@@ -44,7 +44,7 @@ double NumberGenerator::getUniformFloat(double inFirst,
 }
 
 double NumberGenerator::getGaussianFloat(double inMean,
-										 double inStdDev) {
+	double inStdDev) {
 	double fac, rsq, v1, v2;
 
 	if (iset == 0) {

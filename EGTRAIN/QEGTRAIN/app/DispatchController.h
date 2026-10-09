@@ -26,8 +26,8 @@ public:
 	explicit DispatchController(QObject* parent = nullptr) : QObject(parent) {}
 
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
-			const std::string& selectedScenarioId = {},
-			const SceneRunSelection& selectedOccurrences = {});
+		const std::string& selectedScenarioId = {},
+		const SceneRunSelection& selectedOccurrences = {});
 
 	void resetState();
 

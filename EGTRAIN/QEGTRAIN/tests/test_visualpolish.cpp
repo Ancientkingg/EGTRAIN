@@ -43,9 +43,11 @@ int main(int argc, char* argv[]) {
 	const TrackVisual freeBase = freeTrackVisual();
 	ok &= expect(freeBase.color == QColor(120, 120, 120), "local track uses historical gray");
 	ok &= expect(classifyTrackSpeed(200.0 / 3.6).color == QColor(30, 130, 210)
-		&& classifyTrackSpeed(200.0 / 3.6).width == 4, "historical high-speed boundary");
+			&& classifyTrackSpeed(200.0 / 3.6).width == 4,
+		"historical high-speed boundary");
 	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(80, 80, 80)
-		&& classifyTrackSpeed(120.0 / 3.6).width == 3, "historical mainline boundary");
+			&& classifyTrackSpeed(120.0 / 3.6).width == 3,
+		"historical mainline boundary");
 	ok &= expect(classifyTrackSpeed(119.0 / 3.6).color == QColor(120, 120, 120), "historical local boundary");
 	ok &= expect(freeBase.width == 2, "free track uses one documented overview width");
 
@@ -64,7 +66,7 @@ int main(int argc, char* argv[]) {
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);
 	const QByteArray blockedMask = renderStrokeMask(blockedTrack.width, blockedTrack.style);
 	ok &= expect(permissiveMask != occupiedMask && occupiedMask != blockedMask
-		&& permissiveMask != blockedMask,
+			&& permissiveMask != blockedMask,
 		"track states remain distinguishable by stroke structure without color");
 	ok &= expect(trackStatePriority(TrackOperationalState::Free) < trackStatePriority(TrackOperationalState::Prepared), "free track priority");
 	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "permissive signalling priority");
@@ -109,16 +111,16 @@ int main(int argc, char* argv[]) {
 		ok &= expect(invalid.fill == QColor(235, 210, 55) && invalid.outline == QColor(110, 90, 20),
 			"invalid service colour gives the default colours");
 		ok &= expect(resolved.kind == classified.kind && resolved.shape == classified.shape
-			&& resolved.iconResource == classified.iconResource,
+				&& resolved.iconResource == classified.iconResource,
 			"resolved train keeps the classified kind, shape and icon");
 	}
 	const QColor serviceColor(40, 130, 210);
 	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColor);
 	ok &= expect(coloured.fill == serviceColor && coloured.outline == serviceColor.darker(200)
-		&& coloured.outline != coloured.fill,
+			&& coloured.outline != coloured.fill,
 		"service colour sets the fill and a darker outline");
 	ok &= expect(coloured.kind == TrainVisualKind::Intercity
-		&& coloured.iconResource == ":/icons/train-intercity.svg",
+			&& coloured.iconResource == ":/icons/train-intercity.svg",
 		"service colour keeps the classified kind and icon");
 	ok &= expect(intercity.shape == TrainBadgeShape::Capsule, "intercity badge shape");
 	ok &= expect(sprinter.shape == TrainBadgeShape::Rounded, "sprinter badge shape");
@@ -147,28 +149,28 @@ int main(int argc, char* argv[]) {
 	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150);
 	ok &= expect(horizontal.reversedHead == QPointF(-8, -30)
-		&& horizontal.forwardHead == QPointF(8, 30),
+			&& horizontal.forwardHead == QPointF(8, 30),
 		"interpolated horizontal endpoints place reversed signal to the left");
 	const SignalGeometry diagonal = signalGeometry(QPointF(40, 20), QPointF(34, 12),
 		QPointF(46, 28), QPointF(-0.8, 0.6), 150);
 	ok &= expect(diagonal.reversedHead == QPointF(58, -6)
-		&& diagonal.forwardHead == QPointF(22, 46),
+			&& diagonal.forwardHead == QPointF(22, 46),
 		"non-horizontal endpoints preserve direction and authored normal");
 	const qreal presentationScale = 0.45;
 	const SignalGeometry measured = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150 * presentationScale);
 	ok &= expect(measured.reversedHead.x() == -8 && measured.forwardHead.x() == 8
-		&& std::fabs(measured.reversedHead.y() + 13.5) < 1e-12
-		&& std::fabs(measured.forwardHead.y() - 13.5) < 1e-12
-		&& std::fabs(measured.forwardBase.length() - 13.5) < 1e-12
-		&& measured.forwardPost.length() == 8,
+			&& std::fabs(measured.reversedHead.y() + 13.5) < 1e-12
+			&& std::fabs(measured.forwardHead.y() - 13.5) < 1e-12
+			&& std::fabs(measured.forwardBase.length() - 13.5) < 1e-12
+			&& measured.forwardPost.length() == 8,
 		"historical presentation conversion affects lateral separation, not physical longitudinal signal points");
 	SignalItem head(QRectF(-10, -10, 20, 20));
 	head.setAspectCode(0);
 	ok &= expect(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 		"signal heads scale with the scene");
 	ok &= expect(head.childItems().size() == 1
-		&& head.childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+			&& head.childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 		"signal retains an invisible device-space semantic target");
 	QImage signalImage(48, 48, QImage::Format_ARGB32_Premultiplied);
 	signalImage.fill(Qt::black);

@@ -126,7 +126,8 @@ void StationOverlayItem::setFitCollisionOffset(const QPointF& offset) {
 	prepareGeometryChange();
 	m_fitCollisionOffset = offset;
 	setAcceptedMouseButtons(!m_sceneDecoration && !offset.isNull() && m_fitSymbolVisible && m_displacedClickHandler
-		? Qt::LeftButton : Qt::NoButton);
+			? Qt::LeftButton
+			: Qt::NoButton);
 	update();
 }
 
@@ -136,14 +137,16 @@ void StationOverlayItem::setFitSymbolVisible(bool visible) {
 	prepareGeometryChange();
 	m_fitSymbolVisible = visible;
 	setAcceptedMouseButtons(!m_sceneDecoration && visible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
-		? Qt::LeftButton : Qt::NoButton);
+			? Qt::LeftButton
+			: Qt::NoButton);
 	update();
 }
 
 void StationOverlayItem::setDisplacedClickHandler(std::function<void(const QString&)> handler) {
 	m_displacedClickHandler = std::move(handler);
 	setAcceptedMouseButtons(!m_sceneDecoration && m_fitSymbolVisible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
-		? Qt::LeftButton : Qt::NoButton);
+			? Qt::LeftButton
+			: Qt::NoButton);
 }
 
 void StationOverlayItem::setSourceIdentities(const QList<SourceIdentity>& identities) {

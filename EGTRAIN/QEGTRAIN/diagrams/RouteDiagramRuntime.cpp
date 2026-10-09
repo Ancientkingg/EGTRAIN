@@ -8,10 +8,11 @@ RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene) {
 	RouteDiagramPath path;
 	path.id = route.ID;
 	std::map<std::string, std::pair<std::string, std::string>> stationNodes;
-	if (scene) for (const auto& station : scene->stations)
-		for (const auto& platform : station.platforms)
-			for (const auto& id : platform.nodeIds)
-				stationNodes[id] = {station.id, station.name.empty() ? station.id : station.name};
+	if (scene)
+		for (const auto& station : scene->stations)
+			for (const auto& platform : station.platforms)
+				for (const auto& id : platform.nodeIds)
+					stationNodes[id] = {station.id, station.name.empty() ? station.id : station.name};
 	const auto add = [&](const Node& node) {
 		if (!std::isfinite(node.X)) return;
 		RouteDiagramNode point;

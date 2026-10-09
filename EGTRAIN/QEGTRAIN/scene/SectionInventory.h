@@ -91,18 +91,18 @@ struct SceneStopResolution {
 
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene);
 SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
-		const SceneSectionDescriptor& left, const SceneSectionDescriptor& right);
+	const SceneSectionDescriptor& left, const SceneSectionDescriptor& right);
 int sceneRouteDirection(const SceneModel& scene,
-		const std::vector<const SceneSectionDescriptor*>& sections);
+	const std::vector<const SceneSectionDescriptor*>& sections);
 bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double leftEnd,
-		const std::string& rightId, double rightStart, double rightEnd);
+	const std::string& rightId, double rightStart, double rightEnd);
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route);
 SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const SceneRoute& route,
-		const SceneSectionInventory& inventory);
+	const SceneSectionInventory& inventory);
 SceneRouteStations sceneRouteStations(const SceneModel& scene, const SceneRoute& route,
-		const SceneSectionInventory& inventory);
+	const SceneSectionInventory& inventory);
 std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
-		const SceneService& service, const SceneRouteTraversal& traversal);
+	const SceneService& service, const SceneRouteTraversal& traversal);
 std::string formatSceneSectionCoordinate(double coordinate);
 
 #endif // SCENE_SECTION_INVENTORY_H

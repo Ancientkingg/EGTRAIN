@@ -26,7 +26,7 @@ bool check(bool condition, const char* message) {
 bool checkText(const QString& actual, const QString& expected, const char* message) {
 	if (actual != expected)
 		std::cerr << "failed: " << message << ": expected \"" << expected.toStdString()
-			<< "\" got \"" << actual.toStdString() << "\"\n";
+				  << "\" got \"" << actual.toStdString() << "\"\n";
 	return actual == expected;
 }
 

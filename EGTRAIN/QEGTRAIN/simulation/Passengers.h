@@ -59,10 +59,10 @@ public:
 	string current_location_ID, current_TripID, current_JourneyID; // ID of the current location and the current train service where the passenger is at current time in simulation for a given Trip (TripID) in a Journey (JourneyID)
 	list<Journey> Journeys;										   // This is the list of Journeys made by the passenger in one day (or other reference period of time)
 	string CurrentStatus;										   // This variable described whether the passenger is onboard of a train or waiting at a platform after that it enterd the simulation.
-						  // Current Status can assume value:
-						  //"None" if it is not initialised and the passenger is out of the simulation (Not entered yet or exited)
-						  //  "Onboard" if the passenger is onboard of a train
-						  //  "OnPlatform" if the passenger is waiting at a station platform to board a train
+																   // Current Status can assume value:
+																   //"None" if it is not initialised and the passenger is out of the simulation (Not entered yet or exited)
+																   //  "Onboard" if the passenger is onboard of a train
+																   //  "OnPlatform" if the passenger is waiting at a station platform to board a train
 
 	string Current_Train_To_Wait, Current_Train_Boarded, Current_Arrival_Station, Current_Arrival_Platform; // This is the name of the train that the passenger is boarding (id the CurrentStatus is "Onboard")
 	string Current_WaitingStationPlatformID, Current_WaitingStationID;										// This is the ID of the station platform and the station ID where the passenger is waiting at (when the Currentstatus is "OnPlatform")

@@ -38,8 +38,7 @@ void UpdateChecker::check() {
 	}
 
 	QNetworkRequest request(releasesUrl());
-	request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("EGTRAIN/%1")
-		.arg(QCoreApplication::applicationVersion()));
+	request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()));
 	request.setRawHeader("Accept", "application/vnd.github+json");
 	request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
 		QNetworkRequest::NoLessSafeRedirectPolicy);

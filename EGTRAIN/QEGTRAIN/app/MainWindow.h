@@ -437,7 +437,7 @@ private:
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
 	QHash<QDockWidget*, QAction*> m_editorActions;
-	QMenu* m_editorsMenu = nullptr;		// Editors top-level menu (dock toggles)
+	QMenu* m_editorsMenu = nullptr; // Editors top-level menu (dock toggles)
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
 	SceneModel m_sceneModel;
@@ -571,13 +571,13 @@ private:
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
-	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
-	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
+	QListWidget* m_serviceListWidget = nullptr; // one row per SceneService
+	QLineEdit* m_serviceIdEdit = nullptr;		// id of the selected service
 	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
 	QComboBox* m_serviceCategoryCombo = nullptr;
 	ColorChoiceButton* m_serviceColorButton = nullptr; // optional display colour, "#rrggbb"
-	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
-	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
+	QComboBox* m_serviceCompositionCombo = nullptr;	   // references a SceneComposition.id
+	QComboBox* m_serviceRouteCombo = nullptr;		   // references a SceneRoute.id
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
 	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
@@ -1063,7 +1063,6 @@ private slots:
 		RunProvenance provenance, std::vector<BlockingTimeDiagramSegment> segments,
 		double routeStartKm, double routeEndKm, const QString& referenceId);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
-
 };
 
 #endif // MAINWINDOW_H

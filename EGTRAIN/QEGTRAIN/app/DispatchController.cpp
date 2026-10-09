@@ -4,7 +4,7 @@
 #include "scene/SceneValidator.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationWorker.h"
-#include "util/portability.h"  // localtime_r shim on MSVC
+#include "util/portability.h" // localtime_r shim on MSVC
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
 #include <numeric>
@@ -196,7 +196,7 @@ extern Logger owl;
 DispatchController simulation;
 
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
-		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
+	const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
 	using DetailClock = std::chrono::steady_clock;
 	const char* detailGate = std::getenv("QEGTRAIN_STARTUP_NATIVE_DETAIL");
 	const char* timingGate = std::getenv("QEGTRAIN_STARTUP_TIMING");
@@ -231,11 +231,12 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 
 	beginScenePreparation();
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
-			? std::optional<double>(initial_variables.times) : std::nullopt;
+		? std::optional<double>(initial_variables.times)
+		: std::nullopt;
 	auto checkpoint = now();
 	resetSetupTime = elapsed(started, checkpoint);
 	std::vector<SceneDiagnostic> diagnostics = validateRunnableScene(scene, selectedOccurrences,
-			effectiveDurationOverride);
+		effectiveDurationOverride);
 	auto next = now();
 	validationTime = elapsed(checkpoint, next);
 	checkpoint = next;
@@ -425,8 +426,8 @@ void DispatchController::runSimulation() {
 	calculateArrivalDelayAllTrains();
 	calculateDelayStatsForAllStations();
 	calculateDelayStatsAtStation(Final_Station); // Computing the delay stats at the final station of all the trains
-	Compute_Input_Delays();							 // Computing the amount of entrance delays and disturbances set in input in the scenario
-							// Print Delay at stations in the right folder
+	Compute_Input_Delays();						 // Computing the amount of entrance delays and disturbances set in input in the scenario
+												 // Print Delay at stations in the right folder
 	Print_Station_Delay_Stats(Folder_RI_PH, "pos");
 
 	// Print Out Passenger Delays
@@ -435,8 +436,8 @@ void DispatchController::runSimulation() {
 	for (int j = 0; j < numRegions; j++) {
 		eglogger << "Station delay: "
 				 << (regional_train[j].numStations > 0
-						 ? std::to_string(regional_train[j].StationDelay[regional_train[j].numStations - 1])
-						 : "unavailable (no stops)")
+							? std::to_string(regional_train[j].StationDelay[regional_train[j].numStations - 1])
+							: "unavailable (no stops)")
 				 << std::endl;
 	}
 
@@ -444,7 +445,7 @@ void DispatchController::runSimulation() {
 	calculatePosAndNegArrivalDelayAllTrains();
 	calculatePosAndNegDelayStatsForAllStations();
 	calculatePosAndNegDelayStatsAtStation(Final_Station); // Calculating the pos and neg Delay stats at final station of all trains
-																 // Print aggregated results of positive and negative delays at stations
+														  // Print aggregated results of positive and negative delays at stations
 	Print_Station_Delay_Stats(Folder_RI_PH, "pos&neg");
 
 	Print_Computing_Times(Folder_RI_PH); // Printing the total computation time of ROMA and EGTRAIN
@@ -499,157 +500,156 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 		}
 		{
-		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
-		clock_t startEGTRAIN = clock(); // EGTRAIN start time
-		std::cout << "\r Time of simulation is " << t;
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
+			clock_t startEGTRAIN = clock(); // EGTRAIN start time
+			std::cout << "\r Time of simulation is " << t;
 
-		{
-			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
-				"worker/playback_step/compute");
-			// Simulate entrance process of passengers on the railway network according to route choice
-			checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
+			{
+				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
+					"worker/playback_step/compute");
+				// Simulate entrance process of passengers on the railway network according to route choice
+				checkJourneyStartForAllPassengers(t, initial_variables.startingSimulationTime, AllDailyPassengers);
 
-			// This function will update the list of all waiting passengers at all platforms in the network at every instant
-			// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
-			// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
-			if (initial_variables.PAX_GUI) {
-				Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
-			}
-		}
-
-		{
-			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
-				"worker/playback_step/compute");
-			// Simulate train movement at each simulation step
-			// Every train keeps its place in the order of regional_train, except that the trains that are due and still
-			// waiting to enter take the places of those trains in the order in which they are due. Of several trains
-			// waiting at the entry of a route the one due first then enters first.
-			movementOrder.resize(numRegions);
-			std::iota(movementOrder.begin(), movementOrder.end(), 0);
-			const auto dueAndWaiting = [&](int j) { return !regional_train[j].CanEnter && t >= regional_train[j].departure_time; };
-			auto nextDue = dueOrder.begin();
-			for (int& place : movementOrder) {
-				if (!dueAndWaiting(place))
-					continue;
-				while (!dueAndWaiting(*nextDue))
-					++nextDue;
-				place = *nextDue++;
-			}
-			for (const int j : movementOrder) {
-				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
-				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-				regional_train[j].recordStationPassagesAtTime(t);
-
-				// check if train arrived at destination or departed from origin
-				regional_train[j].checkTrainArrDep(j, t);
-			}
-		}
-
-		{
-		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
-			"worker/playback_step/compute");
-		// Here we prepare the Traffic State data
-		for (int n = 0; n < numRegions; n++) {
-
-			// The interaction Trains and passengers and corresponding dwell time dependency at platform is simulated here in a non multi-thread fashion
-			// Simulating interaction with the passengers and changing dwell times according to the chosen passenger-dependent dwell time function
-			Simulate_Train_Passenger_Interactions(t, initial_variables.startingSimulationTime, regional_train[n], AllDailyPassengers, AllStationPlatforms);
-
-			// round to 2 decimals
-			double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
-			for (int j = 0; j < regional_train[n].Bs.total_arcs; j++) {
-				if ((xPosition < regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX * 1000) && (xPosition >= regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX * 1000)) { // Selection of the right Arc of the Block Section
-					owl << "99Train " << regional_train[n].trainDescription << " is in blocksection " << regional_train[n].Bs.ID << " so it is in TDS " << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbId << " and next is " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
-					owl << "+++++" << xPosition << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX << " , " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX << std::endl;
+				// This function will update the list of all waiting passengers at all platforms in the network at every instant
+				// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
+				// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
+				if (initial_variables.PAX_GUI) {
+					Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
 				}
 			}
 
-			// The traffic-state payload is only built when it is shared (-TSM 1)
-			if (initial_variables.TSM) {
-				double trainSpeed = std::ceil((regional_train[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
-				jsmsg["trains"][regional_train[n].trainDescription]["km-point"] = xPosition;
-				jsmsg["trains"][regional_train[n].trainDescription]["speed"] = trainSpeed;
+			{
+				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
+					"worker/playback_step/compute");
+				// Simulate train movement at each simulation step
+				// Every train keeps its place in the order of regional_train, except that the trains that are due and still
+				// waiting to enter take the places of those trains in the order in which they are due. Of several trains
+				// waiting at the entry of a route the one due first then enters first.
+				movementOrder.resize(numRegions);
+				std::iota(movementOrder.begin(), movementOrder.end(), 0);
+				const auto dueAndWaiting = [&](int j) { return !regional_train[j].CanEnter && t >= regional_train[j].departure_time; };
+				auto nextDue = dueOrder.begin();
+				for (int& place : movementOrder) {
+					if (!dueAndWaiting(place))
+						continue;
+					while (!dueAndWaiting(*nextDue))
+						++nextDue;
+					place = *nextDue++;
+				}
+				for (const int j : movementOrder) {
+					regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
+					regional_train[j].recordEarliestActiveTrajectoryIndex(t);
+					regional_train[j].recordStationPassagesAtTime(t);
 
-				jsmsg["trains"][regional_train[n].trainDescription]["BlockOccupied"] = regional_train[n].Bs.ID;
-				jsmsg["trains"][regional_train[n].trainDescription]["lastOccTime"] = regional_train[n].ComputeLastOccupationTime_real_time(t, regional_train[n].Bs.ID, 10);
-				jsmsg["trains"][regional_train[n].trainDescription]["direction"] = train_route[regional_train[n].indexOfRoute].reversed_direction;
-
-				jsmsg["trains"][regional_train[n].trainDescription]["depTime"] = regional_train[n].departure_time;
-				if (regional_train[n].departure_time <= t) {
-					char c = '-';
-					int index = regional_train[n].Bs.ID.find(c);
-
-					jsmsg["trains"][regional_train[n].trainDescription]["trackID"] = regional_train[n].Bs.ID.substr(index + 1, regional_train[n].Bs.ID.length() - index - 2);
-					jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 1;
-				} else
-					jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
+					// check if train arrived at destination or departed from origin
+					regional_train[j].checkTrainArrDep(j, t);
+				}
 			}
 
-		}
-		}
+			{
+				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
+					"worker/playback_step/compute");
+				// Here we prepare the Traffic State data
+				for (int n = 0; n < numRegions; n++) {
 
-		{
-			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_status_output", "worker",
-				"worker/playback_step/compute");
-			// Print Passenger Status after the simulation
-			printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
-		}
+					// The interaction Trains and passengers and corresponding dwell time dependency at platform is simulated here in a non multi-thread fashion
+					// Simulating interaction with the passengers and changing dwell times according to the chosen passenger-dependent dwell time function
+					Simulate_Train_Passenger_Interactions(t, initial_variables.startingSimulationTime, regional_train[n], AllDailyPassengers, AllStationPlatforms);
 
-		// for the ZeroMQbroker
-		if (initial_variables.TSM) {
-			jsmsg["time"] = t;
-			const std::string xml = trafficStateMonitoring_xml(jsmsg);
-			std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
-					  << xml << std::flush;
-			send_external_state(jsmsg, xml, "tcp://127.0.0.1:5555");
-		}
+					// round to 2 decimals
+					double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
+					for (int j = 0; j < regional_train[n].Bs.total_arcs; j++) {
+						if ((xPosition < regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX * 1000) && (xPosition >= regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX * 1000)) { // Selection of the right Arc of the Block Section
+							owl << "99Train " << regional_train[n].trainDescription << " is in blocksection " << regional_train[n].Bs.ID << " so it is in TDS " << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbId << " and next is " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
+							owl << "+++++" << xPosition << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX << " , " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX << std::endl;
+						}
+					}
 
-		if (initial_variables.RChoice) {
-			const nlohmann::json route_choice_json = routeChoicePayload(AllDailyPassengers, t);
-			const std::string xml = routeChoice_xml(route_choice_json);
-			std::cout << "\n\n Sending the following Route Choice XML file" << std::endl;
-			std::cout << xml << std::flush;
-			send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
-		}
+					// The traffic-state payload is only built when it is shared (-TSM 1)
+					if (initial_variables.TSM) {
+						double trainSpeed = std::ceil((regional_train[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
+						jsmsg["trains"][regional_train[n].trainDescription]["km-point"] = xPosition;
+						jsmsg["trains"][regional_train[n].trainDescription]["speed"] = trainSpeed;
 
-		{
-			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup", "worker",
-				"worker/playback_step/compute");
-			ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
+						jsmsg["trains"][regional_train[n].trainDescription]["BlockOccupied"] = regional_train[n].Bs.ID;
+						jsmsg["trains"][regional_train[n].trainDescription]["lastOccTime"] = regional_train[n].ComputeLastOccupationTime_real_time(t, regional_train[n].Bs.ID, 10);
+						jsmsg["trains"][regional_train[n].trainDescription]["direction"] = train_route[regional_train[n].indexOfRoute].reversed_direction;
 
-			Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+						jsmsg["trains"][regional_train[n].trainDescription]["depTime"] = regional_train[n].departure_time;
+						if (regional_train[n].departure_time <= t) {
+							char c = '-';
+							int index = regional_train[n].Bs.ID.find(c);
 
-			// Occupy failed sections and give them an End of Authority so both
-			// aspect-driven and moving-block trains react to the incident
-			Apply_Signal_Failures_Mixed_Signalling(t);
+							jsmsg["trains"][regional_train[n].trainDescription]["trackID"] = regional_train[n].Bs.ID.substr(index + 1, regional_train[n].Bs.ID.length() - index - 2);
+							jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 1;
+						} else
+							jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
+					}
+				}
+			}
 
-			// Only for level>=3
-			ReportAllTrainPositionsToRBC(t, 50);
+			{
+				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_status_output", "worker",
+					"worker/playback_step/compute");
+				// Print Passenger Status after the simulation
+				printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
+			}
 
-			// function to protect all station areas
-			protectStationAreas(t);
+			// for the ZeroMQbroker
+			if (initial_variables.TSM) {
+				jsmsg["time"] = t;
+				const std::string xml = trafficStateMonitoring_xml(jsmsg);
+				std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
+						  << xml << std::flush;
+				send_external_state(jsmsg, xml, "tcp://127.0.0.1:5555");
+			}
 
-			releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
+			if (initial_variables.RChoice) {
+				const nlohmann::json route_choice_json = routeChoicePayload(AllDailyPassengers, t);
+				const std::string xml = routeChoice_xml(route_choice_json);
+				std::cout << "\n\n Sending the following Route Choice XML file" << std::endl;
+				std::cout << xml << std::flush;
+				send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
+			}
 
-			activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
+			{
+				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup", "worker",
+					"worker/playback_step/compute");
+				ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
 
-			unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
+				Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
 
-			for (int i = 0; i < numRegions; i++) {
-				regional_train[i].unlockSingleTrack(
-					train_route[regional_train[i].indexOfRoute].sequence_of_block_sections.data(),
-					train_route[regional_train[i].indexOfRoute].N_Block_Sections,
-					t);
-			} // unlock occupied single tracks
+				// Occupy failed sections and give them an End of Authority so both
+				// aspect-driven and moving-block trains react to the incident
+				Apply_Signal_Failures_Mixed_Signalling(t);
 
-			BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-			BlocksConnected.clear(); // Clear the list BlocksConnected
+				// Only for level>=3
+				ReportAllTrainPositionsToRBC(t, 50);
 
-			Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
-		}
+				// function to protect all station areas
+				protectStationAreas(t);
 
-		clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
-		Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
+				releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
+
+				activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
+
+				unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
+
+				for (int i = 0; i < numRegions; i++) {
+					regional_train[i].unlockSingleTrack(
+						train_route[regional_train[i].indexOfRoute].sequence_of_block_sections.data(),
+						train_route[regional_train[i].indexOfRoute].N_Block_Sections,
+						t);
+				} // unlock occupied single tracks
+
+				BlocksOccupied.clear();	 // Clear the list BlocksOccupied
+				BlocksConnected.clear(); // Clear the list BlocksConnected
+
+				Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
+			}
+
+			clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
+			Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
 		}
 
 		publishSimulationSnapshot(t);

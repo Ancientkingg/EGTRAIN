@@ -54,16 +54,16 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 }
 
 static bool hasCodeAndSeverity(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-		SceneSeverity severity) {
+	SceneSeverity severity) {
 	return std::any_of(diagnostics.begin(), diagnostics.end(), [&code, severity](const SceneDiagnostic& diagnostic) {
 		return diagnostic.code == code && diagnostic.severity == severity;
 	});
 }
 
 static SceneTrainUnit unit(const std::string& id, double tractionMass, double wagonMass,
-		double wagons, double maxSpeed, double deceleration, double area, double resistance,
-		double jerk, double length, const std::string& dataFile, const std::string& tractionFile,
-		double firstBandForce, double secondBandForce) {
+	double wagons, double maxSpeed, double deceleration, double area, double resistance,
+	double jerk, double length, const std::string& dataFile, const std::string& tractionFile,
+	double firstBandForce, double secondBandForce) {
 	SceneTrainUnit result;
 	result.id = id;
 	result.hasPhysical = true;
@@ -108,9 +108,9 @@ static SceneModel completeScene() {
 	scene.routes = {{"route.native", {"block.0", "block.1", "block.2"}, false, {}, false}};
 	scene.trainUnits = {
 		unit("unit.1", 100.0, 40.0, 2.0, 30.0, 1.0, 2.0, 0.1, 1.0, 20.0,
-				"/missing/unit-data", "weird:unit-traction", 1.0, 2.0),
+			"/missing/unit-data", "weird:unit-traction", 1.0, 2.0),
 		unit("unit.2", 80.0, 30.0, 1.0, 25.0, 1.2, 1.5, 0.2, 1.2, 10.0,
-				"nonexistent:physical", "/not/a/file", 3.0, 4.0)};
+			"nonexistent:physical", "/not/a/file", 3.0, 4.0)};
 	scene.compositions = {{"composition.native", {"unit.1", "unit.2"}}};
 
 	SceneService service;
@@ -173,10 +173,10 @@ static const unsigned long kSeedB = 987654321;
 // is drawn from the run generator, which is reseeded before each call so that
 // every call gets the same draws.
 static double seededDwellTime(Train& train, double platformRate, int boarding = 40, int alighting = 20,
-		unsigned long seed = kSeedA) {
+	unsigned long seed = kSeedA) {
 	seedRunNumberGenerator(seed);
 	return train.computePaxDependentDwellTimeAtStations(boarding, alighting, platformRate,
-			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+		7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
 }
 
 // Draws of the generator for fixed seeds, recorded from the algorithm as it is.
@@ -212,11 +212,11 @@ static bool generatorTests() {
 		NumberGenerator gaussian(row.seed);
 		for (int index = 0; index < 4; ++index)
 			ok &= expect(close(gaussian.getGaussianFloat(), row.gaussian[index], 1e-12),
-					"Gaussian draws of a fixed seed match");
+				"Gaussian draws of a fixed seed match");
 		NumberGenerator scaled(row.seed);
 		for (int index = 0; index < 2; ++index)
 			ok &= expect(close(scaled.getGaussianFloat(10, 2), row.scaled[index], 1e-12),
-					"scaled Gaussian draws of a fixed seed match");
+				"scaled Gaussian draws of a fixed seed match");
 	}
 	NumberGenerator first(kSeedA), second(kSeedA);
 	second.getUniformFloat();
@@ -229,7 +229,7 @@ static std::vector<double> sampledWindows(const SceneModel& scene, unsigned long
 	initial_variables.randomSeed = seed;
 	std::vector<double> windows;
 	if (hasErrors(buildInfrastructureAndSignallingFromScene(scene))
-			|| hasErrors(buildOperationsFromScene(scene, "scenario.base")))
+		|| hasErrors(buildOperationsFromScene(scene, "scenario.base")))
 		return windows;
 	for (const Passenger& passenger : AllDailyPassengers)
 		for (const Journey& journey : passenger.Journeys) {
@@ -251,9 +251,9 @@ static bool seedTests(const SceneModel& scene) {
 	// Draws continue from the generator state instead of restarting for every car.
 	seedRunNumberGenerator(kSeedA);
 	const double firstStop = train.computePaxDependentDwellTimeAtStations(800, 800, 0.5,
-			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+		7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
 	const double secondStop = train.computePaxDependentDwellTimeAtStations(800, 800, 0.5,
-			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+		7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
 	ok &= expect(near(firstStop, dwellA) && !near(firstStop, secondStop), "a second stop draws on from the first");
 
 	const std::vector<double> windowsA = sampledWindows(scene, kSeedA);
@@ -326,31 +326,31 @@ static bool brakingPointTests() {
 	// The curve reaches the current speed inside the route: the braking point is interpolated
 	// between the two steps around that speed.
 	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), 4601.818895),
-			"braking point of a stop from 30 m/s on a flat route");
+		"braking point of a stop from 30 m/s on a flat route");
 	ok &= expect(at(train.BrakDist_Block(30.0, 10.0, 5000.0, route.data(), 1), 4644.466708),
-			"braking point of a slowdown from 30 to 10 m/s on a flat route");
+		"braking point of a slowdown from 30 to 10 m/s on a flat route");
 	ok &= expect(train.BrakDist_Block(10.0, 10.0, 5000.0, route.data(), 1) == 5000.0
 			&& train.BrakDist_Block(10.0, 30.0, 5000.0, route.data(), 1) == 5000.0,
-			"no braking is needed when the current speed does not exceed the target speed");
+		"no braking is needed when the current speed does not exceed the target speed");
 
 	// The curve passes the start of the route before it reaches the current speed: the braking
 	// point lies before the route and is the last abscissa that was computed.
 	std::vector<Section> later = brakingRoute(2.0, 12.0, 0.0);
 	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 100.0, route.data(), 1), -9.763361),
-			"a braking curve that leaves the route at its start gives a braking point before the route");
+		"a braking curve that leaves the route at its start gives a braking point before the route");
 	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 2100.0, later.data(), 1), 1990.236639),
-			"the start of the route is the one of the first section");
+		"the start of the route is the one of the first section");
 
 	// The braking force cannot hold the train on a steep descent: the curve runs forward and
 	// leaves the route at its end.
 	std::vector<Section> steep = brakingRoute(0.0, 10.0, -0.5);
 	ok &= expect(train.BrakDist_Block(30.0, 10.0, 5000.0, steep.data(), 1) == -1,
-			"a braking curve that leaves the route at its end gives no braking point");
+		"a braking curve that leaves the route at its end gives no braking point");
 	// 1,999 steps are not enough on a long, almost balanced slope.
 	Train slow = brakingTrain(0.001);
 	std::vector<Section> farRoute = brakingRoute(0.0, 100.0, -0.0044);
 	ok &= expect(slow.BrakDist_Block(30.0, 0.0, 50000.0, farRoute.data(), 1) == -1,
-			"a curve that does not reach the current speed in 1,999 steps gives no braking point");
+		"a curve that does not reach the current speed in 1,999 steps gives no braking point");
 
 	// The result does not depend on what the stack held before the call.
 	for (const double value : {0.0, 1e30, -1e30, std::numeric_limits<double>::quiet_NaN()}) {
@@ -359,7 +359,7 @@ static bool brakingPointTests() {
 		poisonStack(value);
 		const double end = train.BrakDist_Block(30.0, 10.0, 5000.0, steep.data(), 1);
 		ok &= expect(at(start, -9.763361) && end == -1,
-				"the braking point of a curve that leaves the route does not depend on the stack");
+			"the braking point of a curve that leaves the route does not depend on the stack");
 	}
 	timestep = savedTimestep;
 	return ok;
@@ -389,7 +389,7 @@ struct BrakingRun {
 // `position`, one second before. The vectors have exactly the size the steps need, with NaN in the entries that
 // are not set. GradientExceptionInBraking is set before each step.
 static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double position, double speed,
-		double targetSpeed, double targetPosition, int steps) {
+	double targetSpeed, double targetPosition, int steps) {
 	const int size = steps + 2;
 	BrakingRun run;
 	run.position.assign(size, std::numeric_limits<double>::quiet_NaN());
@@ -409,7 +409,7 @@ static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double p
 		for (int j = 0; j < section.total_arcs; ++j) {
 			const Arc& candidate = section.arcs_in_signalling_block_section[j];
 			if (train.instant_spatial_position[t - 1] >= candidate.startNode.X * 1000
-					&& train.instant_spatial_position[t - 1] < candidate.endNode.X * 1000)
+				&& train.instant_spatial_position[t - 1] < candidate.endNode.X * 1000)
 				arc = candidate;
 		}
 		train.GradientExceptionInBraking = true;
@@ -438,13 +438,13 @@ static bool brakingCurveTests() {
 		std::vector<Section> flat = brakingRoute(0.0, 10.0, 0.0);
 		ok &= expect(train.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1) && train.BrakStep > 0
 				&& train.Vbrak[0] >= 30.0 && at(train.Sbrak[train.BrakStep], 4999.998) && train.Vbrak[train.BrakStep] == 0.0,
-				"a braking curve that reaches the current speed is stored from the first step to the target");
+			"a braking curve that reaches the current speed is stored from the first step to the target");
 		// A speed that does not exceed the target speed has no curve either, and the curve before it is not kept.
 		ok &= expect(!train.DrawBrakingCurve(10.0, 20.0, 5000.0, flat.data(), 1) && train.BrakStep == -1,
-				"a speed below the target speed gives no braking curve and marks the curve empty");
+			"a speed below the target speed gives no braking curve and marks the curve empty");
 		train.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1);
 		ok &= expect(!train.DrawBrakingCurve(20.0, 20.0, 5000.0, flat.data(), 1) && train.BrakStep == -1,
-				"a speed equal to the target speed gives no braking curve and marks the curve empty");
+			"a speed equal to the target speed gives no braking curve and marks the curve empty");
 	}
 
 	struct Case {
@@ -463,22 +463,22 @@ static bool brakingCurveTests() {
 		{"a curve that leaves the route at its end", brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1390.28, 1673.0, 8, false},
 		{"a curve that leaves the route at its start", brakingRoute(0.0, 10.0, 0.0), 50.0, 100.0, 8, false},
 		{"a curve that leaves the route at its end for a train that slows down below the target speed",
-				brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1000.0, 1673.0, 22, true},
+			brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1000.0, 1673.0, 22, true},
 	};
 	for (Case& c : cases) {
 		const std::string name = c.name;
 		const int steps = c.steps;
 		Train fresh = brakingTrain(1.0);
 		ok &= expect(!fresh.DrawBrakingCurve(speed, targetSpeed, c.targetPosition, c.route.data(), 1) && fresh.BrakStep == -1,
-				name + ": the curve is reported as not reaching the speed and is marked empty");
+			name + ": the curve is reported as not reaching the speed and is marked empty");
 
 		// A reachable curve was drawn before: nothing of it is read, and it is not kept.
 		Train earlier = brakingTrain(1.0);
 		std::vector<Section> flat = brakingRoute(0.0, 10.0, 0.0);
 		ok &= expect(earlier.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1) && earlier.BrakStep > 0,
-				name + ": a reachable curve is drawn first");
+			name + ": a reachable curve is drawn first");
 		ok &= expect(!earlier.DrawBrakingCurve(speed, targetSpeed, c.targetPosition, c.route.data(), 1) && earlier.BrakStep == -1,
-				name + ": the curve after it is reported as not reaching the speed and is marked empty");
+			name + ": the curve after it is reported as not reaching the speed and is marked empty");
 
 		Train withoutCurve = brakingTrain(1.0);
 		const BrakingRun reference = brakingRun(withoutCurve, c.route, c.position, speed, targetSpeed, c.targetPosition, steps);
@@ -486,7 +486,7 @@ static bool brakingCurveTests() {
 		withCurve.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1);
 		const BrakingRun run = brakingRun(withCurve, c.route, c.position, speed, targetSpeed, c.targetPosition, steps);
 		ok &= expect(run.position == reference.position && run.speed == reference.speed,
-				name + ": the steps do not depend on the curve that was drawn before");
+			name + ": the steps do not depend on the curve that was drawn before");
 
 		// Each step is the step of full braking: the deceleration is the full braking force plus the
 		// resistances, divided by the mass with its mass factor, and the train moves by the mean speed.
@@ -506,19 +506,20 @@ static bool brakingCurveTests() {
 			if (arc == nullptr)
 				arc = &c.route[0].arcs_in_signalling_block_section[0];
 			const double deceleration = (mass * withoutCurve.max_train_decelaration
-					+ withoutCurve.total_train_resistances(run.speed[t - 1], arc->gradient, arc->curvature)) / mass;
+											+ withoutCurve.total_train_resistances(run.speed[t - 1], arc->gradient, arc->curvature))
+				/ mass;
 			const double expectedSpeed = std::max(0.0, run.speed[t - 1] - deceleration * timestep);
 			followsFullBraking &= std::fabs(run.speed[t] - expectedSpeed) <= 1e-9
-					&& std::fabs(run.position[t] - (run.position[t - 1] + (run.speed[t - 1] + expectedSpeed) / 2 * timestep)) <= 1e-9;
+				&& std::fabs(run.position[t] - (run.position[t - 1] + (run.speed[t - 1] + expectedSpeed) / 2 * timestep)) <= 1e-9;
 			setOnlyWhereComputed &= std::isfinite(run.position[t]) && std::isfinite(run.speed[t]);
 		}
 		ok &= expect(followsFullBraking, name + ": position and speed follow the step of full braking");
 		ok &= expect(boundHolds && run.position[1] == c.position && run.speed[1] == speed,
-				name + ": a train moves forward by no more than its larger speed times the step and the step keeps the position before it");
+			name + ": a train moves forward by no more than its larger speed times the step and the step keeps the position before it");
 		ok &= expect(setOnlyWhereComputed && std::isfinite(run.position[0]) && std::isfinite(run.position[1]),
-				name + ": every step is computed");
+			name + ": every step is computed");
 		ok &= expect(run.gradientExceptionClear && (!c.fallsBelowTarget || run.speed[steps + 1] < targetSpeed),
-				name + ": a step without curve clears the gradient exception, also below the target speed");
+			name + ": a step without curve clears the gradient exception, also below the target speed");
 		ok &= expect(run.eq[2] == 54, name + ": the step is marked as a step without curve");
 	}
 
@@ -528,19 +529,19 @@ static bool brakingCurveTests() {
 		Train train = brakingTrain(1.0);
 		const BrakingRun run = brakingRun(train, route, 1390.28, speed, targetSpeed, 1673.0, 8);
 		ok &= expect(at(run.speed[2], 34.934396) && at(run.position[2], 1425.802748),
-				"first step of the case with the curve that leaves the route at its end, on the flat arc");
+			"first step of the case with the curve that leaves the route at its end, on the flat arc");
 		ok &= expect(at(run.speed[9], 113.485645) && at(run.position[9], 1685.336327),
-				"step of the same case on the steep arc, where the train gains speed");
+			"step of the same case on the steep arc, where the train gains speed");
 	}
 	{
 		std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
 		Train train = brakingTrain(1.0);
 		const BrakingRun run = brakingRun(train, route, 50.0, speed, targetSpeed, 100.0, 8);
 		ok &= expect(at(run.speed[2], 34.934396) && at(run.position[2], 85.522748),
-				"first step of the case with the braking point before the route");
+			"first step of the case with the braking point before the route");
 		Train search = brakingTrain(1.0);
 		ok &= expect(search.BrakDist_Block(speed, targetSpeed, 100.0, route.data(), 1) < 50.0,
-				"the braking-point search gives a braking point before the train for the second case");
+			"the braking-point search gives a braking point before the train for the second case");
 	}
 	timestep = savedTimestep;
 	return ok;
@@ -553,7 +554,7 @@ static bool passengerRateTests() {
 	ok &= expect(near(passengerOccupancyRatio(480, 600), 0.8), "occupancy ratio at 80 percent");
 	ok &= expect(near(passengerOccupancyRatio(600, 600), 1.0), "occupancy ratio at 100 percent");
 	ok &= expect(near(passengerOccupancyRatio(7, 0), 0.0) && near(passengerOccupancyRatio(7, -1), 0.0),
-			"occupancy ratio of an unknown capacity is zero");
+		"occupancy ratio of an unknown capacity is zero");
 	ok &= expect(trainPassengerCapacity(0.0) == 300, "capacity of a train without wagons");
 	ok &= expect(trainPassengerCapacity(1.0) == 600, "capacity of a train with one wagon");
 	ok &= expect(trainPassengerCapacity(3.0) == 1200, "capacity of a train with three wagons");
@@ -569,13 +570,13 @@ static bool passengerRateTests() {
 	train.Current_OnBoard_Passengers = 960; // 80 percent of 1200
 	const double highOnboard = seededDwellTime(train, 0.5);
 	ok &= expect(near(highOnboard - lowOnboard, beta7),
-			"on-board congestion above 0.7 adds its term to the dwell time");
+		"on-board congestion above 0.7 adds its term to the dwell time");
 
 	train.Current_OnBoard_Passengers = 0;
 	const double lowPlatform = seededDwellTime(train, 0.6);
 	const double highPlatform = seededDwellTime(train, 0.7);
 	ok &= expect(near(highPlatform - lowPlatform, static_cast<double>(beta1) + beta3),
-			"platform congestion above 0.65 adds its terms to the dwell time");
+		"platform congestion above 0.65 adds its terms to the dwell time");
 
 	return ok;
 }
@@ -656,7 +657,7 @@ static bool routeBoundaryTests() {
 		savedSections.swap(signalling_block_sections);
 		Blocks = savedBlocks;
 		ok &= expect(BlocksOccupied.size() == 1 && BlocksOccupied.front() == sections[1].ID && beforeRouteUntouched,
-				"a first section that starts with a virtual signal has no double switch before it to release");
+			"a first section that starts with a virtual signal has no double switch before it to release");
 	}
 
 	// A single-track limit on one section, with the sections before it restricted.
@@ -675,7 +676,7 @@ static bool routeBoundaryTests() {
 	};
 	auto isStillRestricted = [](const Section& section) {
 		return std::string(section.state) == "red" && section.arcs_in_signalling_block_section[0].signalSpeedLimit == 0.0
-				&& section.code == 180 && section.exit_speed == 20.0;
+			&& section.code == 180 && section.exit_speed == 20.0;
 	};
 
 	for (const bool reversed : {false, true}) {
@@ -691,7 +692,7 @@ static bool routeBoundaryTests() {
 			placeBoundaryTrain(train, 5000.0);
 			singleTrackLimits.clear();
 			singleTrackLimits.emplace_back(reversed ? sections[2].ID : "", reversed ? "" : sections[2].ID,
-					train.type + std::to_string(train.ID), "", "");
+				train.type + std::to_string(train.ID), "", "");
 #ifdef TEST_ADDRESS_SANITIZER
 			ASAN_POISON_MEMORY_REGION(&sections[3], sizeof(Section));
 #endif
@@ -702,7 +703,7 @@ static bool routeBoundaryTests() {
 			ok &= expect(isReleased(sections[2]) && sections[2].arcs_in_signalling_block_section[0].speedInBraking == 0.0
 					&& sections[2].code == 180 && sections[2].exit_speed == 20.0
 					&& isStillRestricted(sections[0]) && isStillRestricted(sections[1]) && isStillRestricted(sections[3]),
-					"a " + direction + " single-track limit on the last section releases that section only");
+				"a " + direction + " single-track limit on the last section releases that section only");
 		}
 		{
 			// The limit is on the section after the train: that section is reset and the train section is released.
@@ -712,12 +713,12 @@ static bool routeBoundaryTests() {
 			placeBoundaryTrain(train, 3000.0);
 			singleTrackLimits.clear();
 			singleTrackLimits.emplace_back(reversed ? sections[2].ID : "", reversed ? "" : sections[2].ID,
-					train.type + std::to_string(train.ID), "", "");
+				train.type + std::to_string(train.ID), "", "");
 			train.unlockSingleTrack(sections.data(), static_cast<int>(sections.size()), 1);
 			ok &= expect(isReleased(sections[1]) && sections[1].arcs_in_signalling_block_section[0].speedInBraking == 36.111111111111
 					&& sections[2].code == 270 && sections[2].exit_speed == 0.0
 					&& isStillRestricted(sections[0]) && std::string(sections[2].state) == "red",
-					"a " + direction + " single-track limit on the next section resets that section");
+				"a " + direction + " single-track limit on the next section resets that section");
 		}
 	}
 
@@ -744,7 +745,7 @@ static bool regionalTrainStorageTests() {
 		ok &= expect(!hasErrors(buildTrains(count)), "train storage fixture builds");
 		ok &= expect(numRegions == count && regional_train.size() == static_cast<std::size_t>(count)
 				&& regional_train.capacity() == static_cast<std::size_t>(count),
-				"the train storage holds exactly the trains of the build");
+			"the train storage holds exactly the trains of the build");
 	}
 
 	const Regional* const keptStorage = regional_train.data();
@@ -752,11 +753,11 @@ static bool regionalTrainStorageTests() {
 	ok &= expect(hasErrors(buildOperationsFromScene(rejected, "scenario.missing"))
 			&& regional_train.data() == keptStorage && regional_train.size() == 2
 			&& regional_train[0].Stations != nullptr,
-			"a rejected build leaves the train storage untouched");
+		"a rejected build leaves the train storage untouched");
 
 	resetNativeOperationsState();
 	ok &= expect(numRegions == 0 && regional_train.empty() && regional_train.capacity() == 0,
-			"a reset releases the train storage");
+		"a reset releases the train storage");
 	return ok;
 }
 
@@ -800,11 +801,11 @@ static bool singleTrackLockTests() {
 	// The zone of a route is derived once: neighbouring sections form one interval of route position.
 	ok &= expect(singleTrackZone(0, 0).intervals.size() == 1 && singleTrackZone(0, 0).intervals[0].first == 0.0
 			&& singleTrackZone(0, 0).intervals[0].second == 12000.0 && singleTrackZone(0, 0).sectionIDs.size() == 6,
-			"neighbouring zone sections merge into one interval");
+		"neighbouring zone sections merge into one interval");
 	ok &= expect(singleTrackZone(0, 1).sectionIDs.size() == 6 && singleTrackZone(0, 1).sectionIDs.front() == "lock.5",
-			"the zone sections of a route are listed in route order");
+		"the zone sections of a route are listed in route order");
 	ok &= expect(singleTrackZone(1, 0).intervals.empty() && singleTrackZone(0, 2).intervals.empty(),
-			"a limit or a route that does not exist has no zone");
+		"a limit or a route that does not exist has no zone");
 
 	auto place = [](int k, int route, double head, bool active) {
 		Regional& train = regional_train[k];
@@ -819,34 +820,34 @@ static bool singleTrackLockTests() {
 		return std::find(list.begin(), list.end(), id) != list.end();
 	};
 	numRegions = 2;
-	place(0, 0, 3000.0, true);   // forward, in lock.1
-	place(1, 1, 3000.0, false);  // reversed, not in the network
+	place(0, 0, 3000.0, true);	// forward, in lock.1
+	place(1, 1, 3000.0, false); // reversed, not in the network
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
 
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 1, "a forward train in the section holds it forward");
 	ok &= expect(has(BlocksConnected, "lock.0") && has(BlocksConnected, "lock.3") && has(BlocksConnected, "lock.5"),
-			"the sections are released when the holder changes, so that stale aspects are reset");
+		"the sections are released when the holder changes, so that stale aspects are reset");
 	ok &= expect(occupySingleTrackForRoute(0) == 0 && BlocksOccupied.empty(),
-			"a route in the direction of the holder is not affected");
+		"a route in the direction of the holder is not affected");
 	ok &= expect(occupySingleTrackForRoute(1) == 6 && BlocksOccupied.size() == 6 && has(BlocksOccupied, "lock.5")
 			&& has(BlocksOccupied, "lock.0"),
-			"a route against the holder sees the protected and plain sections as occupied");
+		"a route against the holder sees the protected and plain sections as occupied");
 	BlocksOccupied.clear();
 	BlocksOccupied.push_back("lock.2");
 	ok &= expect(occupySingleTrackForRoute(1) == 5 && BlocksOccupied.size() == 6,
-			"a section that is occupied already is not added twice");
+		"a section that is occupied already is not added twice");
 	BlocksOccupied.clear();
 
 	// A second forward train follows: still held forward, nothing new is released, the follower is not affected.
-	place(1, 0, 1000.0, true);   // forward, in lock.0 (the protected section before the first plain section)
+	place(1, 0, 1000.0, true); // forward, in lock.0 (the protected section before the first plain section)
 	BlocksConnected.clear();
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == 1 && BlocksConnected.empty(), "a following train in the same direction keeps the holder");
 
 	// A train against the holder enters while the first one is still inside: it does not take the section.
-	place(1, 1, 3000.0, true);   // reversed, in lock.4
+	place(1, 1, 3000.0, true); // reversed, in lock.4
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == 1, "a train of the other direction that enters later does not take the section");
 
@@ -856,15 +857,15 @@ static bool singleTrackLockTests() {
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == -1 && has(BlocksConnected, "lock.2"), "the section passes to the remaining direction and is released");
 	ok &= expect(occupySingleTrackForRoute(0) == 6 && occupySingleTrackForRoute(1) == 0,
-			"now the forward route is held back and the reversed route is not");
+		"now the forward route is held back and the reversed route is not");
 	BlocksOccupied.clear();
 
 	// A forward train enters while the reversed holder is still inside: the holder keeps the section.
-	place(0, 0, 3000.0, true);   // forward, in lock.1
+	place(0, 0, 3000.0, true); // forward, in lock.1
 	BlocksConnected.clear();
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == -1 && BlocksConnected.empty(),
-			"the reversed holder keeps the section when a forward train is inside as well");
+		"the reversed holder keeps the section when a forward train is inside as well");
 	place(0, 0, 3000.0, false);
 
 	// Nobody is left: the section is free and is released once.
@@ -875,7 +876,8 @@ static bool singleTrackLockTests() {
 	BlocksConnected.clear();
 	updateSingleTrackLocks(1);
 	ok &= expect(BlocksConnected.empty() && occupySingleTrackForRoute(0) == 0
-			&& occupySingleTrackForRoute(1) == 0, "a free section is not released again and holds nobody back");
+			&& occupySingleTrackForRoute(1) == 0,
+		"a free section is not released again and holds nobody back");
 
 	// A train in the protected section before the first plain section already holds the section.
 	place(0, 0, 100.0, true);
@@ -889,15 +891,15 @@ static bool singleTrackLockTests() {
 	singleTrackLimits.emplace_back("lock.2", "lock.3", "", "lock.0", "lock.5");
 	resetSingleTrackLocks();
 	ok &= expect(singleTrackZone(0, 0).intervals.size() == 3 && singleTrackZone(0, 0).sectionIDs.size() == 4,
-			"separate zone sections give separate intervals");
-	place(0, 0, 3000.0, true);   // forward, in lock.1, between the protected and the plain sections
+		"separate zone sections give separate intervals");
+	place(0, 0, 3000.0, true); // forward, in lock.1, between the protected and the plain sections
 	place(1, 1, 3000.0, false);
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 0, "a train between zone sections does not hold the zone");
-	place(0, 0, 5000.0, true);   // forward, in lock.2
+	place(0, 0, 5000.0, true); // forward, in lock.2
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == 1, "a train in a zone section holds the zone");
-	place(0, 0, 50.0, true);     // forward, in lock.0 with the rear before the start of the route
+	place(0, 0, 50.0, true); // forward, in lock.0 with the rear before the start of the route
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == 1, "a train whose rear is before the start of the route is inside the first section");
 	place(0, 0, 5000.0, false);
@@ -906,7 +908,7 @@ static bool singleTrackLockTests() {
 	// New routes are not read through the zones of the old ones.
 	train_route.resize(1);
 	ok &= expect(singleTrackZone(0, 1).intervals.empty() && singleTrackZone(0, 0).intervals.size() == 3,
-			"the zones follow the current routes");
+		"the zones follow the current routes");
 	resetSingleTrackLocks();
 
 	timestep = savedTimestep;
@@ -944,7 +946,7 @@ int main() {
 	diagramScene.services.push_back(reverseService);
 	const auto diagramInfra = buildInfrastructureAndSignallingFromScene(diagramScene);
 	const auto diagramOps = hasErrors(diagramInfra) ? diagramInfra
-		: buildOperationsFromScene(diagramScene, "scenario.base");
+													: buildOperationsFromScene(diagramScene, "scenario.base");
 	ok &= expect(!hasErrors(diagramInfra) && !hasErrors(diagramOps),
 		"forward and reverse diagram fixture builds through native paths");
 	if (!hasErrors(diagramInfra) && !hasErrors(diagramOps) && numRegions > 1) {
@@ -957,14 +959,14 @@ int main() {
 		const auto forwardStop = routeDiagramStopPosition(forward, 1, reference, identity);
 		const auto backwardStop = routeDiagramStopPosition(reverse, 1, reversePath, reverseProjection);
 		ok &= expect(forwardStop && backwardStop && std::fabs(*forwardStop - 43.0) < 1e-6
-			&& std::fabs(*backwardStop - 43.0) < 1e-6,
+				&& std::fabs(*backwardStop - 43.0) < 1e-6,
 			"native forward/reverse stop nodes share reference coordinates");
 		const double forwardSample = forward.Stations[1].X * 1000.0;
 		const double reverseSample = reverse.Stations[1].X * 1000.0;
 		const auto forwardAtSample = identity.map(routeDiagramTrajectoryKm(forwardSample));
 		const auto reverseAtSample = reverseProjection.map(routeDiagramTrajectoryKm(reverseSample));
 		ok &= expect(forwardAtSample && reverseAtSample && std::fabs(*forwardAtSample - *forwardStop) < 1e-6
-			&& std::fabs(*reverseAtSample - *backwardStop) < 1e-6,
+				&& std::fabs(*reverseAtSample - *backwardStop) < 1e-6,
 			"runtime sample metres project without a second direction reversal");
 	}
 	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
@@ -983,45 +985,48 @@ int main() {
 		tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
 	const auto tooManyStopsDiagnostics = buildOperationsFromScene(tooManyStops, "scenario.base");
 	ok &= expect(hasCode(tooManyStopsDiagnostics, "scene.native.capacity.stops"),
-			"native operations rejects one stop above the timetable limit");
+		"native operations rejects one stop above the timetable limit");
 	SceneModel tooManyTrains = completeScene();
 	tooManyTrains.services[0].hasRepeatCount = true;
 	tooManyTrains.services[0].repeatCount = Max_N_Reg + 1;
 	const auto tooManyTrainsDiagnostics = buildOperationsFromScene(tooManyTrains, "scenario.base");
 	ok &= expect(hasCode(tooManyTrainsDiagnostics, "scene.native.capacity.trains"),
-			"native operations rejects one expanded train above the limit");
+		"native operations rejects one expanded train above the limit");
 	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__"
 			&& InputMainFolder == initial_variables.InputMainFolder,
-			"native builders do not access or rewrite the legacy input folder");
+		"native builders do not access or rewrite the legacy input folder");
 	ok &= expect(numRegions == 3 && N_Train == 3 && N_TrainD == 0, "repeat expansion populates train counts");
 	ok &= expect(regional_train[0].trainDescription == "service.native-1"
 			&& regional_train[1].trainDescription == "service.native-2"
-			&& regional_train[2].trainDescription == "service.native-3", "occurrence IDs are canonical and stable");
+			&& regional_train[2].trainDescription == "service.native-3",
+		"occurrence IDs are canonical and stable");
 	ok &= expect(regional_train[0].type == "service.native", "occurrences share the canonical service type");
 	ok &= expect(regional_train[0].operatingCode == "9707-1"
 			&& regional_train[1].operatingCode == "9707-2"
 			&& regional_train[2].operatingCode == "9707-3",
-			"repeated services without a step expose readable operating codes");
+		"repeated services without a step expose readable operating codes");
 	ok &= expect(regional_train[0].number_of_wagons == 3.0
 			&& regional_train[0].total_train_mass == 290.0
 			&& regional_train[0].velocityIntervals == 2,
-			"ordered multi-unit physical and traction data is aggregated (wagons="
+		"ordered multi-unit physical and traction data is aggregated (wagons="
 			+ std::to_string(regional_train[0].number_of_wagons) + ", mass="
 			+ std::to_string(regional_train[0].total_train_mass) + ", bands="
 			+ std::to_string(regional_train[0].velocityIntervals) + ")");
 	ok &= expect(regional_train[0].MAX_OnBoard_Passengers == 1200
 			&& regional_train[0].Current_OnBoard_Passengers == 0,
-			"built train capacity follows the aggregated wagon count (capacity="
+		"built train capacity follows the aggregated wagon count (capacity="
 			+ std::to_string(regional_train[0].MAX_OnBoard_Passengers) + ")");
 	ok &= expect(regional_train[0].scheduled_departure_time == 100.0
 			&& regional_train[1].scheduled_departure_time == 130.0
-			&& regional_train[2].scheduled_departure_time == 160.0, "canonical entry times remain scheduled times");
+			&& regional_train[2].scheduled_departure_time == 160.0,
+		"canonical entry times remain scheduled times");
 	ok &= expect(regional_train[0].ScheduledArrivals[0] == -1.0
 			&& regional_train[0].ScheduledArrivals[1] == 120.0
-			&& regional_train[0].ScheduledDepartures[2] == -1.0, "optional timetable fields retain runtime -1 sentinels");
+			&& regional_train[0].ScheduledDepartures[2] == -1.0,
+		"optional timetable fields retain runtime -1 sentinels");
 	ok &= expect(regional_train[0].stationIsOnRoute(0)
 			&& regional_train[0].stationRoutePositionMeters(0) == 0.0,
-			"planned references retain a valid route-origin station at kilometre zero");
+		"planned references retain a valid route-origin station at kilometre zero");
 	Node offRouteStation;
 	offRouteStation.station = true;
 	offRouteStation.stationName = "Outside";
@@ -1031,49 +1036,52 @@ int main() {
 	routeMembershipProbe.indexOfRoute = regional_train[0].indexOfRoute;
 	ok &= expect(!routeMembershipProbe.stationIsOnRoute(0)
 			&& routeMembershipProbe.stationRoutePositionMeters(0) < 0.0,
-			"route-external static timetable stops remain inert in planned route results");
+		"route-external static timetable stops remain inert in planned route results");
 	ok &= expect(regional_train[0].instant_train_tractive_effort.size()
 			== regional_train[0].instant_spatial_position.size(),
-			"tractive-effort samples are allocated with the trajectory");
+		"tractive-effort samples are allocated with the trajectory");
 	ok &= expect(regional_train[1].ScheduledDepartures[0] == 145.0
 			&& regional_train[1].ScheduledDepartures[1] == 160.0
-			&& regional_train[1].EntranceDelay == 5.0, "selected entrance delays apply to the requested occurrence and stops");
+			&& regional_train[1].EntranceDelay == 5.0,
+		"selected entrance delays apply to the requested occurrence and stops");
 	ok &= expect(regional_train[0].departure_time == 1.0 && regional_train[1].departure_time == 1201.0
-			&& regional_train[2].departure_time == 2401.0, "hourly departure retiming preserves the legacy algorithm");
+			&& regional_train[2].departure_time == 2401.0,
+		"hourly departure retiming preserves the legacy algorithm");
 	ok &= expect(simulationIncidents.size() == 2
 			&& simulationIncidents[0].target == "signal.0"
-			&& simulationIncidents[1].target == "service.native", "only the selected scenario reaches runtime incidents");
+			&& simulationIncidents[1].target == "service.native",
+		"only the selected scenario reaches runtime incidents");
 	ok &= expect(simulationIncidents[1].id == "incident.breakdown"
 			&& simulationIncidents[1].hasEndSeconds
 			&& !simulationIncidents[1].hasOccurrence
 			&& !simulationIncidents[1].hasReducedSpeed,
-			"legacy breakdown incidents retain full-hold runtime defaults");
+		"legacy breakdown incidents retain full-hold runtime defaults");
 	if (!simulationIncidents.empty())
 		ok &= expect(simulationIncidents.front().resolvedSectionIDs
 				== std::vector<std::string>{"@block.1@"},
-				"signal failure resolves its protected section to the exact runtime ID");
+			"signal failure resolves its protected section to the exact runtime ID");
 	SceneModel directBlockIncident = completeScene();
 	directBlockIncident.signals.front().protectedSection.clear();
 	directBlockIncident.scenarios[1].incidents[0].target = "block.1";
 	const auto directInfrastructure = buildInfrastructureAndSignallingFromScene(directBlockIncident);
 	const auto directOperations = buildOperationsFromScene(directBlockIncident, "scenario.selected");
 	ok &= expect(!hasErrors(directInfrastructure) && !hasErrors(directOperations)
-				&& !simulationIncidents.empty()
-				&& simulationIncidents.front().resolvedSectionIDs == std::vector<std::string>{"@block.1@"},
-				"direct base-block signal failures remain compatible without signal binding");
+			&& !simulationIncidents.empty()
+			&& simulationIncidents.front().resolvedSectionIDs == std::vector<std::string>{"@block.1@"},
+		"direct base-block signal failures remain compatible without signal binding");
 	SceneModel unboundSignal = completeScene();
 	unboundSignal.signals.front().protectedSection.clear();
 	const auto unboundInfrastructure = buildInfrastructureAndSignallingFromScene(unboundSignal);
 	const auto unboundOperations = buildOperationsFromScene(unboundSignal, "scenario.selected");
 	ok &= expect(!hasErrors(unboundInfrastructure) && hasErrors(unboundOperations),
-				"targeting an unbound signal fails operations staging instead of guessing");
+		"targeting an unbound signal fails operations staging instead of guessing");
 	SceneModel ambiguousSignalTarget = completeScene();
 	ambiguousSignalTarget.blocks.front().id = "signal.0";
 	ambiguousSignalTarget.routes.front().blocks.front() = "signal.0";
 	const auto ambiguousInfrastructure = buildInfrastructureAndSignallingFromScene(ambiguousSignalTarget);
 	const auto ambiguousOperations = buildOperationsFromScene(ambiguousSignalTarget, "scenario.selected");
 	ok &= expect(!hasErrors(ambiguousInfrastructure) && hasErrors(ambiguousOperations),
-				"a signal failure target matching both a signal and block is rejected as ambiguous");
+		"a signal failure target matching both a signal and block is rejected as ambiguous");
 	SceneModel occurrenceSpecific = completeScene();
 	SceneIncident& occurrenceBreakdown = occurrenceSpecific.scenarios[1].incidents[1];
 	occurrenceBreakdown.hasOccurrence = true;
@@ -1094,15 +1102,15 @@ int main() {
 			&& regional_train[1].destinationTerminationRequested
 			&& !regional_train[0].destinationTerminationRequested
 			&& !regional_train[2].destinationTerminationRequested,
-			"reduced breakdown staging targets one occurrence and continues without recovery");
+		"reduced breakdown staging targets one occurrence and continues without recovery");
 	regional_train[1].directIncidentIds.clear();
 	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(10.0, 50) - 10.0) < 1e-9
 			&& regional_train[1].directIncidentIds.empty(),
-			"a nonbinding breakdown cap is not recorded as direct evidence");
+		"a nonbinding breakdown cap is not recorded as direct evidence");
 	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(25.0, 50) - 40.0 / 3.6) < 1e-9
 			&& regional_train[1].directIncidentIds == std::vector<std::string>{"incident.breakdown"}
 			&& std::fabs(regional_train[0].effectiveIncidentSpeedLimit(25.0, 50) - 25.0) < 1e-9,
-			"a binding cap records direct evidence only on the targeted occurrence");
+		"a binding cap records direct evidence only on the targeted occurrence");
 	SimulationIncident overlappingHold = simulationIncidents[1];
 	overlappingHold.id = "incident.hold";
 	overlappingHold.hasReducedSpeed = false;
@@ -1113,7 +1121,7 @@ int main() {
 	simulationIncidents.push_back(overlappingHold);
 	ok &= expect(Incident_Holds_Train("service.native-2", 50)
 			&& Active_Train_Breakdown("service.native-2", 50)->id == "incident.hold",
-			"an overlapping full hold dominates an earlier reduced-speed incident");
+		"an overlapping full hold dominates an earlier reduced-speed incident");
 	SimulationIncident strictCap = simulationIncidents[1];
 	strictCap.id = "incident.strict-cap";
 	strictCap.reducedSpeedKmh = 30.0;
@@ -1121,11 +1129,11 @@ int main() {
 	regional_train[1].directIncidentIds.clear();
 	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(25.0, 60) - 30.0 / 3.6) < 1e-9
 			&& regional_train[1].directIncidentIds == std::vector<std::string>{"incident.strict-cap"},
-			"the strictest concurrent cap supplies the governing direct evidence");
+		"the strictest concurrent cap supplies the governing direct evidence");
 	ok &= expect(AllStationPlatforms.size() == 3, "native operations reuses the M2 platform list");
 	if (!AllStationPlatforms.empty())
 		ok &= expect(AllStationPlatforms.front().List_Trains_Stopping_At_Platform.front() == "service.native-1",
-				"platform stopping lists use stable occurrence descriptions");
+			"platform stopping lists use stable occurrence descriptions");
 	SceneModel geometry = completeScene();
 	geometry.stations[0].platforms[0].hasLength = true;
 	geometry.stations[0].platforms[0].lengthM = 140.0;
@@ -1135,21 +1143,22 @@ int main() {
 	const auto geometryOperations = buildOperationsFromScene(geometry, "scenario.selected");
 	ok &= expect(!hasErrors(geometryInfrastructure) && !hasErrors(geometryOperations)
 			&& AllStationPlatforms.size() == 3,
-			"explicit platform geometry reaches native operations");
+		"explicit platform geometry reaches native operations");
 	if (AllStationPlatforms.size() == 3) {
 		auto platform = AllStationPlatforms.begin();
 		ok &= expect(platform->length == 140.0 && platform->width == 3.0
-				&& platform->Max_Passenger_Volume == static_cast<int>((140.0 * 3.0)
-						/ (3.14159 * std::pow(0.8, 2)) * 0.8),
-				"native platform capacity keeps the existing area formula");
+				&& platform->Max_Passenger_Volume == static_cast<int>((140.0 * 3.0) / (3.14159 * std::pow(0.8, 2)) * 0.8),
+			"native platform capacity keeps the existing area formula");
 		++platform;
 		ok &= expect(platform != AllStationPlatforms.end() && platform->length == 100.0
-				&& platform->width == 2.5, "absent platform geometry keeps effective defaults");
+				&& platform->width == 2.5,
+			"absent platform geometry keeps effective defaults");
 	}
 	const std::string geometryPreviousName = initial_variables.name;
 	const int geometryPreviousRegions = numRegions;
 	const double previousPlatformLength = AllStationPlatforms.empty()
-			? -1.0 : AllStationPlatforms.front().length;
+		? -1.0
+		: AllStationPlatforms.front().length;
 	SceneModel invalidGeometry = completeScene();
 	invalidGeometry.stations[0].platforms[0].hasLength = true;
 	invalidGeometry.stations[0].platforms[0].lengthM = std::numeric_limits<double>::max();
@@ -1159,27 +1168,29 @@ int main() {
 			&& numRegions == geometryPreviousRegions
 			&& initial_variables.name == geometryPreviousName
 			&& (!AllStationPlatforms.empty() && AllStationPlatforms.front().length == previousPlatformLength),
-			"unsafe platform capacity is rejected before native state publication");
+		"unsafe platform capacity is rejected before native state publication");
 	ok &= expect(AllDailyPassengers.size() == 1, "passenger journeys are built without filesystem input");
 	if (!AllDailyPassengers.empty() && !AllDailyPassengers.front().Journeys.empty()) {
 		const Journey& journey = AllDailyPassengers.front().Journeys.front();
 		ok &= expect(journey.N_Trips == 2 && std::isfinite(journey.Actual_Planned_Departure_Time)
 				&& journey.Actual_Planned_Departure_Time >= 100.0
-				&& journey.Actual_Planned_Departure_Time <= 110.0, "passenger windows are sampled in memory");
+				&& journey.Actual_Planned_Departure_Time <= 110.0,
+			"passenger windows are sampled in memory");
 		if (!journey.Trips.empty()) {
 			const Trip& first = journey.Trips.front();
 			const Trip& last = journey.Trips.back();
 			ok &= expect(first.TrainServiceDescription == "service.native-2"
 					&& first.Dep_Station_Platform_ID == "platform.0"
-					&& last.Arr_Station_Platform_ID == "platform.2", "passenger legs map to occurrence stop platforms");
+					&& last.Arr_Station_Platform_ID == "platform.2",
+				"passenger legs map to occurrence stop platforms");
 			ok &= expect(first.Planned_Departure_Time >= 100 && first.Planned_Arrival_Time == -9999
 					&& last.Planned_Departure_Time == -9999 && last.Planned_Arrival_Time >= 130,
-					"multi-leg planned times retain the existing endpoint-only semantics");
+				"multi-leg planned times retain the existing endpoint-only semantics");
 		}
 		auto unrouted = AllDailyPassengers.front().Journeys.begin();
 		++unrouted;
 		ok &= expect(unrouted != AllDailyPassengers.front().Journeys.end() && unrouted->N_Trips == 0,
-				"legless canonical journeys remain present");
+			"legless canonical journeys remain present");
 	}
 	auto routeChoicePassengers = AllDailyPassengers;
 	Passenger& active = routeChoicePassengers.front();
@@ -1204,7 +1215,7 @@ int main() {
 			&& routeChoice["passengers"]["legless.passenger--1.0"]["destination"] == "Two"
 			&& routeChoice["passengers"]["legless.passenger--1.0"]["departure_time"] == leglessDepartureTime
 			&& routeChoicePayload({}, 17)["passengers"].empty(),
-			"route-choice sharing deterministically includes routed and legless active journeys");
+		"route-choice sharing deterministically includes routed and legless active journeys");
 	ok &= expect(initial_variables.name == "native-operations-fixture"
 			&& initial_variables.startingSimulationTime == 23400
 			&& initial_variables.times == 90.0
@@ -1212,7 +1223,8 @@ int main() {
 			&& initial_variables.recoveryTimePercentage == 12
 			&& bufferTime == 7.0
 			&& recoveryTimePercentage == 12.0
-			&& initial_variables.num_OrderLists == 0, "canonical simulation settings are committed");
+			&& initial_variables.num_OrderLists == 0,
+		"canonical simulation settings are committed");
 
 	SceneModel stepped = completeScene();
 	stepped.services[0].operatingCode = "1723";
@@ -1223,11 +1235,11 @@ int main() {
 	const auto steppedInfrastructure = buildInfrastructureAndSignallingFromScene(stepped);
 	const auto steppedOperations = buildOperationsFromScene(stepped, "scenario.selected");
 	ok &= expect(!hasErrors(steppedInfrastructure) && !hasErrors(steppedOperations)
-				&& numRegions == 4
-				&& regional_train[0].operatingCode == "1723"
-				&& regional_train[1].operatingCode == "1725"
-				&& regional_train[3].operatingCode == "1729",
-				"explicit repeat count and stepped operating codes reach each occurrence");
+			&& numRegions == 4
+			&& regional_train[0].operatingCode == "1723"
+			&& regional_train[1].operatingCode == "1725"
+			&& regional_train[3].operatingCode == "1729",
+		"explicit repeat count and stepped operating codes reach each occurrence");
 
 	SceneModel tuned = completeScene();
 	tuned.services[0].performancePercent = 50.0;
@@ -1247,15 +1259,15 @@ int main() {
 	const auto tunedInfrastructure = buildInfrastructureAndSignallingFromScene(tuned);
 	const auto tunedOperations = buildOperationsFromScene(tuned, "scenario.selected");
 	ok &= expect(!hasErrors(tunedInfrastructure) && !hasErrors(tunedOperations)
-				&& numRegions == 4
-				&& std::fabs(regional_train[0].compositionMaximumSpeedMs - 25.0) < 1e-9
-				&& std::fabs(regional_train[0].max_train_speed - (20.0 / 3.6 * 0.5)) < 1e-9
-				&& std::fabs(regional_train[3].max_train_speed - 25.0) < 1e-9,
-				"service cap and performance apply in precedence order per train");
+			&& numRegions == 4
+			&& std::fabs(regional_train[0].compositionMaximumSpeedMs - 25.0) < 1e-9
+			&& std::fabs(regional_train[0].max_train_speed - (20.0 / 3.6 * 0.5)) < 1e-9
+			&& std::fabs(regional_train[3].max_train_speed - 25.0) < 1e-9,
+		"service cap and performance apply in precedence order per train");
 	ok &= expect(tuned.trainUnits[0].physical.max_speed_ms == 30.0
-				&& tuned.trainUnits[1].physical.max_speed_ms == 25.0
-				&& tuned.compositions[0].units == std::vector<std::string>{"unit.1", "unit.2"},
-				"services sharing a composition do not mutate source rolling-stock data");
+			&& tuned.trainUnits[1].physical.max_speed_ms == 25.0
+			&& tuned.compositions[0].units == std::vector<std::string>{"unit.1", "unit.2"},
+		"services sharing a composition do not mutate source rolling-stock data");
 	{
 		const double previousPerformance = regional_train[0].servicePerformancePercent;
 		regional_train[0].servicePerformancePercent = 100.0;
@@ -1264,12 +1276,12 @@ int main() {
 		const double reducedForce = regional_train[0].tractiveEffort(5.0);
 		regional_train[0].servicePerformancePercent = previousPerformance;
 		ok &= expect(fullForce > 0.0 && std::fabs(reducedForce - fullForce * 0.5) < 1e-9,
-				"performance scales tractive effort exactly once");
+			"performance scales tractive effort exactly once");
 	}
 
 	SceneModel selectedScene = completeScene();
 	selectedScene.scenarios[1].entranceDelays.push_back(
-			{"service.native", 1, "station.0", 7.0});
+		{"service.native", 1, "station.0", 7.0});
 	ScenePassengerJourney excludedJourney = selectedScene.passengers[0].journeys[0];
 	excludedJourney.id = "journey.excluded";
 	for (ScenePassengerLeg& leg : excludedJourney.legs) {
@@ -1301,10 +1313,10 @@ int main() {
 		}
 	}
 	ok &= expect(!hasErrors(selectedInfrastructure) && !hasErrors(selectedOperations)
-				&& numRegions == 1 && regional_train[0].trainDescription == "service.native-2"
-				&& regional_train[0].EntranceDelay == 5.0
-				&& selectedJourneyHasTrips && excludedJourneyOmitted && mixedJourneyOmitted,
-				"occurrence selection omits journeys with excluded passenger legs");
+			&& numRegions == 1 && regional_train[0].trainDescription == "service.native-2"
+			&& regional_train[0].EntranceDelay == 5.0
+			&& selectedJourneyHasTrips && excludedJourneyOmitted && mixedJourneyOmitted,
+		"occurrence selection omits journeys with excluded passenger legs");
 	SceneModel reversePassengerLeg = completeScene();
 	reversePassengerLeg.passengers[0].journeys[0].originStationId = "station.2";
 	reversePassengerLeg.passengers[0].journeys[0].destinationStationId = "station.1";
@@ -1316,25 +1328,25 @@ int main() {
 	const auto reversePassengerInfrastructure = buildInfrastructureAndSignallingFromScene(reversePassengerLeg);
 	const auto reversePassengerDiagnostics = buildOperationsFromScene(reversePassengerLeg, "scenario.base", onlySecond);
 	ok &= expect(!hasErrors(reversePassengerInfrastructure)
-				&& hasCode(reversePassengerDiagnostics, "scene.native.passenger.order")
-				&& numRegions == previousReverseRegions
-				&& initial_variables.name == previousReverseName
-				&& AllDailyPassengers.size() == previousReversePassengerCount,
-				"native preflight rejects reverse passenger legs before state publication");
+			&& hasCode(reversePassengerDiagnostics, "scene.native.passenger.order")
+			&& numRegions == previousReverseRegions
+			&& initial_variables.name == previousReverseName
+			&& AllDailyPassengers.size() == previousReversePassengerCount,
+		"native preflight rejects reverse passenger legs before state publication");
 	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
 	legacyReversePassengerLeg.importReport.push_back({"legacy_root"});
 	const auto legacyReverseInfrastructure = buildInfrastructureAndSignallingFromScene(legacyReversePassengerLeg);
 	const auto legacyReverseDiagnostics = buildOperationsFromScene(
-			legacyReversePassengerLeg, "scenario.base", onlySecond);
+		legacyReversePassengerLeg, "scenario.base", onlySecond);
 	bool legacyReverseJourneyOmitted = !AllDailyPassengers.empty();
 	if (!AllDailyPassengers.empty()) {
 		for (const Journey& journey : AllDailyPassengers.front().Journeys)
 			legacyReverseJourneyOmitted = legacyReverseJourneyOmitted && journey.ID != "journey.1";
 	}
 	ok &= expect(!hasErrors(legacyReverseInfrastructure) && !hasErrors(legacyReverseDiagnostics)
-				&& hasCodeAndSeverity(legacyReverseDiagnostics, "scene.native.passenger.order", SceneSeverity::Warning)
-				&& legacyReverseJourneyOmitted,
-			"legacy reverse passenger legs are warned and omitted as a whole journey");
+			&& hasCodeAndSeverity(legacyReverseDiagnostics, "scene.native.passenger.order", SceneSeverity::Warning)
+			&& legacyReverseJourneyOmitted,
+		"legacy reverse passenger legs are warned and omitted as a whole journey");
 	SceneModel repeatedPassengerStops = completeScene();
 	repeatedPassengerStops.services[0].stops = {
 		{"station.2", "platform.2", true, true, 100.0, 110.0, 0.0},
@@ -1342,7 +1354,8 @@ int main() {
 		{"station.2", "platform.2", true, true, 140.0, 150.0, 0.0}};
 	buildInfrastructureAndSignallingFromScene(repeatedPassengerStops);
 	ok &= expect(hasCode(buildOperationsFromScene(repeatedPassengerStops, "scenario.base", onlySecond),
-		"scene.native.ref.stop.order"), "repeated calls cannot reuse an earlier route visit");
+					 "scene.native.ref.stop.order"),
+		"repeated calls cannot reuse an earlier route visit");
 	// Two distinct visits to the same platform, separated by station One.
 	repeatedPassengerStops.stations[0].platforms[0].nodeIds = {"node.3"};
 	repeatedPassengerStops.stations[2].platforms[0].nodeIds = {"node.0", "node.2"};
@@ -1358,16 +1371,16 @@ int main() {
 		for (const Journey& journey : AllDailyPassengers.front().Journeys) {
 			if (journey.ID == "journey.1")
 				repeatedJourneyStaged = journey.N_Trips == 1 && !journey.Trips.empty()
-						&& journey.Trips.front().Dep_Station_Platform_ID == "platform.1"
-						&& journey.Trips.front().Arr_Station_Platform_ID == "platform.2";
+					&& journey.Trips.front().Dep_Station_Platform_ID == "platform.1"
+					&& journey.Trips.front().Arr_Station_Platform_ID == "platform.2";
 		}
 	}
 	ok &= expect(!hasErrors(repeatedInfrastructure) && !hasErrors(repeatedOperations)
-				&& resolveScenePassengerLegStops(repeatedPassengerStops.services[0], repeatedJourney.legs[0], repeatedPair)
-				&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
-				&& regional_train[0].Stations[0].X == 0.0 && regional_train[0].Stations[2].X == 2.0
-				&& repeatedJourneyStaged,
-				"native passenger staging follows the repeated-stop ordered pair");
+			&& resolveScenePassengerLegStops(repeatedPassengerStops.services[0], repeatedJourney.legs[0], repeatedPair)
+			&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
+			&& regional_train[0].Stations[0].X == 0.0 && regional_train[0].Stations[2].X == 2.0
+			&& repeatedJourneyStaged,
+		"native passenger staging follows the repeated-stop ordered pair");
 	SceneModel invalidUnselectedPassenger = completeScene();
 	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].serviceId = "service.missing";
 	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].occurrence = 1;
@@ -1376,14 +1389,14 @@ int main() {
 	const std::string previousOperationsName = initial_variables.name;
 	const std::size_t previousPassengerCount = AllDailyPassengers.size();
 	const auto invalidUnselectedPassengerDiagnostics = buildOperationsFromScene(
-			invalidUnselectedPassenger, "scenario.selected", onlySecond);
+		invalidUnselectedPassenger, "scenario.selected", onlySecond);
 	ok &= expect(hasErrors(invalidUnselectedPassengerDiagnostics)
-				&& hasCode(invalidUnselectedPassengerDiagnostics, "scene.native.passenger.service")
-				&& numRegions == previousRegions
-				&& regional_train[0].trainDescription == previousTrainDescription
-				&& initial_variables.name == previousOperationsName
-				&& AllDailyPassengers.size() == previousPassengerCount,
-				"invalid unselected passenger legs are rejected before native state publication");
+			&& hasCode(invalidUnselectedPassengerDiagnostics, "scene.native.passenger.service")
+			&& numRegions == previousRegions
+			&& regional_train[0].trainDescription == previousTrainDescription
+			&& initial_variables.name == previousOperationsName
+			&& AllDailyPassengers.size() == previousPassengerCount,
+		"invalid unselected passenger legs are rejected before native state publication");
 
 	SceneModel sparsePattern = completeScene();
 	sparsePattern.services[0].hasRepeatCount = true;
@@ -1391,17 +1404,17 @@ int main() {
 	const SceneRunSelection lateOccurrence{{"service.native", 999999999}};
 	const auto sparseInfrastructure = buildInfrastructureAndSignallingFromScene(sparsePattern);
 	const auto sparseOperations = buildOperationsFromScene(
-			sparsePattern, "scenario.selected", lateOccurrence);
+		sparsePattern, "scenario.selected", lateOccurrence);
 	ok &= expect(!hasErrors(sparseInfrastructure) && !hasErrors(sparseOperations)
-				&& numRegions == 1
-				&& regional_train[0].trainDescription == "service.native-999999999",
-				"a sparse selection does not expand every occurrence in a large pattern");
+			&& numRegions == 1
+			&& regional_train[0].trainDescription == "service.native-999999999",
+		"a sparse selection does not expand every occurrence in a large pattern");
 	const SceneRunSelection invalidSelections{{"service.native", 1000000001}, {"service.missing", 1}};
 	const auto invalidSelectionOperations = buildOperationsFromScene(
-			sparsePattern, "scenario.selected", invalidSelections);
+		sparsePattern, "scenario.selected", invalidSelections);
 	ok &= expect(hasCode(invalidSelectionOperations, "scene.native.selection.occurrence")
-				&& hasCode(invalidSelectionOperations, "scene.native.selection.service"),
-				"invalid sparse selections retain native selection diagnostics");
+			&& hasCode(invalidSelectionOperations, "scene.native.selection.service"),
+		"invalid sparse selections retain native selection diagnostics");
 
 	SceneModel outOfPattern = completeScene();
 	outOfPattern.services[0].hasRepeatCount = true;
@@ -1410,40 +1423,40 @@ int main() {
 	const auto outOfPatternOperations = buildOperationsFromScene(outOfPattern, "scenario.selected");
 	const SceneRunSelection firstOccurrence{{"service.native", 1}};
 	const auto excludedOutOfPatternOperations = buildOperationsFromScene(
-			outOfPattern, "scenario.selected", firstOccurrence);
+		outOfPattern, "scenario.selected", firstOccurrence);
 	ok &= expect(!hasErrors(outOfPatternInfrastructure)
-				&& hasCode(outOfPatternOperations, "scene.native.entrance.occurrence")
-				&& hasCode(excludedOutOfPatternOperations, "scene.native.entrance.occurrence"),
-				"out-of-pattern entrance delays are rejected for all and selected runs");
+			&& hasCode(outOfPatternOperations, "scene.native.entrance.occurrence")
+			&& hasCode(excludedOutOfPatternOperations, "scene.native.entrance.occurrence"),
+		"out-of-pattern entrance delays are rejected for all and selected runs");
 
 	auto rejectsEntranceDelay = [&ok, &firstOccurrence](SceneModel invalid, const std::string& code,
-			const std::string& message) {
+									const std::string& message) {
 		const auto infrastructure = buildInfrastructureAndSignallingFromScene(invalid);
 		const auto operations = buildOperationsFromScene(invalid, "scenario.selected");
 		const auto selectedOperations = buildOperationsFromScene(
-				invalid, "scenario.selected", firstOccurrence);
+			invalid, "scenario.selected", firstOccurrence);
 		ok &= expect(!hasErrors(infrastructure) && hasCode(operations, code)
-				&& hasCode(selectedOperations, code), message);
+				&& hasCode(selectedOperations, code),
+			message);
 	};
 	SceneModel nonFiniteDelay = completeScene();
-	nonFiniteDelay.scenarios[1].entranceDelays[0].delaySeconds
-			= std::numeric_limits<double>::quiet_NaN();
+	nonFiniteDelay.scenarios[1].entranceDelays[0].delaySeconds = std::numeric_limits<double>::quiet_NaN();
 	rejectsEntranceDelay(nonFiniteDelay, "scene.native.entrance.value",
-			"native staging rejects a non-finite entrance delay");
+		"native staging rejects a non-finite entrance delay");
 	SceneModel nonStopDelay = completeScene();
 	nonStopDelay.stations.push_back({"station.other", "Other", true, 3.0, {}});
 	nonStopDelay.scenarios[1].entranceDelays[0].stationId = "station.other";
 	rejectsEntranceDelay(nonStopDelay, "scene.native.entrance.station",
-			"native staging rejects an entrance-delay station outside the service stops");
+		"native staging rejects an entrance-delay station outside the service stops");
 	SceneModel missingDepartureDelay = completeScene();
 	missingDepartureDelay.scenarios[1].entranceDelays[0].stationId = "station.2";
 	rejectsEntranceDelay(missingDepartureDelay, "scene.native.entrance.timetable",
-			"native staging rejects an entrance-delay stop without a planned departure");
+		"native staging rejects an entrance-delay stop without a planned departure");
 	SceneModel conflictingDelay = completeScene();
 	conflictingDelay.scenarios[1].entranceDelays.push_back(
-			{"service.native", 2, "station.0", 10.0});
+		{"service.native", 2, "station.0", 10.0});
 	rejectsEntranceDelay(conflictingDelay, "scene.native.entrance.conflict",
-			"native staging rejects conflicting delays for one service occurrence");
+		"native staging rejects conflicting delays for one service occurrence");
 
 	TrainEvent finiteLate;
 	finiteLate.Time = 2.0;
@@ -1459,12 +1472,12 @@ int main() {
 	orderListOfTrainEvents(unorderedEvents);
 	const auto eventIt = unorderedEvents.begin();
 	ok &= expect(unorderedEvents.size() == 4 && eventIt->Time == 1.0
-				&& std::next(eventIt)->Time == 2.0
-				&& std::isnan(std::next(eventIt, 2)->Time)
-				&& std::isnan(std::next(eventIt, 3)->Time)
-				&& std::next(eventIt, 2)->trainDescription == "nan-first"
-				&& std::next(eventIt, 3)->trainDescription == "nan-last",
-				"train event sorting terminates and places non-finite times last");
+			&& std::next(eventIt)->Time == 2.0
+			&& std::isnan(std::next(eventIt, 2)->Time)
+			&& std::isnan(std::next(eventIt, 3)->Time)
+			&& std::next(eventIt, 2)->trainDescription == "nan-first"
+			&& std::next(eventIt, 3)->trainDescription == "nan-last",
+		"train event sorting terminates and places non-finite times last");
 
 	const std::string previousDescription = regional_train[0].trainDescription;
 	const std::size_t previousIncidentCount = simulationIncidents.size();
@@ -1473,7 +1486,8 @@ int main() {
 	ok &= expect(hasErrors(invalidDiagnostics), "an invalid selected scenario is rejected");
 	ok &= expect(regional_train[0].trainDescription == previousDescription
 			&& simulationIncidents.size() == previousIncidentCount
-			&& initial_variables.name == previousName, "invalid operations build preserves prior runtime state");
+			&& initial_variables.name == previousName,
+		"invalid operations build preserves prior runtime state");
 
 	SceneModel reversed = completeScene();
 	reversed.routes[0].blocks = {"block.2", "block.1", "block.0"};
@@ -1482,18 +1496,19 @@ int main() {
 	const auto reversedInfrastructure = buildInfrastructureAndSignallingFromScene(reversed);
 	const auto reversedOperations = buildOperationsFromScene(reversed, "scenario.selected");
 	ok &= expect(!hasErrors(reversedInfrastructure) && !hasErrors(reversedOperations),
-			"reversed routes resolve stop nodes without legacy node-list storage");
+		"reversed routes resolve stop nodes without legacy node-list storage");
 	SceneModel ordered = completeScene();
 	ordered.passengers.clear();
 	ordered.services[0].stops[1].platformId.clear();
 	buildInfrastructureAndSignallingFromScene(ordered);
 	ok &= expect(!hasErrors(buildOperationsFromScene(ordered, "scenario.base"))
-		&& regional_train[0].Stations[1].stationPlatformId == "platform.1",
+			&& regional_train[0].Stations[1].stationPlatformId == "platform.1",
 		"a unique reachable platform resolves without an explicit selection");
 	ordered.stations[1].platforms.push_back({"platform.other", {"node.3"}});
 	buildInfrastructureAndSignallingFromScene(ordered);
 	ok &= expect(hasCode(buildOperationsFromScene(ordered, "scenario.base"),
-		"scene.native.ref.platform.ambiguous"), "multiple reachable platforms require an explicit choice");
+					 "scene.native.ref.platform.ambiguous"),
+		"multiple reachable platforms require an explicit choice");
 	ordered.services[0].stops[1].platformId = "platform.other";
 	ok &= expect(hasCode(buildOperationsFromScene(ordered, "scenario.base"), "scene.native.ref.stop.order"),
 		"an explicit late platform cannot be followed by an earlier station");
@@ -1501,30 +1516,30 @@ int main() {
 	SceneModel routeExternal = completeScene();
 	routeExternal.routes[0].blocks = {"block.0", "block.1"};
 	routeExternal.stations.push_back(
-			{"station.3", "Three", true, 3.0, {{"platform.3", {"node.3"}}}});
+		{"station.3", "Three", true, 3.0, {{"platform.3", {"node.3"}}}});
 	routeExternal.services[0].stops.push_back(
-			{"station.3", {}, true, true, -120.0, -60.0, 2.0});
+		{"station.3", {}, true, true, -120.0, -60.0, 2.0});
 	routeExternal.passengers.clear();
 	const auto routeExternalInfrastructure = buildInfrastructureAndSignallingFromScene(routeExternal);
 	const auto routeExternalOperations = buildOperationsFromScene(routeExternal, "scenario.base");
 	ok &= expect(!hasErrors(routeExternalInfrastructure) && !hasErrors(routeExternalOperations),
-			"pre-entry and post-exit timetable rows remain valid without an invented platform");
+		"pre-entry and post-exit timetable rows remain valid without an invented platform");
 	ok &= expect(regional_train[0].numStations == 4
 			&& regional_train[0].Stations[3].stationPlatformId == ""
 			&& regional_train[0].ScheduledArrivals[3] == -120.0
 			&& regional_train[0].ScheduledDepartures[3] == -60.0,
-			"route-external timetable rows preserve negative relative planned times");
+		"route-external timetable rows preserve negative relative planned times");
 
 	SceneModel shortHorizon = completeScene();
 	shortHorizon.settings.durationSeconds = 20.0;
 	const auto shortInfrastructure = buildInfrastructureAndSignallingFromScene(shortHorizon);
 	const auto shortOperations = buildOperationsFromScene(shortHorizon, "scenario.base");
 	ok &= expect(!hasErrors(shortInfrastructure) && !hasErrors(shortOperations)
-				&& numRegions == 1 && AllDailyPassengers.size() == 1
-				&& AllDailyPassengers.front().Journeys.size() == 1
-				&& AllDailyPassengers.front().Journeys.front().ID == "journey.unrouted"
-				&& AllDailyPassengers.front().Journeys.front().N_Trips == 0,
-				"passenger journeys beyond a shortened run horizon are omitted whole");
+			&& numRegions == 1 && AllDailyPassengers.size() == 1
+			&& AllDailyPassengers.front().Journeys.size() == 1
+			&& AllDailyPassengers.front().Journeys.front().ID == "journey.unrouted"
+			&& AllDailyPassengers.front().Journeys.front().N_Trips == 0,
+		"passenger journeys beyond a shortened run horizon are omitted whole");
 
 	initial_variables.times = 120.0;
 	initial_variables.durationOverride = true;
@@ -1532,9 +1547,9 @@ int main() {
 	const auto extendedInfrastructure = buildInfrastructureAndSignallingFromScene(extendedHorizon);
 	const auto extendedOperations = buildOperationsFromScene(extendedHorizon, "scenario.selected");
 	ok &= expect(!hasErrors(extendedInfrastructure) && !hasErrors(extendedOperations)
-				&& initial_variables.times == 120.0 && numRegions == 4
-				&& regional_train[0].instant_train_speed.size() == 120,
-				"duration override sizes repeated services and runtime vectors to the effective horizon");
+			&& initial_variables.times == 120.0 && numRegions == 4
+			&& regional_train[0].instant_train_speed.size() == 120,
+		"duration override sizes repeated services and runtime vectors to the effective horizon");
 	initial_variables.durationOverride = false;
 
 	SceneModel trajectoryPerformance = completeScene();
@@ -1573,12 +1588,12 @@ int main() {
 		reducedPerformanceEnd = regional_train[0].End_Time;
 	}
 	ok &= expect(fullPerformanceEnd >= 0 && reducedPerformanceEnd > fullPerformanceEnd,
-			"reduced performance delays native route completion");
+		"reduced performance delays native route completion");
 
 	const auto safetyInfrastructure = buildInfrastructureAndSignallingFromScene(trajectoryPerformance);
 	const auto safetyOperations = buildOperationsFromScene(trajectoryPerformance, "scenario.base");
 	ok &= expect(!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1,
-			"runtime safety fixture builds one zero-stop through service");
+		"runtime safety fixture builds one zero-stop through service");
 	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1) {
 		Train& through = regional_train[0];
 		through.departure_time = 0.0;
@@ -1588,21 +1603,21 @@ int main() {
 		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
 		calculateDelayStatsAtStation(finalProbe);
 		const bool delayUnavailable = finalProbe.N_Stopped_Trains == 0
-				&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
-				&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
-				&& finalProbe.Max_Cons_Delay == -1.0;
+			&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
+			&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
+			&& finalProbe.Max_Cons_Delay == -1.0;
 		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
 		calculatePosAndNegDelayStatsAtStation(finalProbe);
 		ok &= expect(through.numStations == 0 && delayUnavailable && finalProbe.N_Stopped_Trains == 0
 				&& finalProbe.Av_Arrival_Delay == -1.0 && finalProbe.Std_Arrival_Delay == -1.0
 				&& finalProbe.totalArrivalDelay == 0.0 && finalProbe.Max_TotalDelay == -1.0
 				&& finalProbe.Max_Cons_Delay == -1.0,
-				"zero-stop through service has unavailable final-station statistics");
+			"zero-stop through service has unavailable final-station statistics");
 
 		through.trajectoryComputationIncludingMovingBlock(0, signalCode1, signalCode2, signalCode3);
 		ok &= expect(!through.CanEnter && through.instant_train_speed[0] == 0.0
 				&& through.instant_spatial_position[0] == through.Start_Node_X * 1000,
-				"time zero initializes the live trajectory without entering or advancing");
+			"time zero initializes the live trajectory without entering or advancing");
 
 		Route& route = train_route[through.indexOfRoute];
 		S_delay = 0.0;
@@ -1611,16 +1626,17 @@ int main() {
 		const int nextHead = route.N_Block_Sections - 2;
 		const Section& nextSection = route.sequence_of_block_sections[nextHead];
 		through.instant_spatial_position[1] =
-				(nextSection.start_node.X + nextSection.end_node.X) * 500.0;
+			(nextSection.start_node.X + nextSection.end_node.X) * 500.0;
 		stationBoundarySections.clear();
 		stationBoundarySections.emplace_back(&route.sequence_of_block_sections[nextHead + 1],
-				route.reversed_direction, nullptr);
+			route.reversed_direction, nullptr);
 		BlocksOccupied.clear();
 		BlocksConnected.clear();
 		protectStationAreas(1);
 		ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(),
-				route.sequence_of_block_sections[nextHead + 1].ID) != BlocksConnected.end(),
-				"zero-stop train keeps station-boundary route protection without stop indexing");
+						 route.sequence_of_block_sections[nextHead + 1].ID)
+				!= BlocksConnected.end(),
+			"zero-stop train keeps station-boundary route protection without stop indexing");
 
 		// One section stored past N_Block_Sections: the lookahead must not read it.
 		route.sequence_of_block_sections.emplace_back();
@@ -1636,7 +1652,7 @@ int main() {
 			protectStationAreas(1);
 			ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(), outOfRoute.ID)
 					== BlocksConnected.end(),
-					"station lookahead ignores sections beyond the actual route tail");
+				"station lookahead ignores sections beyond the actual route tail");
 			stationBoundarySections.clear();
 		}
 		route.sequence_of_block_sections.pop_back();
@@ -1648,7 +1664,8 @@ int main() {
 	const auto statisticsInfrastructure = buildInfrastructureAndSignallingFromScene(statisticsScene);
 	const auto statisticsOperations = buildOperationsFromScene(statisticsScene, "scenario.base");
 	ok &= expect(!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations)
-			&& numRegions == 3, "station statistics fixture builds three trains");
+			&& numRegions == 3,
+		"station statistics fixture builds three trains");
 	if (!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations) && numRegions == 3) {
 		Stations statistics;
 		statistics.stationName = "Final_Station";
@@ -1667,7 +1684,7 @@ int main() {
 				&& TotalInputDelays.Av_Arrival_Delay == -1
 				&& EntranceInputDelays.Std_Arrival_Delay == -1
 				&& DisturbanceInput.Perc_Delayed_T == -1,
-				"empty delay populations keep the unavailable representation");
+			"empty delay populations keep the unavailable representation");
 
 		numRegions = 1;
 		regional_train[0].StationArrivals[0] = 100;
@@ -1677,20 +1694,20 @@ int main() {
 		ok &= expect(statistics.Av_Arrival_Delay == 12 && statistics.Std_Arrival_Delay == 0
 				&& statistics.totalArrivalDelay == 12 && statistics.Max_TotalDelay == 12
 				&& std::isfinite(statistics.Perc_Delayed_T),
-				"one positive station-delay sample has zero deviation");
+			"one positive station-delay sample has zero deviation");
 
 		regional_train[0].StationDelay[0] = -1;
 		calculatePosAndNegDelayStatsAtStation(statistics);
 		ok &= expect(statistics.N_Stopped_Trains == 1 && statistics.Av_Arrival_Delay == -1
 				&& statistics.Std_Arrival_Delay == 0 && statistics.totalArrivalDelay == -1,
-				"a one-second early arrival is not confused with the delay sentinel");
+			"a one-second early arrival is not confused with the delay sentinel");
 
 		regional_train[0].StationDelay[0] = -12;
 		regional_train[0].StationConsecDelay[0] = -3;
 		calculatePosAndNegDelayStatsAtStation(statistics);
 		ok &= expect(statistics.Av_Arrival_Delay == -12 && statistics.Std_Arrival_Delay == 0
 				&& statistics.Max_TotalDelay == -12 && statistics.Max_Cons_Delay == -3,
-				"one negative station-delay sample remains valid with zero deviation");
+			"one negative station-delay sample remains valid with zero deviation");
 
 		const double positiveDelays[] = {10, 20, 0};
 		const double mixedDelays[] = {-10, 0, 20};
@@ -1705,7 +1722,7 @@ int main() {
 				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
 				&& statistics.N_Stopped_Trains == 3 && statistics.N_Delayed_Arr == 2
 				&& std::isfinite(statistics.Perc_Delayed_T),
-				"multiple positive delays retain the delayed-train sample denominator");
+			"multiple positive delays retain the delayed-train sample denominator");
 
 		for (int trainIndex = 0; trainIndex < 3; ++trainIndex)
 			regional_train[trainIndex].StationDelay[0] = mixedDelays[trainIndex];
@@ -1713,7 +1730,7 @@ int main() {
 		ok &= expect(std::abs(statistics.Av_Arrival_Delay - (10.0 / 3.0)) < 1e-9
 				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(700.0 / 3.0)) < 1e-9
 				&& statistics.Max_TotalDelay == 20 && std::isfinite(statistics.totalArrivalDelay),
-				"mixed early and late arrivals use the all-sample denominator");
+			"mixed early and late arrivals use the all-sample denominator");
 
 		const double totalInputs[] = {0, 10, 20};
 		const double entranceInputs[] = {0, 4, 8};
@@ -1728,7 +1745,7 @@ int main() {
 				&& std::abs(DisturbanceInput.Av_Arrival_Delay - 9) < 1e-9
 				&& std::isfinite(EntranceInputDelays.Std_Arrival_Delay)
 				&& std::isfinite(DisturbanceInput.Std_Arrival_Delay),
-				"multiple input-delay populations remain finite");
+			"multiple input-delay populations remain finite");
 
 		numRegions = 1;
 		regional_train[0].TotalInputDelays = 0;
@@ -1738,7 +1755,7 @@ int main() {
 				&& TotalInputDelays.Std_Arrival_Delay == 0
 				&& EntranceInputDelays.Std_Arrival_Delay == 0
 				&& DisturbanceInput.Std_Arrival_Delay == 0,
-				"one all-punctual input population reports finite zeros");
+			"one all-punctual input population reports finite zeros");
 
 		QTemporaryDir statisticsOutput;
 		numStations = 1;
@@ -1761,9 +1778,9 @@ int main() {
 		const double brakingPoint = 46181.0;
 		const double parked = std::nextafter(brakingPoint - kStopHoldbackM, 0.0);
 		ok &= expect(!isShortOfBrakingPoint(parked, brakingPoint),
-				"a train parked one ulp below its hold-back position is not short of the braking point");
+			"a train parked one ulp below its hold-back position is not short of the braking point");
 		ok &= expect(isShortOfBrakingPoint(brakingPoint - 0.001, brakingPoint),
-				"a train 1 mm short of the braking point still accelerates");
+			"a train 1 mm short of the braking point still accelerates");
 	}
 	{
 		// A stop of 20 s at a point whose parked position is exact, one unit in the last place
@@ -1773,7 +1790,7 @@ int main() {
 		const int savedTimes = initial_variables.times;
 		initial_variables.times = 60;
 		for (const double parked : {exact, std::nextafter(exact, 0.0),
-				std::nextafter(exact, std::numeric_limits<double>::infinity())}) {
+				 std::nextafter(exact, std::numeric_limits<double>::infinity())}) {
 			Train stopping;
 			stopping.indexOfRoute = regional_train[0].indexOfRoute;
 			stopping.departure_time = 1.0;
@@ -1786,10 +1803,10 @@ int main() {
 			TrainEvent point;
 			stopping.computeArrivalAndDepartureAtLocation(stoppingPoint, point);
 			ok &= expect(point.Time == 9.0 * timestep && point.Time2 == 29.0 * timestep,
-					"a timetable point reports arrival and departure of a stop whatever the last place of the parked position");
+				"a timetable point reports arrival and departure of a stop whatever the last place of the parked position");
 			ok &= expect(!isShortOfBrakingPoint(parked, stoppingPoint) && !isPastStopHoldback(parked, stoppingPoint)
 					&& isPastStopHoldback(stoppingPoint + kStopHoldbackM, stoppingPoint),
-					"a parked position is at the stop and the position after the stop is past it");
+				"a parked position is at the stop and the position after the stop is past it");
 		}
 		{
 			// A last stop: the train arrives and stays until the end of the run.
@@ -1802,7 +1819,7 @@ int main() {
 			TrainEvent point;
 			terminating.computeArrivalAndDepartureAtLocation(stoppingPoint, point);
 			ok &= expect(point.Time == 9.0 * timestep && point.Time2 == TrainEvent().Time2,
-					"a timetable point reports the arrival at a last stop and no departure");
+				"a timetable point reports the arrival at a last stop and no departure");
 		}
 		initial_variables.times = savedTimes;
 	}

@@ -525,10 +525,14 @@ int main(int argc, char* argv[]) {
 	rectangle->setName("Block occupation");
 	rectangle->setProperty("inspectionInterval", "Resource: B12 | Type: block | Start: 20 s | End: 60 s");
 	rectangle->setProperty("inspectionFilled", true);
-	rectangle->append(20, 100); rectangle->append(60, 100);
-	rectangle->append(60, 200); rectangle->append(20, 200); rectangle->append(20, 100);
+	rectangle->append(20, 100);
+	rectangle->append(60, 100);
+	rectangle->append(60, 200);
+	rectangle->append(20, 200);
+	rectangle->append(20, 100);
 	emptyChart->addSeries(rectangle);
-	rectangle->attachAxis(emptyX); rectangle->attachAxis(emptyY);
+	rectangle->attachAxis(emptyX);
+	rectangle->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	auto* emptyTooltip = empty.findChild<QLabel*>("diagramTooltip");
 	ok &= expect(
@@ -536,10 +540,12 @@ int main(int argc, char* argv[]) {
 		"block interior reports plotted corner and context");
 	auto* events = new QScatterSeries;
 	events->setName("Arrival");
-	events->append(100, 300); events->append(140, 400);
+	events->append(100, 300);
+	events->append(140, 400);
 	events->setProperty("inspectionPoints", QStringList{"Station: Delft | Arrival", "Station: Leiden | Departure"});
 	emptyChart->addSeries(events);
-	events->attachAxis(emptyX); events->attachAxis(emptyY);
+	events->attachAxis(emptyX);
+	events->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(120, 350), events);
 	ok &= expect(!emptyTooltip->isVisible(), "scatter does not invent connecting line samples");
 	moveTo(emptyView, QPointF(100, 300), events);
@@ -553,9 +559,11 @@ int main(int argc, char* argv[]) {
 	// Samples just below the plot must not count as visible strokes.
 	auto* clipped = new QLineSeries;
 	clipped->setName("Clipped line");
-	clipped->append(20, -4); clipped->append(60, -4);
+	clipped->append(20, -4);
+	clipped->append(60, -4);
 	emptyChart->addSeries(clipped);
-	clipped->attachAxis(emptyX); clipped->attachAxis(emptyY);
+	clipped->attachAxis(emptyX);
+	clipped->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 2), clipped);
 	ok &= expect(!emptyTooltip->isVisible(), "fully clipped line cannot be inspected inside plot");
 	const QPoint clippedClick = emptyView->mapFromScene(emptyChart->mapToScene(
@@ -581,7 +589,8 @@ int main(int argc, char* argv[]) {
 	DiagramWindow dual("Linked vertical axes");
 	auto* dualChart = new QChart;
 	auto* dualSeries = new QLineSeries;
-	dualSeries->append(0, 0); dualSeries->append(100, 100);
+	dualSeries->append(0, 0);
+	dualSeries->append(100, 100);
 	dualChart->addSeries(dualSeries);
 	auto* dualX = new QValueAxis;
 	auto* dualY = new QValueAxis;
@@ -601,8 +610,7 @@ int main(int argc, char* argv[]) {
 	auto* dualView = dual.findChild<QChartView*>();
 	wheel(dualView, {}, QPoint(0, 120), Qt::ControlModifier);
 	const double expectedSpan = 100 / std::exp(0.2);
-	ok &= expect(std::abs((dualY->max() - dualY->min()) - expectedSpan) < 0.01 &&
-		std::abs((dualCategory->max() - dualCategory->min()) - expectedSpan) < 0.01,
+	ok &= expect(std::abs((dualY->max() - dualY->min()) - expectedSpan) < 0.01 && std::abs((dualCategory->max() - dualCategory->min()) - expectedSpan) < 0.01,
 		"numeric and category Y axes zoom exactly once from original ranges");
 	// Route charts keep singleton events visible and allow zero/negative station X.
 	DiagramWindow route("Route chart");
@@ -634,50 +642,61 @@ int main(int argc, char* argv[]) {
 	route.show();
 	app.processEvents();
 	ok &= expect(singleEvent->pointsVisible() && singleEvent->count() == 1
-		&& stationAxis->categoriesLabels().size() == 2
-		&& stationAxis->categoriesLabels().first().contains("[two]")
-		&& stationAxis->categoriesLabels().last().contains("Zero"),
+			&& stationAxis->categoriesLabels().size() == 2
+			&& stationAxis->categoriesLabels().first().contains("[two]")
+			&& stationAxis->categoriesLabels().last().contains("Zero"),
 		"isolated event and distinct colocated station IDs remain visible");
 	auto* routeClock = qobject_cast<QCategoryAxis*>(routeChart->axes(Qt::Vertical).first());
 	ok &= expect(routeClock && routeClock->isReverse()
-		&& routeClock->categoriesLabels().contains("08:00:00"),
+			&& routeClock->categoriesLabels().contains("08:00:00"),
 		"route elapsed zero tick and downward time orientation");
 	DiagramWindow staircase("Calculated envelope");
 	auto* stairChart = new QChart;
 	auto* lower = new QLineSeries;
 	auto* upper = new QLineSeries;
-	lower->append(1, 10); lower->append(2, 10);
-	upper->append(1, 20); upper->append(2, 20);
+	lower->append(1, 10);
+	lower->append(2, 10);
+	upper->append(1, 20);
+	upper->append(2, 20);
 	auto* area = new QAreaSeries(upper, lower);
-	area->setName("A envelope"); area->setProperty("trainId", "A");
+	area->setName("A envelope");
+	area->setProperty("trainId", "A");
 	area->setBrush(QColor(60, 100, 200, 65));
 	stairChart->addSeries(area);
 	auto* outline = new QLineSeries;
-	outline->setName("A envelope"); outline->setProperty("trainId", "A");
+	outline->setName("A envelope");
+	outline->setProperty("trainId", "A");
 	outline->setProperty("inspectionFilled", true);
 	outline->setProperty("inspectionInterval", "Calculated blocking envelope");
 	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
 		outline->append(p);
 	stairChart->addSeries(outline);
 	auto* actual = new QLineSeries;
-	actual->setName("A recorded trajectory"); actual->setProperty("trainId", "A");
-	actual->append(1.2, 14); actual->append(1.8, 16);
+	actual->setName("A recorded trajectory");
+	actual->setProperty("trainId", "A");
+	actual->append(1.2, 14);
+	actual->append(1.8, 16);
 	stairChart->addSeries(actual);
 	auto* overlap = new QLineSeries;
-	overlap->setName("B envelope"); overlap->setProperty("trainId", "B");
+	overlap->setName("B envelope");
+	overlap->setProperty("trainId", "B");
 	overlap->setProperty("inspectionFilled", true);
 	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
 		overlap->append(p);
 	stairChart->addSeries(overlap);
 	auto* otherActual = new QScatterSeries;
-	otherActual->setName("B recorded trajectory"); otherActual->setProperty("trainId", "B");
+	otherActual->setName("B recorded trajectory");
+	otherActual->setProperty("trainId", "B");
 	otherActual->append(1.7, 18);
 	stairChart->addSeries(otherActual);
 	stairChart->createDefaultAxes();
 	auto* stairY = qobject_cast<QValueAxis*>(stairChart->axes(Qt::Vertical).first());
-	stairY->setReverse(true); stairY->setRange(0, 30);
-	staircase.setChart(stairChart); staircase.setTimeAxisY(true);
-	staircase.show(); app.processEvents();
+	stairY->setReverse(true);
+	stairY->setRange(0, 30);
+	staircase.setChart(stairChart);
+	staircase.setTimeAxisY(true);
+	staircase.show();
+	app.processEvents();
 	moveTo(staircase.findChild<QChartView*>(), QPointF(1.5, 12), outline);
 	auto* stairTip = staircase.findChild<QLabel*>("diagramTooltip");
 	ok &= expect(stairTip->isVisible() && stairTip->text().contains("Calculated blocking envelope"),
@@ -689,7 +708,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(stairTip->text().contains("B recorded trajectory"),
 		"overlapping trains select the nearby visible recorded sample");
 	ok &= expect(stairChart->series().indexOf(actual) > stairChart->series().indexOf(area)
-		&& stairY->isReverse(), "recorded layer draws over the downward-time area fill");
+			&& stairY->isReverse(),
+		"recorded layer draws over the downward-time area fill");
 	const QString authoredId = QStringLiteral("Unit | ") + QString(120, QLatin1Char('Q'));
 	const QString scientificWarning = QStringLiteral("Curve contains negative effort below the default 0 kN view");
 	DiagramWindow input("Input traction characteristic: " + authoredId);
@@ -700,7 +720,8 @@ int main(int argc, char* argv[]) {
 	auto* inputChart = new QChart;
 	auto* inputLine = new QLineSeries;
 	inputLine->setName("Input effort");
-	inputLine->append(10, 20); inputLine->append(20, 30);
+	inputLine->append(10, 20);
+	inputLine->append(20, 30);
 	inputChart->addSeries(inputLine);
 	inputChart->createDefaultAxes();
 	inputChart->setTitle(QStringLiteral("Input traction characteristic: ") + authoredId
@@ -708,7 +729,8 @@ int main(int argc, char* argv[]) {
 	input.setPresentation("Input traction characteristic", "Case A / Scenario B | " + authoredId,
 		scientificWarning);
 	input.setChart(inputChart);
-	input.show(); app.processEvents();
+	input.show();
+	app.processEvents();
 	ok &= expect(
 		!input.findChild<QWidget*>("diagramDetailsPanel") && !input.findChild<QWidget*>("diagramDetailsButton")
 			&& !input.findChild<QWidget*>("diagramDetailsText"),
@@ -716,8 +738,7 @@ int main(int argc, char* argv[]) {
 	for (const auto* button : input.findChildren<QPushButton*>())
 		ok &= expect(button->text() != "Technical details", "no technical-details action");
 	const QRect screenArea = input.screen()->availableGeometry();
-	ok &= expect(input.width() <= screenArea.width() * 9 / 10 &&
-		input.height() <= screenArea.height() * 4 / 5,
+	ok &= expect(input.width() <= screenArea.width() * 9 / 10 && input.height() <= screenArea.height() * 4 / 5,
 		"scaled diagram fits available screen with application QSS");
 	ok &= expect(
 		input.windowTitle() == "Input traction characteristic"
@@ -746,9 +767,9 @@ int main(int argc, char* argv[]) {
 	const QString longContext = "Reference: " + QString(1500, QLatin1Char('R'))
 		+ " | Case: " + QString(1500, QLatin1Char('C'));
 	for (const QString& warning : {scientificWarning,
-		QStringLiteral("Stop arrivals/departures and dwell, not continuous movement. Ambiguous/unmapped portions omitted; no extrapolation."),
-		QStringLiteral("Calculated envelopes, not observed occupation; movement only within scope. Unmapped endpoints/events omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation."),
-		QStringLiteral("Shifted calculated envelopes, not recorded movement. Unmapped/incomplete blocks omitted; no extrapolation.")}) {
+			 QStringLiteral("Stop arrivals/departures and dwell, not continuous movement. Ambiguous/unmapped portions omitted; no extrapolation."),
+			 QStringLiteral("Calculated envelopes, not observed occupation; movement only within scope. Unmapped endpoints/events omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation."),
+			 QStringLiteral("Shifted calculated envelopes, not recorded movement. Unmapped/incomplete blocks omitted; no extrapolation.")}) {
 		input.setPresentation("Scientific interpretation", longContext, warning);
 		app.processEvents();
 		const auto* label = input.findChild<QLabel*>("diagramWarning");

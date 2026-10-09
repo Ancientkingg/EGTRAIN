@@ -11,7 +11,6 @@ NodeItem::NodeItem(const QRectF& rect, QGraphicsItem* parent)
 	target->setPen(Qt::NoPen);
 	target->setBrush(Qt::NoBrush);
 	target->setAcceptedMouseButtons(Qt::NoButton);
-
 }
 
 NodeItem::~NodeItem() {

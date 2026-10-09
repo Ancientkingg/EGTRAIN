@@ -90,7 +90,7 @@ bool conflicts(const std::vector<std::vector<BlockingTimeDiagramInput>>& occupat
 } // namespace
 
 CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>& trains,
-	 double periodSeconds, const std::string& cycleEndIdentity) {
+	double periodSeconds, const std::string& cycleEndIdentity) {
 	CapacityAnalysisResult result;
 	result.periodSeconds = availableTime(periodSeconds) ? periodSeconds : -1.0;
 	result.trainIdentities.reserve(trains.size());
@@ -117,8 +117,7 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 	std::vector<std::vector<CapacityPairRow>> pairMatrix(trains.size());
 	for (std::size_t leaderIndex = 0; leaderIndex < trains.size(); ++leaderIndex) {
 		pairMatrix[leaderIndex].resize(trains.size());
-		for (std::size_t followerIndex = leaderIndex + 1; followerIndex < trains.size(); ++followerIndex)
-		{
+		for (std::size_t followerIndex = leaderIndex + 1; followerIndex < trains.size(); ++followerIndex) {
 			CapacityPairRow pair = pairConstraint(trains[leaderIndex], trains[followerIndex],
 				profileReferences[leaderIndex], profileReferences[followerIndex],
 				followerIndex == leaderIndex + 1);
@@ -163,7 +162,8 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 		}
 		row.compressedReference = compressed;
 		row.shift = isFiniteValue(compressed) && isFiniteValue(row.scheduledReference)
-			? compressed - row.scheduledReference : 0.0;
+			? compressed - row.scheduledReference
+			: 0.0;
 		compressedReferences[index] = compressed;
 		result.compression.push_back(std::move(row));
 	}
@@ -171,7 +171,8 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 	result.compressedOccupations.resize(trains.size());
 	for (std::size_t index = 0; index < trains.size(); ++index) {
 		const double shift = availableTime(compressedReferences[index]) && availableTime(profileReferences[index])
-			? compressedReferences[index] - profileReferences[index] : 0.0;
+			? compressedReferences[index] - profileReferences[index]
+			: 0.0;
 		for (const BlockingTimeDiagramInput& source : trains[index].occupations) {
 			if (!validBlockingTimeDiagramInput(source))
 				continue;
@@ -191,10 +192,10 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 				continue;
 			const std::size_t leaderIndex = static_cast<std::size_t>(predecessor - trains.begin());
 			for (std::size_t leaderOccupation = 0;
-				 leaderOccupation < result.compressedOccupations[leaderIndex].size(); ++leaderOccupation) {
+				leaderOccupation < result.compressedOccupations[leaderIndex].size(); ++leaderOccupation) {
 				auto& leader = result.compressedOccupations[leaderIndex][leaderOccupation];
 				for (std::size_t followerOccupation = 0;
-					 followerOccupation < result.compressedOccupations[followerIndex].size(); ++followerOccupation) {
+					followerOccupation < result.compressedOccupations[followerIndex].size(); ++followerOccupation) {
 					auto& follower = result.compressedOccupations[followerIndex][followerOccupation];
 					if (!shareBlockingTimeResource(leader, follower))
 						continue;

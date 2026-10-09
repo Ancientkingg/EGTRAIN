@@ -97,7 +97,7 @@ void TrainFilterButton::applySearchFilter() {
 	for (int i = 0; i < m_list->count(); ++i) {
 		QListWidgetItem* item = m_list->item(i);
 		item->setHidden(!needle.isEmpty()
-						&& !item->text().contains(needle, Qt::CaseInsensitive));
+			&& !item->text().contains(needle, Qt::CaseInsensitive));
 	}
 }
 

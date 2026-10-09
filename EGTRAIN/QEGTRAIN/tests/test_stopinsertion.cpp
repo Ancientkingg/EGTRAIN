@@ -18,11 +18,11 @@ static bool contains(const std::string& text, const std::string& part) {
 
 static bool sameStop(const SceneStop& left, const SceneStop& right) {
 	return left.stationId == right.stationId && left.platformId == right.platformId
-			&& left.hasPlannedArrival == right.hasPlannedArrival
-			&& left.hasPlannedDeparture == right.hasPlannedDeparture
-			&& left.plannedArrivalSeconds == right.plannedArrivalSeconds
-			&& left.plannedDepartureSeconds == right.plannedDepartureSeconds
-			&& left.dwellSeconds == right.dwellSeconds;
+		&& left.hasPlannedArrival == right.hasPlannedArrival
+		&& left.hasPlannedDeparture == right.hasPlannedDeparture
+		&& left.plannedArrivalSeconds == right.plannedArrivalSeconds
+		&& left.plannedDepartureSeconds == right.plannedDepartureSeconds
+		&& left.dwellSeconds == right.dwellSeconds;
 }
 
 static bool sameStops(const std::vector<SceneStop>& left, const std::vector<SceneStop>& right) {
@@ -46,15 +46,15 @@ static SceneModel lineScene(bool loop) {
 	const int nodeCount = loop ? 5 : 4;
 	for (int index = 0; index < nodeCount; ++index)
 		scene.nodes.push_back({"node-" + std::to_string(index + 1), "track-1",
-				static_cast<double>(index), 0.0});
+			static_cast<double>(index), 0.0});
 	for (int index = 1; index < nodeCount; ++index)
 		scene.arcs.push_back({"arc-" + std::to_string(index), "track-1",
-				"node-" + std::to_string(index), "node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+			"node-" + std::to_string(index), "node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
 	for (int index = 1; index < nodeCount; ++index)
 		scene.blocks.push_back({"block-" + std::to_string(index), "track-1", 1.0});
 
 	const auto station = [&scene](const std::string& id, const std::string& name,
-			std::vector<ScenePlatform> platforms) {
+							 std::vector<ScenePlatform> platforms) {
 		SceneStation entry;
 		entry.id = id;
 		entry.name = name;
@@ -87,7 +87,7 @@ static SceneModel lineScene(bool loop) {
 }
 
 static SceneStop stop(const std::string& stationId, const std::string& platformId, double arrival,
-		double departure) {
+	double departure) {
 	SceneStop result;
 	result.stationId = stationId;
 	result.platformId = platformId;
@@ -112,7 +112,7 @@ static std::vector<std::string> stationsOf(const SceneRouteTraversal& traversal)
 }
 
 static std::vector<std::string> platformsOf(const SceneRouteTraversal& traversal,
-		const std::string& stationId) {
+	const std::string& stationId) {
 	std::vector<std::string> result;
 	for (const auto& visit : traversal.visits)
 		if (visit.stationId == stationId)
@@ -142,18 +142,18 @@ int main() {
 
 	// Traversal helpers.
 	ok &= expect(stationsOf(sceneServiceTraversal(line, line.services[0]))
-				== Names({"station-a", "station-b", "station-c", "station-d"}),
-			"service traversal visits the stations of the route in order");
+			== Names({"station-a", "station-b", "station-c", "station-d"}),
+		"service traversal visits the stations of the route in order");
 	ok &= expect(stationsOf(sceneServiceTraversal(loop, loop.services[0]))
 				== Names({"station-a", "station-b", "station-a"})
 			&& platformsOf(sceneServiceTraversal(loop, loop.services[0]), "station-a")
 				== Names({"platform-a1", "platform-a2"}),
-			"service traversal keeps the second visit of a repeated station");
+		"service traversal keeps the second visit of a repeated station");
 	SceneService noRoute = line.services[0];
 	noRoute.route = "missing";
 	ok &= expect(!sceneServiceTraversal(line, noRoute).resolved
 			&& sceneServiceTraversal(line, noRoute).visits.empty(),
-			"a service without a route has an unresolved traversal");
+		"a service without a route has an unresolved traversal");
 
 	const SceneModel bc = withStops(line, {lineStop('B', 100.0), lineStop('C', 200.0)});
 	ok &= expect(stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 0))
@@ -164,28 +164,26 @@ int main() {
 				== Names({"station-d"})
 			&& stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 9))
 				== Names({"station-d"}),
-			"remaining traversal starts after the last resolved stop before the index");
-	const SceneModel offRoute = withStops(line, {lineStop('A', 100.0),
-			stop("station-off", "", 150.0, 160.0)});
+		"remaining traversal starts after the last resolved stop before the index");
+	const SceneModel offRoute = withStops(line, {lineStop('A', 100.0), stop("station-off", "", 150.0, 160.0)});
 	ok &= expect(stationsOf(sceneRemainingStopTraversal(offRoute, offRoute.services[0], 2))
-				== Names({"station-b", "station-c", "station-d"}),
-			"remaining traversal skips a stop that is off-route context");
-	const SceneModel unknownFirst = withStops(line, {stop("station-x", "", 0.0, 0.0),
-			lineStop('C', 200.0)});
+			== Names({"station-b", "station-c", "station-d"}),
+		"remaining traversal skips a stop that is off-route context");
+	const SceneModel unknownFirst = withStops(line, {stop("station-x", "", 0.0, 0.0), lineStop('C', 200.0)});
 	ok &= expect(sceneRemainingStopTraversal(unknownFirst, unknownFirst.services[0], 1).visits.empty()
 			&& stationsOf(sceneRemainingStopTraversal(unknownFirst, unknownFirst.services[0], 0)).size() == 4,
-			"remaining traversal is empty after a stop that does not resolve");
+		"remaining traversal is empty after a stop that does not resolve");
 
 	// a. Before the first stop.
 	{
 		SceneModel scene = withStops(line, {lineStop('B', 100.0), lineStop('C', 200.0)});
 		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
 		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-a"}),
-				"the window before the first stop holds only the visits before it");
+			"the window before the first stop holds only the visits before it");
 		const auto result = insertSceneStop(scene, scene.services[0], 0, lineStop('A', 20.0));
 		ok &= expect(result.inserted && result.error.empty()
 				&& stopStations(scene.services[0]) == Names({"station-a", "station-b", "station-c"}),
-				"a stop is inserted before the first stop");
+			"a stop is inserted before the first stop");
 	}
 	// b. Between two stops.
 	{
@@ -193,41 +191,40 @@ int main() {
 		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
 		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-b", "station-c"})
 				&& platformsOf(window.visits, "station-c") == Names({"platform-c"}),
-				"the window between two stops holds the visits between them");
+			"the window between two stops holds the visits between them");
 		const auto result = insertSceneStop(scene, scene.services[0], 1, lineStop('C', 200.0));
 		ok &= expect(result.inserted
 				&& stopStations(scene.services[0]) == Names({"station-a", "station-c", "station-d"}),
-				"a stop is inserted between two stops");
+			"a stop is inserted between two stops");
 	}
 	// c. After the last stop.
 	{
 		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('B', 100.0)});
 		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 2);
 		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-c", "station-d"}),
-				"the window after the last stop holds the rest of the route");
+			"the window after the last stop holds the rest of the route");
 		const auto result = insertSceneStop(scene, scene.services[0], 2, lineStop('D', 300.0));
 		ok &= expect(result.inserted
 				&& stopStations(scene.services[0]) == Names({"station-a", "station-b", "station-d"}),
-				"a stop is inserted after the last stop");
+			"a stop is inserted after the last stop");
 	}
 	// d. The destination is already in the timetable.
 	{
-		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('C', 200.0),
-				lineStop('D', 300.0)});
+		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('C', 200.0), lineStop('D', 300.0)});
 		const auto last = sceneStopInsertionWindow(scene, scene.services[0], 3);
 		ok &= expect(last.ok && last.visits.visits.empty()
 				&& sceneRemainingStopTraversal(scene, scene.services[0], 3).visits.empty(),
-				"no visit remains after the last stop when the destination is present");
+			"no visit remains after the last stop when the destination is present");
 		ok &= expect(!insertSceneStop(scene, scene.services[0], 3, lineStop('D', 400.0)).inserted
 				&& scene.services[0].stops.size() == 3,
-				"a stop cannot be inserted after the destination");
+			"a stop cannot be inserted after the destination");
 		const auto middle = sceneStopInsertionWindow(scene, scene.services[0], 1);
 		ok &= expect(middle.ok && stationsOf(middle.visits) == Names({"station-b"}),
-				"the same timetable offers the station in the middle");
+			"the same timetable offers the station in the middle");
 		ok &= expect(insertSceneStop(scene, scene.services[0], 1, lineStop('B', 100.0)).inserted
 				&& stopStations(scene.services[0])
 					== Names({"station-a", "station-b", "station-c", "station-d"}),
-				"the same timetable accepts an insertion in the middle");
+			"the same timetable accepts an insertion in the middle");
 	}
 	// e. Incompatible order.
 	{
@@ -236,22 +233,22 @@ int main() {
 		const auto refused = insertSceneStop(scene, scene.services[0], 1, lineStop('D', 300.0));
 		ok &= expect(!refused.inserted && contains(refused.error, "stop 2")
 				&& contains(refused.error, "(C)"),
-				"an insertion that strands a later stop is refused and names that stop");
+			"an insertion that strands a later stop is refused and names that stop");
 		ok &= expect(scene.services[0].id == before.id && scene.services[0].route == before.route
 				&& sameStops(scene.services[0].stops, before.stops),
-				"a refused insertion leaves the service as it was");
+			"a refused insertion leaves the service as it was");
 		ok &= expect(insertSceneStop(scene, scene.services[0], 1, lineStop('B', 100.0)).inserted
 				&& stopStations(scene.services[0]) == Names({"station-a", "station-b", "station-c"}),
-				"a compatible station is inserted at the same position");
+			"a compatible station is inserted at the same position");
 		const auto outOfRange = insertSceneStop(scene, scene.services[0], 9, lineStop('D', 300.0));
 		ok &= expect(!outOfRange.inserted && scene.services[0].stops.size() == 3
 				&& !sceneStopInsertionWindow(scene, scene.services[0], 9).ok,
-				"a position past the end is refused");
+			"a position past the end is refused");
 		SceneModel unknownStation = withStops(line, {lineStop('A', 20.0), lineStop('C', 200.0)});
 		const auto unknown = insertSceneStop(unknownStation, unknownStation.services[0], 1,
-				stop("station-x", "", 0.0, 0.0));
+			stop("station-x", "", 0.0, 0.0));
 		ok &= expect(!unknown.inserted && unknownStation.services[0].stops.size() == 2,
-				"a station that does not exist is refused");
+			"a station that does not exist is refused");
 	}
 	// f. Repeated stations and loops.
 	{
@@ -259,39 +256,40 @@ int main() {
 		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
 		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-b", "station-a"})
 				&& platformsOf(window.visits, "station-a") == Names({"platform-a2"}),
-				"the window after the first visit offers B and the second visit of A");
+			"the window after the first visit offers B and the second visit of A");
 		const auto second = insertSceneStop(scene, scene.services[0], 1,
-				stop("station-a", "platform-a2", 300.0, 330.0));
+			stop("station-a", "platform-a2", 300.0, 330.0));
 		ok &= expect(second.inserted && scene.services[0].stops.size() == 2
 				&& scene.services[0].stops[1].platformId == "platform-a2",
-				"the second visit of A is inserted after the first");
+			"the second visit of A is inserted after the first");
 
-		SceneModel both = withStops(loop, {stop("station-a", "platform-a1", 20.0, 50.0),
-				stop("station-a", "platform-a2", 300.0, 330.0)});
+		SceneModel both = withStops(loop, {stop("station-a", "platform-a1", 20.0, 50.0), stop("station-a", "platform-a2", 300.0, 330.0)});
 		const SceneService before = both.services[0];
 		const auto between = sceneStopInsertionWindow(both, both.services[0], 1);
 		ok &= expect(between.ok && stationsOf(between.visits) == Names({"station-b"}),
-				"A is not offered between two stops that use both of its visits");
+			"A is not offered between two stops that use both of its visits");
 		for (const char* platform : {"platform-a1", "platform-a2", ""}) {
 			const auto refused = insertSceneStop(both, both.services[0], 1,
-					stop("station-a", platform, 100.0, 130.0));
+				stop("station-a", platform, 100.0, 130.0));
 			ok &= expect(!refused.inserted && sameStops(both.services[0].stops, before.stops),
-					"A is refused between two stops that use both of its visits");
+				"A is refused between two stops that use both of its visits");
 		}
 		ok &= expect(insertSceneStop(both, both.services[0], 1,
-					stop("station-b", "platform-b", 100.0, 130.0)).inserted,
-				"B is accepted between the two visits of A");
+						 stop("station-b", "platform-b", 100.0, 130.0))
+						 .inserted,
+			"B is accepted between the two visits of A");
 
 		SceneModel secondOnly = withStops(loop, {stop("station-b", "platform-b", 100.0, 130.0)});
 		const SceneService beforeAmbiguous = secondOnly.services[0];
 		const auto ambiguous = insertSceneStop(secondOnly, secondOnly.services[0], 0,
-				stop("station-a", "", 20.0, 50.0));
+			stop("station-a", "", 20.0, 50.0));
 		ok &= expect(!ambiguous.inserted && contains(ambiguous.error, "choose a platform")
 				&& sameStops(secondOnly.services[0].stops, beforeAmbiguous.stops),
-				"a stop without a platform at a station with two reachable platforms asks for a platform");
+			"a stop without a platform at a station with two reachable platforms asks for a platform");
 		ok &= expect(insertSceneStop(secondOnly, secondOnly.services[0], 0,
-					stop("station-a", "platform-a1", 20.0, 50.0)).inserted,
-				"the same stop with a platform is accepted");
+						 stop("station-a", "platform-a1", 20.0, 50.0))
+						 .inserted,
+			"the same stop with a platform is accepted");
 	}
 	// A platform that the route reaches twice: the new stop must not take the visit of an existing stop.
 	{
@@ -301,15 +299,16 @@ int main() {
 		const SceneService before = scene.services[0];
 		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
 		ok &= expect(window.ok && window.visits.visits.empty(),
-				"no visit is free before a stop that uses the first of two visits of one platform");
+			"no visit is free before a stop that uses the first of two visits of one platform");
 		const auto refused = insertSceneStop(scene, scene.services[0], 0,
-				stop("station-a", "platform-a", 10.0, 15.0));
+			stop("station-a", "platform-a", 10.0, 15.0));
 		ok &= expect(!refused.inserted && contains(refused.error, "stop 1")
 				&& contains(refused.error, "(A)") && sameStops(scene.services[0].stops, before.stops),
-				"a stop that would move an existing stop to another visit is refused and names it");
+			"a stop that would move an existing stop to another visit is refused and names it");
 		ok &= expect(insertSceneStop(scene, scene.services[0], 1,
-					stop("station-a", "platform-a", 300.0, 330.0)).inserted,
-				"the same stop is accepted after the existing stop");
+						 stop("station-a", "platform-a", 300.0, 330.0))
+						 .inserted,
+			"the same stop is accepted after the existing stop");
 	}
 	// g. An unresolved neighbour.
 	{
@@ -317,17 +316,17 @@ int main() {
 		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
 		ok &= expect(!window.ok && window.blockingStop == 0 && contains(window.problem, "stop 1")
 				&& contains(window.problem, "station-x") && window.visits.visits.empty(),
-				"an unresolved stop before the position is reported as the obstacle");
+			"an unresolved stop before the position is reported as the obstacle");
 		const auto first = sceneStopInsertionWindow(scene, scene.services[0], 0);
 		ok &= expect(first.ok && stationsOf(first.visits) == Names({"station-a", "station-b"}),
-				"the position before an unresolved stop still has a window");
+			"the position before an unresolved stop still has a window");
 		SceneModel noRouteScene = line;
 		noRouteScene.services[0].route = "missing";
 		const auto unresolved = sceneStopInsertionWindow(noRouteScene, noRouteScene.services[0], 0);
 		ok &= expect(!unresolved.ok && unresolved.blockingStop == SceneStopInsertionWindow::kNoStop
 				&& !unresolved.problem.empty()
 				&& !insertSceneStop(noRouteScene, noRouteScene.services[0], 0, lineStop('A', 20.0)).inserted,
-				"a service without a route has no window");
+			"a service without a route has no window");
 	}
 	// h. Existing stops and their times are unchanged.
 	{
@@ -343,7 +342,7 @@ int main() {
 				&& sameStop(scene.services[0].stops[0], first)
 				&& sameStop(scene.services[0].stops[1], added)
 				&& sameStop(scene.services[0].stops[2], last),
-				"existing stops and the planned times of the new stop are kept exactly");
+			"existing stops and the planned times of the new stop are kept exactly");
 		SceneStop untimed;
 		untimed.stationId = "station-c";
 		untimed.platformId = "platform-c";
@@ -351,7 +350,7 @@ int main() {
 				&& sameStop(scene.services[0].stops[2], untimed)
 				&& !scene.services[0].stops[2].hasPlannedArrival
 				&& !scene.services[0].stops[2].hasPlannedDeparture,
-				"no planned time is invented for the inserted stop");
+			"no planned time is invented for the inserted stop");
 	}
 	// i. A window holds nothing before the previous stop or after the next stop.
 	{
@@ -360,21 +359,19 @@ int main() {
 		for (std::size_t index = 0; index < 3; ++index) {
 			const auto window = sceneStopInsertionWindow(scene, scene.services[0], index);
 			ok &= expect(window.ok && stationsOf(window.visits) == expected[index],
-					"each window holds exactly the visits between its neighbours");
+				"each window holds exactly the visits between its neighbours");
 		}
-		const SceneModel off = withStops(line, {lineStop('A', 20.0), stop("station-off", "", 1.0, 2.0),
-				lineStop('C', 200.0)});
+		const SceneModel off = withStops(line, {lineStop('A', 20.0), stop("station-off", "", 1.0, 2.0), lineStop('C', 200.0)});
 		ok &= expect(stationsOf(sceneStopInsertionWindow(off, off.services[0], 2).visits)
-					== Names({"station-b"}),
-				"a stop that is off-route context does not bound the window");
+				== Names({"station-b"}),
+			"a stop that is off-route context does not bound the window");
 		ok &= expect(stationsOf(sceneStopInsertionWindow(off, off.services[0], 1).visits)
-					== Names({"station-b"}),
-				"a stop that is off-route context after the position does not bound the window");
+				== Names({"station-b"}),
+			"a stop that is off-route context after the position does not bound the window");
 		const SceneModel empty = withStops(line, {});
 		const auto whole = sceneStopInsertionWindow(empty, empty.services[0], 0);
-		ok &= expect(whole.ok && stationsOf(whole.visits)
-					== Names({"station-a", "station-b", "station-c", "station-d"}),
-				"an empty timetable offers every station of the route");
+		ok &= expect(whole.ok && stationsOf(whole.visits) == Names({"station-a", "station-b", "station-c", "station-d"}),
+			"an empty timetable offers every station of the route");
 	}
 
 	if (!ok)

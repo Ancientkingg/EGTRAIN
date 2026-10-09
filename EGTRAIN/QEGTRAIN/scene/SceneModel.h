@@ -205,7 +205,7 @@ struct SceneServiceOccurrence {
 	}
 	bool operator<(const SceneServiceOccurrence& other) const {
 		return serviceId < other.serviceId
-				|| (serviceId == other.serviceId && occurrence < other.occurrence);
+			|| (serviceId == other.serviceId && occurrence < other.occurrence);
 	}
 };
 
@@ -329,22 +329,22 @@ SceneModel makeNewSceneModel();
 std::string sceneOutputDirectoryComponent(const std::string& sceneName);
 // Accepts exactly "#" followed by six hexadecimal digits in either case.
 bool sceneParseVisualizationColor(const std::string& text, int* red = nullptr, int* green = nullptr,
-		int* blue = nullptr);
+	int* blue = nullptr);
 // The visualization_color text of the service with this id; empty when the
 // service has none or the id is unknown.
 std::string sceneServiceVisualizationColor(const SceneModel& model, const std::string& serviceId);
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence = 1);
 int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
-		const SceneRunSelection& selection = {});
+	const SceneRunSelection& selection = {});
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds);
 std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence);
 bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
-		SceneServiceStopPair& result);
+	SceneServiceStopPair& result);
 
 // Resolve ordered (and repeated) unit references and apply the legacy
 // multi-unit physical/tractive-effort aggregation rules.
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
-		SceneCompositionRuntime& result, std::string& diagnostic);
+	SceneCompositionRuntime& result, std::string& diagnostic);
 
 // Gravitational acceleration [m/s^2] that the gradient and braking limits are
 // derived from.
@@ -373,7 +373,7 @@ struct SceneInputSnapshot {
 };
 
 std::string buildSceneDirectorySnapshot(
-		const std::vector<std::pair<std::string, std::string>>& files);
+	const std::vector<std::pair<std::string, std::string>>& files);
 SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir);
 
 SceneLoadResult loadScene(const std::string& sceneDir);

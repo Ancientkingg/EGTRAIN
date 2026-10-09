@@ -56,7 +56,7 @@ bool writeArtifact(const QString& path, const std::string& bytes) {
 // Clip a stroke to the visible plot before hit-testing. The returned fractions
 // still refer to its original endpoints, so inspection keeps the sample index.
 bool clippedSegment(const QRectF& plot, const QPointF& a, const QPointF& b,
-		double& first, double& last) {
+	double& first, double& last) {
 	first = 0;
 	last = 1;
 	const QPointF d = b - a;
@@ -112,11 +112,14 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	installEventFilter(this);
 	// The shortcuts belong to the chart view, so they only take keys while the chart has focus.
 	for (const auto key : {Qt::Key_Plus, Qt::Key_Equal, Qt::Key_Minus, Qt::Key_0, Qt::Key_Home,
-		Qt::Key_Left, Qt::Key_Right, Qt::Key_Up, Qt::Key_Down}) {
+			 Qt::Key_Left, Qt::Key_Right, Qt::Key_Up, Qt::Key_Down}) {
 		auto* shortcut = new QShortcut(QKeySequence(key), m_view);
 		shortcut->setContext(Qt::WidgetWithChildrenShortcut);
 		connect(shortcut, &QShortcut::activated, this, [this, key] {
-			if (key == Qt::Key_0 || key == Qt::Key_Home) { resetZoom(); return; }
+			if (key == Qt::Key_0 || key == Qt::Key_Home) {
+				resetZoom();
+				return;
+			}
 			QPointF pan;
 			if (key == Qt::Key_Left) pan.setX(40);
 			if (key == Qt::Key_Right) pan.setX(-40);
@@ -132,7 +135,7 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	// Top bar: train visibility dropdown, pin state, zoom reset, exports.
 	m_trainsButton = new TrainFilterButton(this);
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
-			this, &DiagramWindow::applyTrainVisibility);
+		this, &DiagramWindow::applyTrainVisibility);
 
 	m_clearPinButton = new QPushButton("Clear selection", this);
 	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
@@ -161,7 +164,8 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	topBar->addWidget(exportPngBtn);
 
 	m_readout = new QLabel("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
-		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.", this);
+						   "pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.",
+		this);
 	m_readout->setObjectName("diagramNavigationHelp");
 	m_readout->setWordWrap(true);
 	m_readout->setTextFormat(Qt::PlainText);
@@ -193,7 +197,7 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 }
 
 void DiagramWindow::setPresentation(const QString& heading, const QString& context,
-		const QString& warning) {
+	const QString& warning) {
 	setWindowTitle(heading);
 	m_warningLabel->setText(warning);
 	m_warningLabel->setVisible(!warning.isEmpty());
@@ -208,8 +212,8 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 	m_clearPinButton->setVisible(!on);
 	m_pinLabel->setVisible(!on);
 	m_readout->setText(on
-		? QStringLiteral("Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.")
-		: QStringLiteral("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid."));
+			? QStringLiteral("Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.")
+			: QStringLiteral("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid."));
 }
 
 void DiagramWindow::setChart(QChart* chart) {
@@ -223,7 +227,7 @@ void DiagramWindow::setChart(QChart* chart) {
 		applyChartStyle(chart);
 	QChart* previous = m_view->chart();
 	if (previous != chart)
-		m_view->setChart(chart);  // QChartView takes ownership of the new chart
+		m_view->setChart(chart); // QChartView takes ownership of the new chart
 	if (previous && previous != chart)
 		delete previous; // setChart releases, rather than deletes, the old chart
 	// The train dropdown replaces the built-in legend, which collapses to "..."
@@ -258,7 +262,7 @@ void DiagramWindow::setTimeAxisY(bool on, long long startOffsetSeconds) {
 }
 
 void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)> provider,
-								   const QString& suggestedFileName) {
+	const QString& suggestedFileName) {
 	m_csvProvider = std::move(provider);
 	m_csvSuggestedName = suggestedFileName;
 	if (m_csvButton)
@@ -266,7 +270,7 @@ void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)
 }
 
 void DiagramWindow::setProvenanceWriter(
-		std::function<bool(const QString&, const char*, const std::string&)> writer) {
+	std::function<bool(const QString&, const char*, const std::string&)> writer) {
 	m_provenanceWriter = std::move(writer);
 }
 
@@ -385,7 +389,10 @@ void DiagramWindow::applyTimeAxis() {
 		const double power = std::pow(10.0, std::floor(std::log10(std::max(1.0, raw))));
 		double interval = std::max(1.0, std::ceil(raw / power) * power);
 		for (double candidate : {1., 5., 10., 30., 60., 120., 300., 600., 900., 1800., 3600., 7200., 14400., 21600., 43200.})
-			if ((high - low) / candidate <= 8) { interval = candidate; break; }
+			if ((high - low) / candidate <= 8) {
+				interval = candidate;
+				break;
+			}
 		clock->setStartValue(low - interval);
 		for (double tick = std::ceil(low / interval) * interval; tick <= high; tick += interval)
 			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
@@ -435,8 +442,6 @@ void DiagramWindow::rebuildFilterGroups() {
 			groupIndex = it.value();
 		}
 		m_groups[groupIndex].members.append(series);
-
-
 	}
 
 	if (!m_trainsButton)
@@ -518,9 +523,11 @@ void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesNam
 	const auto horizontal = chart->axes(Qt::Horizontal);
 	const auto vertical = chart->axes(Qt::Vertical);
 	const QString xLabel = horizontal.isEmpty() || horizontal.first()->titleText().isEmpty()
-		? QString("x") : horizontal.first()->titleText();
+		? QString("x")
+		: horizontal.first()->titleText();
 	const QString yLabel = vertical.isEmpty() || vertical.first()->titleText().isEmpty()
-		? QString("y") : vertical.first()->titleText();
+		? QString("y")
+		: vertical.first()->titleText();
 	const QString xText = m_timeAxis && m_timeOrientation == Qt::Horizontal
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.x()), m_startOffset))
 		: QString::number(value.x(), 'f', 2);
@@ -528,7 +535,11 @@ void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesNam
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.y()), m_startOffset))
 		: QString::number(value.y(), 'f', 2);
 	m_tooltip->setText(QString("%1\n%2: %3   %4: %5")
-		.arg(seriesName).arg(xLabel).arg(xText).arg(yLabel).arg(yText));
+			.arg(seriesName)
+			.arg(xLabel)
+			.arg(xText)
+			.arg(yLabel)
+			.arg(yText));
 }
 
 QStringList DiagramWindow::visibleTrainIds() const {
@@ -551,7 +562,7 @@ void DiagramWindow::exportPng() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", "diagram.png", "PNG Image (*.png)");
 	if (path.isEmpty())
-		return;  // cancelled: no file is written
+		return; // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 		path += ".png";
 	QPixmap pix = m_view->grab();
@@ -560,7 +571,7 @@ void DiagramWindow::exportPng() {
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
-							 QString("Could not write the image to:\n%1").arg(path));
+			QString("Could not write the image to:\n%1").arg(path));
 		return;
 	}
 	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
@@ -580,13 +591,13 @@ void DiagramWindow::exportCsv() {
 	const std::string content = m_csvProvider(visibleTrainIds());
 	if (content.empty()) {
 		QMessageBox::information(this, "Nothing to export",
-								 "There is no data to export for the visible trains.");
+			"There is no data to export for the visible trains.");
 		return;
 	}
 	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("export.csv") : m_csvSuggestedName;
 	QString path = QFileDialog::getSaveFileName(this, "Export Data", suggested, "CSV File (*.csv)");
 	if (path.isEmpty())
-		return;  // cancelled: no file is written
+		return; // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
 		path += ".csv";
 	const bool written = m_provenanceWriter
@@ -621,7 +632,7 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 		const auto points = xy->pointsVector();
 		bool inside = false;
 		if (xy->property("inspectionFilled").toBool() && points.size() >= 4
-				&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
+			&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
 			QPolygonF polygon;
 			for (const auto& point : points) polygon.append(chart->mapToPosition(point, xy));
 			inside = polygon.containsPoint(cursor, Qt::OddEvenFill);
@@ -631,13 +642,21 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 			if (inside) {
 				const double vertexDistance = QLineF(cursor, point).length();
 				if (vertexDistance < filledVertexDistance) {
-					filledVertexDistance = vertexDistance; filled = xy; filledSample = points[i]; filledIndex = i;
+					filledVertexDistance = vertexDistance;
+					filled = xy;
+					filledSample = points[i];
+					filledIndex = i;
 				}
 				continue;
 			}
 			if (chart->plotArea().contains(point)) {
 				const double distance = QLineF(cursor, point).length();
-				if (distance < best) { best = distance; selected = xy; sample = points[i]; sampleIndex = i; }
+				if (distance < best) {
+					best = distance;
+					selected = xy;
+					sample = points[i];
+					sampleIndex = i;
+				}
 			}
 			if (i == 0 || qobject_cast<QScatterSeries*>(xy)) continue;
 			const QPointF previous = chart->mapToPosition(points[i - 1], xy);
@@ -650,7 +669,9 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 			if (distance < best) {
 				best = distance;
 				const int nearest = t < 0.5 ? i - 1 : i;
-				selected = xy; sample = points[nearest]; sampleIndex = nearest;
+				selected = xy;
+				sample = points[nearest];
+				sampleIndex = nearest;
 			}
 		}
 	}
@@ -732,7 +753,10 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 		auto* wheel = static_cast<QWheelEvent*>(ev);
 		const QPoint pixels = wheel->pixelDelta();
 		const QPoint angles = wheel->angleDelta();
-		if (pixels.isNull() && angles.isNull()) { wheel->accept(); return true; }
+		if (pixels.isNull() && angles.isNull()) {
+			wheel->accept();
+			return true;
+		}
 		if (wheel->modifiers() & (Qt::ControlModifier | Qt::MetaModifier)) {
 			const double delta = pixels.isNull()
 				? (angles.y() != 0 ? angles.y() : angles.x()) / 120.0
@@ -743,19 +767,22 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 			if (wheel->modifiers() & Qt::ShiftModifier) pan = QPointF(pan.y(), pan.x());
 			navigate(1, chartPosition(wheel->position().toPoint()), pan);
 		}
-		wheel->accept(); return true;
+		wheel->accept();
+		return true;
 	} else if (ev->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(ev);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
 			navigate(1 + gesture->value(), chartPosition(gesture->localPos().toPoint()));
-			gesture->accept(); return true;
+			gesture->accept();
+			return true;
 		}
 	} else if (ev->type() == QEvent::Gesture) {
 		auto* event = static_cast<QGestureEvent*>(ev);
 		if (auto* pinch = static_cast<QPinchGesture*>(event->gesture(Qt::PinchGesture))) {
 			if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged)
 				navigate(pinch->scaleFactor(), chartPosition(pinch->centerPoint().toPoint()));
-			event->accept(pinch); return true;
+			event->accept(pinch);
+			return true;
 		}
 	}
 	return QDialog::eventFilter(obj, ev);

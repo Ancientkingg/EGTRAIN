@@ -36,16 +36,16 @@ bool parseConnectedSectionPart(const std::string& part, std::string& blockId, do
 bool parseConnectedSectionIdentity(const std::string& id, ConnectedSectionIdentity& result) {
 	const std::size_t separator = id.find('/');
 	return separator != std::string::npos
-			&& id.find('/', separator + 1) == std::string::npos
-			&& parseConnectedSectionPart(id.substr(0, separator), result.firstBlockId,
-				result.firstCoordinate)
-			&& parseConnectedSectionPart(id.substr(separator + 1), result.secondBlockId,
-				result.secondCoordinate);
+		&& id.find('/', separator + 1) == std::string::npos
+		&& parseConnectedSectionPart(id.substr(0, separator), result.firstBlockId,
+			result.firstCoordinate)
+		&& parseConnectedSectionPart(id.substr(separator + 1), result.secondBlockId,
+			result.secondCoordinate);
 }
 
 bool resolveDoubleSwitchSections(const Section& current, const Section& previous,
-		const Section* sections[2], ConnectedSectionIdentity identities[2],
-		Section* branches[2][2]) {
+	const Section* sections[2], ConnectedSectionIdentity identities[2],
+	Section* branches[2][2]) {
 	sections[0] = &current;
 	sections[1] = &previous;
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
@@ -472,7 +472,7 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 	// The signalling system will remain the same
 	SignallingLevel = blockSets.SignallingLevel;
 
-	start_node = blockSets.end_node;				   // Inverting Ending Node with starting Node
+	start_node = blockSets.end_node;		   // Inverting Ending Node with starting Node
 	start_node.X = RouteLength - start_node.X; // Changing the position of the Node with respect to the length of the route
 	end_node = blockSets.start_node;
 	end_node.X = RouteLength - end_node.X; // Changing the position of the Node with respect to the length of the route
@@ -520,7 +520,7 @@ std::list<TDS> list_of_TDS;
  * max of 20 arcs
  */
 std::vector<Section> signalling_block_sections; // Signalling Block Sections, sized once per scene by the builder
-static bool derivedSectionsExceedPlan = false;  // createBlockConn needed more sections than the builder planned
+static bool derivedSectionsExceedPlan = false;	// createBlockConn needed more sections than the builder planned
 
 
 // Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
@@ -590,7 +590,7 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 		for (int k = 0; k < BS1.total_arcs; k++) {
 			if (BS1.arcs_in_signalling_block_section[k].endNode.stationName.empty() != 1) { // if among the nodes of BS1 there is a station falling within N1.X and N2.X
 				if ((BS1.arcs_in_signalling_block_section[k].endNode.X > N1.X) && (BS1.arcs_in_signalling_block_section[k].endNode.X <= N2.X)) {
-					if (N2.stationName.empty() == 1) {											 // then if Node N2 is not already a station
+					if (N2.stationName.empty() == 1) {												  // then if Node N2 is not already a station
 						N2.stationName = BS1.arcs_in_signalling_block_section[k].endNode.stationName; // Push the station Node to Node N2 so that we do not lose the station point
 					}
 				}
@@ -637,7 +637,7 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 		BS3.XStartSwitch = N1.X;  // The begin of the switch is the abscissa N1.X
 		BS3.XEndSwitch = N2.X;	  // The end of the switch is in the abscissa N2.X
 		BS3.ID = BS3.ID + BS1.ID + "-" + formatSceneSectionCoordinate(N1.X)
-				+ "/" + BS2.ID + "-" + formatSceneSectionCoordinate(N2.X);
+			+ "/" + BS2.ID + "-" + formatSceneSectionCoordinate(N2.X);
 		BS3.length = BS3.end_node.X - BS3.start_node.X;
 	}
 
@@ -685,7 +685,7 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 					if (BS3.arcs_in_signalling_block_section[k].endNode.X == BS3.end_node.X) { // if such a station Node coincides with the last Node of BS3 then change also the tdsbId to last Node of BS3
 						BS3.end_node.tdsbId = BS3.arcs_in_signalling_block_section[k].endNode.tdsbId;
 					}
-				} else {																   // if instead the Station Node has a progressive higher than N1.X then it belongs to BS2
+				} else {																	   // if instead the Station Node has a progressive higher than N1.X then it belongs to BS2
 					if (BS3.arcs_in_signalling_block_section[k].endNode.tdsbId.empty() == 1) { // if the tdsbId is empty then assign it as a TDSB on BS2
 						BS3.arcs_in_signalling_block_section[k].endNode.tdsbId = BS3.arcs_in_signalling_block_section[k].endNode.tdsbId + "@" + BS3.arcs_in_signalling_block_section[k].endNode.stationName + "-" + *u + "@";
 					} else { // if the tdsbId is not empty then leave as it is
@@ -712,7 +712,7 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 						string BSID, OppBSID;
 						const std::string N1ID = formatSceneSectionCoordinate(Nb.X);
 						const std::string N2ID = formatSceneSectionCoordinate(
-								signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X);
+							signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X);
 						BSID = BSID + BS1.ID + "-" + N1ID + "/" + signalling_block_sections[i].ID + "-" + N2ID;
 						OppBSID = OppBSID + signalling_block_sections[i].ID + "-" + N2ID + "/" + BS1.ID + "-" + N1ID;
 
@@ -772,7 +772,7 @@ static void setLegacyConnectedBlockIdsOnNodes() {
 			if (node.numConnections > 0) {
 				node.IDConnectedBlocks.clear();
 				node.initialiseIdConnectedBlocks(signalling_block_sections[i].IDConnectedBS,
-						signalling_block_sections[i].N_ConnectedBS);
+					signalling_block_sections[i].N_ConnectedBS);
 			}
 		}
 	}
@@ -807,7 +807,6 @@ static void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependenc
 		// Keep the legacy Copenhagen exception out of the native scene path.
 		if (includeCopenhagenDependency && section.ID == "@5-B6@")
 			addConnection("@1-B30@-4.592000/@5-B7@-4.620000");
-
 	}
 	if (includeCopenhagenDependency)
 		setLegacyConnectedBlockIdsOnNodes();
@@ -816,7 +815,7 @@ static void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependenc
 // Function to recognize if two block sections are overlapping
 bool areBlocksConnected(Section A, Section blockSets) {
 	return sceneSectionsOverlap(A.ID, A.start_node.X, A.end_node.X,
-			blockSets.ID, blockSets.start_node.X, blockSets.end_node.X);
+		blockSets.ID, blockSets.start_node.X, blockSets.end_node.X);
 }
 
 // Function to set all Track Detection Section Boundaries and Geo Coordinates
@@ -968,7 +967,7 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 								}
 								// Then change also the ID of the first point of the block section
 								BS[i].start_node.tdsbId = BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId; // changing the name of start_node of signalling_block_sections[i]
-																												 // Setting absolute coordinates to Node start_node of arcs_in_signalling_block_section
+																													  // Setting absolute coordinates to Node start_node of arcs_in_signalling_block_section
 								BS[i].arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX = BS[i].arcs_in_signalling_block_section[j].startNode.X * 1000;
 								BS[i].arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordY = BS[i].arcs_in_signalling_block_section[j].startNode.Y * 1000;
 							}
@@ -1061,7 +1060,7 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 
 								} else if ((BS[i].arcs_in_signalling_block_section[j].endNode.X > BS[i].XStartSwitch) && (BS[i].arcs_in_signalling_block_section[j].endNode.X < BS[i].XEndSwitch)) {
 									cout << "WARNING: in Block Section" << BS[i].ID << " Node at position: " << BS[i].arcs_in_signalling_block_section[j].endNode.X << " is a switch defined in between the start (XStartSwitch) and the end (XEndSwitch) of the diverging switch. A name will be automatically assigned to it\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
-									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "@" + pointcoord + "-" + *u + "@Point";																																	  // here it is assumed that the Node is part of the second block section *u connected by the diverging switch of block Section signalling_block_sections[i]
+									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "@" + pointcoord + "-" + *u + "@Point";																																   // here it is assumed that the Node is part of the second block section *u connected by the diverging switch of block Section signalling_block_sections[i]
 								}
 							}
 							// if this corresponds to the last Node of signalling_block_sections[i]
@@ -1361,7 +1360,7 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 	int N_TEMP_ElementList = 0;
 
 	if (BS.start_node.tdsbId.empty() != 1) { // if the TDSB of the starting Node of signalling_block_sections is not empty then use it as infra element
-		InfraElement TEMP_Elem;				  // Temporary infrastructure element to be intialised
+		InfraElement TEMP_Elem;				 // Temporary infrastructure element to be intialised
 
 		TEMP_Elem.ID = BS.start_node.tdsbId;
 		TEMP_Elem.SectionID = BS.ID;
@@ -1502,7 +1501,7 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 								}
 							} else {
 								std::cout << "Warning: Switch at end of one of the arcs: " << BS.arcs_in_signalling_block_section[m].endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																																	 " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+																																																																		 " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 							}
 
 						} else {
@@ -1593,7 +1592,7 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 								}
 							} else {
 								cout << "Warning: Switch at one of the beginning nodes: " << BS.arcs_in_signalling_block_section[m].startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																																	" is a diverging switch with less than 4 characters in its name. Please check why...\n";
+																																																																		  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 							}
 						}
 
@@ -1680,7 +1679,7 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 						}
 					} else {
 						cout << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																			   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+																																																			  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 					}
 
 				}
@@ -1815,7 +1814,7 @@ void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds, in
 	final--;
 
 	const bool forward = direction > 0
-			|| (direction == 0 && (BlockList.size() == 1 || start->start_node.X < final->start_node.X));
+		|| (direction == 0 && (BlockList.size() == 1 || start->start_node.X < final->start_node.X));
 	if (forward) {
 		list<Section>::iterator it = BlockList.begin();
 
@@ -1997,7 +1996,7 @@ std::vector<std::string> nativeBlockReferenceComponents(const std::string& refer
 	while (begin <= reference.size()) {
 		const std::size_t slash = reference.find('/', begin);
 		const std::string part = reference.substr(begin,
-				slash == std::string::npos ? std::string::npos : slash - begin);
+			slash == std::string::npos ? std::string::npos : slash - begin);
 		if (!part.empty()) {
 			std::string id = part;
 			if (part.front() == '@') {
@@ -2062,8 +2061,8 @@ void resetNativeInfrastructureState() {
 std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene) {
 	std::vector<SceneDiagnostic> diagnostics;
 	auto add = [&](SceneSeverity severity, const std::string& code, const std::string& message,
-			const std::string& file, const std::string& type = "", const std::string& id = "",
-			const std::string& path = "", const std::string& related = "", const std::string& fix = "") {
+				   const std::string& file, const std::string& type = "", const std::string& id = "",
+				   const std::string& path = "", const std::string& related = "", const std::string& fix = "") {
 		SceneDiagnostic diagnostic;
 		diagnostic.severity = severity;
 		diagnostic.code = code;
@@ -2128,11 +2127,11 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			add(SceneSeverity::Error, "scene.native.ref.unresolved", "Arc refers to an unknown end node",
 				"infrastructure.json", "arc", arc.id, "arcs.to", arc.toNodeId);
 		if (fromIt != nodesById.end() && trackIt != tracksById.end()
-				&& fromIt->second->trackId != arc.trackId)
+			&& fromIt->second->trackId != arc.trackId)
 			add(SceneSeverity::Error, "scene.native.topology.track", "Arc start node belongs to another track",
 				"infrastructure.json", "arc", arc.id, "arcs.from", fromIt->second->trackId);
 		if (toIt != nodesById.end() && trackIt != tracksById.end()
-				&& toIt->second->trackId != arc.trackId)
+			&& toIt->second->trackId != arc.trackId)
 			add(SceneSeverity::Error, "scene.native.topology.track", "Arc end node belongs to another track",
 				"infrastructure.json", "arc", arc.id, "arcs.to", toIt->second->trackId);
 		if (arc.fromNodeId == arc.toNodeId)
@@ -2272,30 +2271,30 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				hasBlock = true;
 		if (!hasBlock)
 			add(SceneSeverity::Error, "scene.native.topology.blocks", "Track has no block sections",
-					"infrastructure.json", "track", track.id);
+				"infrastructure.json", "track", track.id);
 	}
 	for (const auto& section : sectionInventory.sections) {
 		if (section.connectionDerived)
 			continue;
 		const auto block = std::find_if(scene.blocks.begin(), scene.blocks.end(),
-				[&section](const SceneBlock& candidate) { return candidate.id == section.sourceBlockId; });
+			[&section](const SceneBlock& candidate) { return candidate.id == section.sourceBlockId; });
 		const auto slot = trackSlots.find(section.firstTrackId);
 		if (block == scene.blocks.end() || slot == trackSlots.end())
 			continue;
 		if (section.endKm <= section.startKm + kNativeCoordinateTolerance)
 			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section has no positive runtime span",
-					"infrastructure.json", "block", block->id);
+				"infrastructure.json", "block", block->id);
 		if (section.layoutOverflow)
 			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section extends beyond its track",
-					"infrastructure.json", "block", block->id);
+				"infrastructure.json", "block", block->id);
 		if (section.clippedToTrackEnd)
 			add(SceneSeverity::Warning, "scene.native.block.clipped",
-					"Final block length exceeds its track and is clipped at the final node",
-					"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
+				"Final block length exceeds its track and is clipped at the final node",
+				"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
 		if (section.trackCoverageGap)
 			add(SceneSeverity::Warning, "scene.native.block.extended",
-					"Final block section is extended to cover the imported track endpoint",
-					"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
+				"Final block section is extended to cover the imported track endpoint",
+				"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
 		blockPlans.push_back({&*block, slot->second, section.startKm, section.endKm});
 	}
 	std::unordered_set<std::string> plannedSectionIds;
@@ -2304,26 +2303,26 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	for (const auto& section : sectionInventory.sections) {
 		if (section.arcCount > kNativeMaxSectionArcs)
 			add(SceneSeverity::Error, "scene.native.capacity", "Section exceeds the runtime arc capacity",
-					"infrastructure.json", section.connectionDerived ? "connection" : "block",
-					section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
-					"sections", std::to_string(kNativeMaxSectionArcs));
+				"infrastructure.json", section.connectionDerived ? "connection" : "block",
+				section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
+				"sections", std::to_string(kNativeMaxSectionArcs));
 		if (!plannedSectionIds.insert(section.id).second) {
 			add(SceneSeverity::Error, "scene.native.id.duplicate",
-					"Sections produce the same runtime section ID", "infrastructure.json",
-					section.connectionDerived ? "connection" : "block",
-					section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
-					"sections", section.id);
+				"Sections produce the same runtime section ID", "infrastructure.json",
+				section.connectionDerived ? "connection" : "block",
+				section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
+				"sections", section.id);
 			continue;
 		}
 		signallingSectionPlans.push_back({section.id, section.startKm, section.endKm,
-				section.firstTrackId, section.secondTrackId});
+			section.firstTrackId, section.secondTrackId});
 	}
 	auto plannedRuntimeId = [&](const std::string& reference) {
 		const auto* section = sectionInventory.resolve(reference);
 		return section == nullptr ? std::string() : section->id;
 	};
 	auto validatePlannedReference = [&](const std::string& reference, const std::string& type,
-			const std::string& id, const std::string& path) {
+										const std::string& id, const std::string& path) {
 		if (plannedRuntimeId(reference).empty())
 			add(SceneSeverity::Error, "scene.native.ref.unresolved",
 				"Reference does not identify a planned runtime section", "signalling.json", type, id, path, reference);
@@ -2351,7 +2350,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
-			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
+		[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
 	std::vector<int> routeDirections(scene.routes.size(), 0);
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		const SceneRoute& route = scene.routes[index];
@@ -2379,7 +2378,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			bool directionError = false;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
-						*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
+					*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
 				forward = forward || transition.joinsForward;
 				reverse = reverse || transition.joinsReverse;
 				directionError = directionError || (forward && reverse);
@@ -2391,13 +2390,13 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 					continue;
 				}
 				add(SceneSeverity::Error, "scene.route.disconnected",
-						"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
-						"routes.blocks[" + std::to_string(sectionIndex) + "]",
-						route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
+					"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
+					"routes.blocks[" + std::to_string(sectionIndex) + "]",
+					route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
 			}
 			if (directionError)
 				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
-						"signalling.json", "route", route.id, "routes.blocks");
+					"signalling.json", "route", route.id, "routes.blocks");
 			else {
 				routeDirections[index] = sceneRouteDirection(scene, routeSections);
 			}
@@ -2435,7 +2434,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				"signalling.json", "block_dependency", dependency.first, "block_dependencies", std::to_string(10));
 	for (const auto& restriction : scene.singleTrackRestrictions) {
 		for (const auto& ref : {restriction.startBlock, restriction.endBlock,
-				restriction.protectedStartBlock, restriction.protectedEndBlock}) {
+				 restriction.protectedStartBlock, restriction.protectedEndBlock}) {
 			for (const auto& component : nativeBlockReferenceComponents(ref))
 				if (blockIds.find(component) == blockIds.end())
 					add(SceneSeverity::Error, "scene.native.ref.unresolved", "Single-track restriction refers to an unknown block",
@@ -2465,7 +2464,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate signalling area id",
 				"signalling.json", "signalling_area", area.id, path + ".id");
 		if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
-				|| !(area.startKm < area.endKm))
+			|| !(area.startKm < area.endKm))
 			add(SceneSeverity::Error, "scene.native.signalling_area.range",
 				"Signalling area coordinates must be finite with start below end",
 				"signalling.json", "signalling_area", area.id, path);
@@ -2480,7 +2479,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 	auto sectionSpanInsideArea = [](const NativeSectionPlan& section, const SceneSignallingArea& area) {
 		return section.startX >= area.startKm - kNativeCoordinateTolerance
-				&& section.endX <= area.endKm + kNativeCoordinateTolerance;
+			&& section.endX <= area.endKm + kNativeCoordinateTolerance;
 	};
 	std::unordered_map<std::string, int> plannedSignallingLevels;
 	for (const auto& section : signallingSectionPlans) {
@@ -2492,9 +2491,9 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			std::string firstAreaId;
 			for (const auto& area : scene.signallingAreas) {
 				if (area.trackId.empty() != !trackScoped
-						|| !sectionSpanInsideArea(section, area)
-						|| (trackScoped && area.trackId != section.firstTrackId
-								&& area.trackId != section.secondTrackId))
+					|| !sectionSpanInsideArea(section, area)
+					|| (trackScoped && area.trackId != section.firstTrackId
+						&& area.trackId != section.secondTrackId))
 					continue;
 				if (!matched) {
 					matched = true;
@@ -2536,7 +2535,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		runtimeTrack.A.resize(track.chainArcs.size());
 		runtimeTrack.member.resize(track.chainArcs.size());
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
-				[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
+			[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
 		if (view != scene.trackViews.end()) {
 			runtimeTrack.graphID = view->level;
 			runtimeTrack.region = view->region;
@@ -2687,7 +2686,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		for (int arcIndex = 0; arcIndex < runtimeTrack.arcs; ++arcIndex) {
 			const Arc& sourceArc = runtimeTrack.A[arcIndex];
 			if (sourceArc.endNode.X <= plan.startX + kNativeCoordinateTolerance
-					|| sourceArc.startNode.X >= plan.endX - kNativeCoordinateTolerance)
+				|| sourceArc.startNode.X >= plan.endX - kNativeCoordinateTolerance)
 				continue;
 			const double beginX = std::max(plan.startX, sourceArc.startNode.X);
 			const double endX = std::min(plan.endX, sourceArc.endNode.X);
@@ -2737,7 +2736,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		for (const auto& platform : source.platforms)
 			station.StationPlatformIDs.push_back(platform.id);
 		const auto view = std::find_if(scene.stationViews.begin(), scene.stationViews.end(),
-				[&source](const SceneStationView& candidate) { return candidate.stationId == source.id; });
+			[&source](const SceneStationView& candidate) { return candidate.stationId == source.id; });
 		if (view != scene.stationViews.end()) {
 			station.latitude = view->latitude;
 			station.longitude = view->longitude;
@@ -2782,17 +2781,17 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex)
 		sectionAliases[signalling_block_sections[sectionIndex].ID] = sectionIndex;
 	const bool sectionMismatch = derivedSectionsExceedPlan
-			|| sectionAliases.size() != static_cast<std::size_t>(Blocks)
-			|| sectionAliases.size() != plannedSectionIds.size()
-			|| std::any_of(plannedSectionIds.begin(), plannedSectionIds.end(),
-					[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
+		|| sectionAliases.size() != static_cast<std::size_t>(Blocks)
+		|| sectionAliases.size() != plannedSectionIds.size()
+		|| std::any_of(plannedSectionIds.begin(), plannedSectionIds.end(),
+			[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
 	if (sectionMismatch) {
 		add(SceneSeverity::Error, "scene.native.sections.mismatch",
-				"Legacy connection construction produced section IDs different from the planned inventory",
-				"infrastructure.json", "section", "", "sections",
-				"planned=" + std::to_string(plannedSectionIds.size())
-						+ ", actual=" + std::to_string(sectionAliases.size()),
-				"Fix topology or block placement so native section identities match the section catalog");
+			"Legacy connection construction produced section IDs different from the planned inventory",
+			"infrastructure.json", "section", "", "sections",
+			"planned=" + std::to_string(plannedSectionIds.size())
+				+ ", actual=" + std::to_string(sectionAliases.size()),
+			"Fix topology or block placement so native section identities match the section catalog");
 		return diagnostics;
 	}
 	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
@@ -2812,7 +2811,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		return section == sectionAliases.end() ? -1 : section->second;
 	};
 	auto addSectionDependency = [&](const std::string& sourceRef, const std::string& targetRef,
-			const std::string& itemId) {
+									const std::string& itemId) {
 		const int sourceIndex = resolveSection(sourceRef);
 		const int targetIndex = resolveSection(targetRef);
 		if (sourceIndex < 0 || targetIndex < 0) {
@@ -2846,13 +2845,13 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 						continue;
 					const Section& connected = signalling_block_sections[connectedIndex];
 					const bool fromFirst = connected.FirstConnectedTrackLineID == section.trackLineId
-							&& connected.SecondConnectedTrackLineID == node.connectIdBlockSet[connectionIndex]
-							&& std::fabs(connected.XStartSwitch - node.X) <= kNativeCoordinateTolerance
-							&& std::fabs(connected.XEndSwitch - node.connectXNode[connectionIndex]) <= kNativeCoordinateTolerance;
+						&& connected.SecondConnectedTrackLineID == node.connectIdBlockSet[connectionIndex]
+						&& std::fabs(connected.XStartSwitch - node.X) <= kNativeCoordinateTolerance
+						&& std::fabs(connected.XEndSwitch - node.connectXNode[connectionIndex]) <= kNativeCoordinateTolerance;
 					const bool fromSecond = connected.SecondConnectedTrackLineID == section.trackLineId
-							&& connected.FirstConnectedTrackLineID == node.connectIdBlockSet[connectionIndex]
-							&& std::fabs(connected.XEndSwitch - node.X) <= kNativeCoordinateTolerance
-							&& std::fabs(connected.XStartSwitch - node.connectXNode[connectionIndex]) <= kNativeCoordinateTolerance;
+						&& connected.FirstConnectedTrackLineID == node.connectIdBlockSet[connectionIndex]
+						&& std::fabs(connected.XEndSwitch - node.X) <= kNativeCoordinateTolerance
+						&& std::fabs(connected.XStartSwitch - node.connectXNode[connectionIndex]) <= kNativeCoordinateTolerance;
 					if (fromFirst || fromSecond) {
 						node.IDConnectedBlocks.push_back(connected.ID);
 						break;
@@ -2884,7 +2883,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			continue;
 		}
 		stationBoundarySections.emplace_back(&signalling_block_sections[entrance], boundary.direction,
-				boundary.hasExitBlock ? &signalling_block_sections[exit] : nullptr);
+			boundary.hasExitBlock ? &signalling_block_sections[exit] : nullptr);
 	}
 
 	setVirtualSignals();
@@ -2901,20 +2900,20 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	setUpRoutesFromScene(scene, routeDirections);
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		if (index >= train_route.size()
-				|| train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
+			|| train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
 			add(SceneSeverity::Error, "scene.native.route.truncated", "Route did not retain every canonical block token",
-					"signalling.json", "route", scene.routes[index].id, "routes.blocks");
+				"signalling.json", "route", scene.routes[index].id, "routes.blocks");
 			continue;
 		}
 		for (std::size_t blockIndex = 0; blockIndex < scene.routes[index].blocks.size(); ++blockIndex) {
 			const auto* planned = sectionInventory.resolve(scene.routes[index].blocks[blockIndex]);
 			if (planned == nullptr || train_route[index].sequence_of_block_sections[blockIndex].ID != planned->id)
 				add(SceneSeverity::Error, "scene.native.route.order",
-						"Native route order does not retain the authored section IDs",
-						"signalling.json", "route", scene.routes[index].id,
-						"routes.blocks[" + std::to_string(blockIndex) + "]",
-						planned == nullptr ? scene.routes[index].blocks[blockIndex] : planned->id,
-						"Keep route tokens in authored order and use exact catalog IDs");
+					"Native route order does not retain the authored section IDs",
+					"signalling.json", "route", scene.routes[index].id,
+					"routes.blocks[" + std::to_string(blockIndex) + "]",
+					planned == nullptr ? scene.routes[index].blocks[blockIndex] : planned->id,
+					"Keep route tokens in authored order and use exact catalog IDs");
 		}
 	}
 	setRouteVirtualSignals();
@@ -3648,7 +3647,7 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 		Block1 = BS;
 		Block1.ID = BlockID1;
 		elaborateRbcMas(S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	 // Occupying the block section with the diverging switch
+		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	   // Occupying the block section with the diverging switch
 	}
 	// if the abscissa S_i is on the diverging switch then occupy all of the three block sections
 	else if ((S_i >= BS.XStartSwitch * 1000) && (S_i < BS.XEndSwitch * 1000)) {
@@ -3662,7 +3661,7 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 		Block2.ID = BlockID2;
 
 		elaborateRbcMas(S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	 // Occupying the block section with the diverging switch
+		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	   // Occupying the block section with the diverging switch
 		elaborateRbcMas(S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the second block section
 
 	}
@@ -3672,7 +3671,7 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 		Block2 = BS;
 		Block2.ID = BlockID2;
 		elaborateRbcMas(S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the Second block section
-		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	 // Occupying the block section with the diverging switch
+		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	   // Occupying the block section with the diverging switch
 	}
 }
 
@@ -3744,7 +3743,7 @@ void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, doub
 		elaborateRbcMas(BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
 		elaborateRbcMas(BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
 		// Blocking the access to the beginning of the switch on Block 1 and connected to Block 1 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart); // IsRouteReversed=0: blocks from AllBlocks list are not reversed
+		elaborateRbcMas(AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);			// IsRouteReversed=0: blocks from AllBlocks list are not reversed
 		lockSwitchesOnAllConnectedSections((AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
 		// Blocking the access to the beginning of the switch on Block 2 and connected to Block 2 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
 		elaborateRbcMas(AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);
@@ -4755,9 +4754,9 @@ bool breakdownMatchesTrain(const SimulationIncident& incident, const std::string
 }
 
 bool breakdownActive(const SimulationIncident& incident, const std::string& trainDesc,
-		int timestepIndex) {
+	int timestepIndex) {
 	if (incident.type != "train_breakdown" || !breakdownMatchesTrain(incident, trainDesc)
-			|| timestepIndex < incident.startSeconds)
+		|| timestepIndex < incident.startSeconds)
 		return false;
 	return !runtimeIncidentHasEnd(incident) || timestepIndex < incident.endSeconds;
 }
@@ -4836,7 +4835,7 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 						? anchor.GeoXBegNode - anchorDist
 						: anchor.start_node.X * 1000 + anchorDist;
 					MA.TrainInfo.trainDescription = "signal_failure:"
-							+ (inc.id.empty() ? inc.target : inc.id);
+						+ (inc.id.empty() ? inc.target : inc.id);
 					MA.TrainInfo.Position = MA.AbsPosEoA;
 					MA.TrainInfo.TrainSpeed = 0;
 					MA.TrainInfo.Acceleration = 0;

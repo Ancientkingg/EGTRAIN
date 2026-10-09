@@ -6,7 +6,7 @@ extern Logger owl;
 double timestep = 1;
 // double times = 0;
 double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling System Speed Codes (for Track Circuit Sisgnalling System: blockSets.A.connections.connections.)
-int numTrackLines = 0;				   // This is the total number of TrackLines
+int numTrackLines = 0;										   // This is the total number of TrackLines
 
 list<StationPlatform> AllStationPlatforms; // This is a global list containing all Station platforms existing in the modelled network
 int numAllStationPlatforms = 0;			   // This variable provides the total number of station platforms in the modelled network (it is the size of the list AllStationPlatforms)
@@ -158,7 +158,7 @@ void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 	// Computing Totals over the stations
 	double TotalAV = 0, TotalStd = 0, TOTDelay = 0, MAX_TOTDelay = 0, TOTCONSDelay = 0, MAX_CONSDelay = 0, AV_Punct = 0, AV_Punct_3min = 0, AV_Punct_5min = 0;
 	int stationsWithSamples = 0;
-	for (int s = 1; s < numStations; s++) {								// Calculate it for every station but the first, if you want it also for the first station just start the loop with s=0
+	for (int s = 1; s < numStations; s++) { // Calculate it for every station but the first, if you want it also for the first station just start the loop with s=0
 		if (StationArray[s].N_Stopped_Trains <= 0)
 			continue;
 		++stationsWithSamples;

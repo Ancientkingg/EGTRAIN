@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 	QApplication::processEvents();
 	const QImage boundaryImage = boundaryView.viewport()->grab().toImage();
 	ok &= expect(boundary->childItems().size() == 1
-		&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+			&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 		"transparent Fit target remains available for semantic picks");
 	ok &= expect(boundaryView.viewportTransform().mapRect(boundary->rect()).width() < 3.0,
 		"scene-sized boundary scales proportionally at Fit");
@@ -164,11 +164,13 @@ int main(int argc, char* argv[]) {
 	const StationOverlayItem::ViewportPlacement abovePlacement =
 		overlay.placementForSide(StationOverlayItem::LabelSide::Above, QPointF(80.0, 60.0), inset);
 	ok &= expect(qFuzzyCompare(abovePlacement.labelRect.bottom() + 8.0,
-		abovePlacement.symbolRect.top()), "production placement keeps the upper eight-pixel gap");
+					 abovePlacement.symbolRect.top()),
+		"production placement keeps the upper eight-pixel gap");
 	const StationOverlayItem::ViewportPlacement belowPlacement =
 		overlay.placementForSide(StationOverlayItem::LabelSide::Below, QPointF(80.0, 60.0), inset);
 	ok &= expect(qFuzzyCompare(belowPlacement.symbolRect.bottom() + 8.0,
-		belowPlacement.labelRect.top()), "production placement keeps the lower eight-pixel gap");
+					 belowPlacement.labelRect.top()),
+		"production placement keeps the lower eight-pixel gap");
 	const StationOverlayItem::ViewportPlacement edgePlacement =
 		overlay.preferredViewportPlacement(QPointF(2.0, 2.0), inset);
 	ok &= expect(edgePlacement.fits, "edge placement clamps the complete overlay into the viewport");

@@ -34,12 +34,12 @@ bool canComputeTrainEnergy(Train& train) {
 		&& energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time)
 		&& energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time)
 		&& !validTrajectorySegments(train.instant_spatial_position,
-									 train.earliestActiveTrajectoryIndex, train.End_Time)
-			.empty();
+			train.earliestActiveTrajectoryIndex, train.End_Time)
+				.empty();
 }
 
 void calculateDelayStatistics(Stations& result, const std::vector<double>& delays,
-		const std::vector<double>& consecutive, bool includeNonPositive) {
+	const std::vector<double>& consecutive, bool includeNonPositive) {
 	result.N_Stopped_Trains = static_cast<int>(delays.size());
 	result.N_Delayed_Arr = result.N_Delayed_Arr_3min = result.N_Delayed_Arr_5min = 0;
 	result.Av_Arrival_Delay = result.Std_Arrival_Delay = 0;
@@ -248,7 +248,7 @@ void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName) {
 	for (int i = 0; i < N_S; i++) {
 		FileOutput << S[i].trainDescription << " ";
 		const auto exportCells = trajectoryExportCells(S[i].instant_spatial_position,
-													 S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
+			S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
 		for (int t = 0; t < initial_variables.times; t++) {
 			const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 			if (position == -9999) {

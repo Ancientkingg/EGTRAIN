@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
 			const SceneRouteStations stations = stationsOf(netherlands, *route);
 			if (!isSubsequence(stops, stations.stationIds))
 				std::cerr << "failed: stops of " << service.id << " " << join(stops)
-					<< " are not in order on " << route->id << " " << join(stations.stationIds) << "\n";
+						  << " are not in order on " << route->id << " " << join(stations.stationIds) << "\n";
 			else
 				++checked;
 		}

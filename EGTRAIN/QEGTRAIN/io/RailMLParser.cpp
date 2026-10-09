@@ -1,6 +1,6 @@
 #include "io/RailMLParser.h"
 #include "simulation/InitialParameters.h"
-#include "util/portability.h"  // localtime_r shim on MSVC
+#include "util/portability.h" // localtime_r shim on MSVC
 #include <map>
 #include <memory>
 #include <zmq.hpp>

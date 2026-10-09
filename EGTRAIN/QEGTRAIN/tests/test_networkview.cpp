@@ -208,7 +208,7 @@ int main(int argc, char** argv) {
 	const QPointF centerAfterTrackpad = view.mapToScene(view.viewport()->rect().center());
 	ok &= expect(near(view.zoomRatio(), 6.0, 1e-5), "two-finger scrolling pans without zooming");
 	ok &= expect(qAbs(centerAfterTrackpad.x() - centerBeforeTrackpad.x()) > 0.1
-		&& qAbs(centerAfterTrackpad.y() - centerBeforeTrackpad.y()) > 0.1,
+			&& qAbs(centerAfterTrackpad.y() - centerBeforeTrackpad.y()) > 0.1,
 		"two-finger scrolling pans in both axes");
 	ok &= expect(updates == 1, "one two-finger scroll event emits one viewport update");
 

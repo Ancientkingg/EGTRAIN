@@ -39,7 +39,12 @@ const char* const kEnergyFile = "EnergyConsumptionPerTrain.txt";
 // Written by the last stages of the end-of-run output.
 const char* const kLateFiles[] = {"TrainTrajectories/TimetablePoints.txt", "TrainTrajectories/BlockingTimes.txt"};
 
-enum class StopAt { Never, BeforeStart, Started, TenthSnapshot, Postprocessing, Returned };
+enum class StopAt { Never,
+	BeforeStart,
+	Started,
+	TenthSnapshot,
+	Postprocessing,
+	Returned };
 
 struct RunObservation {
 	bool prepared = false;
@@ -55,7 +60,7 @@ struct RunObservation {
 // the stop at the given point. A folder in chosenDuringRun is set as the output
 // folder of the next run once the worker thread has started.
 void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, RunObservation& observed,
-		const QString& chosenDuringRun = QString()) {
+	const QString& chosenDuringRun = QString()) {
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
@@ -80,19 +85,16 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 		// The mailbox only emits again once the previous snapshot has been taken.
 		simulation.takeSimulationSnapshot();
 		if (++observed.snapshots == kStopAtSnapshot && stopAt == StopAt::TenthSnapshot)
-			stopWorker();
-	}, Qt::DirectConnection);
+			stopWorker(); }, Qt::DirectConnection);
 	QObject::connect(&simulation, &DispatchController::executionPostprocessing, &context, [&] {
 		++observed.postprocessing;
 		if (stopAt == StopAt::Postprocessing)
-			stopWorker();
-	}, Qt::DirectConnection);
+			stopWorker(); }, Qt::DirectConnection);
 	QObject::connect(&simulation, &DispatchController::executionReturned, &context, [&](qint64, bool cancelled) {
 		++observed.returned;
 		observed.cancelled = cancelled;
 		if (stopAt == StopAt::Returned)
-			stopWorker();
-	}, Qt::DirectConnection);
+			stopWorker(); }, Qt::DirectConnection);
 	if (stopAt == StopAt::Started)
 		QObject::connect(worker, &SimulationWorker::simulationStarted, &context, stopWorker, Qt::DirectConnection);
 
@@ -166,7 +168,7 @@ int main(int argc, char** argv) {
 		RunObservation observed;
 		runScene(loaded.scene, output.path(), StopAt::TenthSnapshot, observed);
 		ok &= expect(observed.snapshots >= kStopAtSnapshot && observed.snapshots <= kStopAtSnapshot + 2,
-				"stop in the loop: only a few more steps (" + std::to_string(observed.snapshots) + ")");
+			"stop in the loop: only a few more steps (" + std::to_string(observed.snapshots) + ")");
 		ok &= stoppedBeforeOutput("stop in the loop", observed, output);
 	}
 	{
@@ -177,7 +179,7 @@ int main(int argc, char** argv) {
 		ok &= expect(observed.snapshots == kHorizonSeconds, "control run: every step published");
 		ok &= expect(observed.postprocessing == 1 && observed.returned == 1, "control run: one pass through the stages");
 		ok &= expect(!observed.cancelled && observed.completed && !observed.stopRequested,
-				"control run: completed, not cancelled");
+			"control run: completed, not cancelled");
 		ok &= expect(exists(output, kEnergyFile), std::string("control run: ") + kEnergyFile);
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("control run: ") + file);
@@ -192,10 +194,10 @@ int main(int argc, char** argv) {
 		simulation.setSnapshotsEnabled(true);
 		ok &= expect(observed.prepared, "run without snapshots: scene prepared with trains");
 		ok &= expect(observed.snapshots == 0 && !simulation.takeSimulationSnapshot(),
-				"run without snapshots: no step published");
+			"run without snapshots: no step published");
 		ok &= expect(simulation.takeReplayCandidate().empty(), "run without snapshots: no replay history");
 		ok &= expect(observed.postprocessing == 1 && observed.returned == 1 && observed.completed,
-				"run without snapshots: one pass through the stages, completed");
+			"run without snapshots: one pass through the stages, completed");
 		ok &= expect(exists(output, kEnergyFile), std::string("run without snapshots: ") + kEnergyFile);
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("run without snapshots: ") + file);
@@ -207,9 +209,9 @@ int main(int argc, char** argv) {
 		ok &= expect(observed.prepared, "stop in post-processing: scene prepared with trains");
 		ok &= expect(observed.snapshots == kHorizonSeconds, "stop in post-processing: loop finished");
 		ok &= expect(observed.postprocessing == 1 && observed.returned == 1,
-				"stop in post-processing: executionReturned emitted once");
+			"stop in post-processing: executionReturned emitted once");
 		ok &= expect(observed.cancelled && !observed.completed && observed.stopRequested,
-				"stop in post-processing: cancelled, not completed");
+			"stop in post-processing: cancelled, not completed");
 		for (const char* file : kLateFiles)
 			ok &= expect(!exists(output, file), std::string("stop in post-processing: no ") + file);
 	}
@@ -219,7 +221,7 @@ int main(int argc, char** argv) {
 		runScene(loaded.scene, output.path(), StopAt::Returned, observed);
 		ok &= expect(observed.prepared, "stop after completion: scene prepared with trains");
 		ok &= expect(observed.returned == 1 && !observed.cancelled && observed.completed,
-				"stop after completion: run stays completed");
+			"stop after completion: run stays completed");
 		ok &= expect(observed.stopRequested, "stop after completion: stop request kept");
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("stop after completion: ") + file);
@@ -233,7 +235,7 @@ int main(int argc, char** argv) {
 		runScene(loaded.scene, output.path(), StopAt::Never, observed, chosen.path());
 		ok &= expect(observed.prepared && observed.completed, "folder chosen during a run: run completed");
 		ok &= expect(initial_variables.OutputMainFolder == output.path().toStdString(),
-				"folder chosen during a run: the run keeps its folder");
+			"folder chosen during a run: the run keeps its folder");
 		ok &= expect(exists(output, kEnergyFile), std::string("folder chosen during a run: ") + kEnergyFile);
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("folder chosen during a run: ") + file);
@@ -241,7 +243,7 @@ int main(int argc, char** argv) {
 
 		ok &= expect(!hasErrors(simulation.prepareScene(loaded.scene)), "next run: scene prepared");
 		ok &= expect(initial_variables.OutputMainFolder == chosen.path().toStdString(),
-				"next run: uses the chosen folder");
+			"next run: uses the chosen folder");
 		ok &= expect(exists(chosen, "TrainTrajectories"), "next run: output tree created in the chosen folder");
 		simulation.setNextRunOutputFolder({});
 	}

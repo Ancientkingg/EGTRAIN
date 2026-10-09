@@ -37,8 +37,8 @@ void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startO
 	const QString stepCount = formatCount(safeTotalSteps);
 	const QString displayedStepText = formatCount(displayedStep);
 	setFormat(QStringLiteral("%1 | Step %2 of %3 | Ends %4")
-		.arg(QString::fromStdString(formatSimTime(clampedTimestep, startOffsetSeconds)))
-		.arg(displayedStepText)
-		.arg(stepCount)
-		.arg(QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
+			.arg(QString::fromStdString(formatSimTime(clampedTimestep, startOffsetSeconds)))
+			.arg(displayedStepText)
+			.arg(stepCount)
+			.arg(QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
 }

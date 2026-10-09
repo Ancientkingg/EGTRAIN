@@ -195,8 +195,7 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 		fail(QStringLiteral("The release package URL is not trusted."));
 		return;
 	}
-	QTemporaryDir staging(QDir(QFileInfo(m_currentPath).absolutePath()).filePath(
-		QStringLiteral(".qegtrain-update-XXXXXX")));
+	QTemporaryDir staging(QDir(QFileInfo(m_currentPath).absolutePath()).filePath(QStringLiteral(".qegtrain-update-XXXXXX")));
 	if (!staging.isValid()) {
 		fail(QStringLiteral("Could not create update staging storage."));
 		return;
@@ -377,7 +376,8 @@ void SelfUpdater::handlePreparationFinished(const UpdatePreparationResult& resul
 	}
 	if (!result.success) {
 		fail(result.error.isEmpty()
-			? QStringLiteral("The update package is incomplete.") : result.error);
+				? QStringLiteral("The update package is incomplete.")
+				: result.error);
 		return;
 	}
 	m_stagedPath = result.stagedPath;
@@ -401,8 +401,7 @@ bool SelfUpdater::restart() {
 	if (!QFile::copy(m_helperPath, helperCopy))
 		return false;
 #if !defined(Q_OS_WIN)
-	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions()
-		| QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
+	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions() | QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
 #endif
 	QString backup = m_currentPath + QStringLiteral(".egtrain-old");
 	const QFileInfo previousBackup(backup);
@@ -410,7 +409,8 @@ bool SelfUpdater::restart() {
 		return false;
 	if (previousBackup.exists()) {
 		const bool removed = previousBackup.isDir()
-			? QDir(backup).removeRecursively() : QFile::remove(backup);
+			? QDir(backup).removeRecursively()
+			: QFile::remove(backup);
 		if (!removed)
 			return false;
 	}

@@ -21,7 +21,7 @@ bool ScenarioLoadResult::success() const {
 }
 
 static void addWriteError(SceneSaveResult& result, const std::string& file,
-		const std::string& message) {
+	const std::string& message) {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = SceneSeverity::Error;
 	diagnostic.code = "scene.save.write";
@@ -31,7 +31,7 @@ static void addWriteError(SceneSaveResult& result, const std::string& file,
 }
 
 static void addCleanupWarning(SceneSaveResult& result, const fs::path& path,
-		const std::string& message) {
+	const std::string& message) {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = SceneSeverity::Warning;
 	diagnostic.code = "scene.save.cleanup";
@@ -54,12 +54,11 @@ struct StagingDirectory {
 };
 
 static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix,
-		fs::path& result) {
+	fs::path& result) {
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
-				+ std::to_string(attempt));
+		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		ec.clear();
 		if (fs::create_directory(candidate, ec)) {
 			ec.clear();
@@ -79,12 +78,11 @@ static bool createUniqueDirectory(const fs::path& parent, const std::string& pre
 }
 
 static bool uniqueSiblingPath(const fs::path& parent, const std::string& prefix,
-		fs::path& result) {
+	fs::path& result) {
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
-				+ std::to_string(attempt));
+		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		ec.clear();
 		const auto status = fs::symlink_status(candidate, ec);
 		if (!ec && status.type() == fs::file_type::not_found) {
@@ -102,7 +100,7 @@ static bool uniqueSiblingPath(const fs::path& parent, const std::string& prefix,
 }
 
 static bool inspectDestination(const fs::path& destination, bool& exists,
-		SceneSaveResult& result) {
+	SceneSaveResult& result) {
 	std::error_code ec;
 	const auto status = fs::symlink_status(destination, ec);
 	if (ec && ec != std::errc::no_such_file_or_directory) {
@@ -112,14 +110,14 @@ static bool inspectDestination(const fs::path& destination, bool& exists,
 	exists = !ec && status.type() != fs::file_type::not_found;
 	if (exists && status.type() != fs::file_type::directory) {
 		addWriteError(result, destination.string(),
-				"Scene destination must be a directory and cannot be a symlink");
+			"Scene destination must be a directory and cannot be a symlink");
 		return false;
 	}
 	return true;
 }
 
 static bool serializeJson(SceneSaveResult& result, const std::string& filename,
-		const json& value, std::string& bytes) {
+	const json& value, std::string& bytes) {
 	try {
 		bytes = value.dump(4) + "\n";
 	} catch (const json::exception& error) {
@@ -130,7 +128,7 @@ static bool serializeJson(SceneSaveResult& result, const std::string& filename,
 }
 
 static bool writeBytes(SceneSaveResult& result, const std::string& filename, const fs::path& path,
-		const std::string& bytes) {
+	const std::string& bytes) {
 	std::ofstream output(path, std::ios::binary);
 	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
@@ -147,7 +145,7 @@ static bool writeBytes(SceneSaveResult& result, const std::string& filename, con
 
 // Writes into a scene directory that is private to the save, so truncating is safe.
 static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
-		const std::string& filename, const json& value) {
+	const std::string& filename, const json& value) {
 	std::string bytes;
 	if (!serializeJson(result, filename, value, bytes))
 		return false;
@@ -157,7 +155,7 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 
 // Writes a file that may already exist: the old content stays until the new content is complete.
 static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path,
-		const json& value) {
+	const json& value) {
 	const std::string filename = path.filename().string();
 	std::string bytes;
 	if (!serializeJson(result, filename, value, bytes))
@@ -204,7 +202,7 @@ static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path
 }
 
 static bool copyExistingSceneContents(const fs::path& source, const fs::path& staging,
-		SceneSaveResult& result) {
+	SceneSaveResult& result) {
 	std::error_code ec;
 	fs::copy(source, staging, fs::copy_options::recursive | fs::copy_options::copy_symlinks, ec);
 	if (ec) {
@@ -212,8 +210,8 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 		return false;
 	}
 	for (const char* filename : {"scene.json", "infrastructure.json", "stations.json",
-			"signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
-			"passengers.json", "views.json", "incidents.json"}) {
+			 "signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
+			 "passengers.json", "views.json", "incidents.json"}) {
 		ec.clear();
 		fs::remove_all(staging / filename, ec);
 		if (ec) {
@@ -381,7 +379,7 @@ static json writeScenarios(const SceneModel& scene) {
 }
 
 static void addScenarioDiagnostic(ScenarioLoadResult& result, SceneSeverity severity,
-		const std::string& code, const std::string& message, const std::string& path = "") {
+	const std::string& code, const std::string& message, const std::string& path = "") {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = severity;
 	diagnostic.code = code;
@@ -392,21 +390,21 @@ static void addScenarioDiagnostic(ScenarioLoadResult& result, SceneSeverity seve
 }
 
 static bool scenarioString(const json& object, const char* key, ScenarioLoadResult& result,
-		std::string& output, bool required, const std::string& path) {
+	std::string& output, bool required, const std::string& path) {
 	if (!object.is_object()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-				"Scenario field must be an object", path);
+			"Scenario field must be an object", path);
 		return false;
 	}
 	if (!object.contains(key)) {
 		if (required)
 			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
-					std::string("Missing ") + key, path + "." + key);
+				std::string("Missing ") + key, path + "." + key);
 		return false;
 	}
 	if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
+			std::string("Invalid ") + key, path + "." + key);
 		return false;
 	}
 	output = object[key].get<std::string>();
@@ -414,40 +412,40 @@ static bool scenarioString(const json& object, const char* key, ScenarioLoadResu
 }
 
 static bool scenarioNumber(const json& object, const char* key, ScenarioLoadResult& result,
-		double& output, const std::string& path) {
+	double& output, const std::string& path) {
 	if (!object.contains(key)) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
-				std::string("Missing ") + key, path + "." + key);
+			std::string("Missing ") + key, path + "." + key);
 		return false;
 	}
 	if (!object[key].is_number()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
+			std::string("Invalid ") + key, path + "." + key);
 		return false;
 	}
 	try {
 		output = object[key].get<double>();
 	} catch (const json::exception&) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
+			std::string("Invalid ") + key, path + "." + key);
 		return false;
 	}
 	return true;
 }
 
 static bool scenarioInteger(const json& object, const char* key, ScenarioLoadResult& result,
-		int& output, const std::string& path) {
+	int& output, const std::string& path) {
 	if (!object.contains(key))
 		return true;
 	if (!object[key].is_number_integer()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
+			std::string("Invalid ") + key, path + "." + key);
 		return false;
 	}
 	int value = 0;
 	if (!readJsonInt(object[key], INT_MIN, INT_MAX, value)) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key + ": integer out of range", path + "." + key);
+			std::string("Invalid ") + key + ": integer out of range", path + "." + key);
 		return false;
 	}
 	output = value;
@@ -455,11 +453,11 @@ static bool scenarioInteger(const json& object, const char* key, ScenarioLoadRes
 }
 
 static void parseScenarioIncident(const json& value, std::size_t index,
-		ScenarioLoadResult& result) {
+	ScenarioLoadResult& result) {
 	const std::string path = "incidents[" + std::to_string(index) + "]";
 	if (!value.is_object()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-				"Incident must be an object", path);
+			"Incident must be an object", path);
 		return;
 	}
 	SceneIncident incident;
@@ -473,11 +471,11 @@ static void parseScenarioIncident(const json& value, std::size_t index,
 		&& scenarioInteger(value, "occurrence", result, incident.occurrence, path);
 	if (value.contains("reduced_speed_kmh"))
 		incident.hasReducedSpeed = scenarioNumber(value, "reduced_speed_kmh", result,
-				incident.reducedSpeedKmh, path);
+			incident.reducedSpeedKmh, path);
 	if (value.contains("terminate_at_destination")) {
 		if (!value["terminate_at_destination"].is_boolean())
 			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-					"Invalid terminate_at_destination", path + ".terminate_at_destination");
+				"Invalid terminate_at_destination", path + ".terminate_at_destination");
 		else
 			incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
 	}
@@ -485,11 +483,11 @@ static void parseScenarioIncident(const json& value, std::size_t index,
 }
 
 static void parseScenarioEntranceDelay(const json& value, std::size_t index,
-		ScenarioLoadResult& result) {
+	ScenarioLoadResult& result) {
 	const std::string path = "entrance_delays[" + std::to_string(index) + "]";
 	if (!value.is_object()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-				"Entrance delay must be an object", path);
+			"Entrance delay must be an object", path);
 		return;
 	}
 	SceneEntranceDelay delay;
@@ -511,7 +509,7 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	std::ifstream input{fs::path(filePath)};
 	if (!input) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.file.missing",
-				"Cannot open scenario JSON");
+			"Cannot open scenario JSON");
 		return result;
 	}
 
@@ -520,12 +518,12 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 		input >> value;
 	} catch (const json::parse_error& error) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.json.parse",
-				std::string("JSON parse error: ") + error.what());
+			std::string("JSON parse error: ") + error.what());
 		return result;
 	}
 	if (!value.is_object()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.root.type",
-				"Scenario JSON root must be an object");
+			"Scenario JSON root must be an object");
 		return result;
 	}
 
@@ -533,14 +531,14 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	for (const auto& field : value.items()) {
 		if (allowed.find(field.key()) == allowed.end())
 			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.unknown",
-					"Scenario JSON does not allow field " + field.key(), field.key());
+				"Scenario JSON does not allow field " + field.key(), field.key());
 	}
 	scenarioString(value, "id", result, result.scenario.id, true, "scenario");
 	scenarioString(value, "name", result, result.scenario.name, true, "scenario");
 	scenarioString(value, "description", result, result.scenario.description, false, "scenario");
 	if (!value.contains("incidents") || !value["incidents"].is_array()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
-				"incidents must be an array", "incidents");
+			"incidents must be an array", "incidents");
 	} else {
 		for (std::size_t index = 0; index < value["incidents"].size(); ++index)
 			parseScenarioIncident(value["incidents"][index], index, result);
@@ -548,7 +546,7 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	if (value.contains("entrance_delays")) {
 		if (!value["entrance_delays"].is_array()) {
 			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
-					"entrance_delays must be an array", "entrance_delays");
+				"entrance_delays must be an array", "entrance_delays");
 		} else {
 			for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index)
 				parseScenarioEntranceDelay(value["entrance_delays"][index], index, result);
@@ -567,13 +565,13 @@ static json writePassengers(const SceneModel& scene) {
 				{"origin", journey.originStationId},
 				{"destination", journey.destinationStationId},
 				{"planned_departure", {
-					{"start_seconds", journey.plannedDepartureStartSeconds},
-					{"end_seconds", journey.plannedDepartureEndSeconds},
-				}},
+										  {"start_seconds", journey.plannedDepartureStartSeconds},
+										  {"end_seconds", journey.plannedDepartureEndSeconds},
+									  }},
 				{"planned_arrival", {
-					{"start_seconds", journey.plannedArrivalStartSeconds},
-					{"end_seconds", journey.plannedArrivalEndSeconds},
-				}},
+										{"start_seconds", journey.plannedArrivalStartSeconds},
+										{"end_seconds", journey.plannedArrivalEndSeconds},
+									}},
 				{"legs", json::array()},
 			};
 			if (!journey.activity.empty())
@@ -784,7 +782,8 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	wroteAll = writeCanonical("stations.json", {{"stations", stations}}) && wroteAll;
 	wroteAll = writeCanonical("signalling.json", signalling) && wroteAll;
 	wroteAll = writeCanonical("rolling_stock.json",
-			{{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}}) && wroteAll;
+				   {{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}})
+		&& wroteAll;
 	wroteAll = writeCanonical("services.json", {{"services", writeServices(scene)}}) && wroteAll;
 	wroteAll = writeCanonical("scenarios.json", writeScenarios(scene)) && wroteAll;
 	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
@@ -803,13 +802,13 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	const fs::path destination(sceneDir);
 	const std::string destinationName = destination.filename().string();
 	if (destination.empty() || destinationName.empty() || destinationName == "."
-			|| destinationName == "..") {
+		|| destinationName == "..") {
 		addWriteError(result, sceneDir, "Scene destination must be a named directory");
 		return result;
 	}
 
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".")
-			: destination.parent_path();
+															  : destination.parent_path();
 	std::error_code ec;
 	result.writeAttempted = true;
 	fs::create_directories(parent, ec);
@@ -864,8 +863,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		ec.clear();
 		fs::rename(destination, backup, ec);
 		if (ec) {
-			addWriteError(result, destination.string(), "Cannot move the previous scene generation: "
-					+ ec.message());
+			addWriteError(result, destination.string(), "Cannot move the previous scene generation: " + ec.message());
 			result.wroteAll = false;
 			return result;
 		}
@@ -879,8 +877,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 			std::error_code restoreError;
 			fs::rename(backup, destination, restoreError);
 			if (restoreError)
-				addWriteError(result, destination.string(), "Cannot restore the previous scene generation: "
-						+ restoreError.message());
+				addWriteError(result, destination.string(), "Cannot restore the previous scene generation: " + restoreError.message());
 		}
 		result.wroteAll = false;
 		return result;
@@ -892,7 +889,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		fs::remove_all(backup, ec);
 		if (ec)
 			addCleanupWarning(result, backup,
-					"Cannot remove the previous scene generation: " + ec.message());
+				"Cannot remove the previous scene generation: " + ec.message());
 	}
 
 	result.wroteAll = !hasErrors(result.diagnostics);

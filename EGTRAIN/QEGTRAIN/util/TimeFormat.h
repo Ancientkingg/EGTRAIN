@@ -17,6 +17,6 @@ long long parseClockToSeconds(const std::string& hhmm);
 std::string formatPlannedTime(std::optional<double> value, bool clock, long long baseOffsetSeconds);
 // On failure value is unchanged; an unchanged representation retains its exact stored value.
 bool parsePlannedTime(const std::string& text, bool clock, long long baseOffsetSeconds,
-                     std::optional<double>& value);
+	std::optional<double>& value);
 
 #endif // TIMEFORMAT_H

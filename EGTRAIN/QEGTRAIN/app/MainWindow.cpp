@@ -161,7 +161,7 @@ StartupIdentity g_startupIdentity;
 #undef signals
 #endif
 StartupIdentity startupIdentity(const QString& path, const SceneModel& model,
-		const std::string& inputSnapshot = {}) {
+	const std::string& inputSnapshot = {}) {
 	return {QFileInfo(path).absoluteFilePath(), model.schemaVersion, model.name, model.baseTime,
 		model.defaultScenarioId, model.settings,
 		{model.loadedData.size(), model.sourceFiles.size(), model.importReport.size(),
@@ -179,7 +179,7 @@ StartupIdentity startupIdentity(const QString& path, const SceneModel& model,
 #endif
 
 bool sameStartupSettings(const SceneSimulationSettings& left,
-		const SceneSimulationSettings& right) {
+	const SceneSimulationSettings& right) {
 	return left.hasDuration == right.hasDuration && left.durationSeconds == right.durationSeconds
 		&& left.hasBufferTime == right.hasBufferTime
 		&& left.bufferTimeSeconds == right.bufferTimeSeconds
@@ -298,7 +298,7 @@ bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 
 QString inputTractionContext(const SceneTrainUnit& unit, const QString& displayId = QString()) {
 	QString context = QString("Rolling stock unit: %1")
-		.arg(displayId.isNull() ? QString::fromStdString(unit.id) : displayId);
+						  .arg(displayId.isNull() ? QString::fromStdString(unit.id) : displayId);
 	if (!unit.sourceTractionFile.empty())
 		context += QString(" | Source: %1").arg(QString::fromStdString(unit.sourceTractionFile));
 	return context;
@@ -306,7 +306,8 @@ QString inputTractionContext(const SceneTrainUnit& unit, const QString& displayI
 
 QString inputTractionWarning(const SceneTrainUnit& unit) {
 	return inputTractionHasNegativeEffort(unit)
-		? QStringLiteral("Negative effort below the displayed 0 kN range.") : QString();
+		? QStringLiteral("Negative effort below the displayed 0 kN range.")
+		: QString();
 }
 
 QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
@@ -358,10 +359,10 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 	std::optional<telemetry::Error> selected;
 	const auto priority = [](telemetry::Error error) {
 		switch (error) {
-		case telemetry::Error::UnsupportedFormat: return 0;
-		case telemetry::Error::InvalidInput: return 1;
-		case telemetry::Error::IoFailure: return 2;
-		case telemetry::Error::InternalFailure: return 3;
+			case telemetry::Error::UnsupportedFormat: return 0;
+			case telemetry::Error::InvalidInput: return 1;
+			case telemetry::Error::IoFailure: return 2;
+			case telemetry::Error::InternalFailure: return 3;
 		}
 		return 4;
 	};
@@ -473,7 +474,7 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		if (diagnostic.code == "scene.version.unsupported" || diagnostic.code == "scene.units.unsupported")
 			error = telemetry::Error::UnsupportedFormat;
 		else if (std::any_of(std::begin(invalidCodes), std::end(invalidCodes),
-				[&](const char* code) { return diagnostic.code == code; }))
+					 [&](const char* code) { return diagnostic.code == code; }))
 			error = telemetry::Error::InvalidInput;
 		else if (diagnostic.code == "scene.bundle.file.read" || diagnostic.code == "scene.bundle.temp")
 			error = telemetry::Error::IoFailure;
@@ -485,13 +486,13 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 	window->setProvenanceWriter([provenance = std::move(provenance)](
-			const QString& path, const char* kind, const std::string& bytes) {
+									const QString& path, const char* kind, const std::string& bytes) {
 		return writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance);
 	});
 }
 
 void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,
-		const std::string& current, bool allowNone, const QString& noneLabel) {
+	const std::string& current, bool allowNone, const QString& noneLabel) {
 	if (!combo)
 		return;
 	combo->clear();
@@ -504,7 +505,7 @@ void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& in
 	if (selected < 0 && !current.empty()) {
 		if (const auto* resolved = inventory.resolve(current)) {
 			combo->addItem(QStringLiteral("%1 (legacy: %2)")
-					.arg(sceneSectionDisplayLabel(*resolved), QString::fromStdString(current)),
+							   .arg(sceneSectionDisplayLabel(*resolved), QString::fromStdString(current)),
 				QString::fromStdString(current));
 		} else {
 			combo->addItem(QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
@@ -519,8 +520,8 @@ void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& in
 }
 
 void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneModel,
-		const std::string& current, const std::set<std::string>* allowed = nullptr,
-		bool hasSelection = true) {
+	const std::string& current, const std::set<std::string>* allowed = nullptr,
+	bool hasSelection = true) {
 	if (!combo)
 		return;
 	combo->clear();
@@ -534,13 +535,13 @@ void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneMode
 		const QString label = station.name.empty()
 			? QString::fromStdString(station.id)
 			: QStringLiteral("%1 | %2").arg(QString::fromStdString(station.id),
-				QString::fromStdString(station.name));
+				  QString::fromStdString(station.name));
 		combo->addItem(label, QString::fromStdString(station.id));
 	}
 	int selected = combo->findData(QString::fromStdString(current));
 	if (selected < 0) {
 		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-			: QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
+									   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
 			QString::fromStdString(current));
 		selected = combo->count() - 1;
 	}
@@ -548,7 +549,7 @@ void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneMode
 }
 
 void populatePassengerServiceCombo(QComboBox* combo, const SceneModel& sceneModel,
-		const std::string& current, bool hasSelection = true) {
+	const std::string& current, bool hasSelection = true) {
 	if (!combo)
 		return;
 	combo->clear();
@@ -561,7 +562,7 @@ void populatePassengerServiceCombo(QComboBox* combo, const SceneModel& sceneMode
 	int selected = combo->findData(QString::fromStdString(current));
 	if (selected < 0) {
 		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-			: QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
+									   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
 			QString::fromStdString(current));
 		selected = combo->count() - 1;
 	}
@@ -603,8 +604,8 @@ std::string buildTrajectoryCsv(const QStringList& visibleTrainIds) {
 				: std::string(csv::kMissingValue);
 		};
 		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position,
-														   train.earliestActiveTrajectoryIndex,
-														   train.End_Time)) {
+				 train.earliestActiveTrajectoryIndex,
+				 train.End_Time)) {
 			for (int i = segment.first; i <= segment.last; ++i) {
 				std::string block = i >= 0 && i < static_cast<int>(train.instant_block_section_occupied.size())
 					? train.instant_block_section_occupied[static_cast<std::size_t>(i)]
@@ -647,8 +648,7 @@ std::string buildTimetableCsv(const QStringList& visibleTrainIds) {
 	for (const TimetableResultRow& r : results) {
 		if (!trainInVisibleSet(visibleTrainIds, r.trainId))
 			continue;
-		rows.push_back({
-			r.trainId,
+		rows.push_back({r.trainId,
 			r.stationId,
 			std::to_string(r.journeyIndex),
 			r.operatingCode,
@@ -711,7 +711,8 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			case BlockingTimeSegmentStyle::SwitchStation: return QColor(200, 160, 20, 190);
 			case BlockingTimeSegmentStyle::Critical: return kBlockingCriticalColor;
 			case BlockingTimeSegmentStyle::CriticalStation: return QColor(170, 30, 30, 220);
-			case BlockingTimeSegmentStyle::Default: default: return QColor(100, 160, 240, 150);
+			case BlockingTimeSegmentStyle::Default:
+			default: return QColor(100, 160, 240, 150);
 		}
 	};
 	const auto suffixFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
@@ -841,10 +842,13 @@ std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
 	for (auto segment : segments) {
 		const auto projection = projections.find(segment.trainName);
 		const auto start = projection == projections.end() ? std::optional<double>()
-			: projection->second.map(segment.startPositionKm);
+														   : projection->second.map(segment.startPositionKm);
 		const auto end = projection == projections.end() ? std::optional<double>()
-			: projection->second.map(segment.endPositionKm);
-		if (!start || !end) { ++omitted; continue; }
+														 : projection->second.map(segment.endPositionKm);
+		if (!start || !end) {
+			++omitted;
+			continue;
+		}
 		segment.startPositionKm = *start;
 		segment.endPositionKm = *end;
 		segment.midPositionKm = (*start + *end) / 2.0;
@@ -861,8 +865,7 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 		return references;
 	for (int i = 0; i < numRegions; ++i) {
 		const Train& train = regional_train[i];
-		if (!scope.trainIds.empty() &&
-			std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainDescription) == scope.trainIds.end())
+		if (!scope.trainIds.empty() && std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainDescription) == scope.trainIds.end())
 			continue;
 		if (!train.Stations)
 			continue;
@@ -873,7 +876,8 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 			const auto path = paths.find(train.indexOfRoute);
 			const auto projection = projections.find(train.indexOfRoute);
 			const auto positionKm = path == paths.end() || projection == projections.end()
-				? std::optional<double>() : routeDiagramStopPosition(train, stationIndex, path->second, projection->second);
+				? std::optional<double>()
+				: routeDiagramStopPosition(train, stationIndex, path->second, projection->second);
 			if (!positionKm) {
 				++omitted;
 				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
@@ -905,8 +909,7 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	for (const BlockingTimeDiagramSegment& s : segments) {
 		if (!trainInVisibleSet(visibleTrainIds, s.trainName))
 			continue;
-		rows.push_back({
-			s.trainName,
+		rows.push_back({s.trainName,
 			s.blockId,
 			csv::formatDouble(s.startTime),
 			csv::formatDouble(s.endTime),
@@ -924,8 +927,7 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	for (const BlockingTimePlannedReference& reference : plannedReferences) {
 		if (!trainInVisibleSet(visibleTrainIds, reference.trainName))
 			continue;
-		rows.push_back({
-			reference.trainName,
+		rows.push_back({reference.trainName,
 			std::string(),
 			std::string(),
 			std::string(),
@@ -975,7 +977,8 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
 	}
 	return buildBlockingTimeCsv(visibleTrainIds,
 		projectBlockingSegments(filterBlockingTimeDiagramSegments(buildAllBlockingTimeSegments(), scope.trainIds,
-			scope.blockIds, scope.startTime, scope.endTime), byTrain, omitted),
+									scope.blockIds, scope.startTime, scope.endTime),
+			byTrain, omitted),
 		filterBlockingTimePlannedReferences(buildBlockingTimePlannedReferences(scope, paths, projections, omitted),
 			scope.startTime, scope.endTime));
 }
@@ -990,7 +993,8 @@ bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
 	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
 		const Route& route = train_route[routeIndex];
 		const QString corridor = route.corridor.empty()
-			? QStringLiteral("no corridor") : QString::fromStdString(route.corridor);
+			? QStringLiteral("no corridor")
+			: QString::fromStdString(route.corridor);
 		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.ID), corridor),
 			static_cast<int>(routeIndex));
 	}
@@ -1063,7 +1067,8 @@ bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
 	scope.blockIds.clear();
 	const int routeIndex = routeCombo->currentData().toInt();
 	scope.routeIndex = routeIndex >= 0 && routeIndex < static_cast<int>(train_route.size())
-		? routeIndex : -1;
+		? routeIndex
+		: -1;
 	if (scope.routeIndex < 0)
 		return true;
 
@@ -1101,8 +1106,7 @@ std::string terminationOutcome(bool requested, bool terminated) {
 std::string buildRunSummaryCsv(const RunResults& results) {
 	std::vector<std::vector<std::string>> rows;
 	for (const TrainRunResult& t : results.trains) {
-		rows.push_back({
-			t.trainId,
+		rows.push_back({t.trainId,
 			t.operatingCode,
 			csv::formatDouble(t.performancePercent),
 			csv::formatDouble(t.appliedMaximumSpeedKmh),
@@ -1118,8 +1122,7 @@ std::string buildRunSummaryCsv(const RunResults& results) {
 			csvValue(t.firstDirectIncidentLocation),
 			terminationOutcome(t.destinationTerminationRequested, t.destinationTerminated)});
 	}
-	rows.push_back({
-		"Network total",
+	rows.push_back({"Network total",
 		std::string(csv::kMissingValue),
 		std::string(csv::kMissingValue),
 		std::string(csv::kMissingValue),
@@ -1143,11 +1146,10 @@ std::string buildRunSummaryCsv(const RunResults& results) {
 		rows);
 }
 std::string delayComparisonCsv(const DelayRunSnapshot& baseline,
-		const DelayRunSnapshot& scenario, const DelayComparisonResult& comparison) {
+	const DelayRunSnapshot& scenario, const DelayComparisonResult& comparison) {
 	std::vector<std::vector<std::string>> rows;
 	for (const DelayComparisonRow& row : comparison.rows) {
-		rows.push_back({
-			baseline.scenarioId,
+		rows.push_back({baseline.scenarioId,
 			scenario.scenarioId,
 			baseline.caseRevision,
 			row.serviceId,
@@ -1269,8 +1271,7 @@ std::vector<CapacityAnalysisTrain> capacityTrainsForScope(const CapacityAnalysis
 		const CapacityAnalysisTrain candidate = capacityTrainForScope(regional_train[trainIndex], scope);
 		if (candidate.occupations.empty())
 			continue;
-		if (!scope.occurrenceIds.empty() && std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(),
-			candidate.runtimeId) == scope.occurrenceIds.end())
+		if (!scope.occurrenceIds.empty() && std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(), candidate.runtimeId) == scope.occurrenceIds.end())
 			continue;
 		candidates.push_back(candidate);
 	}
@@ -1316,8 +1317,7 @@ QString capacityScopeLabel(const CapacityAnalysisScope& scope) {
 	if (!route.corridor.empty())
 		label += QString(" / %1").arg(QString::fromStdString(route.corridor));
 	if (!scope.blockIds.empty())
-		label += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
-			QString::fromStdString(scope.blockIds.back()));
+		label += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
 	return label;
 }
 
@@ -1325,10 +1325,10 @@ std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evi
 	QStringList values;
 	for (const auto& item : evidence)
 		values << QString("%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-			.arg(QString::fromStdString(item.leaderBlockId), QString::fromStdString(item.followerBlockId),
-				QString::fromStdString(csv::formatDouble(item.leaderOffset)),
-				QString::fromStdString(csv::formatDouble(item.followerOffset)),
-				QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
+					  .arg(QString::fromStdString(item.leaderBlockId), QString::fromStdString(item.followerBlockId),
+						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
+						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
+						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
 	return values.join("; ").toStdString();
 }
 
@@ -1456,7 +1456,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) 
 	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
 		const Route& route = train_route[routeIndex];
 		const QString corridor = route.corridor.empty()
-			? QStringLiteral("no corridor") : QString::fromStdString(route.corridor);
+			? QStringLiteral("no corridor")
+			: QString::fromStdString(route.corridor);
 		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.ID), corridor),
 			static_cast<int>(routeIndex));
 	}
@@ -1484,7 +1485,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) 
 	auto* note = new QLabel(
 		"Checked occurrences are analyzed in the displayed order (A → B); selecting exactly two enables the pair workflow. "
 		"Pre-/post-Gdg order changes are separate explicit sections. Select the occurrence of the first service in the next "
-		"period that closes the capacity cycle; EGTRAIN does not infer it from the last row.", &dialog);
+		"period that closes the capacity cycle; EGTRAIN does not infer it from the last row.",
+		&dialog);
 	note->setWordWrap(true);
 	layout->addWidget(note);
 	layout->addWidget(new QLabel("Occurrences with complete occupations on the selected section:", &dialog));
@@ -1589,7 +1591,7 @@ QStringList allTrainIds() {
 // Result windows are non-modal and may outlive the run that created them.
 // Capture one document per train now so later filtering never reads a newer run.
 std::function<std::string(const QStringList&)> snapshotCsv(
-		const std::function<std::string(const QStringList&)>& provider) {
+	const std::function<std::string(const QStringList&)>& provider) {
 	std::vector<std::pair<QString, std::string>> documents;
 	for (const QString& trainId : allTrainIds()) {
 		const std::string document = provider(QStringList{trainId});
@@ -1623,15 +1625,15 @@ bool writeCsvFile(const QString& path, const std::string& content) {
 }
 
 bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
-		const RunProvenance& provenance) {
+	const RunProvenance& provenance) {
 	return writeRunArtifactWithProvenance(path.toStdString(), "csv", content, provenance);
 }
 
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
 // failure never leaves a partial file behind.
 void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
-		const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
-		const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
+	const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
+	const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
 	const std::string content = provider();
 	if (content.empty()) {
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
@@ -1673,10 +1675,10 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 		const QString tooltip = item.targetType == "network"
 			? QStringLiteral("Activate this row to focus the existing network view.")
 			: (item.targetType == "validation"
-				? QStringLiteral("Activate this row to open the existing validation table.")
-				: (item.targetType == "train_unit_plot"
-					? QStringLiteral("Activate this row to plot this rolling stock unit's tractive effort.")
-					: QStringLiteral("Activate this row to open the existing editor.")));
+					  ? QStringLiteral("Activate this row to open the existing validation table.")
+					  : (item.targetType == "train_unit_plot"
+								? QStringLiteral("Activate this row to plot this rolling stock unit's tractive effort.")
+								: QStringLiteral("Activate this row to open the existing editor.")));
 		row->setToolTip(0, tooltip);
 	}
 	for (const auto& child : item.children)
@@ -1812,19 +1814,19 @@ QString stationDisplayName(const SceneModel& model, const std::string& stationId
 
 QString stopResolutionText(SceneStopResolutionStatus status) {
 	switch (status) {
-	case SceneStopResolutionStatus::Resolved: return "Reachable ordered route visit";
-	case SceneStopResolutionStatus::AmbiguousPlatform: return "Choose an explicit reachable platform";
-	case SceneStopResolutionStatus::OffRouteContext: return "Off-route schedule context; no simulated stop";
-	case SceneStopResolutionStatus::OutOfOrder: return "Invalid: stop is before or at an already used route visit";
-	case SceneStopResolutionStatus::InvalidPlatform: return "Invalid: platform is not reachable on this route";
-	case SceneStopResolutionStatus::UnknownStation: return "Invalid: station is missing";
-	case SceneStopResolutionStatus::UnresolvedRoute: return "Invalid: route traversal is unresolved";
+		case SceneStopResolutionStatus::Resolved: return "Reachable ordered route visit";
+		case SceneStopResolutionStatus::AmbiguousPlatform: return "Choose an explicit reachable platform";
+		case SceneStopResolutionStatus::OffRouteContext: return "Off-route schedule context; no simulated stop";
+		case SceneStopResolutionStatus::OutOfOrder: return "Invalid: stop is before or at an already used route visit";
+		case SceneStopResolutionStatus::InvalidPlatform: return "Invalid: platform is not reachable on this route";
+		case SceneStopResolutionStatus::UnknownStation: return "Invalid: station is missing";
+		case SceneStopResolutionStatus::UnresolvedRoute: return "Invalid: route traversal is unresolved";
 	}
 	return {};
 }
 
 void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route,
-		const SceneSectionInventory& inventory) {
+	const SceneSectionInventory& inventory) {
 	const SceneRouteStations traversal = sceneRouteStations(model, route, inventory);
 	QStringList stations;
 	for (const std::string& stationId : traversal.stationIds) {
@@ -1837,16 +1839,17 @@ void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const Scen
 		stations << name;
 	}
 	const QString description = !traversal.resolved ? QStringLiteral("Unresolved route")
-		: stations.isEmpty() ? QStringLiteral("Route without station anchors")
-		: QString("%1 → %2").arg(stations.first(), stations.last());
+		: stations.isEmpty()						? QStringLiteral("Route without station anchors")
+													: QString("%1 → %2").arg(stations.first(), stations.last());
 	const QString direction = traversal.direction > 0 ? QStringLiteral("forward")
-		: traversal.direction < 0 ? QStringLiteral("reverse") : QStringLiteral("unknown direction");
-	combo->addItem(QString("%1 · %2 [%3]").arg(description, direction,
-		QString::fromStdString(route.id)), QString::fromStdString(route.id));
+		: traversal.direction < 0					  ? QStringLiteral("reverse")
+													  : QStringLiteral("unknown direction");
+	combo->addItem(QString("%1 · %2 [%3]").arg(description, direction, QString::fromStdString(route.id)), QString::fromStdString(route.id));
 	combo->setItemData(combo->count() - 1,
 		traversal.resolved ? QString("Traversed stations (not scheduled calls): %1")
-			.arg(stations.isEmpty() ? QStringLiteral("none") : stations.join(" → "))
-			: QStringLiteral("Station order unavailable: fix the route topology."), Qt::ToolTipRole);
+								 .arg(stations.isEmpty() ? QStringLiteral("none") : stations.join(" → "))
+						   : QStringLiteral("Station order unavailable: fix the route topology."),
+		Qt::ToolTipRole);
 }
 
 // The routes the run used, as (runtime index, route id) in first-use order.
@@ -1855,8 +1858,7 @@ std::vector<std::pair<int, std::string>> usedRouteReferences() {
 	for (int i = 0; i < numRegions; ++i) {
 		const int index = regional_train[i].indexOfRoute;
 		if (index >= 0 && index < static_cast<int>(train_route.size())
-				&& std::none_of(used.begin(), used.end(),
-					[index](const auto& route) { return route.first == index; }))
+			&& std::none_of(used.begin(), used.end(), [index](const auto& route) { return route.first == index; }))
 			used.emplace_back(index, train_route[index].ID);
 	}
 	return used;
@@ -1904,7 +1906,7 @@ bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPoin
 }
 
 QPointF stationDecorationOffset(const std::vector<SceneStationView>& views,
-		const std::string& stationId, const std::string& name) {
+	const std::string& stationId, const std::string& name) {
 	const auto shift = annotationStationShift(views, stationId);
 	return QPointF(shift.first, shift.second + stationNamedYOffset(name));
 }
@@ -1918,7 +1920,7 @@ bool previewSignalNormal(const TrackPreviewLine& line, double rawX, QPointF& nor
 }
 
 std::string rewriteBlockReference(const std::string& reference,
-		const std::string& oldId, const std::string& newId) {
+	const std::string& oldId, const std::string& newId) {
 	if (reference == oldId)
 		return newId;
 
@@ -1927,7 +1929,7 @@ std::string rewriteBlockReference(const std::string& reference,
 	while (begin <= reference.size()) {
 		const std::size_t slash = reference.find('/', begin);
 		std::string part = reference.substr(begin,
-				slash == std::string::npos ? std::string::npos : slash - begin);
+			slash == std::string::npos ? std::string::npos : slash - begin);
 		std::size_t idBegin = 0;
 		std::size_t idEnd = part.find('@');
 		if (!part.empty() && part.front() == '@') {
@@ -1975,7 +1977,7 @@ std::vector<std::string> previewRouteComponents(const std::string& token) {
 	while (begin <= token.size()) {
 		const std::size_t slash = token.find('/', begin);
 		std::string part = token.substr(begin,
-										slash == std::string::npos ? std::string::npos : slash - begin);
+			slash == std::string::npos ? std::string::npos : slash - begin);
 		std::size_t idBegin = 0;
 		std::size_t idEnd = part.find('@');
 		if (!part.empty() && part.front() == '@') {
@@ -2048,19 +2050,19 @@ void beginStartupTiming() {
 
 qint64 startupTimingNowNanoseconds() {
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(
-		StartupClock::now() - g_startupTimingOrigin).count();
+		StartupClock::now() - g_startupTimingOrigin)
+		.count();
 }
 
 void recordStartupTiming(const QString& phase, int iteration, int generation,
-		qint64 elapsedNanoseconds, const QString& invocation, const QString& source,
-		bool identityOk, bool canonicalPreloadNested) {
+	qint64 elapsedNanoseconds, const QString& invocation, const QString& source,
+	bool identityOk, bool canonicalPreloadNested) {
 	if (!startupTimingEnabled())
 		return;
 	QJsonObject record{{QStringLiteral("event"), QStringLiteral("complete")},
 		{QStringLiteral("sequence"), static_cast<qint64>(g_startupTimingSequence++)},
 		{QStringLiteral("phase"), phase}, {QStringLiteral("iteration"), iteration},
-		{QStringLiteral("temperature"), iteration == 0
-			? QStringLiteral("fresh_process") : QStringLiteral("warm_in_process")},
+		{QStringLiteral("temperature"), iteration == 0 ? QStringLiteral("fresh_process") : QStringLiteral("warm_in_process")},
 		{QStringLiteral("elapsed_ms"), elapsedNanoseconds / 1000000.0},
 		{QStringLiteral("identity_ok"), identityOk}};
 	if (generation >= 0)
@@ -2097,11 +2099,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainUnitSourceDebounceTimer->setSingleShot(true);
 	m_trainUnitSourceDebounceTimer->setInterval(150);
 	connect(m_trainUnitSourceWatcher, &QFileSystemWatcher::fileChanged, this,
-			[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
+		[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
 	connect(m_trainUnitSourceWatcher, &QFileSystemWatcher::directoryChanged, this,
-			[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
+		[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
 	connect(m_trainUnitSourceDebounceTimer, &QTimer::timeout, this,
-			&MainWindow::processTrainUnitSourceChanges);
+		&MainWindow::processTrainUnitSourceChanges);
 	setupUpdateActions();
 	if (ui->menuHelp) {
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy & diagnostics..."));
@@ -2314,7 +2316,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// connect signals from EGTRAIN simulation
 	connect(&simulation, &DispatchController::snapshotAvailable, this, &MainWindow::waitForUpdates,
-			Qt::QueuedConnection);
+		Qt::QueuedConnection);
 
 	// simulation control connections
 	connect(ui->actionSimulationPause, &QAction::triggered, this, [this]() {
@@ -2481,8 +2483,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_trainLayerVisible = checked;
 		for (auto* train : allTrains)
 			if (train)
-				train->setVisible(checked && (m_replayActive
-					? replayTrainHasPosition(train->index) : !train->outOfSimulation));
+				train->setVisible(checked && (m_replayActive ? replayTrainHasPosition(train->index) : !train->outOfSimulation));
 		for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
 			if (!it.value())
 				continue;
@@ -2591,8 +2592,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				QAction* defaultAction = button->defaultAction();
 				if (defaultAction && defaultAction->isCheckable()
 						&& defaultAction->isChecked() != button->isChecked())
-					defaultAction->setChecked(button->isChecked());
-			}, Qt::QueuedConnection);
+					defaultAction->setChecked(button->isChecked()); }, Qt::QueuedConnection);
 			const QString name = QString::fromLatin1(objectName);
 			if (name == "actionZoomInButton" || name == "actionZoomOutButton")
 				button->setFixedWidth(34);
@@ -2737,7 +2737,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 	connect(m_loadedDataTree, &QTreeWidget::itemActivated, this,
-			[this](QTreeWidgetItem* item, int) { activateLoadedDataItem(item); });
+		[this](QTreeWidgetItem* item, int) { activateLoadedDataItem(item); });
 
 	m_advancedDetailsAction = new QAction(QStringLiteral("Advanced / Developer details"), this);
 	m_advancedDetailsAction->setObjectName(QStringLiteral("actionAdvancedDetails"));
@@ -2806,11 +2806,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_caseDescriptionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
 	connect(m_caseBaseTimeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCaseSettings);
 	connect(m_caseDurationSecondsEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-			this, [this](double) { commitCaseSettings(); });
+		this, [this](double) { commitCaseSettings(); });
 	connect(m_caseBufferSecondsEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-			this, [this](double) { commitCaseSettings(); });
+		this, [this](double) { commitCaseSettings(); });
 	connect(m_caseRecoveryPercentEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-			this, [this](double) { commitCaseSettings(); });
+		this, [this](double) { commitCaseSettings(); });
 	refreshCaseSettingsPanel();
 
 	// Infrastructure editor: one small facet selector and a table keep all
@@ -2909,39 +2909,39 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureDock->hide();
 	registerEditorDock(m_infrastructureDock);
 	connect(m_infrastructureFacetCombo, &QComboBox::currentTextChanged, this,
-			[this](const QString&) {
+		[this](const QString&) {
+			m_infrastructureSelectionId.clear();
+			refreshInfrastructureTable();
+		});
+	connect(m_blockTrackFilterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+		[this](int) {
+			if (m_infrastructureFacetCombo
+				&& m_infrastructureFacetCombo->currentData().toString() == QStringLiteral("blocks")) {
 				m_infrastructureSelectionId.clear();
 				refreshInfrastructureTable();
-			});
-	connect(m_blockTrackFilterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-			[this](int) {
-				if (m_infrastructureFacetCombo
-					&& m_infrastructureFacetCombo->currentData().toString() == QStringLiteral("blocks")) {
-					m_infrastructureSelectionId.clear();
-					refreshInfrastructureTable();
-				}
-			});
+			}
+		});
 	connect(m_infrastructureTable, &QTableWidget::itemChanged, this,
-			[this](QTableWidgetItem* item) {
-				if (item)
-					commitInfrastructureCell(item->row(), item->column());
-			});
+		[this](QTableWidgetItem* item) {
+			if (item)
+				commitInfrastructureCell(item->row(), item->column());
+		});
 	connect(m_infrastructureTable, &QTableWidget::itemSelectionChanged, this,
-				&MainWindow::updateInfrastructureSelection);
+		&MainWindow::updateInfrastructureSelection);
 	connect(m_infrastructureDock, &QDockWidget::visibilityChanged, this,
-			[this](bool visible) {
-				if (visible)
-					updateInfrastructureSelection();
-			});
+		[this](bool visible) {
+			if (visible)
+				updateInfrastructureSelection();
+		});
 	connect(m_addInfrastructureButton, &QPushButton::clicked, this,
-				&MainWindow::addInfrastructureEntity);
+		&MainWindow::addInfrastructureEntity);
 	connect(m_deleteInfrastructureButton, &QPushButton::clicked, this,
-			&MainWindow::deleteInfrastructureEntity);
+		&MainWindow::deleteInfrastructureEntity);
 	connect(m_insertBlockButton, &QPushButton::clicked, this, &MainWindow::insertBlock);
 	connect(m_moveBlockUpButton, &QPushButton::clicked, this, [this]() { moveBlock(-1); });
 	connect(m_moveBlockDownButton, &QPushButton::clicked, this, [this]() { moveBlock(1); });
 	connect(m_routeSectionListWidget, &QListWidget::itemSelectionChanged, this,
-			[this]() { refreshRouteSectionPanel(); });
+		[this]() { refreshRouteSectionPanel(); });
 	connect(m_addRouteSectionButton, &QPushButton::clicked, this, &MainWindow::addRouteSection);
 	connect(m_removeRouteSectionButton, &QPushButton::clicked, this, &MainWindow::removeRouteSection);
 	connect(m_moveRouteSectionUpButton, &QPushButton::clicked, this, &MainWindow::moveRouteSectionUp);
@@ -3097,7 +3097,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	for (int i = 0; i < 9; ++i) {
 		connect(m_trainUnitPhysicalEdits[static_cast<size_t>(i)], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-				this, [this, i](double) { commitTrainUnitPhysical(i); });
+			this, [this, i](double) { commitTrainUnitPhysical(i); });
 	}
 	connect(m_addTrainUnitButton, &QPushButton::clicked, this, &MainWindow::addTrainUnit);
 	connect(m_duplicateTrainUnitButton, &QPushButton::clicked, this, &MainWindow::duplicateTrainUnit);
@@ -3333,8 +3333,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_stopTableWidget = new QTableWidget(serviceDetailPane);
 	m_stopTableWidget->setObjectName("timetableStopTable");
 	m_stopTableWidget->setColumnCount(5);
-	m_stopTableWidget->setHorizontalHeaderLabels({
-		"Timetable stops (station)", "Stop platform", "Minimum dwell (s)",
+	m_stopTableWidget->setHorizontalHeaderLabels({"Timetable stops (station)", "Stop platform", "Minimum dwell (s)",
 		"Planned arrival", "Planned departure"});
 	m_stopTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_stopTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -3842,7 +3841,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// A dock's viewport, rather than its form, limits the main window size.
 	// Keep wide tables and enlarged-font controls reachable when space is tight.
 	for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
-			m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
+			 m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
 		auto* content = dock->widget();
 		auto* scroll = new QScrollArea(dock);
 		scroll->setObjectName("editorContentScroll");
@@ -3938,9 +3937,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// --- Status bar ---
 	statusBar()->showMessage(QString("Ready - %1 (%2 tracks, %3 routes)")
-								 .arg(QString::fromStdString(initial_variables.name))
-								 .arg(initial_variables.numTrackLines)
-								 .arg(initial_variables.N_Routes));
+			.arg(QString::fromStdString(initial_variables.name))
+			.arg(initial_variables.numTrackLines)
+			.arg(initial_variables.N_Routes));
 
 	refreshCompositionPanel();
 	refreshTrainUnitPanel();
@@ -4100,8 +4099,7 @@ telemetry::OperationObservation MainWindow::captureTelemetryOperation() const no
 }
 
 void MainWindow::registerEditorDock(QDockWidget* dock) {
-	m_editorActions.insert(dock, telemetry::registerEditor(dock, editorsMenu(),
-		[this] { return captureTelemetryOperation(); }));
+	m_editorActions.insert(dock, telemetry::registerEditor(dock, editorsMenu(), [this] { return captureTelemetryOperation(); }));
 }
 
 QMenu* MainWindow::createPopupMenu() {
@@ -4122,10 +4120,13 @@ void MainWindow::revealEditorDock(QDockWidget* dock) {
 
 void MainWindow::revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation) {
 	if (dock == m_caseSettingsDock || dock == m_infrastructureDock || dock == m_trainUnitDock
-			|| dock == m_compositionDock || dock == m_serviceDock || dock == m_incidentDock
-			|| dock == m_passengerDock)
+		|| dock == m_compositionDock || dock == m_serviceDock || dock == m_incidentDock
+		|| dock == m_passengerDock)
 		telemetry::revealEditor(dock, operation);
-	else if (dock) { dock->show(); dock->raise(); }
+	else if (dock) {
+		dock->show();
+		dock->raise();
+	}
 }
 
 bool MainWindow::requestOpenScene(const QString& path) {
@@ -4149,7 +4150,8 @@ bool MainWindow::openRequestedScene(const QString& path, const telemetry::Operat
 	if (openSceneDirectory(path, operation))
 		return true;
 	statusBar()->showMessage(QString("Scene unchanged: %1 could not be opened.")
-		.arg(QFileInfo(path).fileName()), 8000);
+								 .arg(QFileInfo(path).fileName()),
+		8000);
 	return false;
 }
 
@@ -4179,18 +4181,20 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		QString ageDetails;
 		if (compatibility.schemaVersion < kCurrentSceneSchemaVersion)
 			ageDetails = QString("schema %1 (this application uses schema %2)")
-				.arg(compatibility.schemaVersion).arg(kCurrentSceneSchemaVersion);
+							 .arg(compatibility.schemaVersion)
+							 .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion
-				&& *compatibility.bundleVersion < kCurrentSceneBundleVersion) {
+			&& *compatibility.bundleVersion < kCurrentSceneBundleVersion) {
 			if (!ageDetails.isEmpty())
 				ageDetails += "; ";
 			ageDetails += QString("bundle layout %1 (this application uses bundle layout %2)")
-				.arg(*compatibility.bundleVersion).arg(kCurrentSceneBundleVersion);
+							  .arg(*compatibility.bundleVersion)
+							  .arg(kCurrentSceneBundleVersion);
 		}
 		if (ageDetails.isEmpty())
 			ageDetails = QStringLiteral("an older scene layout");
 		dialog.setText(QString("%1 uses %2.")
-			.arg(QFileInfo(scenePath).fileName(), ageDetails));
+				.arg(QFileInfo(scenePath).fileName(), ageDetails));
 		dialog.setInformativeText("Upgrade a copy; the original scene will remain unchanged.");
 		QPushButton* upgrade = dialog.addButton("Upgrade a Copy...", QMessageBox::AcceptRole);
 		dialog.addButton("Cancel", QMessageBox::RejectRole);
@@ -4229,7 +4233,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		if (!noCompatibilityDialogs)
 			showBlockingError(this, "Older Scene Not Supported",
 				"This scene uses an older schema or bundle layout with no registered migration path.\n\n"
-				+ compatibilityMessage());
+					+ compatibilityMessage());
 		return false;
 	}
 	if (compatibility.classification == SceneCompatibilityClass::Newer) {
@@ -4243,10 +4247,12 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		dialog.setWindowTitle("Newer Scene");
 		dialog.setText("This scene was saved with a newer scene format.");
 		QString details = QString("Supported schema: %1; scene schema: %2")
-			.arg(kCurrentSceneSchemaVersion).arg(compatibility.schemaVersion);
+							  .arg(kCurrentSceneSchemaVersion)
+							  .arg(compatibility.schemaVersion);
 		if (compatibility.bundleVersion)
 			details += QString("; supported bundle: %1; scene bundle: %2")
-				.arg(kCurrentSceneBundleVersion).arg(*compatibility.bundleVersion);
+						   .arg(kCurrentSceneBundleVersion)
+						   .arg(*compatibility.bundleVersion);
 		dialog.setInformativeText(details);
 		QPushButton* updates = dialog.addButton("Check for Updates...", QMessageBox::AcceptRole);
 		dialog.addButton("Cancel", QMessageBox::RejectRole);
@@ -4270,7 +4276,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	auto result = loadScenePath(scenePath.toStdString());
 	const bool timingIdentityOk = !startupTimingEnabled()
 		|| (sameStartupIdentity(g_startupIdentity,
-			startupIdentity(scenePath, result.scene, result.inputSnapshot))
+				startupIdentity(scenePath, result.scene, result.inputSnapshot))
 			&& g_startupIdentity.inputSnapshot == result.inputSnapshot);
 	if (startupTimingEnabled())
 		recordStartupTiming(QStringLiteral("canonical_load"), m_startupTimingIteration, -1,
@@ -4333,10 +4339,10 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
-								 .arg(reloadingSameScene ? "Scene reloaded" : "Scene loaded")
-								 .arg(QString::fromStdString(m_sceneModel.name))
-								 .arg(static_cast<int>(m_sceneModel.services.size()))
-								 .arg(static_cast<int>(m_sceneModel.routes.size())));
+			.arg(reloadingSameScene ? "Scene reloaded" : "Scene loaded")
+			.arg(QString::fromStdString(m_sceneModel.name))
+			.arg(static_cast<int>(m_sceneModel.services.size()))
+			.arg(static_cast<int>(m_sceneModel.routes.size())));
 	if (startupTimingEnabled()) {
 		if (!timingIdentityOk) {
 			failStartupTiming(QStringLiteral("scene identity, counts, or canonical input snapshot changed"));
@@ -4358,9 +4364,9 @@ const TrackPreviewLine* MainWindow::cachedTrackLine(int track) const {
 	if (track < 0 || track >= numTrackLines || blockSets[track].sceneTrackId.empty())
 		return nullptr;
 	const auto line = std::find_if(m_cachedTrackPreview.lines.begin(),
-			m_cachedTrackPreview.lines.end(), [track](const TrackPreviewLine& candidate) {
-				return candidate.id == blockSets[track].sceneTrackId;
-			});
+		m_cachedTrackPreview.lines.end(), [track](const TrackPreviewLine& candidate) {
+			return candidate.id == blockSets[track].sceneTrackId;
+		});
 	return line == m_cachedTrackPreview.lines.end() ? nullptr : &*line;
 }
 
@@ -4388,8 +4394,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	m_showingTrackPreview = true;
 	effect = nullptr;
 	const QString selectedFacet = m_infrastructureFacetCombo
-									  ? m_infrastructureFacetCombo->currentData().toString()
-									  : QString();
+		? m_infrastructureFacetCombo->currentData().toString()
+		: QString();
 	const std::string selectedId = m_infrastructureSelectionId.toStdString();
 	std::set<std::string> selectedTrackIds;
 	const auto selectTrack = [&selectedTrackIds](const std::string& id) {
@@ -4496,7 +4502,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
 				return candidate.trackId == line.id
 					&& ((candidate.fromNodeId == line.points[point - 1].nodeId
-						&& candidate.toNodeId == line.points[point].nodeId)
+							&& candidate.toNodeId == line.points[point].nodeId)
 						|| (candidate.toNodeId == line.points[point - 1].nodeId
 							&& candidate.fromNodeId == line.points[point].nodeId));
 			});
@@ -4556,7 +4562,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			// four-node ordinary starts paint zero size, but the terminal dot remains.
 			const bool station = index > 0 && membership != memberships.end();
 			const qreal size = (station ? station_node_size
-				: (line.points.size() == 4 && index + 1 < line.points.size() ? 0 : node_size))
+										: (line.points.size() == 4 && index + 1 < line.points.size() ? 0 : node_size))
 				* presentationScale();
 			QRectF rect(0, 0, size, size);
 			rect.moveCenter(QPointF(point.x, point.y + line.displayOffset));
@@ -4565,7 +4571,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				auto* square = new StationNodeItem(rect);
 				const auto& value = membership->second;
 				const StationVisual visual = classifyStation(!value.platformId.empty()
-					&& value.platformId != "None", connectionDegrees[point.nodeId]);
+						&& value.platformId != "None",
+					connectionDegrees[point.nodeId]);
 				square->setPen(QPen(visual.outline, 0));
 				square->setBrush(visual.fill);
 				item = square;
@@ -4742,10 +4749,10 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			glyph->X = signal.rawX;
 			glyph->sectionAheadId = signal.sectionId;
 			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
-				.arg(QString::fromStdString(signal.trackId))
-				.arg(signal.rawX, 0, 'g', 10)
-				.arg(QString::fromStdString(signal.sectionId))
-				.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
+					.arg(QString::fromStdString(signal.trackId))
+					.arg(signal.rawX, 0, 'g', 10)
+					.arg(QString::fromStdString(signal.sectionId))
+					.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
 			glyph->setZValue(3.0);
 			glyph->setPos(head);
 			glyph->setAspectCode(180);
@@ -4761,8 +4768,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		}
 	}
 	m_previewHasSignals = !preview.previewSignals.empty()
-			&& std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
-				[](QGraphicsItem* item) { return qgraphicsitem_cast<SignalItem*>(item) != nullptr; });
+		&& std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
+			[](QGraphicsItem* item) { return qgraphicsitem_cast<SignalItem*>(item) != nullptr; });
 
 	// Fit the drawn geometry directly; the generic fitView minimum-scale clamp
 	// is tuned for case-study coordinates and crops these kilometre-scale paths.
@@ -4778,8 +4785,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				const QPointF segment = second - first;
 				const qreal lengthSquared = QPointF::dotProduct(segment, segment);
 				const qreal ratio = lengthSquared > 0.0
-					? qBound<qreal>(0.0, QPointF::dotProduct(target - first, segment)
-						/ lengthSquared, 1.0)
+					? qBound<qreal>(0.0, QPointF::dotProduct(target - first, segment) / lengthSquared, 1.0)
 					: 0.0;
 				const QPointF candidate = first + ratio * segment;
 				const QPointF delta = candidate - target;
@@ -4804,7 +4810,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	}
 	updateNetworkLegend();
 	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running")
-									 .arg(static_cast<int>(tracks.size())));
+			.arg(static_cast<int>(tracks.size())));
 }
 
 void MainWindow::saveScene() {
@@ -4812,11 +4818,11 @@ void MainWindow::saveScene() {
 }
 
 bool MainWindow::finishSceneSave(const SceneSaveResult& result,
-		const telemetry::OperationObservation& operation, std::optional<telemetry::ExportKind> kind) {
+	const telemetry::OperationObservation& operation, std::optional<telemetry::ExportKind> kind) {
 	auto error = telemetryDiagnosticError(result.diagnostics);
 	// The bundle save boundary checks this typed value before any filesystem attempt.
 	if (kind == telemetry::ExportKind::SceneBundle && !result.success() && !result.writeAttempted
-			&& m_sceneModel.schemaVersion != kCurrentSceneSchemaVersion)
+		&& m_sceneModel.schemaVersion != kCurrentSceneSchemaVersion)
 		error = telemetry::Error::UnsupportedFormat;
 	operation.exportFinished(kind, result.success(), result.writeAttempted, error);
 	if (!result.success()) {
@@ -4856,8 +4862,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	auto result = m_sceneIsBundle
 		? saveSceneBundle(m_sceneModel, m_sceneDir.toStdString())
 		: ::saveScene(m_sceneModel, m_sceneDir.toStdString());
-	return finishSceneSave(result, operation, m_sceneIsBundle
-		? std::optional<telemetry::ExportKind>(telemetry::ExportKind::SceneBundle) : std::nullopt);
+	return finishSceneSave(result, operation, m_sceneIsBundle ? std::optional<telemetry::ExportKind>(telemetry::ExportKind::SceneBundle) : std::nullopt);
 }
 
 void MainWindow::saveSceneAs() {
@@ -4874,7 +4879,7 @@ bool MainWindow::saveSceneAsToBundle(const telemetry::OperationObservation& oper
 	commitPendingEditorValues();
 
 	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
-		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
+												   : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
 	QString targetPath = QFileDialog::getSaveFileName(this, "Save Case Study As", startPath,
 		"EGTRAIN Case Study (*.egscene)");
 	if (targetPath.isEmpty())
@@ -4901,7 +4906,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 	commitPendingEditorValues();
 
 	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
-		: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
+												  : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
 	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As Folder", startDir);
 	if (dir.isEmpty())
 		return false;
@@ -4913,10 +4918,10 @@ bool MainWindow::saveSceneAsToDirectory() {
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
 		if (isNonEmpty && !hasSceneJson) {
 			auto response = QMessageBox::question(this,
-										  "Save Scene As Folder",
-												  "The selected folder is not empty and does not contain scene.json. Save scene files there?",
-												  QMessageBox::Yes | QMessageBox::No,
-												  QMessageBox::No);
+				"Save Scene As Folder",
+				"The selected folder is not empty and does not contain scene.json. Save scene files there?",
+				QMessageBox::Yes | QMessageBox::No,
+				QMessageBox::No);
 			if (response != QMessageBox::Yes)
 				return false;
 		}
@@ -4981,10 +4986,10 @@ bool MainWindow::maybeSaveScene() {
 		return true;
 
 	auto response = QMessageBox::warning(this,
-										 "Unsaved Scene",
-										 "The current scene has unsaved changes.",
-										 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-										 QMessageBox::Save);
+		"Unsaved Scene",
+		"The current scene has unsaved changes.",
+		QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+		QMessageBox::Save);
 	if (response == QMessageBox::Save)
 		return saveSceneToCurrentDir();
 	if (response == QMessageBox::Cancel)
@@ -5043,8 +5048,7 @@ void MainWindow::setupUpdateActions() {
 		[this]() { startUpdateCheck(true); });
 	connect(m_automaticUpdateChecksAction, &QAction::toggled, this, [this](bool checked) {
 		QSettings preferences;
-		writeUpdateCheckState(preferences, checked ? UpdateCheckState::Enabled
-			: UpdateCheckState::Disabled);
+		writeUpdateCheckState(preferences, checked ? UpdateCheckState::Enabled : UpdateCheckState::Disabled);
 		preferences.sync();
 	});
 	connect(m_updateChecker, &UpdateChecker::finished, this, &MainWindow::handleUpdateCheckFinished);
@@ -5064,7 +5068,7 @@ void MainWindow::setupUpdateActions() {
 		if (!m_updateProgress)
 			return;
 		m_updateProgress->setLabelText(QStringLiteral("Verifying and preparing EGTRAIN %1...")
-			.arg(version));
+				.arg(version));
 		m_updateProgress->setCancelButton(nullptr);
 		m_updateProgress->setRange(0, 0);
 	});
@@ -5090,10 +5094,16 @@ void MainWindow::runTelemetrySmoke(int stage) {
 	};
 	if (stage == 0) {
 		if ((mode != "retired_restart" && m_telemetrySmokeState->polls.load() < 1)
-				|| (mode == "retired" && m_telemetrySmokeState->posts.load() < 1)) { later(0, 20); return; }
+			|| (mode == "retired" && m_telemetrySmokeState->posts.load() < 1)) {
+			later(0, 20);
+			return;
+		}
 		telemetry_smoke::dismissMessages();
 		if (mode == "import_late" || mode == "import_revoke") {
-			if (mode == "import_revoke" && m_telemetrySmokeState->posts.load() < 1) { later(0, 20); return; }
+			if (mode == "import_revoke" && m_telemetrySmokeState->posts.load() < 1) {
+				later(0, 20);
+				return;
+			}
 			const int poll = m_telemetrySmokeState->polls.load();
 			telemetry_smoke::chooseDirectory(root + "/private-legacy", "Select Legacy Case Folder",
 				[this, mode, poll, changed = false]() mutable {
@@ -5109,7 +5119,8 @@ void MainWindow::runTelemetrySmoke(int stage) {
 			actionLoad_Network();
 			if (m_sceneDir != QFileInfo(root + "/imported").canonicalFilePath()) {
 				std::fprintf(stderr, "E2E_TELEMETRY_IMPORT_FAILED\n");
-				QCoreApplication::exit(2); return;
+				QCoreApplication::exit(2);
+				return;
 			}
 			std::fprintf(stdout, "E2E_TELEMETRY_IMPORTED\n");
 		} else if (mode == "late") {
@@ -5129,7 +5140,10 @@ void MainWindow::runTelemetrySmoke(int stage) {
 			});
 			openSceneDialog();
 		} else if (mode == "revoke") {
-			if (m_telemetrySmokeState->posts.load() < 1) { later(0, 20); return; }
+			if (m_telemetrySmokeState->posts.load() < 1) {
+				later(0, 20);
+				return;
+			}
 			DiagramWindow diagram("Private in-flight chart", this);
 			diagram.setTelemetryCapture([this] { return captureTelemetryOperation(); });
 			diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n"); }, "stale.csv");
@@ -5165,10 +5179,11 @@ void MainWindow::runTelemetrySmoke(int stage) {
 		openSceneDialog();
 		for (auto it = m_editorActions.cbegin(); it != m_editorActions.cend(); ++it) {
 			it.key()->hide();
-			it.value()->trigger(); // Built-in QAction ordering must not hide the prior state.
+			it.value()->trigger();		// Built-in QAction ordering must not hide the prior state.
 			revealEditorDock(it.key()); // Focus/tab activation is not another open.
 		}
-		hide(); show(); // Parent visibility never counts editor opens.
+		hide();
+		show(); // Parent visibility never counts editor opens.
 		DiagramWindow diagram("Private chart name", this);
 		diagram.setTelemetryCapture([this] { return captureTelemetryOperation(); });
 		diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n1,2\n"); }, "chart.csv");
@@ -5184,8 +5199,7 @@ void MainWindow::runTelemetrySmoke(int stage) {
 		QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
 		telemetry_smoke::chooseFile(root + "/chart.png");
 		QMetaObject::invokeMethod(&diagram, "exportPng", Qt::DirectConnection);
-		TimetableTableWindow table({}, m_startOffsetSeconds,
-			[](const QStringList&) { return std::string("private,table\n"); }, this);
+		TimetableTableWindow table({}, m_startOffsetSeconds, [](const QStringList&) { return std::string("private,table\n"); }, this);
 		table.setTelemetryCapture([this] { return captureTelemetryOperation(); });
 		table.setRunProvenance(captureRunProvenance());
 		telemetry_smoke::chooseFile(root + "/table.csv");
@@ -5232,8 +5246,12 @@ void MainWindow::runTelemetrySmoke(int stage) {
 			timer->setInterval(20);
 			connect(timer, &QTimer::timeout, this, [this, timer, mode] {
 				if (!m_telemetrySmokeState->startedPosts.load()) return;
-				timer->stop(); timer->deleteLater();
-				if (mode == "discard") { markSceneDirty(); return; }
+				timer->stop();
+				timer->deleteLater();
+				if (mode == "discard") {
+					markSceneDirty();
+					return;
+				}
 				m_telemetryConsent->save(false, false);
 				m_telemetryConsent->save(true, true);
 				m_telemetrySender->requestConsentRefresh();
@@ -5254,7 +5272,10 @@ void MainWindow::runTelemetrySmoke(int stage) {
 		return;
 	}
 	if (stage == 3 || stage == 5) {
-		if (m_worker) { later(stage, 50); return; }
+		if (m_worker) {
+			later(stage, 50);
+			return;
+		}
 		if (mode == "install_failure") {
 			extern InitialParameters initial_variables;
 			const int ordinal = m_telemetrySmokeState->completedProbeRuns;
@@ -5262,7 +5283,8 @@ void MainWindow::runTelemetrySmoke(int stage) {
 				|| !telemetry_smoke::recordRun(root, ordinal, buildRunSummaryCsv(m_completedRunResults),
 					QString::fromStdString(initial_variables.OutputMainFolder) + "/EnergyConsumptionPerTrain.txt")) {
 				std::fprintf(stderr, "E2E_TELEMETRY_INSTALL_RUN_FAILED\n");
-				QCoreApplication::exit(2); return;
+				QCoreApplication::exit(2);
+				return;
 			}
 			++m_telemetrySmokeState->completedProbeRuns;
 			if (ordinal < 4) {
@@ -5271,7 +5293,8 @@ void MainWindow::runTelemetrySmoke(int stage) {
 				simulation.runSimulation(); // Zero-train guard probes any orphaned rejection observer.
 				m_telemetrySmokeState->installFailurePoint = ordinal < 3 ? ordinal + 1 : -1;
 				runCurrent();
-				later(3, 50); return;
+				later(3, 50);
+				return;
 			}
 			std::fprintf(stdout, "E2E_TELEMETRY_INSTALL_PROBES runs=%d failures=%d\n",
 				m_telemetrySmokeState->completedProbeRuns, m_telemetrySmokeState->installFailures);
@@ -5300,24 +5323,24 @@ void MainWindow::runTelemetrySmoke(int stage) {
 void MainWindow::startTelemetryAfterInitialConsent() {
 	if (m_telemetrySender) return;
 	try {
-	if (privacyDialogTestHook()) return;
-	TelemetryContext context = applicationTelemetryContext();
+		if (privacyDialogTestHook()) return;
+		TelemetryContext context = applicationTelemetryContext();
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-	const QString requestedDir = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE");
-	const QString isolatedDir = QDir(requestedDir).canonicalPath();
-	const QString temporaryRoot = QDir(QDir::tempPath()).canonicalPath();
-	// Compare resolved paths: Python and Qt may use different spellings of macOS /var.
-	const bool isolated = !requestedDir.isEmpty() && QDir(requestedDir).isAbsolute()
-		&& QDir(requestedDir).exists() && !temporaryRoot.isEmpty()
-		&& isolatedDir.startsWith(temporaryRoot + QLatin1Char('/'));
-	if (!requestedDir.isEmpty() && !isolated) {
-		std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=invalid_isolation_root\n");
-		return;
-	}
-	if (isolated)
-		context = {true, true, true, QStringLiteral("https://127.0.0.1:19497/collect"), QStringLiteral("1")};
+		const QString requestedDir = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE");
+		const QString isolatedDir = QDir(requestedDir).canonicalPath();
+		const QString temporaryRoot = QDir(QDir::tempPath()).canonicalPath();
+		// Compare resolved paths: Python and Qt may use different spellings of macOS /var.
+		const bool isolated = !requestedDir.isEmpty() && QDir(requestedDir).isAbsolute()
+			&& QDir(requestedDir).exists() && !temporaryRoot.isEmpty()
+			&& isolatedDir.startsWith(temporaryRoot + QLatin1Char('/'));
+		if (!requestedDir.isEmpty() && !isolated) {
+			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=invalid_isolation_root\n");
+			return;
+		}
+		if (isolated)
+			context = {true, true, true, QStringLiteral("https://127.0.0.1:19497/collect"), QStringLiteral("1")};
 #endif
-	if (!context.capable()) return;
+		if (!context.capable()) return;
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 		if (isolated) {
 			m_telemetrySettings.reset(new QSettings(QDir(isolatedDir).filePath("consent.ini"), QSettings::IniFormat));
@@ -5348,10 +5371,8 @@ void MainWindow::startTelemetryAfterInitialConsent() {
 				QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
 					.filePath(QStringLiteral("Telemetry"))));
 		m_telemetrySender->requestInteractiveSession();
-		connect(m_telemetryConsent.get(), &TelemetryConsent::revoked, this,
-			[this](bool usage, bool diagnostics) {
-				if (m_telemetrySender) m_telemetrySender->invalidateConsent(usage, diagnostics);
-			}, Qt::DirectConnection);
+		connect(m_telemetryConsent.get(), &TelemetryConsent::revoked, this, [this](bool usage, bool diagnostics) {
+				if (m_telemetrySender) m_telemetrySender->invalidateConsent(usage, diagnostics); }, Qt::DirectConnection);
 		connect(
 			m_telemetryConsent.get(), &TelemetryConsent::receiverChanged, this,
 			[this] { if (m_telemetrySender) m_telemetrySender->invalidateReceiver(); }, Qt::DirectConnection);
@@ -5405,7 +5426,8 @@ void MainWindow::maybePromptForUpdateChecks() {
 		QMessageBox dialog(QMessageBox::Question,
 			QStringLiteral("Automatically Check for EGTRAIN Updates?"),
 			QStringLiteral("EGTRAIN can check GitHub Releases when the application starts and notify you "
-				"when a newer stable version is available."), QMessageBox::NoButton, this);
+						   "when a newer stable version is available."),
+			QMessageBox::NoButton, this);
 		dialog.setInformativeText(QStringLiteral("You can change this later from Help."));
 		QPushButton* enableButton = dialog.addButton(QStringLiteral("Check Automatically"),
 			QMessageBox::AcceptRole);
@@ -5413,7 +5435,8 @@ void MainWindow::maybePromptForUpdateChecks() {
 		dialog.setDefaultButton(enableButton);
 		dialog.exec();
 		const UpdateCheckState chosen = dialog.clickedButton() == enableButton
-			? UpdateCheckState::Enabled : UpdateCheckState::Disabled;
+			? UpdateCheckState::Enabled
+			: UpdateCheckState::Disabled;
 		writeUpdateCheckState(settings, chosen);
 		settings.sync();
 		if (m_automaticUpdateChecksAction) {
@@ -5449,7 +5472,7 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 				result.error.isEmpty() ? QStringLiteral("Could not check for updates.") : result.error);
 		} else {
 			qWarning().noquote() << "Automatic update check failed:"
-				<< (result.error.isEmpty() ? QStringLiteral("unknown error") : result.error);
+								 << (result.error.isEmpty() ? QStringLiteral("unknown error") : result.error);
 		}
 		return;
 	}
@@ -5484,7 +5507,9 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
 		QMessageBox::NoButton, this);
 	dialog.setInformativeText((release.notes.isEmpty()
-		? QStringLiteral("No release notes were provided.") : release.notes) + availability);
+									  ? QStringLiteral("No release notes were provided.")
+									  : release.notes)
+		+ availability);
 	QPushButton* updateButton = nullptr;
 	if (m_selfUpdater && m_selfUpdater->canSelfUpdate(release))
 		updateButton = dialog.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);
@@ -5516,7 +5541,7 @@ void MainWindow::startSelfUpdate(const StableRelease& release) {
 	if (!m_selfUpdater || m_selfUpdater->isBusy() || !maybeSaveScene())
 		return;
 	m_updateProgress = new QProgressDialog(QStringLiteral("Downloading EGTRAIN %1...")
-		.arg(formatSemanticVersion(release.version)),
+											   .arg(formatSemanticVersion(release.version)),
 		QStringLiteral("Cancel"), 0, 0, this);
 	m_updateProgress->setWindowTitle(QStringLiteral("EGTRAIN Update"));
 	m_updateProgress->setWindowModality(Qt::WindowModal);
@@ -5572,7 +5597,8 @@ void MainWindow::updateDiagnosticPresentation() {
 	if (m_validationStatusLabel) {
 		if (advancedDetailsEnabled()) {
 			QString message = QStringLiteral("Validation: %1 error(s), %2 warning(s)")
-				.arg(counts.errors).arg(counts.warnings);
+								  .arg(counts.errors)
+								  .arg(counts.warnings);
 			if (counts.infos > 0)
 				message += QStringLiteral(", %1 info").arg(counts.infos);
 			m_validationStatusLabel->setText(message);
@@ -5603,25 +5629,27 @@ void MainWindow::updateScenarioPresentation() {
 				++warnings;
 		}
 		return errors > 0 ? QStringLiteral("Invalid")
-			: (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
+						  : (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
 	};
 	for (std::size_t index = 0; index < m_sceneModel.scenarios.size()
-			&& index < static_cast<std::size_t>(m_scenarioListWidget->count()); ++index) {
+		&& index < static_cast<std::size_t>(m_scenarioListWidget->count());
+		++index) {
 		const SceneScenario& scenario = m_sceneModel.scenarios[index];
 		const QString description = scenario.description.empty()
-			? QStringLiteral("(no description)") : QString::fromStdString(scenario.description);
+			? QStringLiteral("(no description)")
+			: QString::fromStdString(scenario.description);
 		QString label = QString("%1 — %2")
-			.arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name));
+							.arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name));
 		if (details) {
 			label += QString(" | %1 | %2 incident(s) | %3 delay(s) | %4")
-				.arg(description)
-				.arg(static_cast<int>(scenario.incidents.size()))
-				.arg(static_cast<int>(scenario.entranceDelays.size()))
-				.arg(validationStatus(index));
+						 .arg(description)
+						 .arg(static_cast<int>(scenario.incidents.size()))
+						 .arg(static_cast<int>(scenario.entranceDelays.size()))
+						 .arg(validationStatus(index));
 		} else {
 			label += QString(" | %1 incident(s) | %2 delay(s)")
-				.arg(static_cast<int>(scenario.incidents.size()))
-				.arg(static_cast<int>(scenario.entranceDelays.size()));
+						 .arg(static_cast<int>(scenario.incidents.size()))
+						 .arg(static_cast<int>(scenario.entranceDelays.size()));
 			if (!scenario.description.empty())
 				label += QString(" | %1").arg(description);
 			if (validationStatus(index) == QStringLiteral("Invalid"))
@@ -5657,7 +5685,8 @@ void MainWindow::refreshValidationPanel() {
 	}
 
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
-			? std::optional<double>(initial_variables.times) : std::nullopt;
+		? std::optional<double>(initial_variables.times)
+		: std::nullopt;
 	m_sceneDiagnostics = validateRunnableScene(m_sceneModel, {}, effectiveDurationOverride);
 
 	std::vector<SceneDiagnostic> ordered = m_sceneDiagnostics;
@@ -5698,7 +5727,7 @@ void MainWindow::refreshLoadedDataTree() {
 	refreshLoadedDataSummary(m_sceneModel);
 	refreshLoadedDataDiagnostics(m_sceneModel, m_sceneDiagnostics);
 	auto addRow = [](QTreeWidgetItem* parent, const QString& category, const QString& source,
-			const QString& count, const QString& status) {
+					  const QString& count, const QString& status) {
 		return new QTreeWidgetItem(parent, QStringList{category, source, count, status});
 	};
 	const SceneDiagnosticCounts validationCounts = countDiagnostics(m_sceneDiagnostics);
@@ -5710,7 +5739,8 @@ void MainWindow::refreshLoadedDataTree() {
 	const QString caseStatus = validationCounts.errors > 0 || runtimeCounts.errors > 0 || dataInvalid
 		? QStringLiteral("Invalid")
 		: (validationCounts.warnings > 0 || runtimeCounts.warnings > 0 || dataWarning
-			? QStringLiteral("Warning") : QStringLiteral("Ready"));
+				  ? QStringLiteral("Warning")
+				  : QStringLiteral("Ready"));
 	auto* caseRoot = new QTreeWidgetItem(m_loadedDataTree);
 	caseRoot->setText(0, "Case Study");
 	caseRoot->setText(1, m_sceneDir);
@@ -5730,13 +5760,12 @@ void MainWindow::refreshLoadedDataTree() {
 			: QString::fromStdString(m_sceneModel.savedWithAppVersion),
 		"1", m_sceneModel.savedWithAppVersion.empty() ? QStringLiteral("Missing optional") : QStringLiteral("Loaded"));
 	if (m_sceneIsBundle)
-		addRow(caseRoot, "Bundle format version", m_sceneBundleVersion
-			? QString::number(*m_sceneBundleVersion) : QStringLiteral("(not recorded)"),
+		addRow(caseRoot, "Bundle format version", m_sceneBundleVersion ? QString::number(*m_sceneBundleVersion) : QStringLiteral("(not recorded)"),
 			QString::number(kCurrentSceneBundleVersion),
 			m_sceneBundleVersion ? QStringLiteral("Loaded") : QStringLiteral("Missing"));
 
 	auto* sourceFiles = addRow(caseRoot, "Source files discovered", QString(),
-			QString::number(static_cast<int>(m_sceneModel.sourceFiles.size())), "Loaded");
+		QString::number(static_cast<int>(m_sceneModel.sourceFiles.size())), "Loaded");
 	for (const auto& source : m_sceneModel.sourceFiles) {
 		addRow(sourceFiles, QString::fromStdString(source), QString::fromStdString(source), "1",
 			QStringLiteral("Loaded"));
@@ -5745,7 +5774,7 @@ void MainWindow::refreshLoadedDataTree() {
 		addLoadedDataTreeItem(m_loadedDataTree, caseRoot, item);
 	}
 	auto* runtimeAndResults = addRow(caseRoot, "Runtime and results", QString(), QString(),
-			m_runtimeStatus);
+		m_runtimeStatus);
 	const bool runtimeReady = m_runtimeStatus == "Ready" || m_runtimeStatus == "Running"
 		|| m_runtimeStatus == "Completed";
 	const bool runAttempted = m_runtimeStatus != "Not built";
@@ -5753,21 +5782,20 @@ void MainWindow::refreshLoadedDataTree() {
 		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
 	addRow(runtimeAndResults, "Runtime rolling stock", QString(), "1",
 		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
-	addRow(runtimeAndResults, "Applied scenario", m_appliedScenarioId.empty()
-		? QStringLiteral("(none)") : QString::fromStdString(m_appliedScenarioId), "1",
+	addRow(runtimeAndResults, "Applied scenario", m_appliedScenarioId.empty() ? QStringLiteral("(none)") : QString::fromStdString(m_appliedScenarioId), "1",
 		runAttempted ? m_runtimeStatus : QStringLiteral("Not built"));
 	addRow(runtimeAndResults, "Current run", QString(), "1", m_runtimeStatus);
 	auto* runtime = addRow(runtimeAndResults, "Runtime", QString(),
-			QString::number(static_cast<int>(m_runtimeDiagnostics.size())), m_runtimeStatus);
+		QString::number(static_cast<int>(m_runtimeDiagnostics.size())), m_runtimeStatus);
 	for (const auto& diagnostic : m_runtimeDiagnostics) {
 		const QString severity = diagnostic.severity == SceneSeverity::Error ? QStringLiteral("Failed")
-			: (diagnostic.severity == SceneSeverity::Warning ? QStringLiteral("Warning") : QStringLiteral("Ready"));
+																			 : (diagnostic.severity == SceneSeverity::Warning ? QStringLiteral("Warning") : QStringLiteral("Ready"));
 		const QString detail = QString::fromStdString(diagnostic.code) + ": "
 			+ QString::fromStdString(diagnostic.message);
 		addRow(runtime, detail, QString::fromStdString(diagnostic.file), "1", severity);
 	}
 	addRow(runtimeAndResults, "Results", QString(), m_resultsAvailable ? "1" : "0",
-			m_resultsAvailable ? QStringLiteral("Ready") : QStringLiteral("Not built"));
+		m_resultsAvailable ? QStringLiteral("Ready") : QStringLiteral("Not built"));
 	caseRoot->setExpanded(true);
 	m_loadedDataTree->resizeColumnToContents(0);
 	m_loadedDataTree->resizeColumnToContents(1);
@@ -5806,7 +5834,8 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 	}
 	if (targetType == "train_unit_plot") {
 		const QString unitId = item->parent() && item->parent()->parent()
-			? item->parent()->parent()->text(0) : QString();
+			? item->parent()->parent()->text(0)
+			: QString();
 		const SceneTrainUnit* unit = trainUnitById(unitId.toStdString());
 		if (unit && !unit->tractionCurve.empty())
 			plotTrainUnitTraction(*unit);
@@ -5958,13 +5987,13 @@ void MainWindow::commitPendingEditorValues() {
 		}
 	}
 	if (m_infrastructureFacetCombo && m_infrastructureTable
-			&& m_infrastructureFacetCombo->currentData().toString() == QStringLiteral("platforms")) {
+		&& m_infrastructureFacetCombo->currentData().toString() == QStringLiteral("platforms")) {
 		std::vector<std::tuple<int, int, double>> pendingGeometry;
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
 			for (int column : {3, 4}) {
 				auto* edit = qobject_cast<QDoubleSpinBox*>(m_infrastructureTable->cellWidget(row, column));
 				if (!hasEditorFocus(edit)
-						|| !edit->property(kPlatformGeometryEditedProperty).toBool())
+					|| !edit->property(kPlatformGeometryEditedProperty).toBool())
 					continue;
 				edit->setProperty(kPlatformGeometryEditedProperty, false);
 				edit->interpretText();
@@ -6003,12 +6032,10 @@ void MainWindow::commitPendingEditorValues() {
 	commitScenarioDescriptionEdit();
 	commitIncidentIdEdit();
 	commitIncidentStartSeconds();
-	if (m_incidentEndSecondsEdit && ((m_incidentHasEndSecondsCheck
-			&& m_incidentHasEndSecondsCheck->isChecked())
-			|| hasEditorFocus(m_incidentEndSecondsEdit)))
+	if (m_incidentEndSecondsEdit && ((m_incidentHasEndSecondsCheck && m_incidentHasEndSecondsCheck->isChecked()) || hasEditorFocus(m_incidentEndSecondsEdit)))
 		commitIncidentEndSeconds();
 	if (m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked()
-			&& m_incidentReducedSpeedKmhEdit) {
+		&& m_incidentReducedSpeedKmhEdit) {
 		m_incidentReducedSpeedKmhEdit->interpretText();
 		commitIncidentReducedSpeed();
 	}
@@ -6086,19 +6113,19 @@ std::string MainWindow::uniqueInfrastructureId(const std::string& baseId, const 
 			return std::any_of(m_sceneModel.blocks.begin(), m_sceneModel.blocks.end(),
 				[&id](const SceneBlock& item) { return item.id == id; });
 		if (facet == "connections")
-		return std::any_of(m_sceneModel.connections.begin(), m_sceneModel.connections.end(),
-			[&id](const SceneConnection& item) { return item.id == id; });
+			return std::any_of(m_sceneModel.connections.begin(), m_sceneModel.connections.end(),
+				[&id](const SceneConnection& item) { return item.id == id; });
 		if (facet == "stations")
 			return std::any_of(m_sceneModel.stations.begin(), m_sceneModel.stations.end(),
-							   [&id](const SceneStation& item) { return item.id == id; });
+				[&id](const SceneStation& item) { return item.id == id; });
 		if (facet == "signals")
 			return std::any_of(sceneSignals(m_sceneModel).begin(), sceneSignals(m_sceneModel).end(),
-							   [&id](const SceneSignal& item) { return item.id == id; });
+				[&id](const SceneSignal& item) { return item.id == id; });
 		if (facet == "signalling_areas")
 			return std::any_of(m_sceneModel.signallingAreas.begin(), m_sceneModel.signallingAreas.end(),
-							   [&id](const SceneSignallingArea& item) { return item.id == id; });
+				[&id](const SceneSignallingArea& item) { return item.id == id; });
 		return std::any_of(m_sceneModel.routes.begin(), m_sceneModel.routes.end(),
-						   [&id](const SceneRoute& item) { return item.id == id; });
+			[&id](const SceneRoute& item) { return item.id == id; });
 	};
 	if (facet == "platforms" && !m_sceneModel.stations.empty()) {
 		const auto& platforms = m_sceneModel.stations.front().platforms;
@@ -6118,23 +6145,22 @@ std::string MainWindow::uniqueInfrastructureId(const std::string& baseId, const 
 }
 
 QStringList MainWindow::directDeleteConsumers(const QString& facet, const std::string& id,
-		const std::string& scope) const {
+	const std::string& scope) const {
 	QStringList consumers;
 	const auto add = [&consumers](const QString& description) {
 		if (!description.isEmpty() && !consumers.contains(description))
 			consumers << description;
 	};
 	const auto sectionUsesBlock = [&id](const SceneSectionInventory& inventory,
-			const std::string& reference) {
+									  const std::string& reference) {
 		const std::vector<std::string> components = previewRouteComponents(reference);
 		if (std::find(components.begin(), components.end(), id) != components.end())
 			return true;
 		const SceneSectionDescriptor* section = inventory.resolve(reference);
-		return section && (section->sourceBlockId == id || section->firstBlockId == id
-			|| section->secondBlockId == id);
+		return section && (section->sourceBlockId == id || section->firstBlockId == id || section->secondBlockId == id);
 	};
 	const auto sectionUsesConnection = [](const SceneSectionInventory& inventory,
-			const std::string& connectionId, const std::string& reference) {
+										   const std::string& connectionId, const std::string& reference) {
 		const SceneSectionDescriptor* section = inventory.resolve(reference);
 		return section && section->sourceConnectionId == connectionId;
 	};
@@ -6163,43 +6189,43 @@ QStringList MainWindow::directDeleteConsumers(const QString& facet, const std::s
 			for (const auto& platform : station.platforms)
 				if (std::find(platform.nodeIds.begin(), platform.nodeIds.end(), id) != platform.nodeIds.end())
 					add(QString("platform '%1' at station '%2'")
-						.arg(QString::fromStdString(platform.id), QString::fromStdString(station.id)));
+							.arg(QString::fromStdString(platform.id), QString::fromStdString(station.id)));
 	} else if (facet == "blocks" || facet == "connections") {
 		const SceneSectionInventory inventory = buildSceneSectionInventory(m_sceneModel);
 		const auto usesSection = [&](const std::string& reference) {
 			return facet == "blocks" ? sectionUsesBlock(inventory, reference)
-				: sectionUsesConnection(inventory, id, reference);
+									 : sectionUsesConnection(inventory, id, reference);
 		};
 		for (const auto& route : m_sceneModel.routes)
 			for (const auto& token : route.blocks)
 				if (usesSection(token)) {
 					add(QString("route '%1' section '%2'")
-						.arg(QString::fromStdString(route.id), QString::fromStdString(token)));
+							.arg(QString::fromStdString(route.id), QString::fromStdString(token)));
 					break;
 				}
 		for (const auto& signal : sceneSignals(m_sceneModel))
 			if (usesSection(signal.protectedSection))
 				add(QString("signal '%1' protected section '%2'")
-					.arg(QString::fromStdString(signal.id), QString::fromStdString(signal.protectedSection)));
+						.arg(QString::fromStdString(signal.id), QString::fromStdString(signal.protectedSection)));
 		for (const auto& scenario : m_sceneModel.scenarios)
 			for (const auto& incident : scenario.incidents)
 				if (incident.type == "signal_failure" && usesSection(incident.target))
 					add(QString("signal-failure incident '%1' in scenario '%2'")
-						.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
+							.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
 		for (const auto& dependency : m_sceneModel.blockDependencies)
 			if (usesSection(dependency.block) || usesSection(dependency.dependsOn))
 				add(QString("block dependency '%1' -> '%2'")
-					.arg(QString::fromStdString(dependency.block), QString::fromStdString(dependency.dependsOn)));
+						.arg(QString::fromStdString(dependency.block), QString::fromStdString(dependency.dependsOn)));
 		for (const auto& restriction : m_sceneModel.singleTrackRestrictions)
 			if (usesSection(restriction.startBlock) || usesSection(restriction.endBlock)
 				|| usesSection(restriction.protectedStartBlock) || usesSection(restriction.protectedEndBlock))
 				add(QString("single-track restriction '%1' -> '%2'")
-					.arg(QString::fromStdString(restriction.startBlock), QString::fromStdString(restriction.endBlock)));
+						.arg(QString::fromStdString(restriction.startBlock), QString::fromStdString(restriction.endBlock)));
 		for (const auto& boundary : m_sceneModel.stationBoundaries)
 			if (usesSection(boundary.entranceBlock)
 				|| (boundary.hasExitBlock && usesSection(boundary.exitBlock)))
 				add(QString("station boundary '%1' -> '%2'")
-					.arg(QString::fromStdString(boundary.entranceBlock), QString::fromStdString(boundary.exitBlock)));
+						.arg(QString::fromStdString(boundary.entranceBlock), QString::fromStdString(boundary.exitBlock)));
 	} else if (facet == "stations") {
 		for (const auto& service : m_sceneModel.services)
 			for (const auto& stop : service.stops)
@@ -6209,29 +6235,29 @@ QStringList MainWindow::directDeleteConsumers(const QString& facet, const std::s
 			for (const auto& delay : scenario.entranceDelays)
 				if (delay.stationId == id)
 					add(QString("entrance delay for service '%1' in scenario '%2'")
-						.arg(QString::fromStdString(delay.serviceId), QString::fromStdString(scenario.id)));
+							.arg(QString::fromStdString(delay.serviceId), QString::fromStdString(scenario.id)));
 		for (const auto& passenger : m_sceneModel.passengers)
 			for (const auto& journey : passenger.journeys) {
 				if (journey.originStationId == id || journey.destinationStationId == id)
 					add(QString("passenger '%1' journey '%2'")
-						.arg(QString::fromStdString(passenger.id), QString::fromStdString(journey.id)));
+							.arg(QString::fromStdString(passenger.id), QString::fromStdString(journey.id)));
 				for (const auto& leg : journey.legs)
 					if (leg.originStationId == id || leg.destinationStationId == id)
 						add(QString("passenger '%1' leg '%2'")
-							.arg(QString::fromStdString(passenger.id), QString::fromStdString(leg.id)));
+								.arg(QString::fromStdString(passenger.id), QString::fromStdString(leg.id)));
 			}
 	} else if (facet == "platforms") {
 		for (const auto& service : m_sceneModel.services)
 			for (const auto& stop : service.stops)
 				if (stop.stationId == scope && stop.platformId == id)
 					add(QString("service '%1' stop at station '%2'")
-						.arg(QString::fromStdString(service.id), QString::fromStdString(scope)));
+							.arg(QString::fromStdString(service.id), QString::fromStdString(scope)));
 	} else if (facet == "signals") {
 		for (const auto& scenario : m_sceneModel.scenarios)
 			for (const auto& incident : scenario.incidents)
 				if (incident.type == "signal_failure" && incident.target == id)
 					add(QString("signal-failure incident '%1' in scenario '%2'")
-						.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
+							.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
 	} else if (facet == "routes") {
 		for (const auto& service : m_sceneModel.services)
 			if (service.route == id)
@@ -6249,7 +6275,7 @@ QStringList MainWindow::directDeleteConsumers(const QString& facet, const std::s
 			for (const auto& incident : scenario.incidents)
 				if (incident.type == "train_breakdown" && incident.target == id)
 					add(QString("breakdown incident '%1' in scenario '%2'")
-						.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
+							.arg(QString::fromStdString(incident.id), QString::fromStdString(scenario.id)));
 			for (const auto& delay : scenario.entranceDelays)
 				if (delay.serviceId == id)
 					add(QString("entrance delay in scenario '%1'").arg(QString::fromStdString(scenario.id)));
@@ -6259,7 +6285,7 @@ QStringList MainWindow::directDeleteConsumers(const QString& facet, const std::s
 				for (const auto& leg : journey.legs)
 					if (leg.serviceId == id)
 						add(QString("passenger '%1' leg '%2'")
-							.arg(QString::fromStdString(passenger.id), QString::fromStdString(leg.id)));
+								.arg(QString::fromStdString(passenger.id), QString::fromStdString(leg.id)));
 	}
 	return consumers;
 }
@@ -6283,8 +6309,9 @@ void MainWindow::refreshBlockTrackFilter() {
 	for (const auto& trackId : invalidTracks) {
 		const QString value = QString::fromStdString(trackId);
 		m_blockTrackFilterCombo->addItem(trackId.empty()
-			? QStringLiteral("Invalid track: (empty)")
-			: QStringLiteral("Invalid track: %1").arg(value), value);
+				? QStringLiteral("Invalid track: (empty)")
+				: QStringLiteral("Invalid track: %1").arg(value),
+			value);
 	}
 	int selected = m_blockTrackFilterCombo->findData(previousTrack);
 	if (selected < 0 && m_blockTrackFilterCombo->count() > 0)
@@ -6341,7 +6368,7 @@ void MainWindow::refreshRouteSectionPanel() {
 			}
 		}
 		const int row = m_routeSectionListWidget->count() == 0 ? -1
-			: std::min(std::max(previousListRow, 0), m_routeSectionListWidget->count() - 1);
+															   : std::min(std::max(previousListRow, 0), m_routeSectionListWidget->count() - 1);
 		m_routeSectionListWidget->setCurrentRow(row);
 	}
 	m_routeSectionListWidget->setEnabled(editable && hasRoute);
@@ -6388,13 +6415,13 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 		headers << "ID" << "Track ID" << "X (km)" << "Y (km)";
 	else if (facet == "arcs")
 		headers << "ID" << "Track ID" << "From node" << "To node"
-			<< "Curvature radius (m)" << "Gradient (%)" << "Speed limit (m/s)";
+				<< "Curvature radius (m)" << "Gradient (%)" << "Speed limit (m/s)";
 	else if (facet == "blocks")
 		headers << "ID" << "Track ID" << "Length (km)" << "Order"
-			<< "Start km" << "End km" << "Coverage";
+				<< "Start km" << "End km" << "Coverage";
 	else if (facet == "connections")
 		headers << "ID" << "From node" << "To node" << "Has speed limit"
-			<< "Speed limit (m/s)";
+				<< "Speed limit (m/s)";
 	else if (facet == "stations")
 		headers << "ID" << "Name" << "Has position" << "Position km";
 	else if (facet == "platforms")
@@ -6425,7 +6452,7 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 	const int precision = std::numeric_limits<double>::max_digits10;
 	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(m_sceneModel);
 	const auto makeSectionCombo = [this, &sectionInventory](const std::string& current,
-			bool allowNone, const QString& noneLabel, const QString& objectName) {
+									  bool allowNone, const QString& noneLabel, const QString& objectName) {
 		auto* combo = new QComboBox(m_infrastructureTable);
 		combo->setObjectName(objectName);
 		const QSignalBlocker blocker(combo);
@@ -6459,7 +6486,8 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 		}
 	} else if (facet == "blocks") {
 		const QString selectedTrack = m_blockTrackFilterCombo
-			? m_blockTrackFilterCombo->currentData().toString() : QString();
+			? m_blockTrackFilterCombo->currentData().toString()
+			: QString();
 		m_infrastructureTable->setRowCount(0);
 		for (int modelIndex = 0; modelIndex < static_cast<int>(m_sceneModel.blocks.size()); ++modelIndex) {
 			const SceneBlock& block = m_sceneModel.blocks[static_cast<std::size_t>(modelIndex)];
@@ -6529,7 +6557,7 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 				setCell(row, 1, QString::fromStdString(platform.id));
 				setCell(row, 2, joinCommaList(platform.nodeIds));
 				const auto makeGeometrySpin = [this, row](double value, const char* objectName,
-						int column, const QString& tooltip) {
+												  int column, const QString& tooltip) {
 					auto* edit = new CompactDoubleSpinBox(m_infrastructureTable);
 					edit->setObjectName(objectName);
 					edit->setAccessibleName(tooltip);
@@ -6585,18 +6613,18 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 			populateSceneSectionCombo(combo, sectionInventory, signal.protectedSection, true,
 				QStringLiteral("(unbound)"));
 			connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-					[this, row, combo](int) {
-						const auto& currentSignals = sceneSignals(m_sceneModel);
-						if (row < 0 || row >= static_cast<int>(currentSignals.size()))
-							return;
-						auto& editableSignals = sceneSignals(m_sceneModel);
-						const std::string protectedSection = combo->currentData().toString().toStdString();
-						if (editableSignals[static_cast<std::size_t>(row)].protectedSection == protectedSection)
-							return;
-						editableSignals[static_cast<std::size_t>(row)].protectedSection = protectedSection;
-						markSceneDirty();
-						refreshValidationPanel();
-					});
+				[this, row, combo](int) {
+					const auto& currentSignals = sceneSignals(m_sceneModel);
+					if (row < 0 || row >= static_cast<int>(currentSignals.size()))
+						return;
+					auto& editableSignals = sceneSignals(m_sceneModel);
+					const std::string protectedSection = combo->currentData().toString().toStdString();
+					if (editableSignals[static_cast<std::size_t>(row)].protectedSection == protectedSection)
+						return;
+					editableSignals[static_cast<std::size_t>(row)].protectedSection = protectedSection;
+					markSceneDirty();
+					refreshValidationPanel();
+				});
 			m_infrastructureTable->setCellWidget(row, 1, combo);
 		}
 	} else if (facet == "signalling_areas") {
@@ -6677,9 +6705,9 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 						SceneSingleTrackRestriction& restriction =
 							m_sceneModel.singleTrackRestrictions[static_cast<std::size_t>(row)];
 						std::string* target = column == 0 ? &restriction.startBlock
-							: (column == 1 ? &restriction.endBlock
-							: (column == 2 ? &restriction.protectedStartBlock
-							: &restriction.protectedEndBlock));
+														  : (column == 1 ? &restriction.endBlock
+																		 : (column == 2 ? &restriction.protectedStartBlock
+																						: &restriction.protectedEndBlock));
 						const std::string value = combo->currentData().toString().toStdString();
 						if (*target == value)
 							return;
@@ -6733,13 +6761,13 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 	m_infrastructureTable->setEnabled(m_sceneLoaded && !m_worker);
 	if (auto* guidance = m_infrastructureDock->findChild<QLabel*>("infrastructureGuidance")) {
 		const bool empty = m_infrastructureTable->rowCount() == 0;
-		guidance->setText(!m_sceneLoaded ? "Open a case to edit infrastructure."
-			: facet == "blocks" && empty ? "No blocks on this track. Choose another track or add a block."
-			: facet == "routes" && empty ? "No routes yet. Add a route, then choose sections from the catalog."
-			: empty ? QString("No %1 yet. Use Add to create one.").arg(m_infrastructureFacetCombo->currentText().toLower())
-			: facet == "routes" ? "Select a route to edit its ordered sections below."
-			: facet == "blocks" ? "Blocks are ordered on the chosen track; select a row to insert or move it."
-			: QString());
+		guidance->setText(!m_sceneLoaded	 ? "Open a case to edit infrastructure."
+				: facet == "blocks" && empty ? "No blocks on this track. Choose another track or add a block."
+				: facet == "routes" && empty ? "No routes yet. Add a route, then choose sections from the catalog."
+				: empty						 ? QString("No %1 yet. Use Add to create one.").arg(m_infrastructureFacetCombo->currentText().toLower())
+				: facet == "routes"			 ? "Select a route to edit its ordered sections below."
+				: facet == "blocks"			 ? "Blocks are ordered on the chosen track; select a row to insert or move it."
+											 : QString());
 		guidance->setVisible(!guidance->text().isEmpty());
 	}
 	m_infrastructureTable->resizeColumnsToContents();
@@ -6775,10 +6803,11 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 	bool canAdd = m_sceneLoaded && !m_worker;
 	if (isBlocks) {
 		const std::string selectedTrack = m_blockTrackFilterCombo
-			? m_blockTrackFilterCombo->currentData().toString().toStdString() : std::string();
+			? m_blockTrackFilterCombo->currentData().toString().toStdString()
+			: std::string();
 		canAdd = canAdd && !selectedTrack.empty()
 			&& std::any_of(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
-			[&selectedTrack](const SceneTrack& track) { return track.id == selectedTrack; });
+				[&selectedTrack](const SceneTrack& track) { return track.id == selectedTrack; });
 	}
 	if (m_addInfrastructureButton)
 		m_addInfrastructureButton->setEnabled(canAdd);
@@ -6793,15 +6822,15 @@ void MainWindow::updateInfrastructureSelection() {
 		return;
 	const int row = m_infrastructureTable->currentRow();
 	const QString facet = m_infrastructureFacetCombo
-							  ? m_infrastructureFacetCombo->currentData().toString()
-							  : QString();
+		? m_infrastructureFacetCombo->currentData().toString()
+		: QString();
 	if (row >= 0 && facet == "platforms" && m_infrastructureTable->item(row, 0) && m_infrastructureTable->item(row, 1)) {
 		m_infrastructureSelectionId = QString::fromStdString(platformSelectionKey(
 			m_infrastructureTable->item(row, 0)->text().toStdString(),
 			m_infrastructureTable->item(row, 1)->text().toStdString()));
 	} else {
-	const QTableWidgetItem* item = row >= 0 ? m_infrastructureTable->item(row, 0) : nullptr;
-	m_infrastructureSelectionId = item ? item->text() : QString();
+		const QTableWidgetItem* item = row >= 0 ? m_infrastructureTable->item(row, 0) : nullptr;
+		m_infrastructureSelectionId = item ? item->text() : QString();
 	}
 	if (m_sceneLoaded && !m_worker && !m_resultsAvailable)
 		renderTrackPreview(m_sceneModel);
@@ -7135,9 +7164,9 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 			const std::string newId = value.toStdString();
 			if (oldId != newId) {
 				const bool duplicate = std::any_of(station.platforms.begin(), station.platforms.end(),
-												   [platformIndex, &station, &newId](const ScenePlatform& item) {
-													   return &item != &station.platforms[static_cast<std::size_t>(platformIndex)] && item.id == newId;
-												   });
+					[platformIndex, &station, &newId](const ScenePlatform& item) {
+						return &item != &station.platforms[static_cast<std::size_t>(platformIndex)] && item.id == newId;
+					});
 				if (newId.empty() || duplicate) {
 					rejectUnsafeId();
 					return;
@@ -7284,21 +7313,24 @@ void MainWindow::commitPlatformGeometryCell(int row, int column, double value) {
 ScenePassenger* MainWindow::selectedPassenger() {
 	const int row = m_passengerListWidget ? m_passengerListWidget->currentRow() : -1;
 	return m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.passengers.size())
-		? &m_sceneModel.passengers[static_cast<std::size_t>(row)] : nullptr;
+		? &m_sceneModel.passengers[static_cast<std::size_t>(row)]
+		: nullptr;
 }
 
 ScenePassengerJourney* MainWindow::selectedPassengerJourney() {
 	ScenePassenger* passenger = selectedPassenger();
 	const int row = m_passengerJourneyListWidget ? m_passengerJourneyListWidget->currentRow() : -1;
 	return passenger && row >= 0 && row < static_cast<int>(passenger->journeys.size())
-		? &passenger->journeys[static_cast<std::size_t>(row)] : nullptr;
+		? &passenger->journeys[static_cast<std::size_t>(row)]
+		: nullptr;
 }
 
 ScenePassengerLeg* MainWindow::selectedPassengerLeg() {
 	ScenePassengerJourney* journey = selectedPassengerJourney();
 	const int row = m_passengerLegListWidget ? m_passengerLegListWidget->currentRow() : -1;
 	return journey && row >= 0 && row < static_cast<int>(journey->legs.size())
-		? &journey->legs[static_cast<std::size_t>(row)] : nullptr;
+		? &journey->legs[static_cast<std::size_t>(row)]
+		: nullptr;
 }
 
 std::string MainWindow::uniquePassengerId(const std::string& baseId) const {
@@ -7306,7 +7338,7 @@ std::string MainWindow::uniquePassengerId(const std::string& baseId) const {
 	std::string candidate = base;
 	int suffix = 2;
 	while (std::any_of(m_sceneModel.passengers.begin(), m_sceneModel.passengers.end(),
-			[&candidate](const ScenePassenger& value) { return value.id == candidate; }))
+		[&candidate](const ScenePassenger& value) { return value.id == candidate; }))
 		candidate = base + "_" + std::to_string(suffix++);
 	return candidate;
 }
@@ -7358,7 +7390,7 @@ void MainWindow::refreshPassengerPanel() {
 		}
 		const int count = m_passengerListWidget->count();
 		const int selected = count == 0 ? -1
-			: (previousRow < 0 ? 0 : std::min(previousRow, count - 1));
+										: (previousRow < 0 ? 0 : std::min(previousRow, count - 1));
 		m_passengerListWidget->setCurrentRow(selected);
 		m_passengerListWidget->setEnabled(editable);
 	}
@@ -7396,7 +7428,7 @@ void MainWindow::updatePassengerDetailPanel() {
 		}
 		const int count = m_passengerJourneyListWidget->count();
 		m_passengerJourneyListWidget->setCurrentRow(count == 0 ? -1
-			: (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
+															   : (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
 		m_passengerJourneyListWidget->setEnabled(enabled);
 	}
 	if (m_addPassengerJourneyButton)
@@ -7415,9 +7447,11 @@ void MainWindow::updatePassengerDetailPanel() {
 		const ScenePassengerJourney* journey = selectedPassengerJourney();
 		const ScenePassengerLeg* leg = selectedPassengerLeg();
 		const QString journeyPrefix = journeyRow >= 0
-			? passengerPrefix + QStringLiteral(".journeys[%1]").arg(journeyRow) : QString();
+			? passengerPrefix + QStringLiteral(".journeys[%1]").arg(journeyRow)
+			: QString();
 		const QString legPrefix = journey && legRow >= 0
-			? journeyPrefix + QStringLiteral(".legs[%1]").arg(legRow) : QString();
+			? journeyPrefix + QStringLiteral(".legs[%1]").arg(legRow)
+			: QString();
 		const QString passengerId = QString::fromStdString(passenger->id);
 		const QString journeyId = journey ? QString::fromStdString(journey->id) : QString();
 		const QString legId = leg ? QString::fromStdString(leg->id) : QString();
@@ -7432,18 +7466,20 @@ void MainWindow::updatePassengerDetailPanel() {
 				|| relatedId == passengerId || relatedId == journeyId || relatedId == legId;
 			if (match)
 				messages << QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
-					+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
+						+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
 		}
 	}
 	if (m_passengerDiagnosticLabel) {
 		m_passengerDiagnosticLabel->setText(messages.isEmpty()
-			? (passenger ? QStringLiteral("No validation messages for this passenger selection.")
-				: QStringLiteral("Select a passenger or use Add to create one."))
-			: messages.join(QStringLiteral("\n")));
+				? (passenger ? QStringLiteral("No validation messages for this passenger selection.")
+							 : QStringLiteral("Select a passenger or use Add to create one."))
+				: messages.join(QStringLiteral("\n")));
 		m_passengerDiagnosticLabel->setStyleSheet(messages.isEmpty() ? "color: #5b6871;"
-			: std::any_of(messages.begin(), messages.end(), [](const QString& message) {
-				return message.startsWith("ERROR:");
-			}) ? "color: #81352d;" : "color: #965c22;");
+				: std::any_of(messages.begin(), messages.end(), [](const QString& message) {
+					  return message.startsWith("ERROR:");
+				  })
+				? "color: #81352d;"
+				: "color: #965c22;");
 	}
 }
 
@@ -7460,7 +7496,7 @@ void MainWindow::updatePassengerJourneyPanel() {
 		}
 		const int count = m_passengerLegListWidget->count();
 		m_passengerLegListWidget->setCurrentRow(count == 0 ? -1
-			: (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
+														   : (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
 		m_passengerLegListWidget->setEnabled(enabled);
 	}
 	if (m_passengerJourneyIdEdit) {
@@ -7487,7 +7523,7 @@ void MainWindow::updatePassengerJourneyPanel() {
 	}
 	const std::array<double, 4> values = journey
 		? std::array<double, 4>{journey->plannedDepartureStartSeconds, journey->plannedDepartureEndSeconds,
-			journey->plannedArrivalStartSeconds, journey->plannedArrivalEndSeconds}
+			  journey->plannedArrivalStartSeconds, journey->plannedArrivalEndSeconds}
 		: std::array<double, 4>{0.0, 0.0, 0.0, 0.0};
 	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
 		if (!m_passengerJourneyWindowEdits[index])
@@ -7583,7 +7619,8 @@ void MainWindow::deletePassenger() {
 	const std::string id = m_sceneModel.passengers[static_cast<std::size_t>(row)].id;
 	if (QMessageBox::question(this, "Delete Passenger",
 			QString("Delete passenger '%1' and its journeys?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+		!= QMessageBox::Yes)
 		return;
 	m_sceneModel.passengers.erase(m_sceneModel.passengers.begin() + row);
 	markSceneDirty();
@@ -7621,7 +7658,8 @@ void MainWindow::deletePassengerJourney() {
 	const std::string id = passenger->journeys[static_cast<std::size_t>(row)].id;
 	if (QMessageBox::question(this, "Delete Journey",
 			QString("Delete journey '%1' and its legs?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+		!= QMessageBox::Yes)
 		return;
 	passenger->journeys.erase(passenger->journeys.begin() + row);
 	markSceneDirty();
@@ -7641,7 +7679,8 @@ void MainWindow::addPassengerLeg() {
 		if (!service.stops.empty()) {
 			leg.originStationId = service.stops.front().stationId;
 			leg.destinationStationId = service.stops.size() > 1
-				? service.stops[1].stationId : service.stops.front().stationId;
+				? service.stops[1].stationId
+				: service.stops.front().stationId;
 		}
 	}
 	if (leg.originStationId.empty() && !m_sceneModel.stations.empty()) {
@@ -7668,7 +7707,8 @@ void MainWindow::deletePassengerLeg() {
 	const std::string id = journey->legs[static_cast<std::size_t>(row)].id;
 	if (QMessageBox::question(this, "Delete Leg",
 			QString("Delete passenger leg '%1'?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+		!= QMessageBox::Yes)
 		return;
 	journey->legs.erase(journey->legs.begin() + row);
 	markSceneDirty();
@@ -7735,11 +7775,11 @@ void MainWindow::commitPassengerJourneyIdEdit() {
 			if (&candidate != journey && candidate.id == newId)
 				duplicate = true;
 	if (newId.empty() || (newId != oldId && duplicate)) {
-			const QSignalBlocker blocker(m_passengerJourneyIdEdit);
-			m_passengerJourneyIdEdit->setText(QString::fromStdString(oldId));
-			showBlockingError(this, newId.empty() ? "Invalid Journey ID" : "Journey ID already exists",
-				newId.empty() ? "Journey IDs must not be empty." : "Choose a unique journey ID.", true);
-			return;
+		const QSignalBlocker blocker(m_passengerJourneyIdEdit);
+		m_passengerJourneyIdEdit->setText(QString::fromStdString(oldId));
+		showBlockingError(this, newId.empty() ? "Invalid Journey ID" : "Journey ID already exists",
+			newId.empty() ? "Journey IDs must not be empty." : "Choose a unique journey ID.", true);
+		return;
 	}
 	if (newId == oldId)
 		return;
@@ -7785,8 +7825,8 @@ void MainWindow::commitPassengerJourneyWindow(int index) {
 		return;
 	const double value = m_passengerJourneyWindowEdits[static_cast<std::size_t>(index)]->value();
 	double* target = index == 0 ? &journey->plannedDepartureStartSeconds
-		: (index == 1 ? &journey->plannedDepartureEndSeconds
-		: (index == 2 ? &journey->plannedArrivalStartSeconds : &journey->plannedArrivalEndSeconds));
+								: (index == 1 ? &journey->plannedDepartureEndSeconds
+											  : (index == 2 ? &journey->plannedArrivalStartSeconds : &journey->plannedArrivalEndSeconds));
 	if (*target == value)
 		return;
 	*target = value;
@@ -7808,11 +7848,11 @@ void MainWindow::commitPassengerLegIdEdit() {
 				if (&candidate != leg && candidate.id == newId)
 					duplicate = true;
 	if (newId.empty() || (newId != oldId && duplicate)) {
-			const QSignalBlocker blocker(m_passengerLegIdEdit);
-			m_passengerLegIdEdit->setText(QString::fromStdString(oldId));
-			showBlockingError(this, newId.empty() ? "Invalid Leg ID" : "Leg ID already exists",
-				newId.empty() ? "Leg IDs must not be empty." : "Choose a unique leg ID.", true);
-			return;
+		const QSignalBlocker blocker(m_passengerLegIdEdit);
+		m_passengerLegIdEdit->setText(QString::fromStdString(oldId));
+		showBlockingError(this, newId.empty() ? "Invalid Leg ID" : "Leg ID already exists",
+			newId.empty() ? "Leg IDs must not be empty." : "Choose a unique leg ID.", true);
+		return;
 	}
 	if (newId == oldId)
 		return;
@@ -7925,11 +7965,11 @@ void MainWindow::importPassengers() {
 		std::set<std::string> candidateLegIds;
 		for (const auto& journey : passenger.journeys) {
 			if (journey.id.empty() || journeyIds.count(journey.id) > 0
-					|| !candidateJourneyIds.insert(journey.id).second)
+				|| !candidateJourneyIds.insert(journey.id).second)
 				collision = true;
 			for (const auto& leg : journey.legs) {
 				if (leg.id.empty() || legIds.count(leg.id) > 0
-						|| !candidateLegIds.insert(leg.id).second)
+					|| !candidateLegIds.insert(leg.id).second)
 					collision = true;
 			}
 		}
@@ -7952,7 +7992,7 @@ void MainWindow::importPassengers() {
 		const QString source = QFileInfo(QString::fromStdString(row.sourceFile)).fileName();
 		const bool rejectedByBatch = rejectedPassengerIds.count(row.passengerId) > 0;
 		const QString status = !row.accepted || rejectedByBatch ? QStringLiteral("Rejected")
-			: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
+																: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
 		const QString detail = rejectedByBatch
 			? QStringLiteral("Passenger ID collides with existing or earlier imported data")
 			: QString::fromStdString(row.context);
@@ -7975,7 +8015,9 @@ void MainWindow::importPassengers() {
 	if (m_passengerImportResultTable)
 		m_passengerImportResultTable->resizeColumnsToContents();
 	statusBar()->showMessage(QString("Passenger import: %1 accepted, %2 rejected; unresolved rows remain visible")
-		.arg(acceptedPassengers).arg(rejectedPassengers), 7000);
+								 .arg(acceptedPassengers)
+								 .arg(rejectedPassengers),
+		7000);
 }
 
 void MainWindow::addInfrastructureEntity() {
@@ -8019,7 +8061,8 @@ void MainWindow::addInfrastructureEntity() {
 	} else if (facet == "blocks") {
 		id = uniqueInfrastructureId("block", facet);
 		const std::string selectedTrack = m_blockTrackFilterCombo
-			? m_blockTrackFilterCombo->currentData().toString().toStdString() : std::string();
+			? m_blockTrackFilterCombo->currentData().toString().toStdString()
+			: std::string();
 		const auto track = std::find_if(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
 			[&selectedTrack](const SceneTrack& candidate) { return candidate.id == selectedTrack; });
 		if (selectedTrack.empty() || track == m_sceneModel.tracks.end()) {
@@ -8086,7 +8129,7 @@ void MainWindow::addInfrastructureEntity() {
 		refreshIncidentPanel();
 	refreshInfrastructureTable();
 	if (facet != QStringLiteral("blocks") && m_infrastructureTable
-			&& newRow >= 0 && newRow < m_infrastructureTable->rowCount())
+		&& newRow >= 0 && newRow < m_infrastructureTable->rowCount())
 		m_infrastructureTable->setCurrentCell(newRow, 0);
 }
 
@@ -8267,7 +8310,8 @@ void MainWindow::deleteInfrastructureEntity() {
 		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(row)].id);
 	else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0)
 		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(stationIndex)]
-			.platforms[static_cast<std::size_t>(platformIndex)].id);
+				.platforms[static_cast<std::size_t>(platformIndex)]
+				.id);
 	else if (facet == "signals" && row < static_cast<int>(sceneSignals(m_sceneModel).size()))
 		id = QString::fromStdString(sceneSignals(m_sceneModel)[static_cast<std::size_t>(row)].id);
 	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
@@ -8276,7 +8320,8 @@ void MainWindow::deleteInfrastructureEntity() {
 		id = QString::fromStdString(m_sceneModel.routes[static_cast<std::size_t>(row)].id);
 	displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
 	const std::string platformScope = stationIndex >= 0
-		? m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].id : std::string();
+		? m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].id
+		: std::string();
 	const QStringList consumers = directDeleteConsumers(facet, id.toStdString(), platformScope);
 	if (!consumers.isEmpty()) {
 		showBlockingError(this, "Cannot Delete Infrastructure Entity",
@@ -8427,11 +8472,11 @@ void MainWindow::refreshTrainUnitTractionTable() {
 			edit->setKeyboardTracking(false);
 			edit->setValue(curve[row][column]);
 			connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-					[this, row, column](double value) { commitTrainUnitTractionCell(row, column, value); });
+				[this, row, column](double value) { commitTrainUnitTractionCell(row, column, value); });
 			connect(edit, &QDoubleSpinBox::editingFinished, this, [this, row, column, edit]() {
 				if (m_trainUnitTractionTable
-						&& (m_trainUnitTractionTable->currentRow() != row
-							|| m_trainUnitTractionTable->currentColumn() != column)) {
+					&& (m_trainUnitTractionTable->currentRow() != row
+						|| m_trainUnitTractionTable->currentColumn() != column)) {
 					const QSignalBlocker blocker(edit);
 					m_trainUnitTractionTable->setCurrentCell(row, column);
 				}
@@ -8442,7 +8487,8 @@ void MainWindow::refreshTrainUnitTractionTable() {
 	m_trainUnitTractionTable->setEnabled(true);
 	if (!curve.empty())
 		m_trainUnitTractionTable->setCurrentCell(std::min(previousRow < 0 ? 0 : previousRow,
-				static_cast<int>(curve.size()) - 1), 0);
+													 static_cast<int>(curve.size()) - 1),
+			0);
 	if (m_removeTrainUnitTractionButton)
 		m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
 }
@@ -8508,12 +8554,14 @@ void MainWindow::deleteTrainUnit() {
 	if (!consumers.isEmpty()) {
 		showBlockingError(this, "Cannot Delete Rolling Stock Unit",
 			QString("Cannot delete rolling stock unit '%1' because it is still referenced by:\n• %2\nRemove it from those compositions first.")
-				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
+				.arg(QString::fromStdString(id), consumers.join("\n• ")),
+			true);
 		return;
 	}
 	if (QMessageBox::question(this, "Delete Rolling Stock Unit",
 			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+		!= QMessageBox::Yes)
 		return;
 	m_trainUnitSourceLinks.erase(id);
 	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
@@ -8585,7 +8633,7 @@ void MainWindow::commitTrainUnitIdEdit() {
 
 void MainWindow::commitTrainUnitSources() {
 	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitSourceDataEdit
-			|| !m_trainUnitSourceTractionEdit)
+		|| !m_trainUnitSourceTractionEdit)
 		return;
 	const int row = m_trainUnitListWidget->currentRow();
 	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
@@ -8607,11 +8655,12 @@ void MainWindow::commitTrainUnitSources() {
 void MainWindow::updateTrainUnitSourceStatus() {
 	const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
 	const SceneTrainUnit* unit = m_sceneLoaded && row >= 0
-		&& row < static_cast<int>(m_sceneModel.trainUnits.size())
-		? &m_sceneModel.trainUnits[static_cast<std::size_t>(row)] : nullptr;
+			&& row < static_cast<int>(m_sceneModel.trainUnits.size())
+		? &m_sceneModel.trainUnits[static_cast<std::size_t>(row)]
+		: nullptr;
 	const auto update = [unit](QPushButton* linkButton, QPushButton* unlinkButton,
-			QPushButton* retryButton, QLabel* statusLabel, const QString& path,
-			const QString& status) {
+							QPushButton* retryButton, QLabel* statusLabel, const QString& path,
+							const QString& status) {
 		const bool hasSelection = unit != nullptr;
 		const bool linked = hasSelection && !path.isEmpty();
 		if (linkButton)
@@ -8709,7 +8758,7 @@ void MainWindow::linkTrainUnitSource(bool traction) {
 	const std::string unitId = unit.id;
 	const auto it = m_trainUnitSourceLinks.find(unitId);
 	const QString oldPath = it == m_trainUnitSourceLinks.end() ? QString()
-		: (traction ? it->second.tractionPath : it->second.dataPath);
+															   : (traction ? it->second.tractionPath : it->second.dataPath);
 	const QString selected = QFileDialog::getOpenFileName(this,
 		traction ? QStringLiteral("Link traction source") : QStringLiteral("Link parameter source"),
 		oldPath.isEmpty() ? QDir::homePath() : QFileInfo(oldPath).absolutePath());
@@ -8796,12 +8845,14 @@ void MainWindow::retryTrainUnitSource(bool traction) {
 		it->second.tractionSignature.clear();
 		it->second.tractionDeferred = m_worker != nullptr;
 		it->second.tractionStatus = it->second.tractionDeferred
-			? QStringLiteral("Retry pending after run") : QStringLiteral("Retrying");
+			? QStringLiteral("Retry pending after run")
+			: QStringLiteral("Retrying");
 	} else {
 		it->second.dataSignature.clear();
 		it->second.dataDeferred = m_worker != nullptr;
 		it->second.dataStatus = it->second.dataDeferred
-			? QStringLiteral("Retry pending after run") : QStringLiteral("Retrying");
+			? QStringLiteral("Retry pending after run")
+			: QStringLiteral("Retrying");
 	}
 	refreshTrainUnitSourceWatches();
 	m_pendingTrainUnitSourcePaths.insert(path);
@@ -8815,15 +8866,14 @@ void MainWindow::scheduleTrainUnitSourceChange(const QString& changedPath) {
 	for (auto& entry : m_trainUnitSourceLinks) {
 		TrainUnitSourceLink& state = entry.second;
 		const auto consider = [this, &path](const QString& linkedPath, bool traction,
-				TrainUnitSourceLink& current) {
+								  TrainUnitSourceLink& current) {
 			if (linkedPath.isEmpty())
 				return;
 			const QString parent = QFileInfo(linkedPath).absolutePath();
 			if (path != linkedPath && path != parent)
 				return;
 			m_pendingTrainUnitSourcePaths.insert(linkedPath);
-			if (m_worker && sourceFileSignature(linkedPath)
-					!= (traction ? current.tractionSignature : current.dataSignature)) {
+			if (m_worker && sourceFileSignature(linkedPath) != (traction ? current.tractionSignature : current.dataSignature)) {
 				if (traction) {
 					current.tractionDeferred = true;
 					current.tractionStatus = QStringLiteral("Changed during run; pending reload");
@@ -8855,7 +8905,7 @@ void MainWindow::processTrainUnitSourceChanges() {
 	std::vector<std::pair<QString, bool>> associations;
 	for (const auto& entry : m_trainUnitSourceLinks) {
 		for (const auto& association : std::array<std::pair<QString, bool>, 2>{
-				std::make_pair(entry.second.dataPath, false), std::make_pair(entry.second.tractionPath, true)}) {
+				 std::make_pair(entry.second.dataPath, false), std::make_pair(entry.second.tractionPath, true)}) {
 			if (!association.first.isEmpty() && pending.contains(association.first))
 				associations.push_back(association);
 		}
@@ -8917,12 +8967,12 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 		physicalResult = parseTrainPhysicalSourceFile(path.toStdString());
 	const bool parsed = traction ? tractionResult.success() : physicalResult.success();
 	const QString error = traction ? QString::fromStdString(tractionResult.error)
-		: QString::fromStdString(physicalResult.error);
+								   : QString::fromStdString(physicalResult.error);
 	if (!parsed) {
 		for (const std::string& unitId : affected) {
 			auto it = m_trainUnitSourceLinks.find(unitId);
 			if (it == m_trainUnitSourceLinks.end()
-					|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
+				|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
 				continue;
 			if (traction) {
 				it->second.tractionSignature = signature;
@@ -8947,7 +8997,7 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 	for (const std::string& unitId : affected) {
 		const auto it = m_trainUnitSourceLinks.find(unitId);
 		if (it == m_trainUnitSourceLinks.end()
-				|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
+			|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
 			continue;
 		affectedNames << QString::fromStdString(unitId);
 		generations.emplace(unitId, it->second.generation);
@@ -8975,12 +9025,12 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 		dialog.setIcon(QMessageBox::Question);
 		dialog.setWindowTitle("Linked source changed");
 		dialog.setText(QString("%1 changed for %2.")
-			.arg(traction ? QStringLiteral("The traction source") : QStringLiteral("The parameter source"),
-				affectedNames.join(", ")));
+				.arg(traction ? QStringLiteral("The traction source") : QStringLiteral("The parameter source"),
+					affectedNames.join(", ")));
 		dialog.setInformativeText(conflicts.isEmpty()
-			? QStringLiteral("The source changed during a run. Reload the external values or keep local edits?")
-			: QStringLiteral("Local edits conflict in %1. Reload the external values or keep local edits?")
-				.arg(conflicts.join(", ")));
+				? QStringLiteral("The source changed during a run. Reload the external values or keep local edits?")
+				: QStringLiteral("Local edits conflict in %1. Reload the external values or keep local edits?")
+					  .arg(conflicts.join(", ")));
 		QPushButton* reloadButton = dialog.addButton("Reload", QMessageBox::AcceptRole);
 		QPushButton* keepButton = dialog.addButton("Keep local", QMessageBox::RejectRole);
 		dialog.setDefaultButton(keepButton);
@@ -8991,7 +9041,7 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 		for (const auto& entry : m_trainUnitSourceLinks) {
 			const QString currentPath = traction ? entry.second.tractionPath : entry.second.dataPath;
 			if (currentPath == path
-					|| std::find(affected.begin(), affected.end(), entry.first) != affected.end()) {
+				|| std::find(affected.begin(), affected.end(), entry.first) != affected.end()) {
 				if (!currentPath.isEmpty())
 					m_pendingTrainUnitSourcePaths.insert(currentPath);
 			}
@@ -9004,8 +9054,8 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 			const auto it = m_trainUnitSourceLinks.find(unitId);
 			const auto generation = generations.find(unitId);
 			if (it == m_trainUnitSourceLinks.end() || generation == generations.end()
-					|| (traction ? it->second.tractionPath : it->second.dataPath) != path
-					|| it->second.generation != generation->second) {
+				|| (traction ? it->second.tractionPath : it->second.dataPath) != path
+				|| it->second.generation != generation->second) {
 				staleDecision = true;
 				break;
 			}
@@ -9020,7 +9070,7 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 		for (const std::string& unitId : affected) {
 			auto it = m_trainUnitSourceLinks.find(unitId);
 			if (it == m_trainUnitSourceLinks.end()
-					|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
+				|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
 				continue;
 			if (traction) {
 				it->second.tractionSignature = signature;
@@ -9091,7 +9141,7 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 	const SceneTrainUnit* unit = trainUnitById(unitId);
 	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
 		if (!window || window->property("inputTrainUnitId").toString() != QString::fromStdString(unitId)
-				|| !window->isVisible())
+			|| !window->isVisible())
 			continue;
 		if (!unit || unit->tractionCurve.empty()) {
 			window->close();
@@ -9157,7 +9207,7 @@ void MainWindow::removeTrainUnitTractionRow() {
 		|| curveRow < 0 || curveRow >= static_cast<int>(m_sceneModel.trainUnits[unitRow].tractionCurve.size()))
 		return;
 	m_sceneModel.trainUnits[unitRow].tractionCurve.erase(
-			m_sceneModel.trainUnits[unitRow].tractionCurve.begin() + curveRow);
+		m_sceneModel.trainUnits[unitRow].tractionCurve.begin() + curveRow);
 	markSceneDirty();
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -9298,7 +9348,7 @@ void MainWindow::plotSelectedCompositionUnitTraction() {
 	const SceneTrainUnit* unit = trainUnitById(unitId);
 	if (!unit || unit->tractionCurve.empty()) {
 		QMessageBox::information(this, "No Traction Data",
-								 "The selected unit has no traction curve to plot.");
+			"The selected unit has no traction curve to plot.");
 		return;
 	}
 	plotTrainUnitTraction(*unit);
@@ -9387,14 +9437,15 @@ void MainWindow::deleteComposition() {
 	if (!consumers.isEmpty()) {
 		showBlockingError(this, "Cannot Delete Composition",
 			QString("Cannot delete composition '%1' because it is still referenced by:\n• %2\nReassign those services first.")
-				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
+				.arg(QString::fromStdString(id), consumers.join("\n• ")),
+			true);
 		return;
 	}
 	auto response = QMessageBox::question(this,
-											  "Delete Composition",
-											  QString("Delete composition '%1'?").arg(QString::fromStdString(id)),
-										  QMessageBox::Yes | QMessageBox::No,
-										  QMessageBox::No);
+		"Delete Composition",
+		QString("Delete composition '%1'?").arg(QString::fromStdString(id)),
+		QMessageBox::Yes | QMessageBox::No,
+		QMessageBox::No);
 	if (response != QMessageBox::Yes)
 		return;
 
@@ -9612,8 +9663,8 @@ void MainWindow::updateServiceDetailPanel() {
 		m_serviceCategoryCombo->clear();
 		m_serviceCategoryCombo->addItem("No category", QString());
 		for (const QString& category : {QStringLiteral("Intercity"), QStringLiteral("Regional"),
-				QStringLiteral("High speed/international"), QStringLiteral("Freight"),
-				QStringLiteral("Metro/urban"), QStringLiteral("Suburban")})
+				 QStringLiteral("High speed/international"), QStringLiteral("Freight"),
+				 QStringLiteral("Metro/urban"), QStringLiteral("Suburban")})
 			m_serviceCategoryCombo->addItem(category, category);
 		int categoryIndex = 0;
 		if (hasSelection) {
@@ -9707,7 +9758,8 @@ void MainWindow::updateServiceDetailPanel() {
 	if (m_servicePerformancePercentEdit) {
 		const QSignalBlocker blocker(m_servicePerformancePercentEdit);
 		m_servicePerformancePercentEdit->setValue(hasSelection
-			? std::clamp(m_sceneModel.services[row].performancePercent, 1.0, 100.0) : 100.0);
+				? std::clamp(m_sceneModel.services[row].performancePercent, 1.0, 100.0)
+				: 100.0);
 		m_servicePerformancePercentEdit->setEnabled(editorAvailable);
 	}
 
@@ -9720,7 +9772,8 @@ void MainWindow::updateServiceDetailPanel() {
 	if (m_serviceMaximumSpeedKmhEdit) {
 		const QSignalBlocker blocker(m_serviceMaximumSpeedKmhEdit);
 		m_serviceMaximumSpeedKmhEdit->setValue(hasSelection
-			? std::max(0.1, m_sceneModel.services[row].maximumSpeedKmh) : 100.0);
+				? std::max(0.1, m_sceneModel.services[row].maximumSpeedKmh)
+				: 100.0);
 		m_serviceMaximumSpeedKmhEdit->setEnabled(editorAvailable && hasMaximumSpeed);
 	}
 
@@ -9780,7 +9833,8 @@ double MainWindow::serviceOccurrenceDuration() const {
 	if (initial_variables.durationOverride)
 		return initial_variables.times;
 	return m_sceneModel.settings.hasDuration
-		? m_sceneModel.settings.durationSeconds : computeHorizon(m_sceneModel);
+		? m_sceneModel.settings.durationSeconds
+		: computeHorizon(m_sceneModel);
 }
 
 void MainWindow::pruneExcludedServiceOccurrences() {
@@ -9789,9 +9843,9 @@ void MainWindow::pruneExcludedServiceOccurrences() {
 	const double durationSeconds = serviceOccurrenceDuration();
 	for (auto it = m_excludedSceneOccurrences.begin(); it != m_excludedSceneOccurrences.end();) {
 		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-				[&](const SceneService& candidate) { return candidate.id == it->serviceId; });
+			[&](const SceneService& candidate) { return candidate.id == it->serviceId; });
 		if (service == m_sceneModel.services.end() || it->occurrence < 1
-				|| it->occurrence > sceneServiceOccurrenceCount(*service, durationSeconds))
+			|| it->occurrence > sceneServiceOccurrenceCount(*service, durationSeconds))
 			it = m_excludedSceneOccurrences.erase(it);
 		else
 			++it;
@@ -9844,9 +9898,9 @@ int MainWindow::selectedServiceOccurrences() const {
 	int excluded = 0;
 	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
 		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-				[&](const SceneService& candidate) { return candidate.id == value.serviceId; });
+			[&](const SceneService& candidate) { return candidate.id == value.serviceId; });
 		if (service != m_sceneModel.services.end() && value.occurrence >= 1
-				&& value.occurrence <= sceneServiceOccurrenceCount(*service, durationSeconds))
+			&& value.occurrence <= sceneServiceOccurrenceCount(*service, durationSeconds))
 			++excluded;
 	}
 	return std::max(0, totalServiceOccurrences() - excluded);
@@ -9866,7 +9920,7 @@ int MainWindow::selectedServiceOccurrencesInPeriod() const {
 			const SceneServiceOccurrence value{service.id, occurrence};
 			const double entry = sceneServiceScheduledEntry(service, occurrence);
 			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end()
-					&& std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds)
+				&& std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds)
 				++selected;
 		}
 	}
@@ -9920,7 +9974,7 @@ void MainWindow::refreshServiceOccurrencePreview() {
 	int row = 0;
 	for (const SceneService& service : m_sceneModel.services) {
 		const int count = std::min(std::max(0, sceneServiceOccurrenceCount(service, durationSeconds)),
-				displayedOccurrences - row);
+			displayedOccurrences - row);
 		for (int occurrence = 1; occurrence <= count; ++occurrence, ++row) {
 			SceneServiceOccurrence value;
 			value.serviceId = service.id;
@@ -9959,13 +10013,15 @@ void MainWindow::refreshServiceOccurrencePreview() {
 	m_updatingServiceOccurrencePreview = false;
 	if (m_serviceOccurrenceSelectionLabel) {
 		QString text = QString("Configured total: %1; Number of services in sim.: %2; Selected: %3; Selected in period: %4.\n"
-			"Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
-			.arg(totalOccurrences).arg(inPeriodServiceOccurrences()).arg(selectedServiceOccurrences())
-			.arg(selectedServiceOccurrencesInPeriod())
-			.arg(QString::number(durationSeconds, 'g', 12));
+							   "Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
+						   .arg(totalOccurrences)
+						   .arg(inPeriodServiceOccurrences())
+						   .arg(selectedServiceOccurrences())
+						   .arg(selectedServiceOccurrencesInPeriod())
+						   .arg(QString::number(durationSeconds, 'g', 12));
 		if (totalOccurrences > displayedOccurrences)
 			text += QString("\nPreview limited to %1 rows; generation is not truncated. Reduce the configured pattern before Run.")
-				.arg(displayedOccurrences);
+						.arg(displayedOccurrences);
 		m_serviceOccurrenceSelectionLabel->setText(text);
 		m_serviceOccurrenceSelectionLabel->setWordWrap(true);
 	}
@@ -10070,14 +10126,15 @@ void MainWindow::deleteService() {
 	if (!consumers.isEmpty()) {
 		showBlockingError(this, "Cannot Delete Service",
 			QString("Cannot delete service '%1' because it is still referenced by:\n• %2\nRemove those operation references first.")
-				.arg(QString::fromStdString(id), consumers.join("\n• ")), true);
+				.arg(QString::fromStdString(id), consumers.join("\n• ")),
+			true);
 		return;
 	}
 	auto response = QMessageBox::question(this,
-											  "Delete Service",
-											  QString("Delete service '%1'?").arg(QString::fromStdString(id)),
-										  QMessageBox::Yes | QMessageBox::No,
-										  QMessageBox::No);
+		"Delete Service",
+		QString("Delete service '%1'?").arg(QString::fromStdString(id)),
+		QMessageBox::Yes | QMessageBox::No,
+		QMessageBox::No);
 	if (response != QMessageBox::Yes)
 		return;
 
@@ -10511,7 +10568,7 @@ void MainWindow::commitPendingServiceSettings() {
 		commitServicePerformancePercent(m_servicePerformancePercentEdit->value());
 	}
 	if (m_serviceHasMaximumSpeedCheck && m_serviceHasMaximumSpeedCheck->isChecked()
-			&& m_serviceMaximumSpeedKmhEdit) {
+		&& m_serviceMaximumSpeedKmhEdit) {
 		m_serviceMaximumSpeedKmhEdit->interpretText();
 		commitServiceMaximumSpeed();
 	}
@@ -10526,12 +10583,13 @@ void MainWindow::refreshStopList() {
 	const long long baseOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	if (m_stopTimeBaseLabel) {
 		m_stopTimeBaseLabel->setText(hasService
-			? QString("Case base %1; %2")
-				.arg(QString::fromStdString(m_sceneModel.baseTime.empty()
-					? std::string("00:00:00") : m_sceneModel.baseTime))
-				.arg(m_stopClockMode ? QStringLiteral("clock times include explicit day offsets")
-					: QStringLiteral("planned times are elapsed seconds from this base"))
-			: QString());
+				? QString("Case base %1; %2")
+					  .arg(QString::fromStdString(m_sceneModel.baseTime.empty()
+							  ? std::string("00:00:00")
+							  : m_sceneModel.baseTime))
+					  .arg(m_stopClockMode ? QStringLiteral("clock times include explicit day offsets")
+										   : QStringLiteral("planned times are elapsed seconds from this base"))
+				: QString());
 	}
 	if (m_stopTimeModeCombo)
 		m_stopTimeModeCombo->setEnabled(editorAvailable);
@@ -10539,7 +10597,8 @@ void MainWindow::refreshStopList() {
 		const QSignalBlocker blocker(m_stopTableWidget);
 		m_stopTableWidget->clearContents();
 		m_stopTableWidget->setRowCount(hasService
-			? static_cast<int>(m_sceneModel.services[serviceRow].stops.size()) : 0);
+				? static_cast<int>(m_sceneModel.services[serviceRow].stops.size())
+				: 0);
 		std::vector<SceneStopResolution> resolutions;
 		if (hasService)
 			resolutions = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
@@ -10550,24 +10609,29 @@ void MainWindow::refreshStopList() {
 				const SceneStop& stop = stops[static_cast<std::size_t>(row)];
 				const QString station = stationDisplayName(m_sceneModel, stop.stationId);
 				const QString platform = stop.platformId.empty()
-					? QStringLiteral("—") : QString::fromStdString(stop.platformId);
+					? QStringLiteral("—")
+					: QString::fromStdString(stop.platformId);
 				const QString arrival = stop.hasPlannedArrival
 					? QString::fromStdString(formatPlannedTime(stop.plannedArrivalSeconds,
-						m_stopClockMode, baseOffsetSeconds)) : QStringLiteral("—");
+						  m_stopClockMode, baseOffsetSeconds))
+					: QStringLiteral("—");
 				const QString departure = stop.hasPlannedDeparture
 					? QString::fromStdString(formatPlannedTime(stop.plannedDepartureSeconds,
-						m_stopClockMode, baseOffsetSeconds)) : QStringLiteral("—");
+						  m_stopClockMode, baseOffsetSeconds))
+					: QStringLiteral("—");
 				const std::array<QString, 5> values = {station, platform,
 					QString::fromStdString(csv::formatDouble(stop.dwellSeconds)), arrival, departure};
 				const QString reason = row < static_cast<int>(resolutions.size())
-					? stopResolutionText(resolutions[static_cast<std::size_t>(row)].status) : QString();
+					? stopResolutionText(resolutions[static_cast<std::size_t>(row)].status)
+					: QString();
 				for (int column = 0; column < 5; ++column) {
 					auto* item = new QTableWidgetItem(values[static_cast<std::size_t>(column)]);
 					item->setData(Qt::UserRole, QString::fromStdString(stop.stationId));
 					item->setData(Qt::UserRole + 1, QString::fromStdString(stop.platformId));
 					item->setData(Qt::UserRole + 2, row);
 					item->setToolTip(reason.isEmpty() ? QString("Station %1 [%2]")
-						.arg(station, QString::fromStdString(stop.stationId)) : reason);
+															.arg(station, QString::fromStdString(stop.stationId))
+													  : reason);
 					m_stopTableWidget->setItem(row, column, item);
 				}
 			}
@@ -10576,7 +10640,8 @@ void MainWindow::refreshStopList() {
 		m_stopTableWidget->setEnabled(editorAvailable);
 		if (m_stopTableWidget->rowCount() > 0)
 			m_stopTableWidget->setCurrentCell(std::clamp(previousRow < 0 ? 0 : previousRow,
-				0, m_stopTableWidget->rowCount() - 1), 0);
+												  0, m_stopTableWidget->rowCount() - 1),
+				0);
 		else
 			m_stopTableWidget->clearSelection();
 	}
@@ -10615,8 +10680,8 @@ void MainWindow::editStop(int row, int insertIndex) {
 		return;
 	// The position of a new stop in the timetable, or the row of the stop being edited.
 	std::size_t stopIndex = !append ? static_cast<std::size_t>(row)
-		: insertIndex < 0 ? service.stops.size()
-		: std::min(static_cast<std::size_t>(insertIndex), service.stops.size());
+		: insertIndex < 0			? service.stops.size()
+									: std::min(static_cast<std::size_t>(insertIndex), service.stops.size());
 	// The route visits offered for the stop at `stopIndex`. A new stop is offered only
 	// the visits between its neighbours; `windowProblem` says why there are none.
 	SceneRouteTraversal traversal;
@@ -10660,8 +10725,7 @@ void MainWindow::editStop(int row, int insertIndex) {
 		positionCombo->addItem("At the start of the timetable", 0);
 		for (std::size_t index = 0; index < service.stops.size(); ++index) {
 			const SceneStop& stop = service.stops[index];
-			QString label = QString("After stop %1: %2").arg(index + 1)
-				.arg(stationDisplayName(m_sceneModel, stop.stationId));
+			QString label = QString("After stop %1: %2").arg(index + 1).arg(stationDisplayName(m_sceneModel, stop.stationId));
 			if (!stop.platformId.empty())
 				label += QString(" [%1]").arg(QString::fromStdString(stop.platformId));
 			positionCombo->addItem(label, static_cast<int>(index + 1));
@@ -10706,7 +10770,8 @@ void MainWindow::editStop(int row, int insertIndex) {
 	modeCombo->setCurrentIndex(m_stopClockMode ? 1 : 0);
 	form->addRow("Planned time display", modeCombo);
 	auto* baseLabel = new QLabel(QString("Case base time: %1")
-		.arg(QString::fromStdString(m_sceneModel.baseTime.empty() ? std::string("00:00:00") : m_sceneModel.baseTime)), &dialog);
+									 .arg(QString::fromStdString(m_sceneModel.baseTime.empty() ? std::string("00:00:00") : m_sceneModel.baseTime)),
+		&dialog);
 	baseLabel->setObjectName("stopEditorBaseTimeLabel");
 	baseLabel->setWordWrap(true);
 	form->addRow(QString(), baseLabel);
@@ -10785,7 +10850,7 @@ void MainWindow::editStop(int row, int insertIndex) {
 		const auto resolutions = resolveSceneServiceStops(m_sceneModel, candidate,
 			sceneServiceTraversal(m_sceneModel, candidate));
 		const auto status = stopIndex < resolutions.size() ? resolutions[stopIndex].status
-			: SceneStopResolutionStatus::UnresolvedRoute;
+														   : SceneStopResolutionStatus::UnresolvedRoute;
 		eligibilityLabel->setText(stopResolutionText(status));
 		if (stationCombo->currentIndex() >= 0 && !stationOnRoute(draft.stationId))
 			stationCombo->setItemData(stationCombo->currentIndex(), eligibilityLabel->text(), Qt::ToolTipRole);
@@ -10875,7 +10940,7 @@ void MainWindow::editStop(int row, int insertIndex) {
 			departureEdit->clear();
 	});
 	const auto parseField = [&](QCheckBox* present, QLineEdit* edit, bool clock,
-			std::optional<double>& value) {
+								std::optional<double>& value) {
 		if (!present->isChecked() || edit->text().trimmed().isEmpty()) {
 			value.reset();
 			return true;
@@ -11104,7 +11169,8 @@ SceneEntranceDelay* MainWindow::selectedEntranceDelay() {
 	SceneScenario* scenario = selectedScenario();
 	const int row = m_entranceDelayListWidget->currentRow();
 	return scenario && row >= 0 && row < static_cast<int>(scenario->entranceDelays.size())
-		? &scenario->entranceDelays[static_cast<std::size_t>(row)] : nullptr;
+		? &scenario->entranceDelays[static_cast<std::size_t>(row)]
+		: nullptr;
 }
 
 QString MainWindow::scenarioContext() const {
@@ -11140,7 +11206,7 @@ void MainWindow::markScenarioModified() {
 
 void MainWindow::selectScenario(int row) {
 	if (!m_sceneLoaded || m_worker || row < 0
-			|| row >= static_cast<int>(m_sceneModel.scenarios.size()))
+		|| row >= static_cast<int>(m_sceneModel.scenarios.size()))
 		return;
 	const std::string id = m_sceneModel.scenarios[static_cast<std::size_t>(row)].id;
 	if (id == m_selectedScenarioId) {
@@ -11267,23 +11333,22 @@ void MainWindow::refreshEntranceDelayPanel() {
 		if (hasScene && scenario) {
 			for (const SceneEntranceDelay& delay : scenario->entranceDelays) {
 				QString label = QString("%1 / #%2 @ %3: %4 s")
-					.arg(QString::fromStdString(delay.serviceId.empty() ? std::string("(empty)") : delay.serviceId))
-					.arg(delay.occurrence)
-					.arg(QString::fromStdString(delay.stationId.empty() ? std::string("(empty)") : delay.stationId))
-					.arg(QString::number(delay.delaySeconds, 'g', 12));
+									.arg(QString::fromStdString(delay.serviceId.empty() ? std::string("(empty)") : delay.serviceId))
+									.arg(delay.occurrence)
+									.arg(QString::fromStdString(delay.stationId.empty() ? std::string("(empty)") : delay.stationId))
+									.arg(QString::number(delay.delaySeconds, 'g', 12));
 				const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
 					[&delay](const SceneService& candidate) { return candidate.id == delay.serviceId; });
 				if (service != m_sceneModel.services.end()) {
 					const std::string code = sceneServiceOccurrenceOperatingCode(*service, delay.occurrence);
-					label += QString(" | code %1").arg(code.empty()
-						? QStringLiteral("(unavailable)") : QString::fromStdString(code));
+					label += QString(" | code %1").arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code));
 				}
 				m_entranceDelayListWidget->addItem(label);
 			}
 		}
 		const int rowCount = m_entranceDelayListWidget->count();
 		const int rowToSelect = rowCount <= 0 ? -1
-			: (previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1));
+											  : (previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1));
 		m_entranceDelayListWidget->setCurrentRow(rowToSelect);
 		m_entranceDelayListWidget->setEnabled(hasScene && !m_worker);
 	}
@@ -11326,7 +11391,8 @@ void MainWindow::updateEntranceDelayDetailPanel() {
 	}
 
 	const int occurrenceCount = service
-		? std::max(1, sceneServiceOccurrenceCount(*service, serviceOccurrenceDuration())) : 1;
+		? std::max(1, sceneServiceOccurrenceCount(*service, serviceOccurrenceDuration()))
+		: 1;
 	if (m_entranceDelayOccurrenceEdit) {
 		const QSignalBlocker blocker(m_entranceDelayOccurrenceEdit);
 		const int currentOccurrence = delay ? delay->occurrence : 1;
@@ -11438,8 +11504,9 @@ void MainWindow::deleteEntranceDelay() {
 		return;
 	const QString description = QString::fromStdString(scenario->entranceDelays[static_cast<std::size_t>(row)].serviceId);
 	if (QMessageBox::question(this, "Delete Entrance Delay",
-		QString("Delete entrance delay for service '%1'?").arg(description),
-		QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			QString("Delete entrance delay for service '%1'?").arg(description),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+		!= QMessageBox::Yes)
 		return;
 	scenario->entranceDelays.erase(scenario->entranceDelays.begin() + row);
 	markScenarioModified();
@@ -11593,7 +11660,7 @@ void MainWindow::exportScenario() {
 	if (!scenario)
 		return;
 	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", scenarioContext() + ".json",
-			"Scenario JSON (*.json)");
+		"Scenario JSON (*.json)");
 	if (path.isEmpty())
 		return;
 	if (!path.endsWith(".json", Qt::CaseInsensitive))
@@ -11611,7 +11678,7 @@ void MainWindow::importScenario() {
 	if (!m_sceneLoaded)
 		return;
 	const QString path = QFileDialog::getOpenFileName(this, "Import Scenario", QDir::homePath(),
-			"Scenario JSON (*.json)");
+		"Scenario JSON (*.json)");
 	if (path.isEmpty())
 		return;
 	const ScenarioLoadResult loaded = loadScenarioJson(path.toStdString());
@@ -11655,10 +11722,10 @@ void MainWindow::importScenario() {
 	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_selectedScenarioId));
 	if (scenarioConflict)
 		message += QString(" (ID %1 already existed; imported as %2)")
-			.arg(QString::fromStdString(requestedId), QString::fromStdString(m_selectedScenarioId));
+					   .arg(QString::fromStdString(requestedId), QString::fromStdString(m_selectedScenarioId));
 	if (adjustedIncidentCount > 0)
 		message += QString(" %1 incident ID(s) adjusted to remain globally unique.")
-			.arg(adjustedIncidentCount);
+					   .arg(adjustedIncidentCount);
 	statusBar()->showMessage(message, 7000);
 	if ((scenarioConflict || adjustedIncidentCount > 0) && !e2eDialogsSuppressed())
 		QMessageBox::information(this, "Scenario ID adjusted", message);
@@ -11775,8 +11842,9 @@ void MainWindow::updateIncidentDetailPanel() {
 	if (m_incidentReducedSpeedKmhEdit) {
 		const QSignalBlocker blocker(m_incidentReducedSpeedKmhEdit);
 		const double cap = hasSelection && std::isfinite(incidents[static_cast<std::size_t>(row)].reducedSpeedKmh)
-			&& incidents[static_cast<std::size_t>(row)].reducedSpeedKmh > 0.0
-			? incidents[static_cast<std::size_t>(row)].reducedSpeedKmh : 40.0;
+				&& incidents[static_cast<std::size_t>(row)].reducedSpeedKmh > 0.0
+			? incidents[static_cast<std::size_t>(row)].reducedSpeedKmh
+			: 40.0;
 		m_incidentReducedSpeedKmhEdit->setValue(cap);
 		m_incidentReducedSpeedKmhEdit->setEnabled(isBreakdown
 			&& m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked());
@@ -11820,8 +11888,9 @@ void MainWindow::refreshIncidentTargetCombo() {
 					[&](const SceneService& service) { return service.id == incident->target; });
 				m_incidentTargetCombo->addItem(
 					(exists ? QStringLiteral("Historical scope: all generated services [")
-						: QStringLiteral("Invalid removed target; historical all scope ["))
-						+ target + QStringLiteral("]"), target);
+							: QStringLiteral("Invalid removed target; historical all scope ["))
+						+ target + QStringLiteral("]"),
+					target);
 				const int index = m_incidentTargetCombo->count() - 1;
 				m_incidentTargetCombo->setItemData(index, 0, Qt::UserRole + 1);
 				current = index;
@@ -11861,15 +11930,16 @@ void MainWindow::refreshIncidentTargetCombo() {
 			}
 		}
 		if (incident->type != "signal_failure" && !incident->target.empty()
-				&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
+			&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
 			m_incidentTargetCombo->addItem(
 				QStringLiteral("Invalid removed target [") + target + QStringLiteral(", ")
-					+ QString::number(incident->occurrence) + QStringLiteral("]"), target);
+					+ QString::number(incident->occurrence) + QStringLiteral("]"),
+				target);
 			current = m_incidentTargetCombo->count() - 1;
 			m_incidentTargetCombo->setItemData(current,
 				incident->hasOccurrence || incident->occurrence != 1 ? incident->occurrence : 0,
 				Qt::UserRole + 1);
-			}
+		}
 	}
 	QHash<QString, int> labelCounts;
 	for (int index = 0; index < m_incidentTargetCombo->count(); ++index)
@@ -11877,8 +11947,8 @@ void MainWindow::refreshIncidentTargetCombo() {
 	for (int index = 0; index < m_incidentTargetCombo->count(); ++index) {
 		const QString label = m_incidentTargetCombo->itemText(index);
 		const QString identity = QString(" [%1, #%2]")
-			.arg(m_incidentTargetCombo->itemData(index).toString())
-			.arg(m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt());
+									 .arg(m_incidentTargetCombo->itemData(index).toString())
+									 .arg(m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt());
 		if (labelCounts.value(label) > 1)
 			m_incidentTargetCombo->setItemText(index, label + identity);
 		m_incidentTargetCombo->setItemData(index, label + identity, Qt::ToolTipRole);
@@ -11958,10 +12028,10 @@ void MainWindow::deleteIncident() {
 
 	QString id = QString::fromStdString(incidents[row].id);
 	auto response = QMessageBox::question(this,
-										  "Delete Incident",
-										  QString("Delete incident '%1'?").arg(id),
-										  QMessageBox::Yes | QMessageBox::No,
-										  QMessageBox::No);
+		"Delete Incident",
+		QString("Delete incident '%1'?").arg(id),
+		QMessageBox::Yes | QMessageBox::No,
+		QMessageBox::No);
 	if (response != QMessageBox::Yes)
 		return;
 
@@ -12074,7 +12144,7 @@ void MainWindow::commitIncidentTarget(const QString&) {
 	const bool singular = incident->type != "signal_failure" && occurrence > 0;
 	occurrence = std::max(1, occurrence);
 	if (incident->target == newTarget && incident->hasOccurrence == singular
-			&& incident->occurrence == occurrence)
+		&& incident->occurrence == occurrence)
 		return;
 	incident->target = newTarget;
 	incident->hasOccurrence = singular;
@@ -12274,7 +12344,7 @@ void MainWindow::updateCaseLayersPanel() {
 		return;
 
 	QString caseName = m_sceneLoaded ? QString::fromStdString(m_sceneModel.name)
-										 : QString::fromStdString(initial_variables.name);
+									 : QString::fromStdString(initial_variables.name);
 	if (caseName.trimmed().isEmpty())
 		caseName = QStringLiteral("Canonical scene");
 	if (caseName.trimmed().isEmpty())
@@ -12471,10 +12541,9 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	}
 
 	TrainItemGroup* item = resolveTrainItem(trainIndex);
-	const bool exitedInSnapshot = m_snapshot && std::any_of(m_snapshot->trains.cbegin(),
-		m_snapshot->trains.cend(), [trainIndex](const GuiTrainState& state) {
-			return state.index == trainIndex && state.outOfSimulation;
-		});
+	const bool exitedInSnapshot = m_snapshot && std::any_of(m_snapshot->trains.cbegin(), m_snapshot->trains.cend(), [trainIndex](const GuiTrainState& state) {
+		return state.index == trainIndex && state.outOfSimulation;
+	});
 	const bool waitingInReplay = m_replayActive && !replayTrainHasPosition(trainIndex);
 	if (exitedInSnapshot || (item && item->outOfSimulation)) {
 		setFollowTrain(-1);
@@ -12534,7 +12603,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		connect(menu->addAction("Copy canonical ID"), &QAction::triggered, this, [resolve, id, track, reversed]() {
 			if (resolve() && QApplication::clipboard())
 				QApplication::clipboard()->setText(track.isEmpty() ? id
-					: QString("track %1; section %2; %3").arg(track, id, reversed ? "reverse" : "forward"));
+																   : QString("track %1; section %2; %3").arg(track, id, reversed ? "reverse" : "forward"));
 		});
 		m_sceneContextMenu = menu;
 		menu->popup(screenPos);
@@ -12683,8 +12752,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		connect(copy, &QAction::triggered, this, [this, track, position, reversed]() {
 			if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
 				QApplication::clipboard()->setText(QString("track %1 @ %2 (%3)")
-					.arg(track).arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
-					.arg(reversed ? "reverse" : "forward"));
+						.arg(track)
+						.arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
+						.arg(reversed ? "reverse" : "forward"));
 		});
 		menu->addSeparator();
 		addDeferred("Next train approaching this signal",
@@ -12741,7 +12811,7 @@ void MainWindow::runStationOverlayE2E() {
 		return;
 	const bool waitingForAutostart = qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART") && !m_snapshot;
 	if ((!m_sceneLoaded || !networkView || m_stationOverlays.isEmpty() || waitingForAutostart)
-			&& m_e2eAttempts < 120) {
+		&& m_e2eAttempts < 120) {
 		++m_e2eAttempts;
 		QTimer::singleShot(500, this, &MainWindow::runStationOverlayE2E);
 		return;
@@ -12771,7 +12841,7 @@ void MainWindow::runStationOverlayE2E() {
 			const auto kb = std::find_if(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
 				[](const StationOverlayItem* station) { return station && station->stationName() == QLatin1String("KBHallen"); });
 			if (kb == m_stationOverlays.cend() || (*kb)->displayName() != QLatin1String("KB Hallen")
-					|| (*kb)->sourceIdentityCount() != 2)
+				|| (*kb)->sourceIdentityCount() != 2)
 				failures << "Copenhagen station name or source identity changed";
 			else {
 				marker("E2E_STATION_DISPLAY_KBHALLEN_OK");
@@ -12780,8 +12850,8 @@ void MainWindow::runStationOverlayE2E() {
 		}
 		// Independent case evidence, not a per-case product multiplier.
 		const qreal expectedScale = caseName == "Paimpol" ? 0.45
-			: (caseName == "Netherlands" ? 0.444237158416
-				: (caseName == "Copenhagen" ? 0.397828421659 : presentationScale()));
+														  : (caseName == "Netherlands" ? 0.444237158416
+																					   : (caseName == "Copenhagen" ? 0.397828421659 : presentationScale()));
 		if (qAbs(presentationScale() - expectedScale) > 1e-6)
 			failures << "authored projection presentation factor mismatch";
 		marker(
@@ -12791,14 +12861,14 @@ void MainWindow::runStationOverlayE2E() {
 				.arg(presentationScale(), 0, 'f', 9));
 		const QRectF topologyBounds = networkView->topologyBounds();
 		for (const auto& zoom : {std::make_pair(1.0, "FIT"), std::make_pair(3.0, "3X"),
-				std::make_pair(12.0, "12X")}) {
+				 std::make_pair(12.0, "12X")}) {
 			fitView();
 			if (zoom.first > 1.0)
 				networkView->zoomBy(zoom.first);
 			updateViewportOverlays();
 			QApplication::processEvents();
 			if (qAbs(networkView->zoomRatio() - zoom.first) > 1e-5
-					|| networkView->topologyBounds() != topologyBounds)
+				|| networkView->topologyBounds() != topologyBounds)
 				failures << QString("%1 changed zoom or topology bounds").arg(zoom.second);
 			bool foundPicture = false;
 			for (auto it = m_stationPictures.cbegin(); it != m_stationPictures.cend(); ++it) {
@@ -12807,10 +12877,10 @@ void MainWindow::runStationOverlayE2E() {
 					continue;
 				foundPicture = true;
 				if (picture->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-						|| picture->pixmap().width() != station_size
-						|| qAbs(picture->sceneBoundingRect().height() - picture->pixmap().height() * presentationScale()) > 1e-6
-						|| qAbs(picture->scale() - presentationScale()) > 1e-12
-						|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
+					|| picture->pixmap().width() != station_size
+					|| qAbs(picture->sceneBoundingRect().height() - picture->pixmap().height() * presentationScale()) > 1e-6
+					|| qAbs(picture->scale() - presentationScale()) > 1e-12
+					|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
 					failures << QString("%1 artwork lost scene scale or station identity").arg(zoom.second);
 				break;
 			}
@@ -12823,8 +12893,7 @@ void MainWindow::runStationOverlayE2E() {
 			}
 			marker(QString("E2E_STATION_OVERLAY_%1_%2_OK").arg(caseName, zoom.second));
 		}
-		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(
-			windowHandle() ? windowHandle()->devicePixelRatio() : 1.0, 0, 'f', 1));
+		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(windowHandle() ? windowHandle()->devicePixelRatio() : 1.0, 0, 'f', 1));
 		if (caseName == QLatin1String("Netherlands")) {
 			int independent = 0;
 			for (auto* decoration : m_signalDecorations) {
@@ -12833,8 +12902,8 @@ void MainWindow::runStationOverlayE2E() {
 					continue;
 				++independent;
 				if (signal->groupedSignalCount() != 0
-						|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()
-						|| signal->toolTip().isEmpty())
+					|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()
+					|| signal->toolTip().isEmpty())
 					failures << "Netherlands signal lost independent aspect or anchor";
 			}
 			if (independent < 30)
@@ -12861,7 +12930,7 @@ void MainWindow::runStationOverlayE2E() {
 			const QPointF point = picture->mapToScene(picture->offset()
 				+ (QPointF(opaquePixel) + QPointF(0.5, 0.5)) / picture->pixmap().devicePixelRatio());
 			for (QGraphicsItem* hit : scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
-					networkView->viewportTransform())) {
+					 networkView->viewportTransform())) {
 				if (hit == picture || (hit && hit->parentItem() == target)) {
 					exactPicture = true;
 					break;
@@ -12875,8 +12944,7 @@ void MainWindow::runStationOverlayE2E() {
 		else
 			marker("E2E_STATION_ARTWORK_CLICK_OK");
 		// An obsolete displaced slot has no shape and cannot override context.
-		auto* ghost = new StationOverlayItem("Ghost", networkView->mapToScene(
-			networkView->viewport()->rect().center()), classifyStation());
+		auto* ghost = new StationOverlayItem("Ghost", networkView->mapToScene(networkView->viewport()->rect().center()), classifyStation());
 		ghost->setSceneDecoration(true);
 		ghost->setFitCollisionOffset(QPointF(60.0, 0.0));
 		Node ghostSource;
@@ -12903,10 +12971,8 @@ void MainWindow::runStationOverlayE2E() {
 		context.setWidget(networkView->viewport());
 		scene->contextMenuEvent(&context);
 		disconnect(observer);
-		if (!ghost->shape().isEmpty() || scene->items(oldSlot, Qt::IntersectsItemShape,
-				Qt::DescendingOrder, networkView->viewportTransform()).contains(ghost)
-				|| contextTarget == ghostStation || (m_sceneContextMenu
-					&& m_sceneContextMenu->title() == QLatin1String("Station")))
+		if (!ghost->shape().isEmpty() || scene->items(oldSlot, Qt::IntersectsItemShape, Qt::DescendingOrder, networkView->viewportTransform()).contains(ghost)
+			|| contextTarget == ghostStation || (m_sceneContextMenu && m_sceneContextMenu->title() == QLatin1String("Station")))
 			failures << "old screen-sized station collision slot overrides context";
 		else
 			marker("E2E_STATION_NO_GHOST_CONTEXT_OK");
@@ -12968,7 +13034,8 @@ void MainWindow::runVisualPolishE2E() {
 		if (sceneBounds.isEmpty())
 			return target;
 		const QRectF visibleBounds = networkView->mapToScene(
-			networkView->viewport()->rect()).boundingRect();
+													networkView->viewport()->rect())
+										 .boundingRect();
 		const auto clampAxis = [](qreal value, qreal lower, qreal upper) {
 			if (lower > upper)
 				return (lower + upper) / 2.0;
@@ -13018,9 +13085,10 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "no train items rendered";
 	}
 	const QVector<NetworkLegendEntry> mapKeyEntriesBeforeFit = m_networkLegendWidget
-		? m_networkLegendWidget->entries() : QVector<NetworkLegendEntry>();
+		? m_networkLegendWidget->entries()
+		: QVector<NetworkLegendEntry>();
 	if (!std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
-		[](const NetworkLegendEntry& entry) { return entry.kind == NetworkLegendEntryKind::Train; })) {
+			[](const NetworkLegendEntry& entry) { return entry.kind == NetworkLegendEntryKind::Train; })) {
 		ok = false;
 		failures << "map key did not refresh when trains entered the network";
 	}
@@ -13045,7 +13113,8 @@ void MainWindow::runVisualPolishE2E() {
 	QSet<QString> coloredTrainServices;
 	for (const TrainItemGroup* train : allTrains) {
 		const TrainBodyItem* body = train && train->trainPolygonItemList && !train->trainPolygonItemList->isEmpty()
-			? train->trainPolygonItemList->first() : nullptr;
+			? train->trainPolygonItemList->first()
+			: nullptr;
 		const QString serviceId = train ? QString::fromStdString(train->serviceId) : QString();
 		const bool custom = serviceColors.contains(serviceId);
 		const QColor expectedFill = custom ? serviceColors.value(serviceId) : defaultTrainFill();
@@ -13053,7 +13122,7 @@ void MainWindow::runVisualPolishE2E() {
 		if (!body || body->brush().color() != expectedFill || body->pen().color() != expectedOutline) {
 			ok = false;
 			failures << (custom ? QString("train body of service %1 is not painted in its colour").arg(serviceId)
-				: QStringLiteral("train body is not painted in the default fill"));
+								: QStringLiteral("train body is not painted in the default fill"));
 			break;
 		}
 		if (custom) {
@@ -13067,7 +13136,9 @@ void MainWindow::runVisualPolishE2E() {
 		if (coloredTrains == 0 || defaultTrains == 0) {
 			ok = false;
 			failures << QString("the scene needs trains of coloured and of other services (%1 coloured, %2 default, %3 coloured services)")
-				.arg(coloredTrains).arg(defaultTrains).arg(serviceColors.size());
+							.arg(coloredTrains)
+							.arg(defaultTrains)
+							.arg(serviceColors.size());
 		}
 		for (const QString& serviceId : coloredTrainServices) {
 			const bool hasRow = std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
@@ -13088,8 +13159,8 @@ void MainWindow::runVisualPolishE2E() {
 			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
 	};
 	if (hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
-			|| hasOperationalLegendEntry(QStringLiteral("Occupied section"))
-			|| hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
+		|| hasOperationalLegendEntry(QStringLiteral("Occupied section"))
+		|| hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
 		ok = false;
 		failures << "runtime key shows operational states absent from canvas paint";
 	}
@@ -13263,7 +13334,7 @@ void MainWindow::runVisualPolishE2E() {
 		}
 	}
 	if (!m_followAction || !m_followTrainCombo || m_followTrainCombo->minimumWidth() != 180
-			|| m_followTrainCombo->maximumWidth() > 200) {
+		|| m_followTrainCombo->maximumWidth() > 200) {
 		ok = false;
 		failures << "Follow or train selector width contract is missing";
 	}
@@ -13316,8 +13387,8 @@ void MainWindow::runVisualPolishE2E() {
 	if (runAction && runAction->isEnabled())
 		expectedTabTraversal << "actionRunButton";
 	expectedTabTraversal << "actionPauseButton" << "actionStopButton" << "speedSlider"
-		<< "actionFollowButton" << "followTrainCombo" << "actionZoomInButton"
-		<< "actionZoomOutButton" << "actionFitButton";
+						 << "actionFollowButton" << "followTrainCombo" << "actionZoomInButton"
+						 << "actionZoomOutButton" << "actionFitButton";
 	checkTabTraversal(openCaseAction, expectedTabTraversal);
 
 	const auto caseDock = findChild<QDockWidget*>("caseLayersDock");
@@ -13397,25 +13468,38 @@ void MainWindow::runVisualPolishE2E() {
 			if (!toolbarArea.contains(geometry) || geometry.height() > 36) {
 				ok = false;
 				failures << QString("command-bar control %1 escapes toolbar bounds at %2x%3 (%4x%5+%6+%7)")
-						.arg(name).arg(width).arg(height).arg(geometry.width()).arg(geometry.height())
-						.arg(geometry.x()).arg(geometry.y());
+								.arg(name)
+								.arg(width)
+								.arg(height)
+								.arg(geometry.width())
+								.arg(geometry.height())
+								.arg(geometry.x())
+								.arg(geometry.y());
 			}
 			if (qAbs(geometry.center().y() - toolbarCenterY) > 1) {
 				ok = false;
 				failures << QString("command-bar control %1 is not vertically centered at %2x%3")
-					.arg(name).arg(width).arg(height);
+								.arg(name)
+								.arg(width)
+								.arg(height);
 			}
 			if (name == "followTrainCombo" && geometry.width() != 180) {
 				ok = false;
 				failures << QString("train selector rendered width changed at %1x%2: expected 180px, has %3px")
-					.arg(width).arg(height).arg(geometry.width());
+								.arg(width)
+								.arg(height)
+								.arg(geometry.width());
 			}
 			if (auto* button = qobject_cast<QToolButton*>(widget)) {
 				if (button->toolButtonStyle() != Qt::ToolButtonIconOnly
 					&& !button->text().isEmpty() && button->sizeHint().width() > geometry.width()) {
 					ok = false;
 					failures << QString("command-bar text is clipped at %1x%2: %3 needs %4px, has %5px")
-						.arg(width).arg(height).arg(name).arg(button->sizeHint().width()).arg(geometry.width());
+									.arg(width)
+									.arg(height)
+									.arg(name)
+									.arg(button->sizeHint().width())
+									.arg(geometry.width());
 				}
 			}
 			controls << widget;
@@ -13425,7 +13509,10 @@ void MainWindow::runVisualPolishE2E() {
 				if (controls[i]->geometry().intersects(controls[j]->geometry())) {
 					ok = false;
 					failures << QString("command-bar controls overlap at %1x%2: %3/%4")
-						.arg(width).arg(height).arg(controls[i]->objectName()).arg(controls[j]->objectName());
+									.arg(width)
+									.arg(height)
+									.arg(controls[i]->objectName())
+									.arg(controls[j]->objectName());
 				}
 			}
 		}
@@ -13515,16 +13602,17 @@ void MainWindow::runVisualPolishE2E() {
 				clampedCenter(requestedCenter.y(), sceneBounds.top(), sceneBounds.bottom(), visibleScene.height() / 2.0));
 			const qreal centerTolerance = 2.0;
 			const qreal centerDistance = QLineF(networkView->mapFromScene(viewportCenter),
-				networkView->mapFromScene(expectedCenter)).length();
+				networkView->mapFromScene(expectedCenter))
+											 .length();
 			if (centerDistance > centerTolerance) {
 				ok = false;
 				failures << QString("train scene click did not center the view (distance=%1px tolerance=%2px view=%3,%4 expected=%5,%6)")
-						.arg(centerDistance, 0, 'f', 1)
-						.arg(centerTolerance, 0, 'f', 1)
-						.arg(viewportCenter.x(), 0, 'f', 1)
-						.arg(viewportCenter.y(), 0, 'f', 1)
-						.arg(expectedCenter.x(), 0, 'f', 1)
-						.arg(expectedCenter.y(), 0, 'f', 1);
+								.arg(centerDistance, 0, 'f', 1)
+								.arg(centerTolerance, 0, 'f', 1)
+								.arg(viewportCenter.x(), 0, 'f', 1)
+								.arg(viewportCenter.y(), 0, 'f', 1)
+								.arg(expectedCenter.x(), 0, 'f', 1)
+								.arg(expectedCenter.y(), 0, 'f', 1);
 			}
 			QApplication::processEvents();
 		}
@@ -13588,8 +13676,8 @@ void MainWindow::runVisualPolishE2E() {
 		if (incidentNetworkWidth < 560 || incidentNetworkWidth <= incidentDockWidth || incidentDockWidth > 360) {
 			ok = false;
 			failures << QString("incident geometry network=%1px, dock=%2px violates 560px/wider/360px limits")
-						.arg(incidentNetworkWidth)
-						.arg(incidentDockWidth);
+							.arg(incidentNetworkWidth)
+							.arg(incidentDockWidth);
 		}
 		m_incidentDock->hide();
 		QApplication::processEvents();
@@ -13597,8 +13685,8 @@ void MainWindow::runVisualPolishE2E() {
 		if (qAbs(restoredNetworkWidth - defaultNetworkWidth) > 8) {
 			ok = false;
 			failures << QString("network viewport did not restore: before=%1px, after=%2px")
-						.arg(defaultNetworkWidth)
-						.arg(restoredNetworkWidth);
+							.arg(defaultNetworkWidth)
+							.arg(restoredNetworkWidth);
 		}
 	}
 
@@ -13611,7 +13699,7 @@ void MainWindow::runVisualPolishE2E() {
 			updateViewportOverlays();
 			for (auto* signal : allSignals) {
 				if (!signal || !signal->isVisible() || signal->groupedSignalCount() != 0
-						|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()) {
+					|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()) {
 					ok = false;
 					failures << "authored signal head was hidden, moved or aggregated";
 					break;
@@ -13630,7 +13718,8 @@ void MainWindow::runVisualPolishE2E() {
 	QCheckBox* signalLayer = layerToggle("layerSignals");
 	QCheckBox* passengerLayer = layerToggle("layerPassengers");
 	const QStringList mapKeyEntries = m_networkLegendWidget
-		? m_networkLegendWidget->entryLabels() : QStringList();
+		? m_networkLegendWidget->entryLabels()
+		: QStringList();
 	if (!stationLayer || !stationNames || !trainLayer || !trainSpeedLabels
 		|| !signalLayer || !passengerLayer) {
 		ok = false;
@@ -13719,8 +13808,7 @@ void MainWindow::runVisualPolishE2E() {
 				if (icon)
 					passengerItems.append(icon);
 		}
-		if (initial_variables.PAX_GUI && (passengerItems.isEmpty()
-			|| std::none_of(passengerItems.cbegin(), passengerItems.cend(), [](auto* item) {
+		if (initial_variables.PAX_GUI && (passengerItems.isEmpty() || std::none_of(passengerItems.cbegin(), passengerItems.cend(), [](auto* item) {
 				return item && item->isVisible();
 			}))) {
 			ok = false;
@@ -13733,16 +13821,18 @@ void MainWindow::runVisualPolishE2E() {
 			PassengerItem* icon = platform->passengerIcons.first();
 			const QRectF sceneBounds = icon->sceneBoundingRect();
 			const qreal firstWidth = icon->deviceTransform(networkView->viewportTransform())
-				.mapRect(icon->boundingRect()).width();
+										 .mapRect(icon->boundingRect())
+										 .width();
 			if (icon->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-					|| !qFuzzyCompare(sceneBounds.center().y() + 1.0,
-						platform->sceneBoundingRect().center().y() + 1.0)) {
+				|| !qFuzzyCompare(sceneBounds.center().y() + 1.0,
+					platform->sceneBoundingRect().center().y() + 1.0)) {
 				ok = false;
 				failures << "passenger glyph lost scene-scale centering";
 			}
 			networkView->zoomBy(2.0);
 			const qreal secondWidth = icon->deviceTransform(networkView->viewportTransform())
-				.mapRect(icon->boundingRect()).width();
+										  .mapRect(icon->boundingRect())
+										  .width();
 			if (firstWidth > 0.0 && secondWidth < firstWidth * 1.8) {
 				ok = false;
 				failures << "passenger glyph did not scale with zoom";
@@ -13752,7 +13842,8 @@ void MainWindow::runVisualPolishE2E() {
 			break;
 		}
 		const QStringList currentMapKeyEntries = m_networkLegendWidget
-			? m_networkLegendWidget->entryLabels() : QStringList();
+			? m_networkLegendWidget->entryLabels()
+			: QStringList();
 		if (!m_networkLegendWidget
 			|| currentMapKeyEntries.size() != mapKeyEntries.size()
 			|| !std::equal(currentMapKeyEntries.cbegin(), currentMapKeyEntries.cend(), mapKeyEntries.cbegin())) {
@@ -13890,8 +13981,8 @@ void MainWindow::runVisualPolishE2E() {
 					|| badge->presentation() == TrainBadgeItem::Presentation::Overview;
 			});
 		if (!selectedBadge || !selectedBadge->isPromoted()
-				|| selectedBadge->presentation() != TrainBadgeItem::Presentation::Detailed
-				|| !ordinaryMarkers) {
+			|| selectedBadge->presentation() != TrainBadgeItem::Presentation::Detailed
+			|| !ordinaryMarkers) {
 			ok = false;
 			failures << "selected train was not promoted over Fit markers";
 		}
@@ -13967,7 +14058,7 @@ void MainWindow::runVisualPolishE2E() {
 		return nullptr;
 	};
 	const auto checkDeferredAction = [&findMenuAction, &ok, &failures](QMenu* menu, const QString& text,
-		const QString& explanation) {
+										 const QString& explanation) {
 		QAction* action = findMenuAction(menu, text);
 		if (!action)
 			return;
@@ -14182,7 +14273,7 @@ void MainWindow::runVisualPolishE2E() {
 		if (!signal || !signal->isVisible())
 			continue;
 		QGraphicsItem* hit = scene->itemAt(signal->sceneBoundingRect().center(),
-				networkView->viewportTransform());
+			networkView->viewportTransform());
 		if (hit == signal || (hit && hit->parentItem() == signal)) {
 			visibleSignal = signal;
 			break;
@@ -14206,9 +14297,9 @@ void MainWindow::runVisualPolishE2E() {
 		if (copy) {
 			copy->trigger();
 			const QString expectedSignalLocation = QString("track %1 @ %2 (%3)")
-				.arg(visibleSignal->trackID)
-				.arg(visibleSignal->X, 0, 'g', std::numeric_limits<double>::max_digits10)
-				.arg(visibleSignal->reversedDirection ? "reverse" : "forward");
+													   .arg(visibleSignal->trackID)
+													   .arg(visibleSignal->X, 0, 'g', std::numeric_limits<double>::max_digits10)
+													   .arg(visibleSignal->reversedDirection ? "reverse" : "forward");
 			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
 				ok = false;
 				failures << "signal context copy action did not preserve position precision";
@@ -14244,7 +14335,8 @@ void MainWindow::runVisualPolishE2E() {
 			}
 		}
 		const QString clipboardBeforeStaleTrigger = QApplication::clipboard()
-			? QApplication::clipboard()->text() : QString();
+			? QApplication::clipboard()->text()
+			: QString();
 		SignalItem* staleSignal = temporarySignal;
 		scene->removeItem(temporarySignal);
 		delete temporarySignal;
@@ -14395,7 +14487,7 @@ void MainWindow::runVisualPolishE2E() {
 	if (m_followAction && m_followTrainCombo && m_followTrainCombo->count() > 0) {
 		setFollowTrain(-1);
 		if (std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
-			[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
+				[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
 			ok = false;
 			failures << "follow deactivation left a stale station priority";
 		}
@@ -14447,12 +14539,18 @@ void MainWindow::runVisualPolishE2E() {
 				|| !followed || QLineF(cameraCenter, expectedCameraCenter).length() > 10.0) {
 				ok = false;
 				failures << QString("paused follow activation did not center the selected train immediately (camera=%1,%2 target=%3,%4 expected=%5,%6 zoom=%7 fit=%8 bounds=%9,%10 %11x%12)")
-					.arg(cameraCenter.x(), 0, 'f', 2).arg(cameraCenter.y(), 0, 'f', 2)
-					.arg(expectedCenter.x(), 0, 'f', 2).arg(expectedCenter.y(), 0, 'f', 2)
-					.arg(expectedCameraCenter.x(), 0, 'f', 2).arg(expectedCameraCenter.y(), 0, 'f', 2)
-					.arg(networkView->zoomRatio(), 0, 'f', 2).arg(networkView->fittedScale(), 0, 'f', 6)
-					.arg(networkView->sceneRect().left(), 0, 'f', 2).arg(networkView->sceneRect().top(), 0, 'f', 2)
-					.arg(networkView->sceneRect().width(), 0, 'f', 2).arg(networkView->sceneRect().height(), 0, 'f', 2);
+								.arg(cameraCenter.x(), 0, 'f', 2)
+								.arg(cameraCenter.y(), 0, 'f', 2)
+								.arg(expectedCenter.x(), 0, 'f', 2)
+								.arg(expectedCenter.y(), 0, 'f', 2)
+								.arg(expectedCameraCenter.x(), 0, 'f', 2)
+								.arg(expectedCameraCenter.y(), 0, 'f', 2)
+								.arg(networkView->zoomRatio(), 0, 'f', 2)
+								.arg(networkView->fittedScale(), 0, 'f', 6)
+								.arg(networkView->sceneRect().left(), 0, 'f', 2)
+								.arg(networkView->sceneRect().top(), 0, 'f', 2)
+								.arg(networkView->sceneRect().width(), 0, 'f', 2)
+								.arg(networkView->sceneRect().height(), 0, 'f', 2);
 			}
 			const int activeComboIndex = m_followTrainCombo->findData(activeFollowIndex);
 			if (activeComboIndex < 0 || m_followTrainCombo->currentIndex() != activeComboIndex) {
@@ -14561,7 +14659,8 @@ void MainWindow::runVisualPolishE2E() {
 					QApplication::processEvents();
 					TrainItemGroup* enteredTrain = resolveTrainItem(futureFollowIndex);
 					const QPointF enteredCenter = enteredTrain
-						? enteredTrain->sceneBoundingRect().center() : QPointF();
+						? enteredTrain->sceneBoundingRect().center()
+						: QPointF();
 					const QPointF enteredCameraCenter = networkView->mapToScene(
 						networkView->viewport()->rect().center());
 					if (QLineF(cameraBeforeEntry, clampedCameraCenter(enteredCenter)).length() <= 20.0
@@ -14607,8 +14706,8 @@ void MainWindow::runVisualPolishE2E() {
 					|| badge->presentation() == TrainBadgeItem::Presentation::Overview;
 			});
 		if (!followedBadge || !followedBadge->isPromoted()
-				|| followedBadge->presentation() != TrainBadgeItem::Presentation::Detailed
-				|| !ordinaryMarkers) {
+			|| followedBadge->presentation() != TrainBadgeItem::Presentation::Detailed
+			|| !ordinaryMarkers) {
 			ok = false;
 			failures << "followed train was not promoted over Fit markers";
 		}
@@ -14731,7 +14830,8 @@ void MainWindow::runVisualPolishE2E() {
 				TrainBadgeItem* interruptedBadge = m_trainBadges.value(selectedTrain->index, nullptr);
 				const QPointF interruptedBodyCenter = selectedTrainBody->sceneBoundingRect().center();
 				const QPointF interruptedRelation = interruptedBadge
-					? interruptedBadge->sceneBoundingRect().center() - interruptedBodyCenter : QPointF();
+					? interruptedBadge->sceneBoundingRect().center() - interruptedBodyCenter
+					: QPointF();
 				const qreal interruptedAnchorError = interruptedBadge
 					? QLineF(interruptedBadge->scenePos(), selectedTrain->sceneBoundingRect().center()).length()
 					: std::numeric_limits<qreal>::max();
@@ -14751,7 +14851,8 @@ void MainWindow::runVisualPolishE2E() {
 				const QPointF finalBodyCenter = selectedTrainBody->sceneBoundingRect().center();
 				TrainBadgeItem* finalBadge = m_trainBadges.value(selectedTrain->index, nullptr);
 				const QPointF finalRelation = finalBadge
-					? finalBadge->sceneBoundingRect().center() - finalBodyCenter : QPointF();
+					? finalBadge->sceneBoundingRect().center() - finalBodyCenter
+					: QPointF();
 				const QPointF finalCameraCenter = networkView->mapToScene(
 					networkView->viewport()->rect().center());
 				const QPointF finalGroupCenter = selectedTrain->sceneBoundingRect().center();
@@ -14761,15 +14862,22 @@ void MainWindow::runVisualPolishE2E() {
 					|| interruptedAssociation > 1.0 || interruptedAnchorError > 1.0
 					|| (finalBadge && QLineF(finalBadge->scenePos(), finalGroupCenter).length() > 1.0)
 					|| QLineF(interruptedCameraCenter,
-						clampedCameraCenter(interruptedTargetCenter)).length() > 10.0
+						   clampedCameraCenter(interruptedTargetCenter))
+							.length()
+						> 10.0
 					|| QLineF(finalCameraCenter, clampedCameraCenter(finalGroupCenter)).length() > 10.0) {
 					ok = false;
 					failures << QString("follow animation lost body movement, badge association, or camera center (movement=%1 association=%2 interruptedCamera=%3,%4 target=%5,%6 finalCamera=%7,%8 group=%9,%10)")
-						.arg(bodyMovement, 0, 'f', 2).arg(interruptedAssociation, 0, 'f', 2)
-						.arg(interruptedCameraCenter.x(), 0, 'f', 2).arg(interruptedCameraCenter.y(), 0, 'f', 2)
-						.arg(interruptedTargetCenter.x(), 0, 'f', 2).arg(interruptedTargetCenter.y(), 0, 'f', 2)
-						.arg(finalCameraCenter.x(), 0, 'f', 2).arg(finalCameraCenter.y(), 0, 'f', 2)
-						.arg(finalGroupCenter.x(), 0, 'f', 2).arg(finalGroupCenter.y(), 0, 'f', 2);
+									.arg(bodyMovement, 0, 'f', 2)
+									.arg(interruptedAssociation, 0, 'f', 2)
+									.arg(interruptedCameraCenter.x(), 0, 'f', 2)
+									.arg(interruptedCameraCenter.y(), 0, 'f', 2)
+									.arg(interruptedTargetCenter.x(), 0, 'f', 2)
+									.arg(interruptedTargetCenter.y(), 0, 'f', 2)
+									.arg(finalCameraCenter.x(), 0, 'f', 2)
+									.arg(finalCameraCenter.y(), 0, 'f', 2)
+									.arg(finalGroupCenter.x(), 0, 'f', 2)
+									.arg(finalGroupCenter.y(), 0, 'f', 2);
 				}
 
 				// Exiting the followed train disables Follow rather than retaining a
@@ -14838,10 +14946,14 @@ void MainWindow::runVisualPolishE2E() {
 		if (!networkView->viewport()->rect().contains(clickPos)) {
 			ok = false;
 			failures << QString("recomputed train center is outside the viewport (cached=%1,%2 moved=%3,%4 click=%5,%6 viewport=%7x%8)")
-				.arg(cachedCenter.x(), 0, 'f', 1).arg(cachedCenter.y(), 0, 'f', 1)
-				.arg(movedCenter.x(), 0, 'f', 1).arg(movedCenter.y(), 0, 'f', 1)
-				.arg(clickPos.x()).arg(clickPos.y())
-				.arg(networkView->viewport()->width()).arg(networkView->viewport()->height());
+							.arg(cachedCenter.x(), 0, 'f', 1)
+							.arg(cachedCenter.y(), 0, 'f', 1)
+							.arg(movedCenter.x(), 0, 'f', 1)
+							.arg(movedCenter.y(), 0, 'f', 1)
+							.arg(clickPos.x())
+							.arg(clickPos.y())
+							.arg(networkView->viewport()->width())
+							.arg(networkView->viewport()->height());
 		} else {
 			const QPoint screenPos = networkView->viewport()->mapToGlobal(clickPos);
 			QMouseEvent press(QEvent::MouseButtonPress, QPointF(clickPos), QPointF(screenPos),
@@ -14888,7 +15000,7 @@ void MainWindow::runVisualPolishE2E() {
 			}
 			const int left = field->mapTo(inspectorScroll->viewport(), QPoint(0, 0)).x();
 			if (!field->isReadOnly() || left < 0
-					|| left + field->width() > inspectorScroll->viewport()->width()) {
+				|| left + field->width() > inspectorScroll->viewport()->width()) {
 				ok = false;
 				failures << "train inspector values require horizontal scrolling";
 				break;
@@ -14941,7 +15053,7 @@ void MainWindow::runVisualPolishE2E() {
 	if (m_followAction) {
 		m_followAction->setChecked(false);
 		if (std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
-			[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
+				[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
 			ok = false;
 			failures << "follow toggle left a stale station priority";
 		}
@@ -14983,7 +15095,7 @@ void MainWindow::runVisualPolishE2E() {
 			if (ui->actionSimulationStop)
 				ui->actionSimulationStop->trigger();
 			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
-					|| !lifecycleTrack->isSelected()) {
+				|| !lifecycleTrack->isSelected()) {
 				ok = false;
 				failures << "Stop did not immediately clear the underlay while preserving selection";
 			}
@@ -14997,7 +15109,7 @@ void MainWindow::runVisualPolishE2E() {
 				ok = false;
 				failures << "Stop did not complete through the worker lifecycle";
 			} else if (!m_outputFolderAction || !m_outputFolderAction->isEnabled()
-					|| !ui->actionStartTime->isEnabled()) {
+				|| !ui->actionStartTime->isEnabled()) {
 				ok = false;
 				failures << "the output folder and the start time stayed disabled after the run";
 			}
@@ -15006,7 +15118,7 @@ void MainWindow::runVisualPolishE2E() {
 				failures << "Stop retained completed replay";
 			}
 			if (m_runtimeStatus != QStringLiteral("Stopped") || m_resultsAvailable
-					|| statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
+				|| statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
 				failures << "Stop did not leave a stopped run without results";
 				ok = false;
 			} else if (!m_showingTrackPreview || !allArcs.isEmpty() || !allTrains.isEmpty()) {
@@ -15237,7 +15349,7 @@ void MainWindow::runEditorSmokeE2E() {
 		});
 	};
 	auto editStopDialog = [this](int row, const std::function<void(QDialog*)>& edit,
-			QPushButton* opener = nullptr, const std::function<void(QDialog*)>& afterAccept = nullptr) {
+							  QPushButton* opener = nullptr, const std::function<void(QDialog*)>& afterAccept = nullptr) {
 		bool accepted = false;
 		QTimer timer;
 		timer.setSingleShot(true);
@@ -15280,13 +15392,13 @@ void MainWindow::runEditorSmokeE2E() {
 			return false;
 		return std::equal(left.begin(), left.end(), right.begin(), [&](const SceneService& a, const SceneService& b) {
 			if (a.id != b.id || a.operatingCode != b.operatingCode || a.category != b.category || a.visualizationColor != b.visualizationColor || a.composition != b.composition || a.route != b.route
-					|| a.performancePercent != b.performancePercent || a.hasMaximumSpeed != b.hasMaximumSpeed
-					|| a.maximumSpeedKmh != b.maximumSpeedKmh || a.through != b.through
-					|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
-					|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds
-					|| a.hasRepeatCount != b.hasRepeatCount || a.repeatCount != b.repeatCount
-					|| a.hasOperatingCodeStep != b.hasOperatingCodeStep
-					|| a.operatingCodeStep != b.operatingCodeStep || a.stops.size() != b.stops.size())
+				|| a.performancePercent != b.performancePercent || a.hasMaximumSpeed != b.hasMaximumSpeed
+				|| a.maximumSpeedKmh != b.maximumSpeedKmh || a.through != b.through
+				|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
+				|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds
+				|| a.hasRepeatCount != b.hasRepeatCount || a.repeatCount != b.repeatCount
+				|| a.hasOperatingCodeStep != b.hasOperatingCodeStep
+				|| a.operatingCodeStep != b.operatingCodeStep || a.stops.size() != b.stops.size())
 				return false;
 			return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), sameStop);
 		});
@@ -15305,11 +15417,10 @@ void MainWindow::runEditorSmokeE2E() {
 		});
 	};
 	auto sameEntranceDelays = [](const std::vector<SceneEntranceDelay>& left,
-			const std::vector<SceneEntranceDelay>& right) {
+								  const std::vector<SceneEntranceDelay>& right) {
 		if (left.size() != right.size())
 			return false;
-		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneEntranceDelay& a,
-				const SceneEntranceDelay& b) {
+		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneEntranceDelay& a, const SceneEntranceDelay& b) {
 			return a.serviceId == b.serviceId && a.occurrence == b.occurrence
 				&& a.stationId == b.stationId && a.delaySeconds == b.delaySeconds;
 		});
@@ -15321,37 +15432,36 @@ void MainWindow::runEditorSmokeE2E() {
 			if (a.id != b.id || a.name != b.name || a.hasPosition != b.hasPosition || a.positionKm != b.positionKm || a.platforms.size() != b.platforms.size())
 				return false;
 			return std::equal(a.platforms.begin(), a.platforms.end(), b.platforms.begin(),
-							  [](const ScenePlatform& x, const ScenePlatform& y) {
-								  return x.id == y.id && x.nodeIds == y.nodeIds
-									  && x.hasLength == y.hasLength && x.lengthM == y.lengthM
-									  && x.hasWidth == y.hasWidth && x.widthM == y.widthM;
-							  });
+				[](const ScenePlatform& x, const ScenePlatform& y) {
+					return x.id == y.id && x.nodeIds == y.nodeIds
+						&& x.hasLength == y.hasLength && x.lengthM == y.lengthM
+						&& x.hasWidth == y.hasWidth && x.widthM == y.widthM;
+				});
 		});
 	};
 	auto samePassengers = [](const std::vector<ScenePassenger>& left,
-			const std::vector<ScenePassenger>& right) {
+							  const std::vector<ScenePassenger>& right) {
 		if (left.size() != right.size())
 			return false;
-		return std::equal(left.begin(), left.end(), right.begin(), [](const ScenePassenger& a,
-				const ScenePassenger& b) {
+		return std::equal(left.begin(), left.end(), right.begin(), [](const ScenePassenger& a, const ScenePassenger& b) {
 			if (a.id != b.id || a.journeys.size() != b.journeys.size())
 				return false;
 			return std::equal(a.journeys.begin(), a.journeys.end(), b.journeys.begin(),
 				[](const ScenePassengerJourney& x, const ScenePassengerJourney& y) {
-				if (x.id != y.id || x.activity != y.activity || x.originStationId != y.originStationId
+					if (x.id != y.id || x.activity != y.activity || x.originStationId != y.originStationId
 						|| x.destinationStationId != y.destinationStationId
 						|| x.plannedDepartureStartSeconds != y.plannedDepartureStartSeconds
 						|| x.plannedDepartureEndSeconds != y.plannedDepartureEndSeconds
 						|| x.plannedArrivalStartSeconds != y.plannedArrivalStartSeconds
 						|| x.plannedArrivalEndSeconds != y.plannedArrivalEndSeconds
 						|| x.legs.size() != y.legs.size())
-					return false;
-				return std::equal(x.legs.begin(), x.legs.end(), y.legs.begin(),
-					[](const ScenePassengerLeg& u, const ScenePassengerLeg& v) {
-						return u.id == v.id && u.originStationId == v.originStationId
-							&& u.destinationStationId == v.destinationStationId
-							&& u.serviceId == v.serviceId && u.occurrence == v.occurrence;
-					});
+						return false;
+					return std::equal(x.legs.begin(), x.legs.end(), y.legs.begin(),
+						[](const ScenePassengerLeg& u, const ScenePassengerLeg& v) {
+							return u.id == v.id && u.originStationId == v.originStationId
+								&& u.destinationStationId == v.destinationStationId
+								&& u.serviceId == v.serviceId && u.occurrence == v.occurrence;
+						});
 				});
 		});
 	};
@@ -15363,18 +15473,17 @@ void MainWindow::runEditorSmokeE2E() {
 		});
 	};
 	auto sameSignallingAreas = [](const std::vector<SceneSignallingArea>& left,
-			const std::vector<SceneSignallingArea>& right) {
+								   const std::vector<SceneSignallingArea>& right) {
 		if (left.size() != right.size())
 			return false;
-		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneSignallingArea& a,
-				const SceneSignallingArea& b) {
+		return std::equal(left.begin(), left.end(), right.begin(), [](const SceneSignallingArea& a, const SceneSignallingArea& b) {
 			return a.id == b.id && a.startKm == b.startKm && a.endKm == b.endKm
 				&& a.level == b.level && a.trackId == b.trackId;
 		});
 	};
 	auto sameInfrastructure = [](const SceneModel& left, const std::vector<SceneTrack>& tracks,
-			const std::vector<SceneNode>& nodes, const std::vector<SceneArc>& arcs,
-			const std::vector<SceneBlock>& blocks, const std::vector<SceneConnection>& connections) {
+								  const std::vector<SceneNode>& nodes, const std::vector<SceneArc>& arcs,
+								  const std::vector<SceneBlock>& blocks, const std::vector<SceneConnection>& connections) {
 		if (left.tracks.size() != tracks.size() || left.nodes.size() != nodes.size() || left.arcs.size() != arcs.size() || left.blocks.size() != blocks.size() || left.connections.size() != connections.size())
 			return false;
 		for (std::size_t i = 0; i < tracks.size(); ++i)
@@ -15397,9 +15506,9 @@ void MainWindow::runEditorSmokeE2E() {
 		return true;
 	};
 	auto sameBlockReferences = [](const SceneModel& left, const std::vector<SceneRoute>& routes,
-			const std::vector<SceneBlockDependency>& dependencies,
-			const std::vector<SceneSingleTrackRestriction>& restrictions,
-			const std::vector<SceneStationBoundary>& boundaries) {
+								   const std::vector<SceneBlockDependency>& dependencies,
+								   const std::vector<SceneSingleTrackRestriction>& restrictions,
+								   const std::vector<SceneStationBoundary>& boundaries) {
 		if (left.routes.size() != routes.size() || left.blockDependencies.size() != dependencies.size() || left.singleTrackRestrictions.size() != restrictions.size() || left.stationBoundaries.size() != boundaries.size())
 			return false;
 		for (std::size_t index = 0; index < routes.size(); ++index) {
@@ -15473,7 +15582,7 @@ void MainWindow::runEditorSmokeE2E() {
 				const QString explicitlySelectedTrack = m_infrastructureSelectionId;
 				refreshInfrastructurePanel();
 				if (explicitlySelectedTrack.isEmpty() || !m_previewHasSelectedTrack || m_sceneDirty
-						|| m_infrastructureSelectionId != explicitlySelectedTrack) {
+					|| m_infrastructureSelectionId != explicitlySelectedTrack) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
 				}
@@ -15529,7 +15638,8 @@ void MainWindow::runEditorSmokeE2E() {
 			};
 			const auto firstScenarioText = [this]() {
 				return m_scenarioListWidget && m_scenarioListWidget->item(0)
-					? m_scenarioListWidget->item(0)->text() : QString();
+					? m_scenarioListWidget->item(0)->text()
+					: QString();
 			};
 
 			if (m_caseNameEdit) {
@@ -15542,8 +15652,8 @@ void MainWindow::runEditorSmokeE2E() {
 				if (!m_loadedDataDock->isVisible() || !QSettings().value(kAdvancedDetailsKey).toBool())
 					failures << "presentation: advanced details did not open or persist";
 				if (m_caseNameEdit->text() != originalEditorText + " pending"
-						|| m_sceneModel.name != originalName || m_sceneDirty != dirtyBeforeToggle
-						|| m_sceneRevision != revisionBeforeToggle)
+					|| m_sceneModel.name != originalName || m_sceneDirty != dirtyBeforeToggle
+					|| m_sceneRevision != revisionBeforeToggle)
 					failures << "presentation: advanced toggle replaced or committed focused case text";
 				m_caseNameEdit->setText(originalEditorText);
 			} else {
@@ -15556,25 +15666,25 @@ void MainWindow::runEditorSmokeE2E() {
 			m_sceneDiagnostics.clear();
 			applyPresentation();
 			if (!m_validationStatusLabel->text().isEmpty()
-					|| m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
-					|| firstScenarioText().contains("Warning")
-					|| firstScenarioText().contains("Invalid"))
+				|| m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
+				|| firstScenarioText().contains("Warning")
+				|| firstScenarioText().contains("Invalid"))
 				failures << "presentation: clean normal mode exposed diagnostic warnings";
 
 			m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
 				"E2E non-blocking warning")};
 			applyPresentation();
 			if (!m_validationStatusLabel->text().isEmpty()
-					|| m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
-					|| firstScenarioText().contains("Warning"))
+				|| m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
+				|| firstScenarioText().contains("Warning"))
 				failures << "presentation: normal mode exposed a non-blocking warning";
 
 			m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Error,
 				"E2E invalid scenario")};
 			applyPresentation();
 			if (!m_validationStatusLabel->text().contains("Not ready")
-					|| m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario")
-					|| !firstScenarioText().contains("Invalid"))
+				|| m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario")
+				|| !firstScenarioText().contains("Invalid"))
 				failures << "presentation: normal mode hid an actionable invalid scenario";
 
 			detailsAction->setChecked(true);
@@ -15582,14 +15692,14 @@ void MainWindow::runEditorSmokeE2E() {
 				"E2E non-blocking warning")};
 			applyPresentation();
 			if (!m_validationStatusLabel->text().contains("Validation:")
-					|| !m_validationStatusLabel->text().contains("warning")
-					|| !firstScenarioText().contains("Warning"))
+				|| !m_validationStatusLabel->text().contains("warning")
+				|| !firstScenarioText().contains("Warning"))
 				failures << "presentation: advanced mode hid full warning details";
 
 			m_sceneDiagnostics = originalDiagnostics;
 			applyPresentation();
 			if (m_sceneModel.name != originalName || m_sceneDirty != originalDirty
-					|| m_sceneRevision != originalRevision)
+				|| m_sceneRevision != originalRevision)
 				failures << "presentation: diagnostic checks changed scene state";
 		}
 	}
@@ -15638,14 +15748,14 @@ void MainWindow::runEditorSmokeE2E() {
 			auto* infrastructureFacet = findChild<QComboBox*>("infrastructureFacetCombo");
 			auto* infrastructureTable = findChild<QTableWidget*>("infrastructureTable");
 			auto* infrastructureAdd = findChild<QPushButton*>("infrastructureAddButton");
-				auto* infrastructureDelete = findChild<QPushButton*>("infrastructureDeleteButton");
-				auto* routeSectionDetail = findChild<QWidget*>("routeSectionDetailWidget");
-				auto* blockTrackFilter = findChild<QComboBox*>("blockTrackFilterCombo");
+			auto* infrastructureDelete = findChild<QPushButton*>("infrastructureDeleteButton");
+			auto* routeSectionDetail = findChild<QWidget*>("routeSectionDetailWidget");
+			auto* blockTrackFilter = findChild<QComboBox*>("blockTrackFilterCombo");
 			auto* blockInsert = findChild<QPushButton*>("blockInsertButton");
 			auto* blockMoveUp = findChild<QPushButton*>("blockMoveUpButton");
 			auto* blockMoveDown = findChild<QPushButton*>("blockMoveDownButton");
 			if (!infrastructureDock || !infrastructureFacet || !infrastructureTable
-					|| !infrastructureAdd || !infrastructureDelete || !routeSectionDetail
+				|| !infrastructureAdd || !infrastructureDelete || !routeSectionDetail
 				|| !blockTrackFilter || !blockInsert || !blockMoveUp || !blockMoveDown) {
 				facetFailure(facetOk, "infrastructure", "infrastructure controls or dock are unavailable");
 			} else {
@@ -15706,13 +15816,13 @@ void MainWindow::runEditorSmokeE2E() {
 				}
 				for (int row = 0; row < 2; ++row)
 					if (!addInfrastructureRow("arcs")
-							|| !setInfrastructureCell("arcs", row + 2, 0, QString("e2e-yard-arc-%1").arg(row))
-							|| !setInfrastructureCell("arcs", row + 2, 1, "e2e-yard")
-							|| !setInfrastructureCell("arcs", row + 2, 2, yardNodeIds[row])
-							|| !setInfrastructureCell("arcs", row + 2, 3, yardNodeIds[row + 1])
-							|| !setInfrastructureCell("arcs", row + 2, 4, "0")
-							|| !setInfrastructureCell("arcs", row + 2, 5, "0")
-							|| !setInfrastructureCell("arcs", row + 2, 6, "16.5"))
+						|| !setInfrastructureCell("arcs", row + 2, 0, QString("e2e-yard-arc-%1").arg(row))
+						|| !setInfrastructureCell("arcs", row + 2, 1, "e2e-yard")
+						|| !setInfrastructureCell("arcs", row + 2, 2, yardNodeIds[row])
+						|| !setInfrastructureCell("arcs", row + 2, 3, yardNodeIds[row + 1])
+						|| !setInfrastructureCell("arcs", row + 2, 4, "0")
+						|| !setInfrastructureCell("arcs", row + 2, 5, "0")
+						|| !setInfrastructureCell("arcs", row + 2, 6, "16.5"))
 						facetFailure(facetOk, "infrastructure", "yard-track arc field edit did not apply");
 				if (!chooseBlockTrack("e2e-main"))
 					facetFailure(facetOk, "infrastructure", "main block track filter was unavailable");
@@ -15726,11 +15836,11 @@ void MainWindow::runEditorSmokeE2E() {
 					const std::array<double, 3> yardBlockLengths = {0.5, 1.25, 0.25};
 					for (int row = 0; row < 3; ++row)
 						if (!addInfrastructureRow("blocks")
-								|| !setInfrastructureCell("blocks", row, 0,
-									QString("e2e-yard-block-%1").arg(row))
-								|| !setInfrastructureCell("blocks", row, 1, "e2e-yard")
-								|| !setInfrastructureCell("blocks", row, 2,
-									QString::number(yardBlockLengths[static_cast<std::size_t>(row)])))
+							|| !setInfrastructureCell("blocks", row, 0,
+								QString("e2e-yard-block-%1").arg(row))
+							|| !setInfrastructureCell("blocks", row, 1, "e2e-yard")
+							|| !setInfrastructureCell("blocks", row, 2,
+								QString::number(yardBlockLengths[static_cast<std::size_t>(row)])))
 							facetFailure(facetOk, "infrastructure",
 								"yard-track block field edit did not apply");
 				}
@@ -15797,44 +15907,45 @@ void MainWindow::runEditorSmokeE2E() {
 				} else {
 					auto* protectedSection = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 1));
 					const int blockChoice = protectedSection ? protectedSection->findText(
-							QStringLiteral("base block e2e-main-block-inserted / track e2e-main")) : -1;
+																   QStringLiteral("base block e2e-main-block-inserted / track e2e-main"))
+															 : -1;
 					if (blockChoice < 0) {
 						facetFailure(facetOk, "stations/signalling", "creator-facing signal section choice was missing");
 					} else {
 						protectedSection->setCurrentIndex(blockChoice);
 						QApplication::processEvents();
 						if (sceneSignals(m_sceneModel).front().protectedSection
-								!= protectedSection->itemData(blockChoice).toString().toStdString())
+							!= protectedSection->itemData(blockChoice).toString().toStdString())
 							facetFailure(facetOk, "stations/signalling", "signal section choice did not commit");
 					}
 				}
 				if (!addInfrastructureRow("signalling_areas"))
 					facetFailure(facetOk, "stations/signalling", "signalling area row could not be added");
 				const bool signallingAreaStartsInvalid = m_sceneModel.signallingAreas.size() == 1
-						&& m_sceneModel.signallingAreas.front().startKm == 0.0
-						&& m_sceneModel.signallingAreas.front().endKm == 0.0
-						&& m_sceneModel.signallingAreas.front().level == 0
-						&& m_sceneModel.signallingAreas.front().trackId.empty();
+					&& m_sceneModel.signallingAreas.front().startKm == 0.0
+					&& m_sceneModel.signallingAreas.front().endKm == 0.0
+					&& m_sceneModel.signallingAreas.front().level == 0
+					&& m_sceneModel.signallingAreas.front().trackId.empty();
 				if (!signallingAreaStartsInvalid)
 					facetFailure(facetOk, "stations/signalling", "Add did not create an inert signalling area row");
 				if (!setInfrastructureCell("signalling_areas", 0, 0, "e2e-signalling-area")
-						|| !setInfrastructureCell("signalling_areas", 0, 1, "0.25")
-						|| !setInfrastructureCell("signalling_areas", 0, 2, "1.75")
-						|| !setInfrastructureCell("signalling_areas", 0, 3, "4"))
+					|| !setInfrastructureCell("signalling_areas", 0, 1, "0.25")
+					|| !setInfrastructureCell("signalling_areas", 0, 2, "1.75")
+					|| !setInfrastructureCell("signalling_areas", 0, 3, "4"))
 					facetFailure(facetOk, "stations/signalling", "network-wide signalling area authoring did not apply");
 				const bool networkAreaAuthored = m_sceneModel.signallingAreas.size() == 1
-						&& m_sceneModel.signallingAreas.front().id == "e2e-signalling-area"
-						&& m_sceneModel.signallingAreas.front().level == 4
-						&& m_sceneModel.signallingAreas.front().trackId.empty();
+					&& m_sceneModel.signallingAreas.front().id == "e2e-signalling-area"
+					&& m_sceneModel.signallingAreas.front().level == 4
+					&& m_sceneModel.signallingAreas.front().trackId.empty();
 				if (!networkAreaAuthored)
 					facetFailure(facetOk, "stations/signalling", "network-wide signalling area was not canonical");
 				if (!setInfrastructureCell("signalling_areas", 0, 4, "e2e-main")
-						|| m_sceneModel.signallingAreas.front().trackId != "e2e-main")
+					|| m_sceneModel.signallingAreas.front().trackId != "e2e-main")
 					facetFailure(facetOk, "stations/signalling", "signalling area track-scope edit did not apply");
 				const bool areaTrackRenameUpdated = setInfrastructureCell("tracks", 0, 0, "e2e-main-renamed")
-						&& m_sceneModel.signallingAreas.front().trackId == "e2e-main-renamed"
-						&& setInfrastructureCell("tracks", 0, 0, "e2e-main")
-						&& m_sceneModel.signallingAreas.front().trackId == "e2e-main";
+					&& m_sceneModel.signallingAreas.front().trackId == "e2e-main-renamed"
+					&& setInfrastructureCell("tracks", 0, 0, "e2e-main")
+					&& m_sceneModel.signallingAreas.front().trackId == "e2e-main";
 				if (!areaTrackRenameUpdated)
 					facetFailure(facetOk, "stations/signalling", "track rename did not preserve signalling-area scope");
 				if (!addInfrastructureRow("connections") || !setInfrastructureCell("connections", 0, 0, "e2e-switch") || !setInfrastructureCell("connections", 0, 1, mainNodeIds[1]) || !setInfrastructureCell("connections", 0, 2, yardNodeIds[1]) || !setInfrastructureCell("connections", 0, 3, "true") || !setInfrastructureCell("connections", 0, 4, "9.25"))
@@ -15850,9 +15961,11 @@ void MainWindow::runEditorSmokeE2E() {
 					auto* routeMoveUp = findChild<QPushButton*>("routeMoveUpButton");
 					auto* routeMoveDown = findChild<QPushButton*>("routeMoveDownButton");
 					const int mainChoice = routeCatalog ? routeCatalog->findText(
-						QStringLiteral("base block e2e-main-block-0 / track e2e-main")) : -1;
+															  QStringLiteral("base block e2e-main-block-0 / track e2e-main"))
+														: -1;
 					const int yardChoice = routeCatalog ? routeCatalog->findText(
-						QStringLiteral("base block e2e-yard-block-2 / track e2e-yard")) : -1;
+															  QStringLiteral("base block e2e-yard-block-2 / track e2e-yard"))
+														: -1;
 					int connectionChoice = -1;
 					if (routeCatalog)
 						for (int index = 0; index < routeCatalog->count(); ++index)
@@ -15861,8 +15974,8 @@ void MainWindow::runEditorSmokeE2E() {
 								break;
 							}
 					if (!routeCatalog || !routeAddSection || !routeList || !routeRemoveSection
-							|| !routeMoveUp || !routeMoveDown || mainChoice < 0 || connectionChoice < 0
-							|| yardChoice < 0) {
+						|| !routeMoveUp || !routeMoveDown || mainChoice < 0 || connectionChoice < 0
+						|| yardChoice < 0) {
 						facetFailure(facetOk, "stations/signalling",
 							"route section catalog did not expose the switched path");
 					} else {
@@ -15884,18 +15997,18 @@ void MainWindow::runEditorSmokeE2E() {
 						routeRemoveSection->click();
 						QApplication::processEvents();
 						if (m_sceneModel.routes.empty()
-								|| m_sceneModel.routes.front().blocks
-									!= std::vector<std::string>(expectedNativeRoute.begin(), expectedNativeRoute.end()))
+							|| m_sceneModel.routes.front().blocks
+								!= std::vector<std::string>(expectedNativeRoute.begin(), expectedNativeRoute.end()))
 							facetFailure(facetOk, "stations/signalling",
 								"ordered route section controls did not retain the switched path");
 						if (!routeSectionDetail->isVisible() || !chooseInfrastructureFacet("blocks")
-								|| routeSectionDetail->isVisible())
+							|| routeSectionDetail->isVisible())
 							facetFailure(facetOk, "stations/signalling",
 								"route section editor did not follow the selected infrastructure facet");
 					}
 				}
 				const auto selectSectionCell = [&](const char* facet, int row, int column,
-						const QString& preferredPrefix = QString()) {
+												   const QString& preferredPrefix = QString()) {
 					if (!chooseInfrastructureFacet(facet))
 						return QString();
 					auto* combo = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(row, column));
@@ -15969,7 +16082,7 @@ void MainWindow::runEditorSmokeE2E() {
 							facetFailure(facetOk, "stations/signalling", "boundary (none) did not clear exit atomically");
 					}
 				}
-		const bool m3TablesAuthored = m_sceneModel.stations.size() == 2 && m_sceneModel.stations[0].platforms.size() == 1 && m_sceneModel.stations[1].platforms.size() == 1 && sceneSignals(m_sceneModel).size() == 1 && m_sceneModel.routes.size() == 1 && m_sceneModel.blockDependencies.size() == 1 && m_sceneModel.singleTrackRestrictions.size() == 1 && m_sceneModel.stationBoundaries.size() == 1;
+				const bool m3TablesAuthored = m_sceneModel.stations.size() == 2 && m_sceneModel.stations[0].platforms.size() == 1 && m_sceneModel.stations[1].platforms.size() == 1 && sceneSignals(m_sceneModel).size() == 1 && m_sceneModel.routes.size() == 1 && m_sceneModel.blockDependencies.size() == 1 && m_sceneModel.singleTrackRestrictions.size() == 1 && m_sceneModel.stationBoundaries.size() == 1;
 				if (!m3TablesAuthored)
 					facetFailure(facetOk, "stations/signalling", "canonical M3 rows were not created through the table controls");
 				if (chooseInfrastructureFacet("platforms")) {
@@ -15983,7 +16096,7 @@ void MainWindow::runEditorSmokeE2E() {
 						QApplication::processEvents();
 						const ScenePlatform& platform = m_sceneModel.stations.front().platforms.front();
 						if (!platform.hasLength || platform.lengthM != 123.75
-								|| !platform.hasWidth || platform.widthM != 4.25)
+							|| !platform.hasWidth || platform.widthM != 4.25)
 							facetFailure(facetOk, "platform geometry", "public geometry edits did not set presence/value");
 					}
 				} else {
@@ -16004,7 +16117,7 @@ void MainWindow::runEditorSmokeE2E() {
 				refreshValidationPanel();
 				const std::string renamedBlockId = "e2e-main-block-renamed";
 				const bool blockRenamed = setInfrastructureCell("blocks", 1, 0,
-												QString::fromStdString(renamedBlockId));
+					QString::fromStdString(renamedBlockId));
 				const SceneSectionInventory renamedInventory = buildSceneSectionInventory(m_sceneModel);
 				const auto resolvesThroughRenamedBlock = [&](const std::string& reference) {
 					const SceneSectionDescriptor* section = renamedInventory.resolve(reference);
@@ -16081,7 +16194,7 @@ void MainWindow::runEditorSmokeE2E() {
 						const SceneIncident* signalIncident = selectedIncident();
 						if (!signalIncident || signalIncident->target != "e2e-signal")
 							facetFailure(facetOk, "stations/signalling",
-									"bound signal_failure target did not persist canonically");
+								"bound signal_failure target did not persist canonically");
 					}
 					m_addIncidentButton->click();
 					QApplication::processEvents();
@@ -16100,8 +16213,8 @@ void MainWindow::runEditorSmokeE2E() {
 				} else {
 					facetFailure(facetOk, "stations/signalling", "incident controls unavailable for signal coverage");
 				}
-					auto refuseInfrastructureDelete = [&](const char* facet, int row, int column,
-						std::size_t expectedSize, const char* label) {
+				auto refuseInfrastructureDelete = [&](const char* facet, int row, int column,
+													  std::size_t expectedSize, const char* label) {
 					if (!chooseInfrastructureFacet(facet) || row < 0 || row >= infrastructureTable->rowCount()) {
 						facetFailure(facetOk, "delete integrity", QString("%1 facet row unavailable").arg(label));
 						return;
@@ -16155,8 +16268,8 @@ void MainWindow::runEditorSmokeE2E() {
 				expectedSignals = sceneSignals(m_sceneModel);
 				expectedNewCaseServices = m_sceneModel.services;
 				expectedNewCaseIncidents = defaultScenario(m_sceneModel)
-											   ? defaultScenario(m_sceneModel)->incidents
-											   : std::vector<SceneIncident>();
+					? defaultScenario(m_sceneModel)->incidents
+					: std::vector<SceneIncident>();
 				if (loadTrackPreview(m_sceneModel).lines.size() < 2)
 					facetFailure(facetOk, "infrastructure", "authored topology did not reach the existing preview");
 				if (facetOk)
@@ -16204,7 +16317,7 @@ void MainWindow::runEditorSmokeE2E() {
 				expectedName = savedName.toStdString();
 				expectedDescription = savedDescription.toStdString();
 				if (!openSceneDirectory(newCaseFolder) || !verifyNewCase()
-						|| !nameEdit || nameEdit->text() != savedName)
+					|| !nameEdit || nameEdit->text() != savedName)
 					facetFailure(facetOk, "new case", "Save action did not persist focused pending case text");
 			} else {
 				facetFailure(facetOk, "new case", "case settings controls or dock are unavailable for Save action");
@@ -16235,8 +16348,8 @@ void MainWindow::runEditorSmokeE2E() {
 					m_newSceneAction->trigger();
 					QApplication::processEvents();
 					if (m_sceneDir != QFileInfo(newCaseFolder).absoluteFilePath()
-							|| !m_sceneDirty || m_sceneModel.name != pendingNewName.toStdString()
-							|| nameEdit->text() != pendingNewName)
+						|| !m_sceneDirty || m_sceneModel.name != pendingNewName.toStdString()
+						|| nameEdit->text() != pendingNewName)
 						facetFailure(facetOk, "new case", "Cancel did not preserve the dirty scene after pending New action text");
 				}
 			} else {
@@ -16254,8 +16367,8 @@ void MainWindow::runEditorSmokeE2E() {
 			absentSettings.settings.recoveryTimePercent = 0.0;
 			const SceneSaveResult absentSave = ::saveScene(absentSettings, absentSettingsFolder.toStdString());
 			if (!absentSave.success() || !openSceneDirectory(absentSettingsFolder)
-					|| m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
-					|| m_sceneModel.settings.hasRecoveryTime)
+				|| m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
+				|| m_sceneModel.settings.hasRecoveryTime)
 				facetFailure(facetOk, "new case", "canonical scene with absent optional settings did not load");
 			else if (descriptionEdit && m_caseSettingsDock) {
 				m_caseSettingsDock->show();
@@ -16269,10 +16382,10 @@ void MainWindow::runEditorSmokeE2E() {
 				else {
 					m_saveSceneAction->trigger();
 					if (m_sceneDirty || m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
-							|| m_sceneModel.settings.hasRecoveryTime
-							|| !openSceneDirectory(absentSettingsFolder)
-							|| m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
-							|| m_sceneModel.settings.hasRecoveryTime)
+						|| m_sceneModel.settings.hasRecoveryTime
+						|| !openSceneDirectory(absentSettingsFolder)
+						|| m_sceneModel.settings.hasDuration || m_sceneModel.settings.hasBufferTime
+						|| m_sceneModel.settings.hasRecoveryTime)
 						facetFailure(facetOk, "new case", "metadata-only Save created optional settings");
 				}
 			} else {
@@ -16328,11 +16441,11 @@ void MainWindow::runEditorSmokeE2E() {
 			return combo->currentData().toString() == value;
 		};
 		if (!passengerDock || !passengerList || !passengerAdd || !passengerDelete
-				|| !passengerImport || !passengerId || !passengerTabs || !journeyList
-				|| !journeyAdd || !journeyDelete || !journeyId || !journeyActivity
-				|| !journeyOrigin || !journeyDestination || !legList || !legAdd
-				|| !legDelete || !legMoveUp || !legMoveDown || !legId || !legOrigin
-				|| !legDestination || !legService || !legOccurrence || !importResults) {
+			|| !passengerImport || !passengerId || !passengerTabs || !journeyList
+			|| !journeyAdd || !journeyDelete || !journeyId || !journeyActivity
+			|| !journeyOrigin || !journeyDestination || !legList || !legAdd
+			|| !legDelete || !legMoveUp || !legMoveDown || !legId || !legOrigin
+			|| !legDestination || !legService || !legOccurrence || !importResults) {
 			facetFailure(facetOk, "passenger", "public passenger controls were unavailable");
 		} else {
 			passengerDock->show();
@@ -16388,8 +16501,8 @@ void MainWindow::runEditorSmokeE2E() {
 						journeyId->setText(QString::fromStdString(e2eJourneyId));
 						journeyActivity->setText("e2e commute");
 						if (!commitLineEdit(journeyId) || !commitLineEdit(journeyActivity)
-								|| !selectData(journeyOrigin, QString::fromStdString(originStationId))
-								|| !selectData(journeyDestination, QString::fromStdString(destinationStationId)))
+							|| !selectData(journeyOrigin, QString::fromStdString(originStationId))
+							|| !selectData(journeyDestination, QString::fromStdString(destinationStationId)))
 							facetFailure(facetOk, "passenger", "journey fields or typed station references did not commit");
 						const std::array<double, 4> windows = {100.0, 200.0, 300.0, 400.0};
 						for (std::size_t index = 0; index < windows.size(); ++index)
@@ -16436,11 +16549,12 @@ void MainWindow::runEditorSmokeE2E() {
 						legDelete->click();
 						QApplication::processEvents();
 						if (!selectedPassengerJourney() || selectedPassengerJourney()->legs.size() != 1
-								|| selectedPassengerJourney()->legs.front().id != e2eLegId)
+							|| selectedPassengerJourney()->legs.front().id != e2eLegId)
 							facetFailure(facetOk, "passenger", "leg Delete did not remove only the temporary leg");
 
 						const std::size_t journeyCountBefore = selectedPassenger()
-							? selectedPassenger()->journeys.size() : 0;
+							? selectedPassenger()->journeys.size()
+							: 0;
 						journeyAdd->click();
 						QApplication::processEvents();
 						const std::string temporaryJourneyId = uniquePassengerJourneyId("e2e_temp_journey");
@@ -16465,27 +16579,30 @@ void MainWindow::runEditorSmokeE2E() {
 
 						QTemporaryDir passengerFixture;
 						const QString passengerDir = passengerFixture.isValid()
-							? QDir(passengerFixture.path()).filePath("Passengers") : QString();
+							? QDir(passengerFixture.path()).filePath("Passengers")
+							: QString();
 						const bool fixtureReady = !passengerDir.isEmpty() && QDir().mkpath(passengerDir)
 							&& writeCsvFile(QDir(passengerDir).filePath("DAS_FrenchCaseStudy.csv"),
 								"c0,person_id,c2,c3,journey_no,activity,destination,c7,c8,c9,arrival,c11,origin,c13,departure\n"
-								+ std::string("x,e2e_imported,x,x,1,import,") + destinationStationId
-								+ ",x,x,x,8.25,x," + originStationId + ",x,7.25\n"
-								+ "x," + e2ePassengerId + ",x,x,1,collision," + destinationStationId
-								+ ",x,x,x,8.25,x," + originStationId + ",x,7.25\n"
-								+ "x,e2e_unresolved,x,x,1,unresolved," + destinationStationId
-								+ ",x,x,x,8.25,x,missing-origin,x,7.25\n"
-								+ "malformed,row\n")
+									+ std::string("x,e2e_imported,x,x,1,import,") + destinationStationId
+									+ ",x,x,x,8.25,x," + originStationId + ",x,7.25\n"
+									+ "x," + e2ePassengerId + ",x,x,1,collision," + destinationStationId
+									+ ",x,x,x,8.25,x," + originStationId + ",x,7.25\n"
+									+ "x,e2e_unresolved,x,x,1,unresolved," + destinationStationId
+									+ ",x,x,x,8.25,x,missing-origin,x,7.25\n"
+									+ "malformed,row\n")
 							&& writeCsvFile(QDir(passengerDir).filePath("RouteChoiceFC_EQ1.csv"),
 								"person_id,destination,nb_transfers,r_service_lines_id_1\n"
-								+ std::string("e2e_imported,") + destinationStationId + ",0,"
-								+ (passengerService->operatingCode.empty() ? passengerService->id
-									: passengerService->operatingCode) + "-1\n"
-								+ e2ePassengerId + "," + destinationStationId + ",0,"
-								+ (passengerService->operatingCode.empty() ? passengerService->id
-									: passengerService->operatingCode) + "-1\n"
-								+ "e2e_unresolved," + destinationStationId + ",0,missing-service-1\n"
-								+ "bad\n");
+									+ std::string("e2e_imported,") + destinationStationId + ",0,"
+									+ (passengerService->operatingCode.empty() ? passengerService->id
+																			   : passengerService->operatingCode)
+									+ "-1\n"
+									+ e2ePassengerId + "," + destinationStationId + ",0,"
+									+ (passengerService->operatingCode.empty() ? passengerService->id
+																			   : passengerService->operatingCode)
+									+ "-1\n"
+									+ "e2e_unresolved," + destinationStationId + ",0,missing-service-1\n"
+									+ "bad\n");
 						if (!fixtureReady) {
 							facetFailure(facetOk, "passenger import", "could not create the exact legacy passenger fixture");
 						} else {
@@ -16505,7 +16622,7 @@ void MainWindow::runEditorSmokeE2E() {
 								sawRejected = sawRejected || statusItem->text() == "Rejected";
 								sawUnresolved = sawUnresolved || statusItem->text() == "Unresolved";
 								if (statusItem->text() == "Rejected" && importResults->item(row, 1)
-										&& importResults->item(row, 1)->text() == "2")
+									&& importResults->item(row, 1)->text() == "2")
 									++rejectedCollisionRows;
 							}
 							if (!sawAccepted || !sawRejected || !sawUnresolved || rejectedCollisionRows < 2)
@@ -16555,8 +16672,8 @@ void MainWindow::runEditorSmokeE2E() {
 								QApplication::processEvents();
 								qunsetenv("QEGTRAIN_E2E_PASSENGER_SOURCE");
 								if (!samePassengers(passengersBeforeFailedImport, m_sceneModel.passengers)
-										|| importResults->rowCount() != 1 || !importResults->item(0, 2)
-										|| importResults->item(0, 2)->text() != "Rejected")
+									|| importResults->rowCount() != 1 || !importResults->item(0, 2)
+									|| importResults->item(0, 2)->text() != "Rejected")
 									facetFailure(facetOk, "passenger import", "a failed import changed the scene or hid its rejection");
 							}
 						}
@@ -16595,7 +16712,7 @@ void MainWindow::runEditorSmokeE2E() {
 								nativePlatformOk = stagedPlatform->length == expectedLength
 									&& stagedPlatform->width == expectedWidth
 									&& stagedPlatform->Max_Passenger_Volume == expectedCapacity;
-					}
+						}
 						if (!nativePassengerOk || !nativePlatformOk)
 							facetFailure(facetOk, "passenger native staging", "passenger leg or platform geometry did not reach native staging");
 					}
@@ -16658,8 +16775,8 @@ void MainWindow::runEditorSmokeE2E() {
 			deleteScenario();
 			QApplication::processEvents();
 			if (m_scenarioListWidget->count() != countBeforeDefaultDelete
-					|| m_selectedScenarioId != m_sceneModel.defaultScenarioId
-					|| m_deleteScenarioButton->isEnabled()) {
+				|| m_selectedScenarioId != m_sceneModel.defaultScenarioId
+				|| m_deleteScenarioButton->isEnabled()) {
 				ok = false;
 				failures << "scenario: default deletion was not refused or button stayed enabled";
 			}
@@ -16670,8 +16787,8 @@ void MainWindow::runEditorSmokeE2E() {
 			m_deleteScenarioButton->click();
 			QApplication::processEvents();
 			if (m_scenarioListWidget->count() != originalScenarioCount + 1
-					|| m_selectedScenarioId != m_sceneModel.defaultScenarioId
-					|| !defaultScenario(static_cast<const SceneModel&>(m_sceneModel))) {
+				|| m_selectedScenarioId != m_sceneModel.defaultScenarioId
+				|| !defaultScenario(static_cast<const SceneModel&>(m_sceneModel))) {
 				ok = false;
 				failures << "scenario: non-default deletion did not select a valid default";
 			}
@@ -16692,7 +16809,7 @@ void MainWindow::runEditorSmokeE2E() {
 		explorerOk = explorerOk && caseRoot->text(0) == "Case Study"
 			&& caseRoot->text(3) != "Invalid" && caseRoot->text(3) != "Failed";
 		for (const QString& category : {QStringLiteral("Source path"), QStringLiteral("Canonical schema version"),
-				QStringLiteral("Runtime"), QStringLiteral("Results")}) {
+				 QStringLiteral("Runtime"), QStringLiteral("Results")}) {
 			const QList<QTreeWidgetItem*> rows = m_loadedDataTree->findItems(
 				category, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* row = rows.isEmpty() ? nullptr : rows.front();
@@ -16727,7 +16844,7 @@ void MainWindow::runEditorSmokeE2E() {
 		}
 		bool hasPlotButton = false;
 		for (QPushButton* button : findChildren<QPushButton*>())
-				hasPlotButton = hasPlotButton || button->text() == "Plot input traction characteristic";
+			hasPlotButton = hasPlotButton || button->text() == "Plot input traction characteristic";
 		const bool hasEditableTrainSources = m_trainUnitSourceDataEdit && m_trainUnitSourceTractionEdit;
 		const bool hasPlannedArrival = m_stopTableWidget && m_stopTableWidget->columnCount() == 5
 			&& m_stopTableWidget->horizontalHeaderItem(3)->text() == "Planned arrival";
@@ -16757,9 +16874,9 @@ void MainWindow::runEditorSmokeE2E() {
 		// Exercise the shared input plot, including Qt's actual zoom/reset axes.
 		int tractionPlotIndex = 0;
 		for (const auto& fixture : std::vector<std::pair<std::array<double, 5>, bool>>{
-				{{0, 10, 20000, 1000, 0}, false}, {{0, 10, 20000, 0, 0}, false},
-				{{0, 10, 0, 0, 0}, false}, {{5, 5, 20000, 0, 0}, false},
-				{{0, 10, -1000, 200, 0}, true}, {{0, 1, 1, -128, 2048}, true}}) {
+				 {{0, 10, 20000, 1000, 0}, false}, {{0, 10, 20000, 0, 0}, false},
+				 {{0, 10, 0, 0, 0}, false}, {{5, 5, 20000, 0, 0}, false},
+				 {{0, 10, -1000, 200, 0}, true}, {{0, 1, 1, -128, 2048}, true}}) {
 			SceneTrainUnit unit;
 			unit.id = "Input traction axis check";
 			unit.tractionCurve = {fixture.first};
@@ -16792,7 +16909,7 @@ void MainWindow::runEditorSmokeE2E() {
 				plotOk = plotOk && axis->min() == 0.0 && axis->max() == maximum;
 			}
 			const QString plotPath = QDir(qEnvironmentVariable("QEGTRAIN_E2E_OUT", QDir::tempPath()))
-				.filePath(QString("input-traction-%1.png").arg(tractionPlotIndex++));
+										 .filePath(QString("input-traction-%1.png").arg(tractionPlotIndex++));
 			plotOk = view->grab().save(plotPath, "PNG") && plotOk;
 			if (!plotOk)
 				failures << QString("input traction axes/reset/samples: %1").arg(plotPath);
@@ -16800,7 +16917,7 @@ void MainWindow::runEditorSmokeE2E() {
 			window->close();
 		}
 		if (!explorerOk || !hasParameterSource || !hasTractionSource || !hasPlotButton || !hasEditableTrainSources
-				|| !hasPlannedArrival || !hasPlannedDeparture || !axesOk) {
+			|| !hasPlannedArrival || !hasPlannedDeparture || !axesOk) {
 			ok = false;
 			failures << "explorer: load review, activation, generic provenance, plot axes, or timetable labels missing";
 		} else {
@@ -16841,7 +16958,7 @@ void MainWindow::runEditorSmokeE2E() {
 		layoutOk = layoutOk && !m_sceneDirty && m_trainUnitTractionTable->width() > oldTableSize.width()
 			&& m_trainUnitTractionTable->height() > oldTableSize.height();
 		const QString layoutShot = QDir(qEnvironmentVariable("QEGTRAIN_E2E_OUT", QDir::tempPath()))
-			.filePath("rolling-stock-expanded.png");
+									   .filePath("rolling-stock-expanded.png");
 		layoutOk = m_trainUnitDock->grab().save(layoutShot, "PNG") && layoutOk;
 		m_trainUnitDock->setFloating(wasFloating);
 		m_trainUnitDock->resize(oldSize);
@@ -16866,7 +16983,7 @@ void MainWindow::runEditorSmokeE2E() {
 			QApplication::processEvents();
 			bool assignedInitialId = false;
 			if (m_compositionListWidget->currentRow() >= 0
-					&& m_compositionListWidget->currentRow() < static_cast<int>(m_sceneModel.compositions.size())) {
+				&& m_compositionListWidget->currentRow() < static_cast<int>(m_sceneModel.compositions.size())) {
 				const auto& units = m_sceneModel.compositions[m_compositionListWidget->currentRow()].units;
 				assignedInitialId = std::find(units.begin(), units.end(), initialTrainUnitId) != units.end();
 			}
@@ -16922,7 +17039,7 @@ void MainWindow::runEditorSmokeE2E() {
 				QMetaObject::invokeMethod(m_trainUnitSourceTractionEdit, "editingFinished", Qt::DirectConnection);
 				const SceneTrainUnit& editedUnit = m_sceneModel.trainUnits[originalCount];
 				if (editedUnit.sourceDataFile != editedSourceData.toStdString()
-						|| editedUnit.sourceTractionFile != editedSourceTraction.toStdString())
+					|| editedUnit.sourceTractionFile != editedSourceTraction.toStdString())
 					facetFailure(facetOk, "train unit", "source reference edits did not commit both fields");
 			}
 
@@ -16961,8 +17078,7 @@ void MainWindow::runEditorSmokeE2E() {
 			} else if (m_trainUnitTractionTable) {
 				const int row = m_trainUnitTractionTable->rowCount() - 1;
 				m_trainUnitTractionTable->setCurrentCell(row, 0);
-				const std::array<double, 5> tractionValues = {{
-					0.123456789012345, 10.1234567890123, 100.1234567890123,
+				const std::array<double, 5> tractionValues = {{0.123456789012345, 10.1234567890123, 100.1234567890123,
 					2.1234567890123, 0.5000000012345}};
 				for (int column = 0; column < 5; ++column) {
 					auto* edit = qobject_cast<QDoubleSpinBox*>(m_trainUnitTractionTable->cellWidget(row, column));
@@ -17023,17 +17139,15 @@ void MainWindow::runEditorSmokeE2E() {
 				acceptConfirmation();
 				deleteTrainUnit();
 				if (m_trainUnitListWidget->count() != originalCount + 1
-						|| std::any_of(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
-							[&](const SceneTrainUnit& unit) { return unit.id == duplicateId; }))
+					|| std::any_of(m_sceneModel.trainUnits.begin(), m_sceneModel.trainUnits.end(),
+						[&](const SceneTrainUnit& unit) { return unit.id == duplicateId; }))
 					facetFailure(facetOk, "train unit", "unreferenced-unit delete did not apply");
 			}
 		}
 		if (!m_sceneModel.trainUnits.empty()) {
 			m_trainUnitListWidget->setCurrentRow(0);
-			if (!m_trainUnitSourceDataEdit || m_trainUnitSourceDataEdit->text().toStdString()
-					!= m_sceneModel.trainUnits.front().sourceDataFile
-				|| !m_trainUnitSourceTractionEdit || m_trainUnitSourceTractionEdit->text().toStdString()
-					!= m_sceneModel.trainUnits.front().sourceTractionFile)
+			if (!m_trainUnitSourceDataEdit || m_trainUnitSourceDataEdit->text().toStdString() != m_sceneModel.trainUnits.front().sourceDataFile
+				|| !m_trainUnitSourceTractionEdit || m_trainUnitSourceTractionEdit->text().toStdString() != m_sceneModel.trainUnits.front().sourceTractionFile)
 				facetFailure(facetOk, "train unit", "source references are not visible and unchanged");
 		}
 		expectedCompositions = m_sceneModel.compositions;
@@ -17079,7 +17193,7 @@ void MainWindow::runEditorSmokeE2E() {
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		settle();
 		if (m_sceneModel.trainUnits.front().physical.length_m != 71.0
-				|| m_sceneModel.trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
+			|| m_sceneModel.trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
 			facetFailure(facetOk, "source links", "complete file changes did not apply");
 		const quint64 acceptedRevision = m_sceneRevision;
 		m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred = true;
@@ -17090,19 +17204,19 @@ void MainWindow::runEditorSmokeE2E() {
 		processTrainUnitSourceChanges();
 		settle();
 		if (m_sceneRevision != acceptedRevision || unchangedPrompted
-				|| m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred)
+			|| m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred)
 			facetFailure(facetOk, "source links", "unchanged deferred save prompted or dirtied the scene");
 		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
 		settle();
 		if (m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 210000
-				|| !m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
+			|| !m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
 			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
 		QFile::remove(sourceTractionPath);
 		settle();
 		writeSource(sourceTractionPath, "0 40 220000 0 0\n");
 		settle();
 		if (m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 220000
-				|| !m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+			|| !m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
 		// The focused editor must commit before comparing with the accepted source.
 		m_trainUnitDock->show();
@@ -17136,7 +17250,7 @@ void MainWindow::runEditorSmokeE2E() {
 		writeSource(sourceTractionPath, "0 40 230000 0 0\n");
 		settle();
 		if (m_sceneModel.trainUnits[0].tractionCurve.front()[2] != 230000
-				|| m_sceneModel.trainUnits[1].tractionCurve.front()[2] != 230000)
+			|| m_sceneModel.trainUnits[1].tractionCurve.front()[2] != 230000)
 			facetFailure(facetOk, "source links",
 				QString("shared source values %1 / %2; status %3")
 					.arg(m_sceneModel.trainUnits[0].tractionCurve.front()[2])
@@ -17145,18 +17259,18 @@ void MainWindow::runEditorSmokeE2E() {
 		m_trainUnitIdEdit->setText(QString::fromStdString(duplicateId + "_renamed"));
 		commitTrainUnitIdEdit();
 		if (m_trainUnitSourceLinks.count(duplicateId)
-				|| !m_trainUnitSourceLinks.count(duplicateId + "_renamed"))
+			|| !m_trainUnitSourceLinks.count(duplicateId + "_renamed"))
 			facetFailure(facetOk, "source links", "rename did not migrate the link");
 		acceptConfirmation();
 		deleteTrainUnit();
 		if (m_trainUnitSourceLinks.size() != 1
-				|| !m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+			|| !m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");
 		m_trainUnitListWidget->setCurrentRow(0);
 		unlinkTrainUnitSource(false);
 		unlinkTrainUnitSource(true);
 		if (!m_trainUnitSourceLinks.empty() || !m_trainUnitSourceWatcher->files().isEmpty()
-				|| !m_trainUnitSourceWatcher->directories().isEmpty())
+			|| !m_trainUnitSourceWatcher->directories().isEmpty())
 			facetFailure(facetOk, "source links", "unlink retained watches");
 		QFile::remove(sourcePhysicalPath);
 		QFile::remove(sourceTractionPath);
@@ -17185,8 +17299,7 @@ void MainWindow::runEditorSmokeE2E() {
 		} else {
 			m_compositionListWidget->setCurrentRow(assignedCompositionRow);
 			// the selected unit surfaces its source files and a plottable traction curve
-			if (m_compositionUnitsListWidget && m_compositionUnitsListWidget->count() > 0 &&
-				m_compositionUnitsListWidget->item(0)) {
+			if (m_compositionUnitsListWidget && m_compositionUnitsListWidget->count() > 0 && m_compositionUnitsListWidget->item(0)) {
 				m_compositionUnitsListWidget->setCurrentRow(0);
 				const SceneTrainUnit* tractionUnit =
 					trainUnitById(m_compositionUnitsListWidget->item(0)->text().toStdString());
@@ -17238,10 +17351,10 @@ void MainWindow::runEditorSmokeE2E() {
 							++staleServiceCount;
 					}
 					if (m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id != editedCompositionId
-							|| migratedServiceCount <= 0 || staleServiceCount != 0
-							|| m_compositionListWidget->currentRow() != assignedCompositionRow
-							|| !m_serviceCompositionCombo
-							|| m_serviceCompositionCombo->findText(QString::fromStdString(editedCompositionId)) < 0)
+						|| migratedServiceCount <= 0 || staleServiceCount != 0
+						|| m_compositionListWidget->currentRow() != assignedCompositionRow
+						|| !m_serviceCompositionCombo
+						|| m_serviceCompositionCombo->findText(QString::fromStdString(editedCompositionId)) < 0)
 						facetFailure(facetOk, "composition", "id edit did not apply");
 				}
 			}
@@ -17249,24 +17362,26 @@ void MainWindow::runEditorSmokeE2E() {
 			m_compositionListWidget->setCurrentRow(assignedCompositionRow);
 			deleteComposition();
 			if (m_compositionListWidget->count() != referencedCompositionCount
-					|| !std::any_of(m_sceneModel.compositions.begin(), m_sceneModel.compositions.end(),
-						[&](const SceneComposition& composition) {
-							return composition.id == editedCompositionId;
-						}))
+				|| !std::any_of(m_sceneModel.compositions.begin(), m_sceneModel.compositions.end(),
+					[&](const SceneComposition& composition) {
+						return composition.id == editedCompositionId;
+					}))
 				facetFailure(facetOk, "composition", "service-referenced composition delete was not refused");
 			addComposition();
 			const std::string temporaryCompositionId = m_sceneModel.compositions.back().id;
 			if (m_compositionListWidget->count() != originalCount + 2
-					|| !m_serviceCompositionCombo
-					|| m_serviceCompositionCombo->findText(
-						QString::fromStdString(temporaryCompositionId)) < 0) {
+				|| !m_serviceCompositionCombo
+				|| m_serviceCompositionCombo->findText(
+					   QString::fromStdString(temporaryCompositionId))
+					< 0) {
 				facetFailure(facetOk, "composition", "add did not refresh the service selector");
 			} else {
 				acceptConfirmation();
 				deleteComposition();
 				if (m_compositionListWidget->count() != originalCount + 1
-						|| m_serviceCompositionCombo->findText(
-							QString::fromStdString(temporaryCompositionId)) >= 0)
+					|| m_serviceCompositionCombo->findText(
+						   QString::fromStdString(temporaryCompositionId))
+						>= 0)
 					facetFailure(facetOk, "composition", "delete did not refresh the service selector");
 			}
 			int editedRow = -1;
@@ -17276,8 +17391,7 @@ void MainWindow::runEditorSmokeE2E() {
 					break;
 				}
 			}
-			if (editedRow < 0 || m_sceneModel.compositions[editedRow].units
-					!= expectedCompositions[static_cast<std::size_t>(assignedCompositionRow)].units)
+			if (editedRow < 0 || m_sceneModel.compositions[editedRow].units != expectedCompositions[static_cast<std::size_t>(assignedCompositionRow)].units)
 				facetFailure(facetOk, "composition", "edited composition was not retained");
 			if (facetOk)
 				std::fprintf(stdout, "E2E_EDITOR_COMPOSITION_OK\n");
@@ -17299,15 +17413,15 @@ void MainWindow::runEditorSmokeE2E() {
 		expectedServices[0].category = unknownCategory;
 		updateServiceDetailPanel();
 		if (!m_serviceCategoryCombo || m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
-				|| !m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
+			|| !m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
 			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
 		const std::string storedColor = "#3c8dd2";
 		m_sceneModel.services[0].visualizationColor = storedColor;
 		expectedServices[0].visualizationColor = storedColor;
 		updateServiceDetailPanel();
 		if (!m_serviceColorButton || !m_serviceColorButton->isEnabled()
-				|| m_serviceColorButton->valueText() != QString::fromStdString(storedColor)
-				|| m_serviceColorButton->swatchColor() != QColor(0x3C, 0x8D, 0xD2))
+			|| m_serviceColorButton->valueText() != QString::fromStdString(storedColor)
+			|| m_serviceColorButton->swatchColor() != QColor(0x3C, 0x8D, 0xD2))
 			facetFailure(facetOk, "service colour", "stored colour is not shown in the editor");
 		const auto originalService = m_sceneModel.services[0];
 		const auto sourceRoute = std::find_if(m_sceneModel.routes.begin(), m_sceneModel.routes.end(),
@@ -17343,8 +17457,8 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "service colour", "duplicate lost the colour");
 			if (m_serviceCategoryCombo) {
 				for (const QString& category : {QString(), QStringLiteral("Intercity"), QStringLiteral("Regional"),
-						QStringLiteral("High speed/international"), QStringLiteral("Freight"),
-						QStringLiteral("Metro/urban"), QStringLiteral("Suburban"), QString::fromStdString(unknownCategory)}) {
+						 QStringLiteral("High speed/international"), QStringLiteral("Freight"),
+						 QStringLiteral("Metro/urban"), QStringLiteral("Suburban"), QString::fromStdString(unknownCategory)}) {
 					const int index = m_serviceCategoryCombo->findData(category);
 					m_serviceCategoryCombo->setCurrentIndex(index);
 					categoryExpected.category = category.toStdString();
@@ -17357,7 +17471,7 @@ void MainWindow::runEditorSmokeE2E() {
 				const bool dirtyBeforeColor = m_sceneDirty;
 				// an edit changes the colour and marks the scene modified; an equal value changes nothing
 				const auto colorStep = [&](const char* what, const std::function<void()>& action,
-						const std::string& expectedColor) {
+										   const std::string& expectedColor) {
 					m_sceneDirty = false;
 					const quint64 revisionBefore = m_sceneRevision;
 					const SceneService before = m_sceneModel.services[1];
@@ -17366,7 +17480,7 @@ void MainWindow::runEditorSmokeE2E() {
 					expected.visualizationColor = expectedColor;
 					const bool changed = expectedColor != before.visualizationColor;
 					if (!sameServices({expected}, {m_sceneModel.services[1]}) || m_sceneDirty != changed
-							|| (m_sceneRevision != revisionBefore) != changed)
+						|| (m_sceneRevision != revisionBefore) != changed)
 						facetFailure(facetOk, "service colour",
 							QString("%1 gave the wrong model or dirty state").arg(QLatin1String(what)));
 				};
@@ -17380,10 +17494,8 @@ void MainWindow::runEditorSmokeE2E() {
 				if (!defaultColorButton)
 					facetFailure(facetOk, "service colour", "Default button unavailable");
 				else {
-					colorStep("choosing a colour", [&]() { m_serviceColorButton->chooseColor(QColor(0xAB, 0xCD, 0xEF)); },
-						"#abcdef");
-					colorStep("choosing the same colour again", [&]() { m_serviceColorButton->chooseColor(QColor(0xAB, 0xCD, 0xEF)); },
-						"#abcdef");
+					colorStep("choosing a colour", [&]() { m_serviceColorButton->chooseColor(QColor(0xAB, 0xCD, 0xEF)); }, "#abcdef");
+					colorStep("choosing the same colour again", [&]() { m_serviceColorButton->chooseColor(QColor(0xAB, 0xCD, 0xEF)); }, "#abcdef");
 					colorStep("Default", [&]() { defaultColorButton->click(); }, "");
 					colorStep("Default without a colour", [&]() { defaultColorButton->click(); }, "");
 					if (m_serviceColorButton->valueText() != "Default")
@@ -17394,16 +17506,14 @@ void MainWindow::runEditorSmokeE2E() {
 					m_serviceListWidget->setCurrentRow(0);
 					m_serviceListWidget->setCurrentRow(1);
 					if (m_serviceColorButton->valueText() != "Invalid: not-a-colour"
-							|| m_sceneModel.services[1].visualizationColor != "not-a-colour")
+						|| m_sceneModel.services[1].visualizationColor != "not-a-colour")
 						facetFailure(facetOk, "service colour", "invalid stored colour is not shown as invalid and kept");
-					colorStep("choosing a colour over an invalid text",
-						[&]() { m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
+					colorStep("choosing a colour over an invalid text", [&]() { m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
 					m_sceneModel.services[1].visualizationColor = "not-a-colour";
 					updateServiceDetailPanel();
 					colorStep("Default over an invalid text", [&]() { defaultColorButton->click(); }, "");
 					// the colour stays on the service for the save and reload below
-					colorStep("choosing the final colour",
-						[&]() { m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
+					colorStep("choosing the final colour", [&]() { m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
 					if (m_serviceColorButton->valueText() != QString::fromStdString(storedColor))
 						facetFailure(facetOk, "service colour", "chosen colour is not shown");
 				}
@@ -17436,7 +17546,7 @@ void MainWindow::runEditorSmokeE2E() {
 						m_entranceDelayServiceCombo->setCurrentIndex(serviceIndex);
 						QApplication::processEvents();
 						if (!referenceScenario.entranceDelays.empty()
-								&& referenceScenario.entranceDelays.back().serviceId == oldServiceId)
+							&& referenceScenario.entranceDelays.back().serviceId == oldServiceId)
 							++temporaryDelayCount;
 					}
 				} else {
@@ -17466,7 +17576,7 @@ void MainWindow::runEditorSmokeE2E() {
 						|| (!scenario.incidents.empty() && scenario.incidents.back().target == oldServiceId);
 					return delayStillOld && incidentStillOld
 						&& m_excludedSceneOccurrences.find(SceneServiceOccurrence{oldServiceId, 1})
-							!= m_excludedSceneOccurrences.end();
+						!= m_excludedSceneOccurrences.end();
 				};
 				m_serviceIdEdit->setText(QString());
 				commitServiceIdEdit();
@@ -17496,7 +17606,7 @@ void MainWindow::runEditorSmokeE2E() {
 						&& referenceScenario.incidents.back().target == editedServiceId;
 			}
 			if (m_excludedSceneOccurrences.find(SceneServiceOccurrence{editedServiceId, 1})
-					== m_excludedSceneOccurrences.end())
+				== m_excludedSceneOccurrences.end())
 				referencesUpdated = false;
 			if (!referencesUpdated)
 				facetFailure(facetOk, "service", "service ID rename did not update canonical references or occurrence exclusions");
@@ -17504,13 +17614,13 @@ void MainWindow::runEditorSmokeE2E() {
 			const int referencedServiceCount = m_serviceListWidget->count();
 			deleteService();
 			if (m_serviceListWidget->count() != referencedServiceCount
-					|| !std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-						[&](const SceneService& service) { return service.id == editedServiceId; }))
+				|| !std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+					[&](const SceneService& service) { return service.id == editedServiceId; }))
 				facetFailure(facetOk, "service", "operation-referenced service delete was not refused");
 			if (referenceScenarioRow >= 0) {
 				SceneScenario& referenceScenario = m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
 				if (temporaryDelayCount > 0 && m_entranceDelayListWidget && m_deleteEntranceDelayButton
-						&& temporaryDelayRow >= 0 && temporaryDelayRow < m_entranceDelayListWidget->count()) {
+					&& temporaryDelayRow >= 0 && temporaryDelayRow < m_entranceDelayListWidget->count()) {
 					m_entranceDelayListWidget->setCurrentRow(temporaryDelayRow);
 					acceptConfirmation();
 					m_deleteEntranceDelayButton->click();
@@ -17594,7 +17704,7 @@ void MainWindow::runEditorSmokeE2E() {
 			m_serviceMaximumSpeedKmhEdit->clearFocus();
 			commitPendingServiceSettings();
 			if (m_sceneModel.services[1].performancePercent != precisePerformancePercent
-					|| m_sceneModel.services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
+				|| m_sceneModel.services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
 				facetFailure(facetOk, "service", "untouched precise service settings changed during pending commit");
 			const SceneService serviceBeforeSelection = m_sceneModel.services[1];
 			const bool dirtyBeforeSelection = m_sceneDirty;
@@ -17605,7 +17715,7 @@ void MainWindow::runEditorSmokeE2E() {
 				for (int previewRow = 0; previewRow < m_serviceOccurrenceTable->rowCount(); ++previewRow) {
 					QTableWidgetItem* include = m_serviceOccurrenceTable->item(previewRow, 0);
 					if (include && include->data(Qt::UserRole).toString().toStdString() == editedServiceId
-							&& include->data(Qt::UserRole + 1).toInt() == 1)
+						&& include->data(Qt::UserRole + 1).toInt() == 1)
 						include->setCheckState(Qt::Checked);
 				}
 			}
@@ -17626,14 +17736,15 @@ void MainWindow::runEditorSmokeE2E() {
 				QApplication::processEvents();
 			}
 			const bool occurrenceExclusionCreated = m_excludedSceneOccurrences.find(
-				SceneServiceOccurrence{unreferencedServiceId, 1}) != m_excludedSceneOccurrences.end();
+														SceneServiceOccurrence{unreferencedServiceId, 1})
+				!= m_excludedSceneOccurrences.end();
 			acceptConfirmation();
 			deleteService();
 			if (m_serviceListWidget->count() != originalCount + 1
-					|| std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-						[&](const SceneService& service) { return service.id == unreferencedServiceId; })
-					|| (occurrenceExclusionCreated
-						&& m_excludedSceneOccurrences.find(SceneServiceOccurrence{unreferencedServiceId, 1}) != m_excludedSceneOccurrences.end()))
+				|| std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+					[&](const SceneService& service) { return service.id == unreferencedServiceId; })
+				|| (occurrenceExclusionCreated
+					&& m_excludedSceneOccurrences.find(SceneServiceOccurrence{unreferencedServiceId, 1}) != m_excludedSceneOccurrences.end()))
 				facetFailure(facetOk, "service", "unreferenced service delete did not prune occurrence exclusions");
 		}
 		int editedRow = -1;
@@ -17648,13 +17759,13 @@ void MainWindow::runEditorSmokeE2E() {
 		} else {
 			const SceneService& edited = m_sceneModel.services[editedRow];
 			if (edited.composition != editedCompositionId || edited.route != expectedServices[0].route
-					|| !edited.hasEntryTime || edited.entryTimeSeconds != 600.0
-					|| !edited.hasRepeat || edited.headwaySeconds != 1800.0
-					|| !edited.hasRepeatCount || edited.repeatCount != 3
-					|| edited.operatingCode != "1723" || edited.performancePercent != precisePerformancePercent
-					|| !edited.hasMaximumSpeed || edited.maximumSpeedKmh != preciseMaximumSpeedKmh
-					|| !edited.hasOperatingCodeStep || edited.operatingCodeStep != 2
-					|| edited.stops.size() != expectedServices[0].stops.size())
+				|| !edited.hasEntryTime || edited.entryTimeSeconds != 600.0
+				|| !edited.hasRepeat || edited.headwaySeconds != 1800.0
+				|| !edited.hasRepeatCount || edited.repeatCount != 3
+				|| edited.operatingCode != "1723" || edited.performancePercent != precisePerformancePercent
+				|| !edited.hasMaximumSpeed || edited.maximumSpeedKmh != preciseMaximumSpeedKmh
+				|| !edited.hasOperatingCodeStep || edited.operatingCodeStep != 2
+				|| edited.stops.size() != expectedServices[0].stops.size())
 				facetFailure(facetOk, "service", "edited fields did not persist in memory");
 		}
 		if (facetOk)
@@ -17694,7 +17805,8 @@ void MainWindow::runEditorSmokeE2E() {
 					const auto& selected = m_sceneModel.services[serviceRow].stops.back();
 					const QString expected = selected.hasPlannedArrival
 						? QString::fromStdString(formatPlannedTime(selected.plannedArrivalSeconds,
-							mode == 1, baseTimeToSeconds(m_sceneModel.baseTime))) : QStringLiteral("—");
+							  mode == 1, baseTimeToSeconds(m_sceneModel.baseTime)))
+						: QStringLiteral("—");
 					if (m_stopTableWidget->currentRow() != originalStopCount - 1
 						|| m_stopTableWidget->item(originalStopCount - 1, 3)->text() != expected
 						|| m_sceneDirty != dirtyBefore || m_moveStopDownButton->isEnabled()
@@ -17705,7 +17817,10 @@ void MainWindow::runEditorSmokeE2E() {
 				timer.setSingleShot(true);
 				connect(&timer, &QTimer::timeout, this, [&]() {
 					auto* dialog = findChild<QDialog*>("stopEditorDialog");
-					if (!dialog) { facetFailure(facetOk, "timetable", "row activation did not open modal"); return; }
+					if (!dialog) {
+						facetFailure(facetOk, "timetable", "row activation did not open modal");
+						return;
+					}
 					auto* arrival = dialog->findChild<QLineEdit*>("stopEditorArrivalEdit");
 					auto* mode = dialog->findChild<QComboBox*>("stopEditorTimeModeCombo");
 					dialog->findChild<QCheckBox*>("stopEditorArrivalPresent")->setChecked(true);
@@ -17752,8 +17867,7 @@ void MainWindow::runEditorSmokeE2E() {
 							&& platform->currentData().toString() == "unknown-platform"
 							&& !platform->itemData(platform->currentIndex(), Qt::ToolTipRole).toString().isEmpty();
 					})
-					|| !unknownPlatformShown
-					|| !sameStop(unknownPlatform, m_sceneModel.services[serviceRow].stops.front()))
+					|| !unknownPlatformShown || !sameStop(unknownPlatform, m_sceneModel.services[serviceRow].stops.front()))
 					facetFailure(facetOk, "timetable", "unknown imported platform was replaced or not explained");
 				m_sceneModel.services[serviceRow].stops.front() = before;
 				const auto savedStops = m_sceneModel.services[serviceRow].stops;
@@ -17787,7 +17901,8 @@ void MainWindow::runEditorSmokeE2E() {
 			// station, instead of calling the same consumed node twice.
 			SceneStop finalStop = m_sceneModel.services[serviceRow].stops.back();
 			const auto finalResolution = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
-				sceneServiceTraversal(m_sceneModel, m_sceneModel.services[serviceRow])).back();
+				sceneServiceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]))
+											 .back();
 			if (finalStop.platformId.empty() && finalResolution.candidatePlatformIds.size() == 1)
 				finalStop.platformId = finalResolution.candidatePlatformIds.front();
 			for (auto& station : m_sceneModel.stations)
@@ -17919,7 +18034,7 @@ void MainWindow::runEditorSmokeE2E() {
 				// Add Stop with the position `position`; otherwise the dialog must open at
 				// `position`.
 				const auto insertStop = [&](const char* what, QPushButton* opener, int position,
-						const SceneStop& stop, std::size_t index) {
+											const SceneStop& stop, std::size_t index) {
 					const std::vector<SceneStop> before = stops;
 					const quint64 revisionBefore = m_sceneRevision;
 					SceneStop entered = stop;
@@ -17932,8 +18047,7 @@ void MainWindow::runEditorSmokeE2E() {
 						entered.platformId = dialog->findChild<QComboBox*>("stopEditorPlatformCombo")
 							->currentData().toString().toStdString();
 						if (!stop.platformId.empty() && entered.platformId != stop.platformId)
-							facetFailure(facetOk, "timetable", QString("%1: the platform of the inserted stop is not offered").arg(what));
-					}, opener);
+							facetFailure(facetOk, "timetable", QString("%1: the platform of the inserted stop is not offered").arg(what)); }, opener);
 					if (!accepted || stops.size() != before.size() + 1) {
 						facetFailure(facetOk, "timetable", QString("%1: insert was not applied").arg(what));
 						return;
@@ -17944,11 +18058,11 @@ void MainWindow::runEditorSmokeE2E() {
 						if (!sameStop(stops[i < index ? i : i + 1], before[i]))
 							facetFailure(facetOk, "timetable", QString("%1: an existing stop changed or moved out of order").arg(what));
 					if (!m_sceneDirty || m_sceneRevision == revisionBefore
-							|| m_stopTableWidget->currentRow() != static_cast<int>(index))
+						|| m_stopTableWidget->currentRow() != static_cast<int>(index))
 						facetFailure(facetOk, "timetable", QString("%1: scene not marked modified or new row not selected").arg(what));
 				};
 				if (fullStops.size() < 4 || fullStops[2].stationId != fullStops[3].stationId
-						|| fullStops[1].stationId == fullStops[2].stationId) {
+					|| fullStops[1].stationId == fullStops[2].stationId) {
 					facetFailure(facetOk, "timetable", "insert fixture needs a free station before a repeated final station");
 				} else {
 					// Add Stop on a timetable whose destination is present opens the dialog at a
@@ -17960,16 +18074,16 @@ void MainWindow::runEditorSmokeE2E() {
 						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
 						auto* station = dialog->findChild<QComboBox*>("stopEditorStationCombo");
 						if (!positionCombo || positionCombo->currentData().toInt() != 1
-								|| positionCombo->count() != static_cast<int>(gapStops.size()) + 1
-								|| positionCombo->itemText(0) != "At the start of the timetable"
-								|| station->findData(QString::fromStdString(fullStops[1].stationId)) < 0)
+							|| positionCombo->count() != static_cast<int>(gapStops.size()) + 1
+							|| positionCombo->itemText(0) != "At the start of the timetable"
+							|| station->findData(QString::fromStdString(fullStops[1].stationId)) < 0)
 							facetFailure(facetOk, "timetable", "Add Stop did not open at a position with choices");
 						// A station that occurs twice gives two position entries with their own index.
 						if (positionCombo && positionCombo->count() == 4
-								&& (positionCombo->itemData(2).toInt() != 2 || positionCombo->itemData(3).toInt() != 3
-									|| positionCombo->itemText(2) == positionCombo->itemText(3)
-									|| !positionCombo->itemText(2).startsWith("After stop 2: ")
-									|| !positionCombo->itemText(3).startsWith("After stop 3: ")))
+							&& (positionCombo->itemData(2).toInt() != 2 || positionCombo->itemData(3).toInt() != 3
+								|| positionCombo->itemText(2) == positionCombo->itemText(3)
+								|| !positionCombo->itemText(2).startsWith("After stop 2: ")
+								|| !positionCombo->itemText(3).startsWith("After stop 3: ")))
 							facetFailure(facetOk, "timetable", "repeated station did not give distinct position entries");
 					});
 					if (!opened || !sameStopList(stops, gapStops) || m_sceneDirty || m_sceneRevision != revisionBefore)
@@ -17986,14 +18100,12 @@ void MainWindow::runEditorSmokeE2E() {
 						positionCombo->setCurrentIndex(positionCombo->findData(static_cast<int>(gapStops.size())));
 						stationDisabled = !station->isEnabled() && station->count() == 1
 							&& station->currentText() == "(no reachable station here)";
-						eligibilityText = dialog->findChild<QLabel*>("stopEditorEligibilityLabel")->text();
-					}, nullptr, [&](QDialog* dialog) {
+						eligibilityText = dialog->findChild<QLabel*>("stopEditorEligibilityLabel")->text(); }, nullptr, [&](QDialog* dialog) {
 						stayedOpen = dialog->isVisible();
-						blockedError = dialog->findChild<QLabel*>("stopEditorErrorLabel")->text();
-					});
+						blockedError = dialog->findChild<QLabel*>("stopEditorErrorLabel")->text(); });
 					if (!blocked || !stationDisabled || !stayedOpen || eligibilityText.isEmpty()
-							|| blockedError != eligibilityText || !sameStopList(stops, gapStops) || m_sceneDirty
-							|| m_sceneRevision != revisionBefore)
+						|| blockedError != eligibilityText || !sameStopList(stops, gapStops) || m_sceneDirty
+						|| m_sceneRevision != revisionBefore)
 						facetFailure(facetOk, "timetable", "a position without a station visit did not block OK");
 
 					// Insert at the start, between two stops and after the last stop.
@@ -18023,8 +18135,8 @@ void MainWindow::runEditorSmokeE2E() {
 					const auto reloadedService = std::find_if(reloaded.scene.services.begin(), reloaded.scene.services.end(),
 						[&](const SceneService& candidate) { return candidate.id == editedServiceId; });
 					if (!saved.success() || reloadedService == reloaded.scene.services.end()
-							|| reloadedService->stops.size() != stops.size()
-							|| !std::equal(stops.begin(), stops.end(), reloadedService->stops.begin(), sameStop))
+						|| reloadedService->stops.size() != stops.size()
+						|| !std::equal(stops.begin(), stops.end(), reloadedService->stops.begin(), sameStop))
 						facetFailure(facetOk, "timetable", "inserted stop order or planned times changed after save and reload");
 				}
 				stops = fullStops;
@@ -18055,10 +18167,10 @@ void MainWindow::runEditorSmokeE2E() {
 	std::string entranceDelayStationId;
 	double entranceDelaySeconds = 12.75;
 	if (!m_sceneLoaded || editedServiceId.empty() || !m_entranceDelayListWidget
-			|| !m_addEntranceDelayButton || !m_duplicateEntranceDelayButton
-			|| !m_deleteEntranceDelayButton || !m_entranceDelayServiceCombo
-			|| !m_entranceDelayOccurrenceEdit || !m_entranceDelayStationCombo
-			|| !m_entranceDelaySecondsEdit) {
+		|| !m_addEntranceDelayButton || !m_duplicateEntranceDelayButton
+		|| !m_deleteEntranceDelayButton || !m_entranceDelayServiceCombo
+		|| !m_entranceDelayOccurrenceEdit || !m_entranceDelayStationCombo
+		|| !m_entranceDelaySecondsEdit) {
 		bool facetOk = false;
 		facetFailure(facetOk, "entrance delay", "public delay controls unavailable");
 	} else {
@@ -18100,7 +18212,7 @@ void MainWindow::runEditorSmokeE2E() {
 					}
 				}
 				if (repeatedDepartureRow < 0 || !m_serviceListWidget || !m_stopTableWidget
-						|| !m_moveStopDownButton || !m_moveStopUpButton) {
+					|| !m_moveStopDownButton || !m_moveStopUpButton) {
 					facetFailure(facetOk, "entrance delay", "repeated-stop selector fixture unavailable");
 				} else {
 					if (m_serviceDock) {
@@ -18113,11 +18225,11 @@ void MainWindow::runEditorSmokeE2E() {
 					m_moveStopDownButton->click();
 					QApplication::processEvents();
 					const bool laterDepartureExcluded = m_entranceDelayStationCombo->findData(
-						QString::fromStdString(repeatedStationId)) < 0;
+															QString::fromStdString(repeatedStationId))
+						< 0;
 					m_moveStopUpButton->click();
 					QApplication::processEvents();
-					if (!laterDepartureExcluded || m_entranceDelayStationCombo->findData(
-							QString::fromStdString(repeatedStationId)) < 0)
+					if (!laterDepartureExcluded || m_entranceDelayStationCombo->findData(QString::fromStdString(repeatedStationId)) < 0)
 						facetFailure(facetOk, "entrance delay",
 							"station choices did not follow the first repeated stop");
 					if (m_incidentDock) {
@@ -18156,9 +18268,9 @@ void MainWindow::runEditorSmokeE2E() {
 					const auto operationsDiagnostics = buildOperationsFromScene(
 						m_sceneModel, m_selectedScenarioId, delayedOccurrence);
 					if (hasErrors(infrastructureDiagnostics) || hasErrors(operationsDiagnostics)
-							|| numRegions != 1
-							|| regional_train[0].trainDescription != entranceDelayServiceId + "-2"
-							|| regional_train[0].EntranceDelay != entranceDelaySeconds)
+						|| numRegions != 1
+						|| regional_train[0].trainDescription != entranceDelayServiceId + "-2"
+						|| regional_train[0].EntranceDelay != entranceDelaySeconds)
 						facetFailure(facetOk, "entrance delay",
 							"publicly authored delay did not reach the selected native occurrence");
 				}
@@ -18203,7 +18315,7 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "incident", "breakdown controls stayed disabled after the type change");
 			for (int index = 0; index < m_incidentTargetCombo->count(); ++index) {
 				if (m_incidentTargetCombo->itemData(index).toString().toStdString() == editedServiceId
-						&& m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt() == 2) {
+					&& m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt() == 2) {
 					m_incidentTargetCombo->setCurrentIndex(index);
 					break;
 				}
@@ -18217,8 +18329,8 @@ void MainWindow::runEditorSmokeE2E() {
 			if (m_incidentHasReducedSpeedCheck)
 				m_incidentHasReducedSpeedCheck->setChecked(true);
 			if (SceneIncident* incident = selectedIncident(); !incident
-					|| !incident->hasReducedSpeed || !m_incidentReducedSpeedKmhEdit
-					|| incident->reducedSpeedKmh != m_incidentReducedSpeedKmhEdit->value())
+				|| !incident->hasReducedSpeed || !m_incidentReducedSpeedKmhEdit
+				|| incident->reducedSpeedKmh != m_incidentReducedSpeedKmhEdit->value())
 				facetFailure(facetOk, "incident", "enabling the speed cap did not commit its displayed value");
 			if (m_incidentReducedSpeedKmhEdit)
 				m_incidentReducedSpeedKmhEdit->setValue(preciseBreakdownSpeed);
@@ -18246,14 +18358,14 @@ void MainWindow::runEditorSmokeE2E() {
 			}
 		}
 		if (editedRow < 0 || incidents[editedRow].type != "train_breakdown"
-				|| incidents[editedRow].target != editedServiceId
-				|| incidents[editedRow].startSeconds != 100.0
-				|| incidents[editedRow].endSeconds != 0.0
-				|| !incidents[editedRow].hasOccurrence || incidents[editedRow].occurrence != 2
-				|| !incidents[editedRow].hasReducedSpeed
-				|| incidents[editedRow].reducedSpeedKmh != preciseBreakdownSpeed
-				|| incidents[editedRow].hasEndSeconds
-				|| !incidents[editedRow].terminateAtDestination)
+			|| incidents[editedRow].target != editedServiceId
+			|| incidents[editedRow].startSeconds != 100.0
+			|| incidents[editedRow].endSeconds != 0.0
+			|| !incidents[editedRow].hasOccurrence || incidents[editedRow].occurrence != 2
+			|| !incidents[editedRow].hasReducedSpeed
+			|| incidents[editedRow].reducedSpeedKmh != preciseBreakdownSpeed
+			|| incidents[editedRow].hasEndSeconds
+			|| !incidents[editedRow].terminateAtDestination)
 			facetFailure(facetOk, "incident", "edited incident was not retained");
 		if (!m_serviceListWidget || !m_incidentTargetCombo) {
 			facetFailure(facetOk, "incident", "service target controls unavailable");
@@ -18266,7 +18378,7 @@ void MainWindow::runEditorSmokeE2E() {
 			acceptConfirmation();
 			deleteService();
 			if (m_serviceListWidget->count() != serviceCount
-					|| m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) >= 0)
+				|| m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) >= 0)
 				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
 		}
 		const QString review = runReviewText();
@@ -18284,18 +18396,18 @@ void MainWindow::runEditorSmokeE2E() {
 			incident->occurrence = std::numeric_limits<int>::max();
 			updateIncidentDetailPanel();
 			if (!m_incidentTargetCombo->currentText().contains("Invalid removed target")
-					|| m_incidentTargetCombo->currentData().toString().toStdString() != saved.target)
+				|| m_incidentTargetCombo->currentData().toString().toStdString() != saved.target)
 				facetFailure(facetOk, "incident", "removed occurrence was silently retargeted");
 			*incident = saved;
 			updateIncidentDetailPanel();
 		}
 		const bool reviewOk = review.contains(QString("Scenario: %1").arg(scenarioContext()))
 			&& review.contains(QString("id=%1 type=train_breakdown target=%2 start=100")
-				.arg(QString::fromStdString(editedIncidentId), QString::fromStdString(editedServiceId)))
+					.arg(QString::fromStdString(editedIncidentId), QString::fromStdString(editedServiceId)))
 			&& review.contains("window=until-destination occurrence=2 options=")
 			&& review.contains(QString("Entrance delay configuration: service=%1 occurrence=2 operating_code=1725 station=%2 seconds=%3")
-				.arg(QString::fromStdString(entranceDelayServiceId), QString::fromStdString(entranceDelayStationId),
-					QString::number(entranceDelaySeconds, 'g', 12)));
+					.arg(QString::fromStdString(entranceDelayServiceId), QString::fromStdString(entranceDelayStationId),
+						QString::number(entranceDelaySeconds, 'g', 12)));
 		if (!reviewOk)
 			facetFailure(facetOk, "incident", "run review omitted complete incident or entrance-delay configuration");
 		if (facetOk)
@@ -18308,8 +18420,8 @@ void MainWindow::runEditorSmokeE2E() {
 		QApplication::processEvents();
 		SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
 		if (!m_validationTable || !m_validationStatusLabel || counts.errors != 0
-				|| m_validationTable->rowCount() != static_cast<int>(m_sceneDiagnostics.size())
-				|| !m_validationStatusLabel->text().startsWith("Validation:"))
+			|| m_validationTable->rowCount() != static_cast<int>(m_sceneDiagnostics.size())
+			|| !m_validationStatusLabel->text().startsWith("Validation:"))
 			facetFailure(facetOk, "validation", "refresh did not report a clean, complete result");
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_VALIDATION_OK\n");
@@ -18353,21 +18465,21 @@ void MainWindow::runEditorSmokeE2E() {
 				facetFailure(facetOk, "save/reload", "train-unit facet changed after reload");
 			} else if (!sameCompositions(expectedCompositions, m_sceneModel.compositions)) {
 				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
-				} else if (!sameServices(expectedServices, m_sceneModel.services)) {
-					facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
-				} else if (!std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-						[&](const SceneService& service) {
-							return service.id == editedServiceId && service.visualizationColor == "#3c8dd2";
-						})) {
-					facetFailure(facetOk, "save/reload", "service colour changed after reload");
-				} else if (!sameStations(expectedStations, m_sceneModel.stations)) {
-					facetFailure(facetOk, "save/reload", "platform geometry changed after reload");
-				} else if (!samePassengers(expectedPassengers, m_sceneModel.passengers)) {
-					facetFailure(facetOk, "save/reload", "passenger hierarchy changed after reload");
-				} else if (!sameIncidents(expectedIncidents, selectedScenarioIncidents())) {
+			} else if (!sameServices(expectedServices, m_sceneModel.services)) {
+				facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
+			} else if (!std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
+						   [&](const SceneService& service) {
+							   return service.id == editedServiceId && service.visualizationColor == "#3c8dd2";
+						   })) {
+				facetFailure(facetOk, "save/reload", "service colour changed after reload");
+			} else if (!sameStations(expectedStations, m_sceneModel.stations)) {
+				facetFailure(facetOk, "save/reload", "platform geometry changed after reload");
+			} else if (!samePassengers(expectedPassengers, m_sceneModel.passengers)) {
+				facetFailure(facetOk, "save/reload", "passenger hierarchy changed after reload");
+			} else if (!sameIncidents(expectedIncidents, selectedScenarioIncidents())) {
 				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
 			} else if (!selectedScenario()
-					|| !sameEntranceDelays(expectedEntranceDelays, selectedScenario()->entranceDelays)) {
+				|| !sameEntranceDelays(expectedEntranceDelays, selectedScenario()->entranceDelays)) {
 				facetFailure(facetOk, "save/reload", "entrance-delay facet changed after reload");
 			} else if (m_sceneDirty || hasErrors(m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
@@ -18393,10 +18505,10 @@ void MainWindow::runEditorSmokeE2E() {
 				const int serviceRow = modelRowFor(m_sceneModel.services, editedServiceId);
 				const int passengerRow = modelRowFor(m_sceneModel.passengers, e2ePassengerId);
 				if (passengerRow < 0 || e2eJourneyId.empty() || e2eLegId.empty()
-						|| !m_passengerDock || !m_passengerListWidget || !m_passengerIdEdit
-						|| !m_passengerJourneyListWidget || !m_passengerJourneyIdEdit
-						|| !m_passengerJourneyActivityEdit || !m_passengerLegListWidget
-						|| !m_passengerLegIdEdit || !m_passengerLegOccurrenceEdit) {
+					|| !m_passengerDock || !m_passengerListWidget || !m_passengerIdEdit
+					|| !m_passengerJourneyListWidget || !m_passengerJourneyIdEdit
+					|| !m_passengerJourneyActivityEdit || !m_passengerLegListWidget
+					|| !m_passengerLegIdEdit || !m_passengerLegOccurrenceEdit) {
 					facetFailure(facetOk, "save/reload", "passenger pending-editor controls were unavailable after reload");
 				} else {
 					activateWindow();
@@ -18419,7 +18531,7 @@ void MainWindow::runEditorSmokeE2E() {
 					m_passengerJourneyIdEdit->setText(QString::fromStdString(pendingJourneyId));
 					m_passengerJourneyIdEdit->setFocus();
 					if (!triggerPendingSave() || !selectedPassengerJourney()
-							|| selectedPassengerJourney()->id != pendingJourneyId)
+						|| selectedPassengerJourney()->id != pendingJourneyId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger journey ID");
 					else
 						e2eJourneyId = pendingJourneyId;
@@ -18427,7 +18539,7 @@ void MainWindow::runEditorSmokeE2E() {
 					m_passengerJourneyActivityEdit->setText(QString::fromStdString(pendingActivity));
 					m_passengerJourneyActivityEdit->setFocus();
 					if (!triggerPendingSave() || !selectedPassengerJourney()
-							|| selectedPassengerJourney()->activity != pendingActivity)
+						|| selectedPassengerJourney()->activity != pendingActivity)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger activity");
 					if (m_passengerJourneyWindowEdits[0]) {
 						QLineEdit* pendingWindow = spinTextEdit(m_passengerJourneyWindowEdits[0]);
@@ -18438,7 +18550,7 @@ void MainWindow::runEditorSmokeE2E() {
 							pendingWindow->setText(QString::number(pendingWindowValue, 'g', 16));
 							pendingWindow->setFocus();
 							if (!triggerPendingSave() || !selectedPassengerJourney()
-									|| selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
+								|| selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
 								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger planned window");
 						}
 					}
@@ -18450,13 +18562,14 @@ void MainWindow::runEditorSmokeE2E() {
 					m_passengerLegIdEdit->setText(QString::fromStdString(pendingLegId));
 					m_passengerLegIdEdit->setFocus();
 					if (!triggerPendingSave() || !selectedPassengerLeg()
-							|| selectedPassengerLeg()->id != pendingLegId)
+						|| selectedPassengerLeg()->id != pendingLegId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger leg ID");
 					else
 						e2eLegId = pendingLegId;
 					QLineEdit* pendingOccurrence = spinTextEdit(m_passengerLegOccurrenceEdit);
 					const int repeatedServiceIndex = m_passengerLegServiceCombo
-						? m_passengerLegServiceCombo->findData(QString::fromStdString(editedServiceId)) : -1;
+						? m_passengerLegServiceCombo->findData(QString::fromStdString(editedServiceId))
+						: -1;
 					if (!pendingOccurrence || repeatedServiceIndex < 0) {
 						facetFailure(facetOk, "save/reload", "passenger occurrence editor was unavailable");
 					} else {
@@ -18470,10 +18583,10 @@ void MainWindow::runEditorSmokeE2E() {
 						QApplication::processEvents();
 						const bool savedOccurrence = triggerPendingSave();
 						if (!savedOccurrence || !selectedPassengerLeg()
-								|| selectedPassengerLeg()->occurrence != 2) {
+							|| selectedPassengerLeg()->occurrence != 2) {
 							facetFailure(facetOk, "save/reload",
 								QString("Save did not commit the still-focused passenger occurrence "
-									"(range %1..%2, editor %3, model %4, saved %5)")
+										"(range %1..%2, editor %3, model %4, saved %5)")
 									.arg(m_passengerLegOccurrenceEdit->minimum())
 									.arg(m_passengerLegOccurrenceEdit->maximum())
 									.arg(m_passengerLegOccurrenceEdit->value())
@@ -18482,7 +18595,7 @@ void MainWindow::runEditorSmokeE2E() {
 						}
 					}
 					if (!m_infrastructureFacetCombo || !m_infrastructureTable
-							|| m_infrastructureFacetCombo->findData("platforms") < 0) {
+						|| m_infrastructureFacetCombo->findData("platforms") < 0) {
 						facetFailure(facetOk, "save/reload", "platform geometry controls were unavailable for focused Save");
 					} else {
 						activateWindow();
@@ -18537,7 +18650,7 @@ void MainWindow::runEditorSmokeE2E() {
 								facetFailure(facetOk, "save/reload",
 									"same-value platform geometry was not committed on focus loss");
 							} else if (!triggerPendingSave()
-									|| implicitPlatform->hasLength)
+								|| implicitPlatform->hasLength)
 								facetFailure(facetOk, "save/reload",
 									"Save materialized an untouched compatibility platform length");
 						}
@@ -18550,9 +18663,9 @@ void MainWindow::runEditorSmokeE2E() {
 							pendingLength->setFocus();
 							enterSpinText(pendingLength, QString::number(pendingLengthValue, 'g', 16));
 							if (!triggerPendingSave() || m_sceneModel.stations.empty()
-									|| m_sceneModel.stations.front().platforms.empty()
-									|| !m_sceneModel.stations.front().platforms.front().hasLength
-									|| m_sceneModel.stations.front().platforms.front().lengthM != pendingLengthValue)
+								|| m_sceneModel.stations.front().platforms.empty()
+								|| !m_sceneModel.stations.front().platforms.front().hasLength
+								|| m_sceneModel.stations.front().platforms.front().lengthM != pendingLengthValue)
 								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused platform length");
 						}
 					}
@@ -18562,14 +18675,14 @@ void MainWindow::runEditorSmokeE2E() {
 					for (int row = 0; row < static_cast<int>(scenario->entranceDelays.size()); ++row) {
 						const SceneEntranceDelay& delay = scenario->entranceDelays[static_cast<std::size_t>(row)];
 						if (delay.serviceId == entranceDelayServiceId && delay.occurrence == 2
-								&& delay.stationId == entranceDelayStationId) {
+							&& delay.stationId == entranceDelayStationId) {
 							entranceDelayRow = row;
 							break;
 						}
 					}
 				}
 				if (entranceDelayRow < 0 || !m_entranceDelayListWidget || !m_entranceDelaySecondsEdit
-						|| !spinTextEdit(m_entranceDelaySecondsEdit)) {
+					|| !spinTextEdit(m_entranceDelaySecondsEdit)) {
 					facetFailure(facetOk, "save/reload", "focused entrance-delay controls were unavailable after reload");
 				} else {
 					activateWindow();
@@ -18587,8 +18700,8 @@ void MainWindow::runEditorSmokeE2E() {
 					pendingDelayEdit->setFocus();
 					QApplication::processEvents();
 					if (!selectedEntranceDelay() || selectedEntranceDelay()->delaySeconds == pendingEntranceDelay
-							|| !triggerPendingSave() || !selectedEntranceDelay()
-							|| selectedEntranceDelay()->delaySeconds != pendingEntranceDelay) {
+						|| !triggerPendingSave() || !selectedEntranceDelay()
+						|| selectedEntranceDelay()->delaySeconds != pendingEntranceDelay) {
 						facetFailure(facetOk, "save/reload",
 							"Save did not commit the still-focused entrance-delay value");
 					} else {
@@ -18598,9 +18711,9 @@ void MainWindow::runEditorSmokeE2E() {
 					}
 				}
 				if (trainUnitRow < 0 || compositionRow < 0 || serviceRow < 0
-						|| !m_compositionIdEdit || !m_trainUnitSourceDataEdit
-						|| !m_trainUnitPhysicalEdits[0]
-						|| !spinTextEdit(m_trainUnitPhysicalEdits[0])) {
+					|| !m_compositionIdEdit || !m_trainUnitSourceDataEdit
+					|| !m_trainUnitPhysicalEdits[0]
+					|| !spinTextEdit(m_trainUnitPhysicalEdits[0])) {
 					facetFailure(facetOk, "save/reload", "pending editor controls were unavailable after reload");
 				} else {
 					activateWindow();
@@ -18622,9 +18735,10 @@ void MainWindow::runEditorSmokeE2E() {
 					} else {
 						const int committedTrainRow = modelRowFor(m_sceneModel.trainUnits, editedTrainUnitId);
 						if (committedTrainRow < 0
-								|| !m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)].hasPhysical
-								|| m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)]
-									   .physical.mass_of_traction_unit_kg != pendingPhysicalMass)
+							|| !m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)].hasPhysical
+							|| m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)]
+									.physical.mass_of_traction_unit_kg
+								!= pendingPhysicalMass)
 							facetFailure(facetOk, "save/reload", "focused train-unit text was not committed before Save");
 					}
 
@@ -18642,9 +18756,9 @@ void MainWindow::runEditorSmokeE2E() {
 					} else {
 						const int committedCompositionRow = modelRowFor(m_sceneModel.compositions, pendingCompositionId);
 						if (committedCompositionRow < 0
-								|| !std::any_of(
-									m_sceneModel.services.begin(), m_sceneModel.services.end(),
-									[&](const SceneService& service) { return service.composition == pendingCompositionId; }))
+							|| !std::any_of(
+								m_sceneModel.services.begin(), m_sceneModel.services.end(),
+								[&](const SceneService& service) { return service.composition == pendingCompositionId; }))
 							facetFailure(facetOk, "save/reload", "focused composition text was not committed before Save");
 						else
 							editedCompositionId = pendingCompositionId;
@@ -18670,23 +18784,24 @@ void MainWindow::runEditorSmokeE2E() {
 						return -1;
 					}();
 					if (pendingServiceRow < 0 || pendingStopRow < 0 || scenarioRow < 0
-							|| !m_stopTableWidget
-							|| !m_scenarioListWidget || !m_scenarioDescriptionEdit
-							|| !m_incidentListWidget || !m_incidentEndSecondsEdit
-							|| !m_incidentHasEndSecondsCheck) {
+						|| !m_stopTableWidget
+						|| !m_scenarioListWidget || !m_scenarioDescriptionEdit
+						|| !m_incidentListWidget || !m_incidentEndSecondsEdit
+						|| !m_incidentHasEndSecondsCheck) {
 						facetFailure(facetOk, "save/reload", "pending stop, scenario, or incident controls were unavailable");
 					} else {
 						m_serviceListWidget->setCurrentRow(pendingServiceRow);
 						m_stopTableWidget->setCurrentCell(pendingStopRow, 0);
 						QApplication::processEvents();
-						const int pendingDwell = static_cast<int>(m_sceneModel.services[
-							static_cast<std::size_t>(pendingServiceRow)]
-							.stops[static_cast<std::size_t>(pendingStopRow)].dwellSeconds) + 1;
+						const int pendingDwell = static_cast<int>(m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)]
+														 .stops[static_cast<std::size_t>(pendingStopRow)]
+														 .dwellSeconds)
+							+ 1;
 						if (!editStopDialog(pendingStopRow, [&](QDialog* dialog) {
-							auto* dwell = dialog->findChild<QLineEdit*>("stopEditorDwellEdit");
-							dwell->setText(QString::number(pendingDwell));
-							dwell->setFocus();
-						}))
+								auto* dwell = dialog->findChild<QLineEdit*>("stopEditorDwellEdit");
+								dwell->setText(QString::number(pendingDwell));
+								dwell->setFocus();
+							}))
 							facetFailure(facetOk, "save/reload", "focused modal dwell was not accepted");
 						if (!triggerPendingSave()
 							|| m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)]
@@ -18734,45 +18849,45 @@ void MainWindow::runEditorSmokeE2E() {
 								m_runSceneAction->trigger();
 								QApplication::processEvents();
 								if (m_worker || !selectedIncident()
-										|| !selectedIncident()->hasEndSeconds
-										|| selectedIncident()->endSeconds != pendingIncidentEnd)
+									|| !selectedIncident()->hasEndSeconds
+									|| selectedIncident()->endSeconds != pendingIncidentEnd)
 									facetFailure(facetOk, "save/reload", "Run did not flush focused incident text before validation");
 								m_sceneModel.routes.front().blocks = validRoute;
 								refreshValidationPanel();
 							}
-							}
 						}
-						const std::string pendingSource = "e2e/source-data-pending-save.txt";
-						m_trainUnitListWidget->setCurrentRow(trainUnitRow);
-						m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
-						m_trainUnitSourceDataEdit->setFocus();
-						if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
-								== pendingSource) {
-							facetFailure(facetOk, "save/reload", "pending source edit committed before Save");
-						} else if (!saveSceneToCurrentDir()) {
-							facetFailure(facetOk, "save/reload", "pending editor values were not saved");
-						} else {
+					}
+					const std::string pendingSource = "e2e/source-data-pending-save.txt";
+					m_trainUnitListWidget->setCurrentRow(trainUnitRow);
+					m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
+					m_trainUnitSourceDataEdit->setFocus();
+					if (m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
+						== pendingSource) {
+						facetFailure(facetOk, "save/reload", "pending source edit committed before Save");
+					} else if (!saveSceneToCurrentDir()) {
+						facetFailure(facetOk, "save/reload", "pending editor values were not saved");
+					} else {
 						expectedTrainUnits = m_sceneModel.trainUnits;
 						expectedCompositions = m_sceneModel.compositions;
 						expectedServices = m_sceneModel.services;
 						expectedStations = m_sceneModel.stations;
 						expectedPassengers = m_sceneModel.passengers;
 						expectedIncidents = selectedScenarioIncidents();
-							if (const SceneScenario* scenario = selectedScenario())
-								expectedEntranceDelays = scenario->entranceDelays;
-							if (!openSceneDirectory(outScenePath)
-									|| !sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)
-								|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
-								|| !sameServices(expectedServices, m_sceneModel.services)
-								|| !sameStations(expectedStations, m_sceneModel.stations)
-								|| !samePassengers(expectedPassengers, m_sceneModel.passengers)
-								|| !sameIncidents(expectedIncidents, selectedScenarioIncidents())
-									|| !selectedScenario()
-									|| !sameEntranceDelays(expectedEntranceDelays,
-										selectedScenario()->entranceDelays))
-								facetFailure(facetOk, "save/reload", "pending editor values did not survive Save and reopen");
-						}
-						bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
+						if (const SceneScenario* scenario = selectedScenario())
+							expectedEntranceDelays = scenario->entranceDelays;
+						if (!openSceneDirectory(outScenePath)
+							|| !sameTrainUnits(expectedTrainUnits, m_sceneModel.trainUnits)
+							|| !sameCompositions(expectedCompositions, m_sceneModel.compositions)
+							|| !sameServices(expectedServices, m_sceneModel.services)
+							|| !sameStations(expectedStations, m_sceneModel.stations)
+							|| !samePassengers(expectedPassengers, m_sceneModel.passengers)
+							|| !sameIncidents(expectedIncidents, selectedScenarioIncidents())
+							|| !selectedScenario()
+							|| !sameEntranceDelays(expectedEntranceDelays,
+								selectedScenario()->entranceDelays))
+							facetFailure(facetOk, "save/reload", "pending editor values did not survive Save and reopen");
+					}
+					bool selectionRoundtripOk = m_excludedSceneOccurrences.empty();
 					if (m_serviceOccurrenceTable) {
 						for (int row = 0; row < m_serviceOccurrenceTable->rowCount(); ++row) {
 							QTableWidgetItem* include = m_serviceOccurrenceTable->item(row, 0);
@@ -18785,12 +18900,12 @@ void MainWindow::runEditorSmokeE2E() {
 					QFile::remove(bundlePath);
 					const SceneSaveResult bundleSave = saveSceneBundle(m_sceneModel, bundlePath.toStdString());
 					if (!bundleSave.success() || !openSceneDirectory(bundlePath) || !selectedScenario()
-							|| !sameStations(expectedStations, m_sceneModel.stations)
-							|| !samePassengers(expectedPassengers, m_sceneModel.passengers)
-							|| !sameEntranceDelays(expectedEntranceDelays,
-								selectedScenario()->entranceDelays))
+						|| !sameStations(expectedStations, m_sceneModel.stations)
+						|| !samePassengers(expectedPassengers, m_sceneModel.passengers)
+						|| !sameEntranceDelays(expectedEntranceDelays,
+							selectedScenario()->entranceDelays))
 						facetFailure(facetOk, "save/reload", "entrance delays changed after bundle save and reopen");
-					}
+				}
 			}
 			if (facetOk)
 				std::fprintf(stdout, "E2E_EDITOR_SAVE_RELOAD_OK\n");
@@ -18815,7 +18930,7 @@ void MainWindow::runEditorSmokeE2E() {
 		resize(1280, 800);
 		QApplication::processEvents();
 		for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
-				m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
+				 m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
 			const QFont normalFont = dock->font();
 			for (const double scale : {1.0, 1.5}) {
 				QFont font = normalFont;
@@ -18896,45 +19011,45 @@ void MainWindow::runTrackPreviewE2E() {
 			|| leftIncidents.size() != rightIncidents.size())
 			return false;
 		if (!std::equal(left.stations.begin(), left.stations.end(), right.stations.begin(), [](const auto& a, const auto& b) {
-			return a.id == b.id && a.name == b.name && a.platforms.size() == b.platforms.size()
-				&& std::equal(a.platforms.begin(), a.platforms.end(), b.platforms.begin(),
-				[](const auto& x, const auto& y) { return x.id == y.id; });
-		}))
-			return false;
-		if (!std::equal(left.signals.begin(), left.signals.end(), right.signals.begin(),
-			[](const auto& a, const auto& b) {
-				return a.id == b.id && a.protectedSection == b.protectedSection;
+				return a.id == b.id && a.name == b.name && a.platforms.size() == b.platforms.size()
+					&& std::equal(a.platforms.begin(), a.platforms.end(), b.platforms.begin(),
+						[](const auto& x, const auto& y) { return x.id == y.id; });
 			}))
 			return false;
+		if (!std::equal(left.signals.begin(), left.signals.end(), right.signals.begin(),
+				[](const auto& a, const auto& b) {
+					return a.id == b.id && a.protectedSection == b.protectedSection;
+				}))
+			return false;
 		if (!std::equal(left.routes.begin(), left.routes.end(), right.routes.begin(), [](const auto& a, const auto& b) {
-			return a.id == b.id && a.blocks == b.blocks;
-		}))
+				return a.id == b.id && a.blocks == b.blocks;
+			}))
 			return false;
 		if (!std::equal(left.trainUnits.begin(), left.trainUnits.end(), right.trainUnits.begin(), [](const auto& a, const auto& b) {
-			return a.id == b.id && a.hasPhysical == b.hasPhysical && a.physical.mass_of_traction_unit_kg == b.physical.mass_of_traction_unit_kg
-				&& a.physical.mass_of_a_wagon_kg == b.physical.mass_of_a_wagon_kg && a.physical.number_of_wagons == b.physical.number_of_wagons
-				&& a.physical.max_speed_ms == b.physical.max_speed_ms && a.physical.max_deceleration_ms2 == b.physical.max_deceleration_ms2
-				&& a.physical.frontal_area_m2 == b.physical.frontal_area_m2 && a.physical.resistance_coefficient == b.physical.resistance_coefficient
-				&& a.physical.jerk_ms3 == b.physical.jerk_ms3 && a.physical.length_m == b.physical.length_m
-				&& a.tractionCurve == b.tractionCurve && a.sourceDataFile == b.sourceDataFile
-				&& a.sourceTractionFile == b.sourceTractionFile;
-		}))
+				return a.id == b.id && a.hasPhysical == b.hasPhysical && a.physical.mass_of_traction_unit_kg == b.physical.mass_of_traction_unit_kg
+					&& a.physical.mass_of_a_wagon_kg == b.physical.mass_of_a_wagon_kg && a.physical.number_of_wagons == b.physical.number_of_wagons
+					&& a.physical.max_speed_ms == b.physical.max_speed_ms && a.physical.max_deceleration_ms2 == b.physical.max_deceleration_ms2
+					&& a.physical.frontal_area_m2 == b.physical.frontal_area_m2 && a.physical.resistance_coefficient == b.physical.resistance_coefficient
+					&& a.physical.jerk_ms3 == b.physical.jerk_ms3 && a.physical.length_m == b.physical.length_m
+					&& a.tractionCurve == b.tractionCurve && a.sourceDataFile == b.sourceDataFile
+					&& a.sourceTractionFile == b.sourceTractionFile;
+			}))
 			return false;
 		if (!std::equal(left.compositions.begin(), left.compositions.end(), right.compositions.begin(),
-			[](const auto& a, const auto& b) { return a.id == b.id && a.units == b.units; }))
+				[](const auto& a, const auto& b) { return a.id == b.id && a.units == b.units; }))
 			return false;
 		if (!std::equal(left.services.begin(), left.services.end(), right.services.begin(), [](const auto& a, const auto& b) {
-			if (a.id != b.id || a.operatingCode != b.operatingCode
-				|| a.composition != b.composition || a.route != b.route || a.through != b.through
-				|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
-				|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds || a.stops.size() != b.stops.size())
-				return false;
-			return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), [](const auto& x, const auto& y) {
-				return x.stationId == y.stationId && x.platformId == y.platformId && x.hasPlannedArrival == y.hasPlannedArrival
-					&& x.hasPlannedDeparture == y.hasPlannedDeparture && x.plannedArrivalSeconds == y.plannedArrivalSeconds
-					&& x.plannedDepartureSeconds == y.plannedDepartureSeconds && x.dwellSeconds == y.dwellSeconds;
-			});
-		}))
+				if (a.id != b.id || a.operatingCode != b.operatingCode
+					|| a.composition != b.composition || a.route != b.route || a.through != b.through
+					|| a.hasEntryTime != b.hasEntryTime || a.entryTimeSeconds != b.entryTimeSeconds
+					|| a.hasRepeat != b.hasRepeat || a.headwaySeconds != b.headwaySeconds || a.stops.size() != b.stops.size())
+					return false;
+				return std::equal(a.stops.begin(), a.stops.end(), b.stops.begin(), [](const auto& x, const auto& y) {
+					return x.stationId == y.stationId && x.platformId == y.platformId && x.hasPlannedArrival == y.hasPlannedArrival
+						&& x.hasPlannedDeparture == y.hasPlannedDeparture && x.plannedArrivalSeconds == y.plannedArrivalSeconds
+						&& x.plannedDepartureSeconds == y.plannedDepartureSeconds && x.dwellSeconds == y.dwellSeconds;
+				});
+			}))
 			return false;
 		return std::equal(leftIncidents.begin(), leftIncidents.end(), rightIncidents.begin(),
 			[](const auto& a, const auto& b) {
@@ -19021,11 +19136,12 @@ void MainWindow::runTrackPreviewE2E() {
 				return item && qgraphicsitem_cast<SignalItem*>(item) != nullptr;
 			});
 		const QVector<NetworkLegendEntry> legendEntries = m_networkLegendWidget
-			? m_networkLegendWidget->entries() : QVector<NetworkLegendEntry>();
+			? m_networkLegendWidget->entries()
+			: QVector<NetworkLegendEntry>();
 		const bool legendHasSignals = std::any_of(legendEntries.cbegin(),
 			legendEntries.cend(), [](const NetworkLegendEntry& entry) {
-					return entry.kind == NetworkLegendEntryKind::Signal;
-				});
+				return entry.kind == NetworkLegendEntryKind::Signal;
+			});
 		if (previewHasSignalGlyph != legendHasSignals)
 			fail("signals", "preview glyphs and map-key signal entries are out of sync");
 		if (previewHasSignalGlyph && networkView) {
@@ -19519,12 +19635,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				}
 				auto* dialog = qobject_cast<QDialog*>(widget);
 				if (!dialog || !dialog->isVisible() || !dialog->isModal()
-						|| dialog->windowTitle() != QStringLiteral("Capacity analysis"))
+					|| dialog->windowTitle() != QStringLiteral("Capacity analysis"))
 					continue;
 				QComboBox* cycleEnd = nullptr;
 				for (QComboBox* combo : dialog->findChildren<QComboBox*>())
 					if (combo->count() >= 3
-							&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
+						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
 						cycleEnd = combo;
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
 				if (!cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
@@ -19558,7 +19674,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 	auto rowFor = [&](const QString& id) {
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row)
 			if (m_infrastructureTable->item(row, 0)
-					&& m_infrastructureTable->item(row, 0)->text() == id)
+				&& m_infrastructureTable->item(row, 0)->text() == id)
 				return row;
 		return -1;
 	};
@@ -19581,7 +19697,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return QString();
 		for (int index = 0; index < combo->count(); ++index) {
 			if (combo->itemData(index).toString().isEmpty()
-					|| (!prefix.isEmpty() && !combo->itemText(index).startsWith(prefix)))
+				|| (!prefix.isEmpty() && !combo->itemText(index).startsWith(prefix)))
 				continue;
 			combo->setCurrentIndex(index);
 			process();
@@ -19604,7 +19720,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 
 	if (m_creatorAcceptancePhase == 1) {
 		if (!m_sceneLoaded || !m_infrastructureFacetCombo || !m_infrastructureTable
-				|| !m_addInfrastructureButton || !m_caseSettingsDock) {
+			|| !m_addInfrastructureButton || !m_caseSettingsDock) {
 			fail(QStringLiteral("blank case or creator controls did not load"));
 			return;
 		}
@@ -19626,7 +19742,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (!facet("tracks") || m_infrastructureTable->rowCount() < 1
-				|| !m_infrastructureTable->item(0, 0)) {
+			|| !m_infrastructureTable->item(0, 0)) {
 			fail(QStringLiteral("track row 1 unavailable"));
 			return;
 		}
@@ -19641,7 +19757,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (!facet("tracks") || m_infrastructureTable->rowCount() < 2
-				|| !m_infrastructureTable->item(1, 0)) {
+			|| !m_infrastructureTable->item(1, 0)) {
 			fail(QStringLiteral("track row 2 unavailable"));
 			return;
 		}
@@ -19661,7 +19777,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			}
 			const int createdRow = m_infrastructureTable->rowCount() - 1;
 			const QString generated = m_infrastructureTable->item(createdRow, 0)
-				? m_infrastructureTable->item(createdRow, 0)->text() : QString();
+				? m_infrastructureTable->item(createdRow, 0)->text()
+				: QString();
 			const QString track = row < 3 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
 			if (!setCell("nodes", generated, 0, nodeIds[static_cast<std::size_t>(row)])
 				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 1, track)
@@ -19679,7 +19796,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			}
 			const int createdRow = m_infrastructureTable->rowCount() - 1;
 			const QString generated = m_infrastructureTable->item(createdRow, 0)
-				? m_infrastructureTable->item(createdRow, 0)->text() : QString();
+				? m_infrastructureTable->item(createdRow, 0)->text()
+				: QString();
 			const QString track = row < 2 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
 			const int nodeOffset = row < 2 ? 0 : 3;
 			const int localRow = row % 2;
@@ -19726,9 +19844,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				return;
 			}
 			const QString firstGenerated = m_infrastructureTable->item(0, 0)
-				? m_infrastructureTable->item(0, 0)->text() : QString();
+				? m_infrastructureTable->item(0, 0)->text()
+				: QString();
 			const QString secondGenerated = m_infrastructureTable->item(1, 0)
-				? m_infrastructureTable->item(1, 0)->text() : QString();
+				? m_infrastructureTable->item(1, 0)->text()
+				: QString();
 			const bool yard = track == QStringLiteral("creator-yard");
 			QString blockFailure;
 			if (!setCell("blocks", firstGenerated, 0, track + QStringLiteral("-block-0")))
@@ -19736,14 +19856,14 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			else if (!setCell("blocks", secondGenerated, 0, track + QStringLiteral("-block-2")))
 				blockFailure = QStringLiteral("second id");
 			else if (!setCell("blocks", track + QStringLiteral("-block-0"), 2,
-					yard ? QStringLiteral("0.5") : QStringLiteral("0.75")))
+						 yard ? QStringLiteral("0.5") : QStringLiteral("0.75")))
 				blockFailure = QStringLiteral("first length");
 			else if (!setCell("blocks", track + QStringLiteral("-block-2"), 2,
-					yard ? QStringLiteral("0.25") : QStringLiteral("0.75")))
+						 yard ? QStringLiteral("0.25") : QStringLiteral("0.75")))
 				blockFailure = QStringLiteral("second length");
 			if (!blockFailure.isEmpty()) {
 				fail(QStringLiteral("base block fields did not commit (%1, %2)")
-					.arg(track, blockFailure));
+						.arg(track, blockFailure));
 				return;
 			}
 			m_infrastructureTable->setCurrentCell(1, 0);
@@ -19754,7 +19874,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				return;
 			}
 			const QString insertedGenerated = m_infrastructureTable->item(1, 0)
-				? m_infrastructureTable->item(1, 0)->text() : QString();
+				? m_infrastructureTable->item(1, 0)->text()
+				: QString();
 			if (!setCell("blocks", insertedGenerated, 0, track + QStringLiteral("-block-1"))
 				|| !setCell("blocks", track + QStringLiteral("-block-1"), 2,
 					yard ? QStringLiteral("1.25") : QStringLiteral("0.5"))) {
@@ -19774,7 +19895,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 
 	if (m_creatorAcceptancePhase == 2) {
 		if (!m_sceneLoaded || !m_infrastructureFacetCombo || !m_infrastructureTable
-				|| !m_addInfrastructureButton || !m_deleteInfrastructureButton) {
+			|| !m_addInfrastructureButton || !m_deleteInfrastructureButton) {
 			fail(QStringLiteral("infrastructure controls disappeared before signalling authoring"));
 			return;
 		}
@@ -19790,13 +19911,13 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (!addRow("platforms") || !addRow("platforms")
-				|| m_infrastructureTable->rowCount() != 2) {
+			|| m_infrastructureTable->rowCount() != 2) {
 			fail(QStringLiteral("platform rows did not add"));
 			return;
 		}
 		auto setPlatformCell = [&](int row, int column, const QString& value) {
 			if (!facet("platforms") || row < 0 || row >= m_infrastructureTable->rowCount()
-					|| !m_infrastructureTable->item(row, column))
+				|| !m_infrastructureTable->item(row, column))
 				return false;
 			m_infrastructureTable->setCurrentCell(row, column);
 			m_infrastructureTable->item(row, column)->setText(value);
@@ -19804,11 +19925,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return true;
 		};
 		if (!setPlatformCell(0, 0, "creator-station-a")
-				|| !setPlatformCell(0, 1, "creator-platform-a")
-				|| !setPlatformCell(0, 2, "creator-main-node-1")
-				|| !setPlatformCell(1, 0, "creator-station-b")
-				|| !setPlatformCell(1, 1, "creator-platform-b")
-				|| !setPlatformCell(1, 2, "creator-yard-node-1")) {
+			|| !setPlatformCell(0, 1, "creator-platform-a")
+			|| !setPlatformCell(0, 2, "creator-main-node-1")
+			|| !setPlatformCell(1, 0, "creator-station-b")
+			|| !setPlatformCell(1, 1, "creator-platform-b")
+			|| !setPlatformCell(1, 2, "creator-yard-node-1")) {
 			fail(QStringLiteral("platform station/node references did not commit"));
 			return;
 		}
@@ -19824,11 +19945,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			process();
 		}
 		if (!addRow("connections")
-				|| !setCell("connections", "connection", 0, "creator-switch")
-				|| !setCell("connections", "creator-switch", 1, "creator-main-node-1")
-				|| !setCell("connections", "creator-switch", 2, "creator-yard-node-1")
-				|| !setCell("connections", "creator-switch", 3, "true")
-				|| !setCell("connections", "creator-switch", 4, "9.25")) {
+			|| !setCell("connections", "connection", 0, "creator-switch")
+			|| !setCell("connections", "creator-switch", 1, "creator-main-node-1")
+			|| !setCell("connections", "creator-switch", 2, "creator-yard-node-1")
+			|| !setCell("connections", "creator-switch", 3, "true")
+			|| !setCell("connections", "creator-switch", 4, "9.25")) {
 			fail(QStringLiteral("connection authoring failed"));
 			return;
 		}
@@ -19843,23 +19964,23 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (!addRow("signalling_areas")
-				|| !setCell("signalling_areas", "signalling-area", 0, "creator-signalling-area")
-				|| !setCell("signalling_areas", "creator-signalling-area", 1, "0")
-				|| !setCell("signalling_areas", "creator-signalling-area", 2, "2")
-				|| !setCell("signalling_areas", "creator-signalling-area", 3, "0")) {
+			|| !setCell("signalling_areas", "signalling-area", 0, "creator-signalling-area")
+			|| !setCell("signalling_areas", "creator-signalling-area", 1, "0")
+			|| !setCell("signalling_areas", "creator-signalling-area", 2, "2")
+			|| !setCell("signalling_areas", "creator-signalling-area", 3, "0")) {
 			fail(QStringLiteral("signalling area authoring failed"));
 			return;
 		}
 		if (!addRow("routes")
-				|| !setCell("routes", "route", 0, "creator-route")
-				|| !setCell("routes", "creator-route", 2, "true")
-				|| !setCell("routes", "creator-route", 3, "creator-corridor")
-				|| !setCell("routes", "creator-route", 4, "false")) {
+			|| !setCell("routes", "route", 0, "creator-route")
+			|| !setCell("routes", "creator-route", 2, "true")
+			|| !setCell("routes", "creator-route", 3, "creator-corridor")
+			|| !setCell("routes", "creator-route", 4, "false")) {
 			fail(QStringLiteral("route metadata authoring failed"));
 			return;
 		}
 		if (!facet("routes") || !m_routeSectionCatalogCombo || !m_addRouteSectionButton
-				|| !m_routeSectionListWidget) {
+			|| !m_routeSectionListWidget) {
 			fail(QStringLiteral("route section controls unavailable"));
 			return;
 		}
@@ -19892,9 +20013,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (setSection("block_dependencies", 0, 0,
-				QStringLiteral("base block creator-main-block-0 /")).isEmpty()
+				QStringLiteral("base block creator-main-block-0 /"))
+				.isEmpty()
 			|| setSection("block_dependencies", 0, 1,
-				QStringLiteral("base block creator-yard-block-2 /")).isEmpty()) {
+				QStringLiteral("base block creator-yard-block-2 /"))
+				.isEmpty()) {
 			fail(QStringLiteral("dependency typed selectors lacked safe sections"));
 			return;
 		}
@@ -19909,15 +20032,18 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			QStringLiteral("base block creator-yard-block-2 /")};
 		for (int column = 0; column < 4; ++column)
 			if (setSection("single_track_restrictions", 0, column,
-					restrictionPrefixes[static_cast<std::size_t>(column)]).isEmpty()) {
+					restrictionPrefixes[static_cast<std::size_t>(column)])
+					.isEmpty()) {
 				fail(QStringLiteral("restriction typed selector lacked a safe section"));
 				return;
 			}
 		if (!addRow("station_boundaries")
-				|| setSection("station_boundaries", 0, 0,
-					QStringLiteral("base block creator-main-block-0 /")).isEmpty()
-				|| setSection("station_boundaries", 0, 1,
-					QStringLiteral("base block creator-yard-block-2 /")).isEmpty()) {
+			|| setSection("station_boundaries", 0, 0,
+				QStringLiteral("base block creator-main-block-0 /"))
+				.isEmpty()
+			|| setSection("station_boundaries", 0, 1,
+				QStringLiteral("base block creator-yard-block-2 /"))
+				.isEmpty()) {
 			fail(QStringLiteral("station boundary typed selectors lacked safe sections"));
 			return;
 		}
@@ -19942,10 +20068,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 		bool referenceStillValid = false;
 		if (m_sceneModel.routes.size() == 1 && m_sceneModel.routes.front().blocks.size() == 3
-				&& m_sceneModel.blockDependencies.size() == 1
-				&& m_sceneModel.singleTrackRestrictions.size() == 1
-				&& m_sceneModel.stationBoundaries.size() == 1
-					&& !sceneSignals(m_sceneModel).empty()) {
+			&& m_sceneModel.blockDependencies.size() == 1
+			&& m_sceneModel.singleTrackRestrictions.size() == 1
+			&& m_sceneModel.stationBoundaries.size() == 1
+			&& !sceneSignals(m_sceneModel).empty()) {
 			const auto mentions = [&renamedBlock](const std::string& value) {
 				return value.find(renamedBlock.toStdString()) != std::string::npos;
 			};
@@ -19981,8 +20107,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 
 	if (m_creatorAcceptancePhase == 3) {
 		if (!m_sceneLoaded || !m_trainUnitDock || !m_trainUnitListWidget
-				|| !m_addTrainUnitButton || !m_trainUnitIdEdit || !m_compositionDock
-				|| !m_addCompositionButton || !m_addUnitButton || !m_addTrainUnitTractionButton) {
+			|| !m_addTrainUnitButton || !m_trainUnitIdEdit || !m_compositionDock
+			|| !m_addCompositionButton || !m_addUnitButton || !m_addTrainUnitTractionButton) {
 			fail(QStringLiteral("rolling-stock creator controls are unavailable"));
 			return;
 		}
@@ -20033,7 +20159,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_addCompositionButton->click();
 		process();
 		if (m_compositionListWidget->count() != 1
-				|| !editLine(m_compositionIdEdit, QStringLiteral("creator-composition"))) {
+			|| !editLine(m_compositionIdEdit, QStringLiteral("creator-composition"))) {
 			fail(QStringLiteral("composition row did not author through controls"));
 			return;
 		}
@@ -20044,10 +20170,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_addUnitButton->click();
 		process();
 		if (m_compositionUnitsListWidget->count() != 2
-				|| m_sceneModel.compositions.empty()
-				|| m_sceneModel.compositions.front().units.size() != 2
-				|| m_sceneModel.compositions.front().units.front() != "creator-unit-a"
-				|| m_sceneModel.compositions.front().units.back() != "creator-unit-b") {
+			|| m_sceneModel.compositions.empty()
+			|| m_sceneModel.compositions.front().units.size() != 2
+			|| m_sceneModel.compositions.front().units.front() != "creator-unit-a"
+			|| m_sceneModel.compositions.front().units.back() != "creator-unit-b") {
 			fail(QStringLiteral("composition membership did not retain both units in order"));
 			return;
 		}
@@ -20058,8 +20184,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 
 	if (m_creatorAcceptancePhase == 4) {
 		if (!m_sceneLoaded || !m_serviceDock || !m_serviceListWidget || !m_addServiceButton
-				|| !m_serviceIdEdit || !m_serviceOperatingCodeEdit || !m_serviceCompositionCombo
-				|| !m_serviceRouteCombo || !m_addStopButton || !m_stopTableWidget) {
+			|| !m_serviceIdEdit || !m_serviceOperatingCodeEdit || !m_serviceCompositionCombo
+			|| !m_serviceRouteCombo || !m_addStopButton || !m_stopTableWidget) {
 			fail(QStringLiteral("service creator controls are unavailable"));
 			return;
 		}
@@ -20068,10 +20194,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_addServiceButton->click();
 		process();
 		if (m_serviceListWidget->count() != 1
-				|| !editLine(m_serviceIdEdit, QStringLiteral("creator-service"))
-				|| !editLine(m_serviceOperatingCodeEdit, QStringLiteral("1701"))
-				|| !choose(m_serviceCompositionCombo, QStringLiteral("creator-composition"))
-				|| !choose(m_serviceRouteCombo, QStringLiteral("creator-route"))) {
+			|| !editLine(m_serviceIdEdit, QStringLiteral("creator-service"))
+			|| !editLine(m_serviceOperatingCodeEdit, QStringLiteral("1701"))
+			|| !choose(m_serviceCompositionCombo, QStringLiteral("creator-composition"))
+			|| !choose(m_serviceRouteCombo, QStringLiteral("creator-route"))) {
 			fail(QStringLiteral("service identity or typed references did not commit"));
 			return;
 		}
@@ -20099,7 +20225,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		const auto configureStop = [&](const QString& station, const QString& platform,
-				double arrival, double departure, double dwell) {
+									   double arrival, double departure, double dwell) {
 			bool choices = true;
 			const bool accepted = editStopDialog(-1, [&](QDialog* dialog) {
 				choices = choose(dialog->findChild<QComboBox*>("stopEditorStationCombo"), station)
@@ -20123,33 +20249,34 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (m_sceneModel.services.empty() || m_sceneModel.services.front().stops.size() != 2
-				|| !m_sceneModel.services.front().hasRepeat
-				|| !m_sceneModel.services.front().hasRepeatCount
-				|| m_sceneModel.services.front().repeatCount != 3
-				|| m_sceneModel.services.front().headwaySeconds != 300.0
-				|| m_sceneModel.services.front().stops.front().stationId != "creator-station-a"
-				|| m_sceneModel.services.front().stops.back().stationId != "creator-station-b"
-				|| !m_sceneModel.services.front().stops.front().hasPlannedArrival
-				|| !m_sceneModel.services.front().stops.front().hasPlannedDeparture
-				|| m_sceneModel.services.front().stops.front().plannedArrivalSeconds != 180.0
-				|| m_sceneModel.services.front().stops.front().plannedDepartureSeconds != 240.0
-				|| m_sceneModel.services.front().stops.front().dwellSeconds != 60.0
-				|| m_sceneModel.services.front().stops.back().plannedArrivalSeconds != 480.0
-				|| m_sceneModel.services.front().stops.back().plannedDepartureSeconds != 540.0
-				|| m_sceneModel.services.front().stops.back().dwellSeconds != 60.0) {
+			|| !m_sceneModel.services.front().hasRepeat
+			|| !m_sceneModel.services.front().hasRepeatCount
+			|| m_sceneModel.services.front().repeatCount != 3
+			|| m_sceneModel.services.front().headwaySeconds != 300.0
+			|| m_sceneModel.services.front().stops.front().stationId != "creator-station-a"
+			|| m_sceneModel.services.front().stops.back().stationId != "creator-station-b"
+			|| !m_sceneModel.services.front().stops.front().hasPlannedArrival
+			|| !m_sceneModel.services.front().stops.front().hasPlannedDeparture
+			|| m_sceneModel.services.front().stops.front().plannedArrivalSeconds != 180.0
+			|| m_sceneModel.services.front().stops.front().plannedDepartureSeconds != 240.0
+			|| m_sceneModel.services.front().stops.front().dwellSeconds != 60.0
+			|| m_sceneModel.services.front().stops.back().plannedArrivalSeconds != 480.0
+			|| m_sceneModel.services.front().stops.back().plannedDepartureSeconds != 540.0
+			|| m_sceneModel.services.front().stops.back().dwellSeconds != 60.0) {
 			const SceneService* service = m_sceneModel.services.empty()
-				? nullptr : &m_sceneModel.services.front();
+				? nullptr
+				: &m_sceneModel.services.front();
 			fail(QStringLiteral("service repeat or ordered stop values were not retained: stops=%1 repeat=%2 count-flag=%3 count=%4 headway=%5 first=%6 last=%7 arrival=%8 departure=%9 dwell=%10")
-				.arg(service ? static_cast<int>(service->stops.size()) : -1)
-				.arg(service && service->hasRepeat)
-				.arg(service && service->hasRepeatCount)
-				.arg(service ? service->repeatCount : -1)
-				.arg(service ? service->headwaySeconds : -1.0)
-				.arg(service && !service->stops.empty() ? QString::fromStdString(service->stops.front().stationId) : QStringLiteral("-"))
-				.arg(service && !service->stops.empty() ? QString::fromStdString(service->stops.back().stationId) : QStringLiteral("-"))
-				.arg(service && !service->stops.empty() && service->stops.front().hasPlannedArrival)
-				.arg(service && !service->stops.empty() && service->stops.front().hasPlannedDeparture)
-				.arg(service && !service->stops.empty() ? service->stops.front().dwellSeconds : -1.0));
+					.arg(service ? static_cast<int>(service->stops.size()) : -1)
+					.arg(service && service->hasRepeat)
+					.arg(service && service->hasRepeatCount)
+					.arg(service ? service->repeatCount : -1)
+					.arg(service ? service->headwaySeconds : -1.0)
+					.arg(service && !service->stops.empty() ? QString::fromStdString(service->stops.front().stationId) : QStringLiteral("-"))
+					.arg(service && !service->stops.empty() ? QString::fromStdString(service->stops.back().stationId) : QStringLiteral("-"))
+					.arg(service && !service->stops.empty() && service->stops.front().hasPlannedArrival)
+					.arg(service && !service->stops.empty() && service->stops.front().hasPlannedDeparture)
+					.arg(service && !service->stops.empty() ? service->stops.front().dwellSeconds : -1.0));
 			return;
 		}
 		if (m_serviceOccurrenceTable->rowCount() != 3 || hasErrors(m_sceneDiagnostics)) {
@@ -20160,7 +20287,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 					break;
 				}
 			fail(QStringLiteral("service occurrence preview or validation is not runnable: rows=%1 %2")
-				.arg(m_serviceOccurrenceTable->rowCount()).arg(detail));
+					.arg(m_serviceOccurrenceTable->rowCount())
+					.arg(detail));
 			return;
 		}
 		marker("E2E_CREATOR_SERVICE_OK");
@@ -20170,8 +20298,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 
 	if (m_creatorAcceptancePhase == 5) {
 		if (!m_sceneLoaded || !m_incidentDock || !m_scenarioListWidget
-				|| !m_blankScenarioButton || !m_addIncidentButton || !m_addEntranceDelayButton
-				|| !m_incidentHasReducedSpeedCheck || !m_incidentReducedSpeedKmhEdit) {
+			|| !m_blankScenarioButton || !m_addIncidentButton || !m_addEntranceDelayButton
+			|| !m_incidentHasReducedSpeedCheck || !m_incidentReducedSpeedKmhEdit) {
 			fail(QStringLiteral("scenario creator controls are unavailable"));
 			return;
 		}
@@ -20180,17 +20308,17 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_blankScenarioButton->click();
 		process();
 		if (!editLine(m_scenarioIdEdit, QStringLiteral("incident"))
-				|| !editLine(m_scenarioNameEdit, QStringLiteral("Incident scenario"))
-				|| !editLine(m_scenarioDescriptionEdit, QStringLiteral("signal and breakdown evidence"))) {
+			|| !editLine(m_scenarioNameEdit, QStringLiteral("Incident scenario"))
+			|| !editLine(m_scenarioDescriptionEdit, QStringLiteral("signal and breakdown evidence"))) {
 			fail(QStringLiteral("incident scenario metadata did not commit"));
 			return;
 		}
 		m_addIncidentButton->click();
 		process();
 		if (!editLine(m_incidentIdEdit, QStringLiteral("creator-signal-failure"))
-				|| !choose(m_incidentTargetCombo, QStringLiteral("creator-signal"))
-				|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("350"))
-				|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("500"))) {
+			|| !choose(m_incidentTargetCombo, QStringLiteral("creator-signal"))
+			|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("350"))
+			|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("500"))) {
 			fail(QStringLiteral("signal failure incident did not bind through controls"));
 			return;
 		}
@@ -20199,9 +20327,9 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_incidentTypeCombo->setCurrentText(QStringLiteral("train_breakdown"));
 		process();
 		if (!editLine(m_incidentIdEdit, QStringLiteral("creator-breakdown"))
-				|| !choose(m_incidentTargetCombo, QStringLiteral("creator-service"))
-				|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("60"))
-				|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("100"))) {
+			|| !choose(m_incidentTargetCombo, QStringLiteral("creator-service"))
+			|| !editLine(m_incidentStartSecondsEdit, QStringLiteral("60"))
+			|| !editLine(m_incidentEndSecondsEdit, QStringLiteral("100"))) {
 			fail(QStringLiteral("breakdown incident target or finite interval did not commit"));
 			return;
 		}
@@ -20212,8 +20340,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_blankScenarioButton->click();
 		process();
 		if (!editLine(m_scenarioIdEdit, QStringLiteral("entrance"))
-				|| !editLine(m_scenarioNameEdit, QStringLiteral("Entrance delay"))
-				|| !editLine(m_scenarioDescriptionEdit, QStringLiteral("positive entrance delay at station A"))) {
+			|| !editLine(m_scenarioNameEdit, QStringLiteral("Entrance delay"))
+			|| !editLine(m_scenarioDescriptionEdit, QStringLiteral("positive entrance delay at station A"))) {
 			fail(QStringLiteral("entrance scenario metadata did not commit"));
 			return;
 		}
@@ -20234,11 +20362,11 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		QMetaObject::invokeMethod(m_entranceDelaySecondsEdit, "editingFinished", Qt::DirectConnection);
 		process();
 		if (m_sceneModel.scenarios.size() != 3
-				|| m_sceneModel.scenarios[1].incidents.size() != 2
-				|| m_sceneModel.scenarios[2].entranceDelays.size() != 1
-				|| m_sceneModel.scenarios[2].entranceDelays.front().occurrence != 2
-				|| m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds <= 0.0
-				|| hasErrors(m_sceneDiagnostics)) {
+			|| m_sceneModel.scenarios[1].incidents.size() != 2
+			|| m_sceneModel.scenarios[2].entranceDelays.size() != 1
+			|| m_sceneModel.scenarios[2].entranceDelays.front().occurrence != 2
+			|| m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds <= 0.0
+			|| hasErrors(m_sceneDiagnostics)) {
 			QString detail;
 			for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics)
 				if (diagnostic.severity == SceneSeverity::Error) {
@@ -20246,12 +20374,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 					break;
 				}
 			fail(QStringLiteral("scenario library or validation did not retain all three scenarios: scenarios=%1 incident-count=%2 delay-count=%3 occurrence=%4 seconds=%5 %6")
-				.arg(static_cast<int>(m_sceneModel.scenarios.size()))
-				.arg(m_sceneModel.scenarios.size() > 1 ? static_cast<int>(m_sceneModel.scenarios[1].incidents.size()) : -1)
-				.arg(m_sceneModel.scenarios.size() > 2 ? static_cast<int>(m_sceneModel.scenarios[2].entranceDelays.size()) : -1)
-				.arg(m_sceneModel.scenarios.size() > 2 && !m_sceneModel.scenarios[2].entranceDelays.empty() ? m_sceneModel.scenarios[2].entranceDelays.front().occurrence : -1)
-				.arg(m_sceneModel.scenarios.size() > 2 && !m_sceneModel.scenarios[2].entranceDelays.empty() ? m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds : -1.0)
-				.arg(detail));
+					.arg(static_cast<int>(m_sceneModel.scenarios.size()))
+					.arg(m_sceneModel.scenarios.size() > 1 ? static_cast<int>(m_sceneModel.scenarios[1].incidents.size()) : -1)
+					.arg(m_sceneModel.scenarios.size() > 2 ? static_cast<int>(m_sceneModel.scenarios[2].entranceDelays.size()) : -1)
+					.arg(m_sceneModel.scenarios.size() > 2 && !m_sceneModel.scenarios[2].entranceDelays.empty() ? m_sceneModel.scenarios[2].entranceDelays.front().occurrence : -1)
+					.arg(m_sceneModel.scenarios.size() > 2 && !m_sceneModel.scenarios[2].entranceDelays.empty() ? m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds : -1.0)
+					.arg(detail));
 			return;
 		}
 		marker("E2E_CREATOR_SCENARIOS_OK");
@@ -20261,8 +20389,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 
 	if (m_creatorAcceptancePhase == 6) {
 		if (!m_sceneLoaded || !m_passengerDock || !m_passengerListWidget
-				|| !m_addPassengerButton || !m_addPassengerJourneyButton
-				|| !m_addPassengerLegButton || !m_passengerTabs) {
+			|| !m_addPassengerButton || !m_addPassengerJourneyButton
+			|| !m_addPassengerLegButton || !m_passengerTabs) {
 			fail(QStringLiteral("passenger creator controls are unavailable"));
 			return;
 		}
@@ -20271,16 +20399,16 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_addPassengerButton->click();
 		process();
 		if (m_passengerListWidget->count() != 1
-				|| !editLine(m_passengerIdEdit, QStringLiteral("creator-passenger"))) {
+			|| !editLine(m_passengerIdEdit, QStringLiteral("creator-passenger"))) {
 			fail(QStringLiteral("passenger ID did not commit"));
 			return;
 		}
 		m_addPassengerJourneyButton->click();
 		process();
 		if (!editLine(m_passengerJourneyIdEdit, QStringLiteral("creator-journey"))
-				|| !editLine(m_passengerJourneyActivityEdit, QStringLiteral("creator commute"))
-				|| !choose(m_passengerJourneyOriginCombo, QStringLiteral("creator-station-a"))
-				|| !choose(m_passengerJourneyDestinationCombo, QStringLiteral("creator-station-b"))) {
+			|| !editLine(m_passengerJourneyActivityEdit, QStringLiteral("creator commute"))
+			|| !choose(m_passengerJourneyOriginCombo, QStringLiteral("creator-station-a"))
+			|| !choose(m_passengerJourneyDestinationCombo, QStringLiteral("creator-station-b"))) {
 			fail(QStringLiteral("journey station or metadata controls did not commit"));
 			return;
 		}
@@ -20292,9 +20420,9 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_addPassengerLegButton->click();
 		process();
 		if (!editLine(m_passengerLegIdEdit, QStringLiteral("creator-leg"))
-				|| !choose(m_passengerLegOriginCombo, QStringLiteral("creator-station-a"))
-				|| !choose(m_passengerLegDestinationCombo, QStringLiteral("creator-station-b"))
-				|| !choose(m_passengerLegServiceCombo, QStringLiteral("creator-service"))) {
+			|| !choose(m_passengerLegOriginCombo, QStringLiteral("creator-station-a"))
+			|| !choose(m_passengerLegDestinationCombo, QStringLiteral("creator-station-b"))
+			|| !choose(m_passengerLegServiceCombo, QStringLiteral("creator-service"))) {
 			fail(QStringLiteral("passenger leg public CRUD did not commit references"));
 			return;
 		}
@@ -20303,10 +20431,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_passengerLegOccurrenceEdit->clearFocus();
 		process();
 		if (m_sceneModel.passengers.size() != 1
-				|| m_sceneModel.passengers.front().journeys.size() != 1
-				|| m_sceneModel.passengers.front().journeys.front().legs.size() != 1
-				|| m_sceneModel.passengers.front().journeys.front().legs.front().occurrence != 1
-				|| hasErrors(m_sceneDiagnostics)) {
+			|| m_sceneModel.passengers.front().journeys.size() != 1
+			|| m_sceneModel.passengers.front().journeys.front().legs.size() != 1
+			|| m_sceneModel.passengers.front().journeys.front().legs.front().occurrence != 1
+			|| hasErrors(m_sceneDiagnostics)) {
 			fail(QStringLiteral("passenger journey/leg or validation did not retain authored values"));
 			return;
 		}
@@ -20318,7 +20446,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 	if (m_creatorAcceptancePhase == 7) {
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
 		if (!m_sceneLoaded || folder.isEmpty() || !m_saveSceneAsFolderAction
-				|| !m_newSceneAction || !m_trainUnitListWidget) {
+			|| !m_newSceneAction || !m_trainUnitListWidget) {
 			fail(QStringLiteral("folder persistence controls or target are unavailable"));
 			return;
 		}
@@ -20329,7 +20457,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_trainUnitListWidget->setCurrentRow(0);
 		process();
 		QLineEdit* pendingMass = m_trainUnitPhysicalEdits[0]
-			? m_trainUnitPhysicalEdits[0]->findChild<QLineEdit*>() : nullptr;
+			? m_trainUnitPhysicalEdits[0]->findChild<QLineEdit*>()
+			: nullptr;
 		if (!pendingMass) {
 			fail(QStringLiteral("focused train-unit mass editor is unavailable"));
 			return;
@@ -20345,7 +20474,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_saveSceneAsFolderAction->trigger();
 		process();
 		if (QFileInfo(m_sceneDir).absoluteFilePath() != folder || m_sceneIsBundle
-				|| m_sceneDirty || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
+			|| m_sceneDirty || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
 			fail(QStringLiteral("public Save Scene As Folder did not persist the focused physical value"));
 			return;
 		}
@@ -20361,18 +20490,18 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		openFolder->trigger();
 		process();
 		if (QFileInfo(m_sceneDir).absoluteFilePath() != folder || m_sceneIsBundle
-				|| m_sceneModel.name != "creator_acceptance_case"
-				|| m_sceneModel.tracks.size() != 2 || m_sceneModel.nodes.size() != 6
-				|| m_sceneModel.arcs.size() != 4 || m_sceneModel.blocks.size() != 6
-				|| m_sceneModel.connections.size() != 1 || m_sceneModel.stations.size() != 2
-				|| m_sceneModel.trainUnits.size() != 2 || m_sceneModel.compositions.size() != 1
-				|| m_sceneModel.services.size() != 1 || m_sceneModel.scenarios.size() != 3
-				|| m_sceneModel.passengers.size() != 1
-				|| m_sceneModel.trainUnits.front().physical.mass_of_traction_unit_kg != 91000.0
-				|| m_sceneModel.passengers.front().id != "creator-passenger"
-				|| m_sceneModel.passengers.front().journeys.size() != 1
-				|| m_sceneModel.passengers.front().journeys.front().id != "creator-journey"
-				|| hasErrors(m_sceneDiagnostics)) {
+			|| m_sceneModel.name != "creator_acceptance_case"
+			|| m_sceneModel.tracks.size() != 2 || m_sceneModel.nodes.size() != 6
+			|| m_sceneModel.arcs.size() != 4 || m_sceneModel.blocks.size() != 6
+			|| m_sceneModel.connections.size() != 1 || m_sceneModel.stations.size() != 2
+			|| m_sceneModel.trainUnits.size() != 2 || m_sceneModel.compositions.size() != 1
+			|| m_sceneModel.services.size() != 1 || m_sceneModel.scenarios.size() != 3
+			|| m_sceneModel.passengers.size() != 1
+			|| m_sceneModel.trainUnits.front().physical.mass_of_traction_unit_kg != 91000.0
+			|| m_sceneModel.passengers.front().id != "creator-passenger"
+			|| m_sceneModel.passengers.front().journeys.size() != 1
+			|| m_sceneModel.passengers.front().journeys.front().id != "creator-journey"
+			|| hasErrors(m_sceneDiagnostics)) {
 			fail(QStringLiteral("folder reopen did not retain complete creator rows"));
 			return;
 		}
@@ -20393,10 +20522,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				++previewConnections;
 		}
 		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
-				|| !allArcs.isEmpty() || !allSignals.isEmpty() || !allPlatforms.isEmpty()
-				|| m_worker || m_sceneDirty || !m_showingTrackPreview) {
+			|| !allArcs.isEmpty() || !allSignals.isEmpty() || !allPlatforms.isEmpty()
+			|| m_worker || m_sceneDirty || !m_showingTrackPreview) {
 			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
-				.arg(previewArcs).arg(previewNodes).arg(previewConnections));
+					.arg(previewArcs)
+					.arg(previewNodes)
+					.arg(previewConnections));
 			return;
 		}
 		marker("E2E_CREATOR_PREVIEW_PRIMITIVES_OK");
@@ -20407,8 +20538,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PREVIEW_ONLY")) {
 			if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PREVIEW_PARITY")
-					&& (!checkPreviewRuntimeParityE2E(previewFailure)
-						|| !checkPreviewRuntimeParityE2E(previewFailure, true))) {
+				&& (!checkPreviewRuntimeParityE2E(previewFailure)
+					|| !checkPreviewRuntimeParityE2E(previewFailure, true))) {
 				fail(previewFailure);
 				return;
 			}
@@ -20430,7 +20561,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_saveSceneAsAction->trigger();
 		process();
 		if (QFileInfo(m_sceneDir).absoluteFilePath() != bundle || !m_sceneIsBundle
-				|| m_sceneDirty || !QFileInfo(bundle).exists()) {
+			|| m_sceneDirty || !QFileInfo(bundle).exists()) {
 			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
 			return;
 		}
@@ -20446,7 +20577,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return false;
 		};
 		for (QMessageBox::StandardButton decision : {QMessageBox::Cancel,
-				QMessageBox::Discard, QMessageBox::Save}) {
+				 QMessageBox::Discard, QMessageBox::Save}) {
 			m_caseNameEdit->setFocus(Qt::OtherFocusReason);
 			m_caseNameEdit->setText(QStringLiteral("pending case name"));
 			acceptMessageBox(decision);
@@ -20457,19 +20588,18 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			process();
 			if (decision == QMessageBox::Cancel) {
 				if (m_sceneDir != bundle || !m_sceneDirty
-						|| m_sceneModel.name != "pending case name") {
+					|| m_sceneModel.name != "pending case name") {
 					fail(QStringLiteral("Cancel did not retain focused edits and current bundle"));
 					return;
 				}
 			} else {
 				if (m_sceneDir != folder || m_sceneIsBundle || m_sceneDirty
-						|| m_sceneModel.name != originalName) {
+					|| m_sceneModel.name != originalName) {
 					fail(QStringLiteral("Save or Discard did not continue the pending folder open"));
 					return;
 				}
 				if (!openRecent(bundle)
-						|| m_sceneModel.name != (decision == QMessageBox::Save
-							? "pending case name" : originalName)) {
+					|| m_sceneModel.name != (decision == QMessageBox::Save ? "pending case name" : originalName)) {
 					fail(QStringLiteral("Save or Discard persisted the wrong outgoing bundle contents"));
 					return;
 				}
@@ -20484,7 +20614,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		QTimer::singleShot(0, this, [this, folder]() {
 			auto* chooser = findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
 			auto* list = chooser
-				? chooser->findChild<QListWidget*>(QStringLiteral("caseChooserList")) : nullptr;
+				? chooser->findChild<QListWidget*>(QStringLiteral("caseChooserList"))
+				: nullptr;
 			if (!list)
 				return;
 			for (int row = 0; row < list->count(); ++row) {
@@ -20499,7 +20630,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		acceptMessageBox(QMessageBox::Cancel);
 		m_openCaseAction->trigger();
 		if (m_sceneDir != bundle || !m_sceneDirty
-				|| m_sceneModel.name != "chooser pending edit") {
+			|| m_sceneModel.name != "chooser pending edit") {
 			fail(QStringLiteral("chooser bypassed the pending-open cancellation boundary"));
 			return;
 		}
@@ -20525,7 +20656,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				return;
 			}
 			if (m_sceneDir != bundle || !m_sceneDirty
-					|| m_sceneModel.name != "retained after failed open") {
+				|| m_sceneModel.name != "retained after failed open") {
 				fail(QStringLiteral("failed incoming load erased current dirty case"));
 				return;
 			}
@@ -20539,9 +20670,9 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_newSceneAction->trigger();
 		process();
 		const QString failedSave = QDir(emitPath(qEnvironmentVariable("QEGTRAIN_E2E_OUT")))
-			.filePath(QStringLiteral("failed-save.egscene"));
+									   .filePath(QStringLiteral("failed-save.egscene"));
 		if (!QDir().mkpath(failedSave)
-				|| saveSceneBundle(m_sceneModel, failedSave.toStdString()).success()) {
+			|| saveSceneBundle(m_sceneModel, failedSave.toStdString()).success()) {
 			fail(QStringLiteral("could not create failed-save fixture"));
 			return;
 		}
@@ -20554,7 +20685,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (!m_sceneLoaded || m_sceneDir != failedSave || !m_sceneDirty
-				|| m_sceneModel.name != "retained after failed save") {
+			|| m_sceneModel.name != "retained after failed save") {
 			fail(QStringLiteral("failed save replaced the unsaved current case"));
 			return;
 		}
@@ -20577,7 +20708,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		openRecent(bundle);
 		rejectSaveAs.stop();
 		if (!m_sceneLoaded || !m_sceneDir.isEmpty() || !m_sceneDirty
-				|| m_sceneModel.name != "retained after failed save") {
+			|| m_sceneModel.name != "retained after failed save") {
 			fail(QStringLiteral("cancelled Save As replaced the unsaved current case"));
 			return;
 		}
@@ -20599,23 +20730,25 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		openBundle->trigger();
 		process();
 		if (QFileInfo(m_sceneDir).absoluteFilePath() != bundle || !m_sceneIsBundle
-				|| m_sceneModel.name != "creator_acceptance_case"
-				|| m_sceneModel.blocks.size() != 6 || m_sceneModel.trainUnits.size() != 2
-				|| m_sceneModel.compositions.size() != 1 || m_sceneModel.services.size() != 1
-				|| m_sceneModel.scenarios.size() != 3 || m_sceneModel.passengers.size() != 1
-				|| m_sceneModel.services.front().repeatCount != 3
-				|| m_sceneModel.services.front().stops.size() != 2 || hasErrors(m_sceneDiagnostics)) {
+			|| m_sceneModel.name != "creator_acceptance_case"
+			|| m_sceneModel.blocks.size() != 6 || m_sceneModel.trainUnits.size() != 2
+			|| m_sceneModel.compositions.size() != 1 || m_sceneModel.services.size() != 1
+			|| m_sceneModel.scenarios.size() != 3 || m_sceneModel.passengers.size() != 1
+			|| m_sceneModel.services.front().repeatCount != 3
+			|| m_sceneModel.services.front().stops.size() != 2 || hasErrors(m_sceneDiagnostics)) {
 			fail(QStringLiteral("bundle reopen did not retain complete creator IDs and values: path=%1 bundle=%2 name=%3 blocks=%4 units=%5 compositions=%6 services=%7 scenarios=%8 passengers=%9 repeat=%10 stops=%11 errors=%12")
-				.arg(m_sceneDir).arg(m_sceneIsBundle).arg(QString::fromStdString(m_sceneModel.name))
-				.arg(static_cast<int>(m_sceneModel.blocks.size()))
-				.arg(static_cast<int>(m_sceneModel.trainUnits.size()))
-				.arg(static_cast<int>(m_sceneModel.compositions.size()))
-				.arg(static_cast<int>(m_sceneModel.services.size()))
-				.arg(static_cast<int>(m_sceneModel.scenarios.size()))
-				.arg(static_cast<int>(m_sceneModel.passengers.size()))
-				.arg(m_sceneModel.services.empty() ? -1 : m_sceneModel.services.front().repeatCount)
-				.arg(m_sceneModel.services.empty() ? -1 : static_cast<int>(m_sceneModel.services.front().stops.size()))
-				.arg(hasErrors(m_sceneDiagnostics)));
+					.arg(m_sceneDir)
+					.arg(m_sceneIsBundle)
+					.arg(QString::fromStdString(m_sceneModel.name))
+					.arg(static_cast<int>(m_sceneModel.blocks.size()))
+					.arg(static_cast<int>(m_sceneModel.trainUnits.size()))
+					.arg(static_cast<int>(m_sceneModel.compositions.size()))
+					.arg(static_cast<int>(m_sceneModel.services.size()))
+					.arg(static_cast<int>(m_sceneModel.scenarios.size()))
+					.arg(static_cast<int>(m_sceneModel.passengers.size()))
+					.arg(m_sceneModel.services.empty() ? -1 : m_sceneModel.services.front().repeatCount)
+					.arg(m_sceneModel.services.empty() ? -1 : static_cast<int>(m_sceneModel.services.front().stops.size()))
+					.arg(hasErrors(m_sceneDiagnostics)));
 			return;
 		}
 		if (QAction* detailsAction = findChild<QAction*>("actionAdvancedDetails"))
@@ -20629,12 +20762,13 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		m_loadedDataDock->raise();
 		process();
 		QTreeWidgetItem* caseRoot = m_loadedDataTree->topLevelItemCount() > 0
-			? m_loadedDataTree->topLevelItem(0) : nullptr;
+			? m_loadedDataTree->topLevelItem(0)
+			: nullptr;
 		bool loadedDataOk = caseRoot && caseRoot->text(0) == "Case Study"
 			&& QFileInfo(caseRoot->text(1)).absoluteFilePath() == bundle;
 		for (const QString& label : {QStringLiteral("Infrastructure"), QStringLiteral("Scenarios"),
-				QStringLiteral("Passengers"), QStringLiteral("Canonical schema version"),
-				QStringLiteral("Bundle format version")}) {
+				 QStringLiteral("Passengers"), QStringLiteral("Canonical schema version"),
+				 QStringLiteral("Bundle format version")}) {
 			const QList<QTreeWidgetItem*> rows = m_loadedDataTree->findItems(
 				label, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			loadedDataOk = loadedDataOk && !rows.isEmpty()
@@ -20670,7 +20804,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
 		process();
 		if (!followButton->isChecked() || !m_followAction->isChecked()
-				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
 			fail(QStringLiteral("accessible Follow toggle did not activate the selected target"));
 			return;
 		}
@@ -20690,7 +20824,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		followButton->click();
 		process();
 		if (!followButton->isChecked() || !m_followAction->isChecked()
-				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
 			fail(QStringLiteral("Follow click toggled the action more than once"));
 			return;
 		}
@@ -20698,7 +20832,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		setFollowTrain(m_followTrainCombo->currentData().toInt());
 		process();
 		if (!followButton->isChecked() || !m_followAction->isChecked()
-				|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
+			|| m_followTrainIndex != m_followTrainCombo->currentData().toInt()) {
 			fail(QStringLiteral("queued accessible Follow toggle overrode an explicit target"));
 			return;
 		}
@@ -20737,7 +20871,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 		// The reload waits for the paused run to stop. Until then the run and the scene are kept.
 		if (!m_worker || !m_afterRunAction || ui->actionSimulationStop->isEnabled()
-				|| statusBar()->currentMessage() != QStringLiteral("Stopping simulation...")) {
+			|| statusBar()->currentMessage() != QStringLiteral("Stopping simulation...")) {
 			fail(QStringLiteral("reloading during a run did not wait for the run to stop"));
 			return;
 		}
@@ -20747,22 +20881,22 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		process();
 		if (m_worker || m_resultsAvailable || m_runtimeStatus != "Not built"
-				|| m_followAction->isChecked() || followButton->isChecked() || m_followTrainIndex != -1
-				|| progressBar->isVisible()
-				|| ui->actionSimulationPause->text() != "Pause"
-				|| !statusBar()->currentMessage().startsWith("Scene reloaded:")) {
+			|| m_followAction->isChecked() || followButton->isChecked() || m_followTrainIndex != -1
+			|| progressBar->isVisible()
+			|| ui->actionSimulationPause->text() != "Pause"
+			|| !statusBar()->currentMessage().startsWith("Scene reloaded:")) {
 			fail(QStringLiteral("stopped run completion changed the replacement scene"));
 			return;
 		}
 		m_speedSlider->setValue(500);
 		if (!m_sceneLoaded || !m_runSceneAction || !m_serviceOccurrenceTable
-				|| !m_scenarioListWidget || !m_setDelayBaselineButton || !m_compareDelayButton
-				|| !m_delayFeedbackLabel) {
+			|| !m_scenarioListWidget || !m_setDelayBaselineButton || !m_compareDelayButton
+			|| !m_delayFeedbackLabel) {
 			fail(QStringLiteral("run and occurrence controls are unavailable"));
 			return;
 		}
 		if (m_setDelayBaselineButton->isEnabled() || m_compareDelayButton->isEnabled()
-				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
+			|| !m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
 			fail(QStringLiteral("delay controls did not expose a disabled no-results reason"));
 			return;
 		}
@@ -20810,7 +20944,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 		m_creatorAcceptancePolls = 0;
 		if (m_completedRunProvenance.appliedScenario != "baseline"
-				|| m_completedRunProvenance.selectedOccurrences.size() != 2) {
+			|| m_completedRunProvenance.selectedOccurrences.size() != 2) {
 			fail(QStringLiteral("baseline provenance did not retain scenario and selected occurrences 1+2"));
 			return;
 		}
@@ -20836,8 +20970,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 		m_setDelayBaselineButton->click();
 		if (!m_delayBaseline || !m_runResultsSummaryLabel || !m_delayFeedbackLabel
-				|| !m_runResultsSummaryLabel->text().contains(QStringLiteral("Delay baseline:"))
-				|| !m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline:"))) {
+			|| !m_runResultsSummaryLabel->text().contains(QStringLiteral("Delay baseline:"))
+			|| !m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline:"))) {
 			fail(QStringLiteral("public delay baseline control did not freeze baseline"));
 			return;
 		}
@@ -20878,40 +21012,47 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		const auto stationADeparture = [](const std::vector<TimetableResultRow>& rows)
-				-> const TimetableResultRow* {
+			-> const TimetableResultRow* {
 			for (const TimetableResultRow& row : rows)
 				if (row.serviceId == "creator-service" && row.occurrence == 2
-						&& row.stationId == "Creator A")
+					&& row.stationId == "Creator A")
 					return &row;
 			return nullptr;
 		};
 		const TimetableResultRow* baselineDeparture = m_delayBaseline
-			? stationADeparture(m_delayBaseline->timetable) : nullptr;
+			? stationADeparture(m_delayBaseline->timetable)
+			: nullptr;
 		const TimetableResultRow* delayedDeparture = stationADeparture(m_completedTimetableResults);
 		if (!baselineDeparture || !delayedDeparture
-				|| !baselineDeparture->plannedDepartureSeconds.available
-				|| !delayedDeparture->plannedDepartureSeconds.available
-				|| !baselineDeparture->departureDelaySeconds.available
-				|| !delayedDeparture->departureDelaySeconds.available
-				|| delayedDeparture->plannedDepartureSeconds.value
-					- baselineDeparture->plannedDepartureSeconds.value < 89.0
-				|| std::abs(delayedDeparture->departureDelaySeconds.value
-					- baselineDeparture->departureDelaySeconds.value) < 1.0) {
+			|| !baselineDeparture->plannedDepartureSeconds.available
+			|| !delayedDeparture->plannedDepartureSeconds.available
+			|| !baselineDeparture->departureDelaySeconds.available
+			|| !delayedDeparture->departureDelaySeconds.available
+			|| delayedDeparture->plannedDepartureSeconds.value
+					- baselineDeparture->plannedDepartureSeconds.value
+				< 89.0
+			|| std::abs(delayedDeparture->departureDelaySeconds.value
+				   - baselineDeparture->departureDelaySeconds.value)
+				< 1.0) {
 			fail(QStringLiteral("entrance delay did not shift occurrence 2 station-A plan by 90 seconds and change its reported delay: baseline=%1/%2 delayed=%3/%4 rows=%5/%6")
-				.arg(baselineDeparture && baselineDeparture->plannedDepartureSeconds.available
-					? baselineDeparture->plannedDepartureSeconds.value : -1.0)
-				.arg(baselineDeparture && baselineDeparture->departureDelaySeconds.available
-					? baselineDeparture->departureDelaySeconds.value : -1.0)
-				.arg(delayedDeparture && delayedDeparture->plannedDepartureSeconds.available
-					? delayedDeparture->plannedDepartureSeconds.value : -1.0)
-				.arg(delayedDeparture && delayedDeparture->departureDelaySeconds.available
-					? delayedDeparture->departureDelaySeconds.value : -1.0)
-				.arg(m_delayBaseline ? static_cast<int>(m_delayBaseline->timetable.size()) : -1)
-				.arg(static_cast<int>(m_completedTimetableResults.size())));
+					.arg(baselineDeparture && baselineDeparture->plannedDepartureSeconds.available
+							? baselineDeparture->plannedDepartureSeconds.value
+							: -1.0)
+					.arg(baselineDeparture && baselineDeparture->departureDelaySeconds.available
+							? baselineDeparture->departureDelaySeconds.value
+							: -1.0)
+					.arg(delayedDeparture && delayedDeparture->plannedDepartureSeconds.available
+							? delayedDeparture->plannedDepartureSeconds.value
+							: -1.0)
+					.arg(delayedDeparture && delayedDeparture->departureDelaySeconds.available
+							? delayedDeparture->departureDelaySeconds.value
+							: -1.0)
+					.arg(m_delayBaseline ? static_cast<int>(m_delayBaseline->timetable.size()) : -1)
+					.arg(static_cast<int>(m_completedTimetableResults.size())));
 			return;
 		}
 		if (!m_delayFeedbackLabel || m_compareDelayButton->isEnabled()
-				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("entrance delays"))) {
+			|| !m_delayFeedbackLabel->text().contains(QStringLiteral("entrance delays"))) {
 			fail(QStringLiteral("entrance-delay result did not explain why delay comparison is disabled"));
 			return;
 		}
@@ -20951,7 +21092,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			return;
 		}
 		if (!m_compareDelayButton->isEnabled() || !m_delayFeedbackLabel
-				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("positive additional final-arrival delay"))) {
+			|| !m_delayFeedbackLabel->text().contains(QStringLiteral("positive additional final-arrival delay"))) {
 			fail(QStringLiteral("incident result did not expose an enabled delay comparison next step"));
 			return;
 		}
@@ -20999,8 +21140,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		};
 
 		if (!m_creatorBaselineDiagram
-				|| !exportButton(m_creatorBaselineDiagram, QStringLiteral("Export CSV..."),
-					path("baseline_time_distance.csv"))) {
+			|| !exportButton(m_creatorBaselineDiagram, QStringLiteral("Export CSV..."),
+				path("baseline_time_distance.csv"))) {
 			fail(QStringLiteral("baseline diagram CSV export was not driven through its public button"));
 			return;
 		}
@@ -21013,8 +21154,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 		DiagramWindow* speedDiagram = findDiagram(QStringLiteral("Speed vs Distance"));
 		if (!speedDiagram
-				|| !exportButton(speedDiagram, QStringLiteral("Export CSV..."), path("trajectory.csv"))
-				|| !exportButton(speedDiagram, QStringLiteral("Export PNG..."), path("trajectory.png"))) {
+			|| !exportButton(speedDiagram, QStringLiteral("Export CSV..."), path("trajectory.csv"))
+			|| !exportButton(speedDiagram, QStringLiteral("Export PNG..."), path("trajectory.png"))) {
 			fail(QStringLiteral("current trajectory/speed exports were not driven through the diagram"));
 			return;
 		}
@@ -21027,8 +21168,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 		DiagramWindow* tractiveDiagram = findDiagram(QStringLiteral("Simulated Tractive Effort vs Distance"));
 		if (!tractiveDiagram
-				|| !exportButton(tractiveDiagram, QStringLiteral("Export CSV..."), path("tractive_effort.csv"))
-				|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
+			|| !exportButton(tractiveDiagram, QStringLiteral("Export CSV..."), path("tractive_effort.csv"))
+			|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
 			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
 			return;
 		}
@@ -21044,8 +21185,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			if (auto* candidate = qobject_cast<TimetableTableWindow*>(widget))
 				timetable = candidate;
 		if (!timetable
-				|| !exportButton(timetable, QStringLiteral("Export CSV..."), path("timetable.csv"))
-				|| !exportButton(timetable, QStringLiteral("Export PNG..."), path("timetable.png"))) {
+			|| !exportButton(timetable, QStringLiteral("Export CSV..."), path("timetable.csv"))
+			|| !exportButton(timetable, QStringLiteral("Export PNG..."), path("timetable.png"))) {
 			fail(QStringLiteral("timetable exports were not driven through the public table"));
 			return;
 		}
@@ -21059,10 +21200,10 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 		DiagramWindow* blocking = findDiagram(QStringLiteral("Blocking time:"));
 		if (!blocking
-				|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
-				|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
+			|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
+			|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
 			fail(QString("blocking-time exports were not driven through the public diagram (window %1)")
-				.arg(blocking ? "present" : "absent"));
+					.arg(blocking ? "present" : "absent"));
 			return;
 		}
 		QPushButton* summaryCsv = findChild<QPushButton*>("resultView_ExportCSV");
@@ -21079,16 +21220,16 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 
 		auto boundedResultDialog = [process](QDialog* dialog, QTableWidget* table,
-				QPushButton* secondary) {
+									   QPushButton* secondary) {
 			if (!dialog || !table || !secondary) return false;
 			auto* scroll = dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 			auto* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
 			auto* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
 			auto* buttons = dialog->findChild<QDialogButtonBox*>();
 			if (!scroll || !context || !heading || !buttons || !buttons->button(QDialogButtonBox::Close)
-					|| !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
-					|| scroll->isAncestorOf(buttons) || !context->wordWrap()
-					|| context->textFormat() != Qt::PlainText || heading->textFormat() != Qt::PlainText)
+				|| !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
+				|| scroll->isAncestorOf(buttons) || !context->wordWrap()
+				|| context->textFormat() != Qt::PlainText || heading->textFormat() != Qt::PlainText)
 				return false;
 			QScreen* screen = QGuiApplication::screenAt(dialog->mapToGlobal(QPoint(0, 0)));
 			if (!screen) screen = QGuiApplication::primaryScreen();
@@ -21100,14 +21241,15 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			};
 			if (!bounded()) {
 				qWarning() << "Result dialog exceeds screen bounds:" << dialog->windowTitle()
-					<< dialog->size() << available;
+						   << dialog->size() << available;
 				return false;
 			}
 			const QString originalContext = context->text();
 			const int rows = table->rowCount();
 			const int columns = table->columnCount();
 			const QString firstCell = rows && columns && table->item(0, 0)
-				? table->item(0, 0)->text() : QString();
+				? table->item(0, 0)->text()
+				: QString();
 			const QFont originalFont = dialog->font();
 			QFont largeFont = originalFont;
 			if (largeFont.pointSizeF() > 0) largeFont.setPointSizeF(largeFont.pointSizeF() * 1.5);
@@ -21129,8 +21271,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 				&& (firstCell.isEmpty() || (table->item(0, 0) && table->item(0, 0)->text() == firstCell));
 			if (!intact)
 				qWarning() << "Result dialog stress check failed:" << dialog->windowTitle()
-					<< dialog->size() << available << "scroll range" << scrollRange
-					<< "Close visible" << buttons->button(QDialogButtonBox::Close)->isVisible();
+						   << dialog->size() << available << "scroll range" << scrollRange
+						   << "Close visible" << buttons->button(QDialogButtonBox::Close)->isVisible();
 			context->setText(originalContext);
 			dialog->setFont(originalFont);
 			scroll->verticalScrollBar()->setValue(0);
@@ -21157,15 +21299,17 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
 		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
 		auto* compressionTable = capacityTabs && capacityTabs->count() > 1
-			? qobject_cast<QTableWidget*>(capacityTabs->widget(1)) : nullptr;
+			? qobject_cast<QTableWidget*>(capacityTabs->widget(1))
+			: nullptr;
 		auto* criticalTable = capacityTabs && capacityTabs->count() > 2
-			? qobject_cast<QTableWidget*>(capacityTabs->widget(2)) : nullptr;
+			? qobject_cast<QTableWidget*>(capacityTabs->widget(2))
+			: nullptr;
 		if (!capacity || !capacityTabs || capacityTabs->count() != 3 || !pairTable
-				|| pairTable->columnCount() != 9 || pairTable->rowCount() == 0
-				|| !compressionTable || compressionTable->columnCount() != 7
-				|| !criticalTable || criticalTable->columnCount() != 5
-				|| !boundedResultDialog(capacity, pairTable, capacityExport)
-				|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
+			|| pairTable->columnCount() != 9 || pairTable->rowCount() == 0
+			|| !compressionTable || compressionTable->columnCount() != 7
+			|| !criticalTable || criticalTable->columnCount() != 5
+			|| !boundedResultDialog(capacity, pairTable, capacityExport)
+			|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;
 		}
@@ -21184,8 +21328,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		for (QPushButton* candidate : capacity->findChildren<QPushButton*>())
 			if (candidate->text().contains(QStringLiteral("compressed blocking-time")))
 				compressedButton = candidate;
-		if (!compressedButton || !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))
-				->isAncestorOf(compressedButton)) {
+		if (!compressedButton || !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))->isAncestorOf(compressedButton)) {
 			fail(QStringLiteral("compressed blocking-time control is unavailable"));
 			return;
 		}
@@ -21193,8 +21336,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		process();
 		DiagramWindow* compressed = findDiagram(QStringLiteral("Compressed blocking-time diagram"));
 		if (!compressed
-				|| !exportButton(compressed, QStringLiteral("Export CSV..."), path("capacity_compressed_blocking_time.csv"))
-				|| !exportButton(compressed, QStringLiteral("Export PNG..."), path("capacity_compressed_blocking_time.png"))) {
+			|| !exportButton(compressed, QStringLiteral("Export CSV..."), path("capacity_compressed_blocking_time.csv"))
+			|| !exportButton(compressed, QStringLiteral("Export PNG..."), path("capacity_compressed_blocking_time.png"))) {
 			fail(QStringLiteral("compressed capacity diagram did not export"));
 			return;
 		}
@@ -21207,8 +21350,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		bool initialComparisonSeen = false;
 		bool initialRejectionSeen = false;
 		QString initialRejectionText;
-		QTimer::singleShot(0, this, [this, &initialComparisonSeen, &initialRejectionSeen,
-				&initialRejectionText]() {
+		QTimer::singleShot(0, this, [this, &initialComparisonSeen, &initialRejectionSeen, &initialRejectionText]() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
 				auto* message = qobject_cast<QMessageBox*>(widget);
 				if (message && message->isVisible()) {
@@ -21239,7 +21381,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		const RunResults incidentResults = m_completedRunResults;
 		const std::vector<TimetableResultRow> incidentTimetable = m_completedTimetableResults;
 		m_completedTimetableResults = m_delayBaseline
-			? m_delayBaseline->timetable : std::vector<TimetableResultRow>();
+			? m_delayBaseline->timetable
+			: std::vector<TimetableResultRow>();
 		bool injectedPositiveDelay = false;
 		for (TimetableResultRow& row : m_completedTimetableResults) {
 			if (row.simulatedArrivalSeconds.available) {
@@ -21292,7 +21435,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		}
 
 		m_completedTimetableResults = m_delayBaseline
-			? m_delayBaseline->timetable : std::vector<TimetableResultRow>();
+			? m_delayBaseline->timetable
+			: std::vector<TimetableResultRow>();
 		refreshRunResults();
 		bool zeroComparisonSeen = false;
 		bool zeroComparisonOk = false;
@@ -21347,7 +21491,8 @@ void MainWindow::runCreatorAcceptanceE2E() {
 		refreshRunResults();
 		if (!rejectionSeen || !rejectionText.contains(QStringLiteral("direct incident evidence"))) {
 			fail(QStringLiteral("invalid delay comparison did not expose rejection diagnostics (seen=%1, text=%2)")
-				.arg(rejectionSeen).arg(rejectionText));
+					.arg(rejectionSeen)
+					.arg(rejectionText));
 			return;
 		}
 		marker("E2E_CREATOR_EXPORTS_OK");
@@ -21376,14 +21521,14 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			if (action->objectName().startsWith("resultView_"))
 				resultButtonsDisabled = resultButtonsDisabled && !action->isEnabled();
 		if (m_resultsAvailable || m_delayBaseline || m_runResultsDock->isVisible() || !resultButtonsDisabled
-				|| !m_delayFeedbackLabel || !m_delayFeedbackLabel->text().contains(QStringLiteral("cleared"))) {
+			|| !m_delayFeedbackLabel || !m_delayFeedbackLabel->text().contains(QStringLiteral("cleared"))) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
 		if (!requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
-				|| !m_delayBaselineStatus.isEmpty()
-				|| !m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
+			|| !m_delayBaselineStatus.isEmpty()
+			|| !m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
 			fail(QStringLiteral("opening a case retained the previous case's baseline-clear message"));
 			return;
 		}
@@ -21536,9 +21681,9 @@ void MainWindow::setupGUI() {
 		double end = std::numeric_limits<double>::lowest();
 		for (int arc = 0; arc < blockSets[track].len; ++arc) {
 			begin = std::min({begin, blockSets[track].member[arc].startNode.X,
-					blockSets[track].member[arc].endNode.X});
+				blockSets[track].member[arc].endNode.X});
 			end = std::max({end, blockSets[track].member[arc].startNode.X,
-					blockSets[track].member[arc].endNode.X});
+				blockSets[track].member[arc].endNode.X});
 		}
 		trackSpans.push_back({track, begin, end});
 	}
@@ -21616,14 +21761,14 @@ void MainWindow::setupGUI() {
 	const bool hasSharedPreview = !m_cachedTrackPreview.lines.empty();
 	const auto sharedStationPoint = [this, hasSharedPreview](int stationIndex, QPointF& point) {
 		if (!hasSharedPreview || stationIndex < 0
-				|| stationIndex >= static_cast<int>(m_sceneModel.stations.size()))
+			|| stationIndex >= static_cast<int>(m_sceneModel.stations.size()))
 			return false;
 		const auto& source = m_sceneModel.stations[static_cast<std::size_t>(stationIndex)];
 		const auto station = std::find_if(m_cachedTrackPreview.stations.begin(),
-				m_cachedTrackPreview.stations.end(), [&source](const TrackPreviewStation& candidate) {
-					return (!source.id.empty() && candidate.id == source.id)
-						|| (source.id.empty() && candidate.name == source.name);
-				});
+			m_cachedTrackPreview.stations.end(), [&source](const TrackPreviewStation& candidate) {
+				return (!source.id.empty() && candidate.id == source.id)
+					|| (source.id.empty() && candidate.name == source.name);
+			});
 		if (station == m_cachedTrackPreview.stations.end())
 			return false;
 		for (const auto& line : m_cachedTrackPreview.lines) {
@@ -21659,7 +21804,8 @@ void MainWindow::setupGUI() {
 				StationArray[i].stationName, presentationScale(),
 				stationDecorationOffset(m_sceneModel.stationViews,
 					m_sceneModel.stations[static_cast<std::size_t>(i)].id,
-					StationArray[i].stationName) * presentationScale());
+					StationArray[i].stationName)
+					* presentationScale());
 			continue;
 		}
 
@@ -21690,8 +21836,7 @@ void MainWindow::setupGUI() {
 	int st_index;
 	QPointF ptc1, ptc2;
 	for (int c = 0; c < numConnections; c++) {
-		if (hasSharedPreview && (!cachedTrackLine(connections[c].idFirstTrackLine)
-				|| !cachedTrackLine(connections[c].idSecondTrackLine)))
+		if (hasSharedPreview && (!cachedTrackLine(connections[c].idFirstTrackLine) || !cachedTrackLine(connections[c].idSecondTrackLine)))
 			continue;
 		// get shifted connections
 		egtrainPoint2Screen(&connections[c], connections[c].idFirstTrackLine, connections[c].idSecondTrackLine, track_separation);
@@ -21758,8 +21903,7 @@ void MainWindow::setupGUI() {
 					if (initial_variables.PAX_GUI) {
 						paintStationPlatform(pte, station_node_size, line_width, &blockSets[track].member[i].endNode);
 					}
-				}
-				else {
+				} else {
 					paintNode(pte, node_size, line_width, track, &blockSets[track].member[i].endNode);
 				}
 			}
@@ -21813,7 +21957,7 @@ void MainWindow::setupGUI() {
 }
 
 bool MainWindow::startupTimingIdentityMatches(const QString& path, const SceneModel& model,
-		const std::string* inputSnapshot) const {
+	const std::string* inputSnapshot) const {
 	const StartupIdentity current = startupIdentity(
 		path, model, inputSnapshot ? *inputSnapshot : std::string());
 	return sameStartupIdentity(g_startupIdentity, current)
@@ -21827,12 +21971,13 @@ void MainWindow::failStartupTiming(const QString& message) {
 }
 
 void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
-		qint64 elapsedNanoseconds) {
+	qint64 elapsedNanoseconds) {
 	if (!startupTimingEnabled() || generation != m_startupTimingIteration)
 		return;
 	const bool identityOk = startupTimingIdentityMatches(m_sceneDir, m_sceneModel);
 	recordStartupTiming(kind == QLatin1String("preview")
-			? QStringLiteral("first_preview_paint") : QStringLiteral("first_runtime_paint"),
+			? QStringLiteral("first_preview_paint")
+			: QStringLiteral("first_runtime_paint"),
 		m_startupTimingIteration, generation, elapsedNanoseconds, kind,
 		QStringLiteral("NetworkView::viewportEvent"), identityOk);
 	if (!identityOk) {
@@ -21955,8 +22100,8 @@ void MainWindow::runSceneDropE2E() {
 		// This in-process check covers MainWindow's routing contract. Native file-manager
 		// delivery over the viewport remains a GUI smoke-test residual.
 		const auto deliver = [&](const QList<QUrl>& urls, bool hasUrls, bool dragAccepted,
-				bool dropAccepted, const QString& statusText,
-				Qt::DropActions actions = Qt::CopyAction) {
+								 bool dropAccepted, const QString& statusText,
+								 Qt::DropActions actions = Qt::CopyAction) {
 			QMimeData mime;
 			if (hasUrls)
 				mime.setUrls(urls);
@@ -21978,7 +22123,7 @@ void MainWindow::runSceneDropE2E() {
 				fail(QStringLiteral("drop did not complete as a copy for %1").arg(statusText));
 			if (!statusText.isEmpty() && !statusBar()->currentMessage().contains(statusText, Qt::CaseInsensitive))
 				fail(QStringLiteral("unclear drop result for %1: %2")
-					.arg(statusText, statusBar()->currentMessage()));
+						.arg(statusText, statusBar()->currentMessage()));
 		};
 
 		if (!acceptDrops() || networkView->acceptDrops() || networkView->viewport()->acceptDrops())
@@ -22110,21 +22255,21 @@ void MainWindow::updateDiagramActions() {
 	if (m_setDelayBaselineButton) {
 		m_setDelayBaselineButton->setEnabled(canSetBaseline);
 		m_setDelayBaselineButton->setToolTip(canSetBaseline
-			? QStringLiteral("Freeze this completed run with no incidents or entrance delays as the delay baseline")
-			: QStringLiteral("Complete a run with no incidents or entrance delays before setting a delay baseline"));
+				? QStringLiteral("Freeze this completed run with no incidents or entrance delays as the delay baseline")
+				: QStringLiteral("Complete a run with no incidents or entrance delays before setting a delay baseline"));
 	}
 	if (m_compareDelayButton) {
 		m_compareDelayButton->setEnabled(canCompare);
 		m_compareDelayButton->setToolTip(canCompare
-			? QStringLiteral("Compare the completed incident run with the frozen delay baseline")
-			: QStringLiteral("Run a completed incident scenario without entrance delays after setting a baseline"));
+				? QStringLiteral("Compare the completed incident run with the frozen delay baseline")
+				: QStringLiteral("Run a completed incident scenario without entrance delays after setting a baseline"));
 	}
 
 	QString feedback;
 	if (!available) {
 		if (m_delayBaseline) {
 			feedback = QStringLiteral("Baseline: %1. Run the selected scenario to create completed results for comparison.")
-				.arg(completedRunContext(m_delayBaseline->provenance));
+						   .arg(completedRunContext(m_delayBaseline->provenance));
 		} else if (!m_delayBaselineStatus.isEmpty()) {
 			feedback = m_delayBaselineStatus;
 		} else {
@@ -22133,28 +22278,28 @@ void MainWindow::updateDiagramActions() {
 	} else if (!m_delayBaseline) {
 		if (canSetBaseline) {
 			feedback = QStringLiteral("Completed run: %1. Set this run with no incidents or entrance delays as the delay baseline.")
-				.arg(completedRunContext(current.provenance));
+						   .arg(completedRunContext(current.provenance));
 		} else if (current.hasEntranceDelays) {
 			feedback = QStringLiteral("Completed run: %1. This run has entrance delays; run a scenario with no incidents or entrance delays to set the baseline.")
-				.arg(completedRunContext(current.provenance));
+						   .arg(completedRunContext(current.provenance));
 		} else {
 			feedback = QStringLiteral("Completed run: %1. This run has incidents; run a scenario with no incidents or entrance delays to set the baseline.")
-				.arg(completedRunContext(current.provenance));
+						   .arg(completedRunContext(current.provenance));
 		}
 	} else if (canCompare) {
 		feedback = QStringLiteral("Baseline: %1. Compare the completed incident scenario; the metric is positive additional final-arrival delay.")
-			.arg(completedRunContext(m_delayBaseline->provenance));
+					   .arg(completedRunContext(m_delayBaseline->provenance));
 	} else if (current.hasEntranceDelays) {
 		feedback = QStringLiteral("Baseline: %1. Comparison requires a completed incident scenario with no entrance delays.")
-			.arg(completedRunContext(m_delayBaseline->provenance));
+					   .arg(completedRunContext(m_delayBaseline->provenance));
 	} else if (!current.hasIncidents) {
 		feedback = QStringLiteral("Baseline: %1. Run an incident scenario without entrance delays, then compare.")
-			.arg(completedRunContext(m_delayBaseline->provenance));
+					   .arg(completedRunContext(m_delayBaseline->provenance));
 	}
 	if (!current.scenarioId.empty() && !m_selectedScenarioId.empty()
-			&& current.scenarioId != m_selectedScenarioId) {
+		&& current.scenarioId != m_selectedScenarioId) {
 		feedback += QStringLiteral(" Selected next scenario: %1; it has not been run yet.")
-			.arg(QString::fromStdString(m_selectedScenarioId));
+						.arg(QString::fromStdString(m_selectedScenarioId));
 	}
 	if (m_delayFeedbackLabel)
 		m_delayFeedbackLabel->setText(feedback);
@@ -22174,7 +22319,8 @@ QMenu* MainWindow::editorsMenu() {
 // "Select Legacy Case Folder" dialog that used to open over the blank canvas.
 void MainWindow::showStartupChooser() {
 	const QString currentCaseName = m_sceneLoaded
-		? QString::fromStdString(m_sceneModel.name) : QString();
+		? QString::fromStdString(m_sceneModel.name)
+		: QString();
 	const QString sceneDirBefore = m_sceneDir;
 	const quint64 sceneRevisionBefore = m_sceneRevision;
 
@@ -22195,8 +22341,7 @@ void MainWindow::showStartupChooser() {
 		if (info.isDir()) {
 			QFile manifest(QDir(path).filePath("scene.json"));
 			if (manifest.open(QIODevice::ReadOnly)) {
-				const QString name = QJsonDocument::fromJson(manifest.readAll()).object()
-					.value(QStringLiteral("name")).toString().trimmed();
+				const QString name = QJsonDocument::fromJson(manifest.readAll()).object().value(QStringLiteral("name")).toString().trimmed();
 				if (!name.isEmpty()) return name;
 			}
 		}
@@ -22230,14 +22375,17 @@ void MainWindow::showStartupChooser() {
 		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 		for (const QFileInfo& entry : entries) {
 			if (!((entry.isDir() && QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
-				|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0)))
+					|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0)))
 				continue;
 			if (bundledNames.contains(entry.fileName().toCaseFolded())) {
 				seen.insert(entry.canonicalFilePath());
 				continue;
 			}
 			bundledNames.insert(entry.fileName().toCaseFolded());
-			if (!bundledHeader) { addGroup("Bundled cases"); bundledHeader = true; }
+			if (!bundledHeader) {
+				addGroup("Bundled cases");
+				bundledHeader = true;
+			}
 			addSceneItem(entry.absoluteFilePath());
 		}
 	}
@@ -22250,7 +22398,10 @@ void MainWindow::showStartupChooser() {
 			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0);
 		if (valid && (info.canonicalFilePath().isEmpty() || seen.contains(info.canonicalFilePath())))
 			continue;
-		if (!recentHeader) { addGroup("Recent cases"); recentHeader = true; }
+		if (!recentHeader) {
+			addGroup("Recent cases");
+			recentHeader = true;
+		}
 		if (valid) {
 			addSceneItem(path);
 		} else {
@@ -22259,7 +22410,10 @@ void MainWindow::showStartupChooser() {
 			missing->setToolTip(path.toHtmlEscaped());
 		}
 	}
-	if (!recentHeader) { addGroup("Recent cases"); addGroup("No other recent cases to show"); }
+	if (!recentHeader) {
+		addGroup("Recent cases");
+		addGroup("No other recent cases to show");
+	}
 	layout->addWidget(list, 1);
 
 	QPushButton* moreButton = new QPushButton("Other ways to open...", body);
@@ -22279,13 +22433,18 @@ void MainWindow::showStartupChooser() {
 	openBtn->setObjectName("caseChooserOpenButton");
 	openBtn->setEnabled(false);
 	openBtn->setDefault(true);
-	enum { ContinueCurrent, OpenSelected, BrowseScene, ImportLegacy, NewCase };
+	enum { ContinueCurrent,
+		OpenSelected,
+		BrowseScene,
+		ImportLegacy,
+		NewCase };
 	int choice = ContinueCurrent;
 	QString chosenPath;
 	const auto selectedPath = [list]() {
 		const QListWidgetItem* item = list->currentItem();
 		return item && (item->flags() & Qt::ItemIsEnabled)
-			? item->data(Qt::UserRole).toString() : QString();
+			? item->data(Qt::UserRole).toString()
+			: QString();
 	};
 	connect(list, &QListWidget::itemSelectionChanged, &dialog, [=]() {
 		openBtn->setEnabled(!selectedPath().isEmpty());
@@ -22309,18 +22468,20 @@ void MainWindow::showStartupChooser() {
 	connect(browseScene, &QAction::triggered, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
 	connect(legacy, &QAction::triggered, &dialog, [&]() {
 		if (QMessageBox::question(&dialog, "Import Legacy Case",
-			"Choose the original text-input folder, then a folder for the converted scene. Continue?",
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
+				"Choose the original text-input folder, then a folder for the converted scene. Continue?",
+				QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+			== QMessageBox::Yes) {
 			choice = ImportLegacy;
 			dialog.accept();
 		}
 	});
 	DialogLayout::install(dialog, "Open a Case",
 		currentCaseName.isEmpty() ? QStringLiteral("Choose a case to open.")
-			: QString("Current case: %1. Choose another or continue.").arg(currentCaseName), body, buttons);
+								  : QString("Current case: %1. Choose another or continue.").arg(currentCaseName),
+		body, buttons);
 	for (int row = 0; row < list->count(); ++row) {
 		if ((list->item(row)->flags() & Qt::ItemIsEnabled)
-				&& !list->item(row)->data(Qt::UserRole).toString().isEmpty()) {
+			&& !list->item(row)->data(Qt::UserRole).toString().isEmpty()) {
 			list->setCurrentRow(row);
 			break;
 		}
@@ -22429,8 +22590,7 @@ void MainWindow::showStartupChooser() {
 		chooserContract.insert("accepted", dialogResult == QDialog::Accepted);
 		chooserContract.insert("loadedAfter", m_sceneDir);
 		chooserContract.insert("loaded", m_sceneLoaded);
-		marker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(
-			QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
+		marker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
 		marker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
 		marker("E2E_STARTUP_CHOOSER_ACTION", continueBtn->text());
 		marker("E2E_STARTUP_CHOOSER_GROUP", list->item(0)->text());
@@ -22444,7 +22604,8 @@ void MainWindow::showStartupChooser() {
 		marker("E2E_STARTUP_CHOOSER_STATUS", statusBar()->currentMessage());
 		marker("E2E_STARTUP_CHOOSER_UNCHANGED",
 			m_sceneLoaded && m_sceneDir == sceneDirBefore && m_sceneRevision == sceneRevisionBefore
-				? QStringLiteral("yes") : QStringLiteral("no"));
+				? QStringLiteral("yes")
+				: QStringLiteral("no"));
 		std::fflush(stdout);
 		QCoreApplication::exit(0);
 	}
@@ -22465,22 +22626,24 @@ QString MainWindow::runReviewText() const {
 	QString incidentDetails;
 	for (const SceneIncident& incident : selectedScenarioIncidents()) {
 		const QString occurrence = incident.hasOccurrence || incident.occurrence != 1
-			? QString::number(incident.occurrence) : QStringLiteral("all");
+			? QString::number(incident.occurrence)
+			: QStringLiteral("all");
 		const QString window = incident.hasEndSeconds || incident.endSeconds != 0.0
-			? QString::number(incident.endSeconds, 'g', 12) : QStringLiteral("until-destination");
+			? QString::number(incident.endSeconds, 'g', 12)
+			: QStringLiteral("until-destination");
 		QStringList options;
 		options << (incident.hasReducedSpeed
-			? QString("reduced-speed=%1 km/h").arg(QString::number(incident.reducedSpeedKmh, 'g', 12))
-			: QStringLiteral("reduced-speed=none"));
+				? QString("reduced-speed=%1 km/h").arg(QString::number(incident.reducedSpeedKmh, 'g', 12))
+				: QStringLiteral("reduced-speed=none"));
 		options << (incident.hasEndSeconds ? QStringLiteral("recovery-end=yes")
-			: QStringLiteral("recovery-end=no"));
+										   : QStringLiteral("recovery-end=no"));
 		options << (incident.terminateAtDestination
-			? QStringLiteral("terminate-at-destination=yes")
-			: QStringLiteral("terminate-at-destination=no"));
+				? QStringLiteral("terminate-at-destination=yes")
+				: QStringLiteral("terminate-at-destination=no"));
 		QString detail = QString("id=%1 type=%2 target=%3 start=%4 window=%5 occurrence=%6 options=%7")
-			.arg(QString::fromStdString(incident.id), QString::fromStdString(incident.type),
-				incident.target.empty() ? QStringLiteral("(empty)") : QString::fromStdString(incident.target))
-			.arg(QString::number(incident.startSeconds, 'g', 12), window, occurrence, options.join(","));
+							 .arg(QString::fromStdString(incident.id), QString::fromStdString(incident.type),
+								 incident.target.empty() ? QStringLiteral("(empty)") : QString::fromStdString(incident.target))
+							 .arg(QString::number(incident.startSeconds, 'g', 12), window, occurrence, options.join(","));
 		if (!incidentDetails.isEmpty())
 			incidentDetails += "; ";
 		incidentDetails += detail;
@@ -22495,30 +22658,30 @@ QString MainWindow::runReviewText() const {
 				? QStringLiteral("(unavailable)")
 				: QString::fromStdString(sceneServiceOccurrenceOperatingCode(*service, delay.occurrence));
 			QString detail = QString("service=%1 occurrence=%2 operating_code=%3 station=%4 seconds=%5")
-				.arg(delay.serviceId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.serviceId))
-				.arg(delay.occurrence)
-				.arg(operatingCode.isEmpty() ? QStringLiteral("(unavailable)") : operatingCode)
-				.arg(delay.stationId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.stationId))
-				.arg(QString::number(delay.delaySeconds, 'g', 12));
+								 .arg(delay.serviceId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.serviceId))
+								 .arg(delay.occurrence)
+								 .arg(operatingCode.isEmpty() ? QStringLiteral("(unavailable)") : operatingCode)
+								 .arg(delay.stationId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.stationId))
+								 .arg(QString::number(delay.delaySeconds, 'g', 12));
 			if (!entranceDelayDetails.isEmpty())
 				entranceDelayDetails += "; ";
 			entranceDelayDetails += detail;
 		}
 	}
 	QString summary = QString("Case study: %1\nScenario: %2\nService definitions: %3\nConfigured total: %4\nNumber of services in sim.: %5\nSelected: %6\nSelected in period: %7\nCompositions: %8\nIncidents: %9\nValidation: %10 error(s), %11 warning(s)")
-		.arg(QString::fromStdString(m_sceneModel.name))
-		.arg(scenarioContext())
-		.arg(static_cast<int>(m_sceneModel.services.size()))
-		.arg(totalServiceOccurrences())
-		.arg(inPeriodServiceOccurrences())
-		.arg(selectedServiceOccurrences())
-		.arg(selectedServiceOccurrencesInPeriod())
-		.arg(static_cast<int>(m_sceneModel.compositions.size()))
-		.arg(static_cast<int>(selectedScenarioIncidents().size()))
-		.arg(counts.errors)
-		.arg(counts.warnings);
+						  .arg(QString::fromStdString(m_sceneModel.name))
+						  .arg(scenarioContext())
+						  .arg(static_cast<int>(m_sceneModel.services.size()))
+						  .arg(totalServiceOccurrences())
+						  .arg(inPeriodServiceOccurrences())
+						  .arg(selectedServiceOccurrences())
+						  .arg(selectedServiceOccurrencesInPeriod())
+						  .arg(static_cast<int>(m_sceneModel.compositions.size()))
+						  .arg(static_cast<int>(selectedScenarioIncidents().size()))
+						  .arg(counts.errors)
+						  .arg(counts.warnings);
 	summary += QString("\nCounting rule: scheduled entry ≥ 0 and < %1 s; these are configured identities, not observed trains.")
-		.arg(QString::number(serviceOccurrenceDuration(), 'g', 12));
+				   .arg(QString::number(serviceOccurrenceDuration(), 'g', 12));
 	if (!incidentDetails.isEmpty())
 		summary += "\nIncident configuration: " + incidentDetails;
 	if (!entranceDelayDetails.isEmpty())
@@ -22579,15 +22742,15 @@ bool MainWindow::showRunReview() {
 		}
 	}
 	status->setText(noServicesInPeriod
-		? QStringLiteral("Ready to run, but no selected services enter during this period.")
-		: !unsignalledSections.isEmpty()
+			? QStringLiteral("Ready to run, but no selected services enter during this period.")
+			: !unsignalledSections.isEmpty()
 			? QString("Ready to run, but %1.").arg(unsignalledSections)
-		: detailsEnabled && counts.warnings > 0
+			: detailsEnabled && counts.warnings > 0
 			? QString("Ready to run. Review %1 validation %2 if needed.")
-				.arg(counts.warnings).arg(counts.warnings == 1 ? "warning" : "warnings")
+				  .arg(counts.warnings)
+				  .arg(counts.warnings == 1 ? "warning" : "warnings")
 			: QStringLiteral("Ready to run."));
-	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty()
-		|| (detailsEnabled && counts.warnings > 0));
+	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty() || (detailsEnabled && counts.warnings > 0));
 	status->setWordWrap(true);
 	layout->addWidget(status);
 
@@ -22606,9 +22769,11 @@ bool MainWindow::showRunReview() {
 	const int incidentStart = fullDetails.indexOf("\nIncident configuration:");
 	const int delayStart = fullDetails.indexOf("\nEntrance delay configuration:");
 	const int firstConfiguration = incidentStart < 0 ? delayStart
-		: delayStart < 0 ? incidentStart : std::min(incidentStart, delayStart);
+		: delayStart < 0							 ? incidentStart
+													 : std::min(incidentStart, delayStart);
 	QString displayedDetails = detailsEnabled || firstConfiguration < 0
-		? fullDetails : fullDetails.left(firstConfiguration);
+		? fullDetails
+		: fullDetails.left(firstConfiguration);
 	if (!detailsEnabled) {
 		const int validationStart = displayedDetails.indexOf("\nValidation:");
 		const int countingStart = displayedDetails.indexOf("\nCounting rule:");
@@ -22624,7 +22789,10 @@ bool MainWindow::showRunReview() {
 	layout->addWidget(detailsToggle);
 	layout->addWidget(details);
 
-	enum ReviewChoice { CancelRun, StartRun, ShowLoadedData, ShowValidation };
+	enum ReviewChoice { CancelRun,
+		StartRun,
+		ShowLoadedData,
+		ShowValidation };
 	ReviewChoice choice = CancelRun;
 	if (detailsEnabled) {
 		auto* inspection = new QHBoxLayout;
@@ -22635,10 +22803,12 @@ bool MainWindow::showRunReview() {
 		inspection->addStretch();
 		layout->addLayout(inspection);
 		connect(loadedButton, &QPushButton::clicked, &review, [&]() {
-			choice = ShowLoadedData; review.accept();
+			choice = ShowLoadedData;
+			review.accept();
 		});
 		connect(validationButton, &QPushButton::clicked, &review, [&]() {
-			choice = ShowValidation; review.accept();
+			choice = ShowValidation;
+			review.accept();
 		});
 	}
 	auto* buttons = new QDialogButtonBox(&review);
@@ -22647,7 +22817,8 @@ bool MainWindow::showRunReview() {
 	runButton->setObjectName("runReviewRunButton");
 	runButton->setDefault(true);
 	connect(buttons, &QDialogButtonBox::accepted, &review, [&]() {
-		choice = StartRun; review.accept();
+		choice = StartRun;
+		review.accept();
 	});
 	connect(buttons, &QDialogButtonBox::rejected, &review, &QDialog::reject);
 	DialogLayout::install(review, "Run simulation",
@@ -22700,8 +22871,8 @@ bool MainWindow::showRunReview() {
 						QJsonArray{context->font().pointSizeF(), details->font().pointSizeF(), runButton->font().pointSizeF(),
 							buttons->button(QDialogButtonBox::Cancel)->font().pointSizeF()}}};
 			};
-			reviewDiagnostic.insert("initialFocus", review.focusWidget() == runButton ? "run" :
-				review.focusWidget() ? review.focusWidget()->objectName() : "none");
+			reviewDiagnostic.insert("initialFocus", review.focusWidget() == runButton ? "run" : review.focusWidget() ? review.focusWidget()->objectName()
+																													 : "none");
 			reviewDiagnostic.insert("runDefault", runButton->isDefault());
 			reviewDiagnostic.insert("cancelDefault", buttons->button(QDialogButtonBox::Cancel)->isDefault());
 			reviewDiagnostic.insert("context", context->text());
@@ -22800,10 +22971,12 @@ bool MainWindow::showRunReview() {
 		std::fprintf(stdout, "E2E_RUN_REVIEW_DURATION=%s\n", facts->itemAtPosition(2, 1)->widget()->property("text").toString().toUtf8().constData());
 		std::fprintf(stdout, "E2E_RUN_REVIEW_DETAILS=%d\n",
 			details->text().contains("Service definitions:")
-			&& details->text().contains("Configured total:")
-			&& details->text().contains("Selected:")
-			&& details->text().contains("Compositions:")
-			&& details->text().contains("Counting rule:") ? 1 : 0);
+					&& details->text().contains("Configured total:")
+					&& details->text().contains("Selected:")
+					&& details->text().contains("Compositions:")
+					&& details->text().contains("Counting rule:")
+				? 1
+				: 0);
 		std::fprintf(stdout, "E2E_RUN_REVIEW_ADVANCED=%d\n", detailsEnabled ? 1 : 0);
 		std::fprintf(stdout, "E2E_RUN_REVIEW_VALIDATION_VISIBLE=%d\n",
 			details->text().contains("Validation:") ? 1 : 0);
@@ -22858,7 +23031,8 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 	snapshot.scenarioId = m_appliedScenarioId;
 	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_sceneModel.baseTime));
 	snapshot.durationSeconds = std::isfinite(initial_variables.times)
-		? initial_variables.times : 0.0;
+		? initial_variables.times
+		: 0.0;
 	snapshot.timestep = timestep;
 	for (const SceneScenario& scenario : m_sceneModel.scenarios) {
 		if (scenario.id != snapshot.scenarioId)
@@ -22887,7 +23061,7 @@ void MainWindow::setDelayBaseline() {
 	}
 	m_delayBaseline = snapshot;
 	m_delayBaselineStatus = QString("Delay baseline set: %1. Compare it with a completed incident scenario without entrance delays.")
-		.arg(completedRunContext(snapshot.provenance));
+								.arg(completedRunContext(snapshot.provenance));
 	statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
 	refreshRunResults();
 	updateDiagramActions();
@@ -22913,15 +23087,15 @@ void MainWindow::showDelayComparison() {
 	const QString resultSummary = comparison.rows.empty()
 		? QStringLiteral("Success: zero positive additional final-arrival delay.")
 		: QString("Positive additional final-arrival delay: %1 s")
-			.arg(comparison.totalArrivalDelay.available
-				? QString::number(comparison.totalArrivalDelay.value, 'g', 12) : QStringLiteral("-"));
+			  .arg(comparison.totalArrivalDelay.available
+					  ? QString::number(comparison.totalArrivalDelay.value, 'g', 12)
+					  : QStringLiteral("-"));
 	QTableWidget* table = new QTableWidget(body);
 	table->setObjectName("delayComparisonTable");
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	table->setColumnCount(13);
-	table->setHorizontalHeaderLabels({
-		"Service", "Occurrence", "Operating code", "Baseline final arrival", "Scenario final arrival",
+	table->setHorizontalHeaderLabels({"Service", "Occurrence", "Operating code", "Baseline final arrival", "Scenario final arrival",
 		"Positive delay", "Attribution", "Incident IDs", "First direct time", "First direct location",
 		"Termination requested", "Terminated", "Baseline / scenario"});
 	table->setRowCount(static_cast<int>(comparison.rows.size()));
@@ -22954,8 +23128,7 @@ void MainWindow::showDelayComparison() {
 	exportButton->setObjectName("delayComparisonExportCsvButton");
 	const RunProvenance baselineProvenance = m_delayBaseline->provenance;
 	const RunProvenance scenarioProvenance = scenario.provenance;
-	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison,
-			baselineProvenance, scenarioProvenance]() {
+	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison, baselineProvenance, scenarioProvenance]() {
 		const auto operation = captureTelemetryOperation();
 		saveCsvInteractive(
 			this, "delay_comparison.csv", operation,
@@ -23117,7 +23290,8 @@ void MainWindow::onSimulationFinished() {
 	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
 	m_resultsAvailable = !sceneChangedDuringRun && !stopped && hasRawRunResults();
 	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
-		: stoppedByUser ? QStringLiteral("Stopped") : QStringLiteral("Failed");
+		: stoppedByUser					 ? QStringLiteral("Stopped")
+										 : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
 		const auto trains = runResultTrainPointers();
 		// Freeze result values before a subsequent run replaces the runtime trains.
@@ -23132,8 +23306,8 @@ void MainWindow::onSimulationFinished() {
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
 			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: %3%4")
-				.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(), m_runtimeStatus,
-					sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
+					.arg(QString::fromStdString(m_sceneModel.name), scenarioContext(), m_runtimeStatus,
+						sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
 		if (m_runResultsDock) {
 			m_runResultsDock->setWindowTitle(
 				QString("Run Results — %1 (%2)")
@@ -23163,8 +23337,7 @@ void MainWindow::onSimulationFinished() {
 				if (view) {
 					for (auto* abstractSeries : view->chart()->series()) {
 						auto* line = qobject_cast<QLineSeries*>(abstractSeries);
-						if (line && ((window->windowTitle().startsWith("Timetable")
-							&& !line->name().contains("dwell")) || line->count() == 1))
+						if (line && ((window->windowTitle().startsWith("Timetable") && !line->name().contains("dwell")) || line->count() == 1))
 							ok &= line->pointsVisible();
 					}
 					const QString file = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/"
@@ -23177,8 +23350,7 @@ void MainWindow::onSimulationFinished() {
 			for (const RouteReferenceChoice& choice : choices)
 				std::fprintf(stdout, "E2E_ROUTE_CHOICE %s\n", choice.label.toStdString().c_str());
 			RouteReferenceDialog chooser(choices, "train paths", this);
-			ok &= !choices.isEmpty() && chooser.grab().save(
-				qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/route_reference_chooser.png");
+			ok &= !choices.isEmpty() && chooser.grab().save(qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/route_reference_chooser.png");
 		}
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_ROUTE_DIAGRAM_OK\n" : "E2E_ROUTE_DIAGRAM_FAIL\n");
 		std::fflush(ok ? stdout : stderr);
@@ -23213,7 +23385,8 @@ void MainWindow::onSimulationFinished() {
 				const auto capacityTrains = capacityTrainsForScope(capacityScope);
 				capacityCsv = buildCapacityAnalysisCsv(
 					analyzeCapacity(capacityTrains, capacityScope.periodSeconds,
-						capacityScope.cycleEndOccurrenceId), capacityScopeLabel(capacityScope));
+						capacityScope.cycleEndOccurrenceId),
+					capacityScopeLabel(capacityScope));
 			}
 			if (capacityCsv.empty()) {
 				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
@@ -23239,9 +23412,9 @@ void MainWindow::onSimulationFinished() {
 	// hide progress bar
 	progressBar->hide();
 	statusBar()->showMessage(sceneChangedDuringRun
-		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
-		: stopped ? QStringLiteral("Simulation stopped")
-		: hadFollowTarget
+			? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
+			: stopped ? QStringLiteral("Simulation stopped")
+			: hadFollowTarget
 			? QStringLiteral("Simulation complete - Follow disabled")
 			: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
 	// The Run Results dock raised by refreshRunResults is the completion notice;
@@ -23256,9 +23429,10 @@ void MainWindow::onSimulationFinished() {
 			m_replaySlider->setRange(m_completedReplay.firstTime(), m_completedReplay.lastTime());
 			m_replaySlider->setValue(m_replayRequestedTime);
 			m_replayLabel->setText(QString("Replay available: %1–%2 s | every %3 s%4")
-				.arg(m_completedReplay.firstTime()).arg(m_completedReplay.lastTime())
-				.arg(GuiReplayHistory::cadenceSeconds)
-				.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+					.arg(m_completedReplay.firstTime())
+					.arg(m_completedReplay.lastTime())
+					.arg(GuiReplayHistory::cadenceSeconds)
+					.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
 			m_replayBar->show();
 		} else if (m_completedReplay.oversize()) {
 			m_replayLabel->setText("Replay unavailable: one frame exceeded the 64 MiB payload budget");
@@ -23284,8 +23458,7 @@ void MainWindow::onSimulationFinished() {
 			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
 			&& !labels.contains(QStringLiteral("Permissive signalling"))
 			&& !labels.contains(QStringLiteral("Occupied section"));
-		std::fprintf(preview ? stdout : stderr, preview
-			? "E2E_OPERATIONAL_DISCARD_OK\n" : "E2E_OPERATIONAL_DISCARD_FAIL: preview legend\n");
+		std::fprintf(preview ? stdout : stderr, preview ? "E2E_OPERATIONAL_DISCARD_OK\n" : "E2E_OPERATIONAL_DISCARD_FAIL: preview legend\n");
 		std::fflush(preview ? stdout : stderr);
 		QCoreApplication::exit(preview ? 0 : 2);
 		return;
@@ -23296,8 +23469,8 @@ void MainWindow::onSimulationFinished() {
 			&& (m_operationalLifecycleE2eCompletions == 0
 				|| m_snapshot != m_operationalLifecycleE2eFirstFrame)
 			&& std::all_of(allArcs.cbegin(), allArcs.cend(), [](const TrackLineItem* track) {
-				return !track || track->operationalState() == TrackOperationalState::Free;
-			});
+				   return !track || track->operationalState() == TrackOperationalState::Free;
+			   });
 		if (!clean || ++m_operationalLifecycleE2eCompletions > 2) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: final frame or overlay cleanup\n");
 			QCoreApplication::exit(2);
@@ -23327,49 +23500,49 @@ void MainWindow::onSimulationFinished() {
 			};
 			const auto& now = m_completedRunResults;
 			if (now.trains.size() != completedResults.trains.size()
-					|| m_completedTimetableResults.size() != completedTimetable.size()
-					|| !sameValues({{now.networkStartSeconds, completedResults.networkStartSeconds},
-						{now.networkEndSeconds, completedResults.networkEndSeconds},
-						{now.networkTravelSeconds, completedResults.networkTravelSeconds},
-						{now.energyConsumedKWh, completedResults.energyConsumedKWh},
-						{now.energyWithRegenKWh, completedResults.energyWithRegenKWh},
-						{now.substationKWh, completedResults.substationKWh},
-						{now.substationWithRegenKWh, completedResults.substationWithRegenKWh}})) return false;
+				|| m_completedTimetableResults.size() != completedTimetable.size()
+				|| !sameValues({{now.networkStartSeconds, completedResults.networkStartSeconds},
+					{now.networkEndSeconds, completedResults.networkEndSeconds},
+					{now.networkTravelSeconds, completedResults.networkTravelSeconds},
+					{now.energyConsumedKWh, completedResults.energyConsumedKWh},
+					{now.energyWithRegenKWh, completedResults.energyWithRegenKWh},
+					{now.substationKWh, completedResults.substationKWh},
+					{now.substationWithRegenKWh, completedResults.substationWithRegenKWh}})) return false;
 			for (std::size_t i = 0; i < now.trains.size(); ++i) {
 				const auto& a = now.trains[i];
 				const auto& b = completedResults.trains[i];
 				if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
-						|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
-						|| a.performancePercent != b.performancePercent
-						|| a.hasConfiguredMaximumSpeed != b.hasConfiguredMaximumSpeed
-						|| a.configuredMaximumSpeedKmh != b.configuredMaximumSpeedKmh
-						|| a.compositionMaximumSpeedMs != b.compositionMaximumSpeedMs
-						|| a.appliedMaximumSpeedMs != b.appliedMaximumSpeedMs
-						|| a.appliedMaximumSpeedKmh != b.appliedMaximumSpeedKmh
-						|| a.directIncidentIds != b.directIncidentIds
-						|| a.destinationTerminationRequested != b.destinationTerminationRequested
-						|| a.destinationTerminated != b.destinationTerminated
-						|| !sameValues({{a.startSeconds, b.startSeconds}, {a.endSeconds, b.endSeconds},
-							{a.travelSeconds, b.travelSeconds}, {a.energyConsumedKWh, b.energyConsumedKWh},
-							{a.energyWithRegenKWh, b.energyWithRegenKWh},
-							{a.substationKWh, b.substationKWh},
-							{a.substationWithRegenKWh, b.substationWithRegenKWh},
-							{a.firstDirectIncidentTime, b.firstDirectIncidentTime},
-							{a.firstDirectIncidentLocation, b.firstDirectIncidentLocation}})) return false;
+					|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
+					|| a.performancePercent != b.performancePercent
+					|| a.hasConfiguredMaximumSpeed != b.hasConfiguredMaximumSpeed
+					|| a.configuredMaximumSpeedKmh != b.configuredMaximumSpeedKmh
+					|| a.compositionMaximumSpeedMs != b.compositionMaximumSpeedMs
+					|| a.appliedMaximumSpeedMs != b.appliedMaximumSpeedMs
+					|| a.appliedMaximumSpeedKmh != b.appliedMaximumSpeedKmh
+					|| a.directIncidentIds != b.directIncidentIds
+					|| a.destinationTerminationRequested != b.destinationTerminationRequested
+					|| a.destinationTerminated != b.destinationTerminated
+					|| !sameValues({{a.startSeconds, b.startSeconds}, {a.endSeconds, b.endSeconds},
+						{a.travelSeconds, b.travelSeconds}, {a.energyConsumedKWh, b.energyConsumedKWh},
+						{a.energyWithRegenKWh, b.energyWithRegenKWh},
+						{a.substationKWh, b.substationKWh},
+						{a.substationWithRegenKWh, b.substationWithRegenKWh},
+						{a.firstDirectIncidentTime, b.firstDirectIncidentTime},
+						{a.firstDirectIncidentLocation, b.firstDirectIncidentLocation}})) return false;
 			}
 			for (std::size_t i = 0; i < completedTimetable.size(); ++i) {
 				const auto& a = m_completedTimetableResults[i];
 				const auto& b = completedTimetable[i];
 				if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
-						|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
-						|| a.stationId != b.stationId || a.journeyIndex != b.journeyIndex
-						|| a.callIndex != b.callIndex
-						|| !sameValues({{a.plannedArrivalSeconds, b.plannedArrivalSeconds},
-							{a.plannedDepartureSeconds, b.plannedDepartureSeconds},
-							{a.simulatedArrivalSeconds, b.simulatedArrivalSeconds},
-							{a.simulatedDepartureSeconds, b.simulatedDepartureSeconds},
-							{a.arrivalDelaySeconds, b.arrivalDelaySeconds},
-							{a.departureDelaySeconds, b.departureDelaySeconds}})) return false;
+					|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
+					|| a.stationId != b.stationId || a.journeyIndex != b.journeyIndex
+					|| a.callIndex != b.callIndex
+					|| !sameValues({{a.plannedArrivalSeconds, b.plannedArrivalSeconds},
+						{a.plannedDepartureSeconds, b.plannedDepartureSeconds},
+						{a.simulatedArrivalSeconds, b.simulatedArrivalSeconds},
+						{a.simulatedDepartureSeconds, b.simulatedDepartureSeconds},
+						{a.arrivalDelaySeconds, b.arrivalDelaySeconds},
+						{a.departureDelaySeconds, b.departureDelaySeconds}})) return false;
 			}
 			return true;
 		};
@@ -23389,7 +23562,7 @@ void MainWindow::onSimulationFinished() {
 					QPolygonF expectedPolygon;
 					getTrainPolygon(&expectedPolygon, wagon, state);
 					if (wagon >= item->trainPolygonItemList->size()
-							|| item->trainPolygonItemList->at(wagon)->polygon() != expectedPolygon)
+						|| item->trainPolygonItemList->at(wagon)->polygon() != expectedPolygon)
 						return false;
 					drawable |= !expectedPolygon.isEmpty();
 				}
@@ -23400,7 +23573,7 @@ void MainWindow::onSimulationFinished() {
 				if (it == m_signalsByAheadId.end()) continue;
 				for (const auto* item : it->second)
 					if (item && item->reversedDirection == signal.reversedDirection
-							&& item->aspectCode() != signal.code) return false;
+						&& item->aspectCode() != signal.code) return false;
 			}
 			for (const auto& section : frame->sectionStates) {
 				auto it = m_tracksBySectionId.find(section.sectionId);
@@ -23438,7 +23611,7 @@ void MainWindow::onSimulationFinished() {
 		QApplication::sendEvent(m_replaySlider, &release);
 		seekReplay(first);
 		if (!keyboardSeek || !wheelSeek || !mouseSeek
-				|| !coherent(m_completedReplay.atOrBefore(first))) {
+			|| !coherent(m_completedReplay.atOrBefore(first))) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: beginning replay incoherent (key=%d wheel=%d mouse=%d frame=%d slider=%dx%d visible=%d enabled=%d)\n",
 				keyboardSeek, wheelSeek, mouseSeek, coherent(m_completedReplay.atOrBefore(first)),
 				m_replaySlider->width(), m_replaySlider->height(),
@@ -23465,7 +23638,7 @@ void MainWindow::onSimulationFinished() {
 			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
 			TrainItemGroup* followed = resolveTrainItem(future->index);
 			if (!waiting || !followed || !followed->isVisible()
-					|| m_followTrainIndex != future->index) {
+				|| m_followTrainIndex != future->index) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: historical Follow\n");
 				QCoreApplication::exit(2);
 				return;
@@ -23476,8 +23649,8 @@ void MainWindow::onSimulationFinished() {
 		m_trainLayerCheck->setChecked(false);
 		m_trainLayerCheck->setChecked(true);
 		if (auto* item = resolveTrainItem(future->index); !item || item->isVisible()
-				|| !m_trainBadges.value(future->index)
-				|| m_trainBadges.value(future->index)->isVisible()) {
+			|| !m_trainBadges.value(future->index)
+			|| m_trainBadges.value(future->index)->isVisible()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: layer restored future train or lost fixture\n");
 			QCoreApplication::exit(2);
 			return;
@@ -23503,7 +23676,7 @@ void MainWindow::onSimulationFinished() {
 		}
 		seekReplay(activeFrame->timestep);
 		if (!resolveTrainItem(activeIndex) || !resolveTrainItem(activeIndex)->isVisible()
-				|| !coherent(activeFrame)) {
+			|| !coherent(activeFrame)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: active train missing\n");
 			QCoreApplication::exit(2);
 			return;
@@ -23520,7 +23693,7 @@ void MainWindow::onSimulationFinished() {
 		const bool hiddenAtExit = !resolveTrainItem(activeIndex)->isVisible();
 		seekReplay(activeFrame->timestep);
 		if (!hiddenAtExit || !resolveTrainItem(activeIndex)
-				|| !resolveTrainItem(activeIndex)->isVisible() || !coherent(activeFrame)) {
+			|| !resolveTrainItem(activeIndex)->isVisible() || !coherent(activeFrame)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: exited train did not return at sampled geometry\n");
 			QCoreApplication::exit(2);
 			return;
@@ -23535,14 +23708,14 @@ void MainWindow::onSimulationFinished() {
 		seekReplay(last);
 		seekReplay(activeFrame->timestep);
 		if (m_selectedTrainIndex != activeIndex || !trainInfoWidget->isVisible()
-				|| !resolveTrainItem(activeIndex)->graphicsEffect()) {
+			|| !resolveTrainItem(activeIndex)->graphicsEffect()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: train inspection lost\n");
 			QCoreApplication::exit(2);
 			return;
 		}
 		if (initial_variables.PAX_GUI) {
 			if (trainPaxItem != resolveTrainItem(activeIndex) || !trainPaxInfoItem
-					|| !trainPaxInfoItem->isVisible()) {
+				|| !trainPaxInfoItem->isVisible()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no passenger inspection fixture\n");
 				QCoreApplication::exit(2);
 				return;
@@ -23594,7 +23767,7 @@ void MainWindow::onSimulationFinished() {
 		StationOverlayItem* stationSelection = nullptr;
 		for (auto* overlay : m_stationOverlays)
 			if (overlay && overlay->hasSourceIdentity()
-					&& resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack())) {
+				&& resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack())) {
 				stationSelection = overlay;
 				break;
 			}
@@ -23607,8 +23780,8 @@ void MainWindow::onSimulationFinished() {
 			stationSelection->sourceNodeId(), stationSelection->sourceTrack()));
 		seekReplay(first);
 		if (!stationSelection->isSelected() || !m_hasSelectedStationIdentity
-				|| !infoDockWidget->isVisible()
-				|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))) {
+			|| !infoDockWidget->isVisible()
+			|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: station selection lost\n");
 			QCoreApplication::exit(2);
 			return;
@@ -23616,7 +23789,7 @@ void MainWindow::onSimulationFinished() {
 		SignalItem* signalSelection = nullptr;
 		for (auto* decoration : m_signalDecorations)
 			if (auto* signal = qgraphicsitem_cast<SignalItem*>(decoration);
-							signal && signal->isVisible() && signal->groupedSignalCount() == 0) {
+				signal && signal->isVisible() && signal->groupedSignalCount() == 0) {
 				signalSelection = signal;
 				break;
 			}
@@ -23632,14 +23805,15 @@ void MainWindow::onSimulationFinished() {
 		m_replayTimer->stop();
 		const SignalCueKind inspectedCue = classifySignalCue(signalSelection->aspectCode());
 		const QString inspectedAspect = inspectedCue == SignalCueKind::Stop ? QStringLiteral("Stop")
-			: inspectedCue == SignalCueKind::Caution ? QStringLiteral("Caution")
-			: inspectedCue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+			: inspectedCue == SignalCueKind::Caution						? QStringLiteral("Caution")
+			: inspectedCue == SignalCueKind::Proceed						? QStringLiteral("Proceed")
+																			: QStringLiteral("Neutral");
 		if (!timerDelivered || m_inspectedSignal != signalSelection
-				|| !signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
-				|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))
-				|| signallingGroupDetails->toPlainText().isEmpty()
-				|| signallingAspectText->text() != inspectedAspect
-				|| !coherent(m_completedReplay.atOrBefore(m_replayRequestedTime))) {
+			|| !signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
+			|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))
+			|| signallingGroupDetails->toPlainText().isEmpty()
+			|| signallingAspectText->text() != inspectedAspect
+			|| !coherent(m_completedReplay.atOrBefore(m_replayRequestedTime))) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: signal inspection lost on seek/play (timer=%d selected=%d visible=%d effect=%d details=%d coherent=%d)\n",
 				timerDelivered, m_inspectedSignal == signalSelection, signallingInfoWidget->isVisible(),
 				signalSelection->graphicsEffect() != nullptr, !signallingGroupDetails->toPlainText().isEmpty(),
@@ -23652,7 +23826,7 @@ void MainWindow::onSimulationFinished() {
 		const int detailScroll = signallingGroupDetails->verticalScrollBar()->value();
 		updateSignalCues();
 		if (signallingGroupDetails->textCursor().selectedText() != selectedDetails
-				|| signallingGroupDetails->verticalScrollBar()->value() != detailScroll) {
+			|| signallingGroupDetails->verticalScrollBar()->value() != detailScroll) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: unchanged signal refresh resets inspection selection\n");
 			QCoreApplication::exit(2);
 			return;
@@ -23687,8 +23861,8 @@ void MainWindow::onSimulationFinished() {
 			m_replayTimer->start();
 			selectScenario(static_cast<int>(m_sceneModel.scenarios.size()) - 1);
 			if (m_replayTimer->isActive() || !m_completedReplay.empty() || m_snapshot
-					|| !m_showingTrackPreview || !allTrains.isEmpty() || !m_activeTrackItems.empty()
-					|| m_followTrainIndex >= 0 || m_replayBar->isVisible()) {
+				|| !m_showingTrackPreview || !allTrains.isEmpty() || !m_activeTrackItems.empty()
+				|| m_followTrainIndex >= 0 || m_replayBar->isVisible()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: scenario retained historical graphics\n");
 				QCoreApplication::exit(2);
 				return;
@@ -23696,7 +23870,7 @@ void MainWindow::onSimulationFinished() {
 			QMetaObject::invokeMethod(this, "waitForUpdates", Qt::QueuedConnection);
 			m_replayTimer->start();
 			if (!openSceneDirectory(scenePath) || m_snapshot || m_worker || !allArcs.isEmpty()
-					|| m_replayTimer->isActive() || !m_completedReplay.empty()) {
+				|| m_replayTimer->isActive() || !m_completedReplay.empty()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
 				QCoreApplication::exit(2);
 				return;
@@ -23788,7 +23962,7 @@ void MainWindow::chooseOutputFolder() {
 	extern InitialParameters initial_variables;
 	const std::string& chosen = simulation.nextRunOutputFolder();
 	QString dir = QFileDialog::getExistingDirectory(this, "Choose Output Folder",
-			QString::fromStdString(chosen.empty() ? initial_variables.OutputMainFolder : chosen));
+		QString::fromStdString(chosen.empty() ? initial_variables.OutputMainFolder : chosen));
 	if (dir.isEmpty())
 		return;
 	QDir().mkpath(dir);
@@ -23800,7 +23974,7 @@ void MainWindow::setStartTime() {
 	bool ok = false;
 	QString current = QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)).left(5);
 	QString text = QInputDialog::getText(this, "Start Time",
-										 "Simulation start time (HH:MM):", QLineEdit::Normal, current, &ok);
+		"Simulation start time (HH:MM):", QLineEdit::Normal, current, &ok);
 	if (!ok)
 		return;
 	long long secs = parseClockToSeconds(text.toStdString());
@@ -23821,7 +23995,8 @@ void MainWindow::runScene() {
 
 	if (PlaybackProfiler::enabled()) {
 		const std::string requested = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO").toStdString();
+			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
+										  .toStdString();
 		const SceneScenario* configured = requested == "default"
 			? defaultScenario(static_cast<const SceneModel&>(m_sceneModel))
 			: nullptr;
@@ -23844,7 +24019,7 @@ void MainWindow::runScene() {
 		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(m_sceneDiagnostics));
 		int errorCount = countDiagnostics(m_sceneDiagnostics).errors;
 		showBlockingError(this, "Cannot Run Scene",
-						  QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
+			QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
 		return;
 	}
 	pruneExcludedServiceOccurrences();
@@ -23924,7 +24099,8 @@ void MainWindow::runScene() {
 		config.buildType = EGTRAIN_BUILD_TYPE;
 		config.caseName = m_sceneModel.name;
 		config.requestedScenario = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO").toStdString();
+			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
+									   .toStdString();
 		config.scenario = m_appliedScenarioId;
 		config.defaultScenario = m_sceneModel.defaultScenarioId;
 		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
@@ -23985,7 +24161,7 @@ void MainWindow::actionLoad_Network() {
 	};
 	if (containsPath(sourcePath, destinationPath) || containsPath(destinationPath, sourcePath)) {
 		showBlockingError(this, "Cannot Import Legacy Case",
-						 "Choose a scene destination that is separate from and outside the legacy source folder.");
+			"Choose a scene destination that is separate from and outside the legacy source folder.");
 		return;
 	}
 
@@ -24018,9 +24194,10 @@ void MainWindow::actionLoad_Network() {
 	};
 
 	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
-		? QString("Imported Legacy Scene") : QFileInfo(sourcePath).fileName();
+		? QString("Imported Legacy Scene")
+		: QFileInfo(sourcePath).fileName();
 	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), destinationPath.toStdString(),
-												 sceneName.toStdString());
+		sceneName.toStdString());
 	if (!importResult.success()) {
 		showBlockingError(this, "Cannot Import Legacy Case", diagnosticSummary(importResult.diagnostics));
 		return;
@@ -24091,7 +24268,7 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 
 // Keep native font/pixmap metrics and scale their scene-space presentation.
 void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal presentationScale, QPointF decorationOffset) {
+	qreal presentationScale, QPointF decorationOffset) {
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
@@ -24123,8 +24300,7 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	label->setDefaultTextColor(Qt::white);
 	label->setScale(presentationScale);
 	label->setZValue(3);
-	label->setPos(artworkCoord - QPointF(label->boundingRect().width() * presentationScale / 2.0,
-		label->boundingRect().height() * presentationScale / 2.0));
+	label->setPos(artworkCoord - QPointF(label->boundingRect().width() * presentationScale / 2.0, label->boundingRect().height() * presentationScale / 2.0));
 	label->setAcceptedMouseButtons(Qt::NoButton);
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
@@ -24151,7 +24327,7 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 
 	// find corresponding station platform
 	auto platformIt = std::find_if(AllStationPlatforms.begin(), AllStationPlatforms.end(),
-								   [&Node](auto const& plat) { return Node->stationName == plat.StationID && Node->stationPlatformId == plat.ID; });
+		[&Node](auto const& plat) { return Node->stationName == plat.StationID && Node->stationPlatformId == plat.ID; });
 
 	// platform found
 	if (platformIt != AllStationPlatforms.end()) {
@@ -24163,7 +24339,7 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 	// string with pax counter
 	std::stringstream ss;
 	ss << "Pax on platform: " << (platformIt == AllStationPlatforms.end() ? 0 : platformIt->Current_N_Passengers)
-		<< "\n Max pax volume: " << platformItem->maxVolume;
+	   << "\n Max pax volume: " << platformItem->maxVolume;
 
 	// convert string
 	QString text = QString::fromStdString(ss.str());
@@ -24193,7 +24369,6 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 
 	// add item to allPlatforms list
 	allPlatforms.push_back(platformItem);
-
 }
 
 // paint train passenger info on top of train
@@ -24229,7 +24404,7 @@ void MainWindow::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	// string to display
 	std::stringstream ss;
 	ss << "Current onboard pax: " << trainItem->currentOnboardPassengers
-		<< "\nMax onboard pax: " << trainItem->maxOnboardPassengers;
+	   << "\nMax onboard pax: " << trainItem->maxOnboardPassengers;
 
 	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
@@ -24376,7 +24551,6 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 
 	// add item to scene
 	scene->addItem(line);
-
 }
 
 // draws a connection
@@ -24394,7 +24568,6 @@ void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Conn
 
 	// add item to scene
 	scene->addItem(line);
-
 }
 
 // draws trackside signals (X is the beginning of the block section - except for the last signal of each trackline)
@@ -24566,9 +24739,9 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 		trainPolygonItemList->push_back(trainItem);
 	}
 	const bool hasVisibleGeometry = std::any_of(trainPolygonItemList->cbegin(),
-			trainPolygonItemList->cend(), [](const TrainBodyItem* item) {
-				return item && !item->polygon().isEmpty();
-			});
+		trainPolygonItemList->cend(), [](const TrainBodyItem* item) {
+			return item && !item->polygon().isEmpty();
+		});
 
 	// add train pointer and index to the item
 	trainPolygonGroup->index = train.index;
@@ -24603,7 +24776,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	const bool promoted = isTrainOverlayPromoted(train.index);
 	badge->setPromoted(promoted);
 	badge->setPresentation(TrainBadgeItem::presentationForZoom(
-			networkView ? networkView->zoomRatio() : 1.0, promoted));
+		networkView ? networkView->zoomRatio() : 1.0, promoted));
 	scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
 	badge->setPos(trainPolygonGroup->sceneBoundingRect().center());
@@ -24634,8 +24807,7 @@ void MainWindow::setupRunResultsDock() {
 	m_runResultsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_runResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_runResultsTable->setColumnCount(11);
-	m_runResultsTable->setHorizontalHeaderLabels({
-		"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start", "End", "Travel time",
+	m_runResultsTable->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start", "End", "Travel time",
 		"Energy (kWh)", "Energy with regen (kWh)",
 		"Substation (kWh)", "Substation with regen (kWh)"});
 	m_runResultsTable->setAlternatingRowColors(true);
@@ -24709,7 +24881,7 @@ void MainWindow::setupRunResultsDock() {
 		if (!written)
 			QMessageBox::warning(this, "Export failed",
 				QString("Could not export the image and provenance to:\n%1").arg(path));
-		});
+	});
 	resultViews->addWidget(exportCsvBtn);
 	resultViews->addWidget(exportPngBtn);
 	resultViews->addStretch();
@@ -24807,7 +24979,7 @@ void MainWindow::refreshRunResults() {
 	m_runResultsDock->show();
 	m_runResultsDock->raise();
 	if (openingResults && !m_runResultsDock->isFloating()
-			&& dockWidgetArea(m_runResultsDock) == Qt::BottomDockWidgetArea)
+		&& dockWidgetArea(m_runResultsDock) == Qt::BottomDockWidgetArea)
 		resizeDocks({m_runResultsDock}, {height() / 2}, Qt::Vertical);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		extern InitialParameters initial_variables;
@@ -24815,7 +24987,6 @@ void MainWindow::refreshRunResults() {
 			m_runResultsTable->rowCount(), static_cast<int>(results.trains.size()),
 			m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
-
 	}
 }
 
@@ -24831,11 +25002,13 @@ void MainWindow::refreshRunResultsSummary() {
 			++destinationTerminationCount;
 	}
 	QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed")
-		.arg(completedRunContext(m_completedRunProvenance))
-		.arg(m_lastRunSelectedOccurrences).arg(m_lastRunTotalOccurrences);
+						  .arg(completedRunContext(m_completedRunProvenance))
+						  .arg(m_lastRunSelectedOccurrences)
+						  .arg(m_lastRunTotalOccurrences);
 	if (advancedDetailsEnabled()) {
 		summary += QString(" | Direct incident evidence: %1 | Destination terminations: %2")
-			.arg(directEvidenceCount).arg(destinationTerminationCount);
+					   .arg(directEvidenceCount)
+					   .arg(destinationTerminationCount);
 	}
 	if (m_delayBaseline)
 		summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
@@ -24963,7 +25136,7 @@ void MainWindow::setupInfoDockWidget() {
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
 	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
-			signallingFormLayout, trainFormLayout})
+			 signallingFormLayout, trainFormLayout})
 		form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	for (auto* label : infoWidget->findChildren<QLabel*>())
 		label->setWordWrap(true);
@@ -25066,8 +25239,7 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 		m_sceneModel.stations[0].name = "Koge"; // Exercise the named presentation nudge too.
 		m_sceneModel.stationViews = {
 			{m_sceneModel.stations[0].id, 1.0, 0.0, {{0, 0.0}}, {}},
-			{m_sceneModel.stations[1].id, 1.0, 0.02, {{0, 2.0}}, {}}
-		};
+			{m_sceneModel.stations[1].id, 1.0, 0.02, {{0, 2.0}}, {}}};
 	}
 	const qreal expectedScale = 0.45;
 	const auto checkPresentation = [&]() {
@@ -25086,7 +25258,7 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 				const auto line = std::find_if(m_cachedTrackPreview.lines.begin(), m_cachedTrackPreview.lines.end(),
 					[&](const auto& candidate) {
 						return m_showingTrackPreview ? candidate.id == head->data(PreviewGraphics::TrackId).toString().toStdString()
-							: &candidate == cachedTrackLine(head->trackID);
+													 : &candidate == cachedTrackLine(head->trackID);
 					});
 				if (line == m_cachedTrackPreview.lines.end()) return false;
 				QPointF center, before, after, normal;
@@ -25143,7 +25315,12 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 		failure = "preview measured presentation dimensions or physical signal endpoints mismatch";
 		return false;
 	}
-	struct Primitive { int type; QRectF rect; QColor fill; QColor outline; };
+	struct Primitive {
+		int type;
+		QRectF rect;
+		QColor fill;
+		QColor outline;
+	};
 	std::vector<Primitive> boundaries;
 	for (auto* item : scene->items()) {
 		if (auto* node = qgraphicsitem_cast<NodeItem*>(item))
@@ -25159,7 +25336,7 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 	m_speedSlider->setValue(0);
 	m_runSceneAction->trigger();
 	if (!m_worker || m_showingTrackPreview || held() || m_sceneContextMenu
-			|| !m_previewSelectedStationId.isEmpty() || !nodeIDText->text().isEmpty()) {
+		|| !m_previewSelectedStationId.isEmpty() || !nodeIDText->text().isEmpty()) {
 		failure = "preview-to-prepared-runtime did not clear canonical state/actions";
 		return false;
 	}
@@ -25202,14 +25379,17 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 				rect = square->rect();
 			}
 			if (shape && item->type() == expected.type
-					&& QLineF(rect.center(), expected.rect.center()).length() < 1e-6
-					&& rect.size() == expected.rect.size() && shape->brush().color() == expected.fill
-					&& shape->pen().color() == expected.outline)
+				&& QLineF(rect.center(), expected.rect.center()).length() < 1e-6
+				&& rect.size() == expected.rect.size() && shape->brush().color() == expected.fill
+				&& shape->pen().color() == expected.outline)
 				found = true;
 		}
 		if (!found) {
 			failure = QString("prepared-runtime boundary mismatch: type=%1 center=%2,%3 size=%4")
-				.arg(expected.type).arg(expected.rect.center().x()).arg(expected.rect.center().y()).arg(expected.rect.width());
+						  .arg(expected.type)
+						  .arg(expected.rect.center().x())
+						  .arg(expected.rect.center().y())
+						  .arg(expected.rect.width());
 			clearSimulationWorker(true);
 			return false;
 		}
@@ -25270,12 +25450,12 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 			if (!require(item != nullptr, "missing canonical endpoint " + QString::fromStdString(point.nodeId))) return false;
 			if (auto* node = qgraphicsitem_cast<NodeItem*>(item)) {
 				if (!require(!node->node && node->track == -1 && node->brush().color() == QColor(Qt::lightGray),
-					"ordinary preview node paint/backing state")) return false;
+						"ordinary preview node paint/backing state")) return false;
 			} else if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
 				if (!require(!square->node && square->track == -1, "station preview has backing state")) return false;
 			}
 			if (!require(item->sceneBoundingRect().center() == QPointF(point.x, point.y + line.displayOffset),
-				"preview endpoint coordinate differs from cached topology")) return false;
+					"preview endpoint coordinate differs from cached topology")) return false;
 			// Detail-scale events avoid ambiguity from Fit padding/nearby artwork.
 			networkView->resetTransform();
 			networkView->scale(2, 2);
@@ -25286,27 +25466,31 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 	for (const auto& arc : saved.arcs) {
 		auto* item = qgraphicsitem_cast<TrackLineItem*>(find("arc", QString::fromStdString(arc.id)));
 		if (!require(item && item->pen().isCosmetic() && item->pen().color() == classifyTrackSpeed(arc.speedLimitMs).color,
-			"preview speed-class arc")) return false;
+				"preview speed-class arc")) return false;
 		const auto from = std::find_if(saved.nodes.begin(), saved.nodes.end(), [&](const SceneNode& node) { return node.id == arc.fromNodeId; });
 		const auto to = std::find_if(saved.nodes.begin(), saved.nodes.end(), [&](const SceneNode& node) { return node.id == arc.toNodeId; });
 		const double lengthM = std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000;
 		click(item->line().pointAt(0.5));
 		if (!require(arcIDText->text() == QString::fromStdString(arc.id)
-			&& arcSpeedLimitText->text().toDouble() == arc.speedLimitMs
-			&& std::fabs(arcLengthText->text().toDouble() - lengthM) < 1e-6
-			&& arcGradientText->text().toDouble() == arc.gradientPercent
-			&& arcCurvatureText->text().toDouble() == arc.curvatureRadiusM
-			&& arcOperationalStateText->text() == "Unavailable before Run", "arc event canonical fields")) return false;
+					&& arcSpeedLimitText->text().toDouble() == arc.speedLimitMs
+					&& std::fabs(arcLengthText->text().toDouble() - lengthM) < 1e-6
+					&& arcGradientText->text().toDouble() == arc.gradientPercent
+					&& arcCurvatureText->text().toDouble() == arc.curvatureRadiusM
+					&& arcOperationalStateText->text() == "Unavailable before Run",
+				"arc event canonical fields")) return false;
 	}
 	auto* connection = qgraphicsitem_cast<ConnectionItem*>(find("connection", "creator-switch"));
 	if (!require(connection && !connection->connection && connection->pen().color() == QColor(Qt::white)
-		&& connection->pen().width() == 2 && connection->pen().isCosmetic(), "preview connection paint/backing")) return false;
+				&& connection->pen().width() == 2 && connection->pen().isCosmetic(),
+			"preview connection paint/backing")) return false;
 	click(connection->line().pointAt(0.5));
 	if (!require(infoDockWidget->windowTitle().contains("creator-switch")
-		&& connectionXFirstNodeText->text().toDouble() == 1000, "connection event canonical fields")) return false;
+				&& connectionXFirstNodeText->text().toDouble() == 1000,
+			"connection event canonical fields")) return false;
 	if (!require(m_sceneRevision == initialRevision && m_sceneDirty == savedDirty
-		&& m_infrastructureSelectionId == editorSelection && !m_worker && allArcs.isEmpty()
-		&& allSignals.isEmpty() && allPlatforms.isEmpty(), "inspection mutated Open state")) return false;
+				&& m_infrastructureSelectionId == editorSelection && !m_worker && allArcs.isEmpty()
+				&& allSignals.isEmpty() && allPlatforms.isEmpty(),
+			"inspection mutated Open state")) return false;
 
 	const bool unchangedNodes = m_sceneModel.nodes.size() == saved.nodes.size()
 		&& std::equal(saved.nodes.begin(), saved.nodes.end(), m_sceneModel.nodes.begin(),
@@ -25345,19 +25529,21 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 	auto* z1 = qgraphicsitem_cast<StationNodeItem*>(find("station-node", "z1"));
 	auto* z3 = qgraphicsitem_cast<NodeItem*>(find("node", "z3"));
 	if (!require(z0 && z0->rect().width() == 0 && z1 && z3 && z3->rect().width() == node_size,
-		"first-station/four-node/terminal presentation")) return false;
+			"first-station/four-node/terminal presentation")) return false;
 	if (!require(z1->data(PreviewGraphics::StationId).toString() == "later"
-		&& z1->data(PreviewGraphics::PlatformId).toString() == "platform-real"
-		&& z1->brush().color() == classifyStation(true, 3).fill,
-		"native last-wins fields/hidden and duplicate endpoint incidence")) return false;
+				&& z1->data(PreviewGraphics::PlatformId).toString() == "platform-real"
+				&& z1->brush().color() == classifyStation(true, 3).fill,
+			"native last-wins fields/hidden and duplicate endpoint incidence")) return false;
 	if (!require(find("station-node", "z2") && find("connection", "join-one") && find("connection", "join-two")
-		&& find("track", "fallback"), "multiple platform nodes/duplicate connections/fallback track")) return false;
+				&& find("track", "fallback"),
+			"multiple platform nodes/duplicate connections/fallback track")) return false;
 	networkView->resetTransform();
 	networkView->scale(2, 2);
 	click(z1->rect().center());
 	if (!require(nodeStationNameText->text() == "Duplicate [later]" && nodeXText->text().toDouble() == 1000
-		&& infoDockWidget->windowTitle().contains("platform-real"), QString("station square canonical inspection: name=%1 x=%2 title=%3")
-			.arg(nodeStationNameText->text(), nodeXText->text(), infoDockWidget->windowTitle()))) return false;
+				&& infoDockWidget->windowTitle().contains("platform-real"),
+			QString("station square canonical inspection: name=%1 x=%2 title=%3")
+				.arg(nodeStationNameText->text(), nodeXText->text(), infoDockWidget->windowTitle()))) return false;
 	StationOverlayItem* earlier = nullptr;
 	StationOverlayItem* between = nullptr;
 	for (auto* overlay : m_stationOverlays) {
@@ -25368,27 +25554,29 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 	QPointF expectedBetween;
 	previewPointAtX(line, 1.5, line.displayOffset, expectedBetween);
 	if (!require(earlier && between && between->stableAnchor() == expectedBetween,
-		"position-only artwork uses authored Z-before-A track")) return false;
+			"position-only artwork uses authored Z-before-A track")) return false;
 	auto* picture = m_stationPictures.value(earlier, nullptr);
 	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
 	picture->setPos(picture->pos() + QPointF(150, -150));
 	clickArtwork(picture);
 	if (!require(nodeStationNameText->text() == "Duplicate [earlier]"
-		&& m_previewSelectedStationId == "earlier", "displaced artwork owns canonical station identity")) return false;
+				&& m_previewSelectedStationId == "earlier",
+			"displaced artwork owns canonical station identity")) return false;
 	// Position-only artwork has a real station, not an invented node.
 	auto* positionPicture = m_stationPictures.value(between, nullptr);
 	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
 	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
 	clickArtwork(positionPicture);
 	if (!require(nodeIDText->text() == "No node anchor" && nodeXText->text().toDouble() == 1500
-		&& nodeStationNameText->text() == "Duplicate [between]", "position-only canonical inspection")) return false;
+				&& nodeStationNameText->text() == "Duplicate [between]",
+			"position-only canonical inspection")) return false;
 	const bool oldLayer = m_stationLayerVisible, oldNames = m_stationNamesVisible;
 	m_stationLayerVisible = false;
 	m_stationNamesVisible = false;
 	for (auto* decoration : m_stationDecorations) decoration->setVisible(false);
 	updateViewportOverlays();
 	if (!require(z1->isVisible() && !picture->isVisible() && !m_stationLabels.front()->isVisible(),
-		"station layers must not hide structural squares")) return false;
+			"station layers must not hide structural squares")) return false;
 	m_stationLayerVisible = true;
 	updateViewportOverlays();
 	if (!require(!m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
@@ -25398,18 +25586,21 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 	updateViewportOverlays();
 	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
 	if (!require(arcIDText->text() == "No authored arc (fallback)" && arcFirstNodeIDText->text().isEmpty()
-		&& nodeStationNameText->text().isEmpty(), "fallback clears unrelated canonical fields")) return false;
+				&& nodeStationNameText->text().isEmpty(),
+			"fallback clears unrelated canonical fields")) return false;
 	const quint64 fixtureRevision = m_sceneRevision;
 	for (const auto& track : {QString("Z"), QString("A")}) {
 		auto* head = resolvePreviewItem("signal", "@" + track + "-section1@", track, false, fixtureRevision);
 		if (!require(head != nullptr, "same-chainage signal head missing")) return false;
 		click(head->sceneBoundingRect().center());
 		if (!require(signallingTrackIDText->text() == track && signallingXText->text().toDouble() == 1000
-			&& signallingLengthSectionAheadText->text() == "Unavailable before Run"
-			&& signallingGroupDetails->toPlainText().contains("authored-" + track), "exact canonical preview signal identity")) return false;
+					&& signallingLengthSectionAheadText->text() == "Unavailable before Run"
+					&& signallingGroupDetails->toPlainText().contains("authored-" + track),
+				"exact canonical preview signal identity")) return false;
 	}
 	if (!require(m_previewFitBounds == topologyBounds && !m_worker && allArcs.isEmpty()
-		&& allPlatforms.isEmpty() && allSignals.isEmpty(), "hit geometry/inspection mutated topology or runtime")) return false;
+				&& allPlatforms.isEmpty() && allSignals.isEmpty(),
+			"hit geometry/inspection mutated topology or runtime")) return false;
 	// Held payload tests the same guard as menus without dereferencing a deleted action.
 	const auto held = [this, fixtureRevision]() {
 		return resolvePreviewItem("arc", "z-arc0", QString(), false, fixtureRevision);
@@ -25417,7 +25608,8 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 	showSceneContextMenu(find("arc", "z-arc0"), QPointF(), QPoint(), false);
 	renderTrackPreview(m_sceneModel);
 	if (!require(!m_sceneContextMenu && !infoDockWidget->isVisible() && nodeIDText->text().isEmpty()
-		&& m_previewSelectedStationId.isEmpty() && held(), "same-revision rebuild clears menu/inspection and safely resolves payload")) return false;
+				&& m_previewSelectedStationId.isEmpty() && held(),
+			"same-revision rebuild clears menu/inspection and safely resolves payload")) return false;
 	m_sceneModel.arcs.front().id = "renamed";
 	markSceneDirty();
 	renderTrackPreview(m_sceneModel);
@@ -25448,29 +25640,28 @@ void MainWindow::clearPreviewInspection() {
 		handleCloseInfoDockWidget();
 		infoDockWidget->hide();
 		for (auto* field : {nodeIDText, nodeXText, nodeYText, nodeTrackIDText,
-				nodeStationNameText, nodeRegionText, nodeConnectedTracksText, nodeSignalledText,
-				arcIDText, arcFirstNodeIDText, arcSecondNodeIDText, arcTrackIDText,
-				arcLengthText, arcCurvatureText, arcGradientText, arcSpeedLimitText,
-				arcOperationalStateText, arcConnectedSignalsText, connectionFirstTrackIDText,
-				connectionSecondTrackIDText, connectionXFirstNodeText, connectionXSecondNodeText,
-				signallingTrackIDText, signallingXText, signallingAspectText,
-				signallingProtectedSectionText, signallingNextTrackText,
-				signallingIDSectionAheadText, signallingLengthSectionAheadText})
+				 nodeStationNameText, nodeRegionText, nodeConnectedTracksText, nodeSignalledText,
+				 arcIDText, arcFirstNodeIDText, arcSecondNodeIDText, arcTrackIDText,
+				 arcLengthText, arcCurvatureText, arcGradientText, arcSpeedLimitText,
+				 arcOperationalStateText, arcConnectedSignalsText, connectionFirstTrackIDText,
+				 connectionSecondTrackIDText, connectionXFirstNodeText, connectionXSecondNodeText,
+				 signallingTrackIDText, signallingXText, signallingAspectText,
+				 signallingProtectedSectionText, signallingNextTrackText,
+				 signallingIDSectionAheadText, signallingLengthSectionAheadText})
 			field->clear();
 		signallingGroupDetails->clear();
 	}
 }
 
 QGraphicsItem* MainWindow::resolvePreviewItem(const QString& kind, const QString& id,
-		const QString& track, bool reversed, quint64 revision) const {
+	const QString& track, bool reversed, quint64 revision) const {
 	if (!m_showingTrackPreview || !m_sceneLoaded || revision != m_sceneRevision || !scene)
 		return nullptr;
 	for (auto* item : scene->items()) {
 		if (item->data(PreviewGraphics::Kind).toString() != kind
-				|| item->data(PreviewGraphics::Id).toString() != id)
+			|| item->data(PreviewGraphics::Id).toString() != id)
 			continue;
-		if (kind == "signal" && (item->data(PreviewGraphics::TrackId).toString() != track
-				|| item->data(PreviewGraphics::Reversed).toBool() != reversed))
+		if (kind == "signal" && (item->data(PreviewGraphics::TrackId).toString() != track || item->data(PreviewGraphics::Reversed).toBool() != reversed))
 			continue;
 		return item;
 	}
@@ -25497,7 +25688,8 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 		const auto memberships = previewStationMemberships(m_sceneModel);
 		const auto membership = memberships.find(id);
 		const std::string stationId = kind == "station" ? id
-			: membership == memberships.end() ? std::string() : membership->second.stationId;
+			: membership == memberships.end()			? std::string()
+														: membership->second.stationId;
 		for (const auto& candidate : m_sceneModel.stations)
 			if (candidate.id == stationId)
 				station = &candidate;
@@ -25513,13 +25705,14 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 			return;
 		}
 		nodeIDText->setText(node ? text(node->id) : QStringLiteral("No node anchor"));
-		nodeXText->setText(node ? number(node->xKm * 1000)
-			: station && station->hasPosition ? number(station->positionKm * 1000) : unavailable);
+		nodeXText->setText(node					  ? number(node->xKm * 1000)
+				: station && station->hasPosition ? number(station->positionKm * 1000)
+												  : unavailable);
 		nodeYText->setText(node ? number(node->yKm * 1000) : unavailable);
 		nodeTrackIDText->setText(node ? text(node->trackId) : QStringLiteral("No node anchor"));
 		nodeStationNameText->setText(station
-			? text(station->name.empty() ? station->id : station->name) + " [" + text(station->id) + "]"
-			: QString());
+				? text(station->name.empty() ? station->id : station->name) + " [" + text(station->id) + "]"
+				: QString());
 		nodeRegionText->setText(unavailable);
 		nodeSignalledText->setText(unavailable);
 		QStringList connectedTracks;
@@ -25527,7 +25720,8 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 			connectedTracks << text(node->trackId);
 			for (const auto& connection : m_sceneModel.connections) {
 				const std::string other = connection.fromNodeId == node->id ? connection.toNodeId
-					: connection.toNodeId == node->id ? connection.fromNodeId : std::string();
+					: connection.toNodeId == node->id						? connection.fromNodeId
+																			: std::string();
 				for (const auto& candidate : m_sceneModel.nodes)
 					if (candidate.id == other && !connectedTracks.contains(text(candidate.trackId)))
 						connectedTracks << text(candidate.trackId);
@@ -25557,7 +25751,8 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 				if (node.id == arc->toNodeId) to = &node;
 			}
 			arcLengthText->setText(from && to
-				? number(std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000) : unavailable);
+					? number(std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000)
+					: unavailable);
 			arcCurvatureText->setText(number(arc->curvatureRadiusM));
 			arcGradientText->setText(number(arc->gradientPercent));
 			arcSpeedLimitText->setText(number(arc->speedLimitMs));
@@ -25607,8 +25802,8 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 			if (signal.protectedSection == id)
 				ids << text(signal.id);
 		signallingGroupDetails->setPlainText(QStringLiteral("Track %1; section %2; %3; authored signal IDs: %4")
-			.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
-				ids.isEmpty() ? "None" : ids.join(", ")));
+				.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
+					ids.isEmpty() ? "None" : ids.join(", ")));
 		title = "Signal " + text(id);
 		signallingInfoWidget->show();
 	} else {
@@ -25668,8 +25863,8 @@ void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 	for (auto* overlay : m_stationOverlays)
 		if (overlay)
 			overlay->setSelected(overlay->hasSourceIdentity()
-				? overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack)
-				: !m_hasSelectedStationIdentity && overlay->stationName() == m_selectedStationName);
+					? overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack)
+					: !m_hasSelectedStationIdentity && overlay->stationName() == m_selectedStationName);
 	updateViewportOverlays();
 
 	// update Node info displayed on widget
@@ -25853,8 +26048,8 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 		? signal->sectionAheadTrackId
 		: signal->sectionBehindTrackId;
 	signallingProtectedSectionText->setText(protectedSection.empty()
-		? QStringLiteral("None")
-		: QString::fromStdString(protectedSection));
+			? QStringLiteral("None")
+			: QString::fromStdString(protectedSection));
 	signallingNextTrackText->setText(nextTrack < 0 ? QStringLiteral("None") : QString::number(nextTrack));
 
 	// check if section ahead exists
@@ -26190,7 +26385,7 @@ void MainWindow::egtrainPoint2Screen(Node* Node, int track, double separation) {
 		TrackPreviewPoint point;
 		if ((!Node->sceneNodeId.empty()
 				&& trackPreviewPointAtNode(*line, Node->sceneNodeId, point))
-				|| trackPreviewPointAtX(*line, Node->X, point)) {
+			|| trackPreviewPointAtX(*line, Node->X, point)) {
 			Node->graphX = point.x;
 			Node->graphY = point.y + line->displayOffset;
 			return;
@@ -26225,10 +26420,10 @@ void MainWindow::egtrainPoint2Screen(Connections* connections, int track1, int t
 			TrackPreviewPoint first;
 			TrackPreviewPoint second;
 			const bool hasFirst = (!connections->sceneFirstNodeId.empty()
-					&& trackPreviewPointAtNode(*firstLine, connections->sceneFirstNodeId, first))
+									  && trackPreviewPointAtNode(*firstLine, connections->sceneFirstNodeId, first))
 				|| trackPreviewPointAtX(*firstLine, connections->xFirstNode, first);
 			const bool hasSecond = (!connections->sceneSecondNodeId.empty()
-					&& trackPreviewPointAtNode(*secondLine, connections->sceneSecondNodeId, second))
+									   && trackPreviewPointAtNode(*secondLine, connections->sceneSecondNodeId, second))
 				|| trackPreviewPointAtX(*secondLine, connections->xSecondNode, second);
 			if (hasFirst && hasSecond) {
 				connections->graphXFirstNode = first.x;
@@ -26291,7 +26486,7 @@ void MainWindow::waitForUpdates() {
 	// A queued notification can outlive its worker or arrive after Stop. Drain
 	// the mailbox, but never apply that late publication to the current scene.
 	if (!m_worker || m_runtimeStatus != QStringLiteral("Running")
-			|| m_worker->isStopRequested()) {
+		|| m_worker->isStopRequested()) {
 		simulation.takeSimulationSnapshot();
 		return;
 	}
@@ -26300,7 +26495,7 @@ void MainWindow::waitForUpdates() {
 		return;
 	m_snapshot = snapshot;
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")
-			&& !m_sceneChangedDuringRun && m_caseDescriptionEdit) {
+		&& !m_sceneChangedDuringRun && m_caseDescriptionEdit) {
 		m_caseDescriptionEdit->setText(QStringLiteral("discarded operational run"));
 		commitCaseSettings();
 	}
@@ -26335,8 +26530,8 @@ void MainWindow::waitForUpdates() {
 	}
 
 	if (PlaybackProfiler::enabled() && !m_playbackProfileViewApplied
-			&& !PlaybackProfiler::instance().measuring()
-			&& !PlaybackProfiler::instance().frozen()) {
+		&& !PlaybackProfiler::instance().measuring()
+		&& !PlaybackProfiler::instance().frozen()) {
 		TrainItemGroup* selected = nullptr;
 		for (TrainItemGroup* train : allTrains)
 			if (train && train->isVisible() && (!selected || train->index < selected->index))
@@ -26373,14 +26568,16 @@ void MainWindow::seekReplay(int requestedTime) {
 		m_replaySlider->setValue(m_replayRequestedTime);
 	}
 	m_replayLabel->setText(QString("Replay %1 s | available %2–%3 s | every %4 s%5")
-		.arg(frame->timestep).arg(m_completedReplay.firstTime()).arg(m_completedReplay.lastTime())
-		.arg(GuiReplayHistory::cadenceSeconds)
-		.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
+			.arg(frame->timestep)
+			.arg(m_completedReplay.firstTime())
+			.arg(m_completedReplay.lastTime())
+			.arg(GuiReplayHistory::cadenceSeconds)
+			.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
 	renderSnapshot(true);
 	if (trainPaxItem && !replayTrainHasPosition(trainPaxItem->index))
 		removeTrainPaxInfoIcon();
 	else if (trainPaxItem && !trainPaxInfoItem && initial_variables.PAX_GUI
-			&& m_passengerLayerVisible)
+		&& m_passengerLayerVisible)
 		paintTrainPassengerInfo(trainPaxItem);
 	updateViewportOverlays();
 }
@@ -26642,8 +26839,7 @@ void MainWindow::updateTrainPosition(int t) {
 			trainItem->currentOnboardPassengers = state.currentOnboardPassengers;
 			trainItem->maxOnboardPassengers = state.maxOnboardPassengers;
 			const bool hasPosition = guiReplayTrainHasPosition(state, t);
-			trainItem->setVisible(m_trainLayerVisible && (m_replayActive
-				? hasPosition : !state.outOfSimulation));
+			trainItem->setVisible(m_trainLayerVisible && (m_replayActive ? hasPosition : !state.outOfSimulation));
 			if (m_replayActive && !hasPosition && m_trainBadges.contains(train))
 				m_trainBadges[train]->hide();
 			// update train position
@@ -26654,7 +26850,8 @@ void MainWindow::updateTrainPosition(int t) {
 				const QPointF oldCenter = trainItem->sceneBoundingRect().center();
 				auto prevIt = m_prevTrainPositions.find(train);
 				const QPointF oldBadgeCenter = prevIt != m_prevTrainPositions.end()
-					? prevIt.value() : oldCenter;
+					? prevIt.value()
+					: oldCenter;
 				stopTrainAnimation(train);
 				trainItem->setPos(QPointF(0, 0));
 				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
@@ -26715,7 +26912,7 @@ void MainWindow::updateTrainPosition(int t) {
 						badge->setPos(badgeCenter);
 				}
 				if (hasVisibleGeometry && networkView && m_followAction && m_followAction->isChecked()
-						&& m_followTrainIndex == train)
+					&& m_followTrainIndex == train)
 					networkView->centerOn(newCenter);
 			}
 			// hide train whose simulation is finished
@@ -26730,7 +26927,7 @@ void MainWindow::updateTrainPosition(int t) {
 		// the exact departure frame, and the recorded trajectory (not the live
 		// train state) is what says whether the train is on the network at t
 		else if (m_replayActive ? guiReplayTrainHasPosition(state, t)
-				: t >= state.departureTime && state.routeAxisPosition != -9999) {
+								: t >= state.departureTime && state.routeAxisPosition != -9999) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
 			legendNeedsUpdate = true;
@@ -26738,7 +26935,7 @@ void MainWindow::updateTrainPosition(int t) {
 			if (firstTrain && !m_replayActive && newTrain && newTrain->isVisible())
 				centerSceneItem(newTrain);
 			if (m_followAction && m_followAction->isChecked() && m_followTrainIndex == train
-					&& newTrain && newTrain->isVisible()) {
+				&& newTrain && newTrain->isVisible()) {
 				centerSceneItem(newTrain);
 				const QString label = m_followTrainCombo
 					? m_followTrainCombo->itemText(m_followTrainCombo->findData(train))
@@ -26752,7 +26949,6 @@ void MainWindow::updateTrainPosition(int t) {
 			applySectionState(state, TrackOperationalState::Blocked);
 	if (legendNeedsUpdate)
 		updateNetworkLegend();
-
 }
 
 // returns the full train shape (list of polygons)
@@ -26794,10 +26990,10 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 	const Section* BS2 = nullptr;
 	QVector<QPointF> trainPointsUp, trainPointsDown, trainPointsComplete;
 	QVector<int> trainPointsStIndex, trainPointsStRegion, trainPointsGraphID;
-	int revStIndex;												  // used to add station points to the polygon (needed for reversed routes)
+	int revStIndex; // used to add station points to the polygon (needed for reversed routes)
 	double total_nW = train.wagonCount + 1;
 	const auto addPreviewPoint = [&](const TrackPreviewLine* line, double rawX,
-			const QPointF& point) {
+									 const QPointF& point) {
 		QPointF normal;
 		if (!line || !previewSignalNormal(*line, rawX, normal))
 			return false;
@@ -26820,10 +27016,10 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 		const int region = blockSets[track].region;
 		trainPointsUp.push_back(QPointF(point.x()
 				- StationArray[index].signalDeltaX[region] * 0.10 * track_separation,
-				point.y() - StationArray[index].signalDeltaY[region] * 0.10 * track_separation));
+			point.y() - StationArray[index].signalDeltaY[region] * 0.10 * track_separation));
 		trainPointsDown.push_front(QPointF(point.x()
 				+ StationArray[index].signalDeltaX[region] * 0.10 * track_separation,
-				point.y() + StationArray[index].signalDeltaY[region] * 0.10 * track_separation));
+			point.y() + StationArray[index].signalDeltaY[region] * 0.10 * track_separation));
 		trainPointsStIndex.push_back(revPrevIndex);
 		trainPointsStRegion.push_back(region);
 		trainPointsGraphID.push_back(blockSets[track].graphID);
@@ -26832,8 +27028,7 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 
 	// train position on X axis
 	// reversed route
-	if (wagon >= static_cast<int>(train.wagonHeadPositions.size()) ||
-		wagon >= static_cast<int>(train.wagonTailPositions.size()))
+	if (wagon >= static_cast<int>(train.wagonHeadPositions.size()) || wagon >= static_cast<int>(train.wagonTailPositions.size()))
 		return;
 	headX = train.wagonHeadPositions[static_cast<std::size_t>(wagon)];
 	tailX = train.wagonTailPositions[static_cast<std::size_t>(wagon)];
@@ -26895,7 +27090,7 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 
 				const TrackPreviewLine* previewLine = cachedTrackLine(currBS->trackLineId);
 				if ((!m_cachedTrackPreview.lines.empty() && !previewLine)
-						|| (!previewLine && !hasTrackGeometry(currBS->trackLineId))) {
+					|| (!previewLine && !hasTrackGeometry(currBS->trackLineId))) {
 					continue;
 				}
 
@@ -26934,8 +27129,7 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 					const bool hasPreview = !m_cachedTrackPreview.lines.empty();
 					const qreal lateralSeparation = track_separation * (hasPreview ? presentationScale() : 1.0);
 					if ((hasPreview && (!previewLine1 || !previewLine2))
-							|| (!hasPreview && (!hasTrackGeometry(BS1->trackLineId)
-									|| !hasTrackGeometry(BS2->trackLineId))))
+						|| (!hasPreview && (!hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))))
 						continue;
 
 					// get beginning and end of connection to interpolate
@@ -27295,7 +27489,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 			continue;
 
 		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position,
-														 train.earliestActiveTrajectoryIndex, train.End_Time)) {
+				 train.earliestActiveTrajectoryIndex, train.End_Time)) {
 			QLineSeries* series = new QLineSeries();
 			series->setName(QString::fromStdString(train.trainDescription));
 			series->setProperty("trainId", QString::fromStdString(train.trainDescription));
@@ -27355,7 +27549,7 @@ void MainWindow::showTimetableTable() {
 	}
 
 	auto* window = new TimetableTableWindow(m_completedTimetableResults,
-									m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
+		m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	window->setRunProvenance(m_completedRunProvenance);
 	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(m_completedRunProvenance)));
@@ -27385,7 +27579,8 @@ void MainWindow::showDelayDiagram() {
 				continue;
 			appendInspectedPoint(series, row.journeyIndex, row.arrivalDelaySeconds.value / 60.0,
 				QString("Station: %1 | Call: %2 | Arrival delay")
-					.arg(QString::fromStdString(row.stationId)).arg(row.callIndex));
+					.arg(QString::fromStdString(row.stationId))
+					.arg(row.callIndex));
 			hasData = true;
 		}
 		if (hasData) {
@@ -27439,7 +27634,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	const double origin = referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.back().positionKm;
 	const QString heading = timetable ? "Timetable graph: planned vs simulated stops"
-		: "Train paths: simulated movement";
+									  : "Train paths: simulated movement";
 	const QString explanation = timetable
 		? "Stop arrivals/departures and dwell, not continuous movement."
 		: "Recorded position samples, not planned stop times.";
@@ -27447,7 +27642,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	chart->setTitle(heading);
 	std::vector<std::vector<std::string>> exportRows;
 	const auto record = [&](const Train& train, const char* kind, const std::string& station,
-		int journey, int call, const RunResultValue& time, std::optional<double> x) {
+							int journey, int call, const RunResultValue& time, std::optional<double> x) {
 		exportRows.push_back({train.trainDescription, reference.ID, train_route[train.indexOfRoute].ID,
 			kind, station, journey ? std::to_string(journey) : "", call ? std::to_string(call) : "",
 			time.available ? csv::formatDouble(time.value) : "", x ? csv::formatDouble(*x) : ""});
@@ -27469,11 +27664,16 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 					const int stopIndex = row.journeyIndex - 1;
 					const auto x = routeDiagramStopPosition(train, stopIndex, path->second, projection->second);
 					const RunResultValue time = kind == 0 ? row.plannedArrivalSeconds : kind == 1 ? row.plannedDepartureSeconds
-						: kind == 2 ? row.simulatedArrivalSeconds : row.simulatedDepartureSeconds;
+						: kind == 2																  ? row.simulatedArrivalSeconds
+																								  : row.simulatedDepartureSeconds;
 					const char* event = kind == 0 ? "planned arrival" : kind == 1 ? "planned departure"
-						: kind == 2 ? "simulated arrival" : "simulated departure";
+						: kind == 2												  ? "simulated arrival"
+																				  : "simulated departure";
 					record(train, event, row.stationId, row.journeyIndex, row.callIndex, time, x);
-					if (!x || !time.available) { segment = nullptr; continue; }
+					if (!x || !time.available) {
+						segment = nullptr;
+						continue;
+					}
 					if (!segment) {
 						segment = new QLineSeries();
 						segment->setName(name + " (" + event + ")");
@@ -27486,7 +27686,10 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 					}
 					appendInspectedPoint(segment, *x, time.value,
 						QString("Station: %1 | Call: %2 | Journey: %3 | %4")
-						.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(row.journeyIndex).arg(event));
+							.arg(QString::fromStdString(row.stationId))
+							.arg(row.callIndex)
+							.arg(row.journeyIndex)
+							.arg(event));
 				}
 			}
 			// A dwell is vertical: fixed reference distance, advancing time.
@@ -27501,10 +27704,12 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 					dwell->setName(name + (planned ? " (planned dwell)" : " (simulated dwell)"));
 					dwell->setProperty("trainId", name);
 					QPen pen(QColor::fromHsv((i * 71) % 360, 175, planned ? 170 : 235));
-						if (planned) pen.setStyle(Qt::DashLine);
+					if (planned) pen.setStyle(Qt::DashLine);
 					dwell->setPen(pen);
 					const QString context = QString("Station: %1 | Call: %2 | %3 dwell")
-						.arg(QString::fromStdString(row.stationId)).arg(row.callIndex).arg(planned ? "Planned" : "Simulated");
+												.arg(QString::fromStdString(row.stationId))
+												.arg(row.callIndex)
+												.arg(planned ? "Planned" : "Simulated");
 					appendInspectedPoint(dwell, *x, arrival.value, context);
 					appendInspectedPoint(dwell, *x, departure.value, context);
 					chart->addSeries(dwell);
@@ -27517,14 +27722,17 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 			if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
 			if (train.earliestActiveTrajectoryIndex < 0) continue;
 			for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
-				train.earliestActiveTrajectoryIndex, train.End_Time)) {
+					 train.earliestActiveTrajectoryIndex, train.End_Time)) {
 				QLineSeries* segment = nullptr;
 				for (int t = valid.first; t <= valid.last; ++t) {
 					const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
 					const auto x = position(train, sourceKm);
 					const RunResultValue time{true, t * timestep};
 					record(train, "trajectory", "", 0, 0, time, x);
-					if (!x) { segment = nullptr; continue; }
+					if (!x) {
+						segment = nullptr;
+						continue;
+					}
 					if (!segment) {
 						segment = new QLineSeries();
 						segment->setName(QString::fromStdString(train.trainDescription));
@@ -27545,7 +27753,8 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	if (!chart->axes(Qt::Horizontal).isEmpty()) {
 		auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
 		axis->setTitleText(QString("Route X (km); origin %1, travel %2")
-			.arg(origin, 0, 'f', 3).arg(end >= origin ? "right" : "left"));
+				.arg(origin, 0, 'f', 3)
+				.arg(end >= origin ? "right" : "left"));
 		const double low = std::min(origin, end), high = std::max(origin, end);
 		axis->setRange(low - 0.01, std::max(low + 0.02, high + 0.01));
 	}
@@ -27570,7 +27779,8 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 		stations->setStartValue(distanceAxis->min() - 1);
 		for (const auto& station : stationLabels)
 			stations->append(QString::fromStdString(station.second)
-				+ QString(" (%1 km)").arg(station.first, 0, 'f', 2), station.first);
+					+ QString(" (%1 km)").arg(station.first, 0, 'f', 2),
+				station.first);
 		stations->setRange(distanceAxis->min(), distanceAxis->max());
 		chart->addAxis(stations, Qt::AlignTop);
 		for (auto* series : chart->series()) series->attachAxis(stations);
@@ -27594,7 +27804,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
 		const QString basename = timetable ? "timetable_graph" : "train_path_graph";
 		for (const auto& selection : {std::pair<QString, QStringList>{"all", allTrainIds()},
-				std::pair<QString, QStringList>{"first", QStringList{allTrainIds().first()}}}) {
+				 std::pair<QString, QStringList>{"first", QStringList{allTrainIds().first()}}}) {
 			QFile out(dir + "/" + basename + "_" + selection.first + ".csv");
 			if (out.open(QIODevice::WriteOnly)) out.write(QByteArray::fromStdString(graphCsv(selection.second)));
 		}
@@ -27619,11 +27829,10 @@ void MainWindow::showBlockingTimeDiagram() {
 	const auto scoped = scope.routeIndex >= 0 && scope.trainIds.empty()
 		? std::vector<BlockingTimeDiagramSegment>()
 		: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
-			scope.startTime, scope.endTime);
+			  scope.startTime, scope.endTime);
 	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : [&]() {
 		for (int i = 0; i < numRegions; ++i)
-			if ((scope.trainIds.empty() || std::find(scope.trainIds.begin(), scope.trainIds.end(),
-				regional_train[i].trainDescription) != scope.trainIds.end())
+			if ((scope.trainIds.empty() || std::find(scope.trainIds.begin(), scope.trainIds.end(), regional_train[i].trainDescription) != scope.trainIds.end())
 				&& regional_train[i].indexOfRoute >= 0
 				&& regional_train[i].indexOfRoute < static_cast<int>(train_route.size()))
 				return regional_train[i].indexOfRoute;
@@ -27653,7 +27862,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		allPlannedReferences, scope.startTime, scope.endTime);
 	if (segments.empty() && plannedReferences.empty()) {
 		QMessageBox::information(this, "No Data", "No complete blocking envelope with finite endpoints and clearance could be projected in this scope. "
-			"Incomplete, missing-clearance or unmapped records are omitted.");
+												  "Incomplete, missing-clearance or unmapped records are omitted.");
 		return;
 	}
 
@@ -27665,8 +27874,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		if (!route.corridor.empty())
 			routeScope += QString(" / %1").arg(QString::fromStdString(route.corridor));
 		if (!scope.blockIds.empty())
-			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()),
-				QString::fromStdString(scope.blockIds.back()));
+			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
 	}
 	chart->setTitle("Blocking time: envelopes and trajectories");
 
@@ -27704,7 +27912,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		const auto projection = byTrain.find(train.trainDescription);
 		if (projection == byTrain.end()) continue;
 		for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
-			train.earliestActiveTrajectoryIndex, train.End_Time)) {
+				 train.earliestActiveTrajectoryIndex, train.End_Time)) {
 			QLineSeries* line = nullptr;
 			for (int t = valid.first; t <= valid.last; ++t) {
 				const double time = t * timestep;
@@ -27712,11 +27920,14 @@ void MainWindow::showBlockingTimeDiagram() {
 				const auto x = projection->second.map(sourceKm);
 				const bool inScope = x && time >= scope.startTime && time <= scope.endTime
 					&& std::any_of(segments.begin(), segments.end(), [&](const auto& block) {
-						return block.trainName == train.trainDescription && time >= block.startTime
-							&& time <= block.endTime && *x >= std::min(block.startPositionKm, block.endPositionKm)
-							&& *x <= std::max(block.startPositionKm, block.endPositionKm);
-					});
-				if (!inScope) { line = nullptr; continue; }
+						   return block.trainName == train.trainDescription && time >= block.startTime
+							   && time <= block.endTime && *x >= std::min(block.startPositionKm, block.endPositionKm)
+							   && *x <= std::max(block.startPositionKm, block.endPositionKm);
+					   });
+				if (!inScope) {
+					line = nullptr;
+					continue;
+				}
 				if (!line) {
 					line = new QLineSeries();
 					line->setName(QString::fromStdString(train.trainDescription) + " (recorded trajectory)");
@@ -27754,8 +27965,9 @@ void MainWindow::showBlockingTimeDiagram() {
 	const double origin = referencePath.nodes.empty() ? 0.0 : referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.empty() ? origin : referencePath.nodes.back().positionKm;
 	axisX->setTitleText(QString("Reference %1 X (km); origin %2, travel %3")
-		.arg(QString::fromStdString(referencePath.id)).arg(origin, 0, 'f', 3)
-		.arg(end >= origin ? "right" : "left"));
+			.arg(QString::fromStdString(referencePath.id))
+			.arg(origin, 0, 'f', 3)
+			.arg(end >= origin ? "right" : "left"));
 	axisX->setRange(std::min(origin, end) - 0.01, std::max(std::min(origin, end) + 0.02, std::max(origin, end) + 0.01));
 	auto* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	axisY->setTitleText("Elapsed simulation time (s), downward");
@@ -27766,8 +27978,8 @@ void MainWindow::showBlockingTimeDiagram() {
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
 	const QString note = QString("Calculated envelopes, not observed occupation; movement only within scope. "
-		"Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation.")
-		.arg(omitted);
+								 "Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation.")
+							 .arg(omitted);
 	win->setPresentation("Blocking time: envelopes and trajectories",
 		QString("%1 | %2 to %3 [%4] | Reference: %5")
 			.arg(routeScope,
@@ -27801,7 +28013,7 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 	if ((!e2eDialogsSuppressed() || qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE"))
-			&& !chooseCapacityAnalysisScope(this, scope))
+		&& !chooseCapacityAnalysisScope(this, scope))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
 		QMessageBox::information(this, "Capacity analysis",
@@ -27850,11 +28062,12 @@ void MainWindow::showCapacityAnalysis() {
 	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	detailsToggle->setArrowType(Qt::RightArrow);
 	auto* details = new QLabel(QString("Cycle / occupation time: %1 s; period: %2 s; cycle / period × 100: %3%.\n"
-		"Cycle start: %4 (%5); cycle end: %6 (%7). Conflict-free compressed occupations. "
-		"Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
-		.arg(cycle, period, percentage, QString::fromStdString(result.firstIdentity),
-			sourceFor(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
-			sourceFor(result.cycleEndIdentity)), body);
+									   "Cycle start: %4 (%5); cycle end: %6 (%7). Conflict-free compressed occupations. "
+									   "Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
+								   .arg(cycle, period, percentage, QString::fromStdString(result.firstIdentity),
+									   sourceFor(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
+									   sourceFor(result.cycleEndIdentity)),
+		body);
 	details->setObjectName("resultContextText");
 	details->setTextFormat(Qt::PlainText);
 	details->setWordWrap(true);
@@ -27887,7 +28100,7 @@ void MainWindow::showCapacityAnalysis() {
 		return table;
 	};
 	auto* pairTable = addTable({"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]",
-		"Minimum headway [s]", "Buffer [s]", "Governing block evidence", "Reference label/source (leader → follower)"},
+								   "Minimum headway [s]", "Buffer [s]", "Governing block evidence", "Reference label/source (leader → follower)"},
 		static_cast<int>(result.pairs.size()));
 	for (int row = 0; row < pairTable->rowCount(); ++row) {
 		const CapacityPairRow& pair = result.pairs[static_cast<std::size_t>(row)];
@@ -27904,16 +28117,16 @@ void MainWindow::showCapacityAnalysis() {
 	tabs->setTabText(0, QString("Pairs (%1)").arg(pairTable->rowCount()));
 
 	auto* compressionTable = addTable({"Identity", "Operating code", "Original reference [s]", "Scheduled reference [s]",
-		"Compressed reference [s]", "Shift [s]", "Governing predecessor / block evidence"},
+										  "Compressed reference [s]", "Shift [s]", "Governing predecessor / block evidence"},
 		static_cast<int>(result.compression.size()));
 	for (int row = 0; row < compressionTable->rowCount(); ++row) {
 		const CapacityCompressionRow& compressed = result.compression[static_cast<std::size_t>(row)];
 		QStringList governing;
 		for (const CapacityCompressionEvidence& predecessor : compressed.governingPredecessors)
 			governing << QString("%1 (%2 s): %3")
-				.arg(QString::fromStdString(predecessor.predecessorIdentity),
-					QString::fromStdString(csv::formatDouble(predecessor.minimumHeadway)),
-					QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence)));
+							 .arg(QString::fromStdString(predecessor.predecessorIdentity),
+								 QString::fromStdString(csv::formatDouble(predecessor.minimumHeadway)),
+								 QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence)));
 		const QStringList values = {QString::fromStdString(compressed.identity), QString::fromStdString(compressed.operatingCode),
 			QString::fromStdString(csv::formatDouble(compressed.originalReference)),
 			QString::fromStdString(csv::formatDouble(compressed.scheduledReference)),
@@ -27968,9 +28181,9 @@ void MainWindow::showCapacityAnalysis() {
 	const QString referenceId = QString::fromStdString(compressedReference.id);
 	connect(diagramButton, &QPushButton::clicked, dialog,
 		[this, result, sectionLabel, provenance, compressedSegments, routeStartKm, routeEndKm, referenceId]() {
-		showCompressedBlockingTimeDiagram(result, sectionLabel, provenance, compressedSegments,
-			routeStartKm, routeEndKm, referenceId);
-	});
+			showCompressedBlockingTimeDiagram(result, sectionLabel, provenance, compressedSegments,
+				routeStartKm, routeEndKm, referenceId);
+		});
 	secondaryActions->addWidget(exportButton);
 	secondaryActions->addWidget(diagramButton);
 	secondaryActions->addStretch();
@@ -28020,7 +28233,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	window->setChart(chart);
 	const QString note = "Shifted calculated envelopes, not recorded movement. "
-		"Unmapped/incomplete blocks omitted; no extrapolation.";
+						 "Unmapped/incomplete blocks omitted; no extrapolation.";
 	window->setPresentation("Compressed blocking-time diagram",
 		QString("%1 | cycle %2 to %3 [%4] | Reference: %5")
 			.arg(sectionLabel, QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
@@ -28029,7 +28242,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	const std::function<std::string(const QStringList&)> csvProvider =
 		[segments](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, {});
-	};
+		};
 	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv");
 	attachRunProvenance(window, std::move(provenance));
 	connect(window, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
@@ -28192,7 +28405,7 @@ void MainWindow::bindStationOverlaySources() {
 				[this, representativeNodeId, representativeTrack](const QString&) {
 					QTimer::singleShot(0, this, [this, representativeNodeId, representativeTrack]() {
 						if (auto* current = resolveStationNodeItem(
-							representativeNodeId, representativeTrack))
+								representativeNodeId, representativeTrack))
 							displayStationNodeInfo(current);
 					});
 				});
@@ -28222,7 +28435,7 @@ void MainWindow::updateStationOverlayDegrees() {
 			if (station->node)
 				stationNodes.append(station);
 		} else if (qgraphicsitem_cast<TrackLineItem*>(item)
-				|| qgraphicsitem_cast<ConnectionItem*>(item)) {
+			|| qgraphicsitem_cast<ConnectionItem*>(item)) {
 			edges.append(item);
 		}
 	}
@@ -28275,7 +28488,7 @@ void MainWindow::updateViewportOverlays() {
 	QPointF followedCenter;
 	bool hasFollowedCenter = false;
 	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
-			&& (!m_replayActive || replayTrainHasPosition(m_followTrainIndex))) {
+		&& (!m_replayActive || replayTrainHasPosition(m_followTrainIndex))) {
 		if (auto* train = resolveTrainItem(m_followTrainIndex)) {
 			followedCenter = train->sceneBoundingRect().center();
 			hasFollowedCenter = true;
@@ -28291,8 +28504,8 @@ void MainWindow::updateViewportOverlays() {
 		const bool selectedByLegacyName = !m_hasSelectedStationIdentity && !overlay->hasSourceIdentity()
 			&& !m_selectedStationName.isEmpty() && overlay->stationName() == m_selectedStationName;
 		overlay->setSelected(m_showingTrackPreview
-			? !m_previewSelectedStationId.isEmpty() && overlay->data(PreviewGraphics::Id).toString() == m_previewSelectedStationId
-			: selectedByIdentity || selectedByLegacyName);
+				? !m_previewSelectedStationId.isEmpty() && overlay->data(PreviewGraphics::Id).toString() == m_previewSelectedStationId
+				: selectedByIdentity || selectedByLegacyName);
 		overlay->setVisible(m_stationLayerVisible);
 		overlay->setFollowed(false);
 		if (!hasFollowedCenter)
@@ -28300,8 +28513,8 @@ void MainWindow::updateViewportOverlays() {
 		const QPointF delta = overlay->stableAnchor() - followedCenter;
 		const qreal distance = QPointF::dotProduct(delta, delta);
 		if (!nearestFollowed || distance < nearestDistance
-				|| (distance == nearestDistance
-					&& overlay->stationName() < nearestFollowed->stationName())) {
+			|| (distance == nearestDistance
+				&& overlay->stationName() < nearestFollowed->stationName())) {
 			nearestFollowed = overlay;
 			nearestDistance = distance;
 		}
@@ -28343,16 +28556,16 @@ void MainWindow::updateSignalCues() {
 			signal->setScale(1.0);
 			const SignalCueKind cue = classifySignalCue(signal->aspectCode());
 			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
-				: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
-				: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral");
+				: cue == SignalCueKind::Caution				  ? QStringLiteral("Caution")
+				: cue == SignalCueKind::Proceed				  ? QStringLiteral("Proceed")
+															  : QStringLiteral("Neutral");
 			signal->setToolTip(QStringLiteral("%1: %2, %3")
-				.arg(signal->inspectionIdentity(), signal->reversedDirection
-					? QStringLiteral("left") : QStringLiteral("right"), aspect));
+					.arg(signal->inspectionIdentity(), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), aspect));
 		}
 		item->setVisible(visible);
 	}
 	if (signallingInfoWidget && signallingInfoWidget->isVisible() && signallingGroupDetails
-			&& m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal)) {
+		&& m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal)) {
 		const QString details = m_inspectedSignal->toolTip();
 		if (signallingGroupDetails->toPlainText() != details) {
 			const int scroll = signallingGroupDetails->verticalScrollBar()->value();
@@ -28361,8 +28574,9 @@ void MainWindow::updateSignalCues() {
 		}
 		const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
 		signallingAspectText->setText(cue == SignalCueKind::Stop ? QStringLiteral("Stop")
-			: cue == SignalCueKind::Caution ? QStringLiteral("Caution")
-			: cue == SignalCueKind::Proceed ? QStringLiteral("Proceed") : QStringLiteral("Neutral"));
+				: cue == SignalCueKind::Caution					 ? QStringLiteral("Caution")
+				: cue == SignalCueKind::Proceed					 ? QStringLiteral("Proceed")
+																 : QStringLiteral("Neutral"));
 	}
 }
 

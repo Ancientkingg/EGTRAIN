@@ -109,7 +109,7 @@ inline bool buildStage(const QString& extractPath, const QString& stagePath,
 	if (!completeWindowsRuntime(stagePath, manifestFiles, &missing)) {
 		if (error)
 			*error = QStringLiteral("The Windows update package is missing a required file: %1.")
-				.arg(missing);
+						 .arg(missing);
 		return false;
 	}
 	return true;

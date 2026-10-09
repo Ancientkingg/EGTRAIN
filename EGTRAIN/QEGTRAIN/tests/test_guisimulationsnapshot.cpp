@@ -22,10 +22,10 @@ int main() {
 	require(!guiSectionReportsPermissiveSignalling(0.0),
 		"zero signalling code was reported as permissive signalling");
 	require(guiSectionReportsPermissiveSignalling(1.0)
-		&& guiSectionReportsPermissiveSignalling(75.0)
-		&& guiSectionReportsPermissiveSignalling(180.0)
-		&& guiSectionReportsPermissiveSignalling(270.0)
-		&& guiSectionReportsPermissiveSignalling(751.0),
+			&& guiSectionReportsPermissiveSignalling(75.0)
+			&& guiSectionReportsPermissiveSignalling(180.0)
+			&& guiSectionReportsPermissiveSignalling(270.0)
+			&& guiSectionReportsPermissiveSignalling(751.0),
 		"nonzero signalling codes did not report permissive signalling");
 	GuiSimulationSnapshot operational;
 	operational.sectionStates.push_back({"unused-nonzero", guiSectionReportsPermissiveSignalling(751.0), false});
@@ -34,24 +34,24 @@ int main() {
 	occupiedTrain.occupiedArcs.push_back({7, 2.5});
 	operational.trains.push_back(occupiedTrain);
 	require(operational.sectionStates.at(0).prepared
-		&& !operational.sectionStates.at(0).blocked
-		&& operational.trains.front().occupiedArcs.size() == 1,
+			&& !operational.sectionStates.at(0).blocked
+			&& operational.trains.front().occupiedArcs.size() == 1,
 		"permissive signalling was conflated with occupied or blocked state");
 	require(operational.sectionStates.at(1).blocked
-		&& !operational.sectionStates.at(1).prepared,
+			&& !operational.sectionStates.at(1).prepared,
 		"blocked section did not remain independent of permissive signalling");
 
 	// Route copies of one section and direction merge into the most restrictive
 	// code, whatever the order they arrive in.
 	require(guiSignalRestriction(0) < guiSignalRestriction(751)
-		&& guiSignalRestriction(751) < guiSignalRestriction(75)
-		&& guiSignalRestriction(75) < guiSignalRestriction(180)
-		&& guiSignalRestriction(180) < guiSignalRestriction(270)
-		&& guiSignalRestriction(270) < guiSignalRestriction(-1)
-		&& guiSignalRestriction(-1) == guiSignalRestriction(1000),
+			&& guiSignalRestriction(751) < guiSignalRestriction(75)
+			&& guiSignalRestriction(75) < guiSignalRestriction(180)
+			&& guiSignalRestriction(180) < guiSignalRestriction(270)
+			&& guiSignalRestriction(270) < guiSignalRestriction(-1)
+			&& guiSignalRestriction(-1) == guiSignalRestriction(1000),
 		"signal codes are not ordered from stop to clear");
 	require(guiSignalHasLevel(0) && guiSignalHasLevel(5) && !guiSignalHasLevel(6)
-		&& !guiSignalHasLevel(kGuiSignalNoLevel) && !guiSignalHasLevel(-99999999),
+			&& !guiSignalHasLevel(kGuiSignalNoLevel) && !guiSignalHasLevel(-99999999),
 		"signalling levels are not 0 to 5");
 	std::array<int, 4> codes{270, 75, 180, 751};
 	std::sort(codes.begin(), codes.end());
@@ -73,8 +73,8 @@ int main() {
 	const auto separate = routes.take();
 	require(separate.size() == 3, "directions or sections were merged");
 	require(separate[0].sectionId == "@2-B0@" && separate[0].code == 75 && !separate[0].reversedDirection
-		&& separate[1].sectionId == "@1-B0@" && separate[1].code == 180 && !separate[1].reversedDirection
-		&& separate[2].sectionId == "@1-B0@" && separate[2].code == 0 && separate[2].reversedDirection,
+			&& separate[1].sectionId == "@1-B0@" && separate[1].code == 180 && !separate[1].reversedDirection
+			&& separate[2].sectionId == "@1-B0@" && separate[2].code == 0 && separate[2].reversedDirection,
 		"a direction took the code of the other direction");
 	// A clear copy does not hide a stop, and a failure marks both directions.
 	GuiSignalStateList failure;
@@ -86,7 +86,7 @@ int main() {
 	failure.fail("@3-B0@");
 	const auto failed = failure.take();
 	require(failed.size() == 3 && failed[0].code == 0 && failed[0].failed
-		&& failed[1].failed && failed[1].reversedDirection && !failed[2].failed,
+			&& failed[1].failed && failed[1].reversedDirection && !failed[2].failed,
 		"a clear copy hid a stop, or a failure missed a direction");
 	// A copy without a level has no signalling and never hides one that has.
 	GuiSignalStateList levels;
@@ -127,8 +127,8 @@ int main() {
 	exitedTrain = activeTrain;
 	exitedTrain.outOfSimulation = true;
 	require(!guiReplayTrainHasPosition(activeTrain, 4)
-		&& guiReplayTrainHasPosition(activeTrain, 5)
-		&& !guiReplayTrainHasPosition(exitedTrain, 5),
+			&& guiReplayTrainHasPosition(activeTrain, 5)
+			&& !guiReplayTrainHasPosition(exitedTrain, 5),
 		"replay train visibility ignored departure or exit");
 	activeTrain.routeAxisPosition = -9999.0;
 	require(!guiReplayTrainHasPosition(activeTrain, 5), "replay accepted sentinel geometry");
@@ -182,7 +182,8 @@ int main() {
 	require(history.size() == 4 && history.firstTime() == 0 && history.lastTime() == 12,
 		"first/cadence/final samples not retained");
 	require(history.atOrBefore(-1)->timestep == 0 && history.atOrBefore(7)->timestep == 5
-		&& history.atOrBefore(99)->timestep == 12, "replay lookup failed to clamp or floor");
+			&& history.atOrBefore(99)->timestep == 12,
+		"replay lookup failed to clamp or floor");
 	history.clear();
 	require(history.empty() && !history.truncated(), "replacement retained old frames");
 	auto only = std::make_shared<GuiSimulationSnapshot>();
@@ -199,7 +200,7 @@ int main() {
 		history.record(frame);
 	}
 	require(history.size() == GuiReplayHistory::frameLimit && history.truncated()
-		&& history.firstTime() > 0 && history.payloadBytes() <= GuiReplayHistory::payloadLimit,
+			&& history.firstTime() > 0 && history.payloadBytes() <= GuiReplayHistory::payloadLimit,
 		"frame-count eviction failed");
 	history.clear();
 	auto withoutService = std::make_shared<GuiSimulationSnapshot>();
@@ -212,7 +213,7 @@ int main() {
 	withService->trains.front().serviceId = std::string(1000, 's');
 	history.record(withService);
 	require(history.atOrBefore(0)->trains.front().serviceId == std::string(1000, 's')
-		&& history.payloadBytes() >= bytesWithoutService + 900,
+			&& history.payloadBytes() >= bytesWithoutService + 900,
 		"service id is not part of the train state or the replay byte count");
 	history.clear();
 	auto withSignals = std::make_shared<GuiSimulationSnapshot>();
@@ -232,7 +233,8 @@ int main() {
 		history.record(frame);
 	}
 	require(history.truncated() && history.payloadBytes() <= GuiReplayHistory::payloadLimit
-		&& history.firstTime() > 0, "payload eviction failed");
+			&& history.firstTime() > 0,
+		"payload eviction failed");
 	large->passengers.front().id = std::string(GuiReplayHistory::payloadLimit, 'x');
 	history.record(large);
 	require(history.oversize() && history.empty() && history.payloadBytes() == 0,

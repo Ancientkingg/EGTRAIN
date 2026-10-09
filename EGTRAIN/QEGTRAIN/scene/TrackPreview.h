@@ -42,7 +42,7 @@ struct TrackPreviewSignal {
 };
 
 struct TrackPreviewResult {
-	bool normalized = false; // Normalization is idempotent; reload after scene edits.
+	bool normalized = false;		 // Normalization is idempotent; reload after scene edits.
 	double normalizationScale = 1.0; // Projected coordinates to normalized scene coordinates.
 	// Degree-derived conversion requires successful authored projection on every
 	// visible nonempty line; raw/mixed/invalid or degenerate scenes retain one.
@@ -61,9 +61,9 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene);
 // These helpers operate on projected scene coordinates only; rawX remains the
 // canonical chainage used to interpolate runtime positions.
 bool trackPreviewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
-		TrackPreviewPoint& point);
+	TrackPreviewPoint& point);
 bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
-		TrackPreviewPoint& point);
+	TrackPreviewPoint& point);
 TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview);
 
 #endif

@@ -15,19 +15,20 @@
 // Thread-safe streambuf that captures stdout/stderr and forwards to a callback
 class ConsoleStreambuf : public std::streambuf {
 public:
-    explicit ConsoleStreambuf(std::function<void(QString)> callback);
-    ~ConsoleStreambuf();
+	explicit ConsoleStreambuf(std::function<void(QString)> callback);
+	~ConsoleStreambuf();
 
-    void install();
-    void restore();
+	void install();
+	void restore();
 
 protected:
-    int_type overflow(int_type c) override;
-    std::streamsize xsputn(const char* s, std::streamsize n) override;
-    int sync() override;
+	int_type overflow(int_type c) override;
+	std::streamsize xsputn(const char* s, std::streamsize n) override;
+	int sync() override;
 
 private:
-	enum class Stream { Cout, Cerr };
+	enum class Stream { Cout,
+		Cerr };
 
 	class ProxyStreambuf : public std::streambuf {
 	public:
@@ -60,16 +61,16 @@ private:
 
 // Dock widget that displays captured console output
 class ConsoleWidget : public QDockWidget {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit ConsoleWidget(QWidget* parent = nullptr);
-    ~ConsoleWidget();
+	explicit ConsoleWidget(QWidget* parent = nullptr);
+	~ConsoleWidget();
 
 private:
-    QPointer<QPlainTextEdit> m_textEdit;
-    std::unique_ptr<ConsoleStreambuf> m_streambuf;
+	QPointer<QPlainTextEdit> m_textEdit;
+	std::unique_ptr<ConsoleStreambuf> m_streambuf;
 
-    void appendText(const QString& text);
+	void appendText(const QString& text);
 };
 
 #endif // CONSOLEWIDGET_H

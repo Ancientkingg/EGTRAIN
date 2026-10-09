@@ -16,7 +16,7 @@ SceneRouteTraversal sceneServiceTraversal(const SceneModel& model, const SceneSe
 // before `stopIndex` whose status is neither Resolved nor OffRouteContext leaves
 // no visits.
 SceneRouteTraversal sceneRemainingStopTraversal(const SceneModel& model, const SceneService& service,
-		std::size_t stopIndex);
+	std::size_t stopIndex);
 
 // The route visits at which a new stop can be inserted at one position of a
 // timetable.
@@ -43,7 +43,7 @@ struct SceneStopInsertionWindow {
 // after it, resolved over the whole current timetable. Stops that resolve as
 // OffRouteContext do not bound the window.
 SceneStopInsertionWindow sceneStopInsertionWindow(const SceneModel& model,
-		const SceneService& service, std::size_t insertIndex);
+	const SceneService& service, std::size_t insertIndex);
 
 struct SceneStopInsertionResult {
 	bool inserted = false;
@@ -66,6 +66,6 @@ struct SceneStopInsertionResult {
 // same station and platform therefore bind to its visits in order, and the new
 // stop must bind before the visit of the next resolved stop.
 SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& service,
-		std::size_t insertIndex, const SceneStop& stop);
+	std::size_t insertIndex, const SceneStop& stop);
 
 #endif // SCENE_STOP_INSERTION_H

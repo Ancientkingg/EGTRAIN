@@ -52,8 +52,7 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 			}
 			// Node targets sit above the broad track/connection selection shapes.
 			// Keep looking for painted signals or trains before falling back to the node.
-			if (paddedNode && (qgraphicsitem_cast<TrackLineItem*>(candidate)
-				|| qgraphicsitem_cast<ConnectionItem*>(candidate)))
+			if (paddedNode && (qgraphicsitem_cast<TrackLineItem*>(candidate) || qgraphicsitem_cast<ConnectionItem*>(candidate)))
 				break;
 			if (qgraphicsitem_cast<StationNodeItem*>(candidate)
 				|| qgraphicsitem_cast<TrackLineItem*>(candidate)

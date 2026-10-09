@@ -63,7 +63,10 @@ constexpr double kStatAbsTolerance = 1e-9;
 constexpr double kStatRelTolerance = 1e-5;
 
 struct Field {
-	enum class Kind { Int, Float, Stat, Text };
+	enum class Kind { Int,
+		Float,
+		Stat,
+		Text };
 	std::string name; // Empty for a bare token.
 	Kind kind = Kind::Text;
 	long long integer = 0;
@@ -307,7 +310,7 @@ public:
 		for (const SimulationIncident& incident : simulationIncidents) {
 			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
 			if (incident.type == "signal_failure" && snapshot.timestep >= incident.startSeconds
-					&& (!hasEnd || snapshot.timestep <= incident.endSeconds))
+				&& (!hasEnd || snapshot.timestep <= incident.endSeconds))
 				failedIds.insert(incident.resolvedSectionIDs.begin(), incident.resolvedSectionIDs.end());
 		}
 		std::set<std::pair<std::string, bool>> seen;
@@ -620,7 +623,7 @@ std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks
 
 // Checks that hold for the fixture whatever the golden file says.
 std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std::vector<TrainTrack>& tracks,
-		const std::vector<Separation>& separations, const std::vector<TimetableResultRow>& rows) {
+	const std::vector<Separation>& separations, const std::vector<TimetableResultRow>& rows) {
 	// The limits are the fixture's rolling stock: top speed 36.111111111111 m/s,
 	// starting force 209000 N on 151000 kg, braking limit 0.75 m/s2 plus
 	// running resistance. A case with a known-wrong marker is exempt from
@@ -631,10 +634,10 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 	constexpr double kMaxAcceleration = 209000.0 / 151000.0 + 1e-3;
 	constexpr double kMaxDeceleration = 0.95;
 	constexpr double kBlockLength = 2000.0;
-	constexpr double kStopTolerance = 0.01; // Stops at a platform or block boundary are this exact.
+	constexpr double kStopTolerance = 0.01;	   // Stops at a platform or block boundary are this exact.
 	constexpr double kPositionSettling = 0.01; // A train settling at a stop moves back by millimetres.
-	constexpr double kStationBegin = 8000.0; // Station B, midway on the route axis.
-	constexpr double kFollowMargin = 200.0;  // A stop behind another train is within this of its rear.
+	constexpr double kStationBegin = 8000.0;   // Station B, midway on the route axis.
+	constexpr double kFollowMargin = 200.0;	   // A stop behind another train is within this of its rear.
 	std::vector<std::string> failures;
 	auto fail = [&failures](const std::string& message) { failures.push_back(message); };
 	const bool waived = !spec.knownWrong.empty();
@@ -793,8 +796,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	}
 
 	StepRecorder recorder(routesInUse, boundarySteps);
-	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &recorder,
-		[&recorder]() { recorder.onSnapshotAvailable(); }, Qt::DirectConnection);
+	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &recorder, [&recorder]() { recorder.onSnapshotAvailable(); }, Qt::DirectConnection);
 	const int horizon = static_cast<int>(initial_variables.times);
 	simulation.runSimulation();
 	QObject::disconnect(&simulation, &DispatchController::snapshotAvailable, &recorder, nullptr);
@@ -848,8 +850,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 			while (t > track.first && v[t - 1] > v[t] + 1e-9)
 				--t;
 			if (t != stop.first)
-				add(prefix + " braking", {integerField("t", t), realField("x", x[t]), realField("v", v[t]),
-					integerField("stop_t", stop.first)});
+				add(prefix + " braking", {integerField("t", t), realField("x", x[t]), realField("v", v[t]), integerField("stop_t", stop.first)});
 		}
 	}
 
@@ -904,8 +905,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 				textField("ids", joinSet(train->directIncidentIds)), realField("first_time", train->firstDirectIncidentTime),
 				realField("first_location", train->firstDirectIncidentLocation)});
 		const int blockTimes = std::min(train->N_BlockSections, 1000);
-		add("blocktime " + train->trainDescription, {integerField("n", blockTimes),
-			integerField("complete", train->N_BlockTimeComplete)});
+		add("blocktime " + train->trainDescription, {integerField("n", blockTimes), integerField("complete", train->N_BlockTimeComplete)});
 		for (int b = 0; b < blockTimes; ++b) {
 			const BlockingTimes& block = train->BlockTime[b];
 			add("blocktime " + train->trainDescription + " " + block.BlockID,
@@ -1122,7 +1122,7 @@ int runGoldenMode(const std::string& fixture, const std::string& expectDir, cons
 	const Golden golden = readGolden(goldenPath);
 	if (!golden.found) {
 		std::cerr << "FAIL " << caseName << ": missing golden file " << goldenPath
-			<< "\n  run with EGTRAIN_UPDATE_EXPECTATIONS=1 to create it\n";
+				  << "\n  run with EGTRAIN_UPDATE_EXPECTATIONS=1 to create it\n";
 		return 1;
 	}
 	std::cerr.flush();
@@ -1130,7 +1130,7 @@ int runGoldenMode(const std::string& fixture, const std::string& expectDir, cons
 		const std::string actualPath = caseName + ".actual.txt";
 		writeText(actualPath, rendered);
 		std::cerr << "FAIL " << caseName << ": output differs from " << goldenPath << "\n  actual output written to "
-			<< actualPath << "\n";
+				  << actualPath << "\n";
 		return 1;
 	}
 	std::cout << "PASS " << caseName << "\n";
@@ -1173,12 +1173,12 @@ int runRepeatMode(const std::vector<std::string>& steps) {
 				continue;
 			if (++differences <= 20)
 				std::cerr << "  line " << i + 1 << "\n    first run:  "
-					<< (i < before.size() ? renderLine(before[i]) : "(missing)") << "\n    second run: "
-					<< (i < after.size() ? renderLine(after[i]) : "(missing)") << "\n";
+						  << (i < before.size() ? renderLine(before[i]) : "(missing)") << "\n    second run: "
+						  << (i < after.size() ? renderLine(after[i]) : "(missing)") << "\n";
 		}
 		if (differences) {
 			std::cerr << "FAIL " << step << ": the second run differs from the first in " << differences
-				<< " lines\n";
+					  << " lines\n";
 			return 1;
 		}
 	}
@@ -1221,6 +1221,6 @@ int main(int argc, char** argv) {
 	if (!repeat && !fixture.empty() && !expect.empty() && !caseName.empty())
 		return runGoldenMode(fixture, expect, caseName);
 	std::cerr << "usage: test_characterization --fixture DIR --expect DIR --case NAME\n"
-		"       test_characterization --repeat SCENE[#CASE]...\n";
+				 "       test_characterization --repeat SCENE[#CASE]...\n";
 	return 2;
 }

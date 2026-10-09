@@ -153,7 +153,7 @@ std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
 
 	for (const BlockingTimeDiagramSegment& source : segments) {
 		if ((!allowedTrainIds.empty()
-			 && std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end())
+				&& std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end())
 			|| (!allowedBlockIds.empty()
 				&& std::none_of(allowedBlockIds.begin(), allowedBlockIds.end(),
 					[&source](const std::string& allowedBlockId) {
@@ -180,11 +180,10 @@ std::vector<std::vector<BlockingTimePlannedReference>> clipBlockingTimePlannedRe
 		return std::isfinite(point.time) && std::isfinite(point.positionKm);
 	};
 	const auto boundary = [](const BlockingTimePlannedReference& first,
-		const BlockingTimePlannedReference& second, double time) {
+							  const BlockingTimePlannedReference& second, double time) {
 		BlockingTimePlannedReference point = first;
 		point.time = time;
-		point.positionKm += (second.positionKm - first.positionKm) *
-			((time - first.time) / (second.time - first.time));
+		point.positionKm += (second.positionKm - first.positionKm) * ((time - first.time) / (second.time - first.time));
 		point.stationName.clear();
 		point.eventType = "clipped planned interpolation";
 		return point;
@@ -226,8 +225,7 @@ std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(
 		return filtered;
 
 	const auto segmentIntersects = [startTime, endTime](double first, double second) {
-		return std::isfinite(first) && std::isfinite(second) &&
-			std::max(first, second) >= startTime && std::min(first, second) <= endTime;
+		return std::isfinite(first) && std::isfinite(second) && std::max(first, second) >= startTime && std::min(first, second) <= endTime;
 	};
 	for (std::size_t i = 0; i < references.size(); ++i) {
 		const BlockingTimePlannedReference& reference = references[i];

@@ -67,7 +67,7 @@ int main() {
 	ok &= expect(scoped.size() == 1, "route block and train scope filters segments");
 	if (!scoped.empty()) {
 		ok &= expect(scoped[0].startTime == 12.0 && scoped[0].endTime == 18.0
-			&& scoped[0].originalStartTime == 10.0 && scoped[0].originalEndTime == 20.0,
+				&& scoped[0].originalStartTime == 10.0 && scoped[0].originalEndTime == 20.0,
 			"time scope clips displayed bounds but retains original evidence");
 		ok &= expect(scoped[0].style == BlockingTimeSegmentStyle::Critical,
 			"critical style survives when the conflicting train is hidden");
@@ -82,29 +82,30 @@ int main() {
 		"planned scope retains both source points for a visible line crossing");
 	const auto plotted = clipBlockingTimePlannedReferences(references, 15.0, 25.0);
 	ok &= expect(plotted.size() == 1 && plotted[0].size() == 2
-		&& plotted[0][0].time == 15.0 && plotted[0][1].time == 25.0
-		&& plotted[0][0].positionKm == 0.5 && plotted[0][1].positionKm == 1.5
-		&& plotted[0][0].stationName.empty() && plotted[0][1].stationName.empty()
-		&& plotted[0][0].eventType == "clipped planned interpolation",
+			&& plotted[0][0].time == 15.0 && plotted[0][1].time == 25.0
+			&& plotted[0][0].positionKm == 0.5 && plotted[0][1].positionKm == 1.5
+			&& plotted[0][0].stationName.empty() && plotted[0][1].stationName.empty()
+			&& plotted[0][0].eventType == "clipped planned interpolation",
 		"selected window clips rendered planned line without presenting boundary as station events");
 	const auto gaps = clipBlockingTimePlannedReferences({references[0],
-		{"A", "", "", std::numeric_limits<double>::quiet_NaN(), 0.0}, references[1]}, 15.0, 25.0);
+															{"A", "", "", std::numeric_limits<double>::quiet_NaN(), 0.0}, references[1]},
+		15.0, 25.0);
 	ok &= expect(gaps.empty(), "omitted planned events cannot be bridged by a rendered line");
 	ok &= expect(filterBlockingTimePlannedReferences(references, 31.0, 39.0).empty(),
 		"off-window planned points do not create an empty scoped chart or export");
-	const auto nearTouch = buildBlockingTimeDiagramSegments({
-		{block("T", 0.0, 10.00000005, 0.0, 100.0, "None", "None", true)},
-		{block("T", 10.0, 20.0, 0.0, 100.0, "None", "None", true)}}, {"A", "B"});
+	const auto nearTouch = buildBlockingTimeDiagramSegments({{block("T", 0.0, 10.00000005, 0.0, 100.0, "None", "None", true)},
+																{block("T", 10.0, 20.0, 0.0, 100.0, "None", "None", true)}},
+		{"A", "B"});
 	ok &= expect(nearTouch.size() == 2
-		&& nearTouch[0].style == BlockingTimeSegmentStyle::Default
-		&& nearTouch[1].style == BlockingTimeSegmentStyle::Default,
+			&& nearTouch[0].style == BlockingTimeSegmentStyle::Default
+			&& nearTouch[1].style == BlockingTimeSegmentStyle::Default,
 		"sub-tolerance touching is not also styled as an overlap conflict");
 
-	const auto reversed = buildBlockingTimeDiagramSegments({{
-		block("reverse", 1, 2, 2000, 1000, "None", "None", true),
-		block("point", 2, 3, 1000, 1000, "None", "None", true)}}, {"R"});
+	const auto reversed = buildBlockingTimeDiagramSegments({{block("reverse", 1, 2, 2000, 1000, "None", "None", true),
+															   block("point", 2, 3, 1000, 1000, "None", "None", true)}},
+		{"R"});
 	ok &= expect(reversed.size() == 2 && reversed[0].startPositionKm == 2.0
-		&& reversed[0].endPositionKm == 1.0 && reversed[1].startPositionKm == reversed[1].endPositionKm,
+			&& reversed[0].endPositionKm == 1.0 && reversed[1].startPositionKm == reversed[1].endPositionKm,
 		"reversed and zero-width boundaries preserve exact directed positions");
 	auto missing = block("missing clearance", 1, 2, 0, 100, "None", "None", true);
 	missing.endClearTime = -1;

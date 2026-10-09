@@ -39,7 +39,7 @@ static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 	auto* thread = new QThread;
 	auto* worker = new UpdatePreparationWorker;
 	worker->setPlatformStager([&outcome, stager](const UpdatePreparationInput& stagerInput,
-		QString* error) {
+								  QString* error) {
 		outcome.stagerRan = true;
 		outcome.stagerThread = QThread::currentThread();
 		QThread::msleep(150);
@@ -92,7 +92,8 @@ int main(int argc, char** argv) {
 	linuxInput.currentPath = QDir(temp.path()).filePath("current.AppImage");
 	const QByteArray elfContents = QByteArray::fromHex("7f454c46") + "test AppImage";
 	ok &= expect(writeFile(linuxInput.packagePath, elfContents)
-		&& writeFile(linuxInput.currentPath, elfContents), "AppImage fixtures are writable");
+			&& writeFile(linuxInput.currentPath, elfContents),
+		"AppImage fixtures are writable");
 	QString stageError;
 	const QString linuxStage = stageUpdatePackage(linuxInput, &stageError);
 	ok &= expect(!linuxStage.isEmpty() && stageError.isEmpty(),
@@ -129,7 +130,7 @@ int main(int argc, char** argv) {
 	ok &= expect(!failedHash.result.success && !failedHash.stagerRan,
 		"a failed hash never proceeds to staging");
 	ok &= expect(failedHash.result.error
-		== QStringLiteral("The downloaded update failed its SHA-256 check."),
+			== QStringLiteral("The downloaded update failed its SHA-256 check."),
 		"hash failure reports the SHA-256 mismatch");
 	ok &= expect(failedHash.result.stagedPath.isEmpty(),
 		"a failed hash publishes no staged path");
@@ -142,7 +143,7 @@ int main(int argc, char** argv) {
 	ok &= expect(prepared.result.stagedPath == stagedPath,
 		"successful preparation publishes only the resulting staged path");
 	ok &= expect(prepared.stagerRan && prepared.stagerThread
-		&& prepared.stagerThread != mainThread,
+			&& prepared.stagerThread != mainThread,
 		"preparation work runs off the application thread");
 	ok &= expect(prepared.deliveryThread == mainThread,
 		"preparation completion is delivered on the application thread");

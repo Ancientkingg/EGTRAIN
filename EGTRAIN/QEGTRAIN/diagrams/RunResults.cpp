@@ -99,8 +99,8 @@ QJsonObject runJson(const RunProvenance& run) {
 }
 
 bool writeSidecar(const std::string& artifactPath, const std::string& artifactKind,
-		const QJsonObject& runObject, const QJsonObject* baselineObject = nullptr,
-		const QJsonObject* scenarioObject = nullptr) {
+	const QJsonObject& runObject, const QJsonObject* baselineObject = nullptr,
+	const QJsonObject* scenarioObject = nullptr) {
 	const QString path = QString::fromStdString(artifactPath);
 	QFileInfo artifactInfo(path);
 	QJsonObject artifact;
@@ -125,7 +125,7 @@ bool writeSidecar(const std::string& artifactPath, const std::string& artifactKi
 
 template <typename SidecarWriter>
 bool writeArtifactWithSidecar(const std::string& artifactPath,
-		const std::string& artifactBytes, SidecarWriter writeProvenance) {
+	const std::string& artifactBytes, SidecarWriter writeProvenance) {
 	const QString path = QString::fromStdString(artifactPath);
 	QSaveFile artifact(path);
 	if (!artifact.open(QIODevice::WriteOnly))
@@ -148,7 +148,7 @@ RunResultValue availableTimetableValue(double value) {
 }
 
 const TrainEvent* timetableEventForOccurrence(const Train& train, const std::string& stationId,
-																int occurrence) {
+	int occurrence) {
 	int seen = 0;
 	for (const TrainEvent& event : train.TimetablePoints) {
 		if (event.SuccessorID != stationId)
@@ -168,7 +168,7 @@ RunResultValue delayValue(const RunResultValue& planned, const RunResultValue& s
 using OccurrenceKey = std::pair<std::string, int>;
 
 OccurrenceKey occurrenceKey(const std::string& serviceId, int occurrence,
-		const std::string& trainId = {}) {
+	const std::string& trainId = {}) {
 	return {serviceId.empty() ? trainId : serviceId, occurrence};
 }
 
@@ -187,11 +187,11 @@ struct FinalArrival {
 };
 
 std::map<OccurrenceKey, FinalArrival> finalArrivals(
-		const std::vector<TimetableResultRow>& rows) {
+	const std::vector<TimetableResultRow>& rows) {
 	std::map<OccurrenceKey, FinalArrival> result;
 	for (const TimetableResultRow& row : rows) {
 		result[occurrenceKey(row.serviceId, row.occurrence, row.trainId)] =
-				{row.stationId, row.journeyIndex, row.callIndex, row.simulatedArrivalSeconds};
+			{row.stationId, row.journeyIndex, row.callIndex, row.simulatedArrivalSeconds};
 	}
 	return result;
 }
@@ -236,7 +236,7 @@ std::string hashSceneInputSnapshot(const std::string& snapshot) {
 }
 
 RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
-		bool dirty, const std::string& savedSha256) {
+	bool dirty, const std::string& savedSha256) {
 	RunInputProvenance result;
 	result.kind = savedPath.empty() ? "unsaved" : inputKind;
 	result.path = savedPath.empty() ? std::string() : absolutePath(savedPath).toStdString();
@@ -284,16 +284,16 @@ RunInputProvenance captureSavedInput(const std::string& savedPath, const std::st
 }
 
 bool writeRunArtifactWithProvenance(const std::string& artifactPath,
-		const std::string& artifactKind, const std::string& artifactBytes,
-		const RunProvenance& run) {
+	const std::string& artifactKind, const std::string& artifactBytes,
+	const RunProvenance& run) {
 	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
 		return writeSidecar(artifactPath, artifactKind, runJson(run));
 	});
 }
 
 bool writeDelayArtifactWithProvenance(const std::string& artifactPath,
-		const std::string& artifactKind, const std::string& artifactBytes,
-		const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
+	const std::string& artifactKind, const std::string& artifactBytes,
+	const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
 	const QJsonObject baseline = runJson(baselineRun);
 	const QJsonObject scenario = runJson(scenarioRun);
 	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
@@ -368,7 +368,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		row.appliedMaximumSpeedKmh = train.appliedMaximumSpeedKmh;
 		row.directIncidentIds = train.directIncidentIds;
 		if (!row.directIncidentIds.empty() && std::isfinite(train.firstDirectIncidentTime)
-				&& train.firstDirectIncidentTime >= 0.0) {
+			&& train.firstDirectIncidentTime >= 0.0) {
 			row.firstDirectIncidentTime = availableValue(train.firstDirectIncidentTime);
 			row.firstDirectIncidentLocation = availableValue(train.firstDirectIncidentLocation);
 		}
@@ -380,7 +380,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 			&& train.End_Time < static_cast<int>(train.instant_spatial_position.size());
 		const auto segments = boundsInPositionSeries
 			? validTrajectorySegments(train.instant_spatial_position,
-									train.earliestActiveTrajectoryIndex, train.End_Time)
+				  train.earliestActiveTrajectoryIndex, train.End_Time)
 			: std::vector<TrajectorySegment>();
 
 		if (!segments.empty() && std::isfinite(timestepSeconds)) {
@@ -392,8 +392,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 				row.travelSeconds = availableValue(row.endSeconds.value - row.startSeconds.value);
 
 			const bool energySeriesAvailable =
-				coveredAndFinite(train.instant_train_power_consumption, first, last) &&
-				coveredAndFinite(train.instant_train_energy_consumption, first, last);
+				coveredAndFinite(train.instant_train_power_consumption, first, last) && coveredAndFinite(train.instant_train_energy_consumption, first, last);
 			if (energySeriesAvailable) {
 				row.energyConsumedKWh = availableValue(energyMJKWh(train.TotalEnergyConsumed));
 				row.energyWithRegenKWh = availableValue(energyMJKWh(train.TotalEnergyConsWithRegBrak));
@@ -427,7 +426,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		addTotal(row.energyWithRegenKWh, energyWithRegen, energyWithRegenComplete);
 		addTotal(row.substationKWh, substation, substationComplete);
 		addTotal(row.substationWithRegenKWh, substationWithRegen,
-				substationWithRegenComplete);
+			substationWithRegenComplete);
 	}
 	if (networkTimesComplete) {
 		results.networkStartSeconds = availableValue(networkStart);
@@ -446,7 +445,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 }
 
 DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
-		const DelayRunSnapshot& scenario) {
+	const DelayRunSnapshot& scenario) {
 	DelayComparisonResult result;
 	const auto reject = [&result](const std::string& message) {
 		result.valid = false;
@@ -454,13 +453,13 @@ DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
 		return result;
 	};
 	if (baseline.scenarioId.empty() || scenario.scenarioId.empty()
-			|| baseline.scenarioId == scenario.scenarioId)
+		|| baseline.scenarioId == scenario.scenarioId)
 		return reject("Baseline and scenario IDs must be present and different");
 	if (baseline.caseRevision != scenario.caseRevision)
 		return reject("Baseline and scenario runs use different scene revisions");
 	if (baseline.baseTimeSeconds != scenario.baseTimeSeconds
-			|| baseline.durationSeconds != scenario.durationSeconds
-			|| baseline.timestep != scenario.timestep)
+		|| baseline.durationSeconds != scenario.durationSeconds
+		|| baseline.timestep != scenario.timestep)
 		return reject("Baseline and scenario time settings do not match");
 	if (baseline.hasIncidents || baseline.hasEntranceDelays)
 		return reject("Delay baseline must be incident-free and have no entrance delays");
@@ -486,8 +485,8 @@ DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
 		const FinalArrival& baselineFinal = baselineIt->second;
 		const FinalArrival& scenarioFinal = scenarioIt->second;
 		if (baselineFinal.stationId != scenarioFinal.stationId
-				|| baselineFinal.journeyIndex != scenarioFinal.journeyIndex
-				|| baselineFinal.callIndex != scenarioFinal.callIndex)
+			|| baselineFinal.journeyIndex != scenarioFinal.journeyIndex
+			|| baselineFinal.callIndex != scenarioFinal.callIndex)
 			return reject("Baseline and scenario final timetable endpoints do not match");
 		if (!baselineFinal.arrival.available || !scenarioFinal.arrival.available)
 			return reject("Baseline and scenario require a simulated arrival at every final timetable endpoint");

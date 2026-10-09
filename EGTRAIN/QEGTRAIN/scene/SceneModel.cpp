@@ -27,9 +27,9 @@ bool readFile(const fs::path& path, std::string& content) {
 
 bool canonicalSnapshotFile(const std::string& file) {
 	return file == "scene.json" || file == "infrastructure.json" || file == "stations.json"
-			|| file == "signalling.json" || file == "rolling_stock.json" || file == "services.json"
-			|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json"
-			|| file == "views.json";
+		|| file == "signalling.json" || file == "rolling_stock.json" || file == "services.json"
+		|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json"
+		|| file == "views.json";
 }
 
 std::string joinPath(const std::string& parent, const std::string& key) {
@@ -37,7 +37,7 @@ std::string joinPath(const std::string& parent, const std::string& key) {
 }
 
 SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile,
-		int parsedCount, const std::string& status) {
+	int parsedCount, const std::string& status) {
 	SceneLoadedData data;
 	data.category = category;
 	data.sourceFile = sourceFile;
@@ -71,7 +71,7 @@ std::size_t loadedDataIndexForDiagnostic(const SceneModel& scene, const SceneDia
 } // namespace
 
 std::string buildSceneDirectorySnapshot(
-		const std::vector<std::pair<std::string, std::string>>& files) {
+	const std::vector<std::pair<std::string, std::string>>& files) {
 	std::vector<std::pair<std::string, std::string>> sorted = files;
 	std::sort(sorted.begin(), sorted.end(), [](const auto& first, const auto& second) {
 		return first.first < second.first;
@@ -125,7 +125,7 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	};
 
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json"}) {
+			 "rolling_stock.json", "services.json"}) {
 		if (!read(name, true))
 			return result;
 	}
@@ -139,7 +139,7 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 		return result;
 	bool passengersPresent = false;
 	if (!exists("passengers.json", passengersPresent)
-			|| (passengersPresent && !read("passengers.json", true)))
+		|| (passengersPresent && !read("passengers.json", true)))
 		return result;
 	bool viewsPresent = false;
 	if (!exists("views.json", viewsPresent) || (viewsPresent && !read("views.json", true)))
@@ -151,29 +151,30 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 
 std::string sceneOutputDirectoryComponent(const std::string& sceneName) {
 	if (sceneName.empty() || sceneName.find_first_of("<>:\"/\\|?*") != std::string::npos
-			|| std::any_of(sceneName.begin(), sceneName.end(), [](unsigned char value) {
-				return value <= 31;
-			})
-			|| sceneName.back() == ' ' || sceneName.back() == '.')
+		|| std::any_of(sceneName.begin(), sceneName.end(), [](unsigned char value) {
+			   return value <= 31;
+		   })
+		|| sceneName.back() == ' ' || sceneName.back() == '.')
 		return "scene";
 	const auto asciiLower = [](unsigned char value) {
 		return value >= 'A' && value <= 'Z'
-				? static_cast<unsigned char>(value + ('a' - 'A')) : value;
+			? static_cast<unsigned char>(value + ('a' - 'A'))
+			: value;
 	};
 	std::string basename = sceneName.substr(0, sceneName.find('.'));
 	std::transform(basename.begin(), basename.end(), basename.begin(), asciiLower);
 	const bool comOrLpt = basename.compare(0, 3, "com") == 0
-			|| basename.compare(0, 3, "lpt") == 0;
+		|| basename.compare(0, 3, "lpt") == 0;
 	if (basename == "con" || basename == "prn" || basename == "aux" || basename == "nul"
-			|| (comOrLpt && basename.size() == 4
-					&& ((basename[3] >= '1' && basename[3] <= '9')
-							|| static_cast<unsigned char>(basename[3]) == 0xB2
-							|| static_cast<unsigned char>(basename[3]) == 0xB3
-							|| static_cast<unsigned char>(basename[3]) == 0xB9))
-			|| (comOrLpt && basename.size() == 5
-					&& (basename.compare(3, 2, "\xC2\xB2") == 0
-							|| basename.compare(3, 2, "\xC2\xB3") == 0
-							|| basename.compare(3, 2, "\xC2\xB9") == 0)))
+		|| (comOrLpt && basename.size() == 4
+			&& ((basename[3] >= '1' && basename[3] <= '9')
+				|| static_cast<unsigned char>(basename[3]) == 0xB2
+				|| static_cast<unsigned char>(basename[3]) == 0xB3
+				|| static_cast<unsigned char>(basename[3]) == 0xB9))
+		|| (comOrLpt && basename.size() == 5
+			&& (basename.compare(3, 2, "\xC2\xB2") == 0
+				|| basename.compare(3, 2, "\xC2\xB3") == 0
+				|| basename.compare(3, 2, "\xC2\xB9") == 0)))
 		return "scene";
 	return sceneName;
 }
@@ -207,20 +208,21 @@ bool sceneParseVisualizationColor(const std::string& text, int* red, int* green,
 
 std::string sceneServiceVisualizationColor(const SceneModel& model, const std::string& serviceId) {
 	const auto service = std::find_if(model.services.begin(), model.services.end(),
-			[&serviceId](const SceneService& candidate) { return candidate.id == serviceId; });
+		[&serviceId](const SceneService& candidate) { return candidate.id == serviceId; });
 	return service == model.services.end() ? std::string() : service->visualizationColor;
 }
 
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence) {
 	const double entry = service.hasEntryTime ? service.entryTimeSeconds
-			: (!service.stops.empty() && service.stops.front().hasPlannedDeparture
-					&& std::isfinite(service.stops.front().plannedDepartureSeconds)
-					? service.stops.front().plannedDepartureSeconds : 0.0);
+											  : (!service.stops.empty() && service.stops.front().hasPlannedDeparture
+															&& std::isfinite(service.stops.front().plannedDepartureSeconds)
+														? service.stops.front().plannedDepartureSeconds
+														: 0.0);
 	return entry + (service.hasRepeat ? (occurrence - 1.0) * service.headwaySeconds : 0.0);
 }
 
 int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
-		const SceneRunSelection& selection) {
+	const SceneRunSelection& selection) {
 	if (!std::isfinite(durationSeconds) || durationSeconds <= 0.0)
 		return 0;
 	const int total = sceneServiceOccurrenceCount(service, durationSeconds);
@@ -232,14 +234,14 @@ int sceneServiceInWindowCount(const SceneService& service, double durationSecond
 		int count = 0;
 		for (const SceneServiceOccurrence& value : selection)
 			if (value.serviceId == service.id && value.occurrence >= 1
-					&& value.occurrence <= total && inWindow(value.occurrence))
+				&& value.occurrence <= total && inWindow(value.occurrence))
 				++count;
 		return count;
 	}
 	if (!service.hasRepeat)
 		return inWindow(1) ? 1 : 0;
 	if (!std::isfinite(service.headwaySeconds) || service.headwaySeconds <= 0.0
-			|| !std::isfinite(sceneServiceScheduledEntry(service)))
+		|| !std::isfinite(sceneServiceScheduledEntry(service)))
 		return 0;
 	const auto before = [&](double boundary) {
 		int low = 0;
@@ -262,7 +264,7 @@ int sceneServiceOccurrenceCount(const SceneService& service, double durationSeco
 	if (service.hasRepeatCount)
 		return service.repeatCount > 0 ? service.repeatCount : 1;
 	if (!std::isfinite(service.headwaySeconds) || service.headwaySeconds <= 0.0
-			|| !std::isfinite(durationSeconds) || durationSeconds <= 0.0)
+		|| !std::isfinite(durationSeconds) || durationSeconds <= 0.0)
 		return 1;
 	const double rawCount = std::ceil(durationSeconds / service.headwaySeconds);
 	if (!std::isfinite(rawCount) || rawCount >= static_cast<double>(INT_MAX))
@@ -278,16 +280,16 @@ std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int
 		return {};
 	if (service.hasOperatingCodeStep) {
 		if (!service.hasRepeat || service.operatingCodeStep == 0
-				|| !std::all_of(base.begin(), base.end(), [](unsigned char value) {
-					return std::isdigit(value) != 0;
-				}))
+			|| !std::all_of(base.begin(), base.end(), [](unsigned char value) {
+				   return std::isdigit(value) != 0;
+			   }))
 			return {};
 		try {
 			const long long baseValue = std::stoll(base);
 			const long long delta = static_cast<long long>(service.operatingCodeStep)
-					* static_cast<long long>(occurrence - 1);
+				* static_cast<long long>(occurrence - 1);
 			if ((delta > 0 && baseValue > std::numeric_limits<long long>::max() - delta)
-					|| (delta < 0 && baseValue < std::numeric_limits<long long>::min() - delta))
+				|| (delta < 0 && baseValue < std::numeric_limits<long long>::min() - delta))
 				return {};
 			return std::to_string(baseValue + delta);
 		} catch (const std::exception&) {
@@ -300,12 +302,12 @@ std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int
 }
 
 bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
-		SceneServiceStopPair& result) {
+	SceneServiceStopPair& result) {
 	for (std::size_t originIndex = 0; originIndex < service.stops.size(); ++originIndex) {
 		if (service.stops[originIndex].stationId != leg.originStationId)
 			continue;
 		for (std::size_t destinationIndex = originIndex + 1; destinationIndex < service.stops.size();
-				++destinationIndex) {
+			++destinationIndex) {
 			if (service.stops[destinationIndex].stationId == leg.destinationStationId) {
 				result.originIndex = originIndex;
 				result.destinationIndex = destinationIndex;
@@ -335,11 +337,11 @@ SceneModel makeNewSceneModel() {
 double sceneTrainMassFactor(const SceneTrainPhysical& physical) {
 	const double wagonMass = physical.mass_of_a_wagon_kg * physical.number_of_wagons;
 	return (1.09 * physical.mass_of_traction_unit_kg + 1.06 * wagonMass)
-			/ (physical.mass_of_traction_unit_kg + wagonMass);
+		/ (physical.mass_of_traction_unit_kg + wagonMass);
 }
 
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
-		SceneCompositionRuntime& result, std::string& diagnostic) {
+	SceneCompositionRuntime& result, std::string& diagnostic) {
 	result = SceneCompositionRuntime();
 	diagnostic.clear();
 
@@ -403,7 +405,7 @@ bool buildSceneComposition(const SceneModel& scene, const std::string& compositi
 		if (physical.max_deceleration_ms2 < minMaxDecel)
 			minMaxDecel = physical.max_deceleration_ms2;
 		const double unitTotalMass = physical.mass_of_traction_unit_kg
-				+ physical.number_of_wagons * physical.mass_of_a_wagon_kg;
+			+ physical.number_of_wagons * physical.mass_of_a_wagon_kg;
 		sumTotalMass += unitTotalMass;
 		sumWeightedResistance += unitTotalMass * physical.resistance_coefficient;
 		sumUnweightedResistance += physical.resistance_coefficient;
@@ -415,13 +417,14 @@ bool buildSceneComposition(const SceneModel& scene, const std::string& compositi
 	result.physical.mass_of_traction_unit_kg = sumMassTraction;
 	result.physical.number_of_wagons = sumNumberWagons;
 	result.physical.mass_of_a_wagon_kg = sumNumberWagons > 0.0
-			? sumWagonMass / sumNumberWagons : 0.0;
+		? sumWagonMass / sumNumberWagons
+		: 0.0;
 	result.physical.max_speed_ms = minMaxSpeed;
 	result.physical.max_deceleration_ms2 = minMaxDecel;
 	result.physical.frontal_area_m2 = firstFrontalArea;
 	result.physical.resistance_coefficient = sumTotalMass > 0.0
-			? sumWeightedResistance / sumTotalMass
-			: sumUnweightedResistance / result.units.size();
+		? sumWeightedResistance / sumTotalMass
+		: sumUnweightedResistance / result.units.size();
 	result.physical.jerk_ms3 = minJerk;
 	result.physical.length_m = sumLength;
 
@@ -435,7 +438,7 @@ bool buildSceneComposition(const SceneModel& scene, const std::string& compositi
 	std::sort(boundaries.begin(), boundaries.end());
 	const auto nearlyEqual = [](double left, double right) {
 		return std::abs(left - right) <= 1e-9
-				* std::max(1.0, std::max(std::abs(left), std::abs(right)));
+			* std::max(1.0, std::max(std::abs(left), std::abs(right)));
 	};
 	boundaries.erase(std::unique(boundaries.begin(), boundaries.end(), nearlyEqual), boundaries.end());
 
@@ -513,28 +516,28 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 
 	auto statusForFile = [&](const std::string& sourceFile, bool optional) {
 		return scene.sourceFiles.count(sourceFile) > 0 ? "Parsed"
-			: (optional ? "Missing optional" : "Invalid");
+													   : (optional ? "Missing optional" : "Invalid");
 	};
 	auto add = [&](const std::string& category, const std::string& sourceFile, int parsedCount,
-			bool optional = false) {
+				   bool optional = false) {
 		const std::string status = statusForFile(sourceFile, optional);
 		SceneLoadedData data = makeLoadedData(category, sourceFile, parsedCount, status);
 		if (!sourceFile.empty()) {
 			const bool present = scene.sourceFiles.count(sourceFile) > 0;
 			data.children.push_back(makeLoadedData("source_file", sourceFile, present ? 1 : 0,
-					present ? "Loaded" : status));
+				present ? "Loaded" : status));
 			data.children.push_back(makeLoadedData("parsed_objects", sourceFile, parsedCount,
-					present ? "Parsed" : status));
+				present ? "Parsed" : status));
 		}
 		scene.loadedData.push_back(data);
 	};
 	auto addChild = [&](const std::string& category, const std::string& sourceFile, int parsedCount,
-			const std::string& status) -> SceneLoadedData& {
+						const std::string& status) -> SceneLoadedData& {
 		scene.loadedData.back().children.push_back(makeLoadedData(category, sourceFile, parsedCount, status));
 		return scene.loadedData.back().children.back();
 	};
 	auto addTarget = [](SceneLoadedData& parent, const std::string& category,
-			const std::string& sourceFile, const std::string& targetType) -> SceneLoadedData& {
+						 const std::string& sourceFile, const std::string& targetType) -> SceneLoadedData& {
 		SceneLoadedData target = makeLoadedData(category, sourceFile, 1, "Parsed");
 		target.targetType = targetType;
 		parent.children.push_back(std::move(target));
@@ -543,21 +546,21 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 
 	add("scene", "scene.json", scene.schemaVersion > 0 ? 1 : 0);
 	SceneLoadedData& importReport = addChild("import_report", "scene.json",
-			static_cast<int>(scene.importReport.size()),
-			scene.importReport.empty() ? "Missing optional" : "Parsed");
+		static_cast<int>(scene.importReport.size()),
+		scene.importReport.empty() ? "Missing optional" : "Parsed");
 	bool importHasIssues = false;
 	for (const auto& reportRow : scene.importReport) {
 		const bool hasIssue = reportRow.skippedCount > 0 || reportRow.unresolvedReferences > 0;
 		importHasIssues = importHasIssues || hasIssue;
 		SceneLoadedData row = makeLoadedData(reportRow.category, reportRow.sourceFile,
-				reportRow.convertedCount, hasIssue ? "Warning" : "Parsed");
+			reportRow.convertedCount, hasIssue ? "Warning" : "Parsed");
 		row.children.push_back(makeLoadedData("source_records", reportRow.sourceFile,
-				reportRow.sourceCount, "Parsed"));
+			reportRow.sourceCount, "Parsed"));
 		row.children.push_back(makeLoadedData("skipped", reportRow.sourceFile,
-				reportRow.skippedCount, reportRow.skippedCount > 0 ? "Warning" : "Ready"));
+			reportRow.skippedCount, reportRow.skippedCount > 0 ? "Warning" : "Ready"));
 		row.children.push_back(makeLoadedData("unresolved_references", reportRow.sourceFile,
-				reportRow.unresolvedReferences,
-				reportRow.unresolvedReferences > 0 ? "Warning" : "Ready"));
+			reportRow.unresolvedReferences,
+			reportRow.unresolvedReferences > 0 ? "Warning" : "Ready"));
 		importReport.children.push_back(std::move(row));
 	}
 	if (importHasIssues) {
@@ -584,21 +587,20 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 
 	add("timetable", "services.json", static_cast<int>(scene.services.size()));
 	SceneLoadedData& services = addChild("services", "services.json",
-			static_cast<int>(scene.services.size()), scene.loadedData.back().status);
+		static_cast<int>(scene.services.size()), scene.loadedData.back().status);
 	for (const auto& service : scene.services)
 		addTarget(services, service.id, "services.json", "service");
 
-	add("rolling_stock", "rolling_stock.json", static_cast<int>(scene.trainUnits.size()
-			+ scene.compositions.size()));
+	add("rolling_stock", "rolling_stock.json", static_cast<int>(scene.trainUnits.size() + scene.compositions.size()));
 	const std::string rollingStatus = scene.loadedData.back().status;
 	SceneLoadedData& trainUnits = addChild("train_units", "rolling_stock.json",
-			static_cast<int>(scene.trainUnits.size()), rollingStatus);
+		static_cast<int>(scene.trainUnits.size()), rollingStatus);
 	for (const auto& unit : scene.trainUnits) {
 		SceneLoadedData& unitRow = addTarget(trainUnits, unit.id, "rolling_stock.json", "train_unit");
 		unitRow.children.push_back(makeLoadedData("train_unit_parameters", "rolling_stock.json",
-				unit.hasPhysical ? 1 : 0, unit.hasPhysical ? "Parsed" : "Invalid"));
+			unit.hasPhysical ? 1 : 0, unit.hasPhysical ? "Parsed" : "Invalid"));
 		SceneLoadedData curve = makeLoadedData("tractive_effort_curve", "rolling_stock.json",
-				static_cast<int>(unit.tractionCurve.size()), unit.tractionCurve.empty() ? "Invalid" : "Parsed");
+			static_cast<int>(unit.tractionCurve.size()), unit.tractionCurve.empty() ? "Invalid" : "Parsed");
 		if (!unit.tractionCurve.empty()) {
 			SceneLoadedData plot = makeLoadedData("Plot tractive effort", "rolling_stock.json", 1, "Ready");
 			plot.targetType = "train_unit_plot";
@@ -608,12 +610,12 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 		SceneLoadedData provenance = makeLoadedData("import_provenance", "", 0, "Missing optional");
 		if (!unit.sourceDataFile.empty()) {
 			provenance.children.push_back(makeLoadedData("original_parameter_source",
-					unit.sourceDataFile, 1, "Parsed"));
+				unit.sourceDataFile, 1, "Parsed"));
 			++provenance.parsedCount;
 		}
 		if (!unit.sourceTractionFile.empty()) {
 			provenance.children.push_back(makeLoadedData("original_tractive_effort_source",
-					unit.sourceTractionFile, 1, "Parsed"));
+				unit.sourceTractionFile, 1, "Parsed"));
 			++provenance.parsedCount;
 		}
 		if (provenance.parsedCount > 0)
@@ -621,13 +623,13 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 		unitRow.children.push_back(std::move(provenance));
 	}
 	SceneLoadedData& compositions = addChild("compositions", "rolling_stock.json",
-			static_cast<int>(scene.compositions.size()), rollingStatus);
+		static_cast<int>(scene.compositions.size()), rollingStatus);
 	for (const auto& composition : scene.compositions)
 		addTarget(compositions, composition.id, "rolling_stock.json", "composition");
 
 	int signallingCount = static_cast<int>(scene.signals.size() + scene.signallingAreas.size() + scene.routes.size()
-			+ scene.blockDependencies.size() + scene.singleTrackRestrictions.size()
-			+ scene.stationBoundaries.size());
+		+ scene.blockDependencies.size() + scene.singleTrackRestrictions.size()
+		+ scene.stationBoundaries.size());
 	add("signalling", "signalling.json", signallingCount);
 	scene.loadedData.back().targetType = "network";
 	const std::string signallingStatus = scene.loadedData.back().status;
@@ -646,21 +648,20 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 		entranceDelayCount += static_cast<int>(scenario.entranceDelays.size());
 	}
 	const std::string scenarioSource = scene.sourceFiles.count("scenarios.json") > 0
-			? "scenarios.json"
-			: (scene.sourceFiles.count("incidents.json") > 0 ? "incidents.json" : "scenarios.json");
+		? "scenarios.json"
+		: (scene.sourceFiles.count("incidents.json") > 0 ? "incidents.json" : "scenarios.json");
 	add("scenarios", scenarioSource, static_cast<int>(scene.scenarios.size()), true);
 	const std::string scenariosStatus = scene.loadedData.back().status;
 	SceneLoadedData& scenarioItems = addChild("available_scenarios", scenarioSource,
-			static_cast<int>(scene.scenarios.size()), scenariosStatus);
+		static_cast<int>(scene.scenarios.size()), scenariosStatus);
 	const SceneScenario* selectedScenario = defaultScenario(static_cast<const SceneModel&>(scene));
 	const std::string effectiveDefaultScenario = selectedScenario ? selectedScenario->id : std::string();
 	for (const auto& scenario : scene.scenarios) {
-		std::string label = "Scenario: " + (scenario.name.empty()
-				? scenario.id : scenario.name + " [" + scenario.id + "]");
+		std::string label = "Scenario: " + (scenario.name.empty() ? scenario.id : scenario.name + " [" + scenario.id + "]");
 		if (scenario.id == effectiveDefaultScenario)
 			label += " (default)";
 		SceneLoadedData item = makeLoadedData(label, scenarioSource,
-				static_cast<int>(scenario.incidents.size() + scenario.entranceDelays.size()), scenariosStatus);
+			static_cast<int>(scenario.incidents.size() + scenario.entranceDelays.size()), scenariosStatus);
 		for (const auto& incident : scenario.incidents) {
 			SceneLoadedData incidentItem = makeLoadedData(incident.id, scenarioSource, 1, scenariosStatus);
 			if (scenario.id == effectiveDefaultScenario) {
@@ -686,21 +687,21 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 	std::vector<SceneDiagnosticCounts> counts(scene.loadedData.size());
 	for (auto& item : scene.loadedData) {
 		item.children.erase(std::remove_if(item.children.begin(), item.children.end(),
-				[](const SceneLoadedData& child) { return child.category == "validation"; }),
+								[](const SceneLoadedData& child) { return child.category == "validation"; }),
 			item.children.end());
 	}
 	for (const auto& diagnostic : diagnostics) {
 		SceneDiagnosticCounts& count = counts[loadedDataIndexForDiagnostic(scene, diagnostic)];
 		switch (diagnostic.severity) {
-		case SceneSeverity::Error:
-			++count.errors;
-			break;
-		case SceneSeverity::Warning:
-			++count.warnings;
-			break;
-		case SceneSeverity::Info:
-			++count.infos;
-			break;
+			case SceneSeverity::Error:
+				++count.errors;
+				break;
+			case SceneSeverity::Warning:
+				++count.warnings;
+				break;
+			case SceneSeverity::Info:
+				++count.infos;
+				break;
 		}
 	}
 	for (std::size_t i = 0; i < scene.loadedData.size(); ++i) {
@@ -711,7 +712,7 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 		else if (count.warnings > 0)
 			scene.loadedData[i].status = "Warning";
 		SceneLoadedData validation = makeLoadedData("validation", scene.loadedData[i].sourceFile,
-				total, loadedDataDiagnosticStatus(count));
+			total, loadedDataDiagnosticStatus(count));
 		validation.targetType = "validation";
 		scene.loadedData[i].children.push_back(std::move(validation));
 	}
@@ -719,7 +720,7 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 
 void refreshSavedSceneMetadata(SceneModel& scene) {
 	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			"rolling_stock.json", "services.json", "scenarios.json"})
+			 "rolling_stock.json", "services.json", "scenarios.json"})
 		scene.sourceFiles.insert(file);
 	scene.sourceFiles.erase("incidents.json");
 	if (scene.passengers.empty())
@@ -736,7 +737,7 @@ void refreshSavedSceneMetadata(SceneModel& scene) {
 SceneLoadResult loadScene(const std::string& sceneDir) {
 	SceneLoadResult result;
 	auto addDiagnostic = [&](SceneSeverity severity, const std::string& code,
-			const std::string& file, const std::string& message, const std::string& path = "") {
+							 const std::string& file, const std::string& message, const std::string& path = "") {
 		SceneDiagnostic diagnostic;
 		diagnostic.severity = severity;
 		diagnostic.code = code;
@@ -746,11 +747,11 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		result.diagnostics.push_back(diagnostic);
 	};
 	auto addError = [&](const std::string& code, const std::string& file,
-			const std::string& message, const std::string& path = "") {
+						const std::string& message, const std::string& path = "") {
 		addDiagnostic(SceneSeverity::Error, code, file, message, path);
 	};
 	auto addWarning = [&](const std::string& code, const std::string& file,
-			const std::string& message, const std::string& path = "") {
+						  const std::string& message, const std::string& path = "") {
 		addDiagnostic(SceneSeverity::Warning, code, file, message, path);
 	};
 
@@ -785,7 +786,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		return true;
 	};
 	auto arraySection = [&](const json& object, const char* key, const std::string& file,
-			const std::string& path, bool required) {
+							const std::string& path, bool required) {
 		if (!object.is_object()) {
 			addError("scene.item.invalid", file, "Expected an object", path);
 			return false;
@@ -793,18 +794,18 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (!object.contains(key)) {
 			if (required)
 				addError("scene.section.missing", file, std::string("Missing ") + key + " section",
-						joinPath(path, key));
+					joinPath(path, key));
 			return false;
 		}
 		if (!object[key].is_array()) {
 			addError("scene.section.missing", file, std::string("Mistyped ") + key + " section",
-					joinPath(path, key));
+				joinPath(path, key));
 			return false;
 		}
 		return true;
 	};
 	auto stringField = [&](const json& object, const char* key, const std::string& file,
-			const std::string& path, std::string& output, bool required = true) {
+						   const std::string& path, std::string& output, bool required = true) {
 		if (!object.is_object()) {
 			addError("scene.item.invalid", file, "Array item must be an object", path);
 			return false;
@@ -812,19 +813,19 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (!object.contains(key)) {
 			if (required)
 				addError("scene.field.missing", file, std::string("Missing ") + key,
-						joinPath(path, key));
+					joinPath(path, key));
 			return false;
 		}
 		if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
 			addError("scene.field.missing", file, std::string("Invalid ") + key,
-					joinPath(path, key));
+				joinPath(path, key));
 			return false;
 		}
 		output = object[key].get<std::string>();
 		return true;
 	};
 	auto numberField = [&](const json& object, const char* key, const std::string& file,
-			const std::string& path, double& output, bool required = true) {
+						   const std::string& path, double& output, bool required = true) {
 		if (!object.is_object()) {
 			addError("scene.item.invalid", file, "Array item must be an object", path);
 			return false;
@@ -832,19 +833,19 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (!object.contains(key)) {
 			if (required)
 				addError("scene.field.missing", file, std::string("Missing ") + key,
-						joinPath(path, key));
+					joinPath(path, key));
 			return false;
 		}
 		if (!object[key].is_number()) {
 			addError("scene.field.missing", file, std::string("Invalid ") + key,
-					joinPath(path, key));
+				joinPath(path, key));
 			return false;
 		}
 		output = object[key].get<double>();
 		return true;
 	};
 	auto integerField = [&](const json& object, const char* key, const std::string& file,
-			const std::string& path, int& output, bool required = true) {
+							const std::string& path, int& output, bool required = true) {
 		if (!object.is_object()) {
 			addError("scene.item.invalid", file, "Array item must be an object", path);
 			return false;
@@ -852,18 +853,17 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (!object.contains(key)) {
 			if (required)
 				addError("scene.field.missing", file, std::string("Missing ") + key,
-						joinPath(path, key));
+					joinPath(path, key));
 			return false;
 		}
 		if (!object[key].is_number_integer()) {
 			addError("scene.field.missing", file, std::string("Invalid ") + key,
-					joinPath(path, key));
+				joinPath(path, key));
 			return false;
 		}
 		int value = 0;
 		if (!readJsonInt(object[key], INT_MIN, INT_MAX, value)) {
-			addError("scene.field.missing", file, std::string("Invalid ") + key
-					+ ": integer out of range", joinPath(path, key));
+			addError("scene.field.missing", file, std::string("Invalid ") + key + ": integer out of range", joinPath(path, key));
 			return false;
 		}
 		output = value;
@@ -871,10 +871,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	};
 	auto isSimulationResultField = [](const std::string& name) {
 		return name == "results" || name == "simulation_results"
-				|| name.find("simulated_") == 0 || name.find("actual_") == 0
-				|| name == "delay_seconds"
-				|| name.find("arrival_delay") != std::string::npos
-				|| name.find("departure_delay") != std::string::npos;
+			|| name.find("simulated_") == 0 || name.find("actual_") == 0
+			|| name == "delay_seconds"
+			|| name.find("arrival_delay") != std::string::npos
+			|| name.find("departure_delay") != std::string::npos;
 	};
 
 	json sceneJson;
@@ -898,21 +898,22 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	const bool scenariosOk = parseObject("scenarios.json", scenariosJson, scenariosPresent);
 	const bool incidentsOk = parseObject("incidents.json", incidentsJson, incidentsPresent, !scenariosPresent);
 	const bool passengersOk = parseObject("passengers.json", passengersJson,
-			fs::exists(fs::path(sceneDir) / "passengers.json"));
+		fs::exists(fs::path(sceneDir) / "passengers.json"));
 	const bool viewsOk = parseObject("views.json", viewsJson, false);
 
 	if (sceneOk) {
 		if (!sceneJson.contains("schema_version")) {
 			addError("scene.version.missing", "scene.json", "Missing schema_version", "schema_version");
 		} else if (!readJsonInt(sceneJson["schema_version"], kCurrentSceneSchemaVersion,
-						kCurrentSceneSchemaVersion, result.scene.schemaVersion)) {
+					   kCurrentSceneSchemaVersion, result.scene.schemaVersion)) {
 			addError("scene.version.unsupported", "scene.json",
-					"Unsupported schema_version, must be the current integer "
-						+ std::to_string(kCurrentSceneSchemaVersion), "schema_version");
+				"Unsupported schema_version, must be the current integer "
+					+ std::to_string(kCurrentSceneSchemaVersion),
+				"schema_version");
 		}
 		stringField(sceneJson, "name", "scene.json", "", result.scene.name);
 		stringField(sceneJson, "saved_with_app_version", "scene.json", "",
-				result.scene.savedWithAppVersion, false);
+			result.scene.savedWithAppVersion, false);
 		stringField(sceneJson, "description", "scene.json", "", result.scene.description, false);
 		stringField(sceneJson, "base_time", "scene.json", "", result.scene.baseTime, false);
 		if (sceneJson.contains("units")) {
@@ -921,13 +922,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				addError("scene.field.missing", "scene.json", "units must be an object", "units");
 			} else {
 				for (const auto& unit : {std::pair<const char*, const char*>("distance", "m"),
-						std::pair<const char*, const char*>("time", "s"),
-						std::pair<const char*, const char*>("speed", "m/s")}) {
-					if (units.contains(unit.first) && (!units[unit.first].is_string()
-							|| units[unit.first].get<std::string>() != unit.second)) {
+						 std::pair<const char*, const char*>("time", "s"),
+						 std::pair<const char*, const char*>("speed", "m/s")}) {
+					if (units.contains(unit.first) && (!units[unit.first].is_string() || units[unit.first].get<std::string>() != unit.second)) {
 						addError("scene.units.unsupported", "scene.json",
-								std::string("Unsupported ") + unit.first + " unit",
-								std::string("units.") + unit.first);
+							std::string("Unsupported ") + unit.first + " unit",
+							std::string("units.") + unit.first);
 					}
 				}
 			}
@@ -936,14 +936,14 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			const json& settings = sceneJson["simulation_settings"];
 			if (!settings.is_object()) {
 				addError("scene.field.missing", "scene.json",
-						"simulation_settings must be an object", "simulation_settings");
+					"simulation_settings must be an object", "simulation_settings");
 			} else {
 				result.scene.settings.hasDuration = numberField(settings, "duration_seconds", "scene.json",
-						"simulation_settings", result.scene.settings.durationSeconds, false);
+					"simulation_settings", result.scene.settings.durationSeconds, false);
 				result.scene.settings.hasBufferTime = numberField(settings, "buffer_time_seconds", "scene.json",
-						"simulation_settings", result.scene.settings.bufferTimeSeconds, false);
+					"simulation_settings", result.scene.settings.bufferTimeSeconds, false);
 				result.scene.settings.hasRecoveryTime = numberField(settings, "recovery_time_percent", "scene.json",
-						"simulation_settings", result.scene.settings.recoveryTimePercent, false);
+					"simulation_settings", result.scene.settings.recoveryTimePercent, false);
 			}
 		}
 		if (sceneJson.contains("import_report")) {
@@ -958,7 +958,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					integerField(value, "converted_count", "scene.json", path, row.convertedCount);
 					integerField(value, "skipped_count", "scene.json", path, row.skippedCount);
 					integerField(value, "unresolved_references", "scene.json", path,
-							row.unresolvedReferences);
+						row.unresolvedReferences);
 					result.scene.importReport.push_back(row);
 				}
 			}
@@ -980,11 +980,11 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				SceneNode node;
 				stringField(infrastructureJson["nodes"][index], "id", "infrastructure.json", path, node.id);
 				stringField(infrastructureJson["nodes"][index], "track", "infrastructure.json", path,
-						node.trackId);
+					node.trackId);
 				numberField(infrastructureJson["nodes"][index], "x_km", "infrastructure.json", path,
-						node.xKm);
+					node.xKm);
 				numberField(infrastructureJson["nodes"][index], "y_km", "infrastructure.json", path,
-						node.yKm);
+					node.yKm);
 				result.scene.nodes.push_back(node);
 			}
 		}
@@ -994,17 +994,17 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				SceneArc arc;
 				stringField(infrastructureJson["arcs"][index], "id", "infrastructure.json", path, arc.id);
 				stringField(infrastructureJson["arcs"][index], "track", "infrastructure.json", path,
-						arc.trackId);
+					arc.trackId);
 				stringField(infrastructureJson["arcs"][index], "from", "infrastructure.json", path,
-						arc.fromNodeId);
+					arc.fromNodeId);
 				stringField(infrastructureJson["arcs"][index], "to", "infrastructure.json", path,
-						arc.toNodeId);
+					arc.toNodeId);
 				numberField(infrastructureJson["arcs"][index], "curvature_radius_m", "infrastructure.json",
-						path, arc.curvatureRadiusM);
+					path, arc.curvatureRadiusM);
 				numberField(infrastructureJson["arcs"][index], "gradient_percent", "infrastructure.json",
-						path, arc.gradientPercent);
+					path, arc.gradientPercent);
 				numberField(infrastructureJson["arcs"][index], "speed_limit_ms", "infrastructure.json",
-						path, arc.speedLimitMs);
+					path, arc.speedLimitMs);
 				result.scene.arcs.push_back(arc);
 			}
 		}
@@ -1013,11 +1013,11 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				const std::string path = "blocks[" + std::to_string(index) + "]";
 				SceneBlock block;
 				stringField(infrastructureJson["blocks"][index], "id", "infrastructure.json", path,
-						block.id);
+					block.id);
 				stringField(infrastructureJson["blocks"][index], "track", "infrastructure.json", path,
-						block.trackId);
+					block.trackId);
 				numberField(infrastructureJson["blocks"][index], "length_km", "infrastructure.json", path,
-						block.lengthKm);
+					block.lengthKm);
 				result.scene.blocks.push_back(block);
 			}
 		}
@@ -1026,13 +1026,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				const std::string path = "connections[" + std::to_string(index) + "]";
 				SceneConnection connection;
 				stringField(infrastructureJson["connections"][index], "id", "infrastructure.json", path,
-						connection.id);
+					connection.id);
 				stringField(infrastructureJson["connections"][index], "from", "infrastructure.json", path,
-						connection.fromNodeId);
+					connection.fromNodeId);
 				stringField(infrastructureJson["connections"][index], "to", "infrastructure.json", path,
-						connection.toNodeId);
+					connection.toNodeId);
 				connection.hasSpeedLimit = numberField(infrastructureJson["connections"][index],
-						"speed_limit_ms", "infrastructure.json", path, connection.speedLimitMs, false);
+					"speed_limit_ms", "infrastructure.json", path, connection.speedLimitMs, false);
 				result.scene.connections.push_back(connection);
 			}
 		}
@@ -1046,34 +1046,34 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			stringField(value, "id", "stations.json", stationPath, station.id);
 			stringField(value, "name", "stations.json", stationPath, station.name);
 			station.hasPosition = numberField(value, "position_km", "stations.json", stationPath,
-					station.positionKm, false);
+				station.positionKm, false);
 			if (value.contains("platforms")) {
 				if (!value["platforms"].is_array()) {
 					addError("scene.field.missing", "stations.json", "platforms must be an array",
-							stationPath + ".platforms");
+						stationPath + ".platforms");
 				} else {
 					for (std::size_t platformIndex = 0; platformIndex < value["platforms"].size();
-							++platformIndex) {
+						++platformIndex) {
 						const std::string platformPath = stationPath + ".platforms["
-								+ std::to_string(platformIndex) + "]";
+							+ std::to_string(platformIndex) + "]";
 						const json& platformValue = value["platforms"][platformIndex];
 						ScenePlatform platform;
 						stringField(platformValue, "id", "stations.json", platformPath, platform.id);
 						platform.hasLength = numberField(platformValue, "length_m", "stations.json",
-								platformPath, platform.lengthM, false);
+							platformPath, platform.lengthM, false);
 						platform.hasWidth = numberField(platformValue, "width_m", "stations.json",
-								platformPath, platform.widthM, false);
+							platformPath, platform.widthM, false);
 						if (platformValue.contains("nodes")) {
 							if (!platformValue["nodes"].is_array()) {
 								addError("scene.field.missing", "stations.json",
-										"nodes must be an array", platformPath + ".nodes");
+									"nodes must be an array", platformPath + ".nodes");
 							} else {
 								for (std::size_t nodeIndex = 0; nodeIndex < platformValue["nodes"].size();
-										++nodeIndex) {
+									++nodeIndex) {
 									if (!platformValue["nodes"][nodeIndex].is_string()) {
 										addError("scene.field.missing", "stations.json",
-												"Platform node reference must be a string",
-												platformPath + ".nodes["
+											"Platform node reference must be a string",
+											platformPath + ".nodes["
 												+ std::to_string(nodeIndex) + "]");
 										continue;
 									}
@@ -1108,16 +1108,16 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					const std::string path = "tracks[" + std::to_string(index) + "]";
 					const json& value = viewsJson["tracks"][index];
 					if (!value.is_object() || !value.contains("track") || !value["track"].is_string()
-							|| value["track"].get<std::string>().empty()
-							|| !value.contains("level") || !value["level"].is_number_integer()
-							|| !value.contains("region") || !value["region"].is_number_integer()) {
+						|| value["track"].get<std::string>().empty()
+						|| !value.contains("level") || !value["level"].is_number_integer()
+						|| !value.contains("region") || !value["region"].is_number_integer()) {
 						viewWarning(path, "Invalid track display row; row skipped");
 						continue;
 					}
 					SceneTrackView view;
 					view.trackId = value["track"].get<std::string>();
 					if (!readJsonInt(value["level"], INT_MIN, INT_MAX, view.level)
-							|| !readJsonInt(value["region"], INT_MIN, INT_MAX, view.region)) {
+						|| !readJsonInt(value["region"], INT_MIN, INT_MAX, view.region)) {
 						viewWarning(path, "Invalid track display row; row skipped");
 						continue;
 					}
@@ -1137,9 +1137,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						continue;
 					}
 					const auto duplicate = std::find_if(result.scene.trackViews.begin(),
-							result.scene.trackViews.end(), [&view](const SceneTrackView& candidate) {
-								return candidate.trackId == view.trackId;
-							});
+						result.scene.trackViews.end(), [&view](const SceneTrackView& candidate) {
+							return candidate.trackId == view.trackId;
+						});
 					if (duplicate != result.scene.trackViews.end()) {
 						viewWarning(path, "Duplicate track display row; row skipped");
 						continue;
@@ -1157,10 +1157,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					const std::string path = "stations[" + std::to_string(index) + "]";
 					const json& value = viewsJson["stations"][index];
 					if (!value.is_object() || !value.contains("station") || !value["station"].is_string()
-							|| value["station"].get<std::string>().empty()
-							|| !value.contains("latitude") || !value["latitude"].is_number()
-							|| !value.contains("longitude") || !value["longitude"].is_number()
-							|| !value.contains("regions") || !value["regions"].is_array()) {
+						|| value["station"].get<std::string>().empty()
+						|| !value.contains("latitude") || !value["latitude"].is_number()
+						|| !value.contains("longitude") || !value["longitude"].is_number()
+						|| !value.contains("regions") || !value["regions"].is_array()) {
 						viewWarning(path, "Invalid station display row; row skipped");
 						continue;
 					}
@@ -1169,7 +1169,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					view.latitude = value["latitude"].get<double>();
 					view.longitude = value["longitude"].get<double>();
 					if (!std::isfinite(view.latitude) || !std::isfinite(view.longitude)
-							|| stationIds.count(view.stationId) == 0) {
+						|| stationIds.count(view.stationId) == 0) {
 						viewWarning(path,
 							stationIds.count(view.stationId) == 0
 								? "Station display row refers to an unknown station; row skipped"
@@ -1181,9 +1181,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					for (std::size_t regionIndex = 0; regionIndex < value["regions"].size(); ++regionIndex) {
 						const json& regionValue = value["regions"][regionIndex];
 						if (!regionValue.is_object() || !regionValue.contains("id")
-								|| !regionValue["id"].is_number_integer()
-								|| !regionValue.contains("position_km")
-								|| !regionValue["position_km"].is_number()) {
+							|| !regionValue["id"].is_number_integer()
+							|| !regionValue.contains("position_km")
+							|| !regionValue["position_km"].is_number()) {
 							validRegions = false;
 							break;
 						}
@@ -1226,9 +1226,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						}
 					}
 					const auto duplicate = std::find_if(result.scene.stationViews.begin(),
-							result.scene.stationViews.end(), [&view](const SceneStationView& candidate) {
-								return candidate.stationId == view.stationId;
-							});
+						result.scene.stationViews.end(), [&view](const SceneStationView& candidate) {
+							return candidate.stationId == view.stationId;
+						});
 					if (duplicate != result.scene.stationViews.end()) {
 						viewWarning(path, "Duplicate station display row; row skipped");
 						continue;
@@ -1246,7 +1246,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				SceneSignal signal;
 				stringField(signallingJson["signals"][index], "id", "signalling.json", path, signal.id);
 				stringField(signallingJson["signals"][index], "protected_section", "signalling.json", path,
-						signal.protectedSection, false);
+					signal.protectedSection, false);
 				result.scene.signals.push_back(signal);
 			}
 		}
@@ -1273,19 +1273,19 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					for (std::size_t blockIndex = 0; blockIndex < value["blocks"].size(); ++blockIndex) {
 						if (!value["blocks"][blockIndex].is_string()) {
 							addError("scene.field.missing", "signalling.json",
-									"Route block reference must be a string",
-									path + ".blocks[" + std::to_string(blockIndex) + "]");
+								"Route block reference must be a string",
+								path + ".blocks[" + std::to_string(blockIndex) + "]");
 							continue;
 						}
 						route.blocks.push_back(value["blocks"][blockIndex].get<std::string>());
 					}
 				}
 				route.hasCorridor = stringField(value, "corridor", "signalling.json", path,
-						route.corridor, false);
+					route.corridor, false);
 				if (value.contains("reversed")) {
 					if (!value["reversed"].is_boolean())
 						addError("scene.field.missing", "signalling.json", "reversed must be a boolean",
-								path + ".reversed");
+							path + ".reversed");
 					else
 						route.reversed = value["reversed"].get<bool>();
 				}
@@ -1297,9 +1297,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				const std::string path = "block_dependencies[" + std::to_string(index) + "]";
 				SceneBlockDependency dependency;
 				stringField(signallingJson["block_dependencies"][index], "block", "signalling.json", path,
-						dependency.block);
+					dependency.block);
 				stringField(signallingJson["block_dependencies"][index], "depends_on", "signalling.json",
-						path, dependency.dependsOn);
+					path, dependency.dependsOn);
 				result.scene.blockDependencies.push_back(dependency);
 			}
 		}
@@ -1311,9 +1311,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				stringField(value, "start_block", "signalling.json", path, restriction.startBlock);
 				stringField(value, "end_block", "signalling.json", path, restriction.endBlock);
 				stringField(value, "protected_start_block", "signalling.json", path,
-						restriction.protectedStartBlock);
+					restriction.protectedStartBlock);
 				stringField(value, "protected_end_block", "signalling.json", path,
-						restriction.protectedEndBlock);
+					restriction.protectedEndBlock);
 				result.scene.singleTrackRestrictions.push_back(restriction);
 			}
 		}
@@ -1324,11 +1324,11 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				SceneStationBoundary boundary;
 				stringField(value, "entrance_block", "signalling.json", path, boundary.entranceBlock);
 				boundary.hasExitBlock = stringField(value, "exit_block", "signalling.json", path,
-						boundary.exitBlock, false);
+					boundary.exitBlock, false);
 				if (value.contains("direction")) {
 					if (!value["direction"].is_boolean())
 						addError("scene.field.missing", "signalling.json", "direction must be a boolean",
-								path + ".direction");
+							path + ".direction");
 					else
 						boundary.direction = value["direction"].get<bool>();
 				}
@@ -1347,42 +1347,42 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				if (value.contains("physical")) {
 					if (!value["physical"].is_object()) {
 						addError("scene.field.missing", "rolling_stock.json", "physical must be an object",
-								path + ".physical");
+							path + ".physical");
 					} else {
 						const json& physical = value["physical"];
 						unit.hasPhysical = true;
 						numberField(physical, "mass_of_traction_unit_kg", "rolling_stock.json",
-								path + ".physical", unit.physical.mass_of_traction_unit_kg);
+							path + ".physical", unit.physical.mass_of_traction_unit_kg);
 						numberField(physical, "mass_of_a_wagon_kg", "rolling_stock.json",
-								path + ".physical", unit.physical.mass_of_a_wagon_kg);
+							path + ".physical", unit.physical.mass_of_a_wagon_kg);
 						numberField(physical, "number_of_wagons", "rolling_stock.json",
-								path + ".physical", unit.physical.number_of_wagons);
+							path + ".physical", unit.physical.number_of_wagons);
 						numberField(physical, "max_speed_ms", "rolling_stock.json",
-								path + ".physical", unit.physical.max_speed_ms);
+							path + ".physical", unit.physical.max_speed_ms);
 						numberField(physical, "max_deceleration_ms2", "rolling_stock.json",
-								path + ".physical", unit.physical.max_deceleration_ms2);
+							path + ".physical", unit.physical.max_deceleration_ms2);
 						numberField(physical, "frontal_area_m2", "rolling_stock.json",
-								path + ".physical", unit.physical.frontal_area_m2);
+							path + ".physical", unit.physical.frontal_area_m2);
 						numberField(physical, "resistance_coefficient", "rolling_stock.json",
-								path + ".physical", unit.physical.resistance_coefficient);
+							path + ".physical", unit.physical.resistance_coefficient);
 						numberField(physical, "jerk_ms3", "rolling_stock.json",
-								path + ".physical", unit.physical.jerk_ms3);
+							path + ".physical", unit.physical.jerk_ms3);
 						numberField(physical, "length_m", "rolling_stock.json",
-								path + ".physical", unit.physical.length_m);
+							path + ".physical", unit.physical.length_m);
 					}
 				}
 				if (value.contains("traction_curve")) {
 					if (!value["traction_curve"].is_array()) {
 						addError("scene.field.missing", "rolling_stock.json",
-								"traction_curve must be an array", path + ".traction_curve");
+							"traction_curve must be an array", path + ".traction_curve");
 					} else {
 						for (std::size_t rowIndex = 0; rowIndex < value["traction_curve"].size(); ++rowIndex) {
 							const json& row = value["traction_curve"][rowIndex];
 							const std::string rowPath = path + ".traction_curve["
-									+ std::to_string(rowIndex) + "]";
+								+ std::to_string(rowIndex) + "]";
 							if (!row.is_array() || row.size() != 5) {
 								addError("scene.field.missing", "rolling_stock.json",
-										"traction_curve row must contain five numbers", rowPath);
+									"traction_curve row must contain five numbers", rowPath);
 								continue;
 							}
 							std::array<double, 5> values{};
@@ -1396,7 +1396,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							}
 							if (!valid) {
 								addError("scene.field.missing", "rolling_stock.json",
-										"traction_curve row must contain numbers", rowPath);
+									"traction_curve row must contain numbers", rowPath);
 							} else {
 								unit.tractionCurve.push_back(values);
 							}
@@ -1406,13 +1406,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				if (value.contains("source")) {
 					if (!value["source"].is_object()) {
 						addError("scene.field.missing", "rolling_stock.json", "source must be an object",
-								path + ".source");
+							path + ".source");
 					} else {
 						const json& source = value["source"];
 						stringField(source, "data_file", "rolling_stock.json", path + ".source",
-								unit.sourceDataFile, false);
+							unit.sourceDataFile, false);
 						stringField(source, "traction_file", "rolling_stock.json", path + ".source",
-								unit.sourceTractionFile, false);
+							unit.sourceTractionFile, false);
 					}
 				}
 				result.scene.trainUnits.push_back(unit);
@@ -1431,8 +1431,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 				for (std::size_t unitIndex = 0; unitIndex < value["units"].size(); ++unitIndex) {
 					if (!value["units"][unitIndex].is_string()) {
 						addError("scene.field.missing", "rolling_stock.json",
-								"Composition unit reference must be a string",
-								path + ".units[" + std::to_string(unitIndex) + "]");
+							"Composition unit reference must be a string",
+							path + ".units[" + std::to_string(unitIndex) + "]");
 						continue;
 					}
 					composition.units.push_back(value["units"][unitIndex].get<std::string>());
@@ -1460,24 +1460,24 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			if (value.contains("through")) {
 				if (!value["through"].is_boolean())
 					addError("scene.field.missing", "services.json", "through must be a boolean",
-							path + ".through");
+						path + ".through");
 				else
 					service.through = value["through"].get<bool>();
 			}
 			service.hasEntryTime = numberField(value, "entry_time_seconds", "services.json", path,
-					service.entryTimeSeconds, false);
+				service.entryTimeSeconds, false);
 			if (value.contains("repeat")) {
 				if (!value["repeat"].is_object()) {
 					addError("scene.field.missing", "services.json", "repeat must be an object",
-							path + ".repeat");
+						path + ".repeat");
 				} else {
 					service.hasRepeat = true;
 					numberField(value["repeat"], "headway_seconds", "services.json", path + ".repeat",
-							service.headwaySeconds);
+						service.headwaySeconds);
 					service.hasRepeatCount = integerField(value["repeat"], "count", "services.json",
-							path + ".repeat", service.repeatCount, false);
+						path + ".repeat", service.repeatCount, false);
 					service.hasOperatingCodeStep = integerField(value["repeat"], "operating_code_step",
-							"services.json", path + ".repeat", service.operatingCodeStep, false);
+						"services.json", path + ".repeat", service.operatingCodeStep, false);
 				}
 			}
 			if (arraySection(value, "stops", "services.json", path, true)) {
@@ -1489,22 +1489,22 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						for (const auto& field : stopValue.items()) {
 							if (isSimulationResultField(field.key()))
 								addError("scene.timetable.results", "services.json",
-										"Service stop input must not contain simulation-result fields",
-										stopPath + "." + field.key());
+									"Service stop input must not contain simulation-result fields",
+									stopPath + "." + field.key());
 						}
 					}
 					stringField(stopValue, "station", "services.json", stopPath, stop.stationId);
 					stringField(stopValue, "platform", "services.json", stopPath, stop.platformId, false);
 					stop.hasPlannedArrival = numberField(stopValue, "planned_arrival_seconds", "services.json",
-							stopPath, stop.plannedArrivalSeconds, false);
+						stopPath, stop.plannedArrivalSeconds, false);
 					if (!stop.hasPlannedArrival)
 						stop.hasPlannedArrival = numberField(stopValue, "arrival_seconds", "services.json",
-								stopPath, stop.plannedArrivalSeconds, false);
+							stopPath, stop.plannedArrivalSeconds, false);
 					stop.hasPlannedDeparture = numberField(stopValue, "planned_departure_seconds", "services.json",
-							stopPath, stop.plannedDepartureSeconds, false);
+						stopPath, stop.plannedDepartureSeconds, false);
 					if (!stop.hasPlannedDeparture)
 						stop.hasPlannedDeparture = numberField(stopValue, "departure_seconds", "services.json",
-								stopPath, stop.plannedDepartureSeconds, false);
+							stopPath, stop.plannedDepartureSeconds, false);
 					numberField(stopValue, "dwell_seconds", "services.json", stopPath, stop.dwellSeconds);
 					service.stops.push_back(stop);
 				}
@@ -1514,13 +1514,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	}
 
 	auto parseIncidentArray = [&](const json& root, const std::string& file, const std::string& path,
-			std::vector<SceneIncident>& output) {
+								  std::vector<SceneIncident>& output) {
 		if (!arraySection(root, "incidents", file, path, true))
 			return;
 		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
 			const std::string incidentPath = path.empty()
-					? "incidents[" + std::to_string(index) + "]"
-					: path + ".incidents[" + std::to_string(index) + "]";
+				? "incidents[" + std::to_string(index) + "]"
+				: path + ".incidents[" + std::to_string(index) + "]";
 			const json& value = root["incidents"][index];
 			SceneIncident incident;
 			stringField(value, "id", file, incidentPath, incident.id);
@@ -1528,15 +1528,15 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			stringField(value, "target", file, incidentPath, incident.target);
 			numberField(value, "start_seconds", file, incidentPath, incident.startSeconds);
 			incident.hasEndSeconds = numberField(value, "end_seconds", file, incidentPath,
-					incident.endSeconds, false);
+				incident.endSeconds, false);
 			incident.hasOccurrence = integerField(value, "occurrence", file, incidentPath,
-					incident.occurrence, false);
+				incident.occurrence, false);
 			incident.hasReducedSpeed = numberField(value, "reduced_speed_kmh", file, incidentPath,
-					incident.reducedSpeedKmh, false);
+				incident.reducedSpeedKmh, false);
 			if (value.contains("terminate_at_destination")) {
 				if (!value["terminate_at_destination"].is_boolean()) {
 					addError("scene.field.missing", file, "Invalid terminate_at_destination",
-							joinPath(incidentPath, "terminate_at_destination"));
+						joinPath(incidentPath, "terminate_at_destination"));
 				} else {
 					incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
 				}
@@ -1547,12 +1547,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 
 	if (scenariosPresent && incidentsPresent) {
 		addWarning("scene.compatibility.incidents_ignored", "incidents.json",
-				"scenarios.json is authoritative; incidents.json was ignored for compatibility");
+			"scenarios.json is authoritative; incidents.json was ignored for compatibility");
 	}
 	if (scenariosPresent) {
 		if (scenariosOk) {
 			stringField(scenariosJson, "default_scenario_id", "scenarios.json", "",
-					result.scene.defaultScenarioId);
+				result.scene.defaultScenarioId);
 			if (arraySection(scenariosJson, "scenarios", "scenarios.json", "", true)) {
 				for (std::size_t index = 0; index < scenariosJson["scenarios"].size(); ++index) {
 					const std::string path = "scenarios[" + std::to_string(index) + "]";
@@ -1564,14 +1564,14 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					parseIncidentArray(value, "scenarios.json", path, scenario.incidents);
 					if (arraySection(value, "entrance_delays", "scenarios.json", path, false)) {
 						for (std::size_t delayIndex = 0; delayIndex < value["entrance_delays"].size();
-								++delayIndex) {
+							++delayIndex) {
 							const std::string delayPath = path + ".entrance_delays["
-									+ std::to_string(delayIndex) + "]";
+								+ std::to_string(delayIndex) + "]";
 							const json& delayValue = value["entrance_delays"][delayIndex];
 							SceneEntranceDelay delay;
 							stringField(delayValue, "service", "scenarios.json", delayPath, delay.serviceId);
 							integerField(delayValue, "occurrence", "scenarios.json", delayPath,
-									delay.occurrence, false);
+								delay.occurrence, false);
 							stringField(delayValue, "station", "scenarios.json", delayPath, delay.stationId);
 							numberField(delayValue, "delay_seconds", "scenarios.json", delayPath,
 								delay.delaySeconds);
@@ -1599,13 +1599,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			for (const auto& key : object.items()) {
 				if (isSimulationResultField(key.key())) {
 					addError("scene.passengers.results", "passengers.json",
-							"Passenger input must not contain simulation-result fields",
-							path + "." + key.key());
+						"Passenger input must not contain simulation-result fields",
+						path + "." + key.key());
 				}
 			}
 		};
 		for (std::size_t passengerIndex = 0; passengerIndex < passengersJson["passengers"].size();
-				++passengerIndex) {
+			++passengerIndex) {
 			const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
 			const json& value = passengersJson["passengers"][passengerIndex];
 			ScenePassenger passenger;
@@ -1614,52 +1614,52 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			if (arraySection(value, "journeys", "passengers.json", passengerPath, true)) {
 				for (std::size_t journeyIndex = 0; journeyIndex < value["journeys"].size(); ++journeyIndex) {
 					const std::string journeyPath = passengerPath + ".journeys["
-							+ std::to_string(journeyIndex) + "]";
+						+ std::to_string(journeyIndex) + "]";
 					const json& journeyValue = value["journeys"][journeyIndex];
 					ScenePassengerJourney journey;
 					rejectSimulationResultFields(journeyValue, journeyPath);
 					stringField(journeyValue, "id", "passengers.json", journeyPath, journey.id);
 					stringField(journeyValue, "activity", "passengers.json", journeyPath, journey.activity, false);
 					stringField(journeyValue, "origin", "passengers.json", journeyPath,
-							journey.originStationId);
+						journey.originStationId);
 					stringField(journeyValue, "destination", "passengers.json", journeyPath,
-							journey.destinationStationId);
+						journey.destinationStationId);
 					if (journeyValue.contains("planned_departure")
-							&& journeyValue["planned_departure"].is_object()) {
+						&& journeyValue["planned_departure"].is_object()) {
 						const std::string windowPath = journeyPath + ".planned_departure";
 						numberField(journeyValue["planned_departure"], "start_seconds", "passengers.json",
-								windowPath, journey.plannedDepartureStartSeconds);
+							windowPath, journey.plannedDepartureStartSeconds);
 						numberField(journeyValue["planned_departure"], "end_seconds", "passengers.json",
-								windowPath, journey.plannedDepartureEndSeconds);
+							windowPath, journey.plannedDepartureEndSeconds);
 					} else {
 						addError("scene.field.missing", "passengers.json",
-								"Missing planned_departure window", journeyPath + ".planned_departure");
+							"Missing planned_departure window", journeyPath + ".planned_departure");
 					}
 					if (journeyValue.contains("planned_arrival")
-							&& journeyValue["planned_arrival"].is_object()) {
+						&& journeyValue["planned_arrival"].is_object()) {
 						const std::string windowPath = journeyPath + ".planned_arrival";
 						numberField(journeyValue["planned_arrival"], "start_seconds", "passengers.json",
-								windowPath, journey.plannedArrivalStartSeconds);
+							windowPath, journey.plannedArrivalStartSeconds);
 						numberField(journeyValue["planned_arrival"], "end_seconds", "passengers.json",
-								windowPath, journey.plannedArrivalEndSeconds);
+							windowPath, journey.plannedArrivalEndSeconds);
 					} else {
 						addError("scene.field.missing", "passengers.json",
-								"Missing planned_arrival window", journeyPath + ".planned_arrival");
+							"Missing planned_arrival window", journeyPath + ".planned_arrival");
 					}
 					if (arraySection(journeyValue, "legs", "passengers.json", journeyPath, true)) {
 						for (std::size_t legIndex = 0; legIndex < journeyValue["legs"].size(); ++legIndex) {
 							const std::string legPath = journeyPath + ".legs["
-									+ std::to_string(legIndex) + "]";
+								+ std::to_string(legIndex) + "]";
 							const json& legValue = journeyValue["legs"][legIndex];
 							ScenePassengerLeg leg;
 							rejectSimulationResultFields(legValue, legPath);
 							stringField(legValue, "id", "passengers.json", legPath, leg.id);
 							stringField(legValue, "origin", "passengers.json", legPath, leg.originStationId);
 							stringField(legValue, "destination", "passengers.json", legPath,
-									leg.destinationStationId);
+								leg.destinationStationId);
 							stringField(legValue, "service", "passengers.json", legPath, leg.serviceId);
 							integerField(legValue, "occurrence", "passengers.json", legPath,
-									leg.occurrence, false);
+								leg.occurrence, false);
 							journey.legs.push_back(leg);
 						}
 					}
