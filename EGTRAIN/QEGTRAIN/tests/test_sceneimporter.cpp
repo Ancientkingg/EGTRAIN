@@ -365,6 +365,23 @@ int main() {
 		ok &= expect(noPassengerResult.success()
 				&& !fs::exists(fs::path(noPassengerOutput.dir) / "passengers.json"),
 				"Whole legacy import keeps absent passenger files optional");
+
+		// A UTF-16LE file that ends in an unpaired surrogate cannot be converted, so none
+		// of its rows is imported, not even the valid row before the surrogate.
+		{
+			std::ofstream invalid(legacy / "TrackLines/B1/BlockCumPari.txt", std::ios::binary | std::ios::trunc);
+			const unsigned char bytes[] = {0xff, 0xfe, '8', 0, '8', 0, ' ', 0, '-', 0, '0', 0, '.', 0, '6', 0,
+				'\r', 0, '\n', 0, 0x00, 0xd8};
+			invalid.write(reinterpret_cast<const char*>(bytes), sizeof(bytes));
+		}
+		TempDir invalidOutput;
+		const auto invalidResult = importLegacyScene(legacyDir.dir, invalidOutput.dir, "Paimpol");
+		json invalidInfrastructure;
+		bool importedInvalidBlock = false;
+		if (invalidResult.wroteScene && readJson(fs::path(invalidOutput.dir) / "infrastructure.json", invalidInfrastructure))
+			for (const auto& block : invalidInfrastructure["blocks"])
+				importedInvalidBlock = importedInvalidBlock || block["id"] == "0-B1";
+		ok &= expect(!importedInvalidBlock, "A UTF-16LE file with an unpaired surrogate is not imported");
 	}
 
 	// Passenger-only import accepts either case-root or passenger-directory input,
