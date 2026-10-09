@@ -101,7 +101,9 @@ Select them with the `-n` command-line option:
 
 The Amsterdam to Hilversum student case has no `-n` number. Open it with the
 **Open Case** toolbar button, or start it from `EGTRAIN/QEGTRAIN` with
-`--scene Scenes/Amsterdam_Hilversum_Student`.
+`--scene Scenes/Amsterdam_Hilversum_Student`. The
+[student case guide](docs/guides/amsterdam-hilversum-student-case.md) describes
+the exercise.
 
 ## Build from source
 
