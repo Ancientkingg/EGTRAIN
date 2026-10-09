@@ -721,6 +721,51 @@ int main(int argc, char** argv) {
 	ok &= expect(!hasCode(validateRunnableScene(noRoutes), levelMissing),
 			"a scene without routes has no route sections to report");
 
+	const std::string noEffect = "scene.single_track.no_effect";
+	SceneModel restricted = clean;
+	restricted.singleTrackRestrictions = {{"block-1", "block-2", "block-1", "block-2"}};
+	for (const int level : {0, 1, 2, 5}) {
+		restricted.signallingAreas = {{"network", 0.0, 2.0, level, {}}};
+		ok &= expect(!hasCode(validateRunnableScene(restricted), noEffect),
+				"a single-track restriction at level 0, 1, 2 or 5 acts and gets no warning");
+	}
+	for (const int level : {3, 4}) {
+		restricted.signallingAreas = {{"network", 0.0, 2.0, level, {}}};
+		const auto levelDiagnostics = validateRunnableScene(restricted);
+		const SceneDiagnostic* levelWarning = findCode(levelDiagnostics, noEffect);
+		const std::string levelText = "has level " + std::to_string(level);
+		ok &= expect(levelWarning != nullptr && levelWarning->severity == SceneSeverity::Warning
+				&& levelWarning->file == "signalling.json" && levelWarning->path == "single_track_restrictions[0]"
+				&& contains(levelWarning->message, "Single-track restriction 0 (start_block block-1, end_block block-2, "
+						"protected_start_block block-1, protected_end_block block-2)")
+				&& contains(levelWarning->message, "start_block block-1 " + levelText)
+				&& contains(levelWarning->message, "protected_end_block block-2 " + levelText)
+				&& contains(levelWarning->suggestedFix, "level 0, 1, 2 or 5") && !hasErrors(levelDiagnostics),
+				"a single-track restriction at level 3 or 4 warns that it has no effect");
+		ok &= expect(!hasCode(validateScene(restricted), noEffect), "the restriction warning is runnable-only");
+	}
+	restricted.signallingAreas.clear();
+	const auto unsignalledDiagnostics = validateRunnableScene(restricted);
+	const SceneDiagnostic* unsignalledWarning = findCode(unsignalledDiagnostics, noEffect);
+	ok &= expect(unsignalledWarning != nullptr && contains(unsignalledWarning->message, "end_block block-2 has no signalling level")
+			&& hasCode(unsignalledDiagnostics, levelMissing),
+			"a single-track restriction without a signalling level warns that it has no effect");
+	restricted.singleTrackRestrictions = {{"block-1", "block-2", "block-1", "block-2"}, {"block-2", "block-1", "block-2", "block-1"}};
+	std::size_t noEffectCount = 0;
+	for (const SceneDiagnostic& diagnostic : validateRunnableScene(restricted))
+		noEffectCount += diagnostic.code == noEffect ? 1 : 0;
+	ok &= expect(noEffectCount == 2, "each single-track restriction gets one warning");
+	restricted.singleTrackRestrictions = {{"block-1", "block-2", "block-1", "block-2"}};
+	restricted.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
+	const auto partialRestrictionDiagnostics = validateRunnableScene(restricted);
+	const SceneDiagnostic* partialRestrictionWarning = findCode(partialRestrictionDiagnostics, noEffect);
+	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "end_block block-2 has no signalling level")
+			&& !contains(partialRestrictionWarning->message, "start_block block-1 has"),
+			"the warning names only the blocks where the restriction cannot act");
+	restricted.singleTrackRestrictions.clear();
+	restricted.signallingAreas.clear();
+	ok &= expect(!hasCode(validateRunnableScene(restricted), noEffect), "a scene without restrictions has nothing to warn about");
+
 	const std::string steepCode = "scene.route.gradient.steep";
 	const SceneModel steepDescent = steepGradientScene(-0.09, 0.0);
 	const auto steepDescentDiagnostics = validateScene(steepDescent);

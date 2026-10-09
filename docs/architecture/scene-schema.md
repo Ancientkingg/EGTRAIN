@@ -163,6 +163,11 @@ still meet. A train that has to wait needs a route that gives it somewhere to
 wait outside the stretch, such as the loop track of a station. On a route
 without one it stops on the track that the other train needs.
 
+Runnable validation reports each restriction whose start, end or protected
+blocks have no signalling level or level 3 or 4 in one
+`scene.single_track.no_effect` warning. The warning names the restriction by
+its index in `single_track_restrictions` and lists the blocks and their levels.
+
 ## `rolling_stock.json`
 
 Required root arrays are `train_units` and `compositions`.

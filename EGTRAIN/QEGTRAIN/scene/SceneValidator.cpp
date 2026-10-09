@@ -182,6 +182,44 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 			+ " km, or a track-scoped area for each track listed");
 }
 
+// A single-track restriction closes its sections to trains of the opposite direction through the signal
+// aspects of fixed-block signalling, so it needs signalling level 0, 1, 2 or 5 where it lies.
+void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneSectionInventory& inventory,
+		const std::unordered_map<std::string, int>& sectionLevels, DiagnosticBuilder& diagnostics) {
+	for (std::size_t index = 0; index < scene.singleTrackRestrictions.size(); ++index) {
+		const SceneSingleTrackRestriction& restriction = scene.singleTrackRestrictions[index];
+		const std::array<std::pair<const char*, const std::string*>, 4> roles = {{
+			{"start_block", &restriction.startBlock},
+			{"end_block", &restriction.endBlock},
+			{"protected_start_block", &restriction.protectedStartBlock},
+			{"protected_end_block", &restriction.protectedEndBlock},
+		}};
+		std::string reasons, blocks, firstReason;
+		for (const auto& role : roles) {
+			blocks += (blocks.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second;
+			const SceneSectionDescriptor* section = inventory.resolve(*role.second);
+			if (section == nullptr)
+				continue;
+			const auto level = sectionLevels.find(section->id);
+			if (level != sectionLevels.end() && level->second != 3 && level->second != 4)
+				continue;
+			reasons += (reasons.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second
+					+ (level == sectionLevels.end() ? " has no signalling level"
+							: " has level " + std::to_string(level->second));
+			if (firstReason.empty())
+				firstReason = *role.second;
+		}
+		if (reasons.empty())
+			continue;
+		diagnostics.warning("scene.single_track.no_effect",
+				"Single-track restriction " + std::to_string(index) + " (" + blocks
+						+ ") has no effect where the signalling level is not 0, 1, 2 or 5: " + reasons,
+				"signalling.json", "single_track_restriction", restriction.startBlock,
+				"single_track_restrictions[" + std::to_string(index) + "]", firstReason,
+				"In Infrastructure > Signalling area give these blocks level 0, 1, 2 or 5");
+	}
+}
+
 // Arcs that the native builder places in the sections of a route: a block
 // section takes the arcs of its track that overlap it, a connection section
 // the arcs of its first track up to the first switch node and the arcs of its
@@ -1574,6 +1612,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				return section == nullptr ? std::string() : section->id;
 			};
 			std::unordered_set<std::string> signallingCoveredSectionIds;
+			std::unordered_map<std::string, int> signallingSectionLevels;
 			for (const PlannedSignallingSection& section : plannedSignallingSections) {
 				for (const bool trackScoped : {false, true}) {
 					const SceneSignallingArea* matched = nullptr;
@@ -1602,11 +1641,14 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 							break;
 						}
 					}
-					if (matched)
+					if (matched) {
 						signallingCoveredSectionIds.insert(section.id);
+						signallingSectionLevels[section.id] = matched->level;
+					}
 				}
 			}
 			reportUncoveredRouteSections(scene, sectionInventory, signallingCoveredSectionIds, diagnostics);
+			reportInactiveSingleTrackRestrictions(scene, sectionInventory, signallingSectionLevels, diagnostics);
 
 			std::unordered_map<std::string, std::size_t> endpointCounts;
 			for (const auto& connection : scene.connections) {
