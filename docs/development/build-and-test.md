@@ -390,6 +390,22 @@ and `characterization_repeat_netherlands` (Netherlands, Lebanon, Netherlands, la
 `slow`). They fail when a run leaves state behind that changes a later run of the
 same scene, which is what a change to the global runtime arrays can cause.
 
+`test_crossover_chain` is a separate executable, because the harness above is
+tied to the line fixture (its length, its block size and the station at 8 km).
+It runs the scene `tests/fixtures/scenes/crossovers`: a chain of five tracks
+with two crossovers that follow each other directly, so that the second half of
+the first crossover and the first half of the second one share one long block.
+The rolling stock is copied from the line fixture. The timetable has the same
+shape (a dwell of 60 s at B), with planned times that fit the shorter route. The
+geometry is synthetic. For each fixed block level (0, 1, 2 and 5), one CTest
+entry (`characterization_crossover_chain_level_0`, `-1`, `-2`, `-5`) sets a
+network-wide area and runs train `F1` alone, train `R1` alone in the opposite
+direction, and `F1` with `F2` behind it. A train alone has to reach its last
+platform and stand only at platforms. The follower has to reach it too, stay
+behind the rear of `F1`, wait in front of the second crossover while `F1` dwells
+inside it, and not enter the crossover before `F1` has left it. The test reads
+no golden file.
+
 ### Reading a golden file
 
 Golden files are in `tests/characterization/expected/<case>.txt`. Lines starting

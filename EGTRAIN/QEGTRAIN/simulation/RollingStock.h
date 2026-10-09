@@ -2298,15 +2298,23 @@ public:
 				if (hTail > 1 && BS[hTail - 1].start_node.virtualSignal) {
 					releaseDoubleSwitch(BS[hTail - 1], BS[hTail - 2]);
 				}
+				// The lock of a double switch does not hold the section after it, which this train enters next: when the lock alone puts it in
+				// BlocksOccupied, it is taken out again.
+				auto lockDoubleSwitch = [](const Section& current, const Section& previous, const Section* ahead) {
+					const bool wasOccupied = ahead != nullptr && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), ahead->ID) != BlocksOccupied.end();
+					occupyDoubleSwitch(current, previous);
+					if (ahead != nullptr && !wasOccupied)
+						BlocksOccupied.remove(ahead->ID);
+				};
 				// check if train is crossing a double switch
 				for (int h = hTail; h <= hHead; h++) {
 					// 2nd half of double switch occupied
 					if (h > 0 && BS[h].start_node.virtualSignal) {
-						occupyDoubleSwitch(BS[h], BS[h - 1]);
+						lockDoubleSwitch(BS[h], BS[h - 1], h + 1 < Blocks ? &BS[h + 1] : nullptr);
 					}
 					// only 1st half of double switch occupied
 					if (BS[h].end_node.virtualSignal && h < (Blocks - 1)) {
-						occupyDoubleSwitch(BS[h + 1], BS[h]);
+						lockDoubleSwitch(BS[h + 1], BS[h], h + 2 < Blocks ? &BS[h + 2] : nullptr);
 					}
 				}
 

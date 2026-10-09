@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -34,7 +35,7 @@ Logger owl;
 
 namespace {
 
-// Chainage of the end of the last track; the area has to cover it.
+// End of the signalling area in km; it covers the chainage of every track.
 constexpr double kAreaEndKm = 6.0;
 constexpr double kStandstill = 0.01;	  // Speed below this is a standstill (m/s).
 constexpr double kPlatformReach = 1.0;	  // A stop at a platform is this close to its node (m).
