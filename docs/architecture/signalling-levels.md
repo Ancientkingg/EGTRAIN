@@ -55,7 +55,7 @@ The order is fixed in `DispatchController`.
 3. `Apply_Signal_Failures_Mixed_Signalling` adds the failed sections to the
    occupied sections and makes their ends of authority.
 4. `ReportAllTrainPositionsToRBC` makes the ends of authority of levels 3 and 4,
-   with a margin of 50 m.
+   with a margin of 50 m (see level 3 for the start of a section).
 5. `protectStationAreas` can mark the entrance section of a configured station
    boundary as occupied.
 6. `releaseMixedSignallingSystem` resets the sections that trains have left.
@@ -86,7 +86,8 @@ internally.
 The window colours a head from the code alone: 0 red, 75 yellow, 180 and 270
 green, any other code grey. A head shows the code of the section ahead of it. If
 route copies of one section disagree, it shows the most restrictive code, in
-the order 0, 751, 75, 180, 270. The snapshot also carries the level and a failed
+the order 0, 751, 75, 180, 270. A copy without a level never replaces one with a
+level. The snapshot also carries the level and a failed
 flag for each signal (`app/GuiSimulationSnapshot.h`). The window does not use
 them yet; #438 is open.
 
@@ -157,7 +158,8 @@ second. In each step:
   is failed.
 - On the first step after the incident has ended, the failed sections are handed
   to the release function.
-- The window ignores the failed flag; it shows the codes.
+- The signal heads ignore the failed flag and show the codes. The track of a
+  failed section is drawn as blocked.
 
 Cases: `sf-forward-level-*`, `sf-reverse-level-*`, `sf-adjacent-level-*`,
 `sf-staggered-level-*`, `sf-last-level-*`, `sf-first-level-*`,
@@ -281,7 +283,9 @@ way at both levels. The levels differ in the blocking times only.
   authority 50 m behind its tail and one 50 m ahead of its head, each on the
   section of level 3 or 4 that holds that point (`ReportPositionToRBC`). A train
   looks at the authorities of other trains on its own section and the eight after
-  it, where those have level 3 or 4. The authority is a stop target (speed 0).
+  it, where those have level 3 or 4. While the tail has been inside its section
+  for less than 50 m, the authority is at the start of that section instead. The
+  authority is a stop target (speed 0).
   The train brakes along its braking curve and stops before it. `follow-level-3`:
   `F2` stops at 7880 m, 50 m behind the tail of `F1`, which stands at 8000 m.
 - **Codes.** `rbcSendsMasToRouteMixedSignalling` gives code 0 to an occupied
@@ -310,15 +314,17 @@ failures. It adds a following mode.
 
 - **Separation.** The end of authority of a train that goes the same way and
   has the same next section, or is at the end of its route, has the speed of
-  that train as its target, not 0. For any other authority of a train the target
-  is 0, as at level 3. A train that is faster than the train ahead moves its
-  braking point and can couple. It couples when its speed differs by less than
+  that train as its target, not 0. For a train end authority that does not meet
+  these conditions the target is 0, as at level 3. The authority of an occupied
+  diverging switch is not described here. A train that is faster than the train
+  ahead moves its braking point and can couple. It couples when its speed differs by less than
   0.278 m/s from that of the train ahead and it is within 30 m of the authority.
   `follow-level-4`: `F2` stops 50 m behind the tail of `F1`, which stands at
   8000 m.
 - **Following mode.** A coupled train takes the speed and acceleration of the
-  leader. It leaves the mode when it falls more than 30 m behind the authority,
-  when the routes diverge, or when the leader reports no authority any more.
+  leader. It stops following the leader (unintentional decoupling) when it falls
+  more than 30 m behind the authority, and it can couple again. It leaves the
+  mode when the routes diverge, or when the leader reports no authority any more.
   The characterization cases do not record whether a train enters the following
   mode.
 - **Blocking times.** Computed per infrastructure element, as at level 3
@@ -480,6 +486,9 @@ signalling level and the statistics of an area (the removed `NetworkArea`
 class). No current code reads that file. The legacy export writes it
 (see [Known limits](#known-limits-and-open-issues)).
 
+What a capacity-analysis area is, and how it relates to the signalling areas, is
+the subject of #444.
+
 Signals and track detection sections are a fourth thing. `signals[]` bind to a
 section only to resolve signal failures. See the
 [scene schema](scene-schema.md) and the
@@ -513,10 +522,9 @@ Open on this version:
 - #459: four committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
-  with one row that covers the network at level 3 when the file is absent,
-  whatever the signalling areas of the scene say. The legacy import does not
+  with one row that covers the network at level 3 when the file is absent and
+  the export has track line node data, whatever the signalling areas of the scene say. The legacy import does not
   read area files.
-- #454: the routines of the levels repeat the same structure. It is open.
 
 Limits that no issue tracks:
 
