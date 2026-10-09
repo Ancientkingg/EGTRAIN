@@ -976,3 +976,15 @@ tools/e2e/roundtrip_smoke.py
 For scene-format changes, also pack/unpack and validate/export the committed
 scene directories with `build/scene_tool`. For UI or rendering changes, also run
 `tools/e2e/visual_polish_smoke.sh`.
+
+For documentation changes, run `python3 tools/docs/check_docs.py`. It checks
+relative links, heading anchors, image references and alt text, images below
+`docs/` that no document uses, documents below `docs/` that `docs/README.md`
+does not reach through links, the syntax of `bash`, `sh` and `json` examples
+(a `bash` or `sh` example with a here-document is skipped), em dashes and en
+dashes, and absolute local paths. It prints one line per finding as
+`path:line: [kind] message` and exits with 1 when it finds any. It exits with 2
+when it cannot run, for example outside a Git repository. A `json` example must
+be valid JSON, so an excerpt with comments or ellipses takes another info word
+such as `text`. The script does not fetch external links and does not render
+Markdown.
