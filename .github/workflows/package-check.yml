@@ -1,0 +1,53 @@
+name: Package check
+
+# Builds the three packages on a pull request that changes how they are built, so that a change
+# to a package job is tried before a release. Nothing is signed with a real identity or published:
+# the packages are artifacts of the run, and a release still comes from the release workflow.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/package-check.yml'
+      - '.github/workflows/package.yml'
+      - '.github/workflows/release.yml'
+      - 'tools/release/**'
+      - 'installer/**'
+      - 'Info.plist.in'
+      - 'EGTRAIN/QEGTRAIN/update/**'
+      - 'EGTRAIN/QEGTRAIN/app/main.cpp'
+  # One run a night on main covers changes that reach the packages through other files, such as the
+  # root CMakeLists.txt. A scheduled run uses the default branch and ignores the path filter.
+  schedule:
+    - cron: '47 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same pull request replaces its running check. A scheduled or manual run has
+# a group of its own and no other run cancels it.
+concurrency:
+  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  version:
+    name: Select application version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/release/version.py
+
+  package:
+    needs: version
+    uses: ./.github/workflows/package.yml
+    with:
+      version: ${{ needs.version.outputs.version }}

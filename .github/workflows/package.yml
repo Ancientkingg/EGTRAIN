@@ -1,0 +1,388 @@
+name: Package
+
+# Builds the macOS, Windows, and Linux packages and uploads each as an artifact of the run.
+# The release workflow and the package check call this workflow with the version to build.
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package-macos:
+    name: Package macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install qt@5 zeromq cppzmq nlohmann-json
+
+      - name: Configure
+        run: >
+          cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
+          -DCMAKE_BUILD_TYPE=Release
+          -DEGTRAIN_PACKAGED_BUILD=ON
+          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+
+      - name: Build
+        run: cmake --build build --config Release -j
+
+      - name: Verify update helper transaction
+        run: ctest --test-dir build -R '^test_update(helper|preparation)$' --output-on-failure
+
+      - name: Bundle Qt and dependencies into the app
+        run: |
+          set -euxo pipefail
+          # macdeployqt copies the Qt frameworks and plugins into the bundle and
+          # also relocates the non-Qt dependencies (libzmq, libsodium)
+          # into Contents/Frameworks, rewriting every reference to
+          # @executable_path so the app runs without Homebrew.
+          "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
+          cp build/egtrain_update_helper build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
+          chmod +x build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
+
+      - name: Ad-hoc code sign
+        # macdeployqt rewrites install names with install_name_tool, which
+        # invalidates the code signature. Apple Silicon kills a binary with a
+        # broken signature at load (SIGKILL), so re-sign the whole bundle
+        # ad-hoc. Students still see a Gatekeeper prompt on first open, but the
+        # app launches instead of being killed.
+        run: codesign --force --deep --sign - build/QEGTRAIN.app
+
+      - name: Verify the app is self-contained
+        run: |
+          set -euo pipefail
+          APP="build/QEGTRAIN.app"
+          test -d "$APP/Contents/Frameworks/QtCore.framework"
+          test -d "$APP/Contents/Frameworks/QtCharts.framework"
+          test -d "$APP/Contents/Frameworks/QtSvg.framework"
+          test -d "$APP/Contents/Frameworks/QtNetwork.framework"
+          test -f "$APP/Contents/PlugIns/imageformats/libqsvg.dylib"
+          test -f "$APP/Contents/Resources/egtrain.icns"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
+          find "$APP" -iname 'libzmq*.dylib' | grep -q . || { echo "ERROR: libzmq not bundled"; exit 1; }
+          # The main executable (no install-id line) and every bundled dylib
+          # (skip the header and their own install-id line) must not reference
+          # a Homebrew path as a dependency.
+          if otool -L "$APP/Contents/MacOS/QEGTRAIN" | tail -n +2 | grep -E '/opt/homebrew|/usr/local/opt'; then
+            echo "ERROR: main executable depends on Homebrew"; exit 1
+          fi
+          leak=0
+          while IFS= read -r f; do
+            if otool -L "$f" | tail -n +3 | grep -E '/opt/homebrew|/usr/local/opt'; then
+              echo "ERROR: Homebrew dependency in $f"; leak=1
+            fi
+          done < <(find "$APP" -type f -name '*.dylib')
+          [ "$leak" = 0 ] || exit 1
+          # The signature must be valid, or Apple Silicon kills the app at launch.
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          echo "OK: app is self-contained and signed"
+
+      - name: Assemble presentation package
+        run: |
+          set -euxo pipefail
+          PKG="build/dist/QEGTRAIN-Lebanon"
+          rm -rf "$PKG"
+          mkdir -p "$PKG/Scenes"
+          # ditto preserves the signed bundle; plain cp can break the signature.
+          ditto build/QEGTRAIN.app "$PKG/QEGTRAIN.app"
+          cp build/scene_tool "$PKG/scene_tool"
+          ditto EGTRAIN/QEGTRAIN/Scenes/Lebanon "$PKG/Scenes/Lebanon"
+          cp docs/guides/lebanon-case-study.md "$PKG/lebanon-case-study.md"
+
+      - name: Verify the presentation package
+        run: |
+          set -euo pipefail
+          PKG="build/dist/QEGTRAIN-Lebanon"
+          test -x "$PKG/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+          test -x "$PKG/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper"
+          test -x "$PKG/scene_tool"
+          test -f "$PKG/Scenes/Lebanon/stations.json"
+          test -f "$PKG/Scenes/Lebanon/scene.json"
+          test -f "$PKG/Scenes/Lebanon/scenarios.json"
+          test -f "$PKG/lebanon-case-study.md"
+          # scene_tool uses header-only JSON and vendored miniz, so it runs without Qt.
+          set +e
+          validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"
+          validation_status=$?
+          set -e
+          printf '%s\n' "$validation_output"
+          [ "$validation_status" -eq 0 ]
+          APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"
+          test -d "$APP/Contents/Resources/Scenes/Paimpol"
+          RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"
+          rm -rf "$RUN_DIR"
+          mkdir -p "$RUN_DIR"
+          cd "$RUN_DIR"
+          set +e
+          QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
+          "$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          run_status=$?
+          set -e
+          if [ "$run_status" -ne 0 ]; then
+            cat "$RUN_DIR/qegtrain.log"
+          fi
+          [ "$run_status" -eq 0 ]
+          if ! grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"; then
+            cat "$RUN_DIR/qegtrain.log"
+            exit 1
+          fi
+          if ! test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"; then
+            cat "$RUN_DIR/qegtrain.log"
+            exit 1
+          fi
+          echo "OK: presentation package holds the app, scene_tool, canonical scenes, and guide"
+
+      - name: Generate scene bundles
+        run: |
+          set -euo pipefail
+          mkdir -p build/scene-bundles
+          scenes=(
+            Netherlands
+            Paimpol
+            Copenhagen
+            Milano_Brescia
+            Assignment_Gvc_Gdg_Ut
+            Lebanon
+          )
+          for name in "${scenes[@]}"; do
+            bundle="build/scene-bundles/$name.egscene"
+            build/scene_tool pack "EGTRAIN/QEGTRAIN/Scenes/$name" "$bundle"
+            validation_log="$RUNNER_TEMP/$name-bundle-validation.log"
+            if ! build/scene_tool validate "$bundle" >"$validation_log" 2>&1; then
+              cat "$validation_log"
+              exit 1
+            fi
+          done
+
+      - name: Upload scene bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGTRAIN-scenes
+          path: build/scene-bundles/*.egscene
+          if-no-files-found: error
+
+      - name: Package zip
+        run: |
+          cd build/dist
+          ditto -c -k --keepParent QEGTRAIN-Lebanon ../QEGTRAIN-macos-arm64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-macos-arm64
+          path: build/QEGTRAIN-macos-arm64.zip
+          if-no-files-found: error
+
+  package-windows:
+    name: Package Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          modules: qtcharts
+          cache: true
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
+        shell: pwsh
+        run: vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
+
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
+          -DEGTRAIN_PACKAGED_BUILD=ON
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Verify update helper transaction
+        run: ctest --test-dir build -C Release -R '^test_update(helper|preparation)$' --output-on-failure
+
+      - name: Assemble package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = "dist/QEGTRAIN"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          $exe = Get-ChildItem -Path build -Recurse -Filter QEGTRAIN.exe | Select-Object -First 1
+          if (-not $exe) { throw "QEGTRAIN.exe not found under build/" }
+          Copy-Item $exe.FullName "$dist/QEGTRAIN.exe"
+          $helper = Get-ChildItem -Path build -Recurse -Filter egtrain_update_helper.exe | Select-Object -First 1
+          if (-not $helper) { throw "egtrain_update_helper.exe not found under build/" }
+          Copy-Item $helper.FullName "$dist/egtrain_update_helper.exe"
+          # ZeroMQ + libsodium runtime DLLs from vcpkg
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/ -ErrorAction SilentlyContinue
+          # Qt runtime: DLLs + platform/imageformat plugins next to the exe
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime "$dist/QEGTRAIN.exe"
+          # Canonical scenes ship beside the executable for packaged defaults.
+          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
+          # Presentation package: the command-line tool, the canonical scenes, and
+          # the guide. scene_tool uses header-only JSON and vendored miniz, so it needs no Qt.
+          $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
+          if (-not $tool) { throw "scene_tool.exe not found under build/" }
+          Copy-Item $tool.FullName "$dist/scene_tool.exe"
+          Copy-Item docs/guides/lebanon-case-study.md "$dist/lebanon-case-study.md"
+
+      - name: Verify the package is complete
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = "dist/QEGTRAIN"
+          if (-not (Test-Path "$dist/QEGTRAIN.exe")) { throw "missing QEGTRAIN.exe" }
+          if (-not (Test-Path "$dist/egtrain_update_helper.exe")) { throw "missing egtrain_update_helper.exe" }
+          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll","Qt5Svg.dll","Qt5Network.dll")) {
+            if (-not (Test-Path "$dist/$dll")) { throw "missing $dll" }
+          }
+          if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
+          if (-not (Test-Path "$dist/imageformats/qsvg.dll")) { throw "missing imageformats/qsvg.dll" }
+          if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
+          if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
+          if (-not (Test-Path "$dist/Scenes/Paimpol/scene.json")) { throw "missing canonical Paimpol scene" }
+          if (-not (Test-Path "$dist/Scenes/Lebanon/scenarios.json")) { throw "missing canonical Lebanon scene" }
+          if (-not (Test-Path "$dist/lebanon-case-study.md")) { throw "missing Lebanon guide" }
+          Write-Host "OK: exe, Qt runtime, libzmq, canonical scenes, scene_tool, and guide are present"
+
+      - name: Zip
+        shell: pwsh
+        run: Compress-Archive -Path dist/QEGTRAIN/* -DestinationPath QEGTRAIN-windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64
+          path: QEGTRAIN-windows-x64.zip
+          if-no-files-found: error
+
+  package-linux:
+    name: Package Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake patchelf wget file desktop-file-utils \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      - name: Configure
+        run: cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
+
+      - name: Build
+        run: cmake --build build --config Release -j"$(nproc)"
+
+      - name: Verify update helper transaction
+        run: ctest --test-dir build -R '^test_update(helper|preparation)$' --output-on-failure
+
+      - name: Assemble AppDir
+        run: |
+          set -euxo pipefail
+          APPDIR="$PWD/AppDir"
+          mkdir -p \
+            "$APPDIR/usr/bin" \
+            "$APPDIR/usr/share/applications" \
+            "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          EXE="$(find build -type f -perm -111 -name QEGTRAIN | head -n 1)"
+          test -n "$EXE"
+          cp "$EXE" "$APPDIR/usr/bin/QEGTRAIN"
+          HELPER="$(find build -type f -perm -111 -name egtrain_update_helper | head -n 1)"
+          test -n "$HELPER"
+          cp "$HELPER" "$APPDIR/usr/bin/egtrain_update_helper"
+
+          # Canonical scenes live beside the executable for packaged defaults.
+          cp -R EGTRAIN/QEGTRAIN/Scenes "$APPDIR/usr/bin/Scenes"
+
+          # Presentation package: the command-line tool, the Lebanon scene, and
+          # the guide, bundled beside the executable. scene_tool uses
+          # header-only JSON and vendored miniz, so it carries no Qt dependency.
+          TOOL="$(find build -type f -perm -111 -name scene_tool | head -n 1)"
+          test -n "$TOOL"
+          cp "$TOOL" "$APPDIR/usr/bin/scene_tool"
+          cp docs/guides/lebanon-case-study.md "$APPDIR/usr/bin/lebanon-case-study.md"
+          test -x "$APPDIR/usr/bin/scene_tool"
+          test -f "$APPDIR/usr/bin/Scenes/Paimpol/scene.json"
+          test -f "$APPDIR/usr/bin/Scenes/Lebanon/scenarios.json"
+          test -f "$APPDIR/usr/bin/lebanon-case-study.md"
+          cp EGTRAIN/QEGTRAIN/resources/app/egtrain-256.png \
+            "$APPDIR/usr/share/icons/hicolor/256x256/apps/qegtrain.png"
+
+          cat > "$APPDIR/usr/share/applications/qegtrain.desktop" <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=EGTRAIN
+          Exec=QEGTRAIN
+          Icon=qegtrain
+          Categories=Education;Science;
+          Terminal=false
+          EOF
+          chmod +x "$APPDIR/usr/bin/QEGTRAIN"
+
+      - name: Build AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        run: |
+          set -euxo pipefail
+          VERSION="$(tr -d '\r\n' < build/EGTRAIN_VERSION)"
+          test -n "$VERSION"
+          export VERSION
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage appimagetool-x86_64.AppImage
+
+          export QMAKE
+          QMAKE="$(command -v qmake || command -v qmake-qt5 || echo /usr/lib/qt5/bin/qmake)"
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable AppDir/usr/bin/QEGTRAIN \
+            --desktop-file AppDir/usr/share/applications/qegtrain.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/qegtrain.png \
+            --plugin qt
+
+          ./appimagetool-x86_64.AppImage AppDir QEGTRAIN-linux-x86_64.AppImage
+
+      - name: Verify AppImage contents
+        run: |
+          set -euxo pipefail
+          test -s QEGTRAIN-linux-x86_64.AppImage
+          chmod +x QEGTRAIN-linux-x86_64.AppImage
+          ./QEGTRAIN-linux-x86_64.AppImage --appimage-extract >/dev/null
+          test -x squashfs-root/usr/bin/QEGTRAIN
+          test -x squashfs-root/usr/bin/egtrain_update_helper
+          test -f squashfs-root/usr/bin/Scenes/Paimpol/scene.json
+          test -f squashfs-root/usr/share/icons/hicolor/256x256/apps/qegtrain.png
+          test -f squashfs-root/AppRun
+          find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt5Svg.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt5Network.so*' -print -quit | grep -q .
+          find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
+          echo "OK: AppImage contains executable, Qt runtime, and canonical Scenes"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-linux-x86_64
+          path: QEGTRAIN-linux-x86_64.AppImage
+          if-no-files-found: error

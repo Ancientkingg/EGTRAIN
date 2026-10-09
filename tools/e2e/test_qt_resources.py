@@ -3,6 +3,8 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from test_ci_workflow import release_pipeline_text
+
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ENTITY_ASSETS = {
@@ -62,7 +64,7 @@ def main() -> None:
     if "Qt5::Svg" not in cmake:
         raise SystemExit("CMake does not link Qt5::Svg")
 
-    release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    release = release_pipeline_text()
     if re.search(r"^\s*modules:.*\bqtsvg\b", release, re.MULTILINE):
         raise SystemExit("Windows release job lists qtsvg as an optional module")
     for requirement in ("Qt5Svg.dll", '$dist/imageformats/qsvg.dll'):
