@@ -1,0 +1,53 @@
+{
+    "compositions": [
+        {
+            "id": "SLT06",
+            "units": [
+                "SLT06"
+            ]
+        }
+    ],
+    "train_units": [
+        {
+            "id": "SLT06",
+            "physical": {
+                "frontal_area_m2": 1.45,
+                "jerk_ms3": 0.75,
+                "length_m": 101.0,
+                "mass_of_a_wagon_kg": 33000.0,
+                "mass_of_traction_unit_kg": 33000.0,
+                "max_deceleration_ms2": 0.6,
+                "max_speed_ms": 44.44444444,
+                "number_of_wagons": 5.0,
+                "resistance_coefficient": 0.004
+            },
+            "source": {
+                "data_file": "/TrainData/SLT06.txt",
+                "traction_file": "/TrainData/T_SLT06.txt"
+            },
+            "traction_curve": [
+                [
+                    0.0,
+                    10.0,
+                    170000.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    10.0,
+                    35.0,
+                    279080.0,
+                    -13637.0,
+                    207.1
+                ],
+                [
+                    35.0,
+                    44.44444444,
+                    209230.0,
+                    -6526.8,
+                    57.0
+                ]
+            ]
+        }
+    ]
+}

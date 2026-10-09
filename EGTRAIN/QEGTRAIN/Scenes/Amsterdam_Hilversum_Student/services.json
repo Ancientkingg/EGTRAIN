@@ -1,0 +1,29 @@
+{
+    "services": [
+        {
+            "composition": "SLT06",
+            "entry_time_seconds": 100.0,
+            "id": "IC_ASD_HVS_DEMO",
+            "operating_code": "IC_ASD_HVS_DEMO",
+            "repeat": {
+                "count": 4,
+                "headway_seconds": 1800.0
+            },
+            "route": "route32",
+            "stops": [
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 120.0,
+                    "planned_departure_seconds": 180.0,
+                    "station": "Asd"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 1500.0,
+                    "planned_departure_seconds": 1560.0,
+                    "station": "Hvs"
+                }
+            ]
+        }
+    ]
+}
