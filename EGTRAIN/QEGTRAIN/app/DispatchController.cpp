@@ -521,17 +521,20 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
 				"worker/playback_step/compute");
 			// Simulate train movement at each simulation step
-			// Trains that are due and still waiting to enter come first, in the order in which they are due, so that of
-			// several trains waiting at the entry of a route the one due first enters first. The others follow in the
-			// order of regional_train.
-			movementOrder.clear();
+			// Every train keeps its place in the order of regional_train, except that the trains that are due and still
+			// waiting to enter take the places of those trains in the order in which they are due. Of several trains
+			// waiting at the entry of a route the one due first then enters first.
+			movementOrder.resize(numRegions);
+			std::iota(movementOrder.begin(), movementOrder.end(), 0);
 			const auto dueAndWaiting = [&](int j) { return !regional_train[j].CanEnter && t >= regional_train[j].departure_time; };
-			for (const int j : dueOrder)
-				if (dueAndWaiting(j))
-					movementOrder.push_back(j);
-			for (int j = 0; j < numRegions; j++)
-				if (!dueAndWaiting(j))
-					movementOrder.push_back(j);
+			auto nextDue = dueOrder.begin();
+			for (int& place : movementOrder) {
+				if (!dueAndWaiting(place))
+					continue;
+				while (!dueAndWaiting(*nextDue))
+					++nextDue;
+				place = *nextDue++;
+			}
 			for (const int j : movementOrder) {
 				regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
 				regional_train[j].recordEarliestActiveTrajectoryIndex(t);
