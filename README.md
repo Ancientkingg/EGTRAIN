@@ -4,7 +4,7 @@ EGTRAIN is a desktop application for microscopic railway simulation. It covers r
 
 [Download](https://github.com/Ancientkingg/EGTRAIN/releases) | [Getting started](#quick-start) | [Documentation](docs/README.md) | [Report an issue](https://github.com/Ancientkingg/EGTRAIN/issues)
 
-![The EGTRAIN main window with the loaded network of Milano_Brescia before a run](docs/images/application-overview-v2.png)
+![The EGTRAIN main window with the loaded network of Milano_Brescia before a run](docs/images/main-window-milano-brescia.png)
 
 The loaded network of Milano_Brescia in the main window before a run.
 
@@ -29,7 +29,7 @@ The loaded network of Milano_Brescia in the main window before a run.
 - Scene editing and validation: edit scenes, validate them before a run, and import legacy cases.
 - Results and exports: review timetable, train-path, delay, speed, trajectory and blocking-time results, and export them as CSV and PNG files.
 
-![The Speed vs Distance result window of Milano_Brescia, baseline, 47 trains, after a run](docs/images/application-network-view-v2.png)
+![The Speed vs Distance result window of Milano_Brescia, baseline, 47 trains, after a run](docs/images/speed-distance-milano-brescia.png)
 
 The Speed vs Distance result window of Milano_Brescia (baseline, 47 trains) after a run.
 
