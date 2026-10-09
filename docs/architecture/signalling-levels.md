@@ -437,7 +437,8 @@ uses. The builder repeats it in `buildInfrastructureAndSignallingFromScene`
   have different levels conflict. Equal levels do not. A switch section has two
   tracks, so track-scoped areas of its two tracks with different levels conflict
   on it. A conflict is the error
-  `scene.signalling_area.conflict`, reported once for each section and kind. The
+  `scene.signalling_area.conflict`, reported once for each pair of areas, with
+  the number of sections, the first of them and the labels of both levels. The
   builder reports `scene.native.signalling_area.conflict` and does not build.
   Two areas that overlap but contain no common section do not conflict.
 - **A section that an edge cuts.** A section that crosses the edge of an area
@@ -446,9 +447,10 @@ uses. The builder repeats it in `buildInfrastructureAndSignallingFromScene`
   0 to 2.5 km and 2.5 to 4 km, a section from 2 to 3 km has no level unless a
   third area contains it. Switch sections span two blocks, so an edge between
   two blocks can leave the switch section without a level while both blocks are
-  covered.
+  covered. Validation warns with `scene.signalling_area.splits_section` when the
+  cut section is on a route.
 - **Areas with no section.** An area that contains no complete section changes
-  nothing.
+  nothing. Validation warns with `scene.signalling_area.empty`.
 - **Routes used in reverse.** The level belongs to the section ID. A route in
   decreasing chainage is built from copies of the sections
   (`Route::createRouteFromBlockIds`, `Section::reverseBlockSection`), which copy
@@ -465,7 +467,9 @@ Checks on the areas themselves, in `scene/SceneValidator.cpp`:
 | `scene.signalling_area.level` | error | the level is not from 0 to 5 |
 | `scene.ref.unresolved` | error | the `track` does not exist |
 | `scene.signalling_area.conflict` | error | see above |
-| `scene.signalling.level.missing` | warning | route sections have no level; the message names up to five sections and the tracks |
+| `scene.signalling_area.splits_section` | warning | an edge of the area lies inside a route section |
+| `scene.signalling_area.empty` | warning | the area contains no complete section |
+| `scene.signalling.level.missing` | warning | route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the scene has areas |
 | `scene.single_track.no_effect` | warning | a block of a single-track restriction has no level or level 3 or 4 |
 
 Tests: `tests/test_scenebuilder.cpp` (`runAreaMappingChecks`),
