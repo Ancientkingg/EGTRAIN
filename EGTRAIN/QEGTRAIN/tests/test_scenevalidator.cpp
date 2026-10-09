@@ -227,7 +227,8 @@ int main(int argc, char** argv) {
 			&& blue == 255 && sceneParseVisualizationColor("#112233"), "colour bounds parse without outputs too");
 	red = green = blue = -1;
 	for (const char* value : {"", "#", "#fff", "#ffff", "#fffff", "#fffffff", "#AARRGGBB", "#80112233", "112233",
-			"#11223g", "#11 233", " #112233", "#112233 ", "#112233\n", "red", "#+12233", "#-12233", "#0x1233"})
+			"#11223g", "#11 233", " #112233", "#112233 ", "#112233\n", "red", "#+12233", "#-12233", "#0x1233",
+			"#12345\xB2", "#1234\xC3\xA9"})
 		ok &= expect(!sceneParseVisualizationColor(value, &red, &green, &blue) && red == -1 && green == -1
 				&& blue == -1, "malformed colour text is rejected and leaves outputs unchanged");
 	SceneModel timetable = clean;

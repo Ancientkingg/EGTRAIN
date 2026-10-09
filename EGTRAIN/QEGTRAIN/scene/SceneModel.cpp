@@ -183,10 +183,17 @@ bool sceneParseVisualizationColor(const std::string& text, int* red, int* green,
 		return false;
 	int channel[3] = {};
 	for (std::size_t index = 1; index < text.size(); ++index) {
-		const unsigned char character = static_cast<unsigned char>(text[index]);
-		if (!std::isxdigit(character))
+		// Compared by range: the <cctype> tests can accept other characters in some locales.
+		const char character = text[index];
+		int digit = 0;
+		if (character >= '0' && character <= '9')
+			digit = character - '0';
+		else if (character >= 'a' && character <= 'f')
+			digit = character - 'a' + 10;
+		else if (character >= 'A' && character <= 'F')
+			digit = character - 'A' + 10;
+		else
 			return false;
-		const int digit = std::isdigit(character) ? character - '0' : std::tolower(character) - 'a' + 10;
 		channel[(index - 1) / 2] = channel[(index - 1) / 2] * 16 + digit;
 	}
 	if (red)
