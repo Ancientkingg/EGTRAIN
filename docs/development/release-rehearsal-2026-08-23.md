@@ -1,4 +1,4 @@
-# Release rehearsal — 2026-08-23
+# Release rehearsal 2026-08-23
 
 Candidate: GitHub Actions [Release run 32633492769](https://github.com/Ancientkingg/EGTRAIN/actions/runs/32633492769), commit `947fbc5`.
 
@@ -9,8 +9,8 @@ inferred from CI.
 | Platform | Package and environment | Package/build verification | GUI clean-install rehearsal | Result |
 | --- | --- | --- | --- | --- |
 | macOS 26.6.2, Apple Silicon | `QEGTRAIN-macos-arm64.zip`, downloaded from the candidate run into a fresh `/tmp` directory outside either checkout | Package macOS job passed; local bundle signature verified and executable references only bundled frameworks plus system libraries | Launched `QEGTRAIN.app`; opened downloaded `Paimpol.egscene`; Loaded Data showed the bundle source and zero validation errors; saved `Paimpol-working.egscene` outside the package; reviewed baseline scenario and ran two selected occurrences; inspected Run Results and Speed vs Distance; exported `run_summary.csv` and `run_summary.png`; quit, relaunched, and reopened the working copy | **Core #74 path passed; broader checklist remains partial** |
-| Windows | `QEGTRAIN-windows-x64.zip` from the candidate run | Package Windows job passed | No Windows GUI environment was available | **Not genuinely verified** — manual GUI rehearsal required |
-| Linux | `QEGTRAIN-linux-x86_64.AppImage` from the candidate run | Package Linux job passed | No Linux desktop GUI environment was available | **Not genuinely verified** — manual GUI rehearsal required |
+| Windows | `QEGTRAIN-windows-x64.zip` from the candidate run | Package Windows job passed | No Windows GUI environment was available | **Not genuinely verified**: manual GUI rehearsal required |
+| Linux | `QEGTRAIN-linux-x86_64.AppImage` from the candidate run | Package Linux job passed | No Linux desktop GUI environment was available | **Not genuinely verified**: manual GUI rehearsal required |
 
 ## macOS integrity evidence
 
