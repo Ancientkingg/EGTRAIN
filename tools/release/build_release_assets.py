@@ -27,7 +27,8 @@ Every input is checked before --output is created:
 
 - The version has the form X.Y.Z that version.py accepts.
 - Each file above exists and is not empty, and the artifact directories hold
-  nothing else. The payload holds regular files and directories only.
+  nothing else. The payload holds regular files and directories only, and every
+  directory of it can be read.
 - The file list of the Windows package follows the rules that parseManifestFiles
   in update/ReleaseInfo.cpp applies, and each package is as large as
   parseUpdateManifest there accepts. The application rejects a manifest that
@@ -106,7 +107,11 @@ def list_payload(payload: Path) -> list:
     if not payload.is_dir():
         raise SystemExit(f"missing directory {payload}")
     files = []
-    for directory, directories, names in os.walk(payload):
+
+    def unreadable(error):
+        raise SystemExit(f"cannot read {error.filename}: {error.strerror}")
+
+    for directory, directories, names in os.walk(payload, onerror=unreadable):
         for name in directories:
             path = Path(directory, name)
             if path.is_symlink():

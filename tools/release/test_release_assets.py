@@ -151,6 +151,15 @@ class ReleaseAssetsTests(unittest.TestCase):
         os.symlink(self.payload / "platforms", self.payload / "dirlink", target_is_directory=True)
         self.assertRejected("dirlink")
 
+    @unittest.skipIf(sys.platform == "win32" or getattr(os, "geteuid", lambda: 1)() == 0, "needs a directory that cannot be read")
+    def test_unreadable_directory_in_payload_is_rejected(self):
+        platforms = self.payload / "platforms"
+        platforms.chmod(0)
+        try:
+            self.assertRejected("cannot read " + str(platforms))
+        finally:
+            platforms.chmod(0o755)
+
     def test_missing_or_empty_package_is_rejected(self):
         self.macos.unlink()
         self.assertRejected("missing file " + str(self.macos))

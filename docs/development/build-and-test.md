@@ -879,7 +879,7 @@ Every input is checked before `--output` is created:
 - the version has the form `X.Y.Z` that `tools/release/version.py` accepts;
 - each file above exists and is not empty, the three artifact directories hold
   no other file, and the payload holds regular files and directories only (a
-  link is an error);
+  link is an error, and so is a directory that cannot be read);
 - the file list of the Windows package has the rules of `parseManifestFiles` in
   `update/ReleaseInfo.cpp`: at most 4096 entries, each path at most 260 UTF-16
   code units, no `:` and no NUL, no empty, `.` or `..` segment, and
