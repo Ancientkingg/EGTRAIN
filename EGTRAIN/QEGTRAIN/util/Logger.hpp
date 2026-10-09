@@ -54,7 +54,7 @@ public:
 	Logger();
 	~Logger();
 
-	bool init(const LoggerSettings& settings);
+	bool init(const LoggerSettings& newSettings);
 	void shutdown();
 
 	// overload the << operator to log all standard data types

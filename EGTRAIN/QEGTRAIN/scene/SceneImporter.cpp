@@ -881,16 +881,16 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			const std::string token = legServices[i];
 			std::string serviceId;
 			int occurrence = 1;
-			bool originAmbiguous = false, destinationAmbiguous = false;
+			bool legOriginAmbiguous = false, legDestinationAmbiguous = false;
 			if (i >= legStations.size() - 1)
 				break;
-			const std::string origin = passengerStationIdFor(stations, legStations[i], originAmbiguous);
-			const std::string destinationStation = passengerStationIdFor(stations, legStations[i + 1], destinationAmbiguous);
+			const std::string origin = passengerStationIdFor(stations, legStations[i], legOriginAmbiguous);
+			const std::string destinationStation = passengerStationIdFor(stations, legStations[i + 1], legDestinationAmbiguous);
 			const bool serviceResolved = resolveServiceToken(token, serviceId, occurrence);
 			const auto serviceIt = std::find_if(services.begin(), services.end(), [&serviceId](const SceneService& service) {
 				return service.id == serviceId;
 			});
-			const bool stationsResolved = !originAmbiguous && !destinationAmbiguous
+			const bool stationsResolved = !legOriginAmbiguous && !legDestinationAmbiguous
 					&& knownStation(origin) && knownStation(destinationStation);
 			bool legResolved = serviceResolved && stationsResolved;
 			if (!serviceResolved || !stationsResolved) {

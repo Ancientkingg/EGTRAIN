@@ -292,6 +292,9 @@ def main() -> None:
     # random when the new file is still in use. The job puts the DLL directories on PATH instead.
     if "-DVCPKG_APPLOCAL_DEPS=OFF" not in workflow or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
         missing.append("Windows build without the per-executable DLL copy, with the DLL directories on PATH")
+    # Each platform configures with the option, so a warning in a strict target fails its leg.
+    if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 3:
+        missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
     apt_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = apt_install.group(1).replace("\\", " ").split() if apt_install else []
     if not apt_packages or any(

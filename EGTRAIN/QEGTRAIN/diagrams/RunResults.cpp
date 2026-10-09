@@ -345,9 +345,9 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 	return results;
 }
 
-RunResults buildRunResults(const std::vector<const Train*>& trains, double timestep) {
+RunResults buildRunResults(const std::vector<const Train*>& trains, double timestepSeconds) {
 	RunResults results;
-	if (trains.empty() || !std::isfinite(timestep))
+	if (trains.empty() || !std::isfinite(timestepSeconds))
 		return results;
 
 	results.trains.reserve(trains.size());
@@ -383,11 +383,11 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 									train.earliestActiveTrajectoryIndex, train.End_Time)
 			: std::vector<TrajectorySegment>();
 
-		if (!segments.empty() && std::isfinite(timestep)) {
+		if (!segments.empty() && std::isfinite(timestepSeconds)) {
 			const int first = segments.front().first;
 			const int last = segments.back().last;
-			row.startSeconds = availableValue(trajectoryTimeSeconds(first, timestep));
-			row.endSeconds = availableValue(trajectoryTimeSeconds(last, timestep));
+			row.startSeconds = availableValue(trajectoryTimeSeconds(first, timestepSeconds));
+			row.endSeconds = availableValue(trajectoryTimeSeconds(last, timestepSeconds));
 			if (row.startSeconds.available && row.endSeconds.available)
 				row.travelSeconds = availableValue(row.endSeconds.value - row.startSeconds.value);
 

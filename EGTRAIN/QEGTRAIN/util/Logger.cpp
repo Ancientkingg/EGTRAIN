@@ -12,8 +12,8 @@ Logger::~Logger() {
 		this->shutdown();
 }
 
-bool Logger::init(const LoggerSettings& settings) {
-	this->settings = settings;
+bool Logger::init(const LoggerSettings& newSettings) {
+	this->settings = newSettings;
 	if (!this->b_init) {
 		if (this->settings.b_overwriteFile) {
 			this->ofs.open(this->settings.path + this->settings.filename);

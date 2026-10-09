@@ -324,23 +324,23 @@ int main(int argc, char* argv[]) {
 		QGraphicsView view(&scene);
 		view.resize(240, 180);
 		StationNodeItem station(QRectF(-10.0, -10.0, 20.0, 20.0));
-		StationOverlayItem overlay("SceneStation", QPointF(0.0, 0.0), stationVisual);
-		overlay.setSceneDecoration(true);
-		overlay.setFitCollisionOffset(QPointF(20.0, 0.0));
-		QPixmap symbol(30, 30);
-		symbol.fill(Qt::white);
-		auto* picture = new QGraphicsPixmapItem(symbol, &station);
+		StationOverlayItem sceneOverlay("SceneStation", QPointF(0.0, 0.0), stationVisual);
+		sceneOverlay.setSceneDecoration(true);
+		sceneOverlay.setFitCollisionOffset(QPointF(20.0, 0.0));
+		QPixmap artwork(30, 30);
+		artwork.fill(Qt::white);
+		auto* picture = new QGraphicsPixmapItem(artwork, &station);
 		picture->setPos(85.0, -15.0);
 		picture->setAcceptedMouseButtons(Qt::NoButton);
 		scene.addItem(&station);
-		scene.addItem(&overlay);
+		scene.addItem(&sceneOverlay);
 		int clicks = 0;
 		QGraphicsItem* contextTarget = nullptr;
 		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode,
 			[&](StationNodeItem* item) { if (item == &station) ++clicks; });
 		QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
 			[&](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { contextTarget = item; });
-		ok &= expect(overlay.shape().isEmpty() && overlay.acceptedMouseButtons() == Qt::NoButton,
+		ok &= expect(sceneOverlay.shape().isEmpty() && sceneOverlay.acceptedMouseButtons() == Qt::NoButton,
 			"legacy screen collision does not leave an unrelated station hit target");
 		sendLeftClick(scene, view, QPointF(100.0, 0.0));
 		ok &= expect(clicks == 1, "scene-scaled artwork resolves to its semantic station node");

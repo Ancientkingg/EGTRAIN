@@ -120,6 +120,8 @@ function(egtrain_target_warnings target)
     if(MSVC)
         set(egtrain_warning_flags /W4)
         set(egtrain_error_flags /WX)
+        # MSVC reports the standard functions getenv, sscanf and strcpy as deprecated (C4996).
+        target_compile_definitions(${target} PRIVATE _CRT_SECURE_NO_WARNINGS)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         set(egtrain_warning_flags -Wall -Wextra)
         set(egtrain_error_flags -Werror)

@@ -110,7 +110,8 @@ fails the build:
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
 ```
 
-The targets are listed in [Coding guidelines](coding-guidelines.md#warnings).
+The pull request checks use the option on all three platforms. The targets are
+listed in [Coding guidelines](coding-guidelines.md#warnings).
 
 ## Run a local build
 

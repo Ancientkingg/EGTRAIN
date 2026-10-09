@@ -125,17 +125,17 @@ jobs:
 
       - name: Configure (macOS)
         if: runner.os == 'macOS'
-        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
       - name: Configure (Linux)
         if: runner.os == 'Linux'
-        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Release
 
       - name: Configure (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DVCPKG_APPLOCAL_DEPS=OFF
