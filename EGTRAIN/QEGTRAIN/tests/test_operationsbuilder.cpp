@@ -785,6 +785,7 @@ static bool singleTrackLockTests() {
 	for (int r = 0; r < 2; ++r) {
 		Route& route = train_route[r];
 		route.N_Block_Sections = 6;
+		route.sequence_of_block_sections.resize(6);
 		route.reversed_direction = (r == 1);
 		const std::vector<Section> sections = boundarySections(6);
 		for (int b = 0; b < 6; ++b) {
@@ -1621,9 +1622,9 @@ int main() {
 				route.sequence_of_block_sections[nextHead + 1].ID) != BlocksConnected.end(),
 				"zero-stop train keeps station-boundary route protection without stop indexing");
 
-		const int routeCapacity = static_cast<int>(std::size(route.sequence_of_block_sections));
-		ok &= expect(route.N_Block_Sections < routeCapacity, "route-tail fixture has an unused array slot");
-		if (route.N_Block_Sections < routeCapacity) {
+		// One section stored past N_Block_Sections: the lookahead must not read it.
+		route.sequence_of_block_sections.emplace_back();
+		{
 			Section& outOfRoute = route.sequence_of_block_sections[route.N_Block_Sections];
 			outOfRoute.ID = "out.of.route";
 			const Section& tail = route.sequence_of_block_sections[route.N_Block_Sections - 1];
@@ -1636,7 +1637,9 @@ int main() {
 			ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(), outOfRoute.ID)
 					== BlocksConnected.end(),
 					"station lookahead ignores sections beyond the actual route tail");
+			stationBoundarySections.clear();
 		}
+		route.sequence_of_block_sections.pop_back();
 	}
 
 	SceneModel statisticsScene = completeScene();

@@ -590,9 +590,36 @@ static bool runManySectionsChecks() {
 	return ok;
 }
 
+static bool runRouteStorageChecks() {
+	bool ok = true;
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(tinyScene());
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && !train_route.front().reversed_direction
+			&& train_route.front().N_Block_Sections == 2
+			&& train_route.front().sequence_of_block_sections.size() == 2,
+			"a route holds exactly the sections of its route");
+
+	SceneModel reversed = tinyScene();
+	reversed.routes.front().blocks = {"block.b", "block.a"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(reversed);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
+			&& train_route.front().N_Block_Sections == 2
+			&& train_route.front().sequence_of_block_sections.size() == 2,
+			"a reversed route holds exactly the sections of its route");
+
+	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3
+			&& train_route.front().sequence_of_block_sections.size() == 3,
+			"a route over several regions holds exactly the sections of its route");
+
+	resetNativeInfrastructureState();
+	ok &= expect(N_Routes == 0 && train_route.empty(), "the runtime reset removes the routes");
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runLongTrackChecks();
 	ok &= runManySectionsChecks();
+	ok &= runRouteStorageChecks();
 	return ok ? 0 : 1;
 }

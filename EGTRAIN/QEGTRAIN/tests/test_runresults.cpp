@@ -147,6 +147,7 @@ int main() {
 		auto route = std::make_unique<Route>();
 		route->ID = "moving-block-test";
 		route->N_Block_Sections = 1;
+		route->sequence_of_block_sections.resize(1);
 		route->sequence_of_block_sections[0] = sections[0];
 		route->x_of_start_node = sections[0].start_node.X;
 		route->x_of_end_node = sections[0].end_node.X;

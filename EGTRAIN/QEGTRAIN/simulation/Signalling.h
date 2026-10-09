@@ -284,7 +284,7 @@ class Route {
 public:
 	string ID;
 	int N_Block_Sections;                  // Number of block sections composing the route
-	Section sequence_of_block_sections[600]; // Sequence of block sections
+	std::vector<Section> sequence_of_block_sections; // Sequence of block sections, N_Block_Sections elements once the route is built
 	double x_of_start_node;                // Start abscissa (initial node of route)
 	double x_of_end_node;                  // End abscissa (final node of route)
 	bool reversed_direction;               // True when train runs opposite to route definition direction;

@@ -1775,10 +1775,10 @@ void Route::identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<Inf
 }
 
 void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds, int direction) {
-	// Reset scalar/list state in place. Assigning a temporary Route here would
-	// materialize its 600 large Section members on the stack.
+	// Reset scalar/list state in place.
 	ID = "None";
 	N_Block_Sections = 0;
+	sequence_of_block_sections.clear();
 	x_of_start_node = 0;
 	x_of_end_node = 0;
 	reversed_direction = false;
@@ -1805,6 +1805,8 @@ void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds, in
 		N_Block_Sections = 600;
 	if (N_Block_Sections == 0)
 		return;
+	// The reversed list below has the same length, so the vector keeps N_Block_Sections elements.
+	sequence_of_block_sections.resize(N_Block_Sections);
 
 	// Checking if Blocks must be ordered progressively or in reverse order.
 	list<Section>::iterator start, final;
@@ -4447,27 +4449,27 @@ void activateMixedSignallingSystem() {
 		// the sections of a single-track section held by a train of the other direction are occupied for this route only
 		std::size_t singleTrackAdded = occupySingleTrackForRoute(i);
 		// Set all the speed limits coming from the Infrastructure
-		setInfraSpeedLimits(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+		setInfraSpeedLimits(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set the aspect of signals and Signal Speed Limits for BACC
-		baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
-		setBlockSpeed1MixedSignalling(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+		baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		setBlockSpeed1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set the aspect of signals and signal speed limits for ATB
-		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
-		setBlockSpeedAtbMixedSignalling(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		setBlockSpeedAtbMixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set MA and signalling speed limits for ETCS Level 1
-		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
-		setBlockSpeedEtcsLev1MixedSignalling(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		setBlockSpeedEtcsLev1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set MA and signalling speed limits for ETCS Level 2
-		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
-		setBlockSpeedEtcsLev2MixedSignalling(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		setBlockSpeedEtcsLev2MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set MA and signalling speed limits for ETCS Level 3
 		rbcSendsMasToRouteMixedSignalling(train_route[i]);
-		manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+		manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		for (; singleTrackAdded > 0; --singleTrackAdded)
 			BlocksOccupied.pop_back();
@@ -4477,7 +4479,7 @@ void activateMixedSignallingSystem() {
 // Function to Release all block sections in mixed signalling areas
 void releaseMixedSignallingSystem() {
 	for (int t = 0; t < N_Routes; t++) {
-		releaseBlocksMixedSignalling(train_route[t].sequence_of_block_sections, train_route[t].N_Block_Sections);
+		releaseBlocksMixedSignalling(train_route[t].sequence_of_block_sections.data(), train_route[t].N_Block_Sections);
 	}
 }
 
@@ -4493,17 +4495,17 @@ void relLastSectionMixedSignalling(string blockID) {
 				// one. A train that leaves the route enters no next section.
 				releaseLastBlockAndConnected(train_route[r].sequence_of_block_sections[b]);
 				if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 0) {
-					relAtbMixedSignalling(train_route[r].sequence_of_block_sections, b);
+					relAtbMixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
 				} else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 1) {
-					relEtcsLev1MixedSignalling(train_route[r].sequence_of_block_sections, b);
+					relEtcsLev1MixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
 				} else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 2) {
-					relEtcsLev2MixedSignalling(train_route[r].sequence_of_block_sections, b);
+					relEtcsLev2MixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
 				}
 
 				// Here the function for ETCS Level 3 shall also be added if needed
 
 				else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 5) {
-					relTrackCircuit1MixedSignalling(train_route[r].sequence_of_block_sections, b);
+					relTrackCircuit1MixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
 				}
 
 				// proceed to next route
