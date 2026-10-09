@@ -33,9 +33,12 @@ public:
     {
         QStyleOptionComboBox option;
         initStyleOption(&option);
-        const QRect field = style()->subControlRect(QStyle::CC_ComboBox, &option,
-                                                    QStyle::SC_ComboBoxEditField, this);
-        return option.fontMetrics.elidedText(option.currentText, Qt::ElideMiddle, field.width());
+        const int width = style()->subControlRect(QStyle::CC_ComboBox, &option,
+                                                  QStyle::SC_ComboBoxEditField, this).width();
+        // The size hint reserves the bounding width of a text, which can be less than its advance.
+        if (option.fontMetrics.boundingRect(option.currentText).width() <= width)
+            return option.currentText;
+        return option.fontMetrics.elidedText(option.currentText, Qt::ElideMiddle, width);
     }
 
     QSize minimumSizeHint() const override

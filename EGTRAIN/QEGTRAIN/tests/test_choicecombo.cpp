@@ -181,9 +181,22 @@ bool exerciseSelection()
 
 bool exerciseElision()
 {
+    // The size hint reserves the bounding width of the widest text. A large digit ends
+    // in a wide bearing, so the advance of this text is more than its bounding width.
+    ChoiceComboBox lone;
+    QFont large = lone.font();
+    large.setPointSizeF(48);
+    lone.setFont(large);
+    lone.addItem(QStringLiteral("abc"));
+    lone.addItem(QStringLiteral("Platform 1"));
+    lone.setCurrentIndex(1);
+    lone.resize(lone.sizeHint());
+    bool ok = check(lone.displayText() == lone.currentText(), "the widest text is elided in a field at its size hint");
+
     const QRect screen(0, 0, 1280, 800);
-    StopForm f(screen, 1.0, QStringLiteral("p95"));
-    bool ok = check(f.platform->displayText() == choiceName(95), "a text that fits its field is elided");
+    StopForm f(screen, 1.0, QStringLiteral("p31"));
+    ok &= check(f.platform->displayText() == choiceName(31), "a text that fits its field is elided");
+    f.platform->setCurrentIndex(f.platform->findData(QStringLiteral("p95")));
     f.dialog.resize(420, f.dialog.height());
     QApplication::processEvents();
     const QString shown = f.platform->displayText();
