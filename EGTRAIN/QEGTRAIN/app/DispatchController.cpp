@@ -621,7 +621,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				// Held single-track sections give trains of the other direction an End of Authority at levels 3 and 4
 				Apply_Single_Track_Authorities_Mixed_Signalling();
 
-				// Only for level>=3
+				// Only levels 3 and 4
 				ReportAllTrainPositionsToRBC(t, 50);
 
 				// function to protect all station areas

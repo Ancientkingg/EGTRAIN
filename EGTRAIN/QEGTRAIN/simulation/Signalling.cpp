@@ -3939,7 +3939,7 @@ void relTrackCircuit1MixedSignalling(Section* BS, int blockIndex) {
 	}
 }
 
-// Multithreaded Version of ATB Signalling system - National Dutch System.
+// ATB Signalling system - National Dutch System.
 
 void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks) {
 
@@ -4061,7 +4061,7 @@ void relAtbMixedSignalling(Section* BS, int blockIndex) {
 	}
 }
 
-// Multithreaded Version of ETCS Level 1 Signalling System - Italian Version (SCMT)
+// ETCS Level 1 Signalling System - Italian Version (SCMT)
 
 void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks) {
 
@@ -4268,7 +4268,7 @@ void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks) {
 	}
 }
 
-// Function to determine permitted speeds at the end of nodes of a Block Section (ETCS level 1_SCMT)
+// Function to determine permitted speeds at the end of nodes of a Block Section (ETCS level 2)
 
 void setBlockSpeedEtcsLev2MixedSignalling(Section* BS, int Blocks) {
 	// Setting signal limit speeds
@@ -4301,7 +4301,7 @@ void relEtcsLev2MixedSignalling(Section* BS, int blockIndex) {
 	}
 }
 
-// Function to Simulate the provision of MAs from RBC to Train routes, the third parameter (IsROuteReversed) is the boolean reversed_direction of the route
+// Marks the occupied sections of levels 3 and 4 with code 0, so that the routines of the other levels see them. The movement authorities are made by ReportPositionToRBC.
 void rbcSendsMasToRouteMixedSignalling(Route& R) {
 	// Occupying the block section in order to be seen by the other signalling system as well
 	for (int h = R.N_Block_Sections - 1; h >= 0; h--) {
@@ -4461,15 +4461,15 @@ void activateMixedSignallingSystem() {
 		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 		setBlockSpeedAtbMixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
-		// Set MA and signalling speed limits for ETCS Level 1
+		// Set the aspect of signals and signal speed limits for ETCS Level 1
 		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 		setBlockSpeedEtcsLev1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
-		// Set MA and signalling speed limits for ETCS Level 2
+		// Set the aspect of signals and signal speed limits for ETCS Level 2
 		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 		setBlockSpeedEtcsLev2MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
-		// Set MA and signalling speed limits for ETCS Level 3
+		// Mark the occupied sections of levels 3 and 4 and set their end speeds (the movement authorities come from ReportPositionToRBC)
 		rbcSendsMasToRouteMixedSignalling(train_route[i]);
 		manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 

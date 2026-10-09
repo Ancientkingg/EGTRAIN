@@ -96,12 +96,15 @@ charts do not change.
 | `scene.json` | required | schema version, name, units, base time, simulation settings, import report |
 | `infrastructure.json` | required | tracks, nodes, arcs, blocks, connections |
 | `stations.json` | required | stations, positions, platforms, platform nodes |
-| `signalling.json` | required | signals, routes, dependencies, restrictions, boundaries |
+| `signalling.json` | required | signals, routes, signalling areas, dependencies, restrictions, boundaries |
 | `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
 | `views.json` | optional display metadata | authored track levels/regions and station display geometry; preserved in folders and bundles |
+
+Signalling areas in `signalling.json` give runtime sections their signalling
+level; see [Signalling levels](../architecture/signalling-levels.md).
 
 The writer emits preferred V1 keys. Stop plans use independently optional
 `planned_arrival_seconds` and `planned_departure_seconds` on any stop, plus
