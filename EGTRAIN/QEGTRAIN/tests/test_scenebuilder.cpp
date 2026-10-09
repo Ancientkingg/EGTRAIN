@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <set>
@@ -860,11 +861,244 @@ static bool runRouteStorageChecks() {
 	return ok;
 }
 
+// The sample objects give every member that the copy operators copy a value of its own, different from the constructor default.
+static void fillNode(Node& n, double id) {
+	double* numbers[] = {&n.X, &n.Y, &n.dwellTime, &n.StopTime, &n.arcSpeedLimit, &n.tdsbGeoCoordX, &n.tdsbGeoCoordY, &n.latitude, &n.longitude, &n.graphX, &n.graphY};
+	double value = 11.5;
+	for (double* number : numbers)
+		*number = value++;
+	n.ID = id;
+	n.StepStopped = 31;
+	n.indexOrderList = 32;
+	n.numConnections = 3;
+	for (int i = 0; i < 6; i++) {
+		n.connectIdBlockSet[i] = 40 + i;
+		n.connectXNode[i] = 50.5 + i;
+	}
+	n.isSignalled = n.station = n.respectOrder = n.virtualCouplingNode = true;
+	n.sceneNodeId = "node.sample";
+	n.stationName = "Sample";
+	n.stationPlatformId = "platform.sample";
+	n.tdsbId = "tdsb.sample";
+	n.IDConnectedBlocks = {"-B1@-1.0", "-B2@-2.0"};
+}
+
+static void fillArc(Arc& a, double id, double gradient) {
+	double* numbers[] = {&a.length, &a.curvature, &a.speedLimit, &a.fs, &a.brakingDistance, &a.speedInBraking, &a.signalSpeedLimit};
+	double value = 61.5;
+	for (double* number : numbers)
+		*number = value++;
+	a.ID = id;
+	a.gradient = gradient;
+	fillNode(a.startNode, id + 100);
+	fillNode(a.endNode, id + 200);
+}
+
+static void fillSection(Section& s, Node* nodes, TDS* tds) {
+	double* numbers[] = {&s.length, &s.exit_speed, &s.code, &s.XStartSwitch, &s.XEndSwitch, &s.GeoXBegNode, &s.GeoXEndNode};
+	double value = 71.5;
+	for (double* number : numbers)
+		*number = value++;
+	s.ID = "section.sample";
+	s.trackLineId = 81;
+	s.FirstConnectedTrackLineID = 82;
+	s.SecondConnectedTrackLineID = 83;
+	s.SignallingLevel = 3;
+	fillNode(s.start_node, 91);
+	fillNode(s.end_node, 92);
+	fillArc(s.arcs_in_signalling_block_section[0], 1, 0);
+	fillArc(s.arcs_in_signalling_block_section[1], 2, 0.02);
+	s.total_arcs = 2;
+	s.nodelist_of_nodes_in_signalling_section = nodes;
+	s.total_nodes = 2;
+	strcpy_s(s.state, "red");
+	s.Occupied = s.Occup_By_Train = s.withSwitchDiv = true;
+	s.IDConnectedBS[0] = "section.a";
+	s.IDConnectedBS[1] = "section.b";
+	s.N_ConnectedBS = 2;
+	s.ETCS3BrakingPoints[0] = 85.5;
+	s.ETCS3BrakingPointsTrainID[0] = "train.sample";
+	s.N_ETCS3BrakingPoints = 1;
+	s.TDS_in_block = {tds};
+}
+
+// The comparisons go member by member, so that they do not depend on the operators under test.
+static bool sameNode(const Node& a, const Node& b) {
+	return a.sceneNodeId == b.sceneNodeId && a.ID == b.ID && a.X == b.X && a.Y == b.Y && a.isSignalled == b.isSignalled
+		&& a.station == b.station && a.respectOrder == b.respectOrder && a.virtualCouplingNode == b.virtualCouplingNode
+		&& a.dwellTime == b.dwellTime && a.StopTime == b.StopTime && a.StepStopped == b.StepStopped && a.indexOrderList == b.indexOrderList
+		&& a.numConnections == b.numConnections && std::equal(a.connectIdBlockSet, a.connectIdBlockSet + 6, b.connectIdBlockSet)
+		&& std::equal(a.connectXNode, a.connectXNode + 6, b.connectXNode) && a.IDConnectedBlocks == b.IDConnectedBlocks
+		&& a.arcSpeedLimit == b.arcSpeedLimit && a.stationName == b.stationName && a.stationPlatformId == b.stationPlatformId
+		&& a.tdsbId == b.tdsbId && a.tdsbGeoCoordX == b.tdsbGeoCoordX && a.tdsbGeoCoordY == b.tdsbGeoCoordY
+		&& a.latitude == b.latitude && a.longitude == b.longitude && a.graphX == b.graphX && a.graphY == b.graphY;
+}
+
+static bool sameArc(const Arc& a, const Arc& b) {
+	return a.ID == b.ID && sameNode(a.startNode, b.startNode) && sameNode(a.endNode, b.endNode) && a.length == b.length
+		&& a.curvature == b.curvature && a.gradient == b.gradient && a.speedLimit == b.speedLimit && a.fs == b.fs
+		&& a.brakingDistance == b.brakingDistance && a.speedInBraking == b.speedInBraking && a.signalSpeedLimit == b.signalSpeedLimit;
+}
+
+static bool sameSection(const Section& a, const Section& b) {
+	bool same = a.ID == b.ID && a.trackLineId == b.trackLineId && a.FirstConnectedTrackLineID == b.FirstConnectedTrackLineID
+		&& a.SecondConnectedTrackLineID == b.SecondConnectedTrackLineID && sameNode(a.start_node, b.start_node) && sameNode(a.end_node, b.end_node)
+		&& a.nodelist_of_nodes_in_signalling_section == b.nodelist_of_nodes_in_signalling_section && a.total_nodes == b.total_nodes
+		&& a.total_arcs == b.total_arcs && a.length == b.length && a.exit_speed == b.exit_speed && a.code == b.code
+		&& a.XStartSwitch == b.XStartSwitch && a.XEndSwitch == b.XEndSwitch && a.GeoXBegNode == b.GeoXBegNode && a.GeoXEndNode == b.GeoXEndNode
+		&& a.SignallingLevel == b.SignallingLevel && !strcmp(a.state, b.state) && a.Occupied == b.Occupied
+		&& a.Occup_By_Train == b.Occup_By_Train && a.withSwitchDiv == b.withSwitchDiv && a.N_ConnectedBS == b.N_ConnectedBS
+		&& a.N_ETCS3BrakingPoints == b.N_ETCS3BrakingPoints && a.TDS_in_block == b.TDS_in_block;
+	for (int i = 0; same && i < a.total_arcs; i++)
+		same = sameArc(a.arcs_in_signalling_block_section[i], b.arcs_in_signalling_block_section[i]);
+	for (int i = 0; same && i < a.N_ConnectedBS; i++)
+		same = a.IDConnectedBS[i] == b.IDConnectedBS[i];
+	for (int i = 0; same && i < a.N_ETCS3BrakingPoints; i++)
+		same = a.ETCS3BrakingPoints[i] == b.ETCS3BrakingPoints[i] && a.ETCS3BrakingPointsTrainID[i] == b.ETCS3BrakingPointsTrainID[i];
+	return same;
+}
+
+// An object that differs from the sample in one member compares unequal to it, in both directions.
+template <typename T, typename Fill, typename Change>
+static bool unequalAfter(const char* what, const char* member, Fill fill, Change change) {
+	T sample, changed;
+	fill(sample);
+	fill(changed);
+	change(changed);
+	return expect(!(sample == changed) && !(changed == sample), std::string(what) + " that differ only in " + member + " compare unequal");
+}
+
+static bool runNodeValueChecks() {
+	bool ok = true;
+	Node source, reference;
+	fillNode(source, 7);
+	fillNode(reference, 7);
+
+	Node copied(source);
+	ok &= expect(sameNode(copied, source), "a copied node holds the members and the block list of its source");
+	source.virtualSignal = true;
+	Node flagged(source);
+	ok &= expect(flagged.virtualSignal, "a copied node keeps the virtual signal flag");
+	source.virtualSignal = false;
+
+	Node target;
+	target.IDConnectedBlocks = {"old.1", "old.2", "old.3"};
+	target = source;
+	ok &= expect(sameNode(target, source), "an assigned node holds the members and the block list of its source");
+	ok &= expect(sameNode(source, reference), "assigning a node leaves its source unchanged");
+
+	Node& alias = source;
+	source = alias;
+	ok &= expect(sameNode(source, reference), "a node assigned to itself keeps its members and its block list");
+
+	ok &= expect(source == reference && reference == source, "nodes with the same members compare equal in both directions");
+	auto fill = [](Node& n) { fillNode(n, 7); };
+	ok &= unequalAfter<Node>("nodes", "ID", fill, [](Node& n) { n.ID += 1; });
+	ok &= unequalAfter<Node>("nodes", "X", fill, [](Node& n) { n.X += 1; });
+	ok &= unequalAfter<Node>("nodes", "Y", fill, [](Node& n) { n.Y += 1; });
+	ok &= unequalAfter<Node>("nodes", "isSignalled", fill, [](Node& n) { n.isSignalled = false; });
+	ok &= unequalAfter<Node>("nodes", "station", fill, [](Node& n) { n.station = false; });
+	ok &= unequalAfter<Node>("nodes", "dwellTime", fill, [](Node& n) { n.dwellTime += 1; });
+	return ok;
+}
+
+static bool runArcValueChecks() {
+	bool ok = true;
+	Arc source, reference;
+	fillArc(source, 1, 0.01);
+	fillArc(reference, 1, 0.01);
+
+	Arc copied(source);
+	ok &= expect(sameArc(copied, source), "a copied arc holds the members of its source");
+
+	Arc target;
+	target = source;
+	ok &= expect(sameArc(target, source), "an assigned arc holds the members of its source");
+	ok &= expect(sameArc(source, reference), "assigning an arc leaves its source unchanged");
+
+	Arc& alias = source;
+	source = alias;
+	ok &= expect(sameArc(source, reference), "an arc assigned to itself keeps its members");
+
+	Arc flat, otherFlat;
+	ok &= expect(flat == otherFlat, "two default arcs compare equal");
+	ok &= expect(source == reference && reference == source, "arcs with the same members compare equal in both directions");
+	ok &= expect(source.gradient == 0.01 && reference.gradient == 0.01, "comparing equal arcs leaves their gradients unchanged");
+	Arc steeper;
+	fillArc(steeper, 1, 0.02);
+	ok &= expect(!(source == steeper) && !(steeper == source), "arcs that differ only in gradient compare unequal in both directions");
+	ok &= expect(source.gradient == 0.01 && steeper.gradient == 0.02, "comparing unequal arcs leaves their gradients unchanged");
+
+	auto fill = [](Arc& a) { fillArc(a, 1, 0.01); };
+	ok &= unequalAfter<Arc>("arcs", "ID", fill, [](Arc& a) { a.ID += 1; });
+	ok &= unequalAfter<Arc>("arcs", "length", fill, [](Arc& a) { a.length += 1; });
+	ok &= unequalAfter<Arc>("arcs", "startNode.ID", fill, [](Arc& a) { a.startNode.ID += 1; });
+	ok &= unequalAfter<Arc>("arcs", "endNode.ID", fill, [](Arc& a) { a.endNode.ID += 1; });
+	ok &= unequalAfter<Arc>("arcs", "speedLimit", fill, [](Arc& a) { a.speedLimit += 1; });
+	ok &= unequalAfter<Arc>("arcs", "curvature", fill, [](Arc& a) { a.curvature += 1; });
+	ok &= unequalAfter<Arc>("arcs", "fs", fill, [](Arc& a) { a.fs += 1; });
+	ok &= unequalAfter<Arc>("arcs", "brakingDistance", fill, [](Arc& a) { a.brakingDistance += 1; });
+	ok &= unequalAfter<Arc>("arcs", "speedInBraking", fill, [](Arc& a) { a.speedInBraking += 1; });
+	ok &= unequalAfter<Arc>("arcs", "signalSpeedLimit", fill, [](Arc& a) { a.signalSpeedLimit += 1; });
+	return ok;
+}
+
+static bool runSectionValueChecks() {
+	bool ok = true;
+	Node nodes[2], otherNodes[2];
+	TDS tds, firstOtherTds, secondOtherTds;
+	Section source, reference;
+	fillSection(source, nodes, &tds);
+	fillSection(reference, nodes, &tds);
+
+	Section copied(source);
+	ok &= expect(sameSection(copied, source), "a copied section holds the members, arcs and detection sections of its source");
+
+	Section target;
+	target.TDS_in_block = {&firstOtherTds, &secondOtherTds};
+	target = source;
+	ok &= expect(sameSection(target, source), "an assigned section holds the members, arcs and detection sections of its source");
+	ok &= expect(sameSection(source, reference), "assigning a section leaves its source unchanged");
+
+	Section& alias = source;
+	source = alias;
+	ok &= expect(sameSection(source, reference), "a section assigned to itself keeps its members, arcs and detection sections");
+
+	ok &= expect(source == reference && reference == source, "sections with the same members compare equal in both directions");
+	ok &= expect(sameSection(source, reference), "comparing equal sections leaves their arcs unchanged");
+	Section steeper;
+	fillSection(steeper, nodes, &tds);
+	steeper.arcs_in_signalling_block_section[0].gradient = 0.05;
+	ok &= expect(!(source == steeper) && !(steeper == source), "sections that differ only in the gradient of the first arc compare unequal");
+	ok &= expect(sameSection(source, reference), "comparing unequal sections leaves the arcs of the left section unchanged");
+
+	auto fill = [&](Section& s) { fillSection(s, nodes, &tds); };
+	ok &= unequalAfter<Section>("sections", "the gradient of the second arc", fill, [](Section& s) { s.arcs_in_signalling_block_section[1].gradient = 0.03; });
+	ok &= unequalAfter<Section>("sections", "ID", fill, [](Section& s) { s.ID = "section.other"; });
+	ok &= unequalAfter<Section>("sections", "state", fill, [](Section& s) { strcpy_s(s.state, "green"); });
+	ok &= unequalAfter<Section>("sections", "the list of nodes", fill, [&](Section& s) { s.nodelist_of_nodes_in_signalling_section = otherNodes; });
+	ok &= unequalAfter<Section>("sections", "total_nodes", fill, [](Section& s) { s.total_nodes = 1; });
+	ok &= unequalAfter<Section>("sections", "total_arcs", fill, [](Section& s) { s.total_arcs = 1; });
+	ok &= unequalAfter<Section>("sections", "length", fill, [](Section& s) { s.length += 1; });
+	ok &= unequalAfter<Section>("sections", "exit_speed", fill, [](Section& s) { s.exit_speed += 1; });
+	ok &= unequalAfter<Section>("sections", "code", fill, [](Section& s) { s.code += 1; });
+	ok &= unequalAfter<Section>("sections", "start_node.ID", fill, [](Section& s) { s.start_node.ID += 1; });
+	return ok;
+}
+
+static bool runValueSemanticsChecks() {
+	bool ok = runNodeValueChecks();
+	ok &= runArcValueChecks();
+	ok &= runSectionValueChecks();
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runAreaMappingChecks();
 	ok &= runLongTrackChecks();
 	ok &= runManySectionsChecks();
 	ok &= runRouteStorageChecks();
+	ok &= runValueSemanticsChecks();
 	return ok ? 0 : 1;
 }

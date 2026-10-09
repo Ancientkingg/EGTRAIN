@@ -161,7 +161,7 @@ public:
 	void arcLength();
 
 	bool operator==(const Arc& ob2) {
-		if ((ID == ob2.ID) && (length == ob2.length) && (startNode.ID == ob2.startNode.ID) && (endNode.ID == ob2.endNode.ID) && (speedLimit == ob2.speedLimit) && (gradient = ob2.gradient) && (curvature == ob2.curvature) && (fs == ob2.fs) && (brakingDistance == ob2.brakingDistance) && (speedInBraking == ob2.speedInBraking) && (signalSpeedLimit == ob2.signalSpeedLimit))
+		if ((ID == ob2.ID) && (length == ob2.length) && (startNode.ID == ob2.startNode.ID) && (endNode.ID == ob2.endNode.ID) && (speedLimit == ob2.speedLimit) && (gradient == ob2.gradient) && (curvature == ob2.curvature) && (fs == ob2.fs) && (brakingDistance == ob2.brakingDistance) && (speedInBraking == ob2.speedInBraking) && (signalSpeedLimit == ob2.signalSpeedLimit))
 			return true;
 		else
 			return false;
