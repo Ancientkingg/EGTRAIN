@@ -187,16 +187,11 @@ const struct {
 	const char* name;
 	const char* marker;
 } kKnownWrong[] = {
-	{"follow-level-none", "#437 F2 stops at the position of F1 at B"},
-	{"sf-forward-level-none", "#437 F2 stops at the position of F1 at B and at 10 km"},
-	{"sf-forward-level-0", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
-	{"sf-forward-level-1", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
-	{"sf-forward-level-2", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
+	{"sf-first-level-none", "#539 F1 and F2 stop at 2 km and stay there after the failure ends"},
+	{"sf-first-level-0", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
+	{"sf-first-level-1", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
+	{"sf-first-level-2", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
-	{"sf-reverse-level-none", "#437 R2 stops at the position of R1 at B and at 10 km"},
-	{"sf-reverse-level-0", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
-	{"sf-reverse-level-1", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
-	{"sf-reverse-level-2", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
 };
 
@@ -214,15 +209,20 @@ std::vector<CaseSpec> buildCaseTable() {
 		const char* prefix;
 		const char* scenario;
 		std::vector<std::string> services;
+		int lastLevel; // The last level run besides "none".
 	} groups[] = {
-		{"follow", "baseline", {"F1", "F2"}},
-		{"sf-forward", "signal-failure-forward", {"F1", "F2"}},
-		{"sf-reverse", "signal-failure-reverse", {"R1", "R2"}},
+		{"follow", "baseline", {"F1", "F2"}, 5},
+		{"sf-forward", "signal-failure-forward", {"F1", "F2"}, 5},
+		{"sf-reverse", "signal-failure-reverse", {"R1", "R2"}, 5},
+		{"sf-adjacent", "signal-failure-adjacent", {"F1", "F2"}, 2},
+		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2},
+		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2},
+		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2},
 	};
 	for (const auto& group : groups) {
 		const std::string none = std::string(group.prefix) + "-level-none";
 		cases.push_back({none, group.scenario, group.services, kNoSignallingArea, knownWrongMarker(none)});
-		for (int level = 0; level <= 5; ++level) {
+		for (int level = 0; level <= group.lastLevel; ++level) {
 			const std::string name = std::string(group.prefix) + "-level-" + std::to_string(level);
 			cases.push_back({name, group.scenario, group.services, level, knownWrongMarker(name)});
 		}
@@ -510,7 +510,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 	// The limits are the fixture's rolling stock: top speed 36.111111111111 m/s,
 	// starting force 209000 N on 151000 kg, braking limit 0.75 m/s2 plus
 	// running resistance. A case with a known-wrong marker is exempt from
-	// the checks on stops, separation and the timetable.
+	// the checks on stops, separation and the timetable. A case without a
+	// signalling area is exempt from the check for overlapping trains: a
+	// scene without a signalling level does not separate trains.
 	constexpr double kTopSpeed = 36.111111111111 + 1e-6;
 	constexpr double kMaxAcceleration = 209000.0 / 151000.0 + 1e-3;
 	constexpr double kMaxDeceleration = 0.95;
@@ -565,7 +567,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 					+ std::to_string(stop.first));
 		}
 	}
-	if (!waived)
+	if (!waived && spec.level != kNoSignallingArea)
 		for (const Separation& separation : separations)
 			if (separation.overlap && separation.gap < 0.0)
 				fail(separation.follower + " overlaps " + separation.leader + " by "

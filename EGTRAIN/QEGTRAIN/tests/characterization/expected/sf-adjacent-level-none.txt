@@ -1,6 +1,6 @@
 # egtrain-characterization 1
-# case: sf-forward-level-none
-# run: scenario=signal-failure-forward services=F1,F2 level=none horizon=1500
+# case: sf-adjacent-level-none
+# run: scenario=signal-failure-adjacent services=F1,F2 level=none horizon=1500
 # known-wrong: none
 run steps=1500 trains=2
 train F1-1 active start=60 end=1267
@@ -78,16 +78,21 @@ result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1219.000000 sim_de
 run_result F1-1 start=60.000000 end=1267.000000 travel=1207.000000
 run_result F2-1 start=120.000000 end=1267.000000 travel=1147.000000
 network start=60.000000 end=1267.000000 travel=1207.000000
-train F1-1 direct_incident count=1 ids=inc.fwd first_time=767.000000 first_location=10000.000000
+train F1-1 direct_incident count=1 ids=inc.adj.b first_time=767.000000 first_location=10000.000000
 blocktime F1-1 n=0 complete=0
-train F2-1 direct_incident count=1 ids=inc.fwd first_time=827.000000 first_location=10000.000000
+train F2-1 direct_incident count=1 ids=inc.adj.b first_time=827.000000 first_location=10000.000000
 blocktime F2-1 n=0 complete=0
-incident inc.fwd type=signal_failure target=sig.fwd start=400.000000 has_end=1 end=1000.000000 sections=@5-B0@
+incident inc.adj.a type=signal_failure target=4-B0 start=400.000000 has_end=1 end=1000.000000 sections=@4-B0@
+incident inc.adj.b type=signal_failure target=5-B0 start=400.000000 has_end=1 end=1000.000000 sections=@5-B0@
 boundary t=399 authorities=0 blocked=-
-boundary t=400 authorities=2 blocked=@5-B0@
+boundary t=400 authorities=4 blocked=@4-B0@,@5-B0@
+authority t=400 part=Front section=@3-B0@ pos=8000.000000 reversed=0
+authority t=400 part=Front section=@5-B0@ pos=10000.000000 reversed=1
 authority t=400 part=Front section=@4-B0@ pos=10000.000000 reversed=0
 authority t=400 part=Front section=@6-B0@ pos=12000.000000 reversed=1
-boundary t=1000 authorities=2 blocked=@5-B0@
+boundary t=1000 authorities=4 blocked=@4-B0@,@5-B0@
+authority t=1000 part=Front section=@3-B0@ pos=8000.000000 reversed=0
+authority t=1000 part=Front section=@5-B0@ pos=10000.000000 reversed=1
 authority t=1000 part=Front section=@4-B0@ pos=10000.000000 reversed=0
 authority t=1000 part=Front section=@6-B0@ pos=12000.000000 reversed=1
 boundary t=1001 authorities=0 blocked=-

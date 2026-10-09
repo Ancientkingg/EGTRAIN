@@ -53,6 +53,22 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	sf-reverse-level-3
 	sf-reverse-level-4
 	sf-reverse-level-5
+	sf-adjacent-level-none
+	sf-adjacent-level-0
+	sf-adjacent-level-1
+	sf-adjacent-level-2
+	sf-staggered-level-none
+	sf-staggered-level-0
+	sf-staggered-level-1
+	sf-staggered-level-2
+	sf-last-level-none
+	sf-last-level-0
+	sf-last-level-1
+	sf-last-level-2
+	sf-first-level-none
+	sf-first-level-0
+	sf-first-level-1
+	sf-first-level-2
 	late-leader-level-3
 	late-leader-level-4)
 

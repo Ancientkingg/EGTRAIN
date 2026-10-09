@@ -265,7 +265,9 @@ refactors of movement, signalling and global state show up as a reviewable
 diff. They drive the real `DispatchController` in the test process on the small
 scene `EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line` ("Characterization Line"):
 one track of 16 km in eight blocks of 2 km, three stations, six services and
-three scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`).
+seven scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`,
+`signal-failure-adjacent`, `signal-failure-staggered`, `signal-failure-last`,
+`signal-failure-first`).
 All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
 network-wide signalling area, so one scene covers levels 0 to 5 and "none".
@@ -279,9 +281,13 @@ A case is a scenario, a set of services and a level. The case table is in
 | `follow-level-none`, `follow-level-0` to `-5` | trains `F1` and `F2` following each other |
 | `sf-forward-level-none`, `-0` to `-5` | the same trains with a signal failure from 400 s to 1000 s |
 | `sf-reverse-level-none`, `-0` to `-5` | trains `R1` and `R2` in the opposite direction, same failure window |
+| `sf-adjacent-level-none`, `-0` to `-2` | trains `F1` and `F2` with failures on the adjacent sections `4-B0` and `5-B0` from 400 s to 1000 s |
+| `sf-staggered-level-none`, `-0` to `-2` | the same trains and sections, with the failure on `4-B0` ending at 700 s and the one on `5-B0` at 1000 s |
+| `sf-last-level-none`, `-0` to `-2` | the same trains with a failure on `7-B0`, the last section of the route, from 400 s to 1000 s |
+| `sf-first-level-none`, `-0` to `-2` | the same trains with a failure on `0-B0`, the first section of the route, from 0 s to 400 s, while both trains still wait to enter |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
 
-All 24 cases run in CTest. They are listed in
+All 40 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -349,7 +355,10 @@ re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
 backward movement, acceleration and braking within what the rolling stock can do,
 no faster run to station B than the top speed allows, planned dwell and
 departure times kept, stops only at a platform, a block boundary or behind
-another train, and no overlap of two trains.
+another train, and no overlap of two trains. A case without a signalling area is
+not checked for overlap: a scene without a signalling level does not separate
+trains, and validation warns about it (`scene.signalling.level.missing`). The
+`-level-none` goldens therefore show trains at one position.
 
 ### Changing an expectation deliberately
 
@@ -391,13 +400,14 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The markers name two open issues. #437 covers two trains at one position
-(`follow-level-none`, `sf-forward-level-none`, `sf-reverse-level-none`) and
-trains that stay stopped after a signal failure at levels 0 to 2. #534 covers a
-following train that stops at the position of the leading train at the last
-station at level 4 (`sf-forward-level-4`, `sf-reverse-level-4`). Without their
-markers these cases fail the check for overlapping trains. The unmarked cases
-show no known-wrong behaviour, so the checks apply.
+The markers name three open issues. #534 covers a following train that stops at
+the position of the leading train at the last station at level 4
+(`sf-forward-level-4`, `sf-reverse-level-4`). #539 covers two trains that stop
+at 2 km and stay there after a failure on the first section has ended, without
+a signalling level (`sf-first-level-none`). #540 covers two trains that wait at
+the entry of a route and enter in the same second (`sf-first-level-0` to `-2`).
+Without their markers the cases of #534 and #540 fail the check for overlapping
+trains. The checks apply to every unmarked case.
 
 ## Simulation Smoke Test
 

@@ -4481,6 +4481,10 @@ void relLastSectionMixedSignalling(string blockID) {
 		for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
 			// check if route contains this signalling_block_sections
 			if (train_route[r].sequence_of_block_sections[b].ID == blockID) {
+				// The state and the speed limit of the sections behind only clear for a section in
+				// BlocksConnected, where a train puts the section it leaves when it enters the next
+				// one. A train that leaves the route enters no next section.
+				releaseLastBlockAndConnected(train_route[r].sequence_of_block_sections[b]);
 				if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 0) {
 					relAtbMixedSignalling(train_route[r].sequence_of_block_sections, b);
 				} else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 1) {
@@ -4689,9 +4693,18 @@ bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
 // for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 	for (const auto& inc : simulationIncidents) {
-		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds
-				|| (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds))
+		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds)
 			continue;
+		if (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds) {
+			// The aspects a failure set are only cleared for sections in BlocksConnected,
+			// which a train puts there when it leaves a section. Nothing enters a failed
+			// section, so hand it over for release on the first step after the failure.
+			if (timestepIndex - 1 <= inc.endSeconds)
+				for (const auto& secID : inc.resolvedSectionIDs)
+					if (std::find(BlocksConnected.begin(), BlocksConnected.end(), secID) == BlocksConnected.end())
+						BlocksConnected.push_back(secID);
+			continue;
+		}
 		for (const auto& secID : inc.resolvedSectionIDs) {
 			bool occupied = false;
 			for (const auto& occ : BlocksOccupied) {
