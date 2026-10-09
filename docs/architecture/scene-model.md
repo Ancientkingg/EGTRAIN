@@ -76,6 +76,11 @@ Validation also warns, once per route and composition used by a service, when
 arcs of the route are steeper than the composition can brake on or start on
 (`scene.route.gradient.steep`). The warning does not block Run.
 
+Runnable validation also warns, once per single-track restriction, when its
+start, end or protected blocks have no signalling level or level 3 or 4
+(`scene.single_track.no_effect`): the restriction then has no effect at run
+time. The warning does not block Run.
+
 The stop list is authoritative: empty means no scheduled calls, regardless of
 the historical `through` field. Nonempty stops are never discarded because that
 field is true. Canonical input/output retains the field for compatibility;

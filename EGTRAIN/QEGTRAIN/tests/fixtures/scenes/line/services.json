@@ -167,6 +167,27 @@
                     "station": "A"
                 }
             ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 60.0,
+            "id": "S1",
+            "operating_code": "S1",
+            "route": "routeAB",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 120.0,
+                    "platform": "A.platform.1",
+                    "station": "A"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 600.0,
+                    "platform": "B.platform.1",
+                    "station": "B"
+                }
+            ]
         }
     ]
 }

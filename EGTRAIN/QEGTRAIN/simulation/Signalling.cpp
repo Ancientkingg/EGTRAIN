@@ -1929,6 +1929,7 @@ void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& route
 	N_Routes = (int)scene.routes.size();
 	train_route.clear();
 	train_route.resize(N_Routes);
+	resetSingleTrackLocks();
 
 	for (int i = 0; i < N_Routes; i++) {
 		std::cout << "\rCreating Scene Route : " << i << " " << scene.routes[i].id;
@@ -2028,6 +2029,7 @@ void nativeResetRuntime() {
 	InfraElementsList.clear();
 	AllStationPlatforms.clear();
 	singleTrackLimits.clear();
+	resetSingleTrackLocks();
 	stationBoundarySections.clear();
 	for (int i = 0; i < kNativeMaxTracks; ++i)
 		blockSets[i] = BlockSet();
@@ -4442,6 +4444,8 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks) {
 // Function to activate mixed signalling areas
 void activateMixedSignallingSystem() {
 	for (int i = 0; i < N_Routes; i++) {
+		// the sections of a single-track section held by a train of the other direction are occupied for this route only
+		std::size_t singleTrackAdded = occupySingleTrackForRoute(i);
 		// Set all the speed limits coming from the Infrastructure
 		setInfraSpeedLimits(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
 
@@ -4464,6 +4468,9 @@ void activateMixedSignallingSystem() {
 		// Set MA and signalling speed limits for ETCS Level 3
 		rbcSendsMasToRouteMixedSignalling(train_route[i]);
 		manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections, train_route[i].N_Block_Sections);
+
+		for (; singleTrackAdded > 0; --singleTrackAdded)
+			BlocksOccupied.pop_back();
 	}
 }
 
@@ -4575,6 +4582,91 @@ void setRouteVirtualSignals() {
 
 // vector containing the limits of single tracks (pair of first/last plain signalling_block_sections IDs, train occupying single track, signalling_block_sections IDs to block)
 std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string>> singleTrackLimits;
+
+std::vector<int> singleTrackHeld;
+static std::vector<SingleTrackZone> singleTrackZones; // index: limit * route count + route
+static std::size_t singleTrackZoneLimits = 0, singleTrackZoneRoutes = 0;
+static std::vector<char> singleTrackRouteZone; // 1 when any limit has a zone on the route
+static bool singleTrackZonesDerived = false;
+
+void resetSingleTrackLocks() {
+	singleTrackHeld.clear();
+	singleTrackZones.clear();
+	singleTrackRouteZone.clear();
+	singleTrackZonesDerived = false;
+}
+
+const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex) {
+	static const SingleTrackZone none;
+	if (!singleTrackZonesDerived || singleTrackZoneLimits != singleTrackLimits.size() || singleTrackZoneRoutes != train_route.size()) {
+		singleTrackZoneLimits = singleTrackLimits.size();
+		singleTrackZoneRoutes = train_route.size();
+		singleTrackZones.assign(singleTrackZoneLimits * singleTrackZoneRoutes, SingleTrackZone());
+		singleTrackRouteZone.assign(singleTrackZoneRoutes, 0);
+		for (std::size_t k = 0; k < singleTrackZoneLimits; ++k) {
+			const auto& limit = singleTrackLimits[k];
+			std::unordered_set<std::string> zone{std::get<0>(limit), std::get<1>(limit), std::get<3>(limit), std::get<4>(limit)};
+			for (const Route& route : train_route) {
+				int first = -1, last = -1;
+				for (int b = 0; b < route.N_Block_Sections; ++b) {
+					const std::string& id = route.sequence_of_block_sections[b].ID;
+					if (id == std::get<0>(limit) || id == std::get<1>(limit)) {
+						if (first < 0)
+							first = b;
+						last = b;
+					}
+				}
+				if (first >= 0 && last > first)
+					for (int b = first; b <= last; ++b)
+						zone.insert(route.sequence_of_block_sections[b].ID);
+			}
+			for (std::size_t r = 0; r < singleTrackZoneRoutes; ++r) {
+				SingleTrackZone& onRoute = singleTrackZones[k * singleTrackZoneRoutes + r];
+				const Route& route = train_route[r];
+				for (int b = 0; b < route.N_Block_Sections; ++b) {
+					const Section& section = route.sequence_of_block_sections[b];
+					if (zone.count(section.ID) == 0)
+						continue;
+					onRoute.sectionIDs.push_back(section.ID);
+					singleTrackRouteZone[r] = 1;
+					const double from = section.start_node.X * 1000, to = section.end_node.X * 1000;
+					auto& intervals = onRoute.intervals;
+					if (!intervals.empty() && intervals.back().first < intervals.back().second && from < to && intervals.back().second == from)
+						intervals.back().second = to;
+					else
+						intervals.emplace_back(from, to);
+				}
+			}
+		}
+		singleTrackZonesDerived = true;
+	}
+	if (l >= singleTrackZoneLimits || routeIndex < 0 || static_cast<std::size_t>(routeIndex) >= singleTrackZoneRoutes)
+		return none;
+	return singleTrackZones[l * singleTrackZoneRoutes + routeIndex];
+}
+
+bool singleTrackRouteHasZone(int routeIndex) {
+	singleTrackZone(0, routeIndex);
+	return routeIndex >= 0 && static_cast<std::size_t>(routeIndex) < singleTrackRouteZone.size() && singleTrackRouteZone[routeIndex] != 0;
+}
+
+std::size_t occupySingleTrackForRoute(int routeIndex) {
+	std::size_t added = 0;
+	if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()))
+		return added;
+	const int direction = train_route[routeIndex].reversed_direction ? -1 : 1;
+	for (std::size_t l = 0; l < singleTrackHeld.size(); ++l) {
+		if (singleTrackHeld[l] == 0 || singleTrackHeld[l] == direction)
+			continue;
+		for (const std::string& id : singleTrackZone(l, routeIndex).sectionIDs) {
+			if (std::find(BlocksOccupied.begin(), BlocksOccupied.end(), id) != BlocksOccupied.end())
+				continue;
+			BlocksOccupied.push_back(id);
+			++added;
+		}
+	}
+	return added;
+}
 
 // constructor
 StationBoundarySection::StationBoundarySection(Section* entrance, bool direction, Section* exit)

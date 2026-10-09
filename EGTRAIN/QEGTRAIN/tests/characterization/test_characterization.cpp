@@ -180,6 +180,8 @@ struct CaseSpec {
 	// Empty, or "#<issue> <reason>" for behaviour that is pinned but wrong.
 	// The golden file carries the same text in its header.
 	std::string knownWrong;
+	// Declares the single-track restriction blocks 1-B0 to 4-B0, protected by 0-B0 and 5-B0.
+	bool singleTrack = false;
 };
 
 // Cases whose current behaviour is wrong, with the open issue that describes it.
@@ -193,6 +195,8 @@ const struct {
 	{"sf-first-level-2", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
+	{"single-track-level-3", "#551 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
+	{"single-track-level-4", "#551 R1 and S1 meet on the single-track section, level 4 ignores the restriction"},
 };
 
 std::string knownWrongMarker(const std::string& name) {
@@ -230,6 +234,13 @@ std::vector<CaseSpec> buildCaseTable() {
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});
+	// S1 runs from A to B and R1 from C to A over the restricted section: R1 has to wait in front of it.
+	const std::string singleTrackNone = "single-track-level-none";
+	cases.push_back({singleTrackNone, "baseline", {"S1", "R1"}, kNoSignallingArea, knownWrongMarker(singleTrackNone), true});
+	for (int level = 0; level <= 5; ++level) {
+		const std::string name = "single-track-level-" + std::to_string(level);
+		cases.push_back({name, "baseline", {"S1", "R1"}, level, knownWrongMarker(name), true});
+	}
 	return cases;
 }
 
@@ -572,6 +583,28 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (separation.overlap && separation.gap < 0.0)
 				fail(separation.follower + " overlaps " + separation.leader + " by "
 					+ formatReal(-separation.gap) + " m at t=" + std::to_string(separation.step));
+	if (spec.singleTrack && !waived && spec.level != kNoSignallingArea) {
+		// S1 runs on routeAB and R1 on route1, so the check above does not pair them. The restricted section with its
+		// protected sections is 0-B0 to 5-B0: the whole of routeAB (0 to 8000 m) for S1 and 4000 to 16000 m for R1.
+		const TrainTrack* forward = nullptr;
+		const TrainTrack* reversed = nullptr;
+		for (const TrainTrack& track : tracks) {
+			if (track.name == "S1-1")
+				forward = &track;
+			if (track.name == "R1-1")
+				reversed = &track;
+		}
+		if (forward && reversed)
+			for (int t = std::max(forward->first, reversed->first); t <= std::min(forward->last, reversed->last); ++t) {
+				const double s = (*forward->position)[t];
+				const double r = (*reversed->position)[t];
+				if (s >= 0.0 && s - forward->length < 6 * kBlockLength
+					&& r >= 2 * kBlockLength && r - reversed->length < 8 * kBlockLength) {
+					fail("S1 and R1 are inside the single-track section together at t=" + std::to_string(t));
+					break;
+				}
+			}
+	}
 	for (const TimetableResultRow& row : rows) {
 		if (!waived && row.plannedArrivalSeconds.available && row.plannedDepartureSeconds.available
 			&& row.simulatedArrivalSeconds.available && row.simulatedDepartureSeconds.available) {
@@ -606,6 +639,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		area.level = spec.level;
 		loaded.scene.signallingAreas = {area};
 	}
+	if (spec.singleTrack)
+		loaded.scene.singleTrackRestrictions = {{"1-B0", "4-B0", "0-B0", "5-B0"}};
 	SceneRunSelection selection;
 	for (const std::string& service : spec.services)
 		selection.insert({service, 1});
@@ -800,7 +835,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 std::string describeRun(const CaseSpec& spec, int horizon) {
 	return "scenario=" + spec.scenario + " services=" + joinSet(spec.services)
 		+ " level=" + (spec.level == kNoSignallingArea ? std::string("none") : std::to_string(spec.level))
-		+ " horizon=" + std::to_string(horizon);
+		+ (spec.singleTrack ? " single_track=1" : "") + " horizon=" + std::to_string(horizon);
 }
 
 std::string knownWrongText(const CaseSpec& spec) {

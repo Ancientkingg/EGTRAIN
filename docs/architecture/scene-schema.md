@@ -101,7 +101,7 @@ Required root arrays are `signals` and `routes`.
 - `block_dependencies[]`: `{ "block": string, "depends_on": string }`.
 - `single_track_restrictions[]`: preferred explicit
   `start_block`, `end_block`, `protected_start_block`, and
-  `protected_end_block`.
+  `protected_end_block`. See [Single-track restrictions](#single-track-restrictions).
 - `station_boundaries[]`: required `entrance_block`, optional `exit_block`,
   and optional boolean `direction`.
 
@@ -136,6 +136,40 @@ validation warning; newly authored scenes require a declared connection.
 Unknown or malformed
 compound section tokens are invalid. The inventory is not persisted as a
 second topology model.
+
+### Single-track restrictions
+
+A restriction keeps trains of opposite directions out of a single-track
+stretch. `start_block` and `end_block` are the first and last plain sections of
+the stretch, in either order. `protected_start_block` and
+`protected_end_block` are the sections at its two ends where a passing loop
+joins it. The stretch consists of these four sections and every section between
+`start_block` and `end_block` on a route that contains both. A route is affected
+by the sections of the stretch that it contains.
+
+While a train is in the stretch, trains on routes of the opposite direction see
+all its sections as occupied and wait in front of it, at the loop if their route
+has one. Trains of the same direction are not held and follow under the normal
+signalling rules. The direction of a train is the `reversed` flag of its route.
+If trains of both directions are inside, the direction that held the stretch
+before keeps it, and the forward direction holds it when nobody did. The stretch
+is released when the last train of the holding direction has left it, and then
+passes to the other direction if a train of that direction is inside.
+
+The restriction acts through the signal aspects of fixed-block signalling, so
+it has an effect on sections with signalling level 0, 1, 2 or 5. Without a
+signalling level and at levels 3 and 4 it does not keep opposing trains apart
+and they can still meet. On a section of level 3 or 4 it only sets the aspect
+that the section shows, and a level 3 or 4 train in front of a held section of
+another level stops at the end of its own section. A train that has to wait
+needs a route that gives it somewhere to wait outside the stretch, such as the
+loop track of a station. On a route without one it stops on the track that the
+other train needs.
+
+Runnable validation reports each restriction whose start, end or protected
+blocks have no signalling level or level 3 or 4 in one
+`scene.single_track.no_effect` warning. The warning names the restriction by
+its index in `single_track_restrictions` and lists the blocks and their levels.
 
 ## `rolling_stock.json`
 

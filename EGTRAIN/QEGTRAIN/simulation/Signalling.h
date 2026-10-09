@@ -446,8 +446,32 @@ void setVirtualSignals();
 // Set virtual signals on routes from original block sections (info lost during route creation)
 void setRouteVirtualSignals();
 
-// Single track limits: (first plain block ID, last plain block ID, occupying train, block IDs to block, _)
+// Single track limits: (first plain block ID, last plain block ID, unused, protected block ID at the first end,
+// protected block ID at the last end).
 extern std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string>> singleTrackLimits;
+
+// Single-track sections. While a train is in the section of limit l, the section is closed to trains of the
+// opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed
+// route, 0 when it is free. Routes running against the holder see the sections of the zone as occupied.
+extern std::vector<int> singleTrackHeld;
+
+// Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
+// neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
+// between its first and last plain section on a route that has both, plus the two protected sections.
+struct SingleTrackZone {
+	std::vector<std::pair<double, double>> intervals;
+	std::vector<std::string> sectionIDs;
+};
+// Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
+void resetSingleTrackLocks();
+// The zone of limit l on route routeIndex. The zones of all limits and routes are derived on first use.
+const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex);
+// True when the zone of any limit has a section on the route.
+bool singleTrackRouteHasZone(int routeIndex);
+// Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
+std::size_t occupySingleTrackForRoute(int routeIndex);
+// Sets singleTrackHeld from the positions of the trains and releases the zone of every limit that changed (RollingStock.cpp).
+void updateSingleTrackLocks(int step);
 
 // --- StationBoundarySection: protects entrance of main stations ---
 class StationBoundarySection {
