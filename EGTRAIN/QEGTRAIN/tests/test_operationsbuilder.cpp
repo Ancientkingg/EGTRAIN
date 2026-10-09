@@ -32,6 +32,11 @@
 #ifdef TEST_ADDRESS_SANITIZER
 #include <sanitizer/asan_interface.h>
 #endif
+#if defined(_MSC_VER)
+#define TEST_NOINLINE __declspec(noinline)
+#else
+#define TEST_NOINLINE __attribute__((noinline))
+#endif
 
 Logger owl;
 
@@ -273,6 +278,89 @@ static bool noFileAccessTests(const SceneModel& scene) {
 	const QStringList entries = QDir(workDir.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
 	ok &= expect(entries.isEmpty(), "no file appears in the working directory (found: " + entries.join(",").toStdString() + ")");
 	ok &= expect(QDir::setCurrent(previousDir), "working directory restored");
+	return ok;
+}
+
+// Braking-point search. A route of one section with one arc, from startKm to endKm.
+static std::vector<Section> brakingRoute(double startKm, double endKm, double gradient) {
+	std::vector<Section> route(1);
+	Section& section = route[0];
+	section.start_node.X = startKm;
+	section.end_node.X = endKm;
+	section.total_arcs = 1;
+	section.arcs_in_signalling_block_section[0].startNode.X = startKm;
+	section.arcs_in_signalling_block_section[0].endNode.X = endKm;
+	section.arcs_in_signalling_block_section[0].gradient = gradient;
+	section.arcs_in_signalling_block_section[0].curvature = 0.0;
+	return route;
+}
+
+static Train brakingTrain(double deceleration) {
+	Train train;
+	train.g = 9.81;
+	train.mass_of_traction_unit = 100000.0;
+	train.total_train_mass = 100000.0;
+	train.massFactor = 1.09;
+	train.max_train_decelaration = deceleration;
+	train.Jerk = 0.75;
+	return train;
+}
+
+// Fills the stack below the caller with a value, so that a local array that is read before it is
+// written takes the value of the caller's choice.
+static TEST_NOINLINE void poisonStack(double value) {
+	volatile double junk[6000];
+	for (int index = 0; index < 6000; ++index)
+		junk[index] = value;
+}
+
+static bool brakingPointTests() {
+	bool ok = true;
+	const double savedTimestep = timestep;
+	timestep = 1.0;
+	const auto at = [](double value, double expected) { return std::fabs(value - expected) <= 1e-6; };
+	Train train = brakingTrain(1.0);
+	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
+
+	// The curve reaches the current speed inside the route: the braking point is interpolated
+	// between the two steps around that speed.
+	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), 4601.818895),
+			"braking point of a stop from 30 m/s on a flat route");
+	ok &= expect(at(train.BrakDist_Block(30.0, 10.0, 5000.0, route.data(), 1), 4644.466708),
+			"braking point of a slowdown from 30 to 10 m/s on a flat route");
+	ok &= expect(train.BrakDist_Block(10.0, 10.0, 5000.0, route.data(), 1) == 5000.0
+			&& train.BrakDist_Block(10.0, 30.0, 5000.0, route.data(), 1) == 5000.0,
+			"no braking is needed when the current speed does not exceed the target speed");
+
+	// The curve passes the start of the route before it reaches the current speed: the braking
+	// point lies before the route and is the last abscissa that was computed.
+	std::vector<Section> later = brakingRoute(2.0, 12.0, 0.0);
+	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 100.0, route.data(), 1), -9.763361),
+			"a braking curve that leaves the route at its start gives a braking point before the route");
+	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 2100.0, later.data(), 1), 1990.236639),
+			"the start of the route is the one of the first section");
+
+	// The braking force cannot hold the train on a steep descent: the curve runs forward and
+	// leaves the route at its end.
+	std::vector<Section> steep = brakingRoute(0.0, 10.0, -0.5);
+	ok &= expect(train.BrakDist_Block(30.0, 10.0, 5000.0, steep.data(), 1) == -1,
+			"a braking curve that leaves the route at its end gives no braking point");
+	// 1,999 steps are not enough on a long, almost balanced slope.
+	Train slow = brakingTrain(0.001);
+	std::vector<Section> farRoute = brakingRoute(0.0, 100.0, -0.0044);
+	ok &= expect(slow.BrakDist_Block(30.0, 0.0, 50000.0, farRoute.data(), 1) == -1,
+			"a curve that does not reach the current speed in 1,999 steps gives no braking point");
+
+	// The result does not depend on what the stack held before the call.
+	for (const double value : {0.0, 1e30, -1e30, std::numeric_limits<double>::quiet_NaN()}) {
+		poisonStack(value);
+		const double start = train.BrakDist_Block(30.0, 0.0, 100.0, route.data(), 1);
+		poisonStack(value);
+		const double end = train.BrakDist_Block(30.0, 10.0, 5000.0, steep.data(), 1);
+		ok &= expect(at(start, -9.763361) && end == -1,
+				"the braking point of a curve that leaves the route does not depend on the stack");
+	}
+	timestep = savedTimestep;
 	return ok;
 }
 
@@ -1292,6 +1380,7 @@ int main() {
 		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
 	}
 	ok &= passengerRateTests();
+	ok &= brakingPointTests();
 	{
 		const double brakingPoint = 46181.0;
 		const double parked = std::nextafter(brakingPoint - kStopHoldbackM, 0.0);

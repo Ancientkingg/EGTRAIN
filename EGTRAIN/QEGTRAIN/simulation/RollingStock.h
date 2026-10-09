@@ -967,6 +967,10 @@ public:
 	}
 
 	// Calculation of Dynamic Braking Distance with inverse integration of the real Braking Curve considering also Block Sections
+	// Returns the abscissa where the train has to start braking so that it runs at V2 at X0.
+	// When the curve leaves the route at its start, the braking point lies before the route and the last computed abscissa is returned.
+	// When no braking point can be given (the curve leaves the route elsewhere, or does not reach V1 within the steps), -1 is returned,
+	// which the caller treats as "not computed".
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks) {
 		double BD;
 		double BX; // Braking Distance
@@ -986,6 +990,7 @@ public:
 						break;
 					}
 				}
+				bool onArc = false;
 				{
 				const Section& Block = BS[BlockIdx];
 				for (int j = 0; j < Block.total_arcs; j++) {
@@ -994,12 +999,16 @@ public:
 						// Inverse integration of the real Braking Curve
 						U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature)) * timestep / (total_train_mass * massFactor);
 						X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature));
+						onArc = true;
 						break;
 					}
 				}
 				}
-			}
-			for (t = 0; t < 2000; t++) {
+				if (!onArc) { // X[t - 1] is outside the route, so entry t is not written
+					if (X[t - 1] < BS[0].start_node.X * 1000)
+						return X[t - 1]; // the braking point lies before the route
+					return -1;
+				}
 				// BUG - does not use interpolation and can lead to incorrect critical braking point
 				/*if (U[t] >= V1) {
 					DX = X[t]; break;
@@ -1011,6 +1020,8 @@ public:
 					break;
 				}
 			}
+			if (t == 2000) // not reached in 1,999 steps
+				return -1;
 			BD = X[0] - DX + (max_train_decelaration / (2 * Jerk)) * (V1) + V1 * timestep;
 			BX = DX;
 		} else {

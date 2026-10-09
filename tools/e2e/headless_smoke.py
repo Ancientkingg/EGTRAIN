@@ -272,6 +272,31 @@ def check_finite_station_statistics(case_id: int, out_base: Path = RUN_DIR) -> N
     print(f"PASS case {case_id} station statistics are finite")
 
 
+def check_no_position_jump(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """A train never moves farther in one step than its maximum speed allows."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    rolling = json.loads((scene_dir / "rolling_stock.json").read_text(encoding="utf-8"))
+    max_speed = max(unit["physical"]["max_speed_ms"] for unit in rolling["train_units"])
+    files = sorted((scene_output_dir(case_id, out_base) / "TEMP").glob("Traj_Train_*.txt"))
+    if not files:
+        raise SystemExit(f"case {case_id} has no train trajectory files")
+    for path in files:
+        previous = None
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
+            cells = line.split("\t")
+            if len(cells) < 3:
+                previous = None
+                continue
+            current = (float(cells[0]), float(cells[2]))
+            if previous is not None and abs(current[1] - previous[1]) > max_speed * (current[0] - previous[0]) + 0.5:
+                raise SystemExit(
+                    f"case {case_id} train {path.name} moved from {previous[1]} m at {previous[0]} s "
+                    f"to {current[1]} m at {current[0]} s, more than {max_speed} m/s allows"
+                )
+            previous = current
+    print(f"PASS case {case_id} trains move at most their maximum speed per step")
+
+
 def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     expected = ORIGINAL_CASE_PARITY[case_id]
     output_dir = scene_output_dir(case_id, out_base)
@@ -335,6 +360,7 @@ def main() -> None:
         check_finite_station_statistics(case_id)
         if case_id in ASSERT_MOVEMENT:
             check_movement(case_id)
+        check_no_position_jump(case_id)
         if case_id in ORIGINAL_CASE_PARITY:
             check_original_case_runtime(case_id)
     for case_id in selected:
