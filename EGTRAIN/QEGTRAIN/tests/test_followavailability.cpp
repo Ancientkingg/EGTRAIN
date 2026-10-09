@@ -46,6 +46,13 @@ int main() {
 			"a case without services was not reported as having no trains");
 	}
 
+	// A case without services that has not run says the same, not that it has to run first.
+	{
+		const FollowAvailability a = followAvailability(FollowAvailabilityInput{});
+		require(a.phase == FollowPhase::NoServices && a.entryText == "No trains to follow" && !a.canArm && !a.canAct,
+			"a case without services that has not run was not reported as having no trains");
+	}
+
 	// Services but no run yet.
 	{
 		FollowAvailabilityInput in;
