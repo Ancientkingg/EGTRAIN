@@ -485,6 +485,11 @@ The visual and render smoke artifacts include:
   among the CMake baseline, existing stable tags, and reserved release versions.
   All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
   baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
+  `update-manifest.json` also lists the files of the Windows package. Before
+  the updater replaces an installation, it requires every listed file and a
+  fixed set of runtime files (`requiredRuntimeFiles()` in
+  `update/WindowsStaging.h`) in the extracted package. Keep that set in step
+  with the package verification in the Windows job.
 - Production and tag releases run serially. A stale production run cannot
   publish after the branch advances, and an existing production release tag
   cannot be overwritten. If a failed-job retry encounters a used version,

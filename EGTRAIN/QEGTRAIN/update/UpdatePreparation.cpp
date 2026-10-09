@@ -116,7 +116,7 @@ QString stageWindowsPackage(const UpdatePreparationInput& input, QString* error)
 		60000, error, &environment))
 		return {};
 	const QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
-	if (!WindowsStaging::buildStage(extract, stagedPath, error))
+	if (!WindowsStaging::buildStage(extract, stagedPath, input.manifest.files, error))
 		return {};
 	return stagedPath;
 }

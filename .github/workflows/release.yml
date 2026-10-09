@@ -608,6 +608,8 @@ jobs:
           mac_size="$(stat -c %s artifacts/QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip)"
           windows_size="$(stat -c %s artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip)"
           linux_size="$(stat -c %s artifacts/QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage)"
+          windows_files="$(unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\' '/' | grep -v '/$' | jq -Rn '[inputs]')"
+          jq -e 'index("QEGTRAIN.exe")' <<< "$windows_files" > /dev/null
           jq -n \
             --arg version "$version" \
             --arg mac_sha "$mac_sha" \
@@ -616,7 +618,8 @@ jobs:
             --argjson mac_size "$mac_size" \
             --argjson windows_size "$windows_size" \
             --argjson linux_size "$linux_size" \
-            '{version:$version,assets:{"macos-arm64":{name:"QEGTRAIN-macos-arm64.zip",sha256:$mac_sha,size:$mac_size},"windows-x64":{name:"QEGTRAIN-windows-x64.zip",sha256:$windows_sha,size:$windows_size},"linux-x86_64":{name:"QEGTRAIN-linux-x86_64.AppImage",sha256:$linux_sha,size:$linux_size}}}' \
+            --argjson windows_files "$windows_files" \
+            '{version:$version,assets:{"macos-arm64":{name:"QEGTRAIN-macos-arm64.zip",sha256:$mac_sha,size:$mac_size},"windows-x64":{name:"QEGTRAIN-windows-x64.zip",sha256:$windows_sha,size:$windows_size,files:$windows_files},"linux-x86_64":{name:"QEGTRAIN-linux-x86_64.AppImage",sha256:$linux_sha,size:$linux_size}}}' \
             > artifacts/update-manifest.json
           test -s artifacts/update-manifest.json
 
