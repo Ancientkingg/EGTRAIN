@@ -91,7 +91,7 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and
   `telemetry/TelemetryQueue.h` owns a `std::unique_ptr<QLockFile>`.
 - `simulation/` uses `new T[n]` with `delete[]`, fixed-size global arrays
-  (`extern Section signalling_block_sections[6000]` in `simulation/Signalling.h`) and
+  (`extern Regional regional_train[Max_N_Reg]` in `simulation/RollingStock.h`) and
   `extern` globals. Do not add more.
 
 `tools/memory/ownership_inventory.py` lists owning allocations, Qt parent allocations,
