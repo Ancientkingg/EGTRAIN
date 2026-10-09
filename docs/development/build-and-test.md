@@ -412,6 +412,40 @@ and `characterization_repeat_netherlands` (Netherlands, Lebanon, Netherlands, la
 `slow`). They fail when a run leaves state behind that changes a later run of the
 same scene, which is what a change to the global runtime arrays can cause.
 
+These entries compare the observation of each run: what the test reads from
+memory, and the two station statistics files. The other files of a run are not
+read. `--repeat-files` runs the steps in the same way, but every run writes its
+files into a folder of its own (`run-01`, `run-02` and so on, in a temporary
+folder), and after the last run every distinct step runs once more in a fresh
+process of the same executable, with the same working directory and
+environment. Every file of every in-process run must then be equal, byte for
+byte, to the file of the fresh run of its step, and both must hold the same set
+of files. The files are the ones a headless run of the application writes,
+including `TrainServicePathDiagram.txt`, which the test writes after the run as
+the application does. `TrainTrajectories/Computing_Times.txt` is the only file
+whose content is not compared. It has to exist, but it holds wall-clock timings
+and the computation time accumulated over the process, so it differs from run to
+run. As with `--repeat`, a step has to appear twice. A difference is reported
+with the run, the step, the file and the first differing line, and the folders
+of a failed test are kept; the message names them. The fresh run is
+`--single STEP --output-dir DIR`, which can also be used by hand. The folder
+must not exist yet, because some files are written in append mode.
+
+```bash
+build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
+    --repeat-files EGTRAIN/QEGTRAIN/Scenes/Paimpol EGTRAIN/QEGTRAIN/Scenes/Paimpol
+```
+
+Three entries run this way. `characterization_repeat_files_paimpol` and
+`characterization_repeat_files_lebanon_milano` run the sequences of
+`characterization_repeat_paimpol` and `characterization_repeat_lebanon_milano`.
+`characterization_repeat_files_fixture` runs `sf-forward-level-3` twice,
+`single-track-level-4`, and `sf-forward-level-3` again on the line fixture,
+which gives an incident and a single-track restriction that no committed scene
+has. They fail when a run in a process writes a file that differs from the file
+of a fresh process, which is what state left behind by an earlier run can cause
+in a file that the entries above never read.
+
 `test_crossover_chain` is a separate executable, because the harness above is
 tied to the line fixture (its length, its block size and the station at 8 km).
 It runs the scene `tests/fixtures/scenes/crossovers`: a chain of five tracks

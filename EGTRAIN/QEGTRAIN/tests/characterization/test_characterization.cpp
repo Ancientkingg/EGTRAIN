@@ -9,12 +9,22 @@
 //
 //   test_characterization --fixture DIR --expect DIR --case NAME
 //   test_characterization --repeat SCENE[#CASE]...
+//   test_characterization --repeat-files SCENE[#CASE]...
+//   test_characterization --single SCENE[#CASE] --output-dir DIR
 //
 // --repeat runs the steps in one process, in order, and requires that every
 // step that appears twice produces exactly the same observations both times.
 // SCENE is a scene directory. Without #CASE the scene runs as committed;
 // with it, CASE is a name from the case table and sets scenario, services and
 // signalling level.
+//
+// --repeat-files runs the steps the same way, each run writing its files into
+// a folder of its own, then runs every distinct step once in a fresh process
+// and requires that every file of every run equals the file of the fresh run
+// byte for byte, except the timings in Computing_Times.txt.
+//
+// --single runs one step in this process and keeps its files in DIR, which
+// must not exist yet. --repeat-files starts it for the fresh runs.
 //
 // EGTRAIN_UPDATE_EXPECTATIONS=1 rewrites the golden file of --case instead of
 // comparing; it is refused when the CI environment variable is set.
@@ -32,20 +42,25 @@
 #endif
 
 #include <QCoreApplication>
+#include <QProcess>
 #include <QTemporaryDir>
 
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <locale>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
+#include <system_error>
 #include <vector>
 
 Logger owl;
@@ -877,8 +892,11 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 }
 
 // Driver for one run. Everything read from the simulation globals happens
-// here, so the next run starts from whatever prepareScene resets.
-RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool checkInvariants) {
+// here, so the next run starts from whatever prepareScene resets. The files of
+// the run go to a temporary folder that is removed when the run ends, or, with
+// keptOutputDir, into that folder, which is kept and gets the file that the
+// headless application writes after the run as well.
+RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool checkInvariants, const std::string& keptOutputDir = std::string()) {
 	RunOutcome outcome;
 	SceneLoadResult loaded = loadScene(sceneDir);
 	if (hasErrors(loaded.diagnostics)) {
@@ -944,15 +962,20 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	for (const std::string& service : spec.services)
 		selection.insert({service, 1});
 
-	QTemporaryDir outputDir;
-	if (!outputDir.isValid()) {
-		outcome.error = "cannot create a temporary output directory\n";
-		return outcome;
+	std::unique_ptr<QTemporaryDir> temporaryDir;
+	std::string outputDir = keptOutputDir;
+	if (outputDir.empty()) {
+		temporaryDir = std::make_unique<QTemporaryDir>();
+		if (!temporaryDir->isValid()) {
+			outcome.error = "cannot create a temporary output directory\n";
+			return outcome;
+		}
+		outputDir = temporaryDir->path().toStdString();
 	}
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
-	initial_variables.OutputMainFolder = outputDir.path().toStdString();
+	initial_variables.OutputMainFolder = outputDir;
 	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
@@ -1124,12 +1147,11 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 					realField("pos", authority.position), integerField("reversed", authority.reversed ? 1 : 0)});
 	}
 
-	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Stats_Stations.txt", "stats", obs)) {
+	if (!readStationStats(outputDir + "/TrainTrajectories/Stats_Stations.txt", "stats", obs)) {
 		outcome.error = "the run wrote no TrainTrajectories/Stats_Stations.txt\n";
 		return outcome;
 	}
-	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Pos&Neg_Stats_Stations.txt", "signed_stats",
-			obs)) {
+	if (!readStationStats(outputDir + "/TrainTrajectories/Pos&Neg_Stats_Stations.txt", "signed_stats", obs)) {
 		outcome.error = "the run wrote no TrainTrajectories/Pos&Neg_Stats_Stations.txt\n";
 		return outcome;
 	}
@@ -1139,6 +1161,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		const std::vector<std::string> statisticsFailures = findStatisticsViolations(obs, rows);
 		outcome.invariantFailures.insert(outcome.invariantFailures.end(), statisticsFailures.begin(), statisticsFailures.end());
 	}
+	if (!keptOutputDir.empty())
+		simulation.printLastTrainServicePathDiagram();
 	return outcome;
 }
 
@@ -1291,8 +1315,170 @@ bool writeText(const std::string& path, const std::string& text) {
 }
 
 // ---------------------------------------------------------------------------
+// Files of repeated runs
+// ---------------------------------------------------------------------------
+
+// Wall-clock timings and the computation time accumulated over the process.
+const std::string kTimingFile = "TrainTrajectories/Computing_Times.txt";
+constexpr size_t kMaxProblems = 20;
+constexpr size_t kMaxExcerpt = 160;
+// Characters of a differing line shown before the first difference.
+constexpr size_t kExcerptLead = 40;
+constexpr int kFreshProcessTimeoutMs = 250 * 1000;
+
+// The regular files below root by relative path, with '/' as separator. Empty
+// folders do not count.
+bool listFiles(const std::filesystem::path& root, std::set<std::string>& names, std::string& problem) {
+	std::error_code error;
+	std::filesystem::recursive_directory_iterator entry(root, error);
+	const std::filesystem::recursive_directory_iterator end;
+	while (!error && entry != end) {
+		if (entry->is_regular_file(error))
+			names.insert(entry->path().lexically_relative(root).generic_string());
+		if (!error)
+			entry.increment(error);
+	}
+	if (error)
+		problem = "cannot list " + root.generic_string() + ": " + error.message();
+	return !error;
+}
+
+bool readBytes(const std::filesystem::path& path, std::string& bytes) {
+	std::error_code error;
+	const std::uintmax_t size = std::filesystem::file_size(path, error);
+	std::ifstream in(path, std::ios::binary);
+	if (error || !in)
+		return false;
+	bytes.assign(static_cast<size_t>(size), '\0');
+	in.read(&bytes[0], static_cast<std::streamsize>(size));
+	return in.gcount() == static_cast<std::streamsize>(size);
+}
+
+// The line of bytes that holds position, cut to kMaxExcerpt characters. A long
+// line is cut at its start, so that the excerpt begins shortly before position.
+std::string excerptOfLine(const std::string& bytes, size_t lineStart, size_t position) {
+	size_t lineEnd = bytes.find('\n', position);
+	if (lineEnd == std::string::npos)
+		lineEnd = bytes.size();
+	const size_t from = position - lineStart > kExcerptLead ? position - kExcerptLead : lineStart;
+	const size_t length = std::min(kMaxExcerpt, lineEnd - from);
+	return (from > lineStart ? "..." : "") + bytes.substr(from, length) + (from + length < lineEnd ? "..." : "");
+}
+
+// Where two files first differ, or an empty string when they are equal.
+std::string describeDifference(const std::string& left, const std::string& right) {
+	const auto mismatch = std::mismatch(left.begin(), left.end(), right.begin(), right.end());
+	const size_t position = static_cast<size_t>(mismatch.first - left.begin());
+	if (position == left.size() || position == right.size()) {
+		if (left.size() == right.size())
+			return "";
+		return "differs in size: " + std::to_string(left.size()) + " and " + std::to_string(right.size()) + " bytes";
+	}
+	const size_t previousBreak = position > 0 ? left.rfind('\n', position - 1) : std::string::npos;
+	const size_t lineStart = previousBreak == std::string::npos ? 0 : previousBreak + 1;
+	const size_t line = 1 + static_cast<size_t>(std::count(left.begin(), left.begin() + static_cast<std::ptrdiff_t>(position), '\n'));
+	return "differs at line " + std::to_string(line) + ", column " + std::to_string(position - lineStart + 1)
+		+ "\n    in-process: " + excerptOfLine(left, lineStart, position) + "\n    fresh:      " + excerptOfLine(right, lineStart, position);
+}
+
+// Compares the files of an in-process run with those of a fresh process: the
+// same set of files with the same bytes, apart from the content of the timing
+// file. The problems are labelled with label; fileCount is the number of files
+// in runDir.
+std::vector<std::string> compareRunFolders(const std::string& label, const std::filesystem::path& runDir,
+	const std::filesystem::path& freshDir, size_t& fileCount) {
+	std::vector<std::string> problems;
+	std::set<std::string> runFiles, freshFiles;
+	std::string problem;
+	if (!listFiles(runDir, runFiles, problem))
+		problems.push_back(label + ": " + problem);
+	if (!listFiles(freshDir, freshFiles, problem))
+		problems.push_back(label + ": " + problem);
+	if (!problems.empty())
+		return problems;
+	fileCount = runFiles.size();
+
+	for (const std::string& name : runFiles)
+		if (!freshFiles.count(name))
+			problems.push_back(label + ": " + name + " exists only in the in-process run");
+	for (const std::string& name : freshFiles)
+		if (!runFiles.count(name))
+			problems.push_back(label + ": " + name + " exists only in the fresh process");
+	const size_t timingFiles = runFiles.count(kTimingFile);
+	if (timingFiles == 0 && !freshFiles.count(kTimingFile))
+		problems.push_back(label + ": no run wrote " + kTimingFile);
+	if (runFiles.size() == timingFiles)
+		problems.push_back(label + ": the run wrote no file besides " + kTimingFile);
+
+	for (const std::string& name : runFiles) {
+		if (name == kTimingFile || !freshFiles.count(name))
+			continue;
+		std::string left, right;
+		if (!readBytes(runDir / name, left) || !readBytes(freshDir / name, right)) {
+			problems.push_back(label + ": cannot read " + name);
+			continue;
+		}
+		const std::string difference = describeDifference(left, right);
+		if (!difference.empty())
+			problems.push_back(label + ": " + name + " " + difference);
+	}
+	return problems;
+}
+
+std::string numberedFolder(const std::string& base, const std::string& prefix, size_t number) {
+	return base + "/" + prefix + "-" + (number < 10 ? "0" : "") + std::to_string(number);
+}
+
+// Runs one step with --single in a fresh process of this executable, in the
+// working directory and with the environment of this process. Returns an empty
+// string, or what went wrong.
+std::string runInFreshProcess(const std::string& step, const std::string& outputDir) {
+	QProcess child;
+	child.setProcessChannelMode(QProcess::MergedChannels);
+	child.start(QCoreApplication::applicationFilePath(),
+		QStringList{"--single", QString::fromStdString(step), "--output-dir", QString::fromStdString(outputDir)});
+	if (!child.waitForStarted())
+		return "the fresh process did not start: " + child.errorString().toStdString() + "\n";
+	std::string failure;
+	if (!child.waitForFinished(kFreshProcessTimeoutMs)) {
+		if (child.state() != QProcess::NotRunning) {
+			child.kill();
+			child.waitForFinished();
+			failure = "was still running after " + std::to_string(kFreshProcessTimeoutMs / 1000) + " seconds";
+		} else {
+			failure = "failed: " + child.errorString().toStdString();
+		}
+	} else if (child.exitStatus() != QProcess::NormalExit) {
+		failure = "crashed";
+	} else if (child.exitCode() != 0) {
+		failure = "exited with code " + std::to_string(child.exitCode());
+	}
+	if (failure.empty())
+		return "";
+	return "the fresh process " + failure + "\n" + child.readAll().toStdString();
+}
+
+// ---------------------------------------------------------------------------
 // Entry points
 // ---------------------------------------------------------------------------
+
+// A step is SCENE_DIR, or SCENE_DIR#CASE with a name from the case table.
+// Prints the reason and returns false when the case is unknown.
+bool parseStep(const std::vector<CaseSpec>& cases, const std::string& step, std::string& sceneDir, CaseSpec& spec) {
+	const size_t split = step.rfind('#');
+	sceneDir = step.substr(0, split);
+	spec = CaseSpec();
+	spec.name = "committed";
+	if (split == std::string::npos)
+		return true;
+	const CaseSpec* known = findCase(cases, step.substr(split + 1));
+	if (!known) {
+		std::cerr << "unknown case in step '" << step << "'\n";
+		return false;
+	}
+	spec = *known;
+	return true;
+}
 
 int runGoldenMode(const std::string& fixture, const std::string& expectDir, const std::string& caseName) {
 	const std::vector<CaseSpec> cases = buildCaseTable();
@@ -1354,18 +1540,10 @@ int runRepeatMode(const std::vector<std::string>& steps) {
 	std::map<std::string, Observation> first;
 	int repeats = 0;
 	for (const std::string& step : steps) {
-		const size_t split = step.rfind('#');
-		const std::string sceneDir = step.substr(0, split);
+		std::string sceneDir;
 		CaseSpec spec;
-		spec.name = "committed";
-		if (split != std::string::npos) {
-			const CaseSpec* known = findCase(cases, step.substr(split + 1));
-			if (!known) {
-				std::cerr << "unknown case in step '" << step << "'\n";
-				return 2;
-			}
-			spec = *known;
-		}
+		if (!parseStep(cases, step, sceneDir, spec))
+			return 2;
 		RunOutcome outcome = runCase(sceneDir, spec, false);
 		if (!outcome.error.empty()) {
 			std::cerr << "FAIL " << step << ": " << outcome.error;
@@ -1402,14 +1580,101 @@ int runRepeatMode(const std::vector<std::string>& steps) {
 	return 0;
 }
 
+int runSingleMode(const std::string& step, const std::string& outputDir) {
+	const std::vector<CaseSpec> cases = buildCaseTable();
+	std::string sceneDir;
+	CaseSpec spec;
+	if (!parseStep(cases, step, sceneDir, spec))
+		return 2;
+	const RunOutcome outcome = runCase(sceneDir, spec, false, outputDir);
+	if (!outcome.error.empty()) {
+		std::cerr << "FAIL " << step << ": " << outcome.error;
+		return 1;
+	}
+	return 0;
+}
+
+int runRepeatFilesMode(const std::vector<std::string>& steps) {
+	// The distinct steps, numbered in order of first appearance.
+	std::vector<std::string> distinct;
+	std::map<std::string, size_t> freshNumber;
+	for (const std::string& step : steps) {
+		if (freshNumber.count(step))
+			continue;
+		distinct.push_back(step);
+		freshNumber[step] = distinct.size();
+	}
+	if (distinct.size() == steps.size()) {
+		std::cerr << "FAIL no step appears twice, nothing was compared\n";
+		return 1;
+	}
+
+	QTemporaryDir root;
+	if (!root.isValid()) {
+		std::cerr << "FAIL cannot create a temporary output directory\n";
+		return 1;
+	}
+	const std::string base = root.path().toStdString();
+	// The folders of a failed test stay for inspection.
+	const auto fail = [&root](const std::string& text) {
+		root.setAutoRemove(false);
+		std::cerr << "FAIL " << text << (!text.empty() && text.back() == '\n' ? "" : "\n")
+				  << "the output of the runs is kept in " << root.path().toStdString() << "\n";
+		return 1;
+	};
+
+	const std::vector<CaseSpec> cases = buildCaseTable();
+	for (size_t i = 0; i < steps.size(); ++i) {
+		std::string sceneDir;
+		CaseSpec spec;
+		if (!parseStep(cases, steps[i], sceneDir, spec))
+			return 2;
+		const RunOutcome outcome = runCase(sceneDir, spec, false, numberedFolder(base, "run", i + 1));
+		if (!outcome.error.empty())
+			return fail(steps[i] + ": " + outcome.error);
+	}
+	for (const std::string& step : distinct) {
+		const std::string error = runInFreshProcess(step, numberedFolder(base, "fresh", freshNumber[step]));
+		if (!error.empty())
+			return fail(step + ": " + error);
+	}
+
+	std::vector<std::string> problems;
+	std::vector<size_t> fileCounts;
+	for (size_t i = 0; i < steps.size(); ++i) {
+		size_t fileCount = 0;
+		const std::vector<std::string> found = compareRunFolders("run " + std::to_string(i + 1) + " of " + steps[i],
+			numberedFolder(base, "run", i + 1), numberedFolder(base, "fresh", freshNumber[steps[i]]), fileCount);
+		problems.insert(problems.end(), found.begin(), found.end());
+		fileCounts.push_back(fileCount);
+	}
+	if (!problems.empty()) {
+		for (size_t i = 0; i < problems.size() && i < kMaxProblems; ++i)
+			std::cerr << "  " << problems[i] << "\n";
+		if (problems.size() > kMaxProblems)
+			std::cerr << "  and " << problems.size() - kMaxProblems << " more\n";
+		return fail(std::to_string(problems.size()) + " differences between the in-process runs and a fresh process\n");
+	}
+
+	const auto range = std::minmax_element(fileCounts.begin(), fileCounts.end());
+	std::cout << "PASS " << steps.size() << " in-process runs, ";
+	if (*range.first == *range.second)
+		std::cout << *range.first << " files each";
+	else
+		std::cout << *range.first << " to " << *range.second << " files per run";
+	std::cout << ", identical to a fresh process\n";
+	return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 
-	std::string fixture, expect, caseName;
+	std::string fixture, expect, caseName, singleStep, outputDir;
 	std::vector<std::string> repeatSteps;
 	bool repeat = false;
+	bool repeatFiles = false;
 	for (int i = 1; i < argc; ++i) {
 		const std::string arg = argv[i];
 		auto value = [&]() -> std::string { return i + 1 < argc ? std::string(argv[++i]) : std::string(); };
@@ -1419,9 +1684,15 @@ int main(int argc, char** argv) {
 			expect = value();
 		else if (arg == "--case")
 			caseName = value();
+		else if (arg == "--single")
+			singleStep = value();
+		else if (arg == "--output-dir")
+			outputDir = value();
 		else if (arg == "--repeat")
 			repeat = true;
-		else if (repeat)
+		else if (arg == "--repeat-files")
+			repeatFiles = true;
+		else if (repeat || repeatFiles)
 			repeatSteps.push_back(arg);
 		else {
 			std::cerr << "unknown argument '" << arg << "'\n";
@@ -1430,9 +1701,15 @@ int main(int argc, char** argv) {
 	}
 	if (repeat && !repeatSteps.empty())
 		return runRepeatMode(repeatSteps);
-	if (!repeat && !fixture.empty() && !expect.empty() && !caseName.empty())
+	if (repeatFiles && !repeatSteps.empty())
+		return runRepeatFilesMode(repeatSteps);
+	if (!singleStep.empty() && !outputDir.empty())
+		return runSingleMode(singleStep, outputDir);
+	if (!repeat && !repeatFiles && !fixture.empty() && !expect.empty() && !caseName.empty())
 		return runGoldenMode(fixture, expect, caseName);
 	std::cerr << "usage: test_characterization --fixture DIR --expect DIR --case NAME\n"
-				 "       test_characterization --repeat SCENE[#CASE]...\n";
+				 "       test_characterization --repeat SCENE[#CASE]...\n"
+				 "       test_characterization --repeat-files SCENE[#CASE]...\n"
+				 "       test_characterization --single SCENE[#CASE] --output-dir DIR\n";
 	return 2;
 }
