@@ -187,8 +187,8 @@ does to a train depends on the level, as the sections below say. Cases:
 | 0 | fixed block | at the end of the block before it | yes | yes |
 | 1 | fixed block | at the end of the block before it | none | yes |
 | 2 | fixed block | at the end of the block before it | yes | yes |
-| 3 | moving block | 50 m behind its tail | yes, per infrastructure element | no effect (#551) |
-| 4 | moving block, following mode | 50 m behind its tail, or at the speed of the train ahead | yes, per infrastructure element | no effect (#551) |
+| 3 | moving block | 50 m behind its tail | yes, per infrastructure element | yes |
+| 4 | moving block, following mode | 50 m behind its tail, or at the speed of the train ahead | yes, per infrastructure element | yes |
 | 5 | fixed block, one block more | at the end of the second block before it | none | yes |
 
 The cases below use the characterization line. It is one track of 16 km in eight
@@ -309,8 +309,12 @@ way at both levels. The levels differ in the blocking times only.
   of the route, not for the sections
   (`ComputeBlockTime_ETCSLevel_3_ForSection`). `follow-level-3` lists none
   (`blocktime n=0`).
-- **Single-track restriction.** No effect. In `single-track-level-3`, `R1` and
-  `S1` meet; the case is marked as known wrong (#551).
+- **Single-track restriction.** Has an effect. A train of level 3 or 4 does not
+  follow aspects, so every route against the holder gets an end of authority at
+  the end of the section before the stretch, for as long as the stretch is held
+  (`Apply_Single_Track_Authorities_Mixed_Signalling`). In `single-track-level-3`,
+  `R1` waits 161 s. A train that follows the holder is not delayed
+  (`single-track-follow-level-3`).
 - **Window.** Red on an occupied section, otherwise green.
 
 ### Level 4 (`4 Virtual coupling`)
@@ -336,8 +340,8 @@ failures. It adds a following mode.
 - **Blocking times.** Computed per infrastructure element, as at level 3
   (`ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved`).
   `follow-level-4` lists none.
-- **Single-track restriction.** No effect; the case is marked as known wrong
-  (#551).
+- **Single-track restriction.** Has an effect, as at level 3
+  (`single-track-level-4`, `single-track-follow-level-4`).
 - **Known wrong.** In `same-entry-level-4`, two trains that enter one after the
   other end at the same position at 8 km (#564).
 
@@ -470,7 +474,7 @@ Checks on the areas themselves, in `scene/SceneValidator.cpp`:
 | `scene.signalling_area.splits_section` | warning | an edge of the area lies inside a route section |
 | `scene.signalling_area.empty` | warning | the area contains no complete section |
 | `scene.signalling.level.missing` | warning | route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the scene has areas |
-| `scene.single_track.no_effect` | warning | a block of a single-track restriction has no level or level 3 or 4 |
+| `scene.single_track.no_effect` | warning | a block of a single-track restriction has no level |
 
 Tests: `tests/test_scenebuilder.cpp` (`runAreaMappingChecks`),
 `tests/test_scenevalidator.cpp`, `tests/test_scenebundle.cpp`.
@@ -527,8 +531,6 @@ decision. Assigning levels to the other three scenes is #459.
 
 Open on this version:
 
-- #551: a single-track restriction has no effect at levels 3 and 4
-  (`single-track-level-3`, `single-track-level-4`).
 - #564: at level 4, two trains that enter one after the other end at the same
   position at a platform (`same-entry-level-4`).
 - #459: three committed scenes have no signalling area.
