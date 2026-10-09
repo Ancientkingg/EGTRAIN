@@ -3340,7 +3340,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_stopTableWidget->verticalHeader()->setVisible(false);
 	m_stopTableWidget->horizontalHeader()->setStretchLastSection(true);
 	serviceDetailLayout->addWidget(m_stopTableWidget);
-	QHBoxLayout* stopButtonLayout = new QHBoxLayout();
+	QGridLayout* stopButtonLayout = new QGridLayout();
 	m_addStopButton = new QPushButton("Add Stop", serviceDetailPane);
 	m_addStopButton->setObjectName("addTimetableStopButton");
 	m_insertStopAfterButton = new QPushButton("Insert After Selected", serviceDetailPane);
@@ -3351,11 +3351,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_moveStopUpButton->setObjectName("moveTimetableStopUpButton");
 	m_moveStopDownButton = new QPushButton("Move Down", serviceDetailPane);
 	m_moveStopDownButton->setObjectName("moveTimetableStopDownButton");
-	stopButtonLayout->addWidget(m_addStopButton);
-	stopButtonLayout->addWidget(m_insertStopAfterButton);
-	stopButtonLayout->addWidget(m_removeStopButton);
-	stopButtonLayout->addWidget(m_moveStopUpButton);
-	stopButtonLayout->addWidget(m_moveStopDownButton);
+	stopButtonLayout->addWidget(m_addStopButton, 0, 0);
+	stopButtonLayout->addWidget(m_insertStopAfterButton, 0, 1);
+	stopButtonLayout->addWidget(m_removeStopButton, 1, 0);
+	stopButtonLayout->addWidget(m_moveStopUpButton, 1, 1);
+	stopButtonLayout->addWidget(m_moveStopDownButton, 1, 2);
 	serviceDetailLayout->addLayout(stopButtonLayout);
 
 	serviceDetailLayout->addStretch();
