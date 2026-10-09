@@ -498,8 +498,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.train_length = plan.physical.length_m;
 	train.massPerWagonAxle = train.mass_of_a_wagon * train.number_of_wagons;
 	train.total_train_mass = train.mass_of_traction_unit + train.massPerWagonAxle;
-	train.massFactor = (1.09 * train.mass_of_traction_unit + 1.06 * train.massPerWagonAxle)
-			/ train.total_train_mass;
+	train.massFactor = sceneTrainMassFactor(plan.physical);
 	train.velocityIntervals = static_cast<int>(plan.tractionCurve.size());
 	for (int index = 0; index < train.velocityIntervals; ++index) {
 		train.Vlb[index] = plan.tractionCurve[index][0];

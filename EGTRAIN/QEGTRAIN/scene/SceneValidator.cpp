@@ -4,8 +4,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <regex>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -121,6 +123,18 @@ void collectIds(const std::vector<T>& items, const std::string& file, const std:
 	}
 }
 
+constexpr std::size_t kNamedItems = 5;
+
+// The first few values, followed by the number left out.
+std::string namedItems(const std::vector<std::string>& values) {
+	std::string text;
+	for (std::size_t index = 0; index < std::min(values.size(), kNamedItems); ++index)
+		text += (index == 0 ? "" : ", ") + values[index];
+	if (values.size() > kNamedItems)
+		text += " and " + std::to_string(values.size() - kNamedItems) + " more";
+	return text;
+}
+
 // Runtime sections on a route that no signalling area covers keep the unset
 // signalling level, so trains there run without signalling.
 void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInventory& inventory,
@@ -141,7 +155,6 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 	if (uncovered.empty())
 		return;
 
-	static constexpr std::size_t kNamedItems = 5;
 	std::vector<std::string> trackIds;
 	double minimumStart = uncovered.front()->startKm;
 	double maximumEnd = uncovered.front()->endKm;
@@ -153,14 +166,6 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 				trackIds.push_back(*trackId);
 		}
 	}
-	auto names = [](const std::vector<std::string>& values) {
-		std::string text;
-		for (std::size_t index = 0; index < std::min(values.size(), kNamedItems); ++index)
-			text += (index == 0 ? "" : ", ") + values[index];
-		if (values.size() > kNamedItems)
-			text += " and " + std::to_string(values.size() - kNamedItems) + " more";
-		return text;
-	};
 	std::vector<std::string> sectionIds;
 	for (const SceneSectionDescriptor* section : uncovered)
 		sectionIds.push_back(section->id);
@@ -168,14 +173,201 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 	message += std::to_string(uncovered.size()) + " of " + std::to_string(routeSectionCount)
 			+ (uncovered.size() == 1 ? " route sections has no signalling level and runs without signalling: "
 					: " route sections have no signalling level and run without signalling: ")
-			+ names(sectionIds);
+			+ namedItems(sectionIds);
 	if (!trackIds.empty())
-		message += (trackIds.size() == 1 ? " (track " : " (tracks ") + names(trackIds) + ")";
+		message += (trackIds.size() == 1 ? " (track " : " (tracks ") + namedItems(trackIds) + ")";
 	diagnostics.warning("scene.signalling.level.missing", message, "signalling.json", "scene", scene.name,
 			"signalling_areas", uncovered.front()->id,
 			"In Infrastructure > Signalling area add a network-wide area covering "
 			+ formatSceneSectionCoordinate(minimumStart) + " to " + formatSceneSectionCoordinate(maximumEnd)
 			+ " km, or a track-scoped area for each track listed");
+}
+
+// Arcs that the native builder places in the sections of a route: a block
+// section takes the arcs of its track that overlap it, a connection section
+// the arcs of its first track up to the first switch node and the arcs of its
+// second track after the second one.
+std::vector<const SceneArc*> routeSectionArcs(const std::vector<const SceneSectionDescriptor*>& sections,
+		const std::unordered_map<std::string, std::vector<const SceneArc*>>& arcsByTrack,
+		const std::unordered_map<std::string, double>& nodeX) {
+	std::vector<const SceneArc*> result;
+	std::unordered_set<const SceneArc*> seen;
+	auto addArcs = [&](const std::string& trackId, auto&& selects) {
+		const auto track = arcsByTrack.find(trackId);
+		if (track == arcsByTrack.end())
+			return;
+		for (const SceneArc* arc : track->second) {
+			const auto from = nodeX.find(arc->fromNodeId);
+			const auto to = nodeX.find(arc->toNodeId);
+			if (from != nodeX.end() && to != nodeX.end() && selects(from->second, to->second)
+					&& seen.insert(arc).second)
+				result.push_back(arc);
+		}
+	};
+	for (const SceneSectionDescriptor* section : sections) {
+		if (section->connectionDerived) {
+			addArcs(section->firstTrackId, [&](double, double to) {
+				return to > section->startKm + kNativeCoordinateTolerance
+						&& to <= section->firstConnectionKm + kNativeCoordinateTolerance;
+			});
+			addArcs(section->secondTrackId, [&](double from, double to) {
+				return to > section->secondConnectionKm + kNativeCoordinateTolerance
+						&& from < section->endKm - kNativeCoordinateTolerance;
+			});
+		} else {
+			addArcs(section->firstTrackId, [&](double from, double to) {
+				return to > section->startKm + kNativeCoordinateTolerance
+						&& from < section->endKm - kNativeCoordinateTolerance;
+			});
+		}
+	}
+	return result;
+}
+
+std::string gradientText(double value) {
+	std::ostringstream text;
+	text << std::setprecision(4) << value;
+	return text.str();
+}
+
+// Warns once per route and composition that a service uses when an arc of the
+// route is steeper than the composition can brake on as a descent or start on
+// as an ascent. The limits ignore all resistances except the gradient.
+void reportSteepRouteGradients(const SceneModel& scene, const SceneSectionInventory& inventory,
+		DiagnosticBuilder& diagnostics) {
+	std::unordered_map<std::string, double> nodeX;
+	for (const SceneNode& node : scene.nodes)
+		nodeX.emplace(node.id, node.xKm);
+	std::unordered_map<std::string, std::vector<const SceneArc*>> arcsByTrack;
+	for (const SceneArc& arc : scene.arcs)
+		arcsByTrack[arc.trackId].push_back(&arc);
+
+	struct RouteArcs {
+		bool usable = false;
+		int direction = 0;
+		std::vector<const SceneArc*> arcs;
+	};
+	struct CompositionLimits {
+		bool usable = false;
+		double brakingGradient = 0.0;
+		double standstillEffortN = 0.0;
+		double weightN = 0.0;
+	};
+	struct RouteUse {
+		const SceneRoute* route = nullptr;
+		std::string compositionId;
+		double bestPerformancePercent = 0.0;
+	};
+	std::unordered_map<std::string, RouteArcs> routeArcs;
+	std::unordered_map<std::string, CompositionLimits> compositionLimits;
+	std::vector<RouteUse> uses;
+	std::unordered_map<std::string, std::size_t> useIndex;
+
+	for (const SceneService& service : scene.services) {
+		if (!std::isfinite(service.performancePercent) || service.performancePercent < 1.0
+				|| service.performancePercent > 100.0)
+			continue;
+		const auto route = std::find_if(scene.routes.begin(), scene.routes.end(),
+				[&service](const SceneRoute& candidate) { return candidate.id == service.route; });
+		if (route == scene.routes.end())
+			continue;
+
+		const auto cached = routeArcs.emplace(route->id, RouteArcs());
+		RouteArcs& arcs = cached.first->second;
+		if (cached.second) {
+			std::vector<const SceneSectionDescriptor*> sections;
+			for (const std::string& token : route->blocks) {
+				const SceneSectionDescriptor* section = inventory.resolve(token);
+				if (section == nullptr) {
+					sections.clear();
+					break;
+				}
+				sections.push_back(section);
+			}
+			if (!sections.empty()) {
+				arcs.usable = true;
+				arcs.direction = sceneRouteDirection(scene, sections);
+				arcs.arcs = routeSectionArcs(sections, arcsByTrack, nodeX);
+			}
+		}
+		if (!arcs.usable)
+			continue;
+
+		auto limits = compositionLimits.find(service.composition);
+		if (limits == compositionLimits.end()) {
+			CompositionLimits computed;
+			SceneCompositionRuntime composition;
+			std::string compositionDiagnostic;
+			if (buildSceneComposition(scene, service.composition, composition, compositionDiagnostic)) {
+				const SceneTrainPhysical& physical = composition.physical;
+				const double massKg = physical.mass_of_traction_unit_kg
+						+ physical.mass_of_a_wagon_kg * physical.number_of_wagons;
+				if (std::isfinite(massKg) && massKg > 0.0 && std::isfinite(physical.max_deceleration_ms2)
+						&& physical.max_deceleration_ms2 > 0.0) {
+					computed.usable = true;
+					computed.brakingGradient = sceneTrainMassFactor(physical) * physical.max_deceleration_ms2
+							/ kSceneGravityMs2;
+					computed.weightN = kSceneGravityMs2 * massKg;
+					// Same evaluation as the runtime tractive effort at 0 m/s.
+					for (const auto& band : composition.tractionCurve)
+						if (0.0 >= band[0] && 0.0 < band[1])
+							computed.standstillEffortN = band[2];
+				}
+			}
+			limits = compositionLimits.emplace(service.composition, computed).first;
+		}
+		if (!limits->second.usable)
+			continue;
+
+		const std::string key = route->id + "\n" + service.composition;
+		const auto use = useIndex.emplace(key, uses.size());
+		if (use.second)
+			uses.push_back({&*route, service.composition, service.performancePercent});
+		else
+			uses[use.first->second].bestPerformancePercent = std::max(
+					uses[use.first->second].bestPerformancePercent, service.performancePercent);
+	}
+
+	for (const RouteUse& use : uses) {
+		const RouteArcs& arcs = routeArcs.at(use.route->id);
+		const CompositionLimits& limits = compositionLimits.at(use.compositionId);
+		const double effortN = use.bestPerformancePercent == 100.0 ? limits.standstillEffortN
+				: limits.standstillEffortN * use.bestPerformancePercent / 100.0;
+		const double startingGradient = effortN / limits.weightN;
+		const double smallerLimit = std::min(limits.brakingGradient, startingGradient);
+
+		std::vector<const SceneArc*> steep;
+		for (const SceneArc* arc : arcs.arcs) {
+			const double gradient = arcs.direction < 0 ? -arc->gradientPercent : arc->gradientPercent;
+			const bool affected = arcs.direction == 0
+					? std::fabs(gradient) > smallerLimit
+					: (gradient < 0.0 ? -gradient > limits.brakingGradient : gradient > startingGradient);
+			if (affected)
+				steep.push_back(arc);
+		}
+		if (steep.empty())
+			continue;
+		std::stable_sort(steep.begin(), steep.end(), [](const SceneArc* left, const SceneArc* right) {
+			return std::fabs(left->gradientPercent) > std::fabs(right->gradientPercent);
+		});
+
+		std::vector<std::string> names;
+		for (const SceneArc* arc : steep)
+			names.push_back(arc->id + " (" + gradientText(arc->gradientPercent) + ")");
+		std::string message = "Route " + use.route->id + " with composition " + use.compositionId + ": "
+				+ std::to_string(steep.size()) + " of " + std::to_string(arcs.arcs.size())
+				+ (steep.size() == 1 ? " arcs is" : " arcs are")
+				+ " too steep for the train to brake on as a descent (limit " + gradientText(limits.brakingGradient)
+				+ ") or to start on as an ascent (limit " + gradientText(startingGradient)
+				+ "). Steepest first: " + namedItems(names)
+				+ ". The simulation reads gradient_percent as rise per length.";
+		if (arcs.direction == 0)
+			message += " The direction of the route is not resolved, so the absolute value is compared with the smaller limit.";
+		diagnostics.warning("scene.route.gradient.steep", message, "infrastructure.json", "route",
+				use.route->id, "arcs[].gradient_percent", use.compositionId,
+				"Check the gradient_percent of the named arcs: the simulation applies it as rise per length "
+				"(0.01 is a 1 percent slope), not as a percentage");
+	}
 }
 
 std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable,
@@ -1226,6 +1418,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			}
 		}
 	}
+
+	if (infrastructureUsableForRuntimeChecks)
+		reportSteepRouteGradients(scene, sectionInventory, diagnostics);
 
 	if (runnable) {
 		if (!scene.name.empty() && sceneOutputDirectoryComponent(scene.name) != scene.name)

@@ -72,6 +72,10 @@ Run; incomplete intermediate departures and insufficient dwell windows remain
 warnings for historical schedules. These checks do not predict physical running
 time. Inert off-route context retains historical finite negative offsets.
 
+Validation also warns, once per route and composition used by a service, when
+arcs of the route are steeper than the composition can brake on or start on
+(`scene.route.gradient.steep`). The warning does not block Run.
+
 The stop list is authoritative: empty means no scheduled calls, regardless of
 the historical `through` field. Nonempty stops are never discarded because that
 field is true. Canonical input/output retains the field for compatibility;

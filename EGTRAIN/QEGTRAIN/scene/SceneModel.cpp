@@ -299,6 +299,12 @@ SceneModel makeNewSceneModel() {
 	return scene;
 }
 
+double sceneTrainMassFactor(const SceneTrainPhysical& physical) {
+	const double wagonMass = physical.mass_of_a_wagon_kg * physical.number_of_wagons;
+	return (1.09 * physical.mass_of_traction_unit_kg + 1.06 * wagonMass)
+			/ (physical.mass_of_traction_unit_kg + wagonMass);
+}
+
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
 		SceneCompositionRuntime& result, std::string& diagnostic) {
 	result = SceneCompositionRuntime();
