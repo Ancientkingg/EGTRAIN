@@ -7,6 +7,7 @@
 #include <QFontMetrics>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QStringList>
 
 #include <algorithm>
