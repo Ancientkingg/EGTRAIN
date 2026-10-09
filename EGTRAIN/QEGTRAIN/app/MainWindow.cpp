@@ -4677,8 +4677,11 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				if (!previewPointAtX(line, station.x, line.displayOffset, anchor))
 					break;
 			}
+			const auto sceneStation = std::find_if(sceneModel.stations.cbegin(), sceneModel.stations.cend(),
+				[&station](const SceneStation& candidate) { return candidate.id == station.id; });
 			paintStationOverlay(anchor, classifyStation(), station.name, presentationScale(),
-				stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale());
+				stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale(),
+				sceneStation == sceneModel.stations.cend() ? 0 : static_cast<int>(sceneStation->platforms.size()));
 			auto* overlay = m_stationOverlays.back();
 			tagPreviewItem(overlay, "station", station.id);
 			const auto bind = [&](QGraphicsItem* decoration, bool artwork) {
@@ -12860,39 +12863,166 @@ void MainWindow::runStationOverlayE2E() {
 				.arg(m_cachedTrackPreview.normalizationScale, 0, 'f', 6)
 				.arg(presentationScale(), 0, 'f', 9));
 		const QRectF topologyBounds = networkView->topologyBounds();
+		const auto pictureNativeSize = [](const QGraphicsPixmapItem* picture) {
+			return QSizeF(picture->pixmap().size()) / picture->pixmap().devicePixelRatio();
+		};
+		const auto pictureDeviceHeight = [&](const QGraphicsPixmapItem* picture) {
+			return networkView->viewportTransform().mapRect(picture->mapRectToScene(
+																QRectF(picture->offset(), pictureNativeSize(picture))))
+				.height();
+		};
+		const auto pictureAnchor = [&](const QGraphicsPixmapItem* picture) {
+			const QSizeF size = pictureNativeSize(picture);
+			return picture->mapToScene(picture->offset() + QPointF(size.width() / 2.0, size.height()));
+		};
+		const auto nameDeviceFontPixels = [&](const QGraphicsTextItem* name) {
+			return name->font().pixelSize() * name->sceneTransform().m22()
+				* qAbs(networkView->viewportTransform().m22());
+		};
+		const auto nameDeviceRect = [&](const QGraphicsTextItem* name) {
+			return networkView->viewportTransform().mapRect(name->sceneBoundingRect());
+		};
+		const auto nameAnchor = [](const QGraphicsTextItem* name) {
+			return name->mapToScene(QPointF(name->boundingRect().width() / 2.0, 0.0));
+		};
+		const qreal minPictureHeight = StationOverlayItem::MinPictogramPixels - 0.5;
+		const qreal minNameFont = StationOverlayItem::MinNamePixels - 0.5;
+		QHash<const StationOverlayItem*, QPointF> pictureAnchors, nameAnchors;
+		bool minimumOk = true, anchorsOk = true, collisionOk = true;
+		// The detail captures are centred on the station with most platforms.
+		const auto detailStation = std::max_element(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+			[](const StationOverlayItem* left, const StationOverlayItem* right) {
+				return (left ? left->platformCount() : -1) < (right ? right->platformCount() : -1);
+			});
 		for (const auto& zoom : {std::make_pair(1.0, "FIT"), std::make_pair(3.0, "3X"),
 				 std::make_pair(12.0, "12X")}) {
 			fitView();
-			if (zoom.first > 1.0)
+			if (zoom.first > 1.0) {
 				networkView->zoomBy(zoom.first);
+				if (detailStation != m_stationOverlays.cend() && *detailStation)
+					networkView->centerOn((*detailStation)->stableAnchor());
+			}
 			updateViewportOverlays();
 			QApplication::processEvents();
 			if (qAbs(networkView->zoomRatio() - zoom.first) > 1e-5
 				|| networkView->topologyBounds() != topologyBounds)
 				failures << QString("%1 changed zoom or topology bounds").arg(zoom.second);
 			bool foundPicture = false;
-			for (auto it = m_stationPictures.cbegin(); it != m_stationPictures.cend(); ++it) {
-				QGraphicsPixmapItem* picture = it.value();
-				if (!picture || !picture->isVisible())
+			int pictures = 0, namedStations = 0, shownNames = 0, hiddenNames = 0;
+			QList<QRectF> shownRects;
+			for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays)) {
+				const QGraphicsPixmapItem* picture = overlay->pictureItem();
+				if (picture && picture->isVisible()) {
+					++pictures;
+					const qreal height = pictureDeviceHeight(picture);
+					const qreal sceneHeight = pictureNativeSize(picture).height()
+						* presentationScale() * qAbs(networkView->transform().m11());
+					if (height < minPictureHeight || height > qMax(minPictureHeight + 1.0, sceneHeight) + 0.5)
+						minimumOk = false;
+					if (!foundPicture) {
+						foundPicture = true;
+						if (picture->pixmap().width() != station_size
+							|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
+							failures << QString("%1 artwork lost its station identity").arg(zoom.second);
+					}
+					const QPointF anchor = pictureAnchor(picture);
+					if (!pictureAnchors.contains(overlay))
+						pictureAnchors.insert(overlay, anchor);
+					else if (QLineF(pictureAnchors.value(overlay), anchor).length() > 1e-6)
+						anchorsOk = false;
+				}
+				const QGraphicsTextItem* name = overlay->nameItem();
+				if (!name)
 					continue;
-				foundPicture = true;
-				if (picture->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-					|| picture->pixmap().width() != station_size
-					|| qAbs(picture->sceneBoundingRect().height() - picture->pixmap().height() * presentationScale()) > 1e-6
-					|| qAbs(picture->scale() - presentationScale()) > 1e-12
-					|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
-					failures << QString("%1 artwork lost scene scale or station identity").arg(zoom.second);
-				break;
+				++namedStations;
+				const QPointF anchor = nameAnchor(name);
+				if (!nameAnchors.contains(overlay))
+					nameAnchors.insert(overlay, anchor);
+				else if (QLineF(nameAnchors.value(overlay), anchor).length() > 1e-6)
+					anchorsOk = false;
+				if (!name->isVisible()) {
+					++hiddenNames;
+					if (m_stationLayerVisible && m_stationNamesVisible && !overlay->isNameHiddenByCollision())
+						collisionOk = false;
+					continue;
+				}
+				++shownNames;
+				if (nameDeviceFontPixels(name) < minNameFont)
+					minimumOk = false;
+				const QRectF rect = nameDeviceRect(name);
+				for (const QRectF& other : std::as_const(shownRects))
+					if (rect.intersects(other))
+						collisionOk = false;
+				shownRects.append(rect);
+			}
+			// A name that is shown does not cover the pictogram of another station.
+			for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays)) {
+				const QGraphicsTextItem* name = overlay->nameItem();
+				if (!name || !name->isVisible() || overlay->isSelected() || overlay->isFollowed())
+					continue;
+				const QRectF nameRect = nameDeviceRect(name);
+				for (const StationOverlayItem* other : std::as_const(m_stationOverlays)) {
+					const QGraphicsPixmapItem* picture = other != overlay ? other->pictureItem() : nullptr;
+					if (!picture || !picture->isVisible())
+						continue;
+					const QRectF shared = nameRect.intersected(
+						networkView->viewportTransform().mapRect(picture->sceneBoundingRect()));
+					if (shared.width() > 2.0 && shared.height() > 2.0)
+						collisionOk = false;
+				}
 			}
 			if (!foundPicture || m_stationLabels.size() != m_stationOverlays.size())
 				failures << QString("%1 has no scene-scaled station picture/name").arg(zoom.second);
+			if (pictures != m_stationPictures.size())
+				failures << QString("%1 hides a station pictogram").arg(zoom.second);
+			if (namedStations > 0 && shownNames < 1)
+				failures << QString("%1 shows no station name").arg(zoom.second);
+			if (caseName == QLatin1String("Copenhagen") && zoom.first == 1.0 && hiddenNames < 1)
+				failures << "Copenhagen at Fit hides no colliding station name";
 			if (!screenshotBase.isEmpty()) {
 				const QString suffix = QString::fromLatin1(zoom.second).toLower();
 				if (!networkView->grab().save(QString("%1-%2.png").arg(screenshotBase, suffix)))
 					failures << QString("%1 station screenshot failed").arg(zoom.second);
 			}
+			marker(QString("E2E_STATION_NAMES_%1_%2 shown=%3 hidden=%4 pictograms=%5")
+					.arg(caseName, zoom.second)
+					.arg(shownNames)
+					.arg(hiddenNames)
+					.arg(pictures));
 			marker(QString("E2E_STATION_OVERLAY_%1_%2_OK").arg(caseName, zoom.second));
 		}
+		if (!minimumOk)
+			failures << "a station pictogram or name is smaller than its minimum size on screen";
+		else
+			marker("E2E_STATION_MIN_SIZE_OK");
+		if (!anchorsOk)
+			failures << "station artwork anchor moved with the zoom";
+		else
+			marker("E2E_STATION_ANCHOR_STABLE_OK");
+		if (!collisionOk)
+			failures << "station names overlap, cover a pictogram or are hidden without a collision";
+		else
+			marker("E2E_STATION_NAME_COLLISION_OK");
+		// Far above Fit the scene size exceeds the minimum, so the artwork keeps its scene scale.
+		fitView();
+		networkView->zoomBy(100.0);
+		updateViewportOverlays();
+		QApplication::processEvents();
+		bool sceneSized = !m_stationPictures.isEmpty();
+		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays)) {
+			const QGraphicsPixmapItem* picture = overlay->pictureItem();
+			const QGraphicsTextItem* name = overlay->nameItem();
+			if ((picture && !picture->transform().isIdentity()) || (name && !name->transform().isIdentity()))
+				sceneSized = false;
+		}
+		if (!sceneSized)
+			failures << "station artwork is enlarged although its scene size is above the minimum";
+		else
+			marker("E2E_STATION_SCENE_SIZE_OK");
+		fitView();
+		networkView->zoomBy(12.0);
+		updateViewportOverlays();
+		QApplication::processEvents();
 		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(windowHandle() ? windowHandle()->devicePixelRatio() : 1.0, 0, 'f', 1));
 		if (caseName == QLatin1String("Netherlands")) {
 			int independent = 0;
@@ -12986,6 +13116,58 @@ void MainWindow::runStationOverlayE2E() {
 		scene->removeItem(ghostStation);
 		delete ghostStation;
 		marker("E2E_STATION_MULTI_SOURCE_BINDING_OK");
+		fitView();
+		updateViewportOverlays();
+		QApplication::processEvents();
+		QSet<const StationOverlayItem*> shownNameStations;
+		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+			if (overlay->nameItem() && overlay->nameItem()->isVisible())
+				shownNameStations.insert(overlay);
+		m_stationNamesCheck->setChecked(false);
+		QApplication::processEvents();
+		bool namesHidden = true;
+		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+			if (overlay->nameItem() && overlay->nameItem()->isVisible())
+				namesHidden = false;
+		m_stationNamesCheck->setChecked(true);
+		QApplication::processEvents();
+		QSet<const StationOverlayItem*> restoredNameStations;
+		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+			if (overlay->nameItem() && overlay->nameItem()->isVisible())
+				restoredNameStations.insert(overlay);
+		if (!namesHidden || shownNameStations.isEmpty() || restoredNameStations != shownNameStations)
+			failures << QString("station name layer toggle does not restore the same names (before=%1 hiddenByToggle=%2 after=%3 zoom=%4)")
+							.arg(shownNameStations.size())
+							.arg(namesHidden)
+							.arg(restoredNameStations.size())
+							.arg(networkView->zoomRatio());
+		else
+			marker("E2E_STATION_NAMES_TOGGLE_OK");
+		// A selected station keeps its name even where it would collide at Fit.
+		StationOverlayItem* chosen = nullptr;
+		for (auto* overlay : std::as_const(m_stationOverlays))
+			if (overlay->nameItem() && overlay->hasSourceIdentity()
+				&& (!chosen || overlay->isNameHiddenByCollision())) {
+				chosen = overlay;
+				if (overlay->isNameHiddenByCollision())
+					break;
+			}
+		StationNodeItem* chosenNode = chosen
+			? resolveStationNodeItem(chosen->sourceNodeId(), chosen->sourceTrack())
+			: nullptr;
+		if (!chosen || !chosenNode) {
+			failures << "no station to select for the name check";
+		} else {
+			const bool wasHidden = chosen->isNameHiddenByCollision();
+			displayStationNodeInfo(chosenNode);
+			updateViewportOverlays();
+			QApplication::processEvents();
+			if (!chosen->isSelected() || !chosen->nameItem()->isVisible() || chosen->isNameHiddenByCollision()
+				|| (caseName == QLatin1String("Copenhagen") && !wasHidden))
+				failures << "selected station lost its name at Fit";
+			else
+				marker(QString("E2E_STATION_SELECTED_NAME_OK was_hidden=%1").arg(wasHidden ? 1 : 0));
+		}
 	}
 	if (failures.isEmpty()) {
 		marker("E2E_STATION_OVERLAY_OK");
@@ -14165,6 +14347,9 @@ void MainWindow::runVisualPolishE2E() {
 		const bool trainInfoVisibleBefore = trainInfoWidget && trainInfoWidget->isVisible();
 		const QString infoTitleBefore = infoDockWidget ? infoDockWidget->windowTitle() : QString();
 		const bool effectPresentBefore = effect != nullptr;
+		// The bounds of a train group are those of its bodies, so the scene has to hear
+		// of the change before the body leaves.
+		staleGroup->prepareForChildGeometryChange();
 		staleGroup->removeFromGroup(staleBody);
 		delete staleBody;
 		if (details)
@@ -21805,7 +21990,8 @@ void MainWindow::setupGUI() {
 				stationDecorationOffset(m_sceneModel.stationViews,
 					m_sceneModel.stations[static_cast<std::size_t>(i)].id,
 					StationArray[i].stationName)
-					* presentationScale());
+					* presentationScale(),
+				static_cast<int>(m_sceneModel.stations[static_cast<std::size_t>(i)].platforms.size()));
 			continue;
 		}
 
@@ -21828,7 +22014,10 @@ void MainWindow::setupGUI() {
 
 		paintStationOverlay(pt,
 			classifyStation(),
-			StationArray[i].stationName, 1.0, decorationOffset);
+			StationArray[i].stationName, 1.0, decorationOffset,
+			i < static_cast<int>(m_sceneModel.stations.size())
+				? static_cast<int>(m_sceneModel.stations[static_cast<std::size_t>(i)].platforms.size())
+				: 0);
 	}
 
 	// draw connections
@@ -24266,9 +24455,10 @@ void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int tr
 	scene->addItem(el);
 }
 
-// Keep native font/pixmap metrics and scale their scene-space presentation.
+// Keep native font/pixmap metrics and scale their scene-space presentation. The
+// overlay then enlarges them on screen to their minimum readable size.
 void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-	qreal presentationScale, QPointF decorationOffset) {
+	qreal presentationScale, QPointF decorationOffset, int platformCount) {
 	if (!scene)
 		return;
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
@@ -24304,6 +24494,7 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	label->setAcceptedMouseButtons(Qt::NoButton);
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
+	overlay->attachArtwork(m_stationPictures.value(overlay, nullptr), label, platformCount);
 }
 
 // paint platform next to station Node (upper side)
@@ -25300,11 +25491,20 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 			if (source == m_sceneModel.stations.end() || !picture || !label) return false;
 			const QPointF textCenter = overlay->stableAnchor()
 				+ stationDecorationOffset(m_sceneModel.stationViews, source->id, source->name) * expectedScale;
-			if (!closeTo(picture->sceneBoundingRect().width(), station_size * expectedScale)
+			// The scene size, without the enlargement that keeps the artwork readable at Fit.
+			const auto sceneSizeRect = [](const QGraphicsItem* item) {
+				// The item transform acts after the item scale, so remove it in scaled coordinates.
+				const QTransform scaled = QTransform::fromScale(item->scale(), item->scale());
+				const QTransform enlargement = scaled * item->transform() * scaled.inverted();
+				return (enlargement.inverted() * item->sceneTransform()).mapRect(item->boundingRect());
+			};
+			const QRectF pictureRect = sceneSizeRect(picture);
+			const QRectF labelRect = sceneSizeRect(label);
+			if (!closeTo(pictureRect.width(), station_size * expectedScale)
 				|| !closeTo(picture->scale(), expectedScale) || !closeTo(label->scale(), expectedScale)
 				|| label->font().pixelSize() != station_size / 5
-				|| QLineF(label->mapToScene(label->boundingRect().center()), textCenter).length() > 1e-6
-				|| QLineF(picture->sceneBoundingRect().center(), textCenter - QPointF(0, station_size * expectedScale / 2)).length() > 1e-6)
+				|| QLineF(labelRect.center(), textCenter).length() > 1e-6
+				|| QLineF(pictureRect.center(), textCenter - QPointF(0, station_size * expectedScale / 2)).length() > 1e-6)
 				return false;
 		}
 		return true;
@@ -28521,9 +28721,15 @@ void MainWindow::updateViewportOverlays() {
 	}
 	if (nearestFollowed)
 		nearestFollowed->setFollowed(true);
-	for (auto* label : m_stationLabels)
-		if (label)
-			label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
+	const qreal viewScale = std::abs(networkView->transform().m11());
+	for (auto* overlay : m_stationOverlays)
+		if (overlay)
+			overlay->applyViewScale(viewScale);
+	StationOverlayItem::resolveNameCollisions(m_stationOverlays, networkView->viewportTransform());
+	for (auto* overlay : m_stationOverlays)
+		if (overlay && overlay->nameItem())
+			overlay->nameItem()->setVisible(m_stationLayerVisible && m_stationNamesVisible
+				&& !overlay->isNameHiddenByCollision());
 	updateSignalCues();
 	const bool paxText = paxTextVisible();
 	for (auto* platform : allPlatforms)
