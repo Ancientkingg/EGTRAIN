@@ -563,8 +563,36 @@ static bool runLongTrackChecks() {
 	return ok;
 }
 
+static bool runManySectionsChecks() {
+	bool ok = true;
+	constexpr int blockCount = 6001;
+	SceneModel scene;
+	scene.name = "many-sections";
+	scene.tracks = {{"track.many"}};
+	for (int index = 0; index <= blockCount; ++index)
+		scene.nodes.push_back({"node." + std::to_string(index), "track.many", static_cast<double>(index), 0.0});
+	for (int index = 0; index < blockCount; ++index)
+		scene.arcs.push_back({"arc." + std::to_string(index), "track.many", "node." + std::to_string(index),
+				"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
+	for (int index = 0; index < blockCount; ++index)
+		scene.blocks.push_back({"block." + std::to_string(index), "track.many", 1.0});
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	ok &= expect(!hasErrors(diagnostics), "a scene with more than 6000 sections builds");
+	ok &= expect(Blocks == blockCount && signalling_block_sections.size() == static_cast<std::size_t>(blockCount),
+			"the section storage is sized from the scene");
+	if (signalling_block_sections.size() == static_cast<std::size_t>(blockCount))
+		ok &= expect(signalling_block_sections.front().ID == "@block.0@"
+				&& signalling_block_sections.back().ID == "@block.6000@",
+				"the sections past the former limit are built");
+	resetNativeInfrastructureState();
+	ok &= expect(Blocks == 0 && signalling_block_sections.capacity() == 0,
+			"the runtime reset releases the section storage");
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runLongTrackChecks();
+	ok &= runManySectionsChecks();
 	return ok ? 0 : 1;
 }

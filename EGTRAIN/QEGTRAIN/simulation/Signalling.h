@@ -247,7 +247,7 @@ public:
 	friend void SetBlockSpeed();
 };
 
-extern Section signalling_block_sections[6000]; // Global block sections array
+extern std::vector<Section> signalling_block_sections; // Global block sections, sized by the scene builder
 
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);

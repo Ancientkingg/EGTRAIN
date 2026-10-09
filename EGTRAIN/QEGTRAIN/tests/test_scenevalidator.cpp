@@ -673,6 +673,17 @@ int main(int argc, char** argv) {
 	ok &= expect(!hasCode(validateRunnableScene(longTrack), "scene.capacity.runtime"),
 			"a track with more than 1500 nodes and arcs is not rejected for size");
 
+	SceneModel manySections = clean;
+	for (int index = 4; index <= 6002; ++index)
+		manySections.nodes.push_back({"node-" + std::to_string(index), "track-1", static_cast<double>(index - 1), 0.0});
+	for (int index = 3; index <= 6001; ++index) {
+		manySections.arcs.push_back({"arc-" + std::to_string(index), "track-1", "node-" + std::to_string(index),
+				"node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+		manySections.blocks.push_back({"block-" + std::to_string(index), "track-1", 1.0});
+	}
+	ok &= expect(!hasCode(validateRunnableScene(manySections), "scene.capacity.runtime"),
+			"a scene with more than 6000 sections is not rejected for size");
+
 	SceneModel negativeChainage = clean;
 	negativeChainage.nodes = {{"node-1", "track-1", -2.0, 0.0}, {"node-2", "track-1", -1.0, 0.0},
 			{"node-3", "track-1", 0.0, 0.0}};

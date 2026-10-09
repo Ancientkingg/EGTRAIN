@@ -75,7 +75,6 @@ std::vector<std::string> routeComponents(const std::string& token) {
 constexpr std::size_t kNativeMaxTracks = 268;
 constexpr std::size_t kNativeMaxConnections = 708;
 constexpr std::size_t kNativeMaxStations = 95;
-constexpr std::size_t kNativeMaxBaseBlocks = 6000;
 constexpr std::size_t kNativeMaxRouteBlocks = 600;
 constexpr std::size_t kNativeMaxNodeConnections = 6;
 constexpr std::size_t kNativeMaxDependencies = 10;
@@ -1409,10 +1408,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				}
 			}
 			reportUncoveredRouteSections(scene, sectionInventory, signallingCoveredSectionIds, diagnostics);
-			if (plannedSectionIds.size() > kNativeMaxBaseBlocks)
-				runtimeCapacity("Base blocks and derived switch sections exceed runtime capacity",
-						"infrastructure.json", "block", "", "blocks",
-						std::to_string(kNativeMaxBaseBlocks), "Reduce base blocks or switch connections");
 
 			std::unordered_map<std::string, std::size_t> endpointCounts;
 			for (const auto& connection : scene.connections) {

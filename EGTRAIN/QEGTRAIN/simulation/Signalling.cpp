@@ -519,7 +519,8 @@ std::list<TDS> list_of_TDS;
  * \brief the small parts that can be occupied
  * max of 20 arcs
  */
-Section signalling_block_sections[6000]; // Signalling Block Sections
+std::vector<Section> signalling_block_sections; // Signalling Block Sections, sized once per scene by the builder
+static bool derivedSectionsExceedPlan = false;  // createBlockConn needed more sections than the builder planned
 
 
 // Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
@@ -722,6 +723,10 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 						}
 						if (CheckBlockPresence == 0) // if there is not a similar block section the new connecting block section is created
 						{
+							if (Blocks >= static_cast<int>(signalling_block_sections.size())) {
+								derivedSectionsExceedPlan = true;
+								return;
+							}
 							Blocks++;
 							generateConnectBlock(connections, BS1, signalling_block_sections[i], Nb, signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j], signalling_block_sections[Blocks - 1]);
 						}
@@ -1946,7 +1951,6 @@ namespace {
 constexpr int kNativeMaxTracks = 268;
 constexpr int kNativeMaxConnections = 708;
 constexpr int kNativeMaxStations = 95;
-constexpr int kNativeMaxBlocks = 6000;
 constexpr int kNativeMaxRouteBlocks = 600;
 constexpr int kNativeMaxSectionArcs = 20;
 constexpr double kNativeCoordinateTolerance = 1e-8;
@@ -2029,11 +2033,11 @@ void nativeResetRuntime() {
 		blockSets[i] = BlockSet();
 	for (int i = 0; i < kNativeMaxConnections; ++i)
 		connections[i] = Connections();
-	for (int i = 0; i < kNativeMaxBlocks; ++i) {
-		delete[] signalling_block_sections[i].nodelist_of_nodes_in_signalling_section;
-		signalling_block_sections[i].nodelist_of_nodes_in_signalling_section = nullptr;
-		signalling_block_sections[i] = Section();
-	}
+	// Routes and station boundaries refer to these sections and are already cleared
+	for (Section& section : signalling_block_sections)
+		delete[] section.nodelist_of_nodes_in_signalling_section;
+	std::vector<Section>().swap(signalling_block_sections);
+	derivedSectionsExceedPlan = false;
 	for (int i = 0; i < kNativeMaxStations; ++i)
 		StationArray[i] = Stations();
 }
@@ -2320,9 +2324,6 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			add(SceneSeverity::Error, "scene.native.ref.unresolved",
 				"Reference does not identify a planned runtime section", "signalling.json", type, id, path, reference);
 	};
-	if (plannedSectionIds.size() > static_cast<std::size_t>(kNativeMaxBlocks))
-		add(SceneSeverity::Error, "scene.native.capacity", "Base blocks and derived switch sections exceed runtime capacity",
-			"infrastructure.json", "block", "", "blocks", std::to_string(kNativeMaxBlocks));
 	std::unordered_set<std::string> stationIds;
 	std::unordered_set<std::string> platformIds;
 	for (const auto& station : scene.stations) {
@@ -2514,6 +2515,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		return diagnostics;
 
 	nativeResetRuntime();
+	// Base sections plus derived switch sections. A successful build creates exactly this many.
+	signalling_block_sections = std::vector<Section>(plannedSectionIds.size());
 	numTrackLines = static_cast<int>(nativeTracks.size());
 	std::unordered_map<std::string, Node> runtimeNodeById;
 	std::unordered_map<std::string, int> runtimeNodeTrack;
@@ -2774,7 +2777,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	std::unordered_map<std::string, int> sectionAliases;
 	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex)
 		sectionAliases[signalling_block_sections[sectionIndex].ID] = sectionIndex;
-	const bool sectionMismatch = sectionAliases.size() != static_cast<std::size_t>(Blocks)
+	const bool sectionMismatch = derivedSectionsExceedPlan
+			|| sectionAliases.size() != static_cast<std::size_t>(Blocks)
 			|| sectionAliases.size() != plannedSectionIds.size()
 			|| std::any_of(plannedSectionIds.begin(), plannedSectionIds.end(),
 					[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
@@ -2785,11 +2789,6 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				"planned=" + std::to_string(plannedSectionIds.size())
 						+ ", actual=" + std::to_string(sectionAliases.size()),
 				"Fix topology or block placement so native section identities match the section catalog");
-		return diagnostics;
-	}
-	if (Blocks > kNativeMaxBlocks) {
-		add(SceneSeverity::Error, "scene.native.capacity", "Derived switch sections exceed the runtime capacity",
-			"infrastructure.json", "block", "", "connections", std::to_string(kNativeMaxBlocks));
 		return diagnostics;
 	}
 	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
@@ -2885,9 +2884,9 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 
 	setVirtualSignals();
-	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(signalling_block_sections, Blocks);
-	setGeoCoordinates(signalling_block_sections, Blocks);
-	createTds(signalling_block_sections, Blocks, 3, list_of_TDS);
+	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(signalling_block_sections.data(), Blocks);
+	setGeoCoordinates(signalling_block_sections.data(), Blocks);
+	createTds(signalling_block_sections.data(), Blocks, 3, list_of_TDS);
 	for (const auto& route : scene.routes)
 		for (const auto& token : route.blocks)
 			if (resolveSection(token) < 0)

@@ -449,8 +449,8 @@ static bool routeBoundaryTests() {
 		// The section before the route is a double switch too and is poisoned for a sanitizer, so that
 		// reading it is reported, and it releases visibly when it is read in a plain build.
 		const int savedBlocks = Blocks;
-		const Section savedFirst = signalling_block_sections[0];
-		const Section savedSecond = signalling_block_sections[1];
+		std::vector<Section> savedSections(2);
+		savedSections.swap(signalling_block_sections);
 		Blocks = 2;
 		signalling_block_sections[0].ID = "@boundary.a@";
 		signalling_block_sections[1].ID = "@boundary.b@";
@@ -471,8 +471,7 @@ static bool routeBoundaryTests() {
 		ASAN_UNPOISON_MEMORY_REGION(&storage[0], sizeof(Section));
 #endif
 		const bool beforeRouteUntouched = std::find(BlocksConnected.begin(), BlocksConnected.end(), storage[0].ID) == BlocksConnected.end();
-		signalling_block_sections[0] = savedFirst;
-		signalling_block_sections[1] = savedSecond;
+		savedSections.swap(signalling_block_sections);
 		Blocks = savedBlocks;
 		ok &= expect(BlocksOccupied.size() == 1 && BlocksOccupied.front() == sections[1].ID && beforeRouteUntouched,
 				"a first section that starts with a virtual signal has no double switch before it to release");
