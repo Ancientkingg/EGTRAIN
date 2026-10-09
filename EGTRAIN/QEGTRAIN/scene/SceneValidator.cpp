@@ -73,8 +73,6 @@ std::vector<std::string> routeComponents(const std::string& token) {
 }
 
 constexpr std::size_t kNativeMaxTracks = 268;
-constexpr std::size_t kNativeMaxTrackNodes = 1500;
-constexpr std::size_t kNativeMaxTrackArcs = 1500;
 constexpr std::size_t kNativeMaxConnections = 708;
 constexpr std::size_t kNativeMaxStations = 95;
 constexpr std::size_t kNativeMaxBaseBlocks = 6000;
@@ -1330,27 +1328,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				runtimeCapacity("Scene has more than " + std::to_string(kNativeMaxTracks)
 						+ " tracks for the native runtime", "infrastructure.json", "track", "", "tracks",
 						std::to_string(scene.tracks.size()), "Reduce the number of tracks");
-
-			std::unordered_map<std::string, std::size_t> nodesPerTrack;
-			std::unordered_map<std::string, std::size_t> arcsPerTrack;
-			for (const auto& node : scene.nodes)
-				++nodesPerTrack[node.trackId];
-			for (const auto& arc : scene.arcs)
-				++arcsPerTrack[arc.trackId];
-			for (std::size_t trackIndex = 0; trackIndex < scene.tracks.size(); ++trackIndex) {
-				const SceneTrack& track = scene.tracks[trackIndex];
-				const std::string trackPath = "tracks[" + std::to_string(trackIndex) + "]";
-				const std::size_t nodeCount = nodesPerTrack[track.id];
-				if (nodeCount > kNativeMaxTrackNodes)
-					runtimeCapacity("Track has more than " + std::to_string(kNativeMaxTrackNodes)
-							+ " runtime nodes", "infrastructure.json", "track", track.id,
-							trackPath + ".nodes", std::to_string(nodeCount), "Reduce nodes on this track");
-				const std::size_t arcCount = arcsPerTrack[track.id];
-				if (arcCount > kNativeMaxTrackArcs)
-					runtimeCapacity("Track has more than " + std::to_string(kNativeMaxTrackArcs)
-							+ " runtime arcs", "infrastructure.json", "track", track.id,
-							trackPath + ".arcs", std::to_string(arcCount), "Reduce arcs on this track");
-			}
 
 			if (scene.connections.size() > kNativeMaxConnections)
 				runtimeCapacity("Scene has more than " + std::to_string(kNativeMaxConnections)

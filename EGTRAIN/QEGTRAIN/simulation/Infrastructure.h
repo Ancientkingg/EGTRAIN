@@ -185,17 +185,18 @@ public:
 
 // --- BlockSet: a train path (track line) composed of arcs and nodes ---
 
-#define maxsize 1500
-
+// The runtime builder sizes A, N and member once per track, so every index below arcs (A, member)
+// or numNodes (N) is valid. GUI items keep Node* and Arc* into these buffers: they are valid only
+// until the next runtime reset or rebuild, which the GUI performs only after tearing the items down.
 class BlockSet {
 public:
 	int ID;
 	string sceneTrackId;              // Canonical scene track identity, when built from a SceneModel.
 	int len;
 	int arcs, numNodes;              // Number of arcs and nodes in this track line
-	Arc A[1500];                     // Runtime arcs populated from the scene model
-	Node N[1500];                    // Runtime nodes populated from the scene model
-	Arc member[maxsize];             // Member arcs of the track line
+	std::vector<Arc> A;              // Runtime arcs populated from the scene model
+	std::vector<Node> N;             // Runtime nodes populated from the scene model
+	std::vector<Arc> member;         // Member arcs of the track line
 	int graphID;                     // Graphical display level
 	bool hasGraphLayout;             // Whether graphID/region came from authored view data
 	int region;                      // Geographical region

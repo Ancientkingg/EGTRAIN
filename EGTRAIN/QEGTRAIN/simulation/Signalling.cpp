@@ -2160,9 +2160,6 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		for (const auto& arc : scene.arcs)
 			if (arc.trackId == track.id)
 				arcs.push_back(&arc);
-		if (nodes.size() > static_cast<std::size_t>(maxsize) || arcs.size() > static_cast<std::size_t>(maxsize))
-			add(SceneSeverity::Error, "scene.native.capacity", "Track exceeds the runtime node or arc capacity",
-				"infrastructure.json", "track", track.id, "tracks", std::to_string(maxsize));
 		if (nodes.size() < 2 || arcs.empty()) {
 			add(SceneSeverity::Error, "scene.native.topology.incomplete", "Track must have at least one arc and two nodes",
 				"infrastructure.json", "track", track.id);
@@ -2528,6 +2525,9 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		runtimeTrack.numNodes = static_cast<int>(track.chainNodes.size());
 		runtimeTrack.arcs = static_cast<int>(track.chainArcs.size());
 		runtimeTrack.len = static_cast<int>(track.chainArcs.size());
+		runtimeTrack.N.resize(track.chainNodes.size());
+		runtimeTrack.A.resize(track.chainArcs.size());
+		runtimeTrack.member.resize(track.chainArcs.size());
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
 				[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
 		if (view != scene.trackViews.end()) {
