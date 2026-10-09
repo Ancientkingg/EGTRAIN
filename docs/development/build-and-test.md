@@ -263,7 +263,7 @@ The characterization tests pin what the simulation core does today, so that
 refactors of movement, signalling and global state show up as a reviewable
 diff. They drive the real `DispatchController` in the test process on the small
 scene `EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line` ("Characterization Line"):
-one track of 16 km in eight blocks of 2 km, three stations, five services and
+one track of 16 km in eight blocks of 2 km, three stations, six services and
 three scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`).
 All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
@@ -278,8 +278,9 @@ A case is a scenario, a set of services and a level. The case table is in
 | `follow-level-none`, `follow-level-0` to `-5` | trains `F1` and `F2` following each other |
 | `sf-forward-level-none`, `-0` to `-5` | the same trains with a signal failure from 400 s to 1000 s |
 | `sf-reverse-level-none`, `-0` to `-5` | trains `R1` and `R2` in the opposite direction, same failure window |
+| `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
 
-All 22 cases run in CTest. They are listed in
+All 24 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -391,13 +392,15 @@ grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 
 The markers name three open issues. #437 covers two trains at one position
 (`follow-level-none`, `sf-forward-level-none`, `sf-reverse-level-none`) and
-trains that stay stopped after a signal failure at levels 0 to 2. #499 covers
-a following train that reports a departure from B before its planned
-departure at levels 3 and 4. #498 covers trains that stand until the end of
-the run at level 5 (`follow-level-5`, `sf-forward-level-5`,
-`sf-reverse-level-5`). No check fails for these three, because every stop is
-at a block boundary or a platform, and the marker ties them to the issue. The
-unmarked cases show no known-wrong behaviour, so the checks apply.
+trains that stay stopped after a signal failure at levels 0 to 2. #498 covers
+trains that stand until the end of the run at level 5 (`follow-level-5`,
+`sf-forward-level-5`, `sf-reverse-level-5`). #534 covers a following train that
+stops at the position of the leading train at the last station at level 4
+(`sf-forward-level-4`, `sf-reverse-level-4`). Without their markers the cases
+of #437 and #534 fail the check for overlapping trains. No check fails for the
+three cases of #498, because every stop is at a block boundary or a platform;
+their marker ties them to the issue. The unmarked cases show no known-wrong
+behaviour, so the checks apply.
 
 ## Simulation Smoke Test
 

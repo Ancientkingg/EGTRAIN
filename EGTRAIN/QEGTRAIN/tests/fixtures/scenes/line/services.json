@@ -87,6 +87,34 @@
         {
             "composition": "SLT_Sprinter",
             "entry_time_seconds": 60.0,
+            "id": "L1",
+            "operating_code": "L1",
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 120.0,
+                    "platform": "A.platform.1",
+                    "station": "A"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 600.0,
+                    "planned_departure_seconds": 660.0,
+                    "platform": "B.platform.1",
+                    "station": "B"
+                },
+                {
+                    "dwell_seconds": 100.0,
+                    "planned_arrival_seconds": 1100.0,
+                    "platform": "C.platform.1",
+                    "station": "C"
+                }
+            ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 60.0,
             "id": "R1",
             "operating_code": "R1",
             "route": "route1",
