@@ -646,6 +646,7 @@ int main() {
 			"writer preserves a nonzero reduced speed when its presence flag is stale");
 	ok &= expect(!legacyServices["services"][0].contains("performance_percent")
 				&& !legacyServices["services"][0].contains("category")
+				&& !legacyServices["services"][0].contains("visualization_color")
 				&& !legacyServices["services"][0].contains("maximum_speed_kmh")
 				&& !legacyServices["services"][0].contains("repeat"),
 				"default service properties remain omitted for legacy scenes");
@@ -659,6 +660,37 @@ int main() {
 	}
 	ok &= expect(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
 			"non-string category is rejected");
+	SceneModel missingColor;
+	legacyServices["services"][0].erase("category");
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	ok &= expect(loadHasNoErrors(legacyDefaultsPath, missingColor)
+			&& missingColor.services[0].visualizationColor.empty(), "missing colour defaults to empty");
+	legacyServices["services"][0]["visualization_color"] = 42;
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	ok &= expect(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
+			"non-string visualization colour is rejected");
+	for (const char* color : {"#3c8dd2", "#3C8DD2", "#3c8DD2", "not-a-colour"}) {
+		SceneModel colored = completeScene();
+		colored.services[0].visualizationColor = color;
+		const fs::path coloredPath = temp.path / "colored-service";
+		ok &= expect(saveScene(colored, coloredPath.string()).success(), "service with colour saves");
+		json coloredServices;
+		{
+			std::ifstream input(coloredPath / "services.json");
+			input >> coloredServices;
+		}
+		SceneModel coloredReloaded;
+		ok &= expect(coloredServices["services"][0].value("visualization_color", "") == color
+				&& loadHasNoErrors(coloredPath, coloredReloaded)
+				&& coloredReloaded.services[0].visualizationColor == color,
+				"service colour is written and read back exactly as given");
+	}
 	ok &= expect(reloaded.services[0].stops[1].hasPlannedArrival
 				&& reloaded.services[0].stops[1].plannedArrivalSeconds == 200.0,
 			"planned arrival round-trips");

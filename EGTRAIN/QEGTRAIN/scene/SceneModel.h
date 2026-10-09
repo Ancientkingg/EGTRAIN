@@ -190,6 +190,7 @@ struct SceneService {
 	int operatingCodeStep = 0;
 	std::vector<SceneStop> stops;
 	std::string category;
+	std::string visualizationColor;
 };
 
 struct SceneServiceOccurrence {
@@ -326,6 +327,9 @@ struct SceneModel {
 SceneModel makeNewSceneModel();
 
 std::string sceneOutputDirectoryComponent(const std::string& sceneName);
+// Accepts exactly "#" followed by six hexadecimal digits in either case.
+bool sceneParseVisualizationColor(const std::string& text, int* red = nullptr, int* green = nullptr,
+		int* blue = nullptr);
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence = 1);
 int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
 		const SceneRunSelection& selection = {});

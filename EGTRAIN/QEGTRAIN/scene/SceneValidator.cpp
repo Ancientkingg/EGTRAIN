@@ -997,6 +997,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!hasId(routeIds, service.route))
 			diagnostics.error("scene.ref.unresolved", "Service refers to unknown route", "services.json",
 					"service", service.id, path + ".route", service.route);
+		if (!service.visualizationColor.empty() && !sceneParseVisualizationColor(service.visualizationColor))
+			diagnostics.warning("scene.service.color.invalid",
+					"Service visualization_color must be #RRGGBB; the default train colour is used for this service",
+					"services.json", "service", service.id, path + ".visualization_color",
+					service.visualizationColor, "Use a colour such as #3C8DD2 or remove the value");
 		if (!std::isfinite(service.performancePercent) || service.performancePercent < 1.0
 				|| service.performancePercent > 100.0)
 			diagnostics.error("scene.performance.invalid", "Service performance_percent must be finite and between 1 and 100",

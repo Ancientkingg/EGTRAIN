@@ -194,6 +194,42 @@ int main(int argc, char** argv) {
 			"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	const std::string colorCode = "scene.service.color.invalid";
+	for (const char* value : {"", "#112233", "#abcdef", "#ABCDEF", "#aBc012"}) {
+		SceneModel colored = clean;
+		colored.services[0].visualizationColor = value;
+		ok &= expect(!hasCode(validateScene(colored), colorCode) && validateScene(colored).empty(),
+				"unset and valid service colours give no diagnostic");
+	}
+	for (const char* value : {"#fff", "#12345g", "red", "#1234567", " #112233", "#112233 "}) {
+		SceneModel colored = clean;
+		colored.services[0].visualizationColor = value;
+		const auto diagnostics = validateScene(colored);
+		const SceneDiagnostic* invalidColor = findCode(diagnostics, colorCode);
+		ok &= expect(diagnostics.size() == 1 && invalidColor != nullptr
+				&& invalidColor->severity == SceneSeverity::Warning && invalidColor->file == "services.json"
+				&& invalidColor->itemType == "service" && invalidColor->itemId == "service-1"
+				&& invalidColor->path == "services[service-1].visualization_color"
+				&& invalidColor->relatedId == value && contains(invalidColor->message, "default train colour")
+				&& contains(invalidColor->suggestedFix, "#3C8DD2"),
+				"invalid service colour gives one warning naming the service and field");
+		ok &= expect(!hasErrors(diagnostics) && validateRunnableScene(colored).size() == 1,
+				"invalid service colour does not block a run");
+	}
+	int red = -1, green = -1, blue = -1;
+	ok &= expect(sceneParseVisualizationColor("#3C8DD2", &red, &green, &blue)
+			&& red == 0x3C && green == 0x8D && blue == 0xD2, "upper-case colour parses to its channels");
+	red = green = blue = -1;
+	ok &= expect(sceneParseVisualizationColor("#3c8dd2", &red, &green, &blue)
+			&& red == 0x3C && green == 0x8D && blue == 0xD2, "lower-case colour parses to its channels");
+	ok &= expect(sceneParseVisualizationColor("#000000", &red, &green, &blue) && red == 0 && green == 0 && blue == 0
+			&& sceneParseVisualizationColor("#FFffFF", &red, &green, &blue) && red == 255 && green == 255
+			&& blue == 255 && sceneParseVisualizationColor("#112233"), "colour bounds parse without outputs too");
+	red = green = blue = -1;
+	for (const char* value : {"", "#", "#fff", "#ffff", "#fffff", "#fffffff", "#AARRGGBB", "#80112233", "112233",
+			"#11223g", "#11 233", " #112233", "#112233 ", "#112233\n", "red", "#+12233", "#-12233", "#0x1233"})
+		ok &= expect(!sceneParseVisualizationColor(value, &red, &green, &blue) && red == -1 && green == -1
+				&& blue == -1, "malformed colour text is rejected and leaves outputs unchanged");
 	SceneModel timetable = clean;
 	timetable.services[0].stops[0].hasPlannedArrival = true;
 	timetable.services[0].stops[0].plannedArrivalSeconds = 90.0;

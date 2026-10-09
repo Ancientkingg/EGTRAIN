@@ -1,5 +1,6 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneModel.h"
+#include <cctype>
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -85,6 +86,40 @@ int main() {
 		ok &= expect(fs::exists(fs::path(outDir.dir) / "TimeTable" / "empty.txt")
 				&& fs::file_size(fs::path(outDir.dir) / "TimeTable" / "empty.txt") == 0,
 				"zero stops export as an empty legacy timetable without a flag");
+	}
+
+	// 7b. A service display colour has no place in the legacy format and is left out of the export.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Service Colour"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","visualization_color":"#3c8dd2","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Service colour export");
+		ok &= expect(res.success(), "export of a service with a colour succeeds");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "TimeTable" / "svc.txt"), "service with a colour is exported");
+		bool leaked = false;
+		for (const auto& entry : fs::recursive_directory_iterator(outDir.dir)) {
+			if (!entry.is_regular_file())
+				continue;
+			std::ifstream input(entry.path(), std::ios::binary);
+			std::stringstream content;
+			content << input.rdbuf();
+			std::string text = content.str();
+			for (char& character : text)
+				character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+			leaked |= text.find("3c8dd2") != std::string::npos || text.find("visualization") != std::string::npos;
+		}
+		ok &= expect(!leaked, "legacy export does not contain the service colour");
 	}
 
 	// 8. Non-ASCII route ids are not treated as decimal route numbers.
