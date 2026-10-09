@@ -187,9 +187,9 @@ QEGTRAIN_E2E_SIGNAL_HEADS=levels \
 QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
 	"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
 grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$SIGNAL_HEADS_OUT"
-# Assignment has no signalling area and heads that no route reaches; Lebanon has
-# a level 0 area and mostly heads that no route reaches.
-for SIGNAL_CASE in Assignment_Gvc_Gdg_Ut:none Lebanon:any; do
+# Assignment and Lebanon have a level 0 area and heads that no route reaches. A
+# scene without any signalling area is the "none" copy of the line fixture above.
+for SIGNAL_CASE in Assignment_Gvc_Gdg_Ut:any Lebanon:any; do
 QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_SIGNAL_HEADS="${SIGNAL_CASE#*:}" \
