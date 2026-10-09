@@ -602,6 +602,7 @@ private:
 	// stop (timetable) editor: edits the selected service's ordered stops
 	QTableWidget* m_stopTableWidget = nullptr;
 	QPushButton* m_addStopButton = nullptr;
+	QPushButton* m_insertStopAfterButton = nullptr;
 	QPushButton* m_removeStopButton = nullptr;
 	QPushButton* m_moveStopUpButton = nullptr;
 	QPushButton* m_moveStopDownButton = nullptr;
@@ -914,10 +915,11 @@ private:
 	void refreshStopList();
 	void updateStopActions();
 	void addStop();
+	void insertStopAfterSelected();
 	void removeStop();
 	void moveStopUp();
 	void moveStopDown();
-	void editStop(int row);
+	void editStop(int row, int insertIndex = -1);
 
 	// incident editor
 	void refreshScenarioList();

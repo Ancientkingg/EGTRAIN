@@ -132,8 +132,16 @@ settings. The window resolves a train's colour from the service id that the
 simulation snapshot carries, so every occurrence of a service shares it.
 Route choices show endpoints and traversal direction, with canonical IDs as
 secondary labels and item data. Tooltips list traversed stations, not scheduled
-calls. Stop choices follow the remaining ordered route; Add Stop refuses an
-exhausted or unresolved path. Existing invalid assignments remain visible and
+calls. The dialog for a new stop has a position chooser whose item data is the
+insertion index, so a repeated station gives distinct entries. Stop choices are the
+route visits between the neighbours of that position
+(`sceneStopInsertionWindow`); a position without a window shows the reason, offers
+no station and blocks Accept. Accept calls `insertSceneStop`, which inserts only
+when the new stop resolves and no resolved stop changes its visit, and otherwise
+leaves the service unchanged. Add Stop opens after the last stop or at the last
+position that has choices and shows a message only when no position has any;
+Insert After Selected opens after the selected row. Editing a stop keeps the
+remaining-route choices. Existing invalid assignments remain visible and
 saveable, with a reason beside the platform selector. Route edits never delete
 or silently retarget stops.
 
