@@ -1,10 +1,13 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 
+#include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <set>
+#include <vector>
 
 namespace {
 void require(bool condition, const char* message) {
@@ -37,6 +40,71 @@ int main() {
 	require(operational.sectionStates.at(1).blocked
 		&& !operational.sectionStates.at(1).prepared,
 		"blocked section did not remain independent of permissive signalling");
+
+	// Route copies of one section and direction merge into the most restrictive
+	// code, whatever the order they arrive in.
+	require(guiSignalRestriction(0) < guiSignalRestriction(751)
+		&& guiSignalRestriction(751) < guiSignalRestriction(75)
+		&& guiSignalRestriction(75) < guiSignalRestriction(180)
+		&& guiSignalRestriction(180) < guiSignalRestriction(270)
+		&& guiSignalRestriction(270) < guiSignalRestriction(-1)
+		&& guiSignalRestriction(-1) == guiSignalRestriction(1000),
+		"signal codes are not ordered from stop to clear");
+	require(guiSignalHasLevel(0) && guiSignalHasLevel(5) && !guiSignalHasLevel(6)
+		&& !guiSignalHasLevel(kGuiSignalNoLevel) && !guiSignalHasLevel(-99999999),
+		"signalling levels are not 0 to 5");
+	std::array<int, 4> codes{270, 75, 180, 751};
+	std::sort(codes.begin(), codes.end());
+	do {
+		GuiSignalStateList copies;
+		for (const int code : codes)
+			copies.merge("@1-B0@", false, code, 0);
+		const auto merged = copies.take();
+		require(merged.size() == 1 && merged.front().code == 751,
+			"merge did not keep the most restrictive code in every order");
+	} while (std::next_permutation(codes.begin(), codes.end()));
+	// Directions and sections stay separate, in the order they first appear.
+	GuiSignalStateList routes;
+	routes.merge("@2-B0@", false, 75, 2);
+	routes.merge("@1-B0@", false, 270, 2);
+	routes.merge("@1-B0@", true, 0, 2);
+	routes.merge("@1-B0@", false, 180, 2);
+	routes.merge("@1-B0@", true, 270, 2);
+	const auto separate = routes.take();
+	require(separate.size() == 3, "directions or sections were merged");
+	require(separate[0].sectionId == "@2-B0@" && separate[0].code == 75 && !separate[0].reversedDirection
+		&& separate[1].sectionId == "@1-B0@" && separate[1].code == 180 && !separate[1].reversedDirection
+		&& separate[2].sectionId == "@1-B0@" && separate[2].code == 0 && separate[2].reversedDirection,
+		"a direction took the code of the other direction");
+	// A clear copy does not hide a stop, and a failure marks both directions.
+	GuiSignalStateList failure;
+	failure.merge("@1-B0@", false, 0, 0);
+	failure.merge("@1-B0@", false, 270, 0);
+	failure.merge("@1-B0@", true, 270, 0);
+	failure.merge("@2-B0@", false, 270, 0);
+	failure.fail("@1-B0@");
+	failure.fail("@3-B0@");
+	const auto failed = failure.take();
+	require(failed.size() == 3 && failed[0].code == 0 && failed[0].failed
+		&& failed[1].failed && failed[1].reversedDirection && !failed[2].failed,
+		"a clear copy hid a stop, or a failure missed a direction");
+	// A copy without a level has no signalling and never hides one that has.
+	GuiSignalStateList levels;
+	levels.merge("@1-B0@", false, 270, kGuiSignalNoLevel);
+	levels.merge("@1-B0@", false, 75, 1);
+	levels.merge("@1-B0@", false, 0, kGuiSignalNoLevel);
+	const auto withLevel = levels.take();
+	require(withLevel.size() == 1 && withLevel.front().level == 1 && withLevel.front().code == 75,
+		"a copy without a level replaced or hid one with a level");
+	GuiSignalStateList noLevel;
+	noLevel.merge("@1-B0@", false, 270, kGuiSignalNoLevel);
+	noLevel.merge("@1-B0@", false, 270, 99999999);
+	const auto without = noLevel.take();
+	require(without.size() == 1 && without.front().level == kGuiSignalNoLevel,
+		"a section without a level was given one");
+	require(GuiSignalState().level == kGuiSignalNoLevel && !GuiSignalState().failed,
+		"a signal state starts with a level or failed");
+	require(GuiSignalStateList().take().empty(), "an empty list has entries");
 
 	GuiTrainState activeTrain;
 	activeTrain.description = "Intercity northbound";
@@ -146,6 +214,14 @@ int main() {
 	require(history.atOrBefore(0)->trains.front().serviceId == std::string(1000, 's')
 		&& history.payloadBytes() >= bytesWithoutService + 900,
 		"service id is not part of the train state or the replay byte count");
+	history.clear();
+	auto withSignals = std::make_shared<GuiSimulationSnapshot>();
+	withSignals->signalStates.resize(1000);
+	for (auto& signal : withSignals->signalStates)
+		signal.sectionId = std::string(100, 'x');
+	history.record(withSignals);
+	require(history.payloadBytes() >= 1000 * (sizeof(GuiSignalState) + 100),
+		"signal states are not part of the replay byte count");
 	history.clear();
 	auto large = std::make_shared<GuiSimulationSnapshot>();
 	large->passengers.resize(10000);

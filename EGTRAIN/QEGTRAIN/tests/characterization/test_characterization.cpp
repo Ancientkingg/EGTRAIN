@@ -265,6 +265,103 @@ private:
 	std::streambuf* saved_;
 };
 
+// Checks the signal states of every snapshot against the section codes of all
+// routes, which is what the canvas is given: one entry per section and
+// direction, the most restrictive code of the route copies, the level of the
+// section, and the failure flag exactly inside the incident window.
+class SnapshotSignalChecker {
+public:
+	void check(const GuiSimulationSnapshot& snapshot) {
+		struct Expected {
+			int code = 0;
+			int level = kGuiSignalNoLevel;
+		};
+		std::map<std::pair<std::string, bool>, Expected> expected;
+		const int routeCount = std::min(N_Routes, static_cast<int>(train_route.size()));
+		for (int r = 0; r < routeCount; ++r) {
+			const Route& route = train_route[r];
+			for (int b = 0; b < route.N_Block_Sections; ++b) {
+				const Section& section = route.sequence_of_block_sections[b];
+				const int code = static_cast<int>(section.code);
+				const int level = guiSignalHasLevel(section.SignallingLevel) ? section.SignallingLevel : kGuiSignalNoLevel;
+				for (const std::string& id : signalIds(section.ID)) {
+					const auto inserted = expected.try_emplace({id, route.reversed_direction}, Expected{code, level});
+					if (inserted.second || level == kGuiSignalNoLevel)
+						continue;
+					Expected& entry = inserted.first->second;
+					if (entry.level == kGuiSignalNoLevel) {
+						entry = {code, level};
+						continue;
+					}
+					if (entry.level != level)
+						fail(snapshot.timestep, "route copies of " + describe({id, route.reversed_direction})
+							+ " have levels " + std::to_string(entry.level) + " and " + std::to_string(level));
+					if (guiSignalRestriction(code) < guiSignalRestriction(entry.code))
+						entry.code = code;
+				}
+			}
+		}
+		std::set<std::string> failedIds;
+		for (const SimulationIncident& incident : simulationIncidents) {
+			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
+			if (incident.type == "signal_failure" && snapshot.timestep >= incident.startSeconds
+					&& (!hasEnd || snapshot.timestep <= incident.endSeconds))
+				failedIds.insert(incident.resolvedSectionIDs.begin(), incident.resolvedSectionIDs.end());
+		}
+		std::set<std::pair<std::string, bool>> seen;
+		for (const GuiSignalState& state : snapshot.signalStates) {
+			const auto key = std::make_pair(state.sectionId, state.reversedDirection);
+			if (!seen.insert(key).second) {
+				fail(snapshot.timestep, "two entries for " + describe(key));
+				continue;
+			}
+			const auto found = expected.find(key);
+			if (found == expected.end()) {
+				fail(snapshot.timestep, "an entry for " + describe(key) + " that no route has");
+				continue;
+			}
+			if (state.code != found->second.code || state.level != found->second.level)
+				fail(snapshot.timestep, describe(key) + " has code " + std::to_string(state.code) + " level "
+					+ std::to_string(state.level) + ", the route copies give code "
+					+ std::to_string(found->second.code) + " level " + std::to_string(found->second.level));
+			if (state.failed != (failedIds.count(state.sectionId) > 0))
+				fail(snapshot.timestep, describe(key) + " has failed=" + (state.failed ? "1" : "0"));
+		}
+		for (const auto& entry : expected)
+			if (!seen.count(entry.first))
+				fail(snapshot.timestep, "no entry for " + describe(entry.first));
+	}
+
+	const std::vector<std::string>& problems() const { return problems_; }
+
+private:
+	// The block IDs a section signals for. A section made at a switch has the
+	// form "@a-B0@-1.5/@b-B1@-2.5" and signals for both blocks.
+	static std::vector<std::string> signalIds(const std::string& id) {
+		if (id.empty())
+			return {};
+		if (id.find('/') == std::string::npos)
+			return {id};
+		const std::size_t first = id.find("@-");
+		const std::size_t middle = id.find("/@", first == std::string::npos ? 0 : first + 1);
+		const std::size_t last = id.find("@-", middle == std::string::npos ? 0 : middle + 1);
+		if (first == std::string::npos || middle == std::string::npos || last == std::string::npos)
+			return {};
+		return {id.substr(0, first + 1), id.substr(middle + 1, last - middle)};
+	}
+
+	static std::string describe(const std::pair<std::string, bool>& key) {
+		return key.first + (key.second ? " (reversed)" : " (forward)");
+	}
+
+	void fail(int step, const std::string& text) {
+		if (problems_.size() < 10)
+			problems_.push_back("step " + std::to_string(step) + ": " + text);
+	}
+
+	std::vector<std::string> problems_;
+};
+
 // Reads the signalling state after every simulated second through the same
 // signal the GUI uses.
 class StepRecorder : public QObject {
@@ -308,6 +405,7 @@ public:
 			return;
 		const int step = snapshot->timestep;
 		++callbacks_;
+		signalChecker_.check(*snapshot);
 		for (RouteCodes& route : routes_) {
 			const Route& source = train_route[route.routeIndex];
 			for (int b = 0; b < source.N_Block_Sections; ++b) {
@@ -334,6 +432,7 @@ public:
 	}
 
 	int callbacks() const { return callbacks_; }
+	const SnapshotSignalChecker& signalChecker() const { return signalChecker_; }
 	const std::vector<RouteCodes>& routes() const { return routes_; }
 	const std::vector<Boundary>& boundaries() const { return boundaries_; }
 
@@ -342,6 +441,7 @@ private:
 	std::vector<RouteCodes> routes_;
 	std::vector<Boundary> boundaries_;
 	int callbacks_ = 0;
+	SnapshotSignalChecker signalChecker_;
 };
 
 struct TrainTrack {
@@ -699,6 +799,13 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	if (recorder.callbacks() != horizon) {
 		outcome.error = "expected " + std::to_string(horizon) + " step notifications, got "
 			+ std::to_string(recorder.callbacks()) + "\n";
+		return outcome;
+	}
+
+	if (!recorder.signalChecker().problems().empty()) {
+		outcome.error = "the signal states of the snapshot differ from the route sections:\n";
+		for (const std::string& problem : recorder.signalChecker().problems())
+			outcome.error += "  " + problem + "\n";
 		return outcome;
 	}
 

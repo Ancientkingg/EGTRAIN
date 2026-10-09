@@ -26,6 +26,16 @@ void ensureDirectory(const string& path) {
 	}
 }
 
+// The step range of a signal failure in the simulation (see
+// Apply_Signal_Failures_Mixed_Signalling): from the start, and to the end when
+// the incident has one.
+bool signalFailureActive(const SimulationIncident& incident, int timestep) {
+	if (incident.type != "signal_failure" || timestep < incident.startSeconds)
+		return false;
+	const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
+	return !hasEnd || timestep <= incident.endSeconds;
+}
+
 GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = timestep;
@@ -74,9 +84,12 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		snapshot.trains.push_back(std::move(state));
 	}
 
-	auto appendSignal = [&snapshot](const std::string& id, int code, bool reversed) {
+	// One entry per section ID and direction: a section that several routes
+	// share has a copy, and a code, in each of them.
+	GuiSignalStateList signalStates;
+	const auto appendSignal = [&signalStates](std::string_view id, const Section& section, bool reversed) {
 		if (!id.empty())
-			snapshot.signalStates.push_back({id, code, reversed});
+			signalStates.merge(id, reversed, static_cast<int>(section.code), section.SignallingLevel);
 	};
 	std::map<std::string, GuiSectionState> sectionStates;
 	const int routeCount = std::min(N_Routes, static_cast<int>(train_route.size()));
@@ -95,15 +108,15 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 				state.prepared = state.prepared || guiSectionReportsPermissiveSignalling(section.code);
 			}
 			if (id.find('/') == std::string::npos) {
-				appendSignal(id, static_cast<int>(section.code), route.reversed_direction);
+				appendSignal(id, section, route.reversed_direction);
 				continue;
 			}
 			const std::size_t first = id.find("@-");
 			const std::size_t middle = id.find("/@", first == std::string::npos ? 0 : first + 1);
 			const std::size_t last = id.find("@-", middle == std::string::npos ? 0 : middle + 1);
 			if (first != std::string::npos && middle != std::string::npos && last != std::string::npos) {
-				appendSignal(id.substr(0, first + 1), static_cast<int>(section.code), route.reversed_direction);
-				appendSignal(id.substr(middle + 1, last - middle), static_cast<int>(section.code), route.reversed_direction);
+				appendSignal(std::string_view(id).substr(0, first + 1), section, route.reversed_direction);
+				appendSignal(std::string_view(id).substr(middle + 1, last - middle), section, route.reversed_direction);
 			}
 		}
 	}
@@ -119,6 +132,13 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			state.blocked = true;
 		}
 	}
+	// A failed section fails in both directions.
+	for (const SimulationIncident& incident : simulationIncidents) {
+		if (signalFailureActive(incident, timestep))
+			for (const std::string& id : incident.resolvedSectionIDs)
+				signalStates.fail(id);
+	}
+	snapshot.signalStates = signalStates.take();
 	snapshot.sectionStates.reserve(sectionStates.size());
 	for (auto& entry : sectionStates)
 		snapshot.sectionStates.push_back(std::move(entry.second));
