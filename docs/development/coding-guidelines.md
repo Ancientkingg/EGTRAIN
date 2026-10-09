@@ -17,6 +17,40 @@ Homebrew LLVM on macOS, add `--extra-arg=-isysroot --extra-arg=$(xcrun --show-sd
 so that the standard library headers are found. `io/third_party/` has its own
 `.clang-tidy` that switches the analysis off.
 
+## Warnings
+
+`egtrain_target_warnings(<target> [STRICT])` in the root `CMakeLists.txt` adds `-Wall -Wextra`
+(`/W4` with MSVC) to the C++ sources of one target. The flags are private to the target, so a
+target that links a library does not get them.
+
+- Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_update`,
+  `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
+  `scene_tool`, `egtrain_update_helper` and the tests that use only these libraries. When
+  `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
+  warning fails the build.
+- `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
+  build log come from the simulation headers.
+- These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
+  `egtrain_sim` and `egtrain_railml`, `QEGTRAIN`, and the test executables that use the
+  simulation. A comment next to the calls gives the number of warnings.
+
+To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
+`add_library` or `add_executable`, or add a test to the list of strict tests in the test block,
+and fix its warnings first. A source that includes `simulation/RollingStock.h` or
+`simulation/Signalling.h` in a strict target wraps the include in a diagnostic pragma, as
+`diagrams/RunResults.cpp` does, because those headers still give warnings. A function that a
+platform does not use, such as the update stagers in `update/UpdatePreparation.cpp`, is marked
+`[[maybe_unused]]`.
+
+To treat these warnings as errors in a local build, configure with the option:
+
+```bash
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
+```
+
+The option is OFF by default, so a newer compiler cannot break a local build with a warning
+that the code did not give before.
+
 ## File layout
 
 [Source layout](../architecture/source-layout.md) describes the folders and the include
