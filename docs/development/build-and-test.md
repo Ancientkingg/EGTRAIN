@@ -651,10 +651,28 @@ The visual and render smoke artifacts include:
   cancelled. A failed leg uploads `ctest.log` and the GUI autostart log as an
   artifact named after the leg. Do not make any of these legs a required
   check; see the branch-protection note below.
+- A pull request to `main` that changes a packaging input also runs the
+  package check (`package-check.yml`). The inputs are the workflow files
+  `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
+  `installer/`, `Info.plist.in`, `EGTRAIN/QEGTRAIN/update/` and
+  `EGTRAIN/QEGTRAIN/app/main.cpp`. The check also runs once a night on `main`
+  and can be started by hand, which covers changes that reach the packages
+  through other files, such as the root `CMakeLists.txt`. The check selects the version as a release run that does not publish does (the CMake
+  baseline, through `tools/release/version.py`) and calls the reusable workflow
+  `package.yml`. A green check proves that the macOS, Windows and Linux packages
+  build, pass the completeness checks of their jobs and are uploaded as
+  artifacts of the run. It does not prove a release: nothing is signed with
+  real credentials (the macOS bundle carries the same ad-hoc signature as in a
+  release), nothing is published, and the check has read permission only. A
+  release still runs only from `release.yml`. A newer push to the pull request
+  cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
-  release. Before building, the pipeline increments the highest patch version
+  release. The three package jobs are in `.github/workflows/package.yml`, which
+  `release.yml` calls from its `package` job with the selected version; the
+  release job publishes the artifacts that these jobs upload. Before building,
+  the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
   All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
   baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
@@ -685,7 +703,7 @@ The visual and render smoke artifacts include:
   the updater replaces an installation, it requires every listed file and a
   fixed set of runtime files (`requiredRuntimeFiles()` in
   `update/WindowsStaging.h`) in the extracted package. Keep that set in step
-  with the package verification in the Windows job.
+  with the package verification in the Windows package job.
 - Production and tag releases run serially. A stale production run cannot
   publish after the branch advances, and an existing production release tag
   cannot be overwritten. If a failed-job retry encounters a used version,
@@ -700,18 +718,21 @@ Automatic pull requests to `main` and pushes and pull requests to `production`
 skip their workflows when changes are limited to Markdown files (`**.md`),
 `docs/`, the root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
 workflow, as do changes to source, tests, scenes, build settings, or workflows.
+The package check is the exception on `main`: for a pull request it runs only
+for the packaging inputs listed above.
 Documentation-only production pushes do not publish a new release. Updated
 packaged guides ship with the next release; `v*` tags and manual release runs
 are not filtered by changed paths.
 
-Do not require these path-filtered workflows as branch-protection checks:
+Do not require these path-filtered workflows, the package check included, as
+branch-protection checks:
 GitHub leaves skipped required workflows pending, which would block
 documentation-only pull requests.
 
 ### Dependency caches
 
 The Windows leg caches the Qt install (through `jurplel/install-qt-action`,
-with the same cache entries as the release workflow) and the vcpkg binary
+with the same cache entries as the Windows package job) and the vcpkg binary
 archives in `runner.temp/vcpkg-binary-cache`. The vcpkg cache key is fixed,
 `vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1`, and is saved only when the
 restore missed. To invalidate it, for example after changing the vcpkg

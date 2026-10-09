@@ -6,11 +6,42 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def workflow_text(name: str) -> str:
+    return (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+
+
+def release_pipeline_text() -> str:
+    return workflow_text("release.yml") + "\n" + workflow_text("package.yml")
+
+
+def trigger_block(text: str) -> str:
+    match = re.search(r"^on:\n((?:(?:  .*)?\n)*)", text, re.MULTILINE)
+    return match.group(1).rstrip("\n") + "\n" if match else ""
+
+
+def trigger_events(text: str) -> list[str]:
+    return re.findall(r"^  ([a-z_]+):", trigger_block(text), re.MULTILINE)
+
+
+def job_ids(text: str) -> list[str]:
+    jobs = text.split("\njobs:\n", 1)[-1]
+    return re.findall(r"^  ([a-z][a-z-]*):\n", jobs, re.MULTILINE)
+
+
+def job_block(text: str, job: str) -> str:
+    jobs = text.split("\njobs:\n", 1)[-1]
+    match = re.search(rf"^  {job}:\n((?:(?:    .*)?\n)*)", jobs, re.MULTILINE)
+    return match.group(0).rstrip("\n") + "\n" if match else ""
+
+
 def main() -> None:
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
-    release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    release_workflow = release_pipeline_text()
+    release_only = workflow_text("release.yml")
+    package_only = workflow_text("package.yml")
+    package_check = workflow_text("package-check.yml")
     format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
     format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
     main_cpp = (ROOT / "EGTRAIN/QEGTRAIN/app/main.cpp").read_text(encoding="utf-8")
@@ -89,7 +120,7 @@ def main() -> None:
         missing.append("only a newer push to a pull request cancels a run")
     if "paths:" in validation_trigger:
         missing.append("main validation must not use a code allowlist")
-    release_trigger = release_workflow.split("\njobs:", 1)[0]
+    release_trigger = release_only.split("\njobs:", 1)[0]
     if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production release trigger")
     if not re.search(r"pull_request:\n\s+branches:\n\s+- production\n", release_trigger):
@@ -127,9 +158,9 @@ def main() -> None:
             ('file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/EGTRAIN_VERSION"', cmake),
             ("setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION))", main_cpp),
             ('VALUE "ProductVersion", "@PROJECT_VERSION@\\0"', windows_resource),
-            ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', release_workflow),
+            ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', package_only),
             ('project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES', cmake),
-            ('version="${{ needs.version.outputs.version }}"', release_workflow),
+            ('version="${{ needs.version.outputs.version }}"', release_only),
         )
     ):
         missing.append("single-source application version propagation")
@@ -152,9 +183,9 @@ def main() -> None:
         )
     ):
         missing.append("production sanitizer diagnostics and time budgets")
-    publish_job = release_workflow.split("\n  release:\n", 1)[1]
+    publish_job = release_only.split("\n  release:\n", 1)[1]
     publish_condition = publish_job.split("\n    runs-on:", 1)[0]
-    if "needs: [version, validation, sanitizer, package-macos, package-windows, package-linux]" not in publish_condition:
+    if "needs: [version, validation, sanitizer, package]" not in publish_condition:
         missing.append("release publication validation gates")
     if "if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))" not in publish_condition:
         missing.append("publication restricted to production and tag pushes")
@@ -168,9 +199,13 @@ def main() -> None:
         missing.append("stale main release metadata")
     if 'tag="v${{ needs.version.outputs.version }}"' not in release_workflow:
         missing.append("stable production release tag")
-    if release_workflow.count('"-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"') != 5:
+    if (
+        release_only.count('"-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"') != 2
+        or package_only.count('"-DEGTRAIN_VERSION=${{ inputs.version }}"') != 3
+        or "needs." in package_only
+    ):
         missing.append("quoted shared release version in all five build jobs")
-    if release_workflow.count("    needs: version\n") != 5:
+    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 0:
         missing.append("version selection before all builds")
     for marker in (
         "fetch-depth: 0",
@@ -371,6 +406,103 @@ def main() -> None:
         or "  pull_request:\n" not in format_workflow
     ):
         missing.append("format check on pull requests with the clang-format version of tools/format.py")
+    # The package jobs live in a reusable workflow that the release workflow and the package check call.
+    version_call = (
+        "    needs: version\n"
+        "    uses: ./.github/workflows/package.yml\n"
+        "    with:\n"
+        "      version: ${{ needs.version.outputs.version }}\n"
+    )
+    if (
+        trigger_events(release_only) != ["push", "pull_request", "workflow_dispatch"]
+        or "\nconcurrency:\n"
+        "  group: ${{ github.event_name == 'push' && 'egtrain-publish' || github.run_id }}\n"
+        "  cancel-in-progress: false\n\njobs:\n" not in release_only
+        or release_only.count("permissions:") != 1
+    ):
+        missing.append("release triggers, concurrency and permissions")
+    if job_ids(release_only) != ["version", "validation", "sanitizer", "package", "release"]:
+        missing.append("release jobs: version, validation, sanitizer, package, release")
+    if job_block(release_only, "package") != "  package:\n" + version_call:
+        missing.append("release package job calls the package workflow with the selected version")
+    if trigger_block(package_only) != (
+        "  workflow_call:\n    inputs:\n      version:\n        required: true\n        type: string\n"
+    ):
+        missing.append("package workflow starts only by call, with the version as its only input")
+    if (
+        "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
+        or package_only.count("permissions:") != 1
+        or "secrets" in package_only
+    ):
+        missing.append("package workflow with read permission and no credentials")
+    if job_ids(package_only) != ["package-macos", "package-windows", "package-linux"]:
+        missing.append("package workflow jobs: package-macos, package-windows, package-linux")
+    for artifact, file in (
+        ("QEGTRAIN-macos-arm64", "QEGTRAIN-macos-arm64.zip"),
+        ("QEGTRAIN-windows-x64", "QEGTRAIN-windows-x64.zip"),
+        ("QEGTRAIN-linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage"),
+    ):
+        if (
+            f"          name: {artifact}\n          path: " not in package_only
+            or release_only.count(f"            artifacts/{artifact}/{file}\n") != 2
+        ):
+            missing.append(f"package artifact {artifact} downloaded by the release job")
+    package_check_paths = (
+        ".github/workflows/package-check.yml",
+        ".github/workflows/package.yml",
+        ".github/workflows/release.yml",
+        "tools/release/**",
+        "installer/**",
+        "Info.plist.in",
+        "EGTRAIN/QEGTRAIN/update/**",
+        "EGTRAIN/QEGTRAIN/app/main.cpp",
+    )
+    package_check_trigger = trigger_block(package_check)
+    package_check_pull_request = re.search(r"^  pull_request:\n((?:    .*\n)*)", package_check_trigger, re.MULTILINE)
+    if (
+        trigger_events(package_check) != ["pull_request", "schedule", "workflow_dispatch"]
+        or not package_check_pull_request
+        or package_check_pull_request.group(1)
+        != "    branches: [main]\n    paths:\n" + "".join(f"      - '{path}'\n" for path in package_check_paths)
+    ):
+        missing.append("package check starts on pull requests to main only for a packaging input, and never for a push")
+    package_check_nightly = re.search(
+        r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", package_check_trigger, re.MULTILINE
+    )
+    if (
+        not package_check_nightly
+        or package_check_nightly.group(1) == "0"
+        or not re.search(r"^  workflow_dispatch:\n(?!    )", package_check_trigger, re.MULTILINE)
+    ):
+        missing.append("package check with one nightly run off the hour and a manual start without inputs")
+    if (
+        "\npermissions:\n  contents: read\n" not in package_check
+        or package_check.count("permissions:") != 1
+        or re.search(r":\s*write", package_check)
+    ):
+        missing.append("package check with read permission only")
+    if (
+        "\nconcurrency:\n"
+        "  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}\n"
+        "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n" not in package_check
+    ):
+        missing.append("package check replaces only the older run of the same pull request")
+    if job_ids(package_check) != ["version", "package"]:
+        missing.append("package check jobs: version, package")
+    if (
+        job_block(package_check, "version") != job_block(release_only, "version")
+        or "run: python3 tools/release/version.py\n" not in package_check
+    ):
+        missing.append("package check selects the version with the script and job of the release workflow")
+    if job_block(package_check, "package") != "  package:\n" + version_call:
+        missing.append("package check calls the package workflow with the selected version")
+    publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit", "environment:")
+    if (
+        any(word in text for text in (package_check, package_only) for word in publishing)
+        or "codesign" in package_check
+        or "secrets" in package_check
+    ):
+        missing.append("no publishing, signing or repository write in the package check and the package workflow")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 

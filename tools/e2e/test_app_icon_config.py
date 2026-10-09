@@ -3,6 +3,8 @@ import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from test_ci_workflow import release_pipeline_text
+
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 APP_ROOT = SOURCE_ROOT / "resources/app"
@@ -74,7 +76,7 @@ def main() -> None:
     rc = (APP_ROOT / "egtrain.rc.in").read_text(encoding="utf-8")
     require(rc, 'IDI_ICON1 ICON "@EGTRAIN_WINDOWS_ICON@"', "Windows resource template has the wrong icon entry")
 
-    workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    workflow = release_pipeline_text()
     require(workflow, "resources/app/egtrain-256.png", "Linux release does not copy egtrain-256.png")
     if "resources/icons/station.png" in workflow or "convert EGTRAIN/QEGTRAIN/resources/icons/station.png" in workflow:
         raise SystemExit("Linux release still renders station.png as the app icon")
