@@ -66,12 +66,12 @@ configuration, for the application. A target links one telemetry library, never 
 `OperationObservation`, whose symbols do not depend on the hooks. In the isolated
 telemetry smoke configuration it is built with the sender hook, as the rest of the
 application is. The moc object of `egtrain_diagrams` references both windows, so a target
-that uses `TrainFilterButton`, `DiagramWindow` or `TimetableTableWindow` also links one
-telemetry library.
+that uses `TrainFilterButton`, `DiagramWindow`, `TimetableTableWindow` or
+`RouteReferenceDialog` also links one telemetry library.
 
 Still compiled in more than one target: the telemetry sources of the hook flavours, and
-`TelemetryConsentDialog.cpp`, which the application builds without hooks and
-`test_telemetryconsent` with them. Only the application builds the rest of `app/`,
+`TelemetryConsentDialog.cpp`, which the application builds without the consent hook
+and `test_telemetryconsent` with it. Only the application builds the rest of `app/`,
 `UpdateChecker` and `SelfUpdater`.
 
 ## Renames

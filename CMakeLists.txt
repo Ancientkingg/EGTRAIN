@@ -506,7 +506,7 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_version COMMAND test_version)
 
     # The telemetry tests link egtrain_telemetry_hooks, which defines the test hooks for them.
-    # The dialog is compiled here, with the hooks, and in the application, without.
+    # The dialog is compiled here, with all hooks, and in the application, without the consent hook.
     add_executable(test_telemetryconsent
         ${SRC_DIR}/tests/test_telemetryconsent.cpp
         ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp)
