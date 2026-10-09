@@ -378,8 +378,10 @@ failures. It adds a following mode.
 ## Sections of different levels on one route
 
 A route can cross sections of several levels. This is what the code does at the
-border. No test pins it yet: every characterization case has one area, so the
-cases run at one level.
+border. The cases `border-*` pin it on the characterization line for a border at
+8 km between levels 0 and 2, 2 and 0, 0 and 3, and 0 and 1. From level 0 into
+level 1 or 2 the block before the border is not protected while a train is in it
+(#602).
 
 - Which sections a routine writes on:
   - Levels 0 and 5 test the level of the section they write. They write the
@@ -535,6 +537,9 @@ decision. Assigning levels to the other three scenes is #459.
 
 Open on this version:
 
+- #602: at a border from level 0 to level 1 or 2 the block before the border
+  shows 75 while a train is in it (`border-0-1-fwd`, `border-0-2-fwd`,
+  `border-2-0-rev`).
 - #459: three committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
@@ -544,7 +549,6 @@ Open on this version:
 
 Limits that no issue tracks:
 
-- No test mixes levels on one route.
 - The characterization cases do not record whether a train of level 4 enters the
   following mode.
 - At level 4 a train that is not coupled treats every leader that slows down as

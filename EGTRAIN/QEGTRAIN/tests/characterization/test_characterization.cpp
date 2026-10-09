@@ -171,9 +171,12 @@ bool sameLine(const Line& a, const Line& b) {
 // ---------------------------------------------------------------------------
 
 constexpr int kNoSignallingArea = -1;
+constexpr double kNoBorder = -1.0;
 // The fixture is one track of this length. A level is applied by one
-// network-wide signalling area.
+// network-wide signalling area, or by two areas that meet at a border.
 constexpr double kFixtureLengthKm = 16.0;
+// Station B, a section edge of the fixture.
+constexpr double kBorderKm = 8.0;
 
 struct CaseSpec {
 	std::string name;
@@ -185,10 +188,18 @@ struct CaseSpec {
 	std::string knownWrong;
 	// Declares the single-track restriction blocks 1-B0 to 4-B0, protected by 0-B0 and 5-B0.
 	bool singleTrack = false;
+	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
+	// The border has to lie on a section edge.
+	double borderKm = kNoBorder;
+	int secondLevel = kNoSignallingArea;
 };
 
 // Cases whose current behaviour is wrong, with the open issue that describes it.
-const std::map<std::string, std::string> kKnownWrong = {};
+const std::map<std::string, std::string> kKnownWrong = {
+	{"border-0-1-fwd", "#602 the block before the border shows 75 while a train is in it"},
+	{"border-0-2-fwd", "#602 the block before the border shows 75 while a train is in it"},
+	{"border-2-0-rev", "#602 the block before the border shows 75 while a train is in it"},
+};
 
 std::string knownWrongMarker(const std::string& name) {
 	const auto found = kKnownWrong.find(name);
@@ -239,6 +250,29 @@ std::vector<CaseSpec> buildCaseTable() {
 	// F1 holds the restricted section and F2 follows it in the same direction: the restriction does not delay F2.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
+	// Two following services over a border between two levels at station B (8 km). The names give the level on the A side
+	// and on the C side; fwd runs from A to C, rev from C to A.
+	const struct {
+		int west, east;
+		bool reverse;
+	} borders[] = {
+		{0, 2, false},
+		{0, 2, true},
+		{2, 0, false},
+		{2, 0, true},
+		{0, 3, false},
+		{0, 3, true},
+		{0, 1, false},
+	};
+	for (const auto& border : borders) {
+		const std::string name = "border-" + std::to_string(border.west) + "-" + std::to_string(border.east)
+			+ (border.reverse ? "-rev" : "-fwd");
+		CaseSpec spec{name, "baseline", border.reverse ? std::vector<std::string>{"R1", "R2"} : std::vector<std::string>{"F1", "F2"},
+			border.west, knownWrongMarker(name)};
+		spec.borderKm = kBorderKm;
+		spec.secondLevel = border.east;
+		cases.push_back(spec);
+	}
 	return cases;
 }
 
@@ -800,6 +834,15 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		area.endKm = kFixtureLengthKm;
 		area.level = spec.level;
 		loaded.scene.signallingAreas = {area};
+		if (spec.borderKm != kNoBorder) {
+			SceneSignallingArea east = area;
+			east.id = "area.east";
+			east.startKm = spec.borderKm;
+			east.level = spec.secondLevel;
+			loaded.scene.signallingAreas[0].id = "area.west";
+			loaded.scene.signallingAreas[0].endKm = spec.borderKm;
+			loaded.scene.signallingAreas.push_back(east);
+		}
 	}
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{"1-B0", "4-B0", "0-B0", "5-B0"}};
@@ -1012,7 +1055,10 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 std::string describeRun(const CaseSpec& spec, int horizon) {
 	return "scenario=" + spec.scenario + " services=" + joinSet(spec.services)
 		+ " level=" + (spec.level == kNoSignallingArea ? std::string("none") : std::to_string(spec.level))
-		+ (spec.singleTrack ? " single_track=1" : "") + " horizon=" + std::to_string(horizon);
+		+ (spec.singleTrack ? " single_track=1" : "")
+		+ (spec.borderKm == kNoBorder ? std::string()
+									  : " border_km=" + formatReal(spec.borderKm) + " level_after=" + std::to_string(spec.secondLevel))
+		+ " horizon=" + std::to_string(horizon);
 }
 
 std::string knownWrongText(const CaseSpec& spec) {

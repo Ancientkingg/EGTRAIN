@@ -68,7 +68,14 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	single-track-level-4
 	single-track-level-5
 	single-track-follow-level-3
-	single-track-follow-level-4)
+	single-track-follow-level-4
+	border-0-2-fwd
+	border-0-2-rev
+	border-2-0-fwd
+	border-2-0-rev
+	border-0-3-fwd
+	border-0-3-rev
+	border-0-1-fwd)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}
