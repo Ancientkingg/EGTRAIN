@@ -1,6 +1,6 @@
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 
-#include <chrono>
 #include <climits>
 #include <filesystem>
 #include <fstream>
@@ -38,65 +38,6 @@ static void addCleanupWarning(SceneSaveResult& result, const fs::path& path,
 	diagnostic.file = path.string();
 	diagnostic.message = message;
 	result.diagnostics.push_back(std::move(diagnostic));
-}
-
-struct StagingDirectory {
-	fs::path path;
-
-	~StagingDirectory() {
-		if (path.empty())
-			return;
-		std::error_code ec;
-		fs::remove_all(path, ec);
-	}
-
-	void release() { path.clear(); }
-};
-
-static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix,
-	fs::path& result) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
-		ec.clear();
-		if (fs::create_directory(candidate, ec)) {
-			ec.clear();
-			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
-			if (ec) {
-				std::error_code cleanupError;
-				fs::remove_all(candidate, cleanupError);
-				return false;
-			}
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::file_exists)
-			return false;
-	}
-	return false;
-}
-
-static bool uniqueSiblingPath(const fs::path& parent, const std::string& prefix,
-	fs::path& result) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
-		ec.clear();
-		const auto status = fs::symlink_status(candidate, ec);
-		if (!ec && status.type() == fs::file_type::not_found) {
-			result = candidate;
-			return true;
-		}
-		if (ec == std::errc::no_such_file_or_directory) {
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::no_such_file_or_directory)
-			return false;
-	}
-	return false;
 }
 
 static bool inspectDestination(const fs::path& destination, bool& exists,
@@ -176,7 +117,7 @@ static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path
 		return false;
 	}
 	fs::path temporary;
-	if (!uniqueSiblingPath(target.parent_path(), target.filename().string() + ".tmp-", temporary)) {
+	if (uniqueSiblingPath(target.parent_path(), target.filename().string() + ".tmp-", temporary)) {
 		addWriteError(result, filename, "Cannot create a temporary file for " + filename);
 		return false;
 	}
@@ -827,8 +768,9 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (!inspectDestination(destination, hadDestination, result))
 		return result;
 
-	StagingDirectory staging;
-	if (!createUniqueDirectory(parent, destinationName + ".staging-", staging.path)) {
+	StagedDirectory staging;
+	ec = createStagedDirectory(parent, destinationName + ".staging-", true, staging);
+	if (ec) {
 		addWriteError(result, destination.string(), "Cannot create a private scene staging directory");
 		return result;
 	}
@@ -855,42 +797,30 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 
 	fs::path backup;
 	if (hadDestination) {
-		if (!uniqueSiblingPath(parent, destinationName + ".backup-", backup)) {
+		ec = uniqueSiblingPath(parent, destinationName + ".backup-", backup);
+		if (ec) {
 			addWriteError(result, destination.string(), "Cannot reserve a private scene backup path");
 			result.wroteAll = false;
 			return result;
 		}
-		ec.clear();
-		fs::rename(destination, backup, ec);
-		if (ec) {
-			addWriteError(result, destination.string(), "Cannot move the previous scene generation: " + ec.message());
-			result.wroteAll = false;
-			return result;
-		}
 	}
 
-	ec.clear();
-	fs::rename(staging.path, destination, ec);
-	if (ec) {
-		addWriteError(result, destination.string(), "Cannot publish scene generation: " + ec.message());
-		if (hadDestination) {
-			std::error_code restoreError;
-			fs::rename(backup, destination, restoreError);
-			if (restoreError)
-				addWriteError(result, destination.string(), "Cannot restore the previous scene generation: " + restoreError.message());
-		}
+	const StagedPublishResult published = publishStagedDirectory(staging, destination, backup);
+	if (published.step == StagedPublishStep::MoveToBackup) {
+		addWriteError(result, destination.string(), "Cannot move the previous scene generation: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}
-	staging.release();
-
-	if (hadDestination) {
-		ec.clear();
-		fs::remove_all(backup, ec);
-		if (ec)
-			addCleanupWarning(result, backup,
-				"Cannot remove the previous scene generation: " + ec.message());
+	if (published.step == StagedPublishStep::Rename) {
+		addWriteError(result, destination.string(), "Cannot publish scene generation: " + published.error.message());
+		if (published.restoreError)
+			addWriteError(result, destination.string(), "Cannot restore the previous scene generation: " + published.restoreError.message());
+		result.wroteAll = false;
+		return result;
 	}
+	if (published.removeBackupError)
+		addCleanupWarning(result, backup,
+			"Cannot remove the previous scene generation: " + published.removeBackupError.message());
 
 	result.wroteAll = !hasErrors(result.diagnostics);
 	if (result.wroteAll)

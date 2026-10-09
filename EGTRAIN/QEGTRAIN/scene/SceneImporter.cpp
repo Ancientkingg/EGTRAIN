@@ -1,5 +1,6 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
+#include "scene/StagedDirectory.h"
 #include <filesystem>
 #include <fstream>
 #include <locale>
@@ -7,7 +8,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
-#include <chrono>
 #include <cctype>
 #include <cmath>
 #include <initializer_list>
@@ -223,25 +223,6 @@ static bool containsPath(const fs::path& parent, const fs::path& child) {
 			return false;
 	}
 	return parentIt == parent.end();
-}
-
-static fs::path uniqueSiblingPath(const fs::path& target, const std::string& tag, std::error_code& error) {
-	error.clear();
-	fs::path parent = target.parent_path();
-	if (parent.empty())
-		parent = ".";
-	std::string base = target.filename().string();
-	if (base.empty())
-		base = "scene";
-	const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-	for (unsigned int suffix = 0;; ++suffix) {
-		fs::path candidate = parent / (base + "." + tag + "." + std::to_string(stamp) + "." + std::to_string(suffix));
-		const bool exists = fs::exists(candidate, error);
-		if (error)
-			return {};
-		if (!exists)
-			return candidate;
-	}
 }
 
 struct ReportBuilder {
@@ -2357,26 +2338,17 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create scene parent directory: " + ec.message(), scenePath.string());
 		return result;
 	}
-	std::error_code stagingPathEc;
-	const fs::path stagingPath = uniqueSiblingPath(scenePath, "importing", stagingPathEc);
-	if (stagingPathEc) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + stagingPathEc.message(), scenePath.string());
-		return result;
-	}
-	auto removeStaging = [&]() {
-		if (stagingPath.empty()) return;
-		std::error_code cleanupEc;
-		fs::remove_all(stagingPath, cleanupEc);
-	};
-	fs::create_directories(stagingPath, ec);
+	std::string directoryName = scenePath.filename().string();
+	if (directoryName.empty()) directoryName = "scene";
+	StagedDirectory staged;
+	ec = createStagedDirectory(sceneParent, directoryName + ".staging-", false, staged);
 	if (ec) {
 		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create staging directory: " + ec.message(), scenePath.string());
-		removeStaging();
 		return result;
 	}
 	bool allWritten = true;
 	auto writeJson = [&](const std::string& filename, const json& value) {
-		std::ofstream output(stagingPath / filename);
+		std::ofstream output(staged.path / filename);
 		if (!output) {
 			addDiag(SceneSeverity::Error, "scene.import.write", "Failed to write " + filename, (scenePath / filename).string());
 			allWritten = false;
@@ -2397,55 +2369,39 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	writeJson("scenarios.json", scenariosFile);
 	if (hasViews) writeJson("views.json", views);
 	if (hasDas && hasRouteChoice) writeJson("passengers.json", {{"passengers", passengers}});
-	if (!allWritten) {
-		removeStaging();
-		return result;
-	}
+	if (!allWritten) return result;
 
-	if (hasErrors(result.diagnostics)) {
-		removeStaging();
-		return result;
-	}
+	if (hasErrors(result.diagnostics)) return result;
 
 	std::error_code destinationEc;
 	const bool destinationExists = fs::exists(scenePath, destinationEc);
 	if (destinationEc) {
 		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + destinationEc.message(), scenePath.string());
-		removeStaging();
 		return result;
 	}
 	fs::path backupPath;
 	if (destinationExists) {
-		std::error_code backupEc;
-		backupPath = uniqueSiblingPath(scenePath, "backup", backupEc);
+		const std::error_code backupEc = uniqueSiblingPath(sceneParent, directoryName + ".backup-", backupPath);
 		if (backupEc) {
 			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + backupEc.message(), scenePath.string());
-			removeStaging();
-			return result;
-		}
-		fs::rename(scenePath, backupPath, destinationEc);
-		if (destinationEc) {
-			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing scene to backup: " + destinationEc.message(), scenePath.string());
-			removeStaging();
 			return result;
 		}
 	}
-	fs::rename(stagingPath, scenePath, destinationEc);
-	if (destinationEc) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot publish scene destination: " + destinationEc.message(), scenePath.string());
-		removeStaging();
-		if (!backupPath.empty()) {
-			std::error_code restoreEc;
-			fs::rename(backupPath, scenePath, restoreEc);
-			if (restoreEc) addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot restore existing scene: " + restoreEc.message(), backupPath.string());
-		}
+	const StagedPublishResult published = publishStagedDirectory(staged, scenePath, backupPath);
+	if (published.step == StagedPublishStep::MoveToBackup) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing scene to backup: " + published.error.message(), scenePath.string());
 		return result;
 	}
-	if (!backupPath.empty()) {
-		std::error_code cleanupEc;
-		fs::remove_all(backupPath, cleanupEc);
-		if (cleanupEc) addDiag(SceneSeverity::Warning, "scene.import.cleanup", "Could not remove import backup: " + cleanupEc.message(), backupPath.string());
+	if (published.step == StagedPublishStep::Rename) {
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot publish scene destination: " + published.error.message(), scenePath.string());
+		if (published.restoreError)
+			addDiag(SceneSeverity::Error, "scene.import.missing",
+				"Cannot restore existing scene: " + published.restoreError.message(), backupPath.string());
+		return result;
 	}
+	if (published.removeBackupError)
+		addDiag(SceneSeverity::Warning, "scene.import.cleanup",
+			"Could not remove import backup: " + published.removeBackupError.message(), backupPath.string());
 	result.wroteScene = true;
 	return result;
 }
