@@ -775,8 +775,6 @@ public:
 
 				// In particular to update this value it is necessary that the train has passed with all its length train_length the checklist Node to guarantee a safe train separation
 				if ((instant_spatial_position[i - 1] - train_length <= RelativeChecklistPos) && (instant_spatial_position[i] - train_length > RelativeChecklistPos)) {
-#pragma omp critical
-
 					OL[IndexOrderList].LastEnteredTrain = trainDescription;
 					cout << OL[IndexOrderList].LastEnteredTrain << "\n";
 				}
