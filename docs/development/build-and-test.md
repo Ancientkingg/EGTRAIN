@@ -317,11 +317,12 @@ A case is a scenario, a set of services and a level. The case table is in
 | `sf-staggered-level-none`, `-0` to `-2` | the same trains and sections, with the failure on `4-B0` ending at 700 s and the one on `5-B0` at 1000 s |
 | `sf-last-level-none`, `-0` to `-2` | the same trains with a failure on `7-B0`, the last section of the route, from 400 s to 1000 s |
 | `sf-first-level-none`, `-0` to `-2` | the same trains with a failure on `0-B0`, the first section of the route, from 0 s to 400 s, while both trains still wait to enter |
-| `same-entry-level-none`, `-0` to `-2` | trains `T1` and `F1`, both due at 60 s at the entry of the same route, without an incident; at levels 0 to 2 `F1` enters after `T1` has moved on |
+| `same-entry-level-none`, `-0` to `-5` | trains `T1` and `F1`, both due at 60 s at the entry of the same route, without an incident; without a signalling level both enter at 60 s, as nothing separates trains there; at levels 0 to 5 `F1` enters after `T1` has moved on |
+| `entry-order-level-0` to `-2` | trains `F2` and `L1` on the `sf-first` scenario; `F2` is listed before `L1` in the scene but `L1` is due first, so `L1` enters first when the failure ends |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
 | `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; at levels 0, 1, 2 and 5 `R1` waits in front of the section while `S1` is in it |
 
-All 51 cases run in CTest. They are listed in
+All 57 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -444,10 +445,11 @@ grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
 The markers name three open issues. #534 covers a following train that stops at
-the position of the leading train at the last station at level 4
-(`sf-forward-level-4`, `sf-reverse-level-4`). #539 covers two trains that stop
-at 2 km and stay there after a failure on the first section has ended, without
-a signalling level (`sf-first-level-none`). #551 covers the single-track cases
+the position of the leading train at a station at level 4
+(`sf-forward-level-4`, `sf-reverse-level-4`, `same-entry-level-4`). #539 covers
+two trains that stop at 2 km and stay there after a failure on the first
+section has ended, without a signalling level (`sf-first-level-none`). #551
+covers the single-track cases
 in which `R1` is not held in front of the restricted section because the
 restriction has no effect at levels 3 and 4 (`single-track-level-3`, `-4`).
 Without their markers the cases of #534 fail the check for overlapping trains,

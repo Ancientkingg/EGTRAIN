@@ -642,7 +642,8 @@ public:
 	//!  (i.e. when time>=departure_time and for the first time signalling_block_sections[0] is free)
 	void checkEntrance(int i, Section* BS) {
 		// Where a signalling level applies, one train enters a section per step: a train that entered earlier in
-		// this step has put the section in BlocksOccupied, which the aspect only shows from the next step.
+		// this step has put the section in BlocksOccupied, which the aspect only shows from the next step. Waiting
+		// trains are visited in the order in which they are due, so the one due first enters first.
 		const bool waiting = !CanEnter;
 		const bool separated = BS[0].SignallingLevel >= 0;
 		if (waiting && separated && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), BS[0].ID) != BlocksOccupied.end())

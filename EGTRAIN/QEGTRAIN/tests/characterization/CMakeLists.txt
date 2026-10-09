@@ -51,6 +51,12 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	same-entry-level-0
 	same-entry-level-1
 	same-entry-level-2
+	same-entry-level-3
+	same-entry-level-4
+	same-entry-level-5
+	entry-order-level-0
+	entry-order-level-1
+	entry-order-level-2
 	late-leader-level-3
 	late-leader-level-4
 	single-track-level-none
