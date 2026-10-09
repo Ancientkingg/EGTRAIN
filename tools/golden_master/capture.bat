@@ -1,7 +1,7 @@
 @echo off
 REM EGTRAIN Golden-Master Baseline Capture Script (Windows batch)
 REM
-REM Runs all 4 case studies headless with a fixed seed, then copies
+REM Runs all 4 case studies headless with the default random seed, then copies
 REM outputs to golden/<case>/ for later comparison.
 REM
 REM Usage: capture.bat [exe_path] [horizon]
@@ -20,7 +20,6 @@ if "%HORIZON%"=="" set HORIZON=2000
 
 set TOOLS_DIR=%~dp0
 set GOLDEN_DIR=%TOOLS_DIR%golden
-set FIXED_SEED=%TOOLS_DIR%fixed_seed.seed
 
 if not exist "%EXE%" (
     echo ERROR: %EXE% not found
@@ -28,11 +27,6 @@ if not exist "%EXE%" (
     echo   exe_path: path to directory containing QEGTRAIN_no_GUI.exe
     echo   horizon: simulation horizon in seconds (default: 2000)
     exit /b 1
-)
-
-if not exist "%FIXED_SEED%" (
-    echo WARNING: fixed_seed.seed not found at %FIXED_SEED%
-    echo Will not restore seed before each run - outputs may not be reproducible!
 )
 
 echo === EGTRAIN Golden-Master Baseline Capture ===
@@ -43,9 +37,6 @@ echo.
 
 for %%C in (1 2 3 4) do (
     echo --- Case study %%C ---
-
-    REM Restore fixed seed before each run
-    if exist "%FIXED_SEED%" copy /Y "%FIXED_SEED%" "%EXE_DIR%\rand1.seed" > nul
 
     REM Run simulation headless
     REM All mandatory args supplied to avoid interactive stdin prompts

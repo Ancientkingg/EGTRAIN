@@ -1,32 +1,6 @@
 #include "simulation/NumberGenerator.h"
-#include <stdlib.h>
+#include "simulation/InitialParameters.h"
 #include <math.h>
-#include <time.h>
-#include <iostream>
-#include <fstream>
-
-using namespace std;
-
-NumberGenerator rand1;
-
-NumberGenerator::NumberGenerator(void) {
-	ifstream lStream("rand1.seed");
-	if (lStream.good())
-		lStream >> idum;
-	else
-		idum = time(0);
-	for (int j = NTAB + 7; j >= 0; --j) {
-		long k = idum / IQ;
-		idum = IA * (idum - k * IQ) - IR * k;
-		if (idum < 0)
-			idum += IM;
-		if (j < NTAB)
-			iv[j] = idum;
-	}
-	iy = iv[0];
-	iset = 0;
-	gset = 0.0;
-}
 
 NumberGenerator::NumberGenerator(unsigned long inSeed) {
 	idum = inSeed;
@@ -41,14 +15,6 @@ NumberGenerator::NumberGenerator(unsigned long inSeed) {
 	iy = iv[0];
 	iset = 0;
 	gset = 0.0;
-}
-
-NumberGenerator::~NumberGenerator(void) {
-	ofstream lStream("rand1.seed");
-	if (!lStream.good())
-		cerr << "Unable to create file \"rand1.seed\"!" << endl;
-	else
-		lStream << idum;
 }
 
 int NumberGenerator::getUniformInteger(int inFirst,
@@ -97,12 +63,11 @@ double NumberGenerator::getGaussianFloat(double inMean,
 	}
 }
 
-// Function to generate random number in a range between Min and Max
-double NumberGenerator::generateRandomNumberInRange(double Min, double Max) {
-	// generate random number in range Min - Max using std function rand
-	double randomNum = -1;
+NumberGenerator& runNumberGenerator() {
+	static NumberGenerator generator(kDefaultRandomSeed);
+	return generator;
+}
 
-	randomNum = Min + ((double)rand() / ((double)RAND_MAX - 0)) * (Max - Min);
-	// return generated number
-	return randomNum;
+void seedRunNumberGenerator(unsigned long inSeed) {
+	runNumberGenerator() = NumberGenerator(inSeed);
 }

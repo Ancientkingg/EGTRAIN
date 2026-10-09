@@ -738,6 +738,7 @@ int main() {
 		provenance.paxMode = 1;
 		provenance.tsmMode = 2;
 		provenance.routeChoiceMode = 3;
+		provenance.randomSeed = 123456789;
 		provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
 		const QString artifactPath = temp.filePath("result.csv");
 		ok &= expect(writeRunArtifactWithProvenance(
@@ -759,6 +760,8 @@ int main() {
 				&& input.value("path").toString() == QString::fromStdString(clean.path)
 				&& input.value("sha256").toString() == QString::fromStdString(clean.sha256),
 				"sidecar preserves escaped JSON fields and saved-input fields");
+		ok &= expect(run.value("random_seed").toDouble() == 123456789.0,
+				"sidecar records the random seed of the run");
 		ok &= expect(occurrences.size() == 2
 				&& occurrences.at(0).toObject().value("service_id").toString() == "service-A"
 				&& occurrences.at(0).toObject().value("occurrence").toInt() == 2

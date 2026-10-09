@@ -149,13 +149,120 @@ static bool near(double a, double b) {
 	return std::fabs(a - b) < 1e-9;
 }
 
-// Dwell time of a fixed boarding and alighting flow. The passenger split at the
-// doors is drawn from rand1.seed in the working directory, so the seed file is
-// rewritten before each call to give every call the same draws.
-static double seededDwellTime(Train& train, double platformRate) {
-	std::ofstream("rand1.seed") << 123456789;
-	return train.computePaxDependentDwellTimeAtStations(40, 20, platformRate,
+static const unsigned long kSeedA = 123456789;
+static const unsigned long kSeedB = 987654321;
+
+// Dwell time of a boarding and alighting flow. The passenger split at the doors
+// is drawn from the run generator, which is reseeded before each call so that
+// every call gets the same draws.
+static double seededDwellTime(Train& train, double platformRate, int boarding = 40, int alighting = 20,
+		unsigned long seed = kSeedA) {
+	seedRunNumberGenerator(seed);
+	return train.computePaxDependentDwellTimeAtStations(boarding, alighting, platformRate,
 			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+}
+
+// Draws of the generator for fixed seeds, recorded from the algorithm as it is.
+// The uniform draws are one product of an integer below 2^31 and the constant
+// 1 / 2147483647, so they are identical on every platform. The Gaussian draws
+// pass through sqrt and log, which may differ in the last bits between math
+// libraries, so they are compared with a tolerance far above that.
+static bool generatorTests() {
+	bool ok = true;
+	const auto close = [](double a, double b, double tolerance) { return std::fabs(a - b) <= tolerance; };
+	const double uniformA[] = {0.91197702843322281, 0.061727229068860051, 0.3969884758801146, 0.35162865992245668};
+	const int integerA[] = {91, 6, 39, 35, 82, 75};
+	const double gaussianA[] = {-1.6577351000707685, -1.150935343416547, 0.54755957323394899, 0.69422240928046186};
+	const double scaledA[] = {6.6845297998584634, 7.6981293131669055};
+	const double uniformB[] = {0.71631288189269271, 0.78997236666733972, 0.84746502938096646, 0.094018201387495823};
+	const int integerB[] = {71, 78, 84, 9, 89, 67};
+	const double gaussianB[] = {0.91194289224928671, 0.68028894411965013, 0.29900609005941814, 0.68283721049533164};
+	const double scaledB[] = {11.823885784498573, 11.3605778882393};
+	const struct {
+		unsigned long seed;
+		const double* uniform;
+		const int* integer;
+		const double* gaussian;
+		const double* scaled;
+	} recorded[] = {{kSeedA, uniformA, integerA, gaussianA, scaledA}, {789350715, uniformB, integerB, gaussianB, scaledB}};
+	for (const auto& row : recorded) {
+		NumberGenerator uniform(row.seed);
+		for (int index = 0; index < 4; ++index)
+			ok &= expect(close(uniform.getUniformFloat(), row.uniform[index], 1e-15), "uniform draws of a fixed seed match");
+		NumberGenerator integer(row.seed);
+		for (int index = 0; index < 6; ++index)
+			ok &= expect(integer.getUniformInteger(0, 99) == row.integer[index], "integer draws of a fixed seed match");
+		NumberGenerator gaussian(row.seed);
+		for (int index = 0; index < 4; ++index)
+			ok &= expect(close(gaussian.getGaussianFloat(), row.gaussian[index], 1e-12),
+					"Gaussian draws of a fixed seed match");
+		NumberGenerator scaled(row.seed);
+		for (int index = 0; index < 2; ++index)
+			ok &= expect(close(scaled.getGaussianFloat(10, 2), row.scaled[index], 1e-12),
+					"scaled Gaussian draws of a fixed seed match");
+	}
+	NumberGenerator first(kSeedA), second(kSeedA);
+	second.getUniformFloat();
+	ok &= expect(first.getUniformFloat() != second.getUniformFloat(), "draws advance the generator");
+	return ok;
+}
+
+// Passenger time windows of the fixture after a scene is prepared with a seed.
+static std::vector<double> sampledWindows(const SceneModel& scene, unsigned long seed) {
+	initial_variables.randomSeed = seed;
+	std::vector<double> windows;
+	if (hasErrors(buildInfrastructureAndSignallingFromScene(scene))
+			|| hasErrors(buildOperationsFromScene(scene, "scenario.base")))
+		return windows;
+	for (const Passenger& passenger : AllDailyPassengers)
+		for (const Journey& journey : passenger.Journeys) {
+			windows.push_back(journey.Actual_Planned_Departure_Time);
+			windows.push_back(journey.Actual_Planned_Arrival_Time);
+		}
+	return windows;
+}
+
+static bool seedTests(const SceneModel& scene) {
+	bool ok = true;
+	Train train;
+	train.number_of_wagons = 3.0;
+	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	const double dwellA = seededDwellTime(train, 0.5, 800, 800, kSeedA);
+	ok &= expect(near(dwellA, seededDwellTime(train, 0.5, 800, 800, kSeedA)), "equal seeds give equal dwell times");
+	ok &= expect(!near(dwellA, seededDwellTime(train, 0.5, 800, 800, kSeedB)), "different seeds give different dwell times");
+
+	// Draws continue from the generator state instead of restarting for every car.
+	seedRunNumberGenerator(kSeedA);
+	const double firstStop = train.computePaxDependentDwellTimeAtStations(800, 800, 0.5,
+			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+	const double secondStop = train.computePaxDependentDwellTimeAtStations(800, 800, 0.5,
+			7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f);
+	ok &= expect(near(firstStop, dwellA) && !near(firstStop, secondStop), "a second stop draws on from the first");
+
+	const std::vector<double> windowsA = sampledWindows(scene, kSeedA);
+	ok &= expect(windowsA.size() == 4, "the fixture has two sampled journeys");
+	ok &= expect(sampledWindows(scene, kSeedA) == windowsA, "equal seeds sample equal passenger windows");
+	ok &= expect(sampledWindows(scene, kSeedB) != windowsA, "different seeds sample different passenger windows");
+	ok &= expect(sampledWindows(scene, kSeedA) == windowsA, "a run with another seed in between does not change a rerun");
+	ok &= expect(initial_variables.randomSeed == kSeedA, "the seed of the run is kept in the run settings");
+	return ok;
+}
+
+// Neither the dwell computation nor the scene preparation leaves a file in the working directory.
+static bool noFileAccessTests(const SceneModel& scene) {
+	QTemporaryDir workDir;
+	const QString previousDir = QDir::currentPath();
+	if (!expect(workDir.isValid() && QDir::setCurrent(workDir.path()), "temporary working directory"))
+		return false;
+	Train train;
+	train.number_of_wagons = 3.0;
+	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	seededDwellTime(train, 0.5, 800, 800);
+	bool ok = expect(!sampledWindows(scene, kSeedA).empty(), "the scene is prepared in the temporary directory");
+	const QStringList entries = QDir(workDir.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
+	ok &= expect(entries.isEmpty(), "no file appears in the working directory (found: " + entries.join(",").toStdString() + ")");
+	ok &= expect(QDir::setCurrent(previousDir), "working directory restored");
+	return ok;
 }
 
 static bool passengerRateTests() {
@@ -169,11 +276,6 @@ static bool passengerRateTests() {
 	ok &= expect(trainPassengerCapacity(0.0) == 300, "capacity of a train without wagons");
 	ok &= expect(trainPassengerCapacity(1.0) == 600, "capacity of a train with one wagon");
 	ok &= expect(trainPassengerCapacity(3.0) == 1200, "capacity of a train with three wagons");
-
-	QTemporaryDir workDir;
-	const QString previousDir = QDir::currentPath();
-	if (!expect(workDir.isValid() && QDir::setCurrent(workDir.path()), "temporary working directory"))
-		return false;
 
 	Train train;
 	train.number_of_wagons = 3.0;
@@ -194,13 +296,11 @@ static bool passengerRateTests() {
 	ok &= expect(near(highPlatform - lowPlatform, static_cast<double>(beta1) + beta3),
 			"platform congestion above 0.65 adds its terms to the dwell time");
 
-	ok &= expect(QDir::setCurrent(previousDir), "working directory restored");
 	return ok;
 }
 
 int main() {
-	std::srand(12345);
-	bool ok = true;
+	bool ok = generatorTests();
 	SceneModel scene = completeScene();
 	// Exercise native route construction, stop resolution and chart coordinate
 	// extraction together. The second route traverses the same track backwards.
@@ -1079,6 +1179,8 @@ int main() {
 		}
 		initial_variables.times = savedTimes;
 	}
+	ok &= seedTests(completeScene());
+	ok &= noFileAccessTests(completeScene());
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

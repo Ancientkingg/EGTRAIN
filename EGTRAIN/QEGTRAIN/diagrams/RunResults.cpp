@@ -93,6 +93,7 @@ QJsonObject runJson(const RunProvenance& run) {
 	result.insert(QStringLiteral("pax_mode"), run.paxMode);
 	result.insert(QStringLiteral("tsm_mode"), run.tsmMode);
 	result.insert(QStringLiteral("route_choice_mode"), run.routeChoiceMode);
+	result.insert(QStringLiteral("random_seed"), static_cast<qint64>(run.randomSeed));
 	result.insert(QStringLiteral("selected_occurrences"), selected);
 	return result;
 }

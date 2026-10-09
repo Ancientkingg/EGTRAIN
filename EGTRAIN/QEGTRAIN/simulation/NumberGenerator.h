@@ -13,20 +13,16 @@
 
 class NumberGenerator {
 public:
-	NumberGenerator(void);
-	NumberGenerator(unsigned long inSeed);
-	~NumberGenerator(void);
+	// Seeds from 1 to kMaxRandomSeed are valid. 0 and IM lead to the all-zero state, in which
+	// getGaussianFloat does not return.
+	explicit NumberGenerator(unsigned long inSeed);
 
 	int operator()(unsigned long inValue) { return getUniformInteger(0, inValue - 1); }
 
-	unsigned int getCurrentSeed(void) { return idum; }
-	void setRandomSeed(unsigned long inSeed) { idum = inSeed; }
 	bool getUniformBool(void) { return getUniformInteger(0, 1); }
 	int getUniformInteger(int inFirst, int inLast);
 	double getUniformFloat(double inFirst = 0., double inLast = 1.0);
 	double getGaussianFloat(double inMean = 0, double inStdDev = 1);
-
-	double generateRandomNumberInRange(double Min, double Max); // This function generates a random double number between the min and max of the range
 
 private:
 	long iy;
@@ -37,6 +33,11 @@ private:
 	double gset;
 };
 
-extern NumberGenerator rand1;
+constexpr unsigned long kMaxRandomSeed = IM - 1;
+
+// The generator that drives the passenger sampling of the prepared run.
+NumberGenerator& runNumberGenerator();
+// Restarts the run generator from inSeed. Scene preparation calls it, so every run starts from the same state.
+void seedRunNumberGenerator(unsigned long inSeed);
 
 #endif

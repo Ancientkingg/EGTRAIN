@@ -105,6 +105,7 @@ for name in artifacts:
     assert run["buffer_seconds"] == 0
     assert run["recovery_percent"] == 0
     assert run["pax_mode"] == run["tsm_mode"] == run["route_choice_mode"] == 0
+    assert run["random_seed"] == 789350715
     snapshot = run["input"]
     assert snapshot["kind"] == "directory"
     assert snapshot["path"] == scene
