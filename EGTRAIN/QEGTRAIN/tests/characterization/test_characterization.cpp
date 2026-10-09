@@ -34,8 +34,6 @@
 #include <QCoreApplication>
 #include <QTemporaryDir>
 
-#include <omp.h>
-
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -1019,7 +1017,6 @@ int runRepeatMode(const std::vector<std::string>& steps) {
 } // namespace
 
 int main(int argc, char** argv) {
-	omp_set_num_threads(1);
 	QCoreApplication application(argc, argv);
 
 	std::string fixture, expect, caseName;

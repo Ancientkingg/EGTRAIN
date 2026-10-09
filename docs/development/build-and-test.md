@@ -388,14 +388,6 @@ commit. List the marked cases with:
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-### One OpenMP thread
-
-The tests run on one OpenMP thread (`omp_set_num_threads(1)` and
-`OMP_NUM_THREADS=1`). The braking-point search in `RollingStock.h` writes
-`Xobmin` and `Vobmin` outside its `omp critical` section, so with several threads
-the chosen braking point could depend on thread timing. Results must not depend
-on the machine, and this keeps them from doing so.
-
 ## Simulation Smoke Test
 
 ```bash

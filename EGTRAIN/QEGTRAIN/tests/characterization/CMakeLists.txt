@@ -94,14 +94,12 @@ set(EGTRAIN_CHARACTERIZATION_SCENE_TESTS
 	characterization_repeat_lebanon_milano
 	characterization_repeat_netherlands)
 
-# One OpenMP thread: the braking-point search in RollingStock.h writes shared
-# variables outside its critical section, so the thread count must not vary.
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT 60
-	ENVIRONMENT "OMP_NUM_THREADS=1;QT_QPA_PLATFORM=offscreen")
+	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT 300
-	ENVIRONMENT "OMP_NUM_THREADS=1;QT_QPA_PLATFORM=offscreen")
+	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 set_property(TEST characterization_repeat_netherlands APPEND PROPERTY LABELS slow)
