@@ -326,7 +326,7 @@ static std::vector<Section> boundarySections(int n) {
 	return sections;
 }
 
-// A train whose delayed position at index 1 is headPosition, on a route that is reversed or not.
+// A train whose delayed position at index 1 is headPosition.
 static void placeBoundaryTrain(Train& train, double headPosition) {
 	train.type = "T";
 	train.ID = 1.0;
@@ -414,16 +414,25 @@ static bool routeBoundaryTests() {
 		train_route[0].reversed_direction = reversed;
 		{
 			// The limit is on the last section and the train is on it: the section before the missing one is released.
-			std::vector<Section> sections = restrictedSections(3);
+			// The route has 3 sections; sections[3] is not part of it and must stay as it is. It is poisoned for a
+			// sanitizer, and in a plain build a write to it shows in its code and exit speed.
+			std::vector<Section> sections = restrictedSections(4);
+			const int routeBlocks = 3;
 			Train train;
 			placeBoundaryTrain(train, 5000.0);
 			singleTrackLimits.clear();
 			singleTrackLimits.emplace_back(reversed ? sections[2].ID : "", reversed ? "" : sections[2].ID,
 					train.type + std::to_string(train.ID), "", "");
-			train.unlockSingleTrack(sections.data(), static_cast<int>(sections.size()), 1);
+#ifdef TEST_ADDRESS_SANITIZER
+			ASAN_POISON_MEMORY_REGION(&sections[3], sizeof(Section));
+#endif
+			train.unlockSingleTrack(sections.data(), routeBlocks, 1);
+#ifdef TEST_ADDRESS_SANITIZER
+			ASAN_UNPOISON_MEMORY_REGION(&sections[3], sizeof(Section));
+#endif
 			ok &= expect(isReleased(sections[2]) && sections[2].arcs_in_signalling_block_section[0].speedInBraking == 0.0
 					&& sections[2].code == 180 && sections[2].exit_speed == 20.0
-					&& isStillRestricted(sections[0]) && isStillRestricted(sections[1]),
+					&& isStillRestricted(sections[0]) && isStillRestricted(sections[1]) && isStillRestricted(sections[3]),
 					"a " + direction + " single-track limit on the last section releases that section only");
 		}
 		{
