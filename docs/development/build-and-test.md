@@ -156,8 +156,12 @@ the runner.
 
 Scene compatibility tests cover manifest probing, independent schema/bundle
 classification, hostile newer bundles, and transactional test-only migration
-chains. The production migration registry is empty; `scene_tool migrate` is a
-future extension rather than a second migration implementation.
+chains. The production migration registry is empty on purpose: every scene
+written so far has version number 1, so there is no number to convert from.
+`scene_tool` has no `migrate` command; it offers `import`, `pack`, `unpack`,
+`export` and `validate`. The
+[Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
+says which scenes are supported.
 
 The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs

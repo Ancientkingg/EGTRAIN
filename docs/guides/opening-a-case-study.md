@@ -21,10 +21,26 @@ the same JSON data that EGTRAIN loads from a V1 scene directory.
 Opening a bundle does not run it or modify the downloaded file. Use
 **File > Save Case Study As...** to create a new `.egscene` after editing the scene.
 
-If a scene is older and a reviewed migration is available, EGTRAIN offers
-**Upgrade a Copy...** and leaves the original unchanged. If no migration is
-registered, it reports that the scene is unsupported. A newer schema or bundle
-requires a newer EGTRAIN release; the dialog can use **Check for Updates...**.
+When you open a scene in the EGTRAIN window, EGTRAIN checks its version before
+it loads the scene. The check never changes the file you opened. Three dialogs
+report a scene that does not open:
+
+- **Older Scene Not Supported**: the scene reports a version older than any
+  EGTRAIN can read. No older version can be upgraded today. Download the
+  current case study from the releases page.
+- **Newer Scene**: the scene was saved with a newer EGTRAIN. Choose
+  **Check for Updates...** to look for the newer release.
+- **Cannot Open Scene**: the version cannot be read, the file is not a valid
+  scene or bundle, or loading the scene reports errors. The message names the
+  first problem; keep it.
+
+Scenes written by builds before 2026-08-08 use an older layout under the same
+version number and are not supported: they may open with errors or not open at
+all. Use the current case studies, or convert the original legacy input folder
+again with **File > Load Legacy Case...**.
+
+See the [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
+for the full list of which scenes open.
 
 If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
 the file again. The reader rejects truncated archives, unknown files, unsafe
