@@ -4,7 +4,7 @@
     "schema_version": 1,
     "simulation_settings": {
         "buffer_time_seconds": 0.0,
-        "duration_seconds": 700.0,
+        "duration_seconds": 1500.0,
         "recovery_time_percent": 0.0
     },
     "units": {

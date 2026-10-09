@@ -194,10 +194,11 @@ covers a half puts both halves, the plain blocks named in their ids and the
 sections whose ids contain those block ids in `BlocksOccupied`.
 `unlockDoubleSwitches` then gives every second half of a route copy that has
 code 0 the code 270 and exit speed 0, and the section before it state `green`.
-The section after the double switch is not held by that lock. If it shares a
-plain block with it, as the first half of a second double switch does,
-`Train::Det_Section_Occupied_By_Train` takes it out again when only the lock put
-it there. Tests: `characterization_crossover_chain_level_0`, `-1`, `-2` and `-5`.
+The section after the double switch is not held by that lock: when it shares a
+plain block with the double switch, as the first half of a second double switch
+does, `Train::Det_Section_Occupied_By_Train` takes it out again if only the lock
+put it there. `test_crossover_chain` runs two double switches in a row; see
+[Characterization tests](../development/build-and-test.md#characterization-tests).
 
 ## Levels
 

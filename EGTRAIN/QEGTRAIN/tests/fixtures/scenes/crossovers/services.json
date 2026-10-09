@@ -15,14 +15,14 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_arrival_seconds": 181.0,
-                    "planned_departure_seconds": 241.0,
+                    "planned_arrival_seconds": 600.0,
+                    "planned_departure_seconds": 660.0,
                     "platform": "B.platform.1",
                     "station": "B"
                 },
                 {
                     "dwell_seconds": 0.0,
-                    "planned_arrival_seconds": 364.0,
+                    "planned_arrival_seconds": 1100.0,
                     "platform": "C.platform.1",
                     "station": "C"
                 }
@@ -43,14 +43,14 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_arrival_seconds": 241.0,
-                    "planned_departure_seconds": 301.0,
+                    "planned_arrival_seconds": 660.0,
+                    "planned_departure_seconds": 720.0,
                     "platform": "B.platform.1",
                     "station": "B"
                 },
                 {
                     "dwell_seconds": 0.0,
-                    "planned_arrival_seconds": 424.0,
+                    "planned_arrival_seconds": 1160.0,
                     "platform": "C.platform.1",
                     "station": "C"
                 }
@@ -71,14 +71,14 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_arrival_seconds": 181.0,
-                    "planned_departure_seconds": 241.0,
+                    "planned_arrival_seconds": 600.0,
+                    "planned_departure_seconds": 660.0,
                     "platform": "B.platform.1",
                     "station": "B"
                 },
                 {
                     "dwell_seconds": 0.0,
-                    "planned_arrival_seconds": 364.0,
+                    "planned_arrival_seconds": 1100.0,
                     "platform": "A.platform.1",
                     "station": "A"
                 }

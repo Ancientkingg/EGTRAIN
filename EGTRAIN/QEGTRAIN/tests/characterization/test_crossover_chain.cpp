@@ -6,9 +6,10 @@
 // switch each, and the middle track carries the second half of the first
 // double switch and the first half of the second one on one long block. One
 // network-wide signalling area of the given level is set here. A run with one
-// train must not stand anywhere but at a platform, and a train behind another
-// one must wait in front of the second crossover for as long as the first train
-// stands in it.
+// train must not stand anywhere but at a platform. A train behind another one
+// must not overlap it and must not enter the second crossover while the first
+// train is in it; at levels 0, 1 and 2 it waits in the second half of the first
+// crossover meanwhile.
 
 #include "app/DispatchController.h"
 #include "simulation/InitialParameters.h"
@@ -41,6 +42,7 @@ constexpr double kStandstill = 0.01;	  // Speed below this is a standstill (m/s)
 constexpr double kPlatformReach = 1.0;	  // A stop at a platform is this close to its node (m).
 constexpr double kInsideMargin = 0.01;	  // Head position past a section start that counts as inside (m).
 constexpr int kSwitchSectionsInChain = 4; // Two double switches of two sections each.
+constexpr int kLevelWithExtraBlock = 5;	  // The level that stops a train one block further back.
 
 struct Trajectory {
 	std::string name;
@@ -54,9 +56,11 @@ struct Trajectory {
 // What one run of the fixture leaves behind.
 struct Outcome {
 	std::vector<Trajectory> trains;
-	// Positions along the route of the trains, in m: the platforms, the route end, and the second crossover.
+	// Positions along the route of the trains, in m: the platforms, the route end, the second half of the first crossover and the second
+	// crossover.
 	std::vector<double> platforms;
 	double routeEnd = 0.0;
+	double exitStart = 0.0;
 	double secondStart = 0.0;
 	double secondEnd = 0.0;
 	std::vector<std::string> problems; // The fixture or the run is not as the test needs it.
@@ -85,8 +89,10 @@ void checkChain(const Route& route, Outcome& outcome) {
 		if (!flagged)
 			outcome.problems.push_back("route " + route.ID + ": switch section " + section.ID + " has the wrong virtual signal flags");
 	}
+	const Section& second = route.sequence_of_block_sections[switches[1]];
 	const Section& third = route.sequence_of_block_sections[switches[2]];
 	const Section& fourth = route.sequence_of_block_sections[switches[3]];
+	outcome.exitStart = second.start_node.X * 1000.0;
 	outcome.secondStart = third.start_node.X * 1000.0;
 	outcome.secondEnd = fourth.end_node.X * 1000.0;
 }
@@ -228,9 +234,11 @@ void checkLoneTrain(const std::string& assertion, const std::string& fixture, in
 	expectOnlyStopsAtPlatforms(assertion, outcome, outcome.trains[0], failures);
 }
 
-// A train behind another one on the forward route.
+// A train behind another one on the forward route. At the level with the extra block the lock of the second crossover keeps the second half
+// of the first crossover occupied, so the follower stands in front of the first crossover and is not checked for waiting inside it.
 void checkFollower(const std::string& fixture, int level, std::vector<std::string>& failures) {
-	const std::string assertion = "(b) leader F1 and follower F2";
+	const std::string assertion = "leader F1 and follower F2";
+	const bool waitsInFirstCrossover = level != kLevelWithExtraBlock;
 	const Outcome outcome = runServices(fixture, level, {"F1", "F2"});
 	for (const std::string& problem : outcome.problems)
 		failures.push_back(assertion + ": " + problem);
@@ -245,15 +253,16 @@ void checkFollower(const std::string& fixture, int level, std::vector<std::strin
 	const int to = std::min(leader.last, follower.last);
 	int overlapStep = -1;
 	int bothInside = -1;
-	int waitsBehind = -1;
+	int waitStep = -1;
 	for (int t = from; t <= to; ++t) {
 		if (overlapStep < 0 && follower.position[t] > leader.position[t] - leader.length)
 			overlapStep = t;
 		const bool leaderInside = inside(leader, t, outcome.secondStart, outcome.secondEnd);
 		if (leaderInside && inside(follower, t, outcome.secondStart, outcome.secondEnd) && bothInside < 0)
 			bothInside = t;
-		if (leaderInside && follower.speed[t] < kStandstill && follower.position[t] <= outcome.secondStart && waitsBehind < 0)
-			waitsBehind = t;
+		if (leaderInside && follower.speed[t] < kStandstill && follower.position[t] > outcome.exitStart + kInsideMargin
+			&& follower.position[t] <= outcome.secondStart + kInsideMargin && waitStep < 0)
+			waitStep = t;
 	}
 	if (overlapStep >= 0)
 		failures.push_back(assertion + ", the follower stays behind the rear of the leader: at step " + std::to_string(overlapStep)
@@ -264,8 +273,9 @@ void checkFollower(const std::string& fixture, int level, std::vector<std::strin
 			+ std::to_string(bothInside) + " the follower is at " + metres(follower.position[bothInside]) + " m and the leader at "
 			+ metres(leader.position[bothInside]) + " m, the crossover runs from " + metres(outcome.secondStart) + " m to "
 			+ metres(outcome.secondEnd) + " m");
-	if (waitsBehind < 0)
-		failures.push_back(assertion + ", the follower waits in front of the second crossover while the leader is in it: it never stands there");
+	if (waitsInFirstCrossover && waitStep < 0)
+		failures.push_back(assertion + ", the follower waits in front of the second crossover while the leader is in it: it never stands between "
+			+ metres(outcome.exitStart) + " m and " + metres(outcome.secondStart) + " m then");
 }
 
 } // namespace
@@ -292,8 +302,8 @@ int main(int argc, char** argv) {
 	}
 
 	std::vector<std::string> failures;
-	checkLoneTrain("(a) lone forward train F1", fixture, level, "F1", failures);
-	checkLoneTrain("(a) lone reverse train R1", fixture, level, "R1", failures);
+	checkLoneTrain("lone forward train F1", fixture, level, "F1", failures);
+	checkLoneTrain("lone reverse train R1", fixture, level, "R1", failures);
 	checkFollower(fixture, level, failures);
 
 	const std::string name = "crossover chain at level " + std::to_string(level);
