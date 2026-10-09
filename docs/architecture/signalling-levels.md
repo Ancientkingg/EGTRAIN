@@ -30,8 +30,9 @@ in code font. They are the characterization cases in
 - The word "level" also appears in `views.json`, for the display level of a
   track in the network view. That has nothing to do with the signalling level.
 
-The labels are defined in `scene/SignallingLevelNames.h`. The application does
-not show them yet; the editor and the validation messages show the number.
+The labels are defined in `scene/SignallingLevelNames.h`. The validation message
+about areas that give one section different levels shows them. The editor shows
+the number.
 
 | Value | Label | One line from the program |
 | --- | --- | --- |
@@ -79,17 +80,18 @@ internally.
 | --- | --- | --- | --- |
 | 270 | green | at the start, when a section is released, and as the last code of a chain | green |
 | 180 | yellow | two sections behind an occupied section (levels 0, 1, 2); three behind at level 5 | green |
-| 75 | red | one section behind an occupied section (levels 0, 1, 2); two behind at level 5 | yellow |
-| 751 | red_red | one section behind an occupied section, level 5 only | grey |
-| 0 | keeps its state | on an occupied or failed section | red |
+| 75 | red | one section behind an occupied section (levels 0, 1, 2); two behind at level 5 | yellow with a dark dot |
+| 751 | red_red | one section behind an occupied section, level 5 only | red with a dark bar |
+| 0 | keeps its state | on an occupied or failed section | red with a dark bar |
 
-The window colours a head from the code alone: 0 red, 75 yellow, 180 and 270
-green, any other code grey. A head shows the code of the section ahead of it. If
-route copies of one section disagree, it shows the most restrictive code, in
-the order 0, 751, 75, 180, 270. A copy without a level never replaces one with a
-level. The snapshot also carries the level and a failed
-flag for each signal (`app/GuiSimulationSnapshot.h`). The window does not use
-them yet; #438 is open.
+A head shows the code of the section ahead of it. If route copies of one
+section disagree, it shows the most restrictive code, in the order 0, 751, 75,
+180, 270. A copy without a level never replaces one with a level. The snapshot
+also carries the level and a failed flag for each signal
+(`app/GuiSimulationSnapshot.h`). A head whose section has no level, and a head
+that no route passes in its direction, is an empty grey ring. The head of a
+failed signal is a red lamp with a white cross for as long as the failure
+lasts. The marks are drawn when a head is at least 6 pixels wide.
 
 A code changes what a following train does in four ways.
 
@@ -161,8 +163,9 @@ second. In each step:
   stopped: the authority lies behind it (`sf-entered-level-none`).
 - On the first step after the incident has ended, the failed sections are handed
   to the release function.
-- The signal heads ignore the failed flag and show the codes. The track of a
-  failed section is drawn as blocked.
+- The heads of a failed section show the failure. The track of a failed section
+  is drawn as blocked while the incident has an end second; a failure without
+  one is not drawn as blocked (#587).
 
 Cases: `sf-forward-level-*` and `sf-reverse-level-*` for the levels 0 to 5 and
 none; `sf-adjacent-level-*`, `sf-staggered-level-*`, `sf-last-level-*` and
@@ -251,7 +254,7 @@ ahead of `F2` and stands at the station at 8 km while `F2` arrives
 
 The routines of levels 1 and 2 are the same code with the level number changed:
 `etcsLev1MixedSignalling` and `etcsLev2MixedSignalling`, their speed passes and
-their release functions (checked by comparing the texts). Trains move the same
+their release functions. Trains move the same
 way at both levels. The levels differ in the blocking times only.
 
 - **Separation.** Fixed blocks. A train stops at the end of the block before the
@@ -389,8 +392,9 @@ cases run at one level.
   neighbouring levels (`manageEtcs3TransitionsToOtherSignalling`).
 - An authority of level 3 or 4 is made only where its point lies in a section of
   level 3 or 4. The exception is a train whose tail is still before the start of
-  its route: it gets an authority on the first section of the route whatever the
-  level of that section (`ReportPositionToRBC`). A train of any level reads authorities on its own section and the
+  its route, on a route that has at least one section of level 3 or 4: it gets
+  an authority on the first section of the route whatever the level of that
+  section (`ReportPositionToRBC`). A train of any level reads authorities on its own section and the
   eight after it where the section has level 3 or 4, or where a signal failure
   has made one.
 - The entry rule is the rule of the level of the first section of the route.
@@ -522,9 +526,8 @@ Open on this version:
   (`single-track-level-3`, `single-track-level-4`).
 - #564: at level 4, two trains that enter one after the other end at the same
   position at a platform (`same-entry-level-4`).
-- #438: the displayed signal aspects. The window uses the code only. It does not
-  use the level or the failed flag of the snapshot, levels 3 and 4 show only red
-  and green, and the code 751 of level 5 is grey.
+- #587: the track of a signal failure without an end second is not drawn as
+  blocked.
 - #459: four committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
@@ -539,6 +542,10 @@ Limits that no issue tracks:
   following mode.
 - The routines of levels 1 and 2 clear the wrong section after writing code 270
   (see levels 1 and 2). It has no effect with one level.
+- When several authorities compete at levels 3 and 4 or at a signal failure, the
+  closest one is chosen with a braking distance whose formula subtracts the
+  squared target speed only after dividing it (`V^2 - Vt^2 / (2 a)`). The effect
+  is not measured.
 
 ## What is not established
 

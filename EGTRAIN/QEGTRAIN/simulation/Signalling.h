@@ -352,7 +352,7 @@ extern double S_delay; // Signalling system delay in seconds (set to x-1 to get 
 
 extern list<string> BlocksOccupied;		// All blocks occupied by trains (directly occupied + connected)
 extern list<string> BlocksConnected;	// Blocks connected to occupied blocks (released when train leaves)
-extern list<MovementAuthority> ETCS_MA; // Movement authorities provided by RBC where ETCS is active
+extern list<MovementAuthority> ETCS_MA; // Movement authorities: levels 3 and 4, and failed signals at every level
 
 // Occupy a block section and all connected blocks
 void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);
