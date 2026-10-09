@@ -1093,6 +1093,73 @@ static bool runValueSemanticsChecks() {
 	return ok;
 }
 
+// The texts of the track detection section border ids, for plain sections and for sections with a diverging switch,
+// and the text that a node searches its connected blocks with.
+static bool runTrackDetectionBorderNameChecks() {
+	bool ok = true;
+	const auto same = [&ok](const std::string& actual, const std::string& expected, const std::string& what) {
+		ok &= expect(actual == expected, what + " is '" + actual + "'");
+	};
+	const auto addArc = [](Section& target, double startX, double endX, int connections = 0, const std::string& name = std::string()) {
+		Arc& added = target.arcs_in_signalling_block_section[target.total_arcs++];
+		added.startNode.X = startX;
+		added.endNode.X = endX;
+		added.endNode.numConnections = connections;
+		added.endNode.tdsbId = name;
+	};
+	const auto setSwitch = [](Section& target, const std::string& id, double xStart, double xEnd, double endX) {
+		target.ID = id;
+		target.withSwitchDiv = true;
+		target.XStartSwitch = xStart;
+		target.XEndSwitch = xEnd;
+		target.end_node.X = endX;
+	};
+	std::vector<Section> sections(4);
+	Section& plain = sections[0];
+	plain.ID = "@P1@";
+	plain.end_node.X = 20.0;
+	addArc(plain, -9.0, -7.2345678, 1);
+	addArc(plain, -7.2345678, 12.3456789, 1);
+	Section& whole = sections[1];
+	setSwitch(whole, "@Ba@-1.000000/@Bb@-2.000000", 20.1234567, 20.7654321, 20.7654321);
+	addArc(whole, whole.XStartSwitch, whole.XEndSwitch);
+	Section& ahead = sections[2];
+	setSwitch(ahead, "@Bc@-1.000000/@Bd@-2.000000", 30.5555556, 31.4444444, 30.5555556);
+	addArc(ahead, 29.0, 29.3333333, 1);
+	addArc(ahead, 29.3333333, ahead.XStartSwitch);
+	Section& named = sections[3];
+	setSwitch(named, "@Be@-1.000000/@Bf@-2.000000", 40.2222222, 40.8888888, 50.0);
+	addArc(named, 40.0, named.XStartSwitch, 0, "@Q@");
+	addArc(named, named.XStartSwitch, named.XEndSwitch, 0, "@R@");
+	addArc(named, named.XEndSwitch, 45.5555556, 1);
+	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(sections.data(), static_cast<int>(sections.size()));
+	const auto endId = [](const Section& target, int index) -> const std::string& {
+		return target.arcs_in_signalling_block_section[index].endNode.tdsbId;
+	};
+	same(endId(plain, 0), "@-7.234568-P1@Point", "the border of a first arc end without a switch");
+	same(endId(plain, 1), "@12.345679-P1@Point", "the border of a later arc end without a switch");
+	same(whole.arcs_in_signalling_block_section[0].startNode.tdsbId, "@Beg-Ba@/@20.765432-Bb@Point-Start",
+		"the border at the start of a switch at the section start");
+	same(endId(whole, 0), "@20.123457-Ba@/@20.765432-Bb@Point-End@20.123457-Ba@/@End-Bb@Point-End",
+		"the border at the end of a switch at the section end");
+	same(endId(ahead, 0), "@29.333333-Bc@Point", "the border before a switch");
+	same(endId(ahead, 1), "@30.555556-Bc@/@31.444444-Bd@Point-Start@End-Bc@/@31.444444-Bd@Point-Start",
+		"the border at the start of a switch at the section end");
+	same(endId(named, 0), "@Q@/@40.888889-Bf@Point-Start", "the named border at the start of a switch");
+	same(endId(named, 1), "@40.222222-Be@/@R@Point-End", "the named border at the end of a switch");
+	same(endId(named, 2), "@45.555556-Bf@Point", "the border after a switch");
+
+	Node connected;
+	connected.numConnections = 1;
+	connected.connectIdBlockSet[0] = 30;
+	connected.connectXNode[0] = 4.5923456;
+	std::string candidates[] = {"@1-B3@-4.592346/@4-B5@-6.700000", "@1-B30@-4.592346/@5-B7@-4.620000"};
+	connected.initialiseIdConnectedBlocks(candidates, 2);
+	ok &= expect(connected.IDConnectedBlocks.size() == 1 && connected.IDConnectedBlocks.front() == candidates[1],
+		"a node finds the connected block with its block set and abscissa");
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runAreaMappingChecks();
@@ -1100,5 +1167,6 @@ int main() {
 	ok &= runManySectionsChecks();
 	ok &= runRouteStorageChecks();
 	ok &= runValueSemanticsChecks();
+	ok &= runTrackDetectionBorderNameChecks();
 	return ok ? 0 : 1;
 }
