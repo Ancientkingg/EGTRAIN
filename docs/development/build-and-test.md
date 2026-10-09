@@ -389,17 +389,15 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The markers name two open issues. #437 covers two trains at one position
+The markers name three open issues. #437 covers two trains at one position
 (`follow-level-none`, `sf-forward-level-none`, `sf-reverse-level-none`) and
 trains that stay stopped after a signal failure at levels 0 to 2. #499 covers
 a following train that reports a departure from B before its planned
-departure at levels 3 and 4.
-
-#498 covers trains that stand until the end of the run on a clear line at
-level 5 (`follow-level-5`, `sf-forward-level-5`, `sf-reverse-level-5`). These
-cases have no marker, because every stop is at a block boundary or a platform
-and no check fails. Their golden files pin that behaviour all the same. The
-other unmarked cases show no known-wrong behaviour, so the checks apply.
+departure at levels 3 and 4. #498 covers trains that stand until the end of
+the run at level 5 (`follow-level-5`, `sf-forward-level-5`,
+`sf-reverse-level-5`). No check fails for these three, because every stop is
+at a block boundary or a platform, and the marker ties them to the issue. The
+unmarked cases show no known-wrong behaviour, so the checks apply.
 
 ## Simulation Smoke Test
 

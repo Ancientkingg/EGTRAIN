@@ -190,18 +190,21 @@ const struct {
 	{"follow-level-none", "#437 F2 stops at the position of F1 at B"},
 	{"follow-level-3", "#499 F2 reports a departure from B before its planned departure"},
 	{"follow-level-4", "#499 F2 reports no dwell at B and a departure before its planned departure"},
+	{"follow-level-5", "#498 F2 stands at 12 km from 1240 s to the end of the run"},
 	{"sf-forward-level-none", "#437 F2 stops at the position of F1 at B and at 10 km"},
 	{"sf-forward-level-0", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
 	{"sf-forward-level-1", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
 	{"sf-forward-level-2", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
 	{"sf-forward-level-3", "#499 F2 reports a departure from B before its planned departure"},
 	{"sf-forward-level-4", "#499 F2 reports no dwell at B and a departure before its planned departure"},
+	{"sf-forward-level-5", "#498 F1 stays at B and F2 at 4 km after the failure ends"},
 	{"sf-reverse-level-none", "#437 R2 stops at the position of R1 at B and at 10 km"},
 	{"sf-reverse-level-0", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
 	{"sf-reverse-level-1", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
 	{"sf-reverse-level-2", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
 	{"sf-reverse-level-3", "#499 R2 reports a departure from B before its planned departure"},
 	{"sf-reverse-level-4", "#499 R2 reports no dwell at B and a departure before its planned departure"},
+	{"sf-reverse-level-5", "#498 R1 stays at B and R2 at 4 km after the failure ends"},
 };
 
 std::string knownWrongMarker(const std::string& name) {
