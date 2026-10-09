@@ -293,6 +293,24 @@ int main() {
 					stop("station-a", "platform-a1", 20.0, 50.0)).inserted,
 				"the same stop with a platform is accepted");
 	}
+	// A platform that the route reaches twice: the new stop must not take the visit of an existing stop.
+	{
+		SceneModel samePlatform = loop;
+		samePlatform.stations[0].platforms = {{"platform-a", {"node-1", "node-5"}}};
+		SceneModel scene = withStops(samePlatform, {stop("station-a", "platform-a", 20.0, 50.0)});
+		const SceneService before = scene.services[0];
+		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
+		ok &= expect(window.ok && window.visits.visits.empty(),
+				"no visit is free before a stop that uses the first of two visits of one platform");
+		const auto refused = insertSceneStop(scene, scene.services[0], 0,
+				stop("station-a", "platform-a", 10.0, 15.0));
+		ok &= expect(!refused.inserted && contains(refused.error, "stop 1")
+				&& contains(refused.error, "(A)") && sameStops(scene.services[0].stops, before.stops),
+				"a stop that would move an existing stop to another visit is refused and names it");
+		ok &= expect(insertSceneStop(scene, scene.services[0], 1,
+					stop("station-a", "platform-a", 300.0, 330.0)).inserted,
+				"the same stop is accepted after the existing stop");
+	}
 	// g. An unresolved neighbour.
 	{
 		SceneModel scene = withStops(line, {stop("station-x", "", 0.0, 0.0), lineStop('C', 200.0)});

@@ -147,14 +147,15 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 		if (before[index].status != SceneStopResolutionStatus::Resolved)
 			continue;
 		const std::size_t newIndex = index < insertIndex ? index : index + 1;
-		if (after[newIndex].status == SceneStopResolutionStatus::Resolved)
+		if (after[newIndex].status == SceneStopResolutionStatus::Resolved
+				&& after[newIndex].visitIndex == before[index].visitIndex)
 			continue;
 		damaged += (damaged.empty() ? "" : ", ") + stopLabel(model, service, index);
 	}
 	if (!damaged.empty()) {
 		result.error = "Inserting " + stationLabel(model, stop.stationId)
-				+ " here would leave these stops without a reachable route visit: " + damaged
-				+ ". Choose an earlier position or another station.";
+				+ " here would move these stops to another route visit or leave them without one: "
+				+ damaged + ". Choose an earlier position or another station.";
 		return result;
 	}
 	service.stops = std::move(candidate.stops);

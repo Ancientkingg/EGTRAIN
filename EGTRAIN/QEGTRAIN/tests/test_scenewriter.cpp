@@ -846,6 +846,8 @@ int main(int argc, char** argv) {
 			}
 			ok &= expect(sameStops, "reload keeps the stop order and every planned time");
 		}
+	} else {
+		std::cerr << "skipped: the committed-scene insertion check needs the Scenes directory argument\n";
 	}
 
 	if (!ok)

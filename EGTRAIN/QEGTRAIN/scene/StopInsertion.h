@@ -52,12 +52,19 @@ struct SceneStopInsertionResult {
 };
 
 // Inserts `stop` at `insertIndex` only when the new stop resolves and every stop
-// that resolved before still resolves. Otherwise `service` is left unchanged
-// and the result names the stops concerned. No field of an existing stop is
-// changed and the planned times of `stop` are kept as given.
+// that resolved before still resolves at the same route visit. Otherwise
+// `service` is left unchanged and the result names the stops concerned. No field
+// of an existing stop is changed and the planned times of `stop` are kept as
+// given.
 //
-// The matching of stops to route visits is sequential, and two stops with the
-// same station and platform inside one window bind to its visits in order.
+// Callers choose positions and stations with sceneStopInsertionWindow. This
+// function alone does not reject a position whose preceding stop does not
+// resolve.
+//
+// The matching of stops to route visits is sequential: a stop binds to the
+// first matching visit after the previous resolved stop. Two stops with the
+// same station and platform therefore bind to its visits in order, and the new
+// stop must bind before the visit of the next resolved stop.
 SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& service,
 		std::size_t insertIndex, const SceneStop& stop);
 
