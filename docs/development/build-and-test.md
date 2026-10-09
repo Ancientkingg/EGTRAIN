@@ -577,7 +577,9 @@ seek explicitly restores historical operational overlays; normal completion does
 not. A new run or scene/scenario edit clears replay and returns active replay to
 the authoring preview. Train, station and signal inspections remain selected
 across seeks; future or exited trains do not appear on layer toggles or drive
-Follow station emphasis. Unsuccessful and stopped runs have no replay, and a
+Follow station emphasis. Follow stays on after the followed train has left at the
+displayed time and continues when the replay goes back; in a live run it is
+switched off at that point. Unsuccessful and stopped runs have no replay, and a
 stopped run keeps no results either.
 Passenger journey details are unavailable in replay; snapshot scalar counts
 and statuses remain visible.
@@ -658,6 +660,49 @@ end before a pause takes effect. After the run the final frame and every replay 
 forwards, are checked. The marker is `E2E_SIGNAL_HEADS_OK mode=<name>`. The script
 makes three line scenes from `tests/fixtures/scenes/line` (levels, failure,
 none) and also runs Paimpol, Assignment and Lebanon.
+
+The explanation of Follow is checked by several smoke scripts. `app/FollowAvailability.h`
+decides whether the control is offered, whether Follow can be switched on, whether it has
+to be switched off, whether the view and the station emphasis follow the train and which
+sentence is shown; the window writes the answer into the train list, the status label and
+the tooltips of the control. Each check reads that widget state in the window's own E2E
+code and prints a marker:
+
+- `E2E_FOLLOW_NO_RUN_OK` (`scene_render_smoke.sh`, before the first run) and
+  `E2E_FOLLOW_NO_SERVICES_OK` (`track_preview_smoke.sh`, a case without services):
+  Follow is disabled, and its tooltip, the list entry and the label say why.
+  `E2E_FOLLOW_SERVICE_ADDED_OK` (`creator_acceptance_smoke.sh`) checks that the
+  first service changes that reason from "no trains" to "run the case first".
+- In the live run of Copenhagen (`visual_polish_smoke.sh`):
+  `E2E_FOLLOW_NOT_ENTERED_OK` (a train that has not entered shows its scheduled time in
+  the label, the list entry, the tooltips and the accessible descriptions; such a train
+  has no item in this run, so there is nothing for the view to move to, and
+  `E2E_FOLLOW_REPLAY_BEFORE_OK`, which requires the item of the train to exist, checks
+  that the view stays where it is for a train that has not entered),
+  `E2E_FOLLOW_STATUS_WIDTH_OK` (a sentence does not raise the width of the status bar),
+  `E2E_FOLLOW_VISIBLE_OK` (at a window width of 1024 pixels the label still shows the
+  state of the train and its scheduled time, and the list asks its popup for a width
+  that fits the entry, which is wider than the list; how a platform style opens the
+  popup is not checked),
+  `E2E_FOLLOW_CLOCK_OK` (a change of the start time changes the scheduled times in the
+  list and in the sentence), `E2E_FOLLOW_ENTERED_OK` (the same train after it entered),
+  `E2E_FOLLOW_LIST_STABLE_OK` (frames that change no state do not write the list: every
+  row holds a marker text first, and the marker has to survive; Qt does not report a
+  write of the text a row already has),
+  `E2E_FOLLOW_LAYER_OK` (Trains layer off and on again, with the station emphasis) and
+  `E2E_FOLLOW_LIVE_END_OK` (Follow is switched off with its sentence when the followed
+  train leaves).
+- In the replay of the Assignment run (`visual_polish_smoke.sh`):
+  `E2E_FOLLOW_REPLAY_BEFORE_OK`, `E2E_FOLLOW_REPLAY_DURING_OK` and
+  `E2E_FOLLOW_REPLAY_AFTER_OK` (Follow stays on and the view moves only while the
+  train runs; before the entry the train has a hidden item with the geometry of its
+  run, away from the view, which the view must not move to; seeking within the run
+  does not write the list), `E2E_FOLLOW_REPLAY_LAYER_OK` (Trains layer off and on
+  again with Follow on), `E2E_FOLLOW_SELECT_ON_OK` and `E2E_FOLLOW_SELECT_OK` (the
+  arrow keys of the list with Follow on and off) and `E2E_FOLLOW_RESET_OK` (Follow is
+  off after the scenario changes). No train of that run leaves within its 600 s, so
+  the frame after the end of the followed train is a copy of the frame in which it
+  runs, with the train marked as left.
 
 ## Smoke artifacts
 

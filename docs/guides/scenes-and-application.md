@@ -155,8 +155,29 @@ The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
 JSON-only settings. During playback, choose a train in **Train to follow** and
 activate **Follow** to center the network view on it immediately, including
-while paused. A selected train that has not departed yet remains armed and the
-status bar reports that Follow is waiting for departure. Follow is cleared when
+while paused.
+
+The list names the state of each train. A train that has not entered the network
+shows its scheduled entry time, as in "Rail-1 (scheduled 08:25:50)"; the time is
+the schedule, not the actual entry. After that a train is "(running)",
+"(finished)", "(hidden)" while the Trains layer is off, or "(no position)" when
+it has none to draw. The list keeps its width in the toolbar and asks for a popup as
+wide as the longest entry. The label at the right of the status bar says in one
+sentence whether the selected train is followed and why not, and the tooltips of
+**Follow** and of the list say the same. The label starts with the state of the
+train and its scheduled time and cuts a long sentence at its end; the tooltip has
+the whole sentence. A train that has not entered yet remains armed: the view does
+not move, and Follow starts when the train enters. While the Trains layer is off
+the view does not move either, and the nearest station is not emphasised; both
+return when the layer is switched on. Before a case has run, and in a case
+without services, **Follow** is disabled and its tooltip says why.
+
+In a live run Follow is switched off when the selected train leaves the network.
+The train stays in the list, but Follow cannot be switched on for it. In the
+replay of a completed run Follow stays on after the selected train has left, and
+continues when you go back in time. A train that is scheduled to enter after the
+end of the completed run has no position in its replay; the label says so and the
+view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 

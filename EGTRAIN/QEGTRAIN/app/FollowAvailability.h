@@ -8,6 +8,13 @@
 
 // Whether the selected train can be followed, and the words that say why not.
 // The decision uses only what the window knows, so it has no Qt dependency.
+//
+// The window asks this unit whether the control is offered (controlEnabled), whether Follow
+// can be switched on for the train (canArm), whether it has to be switched off (switchOff),
+// whether the view and the station emphasis follow the train (canAct) and which text is
+// shown (entryText, statusText). The sentences are true whether Follow is on or off. They
+// say the state of the train first and the part about Follow last, so that a status area
+// that is too narrow elides the part about Follow first.
 
 enum class FollowPhase {
 	NoServices,	   // the case defines no services
@@ -23,7 +30,12 @@ struct FollowAvailabilityInput {
 	bool sceneHasServices = false;
 	// A run has been prepared, so its trains are known.
 	bool hasRun = false;
+	// The displayed frame comes from a completed run, so the user can go back in time.
 	bool replay = false;
+	// Follow is switched on for this train.
+	bool followOn = false;
+	// Last time of the completed run that is displayed, in seconds since simulation start, or -1 when there is none.
+	int replayEndTime = -1;
 	// The chosen train in the displayed snapshot, or null when it is not there.
 	const GuiTrainState* train = nullptr;
 	// Time of the displayed snapshot, in seconds since simulation start.
@@ -39,14 +51,18 @@ struct FollowAvailabilityInput {
 
 struct FollowAvailability {
 	FollowPhase phase = FollowPhase::NoServices;
-	// Text of the list entry.
+	// Text of the list entry. It does not depend on the state of Follow.
 	std::string entryText;
-	// Sentence for the status area.
+	// Sentence for the status area, worded for the state of Follow.
 	std::string statusText;
+	// The Follow control is offered. It is not when there is nothing to follow yet.
+	bool controlEnabled = false;
 	// Follow can be switched on for this train in this state. A train that has
 	// finished is refused in a live run and accepted in a replay, which can go back.
 	bool canArm = false;
-	// The view can move to the train now.
+	// Follow is on and cannot stay on for this train.
+	bool switchOff = false;
+	// Follow is on and the view moves to the train now.
 	bool canAct = false;
 };
 
@@ -79,37 +95,45 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			out.entryText = "Run the case to follow trains";
 			out.statusText = "Run the case first, then you can follow a train.";
 			break;
-		case FollowPhase::NotEntered:
+		case FollowPhase::NotEntered: {
 			out.canArm = true;
+			// A train that is scheduled after the end of a completed run has no position at any time of its replay, so the
+			// sentence does not say that Follow starts.
+			const bool afterRun = in.train && in.replayEndTime >= 0 && in.train->departureTime > in.replayEndTime;
+			const std::string tail = in.followOn ? "Follow starts when it enters." : "Follow can be switched on now and starts when it enters.";
 			if (in.train) {
 				const std::string entry = formatSimTime(in.train->departureTime, in.clockOffsetSeconds);
-				out.entryText = name + " (enters " + entry + ")";
-				out.statusText = name + " has not entered the network yet. It is scheduled to enter at " + entry
-					+ ". Follow starts when it enters.";
+				out.entryText = name + " (scheduled " + entry + ")";
+				out.statusText = name + " is scheduled to enter at " + entry
+					+ (afterRun ? std::string(", after the end of this run, so the view cannot follow it.") : ". " + tail);
 			} else {
 				out.entryText = name + " (not entered yet)";
-				out.statusText = name + " has not entered the network yet. Follow starts when it enters.";
+				out.statusText = name + " has not entered the network yet. " + tail;
 			}
 			break;
+		}
 		case FollowPhase::Running:
 			out.canArm = true;
-			out.canAct = true;
 			out.entryText = name + " (running)";
-			out.statusText = name + " is running.";
+			out.statusText = name + " is running. " + (in.followOn ? "The view follows it." : "Follow can be switched on now.");
 			break;
 		case FollowPhase::Finished:
 			out.entryText = name + " (finished)";
 			if (in.replay) {
 				out.canArm = true;
-				out.statusText = name + " has left the network at this time. Follow stays on and continues when you go back in the replay.";
+				out.statusText = name + " has left the network at this time. "
+					+ (in.followOn ? "Follow stays on and continues when you go back in the replay."
+								   : "Follow can be switched on now and continues when you go back in the replay.");
 			} else {
-				out.statusText = name + " has left the network. Follow is switched off.";
+				out.statusText = name + " has left the network. " + (in.followOn ? "Follow is switched off." : "Follow cannot be switched on for it.");
 			}
 			break;
 		case FollowPhase::HiddenByLayer:
 			out.canArm = true;
 			out.entryText = name + " (hidden)";
-			out.statusText = name + " is running, but the Trains layer is switched off, so the view does not follow it.";
+			out.statusText = name + " is running, but the Trains layer is switched off"
+				+ (in.followOn ? ", so the view does not follow it."
+							   : ". Follow can be switched on now and moves the view when the layer is switched on.");
 			break;
 		case FollowPhase::NotDrawable:
 			out.canArm = true;
@@ -117,6 +141,9 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			out.statusText = name + " is running, but it has no position on the map to follow.";
 			break;
 	}
+	out.controlEnabled = out.phase != FollowPhase::NoServices && out.phase != FollowPhase::NoRun;
+	out.switchOff = in.followOn && !out.canArm;
+	out.canAct = in.followOn && out.phase == FollowPhase::Running;
 	return out;
 }
 
