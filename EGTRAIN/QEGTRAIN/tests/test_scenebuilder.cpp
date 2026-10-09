@@ -1093,7 +1093,8 @@ static bool runValueSemanticsChecks() {
 	return ok;
 }
 
-// The texts of the track detection section border ids, for plain sections and for sections with a diverging switch, and the text that a node searches its connected blocks with.
+// The texts of the track detection section border ids, for plain sections and for sections with a diverging switch,
+// and the text that a node searches its connected blocks with.
 static bool runTrackDetectionBorderNameChecks() {
 	bool ok = true;
 	const auto same = [&ok](const std::string& actual, const std::string& expected, const std::string& what) {
