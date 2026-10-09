@@ -12,6 +12,7 @@ Choose the route that matches your task.
 
 - [Using EGTRAIN and authoring V1 scenes](guides/scenes-and-application.md)
 - [V1 scene property reference](guides/v1-scene-properties.md)
+- [Signalling levels and signalling areas](architecture/signalling-levels.md)
 - [Assignment corridor](product/assignment-corridor.md)
 - [Assignment workflow](product/assignment-workflow.md)
 
@@ -26,6 +27,7 @@ use the canonical model.
 - [Coding guidelines](development/coding-guidelines.md)
 - [Scene model design](architecture/scene-model.md)
 - [Scene schema reference](architecture/scene-schema.md)
+- [Signalling levels and signalling areas](architecture/signalling-levels.md)
 - [Scene bundle format](architecture/scene-bundle.md)
 - [Release testing checklist](development/release-testing-checklist.md)
 - [Usage and diagnostics wire contract](telemetry/README.md)

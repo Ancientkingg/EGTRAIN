@@ -22,6 +22,11 @@ observables are the canonical structure, `EnergyConsumptionPerTrain.txt`,
 counts support the structure comparison below but are not used as a substitute
 for the runtime output comparison.
 
+The baseline revision has no reader for the legacy area files
+(`TrackLines/AreasCaseStudy.txt`, `Areas*.TXT`), and nothing else gives a section
+a signalling level, so no section of its runs has one. See
+[Signalling levels](../architecture/signalling-levels.md).
+
 ## Infrastructure and signalling
 
 Counts are baseline / native:

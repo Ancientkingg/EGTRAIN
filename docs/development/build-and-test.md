@@ -325,6 +325,8 @@ eight scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`,
 All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
 network-wide signalling area, so one scene covers levels 0 to 5 and "none".
+[Signalling levels](../architecture/signalling-levels.md) says what each level
+does and cites these cases.
 
 A case is a scenario, a set of services and a level. The case table is in
 `tests/characterization/test_characterization.cpp`:

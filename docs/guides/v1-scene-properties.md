@@ -73,9 +73,11 @@ Use these optional arrays for explicit signalling relationships:
 
 - `signalling_areas`: `id`, numeric `start_km`, numeric `end_km`, integer
   `level` from 0 through 5, and optional canonical `track`. A section must fit
-  completely inside the area. Track-scoped areas override network-wide areas;
-  missing coverage remains unset, and Run review warns when a route section has
-  no level.
+  completely inside the area; a section that an area edge cuts is not covered.
+  Track-scoped areas override network-wide areas; missing coverage remains unset,
+  and Run review warns when a route section has no level. See
+  [Signalling levels](../architecture/signalling-levels.md) for what each level
+  does.
 - `block_dependencies`: `{ "block": "...", "depends_on": "..." }`.
 - `single_track_restrictions`: `start_block`, `end_block`,
   `protected_start_block`, and `protected_end_block`. While a train is in the

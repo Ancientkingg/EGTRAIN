@@ -102,6 +102,10 @@ surface.
 | Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
 | Passengers | Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair | Row-specific import outcomes and validation diagnostics |
 
+The signalling area table of the Infrastructure pane shows the level as a number
+from 0 to 5. [Signalling levels](signalling-levels.md) names each level and says
+what it does.
+
 Rolling-stock links are UI session state, not scene schema. The watcher keeps an
 absolute selected file and its parent directory armed through atomic replacement,
 deletion, and recreation; a short debounce groups callbacks for one file. A

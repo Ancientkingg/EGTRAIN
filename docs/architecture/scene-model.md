@@ -254,4 +254,5 @@ scope. Track-scoped areas override a network-wide area; conflicting values for
 one section are rejected. Missing coverage keeps the native unset value, and
 runnable validation warns about the route sections it leaves unset. Normal
 runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
-conventional or ETCS default.
+conventional or ETCS default. The levels and the rule that gives a section its
+level are described in [Signalling levels](signalling-levels.md).

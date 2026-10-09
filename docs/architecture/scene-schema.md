@@ -106,7 +106,9 @@ Required root arrays are `signals` and `routes`.
   and optional boolean `direction`.
 
 A signalling area covers a native section only when the section's complete
-coordinate span lies inside the area. Network-wide areas are applied before
+coordinate span lies inside the area. The span is compared with the chainage of
+the section's own track, and each edge has a tolerance of 1e-8 km. A section
+that an area edge cuts is not covered by that area. Network-wide areas are applied before
 track-scoped areas; a track-scoped value overrides the network-wide value.
 Either connected track matches a derived switch section. Different values at
 the same precedence tier that cover one section are invalid. The builder
@@ -134,6 +136,9 @@ Area diagnostics name the area and give the values behind them:
   section and its km positions, because that section is not part of the area.
 - `scene.signalling_area.empty` (warning, runnable validation): the area
   contains no complete section; the message shows the extent of the blocks.
+
+What each level does, and how signalling areas differ from block sections, is in
+[Signalling levels](signalling-levels.md).
 
 Validation reports the arcs of a route that its trains cannot brake or start on
 in one `scene.route.gradient.steep` warning per route and composition that a
@@ -176,7 +181,7 @@ is released when the last train of the holding direction has left it, and then
 passes to the other direction if a train of that direction is inside.
 
 At signalling levels 0, 1, 2 and 5 the restriction acts through the signal
-aspects of the sections. At levels 3 and 4 a train does not follow the aspects,
+aspects of the sections (see [Signalling levels](signalling-levels.md)). At levels 3 and 4 a train does not follow the aspects,
 so each route against the holder gets an end of authority at the end of the
 section before the first section of the stretch on that route, as long as the
 stretch is held and that first section has level 3 or 4. The train stops there
