@@ -146,8 +146,9 @@ while the first section is failed, at every level (`checkEntrance`). Cases:
 `sf-first-level-0`, `-1`, `-2` and `-none`.
 
 **Signal failure.** A `signal_failure` incident fails one or more sections from
-its start second to its end second, or to the end of the run if it has no end
-second. In each step:
+its start second to its end second. A scene has to give the end second:
+validation rejects a signal failure without one (`scene.incident.window`). In
+each step:
 
 - The failed section is added to `BlocksOccupied`. The routines of levels 0, 1,
   2 and 5 then write the same aspects behind it as behind a train, and levels 3
@@ -163,9 +164,8 @@ second. In each step:
   stopped: the authority lies behind it (`sf-entered-level-none`).
 - On the first step after the incident has ended, the failed sections are handed
   to the release function.
-- The heads of a failed section show the failure. The track of a failed section
-  is drawn as blocked while the incident has an end second; a failure without
-  one is not drawn as blocked (#587).
+- The heads of a failed section show the failure, and its track is drawn as
+  blocked.
 
 Cases: `sf-forward-level-*` and `sf-reverse-level-*` for the levels 0 to 5 and
 none; `sf-adjacent-level-*`, `sf-staggered-level-*`, `sf-last-level-*` and
@@ -530,8 +530,6 @@ Open on this version:
   (`single-track-level-3`, `single-track-level-4`).
 - #564: at level 4, two trains that enter one after the other end at the same
   position at a platform (`same-entry-level-4`).
-- #587: the track of a signal failure without an end second is not drawn as
-  blocked.
 - #459: four committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
