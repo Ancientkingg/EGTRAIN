@@ -22,7 +22,8 @@ SCENES = {
 }
 
 ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
-ASSERT_STATION_ARRIVALS = {1, 2, 3, 4, 5}
+# The Netherlands scene has no planned arrival at any stop, so no station has an arrival delay.
+ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
 # Cases whose committed scene gives every route section a signalling level.
 SIGNALLING_COVERED = {2, 6}
 
