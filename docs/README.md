@@ -32,6 +32,7 @@ use the canonical model.
 - [Scene schema reference](architecture/scene-schema.md)
 - [Signalling levels and signalling areas](architecture/signalling-levels.md)
 - [Scene bundle format](architecture/scene-bundle.md)
+- [External state sharing (legacy)](architecture/external-sharing.md)
 - [Release testing checklist](development/release-testing-checklist.md)
 - [Code signing](development/code-signing.md)
 - [Usage and diagnostics wire contract](telemetry/README.md)
