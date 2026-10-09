@@ -133,10 +133,38 @@ add_test(NAME characterization_repeat_netherlands
 		${EGTRAIN_COMMITTED_SCENES}/Lebanon
 		${EGTRAIN_COMMITTED_SCENES}/Netherlands
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# The same kind of sequences, each run writing its files into a folder of its own.
+# Every distinct step then runs once more in a fresh process, and every file of
+# every run must be byte for byte equal to the file of that process.
+add_test(NAME characterization_repeat_files_paimpol
+	COMMAND test_characterization --repeat-files
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME characterization_repeat_files_lebanon_milano
+	COMMAND test_characterization --repeat-files
+		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
+		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME characterization_repeat_files_fixture
+	COMMAND test_characterization --repeat-files
+		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-forward-level-3"
+		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-forward-level-3"
+		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#single-track-level-4"
+		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-forward-level-3"
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(EGTRAIN_CHARACTERIZATION_SCENE_TESTS
 	characterization_repeat_paimpol
 	characterization_repeat_lebanon_milano
-	characterization_repeat_netherlands)
+	characterization_repeat_netherlands
+	characterization_repeat_files_paimpol
+	characterization_repeat_files_lebanon_milano
+	characterization_repeat_files_fixture)
 
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_TESTS} PROPERTIES
 	LABELS "characterization;unit"
@@ -146,7 +174,7 @@ set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT 300
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-set_property(TEST characterization_repeat_netherlands APPEND PROPERTY LABELS slow)
+set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol APPEND PROPERTY LABELS slow)
 # It is the longest of these tests and starts first in a parallel run.
 set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)
 
