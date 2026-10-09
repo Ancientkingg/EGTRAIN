@@ -19,7 +19,8 @@ in code font. They are the characterization cases in
   section that a connection builds from two blocks. See
   [Signalling areas, block sections and capacity areas](#signalling-areas-block-sections-and-capacity-areas).
 - A section can also have no level. Its value is -99999999
-  (`kSignallingLevelUnset`). This page calls it "no level".
+  (`kSignallingLevelUnset`, defined in `scene/SignallingLevel.h`). This page
+  calls it "no level".
 - The scene stores no level on a block. It stores signalling areas in
   `signalling.json`. When the scene is prepared for a run, the builder gives
   each section the level of the area that covers it; see
@@ -30,9 +31,10 @@ in code font. They are the characterization cases in
 - The word "level" also appears in `views.json`, for the display level of a
   track in the network view. That has nothing to do with the signalling level.
 
-The labels are defined in `scene/SignallingLevelNames.h`. The validation message
-about areas that give one section different levels shows them. The editor shows
-the number.
+The level numbers and the check that a number is a level are defined in
+`scene/SignallingLevel.h`. The labels are defined in
+`scene/SignallingLevelNames.h`. The validation message about areas that give one
+section different levels shows them. The editor shows the number.
 
 | Value | Label | One line from the program |
 | --- | --- | --- |

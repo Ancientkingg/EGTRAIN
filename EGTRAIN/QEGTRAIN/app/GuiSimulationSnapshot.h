@@ -1,6 +1,8 @@
 #ifndef GUISIMULATIONSNAPSHOT_H
 #define GUISIMULATIONSNAPSHOT_H
 
+#include "scene/SignallingLevel.h"
+
 #include <algorithm>
 #include <array>
 #include <memory>
@@ -67,7 +69,7 @@ struct GuiSignalState {
 };
 
 inline bool guiSignalHasLevel(int level) {
-	return level >= 0 && level <= 5;
+	return isValidSignallingLevel(level);
 }
 
 // Display code of a head that has no signalling data to show.

@@ -145,7 +145,7 @@ public:
 	double XEndSwitch;					  // Final abscissa of diverging switch (nonzero only when withSwitchDiv=true)
 	double GeoXBegNode;					  // Geographic X coordinate of start node
 	double GeoXEndNode;					  // Geographic X coordinate of end node
-	int SignallingLevel;				  // Signalling level 0 to 5, named in scene/SignallingLevelNames.h; -99999999 means no level (default)
+	int SignallingLevel;				  // Signalling level 0 to 5 (enum SignallingLevel in scene/SignallingLevel.h); kSignallingLevelUnset means no level (default)
 	double ETCS3BrakingPoints[40];		  // ETCS L3 braking points (max 2 per train, up to 40 = 20 trains simultaneous)
 	string ETCS3BrakingPointsTrainID[40]; // Train IDs for each ETCS3 braking point
 	int N_ETCS3BrakingPoints;			  // Number of ETCS3 braking points on this section

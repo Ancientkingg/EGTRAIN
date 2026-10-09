@@ -1,6 +1,7 @@
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
 #include "scene/SceneValidator.h"
+#include "scene/SignallingLevel.h"
 #include "simulation/RuntimeLimits.h"
 
 #include <algorithm>
@@ -1014,6 +1015,30 @@ int main(int argc, char** argv) {
 	ok &= expect(std::set<std::string>(levelDescriptions.begin(), levelDescriptions.begin() + 7).size() == 7
 			&& levelDescriptions[7] == "Valid levels are 0 to 5." && levelDescriptions[8] == levelDescriptions[7],
 		"the valid levels differ in description and the invalid ones say which levels are valid");
+
+	// The numbers, the range and the unset value of the signalling levels.
+	const std::pair<SignallingLevel, int> levelNumbers[] = {{SignallingLevel::Atb, 0}, {SignallingLevel::EtcsLevel1, 1},
+		{SignallingLevel::EtcsLevel2, 2}, {SignallingLevel::EtcsLevel3, 3}, {SignallingLevel::VirtualCoupling, 4},
+		{SignallingLevel::Bacc, 5}};
+	for (const auto& entry : levelNumbers)
+		ok &= expect(levelValue(entry.first) == entry.second, "a signalling level has the number of the file format");
+	for (int level = 0; level <= 5; ++level)
+		ok &= expect(isValidSignallingLevel(level), "the numbers 0 to 5 are signalling levels");
+	for (const int level : {-1, 6, kSignallingLevelUnset, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()})
+		ok &= expect(!isValidSignallingLevel(level), "numbers outside 0 to 5 are not signalling levels");
+	ok &= expect(kSignallingLevelUnset == -99999999, "the unset level has its stored value");
+	SceneModel highestAreaLevel = clean;
+	highestAreaLevel.signallingAreas = {{"area", 0.0, 1.0, 5, {}}};
+	ok &= expect(findAll(validateScene(highestAreaLevel), "scene.signalling_area.level").empty(),
+		"an area of level 5 has a valid level");
+	SceneModel negativeAreaLevel = clean;
+	negativeAreaLevel.signallingAreas = {{"area", 0.0, 1.0, -1, {}}};
+	const auto negativeLevelErrors = findAll(validateScene(negativeAreaLevel), "scene.signalling_area.level");
+	ok &= expect(negativeLevelErrors.size() == 1
+			&& negativeLevelErrors[0].message == "Signalling area area has level -1; the level must be between 0 and 5",
+		"an area of level -1 has an invalid level");
+	ok &= expect(findAll(validateRunnableScene(invalidAreaLevel), emptyCode).empty(),
+		"an area with an invalid level takes no part in the warning about empty areas");
 
 	// Which area decides the level of each section.
 	auto analyze = [](const SceneModel& candidate) {
