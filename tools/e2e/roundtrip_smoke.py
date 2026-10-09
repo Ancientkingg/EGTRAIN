@@ -55,6 +55,39 @@ def scene_counts(scene_dir: Path) -> dict[str, int]:
     }
 
 
+def check_signalling_areas(case_id: int, scene_name: str, scene_dir: Path, exported_dir: Path, reimported_dir: Path) -> None:
+    """The export writes the areas of the scene; the import reports the area file and converts none of it."""
+    label = f"case {case_id} ({scene_name}) signalling area mismatch"
+    areas = json.loads((scene_dir / "signalling.json").read_text()).get("signalling_areas", [])
+    areas_file = exported_dir / "TrackLines/AreasCaseStudy.txt"
+    rows = [line.split("\t") for line in areas_file.read_text().splitlines() if line.strip()] if areas_file.exists() else []
+    if len(rows) != len(areas):
+        raise RuntimeError(f"{label}: {len(rows)} exported rows for {len(areas)} areas")
+    for index, (area, row) in enumerate(zip(areas, rows)):
+        columns = 5 if "track" in area else 4
+        if (
+            len(row) != columns
+            or float(row[1]) != float(area["start_km"])
+            or float(row[2]) != float(area["end_km"])
+            or float(row[3]) != float(area["level"])
+        ):
+            raise RuntimeError(f"{label}: row {index + 1} {row} does not match area {area}")
+
+    reimported = json.loads((reimported_dir / "signalling.json").read_text())
+    if reimported.get("signalling_areas"):
+        raise RuntimeError(f"{label}: the import converted {len(reimported['signalling_areas'])} area rows")
+    report = json.loads((reimported_dir / "scene.json").read_text()).get("import_report", [])
+    report_rows = [row for row in report if row["category"] == "signalling.areas"]
+    if rows:
+        if len(report_rows) != 1 or not (
+            report_rows[0]["source_count"] == report_rows[0]["skipped_count"] == len(rows)
+            and report_rows[0]["converted_count"] == 0
+        ):
+            raise RuntimeError(f"{label}: import report rows {report_rows} for {len(rows)} exported rows")
+    elif report_rows:
+        raise RuntimeError(f"{label}: import report rows {report_rows} without an area file")
+
+
 def main() -> None:
     if not SCENE_TOOL.exists():
         sys.exit(f"scene_tool not found at {SCENE_TOOL}. Build it first.")
@@ -86,6 +119,7 @@ def main() -> None:
                     f"{key} {expected[key]}->{actual[key]}" for key in expected if expected[key] != actual[key]
                 )
                 raise RuntimeError(f"case {case_id} compatibility count mismatch: {differences}")
+            check_signalling_areas(case_id, scene_name, scene_dir, exported_dir, reimported_dir)
 
         # One executable round trip is enough after all seven structural/count checks.
         reimported_dir = tmp_dir / "reimported_5"

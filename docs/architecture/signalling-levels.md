@@ -516,8 +516,11 @@ analysis has no data for it.
 
 Older versions used one row of `TrackLines/AreasCaseStudy.txt` for both the
 signalling level and the statistics of an area (the removed `NetworkArea`
-class). No current code reads that file. The legacy export writes it
-(see [Known limits](#known-limits-and-open-issues)).
+class). No simulation code reads that file. The legacy export writes the
+signalling areas of the scene to it, one row per area. For a scene without
+areas it writes no file and leaves a copy from the `legacy/` folder of the
+scene as it is. The legacy import reports the file and converts none of its
+rows (see [Known limits](#known-limits-and-open-issues)).
 
 What a capacity-analysis area is, and how it relates to the signalling areas, is
 the subject of #444.
@@ -549,11 +552,9 @@ Assigning levels to the other two scenes is #459.
 Open on this version:
 
 - #459: two committed scenes have no signalling area.
-- #439 lists the preservation of areas through legacy export and import as an
-  acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
-  with one row that covers the network at level 3 when the file is absent and
-  the export has track line node data, whatever the signalling areas of the scene say. The legacy import does not
-  read area files.
+- #439: the legacy import reports `TrackLines/AreasCaseStudy.txt` in the import
+  report and in a warning and does not convert its rows, so a scene imported
+  from such a case has no signalling area until the user adds one.
 
 Limits that no issue tracks:
 

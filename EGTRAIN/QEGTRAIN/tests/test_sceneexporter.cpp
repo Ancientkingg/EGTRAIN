@@ -2,6 +2,7 @@
 #include "scene/SceneModel.h"
 #include <cctype>
 #include <iostream>
+#include <iterator>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -37,6 +38,32 @@ struct TempDir {
 		fs::remove_all(dir, ec);
 	}
 };
+
+static bool hasDiagMessage(const std::vector<SceneDiagnostic>& diags, const std::string& code, SceneSeverity sev, const std::string& text) {
+	for (const auto& d : diags) {
+		if (d.code == code && d.severity == sev && d.message.find(text) != std::string::npos)
+			return true;
+	}
+	return false;
+}
+
+// The file as text, so that the line ends of the platform read as "\n".
+static std::string readText(const fs::path& path) {
+	std::ifstream in(path);
+	return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+}
+
+// A scene with the tracks "main", which becomes legacy track B0, and "B7", and two nodes on "main". The argument is appended to signalling.json.
+static void writeAreaScene(const fs::path& scene, const std::string& signallingAreas) {
+	std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Area Export"})" << "\n";
+	std::ofstream(scene / "infrastructure.json")
+		<< R"({"tracks":[{"id":"main"},{"id":"B7"}],"nodes":[{"id":"n0","track":"main","x_km":0,"y_km":0},{"id":"n1","track":"main","x_km":1,"y_km":0}],"arcs":[],"blocks":[{"id":"block.a","track":"main","length_km":1},{"id":"block.b","track":"B7","length_km":1}]})"
+		<< "\n";
+	std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+	std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"]}])" << signallingAreas << "}\n";
+	std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+	std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+}
 
 static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* label) {
 	for (const auto& d : diags) {
@@ -594,6 +621,67 @@ int main() {
 		std::ifstream boundary(fs::path(outDir.dir) / "GUI" / "stationBoundarySections.txt");
 		std::getline(boundary, line);
 		ok &= expect(line == "@0-B0@\t@0-B0@\t1", "Boundary uses the generated legacy block ID");
+	}
+
+	// 21. The areas of the scene are exported in the legacy row format; an area on an unknown track is skipped.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		writeAreaScene(scene,
+			R"(,"signalling_areas":[{"id":"Fixed block","start_km":0,"end_km":10,"level":0},{"id":"on-main","start_km":2.5,"end_km":5,"level":2,"track":"main"},{"id":"on-b7","start_km":0,"end_km":10,"level":4,"track":"B7"},{"id":"ghost","start_km":0,"end_km":1,"level":1,"track":"missing"}])");
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Signalling area export");
+		ok &= expect(res.success(), "Export with an unmappable area still succeeds");
+		const std::string rows = readText(fs::path(outDir.dir) / "TrackLines" / "AreasCaseStudy.txt");
+		ok &= expect(rows == "Fixed_block\t0\t10\t0\non-main\t2.5\t5\t2\t0\non-b7\t0\t10\t4\t7\n",
+			"Areas are written in scene order with legacy track numbers and no whitespace in the id");
+		ok &= expect(rows.find("Network") == std::string::npos && rows.find("\t3") == std::string::npos,
+			"No network-wide level 3 row is invented");
+		ok &= expect(hasDiagMessage(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning, "ghost")
+				&& hasDiagMessage(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning, "missing"),
+			"An area on an unknown track is skipped with a warning that names the area and the track");
+		ok &= expect(!hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "has no signalling areas"),
+			"A scene with areas does not report that it has none");
+	}
+
+	// 22. A scene without areas writes no area file and says so; a copy from the legacy data stays.
+	{
+		TempDir sceneDir, outDir, copyDir, copyOutDir;
+		writeAreaScene(fs::path(sceneDir.dir), "");
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "No area export");
+		ok &= expect(res.success(), "Export without areas succeeds");
+		ok &= expect(!fs::exists(fs::path(outDir.dir) / "TrackLines" / "AreasCaseStudy.txt"), "No area file is written without areas");
+		ok &= expect(hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "has no signalling areas"),
+			"The missing area file is reported as information");
+
+		writeAreaScene(fs::path(copyDir.dir), "");
+		fs::create_directories(fs::path(copyDir.dir) / "legacy" / "TrackLines");
+		std::ofstream(fs::path(copyDir.dir) / "legacy" / "TrackLines" / "AreasCaseStudy.txt") << "Kept\t0\t1\t2\n";
+		res = exportLegacyScene(copyDir.dir, copyOutDir.dir);
+		ok &= expect(res.success(), "Export without areas and with a legacy area file succeeds");
+		ok &= expect(readText(fs::path(copyOutDir.dir) / "TrackLines" / "AreasCaseStudy.txt") == "Kept\t0\t1\t2\n",
+			"A legacy area file stays when the scene has no areas");
+		ok &= expect(!hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "has no signalling areas"),
+			"A kept legacy area file is not reported as missing");
+	}
+
+	// 23. The areas of the scene replace an area file from the legacy data.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"whole","start_km":0,"end_km":2,"level":0}])");
+		fs::create_directories(scene / "legacy" / "TrackLines");
+		std::ofstream(scene / "legacy" / "TrackLines" / "AreasCaseStudy.txt") << "Network\t-1\t99\t3\nStale\t0\t1\t3\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Area over legacy copy export");
+		ok &= expect(res.success(), "Export with areas and a legacy area file succeeds");
+		ok &= expect(readText(fs::path(outDir.dir) / "TrackLines" / "AreasCaseStudy.txt") == "whole\t0\t2\t0\n",
+			"The areas of the scene replace the legacy area file");
+		ok &= expect(hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "replace"),
+			"Replacing the legacy area file is reported as information");
 	}
 
 	if (!ok)

@@ -1936,6 +1936,48 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		}
 	}
 
+	// Legacy area rows combined the signalling level with capacity reporting
+	// and are not converted. The file is reported so that the user adds the
+	// signalling areas in the editor.
+	const fs::path areasPath = trackRoot.empty() ? fs::path() : findChild(trackRoot, "AreasCaseStudy.txt");
+	if (!areasPath.empty()) {
+		const std::string areasSource = areasPath.string();
+		std::string content;
+		readFile(areasPath, content);
+		std::stringstream input(content);
+		std::string line;
+		int rowCount = 0;
+		std::string shownRows;
+		while (std::getline(input, line)) {
+			if (trim(line).empty()) continue;
+			report.source("signalling.areas", areasSource);
+			report.skipped("signalling.areas", areasSource);
+			++rowCount;
+			if (rowCount > 5) continue;
+			auto tokens = splitTab(line);
+			if (tokens.size() < 4) tokens = readTokens(line);
+			double startKm = 0.0;
+			double endKm = 0.0;
+			int level = 0;
+			const bool readable = tokens.size() >= 4 && parseDoubleToken(tokens[1], startKm)
+				&& parseDoubleToken(tokens[2], endKm) && parseIntegerToken(tokens[3], level);
+			if (!shownRows.empty()) shownRows += "; ";
+			if (!readable) {
+				shownRows += "row " + std::to_string(rowCount) + " is not readable";
+				continue;
+			}
+			shownRows += tokens[0] + " " + tokens[1] + " " + tokens[2] + " " + tokens[3];
+			if (tokens.size() >= 5 && !tokens[4].empty()) shownRows += " track line " + tokens[4];
+		}
+		if (rowCount > 0) {
+			std::string message = "TrackLines/AreasCaseStudy.txt holds " + std::to_string(rowCount) + " signalling area "
+				+ (rowCount == 1 ? "row" : "rows") + " and none was imported. Rows: " + shownRows;
+			if (rowCount > 5) message += "; and " + std::to_string(rowCount - 5) + " more";
+			addDiag(SceneSeverity::Warning, "scene.import.areas.skipped", message, areasPath.string());
+			result.diagnostics.back().suggestedFix = "Add the signalling areas in Infrastructure > Signalling area";
+		}
+	}
+
 	// Timetables preserve arrival and departure presence independently. The
 	// legacy -1 marker is omitted from its corresponding canonical field.
 	for (const auto& relation : relations) {

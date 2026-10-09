@@ -125,6 +125,8 @@ int main() {
 		writeText(legacy / "TrackLines/B4/BlockCumPari.txt", "1 1\n");
 		writeText(legacy / "TrackLines/Connections.txt", "0 0 1 0 7\n0 9 1 9 8\n");
 		writeText(legacy / "TrackLines/Stations.txt", "0\tGuingamp\n1\tPaimpol\n");
+		writeText(legacy / "TrackLines/AreasCaseStudy.txt",
+			"Guingamp\t0\t0.55\t0\nLane two\t1\t2\t2\t2\nbroken row\nD\t2\t3\t0\nE\t3\t4\t0\nF\t4\t5\t0\nG\t5\t6\t0\n");
 		writeText(legacy / "Routes/Route0.txt", "@0-B0@\n");
 		writeText(legacy / "Routes/Route2.txt", "@0-B1@\n");
 		writeText(legacy / "RoutesToWrite/RoutesToJoin.txt", "0 2 Reverse\n");
@@ -173,7 +175,8 @@ int main() {
 			ok &= expect(scene["schema_version"] == kCurrentSceneSchemaVersion
 					&& scene["saved_with_app_version"] == EGTRAIN_APP_VERSION,
 				"Legacy import records the creating application version");
-			bool rootReport = false, coordinateReport = false, stationViewReport = false;
+			bool rootReport = false, coordinateReport = false, stationViewReport = false, areasReport = false;
+			int areasRows = 0;
 			int trackViewSources = 0;
 			int trackViewConversions = 0;
 			for (const auto& row : scene["import_report"]) {
@@ -182,6 +185,11 @@ int main() {
 				if (row["category"] == "infrastructure.connections")
 					coordinateReport = row["source_count"] == 2 && row["converted_count"] == 1
 						&& row["skipped_count"] == 1 && row["unresolved_references"] == 1;
+				if (row["category"] == "signalling.areas") {
+					++areasRows;
+					areasReport = row["source_count"] == 7 && row["skipped_count"] == 7 && row["converted_count"] == 0
+						&& row["unresolved_references"] == 0;
+				}
 				if (row["category"] == "views.tracks") {
 					trackViewSources += row["source_count"].get<int>();
 					trackViewConversions += row["converted_count"].get<int>();
@@ -191,6 +199,7 @@ int main() {
 			}
 			ok &= expect(rootReport, "Synthetic root provenance report");
 			ok &= expect(coordinateReport, "Synthetic unresolved coordinate report");
+			ok &= expect(areasRows == 1 && areasReport, "Legacy area rows are reported as source and skipped, none converted");
 			ok &= expect(trackViewSources == 2 && trackViewConversions == 2 && stationViewReport,
 				"Synthetic display metadata provenance report");
 			ok &= expect(views["tracks"].size() == 2 && views["tracks"][0]["track"] == "B0"
@@ -245,6 +254,20 @@ int main() {
 					&& signalling["single_track_restrictions"][0]["start_block"] == "0-B0"
 					&& signalling["station_boundaries"][0]["entrance_block"] == "0-B0",
 				"Signalling roles imported");
+			ok &= expect(!signalling.contains("signalling_areas"), "Legacy area rows are not converted to signalling areas");
+			bool areasWarning = false;
+			for (const auto& diagnostic : result.diagnostics) {
+				if (diagnostic.code == "scene.import.areas.skipped" && diagnostic.severity == SceneSeverity::Warning
+					&& diagnostic.message.find("holds 7 signalling area rows") != std::string::npos
+					&& diagnostic.message.find("Guingamp 0 0.55 0") != std::string::npos
+					&& diagnostic.message.find("Lane two 1 2 2 track line 2") != std::string::npos
+					&& diagnostic.message.find("row 3 is not readable") != std::string::npos
+					&& diagnostic.message.find("E 3 4 0; and 2 more") != std::string::npos
+					&& diagnostic.message.find("F 4 5 0") == std::string::npos
+					&& diagnostic.file.find("AreasCaseStudy.txt") != std::string::npos && !diagnostic.suggestedFix.empty())
+					areasWarning = true;
+			}
+			ok &= expect(areasWarning, "An area file is reported by a warning that names its first five rows and how to add areas");
 			ok &= expect(signalling["routes"].size() == 3
 					&& signalling["routes"][2]["id"] == "route3"
 					&& signalling["routes"][2]["reversed"] == true,

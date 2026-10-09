@@ -142,10 +142,16 @@ static std::string mapLegacyBlockReference(const std::string& reference,
 	return mapped;
 }
 
-// Older EGTRAIN variants read signalling levels from
-// TrackLines/AreasCaseStudy.txt. Keep exported legacy directories compatible
-// with them unless the scene already provides the file.
-static void synthesizeSignallingAreas(const std::string& outDir, SceneExportResult& result) {
+// Writes the signalling areas of the scene to TrackLines/AreasCaseStudy.txt, the
+// file that older EGTRAIN variants read signalling levels from. One tab
+// separated row per area: id, start km, end km, level and, for an area on a
+// track, the number of its legacy track directory. The areas of the scene are
+// the assignment, so they replace a file that is already there, such as a copy
+// from the legacy data.
+// An area on a track the scene does not have is skipped with a warning. A scene
+// without areas gets no file.
+static void synthesizeSignallingAreas(const SceneModel& scene, const std::unordered_map<std::string, std::string>& legacyTrackIds,
+	const std::string& outDir, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
 		d.severity = sev;
@@ -155,40 +161,36 @@ static void synthesizeSignallingAreas(const std::string& outDir, SceneExportResu
 		result.diagnostics.push_back(d);
 	};
 
-	fs::path areasFile = fs::path(outDir) / "TrackLines" / "AreasCaseStudy.txt";
+	const fs::path areasFile = fs::path(outDir) / "TrackLines" / "AreasCaseStudy.txt";
 	std::error_code ec;
-	if (fs::exists(areasFile, ec))
+	const bool fileExists = fs::exists(areasFile, ec);
+	if (scene.signallingAreas.empty()) {
+		if (!fileExists)
+			addDiag(SceneSeverity::Info, "scene.export.info", "the scene has no signalling areas so no TrackLines/AreasCaseStudy.txt was written");
 		return;
+	}
 
-	double minX = std::numeric_limits<double>::infinity();
-	double maxX = -std::numeric_limits<double>::infinity();
-	fs::path tracklinesDir = fs::path(outDir) / "TrackLines";
-	if (fs::exists(tracklinesDir, ec) && fs::is_directory(tracklinesDir, ec)) {
-		for (const auto& entry : fs::directory_iterator(tracklinesDir, ec)) {
-			std::error_code dec;
-			if (!entry.is_directory(dec) || dec)
+	std::ostringstream rows;
+	std::size_t rowCount = 0;
+	for (const auto& area : scene.signallingAreas) {
+		std::string trackColumn;
+		if (!area.trackId.empty()) {
+			const auto track = legacyTrackIds.find(area.trackId);
+			if (track == legacyTrackIds.end()) {
+				addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+					"Signalling area " + area.id + " was skipped because its track " + area.trackId + " is not a track of the scene",
+					area.id);
 				continue;
-			std::ifstream nf(entry.path() / "NodiCumPari.txt");
-			if (!nf)
-				continue;
-			std::string nline;
-			while (std::getline(nf, nline)) {
-				size_t tab1 = nline.find('\t');
-				if (tab1 == std::string::npos)
-					continue;
-				size_t tab2 = nline.find('\t', tab1 + 1);
-				if (tab2 == std::string::npos)
-					continue;
-				double x = std::atof(nline.substr(tab1 + 1, tab2 - tab1 - 1).c_str());
-				minX = std::min(minX, x);
-				maxX = std::max(maxX, x);
 			}
+			trackColumn = "\t" + track->second.substr(1);
 		}
+		std::string id = area.id.empty() ? "area" : area.id;
+		std::replace_if(id.begin(), id.end(), [](unsigned char c) { return std::isspace(c) != 0; }, '_');
+		rows << id << "\t" << formatNumber(area.startKm) << "\t" << formatNumber(area.endKm) << "\t" << area.level << trackColumn << "\n";
+		++rowCount;
 	}
-	if (!(minX < maxX)) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "no trackline node data so no signalling areas file was generated");
+	if (rowCount == 0)
 		return;
-	}
 
 	std::ofstream out(areasFile);
 	if (!out) {
@@ -196,8 +198,9 @@ static void synthesizeSignallingAreas(const std::string& outDir, SceneExportResu
 		result.wroteAll = false;
 		return;
 	}
-	out << "Network\t" << formatNumber(minX - 1.0) << "\t" << formatNumber(maxX + 1.0) << "\t3\n";
-	addDiag(SceneSeverity::Info, "scene.export.info", "signalling areas file covers the network at ETCS level 3");
+	out << rows.str();
+	if (fileExists)
+		addDiag(SceneSeverity::Info, "scene.export.info", "the signalling areas of the scene replace the existing TrackLines/AreasCaseStudy.txt");
 }
 
 static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std::string& outDir,
@@ -1264,7 +1267,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	synthesizeCanonicalCompatibility(scene, outDir, routeIndices, legacyBlockIds, result);
 
 	if (result.success()) {
-		synthesizeSignallingAreas(outDir, result);
+		synthesizeSignallingAreas(scene, legacyTrackIds, outDir, result);
 		synthesizeGuiLayout(outDir, result);
 	}
 
