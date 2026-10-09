@@ -288,6 +288,13 @@ program opens the scene, prepares a run, paints it and exits. Before the
 launches it fails when a file of the package is an OpenMP runtime library or
 names one (`vcomp140.dll` on Windows): the package ships none.
 
+The assembly uses the same `windeployqt` options as the Windows package job
+(`--no-opengl-sw`, `--no-angle`, `--no-system-d3d-compiler`,
+`--no-virtualkeyboard` and `--no-quick-import` besides `--release`,
+`--no-translations` and `--compiler-runtime`), and `test_ci_workflow` keeps the
+two command lines equal. The package keeps `vc_redist.x64.exe` (from
+`--compiler-runtime`), the `bearer` plugin and the image format plugins.
+
 ### Windows image size
 
 Windows maps an EXE as one image whose size is `SizeOfImage` in the PE header,
@@ -750,11 +757,15 @@ The visual and render smoke artifacts include:
   baseline, through `tools/release/version.py`) and calls the reusable workflow
   `package.yml`. A green check proves that the macOS, Windows and Linux packages
   build, pass the completeness checks of their jobs and are uploaded as
-  artifacts of the run. It does not prove a release: nothing is signed with
-  real credentials (the macOS bundle carries the same ad-hoc signature as in a
-  release), nothing is published, and the check has read permission only. A
-  release still runs only from `release.yml`. A newer push to the pull request
-  cancels the running check.
+  artifacts of the run. The Windows package job also fails when the software
+  OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
+  keyboard files are in the package, starts a copy of the package with
+  `tools/release/package_start_smoke.py`, and prints the number of files and
+  bytes of the package in its job summary. It does not prove a release:
+  nothing is signed with real credentials (the macOS bundle carries the same
+  ad-hoc signature as in a release), nothing is published, and the check has
+  read permission only. A release still runs only from `release.yml`. A newer
+  push to the pull request cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
