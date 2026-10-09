@@ -96,7 +96,10 @@ again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
 `egtrain_telemetry_smoke` for the application in the isolated telemetry smoke
 configuration, because the hooks change the layout of the telemetry classes.
 `TelemetryConsentDialog.cpp` is compiled in `QEGTRAIN` and in
-`test_telemetryconsent` for the same reason. See
+`test_telemetryconsent` for the same reason. `egtrain_diagrams` is built without
+the hooks in every configuration, so in the isolated telemetry smoke configuration
+`DiagramWindow.cpp` and `TimetableTableWindow.cpp` are built without the sender hook.
+They only call `OperationObservation`, so the code is the same. See
 [Source layout](../architecture/source-layout.md#libraries).
 
 ## Run a local build

@@ -63,8 +63,12 @@ compile the same sources again: `egtrain_telemetry_hooks` (all hooks) when tests
 and `egtrain_telemetry_smoke` (the sender hook) in the isolated telemetry smoke
 configuration, for the application. A target links one telemetry library, never two.
 `egtrain_diagrams` links no telemetry library, because its windows call only
-`OperationObservation`, whose symbols do not depend on the hooks. A target that links
-`egtrain_diagrams` links one telemetry library as well.
+`OperationObservation`, whose symbols do not depend on the hooks. The library is built
+without hooks in every configuration, so in the isolated telemetry smoke configuration
+`DiagramWindow.cpp` and `TimetableTableWindow.cpp` no longer see the sender hook that the
+rest of the application has; their object code is the same with or without it. The moc
+object of `egtrain_diagrams` references both windows, so a target that uses `TrainFilterButton`,
+`DiagramWindow` or `TimetableTableWindow` also links one telemetry library.
 
 Still compiled in more than one target: the telemetry sources of the hook flavours, and
 `TelemetryConsentDialog.cpp`, which the application builds without hooks and

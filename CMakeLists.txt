@@ -213,7 +213,7 @@ target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 # The test hooks change the layout of TelemetrySender, TelemetryConsent and TelemetryQueue, so a
 # build with hooks compiles the same sources again, by design:
 #   egtrain_telemetry        no hooks: the application and the diagram window tests
-#   egtrain_telemetry_hooks  all hooks: the telemetry tests (tests only)
+#   egtrain_telemetry_hooks  all three hooks, for every telemetry test (tests only)
 #   egtrain_telemetry_smoke  the sender hook: the application in the isolated smoke build
 # A target links exactly one of them.
 set(EGTRAIN_TELEMETRY_SOURCES
@@ -247,8 +247,10 @@ add_library(egtrain_dispatch STATIC
 target_link_libraries(egtrain_dispatch
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_railml egtrain_sim)
 
-# The windows call telemetry::OperationObservation, whose symbols do not depend on the hooks.
-# A target that links this library also links one telemetry library.
+# DiagramWindow and TimetableTableWindow call telemetry::OperationObservation, whose symbols do
+# not depend on the hooks, so this library is built without them in every configuration. The moc
+# object of the library references both windows, so a target that uses TrainFilterButton,
+# DiagramWindow or TimetableTableWindow also links one telemetry library.
 add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
