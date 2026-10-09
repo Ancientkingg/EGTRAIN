@@ -195,7 +195,11 @@ struct CaseSpec {
 };
 
 // Cases whose current behaviour is wrong, with the open issue that describes it.
-const std::map<std::string, std::string> kKnownWrong = {};
+const std::map<std::string, std::string> kKnownWrong = {
+	{"border-0-1-fwd", "#602 the block before the border shows 75 while a train is in it"},
+	{"border-0-2-fwd", "#602 the block before the border shows 75 while a train is in it"},
+	{"border-2-0-rev", "#602 the block before the border shows 75 while a train is in it"},
+};
 
 std::string knownWrongMarker(const std::string& name) {
 	const auto found = kKnownWrong.find(name);

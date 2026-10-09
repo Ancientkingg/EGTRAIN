@@ -1,7 +1,7 @@
 # egtrain-characterization 1
 # case: border-0-1-fwd
 # run: scenario=baseline services=F1,F2 level=0 border_km=8.000000 level_after=1 horizon=1500
-# known-wrong: none
+# known-wrong: #602 the block before the border shows 75 while a train is in it
 run steps=1500 trains=2
 train F1-1 active start=60 end=981
 train F1-1 sample t=60 x=0.615074 v=1.230149

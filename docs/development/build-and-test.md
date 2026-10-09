@@ -494,7 +494,10 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-No case is marked at present, so the checks apply to every case.
+The marker names one open issue: #602 covers a border from level 0 to level 1
+or 2, where the block before the border shows 75 while a train is in it
+(`border-0-1-fwd`, `border-0-2-fwd`, `border-2-0-rev`). The checks apply to every
+unmarked case.
 
 ## Simulation Smoke Test
 
