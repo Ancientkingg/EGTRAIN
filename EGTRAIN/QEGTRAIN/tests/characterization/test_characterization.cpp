@@ -243,6 +243,9 @@ std::vector<CaseSpec> buildCaseTable() {
 		const std::string name = "single-track-level-" + std::to_string(level);
 		cases.push_back({name, "baseline", {"S1", "R1"}, level, knownWrongMarker(name), true});
 	}
+	// F1 holds the restricted section and F2 follows it in the same direction: the restriction does not delay F2.
+	for (int level = 3; level <= 4; ++level)
+		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
 	return cases;
 }
 

@@ -4802,7 +4802,7 @@ static void addEndOfAuthorityBeforeSection(const Route& route, int b, const std:
 	MA.ReversedDirection = route.reversed_direction;
 	MA.EoA_Dist_From_BSID_Beg = anchorDist;
 	// The EVC maps a reversed-route EoA back through GeoXBegNode,
-	// so store the value that resolves to the failed entry.
+	// so store the value that resolves to the entry of section b.
 	MA.AbsPosEoA = route.reversed_direction
 		? anchor.GeoXBegNode - anchorDist
 		: anchor.start_node.X * 1000 + anchorDist;
@@ -4864,7 +4864,7 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 // route that runs against the holder, in the way of a signal failure, so that level 3 and 4 trains of the other
 // direction wait in front of it. Fixed-block trains wait for the aspects that the lock sets. Trains of the holder's
 // direction ignore the authority, because it is made for the direction of the other routes. Where a route has
-// several separate stretches of the section, each gets one. The sections of the stretch must have level 3 or 4.
+// several separate stretches of the section, each stretch whose first section on the route has level 3 or 4 gets one.
 void Apply_Single_Track_Authorities_Mixed_Signalling() {
 	for (std::size_t l = 0; l < singleTrackHeld.size() && l < singleTrackLimits.size(); ++l) {
 		if (singleTrackHeld[l] == 0)

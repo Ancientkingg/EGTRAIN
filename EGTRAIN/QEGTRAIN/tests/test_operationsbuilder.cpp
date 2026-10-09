@@ -892,6 +892,12 @@ static bool singleTrackLockTests() {
 	singleTrackLimits.emplace_back("lock.2", "lock.3", "", "lock.1", "lock.4");
 	resetSingleTrackLocks();
 	const auto savedAuthorities = ETCS_MA;
+	std::vector<std::vector<int>> savedLevels;
+	for (const Route& route : train_route) {
+		savedLevels.emplace_back();
+		for (const Section& section : route.sequence_of_block_sections)
+			savedLevels.back().push_back(section.SignallingLevel);
+	}
 	auto setLevel = [](int level) {
 		for (Route& route : train_route)
 			for (Section& section : route.sequence_of_block_sections)
@@ -925,6 +931,9 @@ static bool singleTrackLockTests() {
 	Apply_Single_Track_Authorities_Mixed_Signalling();
 	ok &= expect(singleTrackHeld[0] == 0 && ETCS_MA.empty(), "a free section gives no authority");
 	ETCS_MA = savedAuthorities;
+	for (std::size_t r = 0; r < train_route.size(); ++r)
+		for (std::size_t b = 0; b < savedLevels[r].size(); ++b)
+			train_route[r].sequence_of_block_sections[b].SignallingLevel = savedLevels[r][b];
 
 	// A zone with gaps keeps one interval per run of neighbouring sections, and a train in a gap is not inside.
 	singleTrackLimits.clear();
