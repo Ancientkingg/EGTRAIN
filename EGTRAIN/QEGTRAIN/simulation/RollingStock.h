@@ -1197,7 +1197,19 @@ public:
 										if ((it->TrainInfo.NextSectionID == NextBlockID) || (it->TrainInfo.NextSectionID == "None")) { // when the trains have the same next block section or the leading train is approahing the end of its route
 											SpeedForEoA = it->TrainInfo.TrainSpeed;													   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
 
-											if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (it->TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
+											if ((this->IsTrainInFollowingMode == 0) && (it->TrainInfo.Acceleration < 0)) {
+												// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
+												// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
+												// authority stays where the leader reported it.
+												const double LeaderBrakingStart = BrakDist_Block(it->TrainInfo.TrainSpeed, 0, ETCSBrakingPoint.X, BS, Blocks);
+												const double LeaderStandstill = LeaderBrakingStart < 0
+													? ETCSBrakingPoint.X
+													: std::min(2 * ETCSBrakingPoint.X - LeaderBrakingStart, train_route[this->indexOfRoute].x_of_end_node * 1000);
+												PredictedDistanceToCoupling = LeaderStandstill - ETCSBrakingPoint.X;
+												ETCSBrakingPoint.X = LeaderStandstill;
+												BrakingForEoAModified = true;
+												SpeedForEoA = 0;
+											} else if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (it->TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
 												if (V > SpeedForEoA) {
 													CanTrainLinkForCoupling = true;									   // This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
 													double TimeToBrake = ((V - SpeedForEoA) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step

@@ -188,18 +188,11 @@ struct CaseSpec {
 };
 
 // Cases whose current behaviour is wrong, with the open issue that describes it.
-const struct {
-	const char* name;
-	const char* marker;
-} kKnownWrong[] = {
-	{"same-entry-level-4", "#564 F1 stops at the position of T1 at B"},
-};
+const std::map<std::string, std::string> kKnownWrong = {};
 
 std::string knownWrongMarker(const std::string& name) {
-	for (const auto& entry : kKnownWrong)
-		if (name == entry.name)
-			return entry.marker;
-	return "";
+	const auto found = kKnownWrong.find(name);
+	return found == kKnownWrong.end() ? "" : found->second;
 }
 
 std::vector<CaseSpec> buildCaseTable() {
