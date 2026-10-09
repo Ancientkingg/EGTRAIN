@@ -1456,7 +1456,7 @@ void updateSingleTrackLocks(int step) {
 			|| !singleTrackRouteHasZone(train.indexOfRoute))
 			continue;
 		if (train.OutOfSimulation || step < train.departure_time || !train.CanEnter
-			|| index < 0 || index >= static_cast<int>(train.instant_spatial_position.size()))
+			|| index < 1 || index >= static_cast<int>(train.instant_spatial_position.size()))
 			continue;
 		const double head = train.instant_spatial_position[index];
 		const double tail = head - train.train_length;
@@ -1470,10 +1470,9 @@ void updateSingleTrackLocks(int step) {
 				}
 	}
 	for (std::size_t l = 0; l < singleTrackLimits.size(); ++l) {
+		// the holder keeps the section while its direction is inside; a free section goes to the forward direction first
 		int held = 0;
-		if (singleTrackHeld[l] > 0 && forward[l] > 0)
-			held = 1;
-		else if (singleTrackHeld[l] < 0 && backward[l] > 0)
+		if (singleTrackHeld[l] < 0 && backward[l] > 0)
 			held = -1;
 		else if (forward[l] > 0)
 			held = 1;

@@ -372,7 +372,9 @@ departure times kept, stops only at a platform, a block boundary or behind
 another train, and no overlap of two trains. A case without a signalling area is
 not checked for overlap: a scene without a signalling level does not separate
 trains, and validation warns about it (`scene.signalling.level.missing`). The
-`-level-none` goldens therefore show trains at one position.
+`-level-none` goldens therefore show trains at one position. In an unmarked
+single-track case `S1` and `R1` are never inside the restricted section at the
+same time.
 
 ### Changing an expectation deliberately
 

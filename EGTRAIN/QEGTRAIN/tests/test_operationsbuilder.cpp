@@ -660,10 +660,10 @@ static bool singleTrackLockTests() {
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld[0] == 1 && BlocksConnected.empty(), "a following train in the same direction keeps the holder");
 
-	// A train against the holder enters while the first one is still inside: the holder stays.
+	// A train against the holder enters while the first one is still inside: it does not take the section.
 	place(1, 1, 3000.0, true);   // reversed, in lock.4
 	updateSingleTrackLocks(1);
-	ok &= expect(singleTrackHeld[0] == 1, "the first holder is kept when a train of the other direction is inside as well");
+	ok &= expect(singleTrackHeld[0] == 1, "a train of the other direction that enters later does not take the section");
 
 	// The forward train leaves: the section passes to the reversed train, and is released on the change.
 	place(0, 0, 3000.0, false);
@@ -673,6 +673,14 @@ static bool singleTrackLockTests() {
 	ok &= expect(occupySingleTrackForRoute(0) == 6 && occupySingleTrackForRoute(1) == 0,
 			"now the forward route is held back and the reversed route is not");
 	BlocksOccupied.clear();
+
+	// A forward train enters while the reversed holder is still inside: the holder keeps the section.
+	place(0, 0, 3000.0, true);   // forward, in lock.1
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1 && BlocksConnected.empty(),
+			"the reversed holder keeps the section when a forward train is inside as well");
+	place(0, 0, 3000.0, false);
 
 	// Nobody is left: the section is free and is released once.
 	place(1, 1, 3000.0, false);
