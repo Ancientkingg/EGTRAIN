@@ -133,6 +133,8 @@ static bool testRunningVersionIsInstalled(const QString& helper, const QString& 
 	ok &= expect(run.exitCode == 0, "helper succeeds while the new version keeps running");
 	ok &= expect(run.milliseconds >= observeMs - 100, "helper watches the new version for the whole window");
 	ok &= expect(run.milliseconds < observeMs + 4000, "helper does not wait for the new version to end");
+	if (!ok)
+		std::cerr << "helper ran for " << run.milliseconds << " ms with a window of " << observeMs << " ms\n";
 	ok &= expect(installationIs(root, "install", "label=new"), "running version stays installed");
 	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "running version keeps the backup");
 	ok &= expect(waitForLogLine(log, "new done"), "running version finishes");
@@ -153,6 +155,8 @@ static bool testCleanQuickExitIsInstalled(const QString& helper, const QString& 
 	const HelperRun run = runHelper(helper, root, observeMs);
 	ok &= expect(run.exitCode == 0, "helper succeeds when the new version exits cleanly");
 	ok &= expect(run.milliseconds < observeMs - 500, "helper does not sit out the window after a clean exit");
+	if (!ok)
+		std::cerr << "helper ran for " << run.milliseconds << " ms with a window of " << observeMs << " ms\n";
 	ok &= expect(installationIs(root, "install", "label=new"), "clean exit stays installed");
 	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "clean exit keeps the backup");
 	ok &= expect(!logLines(log).contains("old started"), "previous version is not started after a clean exit");

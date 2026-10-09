@@ -168,8 +168,9 @@ bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 		execl(executable.c_str(), executable.c_str(), static_cast<char*>(nullptr));
 		_exit(127);
 	}
-	const unsigned attempts = (observeMs + 24) / 25;
-	for (unsigned attempt = 0; attempt < attempts; ++attempt) {
+	// The window is measured on the clock: a sleep can take much longer than asked on a busy machine.
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(observeMs);
+	while (std::chrono::steady_clock::now() < deadline) {
 		int status = 0;
 		const pid_t result = waitpid(child, &status, WNOHANG);
 		if (result == child)
