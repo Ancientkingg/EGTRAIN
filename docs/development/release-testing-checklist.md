@@ -72,17 +72,23 @@ What the jobs prove today:
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
   `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
   `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
-  `imageformats/qsvg.dll`, a `libzmq` DLL, `scene_tool.exe`, `Scenes/Paimpol`,
-  `Scenes/Lebanon` and the guide.
+  `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
+  `styles/qwindowsvistastyle.dll`, a `libzmq` DLL, `scene_tool.exe`,
+  `Scenes/Paimpol`, `Scenes/Lebanon` and the guide. It fails when the software
+  OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
+  keyboard files are in the package. It prints the number of files and bytes of
+  the package in its job summary.
 - The Package Linux job extracts the AppImage and checks the executable,
   the update helper, `Scenes/Paimpol`, the icon, `AppRun` and the Qt libraries.
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
-- The Windows and Linux package jobs do not start the application from the
-  package they build. The Windows leg of the CMake workflow starts a Windows
-  package assembled in that workflow (step **Start an assembled Windows
-  package**), not the released zip.
+- The Package Windows job starts a copy of the directory it zips, with
+  `tools/release/package_start_smoke.py` (step **Start the package**). The
+  Package Linux job does not start the application from the package it builds.
+  The Windows leg of the CMake workflow starts a Windows package assembled in
+  that workflow (step **Start an assembled Windows package**). None of these
+  starts the released zip itself.
 
 None of this shows the GUI student workflow.
 

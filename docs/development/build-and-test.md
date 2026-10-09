@@ -292,7 +292,7 @@ The assembly uses the same `windeployqt` options as the Windows package job
 (`--no-opengl-sw`, `--no-angle`, `--no-system-d3d-compiler`,
 `--no-virtualkeyboard` and `--no-quick-import` besides `--release`,
 `--no-translations` and `--compiler-runtime`), and `test_ci_workflow` keeps the
-two command lines equal. The package keeps `vc_redist.x64.exe` (from
+two command lines equal. The Windows package keeps `vc_redist.x64.exe` (from
 `--compiler-runtime`), the `bearer` plugin and the image format plugins.
 
 ### Windows image size
