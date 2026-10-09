@@ -793,8 +793,8 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (reachedStation < 0.0 && x[t] >= kStationBegin - 1.0)
 				reachedStation = t;
 		}
-		// A train that starts at station B or beyond does not run to it.
-		if (x[track.first] < kStationBegin - 1.0 && reachedStation >= 0.0
+		// In a stub case a train can start at station B, so it does not run to it.
+		if ((!spec.stub || x[track.first] < kStationBegin - 1.0) && reachedStation >= 0.0
 			&& reachedStation - track.first < (kStationBegin - 1.0) / kTopSpeed)
 			fail(track.name + ": reaches station B faster than the top speed allows");
 		if (waived)

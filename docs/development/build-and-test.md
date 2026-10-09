@@ -470,12 +470,12 @@ expected and the actual line, and writes the actual output to
 Each run also checks facts that do not come from the golden file, so a
 re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
 backward movement, acceleration and braking within what the rolling stock can do,
-no faster run to station B than the top speed allows (for a train that starts
-before B), planned dwell and departure times kept, stops only at a platform, a
+no faster run to station B than the top speed allows (in a stub case only for a
+train that starts before B), planned dwell and departure times kept, stops only at a platform, a
 block boundary or behind another train, no overlap of two trains, and in every
 station row of `stats` and `signed_stats` a `Total_Delay` and an `N_StopTrains`
 that equal the sum and the number of the arrival delays of its `result` lines
-(only the late ones in the sum for `stats`). In a single-track case `S1` and
+(only the late ones in the sum for `stats`). In a `single-track-*` case `S1` and
 `R1` are never inside the restricted section at the same time. In a stub case
 both trains reach their last stop and are never inside the stub together. A case
 without a signalling area is not checked for overlap or for the single-track
