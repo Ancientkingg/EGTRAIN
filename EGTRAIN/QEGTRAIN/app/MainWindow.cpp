@@ -247,6 +247,35 @@ constexpr int kFollowNameRole = Qt::UserRole + 1;
 // Widest the status sentence about Follow gets. It shows the state of a train with a name of 25
 // characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
 constexpr int kFollowStatusMaxWidth = 640;
+
+// What the train list reports while 'frames' shows frames that change no state. Every row gets a
+// marker text first. The list is left alone only if it reports no change and each marker is still
+// there, so a row that is written again with the text it already has is noticed too.
+struct FollowListUnderFrames {
+	int changes = 0;
+	bool rowsKept = true;
+};
+
+FollowListUnderFrames showFramesOverMarkedList(QComboBox* list, const std::function<void()>& frames) {
+	const QString marker = QStringLiteral("not written");
+	for (int row = 0; row < list->count(); ++row)
+		list->setItemText(row, marker);
+	FollowListUnderFrames result;
+	const auto countChange = [&result]() { ++result.changes; };
+	const QAbstractItemModel* model = list->model();
+	const QList<QMetaObject::Connection> counters{
+		QObject::connect(model, &QAbstractItemModel::dataChanged, list, countChange),
+		QObject::connect(model, &QAbstractItemModel::rowsInserted, list, countChange),
+		QObject::connect(model, &QAbstractItemModel::rowsRemoved, list, countChange),
+		QObject::connect(model, &QAbstractItemModel::modelReset, list, countChange)};
+	frames();
+	for (const QMetaObject::Connection& counter : counters)
+		QObject::disconnect(counter);
+	for (int row = 0; row < list->count(); ++row)
+		result.rowsKept = result.rowsKept && list->itemText(row) == marker;
+	return result;
+}
+
 constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
@@ -6183,7 +6212,7 @@ void MainWindow::commitCaseSettings() {
 	m_sceneModel.settings.bufferTimeSeconds = bufferSeconds;
 	m_sceneModel.settings.hasRecoveryTime = m_sceneModel.settings.hasRecoveryTime || recoveryChanged;
 	m_sceneModel.settings.recoveryTimePercent = recoveryPercent;
-	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
+	setStartOffset(baseTimeToSeconds(m_sceneModel.baseTime));
 	markSceneDirty();
 	refreshValidationPanel();
 	refreshServiceOccurrencePreview();
@@ -15291,10 +15320,10 @@ void MainWindow::runVisualPolishE2E() {
 				const int futureDeparture = waitingState->departureTime;
 				const QString scheduled = QString::fromStdString(formatSimTime(futureDeparture, m_startOffsetSeconds));
 				const QString notEntered = futureName + " is scheduled to enter at " + scheduled + ". ";
+				const QToolButton* followButton = findChild<QToolButton*>("actionFollowButton");
 				// Choosing the train with Follow off says that Follow can be switched on now. The
-				// list says that the time is the schedule.
-				networkView->centerOn(networkView->sceneRect().topLeft());
-				const QPointF cameraBeforeWaiting = networkView->mapToScene(networkView->viewport()->rect().center());
+				// list says that the time is the schedule. The train has no item yet, so there is nothing for the
+				// view to move to: E2E_FOLLOW_REPLAY_BEFORE_OK checks that the view stays for a train whose item exists.
 				m_followTrainCombo->setCurrentIndex(futureComboIndex);
 				const bool offSentence = m_followStatusLabel->text()
 						== notEntered + "Follow can be switched on now and starts when it enters."
@@ -15306,16 +15335,15 @@ void MainWindow::runVisualPolishE2E() {
 					ok = false;
 					failures << "future train follow activation was ignored or did not report waiting";
 				}
-				const QPointF cameraWaiting = networkView->mapToScene(networkView->viewport()->rect().center());
 				if (!offSentence || m_followStatusLabel->text() != notEntered + "Follow starts when it enters."
 					|| m_followStatusLabel->toolTip() != m_followStatusLabel->text()
 					|| m_followAction->toolTip() != m_followStatusLabel->text()
 					|| m_followTrainCombo->toolTip() != m_followStatusLabel->text()
 					|| m_followTrainCombo->accessibleDescription() != m_followStatusLabel->text()
+					|| !followButton || followButton->accessibleDescription() != m_followStatusLabel->text()
 					|| m_followTrainCombo->itemText(futureComboIndex) != futureName + " (scheduled " + scheduled + ")"
 					|| m_followTrainCombo->currentIndex() != futureComboIndex
-					|| m_followTrainCombo->itemData(futureComboIndex).toInt() != futureFollowIndex
-					|| QLineF(cameraBeforeWaiting, cameraWaiting).length() > 1.0) {
+					|| m_followTrainCombo->itemData(futureComboIndex).toInt() != futureFollowIndex) {
 					ok = false;
 					failures << QString("the explanation of a train that has not entered is wrong (label=%1 list=%2)")
 									.arg(m_followStatusLabel->text(), m_followTrainCombo->itemText(futureComboIndex));
@@ -15444,12 +15472,6 @@ void MainWindow::runVisualPolishE2E() {
 					networkView->centerOn(networkView->sceneRect().topLeft());
 					const QPointF cameraBeforeEntry = networkView->mapToScene(
 						networkView->viewport()->rect().center());
-					// A new frame in which the train has still not entered leaves the view where it is.
-					updateTrainPosition(waitingSnapshot->timestep);
-					if (QLineF(cameraBeforeEntry, networkView->mapToScene(networkView->viewport()->rect().center())).length() > 1.0) {
-						ok = false;
-						failures << "the view moved to a followed train that has not entered";
-					}
 					m_snapshot = entrySnapshot;
 					updateTrainPosition(futureEntryTime);
 					QApplication::processEvents();
@@ -15479,21 +15501,16 @@ void MainWindow::runVisualPolishE2E() {
 						std::fflush(stdout);
 					}
 					// A frame that changes no state leaves the list alone, so that an open list does not flicker.
-					int listChanges = 0;
-					const QAbstractItemModel* listModel = m_followTrainCombo->model();
-					const auto countChange = [&listChanges]() { ++listChanges; };
-					const QList<QMetaObject::Connection> changeCounters{
-						connect(listModel, &QAbstractItemModel::dataChanged, this, countChange),
-						connect(listModel, &QAbstractItemModel::rowsInserted, this, countChange),
-						connect(listModel, &QAbstractItemModel::rowsRemoved, this, countChange),
-						connect(listModel, &QAbstractItemModel::modelReset, this, countChange)};
-					updateTrainPosition(futureEntryTime);
-					updateTrainPosition(futureEntryTime);
-					for (const QMetaObject::Connection& counter : changeCounters)
-						disconnect(counter);
-					if (listChanges != 0) {
+					const FollowListUnderFrames listUnderFrames = showFramesOverMarkedList(m_followTrainCombo, [this, futureEntryTime]() {
+						updateTrainPosition(futureEntryTime);
+						updateTrainPosition(futureEntryTime);
+					});
+					setStartOffset(m_startOffsetSeconds); // writes every row again
+					if (listUnderFrames.changes != 0 || !listUnderFrames.rowsKept) {
 						ok = false;
-						failures << QString("a frame without a change of state changed the list %1 times").arg(listChanges);
+						failures << QString("a frame without a change of state wrote the list (%1 changes, rows kept: %2)")
+										.arg(listUnderFrames.changes)
+										.arg(listUnderFrames.rowsKept);
 					} else {
 						std::fprintf(stdout, "E2E_FOLLOW_LIST_STABLE_OK\n");
 						std::fflush(stdout);
@@ -15514,13 +15531,14 @@ void MainWindow::runVisualPolishE2E() {
 					const QPointF cameraHidden = viewCentre();
 					const bool hiddenShown = m_followStatusLabel->text()
 							== futureName + " is running, but the Trains layer is switched off, so the view does not follow it."
+						&& followButton && followButton->accessibleDescription() == m_followStatusLabel->text()
 						&& m_followTrainCombo->itemText(futureComboIndex) == futureName + " (hidden)"
 						&& m_followAction->isChecked() && m_followTrainIndex == futureFollowIndex
 						&& QLineF(cameraAway, cameraHidden).length() <= 1.0 && emphasisGone && !stationEmphasised();
 					m_trainLayerCheck->setChecked(true);
 					QApplication::processEvents();
-					if (!hiddenShown || m_followStatusLabel->text() != running || !stationEmphasised()
-						|| m_followTrainCombo->itemText(futureComboIndex) != futureName + " (running)"
+					if (!hiddenShown || m_followStatusLabel->text() != running || followButton->accessibleDescription() != running
+						|| !stationEmphasised() || m_followTrainCombo->itemText(futureComboIndex) != futureName + " (running)"
 						|| QLineF(viewCentre(), clampedCameraCenter(enteredCenter)).length() > 10.0) {
 						ok = false;
 						failures << QString("the Trains layer did not stop and resume Follow (hidden=%1 label=%2)")
@@ -24670,12 +24688,19 @@ void MainWindow::onSimulationFinished() {
 				QCoreApplication::exit(2);
 			};
 
-			// Before the entry: the view stays where it is, also when the time moves on.
+			// Before the entry: the view stays where it is, also when the time moves on. The item of the train
+			// is hidden but still holds the geometry of its run, so a view that moved to it would show where the
+			// train was and not where it is.
+			seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
 			seekReplay(first);
 			networkView->fitToTopology();
 			networkView->zoomBy(8.0);
 			networkView->centerOn(cornerAwayFromTrain());
 			const QPointF cameraBefore = viewCentre();
+			const TrainItemGroup* staleItem = resolveTrainItem(followedIndex);
+			if (!staleItem || staleItem->isVisible() || !trainHasGeometry(followedIndex)
+				|| pixelsBetween(cameraBefore, staleItem->sceneBoundingRect().center()) <= 20.0)
+				return fail("before the entry, the train has no hidden item with the geometry of its run away from the view");
 			setFollowTrain(followedIndex);
 			const bool waiting = stillFollowing() && statusBar()->currentMessage() == notEntered + "Follow starts when it enters."
 				&& sentence() == statusBar()->currentMessage()
@@ -24697,20 +24722,13 @@ void MainWindow::onSimulationFinished() {
 				|| !viewOnTrain(followedIndex))
 				return fail("while the train runs");
 			// Seeking within the run changes no state, so it leaves the list alone.
-			int listChanges = 0;
-			const QAbstractItemModel* listModel = m_followTrainCombo->model();
-			const auto countChange = [&listChanges]() { ++listChanges; };
-			const QList<QMetaObject::Connection> changeCounters{
-				connect(listModel, &QAbstractItemModel::dataChanged, this, countChange),
-				connect(listModel, &QAbstractItemModel::rowsInserted, this, countChange),
-				connect(listModel, &QAbstractItemModel::rowsRemoved, this, countChange),
-				connect(listModel, &QAbstractItemModel::modelReset, this, countChange)};
-			seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
-			seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
-			for (const QMetaObject::Connection& counter : changeCounters)
-				disconnect(counter);
-			if (listChanges != 0)
-				return fail("while the train runs, the list changed without a change of state");
+			const FollowListUnderFrames listUnderFrames = showFramesOverMarkedList(m_followTrainCombo, [this, enterTime]() {
+				seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
+				seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+			});
+			setStartOffset(m_startOffsetSeconds); // writes every row again
+			if (listUnderFrames.changes != 0 || !listUnderFrames.rowsKept)
+				return fail("while the train runs, the list was written without a change of state");
 			std::fprintf(stdout, "E2E_FOLLOW_REPLAY_DURING_OK\n");
 			std::fflush(stdout);
 
@@ -27273,10 +27291,8 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 	infoDockWidget->setWindowTitle("Train Info");
 	infoDockWidget->show();
 	trainInfoWidget->show();
-	if (changeFollowMode) {
+	if (changeFollowMode)
 		setFollowTrain(trainItem->index);
-		centerSceneItem(groupItem);
-	}
 	updateViewportOverlays();
 
 	// effect on clicked item

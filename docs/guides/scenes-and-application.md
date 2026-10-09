@@ -161,7 +161,7 @@ The list names the state of each train. A train that has not entered the network
 shows its scheduled entry time, as in "Rail-1 (scheduled 08:25:50)"; the time is
 the schedule, not the actual entry. After that a train is "(running)",
 "(finished)", "(hidden)" while the Trains layer is off, or "(no position)" when
-it has none to draw. The list keeps its width in the toolbar, and its popup is as
+it has none to draw. The list keeps its width in the toolbar and asks for a popup as
 wide as the longest entry. The label at the right of the status bar says in one
 sentence whether the selected train is followed and why not, and the tooltips of
 **Follow** and of the list say the same. The label starts with the state of the
@@ -175,9 +175,9 @@ without services, **Follow** is disabled and its tooltip says why.
 In a live run Follow is switched off when the selected train leaves the network.
 The train stays in the list, but Follow cannot be switched on for it. In the
 replay of a completed run Follow stays on after the selected train has left, and
-continues when you go back in time. Follow is also cleared when it is disabled,
-when playback exits, or when the selected train is no longer available; it never
-silently switches to another train.
+continues when you go back in time. Follow is also cleared when the run ends, when
+it is disabled, when playback exits, or when the selected train is no longer
+available; it never silently switches to another train.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching

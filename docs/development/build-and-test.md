@@ -675,27 +675,34 @@ code and prints a marker:
   first service changes that reason from "no trains" to "run the case first".
 - In the live run of Copenhagen (`visual_polish_smoke.sh`):
   `E2E_FOLLOW_NOT_ENTERED_OK` (a train that has not entered shows its scheduled time in
-  the label, the list and the tooltips; that the view stays where it is for such a train
-  is checked by `E2E_FOLLOW_REPLAY_BEFORE_OK`, where the train already has an item),
+  the label, the list entry, the tooltips and the accessible descriptions; such a train
+  has no item to move the view to in this run, so that the view stays where it is for
+  a train that has not entered is checked by `E2E_FOLLOW_REPLAY_BEFORE_OK`, which
+  requires the item of the train to exist),
   `E2E_FOLLOW_STATUS_WIDTH_OK` (a sentence does not raise the width of the status bar),
   `E2E_FOLLOW_VISIBLE_OK` (at a window width of 1024 pixels the label still shows the
-  state of the train and its scheduled time, and the popup of the list is as wide as
-  the entry, which is wider than the list),
+  state of the train and its scheduled time, and the list asks its popup for a width
+  that fits the entry, which is wider than the list; how a platform style opens the
+  popup is not checked),
   `E2E_FOLLOW_CLOCK_OK` (a change of the start time changes the scheduled times in the
   list and in the sentence), `E2E_FOLLOW_ENTERED_OK` (the same train after it entered),
-  `E2E_FOLLOW_LIST_STABLE_OK` (a frame that changes no state leaves the list alone),
+  `E2E_FOLLOW_LIST_STABLE_OK` (frames that change no state do not write the list: every
+  row holds a marker text first, and the marker has to survive; Qt does not report a
+  write of the text a row already has),
   `E2E_FOLLOW_LAYER_OK` (Trains layer off and on again, with the station emphasis) and
   `E2E_FOLLOW_LIVE_END_OK` (Follow is switched off with its sentence when the followed
   train leaves).
 - In the replay of the Assignment run (`visual_polish_smoke.sh`):
   `E2E_FOLLOW_REPLAY_BEFORE_OK`, `E2E_FOLLOW_REPLAY_DURING_OK` and
   `E2E_FOLLOW_REPLAY_AFTER_OK` (Follow stays on and the view moves only while the
-  train runs), `E2E_FOLLOW_REPLAY_LAYER_OK` (Trains layer off and on again with Follow
-  on), `E2E_FOLLOW_SELECT_ON_OK` and `E2E_FOLLOW_SELECT_OK` (the arrow keys of the list
-  with Follow on and off) and `E2E_FOLLOW_RESET_OK` (Follow is off after the scenario
-  changes). No train of that run leaves within its 600 s, so the frame after the end of
-  the followed train is a copy of the frame in which it runs, with the train marked as
-  left.
+  train runs; before the entry the train has a hidden item with the geometry of its
+  run, away from the view, which the view must not move to; seeking within the run
+  does not write the list), `E2E_FOLLOW_REPLAY_LAYER_OK` (Trains layer off and on
+  again with Follow on), `E2E_FOLLOW_SELECT_ON_OK` and `E2E_FOLLOW_SELECT_OK` (the
+  arrow keys of the list with Follow on and off) and `E2E_FOLLOW_RESET_OK` (Follow is
+  off after the scenario changes). No train of that run leaves within its 600 s, so
+  the frame after the end of the followed train is a copy of the frame in which it
+  runs, with the train marked as left.
 
 ## Smoke artifacts
 
