@@ -192,6 +192,16 @@ of its own section. A train that has to wait needs a route that gives it
 somewhere to wait outside the stretch, such as the loop track of a station. On
 a route without one it stops on the track that the other train needs.
 
+A stub track is a track that trains enter and leave at one end. It has no loop at
+its closed end, so a restriction over a stub gives `protected_end_block` the same
+section as `end_block`. A section named in two roles is one section of the
+stretch. A train of the other direction waits at the entry of its route when the
+first section of its route lies in the held stretch, and in front of the stretch
+otherwise. The stretch is free again when the last train of the holding direction
+has left it. At level 0, without the restriction, trains of opposite directions
+on a stub pass through each other, or stand head to head until the end of the run
+when they meet at a block edge.
+
 Runnable validation reports each restriction whose start, end or protected
 blocks have no signalling level in one `scene.single_track.no_effect` warning.
 The warning names the restriction by its index in `single_track_restrictions`

@@ -327,6 +327,10 @@ ten scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`,
 `signal-failure-adjacent`, `signal-failure-staggered`, `signal-failure-last`,
 `signal-failure-first`, `signal-failure-entered`, `signal-failure-late`,
 `signal-failure-retarget`).
+The stub cases add the routes `routeStubIn` and `routeStubOut` and the services
+`U1` and `D1` to the scene in the test, because a route with `4-B0` or `5-B0` in
+the fixture would add a movement authority to the cases with a signal failure on
+those sections.
 All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
 network-wide signalling area, so one scene covers levels 0 to 5 and "none". The
@@ -357,13 +361,15 @@ A case is a scenario, a set of services and a level. The case table is in
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
 | `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; with a signalling level `R1` waits in front of the section while `S1` is in it |
 | `single-track-follow-level-3`, `-4` | trains `F1` and `F2` in the same direction through the restricted section; the output equals `follow-level-3` and `-4`, because the restriction does not delay a train that follows the holder |
+| `stub-departure-first-level-0` | trains `D1` (due at 60 s) and `U1` (due at 160 s) on a stub track, the closed end of the line from station B to station C, with a single-track restriction over `5-B0` to `7-B0`, protected by `4-B0` and `7-B0`; `D1` runs out of the stub and `U1` into it, and `U1` waits at the entry of its route until `D1` has left the stub |
+| `stub-arrival-first-level-0` | the same stub with `U1` due at 60 s and `D1` due at 160 s; `D1` waits at the entry of its route until `U1` has left the stub |
 | `border-0-2-fwd`, `border-0-2-rev` | level 0 from A to 8 km and level 2 from 8 km to C; `F1` and `F2` run from A to C, `R1` and `R2` from C to A, so a `rev` case enters on the C side and `border-0-2-rev` mirrors `border-2-0-fwd` |
 | `border-2-0-fwd`, `border-2-0-rev` | the same trains with level 2 from A to 8 km and level 0 from 8 km to C |
 | `border-0-3-fwd`, `border-0-3-rev` | the same trains with level 0 from A to 8 km and level 3 from 8 km to C |
 | `border-0-1-fwd` | trains `F1` and `F2` with level 0 from A to 8 km and level 1 from 8 km to C |
 | `border-0-2-near-fwd`, `border-0-1-near-fwd` | trains `F1` and `F2` with level 0 from A to 4 km and level 2 or level 1 from 4 km to C, so that the head of a train in `2-B0` has the level 0 sections `1-B0` and `0-B0` behind it |
 
-All 73 cases run in CTest. They are listed in
+All 75 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -464,16 +470,18 @@ expected and the actual line, and writes the actual output to
 Each run also checks facts that do not come from the golden file, so a
 re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
 backward movement, acceleration and braking within what the rolling stock can do,
-no faster run to station B than the top speed allows, planned dwell and
-departure times kept, stops only at a platform, a block boundary or behind
-another train, no overlap of two trains, and in every station row of `stats`
-and `signed_stats` a `Total_Delay` and an `N_StopTrains` that equal the sum and
-the number of the arrival delays of its `result` lines (only the late ones in the
-sum for `stats`). In a single-track case `S1` and `R1` are never inside the
-restricted section at the same time. A case without a signalling area is not
-checked for overlap or for the single-track section: a scene without a
-signalling level does not separate trains, and validation warns about it
-(`scene.signalling.level.missing`, `scene.single_track.no_effect`).
+no faster run to station B than the top speed allows (in a stub case only for a
+train that starts before B), planned dwell and departure times kept, stops only at a platform, a
+block boundary or behind another train, no overlap of two trains, and in every
+station row of `stats` and `signed_stats` a `Total_Delay` and an `N_StopTrains`
+that equal the sum and the number of the arrival delays of its `result` lines
+(only the late ones in the sum for `stats`). In a `single-track-*` case `S1` and
+`R1` are never inside the restricted section at the same time. In a stub case
+both trains reach their last stop and are never inside the stub together. A case
+without a signalling area is not checked for overlap or for the single-track
+section: a scene without a signalling level does not separate trains, and
+validation warns about it (`scene.signalling.level.missing`,
+`scene.single_track.no_effect`).
 The `-level-none` goldens therefore show trains at one position.
 
 The signal states that the simulation hands to the window are checked at every
