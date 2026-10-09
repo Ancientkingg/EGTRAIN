@@ -365,6 +365,173 @@ static bool brakingPointTests() {
 	return ok;
 }
 
+// Braking phase. A route of one section with two arcs: the first from 0 km to splitKm with the gradient
+// firstGradient, the second from splitKm to endKm with the gradient secondGradient.
+static std::vector<Section> brakingRouteOfTwoArcs(double splitKm, double endKm, double firstGradient, double secondGradient) {
+	std::vector<Section> route = brakingRoute(0.0, endKm, firstGradient);
+	Section& section = route[0];
+	section.total_arcs = 2;
+	section.arcs_in_signalling_block_section[0].endNode.X = splitKm;
+	section.arcs_in_signalling_block_section[1].startNode.X = splitKm;
+	section.arcs_in_signalling_block_section[1].endNode.X = endKm;
+	section.arcs_in_signalling_block_section[1].gradient = secondGradient;
+	section.arcs_in_signalling_block_section[1].curvature = 0.0;
+	return route;
+}
+
+struct BrakingRun {
+	std::vector<double> position, speed;
+	std::vector<int> eq;
+	bool finite = true;
+};
+
+// Takes `steps` braking steps towards (targetSpeed, targetPosition) of a train that ran at `speed` and is at
+// `position`, one second before. The vectors have exactly the size the steps need, with NaN in the entries that
+// are not set.
+static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double position, double speed,
+		double targetSpeed, double targetPosition, int steps) {
+	const int size = steps + 2;
+	BrakingRun run;
+	run.position.assign(size, std::numeric_limits<double>::quiet_NaN());
+	run.speed.assign(size, std::numeric_limits<double>::quiet_NaN());
+	run.eq.assign(size, 0);
+	run.position[0] = position - speed * timestep;
+	run.position[1] = position;
+	run.speed[0] = run.speed[1] = speed;
+	train.instant_spatial_position = run.position;
+	train.instant_train_speed = run.speed;
+	train.Eq = run.eq;
+	train.Xobmin = targetPosition;
+	train.Vobmin = targetSpeed;
+	for (int t = 2; t < size; ++t) {
+		const Section& section = route[0];
+		Arc arc = section.arcs_in_signalling_block_section[0];
+		for (int j = 0; j < section.total_arcs; ++j) {
+			const Arc& candidate = section.arcs_in_signalling_block_section[j];
+			if (train.instant_spatial_position[t - 1] >= candidate.startNode.X * 1000
+					&& train.instant_spatial_position[t - 1] < candidate.endNode.X * 1000)
+				arc = candidate;
+		}
+		train.brakingStep(t, arc, route.data(), 1);
+	}
+	run.position = train.instant_spatial_position;
+	run.speed = train.instant_train_speed;
+	run.eq = train.Eq;
+	return run;
+}
+
+// The braking phase of a train whose braking curve does not reach its speed. The train has the values of
+// brakingTrain(1.0) from the braking-point tests, a timestep of one second and the speed and target speed of the
+// Lebanon trace (36.1111 and 16.67 m/s).
+static bool brakingCurveTests() {
+	bool ok = true;
+	const double savedTimestep = timestep;
+	timestep = 1.0;
+	const auto at = [](double value, double expected) { return std::fabs(value - expected) <= 1e-6; };
+	const double speed = 36.1111, targetSpeed = 16.67;
+
+	// A curve that reaches the speed is reported as such and is stored in driving order.
+	{
+		Train train = brakingTrain(1.0);
+		std::vector<Section> flat = brakingRoute(0.0, 10.0, 0.0);
+		ok &= expect(train.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1) && train.BrakStep > 0
+				&& train.Vbrak[0] >= 30.0 && at(train.Sbrak[train.BrakStep], 4999.998) && train.Vbrak[train.BrakStep] == 0.0,
+				"a braking curve that reaches the current speed is stored from the first step to the target");
+	}
+
+	struct Case {
+		const char* name;
+		std::vector<Section> route;
+		double position, targetPosition;
+	};
+	// The first case has the shape of the Lebanon trace: the target at 1673 m lies on an arc with a gradient of
+	// -9.62, so the curve runs forward and leaves the route, while the train is on a flat arc before it and runs
+	// onto the steep arc during the steps. In the second case the target lies 100 m after the start of a flat
+	// route: the curve needs more than 500 m, so the braking point lies before the route.
+	std::vector<Case> cases = {
+		{"a curve that leaves the route at its end", brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1390.28, 1673.0},
+		{"a curve that leaves the route at its start", brakingRoute(0.0, 10.0, 0.0), 50.0, 100.0},
+	};
+	for (Case& c : cases) {
+		const std::string name = c.name;
+		const int steps = 8;
+		Train fresh = brakingTrain(1.0);
+		ok &= expect(!fresh.DrawBrakingCurve(speed, targetSpeed, c.targetPosition, c.route.data(), 1) && fresh.BrakStep == -1,
+				name + ": the curve is reported as not reaching the speed and is marked empty");
+
+		// A reachable curve was drawn before: nothing of it is read, and it is not kept.
+		Train earlier = brakingTrain(1.0);
+		std::vector<Section> flat = brakingRoute(0.0, 10.0, 0.0);
+		ok &= expect(earlier.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1) && earlier.BrakStep > 0,
+				name + ": a reachable curve is drawn first");
+		ok &= expect(!earlier.DrawBrakingCurve(speed, targetSpeed, c.targetPosition, c.route.data(), 1) && earlier.BrakStep == -1,
+				name + ": the curve after it is reported as not reaching the speed and is marked empty");
+
+		Train withoutCurve = brakingTrain(1.0);
+		const BrakingRun reference = brakingRun(withoutCurve, c.route, c.position, speed, targetSpeed, c.targetPosition, steps);
+		Train withCurve = brakingTrain(1.0);
+		withCurve.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1);
+		const BrakingRun run = brakingRun(withCurve, c.route, c.position, speed, targetSpeed, c.targetPosition, steps);
+		ok &= expect(run.position == reference.position && run.speed == reference.speed,
+				name + ": the steps do not depend on the curve that was drawn before");
+
+		// Each step is the step of full braking: the deceleration is the full braking force plus the
+		// resistances, divided by the mass with its mass factor, and the train moves by the mean speed.
+		bool followsFullBraking = true, boundHolds = true, setOnlyWhereComputed = true;
+		for (int t = 1; t < steps + 2; ++t) {
+			const double moved = run.position[t] - run.position[t - 1];
+			boundHolds &= moved >= 0.0 && moved <= std::max(run.speed[t - 1], run.speed[t]) * timestep + 1e-9;
+			if (t < 2)
+				continue;
+			const double mass = withoutCurve.total_train_mass * withoutCurve.massFactor;
+			const Arc* arc = nullptr;
+			for (int j = 0; j < c.route[0].total_arcs; ++j) {
+				const Arc& candidate = c.route[0].arcs_in_signalling_block_section[j];
+				if (run.position[t - 1] >= candidate.startNode.X * 1000 && run.position[t - 1] < candidate.endNode.X * 1000)
+					arc = &candidate;
+			}
+			if (arc == nullptr)
+				arc = &c.route[0].arcs_in_signalling_block_section[0];
+			const double deceleration = (mass * withoutCurve.max_train_decelaration
+					+ withoutCurve.total_train_resistances(run.speed[t - 1], arc->gradient, arc->curvature)) / mass;
+			const double expectedSpeed = std::max(0.0, run.speed[t - 1] - deceleration * timestep);
+			followsFullBraking &= std::fabs(run.speed[t] - expectedSpeed) <= 1e-9
+					&& std::fabs(run.position[t] - (run.position[t - 1] + (run.speed[t - 1] + expectedSpeed) / 2 * timestep)) <= 1e-9;
+			setOnlyWhereComputed &= std::isfinite(run.position[t]) && std::isfinite(run.speed[t]);
+		}
+		ok &= expect(followsFullBraking, name + ": position and speed follow the step of full braking");
+		ok &= expect(boundHolds && run.position[1] == c.position && run.speed[1] == speed,
+				name + ": a train moves forward by no more than its larger speed times the step and the step keeps the position before it");
+		ok &= expect(setOnlyWhereComputed && run.position.size() == steps + 2 && run.speed.size() == steps + 2
+				&& run.eq.size() == steps + 2 && std::isfinite(run.position[0]) && std::isfinite(run.position[1]),
+				name + ": the vectors keep their size and every step is set");
+		ok &= expect(run.eq[2] == 54, name + ": the step is marked as a step without curve");
+	}
+
+	// Values of single steps of the two cases, computed with the formula of the step.
+	{
+		std::vector<Section> route = brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62);
+		Train train = brakingTrain(1.0);
+		const BrakingRun run = brakingRun(train, route, 1390.28, speed, targetSpeed, 1673.0, 8);
+		ok &= expect(at(run.speed[2], 34.934396) && at(run.position[2], 1425.802748),
+				"first step of the case with the curve that leaves the route at its end, on the flat arc");
+		ok &= expect(at(run.speed[9], 113.485645) && at(run.position[9], 1685.336327),
+				"step of the same case on the steep arc, where the train gains speed");
+	}
+	{
+		std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
+		Train train = brakingTrain(1.0);
+		const BrakingRun run = brakingRun(train, route, 50.0, speed, targetSpeed, 100.0, 8);
+		ok &= expect(at(run.speed[2], 34.934396) && at(run.position[2], 85.522748),
+				"first step of the case with the braking point before the route");
+		Train search = brakingTrain(1.0);
+		ok &= expect(search.BrakDist_Block(speed, targetSpeed, 100.0, route.data(), 1) < 50.0,
+				"the braking-point search gives a braking point before the train for the second case");
+	}
+	timestep = savedTimestep;
+	return ok;
+}
+
 static bool passengerRateTests() {
 	bool ok = true;
 	ok &= expect(near(passengerOccupancyRatio(0, 600), 0.0), "occupancy ratio at 0 percent");
@@ -1572,6 +1739,7 @@ int main() {
 	}
 	ok &= passengerRateTests();
 	ok &= brakingPointTests();
+	ok &= brakingCurveTests();
 	{
 		const double brakingPoint = 46181.0;
 		const double parked = std::nextafter(brakingPoint - kStopHoldbackM, 0.0);

@@ -69,7 +69,8 @@ int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with 
 // const int Max_N_Reg = 150;
 
 Train::Train() {
-	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = BrakStep = IsTrainCoupling = 0;
+	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = IsTrainCoupling = 0;
+	BrakStep = -1;
 	End_Time = (int)((initial_variables.times - 1) / timestep);
 	numStations = 0;
 	Xobmin = Vobmin = 0;
