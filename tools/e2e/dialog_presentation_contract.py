@@ -52,7 +52,8 @@ def launch(app: Path, settings: Path, scene: Optional[Path] = None,
 
 
 def expected_review(scene: Path) -> tuple:
-    """Fixture-derived expectations: the excess dwell warning and the missing signalling level warning."""
+    """Fixture-derived expectations: the excess dwell warning, the missing signalling level warning and
+    the warning for each single-track restriction that has no effect without a level."""
     manifest = json.loads((scene / "scene.json").read_text())
     services = json.loads((scene / "services.json").read_text())["services"]
     stock = json.loads((scene / "rolling_stock.json").read_text())
@@ -76,7 +77,7 @@ def expected_review(scene: Path) -> tuple:
     if not signalling.get("signalling_areas"):
         # Without any area, every distinct route section is reported once.
         unsignalled = len({block for route in signalling["routes"] for block in route["blocks"]})
-        warnings += 1
+        warnings += 1 + len(signalling.get("single_track_restrictions", []))
     in_period = sum(0 <= entry < duration for entry in entries)
     counts = {"Service definitions": len(services), "Configured total": len(entries),
               "Number of services in sim.": in_period, "Selected": len(entries),
