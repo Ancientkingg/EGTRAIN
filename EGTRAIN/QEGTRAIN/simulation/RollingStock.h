@@ -1296,14 +1296,14 @@ public:
 	// Function to draw the braking curve which must be followed by the train.
 	// The curve ends at X0 with the speed V2 and is integrated backwards until it reaches the speed V1. It is stored in driving order in Sbrak and Vbrak,
 	// and BrakStep is the index of its last entry. When there is no such curve, because it leaves the route or does not reach V1 within the steps,
-	// the function returns false and BrakStep is -1. For V1 <= V2 nothing is drawn and the curve of the previous call is kept.
+	// the function returns false and BrakStep is -1. This also holds for V1 <= V2, where there is nothing to brake.
 	virtual bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks) {
 		double U[2000];
 		double X[2000]; // Definition of Temporary variables Vector U=Speed, X=Abscissa
 		U[0] = V2;
 		X[0] = X0 - 0.002; // The train stops at two metres from the objective point
+		BrakStep = -1;
 		if (V1 > V2) {
-			BrakStep = -1;
 			int t;
 			for (t = 1; t < 2000; t++) {
 				int BlockIdx = 0;

@@ -382,12 +382,12 @@ static std::vector<Section> brakingRouteOfTwoArcs(double splitKm, double endKm, 
 struct BrakingRun {
 	std::vector<double> position, speed;
 	std::vector<int> eq;
-	bool finite = true;
+	bool gradientExceptionClear = true; // GradientExceptionInBraking was false after every step
 };
 
 // Takes `steps` braking steps towards (targetSpeed, targetPosition) of a train that ran at `speed` and is at
 // `position`, one second before. The vectors have exactly the size the steps need, with NaN in the entries that
-// are not set.
+// are not set. GradientExceptionInBraking is set before each step.
 static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double position, double speed,
 		double targetSpeed, double targetPosition, int steps) {
 	const int size = steps + 2;
@@ -412,7 +412,9 @@ static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double p
 					&& train.instant_spatial_position[t - 1] < candidate.endNode.X * 1000)
 				arc = candidate;
 		}
+		train.GradientExceptionInBraking = true;
 		train.brakingStep(t, arc, route.data(), 1);
+		run.gradientExceptionClear &= !train.GradientExceptionInBraking;
 	}
 	run.position = train.instant_spatial_position;
 	run.speed = train.instant_train_speed;
@@ -437,24 +439,35 @@ static bool brakingCurveTests() {
 		ok &= expect(train.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1) && train.BrakStep > 0
 				&& train.Vbrak[0] >= 30.0 && at(train.Sbrak[train.BrakStep], 4999.998) && train.Vbrak[train.BrakStep] == 0.0,
 				"a braking curve that reaches the current speed is stored from the first step to the target");
+		// A speed that does not exceed the target speed has no curve either, and the curve before it is not kept.
+		ok &= expect(!train.DrawBrakingCurve(10.0, 20.0, 5000.0, flat.data(), 1) && train.BrakStep == -1,
+				"a speed below the target speed gives no braking curve and marks the curve empty");
+		train.DrawBrakingCurve(30.0, 0.0, 5000.0, flat.data(), 1);
+		ok &= expect(!train.DrawBrakingCurve(20.0, 20.0, 5000.0, flat.data(), 1) && train.BrakStep == -1,
+				"a speed equal to the target speed gives no braking curve and marks the curve empty");
 	}
 
 	struct Case {
 		const char* name;
 		std::vector<Section> route;
 		double position, targetPosition;
+		int steps;
+		bool fallsBelowTarget;
 	};
 	// The first case has the shape of the Lebanon trace: the target at 1673 m lies on an arc with a gradient of
 	// -9.62, so the curve runs forward and leaves the route, while the train is on a flat arc before it and runs
 	// onto the steep arc during the steps. In the second case the target lies 100 m after the start of a flat
-	// route: the curve needs more than 500 m, so the braking point lies before the route.
+	// route: the curve needs more than 500 m, so the braking point lies before the route. In the third case the
+	// train is 673 m before the target and slows down below the target speed on the flat arc.
 	std::vector<Case> cases = {
-		{"a curve that leaves the route at its end", brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1390.28, 1673.0},
-		{"a curve that leaves the route at its start", brakingRoute(0.0, 10.0, 0.0), 50.0, 100.0},
+		{"a curve that leaves the route at its end", brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1390.28, 1673.0, 8, false},
+		{"a curve that leaves the route at its start", brakingRoute(0.0, 10.0, 0.0), 50.0, 100.0, 8, false},
+		{"a curve that leaves the route at its end for a train that slows down below the target speed",
+				brakingRouteOfTwoArcs(1.594, 2.0, 0.0, -9.62), 1000.0, 1673.0, 22, true},
 	};
 	for (Case& c : cases) {
 		const std::string name = c.name;
-		const int steps = 8;
+		const int steps = c.steps;
 		Train fresh = brakingTrain(1.0);
 		ok &= expect(!fresh.DrawBrakingCurve(speed, targetSpeed, c.targetPosition, c.route.data(), 1) && fresh.BrakStep == -1,
 				name + ": the curve is reported as not reaching the speed and is marked empty");
@@ -502,9 +515,10 @@ static bool brakingCurveTests() {
 		ok &= expect(followsFullBraking, name + ": position and speed follow the step of full braking");
 		ok &= expect(boundHolds && run.position[1] == c.position && run.speed[1] == speed,
 				name + ": a train moves forward by no more than its larger speed times the step and the step keeps the position before it");
-		ok &= expect(setOnlyWhereComputed && run.position.size() == steps + 2 && run.speed.size() == steps + 2
-				&& run.eq.size() == steps + 2 && std::isfinite(run.position[0]) && std::isfinite(run.position[1]),
-				name + ": the vectors keep their size and every step is set");
+		ok &= expect(setOnlyWhereComputed && std::isfinite(run.position[0]) && std::isfinite(run.position[1]),
+				name + ": every step is computed");
+		ok &= expect(run.gradientExceptionClear && (!c.fallsBelowTarget || run.speed[steps + 1] < targetSpeed),
+				name + ": a step without curve clears the gradient exception, also below the target speed");
 		ok &= expect(run.eq[2] == 54, name + ": the step is marked as a step without curve");
 	}
 
