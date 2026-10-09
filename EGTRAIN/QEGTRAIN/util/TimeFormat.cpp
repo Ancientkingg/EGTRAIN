@@ -21,6 +21,7 @@ std::string formatSimTime(long long simSeconds, long long baseOffsetSeconds) {
 
 long long parseClockToSeconds(const std::string& hhmm) {
     int h = 0, m = 0;
+    int unusedForTheCheck = 0;
     char extra = 0;
     // require exactly HH:MM with no trailing characters
     if (std::sscanf(hhmm.c_str(), "%d:%d%c", &h, &m, &extra) != 2)
