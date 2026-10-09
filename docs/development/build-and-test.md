@@ -279,10 +279,10 @@ A case is a scenario, a set of services and a level. The case table is in
 | `sf-forward-level-none`, `-0` to `-5` | the same trains with a signal failure from 400 s to 1000 s |
 | `sf-reverse-level-none`, `-0` to `-5` | trains `R1` and `R2` in the opposite direction, same failure window |
 
-The cases that run in CTest are listed in
-`tests/characterization/CMakeLists.txt`. Any case in the table can be run by
-hand with `--case`. Each case is its own CTest entry and process, labelled
-`characterization` and `unit`:
+All 22 cases run in CTest. They are listed in
+`tests/characterization/CMakeLists.txt`, in the order of the table, and each
+has a golden file. Any case can also be run by hand with `--case`. Each case is
+its own CTest entry and process, labelled `characterization` and `unit`:
 
 ```bash
 cmake --build build --target test_characterization
@@ -358,7 +358,7 @@ EGTRAIN_UPDATE_EXPECTATIONS=1 ctest --test-dir build -L characterization
 git diff EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-For a case that CTest does not run, call the executable directly:
+To run one case directly, call the executable:
 
 ```bash
 EGTRAIN_UPDATE_EXPECTATIONS=1 build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
@@ -382,11 +382,22 @@ cannot change it unnoticed, and it is marked. The golden header carries
 test fails when the two differ and prints `KNOWN-WRONG #<issue>` on every run.
 A marked case is exempt from the checks on stops, separation and timetable. The
 change that fixes the bug updates the golden file and removes the marker in one
-commit. List the marked cases with:
+commit. The markers are in the `kKnownWrong` table of
+`test_characterization.cpp`. List the marked cases with:
 
 ```bash
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
+
+The markers name three open issues. #437 covers two trains at one position
+(`follow-level-none`, `sf-forward-level-none`, `sf-reverse-level-none`) and
+trains that stay stopped after a signal failure at levels 0 to 2. #499 covers
+a following train that reports a departure from B before its planned
+departure at levels 3 and 4. #498 covers trains that stand until the end of
+the run at level 5 (`follow-level-5`, `sf-forward-level-5`,
+`sf-reverse-level-5`). No check fails for these three, because every stop is
+at a block boundary or a platform, and the marker ties them to the issue. The
+unmarked cases show no known-wrong behaviour, so the checks apply.
 
 ## Simulation Smoke Test
 

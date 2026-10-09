@@ -182,6 +182,38 @@ struct CaseSpec {
 	std::string knownWrong;
 };
 
+// Cases whose current behaviour is wrong, with the open issue that describes it.
+const struct {
+	const char* name;
+	const char* marker;
+} kKnownWrong[] = {
+	{"follow-level-none", "#437 F2 stops at the position of F1 at B"},
+	{"follow-level-3", "#499 F2 reports a departure from B before its planned departure"},
+	{"follow-level-4", "#499 F2 reports no dwell at B and a departure before its planned departure"},
+	{"follow-level-5", "#498 F2 stands at 12 km from 1240 s to the end of the run"},
+	{"sf-forward-level-none", "#437 F2 stops at the position of F1 at B and at 10 km"},
+	{"sf-forward-level-0", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
+	{"sf-forward-level-1", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
+	{"sf-forward-level-2", "#437 F1 stays at 10 km after the failure ends and F2 stops at its position"},
+	{"sf-forward-level-3", "#499 F2 reports a departure from B before its planned departure"},
+	{"sf-forward-level-4", "#499 F2 reports no dwell at B and a departure before its planned departure"},
+	{"sf-forward-level-5", "#498 F1 stays at B and F2 at 4 km after the failure ends"},
+	{"sf-reverse-level-none", "#437 R2 stops at the position of R1 at B and at 10 km"},
+	{"sf-reverse-level-0", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
+	{"sf-reverse-level-1", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
+	{"sf-reverse-level-2", "#437 R1 stays at 10 km after the failure ends and R2 stops at its position"},
+	{"sf-reverse-level-3", "#499 R2 reports a departure from B before its planned departure"},
+	{"sf-reverse-level-4", "#499 R2 reports no dwell at B and a departure before its planned departure"},
+	{"sf-reverse-level-5", "#498 R1 stays at B and R2 at 4 km after the failure ends"},
+};
+
+std::string knownWrongMarker(const std::string& name) {
+	for (const auto& entry : kKnownWrong)
+		if (name == entry.name)
+			return entry.marker;
+	return "";
+}
+
 std::vector<CaseSpec> buildCaseTable() {
 	std::vector<CaseSpec> cases;
 	cases.push_back({"single-train", "baseline", {"T1"}, kNoSignallingArea, ""});
@@ -195,11 +227,12 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"sf-reverse", "signal-failure-reverse", {"R1", "R2"}},
 	};
 	for (const auto& group : groups) {
-		cases.push_back({std::string(group.prefix) + "-level-none", group.scenario, group.services,
-			kNoSignallingArea, ""});
-		for (int level = 0; level <= 5; ++level)
-			cases.push_back({std::string(group.prefix) + "-level-" + std::to_string(level),
-				group.scenario, group.services, level, ""});
+		const std::string none = std::string(group.prefix) + "-level-none";
+		cases.push_back({none, group.scenario, group.services, kNoSignallingArea, knownWrongMarker(none)});
+		for (int level = 0; level <= 5; ++level) {
+			const std::string name = std::string(group.prefix) + "-level-" + std::to_string(level);
+			cases.push_back({name, group.scenario, group.services, level, knownWrongMarker(name)});
+		}
 	}
 	return cases;
 }
