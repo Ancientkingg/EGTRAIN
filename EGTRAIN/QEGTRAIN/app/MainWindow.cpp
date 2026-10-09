@@ -15769,8 +15769,8 @@ void MainWindow::runVisualPolishE2E() {
 				}
 
 				// The first frame after a long pause, as when a run is resumed, does not move the view, and the view
-				// then glides from where it is. It is the second, distinct delivery that interrupts the 120 ms
-				// transition while replacing the polygons; the body and badge must move together.
+				// then glides from where it is. This frame is also a second, distinct delivery: it interrupts the
+				// 120 ms transition while replacing the polygons, and the body and badge must move together.
 				*cameraClock += 5000;
 				const QPointF cameraPaused = viewCentre();
 				m_snapshot = interruptedSnapshot;
@@ -15879,18 +15879,21 @@ void MainWindow::runVisualPolishE2E() {
 				m_snapshot = interruptedSnapshot;
 				updateTrainPosition(interruptedSnapshot->timestep);
 				tickCamera();
+				const QSize viewportBeforeResize = networkView->viewport()->size();
 				resize(1100, 760);
 				QApplication::processEvents();
+				const bool viewportResized = networkView->viewport()->size() != viewportBeforeResize;
 				const bool glideGoesOnAfterResize = m_followCamera->running();
-				const bool resizeGlided = glideGoesOnAfterResize && glideEndsOnTrain();
+				const bool resizeGlided = viewportResized && glideGoesOnAfterResize && glideEndsOnTrain();
 				resize(1200, 800);
 				QApplication::processEvents();
 				if (!panGlided || !resizeGlided) {
 					ok = false;
-					failures << QString("a pan or a resize while following did not lead to a glide back to the train (pan: %1px then %2px, glided=%3, resize: running=%4, ends on the train=%5)")
+					failures << QString("a pan or a resize while following did not lead to a glide back to the train (pan: %1px then %2px, glided=%3, resize: viewport changed=%4, running=%5, ends on the train=%6)")
 									.arg(panDistance, 0, 'f', 1)
 									.arg(panDistanceAfterTick, 0, 'f', 1)
 									.arg(panGlided)
+									.arg(viewportResized)
 									.arg(glideGoesOnAfterResize)
 									.arg(resizeGlided);
 				} else {
@@ -15934,6 +15937,7 @@ void MainWindow::runVisualPolishE2E() {
 					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_ZOOM_OK\n");
 					std::fflush(stdout);
 				}
+				// Fit left no scroll range. Zoom in again so that the view can move.
 				networkView->zoomBy(6.0);
 				setFollowTrain(selectedTrain->index);
 
@@ -15966,6 +15970,7 @@ void MainWindow::runVisualPolishE2E() {
 				const bool cutToOther = otherTrain && m_followTrainIndex == otherTrain->index && !m_followCamera->running()
 					&& pixelsBetween(viewCentre(), clampedCameraCenter(otherTrain->sceneBoundingRect().center())) <= 3.0
 					&& pixelsBetween(cameraBeforeCut, viewCentre()) > 20.0;
+				// Zoom in further so that the next checks see a move of the view.
 				networkView->zoomBy(4.0);
 				setFollowTrain(selectedTrain->index);
 
@@ -25361,7 +25366,7 @@ void MainWindow::onSimulationFinished() {
 			selectScenario(static_cast<int>(m_sceneModel.scenarios.size()) - 1);
 			if (m_replayTimer->isActive() || !m_completedReplay.empty() || m_snapshot
 				|| !m_showingTrackPreview || !allTrains.isEmpty() || !m_activeTrackItems.empty()
-				|| m_followTrainIndex >= 0 || m_replayBar->isVisible()) {
+				|| m_followTrainIndex >= 0 || m_followCamera->hasTarget() || m_followCamera->running() || m_replayBar->isVisible()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: scenario retained historical graphics\n");
 				QCoreApplication::exit(2);
 				return;
