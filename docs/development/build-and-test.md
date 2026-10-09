@@ -395,6 +395,13 @@ scene without a signalling level does not separate trains, and validation warns
 about it (`scene.signalling.level.missing`, `scene.single_track.no_effect`).
 The `-level-none` goldens therefore show trains at one position.
 
+The signal states that the simulation hands to the window are checked at every
+step of every case against the section codes of all routes. There must be one
+entry per section and direction. Its code is the most restrictive code of the
+route copies of the section (0, 751, 75, 180, 270 in that order). Its level is
+the signalling level of the section, or none. Its failed flag is set exactly
+from the start to the end of a signal failure.
+
 ### Changing an expectation deliberately
 
 Run the case with the update switch, then review the diff before committing:

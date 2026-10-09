@@ -1,9 +1,13 @@
 #ifndef GUISIMULATIONSNAPSHOT_H
 #define GUISIMULATIONSNAPSHOT_H
 
+#include <algorithm>
+#include <array>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
 
 struct GuiOccupiedArc {
@@ -47,10 +51,92 @@ inline bool guiReplayTrainHasPosition(const GuiTrainState& train, int timestep) 
 		&& !train.wagonHeadPositions.empty() && !train.wagonTailPositions.empty();
 }
 
+// Value of GuiSignalState::level for a section without a signalling level.
+constexpr int kGuiSignalNoLevel = -1;
+
+// One entry per section ID and direction (see GuiSignalStateList).
 struct GuiSignalState {
 	std::string sectionId;
 	int code = 0;
 	bool reversedDirection = false;
+	// Signalling level of the section (0 to 5), or kGuiSignalNoLevel. A section
+	// without a level keeps its initial code 270, which is not a clear signal.
+	int level = kGuiSignalNoLevel;
+	// A signal_failure incident covers the section in this step.
+	bool failed = false;
+};
+
+inline bool guiSignalHasLevel(int level) {
+	return level >= 0 && level <= 5;
+}
+
+// Rank of a section code, lowest is most restrictive. 0 is an occupied or failed
+// section, 751 the section behind it in BACC (red_red, speed limit V_751), 75
+// caution, 180 approach and 270 clear. A code that is none of these ranks last.
+inline int guiSignalRestriction(int code) {
+	switch (code) {
+		case 0: return 0;
+		case 751: return 1;
+		case 75: return 2;
+		case 180: return 3;
+		case 270: return 4;
+		default: return 5;
+	}
+}
+
+// Collects the signal states of the route copies of every section. Copies of
+// the same section ID and direction merge into one entry with the most
+// restrictive code, whatever the order they arrive in. A copy without a level
+// carries no signalling and never replaces one that has a level. Entries keep the
+// order in which their section and direction first appeared.
+class GuiSignalStateList {
+public:
+	// Any level outside 0 to 5 counts as no level.
+	void merge(std::string_view id, bool reversed, int code, int level) {
+		if (!guiSignalHasLevel(level))
+			level = kGuiSignalNoLevel;
+		const std::string key(id);
+		auto found = index_.find(key);
+		if (found == index_.end())
+			found = index_.emplace(key, std::array<int, 2>{-1, -1}).first;
+		int& position = found->second[reversed ? 1 : 0];
+		if (position < 0) {
+			position = static_cast<int>(states_.size());
+			states_.push_back({key, code, reversed, level, false});
+			return;
+		}
+		GuiSignalState& into = states_[static_cast<std::size_t>(position)];
+		if (!guiSignalHasLevel(level))
+			return;
+		if (!guiSignalHasLevel(into.level)) {
+			into.code = code;
+			into.level = level;
+			return;
+		}
+		if (guiSignalRestriction(code) < guiSignalRestriction(into.code))
+			into.code = code;
+		into.level = std::min(into.level, level);
+	}
+
+	// Marks the section as failed in both directions where it has an entry.
+	void fail(std::string_view id) {
+		const auto found = index_.find(std::string(id));
+		if (found == index_.end())
+			return;
+		for (const int position : found->second)
+			if (position >= 0)
+				states_[static_cast<std::size_t>(position)].failed = true;
+	}
+
+	std::vector<GuiSignalState> take() {
+		index_.clear();
+		return std::move(states_);
+	}
+
+private:
+	std::vector<GuiSignalState> states_;
+	// Position in states_ per direction (forward, reversed), or -1.
+	std::unordered_map<std::string, std::array<int, 2>> index_;
 };
 
 // Every nonzero copied route-section code reports the permissive-signalling
