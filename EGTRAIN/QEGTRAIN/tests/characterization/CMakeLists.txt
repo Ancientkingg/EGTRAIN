@@ -39,10 +39,31 @@ endif()
 set(EGTRAIN_CHARACTERIZATION_FIXTURE ${SRC_DIR}/tests/fixtures/scenes/line)
 set(EGTRAIN_CHARACTERIZATION_EXPECTED ${CMAKE_CURRENT_SOURCE_DIR}/expected)
 
-# Cases that run in CTest. Every other case in the table of
-# test_characterization.cpp can be run by hand with --case.
+# Cases that run in CTest, in the order of the table in
+# test_characterization.cpp. Each has a golden file in expected/.
 set(EGTRAIN_CHARACTERIZATION_CASES
-	single-train)
+	single-train
+	follow-level-none
+	follow-level-0
+	follow-level-1
+	follow-level-2
+	follow-level-3
+	follow-level-4
+	follow-level-5
+	sf-forward-level-none
+	sf-forward-level-0
+	sf-forward-level-1
+	sf-forward-level-2
+	sf-forward-level-3
+	sf-forward-level-4
+	sf-forward-level-5
+	sf-reverse-level-none
+	sf-reverse-level-0
+	sf-reverse-level-1
+	sf-reverse-level-2
+	sf-reverse-level-3
+	sf-reverse-level-4
+	sf-reverse-level-5)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}
