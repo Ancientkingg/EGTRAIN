@@ -26,11 +26,15 @@ ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
 ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
 ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {2, 5, 6}
+SIGNALLING_COVERED = {2, 4, 5, 6}
+# The arrival that TimetablePoints.txt holds for a stop the train did not reach.
+NO_ARRIVAL = -10000
 
 # d3f5c7005c7030ba3745c8a41b0572e61974bd15 is the last pre-cutover
 # runtime baseline. These checks keep one representative observable per
 # original case instead of retaining large generated output trees.
+# Case 4 runs with a fixed block area: its representative queues behind the
+# train that stands at Rovato to the end of the run and does not reach its last stop.
 ORIGINAL_CASE_PARITY = {
     1: {
         "structure": (1984, 708, 41, 156, 74),
@@ -61,8 +65,8 @@ ORIGINAL_CASE_PARITY = {
         "station_ids": "091b2621fa7695b9fb368e13caa966d0da1864048cbae9fa91ea37f6aff973ca",
         "route_ids": "73c9e9fd30a7f2c82ad5f7fe202083c6c3aa87c0a36215ace7d5a393da189494",
         "trains": 65,
-        "representative": ("201-1", 1738, 9636.22, 3673, 78768.2, 0, 0.1),
-        "stops": ("b76878b055e51183a425ccdfe008049e66b8980fcc23f62d46636a0a53cd8981", 1855, 3666, 1, 1),
+        "representative": ("201-1", 1738, 9636.22, 3999, 59846.0, 0, 0.1),
+        "stops": ("b76878b055e51183a425ccdfe008049e66b8980fcc23f62d46636a0a53cd8981", 1855, NO_ARRIVAL, 1, 1),
     },
 }
 
@@ -332,14 +336,12 @@ def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     ]
     trajectory = output_dir / "TrainTrajectories/TrainServicePathDiagram.txt"
     samples = []
+    # A run appends its rows to this file, so in a reused output folder the last row of the train is this run.
     for line in trajectory.read_text(encoding="utf-8", errors="replace").splitlines():
         cells = line.split("\t")
         if cells[0] != train:
             continue
-        for time_seconds, cell in enumerate(cells[4:]):
-            if cell:
-                samples.append((time_seconds, float(cell)))
-        break
+        samples = [(time_seconds, float(cell)) for time_seconds, cell in enumerate(cells[4:]) if cell]
     if not samples:
         raise SystemExit(f"case {case_id} has no trajectory for baseline train {train}")
     if samples[0][0] != start_time or abs(samples[0][1] - start_position) > 0.1:

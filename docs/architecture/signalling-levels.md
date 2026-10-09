@@ -534,13 +534,13 @@ section only to resolve signal failures. See the
 | `Netherlands` | none | no level |
 | `Assignment_Gvc_Gdg_Ut` | one network-wide area, 0 to 165 km, level 0 | `0 ATB fixed block` |
 | `Copenhagen` | none | no level |
-| `Milano_Brescia` | none | no level |
+| `Milano_Brescia` | one network-wide area, 0 to 79 km, level 0 | `0 ATB fixed block` |
 | `Paimpol` | one network-wide area, 0 to 38 km, level 0 | `0 ATB fixed block` |
 | `Lebanon` | one network-wide area, 0 to 121 km, level 0 | `0 ATB fixed block` |
 
-The scene descriptions of `Paimpol` and `Lebanon` call their area a placeholder.
-The description of `Assignment_Gvc_Gdg_Ut` says that its level is a project
-decision. Assigning levels to the other three scenes is #459.
+The scene descriptions of `Paimpol`, `Lebanon` and `Milano_Brescia` call their
+area a placeholder. The description of `Assignment_Gvc_Gdg_Ut` says that its
+level is a project decision. Assigning levels to the other two scenes is #459.
 
 ## Known limits and open issues
 
@@ -549,7 +549,7 @@ Open on this version:
 - #602: at a border from level 0 to level 1 or 2 the block before the border
   shows 75 while a train is in it (`border-0-1-fwd`, `border-0-2-fwd`,
   `border-2-0-rev`).
-- #459: three committed scenes have no signalling area.
+- #459: two committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
   with one row that covers the network at level 3 when the file is absent and

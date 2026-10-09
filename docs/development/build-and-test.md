@@ -576,7 +576,8 @@ them.
 
 Measured on a full run of each committed scene at the default horizon (`-g 1`,
 `-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
-frames would need as ordinary snapshot objects.
+frames would need as ordinary snapshot objects. Milano_Brescia, Copenhagen and
+Netherlands were measured without a signalling area.
 
 | Scene | Frames | Covers (s) | Accounted | As complete snapshots |
 |---|---|---|---|---|

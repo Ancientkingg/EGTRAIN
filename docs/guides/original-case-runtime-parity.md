@@ -57,7 +57,7 @@ focused smoke.
 | Netherlands | 40 / 40 | `SPR_2-1` | `(7999, 1252.38)` → `(7999, 1335.0)` | `(132, 847)` → `(135, 1190)` | 0 s, 100 m |
 | Paimpol | 2 / 2 | `Guin-Paim-EXPRESS-1-1` | `(2571, 37081.3)` → `(2789, 37076.9)` | `(43, 2558)` → `(36, 2705)` | 250 s, 10 m |
 | Copenhagen | 196 / 196 | `F-Hellerup-NyEllebjerg-2-1` | `(934, 37943.0)` → `(1877, 37951.9)` | `(367, 927)` → `(364, 1819)` | 950 s, 10 m |
-| Milano-Brescia | 65 / 65 | `201-1` | `(3673, 78768.2)` → `(3673, 78768.2)` | `(1855, 3666)` → `(1855, 3666)` | 0 s, 0.1 m |
+| Milano-Brescia | 65 / 65 | `201-1` | `(3673, 78768.2)` → `(3999, 59846.0)` | `(1855, 3666)` → `(1855, none)` | 0 s, 0.1 m |
 
 The longer Paimpol and Copenhagen times are not tuned values. Their retained
 legacy output recorded arrival and departure at the same instant through
@@ -67,6 +67,14 @@ The tolerances cover the observed scheduling correction while keeping the
 path endpoint tight. Netherlands remains active at the 8,000-second horizon;
 its final position and five-stop sequence are compared instead of inventing a
 completion time.
+
+The Milano-Brescia scene has a network-wide fixed block area. Train
+`48363-48362-48363-1` reaches Rovato at 1988 s and stands there on the through
+track for the rest of the run, because its planned departure of 5280 s lies
+after the 4,000-second horizon. The trains behind it queue. `201-1` is the
+fourth of them: it stops at 59,846 m at 3326 s and has no arrival at its last
+stop. Its origin, its first arrival and its 17-stop sequence are unchanged, and
+the smoke compares its position at the end of the run.
 
 The expanded train total is identical in all four cases. Milano's legacy
 output used `9707-1` and `9709-1` twice. The native output retains 65 trains but
