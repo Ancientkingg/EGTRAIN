@@ -269,8 +269,8 @@ int main(int argc, char** argv) {
 			&& olderBundleProbe.bundleVersion && *olderBundleProbe.bundleVersion == kCurrentSceneBundleVersion - 1,
 			"older bundle is independent from current schema support");
 	SceneMigrationRegistry bundleRegistry;
-	bundleRegistry.addBundleStep(SceneMigrationStep(kCurrentSceneBundleVersion - 1,
-		kCurrentSceneBundleVersion,
+	bundleRegistry.addBundleStep(SceneMigrationStep(
+		kCurrentSceneBundleVersion - 1, kCurrentSceneBundleVersion,
 		[](const fs::path& staged, std::vector<SceneDiagnostic>&) {
 			return fs::is_regular_file(staged / "legacy-data.json");
 		},

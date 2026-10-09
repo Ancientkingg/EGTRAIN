@@ -32,12 +32,12 @@ int main(int argc, char** argv)
     const auto* table = window.findChild<QTableWidget*>();
     const auto* context = window.findChild<QLabel*>("timetableContext");
     const QRect screen = window.screen()->availableGeometry();
-    const bool ok = window.width() <= screen.width() * 9 / 10 &&
-        window.height() <= screen.height() * 4 / 5 &&
-        context && context->isVisible() && context->text().contains("Case A") &&
-        context->textFormat() == Qt::PlainText &&
-        table && table->rowCount() == 1 && table->item(0, 0)->text() == "train-a" &&
-        window.findChild<TrainFilterButton*>()->isVisible();
+    const bool ok = window.width() <= screen.width() * 9 / 10
+        && window.height() <= screen.height() * 4 / 5
+        && context && context->isVisible() && context->text().contains("Case A")
+        && context->textFormat() == Qt::PlainText
+        && table && table->rowCount() == 1 && table->item(0, 0)->text() == "train-a"
+        && window.findChild<TrainFilterButton*>()->isVisible();
     if (!ok) std::cerr << "timetable presentation or data changed\n";
     return ok ? 0 : 1;
 }

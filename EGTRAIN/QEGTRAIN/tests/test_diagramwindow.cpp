@@ -153,8 +153,9 @@ static bool exerciseTrainFilter() {
 
 	// Row 0 is checked, row 1 gets unchecked by a click; both are drawn at one and two device pixels per pixel.
 	clickAt(list, checkBoxRect(list, list->item(1)).center());
-	ok &= expect(list->item(1)->checkState() == Qt::Unchecked && changes == 1 && !filter.isTrainVisible(ids.at(1)) &&
-		filter.isTrainVisible(ids.at(0)) && filter.text() == "Trains (119/120)",
+	ok &= expect(
+		list->item(1)->checkState() == Qt::Unchecked && changes == 1 && !filter.isTrainVisible(ids.at(1))
+			&& filter.isTrainVisible(ids.at(0)) && filter.text() == "Trains (119/120)",
 		"a click on a check box hides that train only");
 	QApplication::processEvents();
 	for (const qreal ratio : {1.0, 2.0}) {
@@ -175,8 +176,10 @@ static bool exerciseTrainFilter() {
 	list->scrollToBottom();
 	QApplication::processEvents();
 	clickAt(list, checkBoxRect(list, list->item(119)).center());
-	ok &= expect(list->item(119)->checkState() == Qt::Unchecked && list->item(1)->checkState() == Qt::Unchecked &&
-		changes == 2 && filter.text() == "Trains (118/120)", "a row reached by scrolling toggles and earlier choices stay");
+	ok &= expect(
+		list->item(119)->checkState() == Qt::Unchecked && list->item(1)->checkState() == Qt::Unchecked && changes == 2
+			&& filter.text() == "Trains (118/120)",
+		"a row reached by scrolling toggles and earlier choices stay");
 
 	list->setFocus(Qt::MouseFocusReason);
 	QApplication::processEvents();
@@ -201,12 +204,16 @@ static bool exerciseTrainFilter() {
 	ok &= expect(shown == 40 && onlyMatchesShown && changes == 4 && filter.visibleTrainIds().size() == 118,
 		"search narrows the rows without changing which trains are visible");
 	none->click();
-	ok &= expect(changes == 5 && filter.visibleTrainIds().size() == 79 && filter.text() == "Trains (79/120)" &&
-		filter.isTrainVisible(ids.at(1)) && !filter.isTrainVisible(ids.at(3)) && !filter.isTrainVisible(ids.at(119)),
+	ok &= expect(
+		changes == 5 && filter.visibleTrainIds().size() == 79 && filter.text() == "Trains (79/120)"
+			&& filter.isTrainVisible(ids.at(1)) && !filter.isTrainVisible(ids.at(3))
+			&& !filter.isTrainVisible(ids.at(119)),
 		"None unchecks the rows that the search shows and reports one change");
 	all->click();
-	ok &= expect(changes == 6 && filter.visibleTrainIds().size() == 119 && filter.isTrainVisible(ids.at(0)) &&
-		!filter.isTrainVisible(ids.at(119)), "All checks the rows that the search shows and leaves the others");
+	ok &= expect(
+		changes == 6 && filter.visibleTrainIds().size() == 119 && filter.isTrainVisible(ids.at(0))
+			&& !filter.isTrainVisible(ids.at(119)),
+		"All checks the rows that the search shows and leaves the others");
 	search->clear();
 	bool noneHidden = true;
 	for (int row = 0; row < list->count(); ++row)
@@ -220,12 +227,16 @@ static bool exerciseTrainFilter() {
 	QApplication::processEvents();
 	QStringList expected = ids;
 	expected.removeAt(119);
-	ok &= expect(menu->isVisible() && filter.visibleTrainIds() == expected && list->item(119)->checkState() == Qt::Unchecked &&
-		filter.text() == "Trains (119/120)" && changes == 6, "reopening keeps the selection and the reported train ids");
+	ok &= expect(
+		menu->isVisible() && filter.visibleTrainIds() == expected && list->item(119)->checkState() == Qt::Unchecked
+			&& filter.text() == "Trains (119/120)" && changes == 6,
+		"reopening keeps the selection and the reported train ids");
 
 	filter.setTrains({{"A", QColor()}, {"B", QColor()}});
-	ok &= expect(filter.text() == "Trains (2/2)" && filter.visibleTrainIds() == QStringList({"A", "B"}) &&
-		filter.isTrainVisible("B") && changes == 6, "a new train list starts with every train visible");
+	ok &= expect(
+		filter.text() == "Trains (2/2)" && filter.visibleTrainIds() == QStringList({"A", "B"})
+			&& filter.isTrainVisible("B") && changes == 6,
+		"a new train list starts with every train visible");
 	menu->hide();
 	return ok;
 }
@@ -277,8 +288,9 @@ static bool exerciseTrainFilterKeysInWindow() {
 	ok &= expect(x->max() - x->min() == zoomedSpan, "typing in the open filter list does not zoom the chart");
 	pressKey(list, Qt::Key_Home);
 	pressKey(list, Qt::Key_Space, " ");
-	ok &= expect(list->item(0)->checkState() == Qt::Unchecked && filter->text() == "Trains (2/3)" &&
-		!first->isVisible() && filter->visibleTrainIds() == QStringList({"B", "C"}),
+	ok &= expect(
+		list->item(0)->checkState() == Qt::Unchecked && filter->text() == "Trains (2/3)" && !first->isVisible()
+			&& filter->visibleTrainIds() == QStringList({"B", "C"}),
 		"Space in the open filter hides the first train of the diagram");
 	menu->hide();
 	QApplication::processEvents();
@@ -337,11 +349,15 @@ int main(int argc, char* argv[]) {
 	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
 	moveTo(view, QPointF(21, 31), series);
 	ok &= expect(tooltip->isVisible(), "near line shows tooltip through real mouse event");
-	ok &= expect(tooltip->text().contains("Train A") && tooltip->text().contains("20.00") &&
-		tooltip->text().contains("30.00") && !tooltip->text().contains("21.00"), "nearest plotted sample, not cursor values");
-	ok &= expect(tooltip->text().contains("Delft") && tooltip->text().contains("Call: 1") &&
-		!tooltip->text().contains("Leiden") && tooltip->text().contains("Speed (m/s)") &&
-		tooltip->text().contains("Tractive effort (N)"), "identity, context and units");
+	ok &= expect(
+		tooltip->text().contains("Train A") && tooltip->text().contains("20.00") && tooltip->text().contains("30.00")
+			&& !tooltip->text().contains("21.00"),
+		"nearest plotted sample, not cursor values");
+	ok &= expect(
+		tooltip->text().contains("Delft") && tooltip->text().contains("Call: 1")
+			&& !tooltip->text().contains("Leiden") && tooltip->text().contains("Speed (m/s)")
+			&& tooltip->text().contains("Tractive effort (N)"),
+		"identity, context and units");
 	ok &= expect(window.rect().contains(tooltip->geometry()), "tooltip contained in window");
 	moveTo(view, QPointF(40, 50), series);
 	ok &= expect(tooltip->text().contains("Leiden") && !tooltip->text().contains("Delft"),
@@ -475,14 +491,15 @@ int main(int argc, char* argv[]) {
 	window.setTimeAxisX(false);
 	app.processEvents();
 	moveTo(view, QPointF(20, 30), series);
-	ok &= expect(tooltip->text().contains("Speed (m/s): 20.00") &&
-		qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first())->labelFormat() == originalXFormat,
+	ok &= expect(
+		tooltip->text().contains("Speed (m/s): 20.00")
+			&& qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first())->labelFormat() == originalXFormat,
 		"disabling time restores numeric title and format");
 	auto* restoredX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-	ok &= expect(restoredX == x && restoredX->tickType() == QValueAxis::TicksDynamic &&
-		restoredX->tickInterval() == 7 && restoredX->tickAnchor() == 2 &&
-		restoredX->tickCount() == 9 && restoredX->minorTickCount() == 2 &&
-		!restoredX->isGridLineVisible() && !restoredX->isMinorGridLineVisible(),
+	ok &= expect(
+		restoredX == x && restoredX->tickType() == QValueAxis::TicksDynamic && restoredX->tickInterval() == 7
+			&& restoredX->tickAnchor() == 2 && restoredX->tickCount() == 9 && restoredX->minorTickCount() == 2
+			&& !restoredX->isGridLineVisible() && !restoredX->isMinorGridLineVisible(),
 		"time roundtrip retains original numeric axis and nondefault tick/grid settings");
 	window.close();
 	ok &= expect(!tooltip->isVisible(), "close clears tooltip");
@@ -514,8 +531,9 @@ int main(int argc, char* argv[]) {
 	rectangle->attachAxis(emptyX); rectangle->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	auto* emptyTooltip = empty.findChild<QLabel*>("diagramTooltip");
-	ok &= expect(emptyTooltip->isVisible() && emptyTooltip->text().contains("B12") &&
-		!emptyTooltip->text().contains("150.00"), "block interior reports plotted corner and context");
+	ok &= expect(
+		emptyTooltip->isVisible() && emptyTooltip->text().contains("B12") && !emptyTooltip->text().contains("150.00"),
+		"block interior reports plotted corner and context");
 	auto* events = new QScatterSeries;
 	events->setName("Arrival");
 	events->append(100, 300); events->append(140, 400);
@@ -525,8 +543,10 @@ int main(int argc, char* argv[]) {
 	moveTo(emptyView, QPointF(120, 350), events);
 	ok &= expect(!emptyTooltip->isVisible(), "scatter does not invent connecting line samples");
 	moveTo(emptyView, QPointF(100, 300), events);
-	ok &= expect(emptyTooltip->isVisible() && emptyTooltip->text().contains("Delft") &&
-		!emptyTooltip->text().contains("Leiden"), "scatter event inspection uses matching context");
+	ok &= expect(
+		emptyTooltip->isVisible() && emptyTooltip->text().contains("Delft")
+			&& !emptyTooltip->text().contains("Leiden"),
+		"scatter event inspection uses matching context");
 	rectangle->setProperty("inspectionFilled", false);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	ok &= expect(!emptyTooltip->isVisible(), "closed outline without fill does not claim interior");
@@ -689,32 +709,36 @@ int main(int argc, char* argv[]) {
 		scientificWarning);
 	input.setChart(inputChart);
 	input.show(); app.processEvents();
-	ok &= expect(!input.findChild<QWidget*>("diagramDetailsPanel") &&
-		!input.findChild<QWidget*>("diagramDetailsButton") &&
-		!input.findChild<QWidget*>("diagramDetailsText"), "technical-detail widgets are absent");
+	ok &= expect(
+		!input.findChild<QWidget*>("diagramDetailsPanel") && !input.findChild<QWidget*>("diagramDetailsButton")
+			&& !input.findChild<QWidget*>("diagramDetailsText"),
+		"technical-detail widgets are absent");
 	for (const auto* button : input.findChildren<QPushButton*>())
 		ok &= expect(button->text() != "Technical details", "no technical-details action");
 	const QRect screenArea = input.screen()->availableGeometry();
 	ok &= expect(input.width() <= screenArea.width() * 9 / 10 &&
 		input.height() <= screenArea.height() * 4 / 5,
 		"scaled diagram fits available screen with application QSS");
-	ok &= expect(input.windowTitle() == "Input traction characteristic" &&
-		input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B") &&
-		inputChart->title().contains(scientificWarning) &&
-		input.findChild<QLabel*>("diagramContext")->isVisible() &&
-		input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,
+	ok &= expect(
+		input.windowTitle() == "Input traction characteristic"
+			&& input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B")
+			&& inputChart->title().contains(scientificWarning)
+			&& input.findChild<QLabel*>("diagramContext")->isVisible()
+			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,
 		"explicit presentation before setChart preserves identity and scientific warning with | in ID");
-	ok &= expect(!input.findChild<TrainFilterButton*>()->isVisible() &&
-		input.findChild<QLabel*>("diagramContext")->text().contains(authoredId) &&
-		!input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:") &&
-		input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Input tractive effort"),
+	ok &= expect(
+		!input.findChild<TrainFilterButton*>()->isVisible()
+			&& input.findChild<QLabel*>("diagramContext")->text().contains(authoredId)
+			&& !input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:")
+			&& input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Input tractive effort"),
 		"input traction uses rolling-stock subject and no visible train filter");
 	input.setPresentation("Updated heading", "Case C / Scenario D", scientificWarning);
 	app.processEvents();
-	ok &= expect(input.windowTitle() == "Updated heading" &&
-		input.findChild<QLabel*>("diagramContext")->text() == "Case C / Scenario D" &&
-		input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning &&
-		inputChart->title().contains(scientificWarning),
+	ok &= expect(
+		input.windowTitle() == "Updated heading"
+			&& input.findChild<QLabel*>("diagramContext")->text() == "Case C / Scenario D"
+			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning
+			&& inputChart->title().contains(scientificWarning),
 		"explicit presentation after setChart preserves distinct chart qualification");
 	// Long provenance must never consume the space needed by scientific caveats.
 	input.setMaximumWidth(qMin(640, input.maximumWidth()));
@@ -732,14 +756,12 @@ int main(int argc, char* argv[]) {
 		const QRect content = label->contentsRect();
 		const QRect textBounds = label->fontMetrics().boundingRect(
 			QRect(0, 0, content.width(), 10000), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, warning);
-		ok &= expect(label->text() == warning && label->isVisible() &&
-			label->height() >= label->heightForWidth(label->width()) &&
-			content.height() >= textBounds.height() &&
-			input.rect().contains(label->geometry()) &&
-			label->geometry().bottom() < context->geometry().top() &&
-			context->height() <= context->fontMetrics().height() * 3 &&
-			(context->alignment() & Qt::AlignTop) && input.width() <= 640 &&
-			input.height() <= input.maximumHeight(),
+		ok &= expect(
+			label->text() == warning && label->isVisible() && label->height() >= label->heightForWidth(label->width())
+				&& content.height() >= textBounds.height() && input.rect().contains(label->geometry())
+				&& label->geometry().bottom() < context->geometry().top()
+				&& context->height() <= context->fontMetrics().height() * 3 && (context->alignment() & Qt::AlignTop)
+				&& input.width() <= 640 && input.height() <= input.maximumHeight(),
 			"complete warning fits above capped long provenance at enlarged font in bounded narrow window");
 	}
 	input.setPresentation("No warning", longContext);

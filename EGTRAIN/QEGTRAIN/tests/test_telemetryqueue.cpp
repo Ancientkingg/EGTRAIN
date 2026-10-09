@@ -310,14 +310,16 @@ int main(int argc, char** argv) {
     QFile usageFile(bounded.path() + QStringLiteral("/usage.json"));
     assert(usageFile.size() <= 192 * 1024 && usageFile.open(QIODevice::ReadOnly));
     const auto stored = QJsonDocument::fromJson(usageFile.readAll()).object().value(QStringLiteral("events")).toArray();
-    assert(stored.size() == 512 && stored.first().toObject().value(QStringLiteral("event")).toObject()
-        .value(QStringLiteral("occurred_at")).toString() == QStringLiteral("2026-04-01T12:00:00.008Z"));
+    assert(stored.size() == 512
+        && stored.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("occurred_at")).toString()
+            == QStringLiteral("2026-04-01T12:00:00.008Z"));
     usageFile.close();
     assert(queue.enqueueUsage({createEvent({}, now.addMSecs(10)), id}, now.addSecs(1)));
     assert(usageFile.open(QIODevice::ReadOnly));
     const auto afterOldest = QJsonDocument::fromJson(usageFile.readAll()).object().value(QStringLiteral("events")).toArray();
-    assert(afterOldest.size() == 512 && afterOldest.first().toObject().value(QStringLiteral("event")).toObject()
-        .value(QStringLiteral("occurred_at")).toString() == QStringLiteral("2026-04-01T12:00:00.009Z"));
+    assert(afterOldest.size() == 512
+        && afterOldest.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("occurred_at")).toString()
+            == QStringLiteral("2026-04-01T12:00:00.009Z"));
     usageFile.close();
     for (int i = 0; i < 520; ++i)
         assert(queue.enqueueDiagnostic({createEvent(diagnosticsInput, now.addMSecs(i)), 2}, now.addSecs(1)));
@@ -326,8 +328,9 @@ int main(int argc, char** argv) {
     const auto retainedDiagnostics = QJsonDocument::fromJson(diagnosticsFile.readAll()).object()
         .value(QStringLiteral("events")).toArray();
     assert(retainedDiagnostics.size() == 512);
-    assert(retainedDiagnostics.first().toObject().value(QStringLiteral("event")).toObject()
-        .value(QStringLiteral("occurred_at")).toString() == QStringLiteral("2026-04-01T12:00:00.008Z"));
+    assert(
+        retainedDiagnostics.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("occurred_at")).toString()
+        == QStringLiteral("2026-04-01T12:00:00.008Z"));
     diagnosticsFile.close();
     qint64 totalBytes = 0;
     for (const auto& file : QDir(bounded.path()).entryInfoList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot))

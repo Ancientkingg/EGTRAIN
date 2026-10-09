@@ -84,8 +84,8 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 				for (size_t secondBlock = 0; secondBlock < trains[secondTrain].size(); secondBlock++) {
 					if (!validBlockingTimeDiagramInput(trains[secondTrain][secondBlock]))
 						continue;
-					if (shareBlockingTimeResource(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock]) &&
-						overlaps(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock])) {
+					if (shareBlockingTimeResource(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock])
+						&& overlaps(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock])) {
 						critical[firstTrain][firstBlock] = true;
 						critical[secondTrain][secondBlock] = true;
 					}
@@ -152,13 +152,14 @@ std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
 		return filtered;
 
 	for (const BlockingTimeDiagramSegment& source : segments) {
-		if ((!allowedTrainIds.empty() &&
-			 std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end()) ||
-			(!allowedBlockIds.empty() && std::none_of(allowedBlockIds.begin(), allowedBlockIds.end(),
-				[&source](const std::string& allowedBlockId) {
-					return shareBlockingTimeResource(source.blockId, allowedBlockId);
-				})) ||
-			source.endTime <= startTime || source.startTime >= endTime)
+		if ((!allowedTrainIds.empty()
+			 && std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end())
+			|| (!allowedBlockIds.empty()
+				&& std::none_of(allowedBlockIds.begin(), allowedBlockIds.end(),
+					[&source](const std::string& allowedBlockId) {
+						return shareBlockingTimeResource(source.blockId, allowedBlockId);
+					}))
+			|| source.endTime <= startTime || source.startTime >= endTime)
 			continue;
 
 		BlockingTimeDiagramSegment segment = source;
@@ -233,10 +234,10 @@ std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(
 		if (!std::isfinite(reference.time))
 			continue;
 		const bool pointVisible = reference.time >= startTime && reference.time <= endTime;
-		const bool previousVisible = i > 0 && references[i - 1].trainName == reference.trainName &&
-			segmentIntersects(references[i - 1].time, reference.time);
-		const bool nextVisible = i + 1 < references.size() && references[i + 1].trainName == reference.trainName &&
-			segmentIntersects(reference.time, references[i + 1].time);
+		const bool previousVisible = i > 0 && references[i - 1].trainName == reference.trainName
+			&& segmentIntersects(references[i - 1].time, reference.time);
+		const bool nextVisible = i + 1 < references.size() && references[i + 1].trainName == reference.trainName
+			&& segmentIntersects(reference.time, references[i + 1].time);
 		if (pointVisible || previousVisible || nextVisible)
 			filtered.push_back(reference);
 	}

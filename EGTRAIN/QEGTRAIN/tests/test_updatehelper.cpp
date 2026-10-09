@@ -235,9 +235,11 @@ int main(int argc, char** argv) {
 
 	const QString missingStage = QDir(temp.path()).filePath("missing.bin");
 	const QString rollbackBackup = QDir(temp.path()).filePath("rollback.bin");
-	ok &= expect(QProcess::execute(helper, {
-		"--parent-pid", "0", "--current", current, "--staged", missingStage,
-		"--backup", rollbackBackup, "--launch", QCoreApplication::applicationFilePath()}) != 0,
+	ok &= expect(
+		QProcess::execute(helper,
+			{"--parent-pid", "0", "--current", current, "--staged", missingStage,
+				"--backup", rollbackBackup, "--launch", QCoreApplication::applicationFilePath()})
+			!= 0,
 		"helper rejects a missing staged file");
 	ok &= expect(readFile(current) == QByteArray("new"),
 		"failed helper leaves the active file untouched");
@@ -245,9 +247,11 @@ int main(int argc, char** argv) {
 	const QString launchFailureBackup = QDir(temp.path()).filePath("launch-failure.bin");
 	ok &= expect(writeFile(current, "old-again") && writeFile(rollbackStage, "new-again"),
 		"rollback fixture is writable");
-	ok &= expect(QProcess::execute(helper, {
-		"--parent-pid", "0", "--current", current, "--staged", rollbackStage,
-		"--backup", launchFailureBackup, "--launch", QDir(temp.path()).filePath("missing-launch")}) != 0,
+	ok &= expect(
+		QProcess::execute(helper,
+			{"--parent-pid", "0", "--current", current, "--staged", rollbackStage,
+				"--backup", launchFailureBackup, "--launch", QDir(temp.path()).filePath("missing-launch")})
+			!= 0,
 		"helper rolls back when relaunch fails");
 	ok &= expect(readFile(current) == QByteArray("old-again"),
 		"launch failure restores the previous file");

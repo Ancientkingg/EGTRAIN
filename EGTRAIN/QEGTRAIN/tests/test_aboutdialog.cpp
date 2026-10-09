@@ -55,34 +55,39 @@ int main(int argc, char** argv)
         QString text;
         for (const auto* label : labels)
             text += label->text() + QLatin1Char('\n');
-        ok &= check(text.contains(QStringLiteral("9.8.7-test")) &&
-                        text.contains(QStringLiteral("Prof. Egidio Quaglietta")) &&
-                        text.contains(QStringLiteral("Original EGTRAIN model and research.")) &&
-                        text.contains(QStringLiteral("Samuel Bruin")) &&
-                        text.contains(QStringLiteral("Continued desktop application development and maintenance.")) &&
-                        text.contains(QStringLiteral("Microscopic railway simulation for students and researchers.")),
-                    "About content or application version missing");
+        ok &= check(
+            text.contains(QStringLiteral("9.8.7-test"))
+                && text.contains(QStringLiteral("Prof. Egidio Quaglietta"))
+                && text.contains(QStringLiteral("Original EGTRAIN model and research."))
+                && text.contains(QStringLiteral("Samuel Bruin"))
+                && text.contains(QStringLiteral("Continued desktop application development and maintenance."))
+                && text.contains(QStringLiteral("Microscopic railway simulation for students and researchers.")),
+            "About content or application version missing");
         auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
         ok &= check(context && (context->textInteractionFlags() & Qt::TextSelectableByKeyboard),
                     "version and description must be selectable");
         auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
         auto* footer = dialog.findChild<QDialogButtonBox*>();
-        ok &= check(dialog.width() <= 1152 && dialog.height() <= 640 && scroll && footer &&
-                        footer->isVisible() && footer->geometry().top() >= scroll->geometry().bottom(),
-                    "bounded dialog must retain its Close footer");
+        ok &= check(
+            dialog.width() <= 1152 && dialog.height() <= 640 && scroll && footer && footer->isVisible()
+                && footer->geometry().top() >= scroll->geometry().bottom(),
+            "bounded dialog must retain its Close footer");
         for (int i = 0; i < 6; ++i) {
             auto* link = dialog.findChild<QPushButton*>(QString::fromLatin1(names[i]));
-            if (!check(link && link->toolTip() == QString::fromLatin1(addresses[i]) &&
-                           link->accessibleDescription() == link->toolTip(), "wrong link address")) {
+            if (!check(
+                    link && link->toolTip() == QString::fromLatin1(addresses[i])
+                        && link->accessibleDescription() == link->toolTip(),
+                    "wrong link address")) {
                 ok = false;
                 continue;
             }
             link->setFocus();
             QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
             app.sendEvent(link, &enter);
-            ok &= check(receiver.opened.size() == i + 1 &&
-                            receiver.opened.last() == QUrl(QString::fromLatin1(addresses[i])) &&
-                            dialog.isVisible(), "keyboard activation must open only selected link");
+            ok &= check(
+                receiver.opened.size() == i + 1 && receiver.opened.last() == QUrl(QString::fromLatin1(addresses[i]))
+                    && dialog.isVisible(),
+                "keyboard activation must open only selected link");
         }
         receiver.opened.clear();
         QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);

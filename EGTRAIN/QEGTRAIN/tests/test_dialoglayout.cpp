@@ -135,11 +135,10 @@ bool exercise(const QRect& screen, qreal scale)
                 "footer must remain reachable outside the scrolling body");
     auto* heading = dialog.findChild<QLabel*>(QStringLiteral("dialogHeading"));
     auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-    ok &= check(heading && heading->font().pointSizeF() > font.pointSizeF() &&
-                    heading->textFormat() == Qt::PlainText && context &&
-                    context->textFormat() == Qt::PlainText &&
-                    context->parentWidget() == scroll->widget(),
-                "heading scales, authored labels remain plain and context scrolls");
+    ok &= check(
+        heading && heading->font().pointSizeF() > font.pointSizeF() && heading->textFormat() == Qt::PlainText && context
+            && context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
+        "heading scales, authored labels remain plain and context scrolls");
     buttons->button(QDialogButtonBox::Ok)->setFocus();
     scroll->verticalScrollBar()->setValue(0);
     QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);

@@ -226,9 +226,9 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					for (std::size_t index = 0; index < line.points.size(); ++index)
 						line.points[index].x = displayXs[index];
 					line.authoredStationProjection = true;
-					line.displayOffset *= 8.0 * std::fabs((uniqueXAnchors.back().second
-							- uniqueXAnchors.front().second) / (uniqueXAnchors.back().first
-							- uniqueXAnchors.front().first));
+					line.displayOffset *= 8.0
+						* std::fabs((uniqueXAnchors.back().second - uniqueXAnchors.front().second)
+							/ (uniqueXAnchors.back().first - uniqueXAnchors.front().first));
 				}
 				continue;
 			}

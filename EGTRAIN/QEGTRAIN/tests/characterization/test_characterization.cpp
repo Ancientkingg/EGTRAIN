@@ -295,8 +295,9 @@ public:
 						continue;
 					}
 					if (entry.level != level)
-						fail(snapshot.timestep, "route copies of " + describe({id, route.reversed_direction})
-							+ " have levels " + std::to_string(entry.level) + " and " + std::to_string(level));
+						fail(snapshot.timestep,
+							"route copies of " + describe({id, route.reversed_direction}) + " have levels "
+								+ std::to_string(entry.level) + " and " + std::to_string(level));
 					if (guiSignalRestriction(code) < guiSignalRestriction(entry.code))
 						entry.code = code;
 				}
@@ -322,9 +323,10 @@ public:
 				continue;
 			}
 			if (state.code != found->second.code || state.level != found->second.level)
-				fail(snapshot.timestep, describe(key) + " has code " + std::to_string(state.code) + " level "
-					+ std::to_string(state.level) + ", the route copies give code "
-					+ std::to_string(found->second.code) + " level " + std::to_string(found->second.level));
+				fail(snapshot.timestep,
+					describe(key) + " has code " + std::to_string(state.code) + " level " + std::to_string(state.level)
+						+ ", the route copies give code " + std::to_string(found->second.code) + " level "
+						+ std::to_string(found->second.level));
 			if (state.failed != (failedIds.count(state.sectionId) > 0))
 				fail(snapshot.timestep, describe(key) + " has failed=" + (state.failed ? "1" : "0"));
 		}
@@ -839,8 +841,9 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		for (int t : sampleSteps)
 			add(prefix + " sample", {integerField("t", t), realField("x", x[t]), realField("v", v[t])});
 		for (const Stop& stop : findStops(track)) {
-			add(prefix + " stop", {integerField("t_first", stop.first), integerField("t_last", stop.last),
-				realField("x", stop.position), integerField("dwell", stop.last - stop.first)});
+			add(prefix + " stop",
+				{integerField("t_first", stop.first), integerField("t_last", stop.last), realField("x", stop.position),
+					integerField("dwell", stop.last - stop.first)});
 			int t = stop.first;
 			while (t > track.first && v[t - 1] > v[t] + 1e-9)
 				--t;
@@ -890,14 +893,16 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		add("run_result " + result.trainId,
 			{resultField("start", result.startSeconds), resultField("end", result.endSeconds),
 				resultField("travel", result.travelSeconds)});
-	add("network", {resultField("start", results.networkStartSeconds), resultField("end", results.networkEndSeconds),
-		resultField("travel", results.networkTravelSeconds)});
+	add("network",
+		{resultField("start", results.networkStartSeconds), resultField("end", results.networkEndSeconds),
+			resultField("travel", results.networkTravelSeconds)});
 
 	for (const Train* train : trains) {
 		const std::string prefix = "train " + train->trainDescription;
-		add(prefix + " direct_incident", {integerField("count", static_cast<long long>(train->directIncidentIds.size())),
-			textField("ids", joinSet(train->directIncidentIds)), realField("first_time", train->firstDirectIncidentTime),
-			realField("first_location", train->firstDirectIncidentLocation)});
+		add(prefix + " direct_incident",
+			{integerField("count", static_cast<long long>(train->directIncidentIds.size())),
+				textField("ids", joinSet(train->directIncidentIds)), realField("first_time", train->firstDirectIncidentTime),
+				realField("first_location", train->firstDirectIncidentLocation)});
 		const int blockTimes = std::min(train->N_BlockSections, 1000);
 		add("blocktime " + train->trainDescription, {integerField("n", blockTimes),
 			integerField("complete", train->N_BlockTimeComplete)});
@@ -921,9 +926,9 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 			{integerField("t", boundary.step), integerField("authorities", static_cast<long long>(boundary.authorities.size())),
 				textField("blocked", joinSet(boundary.blocked))});
 		for (const StepRecorder::Authority& authority : boundary.authorities)
-			add("authority", {integerField("t", boundary.step), textField("part", authority.part),
-				textField("section", authority.section), realField("pos", authority.position),
-				integerField("reversed", authority.reversed ? 1 : 0)});
+			add("authority",
+				{integerField("t", boundary.step), textField("part", authority.part), textField("section", authority.section),
+					realField("pos", authority.position), integerField("reversed", authority.reversed ? 1 : 0)});
 	}
 
 	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Stats_Stations.txt", obs)) {

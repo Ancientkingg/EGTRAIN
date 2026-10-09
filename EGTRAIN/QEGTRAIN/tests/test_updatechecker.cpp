@@ -146,8 +146,11 @@ int main(int argc, char** argv) {
 	};
 	const auto parsedList = parseWindows(QByteArray(
 		",\"files\":[\"QEGTRAIN.exe\",\"platforms/qwindows.dll\",\"Scenes/Paimpol/scene.json\"]"));
-	ok &= expect(parsedList && parsedList->files == QStringList({QStringLiteral("QEGTRAIN.exe"),
-		QStringLiteral("platforms/qwindows.dll"), QStringLiteral("Scenes/Paimpol/scene.json")}),
+	ok &= expect(
+		parsedList
+			&& parsedList->files
+				== QStringList({QStringLiteral("QEGTRAIN.exe"), QStringLiteral("platforms/qwindows.dll"),
+					QStringLiteral("Scenes/Paimpol/scene.json")}),
 		"manifest file list is retained");
 	const auto parsedBackslash = parseWindows(QByteArray(
 		",\"files\":[\"QEGTRAIN.exe\",\"platforms\\\\qwindows.dll\"]"));

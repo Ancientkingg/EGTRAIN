@@ -22,18 +22,18 @@ bool energySeriesCovers(const std::vector<double>& values, int first, int last) 
 }
 
 bool canComputeTrainEnergy(Train& train) {
-	if (train.earliestActiveTrajectoryIndex < 0 || train.End_Time < train.earliestActiveTrajectoryIndex ||
-		train.End_Time >= static_cast<int>(train.instant_spatial_position.size()) ||
-		!std::isfinite(train.departure_time))
+	if (train.earliestActiveTrajectoryIndex < 0 || train.End_Time < train.earliestActiveTrajectoryIndex
+		|| train.End_Time >= static_cast<int>(train.instant_spatial_position.size())
+		|| !std::isfinite(train.departure_time))
 		return false;
 	// Completed runs can leave a non-finite terminal power sample; the shared
 	// energy calculation treats that boundary sample as zero.
 	train.sanitizeTerminalPowerSample();
 	const int energyStart = static_cast<int>(train.departure_time);
-	return energyStart >= 0 && energyStart <= train.End_Time &&
-		energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time) &&
-		energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time) &&
-		!validTrajectorySegments(train.instant_spatial_position,
+	return energyStart >= 0 && energyStart <= train.End_Time
+		&& energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time)
+		&& energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time)
+		&& !validTrajectorySegments(train.instant_spatial_position,
 									 train.earliestActiveTrajectoryIndex, train.End_Time)
 			.empty();
 }

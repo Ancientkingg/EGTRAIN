@@ -572,8 +572,8 @@ public:
 	// treat that boundary sample and its aligned effort as zero, matching
 	// train_energy_consumption().
 	void sanitizeTerminalPowerSample() {
-		if (End_Time >= 0 && End_Time < static_cast<int>(instant_train_power_consumption.size()) &&
-			!std::isfinite(instant_train_power_consumption[static_cast<std::size_t>(End_Time)])) {
+		if (End_Time >= 0 && End_Time < static_cast<int>(instant_train_power_consumption.size())
+			&& !std::isfinite(instant_train_power_consumption[static_cast<std::size_t>(End_Time)])) {
 			instant_train_power_consumption[static_cast<std::size_t>(End_Time)] = 0.0;
 			if (End_Time < static_cast<int>(instant_train_tractive_effort.size()))
 				instant_train_tractive_effort[static_cast<std::size_t>(End_Time)] = 0.0;
@@ -1595,8 +1595,8 @@ public:
 		const double cap = incident ? incident->reducedSpeedKmh / 3.6 : 0.0;
 		if (incident && incident->hasReducedSpeed && cap > 0.0 && std::isfinite(cap)
 				&& cap < candidate) {
-			recordDirectIncident(*incident, timestepIndex * timestep, instant_spatial_position.empty()
-					? 0.0 : instant_spatial_position[std::max(0, timestepIndex - 1)]);
+			recordDirectIncident(*incident, timestepIndex * timestep,
+					instant_spatial_position.empty() ? 0.0 : instant_spatial_position[std::max(0, timestepIndex - 1)]);
 			return cap;
 		}
 		return candidate;
@@ -1642,8 +1642,8 @@ public:
 
 				// Determination of the right Block Section
 				for (int h = 0; h < train_route[indexOfRoute].N_Block_Sections; h++) {
-					if ((instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000) &&
-						(instant_spatial_position[time_seconds - 1] >= train_route[indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
+					if ((instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000)
+						&& (instant_spatial_position[time_seconds - 1] >= train_route[indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
 						Bs = train_route[indexOfRoute].sequence_of_block_sections[h];
 						instant_block_section_occupied[time_seconds] = Bs.ID;
 
@@ -1661,8 +1661,8 @@ public:
 
 				// Determination of the right running Arc
 				for (int j = 0; j < Bs.total_arcs; j++) {
-					if ((instant_spatial_position[time_seconds - 1] < Bs.arcs_in_signalling_block_section[j].endNode.X * 1000) &&
-						(instant_spatial_position[time_seconds - 1] >= Bs.arcs_in_signalling_block_section[j].startNode.X * 1000))
+					if ((instant_spatial_position[time_seconds - 1] < Bs.arcs_in_signalling_block_section[j].endNode.X * 1000)
+						&& (instant_spatial_position[time_seconds - 1] >= Bs.arcs_in_signalling_block_section[j].startNode.X * 1000))
 						As = Bs.arcs_in_signalling_block_section[j];
 					// logger.Log("\nkkkk");
 					////	logger.Log(to_string(instant_spatial_position[time_seconds - 1]));
@@ -1694,10 +1694,10 @@ public:
 
 				// Determination of the Movement Authority that has been previouly respected by the train (especially if it stopped at a given EoA)
 				// determining Last_MA_StoppedAt for the train
-				if ((instant_train_speed[time_seconds - 1] == 0) &&
-					(this->BrakingForEoA == 1) &&
-					(IsTrainStoppedForEoA == 0) &&
-					(this->Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] < 4)) {
+				if ((instant_train_speed[time_seconds - 1] == 0)
+					&& (this->BrakingForEoA == 1)
+					&& (IsTrainStoppedForEoA == 0)
+					&& (this->Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] < 4)) {
 
 					Last_MA_StoppedAt = Last_Received_MA;
 					IsTrainStoppedForEoA = true;
@@ -1717,8 +1717,9 @@ public:
 					train_route[indexOfRoute].N_Block_Sections);
 
 				// Acceleration phase
-				if ((isShortOfBrakingPoint(instant_spatial_position[time_seconds - 1], Braking_Distance) &&
-					 (instant_train_speed[time_seconds - 1] < V_lim)) /*||((instant_spatial_position[i-1]>Braking_Distance)&&(instant_train_speed[i-1]<Vobmin))*/) {
+				if ((isShortOfBrakingPoint(instant_spatial_position[time_seconds - 1], Braking_Distance)
+					 && (instant_train_speed[time_seconds - 1] < V_lim))
+					/*||((instant_spatial_position[i-1]>Braking_Distance)&&(instant_train_speed[i-1]<Vobmin))*/) {
 
 					// The one below in between comments is the previous/original version of the code which did not consider the train crusing when instead the Traction Surplus with respect to the resistance is equal to 0
 					/*
@@ -1759,8 +1760,9 @@ public:
 					if (Traction_Surplus == 0) {
 						instant_spatial_position[time_seconds] = Scruis;
 					} else {
-						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + ((total_train_mass * massFactor) / (Traction_Surplus)) * instant_train_speed[time_seconds - 1] *
-																												  (instant_train_speed[time_seconds] - instant_train_speed[time_seconds - 1]);
+						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1]
+							+ ((total_train_mass * massFactor) / (Traction_Surplus)) * instant_train_speed[time_seconds - 1]
+								* (instant_train_speed[time_seconds] - instant_train_speed[time_seconds - 1]);
 
 						if (instant_spatial_position[time_seconds] < Scruis) {
 							instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep + 0.5 * ((instant_train_speed[time_seconds] - instant_train_speed[time_seconds - 1]) / timestep) * pow(timestep, 2);
@@ -1788,9 +1790,9 @@ public:
 				temp=i; stop=i; BX[i]=Braking_Distance;Xob[i]=Xobmin; Vob[i]=Vobmin; counter=0;}*/
 
 				// Braking Phase
-				else if ((instant_spatial_position[time_seconds - 1] >= Braking_Distance) &&
-						 (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000) &&
-						 (instant_train_speed[time_seconds - 1] > 0)) {
+				else if ((instant_spatial_position[time_seconds - 1] >= Braking_Distance)
+						 && (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000)
+						 && (instant_train_speed[time_seconds - 1] > 0)) {
 
 					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
 
@@ -1804,10 +1806,10 @@ public:
 					instant_spatial_position[i]=Sbrak[brakingPoint+counter-1];}*/
 
 					instant_train_tractive_effort[time_seconds] =
-						-(brakingEffort((time_seconds - temp - 1) * timestep) +
-						  gradient_resistances(As.gradient) +
-						  curvature_resistances(As.curvature) -
-						  total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
+						-(brakingEffort((time_seconds - temp - 1) * timestep)
+						  + gradient_resistances(As.gradient)
+						  + curvature_resistances(As.curvature)
+						  - total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
 					instant_train_power_consumption[time_seconds] =
 						instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1]; /*Eq[i]=3;*/
 					train_energy_consumption(time_seconds);
@@ -1851,9 +1853,9 @@ public:
 				}
 
 				// Determination of Train Coupling phase for Virtual Coupling
-				if ((IsTrainCoupling == 1) && ((IsTrainInFollowingMode == 0) || (IsInUnintentionalDecoupling == 1)) &&
-					(abs(instant_train_speed[time_seconds] - this->Predicted_MA_To_CoupleAt.TrainInfo.TrainSpeed) < 0.278) &&
-					(abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= 30)) {
+				if ((IsTrainCoupling == 1) && ((IsTrainInFollowingMode == 0) || (IsInUnintentionalDecoupling == 1))
+					&& (abs(instant_train_speed[time_seconds] - this->Predicted_MA_To_CoupleAt.TrainInfo.TrainSpeed) < 0.278)
+					&& (abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= 30)) {
 					// When the condition above occurs then the train is transitioning towards the following mode
 					IsInUnintentionalDecoupling = false;
 					IsTrainCoupling = false;														   // So we set the ending of the Coupling transition period
@@ -1873,9 +1875,9 @@ public:
 				// Determination of Train Uncoupling from the leader when it is in following mode and the route diverges from the leader's
 				if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 1)) {
 					// When the train is decoupling it can be considered totally uncoupled and not anymore in following mode when the tale of the leading train has fully crossed the splitting infrastructure element and the corresponding MA is communicated with type="TrainUncoupled"
-					if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None") &&
-						(Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode) &&
-						(Predicted_MA_To_DecoupleAt.type == "TrainUncoupled")) {
+					if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
+						&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
+						&& (Predicted_MA_To_DecoupleAt.type == "TrainUncoupled")) {
 
 						cout << "At time instant " << time_seconds << " train " << trainDescription << " intentionally decoupled from train " << LeadingTrainInFollowingMode << " because of diverging routes\n";
 
@@ -1900,10 +1902,10 @@ public:
 				if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 0) && (IsInUnintentionalDecoupling == 0)) {
 					CounterFollowingMode++; // This sets the number of time steps that the train is in following mode
 					// if the train has outdistanced for more than 30 meters from the EoA of the train ahead, then interrupt the following mode and let the train to go free
-					if ((Last_Received_MA.TrainInfo.trainDescription == LeadingTrainInFollowingMode) &&
-						(Last_Received_MA.type == "TrainEnd") &&
-						(Last_Received_MA.typePart == "Tale") &&
-						(Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] > 30)) {
+					if ((Last_Received_MA.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
+						&& (Last_Received_MA.type == "TrainEnd")
+						&& (Last_Received_MA.typePart == "Tale")
+						&& (Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] > 30)) {
 						IsInUnintentionalDecoupling = true; // Originally I had IsTrainInFollowingMode = false;
 						CounterFollowingMode = 0;			// set also the CounterFollowingMode to 0 again
 
@@ -2477,9 +2479,9 @@ public:
 		if (OutOfSimulation == 0) {
 			if ((i >= departure_time) && (CanEnter == 1)) {
 				const int delayedIndex = i - static_cast<int>(S_delay / timestep);
-				if (delayedIndex < 0 ||
-					delayedIndex >= static_cast<int>(instant_spatial_position.size()) ||
-					delayedIndex >= static_cast<int>(instant_train_speed.size()))
+				if (delayedIndex < 0
+					|| delayedIndex >= static_cast<int>(instant_spatial_position.size())
+					|| delayedIndex >= static_cast<int>(instant_train_speed.size()))
 					return;
 
 				double LastTrainAcceleration = 0;

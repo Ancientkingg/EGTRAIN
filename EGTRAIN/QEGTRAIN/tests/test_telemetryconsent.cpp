@@ -174,7 +174,8 @@ int main(int argc, char** argv) {
     QSettings raceListenerSettings(raceFile, QSettings::IniFormat);
     TelemetryConsent raceListener(raceListenerSettings, context);
     bool oldReportsQueued = true;
-    QObject::connect(&raceListener, &TelemetryConsent::revoked, &raceListener,
+    QObject::connect(
+        &raceListener, &TelemetryConsent::revoked, &raceListener,
         [&](bool, bool diagnostics) { if (diagnostics) oldReportsQueued = false; }, Qt::DirectConnection);
     bool helperCompleted = false;
     raceWriter.setBeforeWriteForTesting([&] {
@@ -293,32 +294,37 @@ int main(int argc, char** argv) {
     ok &= check(workerObservation.observeUsage().status == TelemetryConsent::ObservationStatus::Enabled
         && oldReceiver.observeUsage().status == TelemetryConsent::ObservationStatus::Mismatch,
         "new receiver is eligible immediately while old receiver cannot rewrite migration");
-    observationSettings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
-        "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":\"0\",\"id\":\"\"}"));
+    observationSettings.setValue(QStringLiteral("telemetry/consentV1"),
+        QByteArray(
+            "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":\"0\",\"id\":\"\"}"));
     observationSettings.sync();
     ok &= check(observationWriter.observeDiagnostics().status == TelemetryConsent::ObservationStatus::Error,
         "malformed generation cannot be coerced to a reusable stamp");
-    settings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
-        "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"\"}"));
+    settings.setValue(QStringLiteral("telemetry/consentV1"),
+        QByteArray(
+            "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"\"}"));
     settings.sync();
     TelemetryConsent incomplete(settings, context);
     ok &= check(incomplete.promptRequired() && !incomplete.usageEnabled(),
         "interrupted ID write stays disabled and asks again");
-    settings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
-        "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":true,\"id\":\"/private/path\"}"));
+    settings.setValue(QStringLiteral("telemetry/consentV1"),
+        QByteArray(
+            "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":true,\"id\":\"/private/path\"}"));
     settings.sync();
     TelemetryConsent invalidId(settings, context);
     ok &= check(invalidId.promptRequired() && !invalidId.usageEnabled()
         && !invalidId.diagnosticsEnabled() && invalidId.usageInstallationId().isEmpty(),
         "corrupt usage ID invalidates the record and prompts again");
-    settings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
-        "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"12345678-1234-4234-8234-123456789abc\\n\"}"));
+    settings.setValue(QStringLiteral("telemetry/consentV1"),
+        QByteArray(
+            "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"12345678-1234-4234-8234-123456789abc\\n\"}"));
     settings.sync();
     TelemetryConsent newlineId(settings, context);
     ok &= check(newlineId.promptRequired() && newlineId.usageInstallationId().isEmpty(),
         "UUIDv4 plus trailing LF must not be exposed");
-    settings.setValue(QStringLiteral("telemetry/consentV1"), QByteArray(
-        "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":2147483646,\"id\":\"\"}"));
+    settings.setValue(QStringLiteral("telemetry/consentV1"),
+        QByteArray(
+            "{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":2147483646,\"id\":\"\"}"));
     settings.sync();
     TelemetryConsent overflow(settings, context);
     ok &= check(!overflow.save(false, false) && !overflow.diagnosticsEnabled(),

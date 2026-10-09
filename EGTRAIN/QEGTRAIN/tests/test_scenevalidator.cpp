@@ -853,12 +853,14 @@ int main(int argc, char** argv) {
 	}
 	const auto longDiagnostics = validateRunnableScene(longRoute);
 	const SceneDiagnostic* longWarning = findCode(longDiagnostics, levelMissing);
-	ok &= expect(std::count_if(longDiagnostics.begin(), longDiagnostics.end(), [&](const SceneDiagnostic& d) {
-		return d.code == levelMissing;
-	}) == 1 && longWarning != nullptr && contains(longWarning->message, "200 of 200 route sections")
-			&& contains(longWarning->message, "@b4@ and 195 more") && !contains(longWarning->message, "@b5@")
+	ok &= expect(
+		std::count_if(longDiagnostics.begin(), longDiagnostics.end(), [&](const SceneDiagnostic& d) { return d.code == levelMissing; }) == 1
+			&& longWarning != nullptr
+			&& contains(longWarning->message, "200 of 200 route sections")
+			&& contains(longWarning->message, "@b4@ and 195 more")
+			&& !contains(longWarning->message, "@b5@")
 			&& contains(longWarning->message, "(track track-1)"),
-			"a long route gets one warning that names at most five sections");
+		"a long route gets one warning that names at most five sections");
 
 	SceneModel longTrack = clean;
 	for (int index = 4; index <= 1601; ++index)
@@ -989,8 +991,9 @@ int main(int argc, char** argv) {
 		{"non-finite node coordinate", [](SceneModel& scene) {
 				scene.nodes[0].xKm = std::numeric_limits<double>::quiet_NaN();
 			}, "scene.node.coordinate.invalid", "nodes[0].x_km"},
-		{"negative arc curvature", [](SceneModel& scene) { scene.arcs[0].curvatureRadiusM = -1.0; },
-				"scene.arc.curvature.invalid", "arcs[0].curvature_radius_m"},
+		{"negative arc curvature", [](SceneModel& scene) {
+				scene.arcs[0].curvatureRadiusM = -1.0;
+			}, "scene.arc.curvature.invalid", "arcs[0].curvature_radius_m"},
 		{"non-positive arc speed", [](SceneModel& scene) { scene.arcs[0].speedLimitMs = 0.0; },
 				"scene.arc.speed.invalid", "arcs[0].speed_limit_ms"},
 		{"non-positive block length", [](SceneModel& scene) { scene.blocks[0].lengthKm = 0.0; },
@@ -1017,8 +1020,9 @@ int main(int argc, char** argv) {
 		{"empty arcs", [](SceneModel& scene) { scene.arcs.clear(); }, "scene.topology.arcs.none"},
 		{"empty blocks", [](SceneModel& scene) { scene.blocks.clear(); }, "scene.topology.blocks.none"},
 		{"empty routes", [](SceneModel& scene) { scene.routes.clear(); }, "scene.routes.none"},
-		{"unbound platform", [](SceneModel& scene) { scene.stations[0].platforms[0].nodeIds.clear(); },
-				"scene.platform.nodes.none", "stations[0].platforms[0].nodes"},
+		{"unbound platform", [](SceneModel& scene) {
+				scene.stations[0].platforms[0].nodeIds.clear();
+			}, "scene.platform.nodes.none", "stations[0].platforms[0].nodes"},
 		{"unanchored station", [](SceneModel& scene) { scene.stations[0].platforms.clear(); },
 				"scene.station.anchor.missing", "stations[0]"},
 		{"non-finite station position", [](SceneModel& scene) {

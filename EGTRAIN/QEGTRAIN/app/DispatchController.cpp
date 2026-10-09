@@ -152,10 +152,10 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		for (const auto& passenger : platform.Current_List_Pax_On_Platform)
 			state.passengerIds.push_back(passenger.first);
 		for (const Passenger& passenger : AllDailyPassengers) {
-			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0 &&
-				timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + 5 &&
-				platform.StationID == passenger.StationExitedTheNetworkID &&
-				platform.ID == passenger.PlatformExitedTheNetworkID)
+			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0
+				&& timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + 5
+				&& platform.StationID == passenger.StationExitedTheNetworkID
+				&& platform.ID == passenger.PlatformExitedTheNetworkID)
 				state.passengerIds.push_back(passenger.ID);
 		}
 		snapshot.platforms.push_back(std::move(state));

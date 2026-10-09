@@ -375,9 +375,9 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		row.destinationTerminationRequested = train.destinationTerminationRequested;
 		row.destinationTerminated = train.destinationTerminated;
 
-		const bool boundsInPositionSeries = train.earliestActiveTrajectoryIndex >= 0 &&
-			train.End_Time >= train.earliestActiveTrajectoryIndex &&
-			train.End_Time < static_cast<int>(train.instant_spatial_position.size());
+		const bool boundsInPositionSeries = train.earliestActiveTrajectoryIndex >= 0
+			&& train.End_Time >= train.earliestActiveTrajectoryIndex
+			&& train.End_Time < static_cast<int>(train.instant_spatial_position.size());
 		const auto segments = boundsInPositionSeries
 			? validTrajectorySegments(train.instant_spatial_position,
 									train.earliestActiveTrajectoryIndex, train.End_Time)
