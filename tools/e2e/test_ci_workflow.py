@@ -542,8 +542,8 @@ def main() -> None:
         "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n" not in package_check
     ):
         missing.append("package check replaces only the older run of the same pull request")
-    if job_ids(package_check) != ["version", "package"]:
-        missing.append("package check jobs: version, package")
+    if job_ids(package_check) != ["version", "package", "release-assets"]:
+        missing.append("package check jobs: version, package, release-assets")
     if (
         job_block(package_check, "version") != job_block(release_only, "version")
         or "run: python3 tools/release/version.py\n" not in package_check
@@ -551,6 +551,70 @@ def main() -> None:
         missing.append("package check selects the version with the script and job of the release workflow")
     if job_block(package_check, "package") != "  package:\n" + version_call:
         missing.append("package check calls the package workflow with the selected version")
+    # The release assets job runs the script that builds the files of a release on the artifacts of the package
+    # jobs. It uploads and publishes nothing, and it has the permissions of the workflow.
+    assets_job = job_block(package_check, "release-assets")
+    if (
+        re.findall(r"^    needs: (.+)$", assets_job, re.MULTILINE) != ["[version, package]"]
+        or re.findall(r"^    runs-on: (.+)$", assets_job, re.MULTILINE) != ["ubuntu-latest"]
+        or "      - uses: actions/checkout@v4\n" not in assets_job
+    ):
+        missing.append("package check release assets job after the version and package jobs, on ubuntu-latest with a checkout")
+    if re.findall(r"^      - name: (.+)$", assets_job, re.MULTILINE) != [
+        "Download all artifacts",
+        "List downloaded files",
+        "Unpack the Windows package",
+        "Build the release assets",
+        "Compare the Windows file list with the artifact",
+        "List the release assets",
+    ]:
+        missing.append("package check release assets steps: download, list, unpack, build, compare, list")
+    if step_block(assets_job, "Download all artifacts").rstrip("\n") != (
+        "name: Download all artifacts\n"
+        "        uses: actions/download-artifact@v4\n"
+        "        with:\n"
+        "          path: artifacts"
+    ):
+        missing.append("package check release assets download of all artifacts into artifacts")
+    if step_block(assets_job, "Build the release assets") != (
+        "name: Build the release assets\n"
+        "        env:\n"
+        "          VERSION: ${{ needs.version.outputs.version }}\n"
+        '        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets\n'
+    ):
+        missing.append("package check release assets script run with the selected version")
+    unpack_step = step_block(assets_job, "Unpack the Windows package")
+    compare_step = step_block(assets_job, "Compare the Windows file list with the artifact")
+    if any(
+        command not in step
+        for step, commands in (
+            (
+                unpack_step,
+                (
+                    "mkdir artifacts/QEGTRAIN-windows-x64-payload\n",
+                    "unzip -q artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip -d artifacts/QEGTRAIN-windows-x64-payload\n",
+                ),
+            ),
+            (
+                compare_step,
+                (
+                    "unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\\\' '/' | grep -v '/$' | LC_ALL=C sort > \"$RUNNER_TEMP/zip-files.txt\"\n",
+                    "jq -r '.assets[\"windows-x64\"].files[]' release-assets/update-manifest.json > \"$RUNNER_TEMP/manifest-files.txt\"\n",
+                    'diff "$RUNNER_TEMP/zip-files.txt" "$RUNNER_TEMP/manifest-files.txt"\n',
+                ),
+            ),
+        )
+        for command in commands
+    ):
+        missing.append("package check release assets unpack of the Windows zip and comparison of its file list with the manifest")
+    if not assets_job or any(word in assets_job for word in ("upload-artifact", "permissions:", "if:")):
+        missing.append("package check release assets job without an upload, a permissions block or a condition")
+    if (
+        "add_test(NAME test_release_assets\n"
+        "\t\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py)\n" not in cmake
+        or not re.search(r"egtrain_label_tests\(unit\b[^)]*\btest_release_assets\b", cmake)
+    ):
+        missing.append("release assets unit test registered in CTest with the unit label")
     publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit", "environment:")
     if (
         any(word in text for text in (package_check, package_only) for word in publishing)

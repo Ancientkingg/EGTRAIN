@@ -800,11 +800,21 @@ The visual and render smoke artifacts include:
   OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
   keyboard files are in the package, starts a copy of the package with
   `tools/release/package_start_smoke.py`, and prints the number of files and
-  bytes of the package in its job summary. It does not prove a release:
-  nothing is signed with real credentials (the macOS bundle carries the same
-  ad-hoc signature as in a release), nothing is published, and the check has
-  read permission only. A release still runs only from `release.yml`. A newer
-  push to the pull request cancels the running check.
+  bytes of the package in its job summary. After the three packages are built,
+  the job `release-assets` downloads the artifacts, unpacks the Windows zip into
+  a directory, runs `tools/release/build_release_assets.py` on them and compares
+  the Windows file list of the manifest it wrote with the member list of the
+  Windows zip. A green check therefore also proves that the script accepts the
+  three real packages, builds the portable Windows archive and a manifest that
+  the application accepts by its rules for the file list and the package sizes,
+  and that the assets it writes are exactly the eleven that a release publishes.
+  It does not prove a release: nothing is signed with real credentials (the
+  macOS bundle carries the same ad-hoc signature as in a release), nothing is
+  published, and the check has read permission only. The release job builds its
+  own manifest in its own steps. The package check does not extract the archive
+  on Windows; only the unit test of the script extracts an archive that it
+  builds, on the Windows leg of the CMake workflow. A release still runs only
+  from `release.yml`. A newer push to the pull request cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
@@ -867,6 +877,60 @@ Do not require these path-filtered workflows, the package check included, as
 branch-protection checks:
 GitHub leaves skipped required workflows pending, which would block
 documentation-only pull requests.
+
+### Release assets script
+
+`tools/release/build_release_assets.py` builds the files that a release
+publishes from the artifacts of the package jobs:
+
+```bash
+python3 tools/release/build_release_assets.py --version X.Y.Z --artifacts DIR --output DIR
+```
+
+`--artifacts` holds one directory per artifact, as `actions/download-artifact`
+makes them when it is given no artifact name:
+
+- `QEGTRAIN-windows-x64-payload/`: the assembled Windows package, with
+  `QEGTRAIN.exe` at its top level
+- `QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip`
+- `QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage`
+- `EGTRAIN-scenes/`: the seven `.egscene` files
+
+Other directories are ignored. `--output` must not exist or must be an empty
+directory, and the script writes nowhere else. Afterwards it holds exactly the
+eleven files of a release: `QEGTRAIN-macos-arm64.zip`,
+`QEGTRAIN-windows-x64.zip`, `QEGTRAIN-linux-x86_64.AppImage`, the seven
+`.egscene` files and `update-manifest.json`. The macOS package, the AppImage and
+the scene bundles are copies. The Windows archive is written from the files of
+the payload, one member per file with forward slashes, no directory entries and
+no top-level folder. The `sha256` and `size` of each package in the manifest come
+from the file in `--output`. The `files` of the Windows entry are the members of
+the archive, sorted by their full path as a string (`a.b` comes before `a/b`).
+The script prints the name and size of each file.
+
+Every input is checked before `--output` is created:
+
+- the version has the form `X.Y.Z` that `tools/release/version.py` accepts;
+- each file above exists and is not empty, the three artifact directories hold
+  no other file, and the payload holds regular files and directories only (a
+  link is an error, and so is a directory that cannot be read);
+- the file list of the Windows package has the rules of `parseManifestFiles` in
+  `update/ReleaseInfo.cpp`: at most 4096 entries, each path at most 260 UTF-16
+  code units, no `:` and no NUL, no empty, `.` or `..` segment, and
+  `QEGTRAIN.exe` in the list. A backslash is also rejected, where the
+  application would read it as a slash, because the list names the members of
+  an archive that uses forward slashes only;
+- each package is between 1 byte and 2 GiB, the limit of `parseUpdateManifest`
+  in `update/ReleaseInfo.cpp`. The size of the Windows archive is checked once
+  it is written, before the manifest is.
+
+The script does not check the fixed runtime file set (`requiredRuntimeFiles()`
+in `update/WindowsStaging.h`): the Windows package job verifies it before it
+uploads the package.
+
+The test is `tools/release/test_release_assets.py`. It builds a small artifact
+tree, runs the script on it and checks the rules directly. Run it with
+`ctest --test-dir build -R test_release_assets --output-on-failure`.
 
 ### Dependency caches
 
