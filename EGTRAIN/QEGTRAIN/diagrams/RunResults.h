@@ -153,7 +153,7 @@ constexpr double energyMJKWh(double energyMJ) {
 	return energyMJ * kEnergyMJToKWh;
 }
 
-RunResults buildRunResults(const std::vector<const Train*>& trains, double timestep);
+RunResults buildRunResults(const std::vector<const Train*>& trains, double timestepSeconds);
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains);
 DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
 		const DelayRunSnapshot& scenario);

@@ -51,7 +51,15 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
 ```
 
 The option is OFF by default, so a newer compiler cannot break a local build with a warning
-that the code did not give before.
+that the code did not give before. The pull request checks configure with the option ON on
+macOS, Linux and Windows.
+
+The three compilers do not report the same things. MSVC `/W4` also reports a local name that
+hides a class member, a global variable or a local of an enclosing scope (C4456 to C4459), and
+a 32-bit shift that is widened to 64 bits (C4334). Clang and GCC accept both with
+`-Wall -Wextra`, so such code passes a local build on macOS or Linux and fails the Windows
+check. A target with the flags is compiled with `_CRT_SECURE_NO_WARNINGS` on Windows, because
+MSVC otherwise reports standard functions such as `std::getenv` as deprecated.
 
 ## File layout
 

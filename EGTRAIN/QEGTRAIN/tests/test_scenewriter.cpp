@@ -56,6 +56,7 @@ static void printErrors(const std::vector<SceneDiagnostic>& diagnostics, const c
 	}
 }
 
+#ifndef _WIN32
 static bool hasOnlyFile(const fs::path& directory, const std::string& filename) {
 	size_t count = 0;
 	bool found = false;
@@ -66,7 +67,6 @@ static bool hasOnlyFile(const fs::path& directory, const std::string& filename) 
 	return count == 1 && found;
 }
 
-#ifndef _WIN32
 // Limits the size of files the process can grow, so that a write fails part way.
 struct FileSizeLimit {
 	rlimit previous{};

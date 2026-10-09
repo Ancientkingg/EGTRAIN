@@ -212,7 +212,7 @@ bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input) noexcept {
         try {
             const int idx = category == Category::Usage ? 0 : 1;
             bool accepted = false;
-            if (!s->stop.load(std::memory_order_relaxed) && (s->permits.load(std::memory_order_acquire) & (1u << idx)) &&
+            if (!s->stop.load(std::memory_order_relaxed) && (s->permits.load(std::memory_order_acquire) & (quint64(1) << idx)) &&
                 s->gate[idx] && s->count < kIngress) {
                 s->ring[(s->head + s->count) % kIngress] = {input, utcNow(), s->epoch[idx]};
                 ++s->count;

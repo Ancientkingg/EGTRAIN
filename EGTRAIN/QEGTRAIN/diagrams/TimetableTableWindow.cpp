@@ -253,15 +253,15 @@ void TimetableTableWindow::exportPng() {
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 		path += ".png";
 	QPixmap pix = m_table->grab();
-	QByteArray data;
-	QBuffer buffer(&data);
+	QByteArray png;
+	QBuffer buffer(&png);
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
 							 QString("Could not write the image to:\n%1").arg(path));
 		return;
 	}
-	const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
 	const bool written = m_hasRunProvenance
 		? writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_runProvenance)
 		: writeArtifact(path, bytes);
