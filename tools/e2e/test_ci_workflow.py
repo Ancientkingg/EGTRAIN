@@ -288,6 +288,10 @@ def main() -> None:
     )
     if any(entry not in workflow or entry not in release_workflow for entry in windows_toolchain):
         missing.append("Windows toolchain shared with the release workflow")
+    # vcpkg would copy its DLLs next to every executable after linking, a step that fails at
+    # random when the new file is still in use. The job puts the DLL directories on PATH instead.
+    if "-DVCPKG_APPLOCAL_DEPS=OFF" not in workflow or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
+        missing.append("Windows build without the per-executable DLL copy, with the DLL directories on PATH")
     apt_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = apt_install.group(1).replace("\\", " ").split() if apt_install else []
     if not apt_packages or any(
