@@ -66,7 +66,8 @@ private:
 		std::size_t bytes = sizeof(frame);
 		bytes += frame.trains.capacity() * sizeof(GuiTrainState);
 		for (const auto& train : frame.trains) {
-			bytes += stringBytes(train.type) + stringBytes(train.description) + stringBytes(train.operatingCode);
+			bytes += stringBytes(train.type) + stringBytes(train.description) + stringBytes(train.operatingCode)
+				+ stringBytes(train.serviceId);
 			bytes += train.wagonHeadPositions.capacity() * sizeof(double);
 			bytes += train.wagonTailPositions.capacity() * sizeof(double);
 			bytes += train.occupiedArcs.capacity() * sizeof(GuiOccupiedArc);

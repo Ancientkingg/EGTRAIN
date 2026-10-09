@@ -23,11 +23,14 @@ DPR2_COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1440-e2e.p
 STATION_OUT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e"
 STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-copenhagen"
 STATION_DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e-dpr2.log"
+COLOR_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.log"
+COLOR_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.png"
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-settings.XXXXXX")"
+COLOR_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-color-scene.XXXXXX")"
 cleanup() {
 	local exit_code=$?
 	trap - EXIT
-	rm -rf "$SETTINGS_DIR"
+	rm -rf "$SETTINGS_DIR" "$COLOR_SCENE_DIR"
 	exit "$exit_code"
 }
 trap cleanup EXIT
@@ -80,6 +83,34 @@ if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"
 	exit 1
 fi
 echo "visual polish e2e passed: $SHOT $MEDIUM_SHOT $DENSE_SHOT $SELECTED_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
+
+# A copy of the scene in which the first service has a colour: its trains must
+# be drawn in that colour, the trains of the other services in the default one.
+python3 - "$SCENE" "$COLOR_SCENE_DIR/scene" <<'PY'
+import json, shutil, sys
+shutil.copytree(sys.argv[1], sys.argv[2])
+path = sys.argv[2] + "/services.json"
+with open(path) as handle:
+    data = json.load(handle)
+data["services"][0]["visualization_color"] = "#3c8dd2"
+with open(path, "w") as handle:
+    json.dump(data, handle, indent=2)
+PY
+QT_QPA_PLATFORM=offscreen \
+QT_SCALE_FACTOR=1 \
+QEGTRAIN_AUTOSTART=1 \
+QEGTRAIN_E2E_VISUAL_POLISH=1 \
+QEGTRAIN_E2E_SCREENSHOT="$COLOR_SHOT" \
+QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$COLOR_SCENE_DIR/context.png" \
+	"$APP" --scene "$COLOR_SCENE_DIR/scene" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$COLOR_OUT" 2>&1
+grep -q "E2E_VISUAL_POLISH_OK" "$COLOR_OUT"
+grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$COLOR_OUT"
+if grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$OUT"; then
+	echo "the committed scene unexpectedly has service colours" >&2
+	exit 1
+fi
+test -s "$COLOR_SHOT"
+echo "service colour e2e passed: $COLOR_SHOT"
 
 if ! QT_QPA_PLATFORM=offscreen \
 	QT_SCALE_FACTOR=2 \

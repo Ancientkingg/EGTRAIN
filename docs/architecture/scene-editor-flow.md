@@ -123,7 +123,13 @@ generated services. Maximum speed restriction uses six significant display
 digits; focusing or saving an untouched value preserves its stored precision.
 The Category chooser edits only service metadata. It offers six presets and No
 category; an imported unknown value is shown explicitly and retained until
-changed. Duplication copies the category with the other service settings.
+changed. The Service visualization colour control follows it: a swatch, Choose...
+(a Qt colour dialog without alpha, written as lower-case `#rrggbb`) and Default,
+which removes the value. A stored text that is not `#RRGGBB` is shown as
+"Invalid: <text>" and retained until changed. Both edits mark the scene
+modified. Duplication copies the category and the colour with the other service
+settings. The window resolves a train's colour from the service id that the
+simulation snapshot carries, so every occurrence of a service shares it.
 Route choices show endpoints and traversal direction, with canonical IDs as
 secondary labels and item data. Tooltips list traversed stations, not scheduled
 calls. Stop choices follow the remaining ordered route; Add Stop refuses an

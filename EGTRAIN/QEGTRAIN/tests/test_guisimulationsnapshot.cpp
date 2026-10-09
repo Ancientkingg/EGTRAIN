@@ -134,6 +134,19 @@ int main() {
 		&& history.firstTime() > 0 && history.payloadBytes() <= GuiReplayHistory::payloadLimit,
 		"frame-count eviction failed");
 	history.clear();
+	auto withoutService = std::make_shared<GuiSimulationSnapshot>();
+	withoutService->trains.push_back(GuiTrainState{});
+	history.record(withoutService);
+	const std::size_t bytesWithoutService = history.payloadBytes();
+	history.clear();
+	auto withService = std::make_shared<GuiSimulationSnapshot>();
+	withService->trains.push_back(GuiTrainState{});
+	withService->trains.front().serviceId = std::string(1000, 's');
+	history.record(withService);
+	require(history.atOrBefore(0)->trains.front().serviceId == std::string(1000, 's')
+		&& history.payloadBytes() >= bytesWithoutService + 900,
+		"service id is not part of the train state or the replay byte count");
+	history.clear();
 	auto large = std::make_shared<GuiSimulationSnapshot>();
 	large->passengers.resize(10000);
 	for (auto& passenger : large->passengers) passenger.id = std::string(1000, 'p');

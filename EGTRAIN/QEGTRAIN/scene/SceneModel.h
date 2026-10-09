@@ -330,6 +330,9 @@ std::string sceneOutputDirectoryComponent(const std::string& sceneName);
 // Accepts exactly "#" followed by six hexadecimal digits in either case.
 bool sceneParseVisualizationColor(const std::string& text, int* red = nullptr, int* green = nullptr,
 		int* blue = nullptr);
+// The visualization_color text of the service with this id; empty when the
+// service has none or the id is unknown.
+std::string sceneServiceVisualizationColor(const SceneModel& model, const std::string& serviceId);
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence = 1);
 int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
 		const SceneRunSelection& selection = {});
