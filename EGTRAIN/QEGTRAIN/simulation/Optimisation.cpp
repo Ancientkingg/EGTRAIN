@@ -5,7 +5,7 @@ double recoveryTimePercentage = 0;
 double bufferTime = 0;
 
 // Function to change the departure time of the trains in order to fit them all in one hour of timetable
-void changeTrainDepartureTimesForHourlyTimetabling(Train* Trains, int numTrains) {
+void changeTrainDepartureTimesForHourlyTimetabling(Regional* Trains, int numTrains) {
 	list<TrainEvent> ListTrainsUP, ListTrainsDOWN;
 	int N_ListTrainsUP = 0, N_ListTrainsDOWN = 0;
 	// Fill in the list of trains departing in the UP and DOWN direction

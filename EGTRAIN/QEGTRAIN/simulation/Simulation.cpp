@@ -189,7 +189,7 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 }
 
 // Function to Compute the Energy Consumption for the Timetable
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder) {
+void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, string OutputFolder) {
 	double TotalEnergyConsumed = 0, TotalEnergyConsWithRegBraking = 0, TotalEnergySubstationRequest = 0, TotalEnergySubstRequestWithRegBraking = 0;
 
 	ofstream OutputPerTrain;
@@ -221,7 +221,7 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 }
 
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
-void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains) {
+void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains) {
 	for (int i = 0; i < numTrains; i++) {
 		Trains[i].ComputeTimetablingPoints();
 	}
@@ -235,7 +235,7 @@ void Detect_Implemented_Order_For_All_OL() {
 }
 
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
+void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName) {
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput;
