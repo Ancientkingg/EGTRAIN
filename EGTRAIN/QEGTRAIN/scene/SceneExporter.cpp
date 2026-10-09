@@ -146,7 +146,8 @@ static std::string mapLegacyBlockReference(const std::string& reference,
 // file that older EGTRAIN variants read signalling levels from. One tab
 // separated row per area: id, start km, end km, level and, for an area on a
 // track, the number of its legacy track directory. The areas of the scene are
-// the assignment, so they replace a copy of the file from the legacy data.
+// the assignment, so they replace a file that is already there, such as a copy
+// from the legacy data.
 // An area on a track the scene does not have is skipped with a warning. A scene
 // without areas gets no file.
 static void synthesizeSignallingAreas(const SceneModel& scene, const std::unordered_map<std::string, std::string>& legacyTrackIds,
@@ -199,7 +200,7 @@ static void synthesizeSignallingAreas(const SceneModel& scene, const std::unorde
 	}
 	out << rows.str();
 	if (fileExists)
-		addDiag(SceneSeverity::Info, "scene.export.info", "the signalling areas of the scene replace the TrackLines/AreasCaseStudy.txt of the legacy data");
+		addDiag(SceneSeverity::Info, "scene.export.info", "the signalling areas of the scene replace the existing TrackLines/AreasCaseStudy.txt");
 }
 
 static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std::string& outDir,

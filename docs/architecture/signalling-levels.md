@@ -517,8 +517,9 @@ analysis has no data for it.
 Older versions used one row of `TrackLines/AreasCaseStudy.txt` for both the
 signalling level and the statistics of an area (the removed `NetworkArea`
 class). No simulation code reads that file. The legacy export writes the
-signalling areas of the scene to it, one row per area, and writes no file when
-the scene has none. The legacy import reports the file and converts none of its
+signalling areas of the scene to it, one row per area. For a scene without
+areas it writes no file and leaves a copy from the `legacy/` folder of the
+scene as it is. The legacy import reports the file and converts none of its
 rows (see [Known limits](#known-limits-and-open-issues)).
 
 What a capacity-analysis area is, and how it relates to the signalling areas, is

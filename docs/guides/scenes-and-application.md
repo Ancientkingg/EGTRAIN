@@ -276,8 +276,10 @@ malformed rows, and preserved source anomalies in `scene.json.import_report`.
 In particular, a timetable
 sentinel of `-1` means the corresponding planned arrival or departure is
 absent; the importer neither synthesizes a result nor changes an inconsistent
-source time. A `TrackLines/AreasCaseStudy.txt` is reported in `import_report`
-and in a warning, but its rows are not converted: add the signalling areas in
+source time.
+
+A `TrackLines/AreasCaseStudy.txt` is reported in `import_report` and in a
+warning, but its rows are not converted: add the signalling areas in
 Infrastructure > Signalling area.
 
 Example:
