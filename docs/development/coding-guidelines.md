@@ -206,21 +206,48 @@ if (!hasId(trackIds, node.trackId)) {
 
 ## Logging
 
-The code base has no single logging convention.
+Console output comes from the logging core in `util/Log.h` and from older code that writes
+to the console directly.
 
-- `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second
-  `Logger`, `owl`; both appear in `simulation/` and `app/DispatchController.cpp`. Nothing
-  calls `Logger::init`, so neither writes anything.
+- `util/Log.h` is a categorised logging core without Qt. `EG_LOG(category, level) << ...`
+  writes one message: the category is one of `SimSetup`, `SimStep`, `SimEvents`, `SimPax`,
+  `IoRailml`, `IoZmq`, `AppRun`, `AppUi` and `Update` (named `sim.setup`, `sim.step`,
+  `sim.events`, `sim.pax`, `io.railml`, `io.zmq`, `app.run`, `app.ui` and `update`), and the
+  level is `Debug`, `Info`, `Warning` or `Error`. The text is delivered as streamed, so the
+  caller writes the newline. A disabled message evaluates none of its arguments. Every pair is
+  enabled by default except `sim.step` at `debug`.
+- `eglog::configure(rules)` switches pairs on and off with the syntax of `QT_LOGGING_RULES`:
+  rules separated by `;` or a newline, each `pattern=true` or `pattern=false`, where the
+  pattern is a category name or a name with a `*` at the start or the end (`sim.*`, `*.run`,
+  `*step*`), with an optional level suffix (`sim.setup.warning=false`). A later rule wins, a
+  malformed rule is skipped and makes the function return false, and `configure("")` restores
+  the defaults. `eglog::configureFromEnvironment()` applies the variable `EGTRAIN_LOG`. The
+  variable has no effect unless the program calls that function, and the caller reports a
+  false result.
+- The default sink writes the text unchanged to `std::cout`, for every category and level, so
+  the console dock shows it. `eglog::setSink` replaces it; a sink must not call the logging
+  core.
+- `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second `Logger`,
+  `owl`; both appear in `simulation/` and `app/DispatchController.cpp`. Nothing calls
+  `Logger::init`, so neither writes anything.
 - `simulation/` prints to `std::cout` and `std::cerr`. `MainWindow` installs a Qt message
   handler that sends `qWarning()` and other Qt messages to `std::cout`, and `ConsoleWidget`
   shows both streams in the Console Log dock. The command-line entry points
   (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
+- `tools/e2e/test_logging_contract.py` counts the console write statements per file
+  (`cout`, `cerr`, `clog`, `printf`, `fprintf` to `stdout` or `stderr`, `owl` and `eglogger`)
+  and compares them with the list `ALLOWED` in both directions. A new console write outside the
+  deliberate files fails the test; when statements are removed, lower the entry of the file to
+  the new number and delete it at zero. Test markers (`E2E_` and `QEGTRAIN_` lines) are not
+  counted. The files that write the console on purpose are listed in `EXEMPT_FILES` with the
+  reason. The test also checks that the code still writes the stdout lines that scripts read.
 
 New code follows the newer modules: return the problem to the caller, and print only at the
 top level, with `qWarning()` in Qt code and `std::cerr` with `toDisplayText()` in
-command-line code. Do not add `eglogger` or `owl` calls or a new logging helper.
+command-line code. A message from `simulation/` or `io/` that cannot be returned uses `EG_LOG`.
+Do not add `eglogger` or `owl` calls or another logging helper.
 
 ## Tests
 

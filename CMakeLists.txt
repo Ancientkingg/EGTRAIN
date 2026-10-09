@@ -142,6 +142,7 @@ add_library(egtrain_pugixml STATIC ${SRC_DIR}/io/third_party/pugixml.cpp)
 
 add_library(egtrain_util STATIC
     ${SRC_DIR}/util/CsvWriter.cpp
+    ${SRC_DIR}/util/Log.cpp
     ${SRC_DIR}/util/Logger.cpp
     ${SRC_DIR}/util/PlaybackProfiler.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
@@ -341,6 +342,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
+    ${SRC_DIR}/util/Log.h
     ${SRC_DIR}/util/Logger.hpp
     ${SRC_DIR}/util/PlaybackProfiler.h
     ${SRC_DIR}/simulation/Passengers.h
@@ -561,6 +563,10 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_version ${SRC_DIR}/tests/test_version.cpp)
     target_link_libraries(test_version PRIVATE egtrain_util)
     add_test(NAME test_version COMMAND test_version)
+
+    add_executable(test_log ${SRC_DIR}/tests/test_log.cpp)
+    target_link_libraries(test_log PRIVATE egtrain_util)
+    add_test(NAME test_log COMMAND test_log)
 
     # The telemetry tests link egtrain_telemetry_hooks, which defines the test hooks for them.
     # The dialog is compiled here, with all hooks, and in the application, without the consent hook.
@@ -940,6 +946,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py)
+	add_test(NAME test_logging_contract
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_logging_contract.py)
 	add_test(NAME test_windows_subsystem_config
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
 	add_test(NAME test_raii_contract
@@ -995,7 +1003,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Test executables that use only strict libraries are strict as well.
 	foreach(egtrain_test
-			test_timeformat test_version test_speedformat test_trajectory test_csvwriter
+			test_timeformat test_version test_log test_speedformat test_trajectory test_csvwriter
 			test_playbackprofiler
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging
@@ -1031,7 +1039,7 @@ if(EGTRAIN_BUILD_TESTS)
 		endforeach()
 	endfunction()
 	egtrain_label_tests(unit
-		test_updatepreparation test_timeformat test_version test_telemetryconsent test_telemetryqueue
+		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
 		test_guisimulationsnapshot test_followavailability test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
 		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
@@ -1043,7 +1051,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
 		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
-		test_ci_workflow test_signalling_bounds test_windows_subsystem_config test_raii_contract
+		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper
