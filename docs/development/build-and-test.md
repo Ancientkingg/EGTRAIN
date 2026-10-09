@@ -82,13 +82,21 @@ With a multi-config generator, add the configuration:
 
 The scene, simulation, utility and RailML code is built once as static
 libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_railml`
-and the vendored `egtrain_pugixml`. `QEGTRAIN`, `scene_tool` and the tests that
-exercise this code link them instead of listing its sources, so each file is
-compiled once. A test gets only the library members it references. The
-application and every test that pulls in Infrastructure, Signalling or
-RollingStock from `egtrain_sim` define the global `Logger owl`. The sources of
-the UI, diagrams, widgets, telemetry and update folders are still compiled in
-each target that uses them. See
+and the vendored `egtrain_pugixml`. The Qt code that several targets use is
+built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_update`,
+`egtrain_telemetry`, `egtrain_dispatch` (`DispatchController` and
+`SimulationWorker`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
+tests link them instead of listing their sources, so each file is compiled
+once. A test gets only the library members it references. The application and
+every test that pulls in Infrastructure, Signalling or RollingStock from
+`egtrain_sim` define the global `Logger owl`.
+
+Two things are still compiled more than once. The telemetry sources are built
+again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
+`egtrain_telemetry_smoke` for the application in the isolated telemetry smoke
+configuration, because the hooks change the layout of the telemetry classes.
+`TelemetryConsentDialog.cpp` is compiled in `QEGTRAIN` and in
+`test_telemetryconsent` for the same reason. See
 [Source layout](../architecture/source-layout.md#libraries).
 
 ## Run a local build

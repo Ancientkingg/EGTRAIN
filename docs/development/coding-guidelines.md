@@ -38,8 +38,9 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `tests/` | C++ test executables, one per file, with data in `tests/fixtures/` |
 | `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `golden_master/`, `memory/`, `performance/`, `release/`) |
 
-- Add each new `.cpp` to `EGTRAIN_SOURCES` and each new `.h` to `EGTRAIN_HEADERS` in the
-  root `CMakeLists.txt`.
+- Add a new `.cpp` to the library that holds its folder ([Libraries](../architecture/source-layout.md#libraries)),
+  or to `EGTRAIN_SOURCES` when only the application uses it. Add a new `.h` to `EGTRAIN_HEADERS`
+  unless it belongs to a library source. Both lists are in the root `CMakeLists.txt`.
 - Include project headers with quotes and a path from `EGTRAIN/QEGTRAIN/`, for example
   `#include "scene/SceneModel.h"`. Qt and standard headers use angle brackets.
 - `scene/` and `util/` contain no Qt types, and `scene_tool` links no Qt. Code that needs
@@ -166,8 +167,8 @@ C++ tests live in `EGTRAIN/QEGTRAIN/tests/` as `test_<name>.cpp`, one executable
 shared data in `tests/fixtures/`. Register one in the `if(EGTRAIN_BUILD_TESTS)` block of the
 root `CMakeLists.txt`. The executable links the library that holds the code it tests
 ([Libraries](../architecture/source-layout.md#libraries)), or lists the sources itself when
-they are in no library, instead of linking the application. The CTest name equals the target
-name:
+they are in no library, instead of linking the application. The telemetry tests that use a test
+hook link `egtrain_telemetry_hooks`. The CTest name equals the target name:
 
 ```cmake
 add_executable(test_timeformat ${SRC_DIR}/tests/test_timeformat.cpp)

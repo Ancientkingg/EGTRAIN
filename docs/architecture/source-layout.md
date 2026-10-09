@@ -37,8 +37,8 @@ Includes are path-qualified against the source root, for example:
 
 ## Libraries
 
-`CMakeLists.txt` builds the model code once, as static libraries. The application,
-`scene_tool` and the tests link them.
+`CMakeLists.txt` builds the code that more than one target uses once, as static libraries.
+The application, `scene_tool` and the tests link them.
 
 | Library | Sources | Depends on |
 | --- | --- | --- |
@@ -47,11 +47,32 @@ Includes are path-qualified against the source root, for example:
 | `egtrain_util` | `util/*.cpp` | nlohmann-json |
 | `egtrain_railml` | `io/RailMLParser.cpp` | `egtrain_pugixml`, cppzmq |
 | `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
+| `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
+| `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
+| `egtrain_update` | `update/ReleaseInfo`, `UpdatePreparation`, `UpdateSettings` | Qt Core, `egtrain_util` |
+| `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
+| `egtrain_dispatch` | `app/DispatchController.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
+| `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
-`egtrain_miniz` holds the vendored zip code. The five libraries and `scene_tool` use no Qt.
-`SimulationWorker` is a `QObject` and stays with the application. The code
-in `graphics/`, `widgets/`, `diagrams/`, `telemetry/` and `update/` is compiled
-in each target that uses it.
+`egtrain_miniz` holds the vendored zip code. The first five libraries and
+`scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
+
+The telemetry sources also build with test hooks, which add members and a constructor
+parameter to `TelemetrySender`, `TelemetryConsent` and `TelemetryQueue`. These flavours
+compile the same sources again: `egtrain_telemetry_hooks` (all hooks) when tests are built,
+and `egtrain_telemetry_smoke` (the sender hook) in the isolated telemetry smoke
+configuration, for the application. A target links one telemetry library, never two.
+`egtrain_diagrams` links no telemetry library, because its windows call only
+`OperationObservation`, whose symbols do not depend on the hooks. In the isolated
+telemetry smoke configuration it is built with the sender hook, as the rest of the
+application is. The moc object of `egtrain_diagrams` references both windows, so a target
+that uses `TrainFilterButton`, `DiagramWindow`, `TimetableTableWindow` or
+`RouteReferenceDialog` also links one telemetry library.
+
+Still compiled in more than one target: the telemetry sources of the hook flavours, and
+`TelemetryConsentDialog.cpp`, which the application builds without the consent hook
+and `test_telemetryconsent` with it. Only the application builds the rest of `app/`,
+`UpdateChecker` and `SelfUpdater`.
 
 ## Renames
 
