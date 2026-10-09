@@ -2015,7 +2015,11 @@ public:
 						}
 						// If the station Node does not have to respect a specific train order, the train has to be stopped at the station for the dwell time and can depart only after that ensuring that it does not have to respect any ETCS 3 EoA at that station
 						else {
-							if (((time_seconds - stop) <= stoptime) || (time_seconds <= dep_time) || (this->IsTrainStoppedForEoA == 1)) {
+							// A platform at the end of a block section is also the stopping point of that block's signal: the train waits there while the signal is red.
+							const bool signalAtPlatformIsRed = Bs.total_arcs > 0
+								&& std::fabs(Bs.arcs_in_signalling_block_section[Bs.total_arcs - 1].endNode.X - As.endNode.X) < 1e-9
+								&& strcmp(Bs.state, "red") == 0;
+							if (((time_seconds - stop) <= stoptime) || (time_seconds <= dep_time) || (this->IsTrainStoppedForEoA == 1) || signalAtPlatformIsRed) {
 								instant_train_speed[time_seconds] = 0;
 								instant_spatial_position[time_seconds] = As.endNode.X * 1000 - 0.0001;
 							} else {

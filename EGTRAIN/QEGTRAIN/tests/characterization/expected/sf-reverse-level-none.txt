@@ -1,7 +1,7 @@
 # egtrain-characterization 1
 # case: sf-reverse-level-none
 # run: scenario=signal-failure-reverse services=R1,R2 level=none horizon=1500
-# known-wrong: #437 R2 stops at the position of R1 at B and at 10 km
+# known-wrong: none
 run steps=1500 trains=2
 train R1-1 active start=60 end=1267
 train R1-1 sample t=60 x=0.615074 v=1.230149

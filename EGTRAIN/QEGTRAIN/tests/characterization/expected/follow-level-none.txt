@@ -1,7 +1,7 @@
 # egtrain-characterization 1
 # case: follow-level-none
 # run: scenario=baseline services=F1,F2 level=none horizon=1500
-# known-wrong: #437 F2 stops at the position of F1 at B
+# known-wrong: none
 run steps=1500 trains=2
 train F1-1 active start=60 end=981
 train F1-1 sample t=60 x=0.615074 v=1.230149

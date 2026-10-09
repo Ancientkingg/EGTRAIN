@@ -1,9 +1,9 @@
 # egtrain-characterization 1
 # case: sf-reverse-level-1
 # run: scenario=signal-failure-reverse services=R1,R2 level=1 horizon=1500
-# known-wrong: #437 R1 stays at 10 km after the failure ends and R2 stops at its position
+# known-wrong: #437 R2 stays at 14 km from 1240 s to the end of the run
 run steps=1500 trains=2
-train R1-1 active start=60 end=1499
+train R1-1 active start=60 end=1267
 train R1-1 sample t=60 x=0.615074 v=1.230149
 train R1-1 sample t=120 x=1278.266026 v=31.292706
 train R1-1 sample t=180 x=3394.638283 v=36.111111
@@ -20,19 +20,18 @@ train R1-1 sample t=780 x=9999.999900 v=0.000000
 train R1-1 sample t=840 x=9999.999900 v=0.000000
 train R1-1 sample t=900 x=9999.999900 v=0.000000
 train R1-1 sample t=960 x=9999.999900 v=0.000000
-train R1-1 sample t=1020 x=9999.999900 v=0.000000
-train R1-1 sample t=1080 x=9999.999900 v=0.000000
-train R1-1 sample t=1140 x=9999.999900 v=0.000000
-train R1-1 sample t=1200 x=9999.999900 v=0.000000
-train R1-1 sample t=1260 x=9999.999900 v=0.000000
-train R1-1 sample t=1320 x=9999.999900 v=0.000000
-train R1-1 sample t=1380 x=9999.999900 v=0.000000
-train R1-1 sample t=1440 x=9999.999900 v=0.000000
-train R1-1 sample t=1499 x=9999.999900 v=0.000000
+train R1-1 sample t=1020 x=10180.466721 v=17.619582
+train R1-1 sample t=1080 x=11843.374795 v=35.248405
+train R1-1 sample t=1140 x=14008.530485 v=36.111111
+train R1-1 sample t=1200 x=15864.113099 v=15.180219
+train R1-1 sample t=1260 x=15999.999900 v=0.000000
+train R1-1 sample t=1267 x=16000.000100 v=0.000000
 train R1-1 stop t_first=331 t_last=661 x=7999.998000 dwell=330
 train R1-1 braking t=287 x=7248.861328 v=36.111111 stop_t=331
-train R1-1 stop t_first=766 t_last=1499 x=9999.998000 dwell=733
+train R1-1 stop t_first=766 t_last=1002 x=9999.998000 dwell=236
 train R1-1 braking t=726 x=9398.566575 v=32.152077 stop_t=766
+train R1-1 stop t_first=1219 t_last=1267 x=15999.998000 dwell=48
+train R1-1 braking t=1175 x=15248.861328 v=36.111111 stop_t=1219
 train R2-1 active start=200 end=1499
 train R2-1 sample t=200 x=0.615074 v=1.230149
 train R2-1 sample t=260 x=1278.266026 v=31.292706
@@ -45,40 +44,40 @@ train R2-1 sample t=620 x=5999.999900 v=0.000000
 train R2-1 sample t=680 x=6030.089861 v=8.585949
 train R2-1 sample t=740 x=7433.648798 v=31.166580
 train R2-1 sample t=800 x=7999.999900 v=0.000000
-train R2-1 sample t=860 x=8235.783482 v=19.224754
-train R2-1 sample t=920 x=9780.036479 v=19.280265
-train R2-1 sample t=980 x=9999.999900 v=0.000000
-train R2-1 sample t=1040 x=9999.999900 v=0.000000
-train R2-1 sample t=1100 x=9999.999900 v=0.000000
-train R2-1 sample t=1160 x=9999.999900 v=0.000000
-train R2-1 sample t=1220 x=9999.999900 v=0.000000
-train R2-1 sample t=1280 x=9999.999900 v=0.000000
-train R2-1 sample t=1340 x=9999.999900 v=0.000000
-train R2-1 sample t=1400 x=9999.999900 v=0.000000
-train R2-1 sample t=1460 x=9999.999900 v=0.000000
-train R2-1 sample t=1499 x=9999.999900 v=0.000000
+train R2-1 sample t=860 x=7999.999900 v=0.000000
+train R2-1 sample t=920 x=7999.999900 v=0.000000
+train R2-1 sample t=980 x=7999.999900 v=0.000000
+train R2-1 sample t=1040 x=8337.722587 v=21.478995
+train R2-1 sample t=1100 x=9962.557084 v=29.313823
+train R2-1 sample t=1160 x=11976.520805 v=36.111111
+train R2-1 sample t=1220 x=13848.932879 v=15.995418
+train R2-1 sample t=1280 x=13999.999900 v=0.000000
+train R2-1 sample t=1340 x=13999.999900 v=0.000000
+train R2-1 sample t=1400 x=13999.999900 v=0.000000
+train R2-1 sample t=1460 x=13999.999900 v=0.000000
+train R2-1 sample t=1499 x=13999.999900 v=0.000000
 train R2-1 stop t_first=416 t_last=673 x=5999.998000 dwell=257
 train R2-1 braking t=372 x=5248.861328 v=36.111111 stop_t=416
-train R2-1 stop t_first=778 t_last=839 x=7999.998000 dwell=61
+train R2-1 stop t_first=778 t_last=1014 x=7999.998000 dwell=236
 train R2-1 braking t=738 x=7398.566575 v=32.152077 stop_t=778
-train R2-1 stop t_first=944 t_last=1499 x=9999.998000 dwell=555
-train R2-1 braking t=904 x=9398.566575 v=32.152077 stop_t=944
-separation R1-1>R2-1 min_gap_t=945 min_gap=-70.000000
+train R2-1 stop t_first=1240 t_last=1499 x=13999.998000 dwell=259
+train R2-1 braking t=1196 x=13248.861328 v=36.111111 stop_t=1240
+separation R1-1>R2-1 min_gap_t=417 min_gap=1930.000000
 aspect route1 @7-B0@ 0:270 60:0 144:75 199:180 200:0 284:75 339:180 684:270
-aspect route1 @6-B0@ 0:270 142:0 199:75 255:180 282:0 339:75 684:180 850:270
-aspect route1 @5-B0@ 0:270 197:0 255:75 337:0 684:75 850:180
-aspect route1 @4-B0@ 0:270 253:0 672:75 673:0 850:75
-aspect route1 @3-B0@ 0:270 400:75 661:0
-aspect route1 @2-B0@ 0:270 400:0
-aspect route1 @1-B0@ 0:270
-aspect route1 @0-B0@ 0:270
+aspect route1 @6-B0@ 0:270 142:0 199:75 255:180 282:0 339:75 684:180 1025:270
+aspect route1 @5-B0@ 0:270 197:0 255:75 337:0 684:75 1025:180 1104:270
+aspect route1 @4-B0@ 0:270 253:0 672:75 673:0 1025:75 1104:180 1163:270
+aspect route1 @3-B0@ 0:270 400:75 661:0 1013:75 1014:0 1104:75 1163:180
+aspect route1 @2-B0@ 0:270 400:0 1001:270 1002:0 1087:75 1102:0 1163:75
+aspect route1 @1-B0@ 0:270 1085:0 1142:75 1161:0
+aspect route1 @0-B0@ 0:270 1140:0 1268:270
 result R1-1 C planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result R1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=331.000000 sim_dep=660.000000 arr_delay=-269.000000 dep_delay=0.000000
-result R1-1 A planned_arr=1100.000000 planned_dep=n/a sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
+result R1-1 A planned_arr=1100.000000 planned_dep=n/a sim_arr=1219.000000 sim_dep=1266.000000 arr_delay=119.000000 dep_delay=n/a
 result R2-1 C planned_arr=n/a planned_dep=180.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
-result R2-1 B planned_arr=660.000000 planned_dep=720.000000 sim_arr=778.000000 sim_dep=838.000000 arr_delay=118.000000 dep_delay=118.000000
+result R2-1 B planned_arr=660.000000 planned_dep=720.000000 sim_arr=778.000000 sim_dep=1013.000000 arr_delay=118.000000 dep_delay=293.000000
 result R2-1 A planned_arr=1160.000000 planned_dep=n/a sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
-run_result R1-1 start=60.000000 end=1499.000000 travel=1439.000000
+run_result R1-1 start=60.000000 end=1267.000000 travel=1207.000000
 run_result R2-1 start=200.000000 end=1499.000000 travel=1299.000000
 network start=60.000000 end=1499.000000 travel=1439.000000
 train R1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000

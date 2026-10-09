@@ -71,7 +71,7 @@ aspect route0 @1-B0@ 0:270 142:0 199:270 202:0 259:270
 aspect route0 @2-B0@ 0:270 197:0 255:270 257:0 315:270
 aspect route0 @3-B0@ 0:270 253:0 761:270
 aspect route0 @4-B0@ 0:270 661:0 1029:270
-aspect route0 @5-B0@ 0:270 400:0 1109:270
+aspect route0 @5-B0@ 0:270 400:0 1001:270 1002:0 1109:270
 aspect route0 @6-B0@ 0:270 1085:0 1167:270
 aspect route0 @7-B0@ 0:270 1140:0
 result F1-1 A planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a

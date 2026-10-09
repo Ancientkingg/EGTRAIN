@@ -4689,9 +4689,18 @@ bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
 // for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 	for (const auto& inc : simulationIncidents) {
-		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds
-				|| (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds))
+		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds)
 			continue;
+		if (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds) {
+			// The aspects a failure set are only cleared for sections in BlocksConnected,
+			// which a train puts there when it leaves a section. Nothing enters a failed
+			// section, so hand it over for release on the first step after the failure.
+			if (timestepIndex - 1 <= inc.endSeconds)
+				for (const auto& secID : inc.resolvedSectionIDs)
+					if (std::find(BlocksConnected.begin(), BlocksConnected.end(), secID) == BlocksConnected.end())
+						BlocksConnected.push_back(secID);
+			continue;
+		}
 		for (const auto& secID : inc.resolvedSectionIDs) {
 			bool occupied = false;
 			for (const auto& occ : BlocksOccupied) {

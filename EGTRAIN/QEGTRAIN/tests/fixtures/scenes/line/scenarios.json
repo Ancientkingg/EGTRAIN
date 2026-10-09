@@ -34,6 +34,55 @@
                 }
             ],
             "name": "Signal failure reverse"
+        },
+        {
+            "entrance_delays": [],
+            "id": "signal-failure-adjacent",
+            "incidents": [
+                {
+                    "end_seconds": 1000.0,
+                    "id": "inc.adj.a",
+                    "start_seconds": 400.0,
+                    "target": "4-B0",
+                    "type": "signal_failure"
+                },
+                {
+                    "end_seconds": 1000.0,
+                    "id": "inc.adj.b",
+                    "start_seconds": 400.0,
+                    "target": "5-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure adjacent"
+        },
+        {
+            "entrance_delays": [],
+            "id": "signal-failure-last",
+            "incidents": [
+                {
+                    "end_seconds": 1000.0,
+                    "id": "inc.last",
+                    "start_seconds": 400.0,
+                    "target": "7-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure last"
+        },
+        {
+            "entrance_delays": [],
+            "id": "signal-failure-first",
+            "incidents": [
+                {
+                    "end_seconds": 400.0,
+                    "id": "inc.first",
+                    "start_seconds": 0.0,
+                    "target": "0-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure first"
         }
     ]
 }
