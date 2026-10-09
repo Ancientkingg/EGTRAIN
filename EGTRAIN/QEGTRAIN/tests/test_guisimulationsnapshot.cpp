@@ -481,6 +481,47 @@ int main() {
 			&& history.atOrBefore(35)->trains.front().description == "renamed" && history.atOrBefore(25)->trains.front().description == "train 0",
 		"a layout leaked into a frame of another");
 
+	// A change of any one field that is stored once per layout starts a new layout, and both
+	// frames come back as recorded. A field that is missing from the comparison would be restored
+	// from the layout of the first frame.
+	{
+		struct StaticChange {
+			const char* name;
+			void (*apply)(GuiSimulationSnapshot&);
+		};
+		const StaticChange changes[] = {
+			{"train index", [](GuiSimulationSnapshot& s) { s.trains[1].index += 10; }},
+			{"train id", [](GuiSimulationSnapshot& s) { s.trains[1].id += 1.0; }},
+			{"train type", [](GuiSimulationSnapshot& s) { s.trains[1].type += "x"; }},
+			{"train description", [](GuiSimulationSnapshot& s) { s.trains[1].description += "x"; }},
+			{"train operating code", [](GuiSimulationSnapshot& s) { s.trains[1].operatingCode += "x"; }},
+			{"train service", [](GuiSimulationSnapshot& s) { s.trains[1].serviceId += "x"; }},
+			{"train wagon count", [](GuiSimulationSnapshot& s) { s.trains[1].wagonCount += 1; }},
+			{"train length", [](GuiSimulationSnapshot& s) { s.trains[1].length += 1.0; }},
+			{"train departure time", [](GuiSimulationSnapshot& s) { s.trains[1].departureTime += 1; }},
+			{"train capacity", [](GuiSimulationSnapshot& s) { s.trains[1].maxOnboardPassengers += 1; }},
+			{"signal section", [](GuiSimulationSnapshot& s) { s.signalStates[2].sectionId += "x"; }},
+			{"signal direction", [](GuiSimulationSnapshot& s) { s.signalStates[2].reversedDirection = !s.signalStates[2].reversedDirection; }},
+			{"section id", [](GuiSimulationSnapshot& s) { s.sectionStates[2].sectionId += "x"; }},
+			{"platform station", [](GuiSimulationSnapshot& s) { s.platforms[1].stationId += "x"; }},
+			{"platform id", [](GuiSimulationSnapshot& s) { s.platforms[1].platformId += "x"; }},
+			{"platform capacity", [](GuiSimulationSnapshot& s) { s.platforms[1].maxVolume += 1; }},
+		};
+		for (const StaticChange& change : changes) {
+			GuiReplayHistory single;
+			GuiSimulationSnapshot before = sampleSnapshot(0, 3, 40);
+			GuiSimulationSnapshot after = sampleSnapshot(5, 3, 40);
+			change.apply(after);
+			single.record(shared(before));
+			single.record(shared(after));
+			const bool restored = single.size() == 2 && sameSnapshot(*single.atOrBefore(0), before) && sameSnapshot(*single.atOrBefore(5), after);
+			if (!restored || single.layoutCount() != 2) {
+				std::cerr << "a change of the " << change.name << " was not kept by the replay\n";
+				return 1;
+			}
+		}
+	}
+
 	// The accounted bytes grow with every frame and are close to what the history holds.
 	history.clear();
 	const std::size_t heapBefore = liveHeapBytes;
