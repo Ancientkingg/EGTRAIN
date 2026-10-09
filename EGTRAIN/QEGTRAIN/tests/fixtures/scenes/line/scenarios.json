@@ -58,6 +58,27 @@
         },
         {
             "entrance_delays": [],
+            "id": "signal-failure-staggered",
+            "incidents": [
+                {
+                    "end_seconds": 700.0,
+                    "id": "inc.stag.a",
+                    "start_seconds": 400.0,
+                    "target": "4-B0",
+                    "type": "signal_failure"
+                },
+                {
+                    "end_seconds": 1000.0,
+                    "id": "inc.stag.b",
+                    "start_seconds": 400.0,
+                    "target": "5-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure staggered"
+        },
+        {
+            "entrance_delays": [],
             "id": "signal-failure-last",
             "incidents": [
                 {

@@ -191,13 +191,7 @@ const struct {
 	{"sf-first-level-0", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
 	{"sf-first-level-1", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
 	{"sf-first-level-2", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
-	{"sf-forward-level-1", "#437 F2 stays at 14 km from 1240 s to the end of the run"},
-	{"sf-forward-level-2", "#437 F2 stays at 14 km from 1240 s to the end of the run"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
-	{"sf-last-level-1", "#437 F2 stays at 14 km from 1119 s to the end of the run"},
-	{"sf-last-level-2", "#437 F2 stays at 14 km from 1119 s to the end of the run"},
-	{"sf-reverse-level-1", "#437 R2 stays at 14 km from 1240 s to the end of the run"},
-	{"sf-reverse-level-2", "#437 R2 stays at 14 km from 1240 s to the end of the run"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
 };
 
@@ -221,6 +215,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"sf-forward", "signal-failure-forward", {"F1", "F2"}, 5},
 		{"sf-reverse", "signal-failure-reverse", {"R1", "R2"}, 5},
 		{"sf-adjacent", "signal-failure-adjacent", {"F1", "F2"}, 2},
+		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2},
 		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2},
 		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2},
 	};

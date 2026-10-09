@@ -4481,6 +4481,10 @@ void relLastSectionMixedSignalling(string blockID) {
 		for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
 			// check if route contains this signalling_block_sections
 			if (train_route[r].sequence_of_block_sections[b].ID == blockID) {
+				// The state and the speed limit of the sections behind only clear for a section in
+				// BlocksConnected, where a train puts the section it leaves when it enters the next
+				// one. A train that leaves the route enters no next section.
+				releaseLastBlockAndConnected(train_route[r].sequence_of_block_sections[b]);
 				if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 0) {
 					relAtbMixedSignalling(train_route[r].sequence_of_block_sections, b);
 				} else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 1) {
