@@ -33,7 +33,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar` |
 | `diagrams/` | Chart windows: `DiagramWindow`, `BlockingTimeDiagram` |
 | `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
-| `util/` | Cross-cutting helpers and the logger: `Util`, `TimeUtil`, `TrajectoryUtil`, `portability`, `Logger`, `SpeedFormat`, `TimeFormat` |
+| `util/` | Cross-cutting helpers and the logger: `Util`, `TimeUtil`, `TrajectoryUtil`, `portability`, `Log`, `Logger`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `ReleaseInfo`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
 | `tests/` | Unit tests |
