@@ -88,6 +88,11 @@ static bool checkIdle() {
 	ok &= expect(rig.camera.running(), "a glide starts the timer");
 	rig.camera.stop();
 	ok &= expect(!rig.camera.running() && !rig.camera.hasTarget(), "stop ends the timer and forgets the target");
+	rig.camera.follow(QPointF(1000.0, 1000.0), true);
+	rig.camera.follow(QPointF(1100.0, 1000.0), false);
+	rig.camera.stop();
+	rig.camera.tick();
+	ok &= expect(!rig.camera.running(), "a tick after stop leaves the timer stopped");
 	return ok;
 }
 
@@ -104,6 +109,17 @@ static bool checkSnap() {
 	rig.camera.follow(first, false);
 	ok &= expect(distance(centerOf(rig.view), first) <= 3.0 * pixelOf(rig.view), "the first target after stop moves the view at once");
 	ok &= expect(!rig.camera.running(), "the first target leaves no timer running");
+
+	// A snap to a target well inside the visible scene (consecutive replay frames) does not glide.
+	rig.camera.stop();
+	const QPointF a(2000.0, 1000.0);
+	rig.camera.follow(a, true);
+	rig.camera.follow(a + QPointF(80.0, 0.0), false);
+	ok &= expect(rig.camera.running(), "a near target starts a glide");
+	const QPointF c = a + QPointF(0.0, 100.0);
+	rig.camera.follow(c, true);
+	ok &= expect(distance(centerOf(rig.view), c) <= 3.0 * pixelOf(rig.view), "a snap to a near target moves the view at once");
+	ok &= expect(!rig.camera.running(), "a snap to a near target stops the glide");
 	return ok;
 }
 

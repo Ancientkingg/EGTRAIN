@@ -18,9 +18,9 @@
 // capped to a fraction of the visible scene, and the timer stops when the target is reached
 // or the view cannot get closer to it. A snap moves the view at once.
 //
-// The controller starts from the real centre of the view after every move, so a pan, a zoom
-// or a resize by the user is adopted as the new starting point and the next glide returns
-// from there.
+// The controller reads the real centre back after every move to detect a clamped axis, and
+// adopts the centre after a pan, a zoom or a resize by the user as the new starting point, so
+// the next glide returns from there.
 class FollowCamera : public QObject {
 	Q_OBJECT
 
