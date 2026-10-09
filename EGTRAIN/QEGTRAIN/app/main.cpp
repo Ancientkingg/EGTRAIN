@@ -120,26 +120,26 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	}
 
-	// Traffic State Monitoring (share on port 5555 if enabled)
+	// Traffic state: send it to tcp://127.0.0.1:5555 if enabled
 	if (cmdOptionEntered(argv, argv + argc, "-TSM")) {
 		char* argument = getCmdOption(argv, argv + argc, "-TSM");
 		if (argument) {
 			initial_variables.TSM = std::atoi(argument);
 		}
 	} else if (promptForMissingOptions) {
-		std::cout << "Do you want EGTRAIN to share the traffic state at port 5555 (1:share , 0 :do not share)?  :";
+		std::cout << "Do you want EGTRAIN to send the traffic state to an external module that listens on port 5555 (1: send, 0: do not send)?  :";
 		std::cin >> initial_variables.TSM;
 	} else {
 		initial_variables.TSM = 0;
 	}
-	// RTTP (receive on port 5556 if enabled)
+	// Route choice: send the passengers' state to tcp://127.0.0.1:5556 if enabled
 	if (cmdOptionEntered(argv, argv + argc, "-RC")) {
 		char* argument = getCmdOption(argv, argv + argc, "-RC");
 		if (argument) {
 			initial_variables.RChoice = std::atoi(argument);
 		}
 	} else if (promptForMissingOptions) {
-		std::cout << "Do you want EGTRAIN to share passengers' state with the Route Choice at port 5556 (1:share , 0 :do not share)?  :";
+		std::cout << "Do you want EGTRAIN to send the passengers' route choice requests to an external module that listens on port 5556 (1: send, 0: do not send)?  :";
 		std::cin >> initial_variables.RChoice;
 	} else {
 		initial_variables.RChoice = 0;
