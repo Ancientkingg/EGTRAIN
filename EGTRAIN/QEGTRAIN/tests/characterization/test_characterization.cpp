@@ -210,7 +210,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		const char* prefix;
 		const char* scenario;
 		std::vector<std::string> services;
-		int lastLevel; // The last level run besides "none".
+		int lastLevel; // The last level run besides "none"; -1 runs "none" only.
 	} groups[] = {
 		{"follow", "baseline", {"F1", "F2"}, 5},
 		{"sf-forward", "signal-failure-forward", {"F1", "F2"}, 5},
@@ -219,6 +219,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2},
 		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2},
 		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2},
+		{"sf-entered", "signal-failure-entered", {"F1", "F2"}, -1},
 		{"same-entry", "baseline", {"T1", "F1"}, 5},
 	};
 	for (const auto& group : groups) {
