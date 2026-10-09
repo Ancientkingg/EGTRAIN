@@ -36,7 +36,7 @@ The saved file holds the inputs of the case. It holds neither results nor the se
 
 1. Choose **Editors > Services**. The panel **Services** opens with the tabs **Service and timetable** and **Run occurrences**. Choosing the entry while the panel is showing hides it. You can use the panel only while no run is active.
 2. On **Service and timetable**, read **Composition**, **Route** (the entry that ends in `[route32]`), **Entry Time (s)**, **Repeat Headway (s)**, **Configured total**, **Running performance (parameter) %** and **Maximum speed restriction km/h**. A field beside a check box works only while its box is checked.
-3. Read the table **Timetable stops**: **Timetable stops (station)**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**. Switch **Planned time display** between **Elapsed offsets (s)** and **Clock time**. This changes how the times are shown, not the case. Neither stop names a platform.
+3. Read the table **Timetable stops**: **Timetable stops (station)**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**. Switch **Planned time display** between **Elapsed offsets (s)** and **Clock time**. This changes how the times are shown, not the case. Leave it on **Elapsed offsets (s)**. Neither stop names a platform.
 4. A click on a row of the table opens the dialog **Edit timetable stop**. Choose **Cancel** unless you mean to change the stop.
 5. Open the tab **Run occurrences**. The text above the table starts with "Configured total: 4; Number of services in sim.: 4; Selected: 4; Selected in period: 4." The table has the columns **Include**, **Service code (number)**, **Generated service**, **Scheduled entry**, **Running performance (parameter) %** and **Maximum speed restriction (km/h)**.
 6. Choose **Editors > Case Settings** and read **Base time** and **Duration / horizon (s)**. Do not change them.
@@ -88,7 +88,7 @@ Explain whether the changed delay comes from faster movement, a changed target o
 
 1. On **Run occurrences**, click **Select all**. The text contains "Selected: 4" and "Selected in period: 4". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
 2. Run as in steps 2 and 3 of task 2. **Selected in period** in **Run simulation** is 4.
-3. Open **Timetable** and keep all four runs ticked in **Trains**. Check that the planned times shift by 30 minutes from run to run, that both stops of every run have simulated times, and that the **End time (s)** of every run in **Run Results** is earlier than 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
+3. Open **Timetable**. Its train filter button reads **Trains (4/4)** while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (s)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
 4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
 Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (s)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.
@@ -96,7 +96,7 @@ Report results per run. The **Network total** row spans from the earliest start 
 ### 6. Recommend and hand in
 
 1. Choose a configuration: the performance, the `Hvs` planned times and the number of runs.
-2. Set the open case to that configuration and choose **File > Save Case Study As...** with a new file name. The copy from the start stays as it was.
+2. Set the open case to that configuration and choose **File > Save Case Study As...** with a new file name. The file keeps **Configured total** from **Service and timetable**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
 3. To check your file, choose **File > Open Case Study...** and select it. Check the performance and the `Hvs` times on **Service and timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
 
 Hand in:
