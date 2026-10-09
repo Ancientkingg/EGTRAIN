@@ -1068,7 +1068,7 @@ static bool runSectionValueChecks() {
 	source = alias;
 	ok &= expect(sameSection(source, reference), "a section assigned to itself keeps its members, arcs and detection sections");
 
-	// The first half of a double switch has the virtual signal at its end.
+	// A section with the flag at its end node only, as the first half of a double switch has it in a route that runs forward.
 	Section firstHalf, assignedHalf;
 	fillSection(firstHalf, nodes, &tds);
 	firstHalf.start_node.virtualSignal = false;
