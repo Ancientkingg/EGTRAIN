@@ -238,7 +238,9 @@ the Qt and vcpkg variables from the environment and leaves only the Windows
 directories on `PATH`, so a DLL or plugin that is missing from the package
 fails the launch. It starts the packaged program twice: headless on Paimpol to
 the end of a 120 s run, and with a window in startup timing mode, where the
-program opens the scene, prepares a run, paints it and exits.
+program opens the scene, prepares a run, paints it and exits. Before the
+launches it fails when a file of the package is an OpenMP runtime library or
+names one (`vcomp140.dll` on Windows): the package ships none.
 
 ### Windows image size
 

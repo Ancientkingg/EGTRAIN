@@ -1013,6 +1013,8 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_pe_image_size
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_image_size.py)
+	add_test(NAME test_package_start_smoke
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_package_start_smoke.py)
 	# A 32-bit configure stops with the message that names the supported platform.
 	if(WIN32 AND CMAKE_GENERATOR MATCHES "Visual Studio")
 		add_test(NAME test_win32_configure_rejected
@@ -1055,7 +1057,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
 		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version
 		test_ci_workflow test_signalling_bounds test_windows_subsystem_config test_raii_contract
-		test_ownership_inventory test_measure_peak_rss test_pe_image_size)
+		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
