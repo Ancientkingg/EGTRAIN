@@ -167,102 +167,138 @@ foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtra
         AUTOMOC OFF AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
 endforeach()
 
-# --- Sources ---
-set(EGTRAIN_SOURCES
-    ${SRC_DIR}/graphics/items/ConnectionItem.cpp
-    ${SRC_DIR}/widgets/ConsoleWidget.cpp
-    ${SRC_DIR}/widgets/AboutDialog.cpp
-    ${SRC_DIR}/app/DispatchController.cpp
-    ${SRC_DIR}/widgets/InfoDockWidget.cpp
-    ${SRC_DIR}/app/main.cpp
-    ${SRC_DIR}/app/MainWindow.cpp
-    ${SRC_DIR}/graphics/items/HighlightEffect.cpp
-    ${SRC_DIR}/graphics/items/NodeItem.cpp
-    ${SRC_DIR}/graphics/items/TrackLineItem.cpp
-    ${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
-    ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
-    ${SRC_DIR}/widgets/ColorChoiceButton.cpp
-    ${SRC_DIR}/graphics/items/IconItem.cpp
-    ${SRC_DIR}/graphics/items/StationNodeItem.cpp
-    ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
+# --- Qt libraries ---
+# Each source is compiled once, as for the model libraries. These libraries have Q_OBJECT
+# classes, so AUTOMOC stays on. A target that uses one class of a library also gets the other
+# classes of that library, because their moc code is in one object. None depends on MainWindow.
+add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/NetworkScene.cpp
     ${SRC_DIR}/graphics/NetworkView.cpp
+    ${SRC_DIR}/graphics/VisualPolish.cpp
+    ${SRC_DIR}/graphics/items/ConnectionItem.cpp
+    ${SRC_DIR}/graphics/items/HighlightEffect.cpp
+    ${SRC_DIR}/graphics/items/IconItem.cpp
+    ${SRC_DIR}/graphics/items/NodeItem.cpp
     ${SRC_DIR}/graphics/items/PassengerItem.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
     ${SRC_DIR}/graphics/items/SignalItem.cpp
-    ${SRC_DIR}/simulation/SimulationWorker.cpp
-	${SRC_DIR}/update/ReleaseInfo.cpp
-	${SRC_DIR}/update/UpdateChecker.cpp
-	${SRC_DIR}/update/UpdateSettings.cpp
-    ${SRC_DIR}/telemetry/TelemetryConsent.cpp
-    ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
-    ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-    ${SRC_DIR}/telemetry/TelemetryQueue.cpp
-    ${SRC_DIR}/telemetry/TelemetrySender.cpp
-    ${SRC_DIR}/telemetry/TelemetryOperation.cpp
-	${SRC_DIR}/update/UpdatePreparation.cpp
-	${SRC_DIR}/update/SelfUpdater.cpp
-	${SRC_DIR}/widgets/TimeProgressBar.cpp
-    ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
+    ${SRC_DIR}/graphics/items/StationNodeItem.cpp
+    ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
+    ${SRC_DIR}/graphics/items/TrackLineItem.cpp
+    ${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
     ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
-    ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
+    ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
+    ${SRC_DIR}/graphics/items/VirtualArcItem.cpp)
+target_link_libraries(egtrain_graphics
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
+
+add_library(egtrain_widgets STATIC
+    ${SRC_DIR}/widgets/AboutDialog.cpp
+    ${SRC_DIR}/widgets/ColorChoiceButton.cpp
+    ${SRC_DIR}/widgets/ConsoleWidget.cpp
+    ${SRC_DIR}/widgets/InfoDockWidget.cpp
+    ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
+    ${SRC_DIR}/widgets/TimeProgressBar.cpp)
+target_link_libraries(egtrain_widgets
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_graphics egtrain_util)
+
+# The update code that both the application and a test use. UpdateChecker and SelfUpdater belong
+# to the application alone.
+add_library(egtrain_update STATIC
+    ${SRC_DIR}/update/ReleaseInfo.cpp
+    ${SRC_DIR}/update/UpdatePreparation.cpp
+    ${SRC_DIR}/update/UpdateSettings.cpp)
+target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
+
+# The test hooks change the layout of TelemetrySender, TelemetryConsent and TelemetryQueue, so a
+# build with hooks compiles the same sources again, by design:
+#   egtrain_telemetry        no hooks: the application and the diagram window tests
+#   egtrain_telemetry_hooks  all hooks: the telemetry tests (tests only)
+#   egtrain_telemetry_smoke  the sender hook: the application in the isolated smoke build
+# A target links exactly one of them.
+set(EGTRAIN_TELEMETRY_SOURCES
+    ${SRC_DIR}/telemetry/TelemetryConsent.cpp
+    ${SRC_DIR}/telemetry/TelemetryEvent.cpp
+    ${SRC_DIR}/telemetry/TelemetryOperation.cpp
+    ${SRC_DIR}/telemetry/TelemetryQueue.cpp
+    ${SRC_DIR}/telemetry/TelemetrySender.cpp)
+set(EGTRAIN_TELEMETRY_LIBS egtrain_telemetry)
+add_library(egtrain_telemetry STATIC ${EGTRAIN_TELEMETRY_SOURCES})
+if(EGTRAIN_BUILD_TESTS)
+    add_library(egtrain_telemetry_hooks STATIC ${EGTRAIN_TELEMETRY_SOURCES})
+    target_compile_definitions(egtrain_telemetry_hooks PUBLIC
+        EGTRAIN_SENDER_TEST_HOOK=1 EGTRAIN_CONSENT_TEST_HOOK=1 EGTRAIN_TELEMETRY_TEST_HOOK=1)
+    list(APPEND EGTRAIN_TELEMETRY_LIBS egtrain_telemetry_hooks)
+endif()
+if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
+    add_library(egtrain_telemetry_smoke STATIC ${EGTRAIN_TELEMETRY_SOURCES})
+    target_compile_definitions(egtrain_telemetry_smoke PUBLIC EGTRAIN_SENDER_TEST_HOOK=1)
+    list(APPEND EGTRAIN_TELEMETRY_LIBS egtrain_telemetry_smoke)
+endif()
+foreach(egtrain_lib ${EGTRAIN_TELEMETRY_LIBS})
+    target_link_libraries(${egtrain_lib} PUBLIC Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets)
+endforeach()
+
+# The application, test_simulationworker and test_characterization run the simulation through these.
+# They need `Logger owl` from the target, like egtrain_sim.
+add_library(egtrain_dispatch STATIC
+    ${SRC_DIR}/app/DispatchController.cpp
+    ${SRC_DIR}/simulation/SimulationWorker.cpp)
+target_link_libraries(egtrain_dispatch
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_railml egtrain_sim)
+
+# The windows call telemetry::OperationObservation, whose symbols do not depend on the hooks.
+# A target that links this library also links one telemetry library.
+add_library(egtrain_diagrams STATIC
+    ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
+    ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
-    ${SRC_DIR}/diagrams/TrainFilterButton.cpp
-    ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
-    ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
-    ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
+    ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
-    ${SRC_DIR}/graphics/VisualPolish.cpp
+    ${SRC_DIR}/diagrams/TrainFilterButton.cpp)
+target_link_libraries(egtrain_diagrams
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets Qt5::Charts egtrain_sim)
+
+foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update ${EGTRAIN_TELEMETRY_LIBS}
+        egtrain_dispatch egtrain_diagrams)
+    target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
+    set_target_properties(${egtrain_lib} PROPERTIES
+        AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
+endforeach()
+
+# --- Sources ---
+set(EGTRAIN_SOURCES
+    ${SRC_DIR}/app/main.cpp
+    ${SRC_DIR}/app/MainWindow.cpp
+    ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
+    ${SRC_DIR}/update/SelfUpdater.cpp
+    ${SRC_DIR}/update/UpdateChecker.cpp
 )
 
 set(EGTRAIN_HEADERS
-    ${SRC_DIR}/graphics/items/ConnectionItem.h
-    ${SRC_DIR}/widgets/ConsoleWidget.h
-    ${SRC_DIR}/widgets/AboutDialog.h
     ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/widgets/ChoiceComboBox.h
-    ${SRC_DIR}/app/DispatchController.h
-    ${SRC_DIR}/widgets/InfoDockWidget.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/io/RailMLParser.h
     ${SRC_DIR}/app/MainWindow.h
-    ${SRC_DIR}/graphics/items/HighlightEffect.h
-    ${SRC_DIR}/graphics/items/NodeItem.h
-    ${SRC_DIR}/graphics/items/TrackLineItem.h
-    ${SRC_DIR}/graphics/items/TrainBadgeItem.h
-    ${SRC_DIR}/widgets/NetworkLegendWidget.h
-    ${SRC_DIR}/widgets/ColorChoiceButton.h
-    ${SRC_DIR}/graphics/items/IconItem.h
-    ${SRC_DIR}/graphics/items/StationNodeItem.h
-    ${SRC_DIR}/graphics/items/StationOverlayItem.h
-    ${SRC_DIR}/graphics/NetworkScene.h
-    ${SRC_DIR}/graphics/NetworkView.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Logger.hpp
     ${SRC_DIR}/util/PlaybackProfiler.h
-    ${SRC_DIR}/graphics/items/PassengerItem.h
     ${SRC_DIR}/simulation/Passengers.h
-    ${SRC_DIR}/graphics/items/PlatformItem.h
     ${SRC_DIR}/util/portability.h
     ${SRC_DIR}/simulation/RollingStock.h
     ${SRC_DIR}/simulation/Signalling.h
-    ${SRC_DIR}/graphics/items/SignalItem.h
     ${SRC_DIR}/simulation/Simulation.h
-    ${SRC_DIR}/simulation/SimulationWorker.h
     ${SRC_DIR}/util/TimeFormat.h
     ${SRC_DIR}/util/Version.h
-	${SRC_DIR}/update/ReleaseInfo.h
 	${SRC_DIR}/update/UpdateChecker.h
-	${SRC_DIR}/update/UpdateSettings.h
-    ${SRC_DIR}/telemetry/TelemetryConsent.h
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.h
-	${SRC_DIR}/update/UpdatePreparation.h
 	${SRC_DIR}/update/SelfUpdater.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
@@ -275,24 +311,11 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/scene/SceneImporter.h
 	${SRC_DIR}/scene/SceneWriter.h
 	${SRC_DIR}/scene/TrackPreview.h
-	${SRC_DIR}/widgets/TimeProgressBar.h
     ${SRC_DIR}/util/timeutil.hpp
-    ${SRC_DIR}/graphics/items/TrainItemGroup.h
-    ${SRC_DIR}/graphics/items/TrainBodyItem.h
     ${SRC_DIR}/util/Util.hpp
-    ${SRC_DIR}/graphics/items/VirtualArcItem.h
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/util/CsvWriter.h
-    ${SRC_DIR}/diagrams/DiagramWindow.h
-    ${SRC_DIR}/diagrams/RouteReferenceChoice.h
-    ${SRC_DIR}/diagrams/TrainFilterButton.h
-    ${SRC_DIR}/diagrams/TimetableTableWindow.h
-    ${SRC_DIR}/diagrams/RunResults.h
     ${SRC_DIR}/util/TrajectoryUtil.h
-    ${SRC_DIR}/diagrams/BlockingTimeDiagram.h
-    ${SRC_DIR}/diagrams/CapacityAnalysis.h
-    ${SRC_DIR}/diagrams/TractionCurve.h
-    ${SRC_DIR}/graphics/VisualPolish.h
     ${SRC_DIR}/scene/SceneExporter.h
 )
 
@@ -336,7 +359,21 @@ target_include_directories(QEGTRAIN PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}                    # fallback for generated files
 )
 
+# The isolated telemetry smoke build compiles the sender test hook into the application, so it
+# links the telemetry library that has that hook.
+if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
+    set(EGTRAIN_APP_TELEMETRY egtrain_telemetry_smoke)
+else()
+    set(EGTRAIN_APP_TELEMETRY egtrain_telemetry)
+endif()
+
 target_link_libraries(QEGTRAIN PRIVATE
+    egtrain_dispatch
+    egtrain_diagrams
+    egtrain_widgets
+    egtrain_graphics
+    ${EGTRAIN_APP_TELEMETRY}
+    egtrain_update
     egtrain_railml
     egtrain_sim
     egtrain_scene
@@ -389,6 +426,8 @@ endif()
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
     set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
+        egtrain_graphics egtrain_widgets egtrain_update egtrain_dispatch egtrain_diagrams
+        ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
 else()
@@ -411,7 +450,7 @@ set_target_properties(scene_tool PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_sources(QEGTRAIN PRIVATE ${SRC_DIR}/app/TelemetrySmokeSupport.cpp)
-    target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_SENDER_TEST_HOOK=1 EGTRAIN_ISOLATED_TELEMETRY_SMOKE=1)
+    target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_ISOLATED_TELEMETRY_SMOKE=1)
 endif()
 if(EGTRAIN_BUILD_TESTS)
     target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_BUILD_TESTS=1)
@@ -420,10 +459,8 @@ else()
 endif()
 if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
     enable_testing()
-    add_executable(test_updatepreparation
-        ${SRC_DIR}/tests/test_updatepreparation.cpp
-        ${SRC_DIR}/update/UpdatePreparation.cpp)
-    target_link_libraries(test_updatepreparation PRIVATE Qt5::Core)
+    add_executable(test_updatepreparation ${SRC_DIR}/tests/test_updatepreparation.cpp)
+    target_link_libraries(test_updatepreparation PRIVATE egtrain_update Qt5::Core)
     add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
 
     # Stand-ins for an installed application, which the update helper test installs and relaunches.
@@ -462,54 +499,30 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_version PRIVATE egtrain_util)
     add_test(NAME test_version COMMAND test_version)
 
+    # The telemetry tests link egtrain_telemetry_hooks, which defines the test hooks for them.
+    # The dialog is compiled here, with the hooks, and in the application, without.
     add_executable(test_telemetryconsent
         ${SRC_DIR}/tests/test_telemetryconsent.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsent.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
-        ${SRC_DIR}/update/UpdateSettings.cpp)
-    target_compile_definitions(test_telemetryconsent PRIVATE EGTRAIN_CONSENT_TEST_HOOK=1)
-    target_link_libraries(test_telemetryconsent PRIVATE Qt5::Widgets)
+        ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp)
+    target_link_libraries(test_telemetryconsent PRIVATE egtrain_telemetry_hooks egtrain_update Qt5::Widgets)
     add_test(NAME test_telemetryconsent COMMAND test_telemetryconsent)
     set_tests_properties(test_telemetryconsent PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_telemetryqueue
-        ${SRC_DIR}/tests/test_telemetryqueue.cpp
-        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-        ${SRC_DIR}/telemetry/TelemetryQueue.cpp)
-    target_compile_definitions(test_telemetryqueue PRIVATE EGTRAIN_TELEMETRY_TEST_HOOK=1)
-    target_link_libraries(test_telemetryqueue PRIVATE Qt5::Core)
+    add_executable(test_telemetryqueue ${SRC_DIR}/tests/test_telemetryqueue.cpp)
+    target_link_libraries(test_telemetryqueue PRIVATE egtrain_telemetry_hooks Qt5::Core)
     add_test(NAME test_telemetryqueue COMMAND test_telemetryqueue)
 
-    add_executable(test_telemetrysender
-        ${SRC_DIR}/tests/test_telemetrysender.cpp
-        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
-        ${SRC_DIR}/telemetry/TelemetrySender.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
-    target_compile_definitions(test_telemetrysender PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
-    target_link_libraries(test_telemetrysender PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
+    add_executable(test_telemetrysender ${SRC_DIR}/tests/test_telemetrysender.cpp)
+    target_link_libraries(test_telemetrysender PRIVATE egtrain_telemetry_hooks Qt5::Core Qt5::Gui Qt5::Network)
     add_test(NAME test_telemetrysender COMMAND test_telemetrysender)
 
-    add_executable(test_telemetryoperations
-        ${SRC_DIR}/tests/test_telemetryoperations.cpp
-        ${SRC_DIR}/telemetry/TelemetryOperation.cpp
-        ${SRC_DIR}/telemetry/TelemetrySender.cpp
-        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
-    target_compile_definitions(test_telemetryoperations PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
-    target_link_libraries(test_telemetryoperations PRIVATE Qt5::Widgets Qt5::Network)
+    add_executable(test_telemetryoperations ${SRC_DIR}/tests/test_telemetryoperations.cpp)
+    target_link_libraries(test_telemetryoperations PRIVATE egtrain_telemetry_hooks Qt5::Widgets Qt5::Network)
     add_test(NAME test_telemetryoperations COMMAND test_telemetryoperations)
     set_tests_properties(test_telemetryoperations PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_telemetrynetwork
-        ${SRC_DIR}/tests/test_telemetrynetwork.cpp
-        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
-        ${SRC_DIR}/telemetry/TelemetrySender.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsent.cpp)
-    target_compile_definitions(test_telemetrynetwork PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
-    target_link_libraries(test_telemetrynetwork PRIVATE Qt5::Core Qt5::Gui Qt5::Network)
+    add_executable(test_telemetrynetwork ${SRC_DIR}/tests/test_telemetrynetwork.cpp)
+    target_link_libraries(test_telemetrynetwork PRIVATE egtrain_telemetry_hooks Qt5::Core Qt5::Gui Qt5::Network)
     # Qt 5.15 loads OpenSSL 1.1 at run time. Windows does not provide it, so Qt has no TLS there.
     if(NOT WIN32)
         foreach(mode reject trusted)
@@ -527,11 +540,8 @@ if(EGTRAIN_BUILD_TESTS)
         message(STATUS "Windows: skipping test_telemetrynetwork_reject and test_telemetrynetwork_trusted (no TLS library for Qt 5.15)")
     endif()
 
-    add_executable(test_updatechecker
-        ${SRC_DIR}/tests/test_updatechecker.cpp
-        ${SRC_DIR}/update/ReleaseInfo.cpp
-        ${SRC_DIR}/update/UpdateSettings.cpp)
-    target_link_libraries(test_updatechecker PRIVATE egtrain_util Qt5::Core Qt5::Network)
+    add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
+    target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt5::Core Qt5::Network)
     add_test(NAME test_updatechecker COMMAND test_updatechecker)
 
     add_executable(test_updatestaging
@@ -556,116 +566,61 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_trajectory PRIVATE egtrain_util)
     add_test(NAME test_trajectory COMMAND test_trajectory)
 
-    add_executable(test_runresults
-        ${SRC_DIR}/tests/test_runresults.cpp
-        ${SRC_DIR}/diagrams/RunResults.cpp)
-    target_link_libraries(test_runresults PRIVATE egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    add_executable(test_runresults ${SRC_DIR}/tests/test_runresults.cpp)
+    target_link_libraries(test_runresults PRIVATE egtrain_diagrams egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     add_test(NAME test_runresults COMMAND test_runresults)
 
-    add_executable(test_simulationworker
-        ${SRC_DIR}/tests/test_simulationworker.cpp
-        ${SRC_DIR}/app/DispatchController.cpp
-        ${SRC_DIR}/simulation/SimulationWorker.cpp)
-    target_link_libraries(test_simulationworker PRIVATE egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    add_executable(test_simulationworker ${SRC_DIR}/tests/test_simulationworker.cpp)
+    target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     add_test(NAME test_simulationworker COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut)
 
-    add_executable(test_blockingtimediagram
-        ${SRC_DIR}/tests/test_blockingtimediagram.cpp
-        ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
+    add_executable(test_blockingtimediagram ${SRC_DIR}/tests/test_blockingtimediagram.cpp)
+    target_link_libraries(test_blockingtimediagram PRIVATE egtrain_diagrams)
     add_test(NAME test_blockingtimediagram COMMAND test_blockingtimediagram)
 
-    add_executable(test_capacityanalysis
-        ${SRC_DIR}/tests/test_capacityanalysis.cpp
-        ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
-        ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp)
+    add_executable(test_capacityanalysis ${SRC_DIR}/tests/test_capacityanalysis.cpp)
+    target_link_libraries(test_capacityanalysis PRIVATE egtrain_diagrams)
     add_test(NAME test_capacityanalysis COMMAND test_capacityanalysis)
 
-    add_executable(test_routediagramcoordinates
-        ${SRC_DIR}/tests/test_routediagramcoordinates.cpp
-        ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp)
-    target_link_libraries(test_routediagramcoordinates PRIVATE egtrain_util)
+    add_executable(test_routediagramcoordinates ${SRC_DIR}/tests/test_routediagramcoordinates.cpp)
+    target_link_libraries(test_routediagramcoordinates PRIVATE egtrain_diagrams egtrain_util)
     add_test(NAME test_routediagramcoordinates COMMAND test_routediagramcoordinates)
 
-    add_executable(test_diagramwindow
-        ${SRC_DIR}/telemetry/TelemetryOperation.cpp
-        ${SRC_DIR}/telemetry/TelemetrySender.cpp
-        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsent.cpp
-        ${SRC_DIR}/tests/test_diagramwindow.cpp
-        ${SRC_DIR}/diagrams/DiagramWindow.cpp
-        ${SRC_DIR}/diagrams/TrainFilterButton.cpp)
+    add_executable(test_diagramwindow ${SRC_DIR}/tests/test_diagramwindow.cpp)
     target_include_directories(test_diagramwindow PRIVATE ${SRC_DIR})
-    target_link_libraries(test_diagramwindow PRIVATE egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    target_link_libraries(test_diagramwindow PRIVATE egtrain_diagrams egtrain_telemetry egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     target_compile_definitions(test_diagramwindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     add_test(NAME test_diagramwindow COMMAND test_diagramwindow)
     set_tests_properties(test_diagramwindow PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_timetabletablewindow
-        ${SRC_DIR}/telemetry/TelemetryOperation.cpp
-        ${SRC_DIR}/telemetry/TelemetrySender.cpp
-        ${SRC_DIR}/telemetry/TelemetryEvent.cpp
-        ${SRC_DIR}/telemetry/TelemetryQueue.cpp
-        ${SRC_DIR}/telemetry/TelemetryConsent.cpp
-        ${SRC_DIR}/tests/test_timetabletablewindow.cpp
-        ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
-        ${SRC_DIR}/diagrams/TrainFilterButton.cpp
-        ${SRC_DIR}/diagrams/RunResults.cpp)
-    target_link_libraries(test_timetabletablewindow PRIVATE egtrain_scene egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_timetabletablewindow ${SRC_DIR}/tests/test_timetabletablewindow.cpp)
+    target_link_libraries(test_timetabletablewindow PRIVATE egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets)
     target_compile_definitions(test_timetabletablewindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     add_test(NAME test_timetabletablewindow COMMAND test_timetabletablewindow)
     set_tests_properties(test_timetabletablewindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_visualpolish
-        ${SRC_DIR}/tests/test_visualpolish.cpp
-		${SRC_DIR}/graphics/items/TrainBadgeItem.cpp
-		${SRC_DIR}/graphics/items/SignalItem.cpp
-        ${SRC_DIR}/graphics/VisualPolish.cpp)
-    target_link_libraries(test_visualpolish PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_visualpolish ${SRC_DIR}/tests/test_visualpolish.cpp)
+    target_link_libraries(test_visualpolish PRIVATE egtrain_graphics Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_visualpolish COMMAND test_visualpolish)
 
-    add_executable(test_networklegend
-        ${SRC_DIR}/tests/test_networklegend.cpp
-        ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
-        ${SRC_DIR}/graphics/VisualPolish.cpp)
-    target_link_libraries(test_networklegend PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_networklegend ${SRC_DIR}/tests/test_networklegend.cpp)
+    target_link_libraries(test_networklegend PRIVATE egtrain_widgets egtrain_graphics Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_networklegend COMMAND test_networklegend)
     set_tests_properties(test_networklegend PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_stationoverlay
-        ${SRC_DIR}/tests/test_stationoverlay.cpp
-        ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
-        ${SRC_DIR}/graphics/VisualPolish.cpp
-        ${SRC_DIR}/graphics/NetworkScene.cpp
-        ${SRC_DIR}/graphics/items/NodeItem.cpp
-        ${SRC_DIR}/graphics/items/StationNodeItem.cpp
-        ${SRC_DIR}/graphics/items/TrackLineItem.cpp
-        ${SRC_DIR}/graphics/items/ConnectionItem.cpp
-        ${SRC_DIR}/graphics/items/SignalItem.cpp
-        ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
-        ${SRC_DIR}/graphics/items/PassengerItem.cpp)
+    add_executable(test_stationoverlay ${SRC_DIR}/tests/test_stationoverlay.cpp)
     target_include_directories(test_stationoverlay PRIVATE ${SRC_DIR})
-    target_link_libraries(test_stationoverlay PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    target_link_libraries(test_stationoverlay PRIVATE egtrain_graphics Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_stationoverlay COMMAND test_stationoverlay)
     set_tests_properties(test_stationoverlay PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_networkscene_selection
-        ${SRC_DIR}/tests/test_networkscene_selection.cpp
-        ${SRC_DIR}/graphics/NetworkScene.cpp
-        ${SRC_DIR}/graphics/items/NodeItem.cpp
-        ${SRC_DIR}/graphics/items/StationNodeItem.cpp
-        ${SRC_DIR}/graphics/items/TrackLineItem.cpp
-        ${SRC_DIR}/graphics/items/ConnectionItem.cpp
-        ${SRC_DIR}/graphics/items/SignalItem.cpp
-        ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
-        ${SRC_DIR}/graphics/items/PassengerItem.cpp
-        ${SRC_DIR}/graphics/VisualPolish.cpp)
+    add_executable(test_networkscene_selection ${SRC_DIR}/tests/test_networkscene_selection.cpp)
     target_link_libraries(test_networkscene_selection PRIVATE
-        Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+        egtrain_graphics Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_networkscene_selection COMMAND test_networkscene_selection)
     set_tests_properties(test_networkscene_selection PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -677,15 +632,9 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_playback_profile
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py)
 
-    add_executable(test_networkview
-        ${SRC_DIR}/tests/test_networkview.cpp
-        ${SRC_DIR}/graphics/NetworkView.cpp
-        ${SRC_DIR}/graphics/items/TrackLineItem.cpp
-        ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
-        ${SRC_DIR}/graphics/items/ConnectionItem.cpp
-        ${SRC_DIR}/graphics/VisualPolish.cpp)
+    add_executable(test_networkview ${SRC_DIR}/tests/test_networkview.cpp)
     target_include_directories(test_networkview PRIVATE ${SRC_DIR})
-    target_link_libraries(test_networkview PRIVATE egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    target_link_libraries(test_networkview PRIVATE egtrain_graphics egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_networkview COMMAND test_networkview)
     set_tests_properties(test_networkview PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -696,18 +645,13 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_compactdoublespinbox COMMAND test_compactdoublespinbox)
     set_tests_properties(test_compactdoublespinbox PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_colorchoicebutton
-        ${SRC_DIR}/tests/test_colorchoicebutton.cpp
-        ${SRC_DIR}/widgets/ColorChoiceButton.cpp
-        ${SRC_DIR}/graphics/VisualPolish.cpp)
-    target_link_libraries(test_colorchoicebutton PRIVATE egtrain_scene Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_colorchoicebutton ${SRC_DIR}/tests/test_colorchoicebutton.cpp)
+    target_link_libraries(test_colorchoicebutton PRIVATE egtrain_widgets Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_colorchoicebutton COMMAND test_colorchoicebutton)
     set_tests_properties(test_colorchoicebutton PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_aboutdialog
-        ${SRC_DIR}/tests/test_aboutdialog.cpp
-        ${SRC_DIR}/widgets/AboutDialog.cpp)
-    target_link_libraries(test_aboutdialog PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_aboutdialog ${SRC_DIR}/tests/test_aboutdialog.cpp)
+    target_link_libraries(test_aboutdialog PRIVATE egtrain_widgets Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_aboutdialog COMMAND test_aboutdialog)
     set_tests_properties(test_aboutdialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
@@ -727,18 +671,14 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_choicecombo COMMAND test_choicecombo)
     set_tests_properties(test_choicecombo PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_timeprogressbar
-        ${SRC_DIR}/tests/test_timeprogressbar.cpp
-        ${SRC_DIR}/widgets/TimeProgressBar.cpp)
-    target_link_libraries(test_timeprogressbar PRIVATE egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_timeprogressbar ${SRC_DIR}/tests/test_timeprogressbar.cpp)
+    target_link_libraries(test_timeprogressbar PRIVATE egtrain_widgets egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_timeprogressbar COMMAND test_timeprogressbar)
     set_tests_properties(test_timeprogressbar PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-	    add_executable(test_highlighteffect
-	        ${SRC_DIR}/tests/test_highlighteffect.cpp
-	        ${SRC_DIR}/graphics/items/HighlightEffect.cpp)
-	    target_link_libraries(test_highlighteffect PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+	    add_executable(test_highlighteffect ${SRC_DIR}/tests/test_highlighteffect.cpp)
+	    target_link_libraries(test_highlighteffect PRIVATE egtrain_graphics Qt5::Core Qt5::Gui Qt5::Widgets)
 	    add_test(NAME test_highlighteffect COMMAND test_highlighteffect)
 	    set_tests_properties(test_highlighteffect PROPERTIES
 	        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -747,16 +687,13 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_csvwriter PRIVATE egtrain_util)
     add_test(NAME test_csvwriter COMMAND test_csvwriter)
 
-    add_executable(test_tractioncurve
-        ${SRC_DIR}/tests/test_tractioncurve.cpp
-        ${SRC_DIR}/diagrams/TractionCurve.cpp)
+    add_executable(test_tractioncurve ${SRC_DIR}/tests/test_tractioncurve.cpp)
     target_include_directories(test_tractioncurve PRIVATE ${SRC_DIR})
+    target_link_libraries(test_tractioncurve PRIVATE egtrain_diagrams)
     add_test(NAME test_tractioncurve COMMAND test_tractioncurve)
 
-    add_executable(test_consolestream
-        ${SRC_DIR}/tests/test_consolestream.cpp
-        ${SRC_DIR}/widgets/ConsoleWidget.cpp)
-    target_link_libraries(test_consolestream PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_consolestream ${SRC_DIR}/tests/test_consolestream.cpp)
+    target_link_libraries(test_consolestream PRIVATE egtrain_widgets Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_consolestream COMMAND test_consolestream)
 
     add_test(NAME test_qt_resources
@@ -776,10 +713,8 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_routestations PRIVATE egtrain_scene)
     add_test(NAME test_routestations COMMAND test_routestations ${SRC_DIR}/Scenes)
 
-    add_executable(test_routereferencechoice
-        ${SRC_DIR}/tests/test_routereferencechoice.cpp
-        ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp)
-    target_link_libraries(test_routereferencechoice PRIVATE egtrain_scene Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_executable(test_routereferencechoice ${SRC_DIR}/tests/test_routereferencechoice.cpp)
+    target_link_libraries(test_routereferencechoice PRIVATE egtrain_diagrams egtrain_telemetry egtrain_scene Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_routereferencechoice COMMAND test_routereferencechoice ${SRC_DIR}/Scenes)
     set_tests_properties(test_routereferencechoice PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
@@ -819,11 +754,8 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_scenebuilder PRIVATE egtrain_sim)
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
-	add_executable(test_operationsbuilder
-		${SRC_DIR}/tests/test_operationsbuilder.cpp
-		${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
-		${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp)
-	target_link_libraries(test_operationsbuilder PRIVATE egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+	add_executable(test_operationsbuilder ${SRC_DIR}/tests/test_operationsbuilder.cpp)
+	target_link_libraries(test_operationsbuilder PRIVATE egtrain_diagrams egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
 	# Behaviour characterization of the simulation core (see tests/characterization).

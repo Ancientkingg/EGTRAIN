@@ -1,11 +1,7 @@
 # Behaviour characterization of the simulation core. One executable drives the
 # real DispatchController in-process; each case is its own CTest entry.
-add_executable(test_characterization
-	${SRC_DIR}/tests/characterization/test_characterization.cpp
-	${SRC_DIR}/app/DispatchController.cpp
-	${SRC_DIR}/diagrams/RunResults.cpp
-	${SRC_DIR}/simulation/SimulationWorker.cpp)
-target_link_libraries(test_characterization PRIVATE egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+add_executable(test_characterization ${SRC_DIR}/tests/characterization/test_characterization.cpp)
+target_link_libraries(test_characterization PRIVATE egtrain_dispatch egtrain_diagrams egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 
 set(EGTRAIN_CHARACTERIZATION_FIXTURE ${SRC_DIR}/tests/fixtures/scenes/line)
 set(EGTRAIN_CHARACTERIZATION_EXPECTED ${CMAKE_CURRENT_SOURCE_DIR}/expected)
