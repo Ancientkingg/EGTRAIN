@@ -106,10 +106,12 @@ void press(QComboBox* combo, int key)
 
 bool exerciseLayout(const QRect& screen, qreal scale)
 {
-    StopForm f(screen, scale, QStringLiteral("p95"));
+    StopForm f(screen, scale, choiceName(95));
     bool ok = check(f.dialog.width() <= screen.width() * 9 / 10
                         && f.dialog.height() <= screen.height() * 4 / 5,
                     "dialog exceeds the size budget");
+    ok &= check(f.platform->currentText().startsWith(QStringLiteral("Invalid: ")),
+                "layout form does not hold the invalid platform item");
     ok &= check(!f.scroll->horizontalScrollBar()->isVisible()
                     && f.scroll->horizontalScrollBar()->maximum() == 0,
                 "form needs a horizontal scroll bar");
