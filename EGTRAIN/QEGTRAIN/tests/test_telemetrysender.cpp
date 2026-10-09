@@ -81,8 +81,12 @@ static QJsonArray readDurableEvents(const QString& path) {
 	return QFile::exists(path) ? readObject(path).value(QStringLiteral("events")).toArray() : QJsonArray();
 }
 
+// Number of polls, 10 or 20 ms apart, that wait for the sender thread. A busy machine that runs other tests at the
+// same time can take seconds to schedule that thread, so the limit is at least the 3 s of the semaphore waits below.
+constexpr int kPollsPerWait = 300;
+
 static bool waitForGate(telemetry::TelemetrySender& sender, const telemetry::TelemetryEventInput& input) {
-	for (int i = 0; i < 100; ++i) {
+	for (int i = 0; i < kPollsPerWait; ++i) {
 		if (sender.tryEnqueue(input)) return true;
 		QThread::msleep(10); // Startup readiness only; interleaving tests use semaphores.
 	}
@@ -176,7 +180,7 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	assert(!sender.tryEnqueue(usage, token) && !sender.tryEnqueue(diagnostic, token));
 	proceed.release();
 	assert(settled.tryAcquire(1, 3000));
-	for (int i = 0; i < 100 && !readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty(); ++i)
+	for (int i = 0; i < kPollsPerWait && !readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty(); ++i)
 		QThread::msleep(10);
 	assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
 	sender.stop();
@@ -1257,7 +1261,7 @@ int main(int argc, char** argv) {
 	};
 	telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), tests);
 	bool accepted = false;
-	for (int i = 0; i < 100 && !accepted; ++i) {
+	for (int i = 0; i < kPollsPerWait && !accepted; ++i) {
 		QThread::msleep(20);
 		accepted = sender.tryEnqueue(input);
 	}
@@ -1267,25 +1271,25 @@ int main(int argc, char** argv) {
 	QThread::msleep(100);
 	sender.requestConsentRefresh();
 	accepted = false;
-	for (int i = 0; i < 100 && !accepted; ++i) {
+	for (int i = 0; i < kPollsPerWait && !accepted; ++i) {
 		QThread::msleep(20);
 		accepted = sender.tryEnqueue(input);
 	}
 	assert(accepted);
 	*clock = 60001;
-	for (int i = 0; i < 100 && *posts < 1; ++i) QThread::msleep(20);
+	for (int i = 0; i < kPollsPerWait && *posts < 1; ++i) QThread::msleep(20);
 	assert(*posts == 1);
 	QThread::msleep(100);
 	*clock = 120002;
 	QThread::msleep(100);
 	assert(*posts == 1); // Retry-After wins over one-minute backoff.
 	*clock = 180003;
-	for (int i = 0; i < 100 && *posts < 2; ++i) QThread::msleep(20);
+	for (int i = 0; i < kPollsPerWait && *posts < 2; ++i) QThread::msleep(20);
 	assert(*posts == 2 && *stableId);
 	QThread::msleep(100);
 	assert(sender.tryEnqueue(input));
 	*clock = 240004;
-	for (int i = 0; i < 100 && *posts < 3; ++i) QThread::msleep(20);
+	for (int i = 0; i < kPollsPerWait && *posts < 3; ++i) QThread::msleep(20);
 	assert(*posts == 3);
 	QThread::msleep(100);
 	sender.stop();
