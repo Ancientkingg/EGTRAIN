@@ -237,7 +237,7 @@ public:
 	void refreshRunResults();
 
 	// update signal aspects
-	void updateSignalAspect(const std::string& ID, double code, bool reversed);
+	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
 
 	// get train polygon (list)
 	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
@@ -412,6 +412,11 @@ private:
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
+	// Draws the newest delivered snapshot once the 33 ms render limit is over,
+	// for a pause or an end of run that no later snapshot follows.
+	QTimer* m_trailingRenderTimer = nullptr;
+	QPointer<SimulationWorker> m_trailingRenderWorker;
+	std::shared_ptr<const GuiSimulationSnapshot> m_lastRenderedSnapshot;
 	bool m_playbackProfileViewApplied = false;
 	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
 	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
@@ -976,6 +981,8 @@ private:
 	RunProvenance captureRunProvenance() const;
 
 	void runVisualPolishE2E();
+	void checkSignalHeadsE2E();
+	void runReplaySignalsE2E();
 	void runStationOverlayE2E();
 	void runEditorSmokeE2E();
 	void runCreatorAcceptanceE2E();

@@ -106,6 +106,13 @@ int main() {
 		"a signal state starts with a level or failed");
 	require(GuiSignalStateList().take().empty(), "an empty list has entries");
 
+	// A head shows the code of a section with a level, and unavailable without one.
+	require(guiSignalDisplayCode({"@1-B0@", 75, false, 0, false}) == 75
+			&& guiSignalDisplayCode({"@1-B0@", 751, true, 5, false}) == 751
+			&& guiSignalDisplayCode({"@1-B0@", 270, false, kGuiSignalNoLevel, false}) == kGuiSignalUnavailable
+			&& guiSignalDisplayCode({"@1-B0@", 0, false, 99999999, false}) == kGuiSignalUnavailable,
+		"a head did not show the code of its level, or unavailable without one");
+
 	GuiTrainState activeTrain;
 	activeTrain.description = "Intercity northbound";
 	require(guiTrainDisplayIdentifier(activeTrain) == activeTrain.description,

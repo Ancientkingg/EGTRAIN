@@ -264,6 +264,78 @@ public:
 	}
 };
 
+// The state of a signal head in tooltips, the inspector and the end-to-end checks.
+QString signalAspectLabel(const SignalItem* signal) {
+	if (signal->failed())
+		return QStringLiteral("Failed");
+	switch (classifySignalCue(signal->aspectCode())) {
+		case SignalCueKind::Stop:
+			return QStringLiteral("Stop");
+		case SignalCueKind::Caution:
+			return QStringLiteral("Caution");
+		case SignalCueKind::Proceed:
+			return QStringLiteral("Proceed");
+		case SignalCueKind::Neutral:
+		default:
+			return QStringLiteral("Unavailable");
+	}
+}
+
+// True when every head shows what the snapshot holds for it: the display code
+// and failed flag of its state, or unavailable when the snapshot has none.
+bool signalHeadsShow(const QList<SignalItem*>& heads, const GuiSimulationSnapshot& snapshot) {
+	std::map<std::pair<std::string, bool>, const GuiSignalState*> states;
+	for (const GuiSignalState& state : snapshot.signalStates)
+		states[{state.sectionId, state.reversedDirection}] = &state;
+	for (const SignalItem* head : heads) {
+		const auto found = states.find({head->sectionAheadId, head->reversedDirection});
+		const bool known = found != states.end();
+		const int code = known ? guiSignalDisplayCode(*found->second) : kGuiSignalUnavailable;
+		if (head->aspectCode() != code || head->failed() != (known && found->second->failed))
+			return false;
+	}
+	return true;
+}
+
+// True when no head shows a failure on a section that the snapshot does not
+// report as blocked. anyFailed and anyBlocked say whether either appears.
+bool signalFailuresAreBlocked(const QList<SignalItem*>& heads, const GuiSimulationSnapshot& snapshot,
+	bool& anyFailed, bool& anyBlocked) {
+	std::set<std::string> blocked;
+	for (const GuiSectionState& section : snapshot.sectionStates)
+		if (section.blocked)
+			blocked.insert(section.sectionId);
+	anyBlocked = !blocked.empty();
+	anyFailed = false;
+	bool covered = true;
+	for (const SignalItem* head : heads)
+		if (head->failed()) {
+			anyFailed = true;
+			covered = covered && blocked.count(head->sectionAheadId) > 0;
+		}
+	return covered;
+}
+
+// State of the live signal head checks (QEGTRAIN_E2E_SIGNAL_HEADS).
+struct SignalHeadsE2E {
+	std::vector<int> pauseSteps; // QEGTRAIN_E2E_PAUSE_STEPS, ascending
+	std::size_t nextPause = 0;
+	bool pausing = false;
+	bool failed = false;
+	int renders = 0;
+	int failedRenders = 0;
+};
+
+SignalHeadsE2E& signalHeadsE2E() {
+	static SignalHeadsE2E state = [] {
+		SignalHeadsE2E initial;
+		for (const QString& step : qEnvironmentVariable("QEGTRAIN_E2E_PAUSE_STEPS").split(',', Qt::SkipEmptyParts))
+			initial.pauseSteps.push_back(step.toInt());
+		return initial;
+	}();
+	return state;
+}
+
 QString sourceFileSignature(const QString& path) {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly))
@@ -12742,7 +12814,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& sceneP
 		const bool reversed = signal->reversedDirection;
 		menu->setTitle("Signal");
 		QAction* details = menu->addAction("Show details");
-		details->setIcon(QIcon(classifySignalAspect(signal->aspectCode()).iconResource));
+		details->setIcon(QIcon(classifySignalAspect(signal->failed() ? 0 : signal->aspectCode()).iconResource));
 		connect(details, &QAction::triggered, this, [this, track, position, reversed]() {
 			if (auto* current = resolveSignalItem(track, position, reversed))
 				displaySignallingInfo(current);
@@ -13177,6 +13249,146 @@ void MainWindow::runStationOverlayE2E() {
 		std::fprintf(stderr, "E2E_STATION_OVERLAY_FAIL: %s\n", failures.join(", ").toStdString().c_str());
 		finish(2);
 	}
+}
+
+// Live check of the signal heads (QEGTRAIN_E2E_SIGNAL_HEADS). After every
+// render the heads show the snapshot they were drawn from, and a failed head
+// stands on a blocked section. At the steps of QEGTRAIN_E2E_PAUSE_STEPS the run
+// is paused: the canvas must then stand on the last snapshot that was delivered.
+void MainWindow::checkSignalHeadsE2E() {
+	static const bool enabled = qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS");
+	SignalHeadsE2E& state = signalHeadsE2E();
+	if (!enabled || state.failed || !m_snapshot)
+		return;
+	const auto fail = [&state](const QString& why) {
+		state.failed = true;
+		std::fprintf(stderr, "E2E_SIGNAL_HEADS_FAIL: %s\n", qPrintable(why));
+		QCoreApplication::exit(2);
+	};
+	if (!signalHeadsShow(allSignals, *m_snapshot))
+		return fail(QStringLiteral("heads do not show the snapshot of step %1").arg(m_snapshot->timestep));
+	bool anyFailed = false;
+	bool anyBlocked = false;
+	if (!signalFailuresAreBlocked(allSignals, *m_snapshot, anyFailed, anyBlocked))
+		return fail(QStringLiteral("a failed head stands on a section that is not blocked at step %1").arg(m_snapshot->timestep));
+	++state.renders;
+	state.failedRenders += anyFailed ? 1 : 0;
+	if (state.pausing || state.nextPause >= state.pauseSteps.size()
+		|| m_snapshot->timestep < state.pauseSteps[state.nextPause])
+		return;
+	state.pausing = true;
+	ui->actionSimulationPause->trigger();
+	QTimer::singleShot(300, this, [this, fail]() {
+		SignalHeadsE2E& pause = signalHeadsE2E();
+		const int requested = pause.pauseSteps[pause.nextPause];
+		if (!m_snapshot || !m_lastRenderedSnapshot || m_lastRenderedSnapshot != m_snapshot
+			|| !signalHeadsShow(allSignals, *m_snapshot))
+			return fail(QStringLiteral("paused after step %1: the canvas shows step %2, the last delivered snapshot is step %3")
+					.arg(requested)
+					.arg(m_lastRenderedSnapshot ? m_lastRenderedSnapshot->timestep : -1)
+					.arg(m_snapshot ? m_snapshot->timestep : -1));
+		++pause.nextPause;
+		pause.pausing = false;
+		ui->actionSimulationPause->trigger();
+	});
+}
+
+// Checks the signal heads against the frames of the replay once the run is
+// over: the final live frame, then every replay second backwards and forwards.
+// QEGTRAIN_E2E_SIGNAL_HEADS names what the run has to show: "levels" (heads take
+// stop, caution and proceed and return to proceed), "failure" (the same, and
+// failed heads exactly while a section is blocked), "none" (every head
+// unavailable) or "any".
+void MainWindow::runReplaySignalsE2E() {
+	SignalHeadsE2E& live = signalHeadsE2E();
+	const QString expected = qEnvironmentVariable("QEGTRAIN_E2E_SIGNAL_HEADS");
+	const auto fail = [&live](const QString& why) {
+		live.failed = true;
+		std::fprintf(stderr, "E2E_SIGNAL_HEADS_FAIL: %s\n", qPrintable(why));
+		QCoreApplication::exit(2);
+	};
+	if (live.failed)
+		return;
+	if (m_completedReplay.empty() || allSignals.isEmpty() || !m_snapshot)
+		return fail(QStringLiteral("no replay or no signal heads"));
+	if (live.nextPause < live.pauseSteps.size())
+		return fail(QStringLiteral("the run ended before the pause at step %1").arg(live.pauseSteps[live.nextPause]));
+	const auto finalFrame = m_snapshot;
+	if (!signalHeadsShow(allSignals, *finalFrame))
+		return fail(QStringLiteral("heads do not show the final live frame"));
+	std::set<int> frames;
+	std::map<const SignalItem*, bool> restricted;
+	long stops = 0, cautions = 0, proceeds = 0, unavailable = 0, failedHeads = 0;
+	int returned = 0, differFromFinal = 0, failedFrames = 0, blockedFrames = 0, seeks = 0;
+	for (const bool backwards : {true, false}) {
+		for (int step = 0; step <= m_completedReplay.lastTime() - m_completedReplay.firstTime(); ++step) {
+			const int time = backwards ? m_completedReplay.lastTime() - step : m_completedReplay.firstTime() + step;
+			seekReplay(time);
+			const auto frame = m_completedReplay.atOrBefore(time);
+			bool anyFailed = false;
+			bool anyBlocked = false;
+			if (!frame || m_snapshot != frame || !signalHeadsShow(allSignals, *frame))
+				return fail(QStringLiteral("heads do not show the replay frame of second %1").arg(time));
+			if (!signalFailuresAreBlocked(allSignals, *frame, anyFailed, anyBlocked))
+				return fail(QStringLiteral("a failed head stands on a section that is not blocked in second %1").arg(time));
+			++seeks;
+			differFromFinal += signalHeadsShow(allSignals, *finalFrame) ? 0 : 1;
+			if (!backwards) {
+				for (const SignalItem* head : allSignals) {
+					const SignalCueKind cue = classifySignalCue(head->aspectCode());
+					if (head->failed() || cue == SignalCueKind::Stop || cue == SignalCueKind::Caution)
+						restricted[head] = true;
+					else if (cue == SignalCueKind::Proceed && restricted[head]) {
+						restricted[head] = false;
+						++returned;
+					}
+				}
+			} else if (frames.insert(frame->timestep).second) {
+				failedFrames += anyFailed ? 1 : 0;
+				blockedFrames += anyBlocked ? 1 : 0;
+				for (const SignalItem* head : allSignals) {
+					const SignalCueKind cue = classifySignalCue(head->aspectCode());
+					failedHeads += head->failed() ? 1 : 0;
+					stops += !head->failed() && cue == SignalCueKind::Stop;
+					cautions += !head->failed() && cue == SignalCueKind::Caution;
+					proceeds += !head->failed() && cue == SignalCueKind::Proceed;
+					unavailable += !head->failed() && cue == SignalCueKind::Neutral;
+				}
+			}
+		}
+	}
+	const bool moving = stops > 0 && cautions > 0 && proceeds > 0 && returned > 0 && differFromFinal > 0;
+	const bool nothing = stops + cautions + proceeds + failedHeads == 0 && unavailable > 0 && differFromFinal == 0;
+	const bool failing = failedFrames > 0 && failedFrames == blockedFrames && failedFrames < static_cast<int>(frames.size());
+	QString problem;
+	if (expected == QLatin1String("levels") && (!moving || failedHeads != 0))
+		problem = QStringLiteral("the heads did not go through stop, caution and proceed and back");
+	else if (expected == QLatin1String("failure") && (!moving || !failing || live.failedRenders == 0))
+		problem = QStringLiteral("the failed heads do not match the window of the failure");
+	else if (expected == QLatin1String("none") && !nothing)
+		problem = QStringLiteral("a head shows more than unavailable in a scene without a signalling level");
+	const QString summary = QStringLiteral("mode=%1 seeks=%2 frames=%3 stop=%4 caution=%5 proceed=%6 unavailable=%7 failed=%8 returned=%9 "
+										   "differFromFinal=%10 failedFrames=%11 blockedFrames=%12 liveRenders=%13 liveFailedRenders=%14 pauses=%15")
+								.arg(expected)
+								.arg(seeks)
+								.arg(frames.size())
+								.arg(stops)
+								.arg(cautions)
+								.arg(proceeds)
+								.arg(unavailable)
+								.arg(failedHeads)
+								.arg(returned)
+								.arg(differFromFinal)
+								.arg(failedFrames)
+								.arg(blockedFrames)
+								.arg(live.renders)
+								.arg(live.failedRenders)
+								.arg(live.pauseSteps.size());
+	if (!problem.isEmpty())
+		return fail(problem + QLatin1Char(' ') + summary);
+	std::fprintf(stdout, "E2E_SIGNAL_HEADS_OK %s\n", qPrintable(summary));
+	std::fflush(stdout);
+	QCoreApplication::exit(0);
 }
 
 void MainWindow::runVisualPolishE2E() {
@@ -22238,6 +22450,9 @@ void MainWindow::showEvent(QShowEvent* e) {
 #endif
 			QTimer::singleShot(1500, this, &MainWindow::runCurrent);
 	}
+	// At full speed a short run can end before a pause of the signal head check takes effect.
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PAUSE_STEPS"))
+		m_speedSlider->setValue(kMaxStepDelayMs - 2);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
 		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS"))
@@ -23624,6 +23839,8 @@ void MainWindow::onSimulationFinished() {
 					.arg(GuiReplayHistory::cadenceSeconds)
 					.arg(m_completedReplay.truncated() ? " | earlier frames evicted" : ""));
 			m_replayBar->show();
+			if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
+				QTimer::singleShot(0, this, &MainWindow::runReplaySignalsE2E);
 		} else if (m_completedReplay.oversize()) {
 			m_replayLabel->setText("Replay unavailable: one frame exceeded the 64 MiB payload budget");
 			m_replayBar->show();
@@ -23763,7 +23980,8 @@ void MainWindow::onSimulationFinished() {
 				if (it == m_signalsByAheadId.end()) continue;
 				for (const auto* item : it->second)
 					if (item && item->reversedDirection == signal.reversedDirection
-						&& item->aspectCode() != signal.code) return false;
+						&& (item->aspectCode() != guiSignalDisplayCode(signal)
+							|| item->failed() != signal.failed)) return false;
 			}
 			for (const auto& section : frame->sectionStates) {
 				auto it = m_tracksBySectionId.find(section.sectionId);
@@ -23993,11 +24211,7 @@ void MainWindow::onSimulationFinished() {
 		m_replayTimer->start();
 		const bool timerDelivered = QMetaObject::invokeMethod(m_replayTimer, "timeout");
 		m_replayTimer->stop();
-		const SignalCueKind inspectedCue = classifySignalCue(signalSelection->aspectCode());
-		const QString inspectedAspect = inspectedCue == SignalCueKind::Stop ? QStringLiteral("Stop")
-			: inspectedCue == SignalCueKind::Caution						? QStringLiteral("Caution")
-			: inspectedCue == SignalCueKind::Proceed						? QStringLiteral("Proceed")
-																			: QStringLiteral("Neutral");
+		const QString inspectedAspect = signalAspectLabel(signalSelection);
 		if (!timerDelivered || m_inspectedSignal != signalSelection
 			|| !signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
 			|| (initial_variables.PAX_GUI && (trainPaxItem || trainPaxInfoItem))
@@ -26227,20 +26441,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	// update signalling info displayed on widget
 	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
 	signallingXText->setText(QString::fromStdString(to_string_precision(1000 * signal->X, 2))); // km to m
-	const auto aspectName = [](int code) {
-		switch (classifySignalAspect(code).cue) {
-			case SignalCueKind::Stop:
-				return QStringLiteral("Stop");
-			case SignalCueKind::Caution:
-				return QStringLiteral("Caution");
-			case SignalCueKind::Proceed:
-				return QStringLiteral("Proceed");
-			case SignalCueKind::Neutral:
-			default:
-				return QStringLiteral("Neutral");
-		}
-	};
-	signallingAspectText->setText(aspectName(signal->aspectCode()));
+	signallingAspectText->setText(signalAspectLabel(signal));
 	signallingGroupDetails->setPlainText(signal->toolTip());
 	const std::string protectedSection = !signal->sectionAheadId.empty()
 		? signal->sectionAheadId
@@ -26727,7 +26928,32 @@ void MainWindow::waitForUpdates() {
 	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
 		PlaybackProfiler::instance().noteRenderedUpdate();
 		renderSnapshot(false);
+		m_lastRenderedSnapshot = snapshot;
 		m_lastRenderMs = now;
+		if (m_trailingRenderTimer)
+			m_trailingRenderTimer->stop();
+		checkSignalHeadsE2E();
+	} else {
+		// The render limit skipped this snapshot. The worker may pause before it
+		// publishes another one, so draw the newest when the limit is over. The last
+		// step of a run is always drawn by the branch above.
+		if (!m_trailingRenderTimer) {
+			m_trailingRenderTimer = new QTimer(this);
+			m_trailingRenderTimer->setSingleShot(true);
+			connect(m_trailingRenderTimer, &QTimer::timeout, this, [this]() {
+				if (!m_snapshot || m_snapshot == m_lastRenderedSnapshot || m_replayActive || !m_worker
+					|| m_worker != m_trailingRenderWorker || m_worker->isStopRequested()
+					|| m_runtimeStatus != QStringLiteral("Running"))
+					return;
+				renderSnapshot(false);
+				m_lastRenderedSnapshot = m_snapshot;
+				m_lastRenderMs = QDateTime::currentMSecsSinceEpoch();
+				checkSignalHeadsE2E();
+			});
+		}
+		m_trailingRenderWorker = m_worker;
+		if (!m_trailingRenderTimer->isActive())
+			m_trailingRenderTimer->start(static_cast<int>(33 - (now - m_lastRenderMs)));
 	}
 
 	if (PlaybackProfiler::enabled() && !m_playbackProfileViewApplied
@@ -26825,8 +27051,17 @@ void MainWindow::renderSnapshot(bool historical) {
 void MainWindow::updateSignalling() {
 	if (!m_snapshot)
 		return;
+	std::set<const SignalItem*> updated;
 	for (const GuiSignalState& signal : m_snapshot->signalStates)
-		updateSignalAspect(signal.sectionId, signal.code, signal.reversedDirection);
+		updateSignalAspect(signal, updated);
+	// A head without a state has no route running through its section in its
+	// direction. It has nothing to show, so it must not keep an earlier aspect.
+	for (SignalItem* signal : allSignals) {
+		if (updated.count(signal))
+			continue;
+		signal->setAspectCode(kGuiSignalUnavailable);
+		signal->setFailed(false);
+	}
 	updateSignalCues();
 }
 
@@ -26977,13 +27212,16 @@ void MainWindow::clearOperationalTrackStates() {
 	m_activeTrackItems.clear();
 }
 
-void MainWindow::updateSignalAspect(const std::string& ID, double code, bool reversed) {
-	if (m_signalsByAheadId.find(ID) == m_signalsByAheadId.end())
+void MainWindow::updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated) {
+	const auto heads = m_signalsByAheadId.find(state.sectionId);
+	if (heads == m_signalsByAheadId.end())
 		return;
-	for (auto* signal : m_signalsByAheadId.at(ID)) {
-		if (signal->reversedDirection == reversed) {
-			signal->setAspectCode(static_cast<int>(code));
-		}
+	for (auto* signal : heads->second) {
+		if (signal->reversedDirection != state.reversedDirection)
+			continue;
+		signal->setAspectCode(guiSignalDisplayCode(state));
+		signal->setFailed(state.failed);
+		updated.insert(signal);
 	}
 }
 
@@ -28768,13 +29006,8 @@ void MainWindow::updateSignalCues() {
 			if (item->data(kSignalAnchorRole).isValid())
 				signal->setPos(item->data(kSignalAnchorRole).toPointF());
 			signal->setScale(1.0);
-			const SignalCueKind cue = classifySignalCue(signal->aspectCode());
-			const QString aspect = cue == SignalCueKind::Stop ? QStringLiteral("Stop")
-				: cue == SignalCueKind::Caution				  ? QStringLiteral("Caution")
-				: cue == SignalCueKind::Proceed				  ? QStringLiteral("Proceed")
-															  : QStringLiteral("Neutral");
 			signal->setToolTip(QStringLiteral("%1: %2, %3")
-					.arg(signal->inspectionIdentity(), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), aspect));
+					.arg(signal->inspectionIdentity(), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), signalAspectLabel(signal)));
 		}
 		item->setVisible(visible);
 	}
@@ -28786,11 +29019,7 @@ void MainWindow::updateSignalCues() {
 			signallingGroupDetails->setPlainText(details);
 			signallingGroupDetails->verticalScrollBar()->setValue(scroll);
 		}
-		const SignalCueKind cue = classifySignalCue(m_inspectedSignal->aspectCode());
-		signallingAspectText->setText(cue == SignalCueKind::Stop ? QStringLiteral("Stop")
-				: cue == SignalCueKind::Caution					 ? QStringLiteral("Caution")
-				: cue == SignalCueKind::Proceed					 ? QStringLiteral("Proceed")
-																 : QStringLiteral("Neutral"));
+		signallingAspectText->setText(signalAspectLabel(m_inspectedSignal));
 	}
 }
 

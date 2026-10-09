@@ -12,6 +12,11 @@ enum class NetworkLegendEntryKind { Track,
 	Signal,
 	Passenger };
 
+// How a signal row draws its head: a lit lamp, an empty ring or a crossed lamp.
+enum class NetworkLegendSignalLook { Lamp,
+	Unavailable,
+	Failed };
+
 struct NetworkLegendEntry {
 	NetworkLegendEntryKind kind = NetworkLegendEntryKind::Track;
 	QString label;
@@ -22,6 +27,7 @@ struct NetworkLegendEntry {
 	Qt::PenStyle penStyle = Qt::NoPen;
 	TrackOperationalState trackState = TrackOperationalState::Free;
 	SignalCueKind signalCue = SignalCueKind::Neutral;
+	NetworkLegendSignalLook signalLook = NetworkLegendSignalLook::Lamp;
 	QString iconResource;
 };
 

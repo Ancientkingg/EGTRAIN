@@ -20,6 +20,9 @@ public:
 
 	void setAspectCode(int code);
 	int aspectCode() const;
+	// A failed signal is a red lamp with a cross, whatever its code is.
+	void setFailed(bool failed);
+	bool failed() const { return m_failed; }
 	void setReversedDirection(bool reversed);
 	void setGroupedSignals(const QVector<QPair<int, bool>>& aspects);
 	int groupedSignalCount() const { return m_groupedSignals.size(); }
@@ -55,6 +58,7 @@ public:
 
 private:
 	int m_aspectCode;
+	bool m_failed = false;
 	QColor m_lampColor;
 	QVector<QPair<int, bool>> m_groupedSignals;
 	QString m_inspectionIdentity;
