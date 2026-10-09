@@ -161,20 +161,23 @@ The list names the state of each train. A train that has not entered the network
 shows its scheduled entry time, as in "Rail-1 (scheduled 08:25:50)"; the time is
 the schedule, not the actual entry. After that a train is "(running)",
 "(finished)", "(hidden)" while the Trains layer is off, or "(no position)" when
-it has none to draw. The label at the right of the status bar says in one
+it has none to draw. The list keeps its width in the toolbar, and its popup is as
+wide as the longest entry. The label at the right of the status bar says in one
 sentence whether the selected train is followed and why not, and the tooltips of
-**Follow** and of the list say the same. A train that has not entered yet remains
-armed: the view does not move, and Follow starts when the train enters. While the
-Trains layer is off the view does not move either, and it returns to the train
-when the layer is switched on. Before a case has run, and in a case without
-services, **Follow** is disabled and its tooltip says why.
+**Follow** and of the list say the same. The label starts with the state of the
+train and its scheduled time and cuts a long sentence at its end; the tooltip has
+the whole sentence. A train that has not entered yet remains armed: the view does
+not move, and Follow starts when the train enters. While the Trains layer is off
+the view does not move either, and the nearest station is not emphasised; both
+return when the layer is switched on. Before a case has run, and in a case
+without services, **Follow** is disabled and its tooltip says why.
 
-In a live run Follow is switched off when the selected train leaves the network,
-and a train that has left cannot be chosen. In the replay of a completed run
-Follow stays on after the selected train has left, and continues when you go back
-in time. Follow is also cleared when it is disabled, when playback exits, or when
-the selected train is no longer available; it never silently switches to another
-train.
+In a live run Follow is switched off when the selected train leaves the network.
+The train stays in the list, but Follow cannot be switched on for it. In the
+replay of a completed run Follow stays on after the selected train has left, and
+continues when you go back in time. Follow is also cleared when it is disabled,
+when playback exits, or when the selected train is no longer available; it never
+silently switches to another train.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching

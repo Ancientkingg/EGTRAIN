@@ -14,7 +14,7 @@ static bool expect(bool condition, const char* message) {
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
-	const QString sentence = QStringLiteral("Rail-1 has not entered the network yet. It is scheduled to enter at 08:25:50. Follow starts when it enters.");
+	const QString sentence = QStringLiteral("Rail-1 is scheduled to enter at 08:25:50. Follow starts when it enters.");
 	bool ok = true;
 
 	ElidedLabel label;

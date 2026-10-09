@@ -39,7 +39,12 @@ while kill -0 "$APP_PID" 2>/dev/null; do
 done
 
 grep -q "E2E_SCENE_RENDER_OK" "$OUT"
-# Before the run, Follow is off and says why: the case has to run, or it has no trains.
-grep -Eq "E2E_FOLLOW_NO_(RUN|SERVICES)_OK" "$OUT"
+# Before the run, Follow is off and says why. The default scene has services, so the case has to run
+# first; a scene given on the command line can also be one without trains.
+if [[ $# -gt 0 ]]; then
+	grep -Eq "E2E_FOLLOW_NO_(RUN|SERVICES)_OK" "$OUT"
+else
+	grep -q "E2E_FOLLOW_NO_RUN_OK" "$OUT"
+fi
 test -s "$SHOT"
 echo "scene render e2e passed: $SHOT"

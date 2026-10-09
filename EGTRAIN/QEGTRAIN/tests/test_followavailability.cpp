@@ -100,16 +100,20 @@ int main() {
 	{
 		const FollowAvailability off = followAvailability(runOf(train, 1549));
 		require(off.phase == FollowPhase::NotEntered && off.entryText == "Rail-1 (scheduled 08:25:50)"
-				&& off.statusText == "Rail-1 has not entered the network yet. It is scheduled to enter at 08:25:50. "
-									 "Follow can be switched on now and starts when it enters."
+				&& off.statusText == "Rail-1 is scheduled to enter at 08:25:50. Follow can be switched on now and starts when it enters."
 				&& off.controlEnabled && off.canArm && !off.switchOff && !off.canAct,
 			"a train before its entry time was not reported as not entered with Follow off");
 		const FollowAvailability on = followAvailability(withFollow(runOf(train, 1549), true));
 		require(on.phase == FollowPhase::NotEntered && on.entryText == off.entryText
-				&& on.statusText == "Rail-1 has not entered the network yet. It is scheduled to enter at 08:25:50. "
-									"Follow starts when it enters."
+				&& on.statusText == "Rail-1 is scheduled to enter at 08:25:50. Follow starts when it enters."
 				&& on.canArm && !on.switchOff && !on.canAct,
 			"a train before its entry time was not reported as not entered with Follow on");
+		// The state and the scheduled time end early in the sentence, so that a long name and a narrow
+		// status area still show them, and the part about Follow comes after them.
+		const std::string time = "08:25:50";
+		require(off.statusText.find(time) + time.size() <= 45 && on.statusText.find(time) + time.size() <= 45
+				&& off.statusText.find("Follow") > off.statusText.find(time) && on.statusText.find("Follow") > on.statusText.find(time),
+			"the scheduled time does not come early in the sentence, before the part about Follow");
 	}
 
 	// Running: the second the train enters. Only a Follow that is on moves the view.

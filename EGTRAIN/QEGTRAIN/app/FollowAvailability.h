@@ -9,10 +9,12 @@
 // Whether the selected train can be followed, and the words that say why not.
 // The decision uses only what the window knows, so it has no Qt dependency.
 //
-// The window asks this unit for every decision about Follow: whether the control is
-// offered (controlEnabled), whether it can be switched on for the train (canArm), whether
-// it has to be switched off (switchOff), whether the view moves (canAct) and which text is
-// shown (entryText, statusText). The sentences are true whether Follow is on or off.
+// The window asks this unit whether the control is offered (controlEnabled), whether Follow
+// can be switched on for the train (canArm), whether it has to be switched off (switchOff),
+// whether the view and the station emphasis follow the train (canAct) and which text is
+// shown (entryText, statusText). The sentences are true whether Follow is on or off. They
+// say the state of the train first and the part about Follow last, so that a status area
+// that is too narrow elides the part about Follow first.
 
 enum class FollowPhase {
 	NoServices,	   // the case defines no services
@@ -97,7 +99,7 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			if (in.train) {
 				const std::string entry = formatSimTime(in.train->departureTime, in.clockOffsetSeconds);
 				out.entryText = name + " (scheduled " + entry + ")";
-				out.statusText = name + " has not entered the network yet. It is scheduled to enter at " + entry + ". " + tail;
+				out.statusText = name + " is scheduled to enter at " + entry + ". " + tail;
 			} else {
 				out.entryText = name + " (not entered yet)";
 				out.statusText = name + " has not entered the network yet. " + tail;

@@ -244,8 +244,9 @@ void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string&
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 // The name of a train in the train list, to which the entry text adds a state.
 constexpr int kFollowNameRole = Qt::UserRole + 1;
-// Widest the status sentence about Follow gets, about 70 characters. Longer text is elided.
-constexpr int kFollowStatusMaxWidth = 480;
+// Widest the status sentence about Follow gets. It shows the state of a train with a name of 25
+// characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
+constexpr int kFollowStatusMaxWidth = 640;
 constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
@@ -2569,6 +2570,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			it.value()->setVisible(checked && trainIt != allTrains.cend()
 				&& (m_replayActive ? replayTrainHasPosition(it.key()) : !(*trainIt)->outOfSimulation));
 		}
+		updateViewportOverlays();
 		if (updateFollowAvailability().canAct)
 			centerSceneItem(resolveTrainItem(m_followTrainIndex));
 	});
@@ -12541,6 +12543,17 @@ FollowAvailabilityInput MainWindow::followInput(int row) const {
 	return in;
 }
 
+FollowAvailability MainWindow::followAvailabilityOf(int trainIndex) const {
+	return followAvailability(followInput(m_followTrainCombo ? m_followTrainCombo->findData(trainIndex) : -1));
+}
+
+void MainWindow::setStartOffset(long long seconds) {
+	m_startOffsetSeconds = seconds;
+	// The entries of the trains that have not entered show clock times.
+	m_followRowShown.clear();
+	updateFollowAvailability();
+}
+
 bool MainWindow::trainHasGeometry(int trainIndex) const {
 	const auto item = std::find_if(allTrains.cbegin(), allTrains.cend(),
 		[trainIndex](const TrainItemGroup* candidate) { return candidate && candidate->index == trainIndex; });
@@ -12558,6 +12571,7 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 	if (m_followRowShown.size() != rows)
 		m_followRowShown = QVector<std::optional<std::pair<FollowPhase, bool>>>(rows);
 	const int current = m_followTrainCombo->currentIndex();
+	bool written = false;
 	for (int row = 0; row < rows; ++row) {
 		const FollowAvailabilityInput in = followInput(row);
 		const std::pair<FollowPhase, bool> shown(followPhase(in), in.train != nullptr);
@@ -12570,7 +12584,17 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 		if (changed) {
 			m_followTrainCombo->setItemText(row, QString::fromStdString(availability.entryText));
 			m_followRowShown[row] = shown;
+			written = true;
 		}
+	}
+	if (written) {
+		// The list is as narrow as the toolbar needs, so its popup is as wide as the longest entry,
+		// which shows the state and the scheduled time after a long name.
+		QAbstractItemView* popup = m_followTrainCombo->view();
+		int widest = popup->sizeHintForColumn(0);
+		for (int row = 0; row < rows; ++row)
+			widest = qMax(widest, popup->fontMetrics().horizontalAdvance(m_followTrainCombo->itemText(row)));
+		popup->setMinimumWidth(widest + 2 * popup->frameWidth() + popup->verticalScrollBar()->sizeHint().width());
 	}
 
 	const QString status = QString::fromStdString(selected.statusText);
@@ -15264,8 +15288,9 @@ void MainWindow::runVisualPolishE2E() {
 				const QString futureName = m_followTrainCombo->itemData(futureComboIndex, kFollowNameRole).toString();
 				const auto waitingState = std::find_if(m_snapshot->trains.cbegin(), m_snapshot->trains.cend(),
 					[futureFollowIndex](const GuiTrainState& state) { return state.index == futureFollowIndex; });
-				const QString scheduled = QString::fromStdString(formatSimTime(waitingState->departureTime, m_startOffsetSeconds));
-				const QString notEntered = futureName + " has not entered the network yet. It is scheduled to enter at " + scheduled + ". ";
+				const int futureDeparture = waitingState->departureTime;
+				const QString scheduled = QString::fromStdString(formatSimTime(futureDeparture, m_startOffsetSeconds));
+				const QString notEntered = futureName + " is scheduled to enter at " + scheduled + ". ";
 				// Choosing the train with Follow off says that Follow can be switched on now. The
 				// list says that the time is the schedule.
 				networkView->centerOn(networkView->sceneRect().topLeft());
@@ -15314,6 +15339,42 @@ void MainWindow::runVisualPolishE2E() {
 					failures << QString("the Follow sentence widens the status bar (%1 and %2)").arg(barWithSentence).arg(barWithout);
 				} else {
 					std::fprintf(stdout, "E2E_FOLLOW_STATUS_WIDTH_OK\n");
+					std::fflush(stdout);
+				}
+				// At the narrowest window the label still shows the state of the train and its scheduled time,
+				// and the popup of the list is wide enough for the whole entry, which is wider than the list.
+				resize(1024, 720);
+				QApplication::processEvents();
+				const QString shownNarrow = m_followStatusLabel->displayText();
+				const int popupWidth = m_followTrainCombo->view()->minimumWidth();
+				const int entryWidth = m_followTrainCombo->view()->fontMetrics().horizontalAdvance(m_followTrainCombo->itemText(futureComboIndex));
+				const int listWidth = m_followTrainCombo->width();
+				resize(1200, 800);
+				QApplication::processEvents();
+				if (!shownNarrow.startsWith(futureName + " is scheduled to enter at " + scheduled + ".") || entryWidth <= listWidth
+					|| popupWidth < entryWidth) {
+					ok = false;
+					failures << QString("the Follow label or list hides the scheduled time (label=%1 popup=%2 entry=%3 list=%4)")
+									.arg(shownNarrow)
+									.arg(popupWidth)
+									.arg(entryWidth)
+									.arg(listWidth);
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_VISIBLE_OK\n");
+					std::fflush(stdout);
+				}
+				// A change of the start time changes the clock times in the list as well as in the sentence.
+				const long long offsetBefore = m_startOffsetSeconds;
+				setStartOffset(offsetBefore + 3600);
+				const QString later = QString::fromStdString(formatSimTime(futureDeparture, m_startOffsetSeconds));
+				const bool laterShown = later != scheduled && m_followTrainCombo->itemText(futureComboIndex) == futureName + " (scheduled " + later + ")"
+					&& m_followStatusLabel->text() == futureName + " is scheduled to enter at " + later + ". Follow starts when it enters.";
+				setStartOffset(offsetBefore);
+				if (!laterShown || m_followTrainCombo->itemText(futureComboIndex) != futureName + " (scheduled " + scheduled + ")") {
+					ok = false;
+					failures << "a change of the start time left the scheduled time of a train in the list unchanged";
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_CLOCK_OK\n");
 					std::fflush(stdout);
 				}
 
@@ -15437,10 +15498,16 @@ void MainWindow::runVisualPolishE2E() {
 						std::fprintf(stdout, "E2E_FOLLOW_LIST_STABLE_OK\n");
 						std::fflush(stdout);
 					}
-					// Trains layer off: the sentence and the list entry say so, and the view stays where the
-					// user put it, also when the next frame arrives. On again: the view returns to the train.
+					// Trains layer off: the sentence and the list entry say so, the station emphasis goes, and the view
+					// stays where the user put it, also when the next frame arrives. On again: the view returns to the train.
+					const auto stationEmphasised = [this]() {
+						return std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+							[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
+					};
+					const bool emphasisBefore = stationEmphasised();
 					m_trainLayerCheck->setChecked(false);
 					QApplication::processEvents();
+					const bool emphasisGone = emphasisBefore && !stationEmphasised();
 					networkView->centerOn(networkView->sceneRect().topLeft());
 					const QPointF cameraAway = viewCentre();
 					updateTrainPosition(futureEntryTime);
@@ -15449,10 +15516,10 @@ void MainWindow::runVisualPolishE2E() {
 							== futureName + " is running, but the Trains layer is switched off, so the view does not follow it."
 						&& m_followTrainCombo->itemText(futureComboIndex) == futureName + " (hidden)"
 						&& m_followAction->isChecked() && m_followTrainIndex == futureFollowIndex
-						&& QLineF(cameraAway, cameraHidden).length() <= 1.0;
+						&& QLineF(cameraAway, cameraHidden).length() <= 1.0 && emphasisGone && !stationEmphasised();
 					m_trainLayerCheck->setChecked(true);
 					QApplication::processEvents();
-					if (!hiddenShown || m_followStatusLabel->text() != running
+					if (!hiddenShown || m_followStatusLabel->text() != running || !stationEmphasised()
 						|| m_followTrainCombo->itemText(futureComboIndex) != futureName + " (running)"
 						|| QLineF(viewCentre(), clampedCameraCenter(enteredCenter)).length() > 10.0) {
 						ok = false;
@@ -24571,7 +24638,7 @@ void MainWindow::onSimulationFinished() {
 			const int followedRow = m_followTrainCombo->findData(followedIndex);
 			const QString name = m_followTrainCombo->itemData(followedRow, kFollowNameRole).toString();
 			const QString scheduled = QString::fromStdString(formatSimTime(enterTime, m_startOffsetSeconds));
-			const QString notEntered = name + " has not entered the network yet. It is scheduled to enter at " + scheduled + ". ";
+			const QString notEntered = name + " is scheduled to enter at " + scheduled + ". ";
 			const auto viewCentre = [this]() { return networkView->mapToScene(networkView->viewport()->rect().center()); };
 			const auto pixelsBetween = [this](const QPointF& from, const QPointF& to) {
 				return QLineF(networkView->mapFromScene(from), networkView->mapFromScene(to)).length();
@@ -24647,6 +24714,44 @@ void MainWindow::onSimulationFinished() {
 			std::fprintf(stdout, "E2E_FOLLOW_REPLAY_DURING_OK\n");
 			std::fflush(stdout);
 
+			// The Trains layer off: the sentence and the list say so, the station emphasis goes, and the view stays
+			// where the user put it, also when the time moves on. On again: the view returns to the train.
+			const auto stationEmphasised = [this]() {
+				return std::any_of(m_stationOverlays.cbegin(), m_stationOverlays.cend(),
+					[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
+			};
+			const bool emphasisBefore = stationEmphasised();
+			m_trainLayerCheck->setChecked(false);
+			const bool emphasisGone = emphasisBefore && !stationEmphasised();
+			networkView->centerOn(cornerAwayFromTrain());
+			const QPointF cameraHidden = viewCentre();
+			seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
+			const bool hiddenShown = stillFollowing()
+				&& sentence() == name + " is running, but the Trains layer is switched off, so the view does not follow it."
+				&& m_followTrainCombo->itemText(followedRow) == name + " (hidden)" && pixelsBetween(cameraHidden, viewCentre()) <= 0.5
+				&& emphasisGone && !stationEmphasised();
+			m_trainLayerCheck->setChecked(true);
+			if (!hiddenShown || !stillFollowing() || sentence() != name + " is running. The view follows it." || !stationEmphasised()
+				|| !viewOnTrain(followedIndex))
+				return fail("with the Trains layer off");
+			seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+			std::fprintf(stdout, "E2E_FOLLOW_REPLAY_LAYER_OK\n");
+			std::fflush(stdout);
+
+			// With Follow on, the arrow keys of the list move Follow to the train they choose.
+			m_followTrainCombo->setFocus();
+			const int otherRow = followedRow + 1 < m_followTrainCombo->count() ? followedRow + 1 : followedRow - 1;
+			QKeyEvent step(QEvent::KeyPress, otherRow > followedRow ? Qt::Key_Down : Qt::Key_Up, Qt::NoModifier);
+			QApplication::sendEvent(m_followTrainCombo, &step);
+			const bool retargeted = m_followTrainCombo->currentIndex() == otherRow && m_followAction->isChecked()
+				&& m_followTrainIndex == m_followTrainCombo->itemData(otherRow).toInt()
+				&& sentence().startsWith(m_followTrainCombo->itemData(otherRow, kFollowNameRole).toString() + " ");
+			m_followTrainCombo->setCurrentIndex(followedRow);
+			if (!retargeted || !stillFollowing() || sentence() != name + " is running. The view follows it." || !viewOnTrain(followedIndex))
+				return fail("with the keyboard while following");
+			std::fprintf(stdout, "E2E_FOLLOW_SELECT_ON_OK\n");
+			std::fflush(stdout);
+
 			// After the train has left: Follow stays on, the view stays where the user put it,
 			// and going back to the run continues the following. No train of this run leaves within
 			// its time, so the frame in which the train has left is a copy of the frame it runs in.
@@ -24684,10 +24789,8 @@ void MainWindow::onSimulationFinished() {
 				return fail("with the keyboard");
 			std::fprintf(stdout, "E2E_FOLLOW_SELECT_OK\n");
 			std::fflush(stdout);
-			if (followedIndex != future->index) {
-				// The checks below start from the train that was followed in the replay before.
-				seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
-			}
+			// The layer check below needs the item and the badge of the future train, which exist once it has run.
+			seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
 		}
 		seekReplay(future->departureTime - 1);
 		m_trainLayerCheck->setChecked(false);
@@ -25036,7 +25139,7 @@ void MainWindow::setStartTime() {
 		QMessageBox::warning(this, "Invalid Time", "Please enter the time as HH:MM, for example 08:30.");
 		return;
 	}
-	m_startOffsetSeconds = secs;
+	setStartOffset(secs);
 	updateCaseLayersPanel();
 	statusBar()->showMessage(QString("Start time set to %1").arg(text), 3000);
 }
@@ -27927,14 +28030,11 @@ void MainWindow::updateTrainPosition(int t) {
 	for (const GuiTrainState& state : m_snapshot->trains)
 		if (!m_replayActive || guiReplayTrainHasPosition(state, t))
 			updateBlockOccupationStatus(state);
-	const auto followOf = [this](int train) {
-		return followAvailability(followInput(m_followTrainCombo ? m_followTrainCombo->findData(train) : -1));
-	};
 	for (const GuiTrainState& state : m_snapshot->trains) {
 		const int train = state.index;
 		// Throttled delivery can skip the whole visible lifetime of a train.
 		if (m_followTrainIndex == train) {
-			const FollowAvailability following = followOf(train);
+			const FollowAvailability following = followAvailabilityOf(train);
 			if (following.switchOff) {
 				setFollowTrain(-1);
 				statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
@@ -28027,7 +28127,7 @@ void MainWindow::updateTrainPosition(int t) {
 					if (badge)
 						badge->setPos(badgeCenter);
 				}
-				if (networkView && m_followTrainIndex == train && followOf(train).canAct)
+				if (networkView && m_followTrainIndex == train && followAvailabilityOf(train).canAct)
 					networkView->centerOn(newCenter);
 			}
 			// hide train whose simulation is finished
@@ -28049,7 +28149,7 @@ void MainWindow::updateTrainPosition(int t) {
 			TrainItemGroup* newTrain = resolveTrainItem(train);
 			if (firstTrain && !m_replayActive && newTrain && newTrain->isVisible())
 				centerSceneItem(newTrain);
-			if (newTrain && m_followTrainIndex == train && followOf(train).canAct)
+			if (newTrain && m_followTrainIndex == train && followAvailabilityOf(train).canAct)
 				centerSceneItem(newTrain);
 		}
 	}
@@ -29604,8 +29704,7 @@ void MainWindow::updateViewportOverlays() {
 		return;
 	QPointF followedCenter;
 	bool hasFollowedCenter = false;
-	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
-		&& (!m_replayActive || replayTrainHasPosition(m_followTrainIndex))) {
+	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0 && followAvailabilityOf(m_followTrainIndex).canAct) {
 		if (auto* train = resolveTrainItem(m_followTrainIndex)) {
 			followedCenter = train->sceneBoundingRect().center();
 			hasFollowedCenter = true;

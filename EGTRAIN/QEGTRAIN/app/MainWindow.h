@@ -704,6 +704,10 @@ private:
 	void refreshFollowTrainChoices();
 	// What followAvailability needs to know about the train of a row of the train list.
 	FollowAvailabilityInput followInput(int row) const;
+	// followAvailability for a train, or for no train when it is not in the list.
+	FollowAvailability followAvailabilityOf(int trainIndex) const;
+	// Sets the clock time at which the simulation starts and shows it in the train list.
+	void setStartOffset(long long seconds);
 	// Writes the list entries, the status label and the Follow control from followAvailability
 	// and returns its answer for the selected train.
 	FollowAvailability updateFollowAvailability();
