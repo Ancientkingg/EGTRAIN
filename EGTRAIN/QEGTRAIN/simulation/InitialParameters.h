@@ -29,6 +29,8 @@ public:
 	bool recoveryTimeOverride = false;
 	bool enabled_log = true;
 	bool log_to_file = true;
+	// Writes the per-train files in TEMP and TrainTrajectories/TrainPathDiagram.txt.
+	bool exportDetailedTrajectories = false;
 	// Seeds the passenger sampling of a run. Equal seeds give equal runs.
 	unsigned long randomSeed = kDefaultRandomSeed;
 

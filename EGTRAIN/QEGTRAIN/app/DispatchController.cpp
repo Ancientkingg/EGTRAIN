@@ -292,7 +292,6 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories");
 	ensureDirectory(initial_variables.OutputMainFolder + "/PassengerStatus");
 	ensureDirectory(initial_variables.OutputMainFolder + "/Rescheduling");
-	ensureDirectory(initial_variables.OutputMainFolder + "/TEMP");
 	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories/RoutesGenerated");
 	Folder_RI_PH = initial_variables.OutputMainFolder + "/TrainTrajectories";
 	outputTime = elapsed(checkpoint, now());
@@ -447,7 +446,9 @@ void DispatchController::runSimulation() {
 
 	ComputeBlockingTimesInMixedSignallingForAllTrains(5, (3 + bufferTime), 0.5, 50, Folder_RI_PH, 0, recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
 
-	PrintTrainPathDiagram(regional_train.data(), numRegions, Folder_RI_PH);
+	// The dense path diagram is part of the detailed trajectories.
+	if (initial_variables.exportDetailedTrajectories)
+		PrintTrainPathDiagram(regional_train.data(), numRegions, Folder_RI_PH);
 
 	PrintTimetablePoints(Folder_RI_PH);
 
@@ -455,10 +456,14 @@ void DispatchController::runSimulation() {
 	// before in Regional destructor - moved here because vectors are deleted automatically in the destructor and it is no longer possible to use them there
 	if (stoppedHere())
 		return;
-	for (int i = 0; i < numRegions; i++) {
-		if (stoppedHere())
-			return;
-		regional_train[i].PrintTrajectory();
+	// The per-train files and their folder are part of the detailed trajectories.
+	if (initial_variables.exportDetailedTrajectories) {
+		ensureDirectory(initial_variables.OutputMainFolder + "/TEMP");
+		for (int i = 0; i < numRegions; i++) {
+			if (stoppedHere())
+				return;
+			regional_train[i].PrintTrajectory();
+		}
 	}
 	std::cout << "\n End of Simulation";
 	runCompleted_ = true;

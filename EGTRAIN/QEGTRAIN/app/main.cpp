@@ -144,6 +144,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 	} else {
 		initial_variables.RChoice = 0;
 	}
+	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
 }
 
 QString resolveScenePath(const QString& requested, const std::string& defaultName) {
