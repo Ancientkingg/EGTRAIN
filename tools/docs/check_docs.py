@@ -45,13 +45,14 @@ SHELL_INFO_WORDS = ("bash", "sh")
 EM_DASH = "\u2014"
 EN_DASH = "\u2013"
 
-FENCE_OPEN = re.compile(r"^ *(`{3,}|~{3,})[ \t]*(\S*)")
+FENCE_OPEN = re.compile(r"^ *(`{3,}(?=[^`]*$)|~{3,})[ \t]*(\S*)")
 FENCE_CLOSE = re.compile(r"^ *(`{3,}|~{3,})[ \t]*$")
 HEADING = re.compile(r"^ {0,3}#{1,6} +(.*)$")
 CLOSING_HASHES = re.compile(r"(^|[ \t]+)#+[ \t]*$")
 HEADING_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)")
-LINK = re.compile(r'(!?)\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(\s*(<[^>]*>|[^\s)]*)(?:\s+"[^"]*")?\s*\)')
+LINK_TITLE = r"""(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?"""
+LINK = re.compile(r"(!?)\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(\s*(<[^>]*>|[^\s)]*)" + LINK_TITLE + r"\s*\)")
 SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 LOCAL_PATH = re.compile(r"/Users/|/home/[A-Za-z]|[A-Za-z]:[\\/]Users[\\/]")
 
@@ -137,7 +138,7 @@ def parse(text: str) -> Document:
     links = []
     for paragraph in paragraphs:
         if paragraph:
-            text = CODE_SPAN.sub("", "\n".join(line for _, line in paragraph))
+            text = CODE_SPAN.sub("_", "\n".join(line for _, line in paragraph))
             links.extend(find_links(text, paragraph[0][0]))
     return Document(lines, anchors, links, blocks)
 
@@ -171,9 +172,10 @@ def references(documents: dict) -> list:
 def check_links(refs: list, listed: set, directories: set) -> list:
     findings = []
     for path, link, target, _ in refs:
+        slash = link.target.partition("#")[0].endswith("/")  # a trailing slash names a directory, not a file
         if not link.target:
             findings.append(Finding(path, link.line, "link", "empty link target"))
-        elif target not in listed and target not in directories:
+        elif target not in directories and (slash or target not in listed):
             findings.append(Finding(path, link.line, "link", f"no such file or directory: {link.target}"))
     return findings
 
@@ -233,7 +235,7 @@ def check_shell(documents: dict) -> list:
             if block.info not in SHELL_INFO_WORDS or "<<" in text:
                 continue
             try:
-                shlex.split(text.replace("\\\n", ""), comments=True)
+                shlex.split(text, comments=True)
             except ValueError as error:
                 findings.append(Finding(path, block.line, "shell", str(error)))
     return findings
@@ -296,6 +298,8 @@ def check(root, files) -> list:
 
 
 def main(argv=None) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="backslashreplace")  # a path that the console cannot encode must not end the run
     parser = argparse.ArgumentParser(description="Check the Markdown documentation of the repository.")
     parser.add_argument(
         "--root", type=Path, default=ROOT, help="the Git repository to check (default: the one that holds this script)"

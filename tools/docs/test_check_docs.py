@@ -180,6 +180,21 @@ class ParserTests(TreeTestCase):
         }
         self.assertEqual(self.found(files), [(LANDING, 4, "anchor"), (LANDING, 5, "anchor")])
 
+    def test_heading_keeps_hyphens_underscores_digits_and_letters_beyond_ascii(self):
+        files = {
+            LANDING: doc(
+                "# Docs",
+                "",
+                "[ok](a.md#peak-memory-v2_beta-caf\u00e9-3)",
+                "[hyphen](a.md#peakmemory-v2_beta-caf\u00e9-3)",
+                "[underscore](a.md#peak-memory-v2beta-caf\u00e9-3)",
+                "[digit](a.md#peak-memory-v2_beta-caf\u00e9)",
+                "[letter](a.md#peak-memory-v2_beta-cafe-3)",
+            ),
+            "docs/a.md": doc("# A", "", "## Peak-memory v2_beta caf\u00e9 (3)"),
+        }
+        self.assertEqual(self.found(files), [(LANDING, line, "anchor") for line in (4, 5, 6, 7)])
+
     def test_uppercase_fragment_is_a_finding(self):
         files = {LANDING: doc("# Docs", "", "[x](a.md#Foo)"), "docs/a.md": doc("# A", "", "## Foo")}
         self.assertEqual(self.found(files), [(LANDING, 3, "anchor")])
@@ -191,6 +206,16 @@ class ParserTests(TreeTestCase):
     def test_link_title_is_not_part_of_the_target(self):
         files = {LANDING: doc("# Docs", "", '[ok](a.md "A title")'), "docs/a.md": doc("# A")}
         self.assertEqual(self.found(files), [])
+
+    def test_link_title_may_use_double_quotes_single_quotes_or_parentheses(self):
+        findings = self.landing('[a](gone.md "Title")', "[b](lost.md 'Title')", "[c](none.md (Title))")
+        self.assertEqual(findings, [(LANDING, 3, "link"), (LANDING, 4, "link"), (LANDING, 5, "link")])
+
+    def test_link_text_that_is_a_code_span_is_still_a_link(self):
+        self.assertEqual(self.landing("[`cmd`](gone.md)"), [(LANDING, 3, "link")])
+
+    def test_image_with_a_code_span_as_alt_text_has_alt_text(self):
+        self.assertEqual(self.landing("![`x`](https://example.com/p.png)"), [])
 
     def test_fragment_in_the_same_file_is_checked(self):
         self.assertEqual(self.landing("[ok](#documentation)", "[gone](#elsewhere)"), [(LANDING, 4, "anchor")])
@@ -234,11 +259,18 @@ class ParserTests(TreeTestCase):
             lines += [f"```{info}", 'echo "open', "```", ""]
         self.assertEqual(self.landing(*lines), [])
 
-    def test_backslash_continuation_is_joined(self):
-        findings = self.landing(
-            "```bash", "tool export \\", '  --out "My Dir" \\', "  scene", "```", "", "```bash", "tool export \\", "```"
-        )
-        self.assertEqual(findings, [(LANDING, 9, "shell")])
+    def test_command_continued_with_backslashes_is_one_command(self):
+        findings = self.landing("```bash", "tool export \\", '  --out "My Dir" \\', "  scene", "```")
+        self.assertEqual(findings, [])
+
+    def test_backslash_at_the_end_of_a_block_is_reported(self):
+        self.assertEqual(self.landing("```bash", "tool export \\", "```"), [(LANDING, 3, "shell")])
+
+    def test_backslash_at_the_end_of_a_comment_does_not_continue_the_comment(self):
+        self.assertEqual(self.landing("```bash", "# note \\", "echo 'open", "```"), [(LANDING, 3, "shell")])
+
+    def test_escaped_backslash_at_the_end_of_a_line_does_not_continue_the_line(self):
+        self.assertEqual(self.landing("```bash", "echo \\\\", '"open', "```"), [(LANDING, 3, "shell")])
 
     def test_shell_comment_may_contain_a_quote(self):
         self.assertEqual(self.landing("```bash", "# don't panic", "echo done", "```"), [])
@@ -260,6 +292,28 @@ class ParserTests(TreeTestCase):
     def test_fence_line_with_text_does_not_close_a_fence(self):
         findings = self.landing("```text", "```json", "[x](missing.md)", "```", "[y](gone.md)")
         self.assertEqual(findings, [(LANDING, 7, "link")])
+
+    def test_indented_fence_is_closed_by_an_indented_line(self):
+        findings = self.landing("- item", "", "  ```bash", "  echo 'open", "  [x](missing.md)", "  ```", "", "[y](gone.md)")
+        self.assertEqual(findings, [(LANDING, 5, "shell"), (LANDING, 10, "link")])
+
+    def test_heading_may_be_indented_by_up_to_three_spaces(self):
+        files = {
+            LANDING: doc("# Docs", "", "[three](a.md#three)", "[four](a.md#four)"),
+            "docs/a.md": doc("# A", "", "   ## Three", "", "    ## Four"),
+        }
+        self.assertEqual(self.found(files), [(LANDING, 4, "anchor")])
+
+    def test_backtick_fence_line_with_a_backtick_in_its_info_string_is_not_a_fence(self):
+        findings = self.landing("```x``` see [a](gone.md)", "[b](lost.md)")
+        self.assertEqual(findings, [(LANDING, 3, "link"), (LANDING, 4, "link")])
+
+    def test_tilde_fence_line_may_have_a_backtick_in_its_info_string(self):
+        self.assertEqual(self.landing("~~~text `x`", "[x](missing.md)", "~~~", "[y](gone.md)"), [(LANDING, 6, "link")])
+
+    def test_lines_ending_in_carriage_return_and_line_feed(self):
+        text = "# Docs\r\n\r\n```text\r\ncode\r\n```\r\n[ok](#docs)\r\n[gone](missing.md)\r\n"
+        self.assertEqual(self.found({LANDING: text}), [(LANDING, 7, "link")])
 
     def test_tilde_fence_works(self):
         findings = self.landing("~~~bash", "echo it's", "[x](missing.md)", "~~~", "[y](gone.md)")
@@ -302,6 +356,14 @@ class ParserTests(TreeTestCase):
             "docs/guides/g.md": doc("# G"),
         }
         self.assertEqual(self.found(files), [])
+
+    def test_trailing_slash_on_a_file_is_a_finding(self):
+        files = {
+            LANDING: doc("# Docs", "", "[file](a.md/)", "[dir](guides/)", "[guide](guides/g.md)"),
+            "docs/a.md": doc("# A"),
+            "docs/guides/g.md": doc("# G"),
+        }
+        self.assertEqual(self.found(files), [(LANDING, 3, "link")])
 
     def test_link_to_an_empty_or_missing_directory_is_a_finding(self):
         (self.root / "docs" / "empty").mkdir(parents=True)
@@ -415,6 +477,24 @@ class OutputTests(TreeTestCase):
         self.assertEqual(format_finding(finding), "docs/a.md:3: [link] no such file or directory: x.md")
 
 
+class GitOutputTests(TreeTestCase):
+    def completed(self, returncode, stdout=b"", stderr=b""):
+        return subprocess.CompletedProcess([], returncode, stdout, stderr)
+
+    def test_name_that_git_lists_twice_is_returned_once(self):
+        self.write({"a.md": doc("# A"), "b.md": doc("# B")})
+        with mock.patch("check_docs.subprocess.run", return_value=self.completed(0, b"b.md\0a.md\0b.md\0")):
+            self.assertEqual(tracked_files(self.root), ["a.md", "b.md"])
+
+    def test_tool_error_message_holds_the_first_line_of_the_error_output(self):
+        error = b"fatal: first problem\nhint: second line\n"
+        with mock.patch("check_docs.subprocess.run", return_value=self.completed(128, stderr=error)):
+            with self.assertRaises(ToolError) as context:
+                tracked_files(self.root)
+        self.assertIn("fatal: first problem", str(context.exception))
+        self.assertNotIn("second line", str(context.exception))
+
+
 @unittest.skipUnless(shutil.which("git"), "git is not installed")
 class GitTests(TreeTestCase):
     def setUp(self):
@@ -481,6 +561,17 @@ class GitTests(TreeTestCase):
         code, out, _ = self.call_main(self.root)
         self.assertEqual(code, 1)
         self.assertEqual(out.splitlines()[-1], "1 finding")
+
+    def test_main_escapes_characters_that_standard_output_cannot_encode(self):
+        self.write({LANDING: doc("# Docs", "", "[a](caf\u00e9.md)")})
+        raw = io.BytesIO()
+        out = io.TextIOWrapper(raw, encoding="ascii")
+        with contextlib.redirect_stdout(out):
+            code = run_main(["--root", str(self.root)])
+        out.flush()
+        self.assertEqual(code, 1)
+        self.assertIn(b"caf\\xe9.md", raw.getvalue())
+        self.assertTrue(raw.getvalue().endswith(b"1 finding\n"))
 
     def test_main_returns_2_with_one_line_on_standard_error_outside_a_git_repository(self):
         with tempfile.TemporaryDirectory() as directory, self.outside_any_repository(directory):
