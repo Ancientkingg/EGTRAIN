@@ -1789,6 +1789,25 @@ int main() {
 		ok &= expect(train.StationArrivals[0] == -1, "a stop whose timetable point has no arrival has no arrival");
 		train.TimetablePoints.clear();
 
+		// A station served twice takes the timetable points in the order of the calls.
+		const int singleStop = train.numStations;
+		train.numStations = 2;
+		train.StationArrivalNames[0] = train.StationArrivalNames[1] = "Probe";
+		TrainEvent firstCall;
+		firstCall.SuccessorID = "Probe";
+		firstCall.Time = 94;
+		TrainEvent secondCall = firstCall;
+		secondCall.Time = 300;
+		train.TimetablePoints.push_back(firstCall);
+		train.TimetablePoints.push_back(secondCall);
+		train.StationArrivals[0] = train.StationArrivals[1] = -1;
+		train.Determine_Actual_Station_Arrivals();
+		ok &= expect(train.StationArrivals[0] == 94 && train.StationArrivals[1] == 300,
+			"each call at a station takes its own timetable point");
+		train.TimetablePoints.clear();
+		train.StationArrivalNames[0] = train.StationArrivalNames[1] = "None";
+		train.numStations = singleStop;
+
 		// A stop without a planned arrival has no arrival delay.
 		train.StationArrivals[0] = 100;
 		train.ScheduledArrivals[0] = -1;

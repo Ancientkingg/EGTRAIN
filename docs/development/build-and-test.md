@@ -402,7 +402,10 @@ Both files take the arrival of a stop from its timetable point, the arrival that
 `TimetablePoints.txt`, the timetable results, the diagrams and the CSV export
 report, so a `result` line and a station row show the same delay. A train that
 did not reach a stop, and a stop without a planned arrival, have no delay and are
-counted in neither file. A station row without such a train holds `-1`. The
+counted in neither file. A stop with no timetable point keeps the arrival
+recorded during the run. A station row without such a train holds `-1` in the
+average, deviation, maximum, cumulative and percentage columns and 0 in
+`Total_Delay` and the train counts. The
 `Final_Station` row is the same statistic for the last stop of every train. The
 first station of the network is not printed and not in `TOTALS`.
 
