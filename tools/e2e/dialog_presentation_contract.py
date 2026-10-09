@@ -180,7 +180,7 @@ def main() -> None:
         chooser = launch(app, settings)
         assert chooser["E2E_STARTUP_CHOOSER_GROUP"] == "Bundled cases", chooser
         assert chooser["E2E_STARTUP_CHOOSER_GROUP_SELECTABLE"] == "no", chooser
-        assert chooser["E2E_STARTUP_CHOOSER_FIRST"] == "Assignment Gvc-Gdg-Ut", chooser
+        assert chooser["E2E_STARTUP_CHOOSER_FIRST"] == "Amsterdam_Hilversum_Student", chooser
         assert chooser["E2E_STARTUP_CHOOSER_OPEN_ENABLED"] == "yes", chooser
         assert chooser["E2E_STARTUP_CHOOSER_ACTION"] == "Continue", chooser
         assert chooser["E2E_STARTUP_CHOOSER_UNCHANGED"] == "yes", chooser

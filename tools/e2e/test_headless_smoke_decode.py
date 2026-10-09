@@ -4,7 +4,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from headless_smoke import NO_ARRIVAL, check_scene_structure, case_command, occurrence_errors, route_errors, run_command, scene_output_dir
+from headless_smoke import (
+    NO_ARRIVAL,
+    case_command,
+    check_scene_matches_netherlands,
+    check_scene_structure,
+    occurrence_errors,
+    route_errors,
+    run_command,
+    scene_output_dir,
+)
 
 
 def timetable_sample(*runs: tuple[str, list[str], list[int], list[int]]) -> str:
@@ -19,6 +28,7 @@ def timetable_sample(*runs: tuple[str, list[str], list[int], list[int]]) -> str:
 def main() -> None:
     for case_id in range(1, 5):
         check_scene_structure(case_id)
+    check_scene_matches_netherlands(7)
 
     command = case_command(3)
     expected = ["--scene", str(Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
@@ -54,6 +64,7 @@ def main() -> None:
         (2, None, "IC-3", "is missing"),
         (2, ("IC-3", ["Hvs", "Asd"], [5100, 5400], [5160, 5460]), "IC-3", "does not end at Hvs"),
         (1, ("IC-2", stations, [1920, 1400], [1980, 1460]), "IC-2", "not after the arrival"),
+        (1, ("IC-2", stations, [1920, 1500], [1980, 1560]), "IC-2", "not after the arrival"),
         (0, ("IC-1", stations, [120, NO_ARRIVAL], [180, NO_ARRIVAL]), "IC-1", "not above 0"),
         (0, ("IC-1", stations, [120, 0], [180, 60]), "IC-1", "not above 0"),
         (1, ("IC-2", stations, [1920], [1980, 3360]), "IC-2", "fewer arrival or departure times"),

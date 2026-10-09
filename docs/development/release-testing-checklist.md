@@ -27,9 +27,9 @@ Expected case-study assets:
 - `Amsterdam_Hilversum_Student.egscene`
 
 Confirm the workflow validates all seven bundles and publishes exactly the three
-application assets plus the seven case-study assets. The macOS job also runs a
-packaged headless case. These checks prove artifact construction, not the GUI
-student workflow.
+application assets, the seven case-study assets and the update manifest. The
+macOS job also runs a packaged headless case. These checks prove artifact
+construction, not the GUI student workflow.
 
 ## Clean-install GUI rehearsal
 

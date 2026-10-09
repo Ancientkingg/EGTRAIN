@@ -515,12 +515,12 @@ script. It checks clean native execution and the available trajectory/station
 evidence. For every scene it also requires that no train moves farther in one
 step than the highest maximum speed of the scene's rolling stock allows.
 
-For Amsterdam_Hilversum_Student the script also checks that all four
-occurrences of its service reach Hilversum, one after the other, and that the
-five files `infrastructure.json`, `rolling_stock.json`, `scenarios.json`,
-`stations.json` and `views.json` equal the Netherlands files. Its
-`signalling.json` must equal the Netherlands file apart from the signalling
-areas.
+For Amsterdam_Hilversum_Student the script also checks that every occurrence
+of its service reaches Hilversum, one after the other, and that the five files
+`infrastructure.json`, `rolling_stock.json`, `scenarios.json`, `stations.json`
+and `views.json` equal the Netherlands files. Its `signalling.json` must equal
+the Netherlands file apart from the signalling areas. CTest runs the file
+comparison in `test_headless_smoke_decode`.
 
 ## Peak-memory measurement
 

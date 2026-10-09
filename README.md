@@ -99,8 +99,8 @@ Select them with the `-n` command-line option:
 - `-n 5`: Assignment Gvc-Gdg-Ut
 - `-n 6`: Lebanon
 
-The Amsterdam to Hilversum student case has no `-n` number. Open it from the
-case chooser, or start it from `EGTRAIN/QEGTRAIN` with
+The Amsterdam to Hilversum student case has no `-n` number. Open it with the
+**Open Case** toolbar button, or start it from `EGTRAIN/QEGTRAIN` with
 `--scene Scenes/Amsterdam_Hilversum_Student`.
 
 ## Build from source
@@ -188,12 +188,11 @@ tools/e2e/headless_smoke.py
 tools/e2e/visual_polish_smoke.sh
 ```
 
-The headless and roundtrip smoke tests cover all seven scenes, and the headless
-smoke test checks application startup, train movement, trajectory samples, and
-served-station output. The graphical interface smoke test covers the six scenes
-that have a `-n` number. CI runs the same CTest suite on macOS, Windows, and
-Linux. Select a subset with test labels, for example
-`ctest --test-dir build -L unit -LE slow`. See the
+The headless smoke test covers all seven scenes and checks application startup,
+train movement, trajectory samples, and served-station output. The graphical
+interface smoke test covers the six scenes that have a `-n` number. CI runs the
+same CTest suite on macOS, Windows, and Linux. Select a subset with test labels,
+for example `ctest --test-dir build -L unit -LE slow`. See the
 [build and test guide](docs/development/build-and-test.md) for labels, platform
 exclusions, round-trip checks, CI branch roles, and failure artifacts.
 
