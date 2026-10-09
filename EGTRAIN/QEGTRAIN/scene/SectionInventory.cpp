@@ -546,6 +546,22 @@ SceneRouteTraversal buildSceneRouteTraversal(const SceneModel& scene, const Scen
 	return traversal;
 }
 
+SceneRouteStations sceneRouteStations(const SceneModel& scene, const SceneRoute& route,
+		const SceneSectionInventory& inventory) {
+	const SceneRouteTraversal traversal = buildSceneRouteTraversal(scene, route, inventory);
+	SceneRouteStations result;
+	result.resolved = traversal.resolved;
+	result.direction = traversal.direction;
+	std::string previousStation;
+	for (const auto& visit : traversal.visits) {
+		if (visit.stationId == previousStation)
+			continue;
+		previousStation = visit.stationId;
+		result.stationIds.push_back(visit.stationId);
+	}
+	return result;
+}
+
 std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scene,
 		const SceneService& service, const SceneRouteTraversal& traversal) {
 	std::vector<SceneStopResolution> result;

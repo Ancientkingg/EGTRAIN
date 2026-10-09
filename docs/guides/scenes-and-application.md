@@ -177,11 +177,19 @@ same reference-route distance axis, but show different data:
 - **Train paths (simulated movement)** plots recorded position samples against
   simulation time. It does not plot planned timetable events.
 
-Both ask for a reference route. Distance increases to the right; time increases
-downward, with clock labels offset by the case base time (elapsed `0 s` is run
-start). Other routes are projected using shared node/station anchors. Ambiguous
-or unmapped portions are omitted without extrapolation; lines break at missing
-events or unprojectable samples. Train filtering, selection, zoom, and CSV/PNG
+Both ask for a reference route in a list of the routes used in the run. Each row
+shows the route id and the stations the route passes in travel order, for
+example `route0 --> Gvc - Gdg - Ut`. The list uses station ids; hover a row for
+the full text; a very long row is shortened in the middle. A route whose station
+order cannot be resolved shows `(station order unavailable)` and one without
+stations shows `(no stations on this route)`; both can still be chosen.
+Double-click a row, or select it and press Enter, to open the diagram.
+
+Distance increases to the right; time increases downward, with clock labels
+offset by the case base time (elapsed `0 s` is run start). Other routes are
+projected using shared node/station anchors. Ambiguous or unmapped portions are
+omitted without extrapolation; lines break at missing events or unprojectable
+samples. Train filtering, selection, zoom, and CSV/PNG
 export remain available. Diagrams have no Technical details panels. A concise,
 word-wrapped warning strip above the plot keeps scientific qualifications
 separate from the bounded run/reference identity context.

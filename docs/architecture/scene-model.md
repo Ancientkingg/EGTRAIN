@@ -135,6 +135,10 @@ Blank-platform rows at stations outside the route remain warning-labelled inert
 schedule context for legacy compatibility. No provenance flag distinguishes
 imported rows from otherwise identical authored rows.
 
+`sceneRouteStations` lists the stations of a route from that traversal in travel
+order, counting consecutive visits of one station once. The service editor's
+route choices and the reference-route chooser of the diagrams use it.
+
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals
