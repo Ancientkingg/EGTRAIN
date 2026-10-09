@@ -215,8 +215,9 @@ void removeStaging(const std::filesystem::path& staging) {
 	const std::filesystem::path self(buffer);
 	std::vector<std::filesystem::path> entries;
 	std::error_code error;
-	for (const auto& entry : std::filesystem::directory_iterator(staging, error))
-		entries.push_back(entry.path());
+	std::filesystem::directory_iterator iterator(staging, error);
+	for (; !error && iterator != std::filesystem::directory_iterator(); iterator.increment(error))
+		entries.push_back(iterator->path());
 	for (const std::filesystem::path& entry : entries)
 		if (!std::filesystem::equivalent(entry, self, error))
 			removePath(entry);

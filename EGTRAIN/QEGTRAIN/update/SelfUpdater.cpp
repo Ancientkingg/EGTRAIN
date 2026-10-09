@@ -1,6 +1,7 @@
 #include "update/SelfUpdater.h"
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
 #include <QNetworkReply>
@@ -419,8 +420,15 @@ bool SelfUpdater::startHelper() {
 	if (!QFile::copy(m_helperPath, helperCopy))
 		return false;
 #if !defined(Q_OS_WIN)
-	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions() | QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
+	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions() | QFile::WriteOwner | QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
 #endif
+	// The copy is the only file that stays in the staging folder on Windows. An old time lets the
+	// sweep of the new version remove the folder at once. Qt changes the time of an open file only.
+	QFile helperFile(helperCopy);
+	if (helperFile.open(QIODevice::ReadWrite | QIODevice::ExistingOnly)) {
+		helperFile.setFileTime(QDateTime::fromSecsSinceEpoch(0), QFileDevice::FileModificationTime);
+		helperFile.close();
+	}
 	QString backup = m_currentPath + QStringLiteral(".egtrain-old");
 	const QFileInfo previousBackup(backup);
 	if (previousBackup.isSymLink())
