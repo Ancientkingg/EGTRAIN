@@ -234,6 +234,15 @@ class ParserTests(TreeTestCase):
         }
         self.assertEqual(self.found(files), [("docs/d.md", 1, "unreachable")])
 
+    def test_reachability_follows_links_through_a_document_outside_docs(self):
+        files = {
+            "README.md": doc("# Project", "", "[b](docs/b.md)"),
+            LANDING: doc("# Docs", "", "[project](../README.md)"),
+            "docs/b.md": doc("# B"),
+            "docs/c.md": doc("# C"),
+        }
+        self.assertEqual(self.found(files), [("docs/c.md", 1, "unreachable")])
+
     def test_link_from_an_unreachable_document_does_not_make_a_document_reachable(self):
         files = {
             LANDING: doc("# Docs"),

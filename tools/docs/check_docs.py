@@ -136,10 +136,10 @@ def parse(text: str) -> Document:
     if fence:
         blocks.append(Block(fence[1], fence[2], fence[3]))
     links = []
-    for paragraph in paragraphs:
-        if paragraph:
-            text = CODE_SPAN.sub("_", "\n".join(line for _, line in paragraph))
-            links.extend(find_links(text, paragraph[0][0]))
+    for numbered_lines in paragraphs:
+        if numbered_lines:
+            prose = CODE_SPAN.sub("_", "\n".join(line for _, line in numbered_lines))
+            links.extend(find_links(prose, numbered_lines[0][0]))
     return Document(lines, anchors, links, blocks)
 
 
