@@ -116,6 +116,25 @@ int main() {
 			"the scheduled time does not come early in the sentence, before the part about Follow");
 	}
 
+	// A completed run that ends before the entry time: the train never enters it, so the sentence does not
+	// say that Follow starts, whether Follow is on or off. A train that enters at the last time of the run
+	// keeps the usual sentence.
+	{
+		FollowAvailabilityInput ended = inReplay(runOf(train, 1200));
+		ended.replayEndTime = 1549;
+		const std::string afterRun = "Rail-1 is scheduled to enter at 08:25:50, after the end of this run, so the view cannot follow it.";
+		const FollowAvailability off = followAvailability(ended);
+		require(off.phase == FollowPhase::NotEntered && off.entryText == "Rail-1 (scheduled 08:25:50)" && off.statusText == afterRun
+				&& off.controlEnabled && off.canArm && !off.switchOff && !off.canAct,
+			"a train scheduled after the end of a completed run was promised that Follow starts");
+		const FollowAvailability on = followAvailability(withFollow(ended, true));
+		require(on.statusText == afterRun && on.canArm && !on.switchOff && !on.canAct,
+			"a train scheduled after the end of a completed run was promised that Follow starts, with Follow on");
+		ended.replayEndTime = 1550;
+		require(followAvailability(ended).statusText == "Rail-1 is scheduled to enter at 08:25:50. Follow can be switched on now and starts when it enters.",
+			"a train that enters at the last time of a completed run lost its sentence");
+	}
+
 	// Running: the second the train enters. Only a Follow that is on moves the view.
 	{
 		const FollowAvailability off = followAvailability(runOf(train, 1550));

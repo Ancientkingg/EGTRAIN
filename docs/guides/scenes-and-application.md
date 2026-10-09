@@ -175,7 +175,9 @@ without services, **Follow** is disabled and its tooltip says why.
 In a live run Follow is switched off when the selected train leaves the network.
 The train stays in the list, but Follow cannot be switched on for it. In the
 replay of a completed run Follow stays on after the selected train has left, and
-continues when you go back in time. Follow is also cleared when the run ends, when
+continues when you go back in time. A train that is scheduled to enter after the
+end of the completed run has no position in its replay; the label says so and the
+view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 

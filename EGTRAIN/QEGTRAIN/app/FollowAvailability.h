@@ -34,6 +34,8 @@ struct FollowAvailabilityInput {
 	bool replay = false;
 	// Follow is switched on for this train.
 	bool followOn = false;
+	// Last time of the completed run that is displayed, in seconds since simulation start, or -1 when there is none.
+	int replayEndTime = -1;
 	// The chosen train in the displayed snapshot, or null when it is not there.
 	const GuiTrainState* train = nullptr;
 	// Time of the displayed snapshot, in seconds since simulation start.
@@ -95,11 +97,15 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			break;
 		case FollowPhase::NotEntered: {
 			out.canArm = true;
+			// A train that is scheduled after the end of a completed run has no position at any time of its replay, so the
+			// sentence does not say that Follow starts.
+			const bool afterRun = in.train && in.replayEndTime >= 0 && in.train->departureTime > in.replayEndTime;
 			const std::string tail = in.followOn ? "Follow starts when it enters." : "Follow can be switched on now and starts when it enters.";
 			if (in.train) {
 				const std::string entry = formatSimTime(in.train->departureTime, in.clockOffsetSeconds);
 				out.entryText = name + " (scheduled " + entry + ")";
-				out.statusText = name + " is scheduled to enter at " + entry + ". " + tail;
+				out.statusText = name + " is scheduled to enter at " + entry
+					+ (afterRun ? std::string(", after the end of this run, so the view cannot follow it.") : ". " + tail);
 			} else {
 				out.entryText = name + " (not entered yet)";
 				out.statusText = name + " has not entered the network yet. " + tail;

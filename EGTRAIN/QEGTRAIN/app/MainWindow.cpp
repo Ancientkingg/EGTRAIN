@@ -12551,6 +12551,8 @@ void MainWindow::refreshFollowTrainChoices() {
 FollowAvailabilityInput MainWindow::followInput(int row) const {
 	FollowAvailabilityInput in;
 	in.replay = m_replayActive || !m_completedReplay.empty();
+	if (!m_completedReplay.empty())
+		in.replayEndTime = m_completedReplay.lastTime();
 	in.trainsLayerVisible = m_trainLayerVisible;
 	in.clockOffsetSeconds = m_startOffsetSeconds;
 	if (m_snapshot)
