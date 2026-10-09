@@ -419,7 +419,7 @@ int main(int argc, char** argv) {
 			"passengers[0].journeys[0].legs[0].destination"),
 			"passenger leg rejects a reverse ordered service pair");
 	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
-	legacyReversePassengerLeg.importReport.push_back({"legacy_root"});
+	legacyReversePassengerLeg.importReport.push_back({"legacy_root", ""});
 	const auto legacyReverseDiagnostics = validateScene(legacyReversePassengerLeg);
 	ok &= expect(hasCodeAndSeverity(legacyReverseDiagnostics, "scene.passenger.leg.order", SceneSeverity::Warning)
 				&& !hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
@@ -537,13 +537,13 @@ int main(int argc, char** argv) {
 		else if (section.sourceConnectionId == "a-to-c")
 			cToA = section.id;
 	}
-	reversedFork.importReport.push_back({"legacy_root"});
+	reversedFork.importReport.push_back({"legacy_root", ""});
 	reversedFork.routes.push_back({"reversed-fork", {bToA, cToA}, false, "", false});
 	ok &= expect(!bToA.empty() && !cToA.empty()
 				&& hasCode(validateScene(reversedFork), "scene.route.disconnected"),
 			"legacy compatibility cannot turn a wrong-branch switch fork into a regional jump");
 	SceneModel switchDirectionChange = switchTopology;
-	switchDirectionChange.importReport.push_back({"legacy_root"});
+	switchDirectionChange.importReport.push_back({"legacy_root", ""});
 	switchDirectionChange.routes.push_back(
 			{"switch-u-turn", {aToB, bToC, aToB}, false, "", false});
 	ok &= expect(hasCode(validateScene(switchDirectionChange), "scene.route.direction"),
@@ -560,7 +560,7 @@ int main(int argc, char** argv) {
 		else if (section.sourceConnectionId == "b-to-c")
 			regionalBToC = section.id;
 	}
-	regionalSwitchDirectionChange.importReport.push_back({"legacy_root"});
+	regionalSwitchDirectionChange.importReport.push_back({"legacy_root", ""});
 	regionalSwitchDirectionChange.routes.push_back(
 			{"regional-switch-u-turn", {regionalAToB, regionalBToC, regionalAToB}, false, "", false});
 	ok &= expect(!regionalAToB.empty() && !regionalBToC.empty()
@@ -579,7 +579,7 @@ int main(int argc, char** argv) {
 			0.0, 0.0, 20.0});
 	regionJump.blocks.push_back({"region-block", "region-track", 1.0});
 	regionJump.routes.push_back({"region-route", {"block-2", "region-block"}, false, "", false});
-	regionJump.importReport.push_back({"legacy_root"});
+	regionJump.importReport.push_back({"legacy_root", ""});
 	const auto regionJumpDiagnostics = validateScene(regionJump);
 	ok &= expect(hasCode(regionJumpDiagnostics, "scene.route.region_jump")
 				&& !hasCode(regionJumpDiagnostics, "scene.route.disconnected"),

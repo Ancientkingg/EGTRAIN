@@ -17,7 +17,7 @@ namespace {
 constexpr int kDownloadTimeoutMs = 30000;
 constexpr qint64 kMaxManifestBytes = 128 * 1024;
 
-QString executableName() {
+[[maybe_unused]] QString executableName() {
 #if defined(Q_OS_WIN)
 	return QStringLiteral("QEGTRAIN.exe");
 #else
@@ -33,7 +33,7 @@ QString helperName() {
 #endif
 }
 
-bool writableParent(const QString& path) {
+[[maybe_unused]] bool writableParent(const QString& path) {
 	const QFileInfo info(path);
 	const QFileInfo parent(info.absolutePath());
 	return parent.exists() && parent.isDir() && parent.isWritable();

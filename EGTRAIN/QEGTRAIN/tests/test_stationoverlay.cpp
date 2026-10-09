@@ -82,7 +82,6 @@ int main(int argc, char* argv[]) {
 	boundaryView.show();
 	boundaryView.centerOn(boundary->rect().center());
 	QApplication::processEvents();
-	const QPoint dot = boundaryView.mapFromScene(boundary->rect().center());
 	const QImage boundaryImage = boundaryView.viewport()->grab().toImage();
 	ok &= expect(boundary->childItems().size() == 1
 		&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),

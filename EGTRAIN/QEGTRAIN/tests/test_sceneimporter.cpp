@@ -388,8 +388,8 @@ int main() {
 		SceneModel scene;
 		scene.stations = {{"origin", "Origin", false, 0.0, {}}, {"destination", "Destination", false, 1.0, {}}};
 		scene.services.push_back({"Guin-Paim-EXPRESS-1", "Guin-Paim-EXPRESS-1", {}, {}, 100.0, false, 0.0, false, false, 0.0,
-			false, 0.0, false, 0, false, 0, {}});
-		scene.services[0].stops = {{"origin"}, {"destination"}};
+			false, 0.0, false, 0, false, 0, {}, {}, {}});
+		scene.services[0].stops = {{"origin", ""}, {"destination", ""}};
 		const ScenePassengerImportResult imported = importLegacyPassengers(root.dir, scene);
 		ok &= expect(imported.success() && imported.passengers.size() == 3
 				&& imported.passengers[0].journeys[0].legs.size() == 1
@@ -443,7 +443,7 @@ int main() {
 		ok &= expect(sawDasRowPath && sawRouteChoiceRowPath,
 				"Passenger-only import diagnostics retain CSV source paths");
 		SceneModel orderMismatchScene = scene;
-		orderMismatchScene.services[0].stops = {{"destination"}, {"origin"}};
+		orderMismatchScene.services[0].stops = {{"destination", ""}, {"origin", ""}};
 		const ScenePassengerImportResult orderMismatch = importLegacyPassengers(root.dir, orderMismatchScene);
 		bool knownServiceMarkedUnresolved = false;
 		bool knownServiceRowDiagnostic = false;
@@ -474,7 +474,7 @@ int main() {
 				"alias,Tregonnau Squiffiec,0,,Guin-Paim_EXPRESS-1-1\n");
 		SceneModel aliasScene = scene;
 		aliasScene.stations.push_back({"Tregonneau_Squiffiec", "Tregonneau_Squiffiec", false, 2.0, {}});
-		aliasScene.services[0].stops = {{"origin"}, {"Tregonneau_Squiffiec"}};
+		aliasScene.services[0].stops = {{"origin", ""}, {"Tregonneau_Squiffiec", ""}};
 		const ScenePassengerImportResult spellingAlias = importLegacyPassengers(aliasRoot.dir, aliasScene);
 		ok &= expect(spellingAlias.success() && spellingAlias.passengers.size() == 1
 				&& spellingAlias.passengers[0].journeys[0].legs.size() == 1

@@ -35,7 +35,6 @@ struct PreparationOutcome {
 static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 	const std::function<QString(const UpdatePreparationInput&, QString*)>& stager) {
 	PreparationOutcome outcome;
-	const QThread* mainThread = QCoreApplication::instance()->thread();
 	QEventLoop loop;
 	auto* thread = new QThread;
 	auto* worker = new UpdatePreparationWorker;
@@ -50,7 +49,7 @@ static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 	QObject::connect(thread, &QThread::started, worker,
 		[worker, input]() { worker->prepare(input); });
 	QObject::connect(worker, &UpdatePreparationWorker::finished, &loop,
-		[&outcome, &loop, mainThread](const UpdatePreparationResult& result) {
+		[&outcome, &loop](const UpdatePreparationResult& result) {
 			outcome.result = result;
 			outcome.deliveryThread = QThread::currentThread();
 			loop.quit();

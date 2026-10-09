@@ -83,7 +83,7 @@ inline Logger& Logger::operator<<(T t) {
 	return *this;
 }
 
-inline Logger& Logger::operator<<(std::ostream& (*fun)(std::ostream&)) {
+inline Logger& Logger::operator<<(std::ostream& (*)(std::ostream&)) {
 	if (this->b_init) {
 		if (this->settings.b_file)
 			this->ofs << std::endl;

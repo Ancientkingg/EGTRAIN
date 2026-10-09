@@ -28,7 +28,7 @@ public:
 	QRectF boundingRect() const override;
 
 	// reimplemented functions
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	// trackline to which signal belongs
 	int trackID;
@@ -48,7 +48,7 @@ public:
 
 	// to allow cast
 	enum { Type = UserType + 6 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
