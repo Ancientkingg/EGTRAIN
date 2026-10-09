@@ -3767,6 +3767,19 @@ void setInfraSpeedLimits(Section* BS, int Blocks) {
 }
 
 void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int Blocks) {
+	// The aspects are rebuilt from the occupied sections on every step, so start from clear.
+	// Otherwise a restriction stays on a section that nothing rewrites afterwards: the last
+	// sections of the route once the last train has left, and the sections around a failed
+	// section once the failure has ended.
+	for (int h = 0; h < Blocks; h++) {
+		if (BS[h].SignallingLevel == 5) {
+			BS[h].code = 270;
+			strcpy_s(BS[h].state, "green");
+			for (int k = 0; k < BS[h].total_arcs; k++) {
+				BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
+			}
+		}
+	}
 	for (int h = Blocks - 1; h >= 0; h--) {
 		bool IsOccupied = false;
 		list<string>::iterator it;
