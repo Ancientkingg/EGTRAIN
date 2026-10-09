@@ -1,221 +1,73 @@
 # EGTRAIN
 
-![Milano to Brescia case study preview in EGTRAIN](docs/images/application-overview-v2.png)
+EGTRAIN is a desktop application for microscopic railway simulation. It covers railway networks, signalling, rolling stock, services, timetables, train movement, passenger operations and results in an interactive Qt interface.
 
-![Speed versus distance results for the Milano to Brescia case study](docs/images/application-network-view-v2.png)
+[Download](https://github.com/Ancientkingg/EGTRAIN/releases) | [Getting started](#quick-start) | [Documentation](docs/README.md) | [Report an issue](https://github.com/Ancientkingg/EGTRAIN/issues)
 
-EGTRAIN is a desktop application for microscopic railway simulation. It
-combines railway infrastructure, signalling, rolling stock, services,
-timetables, and passenger demand in an interactive Qt interface.
+![The EGTRAIN main window with the loaded network of Milano_Brescia before a run](docs/images/application-overview-v2.png)
 
-The screenshots show the Milano to Brescia corridor before a run and its
-speed-versus-distance results after the baseline simulation completes.
+The loaded network of Milano_Brescia in the main window before a run.
 
-## Start here
+## Quick start
 
-### Download and run existing scenes
+1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `QEGTRAIN-macos-arm64.zip` (Apple silicon Macs), `QEGTRAIN-windows-x64.zip` (64-bit Windows) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). Download a case study file from the same page too, such as `Paimpol.egscene`.
+2. Start the application.
+   - macOS: unzip the package and open `QEGTRAIN.app` from the extracted folder.
+   - Windows: unzip the package into a new folder and run `QEGTRAIN.exe` from it. Keep the folder intact. The Windows package is not code signed, so Windows may warn before it starts the program; [Code signing](docs/development/code-signing.md) explains the state and how to check a download.
+   - Linux: make the AppImage executable and run it.
+3. The application first shows the **Open a Case** window over the case that is already loaded; choose a case in it or continue with the loaded case, and answer any first-start question. Then open the case study with **File > Open Case Study...** and select the downloaded file.
+4. Run it with **Simulation > Run** (or **Run** on the toolbar) and confirm the **Run simulation** window.
+5. When the run ends, open the **Diagrams** menu for the results, for example **Speed / Distance (per train)...**. The result windows have **Export CSV...** and **Export PNG...**.
 
-Download a platform package and one or more `.egscene` case studies from the
-[EGTRAIN releases page](https://github.com/Ancientkingg/EGTRAIN/releases).
-Unpack the application for your platform, launch `QEGTRAIN`, then choose
-**File > Open Case Study...** and **Run Scene**. The release page provides
-macOS, Windows, and Linux application packages plus the seven canonical scenes.
-The Windows package is not code signed, so Windows may warn before it starts the
-program; [Code signing](docs/development/code-signing.md) explains the state and
-how to check a download.
+[Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) has the details. [Command-line options and scene_tool](docs/guides/command-line.md) covers headless runs, options and the output folder.
 
-For a source checkout, launch without arguments to open the Netherlands scene,
-or use `-n 1` through `-n 6` to select another included case study. See
-[Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) for the
-downloaded-bundle workflow.
+## What you can do
 
-### Create or edit scenes
+- Infrastructure and signalling: view tracks, stations, signals and routes in a graphical scene, and give sections a signalling level with signalling areas.
+- Rolling stock, services and timetables: inspect and edit trains, services and timetables.
+- Simulation: simulate train movement over signalled infrastructure, including delays and passenger operations.
+- Scene editing and validation: edit scenes, validate them before a run, and import legacy cases.
+- Results and exports: review timetable, train-path, delay, speed, trajectory and blocking-time results, and export them as CSV and PNG files.
 
-Use **File > Open Scene Folder...** for an editable canonical V1 scene
-directory, or **File > Open Case Study...** for an `.egscene` bundle. Save a
-new bundle with **File > Save Case Study As...**. V1 directories remain the
-editable source of truth; V2 bundles package the same JSON for transport.
+![The Speed vs Distance result window of Milano_Brescia, baseline, 47 trains, after a run](docs/images/application-network-view-v2.png)
 
-Legacy input is a compatibility boundary, not the normal runtime path. Use
-**File > Load Legacy Case...** or `scene_tool import` to create a canonical
-scene, and use `scene_tool export` only when an external legacy tool needs
-interoperability files. The importer does not modify its source.
+The Speed vs Distance result window of Milano_Brescia (baseline, 47 trains) after a run.
 
-- [Using EGTRAIN and authoring V1 scenes](docs/guides/scenes-and-application.md)
-- [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md)
-- [V1 scene property reference](docs/guides/v1-scene-properties.md)
+## Case studies
 
-### Develop or contribute
+| Case study | Release file | Tracks | Stations | Services | Note |
+| --- | --- | ---: | ---: | ---: | --- |
+| Netherlands | `Netherlands.egscene` | 268 | 41 | 8 | |
+| Paimpol | `Paimpol.egscene` | 6 | 10 | 2 | Paimpol, France. Includes passenger data. |
+| Copenhagen | `Copenhagen.egscene` | 168 | 94 | 24 | Copenhagen, Denmark. |
+| Milano_Brescia | `Milano_Brescia.egscene` | 38 | 29 | 62 | Milan to Brescia, Italy. |
+| Assignment Gvc-Gdg-Ut | `Assignment_Gvc_Gdg_Ut.egscene` | 2 | 3 | 4 | Synthetic two-track fixture, not a distributable TU Delft case. |
+| Lebanon | `Lebanon.egscene` | 8 | 34 | 1 | Teaching baseline; the train parameters are not Lebanon rolling-stock data. |
+| Amsterdam_Hilversum_Student | Not in release v1.0.2 | 268 | 41 | 1 | Fictional teaching timetable on the Netherlands network. See the [student case guide](docs/guides/amsterdam-hilversum-student-case.md). |
 
-Start with the [build and test guide](docs/development/build-and-test.md),
-then read the [scene model architecture](docs/architecture/scene-model.md)
-before changing scene loading, conversion, simulation setup, or persistence.
+The counts are the numbers of entries in `infrastructure.json` (tracks), `stations.json` (stations) and `services.json` (services), so they can differ from the number of trains in a result window. The scene folders are in `EGTRAIN/QEGTRAIN/Scenes` in the repository and inside the application packages.
 
-## What EGTRAIN does
+## Credits and research background
 
-- Loads railway networks and service data from the included case studies.
-- Displays tracks, stations, signals, routes, and moving trains in a graphical
-  scene.
-- Lets users inspect and edit trains, services, timetables, and scene
-  properties.
-- Simulates train movement over signalled infrastructure, including delays and
-  passenger operations.
-- Produces timetable, train-path, delay, speed, trajectory, and blocking-time
-  results.
-- Exports simulation data for reports and external analysis.
-- Retains compatibility with existing EGTRAIN input data while scene-based
-  editing replaces manual text-file work.
+EGTRAIN was originally developed by Prof. [Egidio Quaglietta](https://orcid.org/0000-0002-7936-5832) as a microscopic railway simulation model. Its foundations and early applications are described in his [doctoral thesis](https://doi.org/10.6092/unina/fedoa/8599).
 
-## Background
+[Samuel Bruin](https://samuelbruin.com/) ([GitHub profile](https://github.com/Ancientkingg)) continues development and maintenance of the desktop application in this repository.
 
-EGTRAIN was originally developed by
-[Egidio Quaglietta](https://orcid.org/0000-0002-7936-5832) as a microscopic
-railway simulation model. The model and its early applications are described
-in [Quaglietta's doctoral thesis](https://doi.org/10.6092/unina/fedoa/8599).
+The original EGTRAIN case-study inputs for the SORTEDMOBILITY research project are available from [4TU.ResearchData](https://doi.org/10.4121/e78d0dc2-3123-4510-a2c5-7ad017a02e33.v1).
 
-This repository continues that work as a desktop application for students and
-researchers. The original EGTRAIN case-study inputs for the SORTEDMOBILITY
-research project are available from
-[4TU.ResearchData](https://doi.org/10.4121/e78d0dc2-3123-4510-a2c5-7ad017a02e33.v1).
+## Documentation and development
 
-## Included case studies
+- Run a case study: [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) and [Command-line options and scene_tool](docs/guides/command-line.md).
+- Create or edit scenes: [Using EGTRAIN and authoring V1 scenes](docs/guides/scenes-and-application.md) and [V1 scene properties](docs/guides/v1-scene-properties.md).
+- Build, test and contribute: [Build And Test](docs/development/build-and-test.md), [Coding guidelines](docs/development/coding-guidelines.md), [V1 Scene Model](docs/architecture/scene-model.md) and, for the repository layout, [QEGTRAIN source layout](docs/architecture/source-layout.md#repository-layout).
 
-EGTRAIN includes seven canonical railway scenes:
+EGTRAIN is a C++17 application built with Qt 5 and CMake. See [Documentation](docs/README.md) for the full list.
 
-- Netherlands
-- Paimpol, France
-- Copenhagen, Denmark
-- Milan to Brescia, Italy
-- Assignment Gvc-Gdg-Ut
-- Lebanon teaching baseline
-- Amsterdam to Hilversum student case (fictional timetable on the Netherlands network)
+## Support
 
-Select them with the `-n` command-line option:
+Report problems in [GitHub Issues](https://github.com/Ancientkingg/EGTRAIN/issues). Please include the application version, your operating system, the steps to reproduce the problem, and what you expected against what happened.
 
-- `-n 1`: Netherlands
-- `-n 2`: Paimpol
-- `-n 3`: Copenhagen
-- `-n 4`: Milan to Brescia
-- `-n 5`: Assignment Gvc-Gdg-Ut
-- `-n 6`: Lebanon
-
-The Amsterdam to Hilversum student case has no `-n` number. Open it with the
-**Open Case** toolbar button, or start it from `EGTRAIN/QEGTRAIN` with
-`--scene Scenes/Amsterdam_Hilversum_Student`. The
-[student case guide](docs/guides/amsterdam-hilversum-student-case.md) describes
-the exercise.
-
-## Build from source
-
-Requirements:
-
-- CMake 3.16 or newer
-- C++17 compiler
-- Qt 5 Core, Gui, Widgets, Charts, and Svg
-- ZeroMQ, cppzmq, and nlohmann-json
-
-Configure and build from the repository root:
-
-```bash
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
-cmake --build build
-```
-
-On macOS with Homebrew Qt 5, install the dependencies if they are not already
-available:
-
-```bash
-brew install qt@5 zeromq cppzmq nlohmann-json
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
-cmake --build build
-```
-
-Windows (MSVC, Qt 5.15, vcpkg x64) and Linux (Ubuntu apt packages) configure
-commands are in the [build and test guide](docs/development/build-and-test.md).
-Windows builds are 64-bit only, and there is no Visual Studio solution file:
-open the folder as a CMake project.
-Python 3.9 or newer is needed to run the tests.
-
-## Run a local build
-
-Run the application from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
-After a successful build, use the executable for your platform:
-
-```text
-# macOS
-../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
-
-# Windows PowerShell, multi-config generator
-..\..\build\Release\QEGTRAIN.exe
-
-# Linux
-../../build/QEGTRAIN
-```
-
-A single-config Windows build may place the executable at
-`..\..\build\QEGTRAIN.exe` instead. These are local build paths, not a claim
-that a package has been installed.
-
-Useful options include:
-
-```text
--n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
---scene path/to/case.egscene
---interactive
---seed 789350715
-```
-
-`--seed` sets the seed of the random draws for passenger time windows and
-passenger-dependent dwell times. It takes a whole number from 1 to
-2147483646 and defaults to 789350715. Runs of the same scene with the same
-seed give the same results, and the seed is recorded in the provenance file
-that is written next to exported results.
-
-By default, runtime output is written to
-`<Qt AppDataLocation>/Output/<scene>`, not necessarily to a repository
-directory. Set `QEGTRAIN_OUTPUT_DIR` to choose the base directory; EGTRAIN
-then writes `<that-directory>/Output/<scene>`:
-
-```bash
-QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
-```
-
-## Test
-
-Run these commands from the repository root:
-
-```bash
-ctest --test-dir build --output-on-failure
-tools/e2e/headless_smoke.py
-tools/e2e/visual_polish_smoke.sh
-```
-
-The headless smoke test covers all seven scenes and checks application startup,
-train movement, trajectory samples, and served-station output. The graphical
-interface smoke test covers the six scenes that have a `-n` number. CI runs the
-same CTest suite on macOS, Windows, and Linux. Select a subset with test labels,
-for example `ctest --test-dir build -L unit -LE slow`. See the
-[build and test guide](docs/development/build-and-test.md) for labels, platform
-exclusions, round-trip checks, CI branch roles, and failure artifacts.
-
-## Documentation
-
-- [Scene schema reference](docs/architecture/scene-schema.md)
-- [Scene bundle format](docs/architecture/scene-bundle.md)
-- [Release testing checklist](docs/development/release-testing-checklist.md)
-- [Assignment corridor](docs/product/assignment-corridor.md)
-- [Assignment workflow](docs/product/assignment-workflow.md)
-
-## Repository layout
-
-```text
-EGTRAIN/QEGTRAIN/        C++ Qt application source
-EGTRAIN/QEGTRAIN/Scenes/ Canonical included case-study data
-EGTRAIN/QEGTRAIN/tests/  C++ regression tests
-tools/e2e/               End-to-end smoke tests
-tools/golden_master/     Output comparison helpers
-docs/                    User, architecture, and development documentation
-```
+Do not upload private project data, such as case study files, logs or screenshots with data you do not want to share, unless it is needed to explain the problem. Remove what you do not want to share.
 
 ## License
 
