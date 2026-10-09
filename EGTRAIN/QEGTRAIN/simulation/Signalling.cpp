@@ -4583,7 +4583,7 @@ void setRouteVirtualSignals() {
 	}
 }
 
-// vector containing the limits of single tracks (pair of first/last plain signalling_block_sections IDs, train occupying single track, signalling_block_sections IDs to block)
+// vector containing the limits of single tracks (first plain block ID, last plain block ID, protected block ID at the first end, protected block ID at the last end)
 std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
 
 std::vector<int> singleTrackHeld;
