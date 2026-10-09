@@ -13189,25 +13189,34 @@ void MainWindow::runStationOverlayE2E() {
 		scene->removeItem(ghostStation);
 		delete ghostStation;
 		marker("E2E_STATION_MULTI_SOURCE_BINDING_OK");
-		fitView();
-		updateViewportOverlays();
-		QApplication::processEvents();
+		const auto shownNames = [this]() {
+			QSet<const StationOverlayItem*> stations;
+			for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+				if (overlay->nameItem() && overlay->nameItem()->isVisible())
+					stations.insert(overlay);
+			return stations;
+		};
+		// The run can end while the events below are handled. The results then appear and resize the view, and other
+		// names collide. The names before and after the toggle are compared only for one view, and taken again otherwise.
 		QSet<const StationOverlayItem*> shownNameStations;
-		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
-			if (overlay->nameItem() && overlay->nameItem()->isVisible())
-				shownNameStations.insert(overlay);
-		m_stationNamesCheck->setChecked(false);
-		QApplication::processEvents();
-		bool namesHidden = true;
-		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
-			if (overlay->nameItem() && overlay->nameItem()->isVisible())
-				namesHidden = false;
-		m_stationNamesCheck->setChecked(true);
-		QApplication::processEvents();
 		QSet<const StationOverlayItem*> restoredNameStations;
-		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
-			if (overlay->nameItem() && overlay->nameItem()->isVisible())
-				restoredNameStations.insert(overlay);
+		bool namesHidden = false;
+		for (int attempt = 0; attempt < 3; ++attempt) {
+			fitView();
+			updateViewportOverlays();
+			QApplication::processEvents();
+			const QSize viewSize = networkView->viewport()->size();
+			const QTransform viewTransform = networkView->viewportTransform();
+			shownNameStations = shownNames();
+			m_stationNamesCheck->setChecked(false);
+			QApplication::processEvents();
+			namesHidden = shownNames().isEmpty();
+			m_stationNamesCheck->setChecked(true);
+			QApplication::processEvents();
+			restoredNameStations = shownNames();
+			if (networkView->viewport()->size() == viewSize && networkView->viewportTransform() == viewTransform)
+				break;
+		}
 		if (!namesHidden || shownNameStations.isEmpty() || restoredNameStations != shownNameStations)
 			failures << QString("station name layer toggle does not restore the same names (before=%1 hiddenByToggle=%2 after=%3 zoom=%4)")
 							.arg(shownNameStations.size())
