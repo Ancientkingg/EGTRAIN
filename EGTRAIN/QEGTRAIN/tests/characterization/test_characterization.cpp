@@ -497,9 +497,10 @@ bool parseReal(const std::string& text, double& value) {
 	return !in.fail() && in.eof();
 }
 
-// Rows of Stats_Stations.txt whose name starts with a letter, keyed by the
-// header names. The file has six significant digits.
-bool readStationStats(const std::string& path, Observation& lines) {
+// Rows of a station statistics file (Stats_Stations.txt, or Pos&Neg_Stats_Stations.txt
+// with the early arrivals as negative delays) whose name starts with a letter, keyed
+// by the header names. The files have six significant digits.
+bool readStationStats(const std::string& path, const std::string& keyPrefix, Observation& lines) {
 	std::ifstream in(path);
 	if (!in)
 		return false;
@@ -516,7 +517,7 @@ bool readStationStats(const std::string& path, Observation& lines) {
 		if (!std::isalpha(static_cast<unsigned char>(words[0][0])))
 			continue;
 		Line line;
-		line.key = "stats " + words[0];
+		line.key = keyPrefix + " " + words[0];
 		for (size_t i = 1; i < words.size(); ++i) {
 			const std::string name = i < header.size() ? header[i] : "col" + std::to_string(i);
 			double value = 0.0;
@@ -619,6 +620,41 @@ std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks
 		separations.push_back(separation);
 	}
 	return separations;
+}
+
+// A run reports one arrival delay per train and station, whichever output is read.
+// The total of a station in Stats_Stations.txt is the sum of the late arrivals the
+// timetable results report there, the total in Pos&Neg_Stats_Stations.txt the sum of
+// all of them, and N_StopTrains counts the arrival delays. A train that did not arrive,
+// or has no planned arrival, has no delay in the results and is not counted.
+std::vector<std::string> findStatisticsViolations(const Observation& obs, const std::vector<TimetableResultRow>& rows) {
+	std::vector<std::string> failures;
+	for (const Line& line : obs) {
+		const bool late = line.key.rfind("stats ", 0) == 0;
+		if (!late && line.key.rfind("signed_stats ", 0) != 0)
+			continue;
+		const std::string station = line.key.substr(line.key.find(' ') + 1);
+		if (station.rfind("Ent_", 0) == 0 || station == "DwT_Dist" || station == "TOTALS" || station == "Final_Station")
+			continue;
+		double expectedTotal = 0.0;
+		int expectedCount = 0;
+		for (const TimetableResultRow& row : rows) {
+			if (row.stationId != station || !row.arrivalDelaySeconds.available)
+				continue;
+			expectedTotal += late ? std::max(0.0, row.arrivalDelaySeconds.value) : row.arrivalDelaySeconds.value;
+			++expectedCount;
+		}
+		const std::string file = late ? "Stats_Stations.txt" : "Pos&Neg_Stats_Stations.txt";
+		for (const Field& field : line.fields) {
+			if (field.name == "Total_Delay" && std::fabs(field.real - expectedTotal) > std::max(0.5, 1e-5 * std::fabs(expectedTotal)))
+				failures.push_back(file + " reports a total delay of " + formatReal(field.real) + " s at " + station
+					+ ", the timetable results give " + formatReal(expectedTotal) + " s");
+			if (field.name == "N_StopTrains" && std::fabs(field.real - expectedCount) > 0.5)
+				failures.push_back(file + " counts " + formatReal(field.real) + " trains at " + station
+					+ ", the timetable results give an arrival delay for " + std::to_string(expectedCount));
+		}
+	}
+	return failures;
 }
 
 // Checks that hold for the fixture whatever the golden file says.
@@ -931,13 +967,21 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 					realField("pos", authority.position), integerField("reversed", authority.reversed ? 1 : 0)});
 	}
 
-	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Stats_Stations.txt", obs)) {
+	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Stats_Stations.txt", "stats", obs)) {
 		outcome.error = "the run wrote no TrainTrajectories/Stats_Stations.txt\n";
 		return outcome;
 	}
+	if (!readStationStats(outputDir.path().toStdString() + "/TrainTrajectories/Pos&Neg_Stats_Stations.txt", "signed_stats",
+			obs)) {
+		outcome.error = "the run wrote no TrainTrajectories/Pos&Neg_Stats_Stations.txt\n";
+		return outcome;
+	}
 
-	if (checkInvariants)
+	if (checkInvariants) {
 		outcome.invariantFailures = findInvariantViolations(spec, tracks, separations, rows);
+		const std::vector<std::string> statisticsFailures = findStatisticsViolations(obs, rows);
+		outcome.invariantFailures.insert(outcome.invariantFailures.end(), statisticsFailures.begin(), statisticsFailures.end());
+	}
 	return outcome;
 }
 

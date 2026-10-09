@@ -93,7 +93,7 @@ void calculateStationDelayStatistics(Stations& station, bool includeNonPositive)
 	std::vector<double> consecutive;
 	const auto append = [&arrivals, &consecutive, includeNonPositive](const Train& train, int index) {
 		const bool recorded = includeNonPositive
-			? train.StationArrivals[index] != -1
+			? train.StationArrivals[index] >= 0 && train.ScheduledArrivals[index] >= 0
 			: train.StationDelay[index] != -1;
 		if (!recorded)
 			return;
@@ -169,7 +169,6 @@ void calculatePosAndNegDelayStatsForAllStations() {
 // Function to calculate positive an negative delays of trains for all the trains considered in the simulation
 void calculatePosAndNegArrivalDelayAllTrains() {
 	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].Actual_Arrivals();
 		regional_train[j].Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
 	}
 }

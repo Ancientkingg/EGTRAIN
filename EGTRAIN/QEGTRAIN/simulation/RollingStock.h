@@ -3379,48 +3379,40 @@ public:
 		return RunStartTime * timestep;
 	}
 
-	// Function to pick up time instant in which the train actually enters a specific station "instant_spatial_position" during simulation
-	double Arrival_At_Station_NewVersion(Node ST) {
-		int T = -1;
-		for (int t = 1; t <= End_Time; t++) {
-			if (((instant_spatial_position[t - 1] < ST.X * 1000 - 3) && (instant_spatial_position[t] > ST.X * 1000 - 0.005)) && (instant_train_speed[t] == 0)) {
-				T = t;
-				break;
-			}
+	// The timetable point of a stop of this train, or nullptr if there is none. A station served more than
+	// once has one timetable point per call, in the order of the stops.
+	const TrainEvent* timetablePointOfStop(int stopIndex) const {
+		const string stationName = stationNameForArrivalStats(stopIndex);
+		int call = 1;
+		for (int previous = 0; previous < stopIndex; previous++) {
+			if (stationNameForArrivalStats(previous) == stationName)
+				call++;
 		}
-		return (double)(T * timestep);
+		int seen = 0;
+		for (const TrainEvent& event : TimetablePoints) {
+			if (event.SuccessorID == stationName && ++seen == call)
+				return &event;
+		}
+		return nullptr;
 	}
 
-	// Function to calculate actual train arrival istants at each station
-	void Actual_Arrivals() {
-		for (int s = 0; s < numStations; s++) {		// looping among the number of stations of the train
-			for (int h = 0; h < numStations; h++) { // looping among the total number of StationArray
-				if (Stations[s].stationName == StationArray[h].stationName)
-					StationArrivals[s] = Arrival_At_Station_NewVersion(StationArray[h]);
-			}
-		}
-	}
-
-	// Function to setup the station arrivals of the trains based on the computed arrivals/departures at the timetabling points
-	// This function replaces the function above "Actual_Arrivals"
+	// Function to setup the station arrivals of the trains from the arrival at their timetable points.
+	// That is the arrival the timetable results report, so the delay statistics use the same event. A stop
+	// whose timetable point has no arrival (the train did not get there) has no arrival. The positions
+	// recorded during the run only serve a stop that has no timetable point at all.
 	void Determine_Actual_Station_Arrivals() {
-		if (!this->TimetablePoints.empty()) {
-			for (int s = 0; s < numStations; s++) {
-				for (list<TrainEvent>::iterator TT = TimetablePoints.begin(); TT != TimetablePoints.end(); TT++) {
-					// Live service-stop captures are authoritative; timetable points fill only missing values.
-					if (StationArrivals[s] < 0 && TT->SuccessorID == stationNameForArrivalStats(s) && TT->Time >= 0) {
-						StationArrivals[s] = TT->Time;
-						StationArrivalNames[s] = TT->SuccessorID;
-						break;
-					}
-				}
+		for (int s = 0; s < numStations; s++) {
+			if (const TrainEvent* point = timetablePointOfStop(s)) {
+				StationArrivals[s] = point->Time >= 0 ? point->Time : -1;
+				if (point->Time >= 0)
+					StationArrivalNames[s] = point->SuccessorID;
 			}
 		}
 
 		const double toleranceMeters = 5.0;
 		const int sampleCount = trajectorySize();
 		for (int s = 0; s < numStations; s++) {
-			if (StationArrivals[s] >= 0)
+			if (StationArrivals[s] >= 0 || timetablePointOfStop(s))
 				continue;
 
 			const double stationMeters = stationRoutePositionMeters(s);
@@ -3451,10 +3443,8 @@ public:
 		for (int s = 0; s < numStations; s++) {
 			// Calculate Total Delay in input
 			TotalInputDelays = TotalInputDelays + StationDisturbance[s];
-			// if the train is arrived at station s
-			if (StationArrivals[s] < 0 && ScheduledArrivals[s] >= 0)
-				StationArrivals[s] = ScheduledArrivals[s];
-			if (StationArrivals[s] != -1) {
+			// a train that did not arrive at station s has no arrival delay; a stop without a planned arrival has none either
+			if (StationArrivals[s] >= 0 && ScheduledArrivals[s] >= 0) {
 				// Compute StationDelay
 				StationDelay[s] = StationArrivals[s] - ScheduledArrivals[s];
 				// Compute ConsecutiveDelay
@@ -3475,8 +3465,8 @@ public:
 	// Function to calculate train delays taking into account both the positive and negative (arrival ahead the schedule) delays
 	void Compute_Pos_And_Neg_Arrival_Delays_At_Stations() {
 		for (int s = 0; s < numStations; s++) {
-			// if the train is arrived at station s
-			if (StationArrivals[s] != -1) {
+			// if the train is arrived at station s and has a planned arrival there
+			if (StationArrivals[s] >= 0 && ScheduledArrivals[s] >= 0) {
 				// Compute StationDelay
 				StationDelay[s] = StationArrivals[s] - ScheduledArrivals[s];
 				// Compute ConsecutiveDelay
