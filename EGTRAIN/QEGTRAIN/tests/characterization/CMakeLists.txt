@@ -47,6 +47,10 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	sf-first-level-0
 	sf-first-level-1
 	sf-first-level-2
+	same-entry-level-none
+	same-entry-level-0
+	same-entry-level-1
+	same-entry-level-2
 	late-leader-level-3
 	late-leader-level-4
 	single-track-level-none

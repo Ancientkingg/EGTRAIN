@@ -641,6 +641,12 @@ public:
 	//! This Function checks if the train can Enter the simulation
 	//!  (i.e. when time>=departure_time and for the first time signalling_block_sections[0] is free)
 	void checkEntrance(int i, Section* BS) {
+		// Where a signalling level applies, one train enters a section per step: a train that entered earlier in
+		// this step has put the section in BlocksOccupied, which the aspect only shows from the next step.
+		const bool waiting = !CanEnter;
+		const bool separated = BS[0].SignallingLevel >= 0;
+		if (waiting && separated && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), BS[0].ID) != BlocksOccupied.end())
+			return;
 		string PreviousTrain = "None"; // the previous Train according to the list
 		int IndexOL = BS[0].arcs_in_signalling_block_section[0].startNode.indexOrderList;
 
@@ -707,6 +713,8 @@ public:
 				}
 			}
 		}
+		if (waiting && separated && CanEnter) // the entering train occupies the first section at once
+			occupyBlockAndConnected(BS[0], BS[0], Start_Node_X * 1000, Start_Node_X * 1000);
 	}
 
 	// Function to compute dwell times based on the interaction with passengers
