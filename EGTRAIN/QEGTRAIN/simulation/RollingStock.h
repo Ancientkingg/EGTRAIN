@@ -1199,9 +1199,12 @@ public:
 
 											if ((this->IsTrainInFollowingMode == 0) && (it->TrainInfo.Acceleration < 0)) {
 												// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
-												// stops behind that point instead of matching the speed of the leader.
+												// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
+												// authority stays where the leader reported it.
 												const double LeaderBrakingStart = BrakDist_Block(it->TrainInfo.TrainSpeed, 0, ETCSBrakingPoint.X, BS, Blocks);
-												const double LeaderStandstill = std::min(2 * ETCSBrakingPoint.X - LeaderBrakingStart, train_route[this->indexOfRoute].x_of_end_node * 1000);
+												const double LeaderStandstill = LeaderBrakingStart < 0
+													? ETCSBrakingPoint.X
+													: std::min(2 * ETCSBrakingPoint.X - LeaderBrakingStart, train_route[this->indexOfRoute].x_of_end_node * 1000);
 												PredictedDistanceToCoupling = LeaderStandstill - ETCSBrakingPoint.X;
 												ETCSBrakingPoint.X = LeaderStandstill;
 												BrakingForEoAModified = true;
